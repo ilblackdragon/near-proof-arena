@@ -1,0 +1,74 @@
+{
+  "lane": "process-sound-repair",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Entry.lean",
+      "sha256": "e96c94ed18e187825c6e8bc5a2cc7a8cfd554083f2059d56cc9468acdb13514e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Entry.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Row.lean",
+      "sha256": "3dc466c949d0304aaa55767bf7cf7a8f070f08f6b0c4b392b24a35055fc1aa1b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Row.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Block.lean",
+      "sha256": "f6ed058902e73ed24903b21d2164a0f051dbb6e1f6eac620d8d80cc474f6761c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Block.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Round.lean",
+      "sha256": "e20a096611a27411367988e3a65d1c28c4f1a4250bf283ff43e154090ef8ff1f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Round.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Msg.lean",
+      "sha256": "420ae8e5b7eeff182b57939247ec8eab830a2b01724db8bf5e514b531035458e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Msg.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Inst.lean",
+      "sha256": "6f4ba5eb77192a049631bec952c1eeba1e101647559755fab9329d7a7ccb5766",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Inst.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Rows.lean",
+      "sha256": "bc1b824940e8dcfe26076e58d9d1990a1911b9fb0f85f9136d16789b3754acb7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Rows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSound/Bridge.lean",
+      "sha256": "56a35c8adb0d2d475946aa2d42fe648b6b40da8c1c81aaec0f9d2f8534c0c05c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-Bridge.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcSound.lean",
+      "sha256": "7b17899e3966fe503d8f8ff9137e827848179854171138e212da1d3a1d2f4cbd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-sound-repair-AuditProcSound.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Repaired candidate process table full row/block/round/message/instance sound extraction and physical instance bridge. Global scheduler link still hardcodes old table; native replay and multi-instance completeness remain open.",
+  "exact_axiom_guards": 91,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

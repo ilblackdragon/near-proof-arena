@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: UniqueSourceCounter strict PASS6 exact guards: corrected natural
+accumulator active-row evaluation, final total, internal successor and actual
+cross-block recurrence proved. Field constraint lifting, SIZE traffic/carry
+integration and source dictionary extraction remain before active family swap.
+
+Independent process-sound-repair PASS91 exact guards across eight modules:
+full candidate process row/block/round/message/instance sound extraction and
+physical_instance bridge from actual candidate TableLocal. Only key-register
+rotation boundary behavior changes; global scheduler linking, native Gen.run
+replay laws and multi-instance honest assembly remain open.
+Native-lookup-chain PASS6 exact guards: first-row native leaf fields and complete
+indexed leaf/drain successor equations. Extension/branch validity, provider
+coverage and shared request ranks remain open.
+
+Receipt735/881; selected fixed-height10/19. Full certificate, clean build,
+prover, judge and general NEAR remain incomplete. Strict source checks use
+prebuilt dependencies. Latest push failed DNS; retry after this checkpoint.
+
+
 2026-10-08: UniqueSourceRender/Partitions strict PASS10 guards. Concrete new
 renderer changes only SIZE column54, using full computed-entry charge and zero
 duplicate-reference charge. Only accumulator constraints51/52 inspect that column;

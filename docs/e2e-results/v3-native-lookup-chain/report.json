@@ -1,0 +1,32 @@
+{
+  "lane": "native-lookup-chain",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeafHead.lean",
+      "sha256": "8e35ddb1b16b66046d0a1898fedbe21e7bab923f15093ff8ccb6cb80a3fb52b8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-chain-NativeLookupLeafHead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeafChain.lean",
+      "sha256": "f9a77cd6b6a836e34f44337e598f90ecc6edfdb5eaa63977c062703201f5377d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-chain-NativeLookupLeafChain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupChain.lean",
+      "sha256": "a27ccd63678c1832b7f4ad022f310f04bcf2adcf0723027b53d708f9e67bdf85",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-chain-AuditNativeLookupChain.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native leaf head and full indexed leaf/drain successor validity. Extension/branch validity and global provider coverage remain open.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
