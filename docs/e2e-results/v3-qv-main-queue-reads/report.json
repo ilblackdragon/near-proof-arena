@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Three exact guards: physical main tau zero, ordered main reads with all native shard group availability, and recovered MainValues.Valid from parser evidence. Inputs are actual local constraints, authenticated count/QSH stream, per-row canonical trie reads and parser evidence; final all-bus composition and implicit sequencing remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/MainQueueReads.lean",
+      "sha256": "bb69ffdc45f15bb6b4962b3d1896437dae8ea2fab1f4800b5be6dc0162e05834",
+      "audit": "zk-formal/test/AuditQvMainQueueReads.lean",
+      "audit_sha256": "e8e8569bb64703ad1364a35bc29670f5881c4599fb4af9e9ffb0a45d1d9f72ec",
+      "guards": 3,
+      "log": "/tmp/nearproof-MainQueueReads-audit-checked.log"
+    }
+  ]
+}

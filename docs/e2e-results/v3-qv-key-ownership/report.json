@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Five exact guards: terminal-bound implicit distance, cross-phase/full queue ID uniqueness, and same-request ownership of actual physical sends. Native public K<64 remains explicit. Other-provider exclusion and global bus balance integration remain open; not a full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/ImplicitWalkBound.lean",
+      "sha256": "53edfa5d047d2e39150bbbe9c883c8cf60893ddd3b9cc022b92650a0a3abfb85",
+      "audit": "zk-formal/test/AuditQvImplicitWalkBound.lean",
+      "audit_sha256": "81d8c0dc740acbffa5bf70b1f4f3e482b7aeb3eb762248bca694f5d4eee85de1",
+      "guards": 3,
+      "log": "/tmp/nearproof-ImplicitWalkBound-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/KeyOwnership.lean",
+      "sha256": "9a66cc3ec5021e9fcace750d7218ef06610664f631763f1368106e5244648b0f",
+      "audit": "zk-formal/test/AuditQvKeyOwnership.lean",
+      "audit_sha256": "88991ee7fa564abf91a6c21889a3646706c3b6c8ad0a43def6581b526c85a37f",
+      "guards": 2,
+      "log": "/tmp/nearproof-KeyOwnership-audit-checked.log"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical QSH count request uniqueness module; three exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/WalkCountRequest.lean",
+      "sha256": "8868f65e71a576f74787151503724e86ca382227fd1baa41a3365f9ab2e4d4a2",
+      "audit": "zk-formal/test/AuditQvWalkCountRequest.lean",
+      "audit_sha256": "9f479ce6e7d845f295c28f96b0aa136fbf81d3986b23bdba72c60e1787016a86",
+      "guards": 3,
+      "log": "/tmp/nearproof-WalkCountRequest-audit-checked.log"
+    }
+  ]
+}

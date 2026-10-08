@@ -1,0 +1,234 @@
+import ZkFormal.NearV3.Render.Ups.CompactExtract.PartMemory
+import ZkFormal.NearV3.Render.Ups.CompactExtract.Mem
+import ZkFormal.NearV3.Render.Ups.CompactExtract.KindHeads
+import ZkFormal.NearV3.Render.Ups.CompactExtract.NodeFieldBytes
+import ZkFormal.NearV3.Extract.Ups.Shapes
+namespace ZkFormal.NearV3.Render.UpsRelay.Extract
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl UpsV3 UpsRows
+attribute [local irreducible] UpsSeg.row UpsSeg.next
+section
+variable {v : List UpsSeg} (hw : Wf v) {s : UpsSeg} (hs : s ∈ v)
+include hw hs
+
+theorem keyRows_of {r : Nat} (h1 : UField s r 1) (h2 : stOf (s.row r) = 2) : KeyRows s r 1 :=
+  ⟨Nat.le_refl _, ⟨h1, h2⟩, fun h => absurd h (by omega), by simp [rowsB]⟩
+
+/-- **A leaf part's fields.** -/
+theorem leafShape {o ℓ : Nat} {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htl : s.row o qtl = 1)
+    (hq0 : s.row o qb = 1) (hpf : s.row o pf = 1) :
+    let q := s.row o qhk
+    ℓ = 49 + q ∧ (s.row o nokey = 1 ↔ q = 1) ∧
+    rowsB s o ℓ = rowsB s o 1 ++ (rowsB s (o + 1) 4 ++ (rowsB s (o + 5) q ++ (rowsB s (o + 5 + q) 4 ++
+      (rowsB s (o + 9 + q) 32 ++ rowsB s (o + 41 + q) 8)))) ∧
+    (UField s o 1 ∧ stOf (s.row o) = 0) ∧ (UField s (o + 1) 4 ∧ stOf (s.row (o + 1)) = 1) ∧ KeyRows s (o + 5) q ∧
+    (UField s (o + 5 + q) 4 ∧ stOf (s.row (o + 5 + q)) = 4) ∧
+    (UField s (o + 9 + q) 32 ∧ stOf (s.row (o + 9 + q)) = 5) ∧
+    (UField s (o + 41 + q) 8 ∧ stOf (s.row (o + 41 + q)) = 8) := by
+  intro q
+  obtain ⟨-, -, -, -, hsum, bnk, -, hnq⟩ := partHead (okRow hw hs (i := o) (by have := U.le; have := U.pos; omega))
+    (rowLt hw hs _) hpf hq0
+  obtain ⟨hFA, hBy⟩ := partFieldsAt U
+  rw [htl] at hFA hBy
+  have hlen := congrArg List.length hBy
+  rcases bnk with hnk | hnk
+  · simp only [shapeU, hnk, ite_true, List.nil_append, List.cons_append, List.singleton_append,
+      show ¬ ((0 : Nat) = 1) by omega, ite_false] at hFA hBy hlen
+    simp only [FieldsAt, fieldsB, List.append_nil] at hFA hBy hlen
+    obtain ⟨U0, s0, U1, s1, U2, s2, U3, s3, U4, s4, U5, s5, U6, s6, -⟩ := hFA
+    have hq1 : 1 < q := by have := U3.pos; omega
+    simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+    refine ⟨by omega, ⟨fun h => by omega, fun h => by omega⟩, ?_, ⟨U0, s0⟩, ⟨U1, s1⟩, ⟨by omega, ⟨U2, s2⟩,
+      fun _ => ⟨U3, s3⟩, ?_⟩, ?_, ?_, ?_⟩
+    · rw [hBy, show o + 1 + 4 = o + 5 by omega, show o + 5 + 1 + (q - 1) = o + 5 + q by omega,
+        show o + 5 + q + 4 = o + 9 + q by omega, show o + 9 + q + 32 = o + 41 + q by omega,
+        show o + 5 + 1 = o + 5 + 1 from rfl]
+      rw [show q = 1 + (q - 1) by omega, rowsB_append]
+      simp only [List.append_assoc]
+      rw [show 1 + (q - 1) = q by omega]
+    · have := rowsB_append s (o + 5) 1 (q - 1); rwa [show 1 + (q - 1) = q by omega] at this
+    · rw [show o + 5 + q = o + 1 + 4 + 1 + (q - 1) by omega]; exact ⟨U4, s4⟩
+    · rw [show o + 9 + q = o + 1 + 4 + 1 + (q - 1) + 4 by omega]; exact ⟨U5, s5⟩
+    · rw [show o + 41 + q = o + 1 + 4 + 1 + (q - 1) + 4 + 32 by omega]; exact ⟨U6, s6⟩
+  · have hq1 : q = 1 := hnq hnk
+    simp only [shapeU, hnk, ite_true, List.nil_append, List.cons_append, List.singleton_append] at hFA hBy hlen
+    simp only [FieldsAt, fieldsB, List.append_nil] at hFA hBy hlen
+    obtain ⟨U0, s0, U1, s1, U2, s2, U4, s4, U5, s5, U6, s6, -⟩ := hFA
+    simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+    refine ⟨by omega, ⟨fun _ => hq1, fun _ => hnk⟩, ?_, ⟨U0, s0⟩, ⟨U1, s1⟩, ?_, ?_, ?_, ?_⟩
+    · rw [hBy, hq1]
+    · rw [hq1, show o + 5 = o + 1 + 4 by omega]; exact keyRows_of hw hs U2 s2
+    · rw [hq1, show o + 5 + 1 = o + 1 + 4 + 1 by omega]; exact ⟨U4, s4⟩
+    · rw [hq1, show o + 9 + 1 = o + 1 + 4 + 1 + 4 by omega]; exact ⟨U5, s5⟩
+    · rw [hq1, show o + 41 + 1 = o + 1 + 4 + 1 + 4 + 32 by omega]; exact ⟨U6, s6⟩
+
+/-- **An extension part's fields.** -/
+theorem extShape {o ℓ : Nat} {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (hte : s.row o qte = 1)
+    (hq0 : s.row o qb = 1) (hpf : s.row o pf = 1) :
+    let q := s.row o qhk
+    ℓ = 45 + q ∧ (s.row o nokey = 1 ↔ q = 1) ∧
+    rowsB s o ℓ = rowsB s o 1 ++ (rowsB s (o + 1) 4 ++ (rowsB s (o + 5) q ++ (rowsB s (o + 5 + q) 32 ++ rowsB s (o + 37 + q) 8))) ∧
+    (UField s o 1 ∧ stOf (s.row o) = 0) ∧ (UField s (o + 1) 4 ∧ stOf (s.row (o + 1)) = 1) ∧ KeyRows s (o + 5) q ∧
+    (UField s (o + 5 + q) 32 ∧ stOf (s.row (o + 5 + q)) = 7) ∧
+    (UField s (o + 37 + q) 8 ∧ stOf (s.row (o + 37 + q)) = 8) := by
+  intro q
+  obtain ⟨-, -, -, -, hsum, bnk, -, hnq⟩ := partHead (okRow hw hs (i := o) (by have := U.le; have := U.pos; omega))
+    (rowLt hw hs _) hpf hq0
+  obtain ⟨hFA, hBy⟩ := partFieldsAt U
+  rw [hte] at hFA hBy
+  have htl : s.row o qtl = 0 := by omega
+  rw [htl] at hFA hBy
+  have hlen := congrArg List.length hBy
+  rcases bnk with hnk | hnk
+  · simp only [shapeU, hnk, ite_true, show ¬ ((0 : Nat) = 1) by omega, ite_false, List.nil_append, List.cons_append, List.singleton_append,
+      show ¬ ((0 : Nat) = 1) by omega, ite_false] at hFA hBy hlen
+    simp only [FieldsAt, fieldsB, List.append_nil] at hFA hBy hlen
+    obtain ⟨U0, s0, U1, s1, U2, s2, U3, s3, U4, s4, U5, s5, -⟩ := hFA
+    have hq1 : 1 < q := by have := U3.pos; omega
+    simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+    refine ⟨by omega, ⟨fun h => by omega, fun h => by omega⟩, ?_, ⟨U0, s0⟩, ⟨U1, s1⟩, ⟨by omega, ⟨U2, s2⟩,
+      fun _ => ⟨U3, s3⟩, ?_⟩, ?_, ?_⟩
+    · rw [hBy, show o + 1 + 4 = o + 5 by omega, show o + 5 + 1 + (q - 1) = o + 5 + q by omega,
+        show o + 5 + q + 32 = o + 37 + q by omega,
+        show o + 5 + 1 = o + 5 + 1 from rfl]
+      rw [show q = 1 + (q - 1) by omega, rowsB_append]
+      simp only [List.append_assoc]
+      rw [show 1 + (q - 1) = q by omega]
+    · have := rowsB_append s (o + 5) 1 (q - 1); rwa [show 1 + (q - 1) = q by omega] at this
+    · rw [show o + 5 + q = o + 1 + 4 + 1 + (q - 1) by omega]; exact ⟨U4, s4⟩
+    · rw [show o + 37 + q = o + 1 + 4 + 1 + (q - 1) + 32 by omega]; exact ⟨U5, s5⟩
+  · have hq1 : q = 1 := hnq hnk
+    simp only [shapeU, hnk, ite_true, show ¬ ((0 : Nat) = 1) by omega, ite_false, List.nil_append, List.cons_append, List.singleton_append] at hFA hBy hlen
+    simp only [FieldsAt, fieldsB, List.append_nil] at hFA hBy hlen
+    obtain ⟨U0, s0, U1, s1, U2, s2, U4, s4, U5, s5, -⟩ := hFA
+    simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+    refine ⟨by omega, ⟨fun _ => hq1, fun _ => hnk⟩, ?_, ⟨U0, s0⟩, ⟨U1, s1⟩, ?_, ?_, ?_⟩
+    · rw [hBy, hq1]
+    · rw [hq1, show o + 5 = o + 1 + 4 by omega]; exact keyRows_of hw hs U2 s2
+    · rw [hq1, show o + 5 + 1 = o + 1 + 4 + 1 by omega]; exact ⟨U4, s4⟩
+    · rw [hq1, show o + 37 + 1 = o + 1 + 4 + 1 + 32 by omega]; exact ⟨U5, s5⟩
+
+end
+
+section
+variable {v : List UpsSeg} (hw : Wf v) {s : UpsSeg} (hs : s ∈ v)
+  (hsc : ∀ i, i < s.rows.length → ∀ x ∈ segConst, s.row i x = s.row 0 x)
+  {o ℓ ci ti di si ki sdi : Nat} (K : PartK s o ℓ ci ti di si ki sdi)
+include hw hs hsc K
+
+/-- **The `MEM` field's bytes**: `u64 (E + (A + B − C))` with the inputs of `memIn`, given the
+input limbs `< 2^12` and the emitted bytes `< 256`; and the exact value `E + (A + B − C)` of the
+limbs `rx` (what the part sends on `MEMD`). -/
+theorem memBytesK {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) {r0 : Nat} (hU : UField s r0 8)
+    (hst : stOf (s.row r0) = 8) (hend : r0 + 8 = o + ℓ)
+    (hb : s.row o eL ≤ 1 ∧ s.row o eS ≤ 1 ∧ s.row o useA ≤ 1 ∧ s.row o bN ≤ 1 ∧ s.row o bL ≤ 1 ∧
+      s.row o cO ≤ 1 ∧ s.row o cS ≤ 1)
+    (hin : ∀ i, i < 8 → inA (s.row (r0 + i)) < 67108864 ∧ inB (s.row (r0 + i)) < 67108864 ∧
+        inC (s.row (r0 + i)) < 67108864 ∧ inE (s.row (r0 + i)) < 67108864 ∧ s.row (r0 + i) b < 256) :
+    let Lv := s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2
+    let Sv := s.row r0 (SR 0) + 256 * s.row r0 (SR 1) + 65536 * s.row r0 (SR 2) + 16777216 * s.row r0 (SR 3)
+    rowsB s r0 8 = (NearSpec.u64 (s.row o Kc + s.row o eL * Lv + s.row o eS * Sv +
+      (s.row o useA * limbs (fun i => s.row (r0 + i) rb) 8 +
+        (s.row o bN * limbs (fun i => s.row (r0 + i) mBv) 8 + s.row o bL * Lv) -
+       (s.row o cO * limbs (fun i => s.row (r0 + i) mCv) 8 + s.row o cS * Sv + s.row o Cc)))).map UInt8.toNat ∧
+    limbs (fun i => s.row (r0 + i) rx) 8 = s.row o Kc + s.row o eL * Lv + s.row o eS * Sv +
+      (s.row o useA * limbs (fun i => s.row (r0 + i) rb) 8 +
+        (s.row o bN * limbs (fun i => s.row (r0 + i) mBv) 8 + s.row o bL * Lv) -
+       (s.row o cO * limbs (fun i => s.row (r0 + i) mCv) 8 + s.row o cS * Sv + s.row o Cc)) := by
+  intro Lv Sv
+  have M := memOf hw hs U
+  simp only at M
+  have hr : o + (fl[fl.length - 1]'(by have := U.nonempty; omega)).1 = r0 := by omega
+  rw [hr] at M
+  obtain ⟨-, -, hM⟩ := M
+  obtain ⟨hrx, -, hbx⟩ := hM hin
+  obtain ⟨e1, e2, e3, e4⟩ := memIn hw hs hsc K hU hst (by omega) (by omega) hb
+  rw [e1, e2, e3, e4] at hrx
+  refine ⟨?_, hrx⟩
+  rw [hrx] at hbx
+  rw [u64_limbs (fun i hi => (hin i hi).2.2.2.2) hbx]
+  rfl
+
+end
+
+section
+variable {v : List UpsSeg} (hw : Wf v) {s : UpsSeg} (hs : s ∈ v)
+include hw hs
+
+end
+
+/-- The limbs of eight consecutive rows depend only on the first row's index. -/
+theorem limbs_rows_eq {s : UpsSeg} {a b : Nat} (h : a = b) (x : Nat) :
+    limbs (fun i => s.row (a + i) x) 8 = limbs (fun i => s.row (b + i) x) 8 := by subst h; rfl
+
+theorem fieldsAt_rep (s : UpsSeg) : ∀ (w r : Nat) (rest : List (Nat × Nat)),
+    FieldsAt s r (List.replicate w (7, 32) ++ rest) →
+    (∀ e, e < w → UField s (r + 32 * e) 32 ∧ stOf (s.row (r + 32 * e)) = 7) ∧ FieldsAt s (r + 32 * w) rest ∧
+    fieldsB s r (List.replicate w (7, 32) ++ rest) = rowsB s r (32 * w) ++ fieldsB s (r + 32 * w) rest
+  | 0, r, rest, h => by simp at h ⊢; exact ⟨h, by simp [rowsB]⟩
+  | w + 1, r, rest, h => by
+    simp only [List.replicate_succ, List.cons_append, FieldsAt, fieldsB] at h ⊢
+    obtain ⟨hU, hst, hR⟩ := h
+    obtain ⟨ih1, ih2, ih3⟩ := fieldsAt_rep s w (r + 32) rest hR
+    refine ⟨fun e he => ?_, by rwa [show r + 32 * (w + 1) = r + 32 + 32 * w by omega], ?_⟩
+    · rcases e with _ | e
+      · simpa using ⟨hU, hst⟩
+      · have := ih1 e (by omega); rwa [show r + 32 + 32 * e = r + 32 * (e + 1) by omega] at this
+    · rw [ih3, show 32 * (w + 1) = 32 + 32 * w by omega, rowsB_append, List.append_assoc,
+        show r + 32 + 32 * w = r + (32 + 32 * w) by omega]
+
+section
+variable {v : List UpsSeg} (hw : Wf v) {s : UpsSeg} (hs : s ∈ v)
+include hw hs
+
+/-- **A part of a branch with a value**: `TAG VLEN VH BM CH^w MEM`. -/
+theorem branchVShape {o ℓ : Nat} {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htb : s.row o qtb2 = 1)
+    (hq0 : s.row o qb = 1) (hpf : s.row o pf = 1) :
+    ℓ = 47 + 32 * w ∧
+    rowsB s o ℓ = rowsB s o 1 ++ (rowsB s (o + 1) 4 ++ (rowsB s (o + 5) 32 ++ (rowsB s (o + 37) 2 ++
+      (rowsB s (o + 39) (32 * w) ++ rowsB s (o + 39 + 32 * w) 8)))) ∧
+    (UField s o 1 ∧ stOf (s.row o) = 0) ∧ (UField s (o + 1) 4 ∧ stOf (s.row (o + 1)) = 4) ∧
+    (UField s (o + 5) 32 ∧ stOf (s.row (o + 5)) = 5) ∧ (UField s (o + 37) 2 ∧ stOf (s.row (o + 37)) = 6) ∧
+    (∀ e, e < w → UField s (o + 39 + 32 * e) 32 ∧ stOf (s.row (o + 39 + 32 * e)) = 7) ∧
+    (UField s (o + 39 + 32 * w) 8 ∧ stOf (s.row (o + 39 + 32 * w)) = 8) := by
+  obtain ⟨-, -, -, -, hsum, -, -, -⟩ := partHead (okRow hw hs (i := o) (by have := U.le; have := U.pos; omega))
+    (rowLt hw hs _) hpf hq0
+  obtain ⟨hFA, hBy⟩ := partFieldsAt U
+  rw [show s.row o qtl = 0 by omega, show s.row o qte = 0 by omega, show s.row o qtb1 = 0 by omega] at hFA hBy
+  simp only [shapeU, show ¬ ((0 : Nat) = 1) by omega, ite_false, List.cons_append, List.singleton_append] at hFA hBy
+  simp only [FieldsAt, fieldsB, List.nil_append] at hFA hBy
+  obtain ⟨U0, s0, U1, s1, U2, s2, U3, s3, hR⟩ := hFA
+  obtain ⟨W, ⟨U5, s5, -⟩, hB⟩ := fieldsAt_rep s w (o + 1 + 4 + 32 + 2) [(8, 8)] hR
+  rw [hB] at hBy
+  simp only [fieldsB, List.append_nil] at hBy
+  have hlen := congrArg List.length hBy
+  simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+  rw [show o + 1 + 4 = o + 5 by omega, show o + 5 + 32 = o + 37 by omega, show o + 37 + 2 = o + 39 by omega] at *
+  exact ⟨by omega, hBy, ⟨U0, s0⟩, ⟨U1, s1⟩, ⟨U2, s2⟩, ⟨U3, s3⟩, W, ⟨U5, s5⟩⟩
+
+/-- **A part of a branch without a value**: `TAG BM CH^w MEM`. -/
+theorem branchNShape {o ℓ : Nat} {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htb : s.row o qtb1 = 1)
+    (hq0 : s.row o qb = 1) (hpf : s.row o pf = 1) :
+    ℓ = 11 + 32 * w ∧
+    rowsB s o ℓ = rowsB s o 1 ++ (rowsB s (o + 1) 2 ++ (rowsB s (o + 3) (32 * w) ++ rowsB s (o + 3 + 32 * w) 8)) ∧
+    (UField s o 1 ∧ stOf (s.row o) = 0) ∧ (UField s (o + 1) 2 ∧ stOf (s.row (o + 1)) = 6) ∧
+    (∀ e, e < w → UField s (o + 3 + 32 * e) 32 ∧ stOf (s.row (o + 3 + 32 * e)) = 7) ∧
+    (UField s (o + 3 + 32 * w) 8 ∧ stOf (s.row (o + 3 + 32 * w)) = 8) := by
+  obtain ⟨-, -, -, -, hsum, -, -, -⟩ := partHead (okRow hw hs (i := o) (by have := U.le; have := U.pos; omega))
+    (rowLt hw hs _) hpf hq0
+  obtain ⟨hFA, hBy⟩ := partFieldsAt U
+  rw [show s.row o qtl = 0 by omega, show s.row o qte = 0 by omega, htb] at hFA hBy
+  simp only [shapeU, show ¬ ((0 : Nat) = 1) by omega, ite_false, ite_true, List.cons_append,
+    List.singleton_append] at hFA hBy
+  simp only [FieldsAt, fieldsB, List.nil_append] at hFA hBy
+  obtain ⟨U0, s0, U3, s3, hR⟩ := hFA
+  obtain ⟨W, ⟨U5, s5, -⟩, hB⟩ := fieldsAt_rep s w (o + 1 + 2) [(8, 8)] hR
+  rw [hB] at hBy
+  simp only [fieldsB, List.append_nil] at hBy
+  have hlen := congrArg List.length hBy
+  simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+  rw [show o + 1 + 2 = o + 3 by omega] at *
+  exact ⟨by omega, hBy, ⟨U0, s0⟩, ⟨U3, s3⟩, W, ⟨U5, s5⟩⟩
+
+end
+
+end ZkFormal.NearV3.Render.UpsRelay.Extract

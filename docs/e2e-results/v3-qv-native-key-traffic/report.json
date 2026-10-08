@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Complete physical KEYNIB/native message equality; five exact standard-axiom guards. Also proves START only at position zero. Includes all table sends, order, identifiers, positions, endpoints and multiplicity. Scoped AIR dependency check, not a complete certificate or trie-read soundness proof.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeKeyTraffic.lean",
+      "sha256": "aa0b17b2dc375d838ece60490d9d0e7d283c78eb01754c65a5162ac81ef06407",
+      "audit": "zk-formal/test/AuditQvNativeKeyTraffic.lean",
+      "audit_sha256": "a467df9723833c730d372ee3b7177fd3e96177e4a860102fd6a7f5449bcd53e6",
+      "guards": 3,
+      "log": "/tmp/nearproof-NativeKeyTraffic-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeKeyMarkers.lean",
+      "sha256": "b85b7eac7428761639a1fc55e05b8b1d56dcc39d319ef676472670348c28f31f",
+      "audit": "zk-formal/test/AuditQvNativeKeyMarkers.lean",
+      "audit_sha256": "08eced1a1c6d63cb6e44a8d4f71e5d704b4f0495094ad464d257c89d82338489",
+      "guards": 2,
+      "log": "/tmp/nearproof-NativeKeyMarkers-audit-checked.log"
+    }
+  ]
+}

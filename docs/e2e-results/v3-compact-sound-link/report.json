@@ -1,0 +1,157 @@
+{
+  "lane": "compact-sound-link",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsReads.lean",
+      "sha256": "a468b8aca0d8b6a21850c3686f45391833118845ef82639c1906528d77c579b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsReads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsSrc.lean",
+      "sha256": "18b9fda775337689553c9a71582b96779dbd9b1b120047112fb0871e334240ec",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsSrc.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsShape.lean",
+      "sha256": "25803749eb3d7fa6449ea26ed2be0773275a5c4196c7cf2b329070fffd15bc7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsExt.lean",
+      "sha256": "46f831e36552e8ec0955de90053624d7b6c4e4f1f489df23cc643f8274784ddb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsExt.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsPath.lean",
+      "sha256": "5f91874a49f178eb0cf9705d9d2003ada529d4f2b7c703ca833e9744dbfb2e28",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsPath.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsTag.lean",
+      "sha256": "a12da9eb20d66461e3bb0eaa433edf717952484df2dc42d737ae94ea2818be82",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsTag.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsShapeK.lean",
+      "sha256": "46867bb7f3675c1966bc5fa7d28045aad7b43388f78c61ebd825457a1b72ae55",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsShapeK.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsVb.lean",
+      "sha256": "4735bc5fc6726449068a215be664af2f07b5b29fc9d569b74afc84ab2c5c4bf7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsVb.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsChain.lean",
+      "sha256": "a3aa46d24cf49c851dff5262b751ac44b731ae26fbc8dee6cdd9d3d5e90a6b00",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsRoot.lean",
+      "sha256": "a231e0ce3f9f212e65229cba1d44ed3205dffdf17a48756b5dfb4d94568fbe0c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsRoot.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsKey.lean",
+      "sha256": "a2861c7a2f77dcd2410135502b6d29393a4fdcc227a594a9f1e055b86e605f87",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsKey.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsTerm.lean",
+      "sha256": "56878697d1f87a9ee43cf7019e1f7dfa790f1488419dffc9d8a2df0412180727",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsTerm.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsTermT.lean",
+      "sha256": "20ee5e5ccbc1cb8186a5b3216d9dbfaf13c29fa6cca172cf49e23bd4755dada7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsTermT.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsCid.lean",
+      "sha256": "15af5846130d5bf746199c41da65b44658092c9576d0fdb1f05fe4ed426302bd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsCid.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsUpper.lean",
+      "sha256": "e0e44dfaee1e8705873892d528097a08addfda4effebbf4fa9efad735061344d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsUpper.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsLink.lean",
+      "sha256": "b32851b9afcb2baae25026a47ffb094f420464cb7807de55d06a0c08e461d3f9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-UpsLink.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PreparedBound.lean",
+      "sha256": "fa8112a1dd964bf9ec2889c63782e35d2eb401ed914e6ffbc2b3bf87df138e37",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-PreparedBound.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactSources.lean",
+      "sha256": "bd48a2424ee53e2e832cc1d25de6b14c73ae40ad77994f0d58b8f59661b0d9bd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-AuditCompactSources.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactEnvironment.lean",
+      "sha256": "82d0e3975548fabcd67bfe0ff7dd875ad5c12ea105c4574f942a001b5e987a27",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-AuditCompactEnvironment.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactSoundLink.lean",
+      "sha256": "fbe9bad29e1a9e24d4b9b3434c2da11d566b564479ac4ab0a1e08b919c1fd109",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-AuditCompactSoundLink.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactPreparedBound.lean",
+      "sha256": "3ce35436d0a38c8e52d7d8973a3e0c95d31c3cebc2cd291c1bf449c206273727",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-sound-link-AuditCompactPreparedBound.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 110,
+  "scope": "Independent strict recompilation of 17 compact source/environment/native upsert soundness modules and four exact axiom audits against the recorded dependency worktree and prebuilt dependency artifacts. Not a whole clean certificate. Missing explicit binders found by initial review were repaired before this PASS."
+}

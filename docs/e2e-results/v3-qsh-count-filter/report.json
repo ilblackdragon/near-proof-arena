@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native and physical QSH count-filter module; two exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/ShardCountFilter.lean",
+      "sha256": "1803829224796e39a3c8644ae11457129fd03429b14a7d82cf4d9a203e68ce39",
+      "audit": "zk-formal/test/AuditQvShardCountFilter.lean",
+      "audit_sha256": "ce9c80bb69bad9cef18cd7f17345954f27b5ed8b1d460d6b17e6cfa7739f00b7",
+      "guards": 2,
+      "log": "/tmp/nearproof-ShardCountFilter-audit-checked.log"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Buffered provider existence and unique native lookup modules; four exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/UniqueShardLookup.lean",
+      "sha256": "db4f04eec4a044d99d40a358e322132b6e3e08ca290b6d0364fe01f753b9db9c",
+      "audit": "zk-formal/test/AuditQvUniqueShardLookup.lean",
+      "audit_sha256": "10915438755148c3c5847c4c33c107b563f4e4fcceb41d5a66afe978f5e0a4f5",
+      "guards": 3,
+      "log": "/tmp/nearproof-UniqueShardLookup-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/BufferedProvider.lean",
+      "sha256": "824077a00b33b1a215af2b62f069c37ef61e0921e370076182f73804b6454ac6",
+      "audit": "zk-formal/test/AuditQvBufferedProvider.lean",
+      "audit_sha256": "de8dfe9d28b16eb0157dac098dc69ae1a05cd7177b59ea096621ac03d4374989",
+      "guards": 1,
+      "log": "/tmp/nearproof-BufferedProvider-audit-checked.log"
+    }
+  ]
+}

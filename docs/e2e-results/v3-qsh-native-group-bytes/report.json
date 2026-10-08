@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical group request and native shard-byte linkage module; two exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/WalkGroupRequests.lean",
+      "sha256": "3c80bbc225b731152af3071f26cc6e5456af23dccd88334344aed2ce689aa874",
+      "audit": "zk-formal/test/AuditQvWalkGroupRequests.lean",
+      "audit_sha256": "fa4e49a56c52ada24500c9544c319889da19b97d7278c839b0dee14c6680d040",
+      "guards": 2,
+      "log": "/tmp/nearproof-WalkGroupRequests-audit-checked.log"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Three queue native-record modules, six exact axiom guards; scoped component verification against read-only AIR dependencies, not whole certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeRecord.lean",
+      "sha256": "1132afab7d2867294e8671fe2f607ca161574c21da458930ff050bac08e87faf",
+      "audit": "zk-formal/test/AuditQvNativeRecord.lean",
+      "audit_sha256": "3a34f34d0a3d8e1613ed8147a072be6f0994c70f8e7314e40647771e4abd09fc",
+      "guards": 3,
+      "log": "/tmp/nearproof-NativeRecord-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/ValShaBytes.lean",
+      "sha256": "65d865f3fcca33215c0da6196ef7a1a038a284a1f3b7dc07d0448ec70410d840",
+      "audit": "zk-formal/test/AuditQvValShaBytes.lean",
+      "audit_sha256": "27159e5a6353cf4f175deb8a87cd586d79451bca6f5fee3d9588a7b560307e06",
+      "guards": 1,
+      "log": "/tmp/nearproof-ValShaBytes-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/PhysicalNativeRecord.lean",
+      "sha256": "ae420daf5d458376530d7274745d71801bdda34588589dfb966ddfc4abd4482f",
+      "audit": "zk-formal/test/AuditQvPhysicalNativeRecord.lean",
+      "audit_sha256": "569de1eeb55147053dc55795a95dd7a322354a728a3ee9c6de22aebb1f77294f",
+      "guards": 2,
+      "log": "/tmp/nearproof-PhysicalNativeRecord-audit-checked.log"
+    }
+  ]
+}

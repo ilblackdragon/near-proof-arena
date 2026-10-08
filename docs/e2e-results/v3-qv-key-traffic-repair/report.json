@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Isolated KEYNIB repair: eight exact guards; no START send, zero-based positions, unchanged other bus traffic, bidirectional local constraint transfer. Not integrated into frozen tables or full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Candidates/KeyTrafficRepair.lean",
+      "sha256": "f8132ccfed0e822b81cd93bd295173bcf5a44e07f12d9ea02e94c9c8d71f2684",
+      "audit": "zk-formal/test/AuditQvKeyTrafficRepair.lean",
+      "audit_sha256": "ba21f028a57cb504185f138d66a65c20d225caffda9f10b45b766f5223e240c3",
+      "guards": 8,
+      "log": "/tmp/nearproof-KeyTrafficRepair-audit-checked.log"
+    }
+  ]
+}

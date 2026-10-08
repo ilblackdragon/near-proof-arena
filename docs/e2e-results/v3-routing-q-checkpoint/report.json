@@ -1,0 +1,52 @@
+{
+  "lane": "routing-q",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQCandidate.lean",
+      "sha256": "ea2f03a766f4e131c5c53b4b885cfd54f6dfa3c07ed44d3a4272560b497a71b3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-q-RoutingQCandidate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQScratch.lean",
+      "sha256": "8b50a645a0612f4d68cfd07b0967c3148d0ad3bda34d9641f3590a8615181a46",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-q-RoutingQScratch.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQNormalize.lean",
+      "sha256": "e97a6b98b439975d1028009f358d15c536e14ccb9830567b6ec811d232666a68",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-q-RoutingQNormalize.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQExtract.lean",
+      "sha256": "c48084a957b263da1280f26553526459a8c3a596b7955961e9ce97b0d4f1742c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-q-RoutingQExtract.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQFill.lean",
+      "sha256": "372018f8663e00d5f86232f984274512a66a1012bae443f5bac53561769210a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-q-RoutingQFill.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRoutingQCandidate.lean",
+      "sha256": "7b216f190f441a055e0da029ceb78c3947fb6c1a981d72efabf2e1ad84da111b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-q-AuditRoutingQCandidate.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict recompilation of five isolated routing range-repair modules and exact audit guards. Active table unchanged; trace-patch completeness and native boundary capacity remain open.",
+  "exact_axiom_guards": 16
+}

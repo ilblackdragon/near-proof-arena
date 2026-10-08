@@ -1,0 +1,31 @@
+{
+  "lane": "source-paid",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountWitnessFields.lean",
+      "sha256": "d7f3ac9c55aa20dcbacb5eb8b6bf73bcb5b2b84d75d85bdfd910dbfa1d85d96f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-paid-SizeCountWitnessFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountSourcePaid.lean",
+      "sha256": "8f7c3251ac211789a122c40d79e1943ec03ed9fcacb283626204f129f015946a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-paid-SizeCountSourcePaid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountSourcePaid.lean",
+      "sha256": "932916552f231accfe004f7bd83e9aa87e1d0a0ac6b596a88a241bd6ebe21be6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-paid-AuditRcptSizeCountSourcePaid.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 4,
+  "scope": "Strict independent check of same-view witness hash fields and authenticated source/dictionary SIZE payment. Whole physical candidate assembly remains open. Dependencies include prebuilt artifacts; not a whole clean certificate."
+}

@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact physical main-read sequence module; three exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/MainReadSequence.lean",
+      "sha256": "8ae85829c63b6b345a2480065e7be3466e96fb884b5beb6a4670c0139987edf6",
+      "audit": "zk-formal/test/AuditQvMainReadSequence.lean",
+      "audit_sha256": "792a004d6435f71d6973e4a11ae211ad01e79978a5ea9230f319f1e7c3336d28",
+      "guards": 3,
+      "log": "/tmp/nearproof-MainReadSequence-audit-checked.log"
+    }
+  ]
+}

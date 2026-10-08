@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Composed physical buffered read and authenticated count modules; three exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/CountReadMode.lean",
+      "sha256": "3100c57e8838860221f0f86edf7a52bf8551cd300882eebe355b52aead3c55a5",
+      "audit": "zk-formal/test/AuditQvCountReadMode.lean",
+      "audit_sha256": "ea5ad6eaacf6f13c512c82b7f47b35744e7289c78f0c1dfc0f59c7a0bea2cee5",
+      "guards": 1,
+      "log": "/tmp/nearproof-CountReadMode-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/PhysicalBufferedRead.lean",
+      "sha256": "f2c4d517dd614b3295fb7dc984b98a3082448968e0bd60906700e7522ec35b2d",
+      "audit": "zk-formal/test/AuditQvPhysicalBufferedRead.lean",
+      "audit_sha256": "57f8ec8fd5a8543e70d530c7eeed3e7aeb2d9e95c86fb09588ad5dc30db6f1fc",
+      "guards": 2,
+      "log": "/tmp/nearproof-PhysicalBufferedRead-audit-checked.log"
+    }
+  ]
+}

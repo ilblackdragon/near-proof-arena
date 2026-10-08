@@ -1,0 +1,59 @@
+{
+  "lane": "sha-union",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/ShaUnionFacts.lean",
+      "sha256": "fc6ba2f1f186dba2f540124553af0fb2edb85f0f5a34d1ccaf8e2d0d2108cecf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-union-ShaUnionFacts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/ShaUnionBytes.lean",
+      "sha256": "ea8ed24ab128e7a69ddea9b50c60d8c0eb8d63deeb2b96e1a4736846c652ef08",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-union-ShaUnionBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/ShaBinUnion.lean",
+      "sha256": "2e7d399b1ef17e8f863dd8a51216cd07d2248e82a4454100cc370f35d1ca7193",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-union-ShaBinUnion.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/ShaBinExact.lean",
+      "sha256": "7cf453bdc435041721feb52d58a1a52dd211f66eee69f31598bb881630c7c306",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-union-ShaBinExact.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaUnion.lean",
+      "sha256": "e2727a7d735673cf6d5c9683a21e6e6c2f6aa86d47572236a67c498518a83055",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-union-AuditShaUnion.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaUnionBytes.lean",
+      "sha256": "1c7a6462525af5e3ebe52a028bf0f56a9de77f81776dcc6c72c017e86195e4d4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-union-AuditShaUnionBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaBinExact.lean",
+      "sha256": "f472cd7357efdce1e8092fac4f3e7d972e1866255c123d17e56b239a8dc4c5bf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-union-AuditShaBinExact.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent recompile of four SHA union modules and three exact-guard audit files against snapshot dependencies; not a whole-repository build or certificate.",
+  "exact_axiom_guards": 9
+}

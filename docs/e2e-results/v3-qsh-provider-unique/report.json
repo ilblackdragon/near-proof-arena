@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Two buffered-provider uniqueness modules; five exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/ShardCountCapacity.lean",
+      "sha256": "769187a847ad981916c4b7f4441037fd4b68769e23b5ff92f3778a8b0c6e9066",
+      "audit": "zk-formal/test/AuditQvShardCountCapacity.lean",
+      "audit_sha256": "853d7242af4dd82afbbf1c9f74d0ec8273a9e606aca4b0030fb94de2a561c636",
+      "guards": 4,
+      "log": "/tmp/nearproof-ShardCountCapacity-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/PhysicalBufferedUnique.lean",
+      "sha256": "e873e3d404b408750f4b0f4f873081ff61adb1613c16563d58dadbd94c870d39",
+      "audit": "zk-formal/test/AuditQvPhysicalBufferedUnique.lean",
+      "audit_sha256": "56dd92216ee4fc07929c06d54a0a7fcc794ffcd2193cb64a59147abe467f33d0",
+      "guards": 1,
+      "log": "/tmp/nearproof-PhysicalBufferedUnique-audit-checked.log"
+    }
+  ]
+}

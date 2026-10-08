@@ -1,0 +1,43 @@
+{
+  "lane": "physical-count",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountSegments.lean",
+      "sha256": "f7c76ee300f8d700a41eb6751a083969186af6c78d4aeca5512ab14622d93276",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-physical-count-SizeCountSegments.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountViews.lean",
+      "sha256": "aac568c7d3eccadede71ecf55e8825cee0fd6e85eb3da705b4809ed10fc6c5c9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-physical-count-SizeCountViews.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PhysicalNativeCount.lean",
+      "sha256": "61d5206c148b26997298eae3b9502e27fb2abc433f5c5e749bdc5102dd980bff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-physical-count-PhysicalNativeCount.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountViews.lean",
+      "sha256": "94bef049c36ce0d546c237e90f33c67e4352e1fe116cac9300784853845b7539",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-physical-count-AuditRcptSizeCountViews.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPhysicalNativeCount.lean",
+      "sha256": "30acd2669884e2653266f189f810e25d2225e214b181c82dd1dd58e65a8d8504",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-physical-count-AuditRcptPhysicalNativeCount.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Three physical count/view/native record modules and seven exact guards independently checked against AIR artifacts. Same-view bindings, global ownership and head coverage remain explicit; SIZE global accumulator assembly is incomplete."
+}

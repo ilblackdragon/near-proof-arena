@@ -1,0 +1,45 @@
+{
+  "lane": "size-count",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountTables.lean",
+      "sha256": "dd6db3a5092ccbab8794572881383662bd67c943844624a04dc7c096b1d4c3dc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-count-SizeCountTables.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountBudget.lean",
+      "sha256": "7301752cbe2067de58b62ddb2b6c787dd6e9e7b9747aba15451d4299dad96047",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-count-SizeCountBudget.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountTraffic.lean",
+      "sha256": "06f4e4b0fd23f5391fa0ff64572cf43e8d262a42b70143ce1a996db5281fafb8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-count-SizeCountTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountSound.lean",
+      "sha256": "ea61dd631e85d95b01543bc83ac774d39569e48fc8dfdafdcb20ebe48ef66d72",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-count-SizeCountSound.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountCandidate.lean",
+      "sha256": "166ebb1010ecdd66de558ecd57df9b8a910aa44e058e6070f55e150e1b63cce5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-count-AuditRcptSizeCountCandidate.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict check of four isolated counted-SIZE candidate modules, exact shape/budget/traffic transformation and conditional charge soundness. Count extraction, retained-store binding, honest rendering and descriptor arity3 assembly remain open.",
+  "exact_axiom_guards": 13
+}

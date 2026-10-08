@@ -1,0 +1,24 @@
+{
+  "lane": "source22-endpoints",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Endpoints.lean",
+      "sha256": "2ae0995e656b13d121725dde0f8a52cb4701914b173383c061cd79a840174754",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source22-endpoints-SourceLog22Endpoints.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSourceLog22Endpoints.lean",
+      "sha256": "51ed5dda80f4364058f008fcbafa90c69e1e0f29371de44bc592308cd23af083",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source22-endpoints-AuditSourceLog22Endpoints.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 5,
+  "scope": "Independent strict check of honest first/last endpoints and four SIZE-decorated source TableLocal instances at log22 under unchanged16334272-row envelope. Global extraction/traffic/size admission remain open."
+}

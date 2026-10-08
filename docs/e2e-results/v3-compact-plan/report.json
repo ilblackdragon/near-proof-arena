@@ -1,0 +1,57 @@
+{
+  "lane": "compact-plan",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/MsgRows.lean",
+      "sha256": "eb3c0f684a80faaee72e7e6ba7b2729110150dfc29bd132c26d53572cbffebd7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-plan-MsgRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/LayoutMain.lean",
+      "sha256": "612a4741423f5740ee14b701888cdbcfdaa9184c289847e28f728838a9c49995",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-plan-LayoutMain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PlanRows.lean",
+      "sha256": "15853c1fc048fd11edfeba0c2426352885040d430e3ee6de54c8385da86d48e2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-plan-PlanRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Plan.lean",
+      "sha256": "5755d046adb66b2b0257524176edf49df00be8fd951b8a11671822c675406b70",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-plan-Plan.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PhysicalPlan.lean",
+      "sha256": "9b0bec1b8f38f10a8a24ee46c92e95905ebac297627f14e632a50273beedc4bc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-plan-PhysicalPlan.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactLayout.lean",
+      "sha256": "4ed097b12d8f8c37a52760c59d4e8b2104321fbb41504e083b10b392212a1f26",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-plan-AuditCompactLayout.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactPlan.lean",
+      "sha256": "a13d48cd64a8327df8db8177891a8bf03bd61c26dce1ef9457f9057e2d22e4a2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-plan-AuditCompactPlan.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Five compact layout/plan extraction modules, 30 exact guards independently checked against HPL dependency artifacts. Full semantic/global assembly remains open."
+}

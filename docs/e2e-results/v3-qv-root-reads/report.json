@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Two exact guards: RootChain identifies one canonical head for each actual queue read; physical absent bits and exact fixed main keys yield reads from same pre-state tree. RootChain/WalkHyp and key/FINAL bindings remain explicit composition inputs. Not complete ordered main/implicit queue assembly.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/QueueRootRead.lean",
+      "sha256": "01266dc4181380365387437092474d668276a1b5097bc2cff51ac80721d19810",
+      "audit": "zk-formal/test/AuditQvQueueRootRead.lean",
+      "audit_sha256": "fc63b6cfc73646d943aa5b7c35b9b3d4e1d9b9495b40e6cec0b224c9c86fd176",
+      "guards": 2,
+      "log": "/tmp/nearproof-QueueRootRead-audit-checked.log"
+    }
+  ]
+}

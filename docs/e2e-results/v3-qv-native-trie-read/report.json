@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Five exact guards: physical FINAL preservation, global FINAL witness, same-walk native key/terminal composition, canonical natural decoding and native trie find. Global bus equations, public bounds and Walk3.WalkHyp remain explicit assembly inputs. Not whole certificate or full NEAR coverage.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/BalancedFinal.lean",
+      "sha256": "054fe28e9d2a690681038689427fb40cf68524976f9da57ce8f8b0fbca01667e",
+      "audit": "zk-formal/test/AuditQvBalancedFinal.lean",
+      "audit_sha256": "f2461dc8d07bfcbe3c386fed1c4c073ae640e70fc98c7dfd00470dc1cd824c7b",
+      "guards": 3,
+      "log": "/tmp/nearproof-BalancedFinal-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeTrieRead.lean",
+      "sha256": "3e362b8b05d722e011980738e3a2b2b0aa4ae93dffdf3e516be6d7a280b9894c",
+      "audit": "zk-formal/test/AuditQvNativeTrieRead.lean",
+      "audit_sha256": "db4c21c4f689706bc7a5ba7eacd765939d85dd62f86e8840327e33b195f61417",
+      "guards": 2,
+      "log": "/tmp/nearproof-NativeTrieRead-audit-checked.log"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Five exact guards: receipt/queue namespace separation and actual global KEYNIB permutation gives queue walks exact native keys/lengths. Explicit public K<64, receipt-count<=8192, WalkWf, matched walk ID and exact global provider balance remain. Walk existence now derived from balance. FINAL and whole certificate remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/KeyProviderIds.lean",
+      "sha256": "c193a20336a0e99e1de391f42a49c01dbf8266c0c992b86bb4c116d11e9ae429",
+      "audit": "zk-formal/test/AuditQvKeyProviderIds.lean",
+      "audit_sha256": "c5ce96483e3d9f28cba2b5946831046fea2a5c5ca3b9f041f4f53ec7490e8df5",
+      "guards": 3,
+      "log": "/tmp/nearproof-KeyProviderIds-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/BalancedWalkKey.lean",
+      "sha256": "ee70e5c01806dd5485d0625ea101530253e6088880dad6e15725943f1a146541",
+      "audit": "zk-formal/test/AuditQvBalancedWalkKey.lean",
+      "audit_sha256": "dd0018b30a3dada11cc33f8145a8dc851c41f908cdc024636f52b1be18fa5619",
+      "guards": 1,
+      "log": "/tmp/nearproof-BalancedWalkKey-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/BalancedWalkExists.lean",
+      "sha256": "2d1f6ed99ed0b2197f72302e1a45f64aea63b6a03c58c32df05bcd78d5b97566",
+      "audit": "zk-formal/test/AuditQvBalancedWalkExists.lean",
+      "audit_sha256": "1a2ce38b9a27470db40643865dcedb72c0aa41b09f378bf68a96d27dbdb0f7a2",
+      "guards": 1,
+      "log": "/tmp/nearproof-BalancedWalkExists-audit-checked.log"
+    }
+  ]
+}

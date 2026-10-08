@@ -1,0 +1,50 @@
+{
+  "lane": "compact-walk",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/WalkRows.lean",
+      "sha256": "0982f8b8a6402b90c20717cbeb40a80824cc3821900e795c7a4c5829c6ca2f73",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-WalkRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Walk.lean",
+      "sha256": "f3bd2cb09ec48a36631000bd2c7441268acb1b1c4c98994e269337689d9b73c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-Walk.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/WalkTraffic.lean",
+      "sha256": "42ac8ecd94dcff83316381cd54193031a160b131560b6f3378b1c400e59464aa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-WalkTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/WalkLink.lean",
+      "sha256": "930e7ceea450732946b80d22232ada775ed4c3e00fd551ca17574c3be1934cdd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-WalkLink.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/ValueLength.lean",
+      "sha256": "64150d30ab5885efbff357019ae9e09b1851a7a4aea6ecd185c14a7b5ec99b35",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-ValueLength.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactWalk.lean",
+      "sha256": "f77253f55aa936f4ceb341c042bc99ebabfa381aa7e6b61d2a3e0f1e530dbe68",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-AuditCompactWalk.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Five compact walk/link/value-length modules and 30 exact guards independently checked against HPL artifacts. Actual compact extracted view composes into existing Walk3.WalkHyp under explicit global bus, node, value and other-walk premises. Full upsert semantic assembly remains incomplete."
+}

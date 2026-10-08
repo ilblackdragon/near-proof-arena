@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native shard count-bound module; two exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeShardBounds.lean",
+      "sha256": "ee8c581cca938f3ee690fda679edd2832c778653054d56ac83dd7e0f2ddc0435",
+      "audit": "zk-formal/test/AuditQvNativeShardBounds.lean",
+      "audit_sha256": "2ebbcb13abc31cbbc1ff809490ccedefd6a3947d4e2101fa5a0dbd62f3508a38",
+      "guards": 2,
+      "log": "/tmp/nearproof-NativeShardBounds-audit-checked.log"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "lane": "codec-relay-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayTraffic.lean",
+      "sha256": "3053347cd3eb7ca077fca971ab0b26b35e572c08c6789e7a07f1a7b246d9617e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-traffic-CodecRelayTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCodecRelayTraffic.lean",
+      "sha256": "c6abf547066940d05b69a49f5036d220dc6b6cf33ef479fa691f4914af3f8d2c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-traffic-AuditCodecRelayTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 5,
+  "scope": "Strict independent source recompilation and exact axiom audit against recorded prebuilt dependencies. Whole candidate AIR/certificate remains open."
+}

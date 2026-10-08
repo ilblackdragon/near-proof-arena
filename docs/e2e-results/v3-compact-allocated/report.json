@@ -1,0 +1,59 @@
+{
+  "lane": "compact-allocated",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactWalk.lean",
+      "sha256": "ce9f7d76eaa37864759c2adf387da2a096dac066c9a3f85bdd113f976ac987e0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-allocated-CompactWalk.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactFieldGroups.lean",
+      "sha256": "249adba21a5ca3064208f9ee491ace546a67e91d27761373a17a2aedbcf67f00",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-allocated-CompactFieldGroups.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactFields.lean",
+      "sha256": "a0f10c94988c3bc6fef6e0dc9d255d2f13c4f8860624c13b18b281490b8105e9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-allocated-CompactFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactBytes.lean",
+      "sha256": "5d2511619daebdd70b2c00ea2567e3a7aef60b5c21c8ccb81b57b19fcdab7926",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-allocated-CompactBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactMemory.lean",
+      "sha256": "f128788bcd4d8d400000d356e50fbf3dae7e167e9076089031e04cb9ebe9ecb8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-allocated-CompactMemory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactAllocated.lean",
+      "sha256": "31c0822db5744761912f8fa8498a2f6ab99e4a84e77c43da09b123e582866907",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-allocated-CompactAllocated.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactAllocated.lean",
+      "sha256": "8cfc0c37aaeef59d05e35e080e8e26cb591af5d126ca7d9541e005a21965999b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-allocated-AuditCompactAllocated.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six compact UPS modules independently recompiled, all candidate local constraints and accepted rowcap composed. Dependencies include prior candidate group artifacts. Global traffic and extraction not established by this check.",
+  "exact_axiom_guards": 35
+}

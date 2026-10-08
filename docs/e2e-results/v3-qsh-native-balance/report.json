@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Two QSH balance/request modules; four exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeShardBalance.lean",
+      "sha256": "084d08869130b12c84404edbdd284eb3847d3b34961972c61c061042681fb6cf",
+      "audit": "zk-formal/test/AuditQvNativeShardBalance.lean",
+      "audit_sha256": "57ecc97f015c5af547ec0b602288110e4a1a9428f8fa71ea040043dbf1b32b58",
+      "guards": 1,
+      "log": "/tmp/nearproof-NativeShardBalance-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/WalkShardRequests.lean",
+      "sha256": "880fb417b13db45353a90102106f55e7f14a950a73718f7745d489f6320527df",
+      "audit": "zk-formal/test/AuditQvWalkShardRequests.lean",
+      "audit_sha256": "288b63d6e9a1ee06b27e58e16c20e7a560ea17a02e4c487de9744c9abcbf8f4f",
+      "guards": 3,
+      "log": "/tmp/nearproof-WalkShardRequests-audit-checked.log"
+    }
+  ]
+}

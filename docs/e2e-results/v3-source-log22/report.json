@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Twenty exact guards: four well-formed log22 source tables with three distinct carry buses and consistent SIZE arity3, retained middle constraints, ordinary row traffic, ordered lossless four-slice placement and capacity including overlap/padding. Exact central carry extraction checked. Arbitrary accepted middle field constraints and SIZE-decorated carry authentication checked. Honest middle TableLocal checked at arbitrary positive offset. First/last honest endpoints, full chain extraction, global assembly and proof-size budget remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Extract.lean",
+      "sha256": "4b466f524ab7145c54aa18a32889fb3b2f6e5035729b1ffe4def6fe816d29420",
+      "audit": "zk-formal/test/AuditSourceLog22Extract.lean",
+      "audit_sha256": "77495c8f44340d36009429fa74b4bb9fe04bcc4115095481162e7dc0e1850ff5",
+      "guards": 2,
+      "log": "/tmp/nearproof-SourceLog22Extract-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Local.lean",
+      "sha256": "c2501fc2f58b0c2e025dcaafaf3bb028ae741d12ab5031c04a77d9793f9a68a2",
+      "audit": "zk-formal/test/AuditSourceLog22Local.lean",
+      "audit_sha256": "6f2592f5517e7b593ae163988879493e2384b7fce0aef34b8bcec86020eea0c4",
+      "guards": 4,
+      "log": "/tmp/nearproof-SourceLog22Local-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Carry.lean",
+      "sha256": "c585c0e92c97903a98e472bbd550f4d2597799ce4310d75f51906af5809a1cd4",
+      "audit": "zk-formal/test/AuditSourceLog22Carry.lean",
+      "audit_sha256": "6aa99271a908075d9a246165e295eae25a8a6ed744a9978414eb203bbb2d760e",
+      "guards": 4,
+      "log": "/tmp/nearproof-SourceLog22Carry-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Tables.lean",
+      "sha256": "42bc625782bdfa53ff0b8f27da5416ceafecea2cd8aa468958cd598c798688da",
+      "audit": "zk-formal/test/AuditSourceLog22Tables.lean",
+      "audit_sha256": "4fff61bba62b668d7288b91a5aa45042d5765e7e11d4363c965c8d21c21c897f",
+      "guards": 6,
+      "log": "/tmp/nearproof-SourceLog22Tables-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Placement.lean",
+      "sha256": "941fab9c644a815fd1c264c66d92f36393b7f6870e0aacb4853fee700e63a7b4",
+      "audit": "zk-formal/test/AuditSourceLog22Placement.lean",
+      "audit_sha256": "e3764dfa178b3beaa702f9e8696b74bdfc8929b15da288afa109b52184e07e2f",
+      "guards": 4,
+      "log": "/tmp/nearproof-SourceLog22Placement-audit-checked.log"
+    }
+  ]
+}

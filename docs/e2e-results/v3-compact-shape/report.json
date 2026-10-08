@@ -1,0 +1,43 @@
+{
+  "lane": "compact-shape",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/FieldRows.lean",
+      "sha256": "011db09e62cd3fbd166bacd8e64d0a140adadb489e838676024041ed5b47b471",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-shape-FieldRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Constants.lean",
+      "sha256": "e5daf816ba6545c8d9105d139d29af0a6f2ecb462485a77d6516dab269efb2a4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-shape-Constants.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Fields.lean",
+      "sha256": "3530b246f7e2a375405cbb52d427a61d88b8837c62e91a982715a5de311a670a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-shape-Fields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Shape.lean",
+      "sha256": "22c18fdde57e12d67f1b562acae3ba091101fc8e9eafa4bdd024eb34e4f88325",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-shape-Shape.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactShape.lean",
+      "sha256": "c82689c4b3fdd7747ffd2a9281629ae84f5ff2342ce44de16d1bccecad02715e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-shape-AuditCompactShape.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Four compact field/shape extraction modules and 27 exact guards independently checked against HPL dependency artifacts. Full upsert semantic and global bus composition remain open."
+}

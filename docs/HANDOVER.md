@@ -6,6 +6,708 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 additional checked closure: SourceLog22Local/Extract bring root source
+candidate to20 exact guards, including honest middle TableLocal and arbitrary
+accepted middle recovery of original source constraints over Fp. Agent
+SourceLog22Endpoints independently checked5guards: ALL FOUR honest SIZE-wrapped
+source tables now locally valid at log22 under unchanged16334272-row envelope.
+Global four-way logical extraction/traffic/SIZE and updated full budget remain next.
+Reports v3-source-log22 and v3-source22-endpoints. Root independently checked
+chain-paid2modules4guards (epoch width and head coverage now derived) and
+codec-relay-traffic1module5guards. Latest per-agent only: native receipt token2guards,
+Codec relay cover/inventory5guards. All agent main writes frozen for checkpoint.
+
+Git workaround: original .git remains read-only, but a writable shared bare Git
+store was created at /tmp/nearproof-checkpoint-20261008.git with this workspace as
+explicit --work-tree. Checkpoint branch codex/near-state-proof-20261008 captures
+current proof work, including explicitly incomplete candidate integrations. Original
+main/workspace index remain untouched. Push outcome is reported separately; this
+checkpoint is not a full certificate, clean build, prover, or judge success.
+
+
+2026-10-08 root integration continuation: SourceLog22Tables/Placement/Carry
+strict checked, FOURTEEN exact standard-axiom guards PASS. Existing two-log23
+source prototype violates Air.Table.wf height cap22. New isolated four-table
+candidate preserves cap22, extends SIZE consistently, uses separate carry buses
+64/65/66 (67 buses total), and fits actual16334272-row envelope with overlap and
+terminal padding. Ordered four-slice reconstruction and exact middle carry rows/
+central-boundary authentication checked. Full honest local construction, four-way
+source extraction/global isolation and updated whole proof-size budget remain open.
+Report docs/e2e-results/v3-source-log22/report.json. Overlay /tmp/nearproof-source22-lib.
+
+Root independently checked compact source/environment/sound17modules110guards,
+then PreparedLink/PhysicalSound2modules2guards: PASS. Strict review found missing
+explicit UpsShape binders; agent repaired and full strict rerun passed. Actual
+physical compact TableLocal now yields exact traffic and native upsert/root/lookup
+semantics under authenticated global interfaces. prepD0 supplies K<32; no separate
+fresh-value digest/range or transition-bound premises. Reports
+ docs/e2e-results/v3-compact-sound-link/report.json and
+ docs/e2e-results/v3-compact-physical-sound/report.json.
+
+Root independently checked weighted payload6modules18guards: PASS,
+ docs/e2e-results/v3-weighted-payload/report.json. Actual same-view uniqueness/store
+traffic now derives native payload AND record-count domination. Receipt agent
+continues native dictionary/fixed-field composition. Root also independently checked D2 renderer20modules85additional guards
+(v3-receipt-registers), plus source dictionary payment2modules4guards
+(v3-source-paid), all PASS. Partial token construction now checked; full native ledger/header/
+TableLocal wiring remains. UPS agent moving to whole Codec relay inventory.
+Git add retried this turn: .git/index.lock read-only; no commit/push possible.
+Full certificate, succinct prover, real judge, and general NEAR replacement remain
+incomplete. Historical frozen tables/admission pins unchanged.
+
+
+2026-10-08 root native queue composition: ImplicitReadSequence/NativeQueueAssembly
+strict checked,FIVE exact standard-axiom guards PASS. Exact implicit count K,
+including0, actual ordinal→tau and native missingRequest.Holds at each transition.
+assemble_native_queue_reads now derives SAME recovered MainValues.Valid/Reads
+and all implicit reads from local repaired queue constraints, both global
+KEYNIB/FINAL permutations, RootChain/WalkHyp, authenticated shard stream/count and
+empty/buffered parser evidence. No native read-conclusion premise remains in this
+assembly theorem. Report docs/e2e-results/v3-qv-implicit-read-sequence/report.json.
+Remaining: physical all-table isolation/global extraction wiring and public bounds,
+parser evidence packaged from earlier physical QVC/VBYTES/QSH/SHA lemmas.
+
+Root independently checked10 SIZE ValComplete/SourcePartitions/bounds/no-wrap/
+prepared native overhead/accepted domain modules,24 exact guards PASS. Report
+ docs/e2e-results/v3-size-prepared-paid/report.json. Actual checkD0 acceptance implies
+candidate overhead cap; weighted payload domination and concrete global SIZE
+isolation remain open (receipt agent continuing). UPS actual source/path20guards
+per-agent, full source kind composition next. D2 shared Rcpt cell API corrected
+to row-varying auxiliaries and receipt constants; full cStates still ongoing.
+No full certificate/prover/judge/general replacement claim. Git read-only.
+
+
+2026-10-08 root main queue reads: MainQueueReads strict checked, THREE exact
+standard-axiom guards PASS. queueMainValues recovers fixed row values and native
+shards; actual main tau=0, exact count/main prefix/fixed+group keys and row reads
+produce MainValues.Reads pre pre pre. Every shard occurrence has its required
+group read; empty/buffered parser evidence yields same MainValues.Valid. Report
+ docs/e2e-results/v3-qv-main-queue-reads/report.json. Prior checked physical parser
+and global KEYNIB/FINAL/RootChain read facts are explicit inputs to compose.
+Next exact implicit count/sequence and full global native queue extraction theorem.
+
+Root independently checked compact ValueBounds/ValueClosed, FOUR exact guards
+PASS, docs/e2e-results/v3-compact-value-closed/report.json. vbytes/fresh digest no
+longer assumed in parts_closed. Agent UpsReads/UpsSrc/UpsShape20guards derive
+actual UPB reads/source facts and parts≤404; remaining tau<32/global/sourcekind
+assembly. SIZE accepted_fixed_overhead checked per-agent from unchanged checkD0
+acceptance, no extra domain restriction; audits ongoing. Rcpt rendering continues.
+No full certificate/prover/judge/general replacement claim. Git read-only.
+
+
+2026-10-08 root canonical queue trees: QueueRootRead strict checked,TWO exact
+standard-axiom guards PASS. RootChain.head_all identifies canonical headAt for
+actual read transition; physical constraints discharge absent bit. Exact fixed
+main reads now use same queueTree(...,0). Report
+ docs/e2e-results/v3-qv-root-reads/report.json. RootChain/WalkHyp/global bindings
+remain assembly inputs; main shard reads/MainValues.Valid.Reads and complete
+implicit ordered sequence still next. Existing runtime read preservation API
+available; do not assert MainValues.Reads at wrong runtime stages.
+
+Independent compact semantic review session75812 FINISHED PASS:29modules and
+114 exact guards. Report docs/e2e-results/v3-compact-semantics/report.json.
+All12 semantic node cases and downward SHA/MEMD induction checked, same actual
+compact view. SourceValueBridge still explicit source/UPB/shape, ID/global bus
+premises. Agent subsequently closed vbytes/fresh hash with ValueBounds/ValueClosed
+4guards (not in this independent report); source/path assembly next.
+Receipt renderer annotated native RC/refund rows39guards per-agent, full cell
+installation ongoing. SIZE accepted overhead/no-wrap ongoing. Goal incomplete;
+Git remains read-only and no new commit/push.
+
+
+2026-10-08 root native queue value: NativeValueLookup/NativeQueueValue strict
+checked, FIVE exact standard-axiom guards PASS. Actual ValE membership+ValWf maps
+its field vid to EXACT native bytes in record trie, including wraparound IDs.
+queueValue deterministically recovers some bytes/none from actual absent+vid cells;
+trie lookup returns this same option, and physical empty/buffered parser evidence
+certifies it. Report docs/e2e-results/v3-qv-native-value-lookup/report.json.
+WalkHyp/key/FINAL/parser inputs remain explicit; full main/implicit ordered read
+assembly and common head/root mapping still needed. Existing Qv/Reads, ReadPlan,
+ReceiptPreserve APIs retain native runtime stages and prove write preservation.
+
+Historical pending status (now superseded by PASS above), tool session75812:
+29 modules from /tmp/compactsemantics-modules.txt, AuditCompactSemantics114guards.
+Do not claim independent PASS before final report /tmp/nearproof-review-compact-semantics.json.
+Latest observed module RbiBytes, process handle live. Agent reports all cases +
+GlobalParts/SourceValueBridge checked; actual source reads/path contracts remain.
+Other agents continue receipt renderer and accepted public overhead/no-wrap.
+Full objective not achieved; Git remains read-only.
+
+
+2026-10-08 root native trie read binding: BalancedFinal/NativeTrieRead strict
+checked, FIVE exact standard-axiom guards PASS. Repair preserves actual FINAL
+stream. Global FINAL permutation selects walk with requested complete metadata;
+KEYNIB balance gives SAME walk exact native key. Canonical WalkWf3 decodes tau/fk/k
+as actual queue natural cells. Compose with existing Walk3.WalkHyp gives native
+trie find at recovered key, present value selected by queue vid or absent result.
+Report docs/e2e-results/v3-qv-native-trie-read/report.json. Global equations,
+receipt/public bounds and authenticated trie hypotheses remain explicit assembly
+inputs. Next native QueueView/ordered read assembly plus ValE value linkage.
+
+Root independently checked RcptSkeleton/Fields/Control/Continuation:16 exact
+guards PASS, docs/e2e-results/v3-receipt-skeleton/report.json. New transitions and
+lastIdx9guards per-agent; full controls/global table renderer still in progress.
+UPS typed node/per-part reconstruction ongoing. SIZE public overhead/no-wrap
+from accepted native witness being proved. No general NEAR replacement or full
+certificate/prover/judge claim; Git remains read-only and no new commit/push.
+
+
+2026-10-08 root balanced native key: KeyProviderIds/BalancedWalkKey/
+BalancedWalkExists strict checked, FIVE exact standard-axiom guards PASS.
+Receipt account/access-key IDs<W_QV under flat receipt count≤W_AK=8192;
+all actual queue IDs canonical≥W_QV. Exact global physical queue+receipt KEYNIB
+permutation now proves matching walks have exact native key and length, with
+same-request ownership derived rather than assumed. Every actual queue request
+has a corresponding trie walk by its first physical nibble send and balance.
+Report docs/e2e-results/v3-qv-balanced-walk-key/report.json. Public K<64 and receipt
+count bound remain explicit; global full-table isolation/equality to be assembled.
+Next FINAL terminal/value binding and native read composition.
+
+Root independently checked compact NodeSha/RootSha/MemoryBus,14 exact guards
+PASS, docs/e2e-results/v3-compact-node-auth/report.json. Global inventory/ID/MEMD
+premises remain explicit; typed child/downward semantics ongoing. SIZE same ValWf
+and all candidate traffic view now synchronized, source partition SIZE from same
+BlockChain6guards per-agent; prepared overhead/no-wrap next. prepD0 alone does
+not bound chunkInner length, so accepted witness implication must justify overhead
+check (agent investigating). D2 Rcpt native row skeleton/control rendering ongoing.
+Goal incomplete; no general replacement/certificate/prover/judge claim. Git read-only.
+
+
+2026-10-08 root queue ownership: ImplicitWalkBound/KeyOwnership strict checked,
+FIVE exact standard-axiom guards PASS. Implicit distance ≤ actual terminal public
+K from final physical row and unchanged metadata. Under explicit K<64, main and
+implicit IDs disjoint; all actual queue request IDs unique. Every actual full-table
+send bearing one request ID belongs to that SAME extracted native key stream.
+Report docs/e2e-results/v3-qv-key-ownership/report.json. Next exclude other tables
+from queue ID namespace, use global KEYNIB balance, compose NativeWalkKey + FINAL.
+Public K<64 still needs substitution from prepared native inputs at assembly.
+
+Root independently checked11 routing frame/span/slice modules,33 exact guards
+PASS, docs/e2e-results/v3-routing-slice/report.json. Full Rcpt renderer still open;
+agent's new native row skeleton preserves empty/repeated list headers and has
+exact per-receipt cost≤474 (per-agent checked). SIZE sender/receiver14guards
+per-agent, now full view/source/global overhead synchronization. UPS node/root
+SHA and MEMD14guards per-agent, typed child/downward semantics next. No full
+certificate/prover/judge claim. Git remains read-only; no new commit/push.
+
+
+2026-10-08 root queue walk identifiers: MainWalkIds strict checked, FOUR exact
+standard-axiom guards PASS. Main wid=W_QV+64*ordinal; implicit wid=W_QV+(i-lastMain).
+Both canonical/no-wrap from actual table height, within-phase uniqueness proved.
+Report docs/e2e-results/v3-qv-walk-identifiers/report.json. Next cross-phase
+separation (implicit count from final public K<64), other-provider separation,
+then same-provider ownership from physical global KEYNIB balance.
+
+Root independently checked compact ByteRows/WinRows/Windows/FieldBytes/PartFresh/
+AuthenticatedFresh: 82 exact guards PASS; report
+ docs/e2e-results/v3-compact-fresh-fields/report.json. Fresh VH is SHA of actual
+Codec value with digest gate/id/length derived. Remaining byte-range and compact
+ID bounds/global inventory premises explicit. UPS agent building node SHA bridge.
+D2 coherent receiver/end-marker cRoute span9guards per-agent, now q-bit wiring.
+SIZE supplier/global receiver accounting ongoing. Full scope still incomplete;
+no certificate/prover/judge or general NEAR replacement claim. Git read-only.
+
+
+2026-10-08 root exact native trie key: NativeNibbleLookup/RepairedKeyLookup/
+NativeWalkKey strict checked, SIX exact standard-axiom guards PASS. Native
+high/low getD indexing, length and nibble range; repaired stream membership
+uniquely determines natural position/symbol/END below P. Actual WalkWf3 walk
+whose requests belong to one native provider has exact steps.length=2*bytes+2
+and key3=nibbles bytes. Report docs/e2e-results/v3-qv-native-walk-key/report.json.
+Same-provider ownership remains explicit: derive from global KEYNIB balance and
+walk identifier separation next, then FINAL/value/native read composition.
+
+Root independently checked compact WalkRows/Walk/WalkTraffic/WalkLink/ValueLength,
+30 exact guards PASS, docs/e2e-results/v3-compact-walk/report.json. Existing
+Walk3.WalkHyp receives actual compact view under explicit global assumptions.
+D2 actual native selected routing frames17guards per-agent, coherent-span next.
+SIZE accumulator7guards per-agent including actual four rows, receive messages,
+24-bit slack and encodeSW bound; supplier traffic/global premises remain open.
+All agents progressing; no full certificate/prover/judge claim. Git read-only.
+
+
+2026-10-08 root repaired full key stream: RepairedKeyTraffic/RepairedKeySymbols
+strict checked, SIX exact standard-axiom guards PASS. Corrected row, segment and
+complete-table sends equal recovered native byte keys at zero-based positions,
+END and no START. Parser/padding silence proved. Field-level provider membership
+plus provider no-START discharges Walk3 hsym without natural-message lifting.
+Report docs/e2e-results/v3-qv-repaired-key-stream/report.json. Actual global
+KEYNIB ownership and exact key/FINAL→native trie-read binding still required;
+new isolated candidate not yet integrated into frozen table set or certificate.
+
+Root independently checked SIZE CountSegments/Views/PhysicalNativeCount,
+SEVEN exact guards PASS, docs/e2e-results/v3-physical-native-count/report.json.
+Actual prefix cells charge native retained records of same extracted views,
+including tags and empty values. SIZE arity3 global accumulator work ongoing.
+D2 cRoute18polynomial frame theorem now kernel PASS per-agent; native endpoint
+composition/audits underway. UPS WalkRows/Walk/WalkTraffic/WalkLink/ValueLength
+30guards per-agent; existing Walk3.WalkHyp instantiated with actual compact view
+and other walks under explicit global EDGE/BMAP etc. Per-part semantics next.
+No end-to-end claim. Git read-only; no new commit/push.
+
+
+2026-10-08 KEYNIB compatibility defect and isolated repair: checked complete
+native traffic exposed CombinedTable sends START@0 and nibbles@1..2n, whereas
+WalkV3 gK excludes START and expects nibbles@0..2n-1, END@2n. Existing
+Compose3.KeynibOk excludes START. UPS has no KEYNIB receiver, confirmed by agent.
+New Qv/Candidates/KeyTrafficRepair strict checked, EIGHT exact guards PASS:
+remove START send, shift nibble/END positions; exact repaired row traffic;
+all other buses unchanged; local constraints convert BOTH directions; wf passes,
+shape52/7/6/7/22 vs original52/8/6/8/22. Report
+ docs/e2e-results/v3-qv-key-traffic-repair/report.json. Frozen tables unchanged.
+Next prove complete repaired native stream and consume in Walk3/Compose3 key
+link; previous NativeKeyTraffic/Markers remain accurate for ORIGINAL candidate,
+but cannot by themselves discharge Walk3 hsym/interface compatibility.
+
+Root independently checked compact MsgRows/LayoutMain/PlanRows/Plan/PhysicalPlan,
+30 exact guards PASS. Actual TableLocal yields same physical view Wf, all
+TableTraffic and UpsPlan; report docs/e2e-results/v3-compact-plan/report.json.
+UPS new physical fresh-SHA ownership4guards per-agent; global ID bounds remain.
+SIZE node/val physical count↔view count6guards per-agent, pending same-view
+native count/global SIZE assembly. Routing cRoute obligations at tactic level
+but kernel inverse reduction not yet passed; agent isolating computations.
+Goal remains active; no end-to-end certificate/prover/judge claim. Git remains
+read-only; last attempted commit could not create index.lock.
+
+
+2026-10-08 root complete native KEYNIB traffic: NativeKeyTraffic/NativeKeyMarkers
+strict checked, FIVE exact standard-axiom guards PASS. Actual row, segment and complete table
+sends equal native byte-key messages with exact wid/positions/START/END/order and
+multiplicity; no extra parser/padding sends. Every physical START message has
+position zero, ruling out START at other positions. Report
+ docs/e2e-results/v3-qv-native-key-traffic/report.json. Actual trie traversal and
+FINAL/value lookup binding remain next; this is not full QueueView soundness.
+
+Root independently checked CompactExtract FieldRows/Constants/Fields/Shape and
+27 exact guards PASS, report docs/e2e-results/v3-compact-shape/report.json.
+Receipt lane derived native count ownership from actual uniqueness buses (six
+per-agent guards), now physical prefix/view count composition. Routing lane
+constructing honest cRoute frames; no complete V3 receipt renderer yet.
+All three subagents actively continuing. Commit attempt explicitly failed:
+`git add docs/HANDOVER.md` cannot create .git/index.lock: Read-only file system.
+Last commit remains20ff8369; no commit/push of this checkpoint occurred.
+
+
+2026-10-08 root KEYNIB/native symbols: WalkNibbleBytes/NativeKeySymbols strict
+checked, FOUR exact guards PASS. Actual gated bit booleans imply nibble range<16;
+wb=low+16*high decodes naturally with byte<256. For every physical walk segment,
+complete ordered high/low nibble expression values equal native nibbles of its
+recovered physicalWalkBytes. No canonical-renderer hypothesis. Report
+ docs/e2e-results/v3-qv-native-key-symbols/report.json. Next retain KEYNIB message
+wid/position/end gates in full segment traffic and bind actual trie traversal.
+
+Root independently checked CodecRelayValue/RelayFreshSha/RelayNativeInventory/
+CompactExtract.FreshDigest and EIGHT exact guards PASS, report
+ docs/e2e-results/v3-compact-fresh-sha/report.json. Actual compact extracted fresh
+DIGEST gets SHA of Codec State.encode from explicit global inventory/ownership;
+no desired digest premise. Whole Codec blocks→inventory and arbitrary compact
+node slot bound<512 still needed for full semantic soundness/assembly.
+
+
+2026-10-08 root main-read sequence: MainReadSequence strict checked, THREE exact
+standard-axiom guards PASS. main_read_prefix proves actual main reads exactly
+indices<3+cv(row0,count); fixed_main_reads guarantees all three fixed requests;
+native_main_read_prefix substitutes the authenticated native vector length from
+buffered/absent count. No missing/extra main requests. Report
+ docs/e2e-results/v3-qv-main-read-sequence/report.json. Next actual KEYNIB nibble↔byte
+link and trie-read binding; NearV3/Link/Walk3 still takes hT/hsym from key providers.
+Old Near/Link/WalkKey APIs may be reusable after exact physical KEYNIB extraction.
+
+D2 honest normalized routing selection/columns9guards checked per-agent, now
+constructing missing V3 cRoute frame generator; fullreceipt renderer still absent.
+UPS candidate fresh-value SHA bridge underway. Receipt SIZE count extraction and
+native tagged store counts11guards checked per-agent; actual uniqueness-bus
+representative coverage/cardinality still open and being proved. Active/frozen
+files unchanged; no commit/push permitted in current read-only .git sandbox.
+
+
+2026-10-08 root native queue modes: EmptyProvider/PhysicalEmptyRead/NativeReadModes/
+AbsentBufferedRead strict checked, FIVE exact guards PASS. Present empty-mode read
+gets actual native sixteen-byte ValE and EmptyQueue via QVC+VBYTES/BYTES/SHA. Main
+ordinals0/2 mode0,1 mode1,groups mode2; implicit reads mode2 from actual constraints.
+Absent main buffered read forces count0 and native BufferedValue none[]. Report
+ docs/e2e-results/v3-qv-native-read-modes/report.json. All mode/key ingredients now
+available, but actual trie KEYNIB/FINAL/Val lookup binding and complete native
+QueueView/main read sequence assembly still outstanding. No whole proof claim.
+
+D2 actual applied-receipt normalized interval selection/physical boundary columns
+checked per-agent; full V3 receipt renderer still absent (cRoute comparator scratch
+and complete row construction needed). SIZE prefixes checked per-agent; native
+tagged dedup count domination requires actual representative coverage. Compact UPS
+fresh SHA inventory/semantic extraction ongoing. Active candidate files unchanged.
+
+
+2026-10-08 root fixed queue keys: NativeFixedKeys strict checked, THREE guards
+PASS. Main ordinals0/1/2 have exact native delayed/buffered/yield nibble keys;
+all implicit post-main walks have delayed key. Single-row key byte recovered from
+actual walk constraints. Report docs/e2e-results/v3-qv-native-fixed-keys/report.json.
+Main group keys proved previously; native empty/raw/absent values and actual
+KEYNIB→trie-read binding remain for full QueueView assembly.
+
+Root independently recompiled EIGHT compact extraction modules and FORTY exact
+guards PASS; docs/e2e-results/v3-compact-physical-extraction/report.json. Arbitrary
+candidate TableLocal yields complete segments/nodeparts at row4, Wf, and exact
+ALL-bus TableTraffic incl padding/wrap. Fresh Codec SHA authenticity/downstream
+semantic upsert proof still open; agent working inventory interface compatible
+with ShaFacts union. SIZE count-prefix extraction checked per agent, native store
+representative-count domination next. Receipt completeness renderer still missing
+beyond routing column/counter work; do not claim honest whole-Rcpt rendering.
+
+
+2026-10-08 root complete group key: NativeGroupKey strict checked, TWO exact guards
+PASS. physicalWalkBytes at actual main group ordinal equals[16]++native u64 shard;
+its nibbles equal the native runtime keyGroupsData exactly. Report
+ docs/e2e-results/v3-qsh-native-group-key/report.json. Prior group byte and native
+buffered-read hypotheses compose; KEYNIB→actual trie read and QueueView assembly
+still needed, including other modes.
+
+Root independently recompiled SizeCountTables/Budget/Traffic/Sound and THIRTEEN
+exact guards PASS (docs/e2e-results/v3-size-count-candidate/report.json). Actual
+Node187/Val16/Size33 candidate shapes checked; separate prefix counts preserve3M
+payload cap, including empty values. Model+2496/remaining27038 on previous baseline;
+not final all-candidate footprint. Conditional charge theorem still requires
+native retained-store count/payload binding and no-wrap. Count extraction ongoing.
+D2 physical normalized BND local+complete traffic+balance checked per-agent under
+honest-key coverage; coverage next. UPS actual candidate TableLocal→physical Wf
+segmentation checked per-agent; field/semantic extraction and global traffic open.
+
+
+2026-10-08 root group-key byte linkage: WalkGroupRequests strict checked, TWO
+exact guards PASS. For every actual main walk ordinal j≥3 and byte i<8, physical
+groupByte request is [startTau,j−3,i,wb(start+1+i)]. Proof derives nine-row length,
+slot/position/counter casts and enabled gate from actual local constraints. With
+native buffered-read request membership, group_native_byte derives j−3<shards.length
+and exact native u64 shard byte. No independent entry-index bound (from walk height).
+Report docs/e2e-results/v3-qsh-native-group-bytes/report.json. Next assemble actual
+nine-byte group key, complete QueueView/reads incl absent/empty/raw modes.
+UPS compact extraction header/layout row proofs progressing; SIZE counted candidate
+and BND rank balance progressing in separate agents. Active tables unchanged.
+
+
+2026-10-08 root native buffered read composed: CountReadMode/PhysicalBufferedRead
+strict checked, THREE exact guards PASS. physical_buffered_read takes actual
+present mode1 walk +physical VBYTES/BYTES/SHA/QVC/QSH, recovers actual native ValE
+with requested ID and binds ALL shard requests to that native vector.
+physical_count_read needs only actual countRead gate on walk start: derives
+present/mode1, native buffered value, and cv count=actual native vector length.
+No supplied provider/value/count equality. Report
+ docs/e2e-results/v3-qsh-buffered-read/report.json. Remaining queue: identify physical
+group-key entry ordinal/bytes with native vector, assemble full QueueView/reads and
+handle absent/empty/raw modes. Global balances still whole-assembly premises.
+
+D2 checked actual gBd prefix ranks in RoutingPhysicalRanks/Messages: complete
+physical BND messages use executable ordinal assignments and rank<P from height;
+provider partition to full balance still next. UPS working compact extraction.
+Receipt implementing isolated counted SIZE candidate; no active/frozen edits.
+
+
+2026-10-08 root provider linkage: UniqueShardLookup/BufferedProvider strict checked,
+FOUR exact guards PASS. Actual QVC balance yields a buffered parser provider for a
+present mode1 read with matching vid/tau. Native QSH permutation and count capacity
+then force every count/byte request into that SAME provider; natural count and
+canonical entry/byte position decode exactly. Report
+ docs/e2e-results/v3-qsh-provider-link/report.json. Next combine these with actual
+walk count/group-key rows and full native queue semantics; global balances remain
+explicit, not yet whole AIR/certificate.
+
+UPS agent now proceeds compact sound extraction; all compact constraints plus
+BYTES inventory and Codec relay-block semantics checked per-agent, global traffic
+still pending. Receipt agent designs isolated SIZE triples(tag,payload,count),
++1 counter column each Node/Val, +2 Size columns, including empty values; payload
+cap stays separate. Actual proof-size delta pending. BND rank-counter patch preserves
+all nonBND traffic/local constraints; concrete row-rank global balance in progress.
+
+
+2026-10-08 root buffered-provider uniqueness CLOSED: ShardCountCapacity and
+PhysicalBufferedUnique strict checked, FIVE exact standard-axiom guards PASS.
+Filtering complete physical receives gives≤ONE count packet; filtering native
+streams gives ONE packet per buffered parser record. Their exact permutation
+therefore forces at most one buffered provider (even duplicate physical records
+would count twice). physical_buffered_provider_unique derives this directly from
+actual VBYTES/BYTES/SHA/QSH hypotheses; no external uniqueness premise. Report
+ docs/e2e-results/v3-qsh-provider-unique/report.json. Next bind QVC provider to this
+unique buffer and use native count/byte lookup for concrete walk semantics.
+
+Agent witness-size review found actual length-prefix overhead not in Node/Val
+payload counters. Exact encoded-witness charge per agent:
+ payload + sourceSize +4*recordCount +(224+innerBytes.length+44*N+69*K).
+Cannot add4 directly into existing payload SIZE counters: that would narrow native
+3,000,000 payload cap. Candidate separate authenticated counts/encoded-total path
+under investigation; active/frozen constraints unchanged. UPS compact BYTES traffic
+now checked per agent, full other buses/extraction pending. BND honest rendering
+and public-size transfer checked per agent, concrete receipt rank patch ongoing.
+
+
+2026-10-08 root count-filter checkpoint: ShardCountFilter strict checked, TWO
+exact guards PASS. Each native buffered vector emits exactly one count-position
+packet; on a checked walk segment only countRead receives such a packet. Report
+ docs/e2e-results/v3-qsh-count-filter/report.json. Next combine filter lengths with
+count_request_unique and complete QSH permutation for buffered-provider uniqueness.
+
+MAJOR independent root checks: SEVEN receipt semantics modules/EIGHT guards PASS
+(docs/e2e-results/v3-receipt-source-semantics/report.json). candidate_source_semantics
+now derives FULL SourceSemanticsV3 from candidate local constraints plus explicit
+RCL/SRC/SHA/normalizedBND bindings, same physical chains and actual prep. No native
+routing or applied-equality premise. Includes repeated keys and fillers. WOVH and
+whole certificate still open. Agent investigates authenticated witness size next.
+SIX compact UPS modules/THIRTY-FIVE guards PASS (v3-compact-allocated/report.json).
+Accepted same instances yield compact rowcap and ALL candidate polynomial groups;
+prior group artifacts are dependencies. Complete traffic/extraction still next.
+These are isolated candidate checks; active tables/protocol unchanged.
+
+
+2026-10-08 root QSH byte-position proof: WalkShardPosition strict checked, THREE
+exact guards PASS. Physical groupByte cannot occur at key header; its requested
+position is canonical0..7 and cannot equal count position8. Together with prior
+count_request_unique this is the basis for proving at most one buffered provider
+via count-packet filtering. That global provider uniqueness is still NEXT, not done.
+Report docs/e2e-results/v3-qsh-byte-position/report.json.
+Root independently recompiled RoutingBoundedLayout/Prep/Examples and SIXTEEN exact
+guards PASS; docs/e2e-results/v3-bounded-routing-checkpoint/report.json. Candidate
+normalization preserves native shardOf for arbitrary layouts and gives actual
+accepted-preparation capacity≤4225≤8192. Active prep/public/table wiring remains
+unchanged; concrete BND rendering/global candidate integration still ongoing.
+
+
+2026-10-08 root QSH uniqueness milestone: WalkCountRequest strict checked,
+THREE exact standard-axiom guards PASS. count_request_gate is exact present/main/
+lo/hi predicate; indexed_count_request locates any count request at the single row
+of walk ordinal1; count_request_unique proves AT MOST ONE physical count-request
+row in the entire table. Report docs/e2e-results/v3-qsh-count-uniqueness/report.json.
+Next: use QSH count-packet multiplicities to prove at most one buffered parser
+provider, then identify it with the QVC provider (avoid assuming tau uniqueness).
+
+D2 per-agent checkpoint RoutingBoundedLayout/Prep/Examples and16 guards: actual
+native shardOf unchanged by truncating boundary list to shardIds.length, arbitrary
+unsorted lists allowed; actual prep/walk imply≤65 intervals/4225 rows≤8192. Candidate
+boundedPrep changes bnds only. Regression200 boundaries/one shard→two intervals,
+not full accepted-claim fixture. Root independent recheck still required. Receipt
+bounded_candidate_native_routing already checked by agent against ORIGINAL native
+layout and normalized public family. D2 continues concrete honest BND rendering.
+UPS compact cRows/cSeg/cDigest/cConst checked per agent; remaining groups ongoing.
+
+
+2026-10-08 root native shard count bound: NativeShardBounds strict checked,
+TWO exact axiom guards PASS. Actual physical table height and recovered BufferedValue
+imply shard count≤174762<P; physical_native_shard_balance_bounded carries this for
+all buffered records. No independent native length cap. Report
+ docs/e2e-results/v3-qsh-native-bounds/report.json.
+Root independently recompiled SIX native receipt-routing modules, ELEVEN guards
+PASS; docs/e2e-results/v3-receipt-native-routing/report.json. Tests now in standard
+zk-formal/test (agent moved from accidental Tests directory). Candidate native
+routing derived from decoded layouts and physical view with global BND balances.
+D2 investigates semantically exact boundary truncation to first shardIds.length
+boundaries (default shard0 beyond that point), preserving arbitrary native layouts;
+not yet proved or integrated. Receipt agent continues dictionary/applied-occurrence
+binding; UPS agent closes compact constraint groups. Active tables unchanged.
+
+
+2026-10-08 root message-level QSH decoding: NativeShardLookup strict checked,
+FIVE exact axiom guards PASS. Count position8 cannot alias byte positions0..7;
+byte lookup preserves exact position; canonical shard index and native count decode
+without field wrap. Bounds length<P/index<P remain explicit pending native-buffer
+size linkage. Report docs/e2e-results/v3-qsh-native-lookup/report.json.
+Root independently recompiled RoutingQPatch/Trace/Predecessor and TEN exact guards
+PASS; docs/e2e-results/v3-routing-trace-checkpoint/report.json. Executable bit-only
+trace patch maps old local+qbound to repaired local; predecessor condition derived
+from old control constraints; exact ALL-bus traffic preserved. D2 now investigates
+accepted-domain BNDcapacity/design without narrowing domain.
+Receipt agent checked candidate_native_routing (six guards) for same physical
+ListChain from repaired local, public ranges, BndWf, global BND balances and actual
+prepD0/walkD0; endpoint validity derived from decoded layout, unsorted allowed.
+Root independent receipt routing recheck still required. Agent continues integration.
+
+
+2026-10-08 root physical QSH balance: NativeShardBalance/WalkShardRequests strictly
+checked, FOUR exact standard-axiom guards PASS. Report
+ docs/e2e-results/v3-qsh-native-balance/report.json. Actual physical QSH send=receive
+counts, combined with existing VBYTES/BYTES links, yield complete walk-prefix
+request multiset PERM native buffered-value message streams. Multiplicities retained.
+Unconditional exact receive-row formula and byte/count request membership checked.
+Root independently checked CompactTraversal/Cells/Frame/CurrentGroups and14 exact
+guards PASS; docs/e2e-results/v3-compact-renderer-checkpoint/report.json.
+Global balances remain explicit assumptions for whole-AIR assembly; next identify
+native byte/count providers by tau/index and finish walk semantic extraction.
+
+
+2026-10-08 root full-table QSH milestone: NEW WalkShardTraffic/NativeShardWhole
+strictly checked, FIVE exact standard-axiom guards PASS. Report
+ docs/e2e-results/v3-qsh-whole-stream/report.json. Arbitrary locally accepted walk
+rows provably cannot send parser QSH; complete physical sends equal native buffered
+value shard streams, complete receives belong exclusively to walk prefix. No
+canonical-renderer assumption. Remaining: walk request semantic extraction and
+global QSH balance→native linkage. Physical byte-balance assumptions remain explicit.
+
+
+
+2026-10-08 root whole-parser shard aggregation: NEW ShardAggregate and
+NativeShardAggregate CHECKED strict Lean4.34.1; SIX exact standard-axiom guards PASS.
+Report docs/e2e-results/v3-qsh-native-aggregate/report.json. Inactive padding is
+silent, parser suffix receives nothing, nonbuffer records (including absent raw
+markers) are silent. physical_native_shard_suffix derives one native shard list
+per buffered record from actual VBYTES/BYTES balances and SHA locals; the COMPLETE
+ordered parser QSH suffix equals those native streams, preserving repetitions.
+shard_all_physical splits full table traffic into walk prefix plus parser records.
+Walk-prefix semantic extraction and global QSH balance cancellation remain next.
+Receipt agent independently recompiled prior NativeRecord/ValShaBytes/
+PhysicalNativeRecord and all six guards; /tmp/receipt-independent-root-native.log.
+
+Repair work remains isolated: UPS CodecRelayCandidate/CompactRowsCandidate/
+CompactTableCandidate and18guards checked per agent, shape unchanged, compact
+accepted rows plus padding≤2,131,201≤2^22. Compact renderer/extractor adaptation
+ongoing. RoutingQCandidate/Scratch/Normalize/Extract/Fill with16guards checked per
+agent; one cubic first-receiver q bound, same columns/buses, all128 bit fillings.
+Root independently recompiled all five routing modules and16guards PASS; report
+docs/e2e-results/v3-routing-q-checkpoint/report.json.
+Full trace patch completeness and accepted-to-BNDcapacity still open. No active
+candidate/protocol substitution or complete-certificate claim.
+
+
+2026-10-08 root native-record continuation: NativeRecord, ValShaBytes,
+PhysicalNativeRecord CHECKED strict Lean4.34.1; SIX exact axiom guards PASS.
+Report docs/e2e-results/v3-native-record/report.json records source/audit hashes.
+Actual physical VBYTES balance plus physical Val BYTES inclusion in locally valid
+SHA-table union yields the SAME extracted native value. Both buffered and empty
+modes proved; buffered mode also yields exact native QSH messages. No independent
+native byte witness, byte-range or record-ownership premise. Whole balances remain
+explicit; whole parser/walk aggregation and global cancellation still open.
+
+Critical parallel findings: receipt RoutingAlias and RoutingQFreedom check a LOCAL
+packed-address alias and absence of other local q bounds; NOT yet a complete
+cross-table malicious receipt witness. Isolated RoutingQCandidate adds one degree3
+range constraint using existing scratch bits; proof/audit ongoing. Native layout
+boundary count is NOT bounded by shardIds count, so accepted-to-BND capacity remains
+open. UPS maxLog23 is forbidden by Air.Table.wf. Preferred isolated repair under
+review: route fresh-value BYTES directly from existing Codec sender, remove UPS
+fresh-value rows; expected UPS envelope 2,131,200 < 2^22. No active table/protocol
+changes or full-capacity claim yet. All three subagents continue in parallel.
+Root independent SHA union recheck: four modules (ShaUnionFacts, ShaUnionBytes,
+ShaBinUnion, ShaBinExact), three audit files / 9 exact guards PASS.
+Report docs/e2e-results/v3-sha-union-checkpoint/report.json.
+
+
+2026-10-08 root QSH checkpoint: five NEW main modules ShardRows, ShardRecord,
+NativeShardBytes, NativeShardStream, ShardSilentModes CHECKED strict Lean4.34.1/-j2,
+19 exact standard-axiom guards PASS. Report docs/e2e-results/v3-qsh-native-stream/report.json
+records source/audit hashes and logs. buffered_shard_segment is exact ordered physical
+QSH send list (header count followed by8bytes/entry); buffered_native_shard_stream
+identifies that list with nativeShardMessages of the SAME decoded BufferedValue,
+preserving repetitions/ordinals. Empty-index/raw records silent in both directions;
+parser rows receive nothing. Root scratch /tmp/nearproof-root-lib. No root livejob.
+Next canonical ValE/native byte witness (ValWf alone only <P, need SHA bytes<256),
+whole parser/walk QSH aggregation and cancellation. Existing RecordValue recovers
+exact ValE, physical byte/length equality from complete VBYTES stream.
+
+All work remains UNCOMMITTED: .git/external worktrees read-only. Last pushes unchanged.
+Previous34module/134guard independent report below remains a scoped earlier checkpoint.
+Later agent work since it is CHECKED PER AGENT; root integrated recheck still required:
+- ups: AcceptedPartInputs, SchedulerInstances/AcceptedInstances, NativeRowCost,
+  SchedulerSizedInstances/AcceptedInstanceList/AllocatedRowCost/AllocatedConstraints.
+  Same accepted execution gives one ordered list, tau=range, InstOk/all partinputs/
+  existing HEAD/EDGE/BMAP providers and all polynomial constraints conditional ONLY
+  on physical rowcap. Exact R=4*instances+freshbytes+outputbytes; current bound5,278,112
+  EXCEEDS2^22 (insufficient envelope, no accepted counterexample established).
+  Do not claim UpsOk/cap or change domain/table silently. Providers currently use
+  scheduler postroots; later receipt-applied HEADpost must be connected separately.
+  New ValueTraffic/PhysicalValueTraffic/AllocatedValueTraffic checks exact freshvalue
+  physical offsets and complete ordered SPOST/BYTES traffic; outputnode traffic next.
+  Scratch fixed stale GSeg/GDig/GRows oleans using read-only current AIR dependencies.
+- D2: SchedulerAllBounds/UpsertPointwiseCost/UpsertSourcePointwise; source+upsert
+  weight log23 lemma is only hypothetical placement. SourceUpsertShaLog22 supersedes
+  active capacity via3source bins+1scheduler bin. SchedulerSanityInput/Jobs gives
+  concrete kind11 64byte sanity preimages; scheduler SHArows≤1,663,260/log21.
+  SourceSchedulerShaMessages constructs FOUR actual lists of Msg with exact flattened
+  original IDs/bytes/order; each≤log22. SourceShaBytes/SourceSchedulerShaOk/ShaBinRender/
+  SourceSchedulerShaRender derives each physical table TableLocal+TableTraffic.
+  ShaUnionFacts/ShaBinUnion supplies existing generic Near.ShaFacts over sum across
+  table indices and exact summed physical/logical traffic. Existing sole-table
+  ShaOwn cannot be silently reused; global bytes/digest/other-ID ownership remains.
+  docs/zk-formal/OUTPUT-SHA-COST-PROGRESS.md has inventory. Other SHA families and
+  final complete footprint/cancellation still open; no global fit claim.
+- receipt: NativeListSize/NativeSourceSize/NativeSizePartition/NativeEntryShape/
+  NativeDictionarySizeBinding proves actual dictionary size=DedupRender.size+44*N+4.
+  Public/NativeSourceOverhead derives≤87300 deterministic overhead and SizeWf payment
+  WHEN authenticated remainder/advertised-overhead/no-wrap link supplied. Arbitrary
+  prepared WOVH can be0, so full witness-size authentication remains real assembly
+  obligation. Agent now proves actual native ownIntervals→Layout.shardOf (unsorted
+  boundaries allowed), then BND ownership/routing. Updated source checkpoint doc
+  docs/zk-formal/RECEIPT-NATIVE-DICTIONARY-CHECKPOINT.md.
+
+
+
+Current sandbox checkpoint (2026-10-07): **34 new modules independently recompiled,
+29 audit files / 134 exact axiom guards PASS**, allowed axioms only propext,
+Classical.choice, Quot.sound. Frozen oracle `make pin-check` PASS. Source SHA256,
+commands/options, dependencies and per-file logs recorded in
+`docs/e2e-results/v3-buffered-native-checkpoint/report.json`.
+This is scoped component checking against existing lane artifacts, NOT a merged
+repository build, complete certificate, or validator replacement.
+
+Git/environment: main workspace and /tmp writable; .git and external worktrees
+read-only; network restricted and approval never. New proofs/tests/report are
+**uncommitted in main**. Last pushed main20ff8369 / AIR46cea66c. User authorization
+to commit/push persists; do not claim new push or bypass permissions. Heavy wrapper
+cannot access systemd bus. Bounded direct Lean4.34.1 uses 16GiB virtual-memory cap,
+`-j2 -DautoImplicit=false -DrelaxedAutoImplicit=false`, CPU8-15,24-31. Important:
+LEAN_NUM_THREADS alone did NOT prevent thread-creation failure; explicit -j1/-j2
+works. Read-only dependency overlays in /tmp handle first-module-root lookup.
+
+Root completed nine NEW modules under Qv/Extract (35 exact guards):
+EntryClock, EntryRows, EntryWords, BufferedLayout, EntryCounter, BufferedStructure,
+HeaderValue, NativeBufferedBytes, BufferedValue. Actual physical buffered records
+have n=4+24*k, field entry ordinal j, canonical declared count k, full shard/first/
+next eightbyte words, and equal first/next bytes. Header high byte0 and exact LE
+count decode proved without field alias under authenticated byte bounds.
+`Parser.buffered_queue_bytes` derives ∃shards, BufferedValue(some bs) shards from
+actual TableLocal/IsSeg/mBuffer and complete identified native byte witness.
+No sorting, uniqueness or accepted-domain cap added. Next QSH stream must identify
+the same native shard vector/order; native byte witness must connect to RecordValue,
+then whole AIR channel equations/Good. Existing empty_queue_bytes already analogous.
+Root checked oleans /tmp/nearproof-root-lib; independent /tmp/nearproof-reviewed-root-v2.
+
+Parallel checkpoint (included in independent report):
+- d2_validation: seven Assembly modules UpsertSplitSize, UpsertOutputCost,
+  UpsertTightCost, SchedulerUpsertCost, SchedulerStateSize, SchedulerSizedWitness,
+  UpsertShaCapacity. Accepted checkD0a yields actual1..32 scheduler upserts, source
+  wf, ≤403parts each; output-node bytes≤2,131,072; fresh value bytes≤3,146,912;
+  K_VUPS messages≤12,928, totalbytes≤5,277,984, honestSHArows≤1,662,140/log≤21,
+  MsgsOk. Actual scheduler key/layout bounds derived; no value-change assumption.
+  Root converted five bare-print audits into50 exact guards and reran PASS.
+  Agent continuing partitioned SHA aggregation: existing source envelope8,932,712
+  cannot fit single log22 table; use existing SourceBudget/DedupSha/PartitionCapacity
+  architecture within ONE proof (no recursive proof composition or B0 reduction).
+- ups_fields: ten Render/Ups modules NativeBranchGeometry, NativeBranchSourceWindow,
+  BranchBoundaryCount, NativeBranchWindow, NativeUpperIndex, NativeUpperWindows,
+  NativeWindows, NativeChildLengths, NativeChildLengthBinding, NativePartInputs.
+  Actual nativeSourceBase satisfies ByteInput/FieldsOk/PartOk/WindowOk/MemOk,
+  valid child index and exact clen for every part. Remaining explicit numeric
+  conditions: value<2^24, depth≤400, qhk/phk<2^22. Agent also checked NEW
+  NativePrefixBounds (not in report), coordinating same accepted witnesses with
+  D2 to discharge those caps. Uses HPL prerequisites including c1e8b9db/42443658
+  and D2 SHA encoding sources; merge dependency closure before whole build.
+- receipt_gap: eight Rcpt/Candidates modules NativeDictionary, NativeDictionaryVerified,
+  PreparedCoverage, PreparedNativeOwner, NativeSlotSelection, NativeDictionaryCount,
+  PreparedShuffle, NativeFillers. Repeated source keys selected via first representatives,
+  real AIR/public/SHA authentication, exact native slot multiplicity, owner identity,
+  shuffle certificates, and constructive distinct unused fillers preserve frozen
+  dictionaryCount. Enumerated32byte freshkeys need no collision oracle; filler
+  entryWf/native parse, exact56byte size and ≤111104 total bound checked. NativeFillers
+  needed explicit {α : Type} under strict repo flags; fixed and independently rechecked.
+  Agent NEW PreparedKeyCount/NativeSourceDictionary composition and exact encoded
+  SIZE identity are later work not included in report. Expected dictionary overhead
+  is44*N(+vector4) over source SIZE because skipped12-byte RC charge offsets filler56;
+  must prove/bind WOVH/8MiB accounting, never simply add111104 beyond budget.
+
+All four lanes remain assigned. Immediate plan: root QSH/native shard correspondence;
+D2 partitioned total SHA footprint; ups accepted numeric cap discharge; receipt exact
+SIZE/overhead then routing/applied semantics. Then integrated Good/certificate,
+reference lean4lean memFill failure, admission, Rust succinct prover and real judge.
+D0a remains intermediate; broader NEAR coverage and replacement remain incomplete.
+Root has no running check job. Review driver /tmp/nearproof-review-lane.py; receipts
+/tmp/nearproof-reviewed-receipt-v2; ups /tmp/nearproof-reviewed-ups-v2 and ups-extra-v2;
+cost /tmp/nearproof-reviewed-cost-v2 and cost-guards-v2. Exact report paths/hashes govern
+which sources were checked; later agent files are not silently included.
+
 Root BufferedHeader CHECKED at AIRcd428446: header lastrow requires sel3/count0;
 headerclock advance, headerend→shard/sel0; exact first4header rows and exit:
 either n4/count0 or row4shard/sel0. Target196jobs+5exactstandardguards PASS;
