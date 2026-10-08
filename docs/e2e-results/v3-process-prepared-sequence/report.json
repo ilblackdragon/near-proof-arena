@@ -1,0 +1,25 @@
+{
+  "lane": "process-prepared-sequence",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPreparedSequence.lean",
+      "sha256": "c479c608f8b29990a2a3d915c17ad55796f7702328cfb27a37174879a5047b13",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prepared-sequence-ProcPreparedSequence.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPreparedSequence.lean",
+      "sha256": "690d4b0c18c6312d172d4ee3993c9f5e7fbb17c7f6d3ca07087aeb594a2236a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prepared-sequence-AuditProcPreparedSequence.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2 exact guards: prepared SchedPubOk sequence removes separate raw count, shard count, tau and row-capacity premises. Actual accepted-to-runInputs success remains open.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

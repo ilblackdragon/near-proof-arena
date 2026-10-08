@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PairedNodeWindows strict PASS4 exact guards: child-window ID lists
+are preserved when inserting actual post digests, and equal the paired renderer
+physical child-ID column under WriteTreePair/pre-view wf. This does NOT yet close
+paired forest NodeOk or actual native post-state binding.
+
+Independent ProcPreparedSequence PASS1 module2 guards: SchedPubOk inputs derive
+raw/n/tau/row-capacity for candidate process local validity, retaining explicit
+runInputs success. Accepted-to-success still open. Previous3209289b contains
+process budget/sequence29 guards and isolated receipt-domain candidates14 guards.
+Previousd4d72d2e contains paired store and accepted physical lookup18 guards.
+Receipt824/881 and fixed-height10/19 unchanged. Full certificate/prover/judge and
+general NEAR incomplete; builds use prebuilt dependencies, not clean certificate.
+Push3209289b failed GitHub DNS; retry after checkpoint; verified bundle retained.
+
+Next root: paired metadata/NodeOk and actual write-pair validity/post binding.
+Agents continue shared physical EDGE/BMAP provider composition, accepted scheduler
+input/run success, and receipt repair soundness/completeness migration.
+
+
 2026-10-08: Independent strict review PASS process-native-budget seven modules,
 29 exact guards. Actual native run entrycount <= C+43*n and rows <=16+2*(C+43*n).
 For <=33 inputs with n<=64/raw<=4096, successful enumerated runInputs derives
