@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualBucketGuards strict PASS, four exact axiom guards.
+Successful processEv derives every emitted bucket entry's key/ordinal from the
+actual model filtering and mixed-ordinal check. collect_success proves the
+replay bucket-tag collection loop succeeds with exact appended entry count.
+process_round_guards combines this with the model clock theorem to discharge
+steps-versus-bucket count and tag collection for corrected process outputs.
+No full generator success premise used. Bucket-size bounds, combined entry
+replay/state/memory/comparison checks and full suffix success remain open, as
+do caller/Codec/allocation integration and full certificate/prover/real judge.
+Prebuilt dependency checks only; receipt882/882, integrated10/19 unchanged.
+Prior8303704b push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualRunFactor strict PASS, three exact axiom guards.
 run_eq_prefix proves equality of full ActualRun.run with the extracted proved
 prefix followed by runRest, containing unchanged replay/memory/comparison checks.

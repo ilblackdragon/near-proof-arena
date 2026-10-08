@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Successful corrected process derives round bucket tags, step-count check and bucket collection success with exact appended count. Bucket-size bounds and combined replay success remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualBucketGuards.lean",
+      "sha256": "f1adec3008a4898c6155ea9ba94ad8657d3cb8c8317908fb73eb9b027ddced8c",
+      "audit": "zk-formal/test/AuditProcActualBucketGuards.lean",
+      "audit_sha256": "50061134557ae53755e1cdc2589ba54e9b651998faecda736ffc2df5a29e5fa6",
+      "guards": 4
+    }
+  ]
+}
