@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete gated memory plus first-ID table fusion shape3404/112/7/112/22, degree8, exact size8359892 and28716 headroom. Provisional buses; raw parser/Codec changes and full honest/sound ownership remain. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/GatedIdFusion.lean",
+      "sha256": "6577cf07180ca3abf64dc49bdc90d3f5f46ce2472a7b5b46d7bb9f856205c2d8",
+      "audit": "zk-formal/test/AuditGatedIdFusion.lean",
+      "audit_sha256": "9f3b96f70bcc3113f2fa7943fd3265a76bcc581ac2146695336f0a29c50fd170",
+      "guards": 8
+    }
+  ]
+}

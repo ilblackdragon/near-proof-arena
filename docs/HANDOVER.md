@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: GatedIdFusion strictPASS8 guards proves actual appended gated memory
+and first-ID fusion shape3404/112/7/112/log22, degree8, full proposed inventory
+bytes8,359,892 with ONLY28,716 below8MiB. Provisional buses70/71/72/shared69;
+raw prior parser/Codec replacement costs and full honest/sound admission remain.
+Independent process-prior-id-table PASS2guards validates isolated width20 table.
+Scheduler agent investigating removal of obsolete Codec prior-bit columns as
+measured recovery target, not assuming those savings before projection proof.
+
+ReceiptMerkleShaBytes strictPASS1guard connects previous receipt/account SHA
+byte split to actual native outcome Merkle physical bytes, INCLUDING empty
+outcomes. Explicit SAME receipt-leaf/outcome-preimage identity and receipt/account
+traffic contracts remain; public refund consumer retained.
+
+Receipt agent reports separate HoldsP MEM adaptation checked, pending root
+independent review; actual pubFit→public ranges also being derived without
+incorrect total-public-length assumption. MIDROOT physical balance ongoing.
+Integrated10/19 retained, no full prover/certificate/judge/general NEAR claim.
+Three agents continue. Priordf80df92 push failed DNS; retry verified bundle.
+
+
 2026-10-08: FusedReceiptHolds strictPASS1 exact guard derives SAME projected
 receipt ListChain/semantic RcptV3Wf/all-bus traffic from actual gated-family
 Holds plus public ranges. Independent MEM version/ownership premises removed:
