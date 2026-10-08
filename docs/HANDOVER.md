@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SortEmptyFamily additive repaired family structural certificate
+strictPASS12exactguards across Wf/Bounds/Admission/main modules. Replaces actual
+rest slot10 (family slot11) with empty-capable Sort; fused component unchanged.
+New table/AIR Wf, grouped degree, max header, exact shape and size all checked.
+sizeMaxDedup pg3=8,238,324 (150,284 below8MiB); multBound1,038,721,028;
+fpBound68,697,539,256. Original family unchanged. This supersedes pending
+certificate note below but is not full correctness/prover/judge certification.
+Root resolved repeated16GiB allocation failures by reusing unchanged table facts,
+explicit AIR rewriting and modular checks; successful builds/audits use prebuilt
+dependencies. Pin-check PASS. Native RIDS physical traffic still needs attachment.
+Subagents remain stopped after usage-limit errors; local proof work progressed.
+Strongest allocation NativeShardSanityAllocation; receipt882/882, integrated10/19.
+Prior0fd4fbde push failed DNS; verified recovery bundle retained. Goal active.
+
+
 2026-10-08: Independent scheduler whole DIGEST package9modules PASS24guards:
 actual corrected generator placement/concatenation, derived log22 capacity and
 physical repaired Codec +compact UPS receives equal BOTH native scheduler job
