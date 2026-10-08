@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualEntryTimes strict PASS, six exact guards. Actual entry and full indexed batch timestamp lists equal initial entry timestamps plus translated model bucket timestamps. Translation preserves strict bucket order and bound below round start under explicit R<=T0 and aligned start. Exact indexed bucket timestamp checks follow from ordered entry timestamp map and upper boundary, including final-entry case. Across-round emitted RoundD timestamp map transport still needs composition with model process_time/clock. Round-key and numeric operand/parameter bounds and full integration/certificate/prover/judge remain open. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousd1b94935 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualAfterMemoryReduction strict PASS, six exact axiom guards. Push-log/state/RNG guards and constructed memory scan now compose on SAME deterministic replay result. Full corrected generator reduces to exact afterMemory. native_reduction starts from accepted prep plus successful native runCore and derives prefix/replay success internally, retaining native output agreement. Remaining executable obligations are round key decrease, bucket timestamp comparisons, operand<2^29 and parameter<2^24 checks. Full generator success, broader integration/certificate/prover/judge remain unproved. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previouse8acf5fc push failed GitHub DNS. Goal active.
 
 
