@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: CONFIRMED integration bug: old CombinedTable KEYNIB emits extra
+START at0 and nibble/end positions shifted+1. Native lookup consumes key+END
+at0..n; Head has no START consumer. QueueKeyRepair.old_mismatch kernel regression
+proves concrete delayed request mismatch. New candidate removes START and shifts
+three key positions down1, preserving all constraints and other interactions.
+Table wf checked;4exactguards PASS. Candidate NOT installed: physical key traffic
+proof, other bus transport, family admission recertification and allocation
+replacement remain. Prior old-table byte/FINAL/local facts remain valid within
+their scopes but do NOT establish global KEYNIB conservation. Old candidate
+admission certificate does not cover this new table. Pin check PASS; dependencies
+prebuilt; full certificate/prover/judge pending. Receipt882/882; integrated10/19.
+Priorbd3fe402 push DNS failed; local bundle retained. Goal active.
+
+
 2026-10-08: NativeQueueFinalMessages strictPASS4guards equates actual planned
 queue FINAL messages with native query results including absence/global VID
 offsets. Full physical queue FINAL receive permutation proved. NativeQueueCounters
