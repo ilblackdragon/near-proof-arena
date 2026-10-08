@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ChainMetadata strict PASS12 exact guards. Concrete entity-ID lookup
+installs predecessor-chain dup/hd/repE into actual NodeS3 and ValE records.
+Lookup returns the exact entry under entity-ID Nodup; chain predecessor IDs are
+canonical when actual IDs are canonical. Full NodeWf3, NodeOk including cidAt,
+and ValWf preserved. Real count-extended node/value TableLocal follows for these
+patched lists. Class partition/coverage, digest ordering and whole ENT/DUP traffic
+integration remain open; first-representative metadata still not a global witness.
+
+Independent process-native-positions PASS7 guards: actual generated positions
+and modulo-clock successors supply header/entry adjacency, removing abstract
+neighbor-cell premises. Ordinary replay decisions/bounds/index and round facts
+remain to derive from Gen.run, plus remaining families and concatenation.
+Receipt remains reviewed721/881. Agent reports first5 system equations local
+checked but uncomposed;13 current equations+1 counter transition target735/881.
+Do not count that target as verified yet. UPS agent connecting physical payload
+arity/field canonicality to exact interactions and native providers.
+
+Selected fixed-height10/19; actual size/header8,288,148 unchanged. Three parallel
+agents active. Full transition certificate, clean build, prover, real judge and
+general NEAR remain incomplete. Strict source checks use prebuilt dependencies.
+Previous checkpointdefd80ce push failed DNS; retry after commit.
+
+
 2026-10-08: StoreDuplicateComplete/StoreDuplicateChain strict PASS8 guards.
 Initial representative metadata preserves full NodeOk including generator cidAt,
 length bytes and SUM row budget; count-extended actual node/value TableLocal and
