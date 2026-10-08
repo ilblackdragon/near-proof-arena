@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ChainDuplicateFlags/ChainStoreCharge strict PASS8 exact guards.
+The actual chain metadata dup predicate equals the checked first-representative
+selection, although hd/repE differ for the required predecessor-chain traffic.
+Actual patched node and value dup filters have exactly the same payload+4*record
+charge as original class accounting. Native original stores pay actual chain
+record charge under unchanged preBytes<=2M; native ValWf and provenance derived.
+No extra upper-charge assumption. ENT/DUP physical traffic pullback, actual SIZE
+sum/count composition and digest-sorted UNIQ construction remain open.
+
+Independent native-ups-interaction-cells PASS5 guards: actual generated wCell
+rows and UpsRows.uMsgs yield exact EDGE/BMAP gates/messages, shared-counter sync
+transported with exact mod-P reduction. No URowOk or extra canonical-cell premise.
+This is per-row actual traffic, not yet full table aggregation/provider balance.
+Agent continues aggregation, then honest queue/account paths.
+
+Receipt reviewed735/881; selected fixed-height10/19. Three agents active on
+receipt remaining families/SREC traffic, process replay invariants and UPS
+aggregation. Size/header8,288,148 unchanged. Full certificate, clean build,
+prover, real judge and general NEAR incomplete. Strict checks use prebuilt
+dependencies. Previousbe43b38a push failed DNS; retry after commit.
+
+
 2026-10-08: receipt-system-complete independent strict PASS44 exact guards.
 Same physical booleanReceiptTrace now735/881 actual family constraints: prior
 regs200/emit189/states248/end23/chars61 plus all14 cSys. System identity flags,
