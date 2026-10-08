@@ -44,8 +44,8 @@ theorem slot_at {pre post : PTrie} {rs : List Receipt} {as : List AcctV}
 prestate slot used by receipt memory, including repeated receiver queries. -/
 theorem walks_slot {pre post : PTrie} {rs : List Receipt} {as : List AcctV}
     (ha : nativeAccountViews pre post rs=some as)
-    (rest : List (PTrie×PTrie)) (suffix : List NativeLookupQuery) (ws : List WalkR)
-    (hw : nativeQueryWalks ((pre,post)::rest) (accountLookupQueries rs++suffix)=some ws)
+    (queryPost : PTrie) (rest : List (PTrie×PTrie)) (suffix : List NativeLookupQuery) (ws : List WalkR)
+    (hw : nativeQueryWalks ((pre,queryPost)::rest) (accountLookupQueries rs++suffix)=some ws)
     (j : Nat) (r : Receipt) (hj : rs[j]?=some r) :
     ∃w, ws[j]?=some w ∧ w.steps.getLast?.map lookupFinal=
       some (some (accountSlot pre (rs.map (fun r=>accountKeyPath r.receiverId)) j)) := by
@@ -58,13 +58,13 @@ theorem walks_slot {pre post : PTrie} {rs : List Receipt} {as : List AcctV}
       rw [hz] at hq
       contradiction
   have he:=congrArg (fun xs=>xs[j]?)
-    (nativeQueryWalks_exact ((pre,post)::rest) (accountLookupQueries rs++suffix) ws hw)
+    (nativeQueryWalks_exact ((pre,queryPost)::rest) (accountLookupQueries rs++suffix) ws hw)
   simp only [List.getElem?_map,List.getElem?_append_left hjq,hq,Option.map_some] at he
   cases hs : ws[j]? with
   | none=>simp [hs] at he
   | some w=>
     simp only [hs,Option.map_some,Option.some.injEq] at he
     refine ⟨w,rfl,?_⟩
-    rw [query_result pre post rest j (accountKeyPath r.receiverId) w he.symm,slot_at ha j r hj]
+    rw [query_result pre queryPost rest j (accountKeyPath r.receiverId) w he.symm,slot_at ha j r hj]
 
 end ZkFormal.NearV3.Candidates.NativeReceiptAccountIds

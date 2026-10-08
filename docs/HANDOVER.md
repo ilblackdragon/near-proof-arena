@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeReceiptIdAllocation strictPASS8guards across3root modules
+removes arbitrary receipt accountId from strongest combined native/account/receipt/
+public/trie/fourSHA theorem. Concrete IDs are original-prestate account slots;
+SAME raw and counter-ranked lookup lists return those slots at each receipt index.
+The actual replay constructor poststate remains separate from lookup query poststate;
+lookup tau0 uses the common original prestate. Repeated receivers preserved.
+
+Independent checks: native account MEM8modules23guards closes semantic writes+
+account initial sends = reads+actual closing receives, all16 lanes/empty batches;
+physical receipt MEM transport remains. Parser RecordLinear13modules31guards closes
+honest TableLocal including58 constraints and8multiplicities; single tau0 block,
+vertical native assembly/authenticated joins remain. Scheduler field digest5modules
+8guards checks exact shape-specific hash-window inventory.70guards total checkpoint.
+All checks use prebuilt dependencies; no clean/full correctness certificate claim.
+Receipt882/882, integrated10/19; full prover and judge still unfinished.
+Pg3 structural size certificate remains8,231,316 (157,292 below8MiB).
+Prior63cd5071 push DNS failed; local commits and verified recovery bundle retained.
+
+
 2026-10-08: NativeReceiptAccountIds strict PASS, four exact axiom guards.
 Concrete receipt account IDs equal original-prestate value slots returned by
 THE SAME combined native lookup list. Repeated receiver occurrences preserved.
