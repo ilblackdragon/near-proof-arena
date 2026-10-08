@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PairedNodeCanonical strict PASS4 exact guards. Raw field bounds for
+slots/children/nodes transport from pre-only views to paired actual post-digest
+views. No new post-digest bound premise; actual byte encoding supplies it.
+Together with14760caf window-ID invariance this advances paired NodeOk; paired
+forest metadata/allocation, actual write-pair validity and post binding remain.
+
+Independent RcptGasPrepared PASS1module6guards derives GasPublicBytes directly
+from actual prepD0/walkD0/NativeValid and prepared public bytes, including context
+and header equality. Separate gas-price u128 decoder bound remains.
+Independent ProcPrepBudget/ProcConversionSuccess PASS2modules6guards derives
+prepared scheduler bounds directly from prepD0 and proves first native conversion
+loop success under valid shard indices/five-byte bitmaps. Full Gen.run success
+needs instrumentation/native equivalence, replay/shuffle and bitmap width;
+acceptance is NOT yet sufficient for successful generator construction.
+
+Receipt824/881, fixed-height10/19 unchanged. Full certificate/prover/judge/general
+NEAR remain incomplete. Checks use prebuilt dependencies, not clean certificate.
+Prior14760caf push failed GitHub DNS; retry after checkpoint, retain verified bundle.
+Three agents continue receipt repair, accepted scheduler replay, shared physical
+provider inventory. Root next paired forest metadata/NodeOk and actual postbinding.
+
+
 2026-10-08: PairedNodeWindows strict PASS4 exact guards: child-window ID lists
 are preserved when inserting actual post digests, and equal the paired renderer
 physical child-ID column under WriteTreePair/pre-view wf. This does NOT yet close

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Canonical raw field bounds transport from prestate views to paired actual post-digest views, under WriteTreePair. Full paired forest NodeOk and actual write-pair validity remain open; prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedNodeCanonical.lean",
+      "sha256": "075cc33239e72edac239212e7003dbe32f199a0a9159726b36a46c54d94ec503",
+      "audit": "zk-formal/test/AuditPairedNodeCanonical.lean",
+      "audit_sha256": "167cf932650e317d7ef613fa0689c80aa40808837466808b12e1f770574318fb",
+      "guards": 4
+    }
+  ]
+}
