@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-rows",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRows.lean",
+      "sha256": "c8a557fa44d2e02e71782a84489ebd7cdb683e5bd72f74152637a03610349f36",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-rows-ProcPriorRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRows.lean",
+      "sha256": "ff3a52d50796eea241a55fd4704af606e04868a50ede565365fa8705595cd8c8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-rows-AuditProcPriorRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5 guards. Executable linear carry annotation preserves events/count and derives native query read values. Actual Fp renderer/local constraints remain.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

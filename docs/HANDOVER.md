@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedQueryAllocation strictPASS1 exact axiom guard combines actual
+accepted native query walks, shared walk prefix/EDGE/BMAP requests and SAME
+scheduler instances with local Walk/node/compact, full UPB conservation,
+fourpacked SHA local tables/ShaFacts and physical byte/digest inventory.
+Arbitrary previous/edges/bmaps parameters removed. Fresh codec/sanity/receipt
+byte residuals, final shared EDGE/BMAP composition and retained query value
+validity/read outputs remain next stronger interfaces; not full prover.
+Independent accepted-query-window PASS3modules5guards derives that witness.
+
+Independent repaired receipt alltraffic PASS21modules80guards now extracts
+SAME ListChain and COMPLETE candidate TableTraffic from repaired TableLocal,
+without public/provider/old-local premise. Remaining global semantic Wf/routing/
+token/provider composition separate. Independent prior rows PASS5guards gives
+linear-time native carry annotation; actual Fp renderer/parser/ID AIR remains.
+
+Integrated family10/19 retained; receipt882/882 and all-bus extraction checked.
+Gated proposal size8,313,300 excludes remaining scheduler repairs. No full
+certificate/prover/judge/general NEAR claim. Three agents continue in parallel.
+Prior375c3035 push failed GitHub DNS; retry after verified recovery bundle.
+
+
 2026-10-08: GatedMemoryAdmission strictPASS8 exact guards proves actual proposal
 AIR well-formedness, field/multiplicity bounds, grouped degree, verifier header,
 and sizeMaxDedup=8,313,300<8MiB. Provisional new buses67--69 still lack ownership;
