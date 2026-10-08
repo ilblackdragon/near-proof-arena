@@ -6,6 +6,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeShardSanityAllocation is strongest allocation. Five independently
+rebuilt modules PASS5exactguards derive repaired queue physical QSH conservation
+from SAME native validity, reads and accepted capacity, retaining all prior facts
+and BOTH global DIGEST equations (full scheduler residual and sanity-only residual).
+No new accepted premises or table edits. Source hashes independently checked.
+Prebuilt dependencies only; full certificate/prover/judge still open.
+Receipt882/882, integrated10/19. Prior018d7099 push failed github.com DNS;
+verified local recovery bundle retained. Parallel codec installation and remaining
+physical global joins continue; trie cost bounds are structural, runtime unmeasured.
+
+
 2026-10-08: NativeSanityResidualAllocation is strongest SAME native allocation.
 Two modules strictPASS2guards preserve all prior scheduler facts and add global
 physical DIGEST equation with actual compact scheduler receives; only expected
