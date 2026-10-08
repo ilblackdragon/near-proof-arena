@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual partition and recursive quicksort preserve any element predicate on a containing interval, including public clamped bounds. This transports pivot bounds across subpartition sorts. Median sentinel strict partition progress and sortedness remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcQsortRangePredicate.lean",
+      "sha256": "fd1335ff21a866874129099032d1839a237d13d8ea67ddbfe585d1543ae29e76",
+      "audit": "zk-formal/test/AuditProcQsortRangePredicate.lean",
+      "audit_sha256": "fb0e9a40bc0da9e576ab68e568287c72035f40145ef8341f4ef9ab3ce2fd4142",
+      "guards": 5
+    }
+  ]
+}
