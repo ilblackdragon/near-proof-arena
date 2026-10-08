@@ -6,6 +6,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualRunFactor strict PASS, three exact axiom guards.
+run_eq_prefix proves equality of full ActualRun.run with the extracted proved
+prefix followed by runRest, containing unchanged replay/memory/comparison checks.
+prepared_reduction derives prefix success from prepD0 membership, actual schedPub
+and native runCore success, retains native state/grant agreement, and reduces
+full generator execution exactly to runRest. The earlier full-run factorization
+gap is closed. Replay suffix success remains unproved; caller/Codec/allocation
+integration, full correctness certificate, prover and real judge remain open.
+Prebuilt dependency checks only; receipt882/882 and integrated10/19 unchanged.
+Prior4222e890 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: Corrected generator early guards and RNG replay: seven modules
 strict PASS,20exactguards. Migrated conversion success/exactness/prepared inputs,
 core round checks, shuffle replay and boundary guards to actual native-prior

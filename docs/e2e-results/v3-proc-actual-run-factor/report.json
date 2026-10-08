@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact equality factors full ActualRun.run through proved prefix and unchanged replay suffix. Prepared native inputs derive prefix success and reduction to suffix. Suffix success, full integration and certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRunFactor.lean",
+      "sha256": "8af49c9e93df716ad2fefa7cf1037c49680ce837400be7b8f121180d9fdda8f2",
+      "audit": "zk-formal/test/AuditProcActualRunFactor.lean",
+      "audit_sha256": "eb75ba66d172b12631ad09cf739fadef1c73b4618f5bfec8de0ddb7447121b13",
+      "guards": 3
+    }
+  ]
+}
