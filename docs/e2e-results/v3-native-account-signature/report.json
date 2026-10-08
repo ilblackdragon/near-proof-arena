@@ -1,0 +1,32 @@
+{
+  "lane": "native-account-signature",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountStep.lean",
+      "sha256": "985d07e71fb0feebb72c460eb0b191fc6d8eccc78506410353e6f4ababcb6af9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-signature-NativeAccountStep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountSignature.lean",
+      "sha256": "60761d0e23368dcafad8d9cde74dea04785be78decbc49d10526935e202ef675",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-signature-NativeAccountSignature.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountSignature.lean",
+      "sha256": "c14ee6dab671d5def37d0f91b3c581994ab6905b286ae755c8af39a587aebe45",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-signature-AuditNativeAccountSignature.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules8guards. Actual ordinary/system account writes derive original decoding and exact updated amount payload. SAME applyReceipts preserves per-occurrence decoded-account flag and unchanged bytes.drop16 through repeated writes; whole account list/closing IDs remain.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

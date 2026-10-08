@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeReceiptAllocation strictPASS1 exact guard COMPOSES actual
+source-backed receipt trace/canonical blocks with SAME accepted native trie,
+query,UPS,HEAD,value objects and four packed SHA tables. Receipt batch is actual
+duplicate-gated jobs; arbitrary receipt jobs/rows/byte premises removed. Adds
+physical SHA BYTES equation using repaired value,node,source,UPS,receipt,account,
+Merkle traffic and refund fragments. Only fresh-codec/sanity byte producers stay
+explicit in that equation. Existing ROOT/MIDROOT/EDGE/BMAP/UPB and value DIGEST
+facts retained. Account Wf/count/bytes/traffic and global installation remain.
+
+Independent native account write/signature2modules8guards derives actual decoded
+original account and amount-update payload through ordinary/system native steps;
+full applyReceipts preserves account signature and immutable suffix per occurrence,
+including repeated writes. Actual whole account list and closing-version IDs next.
+Three agents continue source whole DIGEST traffic, account construction and parser
+record local/overlay. Integrated10/19,receipt882/882 unchanged. Proposal8,378,132
+still has10,476 margin before final parser joins. Full prover, clean certificate,
+judge and general NEAR unfinished. Prior2a96cb2c push DNS-blocked; retry bundle.
+
+
 2026-10-08: Source/native digest composite strictPASS8guards across5root modules.
 ReceiptSourceMerkleDigests uses concrete accepted sourceInputLists, deriving wf,
 named receivers,refund flags,nonempty lists and gas bounds. SAME canonical blocks
