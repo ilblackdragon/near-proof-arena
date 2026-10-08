@@ -6,6 +6,16 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeCounterAllocation is now strongest SAME native allocation API.
+Independent strictPASS2guards across NativeReceiptCounterBytes and
+NativeCounterAllocation. Specializes receipt fallback to actual prefix-use rankAux
+and adds full physical AKC receipt/provider conservation, retaining physical MEM
+and all prior lookup/byte/receipt/scheduler/public facts. No new accepted-input
+hypotheses. e8142368 prior checkpoint45guards committed; push DNS still failed.
+Full QV byte partition, scheduler split/aggregate digest, Codec row legality and
+final integration/certificate/prover/judge remain. Goal active; no completion claim.
+
+
 2026-10-08: NativeQueueCounters strictPASS5guards constructs actual log22 mixed
 queue table from SAME supplied accepted MainValues: exact recursive forest/prefix
 resolver equality, record validity/capacity, TableLocal/full traffic and physical

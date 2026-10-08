@@ -1,0 +1,32 @@
+{
+  "lane": "native-counter-allocation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptCounterBytes.lean",
+      "sha256": "8103e6cc87b77b8c5fb7b208996e3da24d51ace724a8ed72e80c3d2d1ff52b09",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-counter-allocation-NativeReceiptCounterBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeCounterAllocation.lean",
+      "sha256": "647e1821c2b805a060ac7092242a0972f6d27d6d7e8447cc6eb20605a7cdf28b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-counter-allocation-NativeCounterAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeCounterAllocation.lean",
+      "sha256": "7775f63f01a6431073faede0bf0f5032ed1ee4bdbd3b22ba3ea72b004d033f53",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-counter-allocation-AuditNativeCounterAllocation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules2guards. Strongest NativeCounterAllocation accepted theorem preserves all NativeMemoryAllocation facts on SAME ranked receipt trace and adds full physical access-key counter conservation; no added accepted hypotheses.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
