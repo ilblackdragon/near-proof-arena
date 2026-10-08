@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Strongest NativeSortAllocation preserves all NativeShardSanityAllocation facts including both digest equations, and adds actual accepted repaired sort Local and physical receipt-to-sort RIDS conservation. Canonical native ID view discharged internally; no new acceptance premises. Prebuilt dependency checks, not full correctness/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptSortBalance.lean",
+      "sha256": "5cb688460951a243208f20a3f88083d8b6d412fa091b7bacc19f8cb5fc7fa12d",
+      "audit": "zk-formal/test/AuditNativeReceiptSortBalance.lean",
+      "audit_sha256": "a4d7066f8285095f9eb8514922a8a9874d88431d9eaa44fb073ae998f7ff23ef",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptSortBytes.lean",
+      "sha256": "6d1c4d6cb5f11490f74f6f175b21b9f600b5e52fdec5e634896514959c611931",
+      "audit": "zk-formal/test/AuditNativeReceiptSortBytes.lean",
+      "audit_sha256": "971dd6a6e75b7c1dc535298398628482b0e2f9263af3535e06535cfb3cfd247f",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSortAllocation.lean",
+      "sha256": "1c497a2f2daed97cf8bf411283114b1c71e4bf6f9d73b3fab0ddfdd961dd1b1e",
+      "audit": "zk-formal/test/AuditNativeSortAllocation.lean",
+      "audit_sha256": "933c08b3a98996c0467ecccb8c11df840f31a5d395545041ad99c6f8c357bf92",
+      "guards": 1
+    }
+  ]
+}

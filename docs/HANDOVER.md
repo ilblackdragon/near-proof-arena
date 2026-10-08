@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeSortAllocation is strongest native allocation. Three modules
+strictPASS3guards: NativeReceiptSortBalance derives canonical ID view from actual
+native receipt construction; NativeReceiptSortBytes/NativeSortAllocation preserve
+ALL prior shard/sanity allocation facts, including both global DIGEST equations,
+and add repaired Sort Local plus physical receipt→Sort RIDS conservation for
+SAME accepted receipts, including zero. No new acceptance premises.
+Repaired additive family3043d0f0 structurally certified at8,238,324 bytes.
+Prebuilt dependency checks only; full correctness/prover/judge unfinished.
+Receipt882/882; aggregate integrated-family count retained10/19 pending full
+family-assembly coverage audit. Prior81e9bcd3 push failed DNS; bundle retained.
+Subagents stopped at usage limit; local proof progress continues. Goal active.
+
+
 2026-10-08: NativeReceiptIdBytes strictPASS4guards proves actual patched
 receipt ID bytes and all located native ID views equal original receipts in
 order. Canonical ID view maps to original indexed sort inventory; physical
