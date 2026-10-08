@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PairedNodeLocal strict PASS4 exact guards: full paired NodeOk and
+count-extended node/value TableLocal after duplicate-chain assignment. Explicit
+same-shape WriteTreePair is essential; this is not original pre-to-final validity
+for structural UPS. NodePostUpdate.Inputs/records arbitrary digest updates and
+NodePostWf.records_wf already exist and are the next general NodeOk transport path.
+Actual old retained post payload construction + fresh UPS reconstruction are open.
+
+Independent review PASS13 agent guards: chosen-native-trace UPS/query aligned
+inventory5 (same prestates, NOT same intermediate/final posts), model entry
+success2, physical system gas candidate6. Candidate10 multiplication constraints
+hold on all physical rows for all-system input lists; mixed receipts and other
+groups remain. Receipt824/881 and fixed-height10/19 unchanged. Full native scheduler
+run existence, window inventory, global certificate/prover/judge/general NEAR open.
+Checks use prebuilt dependencies, not clean certificate. Priord9e24ffb push failed
+GitHub DNS; retry after checkpoint; verified bundle retained.
+
+Root next: full NodeOk transport under arbitrary NodePostUpdate.records u, then
+actual payload assignment/reconstruction. Provider agent proving records u ordered
+EDGE/BMAP provider invariance; no rebuildPre bridge found yet. Other agents continue
+receipt mixed-system repair and scheduler whole-loop pending-key invariants.
+
+
 2026-10-08: PairedForestRelation/Metadata/Wf strict PASS14 exact guards.
 Full initialized NodeWf3 now holds for paired pre/post records: exact allocation,
 depth/target/field bounds, count/row limits and child-window metadata. Explicit

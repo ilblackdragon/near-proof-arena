@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Full paired NodeOk and count-extended node/value TableLocal under explicit WriteTreePair and native forest bounds. Applies to same-shape writes; structural UPS cannot assume whole pre/final pair relation. Actual post binding and generic Inputs transport remain open. Prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedNodeLocal.lean",
+      "sha256": "37fa6282083028b30d2f3ee1f4415a6587818ec9a16ad007d18af05a0722e928",
+      "audit": "zk-formal/test/AuditPairedNodeLocal.lean",
+      "audit_sha256": "7e421fd9c4e3ea8659672d085f300bcbb59570d554420d27ba203a1683cd8cfe",
+      "guards": 4
+    }
+  ]
+}
