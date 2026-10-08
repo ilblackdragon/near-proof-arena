@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ADMISSION CORRECTION verified by QueueKeyRepairAdmission3guards:
+our repaired table is definitionally identical to existing Qv.KeyTrafficRepair
+already in ProcPriorCodecActualFamily.selected slot18. Full existing air.wf,
+size8,238,324 and header certificate apply exactly. No family structural change
+or recertification needed. Prior notes about pending family recertification are
+superseded: mismatch was honest allocation using old CombinedTable.
+
+NativeRepairedQueueAllocation is strongest SAME API, independently3guards across
+3modules: repaired QV physical counts installed, Local and QVC balance added, all
+previous facts preserved without new accepted hypotheses. KEYNIB global join
+ongoing. Scheduler10modules15guards closes whole physical compact DIGEST demand
+to actual native scheduler SHA jobs, including all payloads and split cases.
+Retained NativeEncodedInstance constructor must propagate through allocation to
+apply final theorem; Codec sanity installation remains.21guards checked; pin PASS.
+Prebuilt dependency checks only; no clean full correctness certificate/prover/
+judge. Receipt882/882; integrated10/19. Prior5525ba77 push DNS failed; bundle
+retained. Goal active.
+
+
 2026-10-08: QueueKeyRepairPrefix/Traffic strictPASS7guards proves whole actual
 repaired queue KEYNIB sends equal native key packets, with prefix offset
 aggregation and exact parser/padding silence. No provider validity assumption.
