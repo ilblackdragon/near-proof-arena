@@ -1,0 +1,25 @@
+{
+  "lane": "native-receipt-key-symbols",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptKeySymbols.lean",
+      "sha256": "3f1fc61ccb0ea4689064a87c161906f31aab6c73521d4a4adc8d23fb6477fc13",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-key-symbols-NativeReceiptKeySymbols.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptKeySymbols.lean",
+      "sha256": "7cce7165f0f06ebde2226fa2b9ae8b60769c798c2a05e886f26ed999dde0da0f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-key-symbols-AuditNativeReceiptKeySymbols.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5guards. Canonical patched receipt account/access key symbols equal native key paths with widths from Receipt.wf. Whole consumer inventory remains.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeCombinedBytePartition strictPASS1guard joins actual physical
+account + access-key + SAME accepted queue VBYTES sends with explicit residual
+to actual physical EmptyValue receives. Residual is original-state slots outside
+all three providers plus implicit nonqueue occurrences. No overlapping ownership
+or byte demand omitted. Strongest allocation integration and residual provider
+closure still open. Independent scheduler final new-child split3guards closes
+LSa/ESn1 actual payload; unified instance permutation ongoing. Receipt native
+key-symbol5guards joins patched account/access symbols to runtime keys. Generic
+imperative setAll7guards prepares Codec array linkage.16guards this checkpoint;
+pin check PASS. Prebuilt dependencies only, no full certificate/prover/judge.
+Receipt882/882; integrated10/19. Priorbcd7cd38 push failed DNS; verified local
+recovery bundle retained. Goal active.
+
+
 2026-10-08: NativeQueueForestPartition strictPASS3guards proves exact queue
 provider/complement byte partitions per tree and recursively across forests at
 arbitrary offsets. SAME accepted physical log22 queue sends + explicit unselected
