@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SizeRecordMessages strict PASS6 exact guards. Actual node/value
+SUM interactions are members of the amended candidate tables and send exact
+three-field tuples [tag,payloadBytes,nonduplicateRecordCount], each with unit
+multiplicity. Node payload excludes duplicates; value payload excludes empty
+and duplicate values, while record count correctly includes empty values.
+Builds on canonical node/value counter proofs. Full-table SIZE singleton
+traffic and complete native witness accounting remain next composition steps.
+
+Independent native-node-metadata PASS10 guards: executable child-window IDs,
+metadata array lengths and canonicality; seed/initialized native node resOk
+for actual recursive empty-extension targets. Initialized usage counts are
+zero, NOT a completed global ownership assignment. Preorder index/depth bounds
+and native whole-forest NodeWf3 still need completion.
+
+Parallel agents continue receipt local completeness (692/881 last reviewed),
+scheduler codec/scan/process completeness (10/19 fixed-height components last
+reviewed), and native forest global metadata. Size/header certificate remains
+8,288,148 bytes. Whole correctness certificate, clean build, succinct prover,
+real judge and general NEAR coverage remain open. Strict checks use prebuilt
+dependencies; they do not establish a clean whole-certificate build. Local
+checkpoint commits/bundle work; push retries fail github.com DNS resolution.
+
+
 2026-10-08: Independent strict rebuild PASS for scheduler-fixed-height:
 5 modules, 11 exact axiom guards. Actual comparator and memory TableLocal
 and exact bus traffic now hold at log22, including memory padding and cyclic

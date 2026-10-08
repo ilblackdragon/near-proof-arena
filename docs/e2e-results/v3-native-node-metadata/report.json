@@ -1,0 +1,39 @@
+{
+  "lane": "native-node-metadata",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodeWindowIds.lean",
+      "sha256": "6f7e4ad74aa9689da1f842599bc055ffce5f62284c43f977fb95d48b1e4f9b86",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-metadata-NodeWindowIds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeNodeMetadata.lean",
+      "sha256": "7437dd6f41c15cf35698b11a7143f51814f0a1f82d5ca5dfbb850b226b38e89c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-metadata-NativeNodeMetadata.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodeWindowIds.lean",
+      "sha256": "c8748b3d1fe03a5137c9ff899b1e5638ef4d369edc58976249cdc2984bb759e0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-metadata-AuditNodeWindowIds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeNodeMetadata.lean",
+      "sha256": "b762a0aacea61521e88ea45e130c3be2ff8ef495ad9a85dede35a0ccc1b2e634",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-metadata-AuditNativeNodeMetadata.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Executable metadata arrays with correct lengths, canonical bounds and child window IDs; native empty-extension targets satisfy resOk. Global preorder bounds and usage assignments remain open.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
