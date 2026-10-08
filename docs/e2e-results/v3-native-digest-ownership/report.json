@@ -1,0 +1,53 @@
+{
+  "lane": "native-digest-ownership",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestOwnership.lean",
+      "sha256": "8fe31348a13bea0a913c6c933615d8b7eb2d546b1f68296161a8871a6532b486",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-ownership-NativeDigestOwnership.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestRequests.lean",
+      "sha256": "d335ebcf55af0004508430e80cc50eeb168b7b79ed6d016f78a4607c4fd1784a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-ownership-NativeDigestRequests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestTree.lean",
+      "sha256": "731e310fe2316a86ad49b55522882613e6a65a343621a39ab9e4867b519801f4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-ownership-NativeDigestTree.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestForest.lean",
+      "sha256": "587f532852d7e0fdf05cad6d994232075eaa24ff11fe00793e433de00f93a3a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-ownership-NativeDigestForest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestRoots.lean",
+      "sha256": "a8e2213294de98fbe03a709bd57eec2e4a323a6d2f2f6e4c4b59168f8f267378",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-ownership-NativeDigestRoots.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeDigestOwnership.lean",
+      "sha256": "ca62ee22ac021847ef497950c49570f78834cba05ada82f4aa5245a83a3ccfcc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-ownership-AuditNativeDigestOwnership.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules14guards. Exact root plus actual seed-node child requests permute to every indexed native node occurrence once, preserving duplicate subtrees and forest offsets. Revealed actual roots derived from successful native delayed-index reads; no added isNode acceptance assumption.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

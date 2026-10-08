@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME actual native repaired receipt trace, canonical ListChain, native outcome leaves, PEO digest correctness, RID refund digest correctness and native-Merkle SHA byte balance. Native physical legality/outcome cap derived; public height premise derived separately for actual normalized prepared public bytes. Other native/public/account correspondences and RC/refund-body remain open. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptNativeRefundBytes.lean",
+      "sha256": "c9e663920921287b7455ecb0335aa25b0e25a2929a7eeca168052dfa2f837497",
+      "audit": "zk-formal/test/AuditReceiptNativeRefundBytes.lean",
+      "audit_sha256": "2c9636bac8d4ebb1f252e01032ac9c9d11e005a69fe04c0126d9633bf0afa07e",
+      "guards": 2
+    }
+  ]
+}

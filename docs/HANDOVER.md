@@ -6,6 +6,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ReceiptNativeRefundBytes strictPASS2guards composes SAME actual
+native repaired receipt trace, canonical views, native outcome leaves and exact
+receipt/account/Merkle SHA-byte balance with both PEO and RID refund digest
+equations. Public height-byte premise is derived for actual normalized prepared
+public bytes by bounded_native_height. Independent RID/height package3modules
+9guards. RC/source-list and refund-body serialization still open.
+
+VerticalPriorAdmission strictPASS11guards checks actual shared-column raw/memory/
+ID family structural AIR wf, grouped degree, verifier header, mult/fingerprint
+bounds and full size8,378,132<8MiB. Generic interaction reordering preserves
+structural wf as well as prior checked local semantics and traffic. This is
+structural admission only: complete stage-window assembly/extraction and record
+joins remain open;10,476 spare bytes is not final capacity assurance.
+
+Independent raw generator4modules18guards checks executable raw Fp cells,
+all multiplicity bits, original native count header and accumulator. Complete
+transition/isZero/TableLocal composition next. Native DIGEST ownership5modules
+14guards gives exact root+child occurrence partition, duplicates retained;
+actual native reads derive revealed roots, resolving hash-only-root obligation
+without restricting acceptance. HEAD/hash/metadata/SHA job transport remains.
+
+Integrated10/19 and receipt882/882 unchanged. Full prover, clean certificate and
+real judge remain unfinished. Three agents continue. Prior7ced8a2f push failed
+DNS; retry after checkpoint and verified recovery bundle.
+
+
 2026-10-08: RebasedAcceptedPublicAllocation strictPASS1 exact guard DISCHARGES
 encoded public length premise for actual boundedPrep(nativeHint k w m), retaining
 SAME native m/allocation/physical ROOT/HEAD/UPS/Walk/node/SHA facts. Independent
