@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Root Merkle DIGEST conservation strict PASS5 guards. Concrete leaf
+and internal SHA jobs supply exactly physical digest multiplicities, including
+empty outcomes, under the explicit public outcome-root pin. Odd promotions
+cancel without extra hashes. New files MerkleRender/DigestNodes and Digest.
+MPOS and full family global ownership remain open.
+
+Independent source reviews PASS: horizontal-core10guards; receipt-state-carry17;
+receipt-state-header19; four-sha-allocator10; concrete-sha-batches8.
+Same receipt trace now625/881,12 structural state equations remain. SHA bins
+preserve whole objects and fit total bound14,894,546; concrete updated node/value
+jobs need explicit same-execution pre/value length correspondence. Receipt jobs
+include actual RC/PEO/LEAF/RID/account/Merkle payloads. Full traffic binding open.
+Fusion projection/equal-height assembly and exact shape transport checked;
+8,288,148 runtime budget awaits complete kernel header certification. Agent
+reports factored aux degree8 now kernel checked; awaiting independent review.
+Full end-to-end proof/certificate/prover/judge remains unfinished. Three agents
+continue receipt equations, concrete SHA bindings and fused admission.
+
+
 2026-10-08: Independently checked MerkleRender/Bytes (2 guards), AccountEmpty
 coverage/soundness/traffic (13 guards), receipt flags/end/sizes/table ends and
 native capacity (24 guards). Merkle physical BYTE counts now equal concrete

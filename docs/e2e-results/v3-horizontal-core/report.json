@@ -1,0 +1,46 @@
+{
+  "lane": "horizontal-core",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalTables.lean",
+      "sha256": "c36a05d87711b341511b2e8a946721e8d432207bb8bf9aa6eb68747b79bda058",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-core-HorizontalTables.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalTrace.lean",
+      "sha256": "b0d13a2e707c54933a407715bb7d10cb64658e80feb06fa6f21e848ebc22c3e6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-core-HorizontalTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalJoin.lean",
+      "sha256": "0976bb837afb79fcb377ad1ea666d1a35512b9f10383b57ec328cf40dbd30bd1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-core-HorizontalJoin.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalDegree.lean",
+      "sha256": "2c40a4687e9552aaa4c3e3cd368446b4be66ebf067c972bd9bb224ff13d6ba6c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-core-HorizontalDegree.log"
+    },
+    {
+      "path": "zk-formal/test/AuditHorizontalCore.lean",
+      "sha256": "23ab101ae01096ba86f8ebef27972a8fd4cce9c809f2f27c286d52fbdf08d2d9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-core-AuditHorizontalCore.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Generic shifted-column projection, equal-height physical assembly and degree/shape invariance. Numeric admission remains pending.",
+  "exact_axiom_guards": 0,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

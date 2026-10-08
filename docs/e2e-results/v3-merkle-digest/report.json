@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical DIGEST multiplicities equal concrete native leaf/internal hash jobs including empty outcomes, with explicit public-root pin. Full global SHA allocation and MPOS ownership remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/DigestNodes.lean",
+      "sha256": "96482d64f912787891949e933a08029d257b1f5047ce13d81fc722cb563212ca",
+      "audit": "zk-formal/test/AuditMerkleRenderDigestNodes.lean",
+      "audit_sha256": "1f82e400235fe74c9483c7fc4c60739978939f73cfdb1e97fbc7678077478f06",
+      "guards": 3,
+      "log": "/tmp/nearproof-DigestNodes-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Digest.lean",
+      "sha256": "b391465e712ef0153619e6dd374dfacbe401a3860ea815ceae0885cb8095d235",
+      "audit": "zk-formal/test/AuditMerkleRenderDigest.lean",
+      "audit_sha256": "a1ad8f7ebb58405d5c39f57d17bb5ca6c57310122258f8c73534f54efd867e97",
+      "guards": 2,
+      "log": "/tmp/nearproof-Digest-audit-checked.log"
+    }
+  ]
+}

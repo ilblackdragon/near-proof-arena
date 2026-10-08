@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-state-header",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateHeaderFacts.lean",
+      "sha256": "863226684ded6c7404a158c5f541041e6feb4bc18dd01ca183c43332c5c3dc83",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-RcptStateHeaderFacts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateHeaderCarry.lean",
+      "sha256": "f8b313b5a7513cdb4eae655a6029006391007d4c22483280e98b229ee8ced310",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-RcptStateHeaderCarry.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateHeaderCount.lean",
+      "sha256": "6cc2618e77ffaf85bd0daa4b254d0994107e5f6ffcb70a4264bd6d9ff9f199b3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-RcptStateHeaderCount.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateHeaderCountPhysical.lean",
+      "sha256": "60bfff3bf8fe0426bc39c1c753e1a26fd6d5536aebe28551d072cea61728fecd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-RcptStateHeaderCountPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateHeaderCheckpoint.lean",
+      "sha256": "f6c76bd835bf790f62632b338b184365d8532b5a5aeef98380ccc5aef086e2dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-RcptStateHeaderCheckpoint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateHeaderFacts.lean",
+      "sha256": "36d93e0199606bd6290067609e3a755c73ca0fbc97a7a67d4a9c20d870c86558",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-AuditRcptStateHeaderFacts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateHeaderCarry.lean",
+      "sha256": "d9dfc04e5f56feaa5fb8ad5190cee4877b7f2603af631d0437c62d7046930a40",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-AuditRcptStateHeaderCarry.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateHeaderCount.lean",
+      "sha256": "8708945fd9093cdd60f851dee1a192e9cac87d5c644c1223c52e2170e8c2dbe7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-AuditRcptStateHeaderCount.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateHeaderCountPhysical.lean",
+      "sha256": "15deacd905ea99775ff5fa84701082af439e88fd0bd5001e8d7a700233f6bc21",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-AuditRcptStateHeaderCountPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateHeaderCheckpoint.lean",
+      "sha256": "bb3edbec0a9415b76b8f3ac872c6eb7afd1094719c31b6935a06d6735abebb52",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-header-AuditRcptStateHeaderCheckpoint.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same native receipt trace625/881, with12 structural state equations remaining. Native log22 capacity derived with explicit execution/plan correspondence.",
+  "exact_axiom_guards": 19,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
