@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Corrected source complete logical TableLocal on generated field trace, including first/terminal/padding transitions, exact physical-column increment polynomial, both changed equations, all unchanged constraints and multiplicity bits. Physical partition carry and traffic integration, dictionary sound extraction, active family replacement remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceBoundary.lean",
+      "sha256": "8b49c0aec8f2baf65c6349f10734422b245098359f4ba35bd88154420ccf8722",
+      "audit": "zk-formal/test/AuditUniqueSourceBoundary.lean",
+      "audit_sha256": "2536ad6526137fc781a31e36c6489934ffb9672a35d64184b929a0d2bbb9c45a",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceIncrement.lean",
+      "sha256": "53c97365bb16d838438acd3c6c39263ec6af53c63892ba2d080949242166beaa",
+      "audit": "zk-formal/test/AuditUniqueSourceIncrement.lean",
+      "audit_sha256": "c9731237ff776b1f597cff229abc0b4dc40a7858262e1b9ca6d3cbc433b77995",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceEquations.lean",
+      "sha256": "e788b23bf9da788af480c7ed0811e3e60c844115c794cc104f67278da7feb526",
+      "audit": "zk-formal/test/AuditUniqueSourceEquations.lean",
+      "audit_sha256": "12fc1b6a20c23c7c2e03a6e32926b6b3e1c06ca1263c382903b3a0f4b0ca50f1",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceLocal.lean",
+      "sha256": "c305be66ac0c0944168a5e22f04037dd7b1d6918d7beabc5458334dfd1e91991",
+      "audit": "zk-formal/test/AuditUniqueSourceLocal.lean",
+      "audit_sha256": "60a5b86f40ed86bd198844232d6aac77a98e58544de8dd150dfeea75f0a4b9c5",
+      "guards": 4
+    }
+  ]
+}

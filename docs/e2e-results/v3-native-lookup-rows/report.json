@@ -1,0 +1,39 @@
+{
+  "lane": "native-lookup-rows",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionRows.lean",
+      "sha256": "08c3f4f767a5d6212f09e302d9622c40a7cf224673e606564f3cdd871295e889",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-rows-NativeLookupExtensionRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupBranchRows.lean",
+      "sha256": "72a48234bb8fdc563b7ea0320aa827f5fda2f73586c71cc65e47e5c125414df2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-rows-NativeLookupBranchRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupRows.lean",
+      "sha256": "704bd56237d6521d686f122d9c4e3abd0cd31d526709549218bf017d29c25cfb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-rows-NativeLookupRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupRows.lean",
+      "sha256": "e70d14b73df2267444822d71c7fd017eec96d72e95de3f9b19a601e0c8a00d65",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-rows-AuditNativeLookupRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Full recursive native lookup indexed StepOk from actual tree well-formedness and key nibble bounds; branch bitmap bounds/absence derived from native Kids. Extension/branch chains, START/canonical bounds and provider coverage remain open.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

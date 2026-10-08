@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected source complete logical TableLocal strict PASS12 exact
+axiom guards (UniqueSourceBoundary/Increment/Equations/Local). Proves first,
+terminal, padding and every successor counter equation; exact polynomial on
+actual source columns; integer-to-field transfer of both replaced constraints;
+all unchanged constraints and multiplicity bits on actual generated field trace.
+Four-part physical carry/SIZE traffic integration, dictionary sound extraction
+without fillers and active horizontal family replacement remain open.
+
+Independent receipt-routing-complete PASS28 guards across nine modules:
+all18 cRoute equations now composed with the previous735 constraints on the
+same physical Boolean receipt trace, total753/881. Routing interval containment
+and positive endpoints remain ordinary explicit premises; native applied-order
+selection derivation is a separate next step. Remaining128: key49,gas40,dep39.
+Independent native-lookup-rows PASS10 guards: exact indexed StepOk for every
+recursive lookup row from native tree.wf and key nibble bounds. Native branch
+bitmap bounds and absence derived, no added branch premise. Full extension/branch
+chain, START/global IDs/canonical bounds, provider coverage/shared ranks remain.
+
+Receipt753/881; selected fixed-height10/19. Full certificate, clean build,
+prover, judge and general NEAR incomplete. Strict source rebuilds use prebuilt
+dependencies. Three agents continue independently. Prior49db7aba push failed
+GitHub DNS; retry after this checkpoint. Verified bundle preserves commits.
+
+
 2026-10-08: UniqueSourceCounter strict PASS6 exact guards: corrected natural
 accumulator active-row evaluation, final total, internal successor and actual
 cross-block recurrence proved. Field constraint lifting, SIZE traffic/carry
