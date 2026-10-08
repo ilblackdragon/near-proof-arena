@@ -32,3 +32,6 @@ import ZkFormal.NearV3.Render.Ups.AcceptedExactTrafficList
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.UpsGen.checkD0a_exactNativeTrafficList
 
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.dispatchProviders_forget' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.dispatchProviders_forget

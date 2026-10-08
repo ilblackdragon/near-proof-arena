@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-named-end-fixed",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedArithmetic.lean",
+      "sha256": "0914ed32716e7f21e92cfcf67ea5c68a9ee3ceab1bccf1327f4ebb3e6597dc23",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-RcptNamedArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedEnd.lean",
+      "sha256": "e48763f766cee5655dc3e201bcc4dbf6a4484aa4cc0b97f070ecee12327934de",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-RcptNamedEnd.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptHexCells.lean",
+      "sha256": "9ff341aaf8ea2f3bbf5f1eeb07d283752bc01ffd5358d7a61fe8a27cca752bd7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-RcptHexCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedEndComposition.lean",
+      "sha256": "752d82bb47555210db072c2ca4f96d0d7868a94d5a34e517c51a7d509b7835ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-RcptNamedEndComposition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedFixed.lean",
+      "sha256": "7802c8b69c04fff7ec6351d043695204dd67b07b22b5430ce5157dad846b70ce",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-RcptNamedFixed.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedFixedComposition.lean",
+      "sha256": "2e66b8dd4626f51e54a61d4524a926feeeb1584ff768a5198f603cab7dbe4b52",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-RcptNamedFixedComposition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedArithmetic.lean",
+      "sha256": "8f1bed326c0ea31d1fcaef32e9d63ffe305f5cdece579d3495f3516f8549890b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-AuditRcptNamedArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedEnd.lean",
+      "sha256": "6444e5685aa095e87791d15950a80e72fa29bc83bfb7d818ad1af15038ca6d79",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-AuditRcptNamedEnd.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptHexCells.lean",
+      "sha256": "db3a20d0636ebc329af99063e6ee856df91901a4a102ae91db53e9dd25bd868a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-AuditRcptHexCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedEndComposition.lean",
+      "sha256": "7bfb78665f39bf244e72e4e5670b0ff52cf61e1196636955c6c3ac8f353b9540",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-AuditRcptNamedEndComposition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedFixed.lean",
+      "sha256": "b7ea34c11d165cf1378488ec17ad025f82cda5da72588a6b51429c7185792c48",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-AuditRcptNamedFixed.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedFixedComposition.lean",
+      "sha256": "87cc47ce93f7d430edf7a2314e102ea2c73e04eccf1934a92b8a13be9d3588eb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-end-fixed-AuditRcptNamedFixedComposition.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical receipt trace now716/881: named score endpoint and receiver prefix-field carry constraints checked, five character equations remain.",
+  "exact_axiom_guards": 16,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

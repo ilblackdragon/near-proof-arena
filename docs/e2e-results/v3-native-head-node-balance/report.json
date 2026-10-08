@@ -1,0 +1,32 @@
+{
+  "lane": "native-head-node-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/HeadNodeDistinct.lean",
+      "sha256": "aa3d5384447b172464d6e777e9d1630ada4b5622758b9dfd593fa1bf5b6d8033",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-head-node-balance-HeadNodeDistinct.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/HeadNodeBalance.lean",
+      "sha256": "0a1c71537eb032be230ab26fe2f01267813c26a8aef8a6d1ee6c08a3777998d1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-head-node-balance-HeadNodeBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditHeadNodeBalance.lean",
+      "sha256": "57f3f9f837346bfbea5ab06b35bde800b4d654c4fc38ef443b93542f69d14ce7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-head-node-balance-AuditHeadNodeBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native head key uniqueness and node/head namespace disjointness, actual ranked walk EDGE conservation. Same request inventory equality and complete native coverage remain explicit.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

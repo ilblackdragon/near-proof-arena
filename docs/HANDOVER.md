@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: StoreSelectedClasses/Counts/Charge strict PASS12 guards.
+Combined actual node/value entity IDs are Nodup. Actual representative predicate
+selects distinct byte classes with complete coverage; selected keys Perm the
+transition-tagged eraseDups classes. Actual patched node/value !dup filters
+sum to exactly the selected class count, including empty records. Their full
+payload+4*recordCount charge equals representative charge and is≤original
+native tagged store charge under byte provenance. No independent numeric
+upper-charge assumption. Native value tags, actual view→native byte provenance,
+byte canonicality/faithfulness and ENT/DUP/UNIQ traffic remain for integration.
+
+Independent receipt-named-end-fixed PASS16 guards: same trace716/881.
+Named endpoints and receiver prefix-field carry checked, five character
+constraints remain then key49/sys14/route18/gas40/dep39. Native-head-node-balance
+PASS11 guards: distinct native head keys, START18 separated from node symbols<17,
+head use-count assignment preserves HeadWf, concrete head+node+ranked-walk EDGE
+conservation under matching request inventory and coverage. Provider distinctness
+no longer assumed. UPS-terminal-id re-reviewed extended package PASS8 guards:
+accepted same native allocator retains exact terminal nid, ci=terminal.ix and
+positive BV/BI bitmap dispatch. Original ExactNativeWalkProviders unchanged;
+new DispatchNativeWalkProviders additive. No native domain restriction.
+
+Selected fixed-height coverage10/19; actual size/header8,288,148 unchanged.
+Three agents continue receipt/ownership/scheduler completeness. Full certificate,
+clean build,succinct prover,real judge,generalNEAR incomplete. Strict checks use
+prebuilt dependencies. Local commits/bundle preserve work; push DNS still fails.
+
+
 2026-10-08: StoreOccurrenceIds/StoreOccurrenceUnique strict PASS7 guards.
 Value count<2^22 derives from existing ValWf rows/shape including empty values;
 consecutive value IDs equal actual natural list indices with no field wrap.

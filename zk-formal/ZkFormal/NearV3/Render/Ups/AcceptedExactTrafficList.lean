@@ -11,6 +11,12 @@ theorem exactProviders_forget {pairs : List (PTrie×PTrie)} {run : TreeRun} {I :
   obtain ⟨a,s,hd,hs,hh,hstart,hprefix,hid,hterminal⟩ := h
   exact ⟨a,s,hd,hs,hh,hstart,hprefix,hterminal⟩
 
+/-- The stronger dispatch package preserves the already checked exact-ID API. -/
+theorem dispatchProviders_forget {pairs : List (PTrie×PTrie)} {run : TreeRun} {I : UpsInst}
+    (h : DispatchNativeWalkProviders pairs run I) : ExactNativeWalkProviders pairs run I := by
+  obtain ⟨a,s,hd,hs,hh,hstart,hprefix,hid,hbitmap,hterminal⟩ := h
+  exact ⟨a,s,hd,hs,hh,hstart,hprefix,hid,hterminal⟩
+
 /-- A single ordered list realizes all accepted scheduler instances and retains
 both byte budgets for the very same operational witnesses. -/
 theorem checkD0a_exactNativeTrafficList {cb wb : Bytes} {claim : WalkD0} {w : StateWitness}
@@ -21,19 +27,21 @@ theorem checkD0a_exactNativeTrafficList {cb wb : Bytes} {claim : WalkD0} {w : St
       (us.map (fun u=>outputByteCharge u.run)).sum≤2131072 ∧
       (us.map (fun u=>u.value.length)).sum≤3146912 ∧
       ∀ tau u I,us[tau]?=some u → insts[tau]?=some I → AllocatedNativeInstance us tau u I ∧ NativeShaFamily u I ∧
-        ExactNativeWalkProviders (us.map (fun u=>(u.pre,u.run.output))) u.run I := by
+        ExactNativeWalkProviders (us.map (fun u=>(u.pre,u.run.output))) u.run I ∧ I.ci=u.run.terminal.ix ∧
+        DispatchNativeWalkProviders (us.map (fun u=>(u.pre,u.run.output))) u.run I := by
   classical
   obtain ⟨us,hpos,hlen,hgood,hpre,hout,hval⟩ := checkD0a_upsert_all_bounds hk hw h
   have hex : ∀ i : Fin us.length,∃ I,AllocatedNativeInstance us i us[i] I ∧ NativeShaFamily us[i] I ∧
-      ExactNativeWalkProviders (us.map (fun u=>(u.pre,u.run.output))) (us[i]).run I := by
+      ExactNativeWalkProviders (us.map (fun u=>(u.pre,u.run.output))) (us[i]).run I ∧ I.ci=(us[i]).run.terminal.ix ∧
+      DispatchNativeWalkProviders (us.map (fun u=>(u.pre,u.run.output))) (us[i]).run I := by
     intro i
     have hu : us[i.val]?=some us[i] := List.getElem?_eq_getElem i.isLt
     have hget : (us.map SchedulerUpsertWitness.pre)[i.val]?=some (us[i]).pre := by
       simp only [List.getElem?_map,hu,Option.map_some]
     obtain ⟨root,hroot,_⟩ := forestRootAt_exists_of_get 0 0 _ i.val (us[i]).pre hget
-    obtain ⟨I,a,b,c,d,e,f,g,h,j⟩ := scheduler_instance_exact_inputs hgood hpre hout hu hroot
+    obtain ⟨I,hci,a,b,c,d,e,f,g,h,j⟩ := scheduler_instance_exact_inputs hgood hpre hout hu hroot
       (nativeRootBase (baseI i) (us[i]).pre (us[i]).run) (base i)
-    exact ⟨I,⟨a,b,c,d,e,exactProviders_forget f,g,h⟩,j,f⟩
+    exact ⟨I,⟨a,b,c,d,e,exactProviders_forget (dispatchProviders_forget f),g,h⟩,j,dispatchProviders_forget f,hci,f⟩
   let insts := List.ofFn (fun i : Fin us.length => Classical.choose (hex i))
   refine ⟨us,insts,hpos,hlen,List.length_ofFn,fun u hu=>(hgood u hu).1,hout,hval,?_⟩
   intro tau u I hu hI

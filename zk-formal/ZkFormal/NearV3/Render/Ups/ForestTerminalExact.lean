@@ -17,6 +17,7 @@ theorem forest_terminal_exact {ts : List PTrie} {tau : Nat} {root : OccurrenceAd
       let I := nativeInstance recordId (nativeWalkBase recordId (fun _=>a.vid) resolvedId baseI root.tree run value)
         root.tree run value Qs
       ((step I I.ts).e).getD 0 0=a.nid ∧
+      ((run.terminal=.BV ∨ run.terminal=.BI) → s.v.bmap=some ((step I I.ts).bm,(step I I.ts).hv)) ∧
       (((run.terminal=.BV ∨ run.terminal=.BI) ∧
         s.v.bmap=some ((step I I.ts).bm,(step I I.ts).hv)) ∨
         (step I I.ts).e∈edgesOf3 a.nid s) := by
@@ -44,5 +45,10 @@ theorem forest_terminal_exact {ts : List PTrie} {tau : Nat} {root : OccurrenceAd
   constructor
   · simpa only [hid] using nativeInstance_terminal_id recordId (fun _=>a.vid)
       (occurrenceResolvedId recordId) baseI hr Qs
-  · simpa only [hid] using hp
+  · constructor
+    · intro hbr
+      have hb := seedInstance_branch_bitmap recordId (fun _=>a.vid) (occurrenceResolvedId recordId)
+        baseI hr hbr Qs tau a.depth a.vid _ rfl
+      simpa only [hid] using hb
+    · simpa only [hid] using hp
 end ZkFormal.NearV3.Render.UpsGen
