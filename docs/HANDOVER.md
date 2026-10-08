@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcModelBatchTrace/ProcActualBatchReplay strict PASS, three exact
+guards. Successful process emits ordered Trace retaining each actual shuffle
+and model-entry batch, with start/end state and clock. batch_replay translates
+a retained batch into successful replayShuffle and real indexed entry loop,
+matching next state, native clock, RNG position, cursor and entry count.
+Allowance shape and valid pointers remain explicit at this batch boundary;
+previous lemmas derive them for integration. Actual outer-round assembly,
+bucket collection/metadata and final push/memory/comparison checks remain open,
+plus full integration/certificate/prover/judge. Prebuilt dependencies only;
+receipt882/882, integrated10/19 unchanged. Prior0ee054df push failed GitHub DNS.
+Goal active.
+
+
 2026-10-08: ProcActualEntryTransition strict PASS, six exact axiom guards.
 step_effect/loop_effect expose exact real-entry state fold, cursor and Entry
 count. loop_success derives actual entry-loop success from sequential event

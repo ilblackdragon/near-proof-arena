@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Process execution retains ordered shuffle/model batch trace. Each batch yields actual shuffle and indexed entry replay success with matching state, clock, RNG and counts. Full outer-round assembly and final checks remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelBatchTrace.lean",
+      "sha256": "094e01fd014b65fc4d12d19acfefe4ca7951f429edfaf673f20b7442b23b67c9",
+      "audit": "zk-formal/test/AuditProcModelBatchTrace.lean",
+      "audit_sha256": "04ddcbac00b60ca7fdbbbc0f3411861b3629a601bb29d65597c595d0a1bcc905",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualBatchReplay.lean",
+      "sha256": "c258c989e50396db1df1768e248a963f80ed3b95b6cd4c07a1be10ca5fb53c65",
+      "audit": "zk-formal/test/AuditProcActualBatchReplay.lean",
+      "audit_sha256": "5d40ea3adf890ce19d7e8441c6ec4e81cd55f8d8b39d28bbc0044895ddf4f398",
+      "guards": 1
+    }
+  ]
+}
