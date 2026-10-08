@@ -1,0 +1,39 @@
+{
+  "lane": "native-sha-amortization",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeShaAmortization.lean",
+      "sha256": "1f91cf310dc7f7c5fcdc4c422c55677dafdff990650b6a375d88b3bf052fc82d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-sha-amortization-NativeShaAmortization.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativePostShaLength.lean",
+      "sha256": "c206018ffa361f57f88ae0800244304c3c75628eb5473c19444d1f63b899a544",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-sha-amortization-NativePostShaLength.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeShaAmortization.lean",
+      "sha256": "bda833f69eda9c6b00893aeec5a344b3b332837ea20ffaddfeeed0329500155d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-sha-amortization-AuditNativeShaAmortization.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativePostShaLength.lean",
+      "sha256": "4d7666178bb31710a8c80fddfe3ea291fb130e26e202f602942c30d76fb137b3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-sha-amortization-AuditNativePostShaLength.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Structural payment of native occurrence SHA overhead and NodeWf3 post-serialization length invariance. Final assembled occurrence correspondence still open.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

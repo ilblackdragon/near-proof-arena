@@ -1,0 +1,46 @@
+{
+  "lane": "sha-packing-full",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaCarryPairs.lean",
+      "sha256": "2e36c542fe47d011ff683bad704782bf25d71d93651a589407a0fc18b2af2e75",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-packing-full-ShaCarryPairs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaCarryKinds.lean",
+      "sha256": "02781dcb8c717e379554016a39318d1651c3eb0fdbf5b07d00e10774f26425b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-packing-full-ShaCarryKinds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaPackingTrace.lean",
+      "sha256": "b00039580963513bf09274b19378d8699f1a98414436a9ae732d30db59f76d41",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-packing-full-ShaPackingTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaPackingEncode.lean",
+      "sha256": "399cc85703867b6f9e64a66b0d1a39df6e2799e9a34afb660365a2658c9fc866",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-packing-full-ShaPackingEncode.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaPacking.lean",
+      "sha256": "21034e8f6af1f086cd0aa2658ea26eea74c2c3b399374630c2eebf4eb9271930",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-packing-full-AuditShaPacking.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual512-column SHA candidate: bidirectional physical local validity and exact traffic; not admitted or globally allocated.",
+  "exact_axiom_guards": 21,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

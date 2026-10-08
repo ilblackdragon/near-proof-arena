@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 latest checkpoint: MerkleLog19 rechecks FULL original extractor with
+physical height19 (all no-wrap arithmetic rechecked), without changing frozen
+original. MerkleBranches extracts semantic view+exacttraffic for arbitrary
+nonempty candidate traces; arbitrary empty traces force zero root/no traffic.
+MerkleLift constructs nonempty60-column trace from remapped58-column trace,
+preserving heights, other tables, local legality and exacttraffic.15guards PASS.
+Native honest Merkle renderer coverage remains to connect; candidate not admitted.
+
+Independent reviews PASS: SHA packing4modules21guards (512column encoder/decoder
+with local validity/exacttraffic both ways); receipt emission5modules24guards
+(ONE emitted trace satisfies200cRegs+189cEmit); native SHA amortization2modules
+12guards (accepted pairedpre-node/value workload≤2,925,275; final post digest
+updates preserve serialization lengths underNodeWf3). Whole-family native SHA
+allocation, final occurrence correspondence and proofbudget still open.
+
+Remaining receipt groups: States248,Chars61,Key49,Sys14,Route18,Gas40,Dep39,End23
+=492polynomials; agent proceeding States on SAMEtrace. Next root connect honest
+Merkle renderer to actual prepared outcome count, plus global family composition.
+Parallel agents continuefullSHA inventory and additive narrowerfamily budget.
+Reports record exactsource/audit hashes, strictflags and prebuiltdependency scope.
+
+
 2026-10-08 latest: receipt ALL200 cRegs now proved for every physical row of ONE
 nativeReceiptTrace (ordinary native receipt wf, public-own bytes and row capacity),
 including all endpoints/padding/wrap. Independent14-module/14-audit review PASS50

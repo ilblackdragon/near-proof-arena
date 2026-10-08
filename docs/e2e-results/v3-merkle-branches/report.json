@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Full Merkle view and exact traffic extraction generalized to log19; arbitrary empty/nonempty candidate branches; executable nonempty trace lift with local validity and exact traffic. Native renderer coverage and whole-family integration remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleLog19.lean",
+      "sha256": "da1d1cc903551183ad0f173257231c112e2de1f2e50b62680779fbb692d79024",
+      "audit": "zk-formal/test/AuditMerkleLog19.lean",
+      "audit_sha256": "b8c0527123908a5cfdcc1af14ce2a12245668f380102a174646a1b3dcd4214aa",
+      "guards": 5,
+      "log": "/tmp/nearproof-MerkleLog19-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleBranches.lean",
+      "sha256": "f39db50dc1bf8e840f90a71a7b90b0d26818f7a2bf50516ada7a23eab695497c",
+      "audit": "zk-formal/test/AuditMerkleBranches.lean",
+      "audit_sha256": "83b5a0a5b1e3def3b893b40337f965c7c17acbdfe1a54de9a3067783e2e79bc7",
+      "guards": 5,
+      "log": "/tmp/nearproof-MerkleBranches-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleLift.lean",
+      "sha256": "e40a4a81ce4d82e7d1b1d7fe5dff01ba240f0dafd5c481f5d672c94f7eb4f323",
+      "audit": "zk-formal/test/AuditMerkleLift.lean",
+      "audit_sha256": "e9392356f9d20ab646c099e0523a8fc34ce819da17391d828b26cf33634bea33",
+      "guards": 5,
+      "log": "/tmp/nearproof-MerkleLift-audit-checked.log"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-emitted",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEmitPatch.lean",
+      "sha256": "e282b1894dd39d61123c8117a9203923dcc47f24fc83f17a552480e5192f8c50",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-RcptEmitPatch.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEmitCatalog.lean",
+      "sha256": "0cbb79e8f055ad1b0f309e9ce16f81b7d26137bcf5db5975f566d71d23eec702",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-RcptEmitCatalog.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEmitRules.lean",
+      "sha256": "73f11159a2cd8ff64ef65556be52f3ea0284bfc5fea56311fc3db7437a2db74a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-RcptEmitRules.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEmitLocal.lean",
+      "sha256": "ec4bb600f31e7403376d35ed20bf26e5c5c119123406bde7f2c1ed5f8548c611",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-RcptEmitLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEmittedTrace.lean",
+      "sha256": "3fb884ca72a625e1e0801db495364ba20fbceef2aea97e4daa2549618a0a46a1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-RcptEmittedTrace.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEmitPatch.lean",
+      "sha256": "acb1b596fcc5e530efca59bdc17d10606f96d72b6a6789ceddbaa47b9cd99c03",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-AuditRcptEmitPatch.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEmitCatalog.lean",
+      "sha256": "677a970bced63ef6b1b8f74a457730454c45aa97d8c90b65433294b2f8009ea9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-AuditRcptEmitCatalog.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEmitRules.lean",
+      "sha256": "96a8f1744acfe98ecfecd30cd30aa3f986a22b02fa882ffdd67f62e5fdf0b5c9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-AuditRcptEmitRules.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEmitLocal.lean",
+      "sha256": "036e9faac5648e4f95232ae04db5a9e03f70c76fcc5c1ca1dfeef0217ace3c8f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-AuditRcptEmitLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEmittedTrace.lean",
+      "sha256": "922712121d556687f8e194b1ae55d28c559282e61748205e268ff39d7bc29b0c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-emitted-AuditRcptEmittedTrace.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same emittedReceiptTrace satisfies all189 emission and200 register polynomials. Remaining492 constraints and semantic hash binding open.",
+  "exact_axiom_guards": 24,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
