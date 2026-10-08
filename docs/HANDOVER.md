@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualRun adds executable Sched.Gen.ActualRun.coreEv/run
+using native shard-ID last-record-wins allowances in BOTH initial link pass and
+core replay, retaining original bytes and all original run checks. Strict compile
+plus ProcActualRunFacts6exactguards: fields, exact old/new equality whenever
+allowance lookup agrees, and noncanonical-prior regression native allowance
+2,250,000/state prefix plus successful corrected codec output. Old positional
+path yields2,250,007 in existing fixture. Fixture is native scheduler acceptance,
+NOT complete checkD0a witness. General success/native equivalence, process proof
+migration, call-site/allocation wiring and Codec full Local remain open.
+This additive executable is not yet installed in ProcNativeSequence. Pin PASS.
+Strongest NativeSortAllocation; receipt882/882, integrated10/19; no full
+correctness certificate/prover/judge. Prebuilt checks. Priorcbae3db3 push DNS
+failed; verified bundle retained. Subagents stopped at usage limit. Goal active.
+
+
 2026-10-08: NativeSortAllocation is strongest native allocation. Three modules
 strictPASS3guards: NativeReceiptSortBalance derives canonical ID view from actual
 native receipt construction; NativeReceiptSortBytes/NativeSortAllocation preserve

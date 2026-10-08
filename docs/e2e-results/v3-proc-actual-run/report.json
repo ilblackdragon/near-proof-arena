@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Additive executable ActualRun uses native shard-ID/last-record-wins prior allowances in initial link pass and core replay, retaining original generator checks. Projection plus checked noncanonical-prior regression verifies native allowance/state prefix and successful corrected codec output. General success, native equivalence, process proof migration and allocation wiring remain open. Fixture is native scheduler acceptance, not full checkD0a witness. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRun.lean",
+      "sha256": "2ebe2f5d46caa292f953488a7f09955c4ffaa3006c2105da902d1cc8b6313dd4",
+      "audit": "zk-formal/test/AuditProcActualRun.lean",
+      "audit_sha256": "0be78df167d7a4866e8cfa1829aecbbc9823344571bf3a67c15d3d847f37a96d",
+      "guards": 0
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRunFacts.lean",
+      "sha256": "e854800b84fcd821464d8dfd489bacb7a917b0e957970dee021856095fb96ad1",
+      "audit": "zk-formal/test/AuditProcActualRunFacts.lean",
+      "audit_sha256": "f94ade713a315be2ed99fe71fbbaf6d0b69975effb067584ddf902c1cb84ba4c",
+      "guards": 6
+    }
+  ]
+}
