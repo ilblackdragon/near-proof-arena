@@ -6,6 +6,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualStateAgreement strict PASS, four exact axiom guards.
+Native distribution preserves allowances without shape/size premises. Successful
+corrected ActualRun.coreEv state bytes equal the exact native runCore output for
+the same decoded prior state and actual apply-context public inputs. No canonical
+prior condition. This closes poststate-byte agreement conditional on core event
+success; generated grants equality, distribution totality and full run success
+remain open, along with Codec Local, allocation integration, certificate/prover/
+real judge. Prebuilt dependencies only. Receipt882/882, integrated10/19 unchanged.
+Previous checkpoint88817032 push failed GitHub DNS; local work continues.
+
+
 2026-10-08: ProcActualNativeResult strict PASS, two exact axiom guards.
 Native runCore success now yields corrected process execution together with
 exact reconstruction of the native Output (state bytes, grants, params) from
