@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-key-account",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyAccountLocal.lean",
+      "sha256": "d246f5aedbfc13ea32d844cfb4bcbbf1605f26fa197d8aabed48cec08149da4b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-RcptKeyAccountLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyZeroPhysical.lean",
+      "sha256": "2bc9b41a697170e9659b9b2d07193354932f240ec9cc427655987bc3dd54e923",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-RcptKeyZeroPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCurrentBoundedFamily.lean",
+      "sha256": "507de2ecc1ffa5b40aeb66f72c7157eb1c861c2544d6e29069b8be8f1bc79ef2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-RcptCurrentBoundedFamily.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyAccountPhysical.lean",
+      "sha256": "0b38d85a3f8e1390f98f7f36e9de15a76e14e257e1450f8dbec35e64e579ea32",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-RcptKeyAccountPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyAccountLocal.lean",
+      "sha256": "452d30ef3bb0a348cc8730c36a463bf334cc3d5d64be5441a1489c03d6caf538",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-AuditRcptKeyAccountLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyZeroPhysical.lean",
+      "sha256": "4a15b20dc1a14b4aab23507886bba6b93001ff01e5ce4d4cd0b2ed710a118752",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-AuditRcptKeyZeroPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCurrentBoundedFamily.lean",
+      "sha256": "380ab6ecc1477f465eb91e47f8aa0aff2cd3a6c7cc8dd1999084ea6b6b591487",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-AuditRcptCurrentBoundedFamily.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyAccountPhysical.lean",
+      "sha256": "e03357a2d6bc750b9050c112c63eab696ffd4baab2cb5d956ac4e535bfd23a98",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-account-AuditRcptKeyAccountPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native account symbol/position equations and physical kz prefix transition, with valid-byte nibble bounds. Fourteen account key equations checked; with prior6,20/49 key equations on component traces. Not yet commuted into753 shared assignment; remaining29 access equations/provider authentication open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

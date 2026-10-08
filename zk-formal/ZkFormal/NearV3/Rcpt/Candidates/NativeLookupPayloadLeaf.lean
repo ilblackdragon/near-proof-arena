@@ -59,4 +59,26 @@ theorem leafLookupSteps_payload (nid vid : Nat) (slot : Slot) (hn : nid<P) (hv :
     · simp only [leafLookupSteps,he,ite_false,Option.some.injEq] at h;rw [←h]
       exact lookupPayload_cons _ _ hec (lookupDrain_payload xs)
 
+theorem extensionMismatchFix_payload (nid : Nat) (child : PTrie) (len : Nat) (ss : List WStep3)
+    (hn : nid+1+tsize child<P) (h : lookupPayloadSmall ss) :
+    lookupPayloadSmall (extensionMismatchFix nid child len ss) := by
+  unfold extensionMismatchFix
+  split
+  · rename_i hc
+    have hb:=target_bound child (nid+1) hc
+    have ht : Render.UpsGen.viewTarget (nid+1) child<P := by omega
+    intro s hs
+    obtain ⟨r,hr,rfl⟩:=List.mem_map.mp hs
+    unfold extensionMismatchStep
+    split
+    · have h0:=Link.getD_lt (h r hr) 0
+      have h1:=Link.getD_lt (h r hr) 1
+      have h2:=Link.getD_lt (h r hr) 2
+      have h5:=Link.getD_lt (h r hr) 5
+      simp only [List.mem_cons,List.not_mem_nil,or_false,or_imp,forall_and]
+      exact ⟨fun _ e=>e ▸ h0,fun _ e=>e ▸ h1,fun _ e=>e ▸ h2,
+        fun _ e=>e ▸ ht,fun _ e=>e ▸ (by decide : 0<P),fun _ e=>e ▸ h5⟩
+    · exact h r hr
+  · exact h
+
 end ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate

@@ -53,7 +53,16 @@ theorem nativeLookupSteps_zero (nid vid : Nat) : ∀tree key steps,
     cases hp : isPrefix stored key with
     | false=>
       simp only [nativeLookupSteps,hp,Bool.false_eq_true,ite_false] at h
-      exact leafLookupSteps_zero nid vid (.ref 0 []) 0 stored key steps h
+      cases he : leafLookupSteps nid vid (.ref 0 []) 0 stored key with
+      | none=>simp [he] at h
+      | some raw=>
+        simp only [he,Option.map_some,Option.some.injEq] at h;rw [←h]
+        have hz:=leafLookupSteps_zero nid vid (.ref 0 []) 0 stored key raw he
+        unfold extensionMismatchFix
+        split
+        · intro s hs;obtain ⟨r,hr,rfl⟩:=List.mem_map.mp hs
+          simpa only [extensionMismatchStep_u,extensionMismatchStep_ub] using hz r hr
+        · exact hz
     | true=>
       simp only [nativeLookupSteps,hp,ite_true] at h
       cases ht : nativeLookupSteps (nid+1) vid child (key.drop stored.length) with

@@ -47,7 +47,13 @@ theorem nativeLookupSteps_payload (nid vid : Nat) : ∀tree key steps,
     cases hp : isPrefix stored key with
     | false=>
       simp only [nativeLookupSteps,hp,Bool.false_eq_true,ite_false] at h
-      exact leafLookupSteps_payload nid vid (.ref 0 []) (by omega) (by omega) 0 stored key steps (by simpa using hl') hs h
+      cases he : leafLookupSteps nid vid (.ref 0 []) 0 stored key with
+      | none=>simp [he] at h
+      | some raw=>
+        simp only [he,Option.map_some,Option.some.injEq] at h;rw [←h]
+        exact extensionMismatchFix_payload nid child stored.length raw hn'
+          (leafLookupSteps_payload nid vid (.ref 0 []) (by omega) (by omega) 0 stored key raw
+            (by simpa using hl') hs he)
     | true=>
       simp only [nativeLookupSteps,hp,ite_true] at h
       cases ht : nativeLookupSteps (nid+1) vid child (key.drop stored.length) with

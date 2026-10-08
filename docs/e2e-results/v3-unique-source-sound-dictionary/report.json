@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Corrected natural row prefix equals charge of the same semantic extracted blocks. Exactly one SIZE send binds those blocks. Actual native unique dictionary without fillers has encoded length corrected charge+4 under source/receipt/SHA/public bindings. No-wrap and physical sound reassembly/active family replacement remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceSoundBlocks.lean",
+      "sha256": "a0f981b8395f4ac76ec35b70ddebd02df1cdfa5c96e165c503df95c6c9c3fb33",
+      "audit": "zk-formal/test/AuditUniqueSourceSoundBlocks.lean",
+      "audit_sha256": "98b5c38d66d4ecc32a1e7a0aa582dd0d55ed058ac69f3a8d5a4911bad81cfa00",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceSoundBlockTraffic.lean",
+      "sha256": "ad021e1bd05b8de203a39e692748a2174daee05a10c989c143184dcfe1e48c70",
+      "audit": "zk-formal/test/AuditUniqueSourceSoundBlockTraffic.lean",
+      "audit_sha256": "7d98e0afcbdd15f6699808533937aabce010ecd2afaadcf9a0271aa419c3c5c2",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceDictionarySize.lean",
+      "sha256": "40c43dd0751ac487dc5f96f4bd0c4aec36ead2ee83d25c453b419ee4494ef426",
+      "audit": "zk-formal/test/AuditUniqueSourceDictionarySize.lean",
+      "audit_sha256": "71b881feb68f4e5aef5b794eb97d8d4acb156506f391879dce08857d8105758d",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceDictionarySound.lean",
+      "sha256": "61551057b371f5e86131d57859a806b7ad4d48a23a13dc1b8cfc1d29817b0cb8",
+      "audit": "zk-formal/test/AuditUniqueSourceDictionarySound.lean",
+      "audit_sha256": "48d6f8f653bb85ac309714ddf91fc2c92b8e1b94fdb7aa45866f1c59ebac3baf",
+      "guards": 1
+    }
+  ]
+}

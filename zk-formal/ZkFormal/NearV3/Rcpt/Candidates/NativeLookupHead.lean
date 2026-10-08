@@ -24,10 +24,15 @@ theorem nativeLookupSteps_first (nid vid : Nat) : ∀tree key steps s,
     | false=>
       have hs : stored≠[] := by intro hs;subst stored;cases hp
       simp only [nativeLookupSteps,hp,Bool.false_eq_true,ite_false] at h
-      have hf:=leafLookupSteps_first nid vid (.ref 0 []) 0 stored key steps s h hh
-      cases stored with
-      | nil=>exact False.elim (hs rfl)
-      | cons a as=>exact ⟨hf.1,by omega⟩
+      cases he : leafLookupSteps nid vid (.ref 0 []) 0 stored key with
+      | none=>simp [he] at h
+      | some raw=>
+        simp only [he,Option.map_some,Option.some.injEq] at h;rw [←h] at hh
+        obtain ⟨r,hr,hm,hpair⟩:=extensionMismatchFix_first nid child stored.length raw s hh
+        have hf:=leafLookupSteps_first nid vid (.ref 0 []) 0 stored key raw r he hr
+        cases stored with
+        | nil=>exact False.elim (hs rfl)
+        | cons a as=>exact ⟨hpair.trans hf.1,by omega⟩
     | true=>
       simp only [nativeLookupSteps,hp,ite_true] at h
       cases ht : nativeLookupSteps (nid+1) vid child (key.drop stored.length) with

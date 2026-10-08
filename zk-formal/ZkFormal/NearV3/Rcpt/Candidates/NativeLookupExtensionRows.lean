@@ -32,7 +32,12 @@ theorem nativeLookup_extension_rows (nid vid : Nat) (stored : List Nat) (child :
   cases hp : isPrefix stored key with
   | false=>
     simp only [nativeLookupSteps,hp,Bool.false_eq_true,ite_false] at h
-    exact leafLookupSteps_rows nid vid (.ref 0 []) 0 stored key steps hs hk h
+    cases he : leafLookupSteps nid vid (.ref 0 []) 0 stored key with
+    | none=>simp [he] at h
+    | some raw=>
+      simp only [he,Option.map_some,Option.some.injEq] at h;rw [←h]
+      exact extensionMismatchFix_rows nid child stored.length raw
+        (leafLookupSteps_rows nid vid (.ref 0 []) 0 stored key raw hs hk he)
   | true=>
     simp only [nativeLookupSteps,hp,ite_true] at h
     cases ht : nativeLookupSteps (nid+1) vid child (key.drop stored.length) with

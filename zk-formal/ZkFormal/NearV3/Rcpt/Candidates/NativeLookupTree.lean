@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Candidates.NativeLookupLeafRows
+import ZkFormal.NearV3.Rcpt.Candidates.NativeLookupExtensionFix
 
 namespace ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate
 open NearSpec ZkFormal.Near Render.UpsGen
@@ -20,7 +20,7 @@ def nativeLookupSteps (nid vid : Nat) : PTrie→List Nat→Option (List WStep3)
   | .ext stored child _,key=>if isPrefix stored key then
       (nativeLookupSteps (nid+1) vid child (key.drop stored.length)).map
         (lookupExtensionEdges nid (viewTarget (nid+1) child) stored++·)
-    else leafLookupSteps nid vid (.ref 0 []) 0 stored key
+    else (leafLookupSteps nid vid (.ref 0 []) 0 stored key).map (extensionMismatchFix nid child stored.length)
   | .branch value kids _,[]=>match value with
     | none=>some [⟨2,SYM_END,[nid,0,0,0,0,0],0,kidsBitmap kids 0,0,0⟩]
     | some (.ref _ _)=>none
@@ -54,7 +54,7 @@ theorem nativeLookupSteps_defined (nid vid : Nat) : ∀tree key,
         nativeLookupSteps_defined (nid+1) vid child (key.drop stored.length)
     | false=>
       have he : stored≠key := by intro he;subst key;rw [prefix_self] at hp;cases hp
-      simp only [nativeLookupSteps,hp,Bool.false_eq_true,ite_false]
+      simp only [nativeLookupSteps,hp,Bool.false_eq_true,ite_false,Option.isSome_map]
       rw [leafLookupSteps_defined]
       simp [PTrie.find,hp,he]
   | .branch value kids mem,[]=>by cases value with

@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected source SOUND block/dictionary accounting strict PASS14
+exact guards. Natural row charge sums over computed leaf/path spans and skipped
+headers to UniqueSourceCharge.size of extracted semantic blocks. Exact submitted
+SIZE traffic now carries that SAME block charge. UniqueSourceDictionarySize
+proves nativeDictionary(...,[]) encoded length=size+4 with no filler entries.
+UniqueSourceDictionarySound derives it under actual corrected source TableLocal
+(via shadow extraction), receipt/SHA/public bindings and parsed metadata/shape.
+Remaining: no-wrap bound, physical sound reassembly and active family replacement.
+
+Independent native-lookup-provider-repair PASS91 exact guards (63existing+28new),
+22module dependency rebuild. Actual NativeLookupTree API migrated: only revealed
+child extension mismatches rewrite final KEY EDGE destination; hash/unrevealed
+child preserves native self endpoint. Exact regression rejects old EDGE provider
+match although old StepOk holds; repaired EDGE matches. All dependent rows/chains,
+START/canonical/forest/account WalkWf rechecked. Indexed leaf EDGE provider coverage
+checked. Corrected extension/branch coverage, full forest composition/shared ranks
+still open. Previous local-only account proof was not provider completeness.
+Independent receipt-key-account PASS9 guards:14 account key equations including
+native positions/symbols and actual physical kz prefix transition. Together with
+prior6 gates20/49 key equations checked on component traces; shared count stays753
+until access29 and assignment commutation. Provider authentication remains open.
+
+Receipt753/881; selected fixed-height10/19. Full certificate, clean build, prover,
+judge and general NEAR incomplete. Strict checks use prebuilt dependencies.
+Prior3cfe3a12 push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: Corrected source SIZE sound prefix and terminal traffic strict PASS8
 exact guards. UniqueSourceSoundSize derives Boolean flags/duplicate-root implication
 from accepting corrected trace via extraction shadow, proves exact natural row

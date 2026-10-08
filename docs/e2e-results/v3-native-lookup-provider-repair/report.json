@@ -1,0 +1,214 @@
+{
+  "lane": "native-lookup-provider-repair",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionFix.lean",
+      "sha256": "2e36b0a5a84aa8394fdb59f7777730471fbd1457127d5c63d0cfc5de0a8f31c8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupExtensionFix.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupTree.lean",
+      "sha256": "20d2b90c9e0a04b5b0d02ba843c85f7fa02ac89e0b6bface0324a9f543cd7982",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupTree.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupSymbols.lean",
+      "sha256": "27c84677e8158339d6f6ccb155ce2ef79eda82826cc8c0c8213606336c254c7f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupSymbols.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeafHead.lean",
+      "sha256": "8e35ddb1b16b66046d0a1898fedbe21e7bab923f15093ff8ccb6cb80a3fb52b8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupLeafHead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeafChain.lean",
+      "sha256": "f9a77cd6b6a836e34f44337e598f90ecc6edfdb5eaa63977c062703201f5377d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupLeafChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionRows.lean",
+      "sha256": "f2cae665541fe997a80fa90a4efcb262c8f0d52e24a35cab5dcb29118dd51b88",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupExtensionRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupBranchRows.lean",
+      "sha256": "72a48234bb8fdc563b7ea0320aa827f5fda2f73586c71cc65e47e5c125414df2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupBranchRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupRows.lean",
+      "sha256": "704bd56237d6521d686f122d9c4e3abd0cd31d526709549218bf017d29c25cfb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupChainTools.lean",
+      "sha256": "6b0cbcec23e7006e58bda8415d3f95638622a6f15dd17f4ab644a292e49ff140",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupChainTools.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionChain.lean",
+      "sha256": "e464c806ca2a8a4dc542cde24783deb509f7eee1c49aef45bf92c46fa81a96fc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupExtensionChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupHead.lean",
+      "sha256": "013dcda2372b55735a8a5e64774ca9f8f84118aac5d3cd10050aef6cae3a92c6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupHead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupChain.lean",
+      "sha256": "a6bd24d00ef9947e9c46fc96a97ba86062bdfa3a7bac163fd88dd178cb9f8d8b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupWalk.lean",
+      "sha256": "75f623d0ce392a4887e980a0f53b44a0cab35b24c7e96673ecffc02ede37cec8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupWalk.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupCounters.lean",
+      "sha256": "2f3c0f4a22f220efaddfd7a34abf5720e9bda42adbb1b8542a26533c6704a5dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupCounters.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupPayloadLeaf.lean",
+      "sha256": "40a8736fa25388a11021c58805ce5546b5ffd380a65913539638f8c6c18ae061",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupPayloadLeaf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupKeyBounds.lean",
+      "sha256": "a5c87014a523362d6ddd959c4737c6b48c90d9f141d409344f53448c75edd5f1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupKeyBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupPayload.lean",
+      "sha256": "0fb825179eb05e06cbf916ef8b6d8aaca5a3483c46f3ab5a6f97c4c9d6f927a6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestLookup.lean",
+      "sha256": "7549ade470426792c09fb449e2d889804031e6f9d24260bbebd700cece9c3852",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeForestLookup.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountLookup.lean",
+      "sha256": "d3786d2d1697593d2b642326eea38821fae3c29a10ff8a530517bdd269bf2797",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeAccountLookup.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupProviders.lean",
+      "sha256": "86589a543d32a6187cdf43f8c588bac76677357732095dc4119ed48dd2ac3b0e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupProviders.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeafProviders.lean",
+      "sha256": "522c197958ddfec956faf5786686e2bc0d51887de46e11d885937016e5aba506",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupLeafProviders.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionRegression.lean",
+      "sha256": "587b99b26c5249cce571a561ac7ee586d95ae74ece20cf35b589c6736c09feed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-NativeLookupExtensionRegression.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupTree.lean",
+      "sha256": "5ce80f2d1bfefa7cfdb1f199b1731d6f5f60864ec36130e6610f0dde69738a55",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-AuditNativeLookupTree.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupChain.lean",
+      "sha256": "a27ccd63678c1832b7f4ad022f310f04bcf2adcf0723027b53d708f9e67bdf85",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-AuditNativeLookupChain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupRows.lean",
+      "sha256": "e70d14b73df2267444822d71c7fd017eec96d72e95de3f9b19a601e0c8a00d65",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-AuditNativeLookupRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupFullChain.lean",
+      "sha256": "32d402341c07a11a489d4caa5733470b82c132601912e76237387383142e2cb5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-AuditNativeLookupFullChain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupWalk.lean",
+      "sha256": "d1c19809b98d9a5352aae9968575d6c9fbb0233e9aa1d205fbc51401eb76bcb7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-AuditNativeLookupWalk.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupPayload.lean",
+      "sha256": "e9194a5380136016d4233a35014a85e660cf4a517aa9820a715a94531b2a7624",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-AuditNativeLookupPayload.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupExtensionFix.lean",
+      "sha256": "a8d69030e33791745e57ad7f215fa2b79a185136b188e5a303576f448359c04f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-provider-repair-AuditNativeLookupExtensionFix.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact revealed-child extension-mismatch EDGE destination repair migrated through actual constructor APIs. Regression proves old mismatch lacks provider despite StepOk; hash/unrevealed children preserve original target. Full dependent rebuild22modules/7audits91guards (63existing+28new). Actual leaf provider coverage checked; extension/branch forest composition/shared ranks remain open.",
+  "exact_axiom_guards": 91,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
