@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "guards": 17,
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPresenceTraffic.lean",
+      "sha256": "d12c1130158c20be4c71ac05d763a64509137fa9cbbd9e3759a618ae9aa57394"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawPresencePhysical.lean",
+      "sha256": "3618f62533e5142dc09fb4c258f2821e39db42c1c5903b62909f1f9c841bb68c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPresenceGate.lean",
+      "sha256": "4008dbf6042927f767bf7c9c2dd46e76f7e14a9cbe1f4148bd86b431b0f4cc54"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPresencePhysical.lean",
+      "sha256": "1c88abb2fb53ec5d1c2cae6aadfb87683b1b53a1575543624f5388b8dbf273e6"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeMainPresence.lean",
+      "sha256": "6e99dbba4b833b3673b456f72678abee3bfe5de6b6415f72a343d54d49734ced"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecPresenceTraffic.lean",
+      "sha256": "1e533de12c0d7a56fc993d1a050fb5cd060dc7440eb22226db6ea2b26df266ef"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPresencePhysical.lean",
+      "sha256": "21611c4757e8debffed56bea998b7737b8ad65080f3b280cd8fefb52d9ae0ed3"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-presence-physical/README.md",
+      "sha256": "cebd9b57db456d5006fb5622384d6d03b7a63269e3aef34356fc5528b82c47eb"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-presence-physical/SHA256SUMS",
+      "sha256": "bbffdc6607c269651a9f31d9768a970db1bfd9c3e65f5bb16e0f984073427b8f"
+    }
+  ],
+  "scope": "Actual accepted main Codec/RawFrame presence conservation, including absent state. RawFrame Local, actual byte binding, other joins and full certificate remain separate. Prebuilt dependencies."
+}
