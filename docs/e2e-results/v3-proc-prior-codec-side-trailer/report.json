@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All retained cTrl equations on actual header/hash/ash helper rows. Actual consecutive hash/ash rows and hash-to-ash boundary discharge successor hypotheses; header and terminal ash need no successor restriction. Exact register projections proved. Full cKind and interaction Booleanity remain separate. Prebuilt dependencies;24GiB build/audit virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideTrailer.lean",
+      "sha256": "798f0200ae6af8c1aef99194684553e65fef654a807ab356a453b4072a1e9cf3",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideTrailer.lean",
+      "audit_sha256": "dff9bd49dcf1bd5c377bc02306521f4cd3400f94f87afb05eed5d7124e3f8961",
+      "guards": 18
+    }
+  ]
+}

@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecSideTrailer strict PASS18 exact guards. All retained cTrl equations proved on actual header/hash/ash helper rows, with successor hypotheses discharged for consecutive hash rows, hash-to-ash boundary, and consecutive ash rows; header/terminal ash unrestricted. Exact register projections included. Earlier thread-creation build failure resolved by bounded24GiB build/audit cap; proof now verified. Full cKind/interaction bits and retained record cRec remain open, parallel agents active. Prebuilt dependency audit. Goal active; push2dae028c DNS failed.
+
+
 2026-10-09: Allowance endpoint checkpoint strict PASS11 exact guards. ProcActualAllowanceBound derives final process al<=maxAllowance through actual model grants (only subtraction), then generated segment vfin<2^24 via native parameters and memory endpoint agreement. successful_run derives prefix/internal witnesses from actual run success, requiring no separate bound premise. ProcPriorCodecAccumulatorRows/Adjacent project actual row ap/apost/big, prove actual neighboring recurrence and terminal low24 value. Agent composing exact terminal and cRec using new bound. SideTrailer latest build currently resource failure (thread creation), not proof completion; root reproduced module-specific failure while allowance builds pass. Prebuilt dependency audits; full codec Local/general certificate/judge remain open. Goal active.
 
 
