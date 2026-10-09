@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual global BYTES receivers exactly equal four packed SHA components; triple dummy bus0 receivers removed by exact count invariance. Every nonempty preimage byte of any installed DIGEST consumer has a live actual same-family BYTES supplier through real conservation. No generated job inventory or hypothetical owner. Source tag/identity separation remains. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedShaBytes.lean",
+      "sha256": "efd5dd2da101e1170ed6eab011d02ad0ad4c1bd5dc40ab76b29273ab50ba69f7",
+      "audit": "zk-formal/test/AuditProcPriorRoutedShaBytes.lean",
+      "audit_sha256": "c0ea9570736b8077411e0c1231c666c7cb0453f2b6bb0d301e4e2d72be925edd",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedShaByteSource.lean",
+      "sha256": "42e9611a493904ad5beb4c1d706b77977d7f949512d4214be6e77ac279efd937",
+      "audit": "zk-formal/test/AuditProcPriorRoutedShaByteSource.lean",
+      "audit_sha256": "c700b46f93d07ad4a71c4b507cccfbec4ddf4be7a77ca7333d8e7d361513a6eb",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-sha-byte-source/dependency-review.json",
+      "sha256": "c6399e466ab94eb1cdf009c2646ea61f978dbadee7afe0c90a9f35dd4e026e89"
+    }
+  ]
+}

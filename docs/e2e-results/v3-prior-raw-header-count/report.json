@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed RawFrame first accumulator, terminal zeros and header digit equations imply exact three-byte little-endian count below2^24. Three byte-range bounds remain explicit until authenticated byte connection; no generated witness or supplied count range.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHeaderCount.lean",
+      "sha256": "dc1418aee566f5a409d97aad0593d5f05ecba6480b033e3756f25bf1ab32c54a",
+      "audit": "zk-formal/test/AuditProcPriorRawHeaderCount.lean",
+      "audit_sha256": "7b763eff1a8a170b443240042a76d2df98e6ab5e87b4320e70a1434c72026009",
+      "guards": 4
+    }
+  ]
+}

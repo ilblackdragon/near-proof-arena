@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 13,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryTags.lean",
+      "sha256": "7ac8337c42f07bd1801e43aca9119f95e06a9cf9f5174a885decab51589087df"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryTagReplay.lean",
+      "sha256": "4a29b273323e81ff528272df5bb4bb3ff1b7039ccb0500d7f4d5f3676bbf3187"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryTagSegments.lean",
+      "sha256": "103c39743d0c253550f61e30f9b93810fce986843e656f32fbfdf2b11e5179f4"
+    },
+    {
+      "path": "zk-formal/test/AuditProcActualMemoryTags.lean",
+      "sha256": "72e8a0b0203d6eae7b2b235772777c29ad54c04b58dd757d71b0ede3bee376d3"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcActualMemoryTags.log",
+    "/tmp/ProcActualMemoryTagReplay.log",
+    "/tmp/ProcActualMemoryTagSegments.log",
+    "/tmp/AuditProcActualMemoryTags.log"
+  ],
+  "scope": "ActualRun success directly derives all native segment op READ/GRANT classification and grant sf bit comparison semantics. No SegOk/canonical range premise. Physical Run comparator inventory still under construction."
+}
