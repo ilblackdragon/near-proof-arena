@@ -1,0 +1,16 @@
+{
+  "target": "ZkFormal.NearV3.Candidates.ProcNativeMainCodecLocal",
+  "source_modules": 1907,
+  "successful_modules": 1907,
+  "all_source_modules_passed": true,
+  "source_drift": [],
+  "prebuilt_project_dependencies": false,
+  "source_only_reused_modules": 328,
+  "lean_path": "/tmp/nearproof-codec-clean-20261009-b/lib",
+  "olean_symlinks": [],
+  "audit_guards": 6,
+  "audits_passed": true,
+  "manifest_sha256": "0c5875d132e95f2830f6d3e6e73dd5baf903135ec78b599c6cdca68d356bf5dc",
+  "scope": "Complete corrected Codec local constraints from accepted prepared native main chunk. Source-only closure with validated reuse from prior source-only build. Not concatenated-instance legality, cross-table conservation, full transition certificate or judge validation.",
+  "evidence_sha256": "c63fe560d71bf848541665182ec62f2db8726c60147a9e18e34e63bfb7bf74a8"
+}
