@@ -1,0 +1,35 @@
+import ZkFormal.NearV3.Candidates.ProcPriorCodecAccumulator
+import ZkFormal.NearV3.Candidates.SchedSetAll
+namespace ZkFormal.NearV3.Candidates.ProcPriorCodecAllowanceData
+open ZkFormal.NearV3.Sched ZkFormal.NearV3.Sched.Gen ProcPriorCodecRecordStep
+open ProcPriorCodecExtra ProcPriorCodecAssignments
+
+set_option maxRecDepth 16384
+set_option maxHeartbeats 2000000 in
+theorem cells (I : Input) (R : Run) (present : Bool) (gb : Array Nat)
+    (fwd inst : List (Nat×Nat)) (k g : Nat) (s out : State) (hg : g<8) (hk : k<R.n*R.n)
+    (h : step I R present gb fwd inst k 2 g s=.ok (.yield out)) :
+    ∃row, out.1=s.1.push row ∧ row[Codec.bpre]! =0 ∧ row[Codec.nzb]! =0 ∧
+      row[Codec.bpost]! = ProcPriorCodecAccumulator.postByte R k g ∧
+      row[Codec.lowf]! = (if g<3 then 1 else 0) ∧
+      row[Codec.wt]! = 256^g%ZkFormal.Algebra.P ∧ row[Codec.e2]! = (if g=2 then 1 else 0) := by
+  have hh : g=0 ∨ g=1 ∨ g=2 ∨ g=3 ∨ g=4 ∨ g=5 ∨ g=6 ∨ g=7 := by omega
+  rcases hh with rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl
+  all_goals simp [step,check,bind,Except.bind,pure,Except.pure,getElem!_pos,hk] at h
+  iterate 4
+    all_goals repeat first | split at h | cases h
+  all_goals try subst out
+  all_goals try (simp only [Except.ok.injEq,ForInStep.yield.injEq] at h; subst out)
+  all_goals refine ⟨_,rfl,?_,?_,?_,?_,?_,?_⟩
+  all_goals unfold recordRow
+  all_goals rw [SchedSetAll.cell _ _ _ (by decide)]
+  all_goals simp [SchedSetAll.lookup,List.foldl_append,baseExtra,allowanceExtra,priorExtra,
+    wrapExtra,compareExtra,carryExtra,endExtra,forwardExtra,
+    Codec.ap,Codec.apost,Codec.big,Codec.lowf,Codec.wt,Codec.nzb,Codec.ib,Codec.ig2,Codec.e2,
+    Codec.cb,Codec.rend,Codec.bF,Codec.a1,Codec.a2,Codec.g2,Codec.al,Codec.base,Codec.afin,
+    Codec.gfin,Codec.u0g,Codec.fwg,Codec.cx,Codec.cy,Codec.cbit,Codec.cg,Codec.pm0,Codec.pm1,
+    Codec.fb,Codec.apR,Codec.bigR,Codec.a0g,Codec.bpre,Codec.bpost,
+    Codec.kR,Codec.pos,Codec.vbg,Codec.kidx,Codec.klo,Codec.khi,Codec.fS,Codec.fR,Codec.fA,
+    Codec.g,Codec.ig7,Codec.e7,Codec.ikl,Codec.ekl,Codec.pbit,Codec.rs,Codec.gb,Codec.srcC,
+    Codec.hasC,Codec.useC,ProcPriorCodecAccumulator.postByte,List.range_succ]
+end ZkFormal.NearV3.Candidates.ProcPriorCodecAllowanceData

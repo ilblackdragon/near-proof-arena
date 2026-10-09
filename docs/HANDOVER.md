@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Record local checkpoint strict PASS6 exact guards. ProcPriorCodecAllowanceData gives actual row bytes/lowf/wt/nzb. ProcPriorCodecAccumulatorLocal.actual proves original retained cRec indices25-29 on actual adjacent successful allowance rows; current proves indices30-32 on actual rows. ProcPriorCodecTerminalValue.native proves actual last apost=full native vfin using derived successful_run bound. ProcPriorCodecRecordMultiplicity classifies all18 corrected interaction multiplicities from explicit phase/flag premises (actual record flags still to discharge). Side cKind, record boundary/carry/end arithmetic, full TableLocal/global certificate remain open. Audits prebuilt-dependency,24GiB cap. Goal active.
+
+
 2026-10-09: ProcPriorCodecPaddingWrap strict PASS3 exact guards proves every corrected constraint and interaction multiplicity zero on final padding row with arbitrary cyclic next row. Sound conservative syntactic zero test plus exact kernel table check; closes padding-to-first-active boundary. ProcPriorCodecSideMultiplicity strict PASS7 guards proves every multiplicity in all18 corrected interactions Boolean on actual header/hash/ash helper rows, arbitrary byte/instance data. Both are prerequisites, not full TableLocal; side cKind and record groups remain active. Side audit bounded24GiB/prebuilt deps. Goal active; push03d67b19 DNS failed.
 
 
