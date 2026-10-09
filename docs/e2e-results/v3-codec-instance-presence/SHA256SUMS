@@ -1,0 +1,3 @@
+da117a1239906945046576bf49ad40b79d9fe91c37c89e87560a15876b931c03  zk-formal/ZkFormal/NearV3/Candidates/ProcRawInstancePresence.lean
+c6bad988b1b9c9eb8199116cedb9bb3f95624add080b54b259a5c08da0575deb  zk-formal/ZkFormal/NearV3/Candidates/ProcNativeBlockPresence.lean
+8a959c4e4969a2f91be7d03c66bd12c8fd653cb2c34bb720e8f2a967175d64fd  zk-formal/test/AuditProcBlockPresence.lean

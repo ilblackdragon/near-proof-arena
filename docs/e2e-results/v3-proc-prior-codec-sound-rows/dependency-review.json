@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-09",
+  "status": "SEMANTIC_BRIDGE_INCOMPLETE",
+  "completed": "Generated-trace completeness and arbitrary-trace sender row extraction are distinct. Only the latter source is an initial soundness bridge.",
+  "legacy_consumer": "ZkFormal.NearV3.Sched.schedCore_sound in Sched/Link/Sound.lean",
+  "legacy_assumptions": [
+    "HoldsP AP pub tr",
+    "SchedOwn, ScanOwn, OpOwn, CodecValOwn, SparOwn, PubbOwn, InitOwn, SdlOwn, PubbRecv, ShaOwn",
+    "ShaKind cross-lane ownership",
+    "PubIdx and exact prepared SPAR/SPUBB/SDL records",
+    "prepD0 success and bounded instance index"
+  ],
+  "broken_dependencies": [
+    {
+      "source": "Sched/View/Codec.lean:bytes",
+      "reason": "Uses eight retired prbit Boolean constraints and retired pre-byte decomposition; corrected prbits are whole sender ID bytes."
+    },
+    {
+      "source": "Sched/View/CodecLink.lean:allowance2",
+      "reason": "Uses retired hasC=0 implies apR=bigR=0. Corrected hasC indicates current receiver wrap, not original prior presence."
+    },
+    {
+      "source": "Sched/View/CodecEnc.lean:codec_pre; Sched/View/CodecState.lean:codec_pre_encode; Sched/Link/SoundPre.lean:codec_prevCanon",
+      "reason": "Reconstruct original VBYTES prior bytes in current-layout canonical row order. Corrected Codec instead emits presence, zeros allowance bpre, and reads original prior through bus68 with sanity via74; RawFrame must retain original parse order and last-write semantics."
+    },
+    {
+      "source": "Sched/Link/CodecVal.lean and CodecValOwn/codec_local",
+      "reason": "Owns original Codec table and yields original CLocal. Corrected table constraints/interactions differ, so no corrected-to-original CLocal implication is valid."
+    }
+  ],
+  "smallest_next_bridges": [
+    "Port retained post-byte bit reconstruction to corrected Local and prove every sender register byte equals a later bounded sender post-byte via added shifts.",
+    "Bind packed publicId message on bus70 to actual prepared current-layout sender ID; require explicit ownership/global balance and row selection.",
+    "Bind priorRead bus68 to exact parsed previous-state last-write memory, retaining original prior state rather than reconstructing current-layout prior bytes.",
+    "Rebuild block-level extraction and corrected scheduler semantic theorem using repaired ownership/interfaces."
+  ],
+  "not_claimed": [
+    "Corrected Local implies original Codec.CLocal",
+    "Completeness implies soundness",
+    "Full bus conservation",
+    "End-to-end succinct verifier replaces native validator"
+  ]
+}
