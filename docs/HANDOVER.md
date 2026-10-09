@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcNativeForwardRuntime + ProcNativeForwardCodec strict PASS6 exact guards. Actual successful applyReceipts supplies forwardAll on exactly appended refunds, then charge conservation and fwdSizes bound, without any forwarding-success premise. codec_success now constructs corrected codec output from actual run/decode, receipt execution, and remaining native grant/index agreement. applyNewChunk extraction and exact native shard-ID lookup remain active parallel tasks. Prebuilt dependencies. Earlier c337895f saved Fold/Initial/SegmentGrant (8 guards); push failed DNS. Goal active.
+
+
 2026-10-09: Native forwarding bridges strict PASS8 exact guards: ProcNativeForwardFold relates actual Except fold callback to forwardAll and proves concatenation; ProcNativeForwardInitial proves native initial limit size equals SchedOut grant even with duplicate statuses, then derives demand_grant; ProcActualSegmentGrant proves generated memory.wfin plus actual distribution event grant equals native final grant with nonoverflow derived. Runtime applyReceipts extraction and shard-ID grant lookup being worked by parallel agents. All current audits prebuilt-dependency; prior clean828-module scheduler closure remains separately scoped. Goal active; push1d95a108 DNS-blocked.
 
 

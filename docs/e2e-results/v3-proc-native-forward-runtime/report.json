@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual applyReceipts success supplies forwarding sequence over exact appended refunds. Corrected codec success derives from runtime success and remaining native grant/index agreement premise. Prebuilt dependencies; no full codec Local or global completeness claim.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeForwardRuntime.lean",
+      "sha256": "d77b4173cb7edba5795ebd1e67ed0217f924adbbe2f69fd586a49c15e9bc4266",
+      "audit": "zk-formal/test/AuditProcNativeForwardRuntime.lean",
+      "audit_sha256": "d27f8c8c199fd31457d7955ccf053ce4cd007acf81ebc367931a4c7461e9e8e3",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeForwardCodec.lean",
+      "sha256": "cf80ca27eef08d250b3fb5ce27d68f4c6f3e1d785a53ac416e8f0de967cddff0",
+      "audit": "zk-formal/test/AuditProcNativeForwardCodec.lean",
+      "audit_sha256": "a837f140caa63ada15d1d24db749e26b4339f3f5042ace739589475d09251279",
+      "guards": 2
+    }
+  ]
+}
