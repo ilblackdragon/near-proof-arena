@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.Assembly.NearAirSize
 import ZkFormal.NearV3.Assembly.NearAirCheck
 import ZkFormal.NearV3.Assembly.Good
+import ZkFormal.NearV3.Assembly.FactorSound
 import ZkFormal.NearV3.Assembly.HintCodec
 import ZkFormal.V2.PG.Admission
 import NearSpecV3.ChallengeD0a
@@ -93,6 +94,7 @@ def RenderV3Stmt : Prop :=
     ∃ (h : NearSpecV3.Hint) (p : NearSpecV3.Prep) (tr : Trace Fp),
       NearSpecV3.prepD0 cb h = .ok p ∧
       HoldsP nearAirV3 (Udr.pubOf Fp (NearSpecV3.Prep.encode p)) tr ∧
+      (ZkFormal.NearV3.Assembly.Hint.encode h).length < 256 ^ 4 ∧
       (ZkFormal.Prover.Np.G.VdP nearAirV3).headerOk (trHdr nearAirV3.toAir tr) = true
 
 /-- **Honest roll-in alignment.** The honest traces of `RenderV3Stmt` are
@@ -154,5 +156,29 @@ theorem nearV3_admission
     nearV3_tables_ne_nil nearV3_tables_lt split prep join himpl hintOf hsplit traceOf hsound hcomp
     v3MaxInner hsize v3MaxInner_le hjoin d0a_model d0a_assm d0a_tb d0a_qh d0a_qp
     8 Assembly.g2_8 hlo Assembly.g2_8_dom Assembly.udr2_K24_min8_ok nearAirV3_npOkPg_2 nearV3_NVu
+
+/-- The canonical prepared-statement codec: `prepD0` then `Prep.encode`. -/
+def prepV3 (cb : List UInt8) (h : NearSpecV3.Hint) : Option (List UInt8) :=
+  match NearSpecV3.prepD0 cb h with
+  | .ok p => some (NearSpecV3.Prep.encode p)
+  | .error _ => none
+
+/-- **Soundness premise from `ExtractV3Stmt`.** The AIR-to-semantics obligation, composed
+with the proved `factorSound`, gives the semantic-soundness premise of the admission
+theorem for the canonical `prepV3` codec. -/
+theorem hsound_of_extract (hext : ExtractV3Stmt) :
+    ∀ (c : WfClaim) (h : NearSpecV3.Hint) (cb' : List UInt8) (tr : Trace Fp),
+      prepV3 (WfClaim.encode c) h = some cb' →
+      HoldsP nearAirV3 (Udr.pubOf Fp cb') tr → ∃ w, WfClaim.RelD0a c w := by
+  intro c h cb' tr hp hH
+  unfold prepV3 at hp
+  split at hp
+  · rename_i p hprep
+    injection hp with hcb'
+    subst hcb'
+    obtain ⟨k, x, hg⟩ := hext NearSpecV3.B0 (WfClaim.encode c) h p tr hprep hH
+    exact ⟨witnessOfV3 k x, (NearSpecV3.relD0a_iff NearSpecV3.B0 (WfClaim.encode c) _).mpr
+      (ZkFormal.NearV3.Assembly.factorSound NearSpecV3.B0 (WfClaim.encode c) k h p x hg)⟩
+  · exact absurd hp (by simp)
 
 end ZkFormal.NearV3.Assembly
