@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual overlay all-bus traffic PASS8modules24guards; root repaired routing count composition and installed internal67/write and75/raw-record balances PASS7guards using SAME accepted witness. Arbitrary original ordinal<=physical row and routed write stamp+1<2^29 PASS13guards; combined prepared lastwrite residual PASS1guard now only WRITE address bound remains, genuine public inventory/ownership still explicit. Standalone ID provenance15guards plus actual routed stage1/result72 bounds19guards remove standalone ownership, retain Codec public70 ordinal authentication contract. New incremental79guards; source-only archive remains3029/561 scope. Full global comparator witness/joins, full certificate/prover/judge and general NEAR coverage incomplete.
+
+
 2026-10-09: Expanded independent source-only closure COMPLETE3029modules/561 exact axiom guards PASS, all source hashes and olean hashes checked, no source drift/prebuilt project dependencies/symlink oleans. Archive v3-codec-integrated-clean-source adds repaired ID Local, native public70, concrete routed overlay Local, arbitrary prepared query bounds, routed conditional lastwrite and Record geometry. Full global traffic/comparator witness, write authentication, full transition certificate/prover/judge remain incomplete. Checkpoint3e1c8f97 bundle verified; push failed GitHub DNS.
 
 

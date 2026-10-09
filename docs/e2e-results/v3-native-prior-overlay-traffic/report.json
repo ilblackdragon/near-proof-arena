@@ -1,0 +1,136 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 24,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTrafficEval.lean",
+      "sha256": "476a592286b0d31b1a9580e008105cf683fed08c50c7972ac185886a0c58bc52"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTrafficRows.lean",
+      "sha256": "852916e1c69e159c10e2806227baef0effb1b20373e9ba951ee181f71afc676c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTrafficRanges.lean",
+      "sha256": "fa8b24f31413845643993e15e9749b586e02347261c953443d71b88b8c2d0a7b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayActualExprs.lean",
+      "sha256": "0255bf5fc43c476d8894d3e846f635c3028a2e35c4792d3d31a99e1719f9a16a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayActualRows.lean",
+      "sha256": "c8ec794eda66437b90169cc9a0876af77bb972f76e1ebd3d9176c582a6f007b2"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayRowInventory.lean",
+      "sha256": "e4ff10b057dd0833c622e9179f17e5a05d0577590e082d86367b16e9dc81db49"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTraffic.lean",
+      "sha256": "2bb075b52d04183eddb05f14998096368f7ff1e928b3defc656450008cf28ab7"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorOverlayTraffic.lean",
+      "sha256": "a7438f8b4063d9dc5244d85f363cb0fa55584220de7e4eb5fd051aa4a5c9f856"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPriorOverlayTraffic.lean",
+      "sha256": "554cf6541f8b5bd8858847322da8b057c249a6beb45402e72ea5c32c97a655b5"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorOverlayTrafficRows.lean",
+      "sha256": "a8539c453631288de77537bb982cadc57d49d1fe34467403934dde2447f59145"
+    }
+  ],
+  "prerequisites": [
+    "SchedulerPriorActualOverlay checked native source installation",
+    "ProcPriorVertical4Traffic"
+  ],
+  "scope": "Exact full physical all-bus inventory and natural count conservation for actual four-stage overlay on SAME accepted PriorCore bs. Includes bus60 presence repair and next-row comparator operands, foreign-next padding boundaries and wrap. Actual comparator routing69\u219240 remains separate parent wrapper; no complete global Holds asserted.",
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "limits": "16GiB ulimit; -j1; autoImplicit=false; relaxedAutoImplicit=false",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTrafficEval.lean",
+      "sha256": "476a592286b0d31b1a9580e008105cf683fed08c50c7972ac185886a0c58bc52"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTrafficRows.lean",
+      "sha256": "852916e1c69e159c10e2806227baef0effb1b20373e9ba951ee181f71afc676c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTrafficRanges.lean",
+      "sha256": "fa8b24f31413845643993e15e9749b586e02347261c953443d71b88b8c2d0a7b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayActualExprs.lean",
+      "sha256": "0255bf5fc43c476d8894d3e846f635c3028a2e35c4792d3d31a99e1719f9a16a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayActualRows.lean",
+      "sha256": "c8ec794eda66437b90169cc9a0876af77bb972f76e1ebd3d9176c582a6f007b2"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayRowInventory.lean",
+      "sha256": "e4ff10b057dd0833c622e9179f17e5a05d0577590e082d86367b16e9dc81db49"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayTraffic.lean",
+      "sha256": "2bb075b52d04183eddb05f14998096368f7ff1e928b3defc656450008cf28ab7"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorOverlayTraffic.lean",
+      "sha256": "a7438f8b4063d9dc5244d85f363cb0fa55584220de7e4eb5fd051aa4a5c9f856"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPriorOverlayTraffic.lean",
+      "sha256": "554cf6541f8b5bd8858847322da8b057c249a6beb45402e72ea5c32c97a655b5"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorOverlayTrafficRows.lean",
+      "sha256": "a8539c453631288de77537bb982cadc57d49d1fe34467403934dde2447f59145"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/AuditProcPriorOverlayTrafficRows.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/AuditSchedulerPriorOverlayTraffic.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/ProcPriorOverlayActualExprs.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/ProcPriorOverlayActualRows.log",
+      "sha256": "080ab0ca1a5bae292d4c7773f231f6c3b814ed0c6841d78dcfe3572f97060cb7"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/ProcPriorOverlayRowInventory.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/ProcPriorOverlayTraffic.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/ProcPriorOverlayTrafficEval.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/ProcPriorOverlayTrafficRanges.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/ProcPriorOverlayTrafficRows.log",
+      "sha256": "8006704bc2983a37953704d594242503808ec34a3f493caeba0e4e03824722fa"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay-traffic/SchedulerPriorOverlayTraffic.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

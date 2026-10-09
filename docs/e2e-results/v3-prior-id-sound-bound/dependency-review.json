@@ -1,0 +1,35 @@
+{
+  "status": "strict PASS",
+  "dependency_order": [
+    "ProcPriorIdSoundRows",
+    "ProcPriorIdSoundOrigin",
+    "ProcPriorIdSoundBound",
+    "ProcPriorIdSoundResult",
+    "ProcPriorIdSoundPrepared"
+  ],
+  "audit": "zk-formal/test/AuditProcPriorIdSound.lean",
+  "guards": 15,
+  "options": [
+    "-j1",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false"
+  ],
+  "olean_root": "/tmp/nearproof-receipt-check",
+  "overlay": "/tmp/ups-proof",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdSoundRows.lean": "c55d9a2f481c63394c4763731678b57ced57610591802a0dc2ef3b71fd3722e6",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdSoundOrigin.lean": "6b21ebedf580f477daeeb0651bf8e74a9298066f7f4fb5fc72dd85a1c0c06c35",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdSoundBound.lean": "8298dc92e536d97443ae6ce5fc5f869f61af61fc348cf33fe8279cfae4cdb9ff",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdSoundResult.lean": "507859e388a31b7b4aeb252db69c4932fb483164e8b198b478abcc3f05f4589b",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdSoundPrepared.lean": "81866dccf09f03a703c342606a30ee140be884a436dce0cf9978c6b1cd153d45",
+    "zk-formal/test/AuditProcPriorIdSound.lean": "b60664bfaa2f79739c9588cb5901c5d389f98dd1cbad36a723ed3e5000021043"
+  },
+  "scope": "Arbitrary accepted-row found-index provenance, actual global bus70 supplier-bound authentication and result72 receiver bound",
+  "explicit_remaining": [
+    "Authenticated live Codec public70 sender\u2192prepared ordinal contract remains explicit.",
+    "Own currently targets standalone ID table; selected vertical-stage projection and exclusive supplier extraction remain to instantiate.",
+    "Uniform64 is proved after prepared authentication, not same-transition layout n. Same-group top/tau separation requires authenticated key-limb/transition ranges.",
+    "First-match semantic index and no-cross-group ordering need comparator authentication.",
+    "No generated traces are assumed by these soundness theorems."
+  ]
+}

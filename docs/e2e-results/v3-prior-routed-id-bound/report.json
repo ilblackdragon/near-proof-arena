@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "guards": 19,
+  "scope": "Actual routed-family arbitrary-trace ID stage1 public provenance and bounded result72 receivers",
+  "remaining": [
+    "Live public70 sender\u2192prepared ordinal authentication remains explicit; honest common-witness inventory is not used as arbitrary soundness.",
+    "Record receiver-index transport from its ID72 endpoint to a later write67 row remains a separate Record geometry obligation.",
+    "Uniform64, not same-tau n or first-match semantics; authenticated comparator/key ranges remain separate."
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalIdRows.lean",
+      "sha256": "f9b0c5a689545b19b8e590498f8a98a9b781557fa1b876054c0d8ffbd6c3c07c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalIdOrigin.lean",
+      "sha256": "2c594cf0db84f5e5cf74308c2f0ac7e7d58a03ef2a149d86e70971a38cfe1abe"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedFamilyId.lean",
+      "sha256": "07f95ec0183ff679bb215e3aaff9b7c45d8c536614e74e6c33304d1d9d484589"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedIdBound.lean",
+      "sha256": "abbab64837d6c12db57f52bb81d70ccf372466009d4739818f2dc28bb42fd8bd"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRoutedId.lean",
+      "sha256": "f8bcc4835238b5fe058d7e75a0c4b58d0b3ba183efa295936c64215c4ad3d025"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-routed-id-bound/dependency-review.json",
+      "sha256": "4a4ac6abda8e2484700c1fd705b5c891c7aa2c671f5f29f511d2217fbb44d987"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-routed-id-bound/README.md",
+      "sha256": "6b65d8d33dee05a441ef13315a558143eca174eeeb63201b0645d904d88b3a32"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-routed-id-bound/SHA256SUMS",
+      "sha256": "d590a699a3a9c5a3fef652d63b374cfd25376c644280b512d062f6bcc21f7fbf"
+    }
+  ],
+  "dependency_scope": "Strict incremental source build with prebuilt dependencies, not full certificate."
+}
