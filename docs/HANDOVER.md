@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Routed comparison transport PASS5guards: TableLocal iff retagged TableLocal; every bus except40/69 physical row/count preserved; routed40 count exactly old40+old69 including duplicates. Strict source recompiled before final hash/audit (an intermediate cleanup typo was fixed, no failing source committed). Repaired source closure PASS2987modules, extending with routing and accepted-memory audit targets in session7664; finalizer-routed.py prepared. Remaining native merged comparator rows/capacity, ID Local, vertical install and actual old→routed family soundness transport stay explicit. Previousa28fe332 checkpoint/bundle verified; push DNS failed.
+
+
 2026-10-09 CRITICAL FAMILY CORRECTION: kernel inventory PASS3guards confirms old ProcPriorCodecActualFamily has NO receiver69; actual HoldsP with no public69 makes every live69 send impossible. Old structural size certificates and conditional soundness do not prove nonvacuous global completeness. Repaired additive ProcPriorComparatorRoutedFamily routes prior69 to installed scheduler40, preserving gates/payloads/constraints/widths. Full structural admission PASS33guards: shape3402/90 unchanged, size8238324<8388608, fp68697539256. Projected actual shared40 soundness PASS8guards has no standalone Own assumption. Appending new fused comparator was rejected: although modeled bytes8275956 fit, extra padded group violates fingerprint budget (standalone append also violates bytes); rejected scratch sources moved out of tree. Subsequent integration MUST target routed family or prove route transport; old actual-family source frozen as diagnosed baseline. Root/agents still owe native shared comparator renderer/global count and row capacity, old read/write/lastwrite transport to routed family, ranges, ID Local and vertical installation. Full certificate/judge remain incomplete.
 
 
