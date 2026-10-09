@@ -1,5 +1,7 @@
 import ZkFormal.NearV3.Qv.ByteBuffers
 import ZkFormal.NearV3.Qv.ReadPlan
+import ZkFormal.NearV3.Qv.Bounds
+import ZkFormal.NearV3.Qv.ReceiptPreserve
 
 open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 
