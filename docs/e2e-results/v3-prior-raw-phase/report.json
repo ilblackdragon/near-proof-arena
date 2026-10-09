@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed RawFrame finite phase traversal: zero-offset start visits every canonical byte through endpoint without field wrap, exact boundary flag, offset reset, header phase choice and first-row header authentication. No generated witness. Record sequence/count decoding and global native reconstruction remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawPhase.lean",
+      "sha256": "8a6254059b732f794164d36eba04d3703dbaf4e0f66a40bce8cf478d07eb9e02",
+      "audit": "zk-formal/test/AuditProcPriorRawPhase.lean",
+      "audit_sha256": "43a811966aafb869898e131528f465a875cd45284944d3c71a1f679a72963ebe",
+      "guards": 6
+    }
+  ]
+}

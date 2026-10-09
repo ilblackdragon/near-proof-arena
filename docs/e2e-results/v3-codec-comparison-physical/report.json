@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 21,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonAppend.lean",
+      "sha256": "f0ac6745080ebd679f4dc80472bfa0f3f00e18d3ec306a4abcf7f79925ba7d29"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonCells.lean",
+      "sha256": "b4732d331e863d73e02d1dcd715d8dc9f5d1d4ef7b65ceec5a73a88311a9ddc9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonTraffic.lean",
+      "sha256": "f4da355252a437b5778aff0c3b07365f19009550cb0541d7a142ff8ea7fc5369"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonStepTraffic.lean",
+      "sha256": "b96e2ff441a09964899f3e77e8ba8979dabd8733f6ab5b6bcaf4ee749b0ae8f1"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonConservation.lean",
+      "sha256": "9704590dde49e6aa0ab3362627348f0a597fc09cbdd62901e970ad9b1e8a7e62"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonConservationLoops.lean",
+      "sha256": "33ff2781f7b1e015b365910020f2bd68b7f081cf9ff717db148267cd1d690871"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonSides.lean",
+      "sha256": "8d53e36a2458fb631ff0c875c1a08ba6423f790e610ed73a17b74f931dc4feb2"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonInventory.lean",
+      "sha256": "b528ac995b9b52239f5aebbdf54ec8c728d689e53cbe78bb515d57ed946d5107"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonPhysical.lean",
+      "sha256": "2cfae2f87c2011b0de2201a93b594cda9dae1902809440907ae7afd922666b44"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecComparisonPhysical.lean",
+      "sha256": "b87e63cae35f70de2fba4b788cb2076c84f68a91acb86e74adf52a76c4d7ec5d"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcCodecComparisonAppend.log",
+    "/tmp/ProcCodecComparisonCells.log",
+    "/tmp/ProcCodecComparisonTraffic.log",
+    "/tmp/ProcCodecComparisonStepTraffic.log",
+    "/tmp/ProcCodecComparisonConservation.log",
+    "/tmp/ProcCodecComparisonConservationLoops.log",
+    "/tmp/ProcCodecComparisonSides.log",
+    "/tmp/ProcCodecComparisonInventory.log",
+    "/tmp/ProcCodecComparisonPhysical.log",
+    "/tmp/AuditProcCodecComparisonPhysical.log"
+  ],
+  "scope": "Exact actual corrected Codec physical bus40 sends equals same output.cmps map cmpMsg, through record append loops, silent side rows, concatenation and padding. At most33 valid n64 blocks; no supplied traffic or Local premise. Run/Dist comparator inventories and whole family remain separate."
+}
