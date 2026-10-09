@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "date": "2026-10-09",
+  "chain": [
+    "Actual installed queue FINAL receive is matched through HoldsP to actual standalone Walk supplier.",
+    "Actual KEYNIB global inventory is SAME receipt ListChain plus actual queue traffic versus SAME Walk receives.",
+    "Receipt and queue namespaces separate because actual encoded prepared public count equals SAME ListChain receipt count and successful prep bounds it by 5000, below W_AK=8192.",
+    "Actual kPublic decodes p.hdr.K; successful prep gives sched.length=K+1 and sched.length<=33, hence K<64.",
+    "Actual queue key equals matched Walk key; authenticated SAME forest lookup consumes this key and actual FINAL value/absence."
+  ],
+  "namespace_8192_review": {
+    "initial_residual": "Physical receipt height alone gives only total<2^22, insufficient for receipt key IDs<16384. Intermediate binding retains total<=8192 explicitly.",
+    "resolution": "Prepared wrapper derives SAME total=p.hdr.n<=5000 from actual public header plus native gas guard. No new accepted-domain restriction and no ID replacement needed."
+  },
+  "remaining_boundaries": [
+    "Theorems target comparator-routed family; migration through ProcessRepairInterface is a distinct integration task.",
+    "Uses SAME caller-extracted Node/Value/Head/UPS/Walk/ListChain witnesses and actual traffic; extraction APIs exist separately.",
+    "Lookup key is actual physical queue key. Protocol fixed/group key identification and final native state-transition assembly remain distinct.",
+    "Public root forest authentication is available separately; theorem retains RootChain and exact bus/public ownership premises."
+  ],
+  "source_builds": [
+    "/tmp/routed-key-balance-build5.log",
+    "/tmp/routed-queue-final-build4.log",
+    "/tmp/routed-queue-key-build2.log",
+    "/tmp/routed-queue-lookup-build.log",
+    "/tmp/routed-queue-public-build5.log",
+    "/tmp/routed-queue-prepared-build.log"
+  ],
+  "important_dependencies": [
+    "ZkFormal.NearV3.Rcpt.Extract.V.PrepCount.prepD0_count_bound",
+    "ZkFormal.NearV3.Rcpt.Extract.V.PreparedRanges.prepared_receipt_count",
+    "ZkFormal.NearV3.Assembly.ReceiptCandidateProof.ListChain.natural_count",
+    "ZkFormal.NearV3.Assembly.prepD0_sched_count",
+    "ZkFormal.NearV3.Sched.prepD0_len",
+    "ZkFormal.NearV3.Qv.Extract.balanced_native_walk_key"
+  ]
+}

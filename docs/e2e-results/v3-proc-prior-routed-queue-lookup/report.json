@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual FINAL and KEYNIB provenance binds actual queue keys to lookup on SAME authenticated forest. Prepared public statement discharges SAME receipt count and public queue count using unchanged native gas/instance bounds. No generated trace or supplied key/FINAL balance. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedKeyBalance.lean",
+      "sha256": "930b7283b165d99da428b8433b2fd49a05691592e533b3d66a5929c606c5cfbb",
+      "audit": "zk-formal/test/AuditProcPriorRoutedKeyBalance.lean",
+      "audit_sha256": "7af1aaf600062c2ee5683a8264dacf9bd12d1de6d00099001043afc6c956b4f4",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedQueueFinal.lean",
+      "sha256": "c5c2ac4a01f197c871a988b52b61ca6ac6848e03ef16b5a9fa94507b75e0dc2d",
+      "audit": "zk-formal/test/AuditProcPriorRoutedQueueFinal.lean",
+      "audit_sha256": "cfb062eb5910a4e7405700660cb92b692f2e00883e96ccdac13c1b67db9483d8",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedQueueKey.lean",
+      "sha256": "0b11d5d86c79ac8fb762366e78850eeff222f80d2eab8a3a900de84265b9d8e7",
+      "audit": "zk-formal/test/AuditProcPriorRoutedQueueKey.lean",
+      "audit_sha256": "6d7eed5536943fca718d615862e299536ceda7dcf07cf049280ff292ea518fcf",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedQueueLookup.lean",
+      "sha256": "27f538d1d67537fd383272ce6889713dc5fae1a42a025e300344ea16cfffba24",
+      "audit": "zk-formal/test/AuditProcPriorRoutedQueueLookup.lean",
+      "audit_sha256": "08c7b23a6dd1d51a64f1fdcee423b3413e36b40b3c8eeb3e9dee6b354cbdf184",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedQueuePublic.lean",
+      "sha256": "c2e7281f74812a218ead8ca74686004262d3f5a555e427fda95fb3ecaac3b5f1",
+      "audit": "zk-formal/test/AuditProcPriorRoutedQueuePublic.lean",
+      "audit_sha256": "b84cf907541fb66e79f606ea4df46c57767c7a61ff206ab10e9f4f11cab29117",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedQueuePrepared.lean",
+      "sha256": "120ab3950135ae4084fd9c18153ed100fa92d126eb97e67c570fe74796934b1c",
+      "audit": "zk-formal/test/AuditProcPriorRoutedQueuePrepared.lean",
+      "audit_sha256": "41eef9fe5cc8e74c062825c47cdacd85cad5f1c82265094d583a64f09e04bc28",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-queue-lookup/dependency-review.json",
+      "sha256": "007541ab764e4869106d0dd99db9f5ab9d34474b8e970206b8213ed4359dac2f"
+    }
+  ]
+}
