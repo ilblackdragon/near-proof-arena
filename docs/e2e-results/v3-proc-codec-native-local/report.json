@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Complete corrected Codec TableLocal on log22 trace from same native prepared prefix, execution and distribution; no Local or active-equation premise. All19 additions covered by exact kernel partition. Incremental audit uses prebuilt dependencies; independent full source closure still running. Global joins and full transition certificate remain incomplete.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedAdditions.lean",
+      "sha256": "ccc39c5e8c74896d03f10e7d9e83e3ede5b249c638a2fc6b9b94413e3e264e82",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedAdditions.lean",
+      "audit_sha256": "e751743187e38326cd0cdb20fe9620cf774c4e323cf103f808006bbbd383f5da",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecNativeLocal.lean",
+      "sha256": "8d3ce9d2f456ccbffdc52917bc944dbc08964bfd3cae345a0ab116089b0fdcda",
+      "audit": "zk-formal/test/AuditProcCodecNativeLocal.lean",
+      "audit_sha256": "edfcdb53ed3c1e750903c3c8f6f2dc91bbf3cb5ecc57f71e45db5a5bbb94a25f",
+      "guards": 1
+    }
+  ]
+}

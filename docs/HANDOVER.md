@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: COMPLETE corrected Codec TableLocal from accepted native main chunk: strict PASS15 exact guards. IndexTransition/PriorZero discharge final3 additions across every physical row; GeneratedAdditions exact kernel partition assembles all19. ProcCodecNativeLocal.table has NO Local/equation/cell premise: same prepared native prefix/run/distribution yields full corrected Codec TableLocal at common log22 with tau<P. NativeMainCodecWitness preserves exact existential execution state; NativeMainCodecLocal.native_main derives every premise from accepted prepared main chunk, returning generated codec plus TableLocal for any trace time/public vector. Does NOT yet prove global bus joins, full transition certificate or judge. Independent source-only1555 closure still running, last observed329/1555; incremental audits still use prebuilt dependencies. Previous36f43b5a push failed GitHub DNS; local verified bundle retained.
+
+
 2026-10-09: Corrected codec additions16/19 complete: strict PASS21 exact guards. First8 StartIndex derives inverse tests and source/receiver index relation with 0<n<=64. SenderCells/SenderAdditions plus GeneratedSenderAdditions derive final8 byte/shift additions on every active physical row from actual codec and native n=ids.length. Crossrecord8/9 and allowance-byte10 remain in progress. Native accepted-chunk witness retention is parallel. Independent source-only closure remains running in /tmp/nearproof-codec-clean-20261009-a; not yet certified. Global joins/full transition certificate/judge still incomplete. Previousdfd803e1 push failed DNS.
 
 

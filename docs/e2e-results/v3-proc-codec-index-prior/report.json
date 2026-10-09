@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "guards": 10,
+  "logs": [
+    "/tmp/ProcPriorCodecIndexSuccessor.log",
+    "/tmp/ProcPriorCodecEndIndexData.log",
+    "/tmp/ProcCodecGeneratedIndexTransition.log",
+    "/tmp/ProcCodecGeneratedPriorZero.log",
+    "/tmp/codecindexprior-audit.log"
+  ],
+  "scope": "additions8\u201310 allphysical inclpadding/wrap, actualrecord index successor+wrap and allowancepriorzero; only0<n<=64, codec success",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecIndexSuccessor.lean",
+      "sha256": "c4d6a4a9572bf2409cb5afe8d3d7997e64b33c03f8a10900bcf12e82bc9d6924"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecEndIndexData.lean",
+      "sha256": "566842e7ff50185d650e822eaa14bda7f42f9a0fe7dd69e0c8207c009f0add94"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedIndexTransition.lean",
+      "sha256": "bb3647e748ea90f96363282f3bebe7dbdd8df92af3dbe41eb06146324b090a86"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedPriorZero.lean",
+      "sha256": "d62bf0730628a06ae1a43937d345a820d83bd7a49c73386d099132dd4d55e803"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecGeneratedIndexPrior.lean",
+      "sha256": "80580cf9292e758ddb96247e32ebf984b49837eb03e009889f9faba237bf6898"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}
