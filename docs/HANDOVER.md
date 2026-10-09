@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecNativeTotal strict PASS, four exact guards. Native prior decode derives zero selected allowances when absent; decoded_codec_success removes absent-state premise. native_nonmain constructs both corrected scheduler and codec outputs for accepted native calls with tau!=0; executable forwarding check is absent there. Main tau0 forwarding remains open, as does codec TableLocal/global integration; non-main success is not full D0a/general completeness. Clean scheduler rebuild still agent-owned; no completion claimed. Prior328c714f push DNS failed. Prebuilt deps for current codec audit. Goal active.
+
+
 2026-10-09: ProcPriorCodecWrapperTotal strict PASS, six exact guards. Full codecRows executable wrapper success now follows actual run success+PV86 parameters, with absent-state zero allowance and forwarding bound explicit. Header/hash loops total; codec_eq exact definitional factorization; run_a2 supplies actual initial link-pass projection, discharging record allowance guard. Need bind absent/native forwarding and codec TableLocal/global assembly. Source-only scheduler closure reached700/828 latest local progress; no completed certificate claim. Prior6af541be push DNS failed. Prebuilt deps for codec audit. Goal active.
 
 

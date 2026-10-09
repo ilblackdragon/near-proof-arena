@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual prior decoding discharges absent-state allowance premise. Accepted native scheduler calls with nonzero tau construct successful corrected scheduler and codec generators without forwarding assumptions. Main tau0 forwarding and codec TableLocal/global assembly remain; not full D0a or general completeness. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeTotal.lean",
+      "sha256": "8dafd739bf85530a42ec66f8e9dad5fd5755c51a63ff6a0b9e3b0ff3301d0724",
+      "audit": "zk-formal/test/AuditProcPriorCodecNativeTotal.lean",
+      "audit_sha256": "94216c4bb9b0b8a162e851366d0cbd2938750bb2dddd69d7e4ee720c8a4f98b2",
+      "guards": 4
+    }
+  ]
+}
