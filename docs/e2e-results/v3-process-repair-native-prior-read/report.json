@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual memory WRITE authenticates SAME decoded native allowance at original memory stamp. Actual prior68 read combines fully derived last-write Result with zero or SAME decoded allowance, exact saturation and maximal original stamp among writes at that memory address. Native first-match address semantics and full execution remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeMemoryWrite.lean",
+      "sha256": "b2553ff6178d1f882c9100ad8685c68b4642dbecf399bc62404b75417c643306",
+      "audit": "zk-formal/test/AuditProcessRepairNativeMemoryWrite.lean",
+      "audit_sha256": "4b5615e15a7c78f9b9723b685e507885fa667591094d33962bd572dac115eba4",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativePriorRead.lean",
+      "sha256": "b4d490d9dfeea92b561ad092f3872144ff66fd055f7ff70a4ba2039b8447cb0e",
+      "audit": "zk-formal/test/AuditProcessRepairNativePriorRead.lean",
+      "audit_sha256": "b689b04d7d6d92d12bb3b23cbba4692c77790284bf40736ac8322d862e3cd89e",
+      "guards": 1
+    }
+  ]
+}
