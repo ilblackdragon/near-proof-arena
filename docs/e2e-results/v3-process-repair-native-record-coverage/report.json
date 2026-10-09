@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Every original record in the SAME authenticated decoded present native frame has an actual amount/top row at the original ordinal with exact allowance low/big/saturation. When both actual found flags hold, that row emits a physical memory write at that original ordinal with the same native value. Decode/count/record association are derived, not supplied. Exact native found/address semantics remain open. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeRecordCoverage.lean",
+      "sha256": "21b91126d97f59cff06833f5d8f178d902ec0c821e0fb338c7b0b372ad59355d",
+      "audit": "zk-formal/test/AuditProcessRepairNativeRecordCoverage.lean",
+      "audit_sha256": "6bcdbf4145d57708d5da184620942d8619de917807fb55ebb695a5cd18a1b4a4",
+      "guards": 1
+    }
+  ]
+}
