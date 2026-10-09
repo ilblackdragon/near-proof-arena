@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Concrete generated row-pair equations transfer to physical commonlog22 AIR evaluation for arbitrary public inputs, including last-active-to-padding boundary; full TableLocal reduces to active row equations/bits, with strict capacity. Active constraints not yet all discharged. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPhysicalRows.lean",
+      "sha256": "056c0554e6664061c9c4afe5481556ad3b2b39db0e46cce1565923e88337d42b",
+      "audit": "zk-formal/test/AuditProcCodecPhysicalRows.lean",
+      "audit_sha256": "8995b1ab39fb114c020de82afa75ac0b4a559325181e7f3017fa23eb42f49502",
+      "guards": 5
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All18 corrected interaction multiplicities are Boolean on actual successful record-step output rows across all24 positions. Sparse assignment gate preservation and actual flags derived; no independent flag premise. Whole-generator loop lift and retained local constraints remain. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGateAssignments.lean",
+      "sha256": "2d8b2b8b33cf85023a033fce8f51950e2e3d1cc773f81df212db453f3bc52ceb",
+      "audit": "zk-formal/test/AuditProcPriorCodecGateAssignments.lean",
+      "audit_sha256": "7d3549746b5b91b56c66b2a7e962d37535dbc2dfd5a90864bf6c1f1f4ed0964b",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeGates.lean",
+      "sha256": "e6cb2c09c0762dffe8919d06ca5aab73099518a5e196e303abb6a6927060778e",
+      "audit": "zk-formal/test/AuditProcPriorCodecNativeGates.lean",
+      "audit_sha256": "af5f0fb778acea066efb7a640841c7e77160194ab7564a7c0a783984d646af6d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeMultiplicity.lean",
+      "sha256": "305ecb94613993d69ea711fe79de5a9a06630d8ada3b5a9c15a7e402e11b12ab",
+      "audit": "zk-formal/test/AuditProcPriorCodecNativeMultiplicity.lean",
+      "audit_sha256": "4ad955202c3a156c2309cdf538a34f54f69df2a9fd8aeacc4210fed80555bb07",
+      "guards": 1
+    }
+  ]
+}
