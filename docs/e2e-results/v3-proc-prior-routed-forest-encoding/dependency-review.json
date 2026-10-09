@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "same_witness": "ForestEncoding uses the exact same vs/es/hs and actual installed traffic; original pure DAG and encoding theorems consume derived hashes and byte bounds. ValueRange uses reverse VPARENT conservation, not an assumed node-reveal promise.",
+  "proved": [
+    "Every same-instance unfolded tree encoding equals the authenticated extracted node serialization.",
+    "Every extracted Value has a revealed node owner.",
+    "Every byte of every SAME extracted Value lies below256."
+  ],
+  "remaining": "Path traversal/EDGE/BMAP/KEYNIB authenticity is needed to identify values under particular trie keys; this package does not assert key lookup. No SHA collision assumption is introduced by serialization/hash equality.",
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

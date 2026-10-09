@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual same-witness child/value hash links compose with pure rootedDag3/enc_fullTree to authenticate full semantic tree encoding. Reverse VPARENT provenance derives a node owner for every extracted Value; all Value bytes below256 follow from actual SHA preimage authenticity. No caller byte-bound or generated trace. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedForestEncoding.lean",
+      "sha256": "d5c4713e9a02fa583a0735ead8d137c6c5ac6c1399dc41d423880abf62c5c7ea",
+      "audit": "zk-formal/test/AuditProcPriorRoutedForestEncoding.lean",
+      "audit_sha256": "77061665fbcbec82bf62ca08bc41873438febd9bd2d065db0b5e3ca7c6f5b1fc",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedValueRange.lean",
+      "sha256": "0435ded85507a1b8953dee5c48aea94bda569599e18e6ca446167a83bc517a03",
+      "audit": "zk-formal/test/AuditProcPriorRoutedValueRange.lean",
+      "audit_sha256": "dab857a08b98e0d7a9e2c40c2e0c93402e3e8aca92b0c33a14c22ef9c88b1264",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-forest-encoding/dependency-review.json",
+      "sha256": "46318c44f60ac1375746d1b81cb577f5bb9ceeff5d0df6e1fbc6ac02ea7a82e9"
+    }
+  ]
+}
