@@ -1,14 +1,14 @@
 {
   "date": "2026-10-09",
   "status": "PASS",
-  "scope": "Exact replay last-memory-value invariants for link value/grant and sender/receiver value arrays. Prepared link segment make vfin/wfin equal model-final al/g cells at every current-layout link. Generated segment-list indexing and native forwarding demand binding remain separate. Prebuilt dependencies.",
+  "scope": "Exact replay last-memory-value invariants for link value/grant and sender/receiver value arrays. Prepared link segment make vfin/wfin equal model-final al/g cells at every current-layout link. Generated segment-list indexing and successful actual run endpoints are proved; native forwarding demand binding remains separate. Prebuilt dependencies.",
   "records": [
     {
       "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryFinal.lean",
-      "sha256": "0592e5f9aa01359bac2f1eddfda3379ab9e9d3708dc87e7ef561e0ae26ac8162",
+      "sha256": "7ef869b00d9eaf509ca4a5d1efa128c317cc7386662fc72b5fd6cd1e8f739cb5",
       "audit": "zk-formal/test/AuditProcActualMemoryFinal.lean",
-      "audit_sha256": "1dce62a3748d3e9451ad7c4d6f3995640b0e93a9e18e5eb8ddb51da3fff798e3",
-      "guards": 14
+      "audit_sha256": "1fbea4e7d58455db1860d765a214f0441c5cd06676a3cc3ae2692954823558cc",
+      "guards": 20
     }
   ]
 }

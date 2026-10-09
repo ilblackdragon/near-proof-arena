@@ -1,4 +1,5 @@
 import ZkFormal.NearV3.Candidates.ProcActualSegments
+import ZkFormal.NearV3.Candidates.ProcActualAfterMemoryReduction
 namespace ZkFormal.NearV3.Candidates.ProcActualMemoryFinal
 open ZkFormal.NearV3.Sched ZkFormal.NearV3.Sched.Gen
 open ProcActualReplayEntry
@@ -204,4 +205,88 @@ theorem prepared_link_final (sp : SchedPub) (hs : SchedPubOk sp)
   have he := Except.ok.inj (hr'.symm.trans hr)
   subst out'
   exact processed_link_final _ tau cv rs out st last i hi hp hr ha
+
+theorem append_records (f : Nat → Gen.Seg) (xs : List Nat) (gs out : Array Gen.Seg)
+    (h : forIn xs gs (ProcActualSegments.appendStep f)=.ok out) :
+    out.toList=gs.toList++xs.map f := by
+  induction xs generalizing gs with
+  | nil => simp only [List.forIn_nil] at h; cases h; simp
+  | cons i xs ih =>
+    simp only [List.forIn_cons,ProcActualSegments.appendStep,bind,Except.bind] at h
+    rw [ih _ h]
+    simp [List.append_assoc]
+
+theorem build_records (I : Input) (tau : Nat) (s : ProcActualReplayRound.Acc) (gs : Array Gen.Seg)
+    (h : ProcActualSegments.build I tau s=.ok gs) :
+    gs.toList=(List.range (I.ids.length*I.ids.length)).map (ProcActualSegments.make I tau s 0) ++
+      (List.range I.ids.length).map (ProcActualSegments.make I tau s 1) ++
+      (List.range I.ids.length).map (ProcActualSegments.make I tau s 2) := by
+  unfold ProcActualSegments.build at h
+  cases ha : forIn (List.range (I.ids.length*I.ids.length)) #[]
+      (ProcActualSegments.appendStep (ProcActualSegments.make I tau s 0)) with
+  | error e => simp only [ha,bind,Except.bind] at h; cases h
+  | ok a =>
+    simp only [ha,bind,Except.bind] at h
+    cases hb : forIn (List.range I.ids.length) a
+        (ProcActualSegments.appendStep (ProcActualSegments.make I tau s 1)) with
+    | error e => simp only [hb] at h; cases h
+    | ok b =>
+      simp only [hb] at h
+      rw [append_records _ _ _ _ h,append_records _ _ _ _ hb,append_records _ _ _ _ ha]
+      simp
+
+theorem build_link (I : Input) (tau : Nat) (s : ProcActualReplayRound.Acc) (gs : Array Gen.Seg)
+    (h : ProcActualSegments.build I tau s=.ok gs) (i : Nat) (hi : i<I.ids.length*I.ids.length) :
+    gs.toList.getD i default=ProcActualSegments.make I tau s 0 i := by
+  rw [build_records I tau s gs h]
+  simp only [List.getD_eq_getElem?_getD]
+  rw [List.getElem?_append_left (by simpa using (by omega : i<I.ids.length*I.ids.length+I.ids.length)),
+    List.getElem?_append_left (by simpa using hi)]
+  simp [hi]
+
+/-- Successful suffix execution retains the segment list built before comparison checks. -/
+theorem afterMemory_segments (I : Input) (tau : Nat) (cv : Array CReq) (st : PState)
+    (s : ProcActualReplayRound.Acc) (gs : Array Gen.Seg) (cs : ProcActualMemoryScan.Cmps) (R : Run)
+    (h : ProcActualSegmentFactor.afterMemory I tau cv st s gs cs=.ok R) : R.segs=gs.toList := by
+  unfold ProcActualSegmentFactor.afterMemory at h
+  simp only [bind,Except.bind,pure,Except.pure] at h
+  repeat first | cases h | split at h
+  all_goals rfl
+
+open NearSpecV3.Scheduler in
+theorem suffix_link_final (sp : SchedPub) (hs : SchedPubOk sp)
+    (prev : NearSpec.Bandwidth.State) (tau : Nat) (cv : Array CReq) (rs : List Round)
+    (st : PState) (R : Run) (i : Nat) (hi : i<sp.ids.length*sp.ids.length)
+    (hcv : forIn (ProcPreparedSequence.input sp prev).raw #[]
+      (ProcActualConverted.step (ProcPreparedSequence.input sp prev))=.ok cv)
+    (hp : ProcActualInput.process (ProcPreparedSequence.input sp prev)=.ok (st,rs))
+    (hr : ProcActualRoundFactor.runRestRounds (ProcPreparedSequence.input sp prev) tau cv st rs=.ok R) :
+    (R.segs.getD i default).vfin=st.al[i]! ∧ (R.segs.getD i default).wfin=st.g[i]! := by
+  obtain ⟨out,last,hout,_,_⟩ := ProcActualReplayTotal.prepared_replay sp hs prev cv st rs hcv hp
+  obtain ⟨a,ha,hpush⟩ := ProcActualPushLogGuard.replay_push_guard sp hs prev cv st rs hcv hp
+  have he := Except.ok.inj (ha.symm.trans hout)
+  subst a
+  have hm := ProcActualReplayMemory.replay_memory sp hs prev cv rs out hcv hout
+  obtain ⟨a,last,ha,halign,hfinal⟩ := ProcActualReplayTotal.prepared_replay sp hs prev cv st rs hcv hp
+  have he := Except.ok.inj (ha.symm.trans hout)
+  subst a
+  obtain ⟨gs,cs,hfinish,hbuild,_⟩ := ProcActualAfterMemoryReduction.finish_reduction
+    _ tau cv st out hpush hfinal hm
+  rw [ProcActualReplayFactor.rest_eq,hout] at hr
+  change ProcActualReplayFactor.finish _ tau cv st out=.ok R at hr
+  rw [hfinish] at hr
+  rw [afterMemory_segments _ tau cv st out gs cs R hr,build_link _ tau out gs hbuild i hi]
+  exact prepared_link_final sp hs prev tau cv rs out st i hi hcv hp hout
+
+open NearSpecV3.Scheduler in
+theorem run_link_final (sp : SchedPub) (hs : SchedPubOk sp)
+    (prev : NearSpec.Bandwidth.State) (tau : Nat) (cv : Array CReq) (rs : List Round)
+    (st : PState) (ev : Ev) (R : Run) (i : Nat) (hi : i<sp.ids.length*sp.ids.length)
+    (hprefix : ProcActualPrefix.runPrefix (ProcPreparedSequence.input sp prev)=.ok (cv,st,rs,ev))
+    (hr : ActualRun.run (ProcPreparedSequence.input sp prev) tau=.ok R) :
+    (R.segs.getD i default).vfin=st.al[i]! ∧ (R.segs.getD i default).wfin=st.g[i]! := by
+  obtain ⟨hc,hp⟩ := ProcActualAfterMemoryReduction.prefix_facts _ cv st rs ev hprefix
+  rw [ProcActualRunFactor.run_of_prefix _ tau cv st rs ev hprefix,
+    ProcActualEntryFactor.rest_eq,ProcActualRoundFactor.rest_eq] at hr
+  exact suffix_link_final sp hs prev tau cv rs st R i hi hc hp hr
 end ZkFormal.NearV3.Candidates.ProcActualMemoryFinal

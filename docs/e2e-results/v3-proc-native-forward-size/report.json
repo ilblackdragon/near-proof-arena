@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Successful sequential native tryForward calls conserve size budget per destination and imply fwdSizes demand bounds. Integration with actual runtime receipt execution and grant initialization remains. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeForwardSize.lean",
+      "sha256": "dce4b1898883b7d14809347599274255f1194f528a0db241073eaebe0b0f67bb",
+      "audit": "zk-formal/test/AuditProcNativeForwardSize.lean",
+      "audit_sha256": "1a3ca40d7c721e6f9fc3b90594b5635cf03771aa5124d3f165677a225fedfcad",
+      "guards": 5
+    }
+  ]
+}

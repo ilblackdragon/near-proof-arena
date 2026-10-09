@@ -1,0 +1,17 @@
+{
+  "target": "ZkFormal.NearV3.Candidates.ProcActualConstructedSequence",
+  "source_modules": 828,
+  "successful_modules": 828,
+  "all_source_modules_passed": true,
+  "source_drift": [],
+  "prebuilt_project_dependencies": false,
+  "lean_path": "/tmp/nearproof-scheduler-clean-20261009-a/lib",
+  "olean_symlinks": [],
+  "successful_compiler_seconds": 995.075,
+  "audit_guards": 29,
+  "audits_passed": true,
+  "manifest_sha256": "dbbfc98df7d84c1f184e44a75ce9e5e57f6181481473cc0249a4895a2c72af7b",
+  "recovered_setup_error": "Initial dotted-import parser omitted ArenaCore; parser corrected, failed setup attempt retained,112 successful source-only modules reused.",
+  "scope": "Restricted scheduler/process-table closure through ProcActualConstructedSequence. Not full transition certificate or judge validation.",
+  "evidence_sha256": "63c623d2313fb0b5394b1ec6061027863a0ef2e50baa0e7192ccb45e012b8156"
+}

@@ -63,3 +63,31 @@ import ZkFormal.NearV3.Candidates.ProcActualMemoryFinal
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.prepared_link_final
+
+/-- info: 'ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.append_records' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.append_records
+
+/-- info: 'ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.build_records' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.build_records
+
+/-- info: 'ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.build_link' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.build_link
+
+/-- info: 'ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.afterMemory_segments' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.afterMemory_segments
+
+/-- info: 'ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.suffix_link_final' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.suffix_link_final
+
+/-- info: 'ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.run_link_final' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Candidates.ProcActualMemoryFinal.run_link_final
