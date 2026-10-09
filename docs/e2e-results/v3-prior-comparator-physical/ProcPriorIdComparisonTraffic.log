@@ -1,0 +1,85 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:23:4: warning: This simp argument is unused:
+  show ¬(72 = 69 ∧ true = true) by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show ¬(70 = 69 ∧ false = true) by decide, show ¬(71 = 69 ∧ false = true) by decide, ite_false,
+    ite_true, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:23:50: warning: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show ¬(70 = 69 ∧ false = true) by decide, show ¬(71 = 69 ∧ false = true) by decide,
+    show ¬(72 = 69 ∧ true = true) by decide, ite_false, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:39:43: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [top, ← ofNat_add', ← ofNat_mul']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:40:32: warning: This simp argument is unused:
+  ProcPriorCells.bit
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [cmpMsg, hs]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:40:58: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [ProcPriorCells.bit, cmpMsg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:43:15: warning: This simp argument is unused:
+  show (1 : Fp) * 1 = 1 from by decide +kernel
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (0 : Fp) ≠ 1 from by decide +kernel, ite_true, ite_false, List.replicate_one,
+    List.replicate_zero, List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:44:6: warning: This simp argument is unused:
+  show (0 : Fp) ≠ 1 from by decide +kernel
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (1 : Fp) * 1 = 1 from by decide +kernel, ite_true, ite_false, List.replicate_one,
+    List.replicate_zero, List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:44:43: warning: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (1 : Fp) * 1 = 1 from by decide +kernel, show (0 : Fp) ≠ 1 from by decide +kernel, ite_false,
+    List.replicate_one, List.replicate_zero, List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:44:52: warning: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (1 : Fp) * 1 = 1 from by decide +kernel, show (0 : Fp) ≠ 1 from by decide +kernel, ite_true,
+    List.replicate_one, List.replicate_zero, List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:44:62: warning: This simp argument is unused:
+  List.replicate_one
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (1 : Fp) * 1 = 1 from by decide +kernel, show (0 : Fp) ≠ 1 from by decide +kernel, ite_true,
+    ite_false, List.replicate_zero, List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean:45:6: warning: This simp argument is unused:
+  List.replicate_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (1 : Fp) * 1 = 1 from by decide +kernel, show (0 : Fp) ≠ 1 from by decide +kernel, ite_true,
+    ite_false, List.replicate_one, List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

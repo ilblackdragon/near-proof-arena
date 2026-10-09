@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Complete PRIOR comparator physical enumeration/accepted shared provider PASS7modules21guards. Root actual selected12 provider Local/balance with installed selected19 routed40 counts PASS4guards, no standalone69 traffic gap and duplicates preserved. Only old40 correctness/aggregate inventory capacity remain for full shared provider; actual native corrected Codec count<=786432 PASS3modules10guards. Run/Dist charges still open; target2936832 old40 bound NOT yet a theorem. Codec old40 CmpOk needs actual grant-distribution cap omitted from current PriorCore, so agent is enriching accepted SAME-bs constructor instead of assuming cap. Total35new incrementalguards; source-only archive3075/742 unchanged. Value/trie byte authenticity, RawFrame reconstruction, full global certificate/prover/judge/general NEAR coverage remain incomplete.
+
+
 2026-10-09: Native Codec/Record parameter76 exact inventory and installed SAME-core balance PASS3modules10guards; derives run.n=pub.ids.length from actual execution and all capacities, arbitrary table times supported. This eighth join is additive SchedulerPriorParameter.routed_parameter_balance (PriorInstalled structure still lists original seven). All native prior memory/ID comparison CmpOk derived PASS3modules9guards without supplied order/range/uniqueness, repeated IDs retained; actual physical comparator enumeration and old40 aggregate still open. Arbitrary RawFrame75→actual stage2 and present VBYTES→actual Value slot5 gb row PASS3modules22guards; exact byte/vid/pos preserved but original trie-byte semantics/value view/RawFrame framing remain separate. Total41new incrementalguards; source-only archive remains3075/742. Full global certificate/prover/judge/general NEAR coverage incomplete.
 
 

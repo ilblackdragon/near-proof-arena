@@ -1,0 +1,16 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonRows.lean:29:4: warning: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (0 : Fp) * nxt 0 = 0 from by grind, show cur 0 * (0 : Fp) = 0 from by grind,
+    show (0 : Fp) ≠ 1 from by decide +kernel, List.replicate_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonRows.lean:29:14: warning: This simp argument is unused:
+  List.replicate_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (0 : Fp) * nxt 0 = 0 from by grind, show cur 0 * (0 : Fp) = 0 from by grind,
+    show (0 : Fp) ≠ 1 from by decide +kernel, ite_false]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
