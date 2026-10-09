@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Codec execution/accumulator checkpoint strict PASS15 exact guards. ProcCodecExecutionTrace retains every successful intermediate state across byte/field/block loops, with adjacent_split sharing actual midpoint. ProcCodecGeneratedExecution connects public corrected codecRows to exact block execution beginning with headerRows and ending in hashRows/ashRows; no opaque Quiet-only prefix. ProcPriorCodecAccumulator/Loop derive actual byte accumulator transitions, preserve retired ap/big, and reconstruct low24 native post value over eight-byte allowance loop. Not yet retained cRec or full TableLocal: agents continuing row projection and side trailer/Boolean constraints. Prebuilt dependency audits. Goal active; last pushed c5e1708e, latest push464a471e DNS failed.
+
+
 2026-10-09: Removed distinct-shard-ID premise from ProcActualSegmentGrant.native_lookup and ProcNativeMainCodec.native_main. Prep/layout decode does NOT imply Nodup; ProcNativeGrantFirstLookup strict PASS5 proves exact first-match lookup using minimal indexOf occurrences, preserving duplicate semantics. ProcNativeCodecBlock.main_block_exists constructs Valid operational block AND scheduler upsert witness from native applyNewChunk success and accepted prep/schedPub membership, with tau0,n<=64 and exact forwarding data. Refreshed main/block audit PASS3 and segment/fold audit PASS4. No forwarding/grant/generator/witness-validity premise remains in main_block_exists. Codec TableLocal still open; agents own record arithmetic and side-row trailer/interaction proofs. New audits prebuilt-dependency; not whole-transition certificate. Goal active.
 
 

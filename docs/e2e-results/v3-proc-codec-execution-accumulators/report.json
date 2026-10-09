@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Successful public codec generator supplies exact ordered record execution and header/hash placement. Actual allowance-byte loop derives accumulator updates and final low24 native post value. These are prerequisite invariants, not full retained cRec or TableLocal. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecExecutionTrace.lean",
+      "sha256": "672ed013b68bd06c4b68b75ca1f21e2883fa926660c08c4c8f64448893fd801f",
+      "audit": "zk-formal/test/AuditProcCodecExecutionTrace.lean",
+      "audit_sha256": "e42a9fe81e5099562332d86d9a0a439cebd3eec997d006df50ed19a0909db5ae",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedExecution.lean",
+      "sha256": "a1fb579e56ec87cb3755323442488f515a1fd90cc657da2db560f94303806f3b",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedExecution.lean",
+      "audit_sha256": "913548e768f0568c6d852f79877479b1e5cb00b2fb017761f95554a4e6d01e57",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAccumulator.lean",
+      "sha256": "3e6bf1877c7a3fe30f25bfdb36b6cb98f53acb505084d0cdf5d51a3a9e011b8a",
+      "audit": "zk-formal/test/AuditProcPriorCodecAccumulator.lean",
+      "audit_sha256": "d9a77cd204f695fe90b6c8cd15d726ff964434ec0f26ae817dec858da9fecbbd",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAccumulatorLoop.lean",
+      "sha256": "1da65d7a84564612ad4eb30f136d5bc4950bd9b3f46d084c26f0ce2720d4138d",
+      "audit": "zk-formal/test/AuditProcPriorCodecAccumulatorLoop.lean",
+      "audit_sha256": "9e5026b18cd8911289e3a279e4943b0560d7d1b74d0ecfc99304718093ff0335",
+      "guards": 4
+    }
+  ]
+}
