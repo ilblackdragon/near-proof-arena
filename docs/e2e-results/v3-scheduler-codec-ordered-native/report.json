@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "guards": 3,
+  "logs": [
+    "/tmp/SchedulerCodecOrderedNative.log",
+    "/tmp/AuditSchedulerCodecOrderedNative.log"
+  ],
+  "scope": "Accepted native main+implicit ordered blocks, full concatenated corrected Codec TableLocal, exact same-list physical sanity DIGEST requests. Native IDs remain caller supplied; other bus joins not claimed.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecOrderedNative.lean",
+      "sha256": "b7a990cb5362feba6c3c27661a4cac19c5fbe38df5b08fb4f592be57824ef454"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecOrderedNative.lean",
+      "sha256": "1f6e9ae197efed875c669aa9b9171f72bfcccb66436b97383f6b81782643e412"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}
