@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecWrapperTotal strict PASS, six exact guards. Full codecRows executable wrapper success now follows actual run success+PV86 parameters, with absent-state zero allowance and forwarding bound explicit. Header/hash loops total; codec_eq exact definitional factorization; run_a2 supplies actual initial link-pass projection, discharging record allowance guard. Need bind absent/native forwarding and codec TableLocal/global assembly. Source-only scheduler closure reached700/828 latest local progress; no completed certificate claim. Prior6af541be push DNS failed. Prebuilt deps for codec audit. Goal active.
+
+
 2026-10-09: ProcPriorCodecLoopTotal strict PASS, six exact guards. Full nested records loop total from per-record allowance equality and applicable forwarding bound. Includes unconditional sender/receiver bytes, allowance bytes with derived carry, all three fields and arbitrary record list. records_eq is definitional equality to original imperative nested loop. Whole codec wrapper integration/native forwarding binding remain open. Clean-source ConstructedSequence rebuild608/828 latest report, no proof-source changes; no completion certificate yet. Priorccba049b push DNS failed. Prebuilt deps for codec audit. Goal active.
 
 
