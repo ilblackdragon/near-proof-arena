@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Repaired native record decoder and byte correspondence PASS5guards: SAME authenticated Value supplies decoded original record and sanity bytes under corrected-family View, no obsolete-family Holds. Native record field offsets PASS3guards bind sender/receiver/allowance bytes to word digits. Queue complete-record ownership generalization PASS1guard retains an explicit StartClosed competing-supplier premise, permitting eventual honest RawFrame traffic composition; that premise is not yet discharged. Root strict rebuilt final sources/audits and verified hashes:9 incremental guards. Arbitrary raw origin/record association, full Scan/Dist and global assembly/certificate/prover/judge remain incomplete.
+
+
 2026-10-09: Native record word reconstruction PASS3guards: eight explicit native byte identities imply actual packed word and exact top-row low/big/saturation. Byte identity remains an explicit obligation. Repaired record/write route PASS13guards: arbitrary live bus67 receiver matches actual write, derives first-limb origin and reconstructed-word saturation; no obsolete-family Holds. Repaired queue lookup PASS20guards, fixed native queue keys PASS2guards, generic authenticated VBYTES sender and actual QSH balance PASS4guards. Group parser provenance remains open; generic byte ownership preserves additional RawFrame traffic. Scan request field equations/flags/coordinates PASS13guards; full Scan/Dist Local remains open. Root independently rebuilt all frozen sources/audits and checked hashes:55 incremental guards. Clean source-only archive3075/742 unchanged. Full transition theorem, complete certificate, executable proof/judge and general NEAR replacement remain incomplete.
 
 
