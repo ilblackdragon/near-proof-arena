@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcActualRoundOperandBounds strict PASS, eight exact guards. Actual bucket step/list and round comparator loop preserve operand bounds from round T/key bounds and initial cmps bounds. afterMemory_success now proves actual remaining suffix succeeds under these semantic bounds and chronology, including prepared parameter guard and final operand check. Bounds still must be derived from prepared replay. Three agents active: model sentinel cap, timestamp potential, memory grant-value bounds. Prior6501ae1c push succeeded. Full integration/certificate/prover/judge incomplete; prebuilt dependencies only. Goal active.
+
+
 2026-10-09: ProcActualMemoryOperandBounds strict PASS, five exact guards. Actual memory comparator step/list/segment preserve Bounded from explicit operation timestamp and grant input/increment bounds. operand_check derives exact final 29-bit check. Actual replay operation bounds and final loop composition remain. Commit96e2da0c PUSH SUCCEEDED and remote ref verified; agents running on sentinel bound, memory-bound inventory, timestamp potential. Full certificate/prover/judge incomplete; prebuilt dependencies only. Goal active.
 
 
