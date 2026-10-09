@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcNativeMainCodec.native_main strict PASS1 exact guard constructs corrected scheduler and main tau0 codec outputs from accepted prep, matching schedPub membership, native applyNewChunk success, and explicit distinct context shard IDs. No independent forwarding-bound, distribution, prefix, or generator-success premise remains. ProcActualNativeFinish PASS3 supplies exact distribution existence and native finish identity for same process witness. Agent checking whether accepted preparation derives shard distinctness; agent auditing remaining codec TableLocal obligations. Generator success is not codec Local or full transition completeness; prover/judge still open. New audits prebuilt-dependency. Goal active.
+
+
 2026-10-09: ProcNativeForwardChunk strict PASS3 guards derives exact outgoing forwardAll and fwdSizes demand bound from applyNewChunk success, bound to the same schedStep execution. ProcNativeGrantLookup PASS4 proves exact first-match output grant lookup at sender-major index under shard-ID Nodup. Extended ProcActualSegmentGrant.native_lookup ties this native grant lookup directly to generated R.segs.wfin+distribution event grant; refreshed bridge report PASS4. Runtime+codec conditional bridge already saved d414edcc. Next compose these into full main codec construction and close codec TableLocal/global joins; full transition/prover/judge remain open. All new checks use prebuilt dependencies. Goal active.
 
 

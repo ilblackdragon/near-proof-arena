@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Successful native main chunk plus accepted preparation, schedPub membership, and explicit distinct context shard IDs construct corrected scheduler and codec outputs. No supplied forwarding, distribution, or generator-success premise. Codec TableLocal/global completeness and general transition proof remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeMainCodec.lean",
+      "sha256": "02cc3dbd2173d8d68c7251135b3e2cb8e4f703799cd849b5fdc0ef6f1aa023d4",
+      "audit": "zk-formal/test/AuditProcNativeMainCodec.lean",
+      "audit_sha256": "b1896335da60a888a6cda4c11e0c58579f9547b3364b2361604b4584fb8063e5",
+      "guards": 1
+    }
+  ]
+}
