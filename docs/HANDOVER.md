@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Raw backward origin PASS2modules9guards: every actual active raw row has earlier first active row at position0 with same tau/vid/present/count and exact physical displacement equal to position; physical height<=P excludes wrapping. Record word identity PASS1module2guards: instance tau and record ordinal are preserved across all three actual limb rows from Local constraints. Root independently rebuilt sources/audits and verified hashes:11 incremental guards. Whole-frame interval/record classification, native record-to-word bus association and queue StartClosed composition continue. Global transition/certificate/prover/judge remain incomplete.
+
+
 2026-10-09: Repaired native record decoder and byte correspondence PASS5guards: SAME authenticated Value supplies decoded original record and sanity bytes under corrected-family View, no obsolete-family Holds. Native record field offsets PASS3guards bind sender/receiver/allowance bytes to word digits. Queue complete-record ownership generalization PASS1guard retains an explicit StartClosed competing-supplier premise, permitting eventual honest RawFrame traffic composition; that premise is not yet discharged. Root strict rebuilt final sources/audits and verified hashes:9 incremental guards. Arbitrary raw origin/record association, full Scan/Dist and global assembly/certificate/prover/judge remain incomplete.
 
 
