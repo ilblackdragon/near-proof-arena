@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All eight actual word bytes have raw record suppliers with same natural instance and record ordinal at consecutive field offsets. Same-frame uniqueness across suppliers remains separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordWordLayout.lean",
+      "sha256": "ee5c4ce5647d66ece34aad2b4e4b5bda26fc6b95c9040283f888478ec5110dc1",
+      "audit": "zk-formal/test/AuditProcPriorRecordWordLayout.lean",
+      "audit_sha256": "4da83f618d9ea7ee987b20a6a84343b2a1473e90937bfd14c0aad3f9845defcb",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordWordSources.lean",
+      "sha256": "7b058aedd7085711f11f37159bf3b92c213d0c49759a03106655a96c9c2ecafc",
+      "audit": "zk-formal/test/AuditProcessRepairRecordWordSources.lean",
+      "audit_sha256": "9e8974f153af2b1e0d03a7dcaaf86e9b8166520d318586c3135597125fba9c25",
+      "guards": 1
+    }
+  ]
+}

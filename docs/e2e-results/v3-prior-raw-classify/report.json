@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 4,
+  "dependency_order": [
+    "ProcPriorRawInterval",
+    "ProcPriorRawClassify",
+    "ProcessRepairRawNativeRecord"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawInterval.lean",
+      "sha256": "2d12126dcefa63946a568d0cd767ea3f6139465d3f5f6db7689b958f66daa1e9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawClassify.lean",
+      "sha256": "d16541995423d3e01cdaba945d1b938ff31b88477dac97f102fcab3ce42c6d94"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRawNativeRecord.lean",
+      "sha256": "297afb074cd8408e5d14718ff0f308ef9dd2965839f87e456e0609ef5e6c9718"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawClassify.lean",
+      "sha256": "e77d97aab10331d4a647038ac7dfa7338de3397be01657f659e787990b1899b5"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcPriorRawInterval.log",
+    "/tmp/ProcPriorRawClassify.log",
+    "/tmp/ProcessRepairRawNativeRecord.log",
+    "/tmp/AuditProcPriorRawClassify.log"
+  ],
+  "scope": "Arbitrary active raw frame/record classification and exact native decoded record-byte identity. Global uniqueness of frame by tau still separate."
+}
