@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Prior-order comparator contract PASS2 exactguards. ProcComparatorSound.sound generalizes actual HoldsP comparator ownership to arbitrary bus; prior_ge supplies bus69 ordered result under explicit operand bounds<2^29. No presumed generated row or comparison result. Actual prior-memory ordering send extraction, authenticated ranges, and combined-family comparator ownership remain open. Checkpointc09f5ce5 push DNS failed; verified bundle retained.
+
+
 2026-10-09: Source-only accepted-query closure PASS2816 modules/223 exact guards, no drift or prebuilt project dependencies. Actual vertical memory stage0 extraction PASS16guards removes standalone-table/generated-window assumptions; comparator ordering/authenticated writes/outer horizontal ownership remain open. Selected RecordLinear concatenated Local PASS18guards. Root accepted_record_tables PASS1guard now constructs SAME allocated Codec+RawFrame+selected RecordLinear full Local, exact SPOST/raw-record75 balance, prepared query68 inventory directly from checkD0a acceptance B<=2M. Record uses actual b.pub.ids. Memory/ID joins, full certificate and judge still incomplete. Previous turn classified progress; checkpoint06319485 push DNS failed.
 
 
