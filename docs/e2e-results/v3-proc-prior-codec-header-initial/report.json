@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All8 retained initial-header cKind83..90 equations on actual native header rows. Parameter reconstruction and square/base/fair bounds discharged from PV86 Params.calculate and R.n\u226464; arbitrary row p,next row,boundary selectors. Remaining header data/adjacency constraints separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHeaderInitial.lean",
+      "sha256": "a76f8f5bc55980c98fcfd6df5d9302baa11f519f9197f9bfd909dda5f0144697",
+      "audit": "zk-formal/test/AuditProcPriorCodecHeaderInitial.lean",
+      "audit_sha256": "5130b942b51788138042ef78bcee649307cc576ccc26a69c2bdb41a30980222c",
+      "guards": 6
+    }
+  ]
+}

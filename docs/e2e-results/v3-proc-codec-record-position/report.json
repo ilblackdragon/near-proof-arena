@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact successful record step at physical index5+24*k+8*f+g, including pre-step state and suffix. Indexed loop span and property lifting; six phase and46 inactive-header equations at physical record positions. Native cRec0/11/33/34 on all generated and active physical rows. Prebuilt dependencies;24GiB cap; adjacency/global assembly incomplete",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecExecutionIndex.lean",
+      "sha256": "9ffaaacfb9749bedaaf25d4ddd0980122cd29dc946fc8a772a15df3bb7120c79",
+      "audit": "zk-formal/test/AuditProcCodecExecutionIndex.lean",
+      "audit_sha256": "2b5ec680b0faa6ed3cc02a0119778169df7992ddbed838897cd7fb37b38c7e8f",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecExecutionPosition.lean",
+      "sha256": "68c0e94ad9a223c51c09245cb5ff5b4d0692baf100430be8bddda3b967fb33dd",
+      "audit": "zk-formal/test/AuditProcCodecExecutionPosition.lean",
+      "audit_sha256": "c4e765fe33ccdde502fbeb4961336893bfe18bf732e6dd3b53400058423b1fa2",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordPosition.lean",
+      "sha256": "f297d029b7aed2f29bc15d81a19b738f5cba75784d361f28d8ae47dcba531403",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordPosition.lean",
+      "audit_sha256": "e8126ec860047f894ce6d7abef4106c499e5318e9759418c3c8cf1620e1ca1bb",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordKindPosition.lean",
+      "sha256": "7982879c29cec6303073083731bc96d84e10ffdc4e064fa5cb995bf396bad65b",
+      "audit": "zk-formal/test/AuditProcCodecRecordKindPosition.lean",
+      "audit_sha256": "d2e2f91e99fa626d79a4775c8926a7b84d237c655dccef2153ff9103e451678d",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordIndexCells.lean",
+      "sha256": "1912a29f47e34880aeae1bafd6047e989488e87b35312f5d26d93c66b2afc926",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordIndexCells.lean",
+      "audit_sha256": "3a9d893d91f44cb2d16146baf18a66239f85a5e5ae1137269530045742be3480",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordIndexRows.lean",
+      "sha256": "38c7e0a522462f00907d3b995085a097e2d52b1d967856bde9e6d83154ee4fe1",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordIndexRows.lean",
+      "audit_sha256": "9af3fa441811f4ecbace0bb491d418987c1c58a85f83dca5d5b1d46b0b7fc136",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordIndexLocal.lean",
+      "sha256": "3534361ec4aa00dc3841d2c7f41300eb4c6b1e0cc3f2d3208d59d80e7ca87ad5",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordIndexLocal.lean",
+      "audit_sha256": "2b954f8b89db5b08ab00b472aa40c44da26d79f5c90f5b123e66bc902be456b9",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordIndex.lean",
+      "sha256": "6f8236802b6e97bd35130f78f929d80b2a63983d1a33c1c5a9f549f00c55b1d0",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordIndex.lean",
+      "audit_sha256": "fd77b43e311490f758ff6aa9752030623b8bdf688e29c3a35b508a86222540f9",
+      "guards": 2
+    }
+  ]
+}

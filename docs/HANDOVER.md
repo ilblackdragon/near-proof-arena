@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Exact physical record provenance checkpoint: strict PASS41 exact guards. ExecutionIndex/Position recover actual nested steps, exact offsets and preserved suffix; GeneratedRecordPosition locates actual successful byte step at5+24*k+8*f+g. RecordKindPosition discharges six phase and46 inactive-header equations at those physical indices. GeneratedRecordIndex covers cRec0/11/33/34 on all active physical rows. HeaderRegisters/Initial/Flow prove native eight initial equations and38 remaining header-tail equations internally; headerp4 successor still requires actual first-record flags, now supported by physical index theorem. Prebuilt dependency audits; full adjacency/active constraint assembly/global joins/certificate/judge remain open. Previous9d76218a push failed GitHub DNS; recovery bundle updated.
+
+
 2026-10-09: Link gates, forwarding payload and suffix-kind checkpoint: strict PASS17 exact guards. cRec41/48 and native forwarding60–62 now proved on every active physical row; forwarding bound derives from same native prefix/run/distribution, no numerical assumption. RecordHeaderInactive closes all46 header-tail equations on every actual record step. SuffixKind.physical closes all120 retained kind constraints on actual hash/ash suffix and padding, with tau<P and n<=64. Whole physical trailer was already committed; other kind/record/addition groups and global joins remain open. Audits use prebuilt dependencies; full certificate/judge still incomplete. Prior7a6ea5c0 push failed GitHub DNS; checkpoint bundle refreshed.
 
 
