@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire retained cKind (all120 equations) for exact native hash internal, hash31-to-ash0, ash internal, ash31-to-next-native-header0 and ash31-to-zero padding. Requires tau<P and valid internal j<31; first/last selectors0, arbitrary trans. Native SHA/header byte bounds discharged, exact seven-group decomposition. Does not prove header cKind, record cKind or physical row/selector assembly. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideFullKind.lean",
+      "sha256": "3cecc2cf6ee911e62f25ad8ce0c61f02aa4279f3a92891556a364b1a70f2318f",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideFullKind.lean",
+      "audit_sha256": "ed0125e3fed1a5ff21ae8573a6be339cc944435bfdf6ebfdf18e3325824119a7",
+      "guards": 8
+    }
+  ]
+}

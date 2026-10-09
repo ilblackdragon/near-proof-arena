@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire cTrl at every physical row including padding from successful corrected generator and R.n<=64. Exact native hash/ash physical cells and active suffix transitions. cRec30\u201332 at every active generated row. Prebuilt dependencies;24GiB cap; remaining active groups and complete TableLocal still open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRemainingConstraints.lean",
+      "sha256": "8cdc4f0b27d36a99203f35defca36b58918fbb4b6156c8e4ebaa51295c86f4e9",
+      "audit": "zk-formal/test/AuditProcCodecRemainingConstraints.lean",
+      "audit_sha256": "b43e75025aa4639fbc15afe2ddfb996acc203ea1777e2d87f684d2c67e8c1604",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedByteTests.lean",
+      "sha256": "21a728ec34a85bcd7f38e09b4bdda550d8076333dcb9e5e45413358938bfea77",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedByteTests.lean",
+      "audit_sha256": "1494ce4578c3ad583d594c77df8944436d206d0fe512229399f1d73899879257",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecSuffixCells.lean",
+      "sha256": "1e5db00bfeab0db03ba8080bf65844d5608388f4df7619463f95564b29a56478",
+      "audit": "zk-formal/test/AuditProcCodecSuffixCells.lean",
+      "audit_sha256": "d95102798a7785ae36e5a50b171cd911eefe0f249a0444eb50c51a120d5e400f",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecSuffixTrailer.lean",
+      "sha256": "1536dd4e337f7b9ef4858618453fb94b5f82bb9958a00aef3079c78005ed2b9d",
+      "audit": "zk-formal/test/AuditProcCodecSuffixTrailer.lean",
+      "audit_sha256": "12afb52ba53d0a6a64f6f9271430bb003001404e94795da8649eeaf01c97ab84",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedTrailer.lean",
+      "sha256": "7aafe6ca2249b2b42ac0afeaa432221cbc262cab5a22eb9dc57861797569bb88",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedTrailer.lean",
+      "audit_sha256": "ef6a8e22f69d2c233240b4da379973abad6498418b38c96456ed970a97aecdf2",
+      "guards": 4
+    }
+  ]
+}

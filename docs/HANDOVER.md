@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Physical trailer and native side kind checkpoint: strict PASS32 exact guards. GeneratedTrailer.physical proves whole46-equation cTrl on every physical row (including padding), from corrected codec success and R.n<=64. Exact suffix cells/adjacency and generated prefix property eliminate independent row-shape premises. GeneratedByteTests adds cRec30–32 at every active row. RemainingConstraints.table_of_remaining now requires only retained kind/record/addition active groups; trailer/bits/capacity/padding discharged. NativeBytes binds byte bounds to actual serialized header/hash outputs. HeaderInactive+SideFullKind prove entire retained120-equation cKind for native hash/ash successors, including ash to zero/header; tau<P remains explicit. Source audits use prebuilt dependencies; not yet whole TableLocal/full certificate/judge. e6db6a32 push failed GitHub DNS.
+
+
 2026-10-09: Generator assembly checkpoint: strict PASS51 exact guards. Generic row-property lifting and provenance from actual corrected generator, generic cRec subset lifting with side cases discharged, and cRec49–51/59/63 on every active physical row. PlainInactive closes22 allowance equations on sender/receiver rows. Native forwarding range<2^24 follows from same prefix/run/distribution and successful terminal step, using native grant≤4,500,000. SideBytes10/SideCarry7/SideNext12 guards add retained byte equations, instance carry, and side adjacency (including final ash handoff); helper byte-range assumptions still need binding to serialized outputs. Prebuilt dependencies; full constraint assembly/global joins/certificate/judge remain incomplete. Previous checkpoint ae8da63a push failed GitHub DNS; local recovery bundle updated.
 
 

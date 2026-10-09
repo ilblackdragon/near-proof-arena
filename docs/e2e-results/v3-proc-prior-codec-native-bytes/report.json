@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Removes helper byte-bound premises for exact native Codec header/parameter/hash constructions: every selected native header digit and mapped UInt8 SHA output is below256 including default accesses. header_bytes/hash_bytes close retained byte group unconditionally on those actual constructions. Definitions match codecRowsCore and WrapperTotal literals; does not itself identify successful output physical row indexing. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeBytes.lean",
+      "sha256": "a951dcb10405c93f13e562ac7a9deaf7de2768e814367796893790e7cd55d28a",
+      "audit": "zk-formal/test/AuditProcPriorCodecNativeBytes.lean",
+      "audit_sha256": "84f74f168b2f56662408c2ba3c23b4faa26ba043c677397eff93fe7fb8489b2d",
+      "guards": 6
+    }
+  ]
+}
