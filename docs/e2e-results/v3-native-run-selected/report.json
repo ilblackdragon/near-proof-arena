@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 11,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRunSelected.lean",
+      "sha256": "bc485aa07ca8c770aa164f70cdb652782aa753cd19622f3799d7600960743fa3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcInstalledBoundaryRegression.lean",
+      "sha256": "f42e00ca202b4fd6aa95d369cab49eec14ac0929be28fbbfb9794d8e0f9d1283"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRunSelected.lean",
+      "sha256": "ace13d2a282ccfbffa7e1544c6475b2b0eeef6ec38172860a1578167b0231af8"
+    }
+  ],
+  "logs": [
+    "/tmp/SchedulerRunSelected.log",
+    "/tmp/ProcInstalledBoundaryRegression.log",
+    "/tmp/AuditSchedulerRunSelected.log"
+  ],
+  "scope": "Actual routed selected11 Mem Local and selected10+11 exact comparison inventory. Kernel confirms selected10 remains OLD Proc table, unequal repaired candidate. Two successful corrected ActualRun PV86 one-shard zero-round native executions with distinct seeds yield violated selected10 rotation at physical row15. Generator-level regression, NOT full accepted checkD0a fixture. Existing family unchanged; repaired family needed.",
+  "olean_overlay": "/tmp/ups-proof"
+}

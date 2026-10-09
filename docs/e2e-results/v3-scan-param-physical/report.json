@@ -1,0 +1,29 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanParamPhysical.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanParamPhysical.lean",
+  "guards": 4,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanParamPhysical.lean": "53548896f986cb8cd4c6e211721b9aa4a1f6ab55d75aeba440b63a9e939ff772",
+    "zk-formal/test/AuditProcScanParamPhysical.lean": "f9401515ff3e105d9e24bf517756042347f8d9a89be7fbd6d8df9de825f43857"
+  },
+  "status": "strict PASS",
+  "proved": "Actual native parameter row full ScanDist constraint list over Fp; canonical cells proved, base/D bounds derived from unchanged ActualRun success.",
+  "remaining": [
+    "Actual successor binding remains explicit: first-request fQ1/cid0, copied tau/n/base/D.",
+    "Physical nonlast and tau,n<P remain explicit; native accepted bounds available for later placement.",
+    "Request/distribution rows and whole phase-ordered trace Local remain open."
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanParamPhysical.lean",
+      "sha256": "53548896f986cb8cd4c6e211721b9aa4a1f6ab55d75aeba440b63a9e939ff772"
+    },
+    {
+      "path": "zk-formal/test/AuditProcScanParamPhysical.lean",
+      "sha256": "f9401515ff3e105d9e24bf517756042347f8d9a89be7fbd6d8df9de825f43857"
+    }
+  ],
+  "scope": "Incremental strict rebuild with prebuilt dependencies; parameter rows only, not complete ScanDist TableLocal."
+}
