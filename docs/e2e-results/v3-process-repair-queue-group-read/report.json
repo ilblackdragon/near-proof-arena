@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family QVC conservation supplies matching parser record for every present buffered queue read. SAME Value ID/native buffered bytes authenticate all main group keys without supplied parser provider or balance. Authenticated wrapper derives byte ranges from SAME forest. Six exact axiom guards.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQvcBalance.lean",
+      "sha256": "eb50a516f6d68f2aadfade1a63814c84e491b196c2d27bed78015576e66f8c21",
+      "audit": "zk-formal/test/AuditProcessRepairQvcBalance.lean",
+      "audit_sha256": "92770d3ba505fb47701542dc32674ffaa3346845f6d5ba653e0e20b34c1d4cf2",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueGroupRead.lean",
+      "sha256": "3272c80dac6468345a0908c8b90c01411dad8d55b7100470a5296730e715e485",
+      "audit": "zk-formal/test/AuditProcessRepairQueueGroupRead.lean",
+      "audit_sha256": "9c624aab281866a8aad087d8e85fd1a1e8ca0239b4830a0f077cf9a00183c6bd",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueGroupReadNative.lean",
+      "sha256": "2c89aeead6b1a047cf8b631325c8b5eb674e6fef95f560823f0e27e4859d834a",
+      "audit": "zk-formal/test/AuditProcessRepairQueueGroupReadNative.lean",
+      "audit_sha256": "81255ef26cab888540d0e7e0b1b03e7c8d8be7997982260e8fb36c96434b6f70",
+      "guards": 1
+    }
+  ]
+}

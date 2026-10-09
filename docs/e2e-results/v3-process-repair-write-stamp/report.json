@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual corrected-family live write stamp is bounded by physical original record ordinal/row. Prior68 last-write theorem now derives stamp range; natural address range remains explicit pending ID/address binding. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairWriteStamp.lean",
+      "sha256": "3ea04c27e6daa1fa339bad38df5acb574b39dd0b34fa57f31aaafac39674dded",
+      "audit": "zk-formal/test/AuditProcessRepairWriteStamp.lean",
+      "audit_sha256": "ff641a932b5ba62adc00eca823820c291e1c541e900f22971b2b305855255400",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairBoundedLastWrite.lean",
+      "sha256": "77fa0ba875567512abaf189a4769ad7d43029d7d5263948faf7592e39f8db99a",
+      "audit": "zk-formal/test/AuditProcessRepairBoundedLastWrite.lean",
+      "audit_sha256": "ba4f9fbab951193fd584c7bdb96791a7442207853e4e98b7e6cc72643b0c89a2",
+      "guards": 1
+    }
+  ]
+}

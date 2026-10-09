@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Repaired write-stamp bounds PASS3guards: every live bus67 receiver stamp derives from physical original record row, and prior68 last-write endpoint removes supplied stamp bound; address range remains pending ID/native address composition. Native Scan request facts/local PASS2modules3guards derive request D/bits/link/key bounds from successful ActualRun and actual PV86 calculation; physical current/next placement, terminal metadata and flags/next-kind remain explicit. Actual QVC/group-read provider composition PASS6guards derives buffered parser selection from present read and binds group keys to SAME native buffered Value. Root independent final-source/audit rebuild/hash checks PASS12 incremental guards. Full shard/grid/phase Local, global transition/certificate/prover/judge/general replacement remain incomplete.
+
+
 2026-10-09: Repaired comparator/memory order/last-write soundness PASS10guards with actual View; natural address/stamp bounds still explicit. Arbitrary native write composition PASS3guards: live bus67 receiver matches exact decoded original allowance low/big and native saturation, no byte/native/frame association premise; shard ID/address binding remains separate. Authenticated buffered native shard streams PASS5guards and native GROUP keys PASS2guards; actual QSH uniqueness/ranges derived. Scan request Local PASS8modules9guards proves all68 Scan.body equations plus ScanDist constraints for actual request rows; native metadata/placement/terminal-next premises remain, shard/grid/full TableLocal still open. Root rebuilt/audited/hash-checked29 new incremental guards; finalized prior QueueComplete7 report metadata included with unchanged checked source hashes. Full transition/clean certificate/prover/judge/general replacement incomplete.
 
 
