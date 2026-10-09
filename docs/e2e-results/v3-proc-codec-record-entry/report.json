@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All8 cRec17..24 on every actual physical record row. Digest gate zero and ID prior/post relation are projected from actual successful steps. Receiver-last successor allowance reset follows actual field prefix initialized at zero, including wt/lowf1. Only codecRows success and n\u226464; no incoming state or Local premise. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordEntryLocal.lean",
+      "sha256": "f8b690b98ec1f4b87e042860a3f5eea699f5abd21847908f07ffb37a1c732ecd",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordEntryLocal.lean",
+      "audit_sha256": "d3190c4b54059601115b3a2f81dbe23b840e2522f36ab4410f85424d7c1428dc",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordEntry.lean",
+      "sha256": "612b9c0f92574cc442f5afe9585d79fa9e435462aa3c3f880676af26bf4b6017",
+      "audit": "zk-formal/test/AuditProcCodecRecordEntry.lean",
+      "audit_sha256": "79fb6c2382c2a0c39117729b021f6b0d302a6ca17f96e3c83da5f15da924e0ee",
+      "guards": 6
+    }
+  ]
+}

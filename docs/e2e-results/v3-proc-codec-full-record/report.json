@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire retained62-equation cRec assembled on every active generated row from same prepared native prefix/run/distribution, no local/cell/initialization premise. Exact kernel partition covers all retained equations. Native TableLocal reduced to19 corrected additions only. Incremental audit uses prebuilt dependencies24GiB; independent source-only closure started separately and not yet certified",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordPartition.lean",
+      "sha256": "3815fcaf3031c9f2683a4a6b3bdea70e9e1cc80923f4e8f549729182ca47de83",
+      "audit": "zk-formal/test/AuditProcCodecRecordPartition.lean",
+      "audit_sha256": "da170daf0d16ae9ee1857aeeea9e6b49a5be7eaf691470a9b58e8538e2a641f8",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordAssembly.lean",
+      "sha256": "51d9c1ac5806db8db6ed0ba268b37838c47109ac9db19d17909eb2bbe4b189ae",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordAssembly.lean",
+      "audit_sha256": "355d70da9f184098605fc641624d173b584157e37a212dceece381bad238df6f",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecNativeAdditionsResidual.lean",
+      "sha256": "b4be3254777fada2fec3f57a9ba0baf62dfb1ac74c669b2b762765da28e3c9dc",
+      "audit": "zk-formal/test/AuditProcCodecNativeAdditionsResidual.lean",
+      "audit_sha256": "fa24426023a959e8625996014cb028705e8c4379bf1f77e6f696108f92d92840",
+      "guards": 1
+    }
+  ]
+}

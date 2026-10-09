@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: COMPLETE active retained cRec checkpoint: strict PASS14 exact guards. RecordEntryLocal/RecordEntry derive cRec17–24 including allowance reset from actual field-prefix execution. RecordPartition gives exact kernel62-equation partition; GeneratedRecordAssembly.active assembles every retained record equation from same native prepared prefix/run/distribution, without Local/cell/entry assumption. NativeAdditionsResidual.table_of_additions now requires only19 corrected additions at active rows; all kind/record/trailer/bits/capacity/padding obligations discharged. Addition first8 and sender/crossrecord groups underway. Independent source-only1555-module closure started at /tmp/nearproof-codec-clean-20261009-a (execsession85095), target NativeAdditionsResidual,24GiB per compiler, no prebuilt project path; not yet certified. Incremental audits still prebuilt. Full global certificate/judge incomplete. Previous3703f304 push failed GitHub DNS.
+
+
 2026-10-09: Boundary/carry and side-additions checkpoint: strict PASS31 exact guards. BoundaryEquations/GeneratedBoundaries close cRec6–10 and12–16 at every active physical position, deriving field changes, record changes and final-record→hash directly from generated row cells. RecordCarryFields/RecordCarry/GeneratedRecordCarry close cRec35–40 on every active row. SideAdditions/GeneratedSideAdditions close19 corrected additions on header/hash/ash rows, including actual first-record indices. Remaining record group17–24 and corrected record additions underway in parallel; all other retained record equations individually checked. Prebuilt dependency audit24GiB; full TableLocal/globaljoins/certificate/judge still incomplete. Previousb71b2cdd push failed GitHub DNS.
 
 
