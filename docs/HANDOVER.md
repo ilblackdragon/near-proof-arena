@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: General actual VBYTES sender ID<2^22 and physical6 account BYTES tag10 PASS2modules3guards. Same-gate pre-value emission authenticates key bound; no account Local/range promise and dummy triples excluded. Actual Codec tags11/12 and compact UPS tag12 PASS2modules6guards, genuine prepared/public/root inputs explicit. Full SAME PriorCore physical concatenated Mem40+Proc40 request inventory PASS8modules40guards; generated cell correspondence, tag/order facts and row capacities derived with no supplied Local/traffic/cap premise. Mem TableLocal remains separate. Root independently strict rebuilt all frozen sources/audits. Total49new incrementalguards; source-only archive3075/742 unchanged. Source13 and physical Merkle6 tag separation, Dist physical join, native byte/framing semantics, global certificate/prover/judge/general NEAR coverage remain open.
+
+
 2026-10-09: Actual installed receipt byte IDs have nonwrapping tags1..5 PASS6guards, excludes trie7/8/9 with list/receipt bounds derived from actual grammar. Actual Dist comparison validity PASS4modules21guards, no supplied budget/range/success premise. Root accepted SAME-bs shared installed comparator PASS2guards: full Run/Codec/Dist/prior CmpOk, capacity<=2^22 and receive counts including actual prior40 traffic, no old CmpOk or capacity input. Exact physical Run/Dist producer joins remain open, not whole-family Holds. Root strict rebuilt frozen Dist sources/audit and final root sources. Total29new incrementalguards; source-only archive3075/742 unchanged. Other supplier ID separation, native framing/byte semantics, global certificate/prover/judge/general NEAR coverage incomplete.
 
 

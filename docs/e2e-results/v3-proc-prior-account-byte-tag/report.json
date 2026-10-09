@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Any actual VBYTES sender ID is below2^22 through matching actual Value view. Each live physical6 account BYTES sender has SAME-gate pre-value supplier; its tag is10 with no supplied key bounds or account Local. Dummy triples excluded by live multiplicity. Genuine no-public-VBYTES premise explicit.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVbytesIdBound.lean",
+      "sha256": "a80057338cb297a55d55bb4168dd8b882a1e213dabafc6778ccb755f4bd54e37",
+      "audit": "zk-formal/test/AuditProcPriorVbytesIdBound.lean",
+      "audit_sha256": "c635a1f13e8d07f2d5836e81f2223c38046177e1f42b4b71e83ea9d8e0c8efae",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorAccountByteTag.lean",
+      "sha256": "75c2db3d6404decf19a28c2a9a0d7bf5735c2252aac193256748d10d2c429b70",
+      "audit": "zk-formal/test/AuditProcPriorAccountByteTag.lean",
+      "audit_sha256": "7f9f9ef39a43f9929f6df48a2c64d9edb37158c77e69ac4de6adaadd2045b4e0",
+      "guards": 2
+    }
+  ]
+}
