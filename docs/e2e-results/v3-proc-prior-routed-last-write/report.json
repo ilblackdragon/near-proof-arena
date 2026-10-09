@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired/routed-family prior68 last-write consumer. HoldsP/exact table identity, no public68 sends and no public40 segments, live receiver, and only natural address/write-stamp bounds imply a matched actual stage0 query with initialized no-write zero or a matching write maximal in both physical row and stored stamp. Shared40 order, request membership/gates, actual receiver/sender ownership, horizontal/window Local and prefix shape are derived. No old-family HoldsP, supplied order/comparator Own, generated or native trace premise. Complete decoded original-write authentication remains. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedLastWrite.lean",
+      "sha256": "bc62df3153baf78bd2b34e9832fb657c1e08d3d59790e462b022182ebcce58cc",
+      "audit": "zk-formal/test/AuditProcPriorRoutedLastWrite.lean",
+      "audit_sha256": "064a65784dba9207317b454b133a8bc3e1ae72b72552e13605d5815d84a798cc",
+      "guards": 4
+    }
+  ]
+}

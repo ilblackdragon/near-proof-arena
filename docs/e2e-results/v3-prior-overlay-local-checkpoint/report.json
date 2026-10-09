@@ -1,0 +1,107 @@
+{
+  "status": "PASS",
+  "guard_count": 17,
+  "source_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayCuts.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayPadding.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayWindowLocal.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayDataTransport.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayComponentRows.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayLocal.lean",
+    "zk-formal/test/AuditProcPriorOverlayLocal.lean"
+  ],
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayCuts.lean": "8bc142ad055c4993523932de9e78a0d86f9636b029fce0be4be149ea62c62dbc",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayPadding.lean": "302c93467aeb3eabf686589015aefbb0e1cb946e65d42944286bfded6469d2fe",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayWindowLocal.lean": "f6a7149626f1b9e7878858d626a58e84643d6f1c4cd034d465e58a6a0bcd7646",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean": "03e8b74c053aefb5a6611752fc9e2fa82111a4fd2963363c63345a9cebbe0492",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayDataTransport.lean": "653df7a8ab7ca05b41d294f6458d7f5e090d7a24ffb0f19d07130f7dd7d21da1",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayComponentRows.lean": "9f4082af675544c2c861daf05c5b9f8415fafb391e2ed7dc7c11c1994317aa3a",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayLocal.lean": "2d7d17cc520558fd475a76c42e5247bbe4f9d0f4ce9fdc1faed39b4dc2b99917",
+    "zk-formal/test/AuditProcPriorOverlayLocal.lean": "4a45331a8d2d260518a5762782cfe41cb363b3a389ab4298e0189f3bc25532b9"
+  },
+  "logs": [
+    "/tmp/ProcPriorOverlayCuts.log",
+    "/tmp/ProcPriorOverlayPadding.log",
+    "/tmp/ProcPriorOverlayWindowLocal.log",
+    "/tmp/ProcPriorOverlayGeometry.log",
+    "/tmp/ProcPriorOverlayDataTransport.log",
+    "/tmp/ProcPriorOverlayComponentRows.log",
+    "/tmp/ProcPriorOverlayLocal.log",
+    "/tmp/AuditProcPriorOverlayLocal.log"
+  ],
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "prerequisites": [
+    "ProcPriorOverlayBudget (root-owned)",
+    "existing Vertical4 clock/evaluation modules",
+    "actual component padding proofs"
+  ],
+  "scope": "Executable same-bs cuts/shared clock and complete generic four-stage TableLocal from component log22 Local and actual zero suffixes; proves shorter-window padding and foreign-next safety. Concrete ID Local/suffix instantiation and all-traffic transport remain open. No admission or full native overlay constructor claimed.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayCuts.lean",
+      "sha256": "8bc142ad055c4993523932de9e78a0d86f9636b029fce0be4be149ea62c62dbc"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayPadding.lean",
+      "sha256": "302c93467aeb3eabf686589015aefbb0e1cb946e65d42944286bfded6469d2fe"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayWindowLocal.lean",
+      "sha256": "f6a7149626f1b9e7878858d626a58e84643d6f1c4cd034d465e58a6a0bcd7646"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean",
+      "sha256": "03e8b74c053aefb5a6611752fc9e2fa82111a4fd2963363c63345a9cebbe0492"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayDataTransport.lean",
+      "sha256": "653df7a8ab7ca05b41d294f6458d7f5e090d7a24ffb0f19d07130f7dd7d21da1"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayComponentRows.lean",
+      "sha256": "9f4082af675544c2c861daf05c5b9f8415fafb391e2ed7dc7c11c1994317aa3a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayLocal.lean",
+      "sha256": "2d7d17cc520558fd475a76c42e5247bbe4f9d0f4ce9fdc1faed39b4dc2b99917"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorOverlayLocal.lean",
+      "sha256": "4a45331a8d2d260518a5762782cfe41cb363b3a389ab4298e0189f3bc25532b9"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/ProcPriorOverlayWindowLocal.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/AuditProcPriorOverlayLocal.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/ProcPriorOverlayCuts.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/ProcPriorOverlayComponentRows.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/ProcPriorOverlayDataTransport.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/ProcPriorOverlayPadding.log",
+      "sha256": "5aa378427ae11c6f8f6a3429490b0060a36450644b266ca5217286329b6483fd"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/ProcPriorOverlayLocal.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-overlay-local-checkpoint/ProcPriorOverlayGeometry.log",
+      "sha256": "c81add95a727344ab8031a89a19a38294c3d4692d6c38ce9bf2bdaf98df7dc3c"
+    }
+  ]
+}

@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Repaired source-only closure finalized PASS2989modules/433guards, no source drift/prebuilt project dependencies. New incremental actual routed68 final consumer PASS16guards discharges comparator/order/ownership/window/Local, remaining ONLY live memory address<2^29 and write stamp+1<2^29 plus public40/68 exclusions; decoded original write authentication remains. Routed-family Record67 provenance PASS9guards. Generic shared overlayLocal PASS7modules17guards handles actual cuts and arbitrary foreign next padding from component Local+zero suffix; concrete ID source/local installation pending. Source-only archive predates these latest42guards; evidence scope separate. Agents now query-bound authentication, repaired ID Local, concrete overlay installation; root next Record write-bound authentication. Full certificate/judge incomplete.
+
+
 2026-10-09: Routed comparison transport PASS5guards: TableLocal iff retagged TableLocal; every bus except40/69 physical row/count preserved; routed40 count exactly old40+old69 including duplicates. Strict source recompiled before final hash/audit (an intermediate cleanup typo was fixed, no failing source committed). Repaired source closure PASS2987modules, extending with routing and accepted-memory audit targets in session7664; finalizer-routed.py prepared. Remaining native merged comparator rows/capacity, ID Local, vertical install and actual old→routed family soundness transport stay explicit. Previousa28fe332 checkpoint/bundle verified; push DNS failed.
 
 

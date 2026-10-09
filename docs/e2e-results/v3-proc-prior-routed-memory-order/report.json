@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual routed-family stage0 Ordered, Bounded and StampOrdered are derived from genuine HoldsP/table identity/no-public40 and only natural bounds: all live packed addresses<2^29, all live write stamps+1<2^29. Actual shifted/gated memory comparisons2/3 membership, messages, multiplicities, gate equality and shared40 receiver soundness are derived. No comparator Own, order, membership, gate, local or native trace premise. Authenticated bounds and complete decoded write interpretation remain. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedMemoryRequests.lean",
+      "sha256": "cd692fa9cb7583a193c691eb38c88f412ba2fa88f3ba023bf032d50bd45c5a4e",
+      "audit": "zk-formal/test/AuditProcPriorRoutedMemoryRequests.lean",
+      "audit_sha256": "811a2a145b5a1feb610f080a8768be7ec2fa34d936447e7c95d987e429dbc1e7",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedMemoryOrder.lean",
+      "sha256": "d8dc2b135ef85f7ef7e7058140a9e80f748efa5d87b65197e1faeb719a8e8b5c",
+      "audit": "zk-formal/test/AuditProcPriorRoutedMemoryOrder.lean",
+      "audit_sha256": "6afb8daa2e0cf5b863d9ba6eee447eff8f64359fca4b5e73bec9c127f5b83195",
+      "guards": 6
+    }
+  ]
+}

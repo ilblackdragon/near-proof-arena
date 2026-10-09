@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "REPAIRED routed family HoldsP and no public67 supply match every physical write67 receiver to selected Record stage3 write with stage/writeGate1 and exact projected message. Sender exclusivity, horizontal offset and local stage validity derived from actual family. Record data authentication via RawFrame and ID results, operand ranges and stamp-max semantics remain open. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedFamilyWrite.lean",
+      "sha256": "406008357476aa7c63f6510c2ba9018c67683ffa740ab2eb2f2445724f154179",
+      "audit": "zk-formal/test/AuditProcPriorRoutedFamilyWrite.lean",
+      "audit_sha256": "74bae28e4d2622fcb08e59674d5c0216250d6ddb5a016716c2dddb2385ba5d8e",
+      "guards": 9
+    }
+  ]
+}
