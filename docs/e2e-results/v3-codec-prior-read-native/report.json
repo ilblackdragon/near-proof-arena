@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "guard_count": 15,
+  "source_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadTraffic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadRecord.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadPhysical.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadInventory.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadNative.lean",
+    "zk-formal/test/AuditProcCodecPriorRead.lean"
+  ],
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadTraffic.lean": "a41a5d0644155b130b73a4db26dc4cf293040b86b8893701e83685cc60a58d65",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadCells.lean": "407ab789e7f695aef9f22598eac473d81e3b2fbc5c4cd5da1caacea58d7f540c",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadRecord.lean": "d872e44ef7cd6c64229b3090e488649fc5ccd2c3ddfe25512baa3ce9aaebfa25",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadPhysical.lean": "bdf584ba12bb09a67977acdeeb10b401a520dc404d6ed04615341f2143735a28",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadInventory.lean": "554309fea64781564c8dc053d2a6576187d0726779505261ed6d0806f7e2ef2e",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadNative.lean": "4b99b7355de85bfb76c76074c21d682feaeb8da144b4b6c279e618e9823ce457",
+    "zk-formal/test/AuditProcCodecPriorRead.lean": "03e89b0bff29428d0c0ad7100e1f6fbfdd228822d04cf335130c62a7acad61a5"
+  },
+  "logs": [
+    "/tmp/ProcCodecPriorReadTraffic.log",
+    "/tmp/ProcCodecPriorReadCells.log",
+    "/tmp/ProcCodecPriorReadRecord.log",
+    "/tmp/ProcCodecPriorReadPhysical.log",
+    "/tmp/ProcCodecPriorReadInventory.log",
+    "/tmp/ProcCodecPriorReadNative.log",
+    "/tmp/AuditProcCodecPriorRead.log"
+  ],
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "prerequisites": [
+    "ProcCodecConcatTraffic",
+    "ProcCodecPublicIdEnumeration",
+    "ProcPriorCodecQueries",
+    "ProcActualRunProjection",
+    "existing native record constructors"
+  ],
+  "scope": "Exact bus68 receive list for actual physical concatenated native blocks equals queryEvents of SAME old decoded states and current layout IDs. Prepared membership and actual process execution discharge native dimensions; length<=33 explicit. No original CLocal, row shape or ID uniqueness premise. Does not construct matched memory68 provider rows or derive global balance.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadTraffic.lean",
+      "sha256": "a41a5d0644155b130b73a4db26dc4cf293040b86b8893701e83685cc60a58d65"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadCells.lean",
+      "sha256": "407ab789e7f695aef9f22598eac473d81e3b2fbc5c4cd5da1caacea58d7f540c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadRecord.lean",
+      "sha256": "d872e44ef7cd6c64229b3090e488649fc5ccd2c3ddfe25512baa3ce9aaebfa25"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadPhysical.lean",
+      "sha256": "bdf584ba12bb09a67977acdeeb10b401a520dc404d6ed04615341f2143735a28"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadInventory.lean",
+      "sha256": "554309fea64781564c8dc053d2a6576187d0726779505261ed6d0806f7e2ef2e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPriorReadNative.lean",
+      "sha256": "4b99b7355de85bfb76c76074c21d682feaeb8da144b4b6c279e618e9823ce457"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecPriorRead.lean",
+      "sha256": "03e89b0bff29428d0c0ad7100e1f6fbfdd228822d04cf335130c62a7acad61a5"
+    }
+  ]
+}

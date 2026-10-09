@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Native physical priorRead68 inventory PASS6 modules/15 exact guards connects SAME decoded old state/current layout to queryEvents across concatenated blocks, retaining duplicate/unknown IDs. Accepted allocated forest wrapper PASS1 guard retains actual preBytes(bs.map pre)<=B alongside Local/presence. Matched memory provider and arbitrary-AIR global order/write authentication remain open. Prior checkpoint411538d4 bundle verified; push failed DNS.
+
+
 2026-10-09: Allocated accepted Codec/RawFrame and soundness checkpoint. Source-only closure PASS2801 modules,192 exact axiom guards, no prebuilt project dependencies or source drift; raw closure PASS2750/72. Accepted D0a B<=2M now chooses actual forest-allocated prior IDs before generation, SAME ordered blocks provide Codec+RawFrame Local and exact physical presence balance. Prior-byte inventory and selected linear Record75 traffic preserve duplicate occurrences. Prepared sender/receiver ID extraction uses genuine SDL/SPAR/public ownership. New arbitrary prior68 memory query bridge (9 guards) proves zero-or-immediate-write, NOT full last-write: installed vertical stage extraction, comparator69/ranges/global order, and authenticated writes remain open. Full transition soundness/certificate, runnable succinct prover, real judge, and general NEAR coverage remain incomplete. Latest push attempts blocked by GitHub DNS.
 
 
