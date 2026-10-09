@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "scope": "Every actual corrected receipt prestate account read returns complete same extracted account bytes and native Account.decode.",
+  "proof_chain": [
+    "Kernel-classified actual MEM inventory has only selected13 receipt and physical6 account traffic.",
+    "Exact field permutation bounds all previous timestamps by actual receipt count; no provider range premise remains.",
+    "Complete corrected receipt Wf/token sequence instantiated without external provider oracle.",
+    "Natural previous-time descent reaches actual initial account write, proving same account slot membership for every receipt.",
+    "ReceiptAccountReads internally extracts same receipt/walk/account lists; combines native key lookup, complete Value equality and Account.decode. Empty account case retained."
+  ],
+  "remaining": [
+    "Current receipt before/after memory payloads still need ordered last-write equivalence and native receipt arithmetic/run reconstruction.",
+    "Authenticated canonical prestate forest context remains explicit.",
+    "No full validator replacement, no generated trace witnesses and no restricted-input claim."
+  ],
+  "build": "Strict Lean4.34.1 prebuilt dependencies; sixteen exact axiom guards."
+}

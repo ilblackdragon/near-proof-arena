@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Each actual memory WRITE has a same-tau stage2 first-frame with stamp below declared count. Actual zero-count and absent frames prohibit all writes at that instance. Every actual prior68 receiver query for such a frame has zero low/high, derived using last-write semantics and authenticated address components. No native forest/decode/record witness supplied. Native first-match and global execution remain open. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairWriteFrame.lean",
+      "sha256": "9acfb1e67c289d8793ec257e27154e137f21d6ddd416fab732dc7d6a3256a88b",
+      "audit": "zk-formal/test/AuditProcessRepairWriteFrame.lean",
+      "audit_sha256": "7382c5e40921675ef0cc078a5852ff900e01f099e0b13c3f16c59903a022dedb",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairEmptyPriorRead.lean",
+      "sha256": "c09ffec1963c12380afe455cd8c301487f843f80a88b04a93fce5cfd2d6537fa",
+      "audit": "zk-formal/test/AuditProcessRepairEmptyPriorRead.lean",
+      "audit_sha256": "60ef11b4f87f56601a1e9cd00bf95ba2f4ad9f8e6b202ab74fd811535217d271",
+      "guards": 1
+    }
+  ]
+}
