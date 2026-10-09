@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Physical-padding/carry strict PASS9 guards and SideKind PASS16 guards. ProcCodecPhysicalPadding connects symbolic row env to actual AIR evaluation for no-public expressions and proves all physical commonlog22 padding constraints/bits, including cyclic last edge, for arbitrary pub. of_active reduces full corrected TableLocal to actual active-row constraints/bits with nonempty/capacity premises. ProcPriorCodecCarryRows/Local closes6 original cRec equations(44-47,52-53) on actual adjacent allowance bytes, bringing allowance retained subset to14. ProcPriorCodecSideKind proves31 retained boolCols plus7 kR-gated booleans on actual header/hash/ash rows. Full cKind phase/inverse/header and record end/boundary arithmetic remain; agents continuing. Prebuilt deps,24GiB audit cap; full transition certificate/judge not achieved. Goal active.
+
+
 2026-10-09: Record local checkpoint strict PASS6 exact guards. ProcPriorCodecAllowanceData gives actual row bytes/lowf/wt/nzb. ProcPriorCodecAccumulatorLocal.actual proves original retained cRec indices25-29 on actual adjacent successful allowance rows; current proves indices30-32 on actual rows. ProcPriorCodecTerminalValue.native proves actual last apost=full native vfin using derived successful_run bound. ProcPriorCodecRecordMultiplicity classifies all18 corrected interaction multiplicities from explicit phase/flag premises (actual record flags still to discharge). Side cKind, record boundary/carry/end arithmetic, full TableLocal/global certificate remain open. Audits prebuilt-dependency,24GiB cap. Goal active.
 
 
