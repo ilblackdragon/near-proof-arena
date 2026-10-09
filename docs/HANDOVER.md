@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: COMPLETE physical cKind checkpoint: strict PASS36 exact guards. All120 retained kind equations hold across every actual physical row inclpadding/wrap from corrected generation plus native params,0<n<=64,tau<P. Record BoolCells/CarryPosition/Boolean derive all38 Boolean equations with cb bound from actual execution; RecordByteCells/Local/GeneratedByteGroup derive3 retained byte equations without byte assumptions. TransitionRows/Shape/FieldInside add cRec1–5 at every active row. RecordAdditionResidual.table_of_remaining requires only retained cRec and corrected additions active groups; kind/trailer/bit/capacity/padding fully discharged. Remaining cRec6–10,12–24,35–40 and19additions continue; other cRec groups already proved individually. Prebuilt dependency audits24GiB; full certificate/judge still incomplete. Previous1c415b6c push failed GitHub DNS.
+
+
 2026-10-09: Native terminal arithmetic and instance-position checkpoint: strict PASS23 exact guards. ExecutionFieldPrefix/GeneratedRecordPrefix recover actual loop from reset state through byteg at exact physical index. GeneratedTerminal.active closes all5 cRec54–58 across every active row from actual prepared native run; no independent prefix/carry/value-bound premise. EndInactive derives other-row gating from actual index/zero projections. GeneratedInstance adds7 carry equations across every adjacent active pair; RecordPositionCell/GeneratedRecordBytePosition close cKind77 at all physical record positions incl final record→hash. Boolean/byte kind assembly remains parallel; full record/addition constraints/global joins/certificate/judge still open. Prebuilt dependency audits24GiB; prior31524006 push failed GitHub DNS.
 
 

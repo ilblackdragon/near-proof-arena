@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire retained120-equation cKind on all physical rows including padding/wrap, native params and0<n<=64,tau<P. Actual record byte-group bounds, exact transition shape and all5 inside-field cRec equations at every active row. TableLocal reduced to retained record/addition active groups only. Prebuilt dependencies;24GiB cap; no complete table/global certificate yet",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecTransitionRows.lean",
+      "sha256": "9271cc9a40e4df755653e4dde16d6737bdf9eda5a9b1602bb7768f79805f6f84",
+      "audit": "zk-formal/test/AuditProcPriorCodecTransitionRows.lean",
+      "audit_sha256": "6c3a989f7185c76948e6724bc11eb4012972ea99e4e2ce0333c2f20ef890f365",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordTransitionShape.lean",
+      "sha256": "f8b4cd98fecfb8fe3d57588d4ab03a3ac04dc7de64b98487a03dad1b8daedbff",
+      "audit": "zk-formal/test/AuditProcCodecRecordTransitionShape.lean",
+      "audit_sha256": "d0e287504667ea137549989d68b00d6b4da9342eead20c4ea0814871f04918cc",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecFieldInside.lean",
+      "sha256": "6e493fd626d963387728352a8193a0bdf452543a52c2641aa734c4139d78c7f3",
+      "audit": "zk-formal/test/AuditProcCodecFieldInside.lean",
+      "audit_sha256": "2d6227fc200f8f07d35d243a5cfdc2f7de9f01edb3af2f4bb6b2e9fc602e3a56",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordAdditionResidual.lean",
+      "sha256": "e651f3681e24bb4b82e7c97d9caba4ca65e3b186e017bb2802075aac9f274a02",
+      "audit": "zk-formal/test/AuditProcCodecRecordAdditionResidual.lean",
+      "audit_sha256": "fb10b27adf80167bcf1afa5997cb89b18f315c49f3040222d74ae5e8355336ad",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordByteCells.lean",
+      "sha256": "4ccf6e6f87f41796303e402719f91e0b5cbdbb57c0aaf379526d7aef2ff6209c",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordByteCells.lean",
+      "audit_sha256": "73698002c2c61394e981b8a045c6c8c7f067e8600d201d6c104920bb4aa82cde",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordByteLocal.lean",
+      "sha256": "7ab3e688b61b70c06577ad2dc298543b7dea88368b0dec9d6987e3b996e9c33e",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordByteLocal.lean",
+      "audit_sha256": "22ba574e42ec997fde671843e86fced172eec781b04eeb8c1e4b62dc955ab2f3",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedByteGroup.lean",
+      "sha256": "5e253f12b0ce2e4b7458eda8e3b709edd49306d6ba6e8c4c9fb41426f8cc9801",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedByteGroup.lean",
+      "audit_sha256": "b4e2bea8771c9c4ea0a4fe4805ab1fccf6d25eaa15cfe6179f1854fac9fb90a2",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordFullKind.lean",
+      "sha256": "b48a9e3c57f10ec676fc1cd89c47affd581f57ec00aa539eef29c72c9660c2c5",
+      "audit": "zk-formal/test/AuditProcCodecRecordFullKind.lean",
+      "audit_sha256": "41c22e2f2853016a22ac29adfd40b2325b2e13e702c832957beac3bcc4a1c249",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedFullKind.lean",
+      "sha256": "ab94a405a3ad96be7f75acdd623f2258b5abb270665b7071c2e58a3e162e68c7",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedFullKind.lean",
+      "audit_sha256": "4596b239875e7d92ccafde72733b9b8f44e4ddd16c04f86e887e8ba5d7f0633e",
+      "guards": 2
+    }
+  ]
+}

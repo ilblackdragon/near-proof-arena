@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All38 retained record cKind Boolean equations from actual successful record step and incoming cb\u22641.30 scalar/record fields plus8 native post bits; scalar extra assignments inspected across all24 f/g branches. The incoming cb premise is discharged in physical ProcCodecRecordBoolean via CarryPosition. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordBoolean.lean",
+      "sha256": "82532e9f75dac5b202e08fd56c42722b96cda769f2e8c900df9d939fe7ce59ec",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordBoolean.lean",
+      "audit_sha256": "217f8f6ebaf5821c628e99b29640db9c70a477b6effccc387e453b6b41047751",
+      "guards": 3
+    }
+  ]
+}

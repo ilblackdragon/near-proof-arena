@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All38 retained cKind Boolean equations on every physical native record row5\u2264r<5+24*n*n from successful codecRows and n\u226464. Incoming cb bound derived from exact field-prefix reset/steps; no Boolean,carry,row-shape or local legality premise. Other record cKind groups remain separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordBoolean.lean",
+      "sha256": "94440c7be3e38735ef1afddaa6ea6b40cb5b30623556d02f0e0ec0a99325f239",
+      "audit": "zk-formal/test/AuditProcCodecRecordBoolean.lean",
+      "audit_sha256": "99a25d7170bf1dd92074fadb613917de4d3e52e110ca92c3a05bd5bd06f691b9",
+      "guards": 3
+    }
+  ]
+}
