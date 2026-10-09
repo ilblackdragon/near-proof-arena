@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Reusable actual-generator row property lifting and provenance; cRec49\u201351 comparators and cRec59/63 control equations proved at every active physical row from generator success. Generic record-constraint lifting eliminates all side-row cases for subsets of cRec. Prebuilt dependencies;24GiB cap; 22 plain-field inactive equations and native forwarding range below2^24 also proved; full active constraints remain open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecPlainInactive.lean",
+      "sha256": "aa667839d5995212531c3a21e11eef66850687f431bec03276441cf7f618cd91",
+      "audit": "zk-formal/test/AuditProcPriorCodecPlainInactive.lean",
+      "audit_sha256": "7d6eda69ac24a6f39053423333b8842b211cbc9a84fc95275c3bb943c72dfa7c",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedComparators.lean",
+      "sha256": "f06c7c8d054716e105aa86b41bde5f2370bcd8fa26077245d6317a734f45d72c",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedComparators.lean",
+      "audit_sha256": "88428f3d65fd991274ee0b9900486249d5ddcd4228ee2d704b717120c85667d6",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGrantCap.lean",
+      "sha256": "c0ef76a4635de188f81e178a14be061be59986ca7ca011dfcba0c3c7bfc01b62",
+      "audit": "zk-formal/test/AuditProcPriorCodecGrantCap.lean",
+      "audit_sha256": "babd74a30e112b125b6348fc1b7f5865889c321a10c2c037f64226c2afb71e0b",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardSuccess.lean",
+      "sha256": "cf84b90018d7d079455af744d90c85f3cff6e2c118feb2c1d8f7acb082903917",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardSuccess.lean",
+      "audit_sha256": "6199bf9350fef2b71df95a40eed1e6cd3637ab273130ddb76b736fa3b682bc19",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardRange.lean",
+      "sha256": "546464c87fb19ee3f18c09a3861dd3e2b0e708c337376afec45ec5b3a8551d2e",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardRange.lean",
+      "audit_sha256": "55a9c8d8fcac6c0a20f62554679d509467d6368a56ab9d88936ee1a9d43305fd",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedForall.lean",
+      "sha256": "acea3728e21975715f34d8c4d3123435202a2c3df0a43a3960de3cb970b69983",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedForall.lean",
+      "audit_sha256": "848b658e21239ca6ba16b65d25d37ef083ea268f610a8cdab90e86a0bd74db71",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedProvenance.lean",
+      "sha256": "f9a5773e689158b2d7018298ebcf6663b2dce6ddca2cc981fac30a08053f0d7d",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedProvenance.lean",
+      "audit_sha256": "bbcfecf2b581113e88716a1c690489b1c7d9ebdac2a8adee5275fc86a73884ec",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecControlCells.lean",
+      "sha256": "62425f7f831150075f8b2f691803cf3b033f62b0bd3e4a704b87f2992c4b0191",
+      "audit": "zk-formal/test/AuditProcPriorCodecControlCells.lean",
+      "audit_sha256": "dd5cb9b6ba771a094afe858a5178747c9f38cd675dc617cec65745f13bb93a74",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeControls.lean",
+      "sha256": "16763f85921373097d9c2d21fa6173fa76281e8b6fbf3a0a95c269e1b7669645",
+      "audit": "zk-formal/test/AuditProcPriorCodecNativeControls.lean",
+      "audit_sha256": "942abaf8b8cfcfd9fd308579cf4d744d7246d903cd7ffb973f517fd81515ab37",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecControlLocal.lean",
+      "sha256": "9058bde71f013cecb46ae62f0e64442b1ce57621517bd06df4e1ef388c590f96",
+      "audit": "zk-formal/test/AuditProcPriorCodecControlLocal.lean",
+      "audit_sha256": "653b74dbec09f95578e479eacea064fff1f93472a9487fd3d2d1ed20eff79a0d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordConstraints.lean",
+      "sha256": "af52ddc9ae77607dea11f4b9497f9b7bc9eb26e62d3fc97a549b46813477bffc",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordConstraints.lean",
+      "audit_sha256": "0949ef5fedb0c9ad292a22558fa54393829cf2d49e18a02bab373da68ab03542",
+      "guards": 3
+    }
+  ]
+}

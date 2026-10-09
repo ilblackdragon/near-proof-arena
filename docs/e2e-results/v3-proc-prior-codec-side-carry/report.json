@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All7 retained cKind instance carry equations, exact slice70..76. Actual header/hash/ash helper rows share seven exact instance values; same_instance derives carry for every pair with same I,R,present,vidV. No bounds or boundary selector assumptions. Does not prove cross-instance end-ash adjacency or remaining byte-position/header equations. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideCarry.lean",
+      "sha256": "1d82840600276877609a65f79280e5dcc1311cf972f109cb461516db31095b27",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideCarry.lean",
+      "audit_sha256": "4f58ca3ff671c15773d0ac73048e2246845ed3f99714483c5daa78636325425a",
+      "guards": 7
+    }
+  ]
+}

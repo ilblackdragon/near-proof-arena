@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Generator assembly checkpoint: strict PASS51 exact guards. Generic row-property lifting and provenance from actual corrected generator, generic cRec subset lifting with side cases discharged, and cRec49–51/59/63 on every active physical row. PlainInactive closes22 allowance equations on sender/receiver rows. Native forwarding range<2^24 follows from same prefix/run/distribution and successful terminal step, using native grant≤4,500,000. SideBytes10/SideCarry7/SideNext12 guards add retained byte equations, instance carry, and side adjacency (including final ash handoff); helper byte-range assumptions still need binding to serialized outputs. Prebuilt dependencies; full constraint assembly/global joins/certificate/judge remain incomplete. Previous checkpoint ae8da63a push failed GitHub DNS; local recovery bundle updated.
+
+
 2026-10-09: Forward/trailer, comparator and side-phase checkpoint: strict PASS13 exact axiom guards. ForwardCells/ForwardRows project actual metadata and ForwardLocal closes cTrl13/14; RecordTrailer.actual closes entire cTrl on every successful record row, arbitrary next/boundary selectors. CompareRows/CompareLocal close allowance cRec49–51. SidePhase closes six retained cKind phase equations on header/hash/ash with explicit boundary premises. Prebuilt dependencies only; physical assembly and other active constraint groups remain open. Last committed checkpoint ea1d32ec push failed DNS github.com. Verified recovery bundle updated. Goal remains active; no full transition certificate or judge success.
 
 

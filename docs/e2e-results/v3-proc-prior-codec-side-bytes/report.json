@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All3 retained byte-group equations (post-byte reconstruction, absent-prior zero, vbg) on actual header/hash/ash helper rows, exact filtered cKind slice79..82. Header/hash post byte<256 required; ash unconditional. Arbitrary next row and boundary selectors. Finite byte reconstruction checked in kernel. Remaining instance carry, header and adjacency constraints separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideBytes.lean",
+      "sha256": "e9dcb12212371ec5a02c8b493f3ef349109700e65b29f75d92007f4f30d89428",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideBytes.lean",
+      "audit_sha256": "b04c4c65df1fedcbab273027c07923914b446cd848af0fe123e370067999cc51",
+      "guards": 10
+    }
+  ]
+}

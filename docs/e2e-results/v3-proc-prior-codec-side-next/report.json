@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Both retained cKind77..78 byte-position/end-ash equations. Actual header internal, hash internal, hash31-to-ash0 and ash31-to-new-header0 adjacency; ash_next covers nonfinal j or next inactive/first-header. Ash31 instance carry equations also zero for arbitrary next instance. Exact slice and filter identity. Does not establish header-to-record boundary or other header equations. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideNext.lean",
+      "sha256": "b427a2e81b25008f76f62da77fc880f0590ff8782e1588af1f61f47981b45f06",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideNext.lean",
+      "audit_sha256": "4c54c0e0328b9282698ae6b3a8f375249fa5a9c07045931901cd0af8cea48e84",
+      "guards": 12
+    }
+  ]
+}
