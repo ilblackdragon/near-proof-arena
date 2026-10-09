@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Repaired-family View migration: actual FINAL and KEYNIB provenance binds actual queue keys to lookup on SAME authenticated forest. No HoldsP for obsolete process constraints. Prepared public statement discharges SAME receipt count and public queue count using unchanged native gas/instance bounds. No generated trace or supplied key/FINAL balance. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairVbytesCounts.lean",
+      "sha256": "3e012af6e87a946b09e43dc2a515a0ed89b9c239ab2678ca3e00990cd399dbf1",
+      "audit": "zk-formal/test/AuditProcessRepairVbytesCounts.lean",
+      "audit_sha256": "f43988fcb48c6c58776a8eea22d20de6eea080e65ba2ffeea210ffaf7d3e9c2f",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueSuppliers.lean",
+      "sha256": "9ef3a7146abcd52f51cb45b66af28462de7892d86920638cf6485f6caecf1cda",
+      "audit": "zk-formal/test/AuditProcessRepairQueueSuppliers.lean",
+      "audit_sha256": "65235db7a8e6ef0c351c01f81af94c32a3e22120463a2247fbc8736ff09184c6",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueComplete.lean",
+      "sha256": "a6dfdd3149ef26aed22d2b46a81efc39699a5257441b6bca9f2028fb99fb465c",
+      "audit": "zk-formal/test/AuditProcessRepairQueueComplete.lean",
+      "audit_sha256": "a09a9113a23d04dba78c36649aa49a765db3f30f90d2edbc3fc2ff2cbe153fb4",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual word selectors choose native sender/receiver/allowance; same decoded record byte association implies exact packed word and saturation with u64 bounds derived from native decode. Same-record association remains explicit. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordNativeField.lean",
+      "sha256": "feda0060f32bce7122e14b7e15cc28a4f8b0743bf40ec2cf4ff280c18b863d4b",
+      "audit": "zk-formal/test/AuditProcPriorRecordNativeField.lean",
+      "audit_sha256": "cf29f7fa58aa6c5b15e42232d74c2a95be709b4140fe46465d4a1effa18a60fd",
+      "guards": 4
+    }
+  ]
+}

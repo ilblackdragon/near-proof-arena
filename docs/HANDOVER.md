@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Native selected record field PASS4guards: actual selectors and eight explicit same-record byte identities imply exact sender/receiver/allowance word and saturation; native decoder derives all u64 bounds. Same-record byte coherence remains explicit pending tau/frame uniqueness. Actual queue complete-record ownership PASS7guards: full queue+RawFrame+account+akey VBYTES conservation and derived RawFrame StartClosed give SAME Value complete parser record; no record-specific ownership/balance/closure premise. Root independently rebuilt/hash-checked final sources/audits:11 incremental guards. Buffered native shard reconstruction, full Scan/Dist/global theorem, clean certificate and actual succinct proof/judge remain open.
+
+
 2026-10-09: Eight actual record-word byte sources PASS2guards: derived limb layout and actual bus matching give same tau/record at consecutive field offsets for all8 bytes. Arbitrary raw record classification/native decode PASS4guards: exact frame-relative row position/ordinal/offset, decoded native record byte, present derived; same-frame uniqueness across suppliers remains open. Scan body parts PASS6modules12guards: actual first16/final9 constraints, first-request constraints with explicit native first-state/link premises, exact quotient/remainder and high bits. Middle request constraints, shard/grid/full Local remain open. Root strict source/audit rebuild and hash checks PASS18 incremental guards. No change to clean full archive; global theorem/prover/judge/general replacement incomplete.
 
 
