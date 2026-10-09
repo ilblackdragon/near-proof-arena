@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "scope": "Actual repaired installed account component preserves either genuine AcctV3Wf or empty list, with exact same account traffic.",
+  "remaining": [
+    "This is extraction only; account pre bytes still need same Value authentication and native Account decode.",
+    "Empty account branch cannot satisfy original AcctWf.nonempty and is retained explicitly."
+  ],
+  "build": "Strict Lean prebuilt dependency overlay; one exact axiom guard."
+}

@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired AccountEmpty component extraction with optional AcctV3Wf and exact traffic",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAccountView.lean",
+      "sha256": "d58b87e20993330defa840d66c32fb577b09095e20b8c168a849c7c0cec7a7c6",
+      "audit": "zk-formal/test/AuditProcessRepairAccountView.lean",
+      "audit_sha256": "88171ad3dd4ff6c375eda0125385fb2b0828619dd1e4d15972fad0484ebe3f78",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-account-view/dependency-review.json",
+      "sha256": "3fd23bb4df2e097ec37717c72c6a8275118dd9c1033f0929fd23265646b59fde"
+    }
+  ]
+}
