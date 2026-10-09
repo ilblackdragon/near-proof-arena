@@ -1,0 +1,21 @@
+{
+  "base": "00-h10014-s1",
+  "case": "00-h10014-s1-w.path_depth_at_bound",
+  "chacha_words": 0,
+  "chacha_words_runs": [
+    0
+  ],
+  "d0a_violations": [],
+  "domain": "D0a",
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "expected_rel_d0a": true,
+  "in_d0": true,
+  "in_d0a": true,
+  "kind": "mutant",
+  "max_path_depth": 32,
+  "mutation": "w.path_depth_at_bound",
+  "nearcore": "ok",
+  "path_mutated_slot": 0,
+  "verdict_source": "nearcore"
+}

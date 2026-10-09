@@ -27,8 +27,14 @@
 //!            --rotate              chain k uses parameter set (k + seed) mod 12
 //!                                  (shards 4/5/6 x RS seats 8/100/16/3) instead of k
 //!            --p-missing P         per-client probability of skipping a chunk (default 0.12)
+//!          --heavy-requests        two-sender transfer bursts to a forced-missing shard, each
+//!                                  round w.p. 0.3 (bandwidth requests + scheduler RNG use, A9);
+//!                                  background traffic p_tx_shard = 0.1
 //!   vectors --out DIR [--seed S]
 //!          Leaf-primitive vectors from nearcore code (src/vectors.rs).
+//!   sched-words --vectors FILE --out FILE
+//!          A9 scheduler replica (src/sched.rs) on nearcore's scheduler vectors: state check +
+//!          ChaCha20 words drawn per case.
 //!   params --out FILE
 //!          Runtime-config description for runtime_config_digest_v3.
 
@@ -52,6 +58,8 @@ mod a2mut;
 mod a8mut;
 mod chaingen;
 mod d0a;
+mod pathmut;
+mod sched;
 
 use serde_json::json;
 use std::path::PathBuf;
@@ -111,6 +119,7 @@ fn cmd_gen(args: &[String]) -> i32 {
         positive_target: num("--d0-target"),
         rejection_target: num("--rejection-target"),
         per_chain_cap: num("--per-chain-cap"),
+        heavy_requests: flag("--heavy-requests"),
     };
     let rotate = flag("--rotate");
     std::fs::create_dir_all(&out).unwrap();
@@ -123,6 +132,11 @@ fn cmd_gen(args: &[String]) -> i32 {
         by_violation: Default::default(),
         positives: 0,
         rejections: 0,
+        chacha_checked: 0,
+        chacha_mismatches: 0,
+        chacha_errors: 0,
+        path_mutants: Default::default(),
+        path_controls: (0, 0),
     };
     let mut params = Vec::new();
     for i in 0..chains {
@@ -133,6 +147,10 @@ fn cmd_gen(args: &[String]) -> i32 {
         let mut p = chain_params(seed, k, blocks, p_missing);
         // the chain seed stays tied to the chain's position in this run
         p.seed = seed.wrapping_mul(1_000_003).wrapping_add(i as u64);
+        if opts.heavy_requests {
+            // little background traffic: the shards outside the bursts stay quiet (in D0)
+            p.p_tx_shard = 0.1;
+        }
         eprintln!("chain {i}: {p:?}");
         params.push(format!("{p:?}"));
         chaingen::run_chain(i, &p, &out, &opts, &mut stats);
@@ -146,7 +164,14 @@ fn cmd_gen(args: &[String]) -> i32 {
         "chains": params, "honest_witnesses": stats.honest, "honest_accepted_by_nearcore": stats.honest_ok,
         "d0_cases": stats.d0, "ood_cases_written": stats.ood_written, "mutants": stats.mutants,
         "d0_violation_counts": stats.by_violation,
+        "chacha_replica_checked": stats.chacha_checked, "chacha_replica_mismatches": stats.chacha_mismatches,
+        "chacha_replay_errors": stats.chacha_errors,
+        "path_depth_controls": json!({"judged": stats.path_controls.0, "rejected_by_nearcore": stats.path_controls.1}),
+        "path_depth_mutants": stats.path_mutants.iter().map(|(k, (n, ok))| (k.clone(), json!({"written": n, "accepted_by_nearcore": ok}))).collect::<serde_json::Map<_, _>>(),
     });
+    if opts.heavy_requests {
+        summary["heavy_requests"] = json!(true);
+    }
     if opts.fixtures_layout {
         summary["arena_layout"] = json!({
             "class": format!("{:?}", opts.class), "positives": stats.positives, "rejections": stats.rejections,
@@ -156,6 +181,14 @@ fn cmd_gen(args: &[String]) -> i32 {
         });
     }
     std::fs::write(out.join("summary.json"), serde_json::to_string_pretty(&summary).unwrap()).unwrap();
+    if stats.path_controls.0 != stats.path_controls.1 {
+        eprintln!("w.path_depth negative controls: {} of {} rejected", stats.path_controls.1, stats.path_controls.0);
+        return 5;
+    }
+    if stats.chacha_mismatches > 0 || stats.chacha_errors > 0 {
+        eprintln!("A9 scheduler replica: {} mismatches, {} replay errors", stats.chacha_mismatches, stats.chacha_errors);
+        return 4;
+    }
     if stats.honest_ok != stats.honest {
         eprintln!("WARNING: some honest witnesses were rejected by nearcore");
         return 1;
@@ -207,11 +240,81 @@ fn cmd_params(args: &[String]) -> i32 {
     0
 }
 
+/// `sched-words --vectors FILE --out FILE`: run the A9 scheduler replica (src/sched.rs) on every
+/// case of nearcore's scheduler vectors (oracle/fixtures/v3/vectors/scheduler.json, written by
+/// a real `Runtime::apply`), check its state against `post_state_borsh`, record the words drawn.
+fn cmd_sched_words(args: &[String]) -> i32 {
+    use near_primitives::bandwidth_scheduler::{BandwidthRequests, BandwidthSchedulerState, BlockBandwidthRequests};
+    use near_primitives::congestion_info::{BlockCongestionInfo, CongestionInfo, CongestionInfoV1, ExtendedCongestionInfo};
+    use near_primitives::types::ShardId;
+    let src = arg(args, "--vectors").expect("--vectors");
+    let out = PathBuf::from(arg(args, "--out").expect("--out"));
+    let v: serde_json::Value = serde_json::from_slice(&std::fs::read(&src).unwrap()).unwrap();
+    let hexb = |x: &serde_json::Value| hex::decode(x.as_str().unwrap()).unwrap();
+    let num = |x: &serde_json::Value| -> u128 {
+        x.as_u64().map(|n| n as u128).unwrap_or_else(|| x.as_str().unwrap().parse().unwrap())
+    };
+    let cfg = near_parameters::RuntimeConfigStore::new(None).get_config(86).clone();
+    let mut cases = Vec::new();
+    let mut mismatches = 0usize;
+    for (i, c) in v["cases"].as_array().unwrap().iter().enumerate() {
+        let layout: near_primitives::shard_layout::ShardLayout = borsh::from_slice(&hexb(&c["shard_layout_borsh"])).unwrap();
+        let prev: Option<BandwidthSchedulerState> =
+            if c["prev_state_borsh"].is_null() { None } else { Some(borsh::from_slice(&hexb(&c["prev_state_borsh"])).unwrap()) };
+        let mut ci = std::collections::BTreeMap::new();
+        for x in c["congestion"].as_array().unwrap() {
+            let info = CongestionInfo::V1(CongestionInfoV1 {
+                delayed_receipts_gas: num(&x["delayed_receipts_gas"]),
+                buffered_receipts_gas: num(&x["buffered_receipts_gas"]),
+                receipt_bytes: num(&x["receipt_bytes"]) as u64,
+                allowed_shard: num(&x["allowed_shard"]) as u16,
+            });
+            ci.insert(ShardId::new(num(&x["shard_id"]) as u64), ExtendedCongestionInfo::new(info, num(&x["missed_chunks_count"]) as u64));
+        }
+        let mut rq = std::collections::BTreeMap::new();
+        for x in c["bandwidth_requests"].as_array().unwrap() {
+            let r: BandwidthRequests = borsh::from_slice(&hexb(&x["requests_borsh"])).unwrap();
+            rq.insert(ShardId::new(num(&x["shard_id"]) as u64), r);
+        }
+        let seed: [u8; 32] = hexb(&c["prev_block_hash"]).try_into().unwrap();
+        let r = sched::run(
+            &layout,
+            prev,
+            &cfg,
+            &BlockCongestionInfo::new(ci),
+            &BlockBandwidthRequests { shards_bandwidth_requests: rq },
+            seed,
+        );
+        let ok = borsh::to_vec(&r.state).unwrap() == hexb(&c["post_state_borsh"]);
+        if !ok {
+            mismatches += 1;
+            eprintln!("case {i}: replica state differs from nearcore's post_state_borsh");
+        }
+        cases.push(json!({"index": i, "words": r.words, "replica_state_matches": ok}));
+    }
+    let words: Vec<u64> = cases.iter().map(|c| c["words"].as_u64().unwrap()).collect();
+    eprintln!(
+        "sched-words: {} cases, {} mismatches, words min {} max {} nonzero {}",
+        cases.len(),
+        mismatches,
+        words.iter().min().unwrap_or(&0),
+        words.iter().max().unwrap_or(&0),
+        words.iter().filter(|w| **w > 0).count()
+    );
+    let d = json!({"source": "oracle/fixtures/v3/vectors/scheduler.json", "nearcore_commit": NEARCORE_COMMIT, "cases": cases});
+    if let Some(p) = out.parent() {
+        std::fs::create_dir_all(p).unwrap();
+    }
+    std::fs::write(&out, serde_json::to_string_pretty(&d).unwrap() + "\n").unwrap();
+    if mismatches > 0 { 1 } else { 0 }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let code = match args.get(1).map(String::as_str) {
         Some("gen") => cmd_gen(&args),
         Some("params") => cmd_params(&args),
+        Some("sched-words") => cmd_sched_words(&args),
         Some("vectors") => vectors::cmd_vectors(
             &PathBuf::from(arg(&args, "--out").expect("--out")),
             arg(&args, "--seed").and_then(|s| s.parse().ok()).unwrap_or(1),

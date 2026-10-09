@@ -1,4 +1,7 @@
 {
+  "chacha_replay_errors": 0,
+  "chacha_replica_checked": 357,
+  "chacha_replica_mismatches": 0,
   "chains": [
     "ChainParams { seed: 4243012729, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None }",
     "ChainParams { seed: 4243012730, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None }"
@@ -18,9 +21,23 @@
   },
   "honest_accepted_by_nearcore": 290,
   "honest_witnesses": 290,
-  "mutants": 180,
+  "mutants": 298,
   "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
   "ood_cases_written": 59,
+  "path_depth_controls": {
+    "judged": 118,
+    "rejected_by_nearcore": 118
+  },
+  "path_depth_mutants": {
+    "w.path_depth_at_bound": {
+      "accepted_by_nearcore": 59,
+      "written": 59
+    },
+    "w.path_depth_over": {
+      "accepted_by_nearcore": 59,
+      "written": 59
+    }
+  },
   "protocol_version": 86,
   "seed": 4243
 }
