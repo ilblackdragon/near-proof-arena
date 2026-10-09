@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Repaired comparator/memory order/last-write soundness PASS10guards with actual View; natural address/stamp bounds still explicit. Arbitrary native write composition PASS3guards: live bus67 receiver matches exact decoded original allowance low/big and native saturation, no byte/native/frame association premise; shard ID/address binding remains separate. Authenticated buffered native shard streams PASS5guards and native GROUP keys PASS2guards; actual QSH uniqueness/ranges derived. Scan request Local PASS8modules9guards proves all68 Scan.body equations plus ScanDist constraints for actual request rows; native metadata/placement/terminal-next premises remain, shard/grid/full TableLocal still open. Root rebuilt/audited/hash-checked29 new incremental guards; finalized prior QueueComplete7 report metadata included with unchanged checked source hashes. Full transition/clean certificate/prover/judge/general replacement incomplete.
+
+
 2026-10-09: Actual native word association CLOSED at first-word boundary: ProcessRepairNativeWord.word derives SAME authenticated frame/Value/native State/link at original record ordinal and exact selected word/top saturation. No supplied byte, native-record, frame identity, decode, or u64 range premise. Eight bus suppliers cohere through actual tau first-frame uniqueness and deterministic native decoding. Root package PASS4guards; stage order/tau monotonicity/nonwrap/first uniqueness/enriched native record endpoint PASS21guards. Root independently rebuilt/hash-checked all final sources/audits:25 incremental guards. Arbitrary live native writes now composing; memory semantics, full Scan/Dist, global transition/clean certificate/executable prover/judge/general NEAR replacement remain open.
 
 

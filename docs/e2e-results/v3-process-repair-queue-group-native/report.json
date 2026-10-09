@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Native group-key authentication from actual repaired-family QSH conservation and SAME buffered Value. All main group walk keys equal keyGroupsData at original ordered shard occurrence; uniqueness and shard-length range derived. Authenticated wrapper derives all bytes8 from SAME forest. Buffered parser record membership/mode remain explicit until QVC main-read binding. Strict builds and 2 exact guards.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueGroupKey.lean",
+      "sha256": "7293b7d74fee2831008129f4e5e1b366ba788519a3f7a07b7c0bfc6b0e17a8b1",
+      "audit": "zk-formal/test/AuditProcessRepairQueueGroupKey.lean",
+      "audit_sha256": "43846bfc5cb1a3677a7fec6bbc5f10cc5a08485a50a806306563c141af872540",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueGroupNative.lean",
+      "sha256": "eeb2b221b90989334de2e0be640405078e8bc3736e0649b44e96a0f49a4b08e5",
+      "audit": "zk-formal/test/AuditProcessRepairQueueGroupNative.lean",
+      "audit_sha256": "42744fb2e9bcb86026f178cf1a33459bd2dfa4439b04aec7790ee134205745ef",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 3,
+  "dependency_order": [
+    "ProcessRepairNativeWriteField",
+    "ProcessRepairNativeWrite",
+    "ProcessRepairNativeWriteReceived"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWriteField.lean",
+      "sha256": "182ce1824bdced5b5f9ebf1c3777ed4660971c3d9a557cae0178074b04fb3b71"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWrite.lean",
+      "sha256": "b11b7cdb4635cf31f6cf23c9769c8bb8d9e2b3599d87e41813b04017361fa18e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWriteReceived.lean",
+      "sha256": "119d69f77d9be242b94a6fde54d7feab33a98096db0653d19560a46ce82a459d"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairNativeWrite.lean",
+      "sha256": "a97477b8f4e909801fbd8c146f0b05de88b30e251c00ff8a4c4d0018b8a0191d"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairNativeWriteField.log",
+    "/tmp/ProcessRepairNativeWrite.log",
+    "/tmp/ProcessRepairNativeWriteReceived.log",
+    "/tmp/AuditProcessRepairNativeWrite.log"
+  ],
+  "scope": "Arbitrary live bus67 receiver matches actual write with decoded original-record allowance; exact low/big/saturating summary. Source frame bytes and original ordinal retained; ID lookup/address and whole checker binding remain separate."
+}
