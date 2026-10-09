@@ -1,0 +1,33 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundLogCost.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSegmentCost.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRunComparisonBudget.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeOldComparisonBudget.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcNativeOldComparisonBudget.lean",
+  "guards": 15,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundLogCost.lean": "01bdd4ad0f45875849a3a96806b21007f259c3e26cfd232145794b9d77c781ab",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSegmentCost.lean": "cc4b55487a27bd33d380f8fba23434b6d40855ad94dda7122354b1ef5559c304",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRunComparisonBudget.lean": "5c6bd573d6895d72fd777132dfbf603ec3aad27c9d13f4a5e0a31ec96478755a",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeOldComparisonBudget.lean": "e08cec86df786a42edb971347fe49c386a01f2cd491a220dfd3ea918b1e2791b",
+    "zk-formal/test/AuditProcNativeOldComparisonBudget.lean": "23242eeee4ad9d5cae910205677483241a672121519e602b0c0f250d07ee9c8c"
+  },
+  "dependencies": [
+    "ProcActualLogCost",
+    "ProcActualComparisonCost",
+    "ProcDistComparisonCost",
+    "ProcNativeCodecComparisonBudget",
+    "Assembly.SchedulerPriorCore"
+  ],
+  "remaining_assumptions": [
+    "core_bound requires actual distRows success for each SAME block"
+  ],
+  "remaining_work": [
+    "native distributeEv to actual Gen.distRows success",
+    "Run and Dist CmpOk",
+    "physical old40 sender inventory matching the exact list"
+  ],
+  "validation": "strict Lean -j1 autoImplicit=false relaxedAutoImplicit=false; scoped compiled dependencies"
+}

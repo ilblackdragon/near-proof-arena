@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Arbitrary installed RawFrame endpoint/header/empty soundness PASS6guards: exact active phase endpoints, empty iff count0, header first iff offset0, initial pos/byte/record0 and acc=count, no generator premise. Actual replay LogCost PASS3guards; actual Run comparison budget and SAME-bs Run+Codec+Dist aggregate PASS15guards. Aggregate<=2936832 and shared old-cap<=3090136 now theorem conditional ONLY on successful Gen.distRows for each block; deriving generator success from actual distribution remains open. Root independently rebuilt all source/audit files using strict prebuilt dependencies. Total24new incrementalguards; source-only archive3075/742 unchanged. Full raw traversal/native decoding, ROOT/SHA authentication, global certificate/prover/judge/general NEAR coverage remain incomplete.
+
+
 2026-10-09: Actual RawFrame sanity74 exact inventory and installed RawFrame-to-Codec balance PASS2modules10guards, including absent-state zeros and arbitrary times/common pub. Native Codec comparison validity plus enriched accepted SAME-bs PriorCore PASS10modules16guards retains distribution witnesses before existential projection, removes extra grant/CmpOk premise. Actual Head extraction/PARENT conservation/forest structure PASS3modules9guards, same Node/Value lists, depth<400; public ROOT/UPS and SHA/native byte authentication remain open. Root independently rebuilt frozen sources and exact audits using prebuilt dependencies. Total35new incremental guards; source-only archive3075/742 unchanged. Full global certificate/prover/judge/general NEAR coverage incomplete.
 
 
