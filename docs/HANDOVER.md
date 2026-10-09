@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecPaddingWrap strict PASS3 exact guards proves every corrected constraint and interaction multiplicity zero on final padding row with arbitrary cyclic next row. Sound conservative syntactic zero test plus exact kernel table check; closes padding-to-first-active boundary. ProcPriorCodecSideMultiplicity strict PASS7 guards proves every multiplicity in all18 corrected interactions Boolean on actual header/hash/ash helper rows, arbitrary byte/instance data. Both are prerequisites, not full TableLocal; side cKind and record groups remain active. Side audit bounded24GiB/prebuilt deps. Goal active; push03d67b19 DNS failed.
+
+
 2026-10-09: ProcPriorCodecSideTrailer strict PASS18 exact guards. All retained cTrl equations proved on actual header/hash/ash helper rows, with successor hypotheses discharged for consecutive hash rows, hash-to-ash boundary, and consecutive ash rows; header/terminal ash unrestricted. Exact register projections included. Earlier thread-creation build failure resolved by bounded24GiB build/audit cap; proof now verified. Full cKind/interaction bits and retained record cRec remain open, parallel agents active. Prebuilt dependency audit. Goal active; push2dae028c DNS failed.
 
 
