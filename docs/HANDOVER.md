@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual physical10 Merkle tag6 PASS2modules5guards: positive actual byte count rules out empty branch, actual log19 extraction plus MPOS traffic bounds natural node count; no generated/counter/public-range premise. Actual source partition tag13 PASS3modules16guards with all57-cell carries derived from actual64/65/66 balance, no supplied counter/carry, no public carry buses explicit; extraction logical log24 only, physical four log22 unchanged. Actual unchanged Dist rows comparator inventory PASS4modules21guards, exact duplicates retained; physical ScanDist prefix/concat joins still next. Root independently strict rebuilt frozen source/audits. Total42new incrementalguards; source-only archive3075/742 unchanged. Individual supplier tags now available; full global provider classification/native byte authenticity, native framing semantics, comparator/Local assembly, certificate/prover/judge/general NEAR coverage remain open.
+
+
 2026-10-09: General actual VBYTES sender ID<2^22 and physical6 account BYTES tag10 PASS2modules3guards. Same-gate pre-value emission authenticates key bound; no account Local/range promise and dummy triples excluded. Actual Codec tags11/12 and compact UPS tag12 PASS2modules6guards, genuine prepared/public/root inputs explicit. Full SAME PriorCore physical concatenated Mem40+Proc40 request inventory PASS8modules40guards; generated cell correspondence, tag/order facts and row capacities derived with no supplied Local/traffic/cap premise. Mem TableLocal remains separate. Root independently strict rebuilt all frozen sources/audits. Total49new incrementalguards; source-only archive3075/742 unchanged. Source13 and physical Merkle6 tag separation, Dist physical join, native byte/framing semantics, global certificate/prover/judge/general NEAR coverage remain open.
 
 

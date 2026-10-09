@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual physical10 Merkle byte tag6 from HoldsP and positive byte count. Empty branch excluded by zero traffic; actual log19 nonempty extraction plus MPOS count bounds node count. No supplied honest trace, node/index bounds or public count/range premise. Global classification remains separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMerkleView.lean",
+      "sha256": "06badb9caea282ac58ea51511432167e7f3e1e7354ad73414b0e852111bd6dff",
+      "audit": "zk-formal/test/AuditProcPriorMerkleView.lean",
+      "audit_sha256": "edddb6f09a6ae8ddb4811ccd97f29cf3860f141b246d38bf84bfdc81cf4b8969",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMerkleByteTag.lean",
+      "sha256": "ea9600bc812875f1be8dcc9465202da5132207a9ec9457b964a9ddca1486786e",
+      "audit": "zk-formal/test/AuditProcPriorMerkleByteTag.lean",
+      "audit_sha256": "b729293ad9d5efbba995af9ba3802ac8b30f8c0a6c8c61453e937e2f2dbb4a9a",
+      "guards": 2
+    }
+  ]
+}
