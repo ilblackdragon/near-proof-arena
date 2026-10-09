@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Native finish first-match grant lookup equals distributed array at the pair of first indexOf occurrences. Duplicate shard IDs explicitly permitted; removes prior Nodup premise without narrowing accepted layout domain. No runtime success premise or new axiom. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeGrantFirstLookup.lean",
+      "sha256": "6dbbb9a05d077aeb144e63b02ccd32117cbc07c5a8e636f8df4a1e62a7e8627c",
+      "audit": "zk-formal/test/AuditProcNativeGrantFirstLookup.lean",
+      "audit_sha256": "1247c08db10a21cc707675343f23a68941281bb5c9d6aba68d0acf7ec51b4042",
+      "guards": 5
+    }
+  ]
+}

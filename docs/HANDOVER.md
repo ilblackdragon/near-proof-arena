@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Removed distinct-shard-ID premise from ProcActualSegmentGrant.native_lookup and ProcNativeMainCodec.native_main. Prep/layout decode does NOT imply Nodup; ProcNativeGrantFirstLookup strict PASS5 proves exact first-match lookup using minimal indexOf occurrences, preserving duplicate semantics. ProcNativeCodecBlock.main_block_exists constructs Valid operational block AND scheduler upsert witness from native applyNewChunk success and accepted prep/schedPub membership, with tau0,n<=64 and exact forwarding data. Refreshed main/block audit PASS3 and segment/fold audit PASS4. No forwarding/grant/generator/witness-validity premise remains in main_block_exists. Codec TableLocal still open; agents own record arithmetic and side-row trailer/interaction proofs. New audits prebuilt-dependency; not whole-transition certificate. Goal active.
+
+
 2026-10-09: ProcNativeMainCodec.native_main strict PASS1 exact guard constructs corrected scheduler and main tau0 codec outputs from accepted prep, matching schedPub membership, native applyNewChunk success, and explicit distinct context shard IDs. No independent forwarding-bound, distribution, prefix, or generator-success premise remains. ProcActualNativeFinish PASS3 supplies exact distribution existence and native finish identity for same process witness. Agent checking whether accepted preparation derives shard distinctness; agent auditing remaining codec TableLocal obligations. Generator success is not codec Local or full transition completeness; prover/judge still open. New audits prebuilt-dependency. Goal active.
 
 

@@ -10,7 +10,7 @@ open ZkFormal.NearV3.Sched ZkFormal.NearV3.Sched.Gen ZkFormal.NearV3.Assembly
 outputs. Forwarding bounds come from this execution, not a supplied guard. -/
 theorem native_main {cb : Bytes} {hint : Hint} {p : Prep}
     (hp : prepD0 cb hint=.ok p) (ctx : ApplyCtx) (sp : SchedPub)
-    (hsp : sp∈p.sched) (hpub : schedPub ctx=some sp) (hids : ctx.layout.shardIds.Nodup)
+    (hsp : sp∈p.sched) (hpub : schedPub ctx=some sp)
     (t : PTrie) (receipts : List Receipt) (out : MainOut)
     (hchunk : applyNewChunk prims ctx t receipts=.ok out) (vid : Nat) :
     ∃old prev R gd result,
@@ -34,7 +34,7 @@ theorem native_main {cb : Bytes} {hint : Hint} {p : Prep}
     apply ProcPriorCodecForwardBound.native_links
     intro o ho d hd r hri
     have hg := ProcActualSegmentGrant.native_lookup sp hs (ProcActualPublic.schedPub_fields ctx sp hpub).1
-      prev 0 cv rs st ev R gd sord rord hprefix hr hgd (by rwa [hidsEq])
+      prev 0 cv rs st ev R gd sord rord hprefix hr hgd
       ctx.own d.1 o r (by rwa [hidsEq]) (by rwa [hidsEq])
     rw [hfinish,hidsEq] at hg
     have hb := hbound d hd

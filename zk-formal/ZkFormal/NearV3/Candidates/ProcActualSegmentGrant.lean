@@ -1,6 +1,6 @@
 import ZkFormal.NearV3.Candidates.ProcActualMemoryFinal
 import ZkFormal.NearV3.Candidates.ProcActualOutputAgreement
-import ZkFormal.NearV3.Candidates.ProcNativeGrantLookup
+import ZkFormal.NearV3.Candidates.ProcNativeGrantFirstLookup
 namespace ZkFormal.NearV3.Candidates.ProcActualSegmentGrant
 open ZkFormal.NearV3.Sched ZkFormal.NearV3.Sched.Gen NearSpecV3.Scheduler
 
@@ -36,7 +36,7 @@ theorem native_lookup (sp : SchedPub) (hs : SchedPubOk sp)
       (linkPass sp.ids.length sp.params sp.allowed (ProcActualInput.allowances sp.ids prev)).cntS
       (linkPass sp.ids.length sp.params sp.allowed (ProcActualInput.allowances sp.ids prev)).cntR
         =.ok (gd,sord,rord))
-    (hd : sp.ids.Nodup) (a b o r : Nat)
+    (a b o r : Nat)
     (ho : indexOf sp.ids a=some o) (hri : indexOf sp.ids b=some r) :
     ((((ProcActualNativeResult.finish sp prev (ProcNativeGrant.native st)).granted.find?
       (·.1==(a,b))).map Prod.snd).getD 0)=
@@ -48,6 +48,6 @@ theorem native_lookup (sp : SchedPub) (hs : SchedPubOk sp)
     rw [Nat.add_mul] at hm
     simp only [Nat.one_mul] at hm
     omega
-  rw [ProcNativeGrantLookup.finish_lookup sp prev (ProcNativeGrant.native st) hd a b o r ho hri]
+  rw [ProcNativeGrantFirstLookup.finish_lookup sp prev (ProcNativeGrant.native st) a b o r ho hri]
   exact (total_grant sp hs ha prev tau cv rs st ev R gd sord rord hprefix hr hg _ hk).symm
 end ZkFormal.NearV3.Candidates.ProcActualSegmentGrant
