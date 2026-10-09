@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Boundary/carry and side-additions checkpoint: strict PASS31 exact guards. BoundaryEquations/GeneratedBoundaries close cRec6–10 and12–16 at every active physical position, deriving field changes, record changes and final-record→hash directly from generated row cells. RecordCarryFields/RecordCarry/GeneratedRecordCarry close cRec35–40 on every active row. SideAdditions/GeneratedSideAdditions close19 corrected additions on header/hash/ash rows, including actual first-record indices. Remaining record group17–24 and corrected record additions underway in parallel; all other retained record equations individually checked. Prebuilt dependency audit24GiB; full TableLocal/globaljoins/certificate/judge still incomplete. Previousb71b2cdd push failed GitHub DNS.
+
+
 2026-10-09: COMPLETE physical cKind checkpoint: strict PASS36 exact guards. All120 retained kind equations hold across every actual physical row inclpadding/wrap from corrected generation plus native params,0<n<=64,tau<P. Record BoolCells/CarryPosition/Boolean derive all38 Boolean equations with cb bound from actual execution; RecordByteCells/Local/GeneratedByteGroup derive3 retained byte equations without byte assumptions. TransitionRows/Shape/FieldInside add cRec1–5 at every active row. RecordAdditionResidual.table_of_remaining requires only retained cRec and corrected additions active groups; kind/trailer/bit/capacity/padding fully discharged. Remaining cRec6–10,12–24,35–40 and19additions continue; other cRec groups already proved individually. Prebuilt dependency audits24GiB; full certificate/judge still incomplete. Previous1c415b6c push failed GitHub DNS.
 
 

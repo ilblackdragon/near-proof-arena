@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All6 retained cRec35..40 equations on every physical native record row: next-record rs and five carried link fields al,gb,srcC,hasC,useC. Handles byte/field/record boundaries and final record through actual current/next positions. Requires successful codecRows,n\u226464 only; no nextshape,fieldvalue or Local premise. Non-record rows covered separately by SideRecord. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecRecordCarry.lean",
+      "sha256": "b4258b877b27a0e1775d972992737ad8a9d26a68b02db4bf79b4837d678ade77",
+      "audit": "zk-formal/test/AuditProcCodecRecordCarry.lean",
+      "audit_sha256": "db77475f9a02448d718dee3f37dacdc575dd1d9570a0cf53db5382af126e3146",
+      "guards": 9
+    }
+  ]
+}

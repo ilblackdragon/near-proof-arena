@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All10 field/record boundary equations cRec6\u201310/12\u201316 and all6 cRec35\u201340 hold every active generated row. All corrected additions hold actual side rows, including header-to-firstrecord indices derived. Prebuilt dependencies;24GiB cap; cRec17\u201324 and record additions/global certificate remain open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecBoundaryEquations.lean",
+      "sha256": "6bdab51bdef33a8dd9509223311cecf87254e6a60cf5a13221a95e09f1d1a34b",
+      "audit": "zk-formal/test/AuditProcPriorCodecBoundaryEquations.lean",
+      "audit_sha256": "53cc081cbb96144a32634476b731231485411bc5ba455027fdff524307c630ed",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedBoundaries.lean",
+      "sha256": "7eea419034474b1c368ab64cbe83244d9326dfe964c93d8629c294729903abe1",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedBoundaries.lean",
+      "audit_sha256": "401b37bc51af7cc7fb0eaae796fe470c3d5ade70498a26206bba553f8f155520",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordCarry.lean",
+      "sha256": "2df1e9ab53de2d8e9f91202fbf28c2f20cf112277e852390976c2ec8aa3cc2b6",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordCarry.lean",
+      "audit_sha256": "5172f4bab431997a5da79ef8c2747aa21e80fad8d919c26f6b21fb0213f78a4b",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideAdditions.lean",
+      "sha256": "a31a70561a8eae1f689de8c4d39c7be5c78c597ba0df31fd8ae46fdfde53c085",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideAdditions.lean",
+      "audit_sha256": "374a5f8750d095e2c0f41ddae44f2bd5fe06fd26347ebd1f0c56deea25106902",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedSideAdditions.lean",
+      "sha256": "c3b5657f625604f79900fa4367480668efb45a7b29194e115d47ea7f1a901158",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedSideAdditions.lean",
+      "audit_sha256": "f2d622bdda5d7f3e1b06fccf9889c6407623ef478dfaba6ebd5994ef4acf7ff1",
+      "guards": 3
+    }
+  ]
+}
