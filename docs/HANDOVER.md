@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Complete raw-record row coverage PASS5guards: final-byte23 forces amount/top selector and each declared raw-frame ordinal has an actual stage3 amount/top row with SAME instance/ordinal. Write emission/first-match ID semantics remain separate. Repaired authenticated last-write PASS5guards: record found-index and prepared parameter bounds derive write addresses, so actual prior68 consumer Result has NO caller address/stamp/hwrite premise. Genuine public bus exclusions/SPAR inventory remain. Root independent final-source/audit rebuild/hash checks PASS10 incremental guards. Complete native write semantics, exact duplicate-ID lookup, full Scan/Dist/global theorem/clean certificate/prover/judge/general NEAR replacement remain open.
+
+
 2026-10-09: Reverse actual record byte coverage PASS2guards now derives stage3/word activity, valid byte gating and offset<24. Repaired record parameter and ID found-origin key carry PASS8guards preserves index/low/mid/packed tau-high; canonical unpack and first-match minimality remain open. Repaired found-index bound PASS2guards supports coarse write-address range, distinct from exact native address correctness. Full native queue read contract PASS5guards returns MainValues.Valid and canonical pre-head0 Reads plus all implicit reads; extracts actual queue/parser/walk/list chains internally and derives bytes/ranges/keys/native buffered witnesses, retaining SAME forest/root/public authentication context. Root independently rebuilt final sources/audits and checked hashes:17 incremental guards. Complete native write inventory, exact ID semantics, whole Scan/Dist/global theorem/clean certificate/prover/judge/general replacement remain open.
 
 

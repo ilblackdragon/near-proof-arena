@@ -1,0 +1,34 @@
+{
+  "strict": true,
+  "guards": 5,
+  "dependency_order": [
+    "ProcessRepairRecordIndices",
+    "ProcessRepairWriteAddress",
+    "ProcessRepairAuthenticatedLastWrite"
+  ],
+  "prerequisites": [
+    "ProcessRepairIdBound",
+    "ProcessRepairRecordParameters",
+    "ProcessRepairPublicSenderBound",
+    "ProcessRepairPreparedLastWrite"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordIndices.lean",
+      "sha256": "1d14fcddc283619ddd502017ef4d35a96486b74cb0774c4a2a7d3d2dcaa935c4"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairWriteAddress.lean",
+      "sha256": "c172387da5ff862df65ed5f62aa974a2fe394e57e15f448fa9b23ab89d35b581"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAuthenticatedLastWrite.lean",
+      "sha256": "872bd024deec56b85ce586bf65f62fe4c4d0488af2a80a4bdb5f89a9cf1201d0"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairAuthenticatedLastWrite.lean",
+      "sha256": "1b0c5403a2fe24fd73429aac9a3cf377fa0ea968c6fa3cc1b7233009c1512a42"
+    }
+  ],
+  "scope": "Actual repaired live68 receiver obtains memory LastWrite.Result. Address and stamp bounds derived; no supplied hwrite. Public bus exclusions, prepared SPAR inventory remain explicit. Does not assert first-match ID semantics or final native state equivalence."
+}
