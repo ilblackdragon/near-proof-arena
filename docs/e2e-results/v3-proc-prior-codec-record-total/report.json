@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Corrected codec end allowance arithmetic agrees with actual linkPass under explicit carry/absent-state premises. Exact record step is total from end allowance equality and applicable forwarding bound; non-end bytes need neither guard. Carry propagation, native forwarding binding, codec loop totality and full certificate/judge remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAllowanceGuard.lean",
+      "sha256": "7f3fe6c87326886ae2f7f6fc043a1c907ea7e831886647e9b594eceec32e5420",
+      "audit": "zk-formal/test/AuditProcPriorCodecAllowanceGuard.lean",
+      "audit_sha256": "8505693b3e4e290e99c5f24150873f36147c9db25a3eb81b6dba3ca8a59634a2",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordTotal.lean",
+      "sha256": "a4f3c48b8e061b67e05f17d138d1784cebe6fabae9486165b4085a27cb9cc334",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordTotal.lean",
+      "audit_sha256": "7d69e9a85346f9ccd3a779e0ccbce06cc322b7879fb091dd7f47531079117803",
+      "guards": 1
+    }
+  ]
+}

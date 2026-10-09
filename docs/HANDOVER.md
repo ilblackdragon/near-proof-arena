@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecAllowanceGuard(agent) and ProcPriorCodecRecordTotal(root) independently strict PASS, six exact guards. Corrected codec allowance arithmetic agrees with actual linkPass under explicit carry/absent-state premises. Exact record step total from end allowance equality plus forwarding guard when tau0; no end guards required on non-end bytes. Full codec loop/carry/native forwarding binding remain open. Source-only rebuild launched by ups_fields in /tmp/nearproof-scheduler-clean-20261009-a;113th module exposed manifest single-component ArenaCore import omission, parser fixed and resumed retaining112 successful source builds, session59493 agent-owned. No clean-certificate claim yet. Prior10b3c2bd push DNS failed. Goal active.
+
+
 2026-10-09: ProcActualConstructedSequence strict PASS, five exact guards. Ordered accepted native calls construct decoded prior input pairs and successful corrected runInputs. At<=33 calls native_local constructs process TableLocal at commonlog22 with no run/sequence-success premise. Only process table covered: corrected codec/other-table Local/global assembly still incomplete, no full D0a/general certificate or judge. Clean scheduler source-closure audit found809 modules,280 absent-main but present-AIR; ups_fields assigned scratch source-only rebuild. memory_values assigned codec allowance guard. d2 followup forwarding task failed agent thread limit. Prebuilt dependencies remain current evidence. Previouse581a6be push DNS failed. Goal active.
 
 
