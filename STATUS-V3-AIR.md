@@ -307,6 +307,7 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
 |---|---|---|
 | bus ownership (`SchedOwn`, `ScanOwn`, `OpOwn`, `CodecValOwn`, `SparOwn`, `PubbOwn`, `InitOwn`, `SdlOwn`, `PubbRecv`, `ShaOwn`, `SdlxOwn`, trie bus ownership) | sched, trie | decide on the final assembled AIR (`decide +kernel`) |
 | `PubIdx` (public records = rendered prep records: SPAR, SPUBB, SDL, SRC, BND, body …) | sched, rcpt | Concrete nine-segment `Public.bindPrepared` is checked from actual prepD0 success; global size/overhead meaning and final AIR assembly remain. |
+| `PubIdx` (public records = rendered prep records: SPAR, SPUBB, SDL, SRC, BND, body …) | sched, rcpt | R1 protocol and generic `pubIdx_of_segments` bridge are checked; concrete prepared-statement record bindings remain open. |
 | `KindReg` (SHA kind separation; sched `ShaKind`, trie `othersId`/`othersU`) | sched, trie | per-table proofs from each view against the registry (design §12) at assembly. Trie TODO: restate `othersId` through `KindReg.avoid`. |
 | `SchedVal` | trie `upsV3_linkB` | `codec_schedVal` (sched) at assembly |
 | `KeynibOk` (key-nibble providers send only nibbles/END) | trie walks | rcpt `rcpt_keynib_syms` (provider side, proved) plus public walks at assembly |
