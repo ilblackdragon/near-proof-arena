@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Link gates, forwarding payload and suffix-kind checkpoint: strict PASS17 exact guards. cRec41/48 and native forwarding60–62 now proved on every active physical row; forwarding bound derives from same native prefix/run/distribution, no numerical assumption. RecordHeaderInactive closes all46 header-tail equations on every actual record step. SuffixKind.physical closes all120 retained kind constraints on actual hash/ash suffix and padding, with tau<P and n<=64. Whole physical trailer was already committed; other kind/record/addition groups and global joins remain open. Audits use prebuilt dependencies; full certificate/judge still incomplete. Prior7a6ea5c0 push failed GitHub DNS; checkpoint bundle refreshed.
+
+
 2026-10-09: Physical trailer and native side kind checkpoint: strict PASS32 exact guards. GeneratedTrailer.physical proves whole46-equation cTrl on every physical row (including padding), from corrected codec success and R.n<=64. Exact suffix cells/adjacency and generated prefix property eliminate independent row-shape premises. GeneratedByteTests adds cRec30–32 at every active row. RemainingConstraints.table_of_remaining now requires only retained kind/record/addition active groups; trailer/bits/capacity/padding discharged. NativeBytes binds byte bounds to actual serialized header/hash outputs. HeaderInactive+SideFullKind prove entire retained120-equation cKind for native hash/ash successors, including ash to zero/header; tau<P remains explicit. Source audits use prebuilt dependencies; not yet whole TableLocal/full certificate/judge. e6db6a32 push failed GitHub DNS.
 
 
