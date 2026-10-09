@@ -1,0 +1,86 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 26,
+  "modules": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChains.lean",
+      "sha256": "e61e86a48232b4e35767b06dd1e28296dafaf07ea244aa9b67ac0ed901f91aae"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryOpSemantics.lean",
+      "sha256": "ee727d22f68de14a43b1224eb7b639b6e7cef14945c06d895e776cb79bdea337"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainReads.lean",
+      "sha256": "7a4586deacd496ab447832159e6a27805e56d7ef05282b95435ce7f9cedc220c"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainEntry.lean",
+      "sha256": "ba02e39611281c22d0c27b0e571fc8686b834f5bd12cb5c1063af6d883d80942"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainReplay.lean",
+      "sha256": "54c342974a0df3e5b377e982e88409883c226e2d6914c0393b87fca74827d239"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainSegments.lean",
+      "sha256": "3c47fff501a4eb7812d7286db6c01b98e79aa0fb628841e57c384dad8e7edf8b"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MemConcatLocal.lean",
+      "sha256": "17254d5be553b0a9806d60fa6922ef8774a2c9d302fc58e9c35c0cc861e27aaa"
+    },
+    {
+      "source": "zk-formal/test/AuditProcActualMemoryChains.lean",
+      "sha256": "4b893d7fcf1c0bcff690f9d55c127f501f0b7f1926d887dd6a76c8c194bfa0a6"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcActualMemoryChains.log",
+    "/tmp/ProcActualMemoryOpSemantics.log",
+    "/tmp/ProcActualMemoryChainReads.log",
+    "/tmp/ProcActualMemoryChainEntry.log",
+    "/tmp/ProcActualMemoryChainReplay.log",
+    "/tmp/ProcActualMemoryChainSegments.log",
+    "/tmp/MemConcatLocal.log",
+    "/tmp/AuditProcActualMemoryChains.log"
+  ],
+  "scope": "Actual successful Run derives all per-segment OpsOk chains without assumptions. Concatenated physical memory TableLocal transport is exact on MemConcatCells.trace, conditional on SegOk and row capacity. SegSmall and vin0 native discharge remain next; no full native memory Local claim.",
+  "limits": "Lean -j1, 16 GiB virtual memory, 45 seconds per file",
+  "olean_overlay": "/tmp/ups-proof",
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChains.lean",
+      "sha256": "e61e86a48232b4e35767b06dd1e28296dafaf07ea244aa9b67ac0ed901f91aae"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryOpSemantics.lean",
+      "sha256": "ee727d22f68de14a43b1224eb7b639b6e7cef14945c06d895e776cb79bdea337"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainReads.lean",
+      "sha256": "7a4586deacd496ab447832159e6a27805e56d7ef05282b95435ce7f9cedc220c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainEntry.lean",
+      "sha256": "ba02e39611281c22d0c27b0e571fc8686b834f5bd12cb5c1063af6d883d80942"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainReplay.lean",
+      "sha256": "54c342974a0df3e5b377e982e88409883c226e2d6914c0393b87fca74827d239"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainSegments.lean",
+      "sha256": "3c47fff501a4eb7812d7286db6c01b98e79aa0fb628841e57c384dad8e7edf8b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/MemConcatLocal.lean",
+      "sha256": "17254d5be553b0a9806d60fa6922ef8774a2c9d302fc58e9c35c0cc861e27aaa"
+    },
+    {
+      "path": "zk-formal/test/AuditProcActualMemoryChains.lean",
+      "sha256": "4b893d7fcf1c0bcff690f9d55c127f501f0b7f1926d887dd6a76c8c194bfa0a6"
+    }
+  ]
+}

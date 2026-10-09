@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "completed": [
+    "Full actual BYTES provider classification, including physical Account6 and Merkle10",
+    "All other provider tags excluded by checked actual local/bus bounds; source partition carries authenticated",
+    "Actual node/value job bytes belong SAME extracted lists and are position-unique",
+    "Any live actual NPRE/VPRE digest query with matching same-list job ID and length has checked SHA256 preimage exactly serialized same-list bytes",
+    "Length field wrap ruled out via byte-position proof, not a supplied SHA length bound"
+  ],
+  "assumptions": [
+    "Actual HoldsP/exact family and successful prep",
+    "Authentic public SPAR inventory; no public VBYTES/64/65/66 segments; no public BYTES/DIGEST sends",
+    "SAME actual Node/Value/compactUPS views and derived RootChain K<33",
+    "Actual digest query job-ID and target-length correspondence"
+  ],
+  "remaining": [
+    "Apply actual Head/Node traffic to discharge per-query job-ID/length correspondence",
+    "Public pre-root/native forest semantic interpretation and global validator correctness"
+  ],
+  "not_claimed": [
+    "Hypothetical otherIds disjointness",
+    "Hash injectivity",
+    "Generated inventory proves arbitrary soundness"
+  ],
+  "validation": "Strict Lean builds and14 exact axiom guards"
+}
