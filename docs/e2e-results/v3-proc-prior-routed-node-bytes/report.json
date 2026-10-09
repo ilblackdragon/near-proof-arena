@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual revealed child DIGEST provenance authenticates child serialization and prehash. Every SAME extracted node serialization byte is below256, derived via real Head or parent-child digest requests and real SHA/BYTES suppliers. Revealed value prehash and length are authenticated from SAME Value inventory and actual VPARENT conservation. No supplied byte bound or hypothetical SHA ownership. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedKidHash.lean",
+      "sha256": "07612cb45726e63ed50e1528bcd3d1a5b373699897e1ad672787a4f2cf05f612",
+      "audit": "zk-formal/test/AuditProcPriorRoutedKidHash.lean",
+      "audit_sha256": "7de6e5d95027cb4a9c18ce22366e97035eadec3c282a575b0645d411d3f16e4d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedNodeBytes.lean",
+      "sha256": "440cee3c492129a8bfc48a49a62663ac59fec49d42eac1023728ae50cd632a29",
+      "audit": "zk-formal/test/AuditProcPriorRoutedNodeBytes.lean",
+      "audit_sha256": "e80c80001371139cf63fc34091bef9aae5ac52e487cea1deaf0b811675408ce1",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedValueHash.lean",
+      "sha256": "201ae17e8abc17931486fd52ee03153dafec41113632b08a2e9f8954cd4b8a7c",
+      "audit": "zk-formal/test/AuditProcPriorRoutedValueHash.lean",
+      "audit_sha256": "2811e6c8ccc53eeaabcf80fd67658ac0a433fec39f12bc3ba534200b11c4b24d",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-node-bytes/dependency-review.json",
+      "sha256": "4b3b7191ee866be7181165f04cceb70ace733f87cea4e8d9fe6f2e266abda56b"
+    }
+  ]
+}

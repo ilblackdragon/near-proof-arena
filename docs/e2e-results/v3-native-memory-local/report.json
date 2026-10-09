@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 12,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryChainBounds.lean",
+      "sha256": "1040d321320d9c75381e43bb91159fd0466c444dbb1fdd7dbf49d82a3c7f571c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryCanonical.lean",
+      "sha256": "95e6043d35a8f08f7523a6a81c6133d1d1448b76a08817917b20b627b3123e92"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryMetadata.lean",
+      "sha256": "dd80ba9cd357bc44492e10985962c2a136cb47e7e60465a562539ab8b7a42d82"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemorySegOk.lean",
+      "sha256": "5f82b90796fb56d175ff9d11af02129bc4a0daf529b665d32ab40d8e0ee4b76e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRunMemoryLocal.lean",
+      "sha256": "d4986228deda804d7664971945e62bac1e1408d539041a38f083a060f330bb76"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRunMemoryLocal.lean",
+      "sha256": "3055057ff898063d932613ce55c1cc54c960970f9af2e3225f9f720736b3c542"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcActualMemoryChainBounds.log",
+    "/tmp/ProcActualMemoryCanonical.log",
+    "/tmp/ProcActualMemoryMetadata.log",
+    "/tmp/ProcActualMemorySegOk.log",
+    "/tmp/SchedulerRunMemoryLocal.log",
+    "/tmp/AuditSchedulerRunMemoryLocal.log"
+  ],
+  "prerequisite_report": "docs/e2e-results/v3-native-memory-chains/report.json",
+  "scope": "prior_memory_table derives full TableLocal on the same actual concatenated MemConcatCells.trace from prepD0 success and SAME PriorCore. No SegOk, numerical field bound, or capacity premise. Native run SegOk derives all operation chains, source parameters, final grant GInv, canonical addresses and actual comparator-checked timestamps/increments. No global bus balance or full succinct proof claim.",
+  "limits": "Lean -j1, 16 GiB virtual memory, 45 seconds per file",
+  "olean_overlay": "/tmp/ups-proof"
+}

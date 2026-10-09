@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "same_witness": "Actual Node DIGEST requests and Node/Value byte traffic use the same extracted vs/es. Parent and VPARENT balances are derived internally.",
+  "proved": [
+    "Each revealed child prehash is SHA256 of its exact extracted serialization.",
+    "Every extracted node serialization consists of bytes below256.",
+    "Each revealed value prehash is SHA256 of the same es[id] bytes with exact natural length."
+  ],
+  "remaining": "Unfolded semantic tree encoding and key lookup are not claimed by this package. Existing pure rootedDag3/enc_fullTree are next consumers.",
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

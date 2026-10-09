@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Complete raw frame coverage PASS2modules3guards: every declared byte is active/stage2 with exact serialized position and stable identity; every present byte matches SAME extracted Value entry through actual VBYTES traffic. Actual Head public pre-root linkage PASS2modules5guards: SAME extracted root serialization hashes to r0. Actual child/value hash and node-byte bounds PASS3modules3guards. Full native Mem TableLocal PASS5modules12guards on SAME concatenated trace from PriorCore/prep alone; derives SegOk/canonical bounds/capacity. Root independently strict rebuilt all frozen sources/audits and verified hashes. Total23 incremental guards; source-only archive3075/742 unchanged. Full unfolded trie semantics, frame decoding, remaining physical table validity, global certificate/prover/judge/general NEAR coverage remain open.
+
+
 2026-10-09: Raw byte positions PASS1module7guards. Explicit field increment/wrap across header and record boundaries; exact header positions; cumulative record starts; exact hash-start and all32 sanity positions follow from previously proved physical frame extent and height<=field modulus, without supplied count range. Independently strict rebuilt and axiom audited. Incremental certificate only; byte authentication, complete frame parsing and global composition remain next.
 
 

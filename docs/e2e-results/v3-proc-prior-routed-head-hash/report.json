@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual installed Head and Node DIGEST request provenance. SAME extracted root node serialization hashes to the public pre-state root through actual SHA and BYTES traffic. Parent balance is derived from actual conservation. Full unfolded trie semantics remains separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedForestRequests.lean",
+      "sha256": "06cc4f59c286f442636fbb43e4258cdadeb43b00eaa95cc65ae6ea7583c203aa",
+      "audit": "zk-formal/test/AuditProcPriorRoutedForestRequests.lean",
+      "audit_sha256": "1248d6155a9133798dc618fa76c1d741db9c3be9cd111f791e3be48ffc23bd28",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedHeadHash.lean",
+      "sha256": "3297b4e84990612234fb602bb150b25b086f762eade5e2cdb0b7b0baabcbc56c",
+      "audit": "zk-formal/test/AuditProcPriorRoutedHeadHash.lean",
+      "audit_sha256": "37defe4adaa9caf5880d05463394343dc50290612b312060b16fe135da169d03",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-head-hash/dependency-review.json",
+      "sha256": "0e7a4a72122b2f005c634c2f78af7c579b08e7197baf9aa52a16896202134b9d"
+    }
+  ]
+}
