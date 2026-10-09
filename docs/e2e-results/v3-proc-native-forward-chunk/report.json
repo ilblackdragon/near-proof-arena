@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Native applyNewChunk success derives outgoing fwdSizes demands bounded by same scheduler execution grants; exact native grant lookup matches sender-major indices under distinct shard IDs. Composition with codec grant construction and codec TableLocal remains. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeForwardChunk.lean",
+      "sha256": "6395699035ff19760cb1698281cfc9a2e8c36bd011f713203606323a122b31bf",
+      "audit": "zk-formal/test/AuditProcNativeForwardChunk.lean",
+      "audit_sha256": "7f3584c860b59dc3585035d9b95c16a1f3481266296cc4556b11130092593dcc",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeGrantLookup.lean",
+      "sha256": "4196137a290935992d9d4e85af43fb02a72c87bdeb05d058c2edfade4cc1dea4",
+      "audit": "zk-formal/test/AuditProcNativeGrantLookup.lean",
+      "audit_sha256": "a4b77558e36a3dbeeed36e589b5f95c8f9b6fc9e9a804e01d5dd041fdc84e551",
+      "guards": 4
+    }
+  ]
+}

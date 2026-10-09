@@ -12,10 +12,10 @@
     },
     {
       "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSegmentGrant.lean",
-      "sha256": "6177a055090169e472b5c8c38db6b3ad46d69b3533797ce0a95b96a7b351d283",
+      "sha256": "e98d0e186b3d27a55e8d53ac5892951845d1754922f760b6326c655c76e7d655",
       "audit": "zk-formal/test/AuditProcActualSegmentGrant.lean",
-      "audit_sha256": "28c0ef9e0caf9fed23328cfd7d58ab7a64625a19e9b0720b9b31aeafb4c06bd3",
-      "guards": 1
+      "audit_sha256": "23c5901c2311b39d3005dfc3131d709046a52e123bc156fed6d882aee35e9346",
+      "guards": 2
     }
   ]
 }

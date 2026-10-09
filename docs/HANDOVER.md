@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcNativeForwardChunk strict PASS3 guards derives exact outgoing forwardAll and fwdSizes demand bound from applyNewChunk success, bound to the same schedStep execution. ProcNativeGrantLookup PASS4 proves exact first-match output grant lookup at sender-major index under shard-ID Nodup. Extended ProcActualSegmentGrant.native_lookup ties this native grant lookup directly to generated R.segs.wfin+distribution event grant; refreshed bridge report PASS4. Runtime+codec conditional bridge already saved d414edcc. Next compose these into full main codec construction and close codec TableLocal/global joins; full transition/prover/judge remain open. All new checks use prebuilt dependencies. Goal active.
+
+
 2026-10-09: ProcNativeForwardRuntime + ProcNativeForwardCodec strict PASS6 exact guards. Actual successful applyReceipts supplies forwardAll on exactly appended refunds, then charge conservation and fwdSizes bound, without any forwarding-success premise. codec_success now constructs corrected codec output from actual run/decode, receipt execution, and remaining native grant/index agreement. applyNewChunk extraction and exact native shard-ID lookup remain active parallel tasks. Prebuilt dependencies. Earlier c337895f saved Fold/Initial/SegmentGrant (8 guards); push failed DNS. Goal active.
 
 
