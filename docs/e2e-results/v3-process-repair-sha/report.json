@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 9,
+  "dependency_order": [
+    "ProcessRepairShaFacts",
+    "ProcessRepairDigestFacts",
+    "ProcessRepairShaByteSource"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairShaFacts.lean",
+      "sha256": "3f6539e4c76a37e5b54c776c2d829c0cba61c6e0516e5a2faee09f267916dff3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairDigestFacts.lean",
+      "sha256": "6822483404ce146582b22bc6b1d462b858dd89aaef496f2964a1edc943114edd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairShaByteSource.lean",
+      "sha256": "3393283bf8890be301d1162566c8eaee43d3d09ef3323d1915248e8af896ffce"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairSha.lean",
+      "sha256": "1116635f4fd576bbe2b5ebedc1aecaa3107f9212854a0daf9643ccda5080dbaa"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairShaFacts.log",
+    "/tmp/ProcessRepairDigestFacts.log",
+    "/tmp/ProcessRepairShaByteSource.log",
+    "/tmp/AuditProcessRepairSha.log"
+  ],
+  "scope": "Actual View projections, four SHA union semantics and empty-value digest, live consumer preimages with same-family byte suppliers. Supplier forest tag separation remains next; no original Holds or supplied hash oracle."
+}
