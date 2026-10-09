@@ -1,0 +1,35 @@
+{
+  "statement": "near/pv86/chunk-validation/v0#D2",
+  "implementations": {
+    "nearcore": "near-arena-oracle-v3-d1 --domain d2 (meta.json)",
+    "lean": null,
+    "python": "oracle/tools/spec_check_v3_d2.py"
+  },
+  "lean_from": {
+    "path": "/data/illia/nearproof-deps/validation/v3-d2-logged-20261007/logged.jsonl",
+    "sha256": "e9cfc5fc855f42a8526089256140af431480884fea6a00384e35835f8d5e12ae"
+  },
+  "python_from": {
+    "path": "/data/illia/nearproof-deps/validation/v3-d2-independent-20261007/python.jsonl",
+    "sha256": "8e4d609a497bccc9ba69cd79496261afa51b84681bb1b848555ca6496d83f0ea"
+  },
+  "d1_lean_from": {
+    "path": "/data/illia/nearproof-deps/validation/v3-d1-logged-20261007/logged.jsonl",
+    "sha256": "20f6f1335c76f6355753936d5b9cd6455bd1c9f709fe0c41e18115b7f489d81e"
+  },
+  "d1_corpus_check": {
+    "corpus": "/data/illia/nearproof-deps/corpora/d1run",
+    "counts": {
+      "cases": 53048,
+      "expected_rel_d1": 11089,
+      "python.accept": 14651,
+      "lean.accept": 14651,
+      "python.out_of_domain": 83,
+      "lean.out_of_domain": 83,
+      "python.reject": 38314,
+      "lean.reject": 38314
+    },
+    "issues": 0,
+    "samples": []
+  }
+}

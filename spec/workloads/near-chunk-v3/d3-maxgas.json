@@ -1,0 +1,39 @@
+{
+ "schema": "near-arena-workload-generator-v1",
+ "challenge": "near-chunk-v3",
+ "class": "d3-maxgas",
+ "tool": "near-arena-oracle-v3-d3 gen",
+ "args": [
+  "--domain",
+  "d3",
+  "--fixtures-layout",
+  "--class",
+  "d3-maxgas",
+  "--chains",
+  "3",
+  "--blocks",
+  "60",
+  "--mutate-every",
+  "0",
+  "--code-mutant-p",
+  "0",
+  "--ood-cap",
+  "0",
+  "--drop-cap",
+  "0"
+ ],
+ "seed": "judge-chosen per run (season-secret HMAC, BENCHMARK_SPEC \u00a711.1); --d0-target = number of positives; held-out set: secret seed",
+ "oracle_source_tree_digest": "sha256:2fab17e221c9963001d9f31015880cc6ddf10d4bd99d5be20ac6ae790642d878",
+ "oracle_source_tree": [
+  "oracle/v3-d3/src",
+  "oracle/v3-d3/Cargo.toml",
+  "oracle/v3-d3/Cargo.lock",
+  "oracle/v3-d3/contracts",
+  "oracle/v3-d1/src",
+  "oracle/v3/src"
+ ],
+ "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "statement_id": "near/pv86/chunk-validation/v0",
+ "domain": "D3a",
+ "class_predicate": "oracle/v3-d1/src/arena.rs class_of"
+}

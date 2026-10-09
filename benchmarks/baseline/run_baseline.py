@@ -101,7 +101,9 @@ def main():
     ap.add_argument("--challenge", required=True)
     ap.add_argument("--package", required=True, help="reference candidate package dir (tracked files only are packed)")
     ap.add_argument("--oracle", default=None, help="near-arena-oracle (v1/v2 claim encodings)")
-    ap.add_argument("--oracle-v3", default=None, help="near-arena-oracle-v3 (near-arena-claim-v3)")
+    ap.add_argument("--oracle-v3", default=None, help="near-arena-oracle-v3 (near-arena-claim-v3, D0 generator specs)")
+    ap.add_argument("--oracle-v3-d1", default=None, help="near-arena-oracle-v3-d1 (near-arena-claim-v3, D1/D2 specs)")
+    ap.add_argument("--oracle-v3-d3", default=None, help="near-arena-oracle-v3-d3 (near-arena-claim-v3, D3 specs)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--cpus", default="8-15")
     ap.add_argument("--host-id", default="dev-illia-32c")
@@ -111,7 +113,8 @@ def main():
                     help="public fixtures dir (TreeDigest must equal workload_suite.public_fixtures)")
     ap.add_argument("--fc-deps", default=None, help="Firecracker deps dir (images built from this checkout)")
     ap.add_argument("--workloads", default=os.path.join(REPO, "spec/workloads/near-transfer-receipt-v1"),
-                    help="generator specs <class>.json (digests must match the challenge)")
+                    help="generator spec dir(s), comma-separated, with <class>.json (digests must match the "
+                         "challenge; near-chunk-v3: spec/workloads/near-chunk-validation-d0,spec/workloads/near-chunk-v3)")
     ap.add_argument("--season-secret-file", default=None,
                     help="judge-only season secret (hex, 0600): sample batches as a live worker with "
                          "ARENA_SEASON_SECRET_FILE does (BENCHMARK_SPEC §11.1); never printed")
@@ -132,8 +135,9 @@ def main():
     ap.add_argument("--calibration-bin", default=None,
                     help="the pinned arena-calibrate binary (challenges with measurement.calibration, §6.1)")
     a = ap.parse_args()
-    if not (a.oracle or a.oracle_v3):
-        sys.exit("give --oracle and/or --oracle-v3")
+    if not (a.oracle or a.oracle_v3 or a.oracle_v3_d1 or a.oracle_v3_d3):
+        sys.exit("give --oracle and/or --oracle-v3 [--oracle-v3-d1 --oracle-v3-d3]")
+    workload_dirs = [os.path.abspath(w) for w in a.workloads.split(",") if w]
 
     chal_path = os.path.abspath(a.challenge)
     chal = json.load(open(chal_path))
@@ -186,7 +190,8 @@ def main():
     # 3. generator specs (the worker's oracle samples with them)
     gens = {}
     for c in chal["workload_suite"]["classes"]:
-        spec_p = os.path.join(os.path.abspath(a.workloads), c["id"] + ".json")
+        cand = [os.path.join(w, c["id"] + ".json") for w in workload_dirs]
+        spec_p = next((p for p in cand if os.path.exists(p)), cand[0])
         spec = json.load(open(spec_p))
         d = "sha256:" + hashlib.sha256(jcs(spec).encode()).hexdigest()
         if d != c["generator"]:
@@ -213,7 +218,9 @@ def main():
             "--native-verifier", os.path.join(bundle, "out/verify"),
             *(["--oracle", os.path.abspath(a.oracle)] if a.oracle else []),
             *(["--oracle-v3", os.path.abspath(a.oracle_v3)] if a.oracle_v3 else []),
-            "--generators", os.path.abspath(a.workloads),
+            *(["--oracle-v3-d1", os.path.abspath(a.oracle_v3_d1)] if a.oracle_v3_d1 else []),
+            *(["--oracle-v3-d3", os.path.abspath(a.oracle_v3_d3)] if a.oracle_v3_d3 else []),
+            "--generators", ",".join(workload_dirs),
             "--fixtures", fixtures, "--cpus", a.cpus, "--calibration-runs", a.calibration_runs,
             "--work", os.path.join(work, "session"), "--out", "SESSION_OUT"]
     if a.fc_deps:

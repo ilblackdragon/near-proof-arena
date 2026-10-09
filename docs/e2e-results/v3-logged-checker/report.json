@@ -1,0 +1,105 @@
+{
+  "recorded_at": "2026-10-07T02:33:34.208848+00:00",
+  "base_commit": "043b19ccf340057f845d59fd57d92f9c54217e53",
+  "status": "pass_for_listed_checks",
+  "source_sha256": {
+    "spec/lean/v3/NearSpecV3/Logged/WasmRun.lean": "5641bfad9fb8ca8102bd830306f6cbb3b80955db2888ed07139a16ed360c0364",
+    "spec/lean/v3/NearSpecV3/ChallengeChunkV3.lean": "d150b3cf99a0f2f5e55a5499d109d41d2af8b1387c8705259239ba8dd5bff402",
+    "oracle/tools/check_logged.py": "b100a74d9cc192f7a9f2d603926b4705c263754cd6ed297d101b73cc88ef19a7",
+    "oracle/wasm-d3/lean/AuditLogged.lean": "5568a66ad2f1378d065230e6a1d802dfd2bbc6d2fb63cb494e5d3cfc8ca67839"
+  },
+  "checker_binary_sha256": "c5e260763c1067b571e770b3f19f992f2a284471fc15d664f8e74bcc110081d9",
+  "build": {
+    "targets": [
+      "nearspec-v3-check-logged",
+      "NearSpecV3.ChallengeChunkV3"
+    ],
+    "jobs": 195,
+    "success": true
+  },
+  "axiom_audit": {
+    "guarded_declarations": 8,
+    "allowed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "success": true
+  },
+  "corpora": [
+    {
+      "corpus": "d3c7",
+      "cases": 33248,
+      "verdict_and_reason_differences": 0,
+      "three_way_disagreements": 0,
+      "fresh_logged_sha256": "5197fb024eb3dceb4d242f9ac521b7a77920963c8ceb7a7aebfaf20018f9630a"
+    },
+    {
+      "corpus": "d3c8",
+      "cases": 49490,
+      "verdict_and_reason_differences": 0,
+      "three_way_disagreements": 0,
+      "fresh_logged_sha256": "d2f28adb43694604cdb33822cf9a3e3d36d4988737c6a1f9096220a9ec96c09c"
+    },
+    {
+      "corpus": "d3c9",
+      "cases": 15995,
+      "verdict_and_reason_differences": 0,
+      "three_way_disagreements": 0,
+      "fresh_logged_sha256": "98cf9c555dc93624d6cdeb0f4dd34f346d322ccfded7d659e96ab3361091b5bb"
+    },
+    {
+      "corpus": "d3c10",
+      "cases": 16551,
+      "verdict_and_reason_differences": 0,
+      "three_way_disagreements": 0,
+      "fresh_logged_sha256": "8ab7e131cb9469a1f724f7fec704e9396983849a9ce1949b2c9bb26ea1027b91"
+    }
+  ],
+  "corpus_cases": 115284,
+  "baseline_provenance": "Fresh logged runs; original Lean and independent Python results reused from prior complete difftests. Only case paths were remapped after the corpus relocation. Source digests and exact case-set checks are recorded in logged/prior/manifest.json.",
+  "public": [
+    {
+      "suite": "public-chunk-v3",
+      "mode": "d3",
+      "cases": 651,
+      "verdict_and_reason_differences": 0
+    },
+    {
+      "suite": "public-d0-via-d2",
+      "mode": "d2",
+      "cases": 201,
+      "verdict_and_reason_differences": 0
+    },
+    {
+      "suite": "public-d1-via-d2",
+      "mode": "d2",
+      "cases": 529,
+      "verdict_and_reason_differences": 0
+    },
+    {
+      "suite": "public-d2",
+      "mode": "d2",
+      "cases": 339,
+      "verdict_and_reason_differences": 0
+    }
+  ],
+  "public_case_runs": 1720,
+  "public_challenge_outcomes": {
+    "positive_accepts": 407,
+    "rejections_not_accepted": 244,
+    "status": "pass"
+  },
+  "known_stack_overflow_case": "d3c7/ood/00-h10007-s1: original and logged both finish with the same e.g_alpha out-of-domain reason",
+  "regression_runner_unit_tests": 7,
+  "pin_check": "pass",
+  "timings_are_scoring_measurements": false,
+  "artifacts": "/data/illia/nearproof-deps/validation/v3-recovery-20261007-023334",
+  "remaining": [
+    "Full D1/D2 corpus regressions",
+    "Logged WASM harness and trie-accounting traces",
+    "D3 exact read-set reference and check-local including unread-value/code mutators",
+    "D0a workload-class assignment after domain decisions",
+    "Freeze, paired baseline, signing and release"
+  ]
+}

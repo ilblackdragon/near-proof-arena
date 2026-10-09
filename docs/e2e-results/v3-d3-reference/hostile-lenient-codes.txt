@@ -1,0 +1,8 @@
+# hostile near-v3-d3-lenient-codes (canonW keeps the code list): its verifier on code-blob mutants of its own proofs of the 172 public D3 positives (0 = ACCEPTED)
+    125 codes-dup 0
+    172 codes-empty 0
+    172 codes-junk 0
+     60 codes-reorder 0
+    114 codes-to-values 0
+     11 codes-to-values 1
+    172 honest 0

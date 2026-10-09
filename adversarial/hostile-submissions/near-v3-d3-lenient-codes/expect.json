@@ -1,0 +1,23 @@
+{
+  "case": "near-v3-d3-lenient-codes",
+  "attack_family": "proof-malleability",
+  "targets": [
+    "near-v3"
+  ],
+  "runnable": true,
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+    "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The D3a reference (examples/reexec-v3-d3) with a normaliser that fixes every state-witness freedom (ignored fields, receipt-proof entries, reachable base_state values) but keeps the witness file's contract-code list as sent. nearcore (and RelD3) append the code blobs to the main recorded storage as a hash-indexed store, so the blobs' order, duplicates and blobs no executed contract needs (unneeded real code, garbage, empty blobs) are free: reordering, repeating or padding the code list gives a second accepted proof of the same claim. Sound, certificate genuine (soundness and completeness hold for any normaliser), but malleable: the judge's code-blob witness-freedom mutants must find it.",
+  "notes": "Submit against near-chunk-v3 with declared_tier D3a. Derived case: BASE examples/reexec-v3-d3 with formal/ReexecV3D3/Canon.lean replaced (canonW keeps the code list verbatim). Locally: every public positive with >= 1 code blob yields accepted code reorder / duplicate / junk / empty mutants."
+}

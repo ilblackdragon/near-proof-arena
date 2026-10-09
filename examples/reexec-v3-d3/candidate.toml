@@ -1,0 +1,26 @@
+# Reference candidate for near/pv86/chunk-validation/v0, challenge near-chunk-v3
+# (coverage-tiered, CONTRACTS §11), declared tier D3a: re-execution of NearSpecV3.D3.checkD3.
+schema = "arena-candidate-v1"
+name = "reexec-v3-d3"
+agent = "v3-d3"
+challenge = "chl_b44dc87154d4581cf125707b9dd0a7b3"   # near-chunk-v3 unsigned draft id (re-pin after signing: spec/tools/build_challenge_draft_v3_chunk.py checklist)
+backend_family = "reexec-witness"
+security_profile_request = "validity-classical-128"
+hardware = { gpu = false, min_ram_gb = 4 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+verify_route = "native-lean"
+declared_tier = "D3a"
+
+[formal]
+lean_project = "formal"
+certificate = "ReexecV3D3.certificate"
+verifier_model = "ReexecV3D3.Model.verifier"
+verifier_model_module = "ReexecV3D3.Model"

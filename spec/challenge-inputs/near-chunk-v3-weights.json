@@ -1,0 +1,78 @@
+{
+ "schema": "near-arena-class-weights-v1",
+ "challenge": "near-chunk-v3",
+ "weight_source": "Documented assumption (no measured per-chunk mix of these features exists in the repository yet): mainnet traffic is dominated by FunctionCalls, so the D3a classes carry 65% (calls 30%, callbacks 15%, max-G_alpha 15%, non-WASM chunks around contract state 5%); non-WASM receipts/queues/epochs (D2) 17%; plain transfer transactions (D1) 10%; quiet / transfer-receipt / missing-chunk D0 chunks 8%. To be replaced by a measured mix from mainnet replay (docs/HISTORICAL_REPLAY.md) in a versioned successor.",
+ "classes": [
+  {
+   "id": "d0-quiet",
+   "tier": "D0",
+   "weight_ppm": 20000
+  },
+  {
+   "id": "d0-transfers",
+   "tier": "D0",
+   "weight_ppm": 30000
+  },
+  {
+   "id": "d0-missing",
+   "tier": "D0",
+   "weight_ppm": 30000
+  },
+  {
+   "id": "d1-transfers",
+   "tier": "D1",
+   "weight_ppm": 50000
+  },
+  {
+   "id": "d1-mixed",
+   "tier": "D1",
+   "weight_ppm": 20000
+  },
+  {
+   "id": "d1-receipts",
+   "tier": "D1",
+   "weight_ppm": 30000
+  },
+  {
+   "id": "d2-actions",
+   "tier": "D2",
+   "weight_ppm": 80000
+  },
+  {
+   "id": "d2-queues",
+   "tier": "D2",
+   "weight_ppm": 60000
+  },
+  {
+   "id": "d2-epoch",
+   "tier": "D2",
+   "weight_ppm": 30000
+  },
+  {
+   "id": "d3-calls",
+   "tier": "D3a",
+   "weight_ppm": 300000
+  },
+  {
+   "id": "d3-callbacks",
+   "tier": "D3a",
+   "weight_ppm": 150000
+  },
+  {
+   "id": "d3-nonwasm",
+   "tier": "D3a",
+   "weight_ppm": 50000
+  },
+  {
+   "id": "d3-maxgas",
+   "tier": "D3a",
+   "weight_ppm": 150000
+  }
+ ],
+ "spec_docs": [
+  "spec/near-chunk-validation-v0.md",
+  "spec/near-chunk-validation-d1.md",
+  "spec/near-chunk-validation-d2.md",
+  "spec/near-chunk-validation-d3.md"
+ ]
+}

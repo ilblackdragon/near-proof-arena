@@ -20,7 +20,9 @@
 //! cargo run -j 8 -p arena-worker --example bench_session -- \
 //!   --challenge challenges/chl_….json --package pkg.tar --bundle-dir BUILD \
 //!   --public-dir PUB --native-verifier BUILD/out/verify \
-//!   --oracle oracle/target/debug/near-arena-oracle \   (or --oracle-v3 oracle/v3/target/debug/near-arena-oracle-v3)
+//!   --oracle oracle/target/debug/near-arena-oracle \   (or --oracle-v3 oracle/v3/target/debug/near-arena-oracle-v3
+//!                                                        [--oracle-v3-d1 BIN --oracle-v3-d3 BIN] for near-chunk-v3,
+//!                                                        with --generators DIR1,DIR2)
 //!   --generators spec/workloads/near-transfer-receipt-v1 --fixtures oracle/fixtures/public \
 //!   --cpus 8-15 --fc-deps DIR --work DIR --out session.json \
 //!   [--season-secret-file F --season-secret-commit sha256:…]
@@ -256,12 +258,21 @@ fn main() {
             .with_near(PathBuf::from(get("oracle")), Path::new(&get("generators")))
             .unwrap_or_else(|e| die(format!("near oracle: {e}")));
     }
-    if one.contains_key("oracle-v3") {
+    // near-arena-claim-v3: `--oracle-v3` (D0 tool), `--oracle-v3-d1`,
+    // `--oracle-v3-d3`; `--generators` may list several dirs (comma-separated,
+    // e.g. near-chunk-v3's D0 and D1-D3 spec dirs)
+    let v3_bins: BTreeMap<String, PathBuf> = [
+        ("oracle-v3", "near-arena-oracle-v3"),
+        ("oracle-v3-d1", "near-arena-oracle-v3-d1"),
+        ("oracle-v3-d3", "near-arena-oracle-v3-d3"),
+    ]
+    .iter()
+    .filter_map(|(k, tool)| one.get(*k).map(|p| (tool.to_string(), PathBuf::from(p))))
+    .collect();
+    if !v3_bins.is_empty() {
+        let gens: Vec<PathBuf> = get("generators").split(',').map(PathBuf::from).collect();
         oracles = oracles
-            .with_near_v3(
-                PathBuf::from(get("oracle-v3")),
-                &[PathBuf::from(get("generators"))],
-            )
+            .with_near_v3_tools(v3_bins, &gens)
             .unwrap_or_else(|e| die(format!("near v3 oracle: {e}")));
     }
     let fx = oracles

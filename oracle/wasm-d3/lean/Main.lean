@@ -1,3 +1,4 @@
+import LoggedHarness
 import NearSpecV3.Wasm.Exec
 import NearSpecV3.Wasm.ChunkStorage
 import NearSpecV3.Wasm.DomainD3
@@ -57,7 +58,7 @@ def parseCtx (gas : Nat) (tok : Option String) : Option CallCtx := do
 (`oracle/d3-ttn` trace); prints one profile line per call (`TTN.profileLine`). The expected
 columns are skipped here (compared by `oracle/d3-ttn/difftest_ttn.py`). The code is the first
 argument after `--chunk` (hex file path). -/
-def chunkLine (code : ByteArray) (ablate : String) (deltas : Bool) (line : String) : List String := Id.run do
+def chunkLine (logged : Bool) (code : ByteArray) (ablate : String) (deltas : Bool) (line : String) : List String := Id.run do
   let toks := (line.splitOn " ").toArray
   if toks.size < 4 || toks[0]! != "C" then return ["unmodeled bad chunk line"]
   let some root := unhex toks[1]! | return ["unmodeled bad root"]
@@ -78,23 +79,27 @@ def chunkLine (code : ByteArray) (ablate : String) (deltas : Bool) (line : Strin
         | some d => pure d
         | none => return ["unmodeled bad args"]
     calls := { account := toks[b]!, prepaid := gas, input } :: calls
-  TTN.replayChunk pv86 code (TTN.mkStore nodes) root calls.reverse
-    (fun gas => (gas / pv86.regularOpCost + 2) * 64 + 1000000) ablate deltas
+  if logged then
+    LoggedHarness.replayChunk pv86 code (TTN.mkStore nodes) root calls.reverse
+      (fun gas => (gas / pv86.regularOpCost + 2) * 64 + 1000000) ablate deltas
+  else
+    TTN.replayChunk pv86 code (TTN.mkStore nodes) root calls.reverse
+      (fun gas => (gas / pv86.regularOpCost + 2) * 64 + 1000000) ablate deltas
 
-partial def chunkLoop (code : ByteArray) (ablate : String) (deltas : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
+partial def chunkLoop (logged : Bool) (code : ByteArray) (ablate : String) (deltas : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let line := line.trimAscii.toString
   if !line.isEmpty then
-    for l in chunkLine code ablate deltas line do stdout.putStrLn l
+    for l in chunkLine logged code ablate deltas line do stdout.putStrLn l
     stdout.flush
-  chunkLoop code ablate deltas stdin stdout
+  chunkLoop logged code ablate deltas stdin stdout
 
-partial def loop (bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
+partial def loop (logged bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let line := line.trimAscii.toString
-  if line.isEmpty then loop bl sizeMode full cpMode stdin stdout else
+  if line.isEmpty then loop logged bl sizeMode full cpMode stdin stdout else
   let parts := line.splitOn " "
   match parts with
   | g :: h :: rest =>
@@ -106,11 +111,12 @@ partial def loop (bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.Stream) 
         let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
         stdout.putStrLn (if sizeMode then preparedSizeLine pv86 code
           else if cpMode then chargePointsLine pv86 code
+          else if logged then LoggedHarness.mockOutcome pv86 code "main" ctx fuel bl full
           else outcome pv86 code "main" ctx fuel bl full)
     | _, _ => stdout.putStrLn "unmodeled bad input"
   | _ => stdout.putStrLn "unmodeled bad input"
   stdout.flush
-  loop bl sizeMode full cpMode stdin stdout
+  loop logged bl sizeMode full cpMode stdin stdout
 
 def main (args : List String) : IO Unit := do
   if let some code := (match args with
@@ -119,7 +125,7 @@ def main (args : List String) : IO Unit := do
     let some c := unhex (← IO.FS.readFile code).trimAscii.toString | throw (IO.userError "bad code hex")
     let ablate := if args.contains "--ablate-cache" then "cache"
       else if args.contains "--ablate-overlay" then "overlay" else ""
-    chunkLoop c ablate (args.contains "--deltas") (← IO.getStdin) (← IO.getStdout)
+    chunkLoop (args.contains "--logged") c ablate (args.contains "--deltas") (← IO.getStdin) (← IO.getStdout)
     return
-  loop (!args.contains "--instruction-level-metering") (args.contains "--prepared-size")
+  loop (args.contains "--logged") (!args.contains "--instruction-level-metering") (args.contains "--prepared-size")
     (args.contains "--full") (args.contains "--charge-points") (← IO.getStdin) (← IO.getStdout)

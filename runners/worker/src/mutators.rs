@@ -576,6 +576,12 @@ impl ProofMutator for V3IgnoredFields {
 /// * `codes/reorder`, `codes/duplicate`, `codes/inject-unused` (witnesses with contract code,
 ///   D3): the code blobs are appended to the main `base_state` by the partial-witness tracker
 ///   (`pwt.rs:693-696`), so their order, repeats and unneeded blobs are the same freedom.
+/// * `values/inject-unread.<t>`, `codes/inject-unread` ([`v3_unread_mutants`]): **true
+///   preimages** that the relation does not read — a node or value referenced by a node of the
+///   witness but absent from it (a sibling subtree, a value only checked for existence), and the
+///   code blob of an account in the recorded state whose contract is not executed — drawn from the
+///   other honest proofs of the run. A verifier whose normal form keeps everything *reachable*
+///   (rather than exactly what is read) accepts these.
 ///
 /// `<t>` is `main` or `implicit<i>`. The walker knows every D0–D3 witness shape (transactions,
 /// all receipt and action kinds, code blobs); `transactions`, `new_transactions` and the
@@ -692,14 +698,172 @@ pub fn v3_freedom_mutants(file: &[u8]) -> Vec<(String, Vec<u8>)> {
     out
 }
 
+/// Child-node and value hashes a `RawTrieNodeWithSize` references (`raw_node.rs:10-92`; the shapes
+/// `NearSpecV3.D2.revealAll` decodes: leaf, branch with / without value, extension). Bytes that are
+/// not exactly such a node give nothing.
+pub fn v3_node_refs(node: &[u8]) -> Vec<[u8; 32]> {
+    let h32 = |b: &[u8]| -> [u8; 32] { b.try_into().unwrap() };
+    let u32at = |b: &[u8], i: usize| -> Option<usize> {
+        Some(u32::from_le_bytes(b.get(i..i + 4)?.try_into().ok()?) as usize)
+    };
+    let kids = |r: &[u8]| -> Option<Vec<[u8; 32]>> {
+        let bm = u16::from_le_bytes(r.get(0..2)?.try_into().ok()?);
+        let n = bm.count_ones() as usize;
+        (r.len() == 2 + 32 * n).then_some(())?;
+        Some(
+            (0..n)
+                .map(|i| h32(&r[2 + 32 * i..2 + 32 * (i + 1)]))
+                .collect(),
+        )
+    };
+    let parse = || -> Option<Vec<[u8; 32]>> {
+        let body = node.get(..node.len().checked_sub(8)?)?;
+        let (&tag, rest) = body.split_first()?;
+        match tag {
+            0 => {
+                let k = u32at(rest, 0)?;
+                let r2 = rest.get(4 + k..)?;
+                (r2.len() == 36).then(|| vec![h32(&r2[4..36])])
+            }
+            3 => {
+                let k = u32at(rest, 0)?;
+                let c = rest.get(4 + k..)?;
+                (c.len() == 32).then(|| vec![h32(c)])
+            }
+            1 => kids(rest),
+            2 => {
+                let v = h32(rest.get(4..36)?);
+                let mut ks = kids(rest.get(36..)?)?;
+                ks.push(v);
+                Some(ks)
+            }
+            _ => None,
+        }
+    };
+    if node.len() < 9 {
+        return vec![];
+    }
+    parse().unwrap_or_default()
+}
+
+/// The values and code blobs of a set of witness files, by SHA-256: true preimages that the
+/// unread-preimage mutants draw from.
+#[derive(Default)]
+pub struct V3Pool {
+    pub values: std::collections::BTreeMap<[u8; 32], Vec<u8>>,
+    pub codes: std::collections::BTreeMap<[u8; 32], Vec<u8>>,
+}
+
+fn sha256(b: &[u8]) -> [u8; 32] {
+    use sha2::{Digest as _, Sha256};
+    Sha256::digest(b).into()
+}
+
+impl V3Pool {
+    pub fn add(&mut self, file: &[u8]) {
+        let Some(l) = v3_layout(file) else { return };
+        let sw = &file[l.sw_start..l.sw_start + l.sw_len];
+        for t in std::iter::once(&l.main).chain(l.implicit.iter()) {
+            for &(a, b) in &t.values {
+                let v = &sw[a + 4..b];
+                self.values.entry(sha256(v)).or_insert_with(|| v.to_vec());
+            }
+        }
+        for &(a, b) in &l.codes {
+            let c = &file[a + 4..b];
+            self.codes.entry(sha256(c)).or_insert_with(|| c.to_vec());
+        }
+    }
+}
+
+/// **Unread but valid** additions to a witness (semantics-preserving: nearcore's validator and
+/// `RelD3` accept the mutant iff they accept the witness), drawn from `pool`:
+///
+/// * `values/inject-unread.<t>`: the true preimage of a hash that a value of transition `t`'s
+///   store references as a child node or a leaf value, absent from that store (so never read: an
+///   accepted witness reads every node and value it walks to), e.g. a sibling subtree's node or
+///   an account's value that was only checked for existence. Appended to `t`'s `base_state`.
+/// * `codes/inject-unread`: a contract-code blob (a code blob of some witness in `pool`) whose
+///   SHA-256 occurs in a value of the main store, i.e. the code hash of an account in the
+///   recorded state, absent from the main store: its contract is not executed from the witness.
+///   Appended to `contract_code`.
+///
+/// One mutant per transition / for the code list at most (the smallest qualifying hash).
+pub fn v3_unread_mutants(file: &[u8], pool: &V3Pool) -> Vec<(String, Vec<u8>)> {
+    let Some(l) = v3_layout(file) else {
+        return vec![];
+    };
+    let sw = &file[l.sw_start..l.sw_start + l.sw_len];
+    let vals =
+        |t: &V3Transition| -> Vec<&[u8]> { t.values.iter().map(|&(a, b)| &sw[a + 4..b]).collect() };
+    let codes: Vec<&[u8]> = l.codes.iter().map(|&(a, b)| &file[a + 4..b]).collect();
+    let mut out = vec![];
+    let mut ts = vec![("main".to_string(), &l.main)];
+    for (i, t) in l.implicit.iter().enumerate() {
+        ts.push((format!("implicit{i}"), t));
+    }
+    for (name, t) in &ts {
+        let mut store: Vec<&[u8]> = vals(t);
+        if name == "main" {
+            store.extend(codes.iter().copied());
+        }
+        let present: std::collections::BTreeSet<[u8; 32]> =
+            store.iter().map(|v| sha256(v)).collect();
+        let refs: std::collections::BTreeSet<[u8; 32]> =
+            vals(t).iter().flat_map(|v| v3_node_refs(v)).collect();
+        if let Some(v) = refs
+            .iter()
+            .filter(|h| !present.contains(*h))
+            .find_map(|h| pool.values.get(h))
+        {
+            let end = t.values.last().map_or(t.nvals_at + 4, |x| x.1);
+            let mut enc = (v.len() as u32).to_le_bytes().to_vec();
+            enc.extend_from_slice(v);
+            let sw2 = v3_splice(sw, end, end, &enc, t.nvals_at, 1);
+            out.push((
+                format!("values/inject-unread.{name}"),
+                v3_rebuild(file, &l, sw2),
+            ));
+        }
+    }
+    let present: std::collections::BTreeSet<[u8; 32]> = vals(&l.main)
+        .iter()
+        .chain(codes.iter())
+        .map(|v| sha256(v))
+        .collect();
+    let in_state = |h: &[u8; 32]| vals(&l.main).iter().any(|v| v.windows(32).any(|w| w == h));
+    if let Some(c) = pool
+        .codes
+        .iter()
+        .find(|(h, _)| !present.contains(*h) && in_state(h))
+        .map(|(_, c)| c)
+    {
+        let end = l.codes.last().map_or(l.codes_count_at + 4, |x| x.1);
+        let mut enc = (c.len() as u32).to_le_bytes().to_vec();
+        enc.extend_from_slice(c);
+        out.push((
+            "codes/inject-unread".to_string(),
+            v3_splice(file, end, end, &enc, l.codes_count_at, 1),
+        ));
+    }
+    out
+}
+
 impl ProofMutator for V3WitnessFreedoms {
     fn name(&self) -> &str {
         "v3-witness-freedoms"
     }
     fn mutate(&self, ctx: &MutationCtx<'_>, _: &mut SplitMix64) -> Vec<HostileInput> {
+        let mut pool = V3Pool::default();
+        for p in ctx.honest {
+            pool.add(&p.proof);
+        }
         let mut out = vec![];
         for p in ctx.honest {
-            for (label, q) in v3_freedom_mutants(&p.proof) {
+            let ms = v3_freedom_mutants(&p.proof)
+                .into_iter()
+                .chain(v3_unread_mutants(&p.proof, &pool));
+            for (label, q) in ms {
                 out.push(h(
                     format!("v3-witness-freedoms/{label}/{}", p.case_id),
                     &p.claim,

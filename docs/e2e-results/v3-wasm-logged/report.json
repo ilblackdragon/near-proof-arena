@@ -1,0 +1,197 @@
+{
+  "recorded_at": "2026-10-07T04:03:22.378214+00:00",
+  "base_commit": "51b58c86d0cebce044b226046de5c067e59b9eda",
+  "status": "pass_for_listed_checks",
+  "scope": "Mock-storage WASM harness, fresh original/logged/nearcore outcomes; not a chunk certificate",
+  "lean_build": {
+    "target": "nearspec-v3-wasm",
+    "jobs": 143,
+    "status": "pass"
+  },
+  "exact_original_logged": {
+    "scope": "Exact original-versus-logged Lean mock WASM outcomes; no fresh nearcore run",
+    "binary_sha256": "4ce100d191a4400da605b626192ecd9aadc820dcbb359fc91c62234d33cc3f12",
+    "families": [
+      {
+        "family": [
+          "opcodes"
+        ],
+        "cases": 9175,
+        "differences": 0,
+        "seconds": 2.0117757408879697,
+        "case_sha256": "4e3cc656860cea13cb1bf22d8c074d0a2bfe8f536a55945c79e19d73470174e7",
+        "original_sha256": "f1f505f8ced04bc9ff21c003f165628ff42a9d4e66c80af8bbedd38773809cec",
+        "logged_sha256": "f1f505f8ced04bc9ff21c003f165628ff42a9d4e66c80af8bbedd38773809cec"
+      },
+      {
+        "family": [
+          "hostedges"
+        ],
+        "cases": 446,
+        "differences": 0,
+        "seconds": 0.28521856712177396,
+        "case_sha256": "aec16d6d8c8fef3c26102e11de5caed251ecfb04e5cb490f4cf95ae41433586a",
+        "original_sha256": "2c2070822a9a28f8da15207600ef2617cccf0650e22f8bd3dbc26237036772a7",
+        "logged_sha256": "2c2070822a9a28f8da15207600ef2617cccf0650e22f8bd3dbc26237036772a7"
+      },
+      {
+        "family": [
+          "random",
+          "2000",
+          "1"
+        ],
+        "cases": 2000,
+        "differences": 0,
+        "seconds": 71.10690320003778,
+        "case_sha256": "ac40b7e97b770480cd84c20f36ad767bdac7f703cd2868c65f6babe9b1c02877",
+        "original_sha256": "c056a8dccede464813bf18a560015dad3f0bb190f8cfc8c0aa498affe377d45f",
+        "logged_sha256": "c056a8dccede464813bf18a560015dad3f0bb190f8cfc8c0aa498affe377d45f"
+      },
+      {
+        "family": [
+          "host",
+          "1000",
+          "1"
+        ],
+        "cases": 1000,
+        "differences": 0,
+        "seconds": 0.5266682412475348,
+        "case_sha256": "c0a843f30cf88e33ae802d0c49b05b8a2c4e856b82f335cfddea1ff6c2826f31",
+        "original_sha256": "167434711fe16e1147dffc4f22b2e5715b6ff4b7b6e712042e4fb47f0ea581a8",
+        "logged_sha256": "167434711fe16e1147dffc4f22b2e5715b6ff4b7b6e712042e4fb47f0ea581a8"
+      },
+      {
+        "family": [
+          "mutate",
+          "1000",
+          "1"
+        ],
+        "cases": 1000,
+        "differences": 0,
+        "seconds": 0.08668366121128201,
+        "case_sha256": "dd96d553872aee4336f22c9271dfe618fd78f20aa9a17687a20982fa4207f12f",
+        "original_sha256": "83ef0a908dd9c5aca9b43b81d91c3b79936b8c60a0c5c3f7668fec2867a176c1",
+        "logged_sha256": "83ef0a908dd9c5aca9b43b81d91c3b79936b8c60a0c5c3f7668fec2867a176c1"
+      },
+      {
+        "family": [
+          "promise",
+          "1000",
+          "1"
+        ],
+        "cases": 1000,
+        "differences": 0,
+        "seconds": 0.3353524222038686,
+        "case_sha256": "ac8c0efc51c3cbe6f98295800622fd3dcd5061c250820d6bd4cf45a2ab181870",
+        "original_sha256": "6389f83c7930865414dcd1a83e58f7c08826e681c3e9fe422e41c53d287215c8",
+        "logged_sha256": "6389f83c7930865414dcd1a83e58f7c08826e681c3e9fe422e41c53d287215c8"
+      }
+    ]
+  },
+  "fresh_nearcore_logged": [
+    {
+      "family": [
+        "opcodes"
+      ],
+      "cases": 9175,
+      "compared": 9174,
+      "out_of_domain": 1,
+      "unmodeled": 0,
+      "disagreements": 0,
+      "log": "/data/illia/nearproof-deps/validation/v3-wasm-logged-20261007/opcodes.nearcore-comparison.log",
+      "log_sha256": "e2287dd208370f565f8fa42cd26e9bf60a942a8e1f6b2d17ef8d7cce7b1b9428"
+    },
+    {
+      "family": [
+        "hostedges"
+      ],
+      "cases": 446,
+      "compared": 446,
+      "out_of_domain": 0,
+      "unmodeled": 0,
+      "disagreements": 0,
+      "log": "/data/illia/nearproof-deps/validation/v3-wasm-logged-20261007/hostedges.nearcore-comparison.log",
+      "log_sha256": "44a5176211b6d6dc28dd2b1ae42885cbce744efb70fecfeca05d005b31743988"
+    },
+    {
+      "family": [
+        "random",
+        "2000",
+        "1"
+      ],
+      "cases": 2000,
+      "compared": 2000,
+      "out_of_domain": 0,
+      "unmodeled": 0,
+      "disagreements": 0,
+      "log": "/data/illia/nearproof-deps/validation/v3-wasm-logged-20261007/random-2000-1.nearcore-comparison.log",
+      "log_sha256": "15db9596f3f63f36f94303e3e2bd8b2079b43b0214b743638c5542fd63c93a1e"
+    },
+    {
+      "family": [
+        "host",
+        "1000",
+        "1"
+      ],
+      "cases": 1000,
+      "compared": 1000,
+      "out_of_domain": 0,
+      "unmodeled": 0,
+      "disagreements": 0,
+      "log": "/data/illia/nearproof-deps/validation/v3-wasm-logged-20261007/host-1000-1.nearcore-comparison.log",
+      "log_sha256": "663c7f6cb4deadabfdaa8f05347992c76268ee5cd5147998c275c208429dd025"
+    },
+    {
+      "family": [
+        "promise",
+        "1000",
+        "1"
+      ],
+      "cases": 1000,
+      "compared": 1000,
+      "out_of_domain": 0,
+      "unmodeled": 0,
+      "disagreements": 0,
+      "log": "/data/illia/nearproof-deps/validation/v3-wasm-logged-20261007/promise-1000-1.nearcore-comparison.log",
+      "log_sha256": "cc3226c8a264f929ca1b830cf081878b6a0bd2f07b07efd480d505d81767fe91"
+    },
+    {
+      "family": [
+        "mutate",
+        "1000",
+        "1"
+      ],
+      "cases": 1000,
+      "compared": 990,
+      "out_of_domain": 10,
+      "unmodeled": 0,
+      "disagreements": 0,
+      "log": "/data/illia/nearproof-deps/validation/v3-wasm-logged-20261007/mutate-1000-1.nearcore-comparison.log",
+      "log_sha256": "14dd43f742ec756fe8292863d46b49e0689dd3d545f7519a3a585cec5f02807b"
+    }
+  ],
+  "totals": {
+    "cases": 14621,
+    "compared": 14610,
+    "out_of_domain": 11,
+    "unmodeled": 0,
+    "disagreements": 0
+  },
+  "nearcore_harness_sha256": "ee4475d8d36de5abfd6c6e6081a6971e2fc9fc595a80dcdc1c1657f6feb64f23",
+  "source_sha256": {
+    "oracle/wasm-d3/lean/LoggedHarness.lean": "3b8259b69f0c7b2364505552d462b582ad5f605db8a0983406158834e8089847",
+    "oracle/wasm-d3/lean/Main.lean": "4b0a35a6f9b41d582304a769e946f72597b7e1894f067f30c091e6d9673a951c",
+    "oracle/tools/harness_io.py": "bb519ff9479d732f0d65b63cbad9182c0f69b40e9a99ac3034870f0ade2f75af",
+    "oracle/wasm-d3/tests/difftest.py": "a5fdd4c224e28062bf11b519ef561d26578e82e80d815c0e042f1770bd81ea09",
+    "oracle/wasm-d3/tests/promise_cases.py": "4d76d59b07b3de58b07cb32252d040b66b28568924d97033c464adcd7900de87"
+  },
+  "tests": {
+    "light_runner_tests": 28,
+    "pin_check": "pass"
+  },
+  "limits": [
+    "Logged trie-backed replay is implemented and builds; actual TTN trace tests are still pending.",
+    "Wall times are diagnostic, not scoring measurements.",
+    "The 11 out-of-domain cases are included in original/logged exact parity but excluded from nearcore in-domain outcome comparison."
+  ]
+}

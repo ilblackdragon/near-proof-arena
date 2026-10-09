@@ -72,9 +72,14 @@ pub struct WorkerConfig {
     /// `near-arena-oracle` binary + workload generator specs dirs (NEAR
     /// oracles v1 and v2; `ARENA_WORKLOAD_GENERATORS`, comma-separated).
     pub near_oracle: Option<PathBuf>,
-    /// `near-arena-oracle-v3` (claim encoding `near-arena-claim-v3`); uses
-    /// the same `ARENA_WORKLOAD_GENERATORS` dirs (its own specs only).
-    pub near_oracle_v3: Option<PathBuf>,
+    /// `near-arena-claim-v3` oracle binaries by tool name
+    /// (`crate::oracle::NEAR_V3_TOOLS`): `ARENA_NEAR_ORACLE_V3`
+    /// (`near-arena-oracle-v3`, D0), `ARENA_NEAR_ORACLE_V3_D1`
+    /// (`near-arena-oracle-v3-d1`, D1/D2), `ARENA_NEAR_ORACLE_V3_D3`
+    /// (`near-arena-oracle-v3-d3`, D3α). Each generator spec in
+    /// `ARENA_WORKLOAD_GENERATORS` names its tool; a challenge whose specs
+    /// need a tool not configured here fails closed.
+    pub near_oracle_v3: BTreeMap<String, PathBuf>,
     pub workload_generators: Vec<PathBuf>,
     /// Judge-only held-out set directories (`ARENA_HELDOUT_DIRS`), matched to
     /// `workload_suite.heldout_commitment` by TreeDigest. When set, committed
@@ -359,7 +364,10 @@ impl WorkerConfig {
             interp_ref: s.get("ARENA_INTERP_REF").map(PathBuf::from),
             calibration_bin: s.get("ARENA_CALIBRATION_BIN").map(PathBuf::from),
             near_oracle: s.get("ARENA_NEAR_ORACLE").map(PathBuf::from),
-            near_oracle_v3: s.get("ARENA_NEAR_ORACLE_V3").map(PathBuf::from),
+            near_oracle_v3: crate::oracle::NEAR_V3_TOOLS
+                .iter()
+                .filter_map(|t| s.get(t.env).map(|p| (t.name.to_string(), PathBuf::from(p))))
+                .collect(),
             workload_generators: dir_list(s.get("ARENA_WORKLOAD_GENERATORS")),
             heldout_dirs: dir_list(s.get("ARENA_HELDOUT_DIRS")),
             season_secret_file: s.get("ARENA_SEASON_SECRET_FILE").map(PathBuf::from),
@@ -413,6 +421,38 @@ mod tests {
         assert_eq!(c.kinds.len(), 6);
         assert_eq!(c.backend, "bwrap-dev");
     }
+    #[test]
+    fn near_v3_oracle_binaries_by_tool() {
+        let base = [
+            ("ARENA_SERVER_URL", "http://x"),
+            ("ARENA_WORKER_TOKEN", "t"),
+        ];
+        let c = WorkerConfig::load(&Settings::new(env(&base), None).unwrap()).unwrap();
+        assert!(c.near_oracle_v3.is_empty());
+        let mut kv = base.to_vec();
+        kv.push(("ARENA_NEAR_ORACLE_V3", "/b/near-arena-oracle-v3"));
+        let c = WorkerConfig::load(&Settings::new(env(&kv), None).unwrap()).unwrap();
+        assert_eq!(
+            c.near_oracle_v3,
+            BTreeMap::from([(
+                "near-arena-oracle-v3".to_string(),
+                PathBuf::from("/b/near-arena-oracle-v3")
+            )])
+        );
+        kv.push(("ARENA_NEAR_ORACLE_V3_D1", "/b/d1"));
+        kv.push(("ARENA_NEAR_ORACLE_V3_D3", "/b/d3"));
+        let c = WorkerConfig::load(&Settings::new(env(&kv), None).unwrap()).unwrap();
+        assert_eq!(
+            c.near_oracle_v3["near-arena-oracle-v3-d1"],
+            PathBuf::from("/b/d1")
+        );
+        assert_eq!(
+            c.near_oracle_v3["near-arena-oracle-v3-d3"],
+            PathBuf::from("/b/d3")
+        );
+        assert_eq!(c.near_oracle_v3.len(), 3);
+    }
+
     #[test]
     fn file_and_env_precedence() {
         let s = Settings::new(

@@ -1,0 +1,48 @@
+import ReexecV3D3.Canon
+/-! Developer test helper, NOT part of the package build: writes witness-freedom mutants of a D3
+proof file (`FreedomMutants PROOF OUTPREFIX`) for docs/e2e-results/v3-d3-reference/freedom-mutants.txt.
+Build it as a `lean_exe` in a scratch Lake project that requires the vendored packages and
+`formal/` (see the README). -/
+/-! Test helper: witness-freedom mutants of a D3 proof (outside the package). -/
+open NearSpec NearSpecV3 NearSpecV3.D2 ReexecV3D3
+def swap2 {α} : List α → List α | a :: b :: r => b :: a :: r | l => l
+def encRaw (s : SW) (mainVals : List Bytes) (entries : List Bytes) (implVals : List (List Bytes))
+    (hi sig bh : Bytes) : Bytes :=
+  [1] ++ s.eid ++ [2] ++ s.inner ++ hi ++ sig ++ (bh ++ [0] ++ encList borshBytes mainVals ++ s.main.postStateRoot) ++
+    u32 entries.length ++ concatAll entries ++ s.arh ++ s.txs ++
+    u32 s.implicit.length ++ concatAll ((s.implicit.zip implVals).map fun (t, v) => encT t v) ++ s.newTxs
+def main (args : List String) : IO UInt32 := do
+  let w := (← IO.FS.readBinFile args[0]!).toList
+  let out := args[1]!
+  match decodeWitnessFile w with
+  | .error e => IO.println e; return 1
+  | .ok (swb, codes) =>
+  match parseSW swb with
+  | .error e => IO.println e; return 1
+  | .ok s =>
+    let es := s.entries.map (·.2)
+    let iv := s.implicit.map (·.values)
+    let z8 := zeros 8; let zs := [0] ++ zeros 64; let z32 := zeros 32
+    let junk : Bytes := "nearproof:v3-witness-freedoms:unused".toUTF8.toList
+    let mut ms : List (String × Bytes) := [
+      ("values-reorder", wrapW (encRaw s (swap2 s.main.values) es iv z8 zs z32) codes),
+      ("values-dup", wrapW (encRaw s (s.main.values ++ s.main.values.take 1) es iv z8 zs z32) codes),
+      ("values-junk", wrapW (encRaw s (s.main.values ++ [junk]) es iv z8 zs z32) codes),
+      ("entries-dup", wrapW (encRaw s s.main.values (es ++ es.reverse.take 1) iv z8 zs z32) codes),
+      ("entries-reorder", wrapW (encRaw s s.main.values (swap2 es) iv z8 zs z32) codes),
+      ("height-included", wrapW (encRaw s s.main.values es iv (u64 1) zs z32) codes),
+      ("signature", wrapW (encRaw s s.main.values es iv z8 ([0] ++ zeros 63 ++ [1]) z32) codes),
+      ("block-hash", wrapW (encRaw s s.main.values es iv z8 zs (zeros 31 ++ [1])) codes),
+      ("codes-junk", wrapW swb (codes ++ [junk])),
+      ("codes-empty", wrapW swb (codes ++ [[]])),
+      ("codes-dup", wrapW swb (codes ++ codes.take 1)),
+      ("codes-reorder", wrapW swb (swap2 codes)),
+      ("value-to-codes", wrapW (encRaw s (s.main.values.drop 1) es iv z8 zs z32) (codes ++ s.main.values.take 1)),
+      ("codes-to-values", wrapW (encRaw s (s.main.values ++ codes.take 1) es iv z8 zs z32) (codes.drop 1))]
+    if !iv.isEmpty then
+      ms := ms ++ [("implicit-reorder", wrapW (encRaw s s.main.values es (iv.map swap2) z8 zs z32) codes),
+                   ("implicit-junk", wrapW (encRaw s s.main.values es (iv.map (· ++ [junk])) z8 zs z32) codes),
+                   ("implicit-dup", wrapW (encRaw s s.main.values es (iv.map fun v => v ++ v.take 1) z8 zs z32) codes)]
+    for (n, m) in ms do
+      if m != w then IO.FS.writeBinFile s!"{out}.{n}" (ByteArray.mk m.toArray)
+    return 0

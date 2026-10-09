@@ -124,6 +124,52 @@ pub struct WorkloadSuite {
     /// Baseline candidate submission id and per-class baseline medians (ns).
     pub baseline_submission: Option<String>,
     pub baseline_ns: Vec<(String, u64)>,
+    /// Where the class weights come from (v1.7, additive; absent ⇒ not
+    /// serialized, so existing challenge ids are unchanged). docs/CONTRACTS.md
+    /// §11, docs/BENCHMARK_SPEC.md §17.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub weight_source: Option<WeightSource>,
+}
+
+/// Provenance of `WorkloadSuite` class weights (contracts v1.7, additive).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct WeightSource {
+    pub status: WeightSourceStatus,
+    /// What the weights rest on (the assumption, or how they were measured).
+    pub note: String,
+    /// Repo-relative path or digest of the supporting record (the documented
+    /// assumption, or the measurement report). Required for `MEASURED`.
+    #[serde(default, rename = "ref", skip_serializing_if = "Option::is_none")]
+    pub reference: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum WeightSourceStatus {
+    /// Documented assumption; no measured mix exists yet.
+    Assumed,
+    /// Measured from a real-chain mix (e.g. mainnet replay).
+    Measured,
+}
+
+impl WeightSource {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.note.trim().is_empty() {
+            return Err("weight_source.note is empty".into());
+        }
+        if self
+            .reference
+            .as_deref()
+            .is_some_and(|r| r.trim().is_empty())
+        {
+            return Err("weight_source.ref is empty (omit it instead)".into());
+        }
+        if self.status == WeightSourceStatus::Measured && self.reference.is_none() {
+            return Err("weight_source.status MEASURED requires a ref to the measurement".into());
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -318,8 +364,12 @@ impl ChallengeDefinition {
             Some(s) => s.validate(self),
         }
     }
-    /// Validate the optional `coverage` section against this challenge.
+    /// Validate the optional `coverage` section and the optional
+    /// `workload_suite.weight_source` (both v1.7) against this challenge.
     pub fn check_coverage(&self) -> Result<(), String> {
+        if let Some(w) = &self.workload_suite.weight_source {
+            w.validate()?;
+        }
         match &self.coverage {
             None => Ok(()),
             Some(c) => c.validate(self),

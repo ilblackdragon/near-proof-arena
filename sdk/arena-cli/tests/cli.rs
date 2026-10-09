@@ -749,6 +749,7 @@ fn sample_challenge() -> arena_types::ChallengeDefinition {
             heldout_commitment: d.clone(),
             baseline_submission: None,
             baseline_ns: vec![],
+            weight_source: None,
         },
         measurement: MeasurementProcedure {
             warmup_runs: 1,

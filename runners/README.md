@@ -212,6 +212,18 @@ __arena-sandbox-helper`, so one binary is deployed).
   digests) and a judge seed, so nothing the server stores can steer them.
   Unknown formats leave the conformance / adversarial / benchmark gates
   `UNKNOWN`.
+* `near-arena-claim-v3` (`NearV3Oracle`): each generator spec names its oracle
+  tool (`"<tool> gen"`), and the worker runs it with the binary configured for
+  that tool: `ARENA_NEAR_ORACLE_V3` (`near-arena-oracle-v3`, D0),
+  `ARENA_NEAR_ORACLE_V3_D1` (`near-arena-oracle-v3-d1`, `--domain d1|d2`),
+  `ARENA_NEAR_ORACLE_V3_D3` (`near-arena-oracle-v3-d3`, `--domain d3`). An
+  unknown tool or domain, or a tool without a configured binary, fails closed
+  (INFRA_ERROR) before any generator runs. Judge-sampled rejection cases come
+  from the fixed recipe of the challenge's largest domain (D0:
+  `NearV3Oracle::REJECTION_ARGS`, unchanged for the signed D0 challenges; D3α:
+  `REJECTION_ARGS_D3` on the D3 oracle, so every rejection is false at every
+  tier of `near-chunk-v3`). Sampled and held-out cases carry their class id;
+  public fixtures carry none (CONTRACTS §11).
 * Verifiers (`stages/common.rs::verifier_for`): `native` → the candidate's
   built `verify`; `npai-v1` → the JUDGE's `npai-verify` (`ARENA_NPAI_VERIFY`,
   mounted read-only) on the judge-built bytecode with `--fuel

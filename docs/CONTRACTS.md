@@ -345,6 +345,21 @@ without the new fields behave exactly as in v1.6.
   leak a few bits per class about the secret inputs. Mitigation: publish held-out coverage only in
   aggregate, `share_ppm` over all held-out classes, until a successor rotates the set.
 
+**Known limitation of `near-chunk-v3` v3.0: the union statement.**
+
+* **What it is.** The statement is `RelD0 ∨ RelD1 ∨ RelD2 ∨ RelD3`. Each disjunct is its own Lean
+  transcription of nearcore, so the trusted surface is all four, and the statement's soundness is
+  only as strong as the weakest of them.
+* **How it was checked.** The rungs were difftested against nearcore and against each other: the
+  D0 ⊂ D1 ⊂ D2 ⊂ D3 subset checks found no rung accepting what nearcore rejects. Those checks are
+  tests, not proofs.
+* **Follow-up (lane item, successor version).** Restructure the lower domains as literal
+  restrictions of the top relation: `Rel_Dk := RelD3 ∧ InDk` by definition, with `InDk` decidable.
+  `rel_mono` then becomes `RelDk → RelD3` by projection, and the statement of a successor version
+  can be `RelD3` alone, with one transcription in the trusted surface. The current per-rung checkers
+  (`checkD0`, `checkD1`, `checkD2`) remain as fast implementations, admitted only through proved
+  agreement with `RelD3 ∧ InDk`.
+
 **Versioning.**
 
 * A larger formalized domain (D4, D∞) is a **versioned successor** of the same challenge. It adds
@@ -353,3 +368,26 @@ without the new fields behave exactly as in v1.6.
 * A candidate admitted to the predecessor may be resubmitted unchanged; its tier still exists.
 * The signed `near-chunk-validation-d0*` challenges stay as history. Their entries can be
   resubmitted to `near-chunk-v3` with `declared_tier = "D0"`.
+
+**Class-weight source (v1.7, additive).**
+
+* `WorkloadSuite.weight_source: Option<WeightSource>`, serialized only when present (existing
+  challenge ids are unchanged):
+  ```
+  WeightSource {
+    status: "ASSUMED" | "MEASURED",   // documented assumption, or a measured real-chain mix
+    note:   "<what the weights rest on>",          // non-empty
+    ref?:   "<repo path or digest of the record>"  // required for MEASURED
+  }
+  ```
+  Unknown fields or statuses are refused. It is validated with `coverage`
+  (`ChallengeDefinition::check_coverage`: `arena-admin verify`, server registration). It is
+  provenance only: no gate or score reads it.
+* `near-chunk-v3` carries `ASSUMED` (ref `spec/challenge-inputs/near-chunk-v3-weights.json`). A mix
+  measured by mainnet replay is a follow-up and comes as a versioned successor with `MEASURED`.
+
+**Judge oracles for a tiered challenge (worker; not a wire contract).** Each generator spec names
+its oracle tool, and the worker runs the binary configured for that tool (`ARENA_NEAR_ORACLE_V3`,
+`…_D1`, `…_D3`). A tool that is unknown or not configured fails closed. Judge-sampled rejection
+cases come from the recipe of the largest domain among the classes (D3α for `near-chunk-v3`), so
+each one is false at every tier. The signed D0 challenges keep the D0 recipe.

@@ -1,0 +1,388 @@
+{
+  "schema": "arena-challenge-v1",
+  "name": "near-chunk-v3",
+  "season": "2026-s1",
+  "tier": "formal",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "arena-v3-local",
+  "runtime_config_digest": "sha256:fbca57f010a9a51d84dc5b5d9d3726f562b43dd40671ca39d45eba15bf8d0351",
+  "semantic_scope": {
+    "name": "near/pv86/chunk-validation/v0#D3a",
+    "kind": "subset",
+    "granularity": "chunk_validation",
+    "restrictions": [
+      {
+        "id": "c.pv86",
+        "text": "protocol_version = 86 (nearcore 2.13.4) for every epoch of the claim, mainnet runtime parameters RuntimeConfigStore::new(None).get_config(86)"
+      },
+      {
+        "id": "c.layout",
+        "text": "the epoch's shard layout is ShardLayout V2 or V3 with 1..=64 shards"
+      },
+      {
+        "id": "c.same_layout",
+        "text": "all epochs of the claim have the byte-identical shard layout (no resharding); no non-empty outgoing buffer to a shard outside the layout"
+      },
+      {
+        "id": "c.headers",
+        "text": "block headers V6; chunk header inners V4/V5"
+      },
+      {
+        "id": "c.no_split_gate",
+        "text": "no dynamic-resharding split check for any applied block"
+      },
+      {
+        "id": "c.not_genesis",
+        "text": "the last new chunk of the shard is not the genesis chunk"
+      },
+      {
+        "id": "c.segment",
+        "text": "the chain segment has at most 32 blocks"
+      },
+      {
+        "id": "w.size",
+        "text": "state witness <= 8 MiB; sum of the main transition's base_state values and the contract code blobs + 2000 x ContractData removals <= 4,000,000 bytes (the storage-proof limit never triggers)"
+      },
+      {
+        "id": "w.shape",
+        "text": "no DeployGlobalContract / UseGlobalContract / DeterministicStateInit action, no GlobalContractDistribution receipt, no ML-DSA-65 key in any decoded transaction or receipt (incl. receipts created by contracts); transactions carry ED25519 keys and signatures"
+      },
+      {
+        "id": "e.secp",
+        "text": "no SECP256K1 Delegate signature is verified"
+      },
+      {
+        "id": "e.scheduler_state",
+        "text": "the BandwidthSchedulerState value is absent or decodes as V1"
+      },
+      {
+        "id": "e.wasm_alpha",
+        "text": "every executed contract prepares inside D3\u03b1: integer WASM only (no float type or opcode); no executed FunctionCall calls a curve host function (alt_bn128_*, bls12381_*, ecrecover, p256_verify) or a state-init / global-contract / gas-key host function (importing them is allowed); no unmodeled VM outcome"
+      },
+      {
+        "id": "e.global_code",
+        "text": "every FunctionCall receiver's contract is None or Local (global identifiers out of domain); no FunctionCall on an ETH-implicit account with a Local contract (legacy-wallet resolution)"
+      },
+      {
+        "id": "e.code_cache",
+        "text": "cold-cache statement: the code of every executed pre-state contract must be in the witness (else reject); out of domain when such a blob is absent and the same code was deployed earlier in the chunk (committed or rolled back): nearcore's verdict then depends on its compiled-contract cache"
+      },
+      {
+        "id": "e.g_alpha",
+        "text": "the chunk's sum of gas_burnt_for_function_call (incl. host gas) <= G_alpha = 2^22 x 822,756 gas (NearSpecV3.D3.gAlpha), checked after the main transition"
+      }
+    ],
+    "excludes": [
+      "block_finality",
+      "data_availability",
+      "chunk_producer_signatures",
+      "witness_transport_and_part_decoding",
+      "trusted_epoch_facts_correctness",
+      "compiled_contract_cache_dependent_verdicts",
+      "float_wasm_and_curve_host_functions",
+      "global_contracts_and_state_init",
+      "mldsa_and_secp256k1_transactions",
+      "resharding",
+      "dynamic_resharding_split_search",
+      "genesis_main_transition",
+      "witnesses_above_G_alpha",
+      "other_protocol_versions"
+    ],
+    "formal_spec": {
+      "relation_module": "NearSpecV3.ChallengeChunkV3",
+      "relation_decl": "NearSpecV3.RelChunkV3",
+      "tree_digest": "sha256:03fb64fd290a4cac2a4562414255b81425c404bb889a3f663dfe41fa2c26fd59",
+      "lean_toolchain": "leanprover/lean4:v4.34.1"
+    },
+    "spec_doc_digest": "sha256:cbc793c3b2dca9d61887cd7babff2f8f9429bbc7f6cf0a0e8cba7f62c71f0c31"
+  },
+  "claim_encoding": {
+    "format": "near-arena-claim-v3",
+    "spec_digest": "sha256:619f00219fa15099ee451c28c6585aa18bb84ccf47d14313d2d0dc3dd999b6bb",
+    "max_request_bytes": 1048576,
+    "max_witness_bytes": 12582912,
+    "max_claim_bytes": 1048576
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "checker_image": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [
+      [
+        "ArenaCore",
+        "8926b43179ec2bfd2fe75132107efd45945332df"
+      ],
+      [
+        "NearSpec",
+        "8926b43179ec2bfd2fe75132107efd45945332df"
+      ],
+      [
+        "NearSpecV3",
+        "8926b43179ec2bfd2fe75132107efd45945332df"
+      ]
+    ],
+    "recheckers": [
+      "leanchecker",
+      "nanoda",
+      "lean4lean"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION",
+    "AXIOM_AUDIT",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "nearproof-local-ryzen9-9950x3d",
+    "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+    "vcpus": 8,
+    "ram_bytes": 34359738368,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "near-chunk-v3-r1",
+    "classes": [
+      {
+        "id": "d0-quiet",
+        "description": "[D0] D0 chunks with no incoming receipt and no implicit transition: context authentication, empty main transition, bandwidth scheduler, congestion info, Reed-Solomon encoded merkle root",
+        "weight_ppm": 20000,
+        "batch_size": 8,
+        "generator": "sha256:932759a8d2b4681227a101266590cabddb59864ed99f43bccfce0557fa273d92"
+      },
+      {
+        "id": "d0-transfers",
+        "description": "[D0] D0 chunks applying >= 1 incoming cross-shard Transfer receipt, no implicit transition",
+        "weight_ppm": 30000,
+        "batch_size": 8,
+        "generator": "sha256:990878011f58b53c34c91f37307ec1248e5ff14c5c56e823747c61578c979e20"
+      },
+      {
+        "id": "d0-missing",
+        "description": "[D0] D0 chunks after >= 1 missing chunk of the shard (implicit transitions), chains with 25% chunk skips",
+        "weight_ppm": 30000,
+        "batch_size": 8,
+        "generator": "sha256:77ac4648b4a1223725d109d7a7710b7ceeecfe069581e77d70cfaf0fbd74574c"
+      },
+      {
+        "id": "d1-transfers",
+        "description": "[D1] D1 chunks whose last chunk's Transfer transactions all succeed (cross-shard and local self-transfers, V0/V1, monotonic/strict nonces)",
+        "weight_ppm": 50000,
+        "batch_size": 8,
+        "generator": "sha256:4ca063fb38f0cd36aeeb8d64db17a8e8cdf786f9bc6f8fdf75c0365f050e7ff3"
+      },
+      {
+        "id": "d1-mixed",
+        "description": "[D1] D1 chunks with >= 1 Transfer transaction that fails validation or is skipped (an adversarial chunk producer's crafted validity classes: signatures, nonces, keys, balances, expiry, duplicates)",
+        "weight_ppm": 20000,
+        "batch_size": 8,
+        "generator": "sha256:5ff39f2b98457302007c42fc66ad9bce74ba51cfc9596608fc6edb02835d9be6"
+      },
+      {
+        "id": "d1-receipts",
+        "description": "[D1] D1 chunks without transactions in the last chunk (incoming Transfer receipts, new_transactions only, missing chunks) on D1 chains",
+        "weight_ppm": 30000,
+        "batch_size": 8,
+        "generator": "sha256:076e25faae7122e9cb8f4c821515ffb739cc0bf3007e3a51fb89173b33f0f092"
+      },
+      {
+        "id": "d2-actions",
+        "description": "[D2] D2 chunks with every non-WASM action kind, multi-action receipts, Delegate, refunds, data / yield receipts, no queue or epoch feature",
+        "weight_ppm": 80000,
+        "batch_size": 8,
+        "generator": "sha256:a23b57169fdf625b2ff0596aa3e606e1413bbbda4fd9fa2c4f207fd24e8ab6f8"
+      },
+      {
+        "id": "d2-queues",
+        "description": "[D2] D2 chunks with a non-empty delayed-receipt queue or outgoing buffer before or after the chunk (congestion, bandwidth requests)",
+        "weight_ppm": 60000,
+        "batch_size": 8,
+        "generator": "sha256:9e989c563e0770ad621bd70b355abaf5095f38684ea13032afa246aad82649f3"
+      },
+      {
+        "id": "d2-epoch",
+        "description": "[D2] D2 chunks whose segment crosses an epoch boundary or applies a ValidatorAccountsUpdate (validator proposals, stakes)",
+        "weight_ppm": 30000,
+        "batch_size": 8,
+        "generator": "sha256:2d9e4787d613a1604ba15f93fa0edc1cce2782721960afb68445496663efee3a"
+      },
+      {
+        "id": "d3-calls",
+        "description": "[D3a] D3a chunks executing >= 1 WASM FunctionCall without callbacks: storage reads/writes/removes, logs, value returns, cross-contract promises, deploy-and-call, gas exhaustion, failures",
+        "weight_ppm": 300000,
+        "batch_size": 8,
+        "generator": "sha256:f66d6ccefdc24ef1ea1f8f3259fc347911dc31d3fd2d8b8746c772e7ff91b534"
+      },
+      {
+        "id": "d3-callbacks",
+        "description": "[D3a] D3a chunks with callbacks (promise_then / promise_and joins, promise results, yields and resumes)",
+        "weight_ppm": 150000,
+        "batch_size": 8,
+        "generator": "sha256:2afec07117aa43c1dfd50bd8a4d33b61066c03c3d0fe7597b952ff81c495fe77"
+      },
+      {
+        "id": "d3-nonwasm",
+        "description": "[D3a] D3a chunks that execute no WASM (D2 traffic around contract state: deploys, yield timeouts, forwarded FunctionCall receipts)",
+        "weight_ppm": 50000,
+        "batch_size": 8,
+        "generator": "sha256:57031e79bbbd9a8e2af14f7da80febb6df85cfe2276682c493fcddeac5c3397b"
+      },
+      {
+        "id": "d3-maxgas",
+        "description": "[D3a] max-G_alpha class: D3a chunks whose function-call gas is >= G_alpha / 2 (the heaviest chunks a D3a proof must carry)",
+        "weight_ppm": 150000,
+        "batch_size": 8,
+        "generator": "sha256:79c7b09b66a12468bc8c6d79b2395651a427bfbbb517b43a27e935c20652754e"
+      }
+    ],
+    "public_fixtures": "sha256:b5f1f342f78ed22497b70b5b479e2b2c56fcd35f25a98e59f8ebc6f5978242ac",
+    "heldout_commitment": "sha256:eeeb27a45a70691de0b2785ad4a11c10c4edd378594c0248639416202a8b3696",
+    "baseline_submission": null,
+    "baseline_ns": [],
+    "weight_source": {
+      "status": "ASSUMED",
+      "note": "Documented assumption (no measured per-chunk mix of these features exists in the repository yet): mainnet traffic is dominated by FunctionCalls, so the D3a classes carry 65% (calls 30%, callbacks 15%, max-G_alpha 15%, non-WASM chunks around contract state 5%); non-WASM receipts/queues/epochs (D2) 17%; plain transfer transactions (D1) 10%; quiet / transfer-receipt / missing-chunk D0 chunks 8%. To be replaced by a measured mix from mainnet replay (docs/HISTORICAL_REPLAY.md) in a versioned successor.",
+      "ref": "spec/challenge-inputs/near-chunk-v3-weights.json"
+    }
+  },
+  "measurement": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch",
+    "calibration": {
+      "workload": "arena-calibrate-v1",
+      "binary_digest": "sha256:d434077860be66ff66d849dc58595134bbaad882c0761437d988551baeb65e37",
+      "expected_checksum": "87a7f539b09c4e7b",
+      "threads": 8,
+      "steps_per_probe": 5,
+      "edge_probes": 2,
+      "max_step_ppm": 20000,
+      "max_noise_ppm": 50000
+    }
+  },
+  "resource_limits": {
+    "max_proof_bytes": 67108864,
+    "max_verify_ms": 60000,
+    "max_prove_ms": 600000,
+    "max_ram_bytes": 17179869184,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 67108864,
+    "max_prepare_ms": 600000,
+    "max_build_ms": 3600000
+  },
+  "supersedes": null,
+  "created_at": "2026-10-06T18:00:00Z",
+  "formal_params": {
+    "verify_fuel": 1073741824,
+    "max_proof_bytes": 67108864,
+    "max_reduction_fuel": 1073741824
+  },
+  "coverage": {
+    "version": "coverage-v1",
+    "statement_spec": "NearSpecV3.challengeSpecChunkTop",
+    "soundness_lift": "NearSpecV3.sound_lift",
+    "tiers": [
+      {
+        "id": "D0",
+        "rank": 0,
+        "params": "NearSpecV3.challengeParamsChunk .d0",
+        "classes": [
+          "d0-quiet",
+          "d0-transfers",
+          "d0-missing"
+        ]
+      },
+      {
+        "id": "D1",
+        "rank": 1,
+        "params": "NearSpecV3.challengeParamsChunk .d1",
+        "classes": [
+          "d0-quiet",
+          "d0-transfers",
+          "d0-missing",
+          "d1-transfers",
+          "d1-mixed",
+          "d1-receipts"
+        ]
+      },
+      {
+        "id": "D2",
+        "rank": 2,
+        "params": "NearSpecV3.challengeParamsChunk .d2",
+        "classes": [
+          "d0-quiet",
+          "d0-transfers",
+          "d0-missing",
+          "d1-transfers",
+          "d1-mixed",
+          "d1-receipts",
+          "d2-actions",
+          "d2-queues",
+          "d2-epoch"
+        ]
+      },
+      {
+        "id": "D3a",
+        "rank": 3,
+        "params": "NearSpecV3.challengeParamsChunk .d3a",
+        "classes": [
+          "d0-quiet",
+          "d0-transfers",
+          "d0-missing",
+          "d1-transfers",
+          "d1-mixed",
+          "d1-receipts",
+          "d2-actions",
+          "d2-queues",
+          "d2-epoch",
+          "d3-calls",
+          "d3-callbacks",
+          "d3-nonwasm",
+          "d3-maxgas"
+        ]
+      }
+    ]
+  }
+}

@@ -40,6 +40,10 @@ Coverage-tiered challenges (docs/CONTRACTS.md §11, docs/BENCHMARK_SPEC.md §17;
 * Gate result `COVERAGE_GAP_IN_TIER`: an abstention on a class of the declared tier.
 * Report `coverage {tier, per_class, share}`. Board order is (tier rank, score). The `succinct`
   badge is a display attribute only.
+* `WorkloadSuite.weight_source: Option<WeightSource {status: ASSUMED | MEASURED, note, ref?}>`
+  (serialized only when present; `ref` is required for `MEASURED`). It is validated with
+  `coverage`. `near-chunk-v3` declares `ASSUMED` (draft id now `chl_e8038ce4…`). Schemas
+  (`challenge`) regenerated; `server/openapi.json` refreshed.
 
 ## v1.6 (additive, scoring-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 

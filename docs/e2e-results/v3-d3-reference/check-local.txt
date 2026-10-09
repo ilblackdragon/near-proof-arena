@@ -1,0 +1,841 @@
+=== LOCAL CHECK — NOT AN OFFICIAL VERDICT ===
+challenge: chl_c441fe20f35b22232e0bd757864402e5
+package:   sha256:41fbd0998e33e49950b8add90b7b5b99563dfbe3ddd93ad23bb26808ca91af21
+network isolated: true
+
+[PASS   ] PKG_WELLFORMED
+          package sha256:41fbd0998e33e49950b8add90b7b5b99563dfbe3ddd93ad23bb26808ca91af21 (109 files, 213779 bytes packed, 790762 bytes expanded)
+[SKIPPED] AXIOM_AUDIT
+          formal gates are not run locally; lexical scan of 5 .lean files found no sorry/admit/native_decide/extern/axiom
+          the judge elaborates the certificate in a clean checker image, checks the theorem type, audits transitive axioms and re-checks with independent kernels
+[PASS   ] BUILD_REPRODUCIBLE
+          out/prepare sha256:8341e9deeb0579bc38bd8d8868727be816e9ca31e2bff23d78487cda7bc61236
+          out/prove sha256:019cebb1076abd91ed21a1c2632b704d2d26513c513e6675781f1b43ac143399
+          out/verify sha256:f6cbb20fc359bc39926172148d75f63648bcb963460c25da1174239b7c2d4326
+[PASS   ] CONFORMANCE_DIFFERENTIAL
+[PASS   ] PROVER_RELIABILITY
+[PASS   ] ADVERSARIAL_PROOFS
+[PASS   ] RESOURCE_LIMITS
+          timings are from this machine and are informational only
+          prepare: 5.504497ms, public_dir 1 files / 100 bytes
+          d0-00-h10004-s3: prove 25.543805ms, proof 1565 bytes
+          d0-00-h10004-s3: verify 20.453437ms
+          d0-00-h10006-s3: prove 40.694253ms, proof 2809 bytes
+          d0-00-h10006-s3: verify 30.57882ms
+          d0-00-h10007-s3: prove 40.680176ms, proof 2710 bytes
+          d0-00-h10007-s3: verify 30.55255ms
+          d0-00-h10008-s3: prove 35.636056ms, proof 2766 bytes
+          d0-00-h10008-s3: verify 30.573159ms
+          d0-00-h10011-s1: prove 40.690776ms, proof 3502 bytes
+          d0-00-h10011-s1: verify 30.6007ms
+          d0-00-h10011-s3: prove 35.672184ms, proof 2344 bytes
+          d0-00-h10011-s3: verify 25.526543ms
+          d0-00-h10012-s0: prove 40.667553ms, proof 3420 bytes
+          d0-00-h10012-s0: verify 30.588498ms
+          d0-00-h10012-s1: prove 45.845797ms, proof 3364 bytes
+          d0-00-h10012-s1: verify 30.714565ms
+          d0-00-h10012-s3: prove 45.781927ms, proof 3612 bytes
+          d0-00-h10012-s3: verify 35.758196ms
+          d0-00-h10013-s1: prove 35.828307ms, proof 2216 bytes
+          d0-00-h10013-s1: verify 25.794587ms
+          d0-00-h10013-s2: prove 40.8358ms, proof 3205 bytes
+          d0-00-h10013-s2: verify 30.784867ms
+          d0-00-h10014-s1: prove 35.812989ms, proof 2216 bytes
+          d0-00-h10014-s1: verify 25.714186ms
+          d0-00-h10015-s0: prove 35.703372ms, proof 2150 bytes
+          d0-00-h10015-s0: verify 25.641318ms
+          d0-00-h10016-s0: prove 45.853031ms, proof 3668 bytes
+          d0-00-h10016-s0: verify 35.703533ms
+          d0-00-h10017-s0: prove 40.736242ms, proof 2807 bytes
+          d0-00-h10017-s0: verify 30.65376ms
+          d0-00-h10018-s0: prove 35.71801ms, proof 2272 bytes
+          d0-00-h10018-s0: verify 25.628935ms
+          d0-00-h10019-s0: prove 45.892204ms, proof 3790 bytes
+          d0-00-h10019-s0: verify 35.736644ms
+          d0-00-h10019-s1: prove 40.816293ms, proof 3027 bytes
+          d0-00-h10019-s1: verify 30.713473ms
+          d0-00-h10020-s1: prove 50.911979ms, proof 4347 bytes
+          d0-00-h10020-s1: verify 35.760469ms
+          d0-00-h10021-s1: prove 35.750771ms, proof 2759 bytes
+          d0-00-h10021-s1: verify 30.626669ms
+          d0-00-h10022-s1: prove 35.643129ms, proof 2759 bytes
+          d0-00-h10022-s1: verify 30.580553ms
+          d0-00-h10023-s1: prove 35.775588ms, proof 1980 bytes
+          d0-00-h10023-s1: verify 25.668159ms
+          d0-00-h10023-s2: prove 55.858898ms, proof 4746 bytes
+          d0-00-h10023-s2: verify 40.819168ms
+          d0-00-h10023-s3: prove 40.76137ms, proof 2935 bytes
+          d0-00-h10023-s3: verify 30.638081ms
+          d0-00-h10024-s0: prove 60.899363ms, proof 5214 bytes
+          d0-00-h10024-s0: verify 45.787176ms
+          d0-00-h10024-s3: prove 25.736668ms, proof 1565 bytes
+          d0-00-h10024-s3: verify 20.576277ms
+          d0-00-h10024-s3-hdr.height_created: prove 25.634997ms, proof 1565 bytes
+          d0-00-h10024-s3-hdr.height_created: verify 20.617165ms
+          d0-00-h10024-s3-hdr.height_included(unchecked): prove 25.643673ms, proof 1565 bytes
+          d0-00-h10024-s3-hdr.height_included(unchecked): verify 20.61482ms
+          d0-00-h10024-s3-t.minimum_stake(unused_in_D0): prove 25.641158ms, proof 1565 bytes
+          d0-00-h10024-s3-t.minimum_stake(unused_in_D0): verify 20.59832ms
+          d0-00-h10024-s3-w.base_state.extra_junk: prove 40.792438ms, proof 1565 bytes
+          d0-00-h10024-s3-w.base_state.extra_junk: verify 20.599261ms
+          d0-00-h10024-s3-w.dup_key_last_good: prove 25.578561ms, proof 1565 bytes
+          d0-00-h10024-s3-w.dup_key_last_good: verify 20.553234ms
+          d0-00-h10024-s3-w.main_block_hash(unchecked): prove 25.465278ms, proof 1565 bytes
+          d0-00-h10024-s3-w.main_block_hash(unchecked): verify 20.453276ms
+          d0-00-h10024-s3-w.unsorted_keys: prove 25.578821ms, proof 1565 bytes
+          d0-00-h10024-s3-w.unsorted_keys: verify 20.511185ms
+          d0-00-h10025-s2: prove 66.01009ms, proof 4991 bytes
+          d0-00-h10025-s2: verify 45.840326ms
+          d0-00-h10034-s1: prove 50.895278ms, proof 4534 bytes
+          d0-00-h10034-s1: verify 40.792158ms
+          d0-00-h10035-s1: prove 45.813196ms, proof 3636 bytes
+          d0-00-h10035-s1: verify 35.661303ms
+          d0-00-h10035-s3: prove 616.639074ms, proof 118295 bytes
+          d0-00-h10035-s3: verify 525.849348ms
+          d0-00-h10036-s3: prove 525.806688ms, proof 103974 bytes
+          d0-00-h10036-s3: verify 434.889993ms
+          d0-00-h10037-s3: prove 30.784967ms, proof 1949 bytes
+          d0-00-h10037-s3: verify 25.642942ms
+          d0-00-h10038-s0: prove 40.781839ms, proof 2929 bytes
+          d0-00-h10038-s0: verify 30.728431ms
+          d0-00-h10039-s1: prove 40.703431ms, proof 3128 bytes
+          d0-00-h10039-s1: verify 30.712541ms
+          d0-00-h10040-s1: prove 30.586554ms, proof 1980 bytes
+          d0-00-h10040-s1: verify 25.575344ms
+          d0-00-h10041-s1: prove 40.726294ms, proof 3250 bytes
+          d0-00-h10041-s1: verify 30.683757ms
+          d0-01-h10004-s0: prove 293.278526ms, proof 2847 bytes
+          d0-01-h10004-s0: verify 283.36402ms
+          d0-01-h10005-s2: prove 293.501366ms, proof 2830 bytes
+          d0-01-h10005-s2: verify 283.380271ms
+          d0-01-h10005-s3: prove 303.73873ms, proof 3857 bytes
+          d0-01-h10005-s3: verify 293.504712ms
+          d0-01-h10006-s2: prove 313.722256ms, proof 4472 bytes
+          d0-01-h10006-s2: verify 293.448758ms
+          d0-01-h10007-s0: prove 303.549965ms, proof 3521 bytes
+          d0-01-h10007-s0: verify 288.434553ms
+          d0-01-h10007-s1: prove 313.770086ms, proof 3544 bytes
+          d0-01-h10007-s1: verify 288.406832ms
+          d0-01-h10007-s2: prove 298.454798ms, proof 3115 bytes
+          d0-01-h10007-s2: verify 293.542275ms
+          d0-01-h10008-s0: prove 313.736093ms, proof 5008 bytes
+          d0-01-h10008-s0: verify 298.461632ms
+          d0-01-h10008-s3: prove 288.309849ms, proof 2190 bytes
+          d0-01-h10008-s3: verify 283.382739ms
+          d0-01-h10009-s0: prove 293.44366ms, proof 2692 bytes
+          d0-01-h10009-s0: verify 283.364815ms
+          d0-01-h10009-s1: prove 318.909088ms, proof 4924 bytes
+          d0-01-h10009-s1: verify 298.489394ms
+          d0-01-h10010-s1: prove 298.50237ms, proof 2216 bytes
+          d0-01-h10010-s1: verify 288.347141ms
+          d0-01-h10011-s4: prove 288.344286ms, proof 1880 bytes
+          d0-01-h10011-s4: verify 283.42054ms
+          d0-01-h10012-s2: prove 298.453939ms, proof 3338 bytes
+          d0-01-h10012-s2: verify 289.392569ms
+          d0-01-h10013-s2: prove 308.745555ms, proof 3744 bytes
+          d0-01-h10013-s2: verify 293.846701ms
+          d0-01-h10015-s0: prove 313.739873ms, proof 3916 bytes
+          d0-01-h10015-s0: verify 293.437981ms
+          d0-01-h10017-s1: prove 314.000895ms, proof 4596 bytes
+          d0-01-h10017-s1: verify 308.940964ms
+          d0-01-h10018-s2: prove 308.860973ms, proof 4404 bytes
+          d0-01-h10018-s2: verify 304.113089ms
+          d0-01-h10018-s4: prove 293.936801ms, proof 2847 bytes
+          d0-01-h10018-s4: verify 288.562708ms
+          d0-01-h10019-s2: prove 346.723981ms, proof 3290 bytes
+          d0-01-h10019-s2: verify 597.19358ms
+          d0-01-h10022-s0: prove 303.603041ms, proof 3543 bytes
+          d0-01-h10022-s0: verify 293.56372ms
+          d0-01-h10024-s0: prove 288.362142ms, proof 2035 bytes
+          d0-01-h10024-s0: verify 288.487608ms
+          d0-01-h10024-s1: prove 314.128677ms, proof 3805 bytes
+          d0-01-h10024-s1: verify 327.759978ms
+          d0-01-h10025-s1: prove 606.543216ms, proof 74128 bytes
+          d0-01-h10025-s1: verify 556.146775ms
+          d0-01-h10025-s2: prove 308.600276ms, proof 4607 bytes
+          d0-01-h10025-s2: verify 298.49462ms
+          d0-01-h10025-s2-hdr.height_created: prove 308.502462ms, proof 4607 bytes
+          d0-01-h10025-s2-hdr.height_created: verify 293.432815ms
+          d0-01-h10025-s2-hdr.height_included(unchecked): prove 308.549351ms, proof 4607 bytes
+          d0-01-h10025-s2-hdr.height_included(unchecked): verify 293.495924ms
+          d0-01-h10025-s2-t.minimum_stake(unused_in_D0): prove 303.491193ms, proof 4607 bytes
+          d0-01-h10025-s2-t.minimum_stake(unused_in_D0): verify 298.581815ms
+          d0-01-h10025-s2-w.base_state.extra_junk: prove 581.434693ms, proof 4607 bytes
+          d0-01-h10025-s2-w.base_state.extra_junk: verify 298.487788ms
+          d0-01-h10025-s2-w.dup_key_last_good: prove 313.552976ms, proof 4607 bytes
+          d0-01-h10025-s2-w.dup_key_last_good: verify 298.446231ms
+          d0-01-h10025-s2-w.main_block_hash(unchecked): prove 308.568036ms, proof 4607 bytes
+          d0-01-h10025-s2-w.main_block_hash(unchecked): verify 293.345523ms
+          d0-01-h10025-s2-w.unsorted_keys: prove 318.865154ms, proof 4607 bytes
+          d0-01-h10025-s2-w.unsorted_keys: verify 298.419651ms
+          d0-01-h10026-s1: prove 288.351636ms, proof 2033 bytes
+          d0-01-h10026-s1: verify 278.288921ms
+          d0-01-h10033-s3: prove 288.365733ms, proof 2564 bytes
+          d0-01-h10033-s3: verify 288.960132ms
+          d0-01-h10034-s3: prove 293.458406ms, proof 2409 bytes
+          d0-01-h10034-s3: verify 288.474107ms
+          d1-00-h10004-s2: prove 30.735365ms, proof 1443 bytes
+          d1-00-h10004-s2: verify 20.643736ms
+          d1-00-h10005-s3: prove 60.94402ms, proof 4458 bytes
+          d1-00-h10005-s3: verify 50.763042ms
+          d1-00-h10007-s3: prove 86.178424ms, proof 6257 bytes
+          d1-00-h10007-s3: verify 71.240735ms
+          d1-00-h10009-s3: prove 56.0387ms, proof 4716 bytes
+          d1-00-h10009-s3: verify 66.023718ms
+          d1-00-h10010-s1: prove 76.035828ms, proof 5648 bytes
+          d1-00-h10010-s1: verify 60.908763ms
+          d1-00-h10011-s0: prove 45.791126ms, proof 3473 bytes
+          d1-00-h10011-s0: verify 30.607445ms
+          d1-00-h10011-s2: prove 40.684977ms, proof 3050 bytes
+          d1-00-h10011-s2: verify 30.618345ms
+          d1-00-h10011-s3: prove 65.937436ms, proof 5208 bytes
+          d1-00-h10011-s3: verify 55.882045ms
+          d1-00-h10012-s1: prove 50.961866ms, proof 4135 bytes
+          d1-00-h10012-s1: verify 40.752184ms
+          d1-00-h10012-s2: prove 40.753757ms, proof 2751 bytes
+          d1-00-h10012-s2: verify 30.618796ms
+          d1-00-h10013-s0: prove 71.043324ms, proof 4942 bytes
+          d1-00-h10013-s0: verify 55.997612ms
+          d1-00-h10013-s1: prove 50.83612ms, proof 4227 bytes
+          d1-00-h10013-s1: verify 40.666163ms
+          d1-00-h10013-s1-w.main_block_hash(unchecked): prove 55.868719ms, proof 4227 bytes
+          d1-00-h10013-s1-w.main_block_hash(unchecked): verify 40.90946ms
+          d1-00-h10013-s1-w.unsorted_keys: prove 55.99673ms, proof 4227 bytes
+          d1-00-h10013-s1-w.unsorted_keys: verify 40.857933ms
+          d1-00-h10014-s0: prove 25.555488ms, proof 1443 bytes
+          d1-00-h10014-s0: verify 20.488364ms
+          d1-00-h10014-s3: prove 60.924644ms, proof 4490 bytes
+          d1-00-h10014-s3: verify 45.879121ms
+          d1-00-h10015-s2: prove 65.994002ms, proof 4377 bytes
+          d1-00-h10015-s2: verify 50.822123ms
+          d1-00-h10017-s0: prove 35.934789ms, proof 2612 bytes
+          d1-00-h10017-s0: verify 30.786632ms
+          d1-00-h10018-s0: prove 30.608216ms, proof 1687 bytes
+          d1-00-h10018-s0: verify 20.670927ms
+          d1-00-h10018-s2: prove 25.536343ms, proof 1687 bytes
+          d1-00-h10018-s2: verify 20.467354ms
+          d1-00-h10019-s0: prove 30.497297ms, proof 2041 bytes
+          d1-00-h10019-s0: verify 20.458117ms
+          d1-00-h10020-s1: prove 71.012346ms, proof 5155 bytes
+          d1-00-h10020-s1: verify 55.898516ms
+          d1-00-h10020-s2: prove 30.580183ms, proof 1565 bytes
+          d1-00-h10020-s2: verify 20.54548ms
+          d1-00-h10021-s0: prove 55.924575ms, proof 4348 bytes
+          d1-00-h10021-s0: verify 40.830221ms
+          d1-00-h10021-s3: prove 40.956108ms, proof 3137 bytes
+          d1-00-h10021-s3: verify 30.566217ms
+          d1-00-h10022-s3-hdr.height_created: prove 40.663277ms, proof 3502 bytes
+          d1-00-h10022-s3-hdr.height_created: verify 30.56779ms
+          d1-00-h10022-s3-t.chain_id(unused_in_D0): prove 40.684687ms, proof 3502 bytes
+          d1-00-h10022-s3-t.chain_id(unused_in_D0): verify 30.623696ms
+          d1-00-h10022-s3-w.base_state.extra_junk: prove 55.802395ms, proof 3502 bytes
+          d1-00-h10022-s3-w.base_state.extra_junk: verify 30.694398ms
+          d1-00-h10023-s0: prove 60.913492ms, proof 4819 bytes
+          d1-00-h10023-s0: verify 45.816484ms
+          d1-00-h10023-s3: prove 50.912363ms, proof 4103 bytes
+          d1-00-h10023-s3: verify 40.812307ms
+          d1-00-h10025-s1: prove 71.018417ms, proof 6669 bytes
+          d1-00-h10025-s1: verify 60.893535ms
+          d1-00-h10027-s0: prove 50.932311ms, proof 4878 bytes
+          d1-00-h10027-s0: verify 40.684697ms
+          d1-00-h10028-s0: prove 86.148668ms, proof 6989 bytes
+          d1-00-h10028-s0: verify 76.264759ms
+          d1-00-h10030-s0: prove 71.430683ms, proof 4929 bytes
+          d1-00-h10030-s0: verify 51.104064ms
+          d1-00-h10035-s2: prove 56.185876ms, proof 4020 bytes
+          d1-00-h10035-s2: verify 40.98324ms
+          d1-00-h10038-s1: prove 71.259591ms, proof 5306 bytes
+          d1-00-h10038-s1: verify 55.989497ms
+          d1-00-h10038-s3: prove 50.988316ms, proof 3955 bytes
+          d1-00-h10038-s3: verify 40.885566ms
+          d1-00-h10041-s2: prove 91.33089ms, proof 7016 bytes
+          d1-00-h10041-s2: verify 66.010684ms
+          d1-01-h10004-s2: prove 339.063826ms, proof 5274 bytes
+          d1-01-h10004-s2: verify 308.638253ms
+          d1-01-h10005-s4: prove 298.524743ms, proof 3718 bytes
+          d1-01-h10005-s4: verify 293.459582ms
+          d1-01-h10012-s0: prove 369.30932ms, proof 7234 bytes
+          d1-01-h10012-s0: verify 338.924955ms
+          d1-01-h10013-s1: prove 298.462415ms, proof 3463 bytes
+          d1-01-h10013-s1: verify 288.375755ms
+          d1-01-h10013-s3: prove 318.767063ms, proof 5517 bytes
+          d1-01-h10013-s3: verify 303.569676ms
+          d1-01-h10014-s3: prove 318.713353ms, proof 5038 bytes
+          d1-01-h10014-s3: verify 303.566811ms
+          d1-01-h10014-s4: prove 323.774327ms, proof 6335 bytes
+          d1-01-h10014-s4: verify 303.568355ms
+          d1-01-h10015-s1: prove 636.85911ms, proof 76766 bytes
+          d1-01-h10015-s1: verify 581.453111ms
+          d1-01-h10015-s3: prove 318.723815ms, proof 4781 bytes
+          d1-01-h10015-s3: verify 303.482204ms
+          d1-01-h10016-s0: prove 339.108062ms, proof 6030 bytes
+          d1-01-h10016-s0: verify 318.686795ms
+          d1-01-h10016-s1: prove 313.76283ms, proof 3199 bytes
+          d1-01-h10016-s1: verify 298.502924ms
+          d1-01-h10018-s1-t.minimum_stake(unused_in_D0): prove 303.622539ms, proof 4061 bytes
+          d1-01-h10018-s1-t.minimum_stake(unused_in_D0): verify 293.40418ms
+          d1-01-h10018-s1-w.dup_key_last_good: prove 308.60281ms, proof 4061 bytes
+          d1-01-h10018-s1-w.dup_key_last_good: verify 293.484201ms
+          d1-01-h10018-s4: prove 313.625012ms, proof 4697 bytes
+          d1-01-h10018-s4: verify 303.58042ms
+          d1-01-h10019-s2: prove 349.341101ms, proof 7383 bytes
+          d1-01-h10019-s2: verify 323.82226ms
+          d1-01-h10019-s4: prove 303.514126ms, proof 4397 bytes
+          d1-01-h10019-s4: verify 293.555537ms
+          d1-01-h10020-s3: prove 308.586301ms, proof 4893 bytes
+          d1-01-h10020-s3: verify 303.59556ms
+          d1-01-h10020-s4: prove 318.68283ms, proof 5132 bytes
+          d1-01-h10020-s4: verify 308.618882ms
+          d1-01-h10021-s0: prove 328.743021ms, proof 6603 bytes
+          d1-01-h10021-s0: verify 318.736912ms
+          d1-01-h10023-s3: prove 318.690395ms, proof 4881 bytes
+          d1-01-h10023-s3: verify 303.634003ms
+          d1-01-h10024-s1: prove 318.631675ms, proof 4671 bytes
+          d1-01-h10024-s1: verify 303.551278ms
+          d1-01-h10026-s2: prove 349.062509ms, proof 14068 bytes
+          d1-01-h10026-s2: verify 333.912601ms
+          d1-01-h10028-s4: prove 323.707347ms, proof 6072 bytes
+          d1-01-h10028-s4: verify 308.5742ms
+          d1-01-h10029-s0: prove 308.581163ms, proof 4330 bytes
+          d1-01-h10029-s0: verify 298.456752ms
+          d1-01-h10036-s1: prove 313.680019ms, proof 4619 bytes
+          d1-01-h10036-s1: verify 303.829533ms
+          d1-01-h10036-s4: prove 308.81813ms, proof 3867 bytes
+          d1-01-h10036-s4: verify 288.470681ms
+          d1-01-h10037-s0: prove 318.700737ms, proof 5467 bytes
+          d1-01-h10037-s0: verify 308.608286ms
+          d1-01-h10037-s2: prove 308.732399ms, proof 4437 bytes
+          d1-01-h10037-s2: verify 298.608459ms
+          d1-01-h10037-s3-hdr.height_included(unchecked): prove 298.487752ms, proof 3774 bytes
+          d1-01-h10037-s3-hdr.height_included(unchecked): verify 288.36827ms
+          d1-01-h10037-s3-w.new_tx.sig_flip_rehashed: prove 293.568185ms, proof 3774 bytes
+          d1-01-h10037-s3-w.new_tx.sig_flip_rehashed: verify 293.441226ms
+          d1-01-h10038-s0: prove 313.681634ms, proof 4322 bytes
+          d1-01-h10038-s0: verify 298.478635ms
+          d1-01-h10038-s1: prove 333.899309ms, proof 5376 bytes
+          d1-01-h10038-s1: verify 313.63711ms
+          d1-01-h10039-s4: prove 323.779927ms, proof 4761 bytes
+          d1-01-h10039-s4: verify 303.537616ms
+          d1-01-h10040-s3: prove 354.187457ms, proof 7343 bytes
+          d1-01-h10040-s3: verify 328.805143ms
+          d1-01-h10041-s0: prove 323.690369ms, proof 4278 bytes
+          d1-01-h10041-s0: verify 303.54488ms
+          d1-01-h10041-s3: prove 318.705389ms, proof 5098 bytes
+          d1-01-h10041-s3: verify 313.667459ms
+          d1-01-h10041-s4: prove 313.655326ms, proof 4726 bytes
+          d1-01-h10041-s4: verify 293.491974ms
+          d2-00-h10003-s1: prove 56.014817ms, proof 4744 bytes
+          d2-00-h10003-s1: verify 40.833289ms
+          d2-00-h10005-s2: prove 71.061792ms, proof 5737 bytes
+          d2-00-h10005-s2: verify 55.956867ms
+          d2-00-h10005-s3: prove 101.280627ms, proof 9606 bytes
+          d2-00-h10005-s3: verify 76.100664ms
+          d2-00-h10006-s2: prove 81.275432ms, proof 5190 bytes
+          d2-00-h10006-s2: verify 45.878353ms
+          d2-00-h10009-s0: prove 71.149086ms, proof 7034 bytes
+          d2-00-h10009-s0: verify 56.022641ms
+          d2-00-h10010-s2: prove 91.307489ms, proof 8498 bytes
+          d2-00-h10010-s2: verify 71.070268ms
+          d2-00-h10011-s1: prove 86.28068ms, proof 8243 bytes
+          d2-00-h10011-s1: verify 61.115225ms
+          d2-00-h10012-s1: prove 86.24834ms, proof 7651 bytes
+          d2-00-h10012-s1: verify 66.125534ms
+          d2-00-h10013-s1: prove 76.212184ms, proof 6668 bytes
+          d2-00-h10013-s1: verify 61.062506ms
+          d2-00-h10013-s3: prove 91.373875ms, proof 7204 bytes
+          d2-00-h10013-s3: verify 66.034712ms
+          d2-00-h10014-s3: prove 81.141409ms, proof 8760 bytes
+          d2-00-h10014-s3: verify 61.142847ms
+          d2-00-h10017-s2: prove 55.843094ms, proof 4657 bytes
+          d2-00-h10017-s2: verify 40.738951ms
+          d2-00-h10020-s0: prove 91.379225ms, proof 8857 bytes
+          d2-00-h10020-s0: verify 71.205812ms
+          d2-00-h10020-s2: prove 91.317278ms, proof 7955 bytes
+          d2-00-h10020-s2: verify 66.069197ms
+          d2-00-h10021-s3: prove 86.245003ms, proof 8148 bytes
+          d2-00-h10021-s3: verify 66.026426ms
+          d2-00-h10022-s2: prove 111.580198ms, proof 8519 bytes
+          d2-00-h10022-s2: verify 81.22664ms
+          d2-00-h10024-s1: prove 106.427883ms, proof 9145 bytes
+          d2-00-h10024-s1: verify 86.606203ms
+          d2-00-h10025-s3: prove 81.273238ms, proof 7479 bytes
+          d2-00-h10025-s3: verify 61.037329ms
+          d2-00-h10030-s1: prove 91.326696ms, proof 7176 bytes
+          d2-00-h10030-s1: verify 66.030815ms
+          d2-00-h10031-s3: prove 142.150575ms, proof 10528 bytes
+          d2-00-h10031-s3: verify 106.437682ms
+          d2-00-h10032-s1: prove 66.085318ms, proof 5618 bytes
+          d2-00-h10032-s1: verify 50.788783ms
+          d2-00-h10032-s1-w.base_state.extra_junk: prove 96.304854ms, proof 5618 bytes
+          d2-00-h10032-s1-w.base_state.extra_junk: verify 50.848746ms
+          d2-00-h10032-s1-w.main_block_hash(unchecked): prove 71.024793ms, proof 5618 bytes
+          d2-00-h10032-s1-w.main_block_hash(unchecked): verify 50.980073ms
+          d2-00-h10032-s1-w.unsorted_keys: prove 70.996149ms, proof 5618 bytes
+          d2-00-h10032-s1-w.unsorted_keys: verify 50.966588ms
+          d2-00-h10037-s0: prove 91.317388ms, proof 7808 bytes
+          d2-00-h10037-s0: verify 71.042526ms
+          d2-00-h10037-s2: prove 76.063625ms, proof 6171 bytes
+          d2-00-h10037-s2: verify 55.930208ms
+          d2-00-h10044-s3: prove 131.753851ms, proof 11396 bytes
+          d2-00-h10044-s3: verify 101.549042ms
+          d2-00-h10055-s3: prove 106.576072ms, proof 9378 bytes
+          d2-00-h10055-s3: verify 76.215671ms
+          d2-00-h10059-s0: prove 81.275322ms, proof 7571 bytes
+          d2-00-h10059-s0: verify 61.115255ms
+          d2-02-h10003-s0: prove 91.370258ms, proof 6700 bytes
+          d2-02-h10003-s0: verify 76.2155ms
+          d2-02-h10004-s1: prove 76.171057ms, proof 6307 bytes
+          d2-02-h10004-s1: verify 56.039583ms
+          d2-02-h10005-s5: prove 61.083335ms, proof 4510 bytes
+          d2-02-h10005-s5: verify 50.965936ms
+          d2-02-h10010-s5: prove 116.646582ms, proof 10102 bytes
+          d2-02-h10010-s5: verify 86.294798ms
+          d2-02-h10012-s5: prove 141.864998ms, proof 10628 bytes
+          d2-02-h10012-s5: verify 111.476755ms
+          d2-02-h10013-s0: prove 96.360529ms, proof 8728 bytes
+          d2-02-h10013-s0: verify 71.075798ms
+          d2-02-h10014-s2: prove 106.36781ms, proof 8498 bytes
+          d2-02-h10014-s2: verify 81.093961ms
+          d2-02-h10014-s5: prove 81.203287ms, proof 7012 bytes
+          d2-02-h10014-s5: verify 60.922012ms
+          d2-02-h10015-s4: prove 101.221686ms, proof 9751 bytes
+          d2-02-h10015-s4: verify 76.13044ms
+          d2-02-h10016-s5: prove 101.439496ms, proof 7419 bytes
+          d2-02-h10016-s5: verify 81.161368ms
+          d2-02-h10020-s1: prove 96.294334ms, proof 7403 bytes
+          d2-02-h10020-s1: verify 65.990168ms
+          d2-02-h10021-s2: prove 152.01583ms, proof 11792 bytes
+          d2-02-h10021-s2: verify 91.362324ms
+          d2-02-h10022-s0: prove 121.609802ms, proof 10173 bytes
+          d2-02-h10022-s0: verify 91.295428ms
+          d2-02-h10025-s1: prove 141.926595ms, proof 10328 bytes
+          d2-02-h10025-s1: verify 106.504267ms
+          d2-02-h10026-s0: prove 126.719909ms, proof 12390 bytes
+          d2-02-h10026-s0: verify 96.672497ms
+          d2-02-h10026-s2: prove 116.69845ms, proof 8561 bytes
+          d2-02-h10026-s2: verify 81.293927ms
+          d2-02-h10026-s3: prove 131.814316ms, proof 10241 bytes
+          d2-02-h10026-s3: verify 101.63776ms
+          d2-02-h10026-s3-hdr.height_created: prove 137.076447ms, proof 10241 bytes
+          d2-02-h10026-s3-hdr.height_created: verify 101.574902ms
+          d2-02-h10026-s3-t.minimum_stake(unused_in_D0): prove 131.86447ms, proof 10241 bytes
+          d2-02-h10026-s3-t.minimum_stake(unused_in_D0): verify 96.434058ms
+          d2-02-h10026-s3-w.dup_key_last_good: prove 126.584504ms, proof 10241 bytes
+          d2-02-h10026-s3-w.dup_key_last_good: verify 96.446271ms
+          d2-02-h10026-s3-w.new_tx.drop_rehashed: prove 131.822281ms, proof 10011 bytes
+          d2-02-h10026-s3-w.new_tx.drop_rehashed: verify 101.458803ms
+          d2-02-h10038-s2: prove 86.344902ms, proof 7613 bytes
+          d2-02-h10038-s2: verify 71.096258ms
+          d2-02-h10039-s2: prove 116.647875ms, proof 9647 bytes
+          d2-02-h10039-s2: verify 86.190943ms
+          d2-02-h10046-s4: prove 91.245094ms, proof 7662 bytes
+          d2-02-h10046-s4: verify 71.039992ms
+          d2-02-h10062-s3: prove 151.796037ms, proof 13518 bytes
+          d2-02-h10062-s3: verify 111.561374ms
+          d2-02-h10071-s1: prove 96.339801ms, proof 8472 bytes
+          d2-02-h10071-s1: verify 71.146793ms
+          d2-02-h10157-s2: prove 101.376679ms, proof 8319 bytes
+          d2-02-h10157-s2: verify 71.213678ms
+          d2-02-h10181-s0: prove 161.961767ms, proof 15011 bytes
+          d2-02-h10181-s0: verify 116.672012ms
+          d2-02-h10194-s5: prove 81.170205ms, proof 6663 bytes
+          d2-02-h10194-s5: verify 61.225803ms
+          d2-02-h10206-s4: prove 111.569079ms, proof 9494 bytes
+          d2-02-h10206-s4: verify 81.20497ms
+          d2-02-h10210-s2: prove 197.530169ms, proof 17019 bytes
+          d2-02-h10210-s2: verify 151.987287ms
+          d2-03-h10003-s2: prove 60.999107ms, proof 4135 bytes
+          d2-03-h10003-s2: verify 45.978311ms
+          d2-03-h10003-s3: prove 773.415962ms, proof 102029 bytes
+          d2-03-h10003-s3: verify 611.741777ms
+          d2-03-h10004-s3: prove 2.273868167s, proof 102196 bytes
+          d2-03-h10004-s3: verify 2.147588582s
+          d2-03-h10005-s1: prove 601.647026ms, proof 103950 bytes
+          d2-03-h10005-s1: verify 505.629ms
+          d2-03-h10006-s2: prove 313.788566ms, proof 23897 bytes
+          d2-03-h10006-s2: verify 192.387624ms
+          d2-03-h10006-s3: prove 121.704954ms, proof 13701 bytes
+          d2-03-h10006-s3: verify 96.45583ms
+          d2-03-h10009-s3: prove 212.622973ms, proof 24283 bytes
+          d2-03-h10009-s3: verify 146.983773ms
+          d2-03-h10010-s1: prove 354.072342ms, proof 34434 bytes
+          d2-03-h10010-s1: verify 242.901141ms
+          d2-03-h10010-s3: prove 187.311012ms, proof 24072 bytes
+          d2-03-h10010-s3: verify 136.797706ms
+          d2-03-h10016-s1: prove 369.393184ms, proof 32951 bytes
+          d2-03-h10016-s1: verify 252.962214ms
+          d2-03-h10022-s0: prove 288.640093ms, proof 27118 bytes
+          d2-03-h10022-s0: verify 192.496109ms
+          d2-03-h10024-s3: prove 91.650508ms, proof 8324 bytes
+          d2-03-h10024-s3: verify 66.202701ms
+          d2-03-h10031-s3: prove 141.846156ms, proof 13451 bytes
+          d2-03-h10031-s3: verify 96.299486ms
+          d2-03-h10032-s0-hdr.height_included(unchecked): prove 328.62107ms, proof 36737 bytes
+          d2-03-h10032-s0-hdr.height_included(unchecked): verify 227.767192ms
+          d2-03-h10032-s0-t.chain_id(unused_in_D0): prove 328.813652ms, proof 36737 bytes
+          d2-03-h10032-s0-t.chain_id(unused_in_D0): verify 227.740503ms
+          d2-03-h10032-s0-t.validator_reward.other_shard.0(unread): prove 323.774549ms, proof 36737 bytes
+          d2-03-h10032-s0-t.validator_reward.other_shard.0(unread): verify 227.744921ms
+          d2-03-h10032-s1: prove 136.712336ms, proof 12029 bytes
+          d2-03-h10032-s1: verify 96.478043ms
+          d2-03-h10035-s1: prove 101.353438ms, proof 9411 bytes
+          d2-03-h10035-s1: verify 76.130293ms
+          d2-03-h10041-s0: prove 268.052963ms, proof 25320 bytes
+          d2-03-h10041-s0: verify 187.422583ms
+          d2-03-h10052-s2: prove 273.279008ms, proof 25800 bytes
+          d2-03-h10052-s2: verify 177.286318ms
+          d2-03-h10053-s0: prove 349.215215ms, proof 35650 bytes
+          d2-03-h10053-s0: verify 242.951578ms
+          d2-03-h10061-s0: prove 293.470274ms, proof 30984 bytes
+          d2-03-h10061-s0: verify 192.393918ms
+          d3-00-h10005-s1: prove 606.810851ms, proof 13478 bytes
+          d3-00-h10005-s1: verify 379.33747ms
+          d3-00-h10008-s0: prove 197.471273ms, proof 15166 bytes
+          d3-00-h10008-s0: verify 121.596221ms
+          d3-00-h10008-s2-w.unsorted_keys: prove 151.988123ms, proof 13461 bytes
+          d3-00-h10008-s2-w.unsorted_keys: verify 91.397833ms
+          d3-00-h10011-s0: prove 207.510595ms, proof 14433 bytes
+          d3-00-h10011-s0: verify 126.761341ms
+          d3-00-h10017-s0: prove 455.047162ms, proof 24181 bytes
+          d3-00-h10017-s0: verify 283.383915ms
+          d3-00-h10021-s2-code.extra_garbage: prove 4.790213465s, proof 75067 bytes
+          d3-00-h10021-s2-code.extra_garbage: verify 2.269012315s
+          d3-00-h10021-s2-code.extra_unneeded: prove 4.527901285s, proof 75067 bytes
+          d3-00-h10021-s2-code.extra_unneeded: verify 2.238311182s
+          d3-00-h10022-s1: prove 273.283172ms, proof 19294 bytes
+          d3-00-h10022-s1: verify 172.210872ms
+          d3-00-h10028-s0: prove 131.793253ms, proof 14541 bytes
+          d3-00-h10028-s0: verify 101.430344ms
+          d3-00-h10033-s0: prove 914.77444ms, proof 88058 bytes
+          d3-00-h10033-s0: verify 682.487676ms
+          d3-00-h10037-s2: prove 293.46391ms, proof 19562 bytes
+          d3-00-h10037-s2: verify 177.224327ms
+          d3-00-h10044-s2: prove 303.46471ms, proof 15466 bytes
+          d3-00-h10044-s2: verify 182.312472ms
+          d3-00-h10046-s2: prove 187.329653ms, proof 21762 bytes
+          d3-00-h10046-s2: verify 131.771893ms
+          d3-00-h10050-s0-w.base_state.extra_junk: prove 298.377097ms, proof 18500 bytes
+          d3-00-h10050-s0-w.base_state.extra_junk: verify 157.023913ms
+          d3-00-h10056-s0: prove 217.646464ms, proof 20008 bytes
+          d3-00-h10056-s0: verify 141.835501ms
+          d3-00-h10063-s3: prove 227.778912ms, proof 16027 bytes
+          d3-00-h10063-s3: verify 146.933084ms
+          d3-00-h10064-s1: prove 166.976833ms, proof 13044 bytes
+          d3-00-h10064-s1: verify 106.474828ms
+          d3-00-h10069-s0: prove 96.314549ms, proof 9945 bytes
+          d3-00-h10069-s0: verify 71.0425ms
+          d3-00-h10073-s0: prove 611.550278ms, proof 67718 bytes
+          d3-00-h10073-s0: verify 439.958591ms
+          d3-00-h10075-s0-w.base_state.extra_junk: prove 207.455758ms, proof 11724 bytes
+          d3-00-h10075-s0-w.base_state.extra_junk: verify 106.460742ms
+          d3-00-h10075-s2: prove 313.662503ms, proof 19154 bytes
+          d3-00-h10075-s2: verify 187.356835ms
+          d3-00-h10080-s2: prove 258.092378ms, proof 19242 bytes
+          d3-00-h10080-s2: verify 172.159086ms
+          d3-00-h10081-s0: prove 344.29595ms, proof 23895 bytes
+          d3-00-h10081-s0: verify 212.612953ms
+          d3-00-h10082-s0-code.reorder: prove 369.224582ms, proof 23556 bytes
+          d3-00-h10082-s0-code.reorder: verify 227.789423ms
+          d3-00-h10087-s1: prove 343.928849ms, proof 23131 bytes
+          d3-00-h10087-s1: verify 217.571194ms
+          d3-00-h10088-s3: prove 293.65888ms, proof 18748 bytes
+          d3-00-h10088-s3: verify 172.279793ms
+          d3-00-h10091-s2: prove 91.521088ms, proof 9029 bytes
+          d3-00-h10091-s2: verify 71.111921ms
+          d3-00-h10092-s2: prove 126.734574ms, proof 11189 bytes
+          d3-00-h10092-s2: verify 91.418245ms
+          d3-00-h10094-s1-t.tx_valid_flip.1: prove 101.489387ms, proof 9470 bytes
+          d3-00-h10094-s1-t.tx_valid_flip.1: verify 81.275758ms
+          d3-00-h10108-s3: prove 86.313919ms, proof 7126 bytes
+          d3-00-h10108-s3: verify 61.075354ms
+          d3-00-h10114-s1: prove 136.845682ms, proof 12920 bytes
+          d3-00-h10114-s1: verify 86.410491ms
+          d3-01-h10014-s2: prove 495.628125ms, proof 20718 bytes
+          d3-01-h10014-s2: verify 445.120628ms
+          d3-01-h10014-s4: prove 500.606413ms, proof 19211 bytes
+          d3-01-h10014-s4: verify 424.760263ms
+          d3-01-h10020-s4: prove 344.088782ms, proof 7951 bytes
+          d3-01-h10020-s4: verify 318.683373ms
+          d3-01-h10023-s1: prove 632.037668ms, proof 22766 bytes
+          d3-01-h10023-s1: verify 495.537436ms
+          d3-01-h10026-s1: prove 495.889589ms, proof 19737 bytes
+          d3-01-h10026-s1: verify 420.013953ms
+          d3-01-h10027-s1: prove 500.5286ms, proof 16171 bytes
+          d3-01-h10027-s1: verify 409.592201ms
+          d3-01-h10029-s2: prove 505.650729ms, proof 17212 bytes
+          d3-01-h10029-s2: verify 419.751781ms
+          d3-01-h10032-s0: prove 576.261249ms, proof 25025 bytes
+          d3-01-h10032-s0: verify 470.271321ms
+          d3-01-h10034-s1: prove 404.541819ms, proof 8632 bytes
+          d3-01-h10034-s1: verify 359.144608ms
+          d3-01-h10035-s3: prove 596.580007ms, proof 19267 bytes
+          d3-01-h10035-s3: verify 465.25914ms
+          d3-01-h10040-s3: prove 419.70743ms, proof 8561 bytes
+          d3-01-h10040-s3: verify 359.15093ms
+          d3-01-h10041-s0: prove 439.930227ms, proof 14901 bytes
+          d3-01-h10041-s0: verify 379.809858ms
+          d3-01-h10050-s1: prove 597.190729ms, proof 25035 bytes
+          d3-01-h10050-s1: verify 481.344243ms
+          d3-01-h10064-s3: prove 369.221824ms, proof 8552 bytes
+          d3-01-h10064-s3: verify 328.912969ms
+          d3-01-h10067-s0: prove 566.341165ms, proof 21759 bytes
+          d3-01-h10067-s0: verify 455.200394ms
+          d3-01-h10069-s3: prove 434.929608ms, proof 15233 bytes
+          d3-01-h10069-s3: verify 369.709202ms
+          d3-01-h10073-s0: prove 338.980585ms, proof 7937 bytes
+          d3-01-h10073-s0: verify 313.75812ms
+          d3-01-h10073-s2: prove 389.440835ms, proof 15408 bytes
+          d3-01-h10073-s2: verify 359.551657ms
+          d3-01-h10074-s4: prove 409.642702ms, proof 9929 bytes
+          d3-01-h10074-s4: verify 359.119304ms
+          d3-01-h10076-s0: prove 399.591318ms, proof 11284 bytes
+          d3-01-h10076-s0: verify 349.031211ms
+          d3-01-h10076-s1: prove 364.225113ms, proof 13808 bytes
+          d3-01-h10076-s1: verify 349.07324ms
+          d3-01-h10080-s4: prove 354.050547ms, proof 9420 bytes
+          d3-01-h10080-s4: verify 328.780372ms
+          d3-01-h10086-s3-w.new_tx.drop_rehashed: prove 369.274256ms, proof 10580 bytes
+          d3-01-h10086-s3-w.new_tx.drop_rehashed: verify 338.969547ms
+          d3-01-h10094-s4: prove 364.113454ms, proof 10498 bytes
+          d3-01-h10094-s4: verify 333.828813ms
+          d3-01-h10100-s4: prove 1.991011589s, proof 156740 bytes
+          d3-01-h10100-s4: verify 1.415003297s
+          d3-01-h10106-s1: prove 370.089502ms, proof 10063 bytes
+          d3-01-h10106-s1: verify 343.887063ms
+          d3-01-h10121-s4: prove 455.252379ms, proof 14447 bytes
+          d3-01-h10121-s4: verify 379.299284ms
+          d3-02-h10006-s0: prove 152.057954ms, proof 13198 bytes
+          d3-02-h10006-s0: verify 101.50512ms
+          d3-02-h10006-s4-w.dup_key_last_good: prove 147.136382ms, proof 14033 bytes
+          d3-02-h10006-s4-w.dup_key_last_good: verify 106.529095ms
+          d3-02-h10007-s3: prove 268.075075ms, proof 21052 bytes
+          d3-02-h10007-s3: verify 172.13656ms
+          d3-02-h10025-s3: prove 273.143844ms, proof 28033 bytes
+          d3-02-h10025-s3: verify 187.370708ms
+          d3-02-h10029-s4: prove 237.761408ms, proof 18326 bytes
+          d3-02-h10029-s4: verify 141.887555ms
+          d3-02-h10032-s1-t.tx_valid_flip.2: prove 328.78855ms, proof 19660 bytes
+          d3-02-h10032-s1-t.tx_valid_flip.2: verify 197.854749ms
+          d3-02-h10036-s1: prove 308.487987ms, proof 18790 bytes
+          d3-02-h10036-s1: verify 192.388933ms
+          d3-02-h10042-s3: prove 723.133451ms, proof 94587 bytes
+          d3-02-h10042-s3: verify 576.408603ms
+          d3-02-h10051-s2: prove 136.896203ms, proof 12111 bytes
+          d3-02-h10051-s2: verify 101.511743ms
+          d3-02-h10053-s2: prove 2.597225307s, proof 141129 bytes
+          d3-02-h10053-s2: verify 1.516106499s
+          d3-02-h10062-s2: prove 253.05395ms, proof 17290 bytes
+          d3-02-h10062-s2: verify 177.73613ms
+          d3-02-h10064-s4: prove 126.663676ms, proof 11788 bytes
+          d3-02-h10064-s4: verify 96.283816ms
+          d3-02-h10066-s1: prove 323.891748ms, proof 23377 bytes
+          d3-02-h10066-s1: verify 207.635958ms
+          d3-02-h10066-s4: prove 232.759788ms, proof 18777 bytes
+          d3-02-h10066-s4: verify 157.083754ms
+          d3-02-h10066-s5: prove 314.60918ms, proof 20933 bytes
+          d3-02-h10066-s5: verify 197.511605ms
+          d3-02-h10067-s2: prove 348.980664ms, proof 21555 bytes
+          d3-02-h10067-s2: verify 217.581074ms
+          d3-02-h10067-s5: prove 273.287277ms, proof 19967 bytes
+          d3-02-h10067-s5: verify 182.306771ms
+          d3-02-h10068-s1-code.duplicate: prove 253.09635ms, proof 17271 bytes
+          d3-02-h10068-s1-code.duplicate: verify 152.061584ms
+          d3-02-h10084-s4: prove 116.63801ms, proof 10664 bytes
+          d3-02-h10084-s4: verify 86.401799ms
+          d3-02-h10086-s3: prove 202.541371ms, proof 15668 bytes
+          d3-02-h10086-s3: verify 142.15469ms
+          d3-02-h10088-s0-hdr.height_created: prove 819.728842ms, proof 104998 bytes
+          d3-02-h10088-s0-hdr.height_created: verify 652.786865ms
+          d3-02-h10091-s5: prove 4.285467126s, proof 90575 bytes
+          d3-02-h10091-s5: verify 2.824418382s
+          d3-02-h10100-s3: prove 343.909104ms, proof 21566 bytes
+          d3-02-h10100-s3: verify 207.583101ms
+          d3-02-h10101-s2: prove 136.889333ms, proof 13270 bytes
+          d3-02-h10101-s2: verify 91.390078ms
+          d3-02-h10109-s0: prove 283.231515ms, proof 24280 bytes
+          d3-02-h10109-s0: verify 182.247152ms
+          d3-02-h10109-s2: prove 283.346361ms, proof 20249 bytes
+          d3-02-h10109-s2: verify 187.465993ms
+          d3-02-h10111-s4: prove 480.506308ms, proof 21000 bytes
+          d3-02-h10111-s4: verify 349.059627ms
+          d3-02-h10113-s0: prove 273.221598ms, proof 26381 bytes
+          d3-02-h10113-s0: verify 199.580541ms
+          d3-03-h10019-s0: prove 369.156268ms, proof 43590 bytes
+          d3-03-h10019-s0: verify 247.983502ms
+          d3-03-h10022-s2: prove 207.566922ms, proof 16212 bytes
+          d3-03-h10022-s2: verify 141.79211ms
+          d3-03-h10028-s1: prove 81.232803ms, proof 7812 bytes
+          d3-03-h10028-s1: verify 60.981061ms
+          d3-03-h10029-s1: prove 328.906462ms, proof 23442 bytes
+          d3-03-h10029-s1: verify 207.570459ms
+          d3-03-h10031-s3-code.duplicate: prove 394.409894ms, proof 25398 bytes
+          d3-03-h10031-s3-code.duplicate: verify 237.887893ms
+          d3-03-h10036-s2: prove 258.096364ms, proof 25622 bytes
+          d3-03-h10036-s2: verify 182.284844ms
+          d3-03-h10037-s3-t.chain_id(unused_in_D0): prove 338.823906ms, proof 39007 bytes
+          d3-03-h10037-s3-t.chain_id(unused_in_D0): verify 232.676957ms
+          d3-03-h10039-s3: prove 293.426152ms, proof 33305 bytes
+          d3-03-h10039-s3: verify 197.500749ms
+          d3-03-h10046-s2: prove 657.235249ms, proof 36119 bytes
+          d3-03-h10046-s2: verify 394.51872ms
+          d3-03-h10059-s2: prove 384.547544ms, proof 31510 bytes
+          d3-03-h10059-s2: verify 237.930675ms
+          d3-03-h10063-s1: prove 172.226314ms, proof 14639 bytes
+          d3-03-h10063-s1: verify 106.553955ms
+          d3-03-h10067-s1: prove 318.719452ms, proof 21658 bytes
+          d3-03-h10067-s1: verify 192.450134ms
+          d3-03-h10067-s3: prove 318.673546ms, proof 33077 bytes
+          d3-03-h10067-s3: verify 217.711084ms
+          d3-03-h10072-s2-t.minimum_stake(unused_in_D0): prove 313.693955ms, proof 33841 bytes
+          d3-03-h10072-s2-t.minimum_stake(unused_in_D0): verify 197.535956ms
+          d3-03-h10076-s1: prove 318.671894ms, proof 33147 bytes
+          d3-03-h10076-s1: verify 217.68257ms
+          d3-03-h10082-s2-w.main_block_hash(unchecked): prove 1.687923601s, proof 164109 bytes
+          d3-03-h10082-s2-w.main_block_hash(unchecked): verify 1.097299256s
+          d3-03-h10083-s1: prove 348.985542ms, proof 38321 bytes
+          d3-03-h10083-s1: verify 237.878428ms
+          d3-03-h10092-s2: prove 338.952862ms, proof 35443 bytes
+          d3-03-h10092-s2: verify 222.736011ms
+          d3-03-h10096-s0: prove 283.267958ms, proof 25288 bytes
+          d3-03-h10096-s0: verify 197.387287ms
+          d3-03-h10106-s1: prove 409.690716ms, proof 21371 bytes
+          d3-03-h10106-s1: verify 242.985209ms
+          d3-03-h10106-s1-code.reorder: prove 409.733657ms, proof 21371 bytes
+          d3-03-h10106-s1-code.reorder: verify 242.850266ms
+          d3-03-h10106-s3: prove 465.194259ms, proof 45362 bytes
+          d3-03-h10106-s3: verify 308.576347ms
+          d3-03-h10107-s3: prove 253.022689ms, proof 25608 bytes
+          d3-03-h10107-s3: verify 182.363674ms
+          d3-03-h10116-s0: prove 455.192017ms, proof 24234 bytes
+          d3-03-h10116-s0: verify 263.101337ms
+          d3-03-h10120-s1: prove 369.238178ms, proof 23535 bytes
+          d3-03-h10120-s1: verify 222.790015ms
+          d3-03-h10120-s3: prove 126.747008ms, proof 14636 bytes
+          d3-03-h10120-s3: verify 91.293036ms
+          d3-03-h10121-s0: prove 86.349433ms, proof 9512 bytes
+          d3-03-h10121-s0: verify 66.072543ms
+          d3-04-h10006-s3: prove 76.113711ms, proof 7249 bytes
+          d3-04-h10006-s3: verify 106.430104ms
+          d3-04-h10015-s4: prove 227.64995ms, proof 16502 bytes
+          d3-04-h10015-s4: verify 146.878435ms
+          d3-04-h10028-s4: prove 364.096452ms, proof 20469 bytes
+          d3-04-h10028-s4: verify 222.696018ms
+          d3-04-h10029-s0-w.main_block_hash(unchecked): prove 288.36934ms, proof 15838 bytes
+          d3-04-h10029-s0-w.main_block_hash(unchecked): verify 217.689776ms
+          d3-04-h10036-s4: prove 273.254435ms, proof 15711 bytes
+          d3-04-h10036-s4: verify 202.492546ms
+          d3-04-h10037-s1: prove 157.071768ms, proof 13506 bytes
+          d3-04-h10037-s1: verify 101.519553ms
+          d3-04-h10038-s2: prove 354.471239ms, proof 23140 bytes
+          d3-04-h10038-s2: verify 212.96287ms
+          d3-04-h10039-s0: prove 2.470784202s, proof 107077 bytes
+          d3-04-h10039-s0: verify 2.278837316s
+          d3-04-h10045-s4: prove 834.108017ms, proof 73784 bytes
+          d3-04-h10045-s4: verify 576.363689ms
+          d3-04-h10046-s0: prove 778.470722ms, proof 98817 bytes
+          d3-04-h10046-s0: verify 541.042528ms
+          d3-04-h10046-s2: prove 268.240151ms, proof 18639 bytes
+          d3-04-h10046-s2: verify 177.475107ms
+          d3-04-h10048-s2: prove 247.945348ms, proof 17435 bytes
+          d3-04-h10048-s2: verify 152.059596ms
+          d3-04-h10051-s2: prove 263.0903ms, proof 17096 bytes
+          d3-04-h10051-s2: verify 167.084593ms
+          d3-04-h10052-s4: prove 288.586873ms, proof 59497 bytes
+          d3-04-h10052-s4: verify 248.014218ms
+          d3-04-h10057-s1-w.new_tx.drop_rehashed: prove 243.016272ms, proof 17496 bytes
+          d3-04-h10057-s1-w.new_tx.drop_rehashed: verify 146.998502ms
+          d3-04-h10057-s2: prove 359.014564ms, proof 23526 bytes
+          d3-04-h10057-s2: verify 217.692234ms
+          d3-04-h10061-s0: prove 197.379917ms, proof 17697 bytes
+          d3-04-h10061-s0: verify 126.720731ms
+          d3-04-h10061-s1: prove 621.772199ms, proof 65405 bytes
+          d3-04-h10061-s1: verify 424.854141ms
+          d3-04-h10063-s2: prove 399.485048ms, proof 19341 bytes
+          d3-04-h10063-s2: verify 232.867754ms
+          d3-04-h10075-s1: prove 197.348168ms, proof 15468 bytes
+          d3-04-h10075-s1: verify 131.850305ms
+          d3-04-h10081-s4: prove 773.905727ms, proof 44578 bytes
+          d3-04-h10081-s4: verify 450.059878ms
+          d3-04-h10085-s0: prove 475.351084ms, proof 30334 bytes
+          d3-04-h10085-s0: verify 313.668306ms
+          d3-04-h10085-s3: prove 313.792861ms, proof 18564 bytes
+          d3-04-h10085-s3: verify 172.207375ms
+          d3-04-h10086-s2: prove 263.090722ms, proof 18148 bytes
+          d3-04-h10086-s2: verify 162.119811ms
+          d3-04-h10097-s2-code.extra_unneeded: prove 177.168291ms, proof 12518 bytes
+          d3-04-h10097-s2-code.extra_unneeded: verify 91.348863ms
+          d3-04-h10098-s4: prove 257.969955ms, proof 26301 bytes
+          d3-04-h10098-s4: verify 177.284921ms
+          d3-04-h10102-s0: prove 81.127377ms, proof 8093 bytes
+          d3-04-h10102-s0: verify 61.027751ms
+          d3-04-h10105-s4: prove 86.292558ms, proof 6023 bytes
+          d3-04-h10105-s4: verify 55.989008ms
+          d3-04-h10107-s2-t.minimum_stake(unused_in_D0): prove 116.538169ms, proof 12298 bytes
+          d3-04-h10107-s2-t.minimum_stake(unused_in_D0): verify 91.401713ms
+          d3-04-h10113-s2: prove 3.547577236s, proof 54763 bytes
+          d3-04-h10113-s2: verify 2.167880524s
+          d3-05-h10005-s2: prove 399.670522ms, proof 9841 bytes
+          d3-05-h10005-s2: verify 349.081706ms
+          d3-05-h10007-s4: prove 369.224052ms, proof 10073 bytes
+          d3-05-h10007-s4: verify 338.84501ms
+          d3-05-h10010-s3-code.extra_garbage: prove 2.005838589s, proof 99744 bytes
+          d3-05-h10010-s3-code.extra_garbage: verify 1.005774374s
+          d3-05-h10013-s5: prove 596.58594ms, proof 17384 bytes
+          d3-05-h10013-s5: verify 460.265932ms
+          d3-05-h10021-s0: prove 591.497093ms, proof 21844 bytes
+          d3-05-h10021-s0: verify 460.197263ms
+          d3-05-h10026-s1-hdr.height_included(unchecked): prove 475.325433ms, proof 21052 bytes
+          d3-05-h10026-s1-hdr.height_included(unchecked): verify 419.833099ms
+          d3-05-h10028-s5: prove 2.931161174s, proof 181810 bytes
+          d3-05-h10028-s5: verify 1.965855469s
+          d3-05-h10030-s0: prove 1.223099712s, proof 104245 bytes
+          d3-05-h10030-s0: verify 1.09684152s
+          d3-05-h10030-s4: prove 541.175275ms, proof 13242 bytes
+          d3-05-h10030-s4: verify 435.032338ms
+          d3-05-h10031-s4: prove 490.578474ms, proof 18322 bytes
+          d3-05-h10031-s4: verify 412.310827ms
+          d3-05-h10032-s5: prove 424.73081ms, proof 10187 bytes
+          d3-05-h10032-s5: verify 369.247553ms
+          d3-05-h10039-s3: prove 480.773451ms, proof 25211 bytes
+          d3-05-h10039-s3: verify 419.795603ms
+          d3-05-h10045-s1: prove 475.286747ms, proof 17106 bytes
+          d3-05-h10045-s1: verify 389.374242ms
+          d3-05-h10062-s4-hdr.height_included(unchecked): prove 1.87470753s, proof 99915 bytes
+          d3-05-h10062-s4-hdr.height_included(unchecked): verify 1.369744014s
+          d3-05-h10062-s4-w.unsorted_keys: prove 1.865866347s, proof 99915 bytes
+          d3-05-h10062-s4-w.unsorted_keys: verify 1.410668587s
+          d3-05-h10063-s3: prove 1.410464937s, proof 109374 bytes
+          d3-05-h10063-s3: verify 1.041131349s
+          d3-05-h10072-s5-hdr.height_created: prove 385.079122ms, proof 11287 bytes
+          d3-05-h10072-s5-hdr.height_created: verify 354.123894ms
+          d3-05-h10073-s1: prove 475.350061ms, proof 16613 bytes
+          d3-05-h10073-s1: verify 399.593899ms
+          d3-05-h10080-s5: prove 591.54056ms, proof 19604 bytes
+          d3-05-h10080-s5: verify 455.156818ms
+          d3-05-h10082-s2: prove 500.681615ms, proof 22520 bytes
+          d3-05-h10082-s2: verify 440.032955ms
+          d3-05-h10082-s3: prove 409.678378ms, proof 13045 bytes
+          d3-05-h10082-s3: verify 359.16318ms
+          d3-05-h10086-s1: prove 445.027676ms, proof 13259 bytes
+          d3-05-h10086-s1: verify 364.161337ms
+          d3-05-h10094-s1: prove 490.542966ms, proof 12514 bytes
+          d3-05-h10094-s1: verify 414.902802ms
+          d3-05-h10098-s1-t.chain_id(unused_in_D0): prove 333.970239ms, proof 5872 bytes
+          d3-05-h10098-s1-t.chain_id(unused_in_D0): verify 313.713215ms
+          d3-05-h10100-s3: prove 349.105122ms, proof 7549 bytes
+          d3-05-h10100-s3: verify 323.930423ms
+          d3-05-h10102-s4-w.dup_key_last_good: prove 1.238349551s, proof 102672 bytes
+          d3-05-h10102-s4-w.dup_key_last_good: verify 935.298714ms
+          d3-05-h10103-s4: prove 621.939135ms, proof 21507 bytes
+          d3-05-h10103-s4: verify 475.940146ms
+          d3-05-h10105-s3: prove 521.143187ms, proof 22155 bytes
+          d3-05-h10105-s3: verify 429.972094ms
+          d3-05-h10114-s1: prove 480.532439ms, proof 17149 bytes
+          d3-05-h10114-s1: verify 404.689433ms
+
+result: local checks passed (formal gates were NOT run; only the judge's verdict counts)
+=== LOCAL CHECK — NOT AN OFFICIAL VERDICT ===
+
+real	10m39.163s
+user	10m16.857s
+sys	0m26.562s
