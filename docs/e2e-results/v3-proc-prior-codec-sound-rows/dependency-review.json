@@ -39,5 +39,11 @@
     "Completeness implies soundness",
     "Full bus conservation",
     "End-to-end succinct verifier replaces native validator"
-  ]
+  ],
+  "bus70_direction_review": {
+    "codec": "ProcPriorCodecActual.publicId is SEND bus70",
+    "id_table": "ProcPriorIdTable.table70 71 72 69 consumes public inventory bus70; its Local does not independently bind keys to prepared layout",
+    "authentication_root": "Retained Codec SDL receive/send interactions7/8 with public prepared SDL seed inventory and SdlOwn global ownership",
+    "remaining": "Prove arbitrary-trace tau bounds via prepared SPAR/block extraction, descend predecessor tau without field wrap, decode authenticated public SDL seed, then infer packed bus70 identity. A hypothetical authenticated ID-table receiver inventory would assume the missing claim."
+  }
 }
