@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual native word association CLOSED at first-word boundary: ProcessRepairNativeWord.word derives SAME authenticated frame/Value/native State/link at original record ordinal and exact selected word/top saturation. No supplied byte, native-record, frame identity, decode, or u64 range premise. Eight bus suppliers cohere through actual tau first-frame uniqueness and deterministic native decoding. Root package PASS4guards; stage order/tau monotonicity/nonwrap/first uniqueness/enriched native record endpoint PASS21guards. Root independently rebuilt/hash-checked all final sources/audits:25 incremental guards. Arbitrary live native writes now composing; memory semantics, full Scan/Dist, global transition/clean certificate/executable prover/judge/general NEAR replacement remain open.
+
+
 2026-10-09: Native selected record field PASS4guards: actual selectors and eight explicit same-record byte identities imply exact sender/receiver/allowance word and saturation; native decoder derives all u64 bounds. Same-record byte coherence remains explicit pending tau/frame uniqueness. Actual queue complete-record ownership PASS7guards: full queue+RawFrame+account+akey VBYTES conservation and derived RawFrame StartClosed give SAME Value complete parser record; no record-specific ownership/balance/closure premise. Root independently rebuilt/hash-checked final sources/audits:11 incremental guards. Buffered native shard reconstruction, full Scan/Dist/global theorem, clean certificate and actual succinct proof/judge remain open.
 
 

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual first record word maps to SAME authenticated frame and decoded native record at original ordinal, with exact selected word and saturation. Eight byte suppliers cohere by derived tau frame uniqueness and deterministic decoding; no supplied byte/native/frame association. Arbitrary writes and global assembly remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorDecodedIdentity.lean",
+      "sha256": "5f8b8812e04cdf93c84f65dac9708e0e68f22684dfb4a63de7015d6a67c11cee",
+      "audit": "zk-formal/test/AuditProcPriorDecodedIdentity.lean",
+      "audit_sha256": "62870fb647bf95bad633b53ff8661ffd5b7c7963a4a4e334f5522e4d173a6903",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWord.lean",
+      "sha256": "c63db432a0f2aaf1f969f1ccd23c6f2cc3892da57678599c05da02e3e348d6b6",
+      "audit": "zk-formal/test/AuditProcessRepairNativeWord.lean",
+      "audit_sha256": "e7ce17421d78f8f273b964251d62769d3ff97d90aebce6ad8217de9eb680dc77",
+      "guards": 1
+    }
+  ]
+}
