@@ -1,5 +1,6 @@
 //! Independent Rust predicate for the D0a amendments (spec/near-chunk-validation-v0a.md):
-//! A1 `c.gas_limit`, A2 `w.proof_routing`, Canon0f `e.sched_canonical`, A8 `c.bw_requests`. Used together with
+//! A1 `c.gas_limit`, A2 `w.proof_routing`, Canon0f `e.sched_canonical`, A8 `c.bw_requests`,
+//! A9 `e.chacha_words` (bound W), A10 `w.path_depth` (bound D_p). Used together with
 //! the D0 classifier (../v3/src/d0.rs): a case is in D0a iff both return no violation.
 //! Uses nearcore's own objects and code (chunk headers, `Receipt::receiver_shard_id`, the
 //! tracking node's full state, `Trie::from_recorded_storage` on the witness), not the
@@ -39,7 +40,13 @@ pub fn a8_ok(blocks: &[std::sync::Arc<near_primitives::block::Block>]) -> bool {
     })
 }
 
-pub fn extra(client: &Client, built: &Built, w: &ChunkStateWitness) -> Result<Vec<&'static str>, String> {
+/// A9 bound: total ChaCha20 words drawn by the scheduler runs of the D0 transition chain.
+pub const W_CHACHA: u64 = 770_000;
+/// A10 bound: Merkle path items of every used source receipt proof.
+pub const D_PATH: u64 = 32;
+
+/// `extra` with the measured A9 word total (`None`: not measured, check skipped).
+pub fn extra(client: &Client, built: &Built, w: &ChunkStateWitness, chacha_total: Option<u64>) -> Result<Vec<&'static str>, String> {
     let mut v = Vec::new();
     let b2 = &built.blocks[built.b2];
     if b2.header().is_genesis() {
@@ -84,7 +91,93 @@ pub fn extra(client: &Client, built: &Built, w: &ChunkStateWitness) -> Result<Ve
     if !a8_ok(&built.blocks) {
         v.push("c.bw_requests");
     }
+    // A9: ChaCha20 words drawn by all scheduler runs (main + implicit), src/sched.rs replica
+    if chacha_total.is_some_and(|t| t > W_CHACHA) {
+        v.push("e.chacha_words");
+    }
+    // A10: Merkle path length of every source proof (an honest witness holds exactly the used ones)
+    if crate::pathmut::max_path_depth(w) > D_PATH {
+        v.push("w.path_depth");
+    }
     Ok(v)
+}
+
+// ---------------- A9 `e.chacha_words` ----------------
+
+/// Words drawn by the scheduler runs of an honest case's D0 transition chain, with the
+/// replica validated against nearcore's actual post-state value of 0x0f for every run.
+#[derive(Default, Debug)]
+pub struct Chacha {
+    pub total: u64,
+    pub runs: Vec<u64>,
+    /// Runs whose replica state was compared with nearcore's post-state.
+    pub checked: usize,
+    /// Descriptions of the runs whose replica state differs from nearcore's.
+    pub mismatches: Vec<String>,
+}
+
+fn runtime_config(pv: u32) -> std::sync::Arc<near_parameters::RuntimeConfig> {
+    static STORE: std::sync::OnceLock<near_parameters::RuntimeConfigStore> = std::sync::OnceLock::new();
+    STORE.get_or_init(|| near_parameters::RuntimeConfigStore::new(None)).get_config(pv).clone()
+}
+
+/// Replays every `run_bandwidth_scheduler` nearcore performs while validating `w` (the main
+/// transition's run, if B2 is not genesis, then each implicit transition's run), from the
+/// inputs nearcore builds (`pre_validate_chunk_state_witness`'s `ApplyChunkBlockContext`s:
+/// the block's `BlockCongestionInfo` and `BlockBandwidthRequests`, `prev_block_hash` = RNG
+/// seed; epoch shard layout and runtime config from the epoch manager; pre-state 0x0f read
+/// from the witness's recorded storage). Each replica state is compared with the post-state
+/// value in the trie of the first node of `nodes` whose State column holds it (the tracking node
+/// first; a genesis-B2 case may have no tracker of the shard among the clients holding B2's extra).
+pub fn chacha(client: &Client, nodes: &[&Client], built: &Built, w: &ChunkStateWitness) -> Result<Chacha, String> {
+    use near_chain::stateless_validation::chunk_validation::{ImplicitTransitionParams, MainTransition};
+    use near_chain::types::ApplyChunkBlockContext;
+    let e = |x: &dyn std::fmt::Display| x.to_string();
+    let pre = crate::judge::pre_validate(client, w)?;
+    let ChunkStateWitness::V2(x) = w;
+    let em = client.epoch_manager.as_ref();
+    let mut out = Chacha::default();
+    let mut one = |ctx: &ApplyChunkBlockContext, pre_trie: Trie, post_root: CryptoHash, what: String| -> Result<(), String> {
+        let epoch_id = em.get_epoch_id_from_prev_block(&ctx.prev_block_hash).map_err(|x| e(&x))?;
+        let layout = em.get_shard_layout(&epoch_id).map_err(|x| e(&x))?;
+        let pv = em.get_epoch_protocol_version(&epoch_id).map_err(|x| e(&x))?;
+        let cfg = runtime_config(pv);
+        let prev = near_store::get_bandwidth_scheduler_state(&pre_trie).map_err(|x| e(&x))?;
+        let r = crate::sched::run(&layout, prev, &cfg, &ctx.congestion_info, &ctx.bandwidth_requests, ctx.prev_block_hash.0);
+        let read = |c: &Client| -> Result<Option<BandwidthSchedulerState>, String> {
+            let post = c.runtime_adapter.get_trie_for_shard(built.shard_id, &ctx.prev_block_hash, post_root, false).map_err(|x| e(&x))?;
+            near_store::get_bandwidth_scheduler_state(&post).map_err(|x| e(&x))
+        };
+        let actual = std::iter::once(client).chain(nodes.iter().copied()).map(read).find(|r| r.is_ok()).unwrap_or_else(|| read(client))?;
+        out.checked += 1;
+        if actual.as_ref().map(|a| borsh::to_vec(a).unwrap()) != Some(borsh::to_vec(&r.state).unwrap()) {
+            out.mismatches.push(format!("{what}: replica {:?} != nearcore {:?}", r.state, actual));
+        }
+        out.total += r.words;
+        out.runs.push(r.words);
+        Ok(())
+    };
+    let mut root = x.main_state_transition.post_state_root;
+    if let MainTransition::NewChunk { new_chunk_data, .. } = &pre.main_transition_params {
+        let trie = Trie::from_recorded_storage(
+            PartialStorage { nodes: x.main_state_transition.base_state.clone() },
+            new_chunk_data.prev_state_root,
+            false,
+        );
+        one(&new_chunk_data.block, trie, root, "main".into())?;
+    }
+    if pre.implicit_transition_params.len() != x.implicit_transitions.len() {
+        return Err("implicit transition count mismatch".into());
+    }
+    for (k, (p, t)) in pre.implicit_transition_params.iter().zip(&x.implicit_transitions).enumerate() {
+        let ImplicitTransitionParams::ApplyOldChunk(ctx, _) = p else {
+            return Err("resharding transition (not replicated)".into());
+        };
+        let trie = Trie::from_recorded_storage(PartialStorage { nodes: t.base_state.clone() }, root, false);
+        one(ctx, trie, t.post_state_root, format!("implicit{k}"))?;
+        root = t.post_state_root;
+    }
+    Ok(out)
 }
 
 // ---------------- A7 `w.unfolded` ----------------

@@ -7,7 +7,9 @@ import NearSpecV3.ChunkValidationV0a
 Draft challenge `near-chunk-validation-d0-stark`
 (`challenges/drafts/near-chunk-validation-d0-stark.draft.json`, spec/near-chunk-validation-v0a.md).
 Same claim type and codec as `NearSpecV3.challengeSpec` (D0); `Rel c w = RelD0a c.encode w`
-(`RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 B0 ∧ A8`, a pure restriction of D0, `relD0a_relD0`). The formal proof-size
+(`RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 B0 ∧ A8 ∧ A9 W0 ∧ A10 Dp0`, a pure restriction of D0,
+`relD0a_relD0`; `W0 = 770,000` ChaCha20 words, `Dp0 = 32` Merkle-path items, user decisions
+2026-10-09). The formal proof-size
 cap is 8 MiB (V3-D0-DESIGN §10, §11).
 -/
 

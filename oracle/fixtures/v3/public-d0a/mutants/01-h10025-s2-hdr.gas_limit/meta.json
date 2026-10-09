@@ -1,6 +1,10 @@
 {
   "base": "01-h10025-s2",
   "case": "01-h10025-s2-hdr.gas_limit",
+  "chacha_words": 0,
+  "chacha_words_runs": [
+    0
+  ],
   "d0a_violations": [],
   "domain": "D0a",
   "expected_rel": false,
@@ -9,6 +13,7 @@
   "in_d0": true,
   "in_d0a": true,
   "kind": "mutant",
+  "max_path_depth": 3,
   "mutation": "hdr.gas_limit",
   "nearcore": "validate: InvalidGasLimit",
   "verdict_source": "nearcore"

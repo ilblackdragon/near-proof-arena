@@ -7,6 +7,7 @@ use crate::enc::{Claim, encode_witness};
 use crate::judge::nearcore_judge;
 use crate::a2mut::foreign_routing;
 use crate::a8mut::dup_bw_request;
+use crate::pathmut::{extend_path, inject, max_path_depth};
 use crate::mutate::{Judge, drop_each_node, mutants};
 use integration_tests::env::nightshade_setup::TestEnvNightshadeSetupExt;
 use integration_tests::env::test_env::TestEnv;
@@ -167,6 +168,15 @@ pub struct Stats {
     pub positives: usize,
     /// Arena layout: cases written to `rejections/` (expected_rel_d0 = false).
     pub rejections: usize,
+    /// A9 replica runs compared with nearcore's post-state / mismatching.
+    pub chacha_checked: usize,
+    pub chacha_mismatches: usize,
+    /// A9 replay failures (honest, nearcore-accepted cases whose runs could not be replayed).
+    pub chacha_errors: usize,
+    /// `w.path_depth_*` mutants: name -> (written, accepted by nearcore).
+    pub path_mutants: BTreeMap<String, (usize, usize)>,
+    /// Negative controls of the `w.path_depth_*` mutants: (judged, rejected by nearcore).
+    pub path_controls: (usize, usize),
 }
 
 /// Workload class of an honest D0 case (spec/workloads/near-chunk-validation-d0/*.json):
@@ -226,6 +236,13 @@ pub struct GenOpts {
     /// At most this many honest positives per chain (0 = no cap), so a batch
     /// spans several chain parameter sets (shard counts, Reed-Solomon codes).
     pub per_chain_cap: usize,
+    /// `--heavy-requests` (default off; when off the chain RNG stream and every output are
+    /// unchanged): each round, with probability 0.3, two sender shards each send a transfer
+    /// burst (300..500) to a third shard `t` whose next chunks are forced missing, so both
+    /// senders buffer receipts to `t` and emit bandwidth requests in the same blocks (two
+    /// requests in one allowance group: the scheduler shuffles, A9 words > 0); the other
+    /// shards stay untouched by the bursts, so their witnesses can stay in D0.
+    pub heavy_requests: bool,
 }
 
 impl GenOpts {
@@ -287,6 +304,43 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
         // ---- transactions
         let mut txs = Vec::new();
 
+        if o.heavy_requests && p.n_shards >= 3 && rng.gen_bool(0.3) {
+            let tgt = rng.gen_range(0..p.n_shards);
+            let s1 = (tgt + rng.gen_range(1..p.n_shards)) % p.n_shards;
+            let s2 = loop {
+                let x = (tgt + rng.gen_range(1..p.n_shards)) % p.n_shards;
+                if x != s1 {
+                    break x;
+                }
+            };
+            let sid = {
+                let em = &s.env.clients[0].epoch_manager;
+                let layout = em.get_shard_layout(&em.get_epoch_id_from_prev_block(&tip.last_block_hash).unwrap()).unwrap();
+                layout.account_id_to_shard_id(&s.accounts[tgt][0])
+            };
+            for off in 2..=4u64 {
+                let a = s.env.get_chunk_producer_at_offset(&tip, off, sid);
+                pending_skips.entry(tip.height + off).or_default().push(a);
+            }
+            for k in [s1, s2] {
+                for _ in 0..rng.gen_range(300..500) {
+                    let signer_id = s.accounts[k][rng.gen_range(0..ACCTS_PER_SHARD)].clone();
+                    let signer = InMemorySigner::test_signer(&signer_id);
+                    let nonce = nonces.entry(signer_id.clone()).or_insert(0);
+                    *nonce += 1;
+                    let receiver = s.accounts[tgt][rng.gen_range(0..ACCTS_PER_SHARD)].clone();
+                    let deposit = Balance::from_yoctonear(rng.gen_range(1..10u128.pow(24)));
+                    txs.push(SignedTransaction::from_actions(
+                        *nonce,
+                        signer_id,
+                        receiver,
+                        &signer,
+                        vec![Action::Transfer(TransferAction { deposit })],
+                        tip.last_block_hash,
+                    ));
+                }
+            }
+        }
         for k in 0..p.n_shards {
             if !rng.gen_bool(p.p_tx_shard) {
                 continue;
@@ -444,10 +498,33 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                     continue;
                 }
             };
-            // D0a = D0 ∧ amendments (A1, A2, Canon0f)
+            // A9: words drawn by the scheduler runs (replica validated against nearcore's post-state)
+            let chacha = if verdict.is_ok() {
+                match crate::d0a::chacha(tracker, &s.env.clients.iter().collect::<Vec<_>>(), &built, &sw) {
+                    Ok(c) => {
+                        stats.chacha_checked += c.checked;
+                        stats.chacha_mismatches += c.mismatches.len();
+                        for m in &c.mismatches {
+                            eprintln!("A9 REPLICA MISMATCH chain {chain_idx} {:?}: {m}", sw.chunk_production_key());
+                        }
+                        Some(c)
+                    }
+                    Err(e) => {
+                        stats.chacha_errors += 1;
+                        eprintln!("chacha replay failed chain {chain_idx} {:?} b2={} implicit={}: {e}", sw.chunk_production_key(), built.b2, built.implicit.len());
+                        None
+                    }
+                }
+            } else {
+                None
+            };
+            let chacha_total = chacha.as_ref().map(|c| c.total);
+            let chacha_runs = chacha.as_ref().map(|c| c.runs.clone());
+            let path_depth = max_path_depth(&sw);
+            // D0a = D0 ∧ amendments (A1, A2, Canon0f, A8, A9, A10)
             let in_d0_orig = viol.is_empty();
             let mut viol = viol;
-            match crate::d0a::extra(tracker, &built, &sw) {
+            match crate::d0a::extra(tracker, &built, &sw, chacha_total) {
                 Ok(x) => viol.extend(x),
                 Err(e) => {
                     eprintln!("d0a classify failed: {e}");
@@ -496,6 +573,8 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                 "in_d0a": in_d0, "d0a_violations": viol,
                 "expected_rel_d0a": verdict.is_ok() && in_d0,
                 "unfold_bytes": unfold,
+                "chacha_words": chacha_total, "chacha_words_runs": chacha_runs,
+                "max_path_depth": path_depth,
                 "features": features,
             });
             let n_receipts = match &sw { ChunkStateWitness::V2(x) => x.source_receipt_proofs.values().map(|p| p.0.len()).sum::<usize>() };
@@ -536,6 +615,8 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                                 "in_d0a": false, "d0a_violations": ["w.proof_routing"],
                                 "expected_rel_d0a": false,
                                 "expected_verdict": "out_of_domain",
+                                "chacha_words": chacha_total, "chacha_words_runs": chacha_runs,
+                                "max_path_depth": path_depth,
                             });
                             stats.mutants += 1;
                             write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
@@ -554,7 +635,65 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                                 "expected_rel_d0a": false,
                                 "expected_verdict": "out_of_domain",
                                 "expected_reason": "c.bw_requests",
+                                "chacha_words": chacha_total, "chacha_words_runs": chacha_runs,
+                                "max_path_depth": path_depth,
                             });
+                            stats.mutants += 1;
+                            write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
+                        }
+                        // A10 mutants (src/pathmut.rs): a source proof's Merkle path extended to
+                        // exactly D_p items (in D0a) and to D_p + 1 (out: w.path_depth); judged by
+                        // nearcore with the mutated B2 injected into the judging client's store
+                        for (depth, mn) in [(32usize, "w.path_depth_at_bound"), (33, "w.path_depth_over")] {
+                            let Some(m) = extend_path(&built.claim, &sw, &built.blocks[0], depth, mn) else { continue };
+                            let exp = inject(client, built.blocks[0].hash(), &m.block).and_then(|_| {
+                                nearcore_judge(client, &m.witness, &[], (m.claim.rs_data_parts, m.claim.rs_total_parts))
+                            });
+                            // classification: the base is in D0a; only the witness length and the
+                            // path depth change (scheduler inputs, receipts and state are untouched)
+                            let mut mv: Vec<&str> = Vec::new();
+                            if m.witness.len() > 8 * 1024 * 1024 {
+                                mv.push("w.size");
+                            }
+                            let in_d0m = mv.is_empty();
+                            if depth as u64 > crate::d0a::D_PATH {
+                                mv.push("w.path_depth");
+                            }
+                            let in_d0am = mv.is_empty();
+                            let mname = format!("{name}-{}", m.name);
+                            let mut meta = json!({
+                                "case": mname, "kind": "mutant", "mutation": mn, "base": name,
+                                "domain": "D0a", "verdict_source": "nearcore",
+                                "nearcore": exp.as_ref().map(|_| "ok".to_string()).unwrap_or_else(|e| e.clone()),
+                                "expected_rel": exp.is_ok(),
+                                "in_d0": in_d0m, "expected_rel_d0": exp.is_ok() && in_d0m,
+                                "in_d0a": in_d0am, "d0a_violations": mv,
+                                "expected_rel_d0a": exp.is_ok() && in_d0am,
+                                "chacha_words": chacha_total, "chacha_words_runs": chacha_runs,
+                                "max_path_depth": depth, "path_mutated_slot": m.slot,
+                            });
+                            if depth as u64 > crate::d0a::D_PATH {
+                                meta["expected_verdict"] = json!("out_of_domain");
+                                meta["expected_reason"] = json!("w.path_depth");
+                            }
+                            if let Err(e) = &exp {
+                                eprintln!("{mname}: nearcore rejected: {e}");
+                            }
+                            // negative control (not written): the same witness with the last
+                            // synthetic sibling flipped must be rejected by nearcore
+                            if let Ok(mut cw) = borsh::from_slice::<ChunkStateWitness>(&m.witness) {
+                                let ChunkStateWitness::V2(cx) = &mut cw;
+                                if let Some(p) = cx.source_receipt_proofs.values_mut().find(|p| p.1.proof.len() == depth) {
+                                    p.1.proof.last_mut().unwrap().hash.0[0] ^= 1;
+                                    let cb = borsh::to_vec(&cw).unwrap();
+                                    let cv = nearcore_judge(client, &cb, &[], (m.claim.rs_data_parts, m.claim.rs_total_parts));
+                                    stats.path_controls.0 += 1;
+                                    stats.path_controls.1 += cv.is_err() as usize;
+                                }
+                            }
+                            let ent = stats.path_mutants.entry(mn.to_string()).or_default();
+                            ent.0 += 1;
+                            ent.1 += exp.is_ok() as usize;
                             stats.mutants += 1;
                             write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
                         }
@@ -580,8 +719,13 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                             ),
                         };
                         let mname = format!("{name}-{}", m.name);
+                        let mdepth = borsh::from_slice::<ChunkStateWitness>(&m.witness)
+                            .map(|w| max_path_depth(&w))
+                            .unwrap_or(path_depth);
                         let meta = json!({
                             "case": mname, "kind": "mutant", "mutation": m.name, "base": name,
+                            "chacha_words": chacha_total, "chacha_words_runs": chacha_runs,
+                            "max_path_depth": mdepth,
                             "verdict_source": src,
                             "nearcore": exp.as_ref().map(|_| "ok".to_string()).unwrap_or_else(|e| e.clone()),
                             "expected_rel": exp.is_ok(),

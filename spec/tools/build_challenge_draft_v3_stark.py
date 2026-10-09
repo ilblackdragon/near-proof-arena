@@ -54,6 +54,9 @@ restrictions = [
     R("e.forwarded", "every generated receipt is forwarded (never buffered)"),
     R("e.sched_canonical", "every BandwidthSchedulerState value read (main and implicit pre-states) is absent or V1 listing exactly the layout's n^2 links in sender-major order (what update_scheduler_state writes) [Canon0f]"),
     R("w.unfolded", "unfoldBytes <= B0 = 2,000,000: the bytes of every partial trie the relation builds, unfolded per read-path copy, plus the post-write path copies, summed over all transitions (NearSpecV3.unfoldBytes) [A7]"),
+    R("c.bw_requests", "in every block of the claim's segment, every chunk slot's BandwidthRequests has at most one request per to_shard (what nearcore's producer builds and its header validation enforces) [A8]"),
+    R("e.chacha_words", "the bandwidth-scheduler runs of all applied transitions draw at most W0 = 770,000 ChaCha20 words in total (NearSpecV3.chachaWords; user decision 2026-10-09) [A9]"),
+    R("w.path_depth", "every used source receipt proof's Merkle path has at most Dp0 = 32 items (NearSpecV3.a10; nearcore emits ceil(log2 #shards) <= 6; user decision 2026-10-09) [A10]"),
     R("e.distinct_ids", "applied receipt ids are pairwise distinct"),
 ]
 
@@ -184,7 +187,7 @@ def main():
                             "max_public_artifact_bytes": 67108864, "max_prepare_ms": 600000,
                             "max_build_ms": 3600000},
         "supersedes": a.supersedes,
-        "draft_notes": "UNSIGNED DRAFT (lane v3-spec). Successor of near-chunk-validation-d0-1 for the formally admitted STARK backend: RelD0a B0 = RelD0 ∧ A1 (c.gas_limit) ∧ A2 (w.proof_routing) ∧ Canon0f (e.sched_canonical) ∧ A7 (w.unfolded, B0 = 2,000,000) ∧ A8 (c.bw_requests), spec/near-chunk-validation-v0a.md, NearSpecV3.ChunkValidationV0a / ChallengeD0a (challengeSpecD0a, challengeParamsD0a); proof cap 8 MiB formal and operational (docs/zk-formal/V3-D0-DESIGN.md §10, §11). Workload generators and public fixtures as near-chunk-validation-d0 (all positives satisfy the amendments; checked with nearspec-v3-check-d0a); D0a difftest fixtures: oracle/fixtures/v3/public-d0a.",
+        "draft_notes": "UNSIGNED DRAFT (lane v3-spec). Successor of near-chunk-validation-d0-1 for the formally admitted STARK backend: RelD0a B0 = RelD0 ∧ A1 (c.gas_limit) ∧ A2 (w.proof_routing) ∧ Canon0f (e.sched_canonical) ∧ A7 (w.unfolded, B0 = 2,000,000) ∧ A8 (c.bw_requests) ∧ A9 (e.chacha_words, W0 = 770,000) ∧ A10 (w.path_depth, Dp0 = 32), spec/near-chunk-validation-v0a.md, NearSpecV3.ChunkValidationV0a / ChallengeD0a (challengeSpecD0a, challengeParamsD0a); proof cap 8 MiB formal and operational (docs/zk-formal/V3-D0-DESIGN.md §10, §11). Workload generators and public fixtures as near-chunk-validation-d0 (all positives satisfy the amendments; checked with nearspec-v3-check-d0a); D0a difftest fixtures: oracle/fixtures/v3/public-d0a.",
         "created_at": a.created_at,
         "formal_params": {"verify_fuel": 1073741824, "max_proof_bytes": 8388608,
                           "max_reduction_fuel": 1073741824},

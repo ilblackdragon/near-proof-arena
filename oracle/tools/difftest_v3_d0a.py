@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """3-way differential test for near/pv86/chunk-validation/v0, domain D0a
-(RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 ∧ A8, spec/near-chunk-validation-v0a.md).
+(RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 ∧ A8 ∧ A9 ∧ A10, spec/near-chunk-validation-v0a.md).
 
 Implementations compared on every case directory (claim.bin, witness.bin, meta.json):
   (1) nearcore oracle  — meta.json written by `near-arena-oracle-v3-d0a gen`: nearcore's own
@@ -14,14 +14,25 @@ out-of-domain cases (ood/) and for mutants with `expected_verdict` (constructed
 out-of-domain mutants such as the A2 `w.foreign_routed_receipt`) both report that verdict;
 a mutant with `expected_reason` (the A8 `c.dup_bw_request`: amendment family `c.bw_requests`)
 must also name that family in both checkers' reason (Lean reports only its first failing
-check, Python all violations joined; such a mutant violates exactly one amendment).
+check, Python all violations joined; such a mutant violates exactly one amendment); the
+A10 path-depth mutants `w.path_depth_over` (33 path items) pin `w.path_depth`.
+
+Measured quantities compared exactly across implementations (Lean / Python on every case both
+accept or classify out of domain after RelD0; the oracle's on the cases it measured):
+`unfold` (A7 unfoldBytes), `chacha_words` (A9 ChaCha20 words drawn by all scheduler runs),
+`max_path_depth` (A10 longest used source-proof Merkle path).
 
 usage: difftest_v3.py --cases DIR [--lean EXE] [--python FILE] [--report OUT.json]
          [--lean-jsonl F --python-jsonl F]   (reuse precomputed outputs)
 """
 import argparse, collections, json, os, subprocess, sys, time
 
-AMENDMENTS = ("c.gas_limit", "w.proof_routing", "e.sched_canonical", "w.unfolded", "c.bw_requests")
+AMENDMENTS = ("c.gas_limit", "w.proof_routing", "e.sched_canonical", "w.unfolded", "c.bw_requests",
+              "e.chacha_words", "w.path_depth")
+# measured quantity -> (Lean/Python JSON field, oracle meta.json field)
+MEASURES = {"unfold_bytes": ("unfold", "unfold_bytes"),
+            "chacha_words": ("chacha_words", "chacha_words"),
+            "max_path_depth": ("max_path_depth", "max_path_depth")}
 
 
 def run_checker(cmd, dirs, chunk=400):
@@ -95,32 +106,42 @@ def main():
                                       "verdict": j["verdict"], "reason": j["reason"],
                                       "nearcore": meta.get("nearcore")})
             stats[f"{kind}.{name}.{j['verdict']}"] += 1
-    # A7: the three implementations of unfold_bytes agree exactly (Lean / Python on every case
-    # both accept-or-classify-out-of-domain after RelD0; the oracle's on honest accepted cases)
-    unfold = {"compared_lean_python": 0, "compared_oracle": 0, "mismatches": [], "values": []}
-    for d in dirs:
-        meta = json.load(open(os.path.join(d, "meta.json")))
-        lu = impls.get("lean", {}).get(d, {}).get("unfold")
-        pu = impls.get("python", {}).get(d, {}).get("unfold")
-        lv = impls.get("lean", {}).get(d, {}).get("verdict")
-        if pu is not None and lv in ("accept", "out_of_domain"):
-            unfold["compared_lean_python"] += 1
-            if lu != pu:
-                unfold["mismatches"].append({"case": d, "lean": lu, "python": pu})
-        ou = meta.get("unfold_bytes")
-        if ou is not None and pu is not None:
-            unfold["compared_oracle"] += 1
-            if ou != pu:
-                unfold["mismatches"].append({"case": d, "oracle": ou, "python": pu})
-        if pu is not None:
-            unfold["values"].append(pu)
-    vals = sorted(unfold.pop("values"))
-    if vals:
-        q = lambda f: vals[min(len(vals) - 1, int(f * len(vals)))]
-        unfold["distribution"] = {"n": len(vals), "min": vals[0], "p50": q(.5), "p90": q(.9),
-                                  "p99": q(.99), "max": vals[-1]}
-    unfold["mismatch_count"] = len(unfold["mismatches"])
-    disagreements += [{"case": m["case"], "impl": "unfold", "problem": m} for m in unfold["mismatches"]]
+    # A7 / A9 / A10: the three implementations of each measured quantity agree exactly (Lean /
+    # Python on every case both accept-or-classify-out-of-domain after RelD0; the oracle's on
+    # the cases it measured)
+    measures = {}
+    for mname, (jf, mf) in MEASURES.items():
+        m = {"compared_lean_python": 0, "compared_oracle": 0, "mismatches": [], "values": [],
+             "values_in_d0a": []}
+        for d in dirs:
+            meta = json.load(open(os.path.join(d, "meta.json")))
+            lj = impls.get("lean", {}).get(d, {})
+            pj = impls.get("python", {}).get(d, {})
+            lu, pu, lv = lj.get(jf), pj.get(jf), lj.get("verdict")
+            if pu is not None and lv in ("accept", "out_of_domain"):
+                m["compared_lean_python"] += 1
+                if lu != pu:
+                    m["mismatches"].append({"case": d, "lean": lu, "python": pu})
+            ou = meta.get(mf)
+            if ou is not None and pu is not None:
+                m["compared_oracle"] += 1
+                if ou != pu:
+                    m["mismatches"].append({"case": d, "oracle": ou, "python": pu})
+            if pu is not None:
+                m["values"].append(pu)
+                if lv == "accept":
+                    m["values_in_d0a"].append(pu)
+        for key in ("values", "values_in_d0a"):
+            vals = sorted(m.pop(key))
+            if vals:
+                q = lambda f, vals=vals: vals[min(len(vals) - 1, int(f * len(vals)))]
+                m["distribution" if key == "values" else "distribution_in_d0a"] = {
+                    "n": len(vals), "min": vals[0], "p50": q(.5), "p90": q(.9), "p99": q(.99),
+                    "max": vals[-1], "nonzero": sum(1 for x in vals if x)}
+        m["mismatch_count"] = len(m["mismatches"])
+        disagreements += [{"case": x["case"], "impl": mname, "problem": x} for x in m["mismatches"]]
+        measures[mname] = m
+    unfold = measures["unfold_bytes"]
     report = {
         "statement": "near/pv86/chunk-validation/v0", "domain": "D0a",
         "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
@@ -129,6 +150,8 @@ def main():
         "mutation_families": {f"{k[0]}|expected_accept={k[1]}": v for k, v in sorted(families.items())},
         "disagreements": len(disagreements), "disagreement_list": disagreements[:200],
         "unfold_bytes": unfold,
+        "chacha_words": measures["chacha_words"],
+        "max_path_depth": measures["max_path_depth"],
         "wall_seconds": times,
     }
     try:
@@ -166,10 +189,30 @@ def main():
     report["a8_reported_elsewhere"] = {
         name: sum(1 for d in dirs if d not in a8set and "c.bw_requests" in res.get(d, {}).get("reason", ""))
         for name, res in impls.items()}
+    # A10 path-depth mutants: exactly at the bound (in D0a iff the base case is) and one above
+    pd = {}
+    for mut, want in (("w.path_depth_at_bound", None), ("w.path_depth_over", "out_of_domain")):
+        ms = [d for d in dirs if os.path.basename(os.path.dirname(d)) == "mutants" and d.endswith(mut)]
+        row = {"cases": len(ms),
+               "nearcore_accepts": sum(1 for d in ms if json.load(open(os.path.join(d, "meta.json"))).get("expected_rel"))}
+        for name, res in impls.items():
+            row[f"{name}.accept"] = sum(1 for d in ms if res.get(d, {}).get("verdict") == "accept")
+            row[f"{name}.out_of_domain_w.path_depth"] = sum(
+                1 for d in ms if res.get(d, {}).get("verdict") == "out_of_domain"
+                and "w.path_depth" in res.get(d, {}).get("reason", ""))
+        pd[mut] = row
+    report["a10_path_depth_mutants"] = pd
+    pdset = {d for d in dirs if d.endswith("w.path_depth_over")}
+    report["a10_reported_elsewhere"] = {
+        name: sum(1 for d in dirs if d not in pdset and "w.path_depth" in res.get(d, {}).get("reason", ""))
+        for name, res in impls.items()}
+    report["a9_reported"] = {
+        name: sum(1 for d in dirs if "e.chacha_words" in res.get(d, {}).get("reason", ""))
+        for name, res in impls.items()}
     s = json.dumps(report, indent=1, sort_keys=True)
     if a.report:
         open(a.report, "w").write(s + "\n")
-    print(json.dumps({k: report.get(k) for k in ("counts", "disagreements", "amendments_on_honest_witnesses", "a2_foreign_routed_mutants", "a8_dup_bw_request_mutants", "a8_reported_elsewhere", "unfold_bytes")}, indent=1))
+    print(json.dumps({k: report.get(k) for k in ("counts", "disagreements", "amendments_on_honest_witnesses", "a2_foreign_routed_mutants", "a8_dup_bw_request_mutants", "a8_reported_elsewhere", "a10_path_depth_mutants", "a10_reported_elsewhere", "a9_reported", "unfold_bytes", "chacha_words", "max_path_depth")}, indent=1))
     return 0 if not disagreements else 1
 
 if __name__ == "__main__":

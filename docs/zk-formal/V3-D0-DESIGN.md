@@ -234,7 +234,7 @@ Alternatives considered:
 | `mrk` | v1, reused (`maxLog`, `n ≤ 4481`) | 58 | 5 | 122 | 19 | 1 + 64·4480 + 13 |
 | `sort` (receipt ids) | v1, reused | 49 | 1 | 81 | 18 | 32 × 4481 |
 | `uniq` (store digests) | v1 `sort`, 2nd instance | 49 | 1 | 81 | 21 | 32 × ≈ 58 k entries |
-| `srcp` (source-proof leaf + path) | new (mrk-like) | ≈ 60 | 5 | ≈ 124 | 17 | ≤ 1984 lists × (2 + depth ≤ 6) × 64 |
+| `srcp` (source-proof leaf + path) | new (mrk-like) | 56 | 5 | 120 | **22** | ≤ 1984 lists × (33 + 64·`Dp0`) = 4,128,704 at `Dp0 = 32` (A10, §17) |
 | `akey` (access-key values) | new (acct-like) | ≈ 20 | 4 | ≈ 76 | 13 | 9 rows × system gas refunds |
 | `bnd` (own-shard boundaries, chained provider) | new | ≈ 8 | 3 | ≈ 48 | 8 | ≤ 2 × 65 |
 | `size` (witness byte count) | new | ≈ 30 | 1 | ≈ 62 | 4 | ≤ 16 |
@@ -330,8 +330,11 @@ For each applied list `j`:
 * then hash one 64-byte message per path item (`dir = 0`: `sibling ‖ acc`; `dir = 1`: `acc ‖ sibling`; sibling bytes free);
 * the final digest must equal `root_j`, received from the public bus as `(j, root)`.
 
-Path length is unconstrained, as in `rootFromPath`. The layout is v1 `mrk`'s 64-row segment, with
-`MPOS`-like chaining replaced by a `PATH (j, step)` counter.
+The AIR does not constrain the path length (as `rootFromPath`). Its height is bounded by the
+RelD0a conjunct **A10** (`w.path_depth`, user decision 2026-10-09): every used path has
+`≤ Dp0 = 32` items, so `rows ≤ 1984·(33 + 64·32) = 4,128,704 ≤ 2²²` (`maxLog` 22; §17). The
+layout is v1 `mrk`'s 64-row segment, with `MPOS`-like chaining replaced by a `PATH (j, step)`
+counter.
 
 ### 3.6 Small tables
 
@@ -863,3 +866,46 @@ Levers:
 3. Width cuts, ≈ 928 B per base column.
 
 Lever 1 alone gives a bound of ≈ 5.52 MB + 1.30 MB ≈ 6.8 MB, leaving ≈ 1.5 MB of margin even without lever (b)'s single SHA table.
+
+## 17. Domain bounds A9 and A10 (decided by the user, 2026-10-09)
+
+Both bounds are explicit, decidable conjuncts of `RelD0a` (`NearSpecV3.ChunkValidationV0a`:
+`a9`, `a10`; `RelD0a B cb w (W := W0) (Dp := Dp0)`; `relD0a_iff`, `relD0a_relD0`,
+`relD0a_mono`, `relD0a_mono_all` proved). Lane `lane/v3-domain-bounds`.
+
+**A9 `e.chacha_words`, `W0 = 770,000`** (user decision 2026-10-09; the alternative 360,000 is
+superseded). `chachaWords cb w` = Σ over the scheduler runs of all applied transitions of the
+ChaCha20 words each run draws (`Scheduler.rngWords` of the RNG after `processRequests`;
+`Scheduler.run_eq_mid` proves `run` continues from that state). In-AIR lane at `W0` (`T ≤ 33`):
+`genV3 ≤ 770,000 < 2²⁰`, `chachaV3 ≤ 86·(W0 + 15·33)/16 = 4,141,410 < 2²²`, `shufV3 ≤ 174,149`
+(`lane_770k_22`, `lane_prep` now at `W0`, `lane_W0`); the largest fitting bound is 779,840
+(`chachaMax_tight`). **Open:** `Chacha.Table.maxLog` is still 21 (`chacha_cap_short`).
+Raising it to 22 leaves the 8 MiB model unchanged (the aligned model already pads ChaCha to
+2²²) but pushes four measured candidate families over the fingerprint budget `2^36`
+(`fpBound` 68,697,539,256 → 69,427,348,152 in `ProcPriorProcessRepaired`, `SortEmpty`,
+`ProcPriorCodec`, `ProcPriorComparatorRouted`; the other six families still fit). It is held
+until that budget is re-planned; the bus budget is not changed.
+
+**A10 `w.path_depth`, `Dp0 = 32`** (user decision 2026-10-09: the largest depth that keeps
+`srcp` within 2²² rows and the 8 MiB bound). Derivation (`ZkFormal.NearV3.Rcpt.SrcpDepth`):
+rows per used proof are exactly `33 + 64·|path|` (`SrcpGen.R_eq`), at most 1984 used proofs,
+so `rows ≤ 1984·(33 + 64·Dp)`:
+
+| `Dp` | rows | vs 2²² = 4,194,304 |
+|---:|---:|---|
+| 31 | 4,001,728 | fits |
+| **32** | **4,128,704** | **fits (margin 65,600)** |
+| 33 | 4,255,680 | over by 61,376 |
+
+(`dp0_largest`, attained by `dp0_tight`; the rounder estimate `1984·(2 + Dp)·64` gives 31.)
+At `Dp0`: receipt-side SHA rows 3,501,199 `< 2²²` (`rcptSha_A10`), source-only SHA rows
+2,257,792 (`sourceSha_A10`, one SHA table instead of the unbounded design's four `log 22`
+source partitions), segment indices `≤ 65,472`. `srcpV3.maxLog` is now 22; the aligned 8 MiB
+model already counted `srcp` at its padded cap 2²², so the aligned bound and its margin are
+unchanged (917,367 B after the full 1,295,017 B hint, `Size.V3.padded_twoSha_hint_margin`).
+`ProofInputsOk.rows` is discharged from A10 by `proofInputs_rows_A10`.
+
+**Liveness (both).** A chunk outside either bound is out of D0a: **unprovable in this domain,
+never wrongly accepted**. Honest producers never exceed A10 (`⌈log₂ #shards⌉ ≤ 6`); A9 needs
+≈ 770 k shuffled bucket entries over ≤ 33 runs. Measured maxima: spec v0a §3, STATUS-V3-AIR §5.
+

@@ -14,7 +14,7 @@ import ZkFormal.NearV3.Sched.Complete.Field
   `steps_pv86` (spec): the replay's entries are `≤ C + 43·n`, rounds `≤` entries;
   `heights_prep`: from `prepD0` and the replays, A7 alone bounds the five tables by `2^22`;
   `lp_draws` / `replay_draws`: words drawn `≤ 64·(S − Rd)`; `lane_prep`: lane tables given
-  `Σ K ≤ 360,000`; `worstK_exceeds`: the fuel bound alone does not fit `2^22`;
+  `Σ K ≤ W0 = 770,000` (RelD0a A9); `worstK_exceeds`: the fuel bound alone does not fit `2^22`;
 * `proc_rows_rel` (`sprV3`): the generator's rows are the value records `procVs R`;
   `worst_exceeds`: without the step budget, process / memory / comparator exceed `2^22`.
 -/
