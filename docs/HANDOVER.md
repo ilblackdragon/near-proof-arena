@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcActualConstructedSequence strict PASS, five exact guards. Ordered accepted native calls construct decoded prior input pairs and successful corrected runInputs. At<=33 calls native_local constructs process TableLocal at commonlog22 with no run/sequence-success premise. Only process table covered: corrected codec/other-table Local/global assembly still incomplete, no full D0a/general certificate or judge. Clean scheduler source-closure audit found809 modules,280 absent-main but present-AIR; ups_fields assigned scratch source-only rebuild. memory_values assigned codec allowance guard. d2 followup forwarding task failed agent thread limit. Prebuilt dependencies remain current evidence. Previouse581a6be push DNS failed. Goal active.
+
+
 2026-10-09: SCHEDULER GENERATOR TOTALITY milestone, six modules independently strict PASS with35 exact guards. ProcActualPreparedGenerator.native_success derives corrected ActualRun.run success from accepted prepD0+schedPub+native runCore, with exact prior decoding and no comparator/time/value assumptions. Timestamp potential bounds actual final clock<=1,310,720; replay memory value invariant bounds grant inputs/increments; integration discharges all checks. This is additive corrected generator totality, NOT full D0a/proof-system completeness or general NEAR replacement. Original generator replacement, scheduler Local/global assembly, clean full-source certificate/prover/real judge remain incomplete. Prebuilt dependencies only. Prior33e5ff54 push DNS failed. Goal active.
 
 
