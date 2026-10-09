@@ -6,6 +6,43 @@ issues non-GET requests, and never loads candidate-supplied assets.
 
 Stack: Vite 8 + React 19 + TypeScript 5.9, react-router 7, vitest + Testing Library. Package manager: pnpm.
 
+## Research discovery
+
+`/research` groups returned submissions by candidate-declared backend family and
+challenge, with contributor search, chronological history, recorded parents and
+reported mandatory gate failures/unknowns. Filters live in the URL. It preserves
+pending, rejected, revoked and experimental work and links to the existing
+submission evidence pages. It shows retrieval time and the 2,000-record client
+coverage limit. This is a discovery view, not a ranking or a complete research
+inventory; missing gate results never imply a pass.
+
+This first adaptation was informed by [Beyond n log n](https://beyond-n-log-n.netlify.app/)
+and [integer-mult-bounds](https://github.com/CrocSwap/integer-mult-bounds/tree/d1d6c070f5a8c684727ee7ec35d930f9ebfa9758)
+(inspected 2026-10-09). No upstream code was copied. The site organizes approaches,
+claimed-bound history, contributors, forks and reported reuse, and explains its
+data freshness and extraction limits. The repository preserves exact source pins,
+scoped review receipts, reproduction commands and credit for superseded work.
+Its bundled website snapshot was dated 2026-10-08; that snapshot and the current
+repository are separate evidence checkpoints.
+
+NEAR already has signed judge reports, formal admission gates, parent lineage,
+challenge supersession, evidence graphs and scoped speed/cost boards. Useful
+follow-on ports are:
+
+| Reference pattern | NEAR adaptation | Required evidence |
+| --- | --- | --- |
+| Approach discovery | Backend/challenge groups (implemented) | Existing submission API; labels remain candidate supplied |
+| Scoped review receipts | Optional [research PR template](../.github/PULL_REQUEST_TEMPLATE/research.md) (implemented) | Pinned sources; distinguish fresh independent runs, contributor reports and inspected CI |
+| Bound progression | Measured frontier history within one immutable challenge | Historical admission/revocation events, baseline, hardware and CI; do not mix scopes or use submission time as admission time |
+| Idea reuse graph | Explicit contribution dependencies and credit | Typed dependency/attribution/comparison edges; parent links alone do not prove composition |
+| Research outside submitted results | Reviewable partial-proof and negative-result registry | Exact theorem scope, assumptions, source/artifact digests, reproducer and open downstream obligations |
+
+The registry is particularly useful for the incremental v3 work described in
+`docs/HANDOVER.md`: a checked component can be recorded without representing it as
+a completed global certificate or an admitted prover. Graph and frontier features
+remain future work; this port introduces no inferred dependencies, GitHub polling
+or alternate admission path.
+
 ## Commands
 
 ```sh

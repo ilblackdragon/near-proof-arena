@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Corrected Codec end-record allowance arithmetic equals actual linkPass using full original prior lookup. Requires run n/a2 agreement, in-range link, PV86 parameters, byte-two comparison carry, and zero selected prior allowance if absent. Does not prove record-loop or codec success. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAllowanceGuard.lean",
+      "sha256": "7f3fe6c87326886ae2f7f6fc043a1c907ea7e831886647e9b594eceec32e5420",
+      "audit": "zk-formal/test/AuditProcPriorCodecAllowanceGuard.lean",
+      "audit_sha256": "8505693b3e4e290e99c5f24150873f36147c9db25a3eb81b6dba3ca8a59634a2",
+      "guards": 5
+    }
+  ]
+}

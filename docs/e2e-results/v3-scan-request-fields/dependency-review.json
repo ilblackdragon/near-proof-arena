@@ -1,0 +1,29 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldEquations.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldFlags.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldCoordinates.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestFields.lean",
+  "guards": 13,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldEquations.lean": "cfeb9fd5db8fa51836958bd6d3184be9e9be85372f0a7607324dbb26d35ce860",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldFlags.lean": "1e139293f6690cd3e4c9234bb104d78f5ead0313a1dab19ffdf024df71bfb143",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldCoordinates.lean": "bf8d0aa8fc3bc68457bc35a55e9356097e9308fc8992fb75b3a8874d35fb5096",
+    "zk-formal/test/AuditProcScanRequestFields.lean": "0c2acb5a371c53254883a70b067e84a558e305d56f85834332f3e70eb9090553"
+  },
+  "proved": [
+    "Actual field current/intermediate/count recurrence and native-array neighboring current/count equality.",
+    "Actual terminal row count equality from native setBits correspondence.",
+    "Request constants preserved and y/u coordinate successor equations over Fp.",
+    "Actual y inverse/annihilator and key inverse/annihilator equations."
+  ],
+  "remaining": [
+    "Scan.body expression composition, quotient/remainder and byte arithmetic field assembly, boundary placement; shard/grid full Local."
+  ],
+  "premises": [
+    "key_test uses key<P; terminal_count uses actual converted bits=setBits bitmap. Native neighboring rows need rho+1<20 only."
+  ],
+  "no_domain_change": true
+}

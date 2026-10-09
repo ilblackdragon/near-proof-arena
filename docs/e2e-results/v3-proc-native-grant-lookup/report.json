@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "First-match lookup of native finish granted list equals distributed granted array at sender-major link index from actual shard ID indexOf witnesses and Nodup. No runtime success premise or new axiom. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeGrantLookup.lean",
+      "sha256": "4196137a290935992d9d4e85af43fb02a72c87bdeb05d058c2edfade4cc1dea4",
+      "audit": "zk-formal/test/AuditProcNativeGrantLookup.lean",
+      "audit_sha256": "a4b77558e36a3dbeeed36e589b5f95c8f9b6fc9e9a804e01d5dd041fdc84e551",
+      "guards": 4
+    }
+  ]
+}

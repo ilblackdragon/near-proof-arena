@@ -1,0 +1,39 @@
+{
+  "status": "PASS strict Lean and 7 exact standard-axiom guards",
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellOutputCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellOutput.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCurrent.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellPosition.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellInterior.lean"
+  ],
+  "audits": [
+    "zk-formal/test/AuditProcDistCellCurrent.lean"
+  ],
+  "guard_count": 7,
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellOutputCells.lean": "fbde7e298572230237d5780169ed0c7fba6d94711545b1fb8c7cf8de98207d73",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellOutput.lean": "8d6ab58c9d954ccfd6a65c9294be9fa19a30a437dd7603c771f076afe3c84391",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCurrent.lean": "e697c4fef147783d0dc87ee2a1e5e5cd70da02eb8d97ca52381b3d4ca650561b",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellPosition.lean": "d85f7f27131f2b5d82331ead2809ef3e76a1ad7b76e98bcbd60caaee7ac1678f",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellInterior.lean": "bf04e7addd34c878c1f82bdca123d77b813cb0bb9eddb67317c39b3e4c938bd2",
+    "zk-formal/test/AuditProcDistCellCurrent.lean": "97b75d1c1430622941cbb2f4161b78ca9dbbbe91c6e4c30a02e8d1b2279dbc26"
+  },
+  "check": "/tmp/check-id.sh; Lean4.34.1 -j1 -DautoImplicit=false -DrelaxedAutoImplicit=false",
+  "scope": [
+    "All first26 cGrid current-row constraints on actual cell constructor",
+    "All cShard disabled on cell rows",
+    "All8 interior cGrid transition equations with actual next sender endpoint subtraction/count update"
+  ],
+  "remaining": [
+    "Cell kind/range and terminal boundary equations",
+    "Header/shard neighbor constraints",
+    "Actual full scan-then-distribution physical phase placement/TableLocal"
+  ],
+  "assumptions": [
+    "Current-row and interior next-row bindings explicit until phase placement",
+    "Endpoint counts<=64 and allowed implies positive endpoints for division; prior native cellStep theorem supplies positivity",
+    "Interior j+1<n and next receiver endpoint variables arbitrary as permitted by exact local constraints",
+    "No table/domain changes"
+  ]
+}

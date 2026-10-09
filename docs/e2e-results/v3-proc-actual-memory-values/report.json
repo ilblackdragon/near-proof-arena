@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Prepared conversion and actual replay imply grant vin/inc operands below 2^29 in all three memory-log arrays. Initial PV86 budget/allowance caps and subtraction preserve state-array bounds; conversion increments derive from incsOf_getD_lt. No full generator success premise. Timestamp bounds are separate. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryValues.lean",
+      "sha256": "acf9226ed20754e01f4eaae8dfa5ba17b3046c94705865edf7290cc6e5c34838",
+      "audit": "zk-formal/test/AuditProcActualMemoryValues.lean",
+      "audit_sha256": "55a140c25ea1ceb5ed60e70cb8f5b00b74098080b4267e94b58dc0058b979f6b",
+      "guards": 11
+    }
+  ]
+}

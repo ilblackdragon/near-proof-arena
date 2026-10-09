@@ -1,0 +1,30 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRangePhysical.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestQuietCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBools.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestKind.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestDist.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestShared.lean",
+  "guards": 14,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRangePhysical.lean": "53291ca754a65c8d9b7c1145b651734344c774db861146a004995dcd3964f8ca",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestQuietCells.lean": "d4109a0a9ad5359937f9fe496d746e8a730048f721777c09cc61ab4101c1f934",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBools.lean": "ad6dcd3f6f86bb35d1c67c11a93b9b203b4ffb8726dd626100d1d1870c9a1f67",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestKind.lean": "7ce7bceec67384cf692cd8723514c7d6a8f805774da14cb6b18df549c6139041",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestDist.lean": "fa0a6c17eefc979e3d8b426792fd99a30a451d77c1c4c2ea97a910e5fe7eaad9",
+    "zk-formal/test/AuditProcScanRequestShared.lean": "802974fdd17cb4d9b2e318d1e4ddd2863d7c0777f2f85739a26cd700f62167aa"
+  },
+  "proved": [
+    "Actual generated request row satisfies every Dist constraint over Fp under explicit physical neighbor kind conditions.",
+    "All scan own Boolean constraints hold on the same native row.",
+    "Native quotient/remainder bit cells supply physical range constraints; no whole-row canonicality assumption."
+  ],
+  "remaining": [
+    "Scan.body arithmetic and actual adjacent-row state binding.",
+    "Shard/grid local proofs and full phase trace TableLocal."
+  ],
+  "no_domain_change": true
+}

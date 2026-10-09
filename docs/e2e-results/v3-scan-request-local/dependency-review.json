@@ -1,0 +1,40 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestEndFlag.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyEnd.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestInteriorFrame.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyInterior.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyTerminal.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyBoundary.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBody.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestLocal.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestLocal.lean",
+  "guards": 9,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestEndFlag.lean": "a26538695487f9770736c016e49a80ad7fb3e1e80726f7f829a7a438fdf4c307",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyEnd.lean": "2d2cb306b44fe80235526865a7fefdeb10976579f70558e9550e40b310caf734",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestInteriorFrame.lean": "f18c07b0fca6302015422a867a192b4d40ca68a11aa9f5fa0425beb9d357b627",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyInterior.lean": "453677e8ca5237d0866eed831ef5b76685db0ac6d064a6838ed44bad6a2b2cad",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyTerminal.lean": "15a2093341e78c8683631f0e06d5103f69be7dc37d2fab49919a5fa1d0f69f1f",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyBoundary.lean": "a6149bfd126becb9d2471565a02d57164e4b267de7fcdd8d7fafb8a71537eef3",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBody.lean": "b2e98d24704be4611019fac696f3f285b1d96241653e66635fdea37ccd6dda5a",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestLocal.lean": "d7f8567a901d2b05d9fa3eb8db691bbe99d9149611c31faeefe1df69262bb1f6",
+    "zk-formal/test/AuditProcScanRequestLocal.lean": "9c108c66167d0d7c4d38ba01d3ced1ab1fc874b684e87d04eb425d5e3e49539a"
+  },
+  "proved": [
+    "Full68 Scan.body constraints on actual unchanged reqRows indexed native row, including actual prefix count/state and terminal handling.",
+    "All ScanDist.constraints for same actual generated request row by composing shared Dist+Boolean constraints."
+  ],
+  "remaining": [
+    "Derive neighboring row metadata/physical flags from whole all-scans-then-distributions phase placement.",
+    "Distribution shard/grid complete Local."
+  ],
+  "premises": [
+    "rho<20,D\u22644194304,c.bits=setBits bitmap,link=s*n+r,key<P.",
+    "Actual trace current/next row bindings (next only when rho<19); exact metadata boundary Next for rho19.",
+    "Physical nonfirst/nonlast and next kind conditions for shared Dist constraints."
+  ],
+  "no_domain_change": true
+}

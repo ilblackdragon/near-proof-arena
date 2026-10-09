@@ -1,0 +1,35 @@
+{
+  "status": "PASS strict Lean and 4 exact standard-axiom guards",
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellEndFlag.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellBoundary.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellGrid.lean"
+  ],
+  "audits": [
+    "zk-formal/test/AuditProcDistCellGrid.lean"
+  ],
+  "guard_count": 4,
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellEndFlag.lean": "1e4d80967a57c00ea632f3bfcb730356215ce5d8d1a544cde5bf0919cad53142",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellBoundary.lean": "3eb524ba98de5084a47af8848dde8384fc904e35c5a750da70605c0195f7565a",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellGrid.lean": "d52cb53feeaea6d711168693f1350c079c47788ee7e5162281b74f7d0b0c88a6",
+    "zk-formal/test/AuditProcDistCellGrid.lean": "c49019e7fe3738d2edc903ca405573d82e88ca86f09e87ca9c8290cf4689383b"
+  },
+  "check": "/tmp/check-id.sh; Lean4.34.1 -j1 -DautoImplicit=false -DrelaxedAutoImplicit=false",
+  "scope": [
+    "Actual end-instance flag equals both row/column terminal flags",
+    "All nine terminal grid equations, including inactive-padding/new-instance alternatives",
+    "All43 cGrid equations composed on actual cell constructor"
+  ],
+  "remaining": [
+    "Cell kind and range constraints",
+    "Shard neighbor/kind composition",
+    "Native loop adjacency and boundary shape discharge from full physical phase placement/TableLocal"
+  ],
+  "assumptions": [
+    "Current actual cell row binding; interior next actual cell with correct sender count/budget updates",
+    "Terminal Next predicate: next header metadata or next-instance/padding control fields; still to derive from physical phase placement",
+    "j<n, endpoint counts<=64 and successful allowed-link positivity (existing actual step proof)",
+    "No table/domain changes"
+  ]
+}

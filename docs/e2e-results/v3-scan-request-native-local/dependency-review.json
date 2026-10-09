@@ -1,0 +1,24 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestNativeFacts.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestNativeLocal.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestNativeLocal.lean",
+  "guards": 3,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestNativeFacts.lean": "5d59071b4cec26872c5196520675171f1c4dc3c2ba8aabcb6f0299ad5e07f86d",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestNativeLocal.lean": "bfa1372e7eb204ccae32506680ee352b5ee2c9563f5ce0a898e735bbcc545bcd",
+    "zk-formal/test/AuditProcScanRequestNativeLocal.lean": "f57076626146fa16344b075e7f3acfe26c49a0bb03112386b8db6ae9bd091d1d"
+  },
+  "proved": [
+    "ActualRun success derives initial request key\u2264maxAllowance from exact native conversion lookup and actual capped linkPass array.",
+    "PV86 actualRun derives D\u22644194304 and all request bits/link/key<P requirements.",
+    "Full ScanDist request-row constraints now consume actualRun success, calculated Params and actual converted membership; no separate value/bits/key constraints."
+  ],
+  "remaining": [
+    "Physical neighboring row placements and first/last/next-kind metadata from complete phase trace.",
+    "Distribution shard/grid Local."
+  ],
+  "no_domain_change": true
+}

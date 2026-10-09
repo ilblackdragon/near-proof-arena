@@ -32,6 +32,7 @@ export function Layout() {
           </NavLink>
           <NavLink to="/submissions">Submissions</NavLink>
           <NavLink to="/compare">Compare</NavLink>
+          <NavLink to="/research">Research</NavLink>
         </nav>
       </header>
       <main id="main" tabIndex={-1}>

@@ -1,0 +1,34 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldBytes.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldDivision.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyTail.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestZeroValue.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyPrefix.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyFirst.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestBodyParts.lean",
+  "guards": 12,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldBytes.lean": "ae27e5ef8c15f8dba66c02a100b21158ccaa60177176eb3e1e3f65f8fb1776b1",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFieldDivision.lean": "b2d94b62ecb0456acac30f3352d103841d28f6de877cc3317470c520a1f58c9f",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyTail.lean": "58144da2c6cfb99e975474277f844c0ccbdc13d1378e9404de0f68efa8828c66",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestZeroValue.lean": "063b3518a1d836f43fb5c127ac2759c7aa31c2b5bd1b4b4b54b429684e7cf943",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyPrefix.lean": "db1dd059de323018303611f429f71425dfc57e3962ed16328fa5a3a65c7f6986",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBodyFirst.lean": "57f51722290f5406af152d2d8aee9ab4d4465b74451729b2bc46e6117ed95de8",
+    "zk-formal/test/AuditProcScanRequestBodyParts.lean": "0d93745a9ad98bc2fcecfd9090c5db28a7027b6da02c8bf4c2b9dc568d238fc6"
+  },
+  "proved": [
+    "Exact actual expression evaluation for first16 Scan.body constraints and final9 constraints.",
+    "First-request7 constraints under explicit native first-state/link equality.",
+    "Actual field bitmap consumption/rotation and quotient/remainder decomposition; forbidden high-remainder bit products."
+  ],
+  "remaining": [
+    "Middle36 body equations: interior transitions/registers/constants and request-end/boundaries; full phase and shard/grid Local."
+  ],
+  "premises": [
+    "Tail key<P; first block rho=0 implies j=0/current=base and link=s*n+r. These correspond to previously checked native state/conversion facts."
+  ],
+  "no_domain_change": true
+}

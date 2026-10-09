@@ -1,0 +1,54 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:12:60: warning: Variable name `hn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:24:15: warning: This simp argument is unused:
+  adjacent
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [zev_mul, zev_c, zev_n, cur_cv, Codec.nx hrm, ha.1, hg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:24:38: warning: This simp argument is unused:
+  zev_n
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [adjacent, zev_mul, zev_c, cur_cv, Codec.nx hrm, ha.1, hg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:24:51: warning: This simp argument is unused:
+  Codec.nx hrm
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [adjacent, zev_mul, zev_c, zev_n, cur_cv, ha.1, hg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:41:60: warning: Variable name `hn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:53:15: warning: This simp argument is unused:
+  adjacent
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [zev_mul, zev_c, zev_n, cur_cv, Codec.nx hrm, ha.1, hg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:53:38: warning: This simp argument is unused:
+  zev_n
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [adjacent, zev_mul, zev_c, cur_cv, Codec.nx hrm, ha.1, hg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean:53:51: warning: This simp argument is unused:
+  Codec.nx hrm
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [adjacent, zev_mul, zev_c, zev_n, cur_cv, ha.1, hg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

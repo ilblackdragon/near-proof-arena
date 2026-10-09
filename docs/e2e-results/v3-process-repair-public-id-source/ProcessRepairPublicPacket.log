@@ -1,0 +1,8 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairPublicPacket.lean:53:22: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairPublicPacket.lean:90:17: warning: This simp argument is unused:
+  he
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [List.map_cons, List.getD_cons_zero, instOf, hid]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

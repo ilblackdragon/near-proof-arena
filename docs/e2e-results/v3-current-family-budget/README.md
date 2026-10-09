@@ -1,0 +1,30 @@
+# Concrete candidate inventory budget
+
+This candidate is **not admitted and is not a complete proof**. The exact actual-table accounting bound at auxiliary group 2 is 9,498,374 bytes: 1,109,766 above the unchanged 8,388,608-byte cap. Groups 1 and 3 cost 9,957,222 and 9,586,406. The Merkle public remap fixes well-formedness without changing this cost.
+
+`CurrentFamily.lean` constructs 30 actual tables, including four log22 SHA bins, four log22 source tables, node/value/SIZE count extensions, compact UPS, Codec relay, routing-Q receipt, KEYNIB repair and Merkle public remap. `CurrentFamilyChecks.lean` kernel-checks all table well-formedness, exact extracted shapes, and the absence of BYTES sends at 19 table positions. `CurrentFamilyBudget.lean` kernel-proves the exact 9,498,374-byte bound and that it exceeds the cap. Six exact axiom guards pass with only `propext` and `Quot.sound`. These are local/static checks, not capacity or global balance proofs. `EvalCurrentFamily.lean` evaluates the actual model and explicitly hypothetical sensitivity scenarios. The actual-model equality theorem ties the accounting formula to `sizeMaxDedup`.
+
+Four SHA bins currently have capacity proofs for source, scheduler upsert and sanity jobs only. This does not place every required hash job: pre-state node/value hashes, receipt/account/outcome-Merkle jobs and other families still need a common allocation and balance proof. The budget obstacle may therefore increase. No capacity claim is inferred from merely listing four tables.
+
+## Measured costs
+
+The accounting parts (prefix, main, auxiliary, quotient, FRI) are respectively 295,142; 3,946,464; 1,283,264; 1,287,360; and 2,686,144 bytes. Actual shapes sum to 4,284 base columns, 148 auxiliary columns and 150 quotient columns.
+
+Deleting one SHA table changes the model to 8,895,749, still 507,141 over. Deleting two gives 8,293,124, but current source-only demand bound 8,932,712 exceeds two log22 bins' combined 8,388,608 rows, before the other hash families. These deletions are sensitivity measurements, not permissible constructions.
+
+Reducing the fourth SHA height from 22 through 19 saves zero in this accounting model. Even clamping every table to log19 (without valid capacity proofs) still costs 9,023,366. Height reductions cannot be presumed to fix the deficit.
+
+## Ranked next work
+
+1. **Tighten and share the actual SHA workload first.** A proof of a genuinely complete three-bin allocation removes 602,625 bytes, leaving a 507,141-byte gap. Two bins would fit this static inventory, but require substantially stronger demand/sharing results and room for every omitted family. Receipt/source ownership checked a standalone native source proof with240,000 steps, encoded7,920,056bytes and8,400,018 SHA rows (pairwise distinct preimages), already over two bins. This is not yet a full accepted-checker fixture; see `docs/zk-formal/SOURCE-SHA-PRESSURE.md`. The correlated source envelope improves only to8,896,703. Never assume root-hash equality implies source-byte equality or normalization reuse.
+2. **Combine fewer bins with a checked column reduction.** With three bins, a hypothetical width352 SHA retaining aux9/quot5/fin9 costs 8,361,221 (27,387 margin). With four bins, even width304 costs 8,607,494, still 218,886 over. Four bins need width245 at unchanged overhead to fit, with only 122 bytes margin. Those widths are model scenarios, not implemented tables.
+3. **Investigate packed carries before wholesale bit packing.** Packing each current three-bit carry into one range-eight column would remove48 columns per SHA table; the range polynomial has degree8 before any gating. Even optimistically keeping all other overhead unchanged, four width496 bins cost9,320,198. Degree8 likely raises quotient count from5 to7; that sensitivity costs9,375,750, saving only122,624. This is an incremental saving, not a solution. Gating, canonical integer carry extraction and honest generation need new proofs.
+4. **Two-bit data packing needs a degree-aware design.** Packing the384 A/E/W bits halves them, saving192 columns. Adding the ideal carry saving gives width304, still oversized at four bins. Naive bit decoding uses degree-three interpolation; substituting into three-input XOR/majority can reach degree9, or10 with a row gate, exceeding the degree8 limit. Extra intermediates or lookup tables must be costed before implementation. Do not count ideal width savings without those costs.
+5. **Denser rounds are not automatically cheaper.** An optimistic eight-round layout that adds only384 data columns (width928, ignoring extra carry/helper cost) costs9,005,828 with two bins and9,964,805 with three. The row reduction would need a complete new capacity proof; even that optimistic two-bin model remains oversized.
+6. **Bus/quotient changes are secondary measured opportunities.** At these heights one base-column removal saves928 bytes; one quotient-column removal saves6,944, and one paired auxiliary/final removal saves7,008. Eliminating the whole1,109,766 gap through auxiliary columns alone would require159 removals, more than the entire current148-column auxiliary inventory. Group3 globally costs more and also exposes degree-limit issues for several tables. Heterogeneous grouping or proof-format aggregation would require explicit protocol/verifier work and cannot be claimed under unchanged parameters.
+
+## Ownership remaining
+
+The exact zero-BYTES positions exclude SHA consumers and all non-sending tables. Residual actual producers are node, value, compact UPS, Codec, receipt-Q, account, four sources and Merkle. Semantic kind exclusion for these producers still requires their range/canonical-ID facts; zero-send syntax for other tables does not establish global SHA ownership. Merkle expression evaluation commutes with the corrected public environment, but full old Merkle sound/completeness transport remains separate.
+
+No frozen protocol, table cap, domain, field encoding or proof limit was changed by this measurement checkpoint.

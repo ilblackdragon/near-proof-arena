@@ -1,0 +1,13 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanDistPhases.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanDistPhases.lean",
+  "guards": 5,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanDistPhases.lean": "b71169e68523b06214ecc5536dbe76f4e1214ec6dac8f3426cd4241710dc3211",
+    "zk-formal/test/AuditProcScanDistPhases.lean": "d72267786bb9cafabc88de30b77cc5d3d7812c52a39151dbf6cc3524e71a7ffd"
+  },
+  "status": "strict PASS",
+  "note": "Actual honest phase ordering: all scan sections, then all distribution sections. Same capacity and exact physical comparator counts. Full local proof next; interleaved previous trace retained only as traffic result."
+}

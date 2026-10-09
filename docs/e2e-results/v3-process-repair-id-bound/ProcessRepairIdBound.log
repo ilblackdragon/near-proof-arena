@@ -1,0 +1,8 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdBound.lean:61:57: warning: This simp argument is unused:
+  Codec.ev_c
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [verticalResult, ProcPriorVertical4Linear.interaction, ProcPriorVertical4Linear.expression,
+    ProcPriorIdTable.interactions, Interaction.msgVal, c]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

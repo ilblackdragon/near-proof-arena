@@ -1,0 +1,7 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairSdlIds.lean:67:17: warning: This simp argument is unused:
+  he
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [List.map_cons, List.getD_cons_zero, instOf, hid]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

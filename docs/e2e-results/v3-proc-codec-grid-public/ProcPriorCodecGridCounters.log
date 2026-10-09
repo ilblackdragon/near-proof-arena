@@ -1,0 +1,11 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCounters.lean:23:8: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCounters.lean:30:8: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCounters.lean:88:15: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCounters.lean:92:15: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCounters.lean:94:45: warning: This simp argument is unused:
+  Int.one_mul
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Int.natCast_zero, Int.sub_zero, Int.add_zero] at h1 h2
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

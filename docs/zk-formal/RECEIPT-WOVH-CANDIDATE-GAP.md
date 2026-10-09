@@ -322,3 +322,87 @@ overlap transitions and introduces no path-depth or native domain restriction.
 bounded single-module check. Physical extraction/carry/global traffic assembly is
 owned separately by the root agent. Receipt lane scratch guards now total223
 (including these five source endpoint guards).
+
+### Honest four-partition traffic and carry closure
+
+`SourceLog22HonestTraffic.honest_four_messages` proves exact ordered external
+message equality between four explicitly placed physical partitions and
+`DedupRender.traffic`. The first three omit only their copied endpoint row;
+the last includes its incoming overlap. The proof includes arbitrary external
+buses and both directions, rather than fixtures or aggregate byte counts.
+`honest_four_counted_messages` lifts the equality to the actual candidate tables,
+adding the zero record-count field only to SIZE.
+
+`SourceLog22HonestCarry` characterizes reserved-bus messages from each actual
+first, middle, and last table, including silence on unrelated carry buses.
+`honest_four_carries` derives exact send/receive list equality on every bus≥64
+from the same shifted renderer placement, with no carry-balance premise. Distinct
+IDs64/65/66 retain boundary identity. These completeness lemmas complement the
+root agent's arbitrary accepted-trace extraction; global isolation against other
+AIR tables/public segments remains an assembly obligation.
+The two modules and `test/AuditSourceLog22Honest.lean` pass strict bounded checks
+and14 exact axiom guards. Receipt-lane scratch total:237 guards.
+
+### Arbitrary four-table boundary soundness
+
+`SourceLog22BoundarySound.boundary_count_exact` reduces the actual four
+SIZE-wrapped provider counts to the precise singleton send/receive endpoints on
+each reserved bus. `boundaries_equal` derives all three carried-row equalities
+from isolated global balances for64/65/66. `boundaries_cells` exposes equality of
+all57 columns at each boundary. These theorems concern arbitrary trace cells and
+need neither honest placement, local constraints, nor equal partition heights.
+The enclosing family must still isolate these four-table counts from unrelated
+tables/public segments; this premise is explicit rather than inferred.
+`test/AuditSourceLog22BoundarySound.lean` passes six exact axiom guards after
+strict bounded compilation. Receipt-lane scratch total:243 guards.
+
+### Arbitrary unequal-height physical traffic splice
+
+`SourceLog22MessageSplice` proves exact ordered concatenation for arbitrary-length
+prefix cell functions and deletion of arbitrary silent endpoint clones.
+`source_row_messages` identifies actual source traffic as a function of current
+cells alone, covering every original source bus including SIZE and SRC34.
+`physical_four_splice` and `counted_physical_four_splice` equate the four actual
+physical providers with a nested prefix splice using each actual height-minus-one
+and all rows of the final provider. They require no honest renderer bindings,
+local validity, equal heights, or carry equality. These are ownership identities;
+acceptance and semantic extraction remain separate. The root agent's unequal-
+height logical reconstruction can use these directly and discharge cloned-row
+silence from its accepted inactive endpoint.
+Strict compilation and `test/AuditSourceLog22MessageSplice.lean` pass eight exact
+axiom guards. Receipt-lane scratch total:251 guards.
+
+### Unequal-height reconstructed-trace traffic closure
+
+`SourceVariableMessages.last_endpoint_silent` derives all traffic-gate zeros from
+actual last-table acceptance. `variable_messages_splice` deletes the reconstructed
+trace's cloned padding using that fact and actual physical height bounds.
+`counted_variable_external_messages` and `counted_variable_external_counts` prove
+exact equality between the four actual SIZE-wrapped source providers and the
+logical `variableTrace` provider, on every external bus in both directions. They
+assume only the four local table facts and exclusion of reserved buses64/65/66;
+no honest placement, common height, carry equality, or silent-padding premise
+remains. Carry equality is needed independently for logical constraint validity,
+as proved by the root's reconstruction.
+Strict bounded compilation and `test/AuditSourceVariableMessages.lean` pass five
+exact axiom guards. Receipt-lane scratch total:256 guards.
+
+### Four-source native witness payment adapter
+
+`SourceVariableCharges` proves same-chain physical message/count transfer and
+that the physical SIZE payload equals `DedupRender.size bs`; duplicate paths are
+empty by actual local extraction, not by an external shape assumption.
+`SourceVariablePaid.physical_source_chain_paid` consumes actual four-table local
+facts and reserved-bus balances, reconstructs logical validity, and transfers
+physical RCL, SRC34, SHA bytes/digest, and SIZE-provider facts into authenticated
+native witness payment. The source/trie/receipt parts use one shared SHA bus pair.
+`physical_source_payment` additionally extracts the source chain itself and
+returns a payment continuation for that same chain, preserving dictionary and
+receipt-view bindings. No former two-log23 partition premise remains.
+
+Global non-source SIZE isolation and exact Node/Val provider contracts remain
+explicit through the final receiver-count equation. Actual public ownership,
+SHA exclusion, same Ext dictionary, and other native semantic bindings remain
+assembly inputs, rather than claimed automatic consequences of source extraction.
+Strict bounded checks and `test/AuditSourceVariablePaid.lean` pass six exact
+axiom guards. Receipt-lane scratch total:262 guards.

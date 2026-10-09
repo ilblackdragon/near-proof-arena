@@ -1,0 +1,22 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestCount.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestState.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestState.lean",
+  "guards": 10,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestCount.lean": "dc929b9dccb2e74a27d14bb7a7fe6429f3fbbd2c52a5b594a3f157c3bc213d08",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestState.lean": "72d700941c6335159ed146d2c3c301afad800b0cb976dbd233c8c44aec19e17d",
+    "zk-formal/test/AuditProcScanRequestState.lean": "aba4f3907baae48757892e279637f17860dd8ea42a73c763cc1ada146aa24356"
+  },
+  "proved": [
+    "Bitmap prefix count exact two-bit recurrence and terminal equality to converted native setBits length.",
+    "Executable original reqRows equals state fold at20; exact row count and every native row lookup carries the proven prefix count and actual running current value."
+  ],
+  "remaining": [
+    "Scan.body neighbor equations, shard/grid Local and complete honest phase TableLocal."
+  ],
+  "no_domain_change": true
+}

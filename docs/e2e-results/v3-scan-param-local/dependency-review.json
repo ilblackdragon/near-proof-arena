@@ -1,0 +1,18 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanParamLocal.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanParamLocal.lean",
+  "guards": 4,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanParamLocal.lean": "fb5fc69ca8178a9c43062b2173354146e28b679ca64a0378ca17d119dedbef12",
+    "zk-formal/test/AuditProcScanParamLocal.lean": "ad070b5489fc631b22bb612a9c35b52792970dfce48c81c595226f21bfc7a712"
+  },
+  "status": "strict PASS",
+  "proved": "Full ScanDist constraint list on actual sparse native param row over integers. Native row equality and three-byte reconstruction checked.",
+  "remaining": [
+    "Next-row first-request metadata is explicit: fQ1,cid0,tau/n/base/D copied.",
+    "Current row is not physical last and base,D<2^24 explicit.",
+    "Physical Fp bridge, actual neighboring generated row binding and other row kinds remain."
+  ]
+}

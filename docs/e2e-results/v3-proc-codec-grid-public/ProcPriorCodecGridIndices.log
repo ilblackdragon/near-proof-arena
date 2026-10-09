@@ -1,0 +1,2 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridIndices.lean:14:15: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridIndices.lean:17:15: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
