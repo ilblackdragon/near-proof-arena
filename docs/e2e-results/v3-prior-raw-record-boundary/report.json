@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed RawFrame record boundary decisions and exact 24-byte record ordinal/offset consistency. Field-wrap alternatives explicit in record-end and increment; complete record-count/nonwrap and native decoding still open. No generated witness.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawRecordBoundary.lean",
+      "sha256": "65c7a9a967bd156fb16b8fe6734d3a514419ab167da7d2c22b004d285aeba482",
+      "audit": "zk-formal/test/AuditProcPriorRawRecordBoundary.lean",
+      "audit_sha256": "db7d7716097d391f8884c25767162da0def1da115ac91ed12094c8ed3f7731aa",
+      "guards": 5
+    }
+  ]
+}

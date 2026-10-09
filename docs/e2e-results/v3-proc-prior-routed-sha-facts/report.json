@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual installed four packed SHA projections derive full Local, unpacked original SHA legality and checked semantic ShaFacts. Union covers exactly physical components0..3 using actual packed counts; no generated job bins or supplied SHA oracle. Actual BYTES/DIGEST ownership/provenance still requires connection to this union. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedShaView.lean",
+      "sha256": "d9326eb8058a6b3af0da278f535286957df05f37756c10336202c262b9e88fe1",
+      "audit": "zk-formal/test/AuditProcPriorRoutedShaView.lean",
+      "audit_sha256": "83d1331791d9a3daa19da7f5fc3017fc6bff164b064a7c02d280cefe0cc33f15",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedShaFacts.lean",
+      "sha256": "cfcf0968a61a77a1a7da17364676115a6af4410b1300a3b10d5bef6ecb22eb57",
+      "audit": "zk-formal/test/AuditProcPriorRoutedShaFacts.lean",
+      "audit_sha256": "7a7551645f1a51b692d5fb1ab8ff648f0d7f79439f25c0218d70aaad139cce2f",
+      "guards": 3
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-sha-facts/dependency-review.json",
+      "sha256": "77761b49e570cd7f551eb41b7597cf027e995ed8d8e00b572b6010308a041bc7"
+    }
+  ]
+}

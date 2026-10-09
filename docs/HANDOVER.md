@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Arbitrary RawFrame record boundaries and complete24-byte ordinal/offset consistency PASS5guards; no generated witness, count/end/increment wrap alternatives explicit. Run comparison validity and accepted SAME-bs Run+Codec correctness PASS3modules10guards, runtime success derives ranges and propagated tags. Actual arbitrary packed SHA views/facts PASS2modules9guards; exact DIGEST supplier inventory/semantic consumer PASS2modules8guards includes four SHA components PLUS actual emptyValue digest. Every actual live DIGEST receiver gets checked preimage and actual SHA byte-receipt obligations, no generated SHA bins assumption. Root independently strict rebuilt all frozen sources/audits. Total32new incrementalguards; source-only archive3075/742 unchanged. BYTES source identity/native trie authenticity, full framing/count reconstruction, Run/Dist physical inventory and actual Dist success, global certificate/prover/judge/general NEAR coverage remain open.
+
+
 2026-10-09: Arbitrary installed RawFrame finite phase traversal PASS6guards: from offset0 visits canonical positions through endpoint without wrap, exact boundary flag/reset, first-row header and header-next record/sanity choice. Whole record-sequence/native decoding still open. Exact actual corrected Codec40 inventory PASS9modules21guards; root accepted SAME-bs valid comparisons and selected8 physical counts PASS3guards, no supplied comparison/traffic premise. Root independently rebuilt physical package sources/audit; all final root sources strict PASS. Total30new incrementalguards; source-only archive3075/742 unchanged. Run/Dist inventory/validity, actual Dist success, SHA byte authentication, global certificate/prover/judge/general NEAR coverage remain open.
 
 

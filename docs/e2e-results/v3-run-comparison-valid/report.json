@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 10,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualComparisonTags.lean",
+      "sha256": "f65abb11bd9190a488b3924c8a0cc8c8dbf6e996849b3230d29a010e83be7651"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualComparisonValid.lean",
+      "sha256": "0a9e56b4c8a1b4a4f3ac800687385be31e22380ef909b358792a96ad2c917d63"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRunCodecComparisons.lean",
+      "sha256": "5650f74c22d4e7aeb44dd7ef79445c50172763d909fe59e967ad12ac2833d970"
+    },
+    {
+      "path": "zk-formal/test/AuditProcActualComparisonValid.lean",
+      "sha256": "875dd03b26bcd645e250abe9124f621cf4c17b10683c8bea95e64d52e5aa8ad4"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcActualComparisonTags.log",
+    "/tmp/ProcActualComparisonValid.log",
+    "/tmp/SchedulerRunCodecComparisons.log",
+    "/tmp/AuditProcActualComparisonValid.log"
+  ],
+  "scope": "ActualRun success directly derives all comparator tags and checked operand bounds; accepted SAME PriorCore bs has Run and corrected Codec CmpOk. Dist validity/whole old40 physical inventory separate."
+}
