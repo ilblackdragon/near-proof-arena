@@ -1,0 +1,54 @@
+{
+  "status": "PASS",
+  "guard_count": 4,
+  "source_order": [
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedRun.lean",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedOrdered.lean",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedAllocation.lean",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAcceptedQueries.lean",
+    "zk-formal/test/AuditSchedulerCodecAcceptedQueries.lean"
+  ],
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedRun.lean": "365cb5284ca3549b545bb93822c839a7db50eaa138e29a0ddff87234e3045ea9",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedOrdered.lean": "ad237a3cb60ade89d8ae68fcb2cf4a4e89c2e98a1d7c2e1b4b98acd81a5d07e6",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedAllocation.lean": "2c0fe3b34f472cf4c04d4b0d7a373bcfc4a3bfe84377bd912217b678628206ad",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAcceptedQueries.lean": "5b588bfaab1186ecb599375502aedbc43b67b5888bc9fb68f61a9f873c7f50c5",
+    "zk-formal/test/AuditSchedulerCodecAcceptedQueries.lean": "2330390fdd54fb782b8c336976ae830ecbdb0f09585e677b115014d4b5fc6c22"
+  },
+  "logs": [
+    "/tmp/SchedulerCodecRetainedRun.log",
+    "/tmp/SchedulerCodecRetainedOrdered.log",
+    "/tmp/SchedulerCodecRetainedAllocation.log",
+    "/tmp/SchedulerCodecAcceptedQueries.log",
+    "/tmp/AuditSchedulerCodecAcceptedQueries.log"
+  ],
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "prerequisites": [
+    "SchedulerCodecAllocatedIds",
+    "ProcNativePresenceBalance",
+    "ProcCodecPriorReadNative"
+  ],
+  "scope": "Direct accepted checkD0a constructs SAME allocated bs, indexed PreparedRun (prepared pub +actual execution), forest preBytes<=B, raw capacity, Codec and RawFrame TableLocal, SPOST balance, and full physical bus68 queryEvents inventory. No supplied ID allocation, dimensions, local constraints or query payload equality. Whole memory provider join remains separate.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedRun.lean",
+      "sha256": "365cb5284ca3549b545bb93822c839a7db50eaa138e29a0ddff87234e3045ea9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedOrdered.lean",
+      "sha256": "ad237a3cb60ade89d8ae68fcb2cf4a4e89c2e98a1d7c2e1b4b98acd81a5d07e6"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRetainedAllocation.lean",
+      "sha256": "2c0fe3b34f472cf4c04d4b0d7a373bcfc4a3bfe84377bd912217b678628206ad"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAcceptedQueries.lean",
+      "sha256": "5b588bfaab1186ecb599375502aedbc43b67b5888bc9fb68f61a9f873c7f50c5"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecAcceptedQueries.lean",
+      "sha256": "2330390fdd54fb782b8c336976ae830ecbdb0f09585e677b115014d4b5fc6c22"
+    }
+  ]
+}

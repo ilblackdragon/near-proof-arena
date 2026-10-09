@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Accepted query assembly PASS4 modules/4 guards retains indexed prepared scheduler pub and actual execution in SAME allocated Codec/Raw traces, deriving exact physical priorRead68 queryEvents directly from acceptance. Executable allocated lookup bridge PASS2 guards derives lookup steps from successful read, distinguishes proven absence from unknown hash, and uses SAME valueID at terminal and forest value record. Physical lookup/value ownership and matched memory provider remain open; agents continue selected Record Local, actual stage0 memory soundness, and memory query balance. Extended source-only query build started in clean workspace b. Previous turn progressed via commits411538d4/d5080fc4 and verified bundle; network push still DNS-blocked.
+
+
 2026-10-09: Native physical priorRead68 inventory PASS6 modules/15 exact guards connects SAME decoded old state/current layout to queryEvents across concatenated blocks, retaining duplicate/unknown IDs. Accepted allocated forest wrapper PASS1 guard retains actual preBytes(bs.map pre)<=B alongside Local/presence. Matched memory provider and arbitrary-AIR global order/write authentication remain open. Prior checkpoint411538d4 bundle verified; push failed DNS.
 
 
