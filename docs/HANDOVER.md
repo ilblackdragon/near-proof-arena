@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Allowance endpoint checkpoint strict PASS11 exact guards. ProcActualAllowanceBound derives final process al<=maxAllowance through actual model grants (only subtraction), then generated segment vfin<2^24 via native parameters and memory endpoint agreement. successful_run derives prefix/internal witnesses from actual run success, requiring no separate bound premise. ProcPriorCodecAccumulatorRows/Adjacent project actual row ap/apost/big, prove actual neighboring recurrence and terminal low24 value. Agent composing exact terminal and cRec using new bound. SideTrailer latest build currently resource failure (thread creation), not proof completion; root reproduced module-specific failure while allowance builds pass. Prebuilt dependency audits; full codec Local/general certificate/judge remain open. Goal active.
+
+
 2026-10-09: ProcPriorCodecPadding strict PASS2 exact guards (kernel decision): all corrected constraints and every interaction multiplicity expression vanish on interior zero padding (cur=next=0,first=last=0,transition=1). Final padding-to-first active wrap and active rows remain unproved; no full TableLocal claim. Parallel record-row projection and side trailer/bits proofs ongoing. Prior8e9c9ce9 execution/accumulator checkpoint saved. Audits prebuilt-dependency. Goal active.
 
 
