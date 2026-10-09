@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed active RawFrame has physical successor in same stage; interior rows remain active and preserve identity/phase fields. Position/offset increments retain explicit field-wrap alternative. No generated witness or implicit nonwrap bound; full framing/native decoding remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawTransitions.lean",
+      "sha256": "20eb0debea36a8b6d656838f2421d8c10a0c334610b574f2a03c2a69cde2be78",
+      "audit": "zk-formal/test/AuditProcPriorRawTransitions.lean",
+      "audit_sha256": "153d5495b2f5ab97efa314d6ba30c4898e7f08e3d79147adf604b0b5c5cb6292",
+      "guards": 4
+    }
+  ]
+}

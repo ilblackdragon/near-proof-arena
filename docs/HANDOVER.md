@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Arbitrary RawFrame transitions PASS4guards: live rows have physical successor in stage2, phase interiors remain active and preserve instance/value/phase fields; offset/position increments state explicit field-wrap alternative, not hidden natural arithmetic. Full finite-frame reconstruction/nonwrap remains open. Actual installed UPS extraction, ROOT/MIDROOT physical inventories/balances and SAME-head RootChain PASS4modules13guards; Head cardinality derived from physical traffic/height. Genuine public ROOT pre/post inventories, K/root canonical bounds and no public MIDROOT remain explicit. No supplied UPS witness/balances/head cardinality. Root independently strict rebuilt source and audit files using prebuilt dependencies. Total17new incrementalguards; source-only archive3075/742 unchanged. SHA/native byte authenticity, global certificate/prover/judge/general NEAR coverage incomplete.
+
+
 2026-10-09: Arbitrary installed RawFrame endpoint/header/empty soundness PASS6guards: exact active phase endpoints, empty iff count0, header first iff offset0, initial pos/byte/record0 and acc=count, no generator premise. Actual replay LogCost PASS3guards; actual Run comparison budget and SAME-bs Run+Codec+Dist aggregate PASS15guards. Aggregate<=2936832 and shared old-cap<=3090136 now theorem conditional ONLY on successful Gen.distRows for each block; deriving generator success from actual distribution remains open. Root independently rebuilt all source/audit files using strict prebuilt dependencies. Total24new incrementalguards; source-only archive3075/742 unchanged. Full raw traversal/native decoding, ROOT/SHA authentication, global certificate/prover/judge/general NEAR coverage remain incomplete.
 
 

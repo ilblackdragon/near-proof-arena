@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual installed slot7 compact UPS extraction and ROOT/MIDROOT inventory/counts; real HoldsP/public ROOT records derive both balances and full RootChain for SAME Head witness. Head cardinality derived from physical traffic/height. No supplied balance, generated list or caller cardinality. Public inventory exactness and K/digest canonical bounds explicit. SHA semantic byte/hash authentication remains separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedUpsView.lean",
+      "sha256": "e810979a48ef9c890807858de3983b8f7b82be488dd0fc7b16c461085e5d1f67",
+      "audit": "zk-formal/test/AuditProcPriorRoutedUpsView.lean",
+      "audit_sha256": "0623b4afed2d15d1f50a1c8bbb893c752864d4f81df2746183cc9d7400ca127b",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRootCounts.lean",
+      "sha256": "40dc7c1180eb98532b9c3bec76d5f0c27af4fa632fd2c81c6d47a2b2730e93c8",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRootCounts.lean",
+      "audit_sha256": "ebdc810d8a0926dfaffe095ac6f221511064844e697ab678492b2da38f391fbb",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRootBalance.lean",
+      "sha256": "657f5e7b20c6abd46c7e38e27a478694b8722534312bd45a466bc31224d28621",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRootBalance.lean",
+      "audit_sha256": "5902a771961fc703ae92d609f6d2992de8a3ce00012c4e716896c84a3362a3df",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRootChain.lean",
+      "sha256": "ebb8b7d7f9be8f1570d90357d333878c02617db47060b20e7bd81bfc30b09b10",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRootChain.lean",
+      "audit_sha256": "2c60aafb9f80a3686a962f86780d70c4479e025f1ed42fd54052dc2c1ed75e24",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-root-chain/dependency-review.json",
+      "sha256": "5a048b41373ba77d7f202db03118c6c456fa53a6727711e5dfe08e6237c68c35"
+    }
+  ]
+}
