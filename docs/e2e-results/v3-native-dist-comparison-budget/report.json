@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "guards": 4,
+  "scope": "Native executable comparison charging",
+  "remaining": [],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistComparisonCost.lean",
+      "sha256": "847c15e3d9a7861063de8c0b800415a5e169817ad899ec607954f024e9c4fb39"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistComparisonCost.lean",
+      "sha256": "f4e04960ad66f775aeef8aba80f398441272a87db99f06f8423f4dccf50a993c"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-dist-comparison-budget/dependency-review.json",
+      "sha256": "15e0110864c837411dfc409ac4be8154fd8db03056b1838e7466103f8b9066cb"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-dist-comparison-budget/README.md",
+      "sha256": "342a1e164d451278f667b33369940f66710ae693f838e5aac6837ae2a57d18d0"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-dist-comparison-budget/SHA256SUMS",
+      "sha256": "ae5210debd74d669716556ff5b7abc14cdbbac2750dcf00d939c150355ff34e3"
+    }
+  ],
+  "dependency_scope": "Strict incremental prebuilt-dependency build; not full certificate."
+}

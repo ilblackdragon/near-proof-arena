@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual installed slot4 Node extraction and SAME-es VPARENT conservation. Retained Node constraints and actual multiplicity bits transported through SIZE extension/routing/horizontal fusion/triples yield NodeV3 TableLocal and NodeWf3 with exact original traffic. Concrete actual VPARENT inventories, exact projected counts and HoldsP/no-publicVPARENT derive VParentBal for the SAME extracted Value list. nodes_for_values preserves any already-established same-trace es. raw_views supplies one joined node/value witness serving all present RawFrame bytes, with natural vid/position preserved. No supplied NodeWf3/VParentBal/generated list or new native allocation. Explicit no-publicVPARENT/VBYTES remain. Native forest/root/hash authentication and RawFrame full decoding remain separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedNodeView.lean",
+      "sha256": "a1b4228b6c2ce77f8fad03d96b103d0031b05c5dd4385591a684ec6ea61c2151",
+      "audit": "zk-formal/test/AuditProcPriorRoutedNodeView.lean",
+      "audit_sha256": "51dc57e3311c4a4eb1950496e4f0bc8971ca2c8481c173f9e4962e558afcf3fd",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedVParent.lean",
+      "sha256": "202a02c8ae47db599ea610a22c750ff8bb8e1acec31ae7cb4b77b16712652e32",
+      "audit": "zk-formal/test/AuditProcPriorRoutedVParent.lean",
+      "audit_sha256": "acac678d164547e73d9194a48a679d1504569f03d271cc84aa9bf3ed6dc34939",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedNodeValueView.lean",
+      "sha256": "b9e7535d0854a0c376362315641e3542b1314b3a789f64dc9fe708a8419806b9",
+      "audit": "zk-formal/test/AuditProcPriorRoutedNodeValueView.lean",
+      "audit_sha256": "c4437c76551f8cebdb999b2de47c9638b649c9ff85efa4acacfcbb0bc1dd08c2",
+      "guards": 3
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-node-value-view/dependency-review.json",
+      "sha256": "eca0006765bed58189f0c1c29ea5d1c45489cb28b9b6156106b26b4261990539"
+    }
+  ]
+}

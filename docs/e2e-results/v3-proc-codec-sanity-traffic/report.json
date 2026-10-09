@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual generated corrected Codec sanity74 full physical receive inventory is exactly32 ordered timestamp/index/original prior sanity-byte messages. Header/record/ash/padding gates silent, absent case zero bytes. No caller row-shape/inventory premises. RawFrame same-state send inventory and installed74 join remain separate. Incremental strict prebuilt-dependency audit.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecSanityGate.lean",
+      "sha256": "e623f3f6f7956766701165198eff02731821300d7ab7dafbfc0d425a53503390",
+      "audit": "zk-formal/test/AuditProcCodecSanityGate.lean",
+      "audit_sha256": "b83b1bdfeca9d04bbd89302384d8e15609e823ffc91fc3b431cf8ffa01dc166d",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecSanityTraffic.lean",
+      "sha256": "959a1f52ea23dff87021ae36cd12fd3e00677f619a5ca8cb62ec5fa83831dcaa",
+      "audit": "zk-formal/test/AuditProcCodecSanityTraffic.lean",
+      "audit_sha256": "5c5a9e4a71dc7255f114a5c3e77e97e568b4f50ad949773878aa202a73bdcd0a",
+      "guards": 5
+    }
+  ]
+}

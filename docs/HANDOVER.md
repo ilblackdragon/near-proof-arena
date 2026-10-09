@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual Codec sanity74 receive inventory PASS2modules10guards: exactly32 ordered tau/index/prior-byte messages including absent zeros; RawFrame send inventory/installed74 balance still open. Actual Value view/same-es RawFrame bytes/conditional node association PASS14guards plus actual Node view/VPARENT/same-es assembly PASS16guards now discharges NodeWf3/VParentBal from actual installed tables. Native original trie root/hash/forest-byte semantics still explicit gap, not inferred from value ID/length. Native Dist cost<=n²+2n/4224 per call/135168 across32 PASS4guards; actual memory/round scan charges PASS6guards but native log/entry/round bounds and old40 aggregate remain open. Total50new incrementalguards; source-only archive3075/742 unchanged. Full global certificate/prover/judge/general NEAR coverage incomplete.
+
+
 2026-10-09: Complete PRIOR comparator physical enumeration/accepted shared provider PASS7modules21guards. Root actual selected12 provider Local/balance with installed selected19 routed40 counts PASS4guards, no standalone69 traffic gap and duplicates preserved. Only old40 correctness/aggregate inventory capacity remain for full shared provider; actual native corrected Codec count<=786432 PASS3modules10guards. Run/Dist charges still open; target2936832 old40 bound NOT yet a theorem. Codec old40 CmpOk needs actual grant-distribution cap omitted from current PriorCore, so agent is enriching accepted SAME-bs constructor instead of assuming cap. Total35new incrementalguards; source-only archive3075/742 unchanged. Value/trie byte authenticity, RawFrame reconstruction, full global certificate/prover/judge/general NEAR coverage remain incomplete.
 
 
