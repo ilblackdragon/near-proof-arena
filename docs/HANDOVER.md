@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual ID key ranges/shared comparator/top-order PASS7guards: all active stage1 public/query keys derive canonical tau/limb bounds from actual provenance, all four ID comparisons route through actual shared comparator40, adjacent packed top-key order proved. Full lower-limb/global order and first-match remain open. Distribution shard equations PASS22guards: exact emitted shard row, quotient/remainder ranges, average equations including zero count, output payload equations, all grid equations on shard rows, and ordinal inverse arithmetic. Native range/physical placement premises remain explicit until whole-phase composition; actual grid rows and neighbor transitions remain open. Root independently rebuilt all15 source modules and both exact-axiom audits and checked source hashes:29 incremental guards. Global transition, clean certificate, executable prover, real judge and general replacement remain incomplete.
+
+
 2026-10-09: Native memory/write-to-read composition PASS2guards: actual memory WRITE carries SAME authenticated decoded native allowance at original stamp; actual prior68 read has fully derived last-write Result and zero or decoded allowance with exact low/big/saturation and maximal original ordinal among same-address memory writes. Exact native first-match/address association remains separate. Generic FINAL lookup/receipt FINAL bridge PASS4guards binds any live FINAL receiver to SAME ws packet/canonical forest read and actual receipt ListChain query; native receipt key and account slot linkage remain open. Root independent strict source/audit rebuild/hash checks PASS6 incremental guards. Native execution/full ScanDist/global theorem/clean certificate/prover/judge/general replacement incomplete.
 
 

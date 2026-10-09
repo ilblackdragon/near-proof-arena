@@ -1,0 +1,104 @@
+{
+  "status": "strict Lean builds and 22 exact axiom guards PASS",
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardRow.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardScalarCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardRange.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardAverageCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardAverage.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardOutputCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardOutput.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardControlCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardGrid.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistIndexTest.lean"
+  ],
+  "audits": [
+    "zk-formal/test/AuditProcDistShardEquations.lean"
+  ],
+  "guard_count": 22,
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardRow.lean": "8e26efca79acbe4f1a69505399ab5dcf507284ef64202fc70eedc4898d25bb00",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardCells.lean": "95919b653378b4b68b5482af13068e97d3728f38b39039c746ca02d90dd08fbe",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardScalarCells.lean": "05e7cb75fe24d6abec3d1ba9badfcfb177123ce10eb4a9631432e73e9dbfba8e",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardRange.lean": "73124a5e7fa5afc523a6f64d0d3890cb602b0cbf6df6560a8bc058ea790707dc",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardAverageCells.lean": "521d2aa1d2ecd01ffc62e08f5c51133e1fd4407e9875954e3fc35d6547cfce48",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardAverage.lean": "2bde9a838711e7cf18dc3bc2dc126113aebcf6e13ef9cb55587fafa4be01b177",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardOutputCells.lean": "9fccf2448e4bdd77a4b40b15454e7db41846aeb9c9066954539115abc195bffd",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardOutput.lean": "baa88ed51cea6c39a35fdb6cbc2e1682db17e076c61efe98b9d1869470bf5ab8",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardControlCells.lean": "f640d3d6e76b48884fc33f8ff0df20adb4699ab82a4fd67070ac622c5d3f283f",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardGrid.lean": "7e699472c708dffd740a5c22067d000e108336e66a6191e81330f032664ed337",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistIndexTest.lean": "36fa77652601ac83538843b1f7f3fd3a741e5d073f00668450aa20021dcdff79",
+    "zk-formal/test/AuditProcDistShardEquations.lean": "65098439591d224015a03fafe35b98519a6424a267495b783d0ca1c98e64e952"
+  },
+  "check": "/tmp/check-id.sh; Lean4.34.1 -j1 -DautoImplicit=false -DrelaxedAutoImplicit=false",
+  "olean_overlay": "/tmp/nearproof-receipt-check, symlinks /tmp/ups-proof",
+  "scope": [
+    "Exact unchanged shardStep emitted row factorization",
+    "All shard quotient/remainder ranges",
+    "First five cShard average/inverse/remainder equations including zero counts",
+    "cShard positions5..7 and10..20: comparator/output/memory payload equations",
+    "All cGrid equations on shard rows",
+    "Native ordinal inverse and annihilation arithmetic"
+  ],
+  "remaining": [
+    "Shard Boolean/kind and neighbor transitions",
+    "Actual grid header/cell equations and transitions",
+    "Whole scan-then-distribution phase placement/TableLocal"
+  ],
+  "assumptions": [
+    "Range theorem count\u226464,left\u22644500000; average count\u226464; output side in{0,1},budget<256^3",
+    "Physical current-row equality explicit until generated placement; no added native domain bound"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardRow.lean",
+      "sha256": "8e26efca79acbe4f1a69505399ab5dcf507284ef64202fc70eedc4898d25bb00"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardCells.lean",
+      "sha256": "95919b653378b4b68b5482af13068e97d3728f38b39039c746ca02d90dd08fbe"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardScalarCells.lean",
+      "sha256": "05e7cb75fe24d6abec3d1ba9badfcfb177123ce10eb4a9631432e73e9dbfba8e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardRange.lean",
+      "sha256": "73124a5e7fa5afc523a6f64d0d3890cb602b0cbf6df6560a8bc058ea790707dc"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardAverageCells.lean",
+      "sha256": "521d2aa1d2ecd01ffc62e08f5c51133e1fd4407e9875954e3fc35d6547cfce48"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardAverage.lean",
+      "sha256": "2bde9a838711e7cf18dc3bc2dc126113aebcf6e13ef9cb55587fafa4be01b177"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardOutputCells.lean",
+      "sha256": "9fccf2448e4bdd77a4b40b15454e7db41846aeb9c9066954539115abc195bffd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardOutput.lean",
+      "sha256": "baa88ed51cea6c39a35fdb6cbc2e1682db17e076c61efe98b9d1869470bf5ab8"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardControlCells.lean",
+      "sha256": "f640d3d6e76b48884fc33f8ff0df20adb4699ab82a4fd67070ac622c5d3f283f"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardGrid.lean",
+      "sha256": "7e699472c708dffd740a5c22067d000e108336e66a6191e81330f032664ed337"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistIndexTest.lean",
+      "sha256": "36fa77652601ac83538843b1f7f3fd3a741e5d073f00668450aa20021dcdff79"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistShardEquations.lean",
+      "sha256": "65098439591d224015a03fafe35b98519a6424a267495b783d0ca1c98e64e952"
+    }
+  ],
+  "dependency_scope": "Independent strict source rebuild with prebuilt dependencies; not a clean full certificate."
+}

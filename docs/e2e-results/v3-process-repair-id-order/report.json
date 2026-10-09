@@ -1,0 +1,33 @@
+{
+  "strict": true,
+  "guards": 7,
+  "dependency_order": [
+    "ProcessRepairIdRequestBounds",
+    "ProcessRepairIdRowBounds",
+    "ProcessRepairIdComparisons",
+    "ProcessRepairIdOrder"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdRequestBounds.lean",
+      "sha256": "1a0bb73018923e2d3890beba1c95d35978be825db2288b208330eb5948ed0cb9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdRowBounds.lean",
+      "sha256": "067a9c7bc61a466fd0927e22389835184726bf003ca6a24940e1cd5490f351a6"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdComparisons.lean",
+      "sha256": "d8d9380766a044f377b6d9a0e8c818470bd9eb2d7b6169e39dfca0cf65166aa0"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdOrder.lean",
+      "sha256": "0b9f9ef51f3d045d75c9c1899fd38b1b470a77e628dd3b4801c86e3c6ec12ac6"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdOrder.lean",
+      "sha256": "c093d7d1f2715280c7e5fa68059896eb27493ac569374ae7c60cf47cf7f6635b"
+    }
+  ],
+  "scope": "All active ID row canonical key bounds from actual provenance; real shared comparator40 bridge; adjacent packed top key monotonic under explicit smallness, discharged by preceding row bounds. Lex middle/low, global order and first-match remain open."
+}
