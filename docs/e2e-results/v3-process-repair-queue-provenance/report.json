@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family QSH conservation and generic live VBYTES sender provenance to SAME supplied ValWf list byte/id/position. No obsolete process Local and no generated traffic. Strict build, 4 exact axiom guards.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairVbytesEntry.lean",
+      "sha256": "26dfb451cab26187b4d5adddefdac6db544b69a5df8c939cb7af8f5f2176ea1f",
+      "audit": "zk-formal/test/AuditProcessRepairVbytesEntry.lean",
+      "audit_sha256": "63ba9fbee5919e28bc8777995a209960e3ee15660d2156ef82c7739b2a17c425",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQshBalance.lean",
+      "sha256": "42f9c45502c22fe48e93d653ec0bfba0eeef16f5a5af0e07ab4f3b385f1923ac",
+      "audit": "zk-formal/test/AuditProcessRepairQshBalance.lean",
+      "audit_sha256": "f482c66dd1e3bc911e11757c1e9725ef143ae2446af7483c7e3628a2f16be40c",
+      "guards": 3
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-queue-provenance/dependency-review.json",
+      "sha256": "e59fe5042f8e93fe8fd5765255658cd690ca05ab54b92f0c677ad5a788dadfb4"
+    }
+  ]
+}

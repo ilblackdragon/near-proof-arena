@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 3,
+  "dependency_order": [
+    "ProcessRepairRecordWriteSummary",
+    "ProcessRepairFamilyWrite",
+    "ProcessRepairRecordReceivedSummary"
+  ],
+  "prerequisites": [
+    "ProcPriorRecordBackwardBoundary",
+    "ProcessRepairRecordAuthenticatedTop"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordWriteSummary.lean",
+      "sha256": "9cdf9d200911443fb5352d085a9012f870fd75a3df3bdb5acb0ae8d2fbea492d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairFamilyWrite.lean",
+      "sha256": "ede63c6516a87c2d63dfbdc9d0ff47cfa0932a5db05d80e2a141b9bd0f1a80ed"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordReceivedSummary.lean",
+      "sha256": "33a6d056047e4e7390e77053d0b631e6ef3437716687a4da89a108c8c55ba9e8"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairWriteSummary.lean",
+      "sha256": "5b2c772c1c98ba87abac7417d9a1a4354fc3c2595fa1ca85df3e2763dd32a657"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairRecordWriteSummary.log",
+    "/tmp/ProcessRepairFamilyWrite.log",
+    "/tmp/ProcessRepairRecordReceivedSummary.log",
+    "/tmp/AuditProcessRepairWriteSummary.log"
+  ],
+  "scope": "Every live stage3 write has actual preceding first-limb origin and exact low/big saturated summary; every live bus67 receiver matches such an actual write payload. Decoded original-record association remains separate."
+}

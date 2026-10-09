@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family queue Local derives fixed main delayed/buffered/yield keys and implicit delayed key. Group keys still require genuine buffered parser shard provenance. Strict build and exact axiom audit.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeQueueKeys.lean",
+      "sha256": "2b769153934a3045ee5b210405eed6581b1985909d637f358597b72c2c4ea035",
+      "audit": "zk-formal/test/AuditProcessRepairNativeQueueKeys.lean",
+      "audit_sha256": "b4cb80d810f64a1b9a83960a1a158acc7005585d4a754ab8d411cfe0e46793ea",
+      "guards": 2
+    }
+  ]
+}

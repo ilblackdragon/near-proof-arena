@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Repaired-family View migration: actual FINAL and KEYNIB provenance binds actual queue keys to lookup on SAME authenticated forest. No HoldsP for obsolete process constraints. Prepared public statement discharges SAME receipt count and public queue count using unchanged native gas/instance bounds. No generated trace or supplied key/FINAL balance. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairKeyView.lean",
+      "sha256": "0a2fde286ac108113ec906f3031301f98360f826ef4d376d5d238d9af5075aff",
+      "audit": "zk-formal/test/AuditProcessRepairKeyView.lean",
+      "audit_sha256": "79e96bd067df307f945787a343f7cd4d8325193522af6bc671e676639fc1a3a6",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptKeys.lean",
+      "sha256": "beb15c3a232322a79b795716e083275c627a32eb3f3b5cdc5537a51103542b08",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptKeys.lean",
+      "audit_sha256": "7d938af344731338b8f5642d3c2f4260efa4ff387f8e014a3076a758a02b50a5",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairWalkBalance.lean",
+      "sha256": "763954610204adef1452f43fe69a278264c1d0dea1f0708e24bd48b52aee3f37",
+      "audit": "zk-formal/test/AuditProcessRepairWalkBalance.lean",
+      "audit_sha256": "c5c489140a68597fbdd85f127e1a739859927cfb68c50f3fa1df2e789486e46c",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairKeySource.lean",
+      "sha256": "b41973986b728b693bab231ce7d717860a8b326244596afaff768e9b9366d795",
+      "audit": "zk-formal/test/AuditProcessRepairKeySource.lean",
+      "audit_sha256": "73f7a57e982db29d85ddb2996850205cc3d59b01da0144aabd1b179dca66521e",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairKeySound.lean",
+      "sha256": "9ff1963590e1f18be9c43961ab816ae1ef7a74a0dd4cf2a48d11f2d99e069855",
+      "audit": "zk-formal/test/AuditProcessRepairKeySound.lean",
+      "audit_sha256": "dffa72fcf1cc3d1f704535a4e39d4fe635be474e0e852503abd0f2769b640e43",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairForestLookup.lean",
+      "sha256": "2cb6af93de9bf8c19db3195c40118ba167d90c9433e3992d5126d534b92ea3e2",
+      "audit": "zk-formal/test/AuditProcessRepairForestLookup.lean",
+      "audit_sha256": "c4019aadaea3395257ba153fe522bd44504fed7f07f42b2fa0c02d26f911bb96",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairKeyBalance.lean",
+      "sha256": "263a5b23b0692e42f075d692b299a48222b4d9a4ec7b69fd5d4b202c4c07cbe9",
+      "audit": "zk-formal/test/AuditProcessRepairKeyBalance.lean",
+      "audit_sha256": "fdc2272a2d425a5259ac7b4f38507d182315c70e32223fdd0f6689917523b0c6",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueFinal.lean",
+      "sha256": "3f663aacfb829d31999868733176f6d2fe812c45bda6954f4110707e86a80d2a",
+      "audit": "zk-formal/test/AuditProcessRepairQueueFinal.lean",
+      "audit_sha256": "896423aa0bf0ca9d60a59cc851359fd083fc7124f95ed0feb869eafbabb6027c",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueKey.lean",
+      "sha256": "19db5689168a8981a84ecd00a770e3fb508a29bbecea636e745881030075b0f8",
+      "audit": "zk-formal/test/AuditProcessRepairQueueKey.lean",
+      "audit_sha256": "dd4812a8008cd53413693614c0685e0165e20e5211531ebf46fdf85307882acc",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueLookup.lean",
+      "sha256": "41ff2d245e7b5ffdb1eb79e015e6b4e40c6214bc989d0db70a4fc283aaf85181",
+      "audit": "zk-formal/test/AuditProcessRepairQueueLookup.lean",
+      "audit_sha256": "2d8e4495743da56f644e64b11b45ef6f9e816f7fc8da2b94f0acf1007fa9f4ce",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueuePublic.lean",
+      "sha256": "302079aa1ed73110a90e29fd4c9cc1b3328d90534fa0402731c1e6ce05adfa8a",
+      "audit": "zk-formal/test/AuditProcessRepairQueuePublic.lean",
+      "audit_sha256": "c98a074866d466520ecd455f84df878117cc5802df515eb9dda1c5471c322e69",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueuePrepared.lean",
+      "sha256": "51a6833d8b9fe5d066bb90baa63a511646b86c1e3f5e6fa2e92b49aa82126468",
+      "audit": "zk-formal/test/AuditProcessRepairQueuePrepared.lean",
+      "audit_sha256": "b2a7dcc532de56bd73c6e037667b321e814406a9bdd9b92bd1685f924389554a",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-queue-lookup/dependency-review.json",
+      "sha256": "4f6d4b4a786b003cf4e68446a13ff15b54d1a534dfc677793be7a7ff9ccf67cf"
+    }
+  ]
+}
