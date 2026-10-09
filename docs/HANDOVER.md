@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Complete active accumulator/carry and zero-test checkpoint: strict PASS16 exact guards. TerminalGates/Inactive close g7 for all11 accumulator/carry equations; GeneratedAccumulatorCarry covers every record position; PhysicalRecordGroups.active_of_records classifies actual header/record/suffix indices and discharges side cases, yielding all11 equations at every active row. RecordZeroCells/Rows/TwoCells/TwoRows/Local and GeneratedZeroTests prove all18 zero tests on every generated/active physical row with n<=64,tau<P, no inverse/register assumptions. Record Boolean comparison-bit invariant is being derived from actual field-prefix execution; instance carry/position77 remains parallel. Full table/global joins/certificate/judge not achieved. Prebuilt dependency audit24GiB; prior431e47cb push failed GitHub DNS.
+
+
 2026-10-09: Adjacent execution and complete side-kind checkpoint: strict PASS21 exact guards. ExecutionAdjacentIndex/Position and GeneratedRecordAdjacent recover actual consecutive byte steps with shared intermediate state at neighboring physical rows. GeneratedAllowanceInside closes11 accumulator/carry equations at actual allowance positionsg<7. HeaderRecord/FullKind and HeaderKind.physical close all120 retained kind equations at all5 actual header rows, including header4→actual first record; premises native params,0<n<=64,tau<P. Combined prior SuffixKind covers all non-record kind constraints including padding. Record Boolean/zero groups now parallel agents; terminal inactive equations, other record transitions/additions/global joins still open. Prebuilt dependency audits; full certificate/judge incomplete. Previous34011d9f push failed GitHub DNS.
 
 

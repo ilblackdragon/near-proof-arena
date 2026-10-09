@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All11 accumulator/carry equations on every active generated row, including terminal inactive case. Generic active cRec lifting from physical record positions discharges side cases. All18 zero tests on actual record/generated/active physical rows with n<=64,tau<P and no cell/inverse assumptions. Prebuilt dependencies;24GiB cap; other constraint groups/global certificate open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecTerminalGates.lean",
+      "sha256": "b5ed262ab0a3b8397b8fe411bb9ffb7c813836c70c24979e9de79e33199d2492",
+      "audit": "zk-formal/test/AuditProcPriorCodecTerminalGates.lean",
+      "audit_sha256": "e4fb94b97c3635129e423be5ed6f36c7accecae1c06bec00e5113fb4fbf2d72b",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecTerminalInactive.lean",
+      "sha256": "5eef61410fc7d16f785bd6b775875e8ad8269a3a292a79ae2f588303c3ea7af4",
+      "audit": "zk-formal/test/AuditProcPriorCodecTerminalInactive.lean",
+      "audit_sha256": "6bdba14db070b7ba0c68b2ad4904c8a66dec5a5823aedb89ae4c1c30b38b58fe",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedAccumulatorCarry.lean",
+      "sha256": "ef8b4377fc174a15c682d0f1ef57c3c00b340f1487642fa98bf0a3c2205f4511",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedAccumulatorCarry.lean",
+      "audit_sha256": "94eb6e0af44d9840cafcb0715b23e737f1f48dd46c05dfd7384c1a3394ba1239",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPhysicalRecordGroups.lean",
+      "sha256": "9d72dce5e529679d4d5ae3b2ad160b64f5f77d78c600ed1579f95f20154f749a",
+      "audit": "zk-formal/test/AuditProcCodecPhysicalRecordGroups.lean",
+      "audit_sha256": "a91fdae5d07b3173eb9410ec34fd6b6dae90d0d6771db30771981f0008978dc6",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordZeroCells.lean",
+      "sha256": "a88965c644d385843a6d16bc9d88c571d8b3e42786046376c5147bc40475d97b",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordZeroCells.lean",
+      "audit_sha256": "f86c07c7febdae62f04b6bd6949ba5613aa4608c67a19af14e64814ed0a471be",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordZeroRows.lean",
+      "sha256": "3a80f75bf44c277641c656c9c87b62c7815f4c4d6dde63f81823c7647973c0d5",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordZeroRows.lean",
+      "audit_sha256": "6b7fda833c54754006bbec7dce2e4719a6c398e37e6cb491913972ee6b19b8cc",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordTwoCells.lean",
+      "sha256": "4ba43f262c9867d43279e28a1be96bc807a34a37fe7b2632628a2a6aa8609878",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordTwoCells.lean",
+      "audit_sha256": "aebcd3df02642f46fc8711c2fae8b5f794ddbeb3369627b65c58a4d39c55ed3a",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordTwoRows.lean",
+      "sha256": "da6f34813d6f54969d7ab1a5a7b64425edb60a43dff9ecd2cbeff72f549556ca",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordTwoRows.lean",
+      "audit_sha256": "9abba65d6ef7bb2d7dac03d664247c6941fb437e60ca0fd2adf41cdcd2c2968c",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordZeroLocal.lean",
+      "sha256": "ecca78cbe259c38c66a44ddd19ed4dde86290cddbcf3f183c70a92d2c17d9dde",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordZeroLocal.lean",
+      "audit_sha256": "0a697b2290bc9968c480ece1a473c13b23bf066a0c0b81271dbf44ba18cbd81a",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedZeroTests.lean",
+      "sha256": "b7cf088671757ac72aedf6be173dba9b96daec4e156fe14e87286fb76669f53c",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedZeroTests.lean",
+      "audit_sha256": "2a343159067535ec2f078d946e57296a5c8c2f12b9711c94f3d84f4f58f0033d",
+      "guards": 3
+    }
+  ]
+}
