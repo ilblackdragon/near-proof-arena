@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Prepared suffix and corrected full generator with successful prepared prefix reduce to sole 29-bit comparison operand check. Round-key decrease derived internally from actual model processing and prepared PV86 parameters. Operand bound remains unproved; full certificate/judge incomplete. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualOperandReduction.lean",
+      "sha256": "07257f2821e66cff32e2d6d924e90897ef1385da47d6ab8864c72944c89348cd",
+      "audit": "zk-formal/test/AuditProcActualOperandReduction.lean",
+      "audit_sha256": "a5d785eb03dc1d47f10c3d67ce78cff013e0154d669c3ca5b19734ff981958a9",
+      "guards": 2
+    }
+  ]
+}

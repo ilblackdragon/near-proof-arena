@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "PV86 actual initial allowances and process pending invariant bound model keys below sentinel. Exact replay key transport derives emitted sentinel bound and nonzero key decrease without emitted-key premise. Remaining time/value comparator bounds and full certificate/judge incomplete. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualModelKeyCap.lean",
+      "sha256": "4faeb32ab278da530f89a91b5af23725824ee9b5c8aad7487ec6ed4d3637f21f",
+      "audit": "zk-formal/test/AuditProcActualModelKeyCap.lean",
+      "audit_sha256": "ffdc3ea8ee7568801b2ced6042d7ffa27aa4ae741bd4d436330602a2406b9744",
+      "guards": 10
+    }
+  ]
+}

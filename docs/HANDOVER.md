@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Three modules strict PASS, nineteen exact guards. Agent ProcActualModelKeyCap independently rebuilt/audited: initial allowance cap plus actual model pending invariant derives all keys below sentinel and nonzero replay decrease without cap premise. Root ProcActualSegmentOperandBounds composes bounded construction/full memory scan and conditional finish success. Root ProcActualOperandReduction integrates key discharge: corrected full generator under successful prepared prefix reduces to sole 29-bit comparison operand check; no extra key premise. Timestamp total and memory grant-value bounds still underway. Full integration/certificate/prover/judge incomplete, prebuilt dependencies only. Priorc5e1708e pushed. Goal active.
+
+
 2026-10-09: ProcActualRoundOperandBounds strict PASS, eight exact guards. Actual bucket step/list and round comparator loop preserve operand bounds from round T/key bounds and initial cmps bounds. afterMemory_success now proves actual remaining suffix succeeds under these semantic bounds and chronology, including prepared parameter guard and final operand check. Bounds still must be derived from prepared replay. Three agents active: model sentinel cap, timestamp potential, memory grant-value bounds. Prior6501ae1c push succeeded. Full integration/certificate/prover/judge incomplete; prebuilt dependencies only. Goal active.
 
 
