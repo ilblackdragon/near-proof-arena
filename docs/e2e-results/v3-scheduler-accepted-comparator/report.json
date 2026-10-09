@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted SAME PriorCore supplies installed shared comparator Local, actual fixed-height capacity and receive counts for all native Run/Codec/Dist requests plus actual prior traffic. No supplied old CmpOk, Dist success or capacity premise. Remaining Run/Dist physical sender joins and full global Holds are separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerAcceptedComparator.lean",
+      "sha256": "63ee90601194327051e4e75a0055904246da009b3ad2fc59cfcc9a066cbf11e0",
+      "audit": "zk-formal/test/AuditSchedulerAcceptedComparator.lean",
+      "audit_sha256": "b693d40987af7932177e4623feb39065767fcaff70834c147762510ee326490b",
+      "guards": 2
+    }
+  ]
+}

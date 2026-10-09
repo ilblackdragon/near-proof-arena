@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual installed receipt byte IDs have nonwrapping tags1..5 PASS6guards, excludes trie7/8/9 with list/receipt bounds derived from actual grammar. Actual Dist comparison validity PASS4modules21guards, no supplied budget/range/success premise. Root accepted SAME-bs shared installed comparator PASS2guards: full Run/Codec/Dist/prior CmpOk, capacity<=2^22 and receive counts including actual prior40 traffic, no old CmpOk or capacity input. Exact physical Run/Dist producer joins remain open, not whole-family Holds. Root strict rebuilt frozen Dist sources/audit and final root sources. Total29new incrementalguards; source-only archive3075/742 unchanged. Other supplier ID separation, native framing/byte semantics, global certificate/prover/judge/general NEAR coverage incomplete.
+
+
 2026-10-09: Actual selected13 repaired receipt Local/SAME byte inventory/natural list+receipt counts<2^22 PASS6guards. Critical scope: selected13 is ReceiptCandidateRouting.candidateTable, not older RoutingQCandidate; uses candidate-specific extraction without old TableLocal. Node/Value SAME-list byte identity+nonwrapping tags+position uniqueness PASS2modules8guards; global supplier separation still open. Native Run exact request-list decomposition through segment/round inventories PASS3modules9guards with no op-tag/order assumptions; physical Mem/Proc joins remain next. Root independently strict rebuilt frozen sources/audits. Total23new incrementalguards; source-only archive3075/742 unchanged. Receipt/source/account/Merkle ID separation, full framing/native decoding, remaining comparison joins, global certificate/prover/judge/general NEAR coverage incomplete.
 
 

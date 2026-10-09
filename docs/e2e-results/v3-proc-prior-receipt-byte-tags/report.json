@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual installed receipt BYTES messages have nonwrapping natural tags1..5, excluding trie tags7/8/9. Derives list/receipt bounds from actual physical extraction; no supplied index/tag/range premise. Global other suppliers remain separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorReceiptByteTags.lean",
+      "sha256": "3838cca6ac7dafe79eb5900bdb9de853d943704e90c50cee6988b56ef0437c88",
+      "audit": "zk-formal/test/AuditProcPriorReceiptByteTags.lean",
+      "audit_sha256": "93a68bde1bb2457049b70f9eb6f6505bb8623899675e2abe46e3de2f6699dfcd",
+      "guards": 6
+    }
+  ]
+}

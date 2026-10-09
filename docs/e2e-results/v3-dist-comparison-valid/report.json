@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "date": "2026-10-09",
+  "scope": {
+    "dependency_order": [
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcActualFinalBudgets.lean",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardValid.lean",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellValid.lean",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistComparisonValid.lean"
+    ],
+    "audit": "zk-formal/test/AuditProcDistComparisonValid.lean",
+    "guards": 21,
+    "source_hashes": {
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcActualFinalBudgets.lean": "49e85798a9825a5cf20293da3f61ca755955770fba444f2cfffb1dcf041d1f04",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardValid.lean": "e8fa394da4df9cee9492c3d9fa81ba9e5d1c1e447c533ec39fc63d9e73d8dc1a",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellValid.lean": "3c7c2ac1a764ebb8223ea12e5edc4c7b63a331c68926b214d0b3599a2c3695b3",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistComparisonValid.lean": "f49932085415be2db493c44cb1f851b644d82ae5f89101bba6a8575f7f8badea",
+      "zk-formal/test/AuditProcDistComparisonValid.lean": "f6260f8f549e7310cadf125e7db3b78269af21bd6f019724f4d36746f2143a06"
+    },
+    "remaining_assumptions": [
+      "successful actual prep",
+      "SAME existing PriorCore"
+    ],
+    "remaining_work": [
+      "physical ScanDist40 sender inventory",
+      "same distribution grant binding to Codec where needed"
+    ],
+    "validation": "strict Lean -j1 autoImplicit=false relaxedAutoImplicit=false; scoped compiled dependencies"
+  },
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualFinalBudgets.lean",
+      "sha256": "49e85798a9825a5cf20293da3f61ca755955770fba444f2cfffb1dcf041d1f04"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardValid.lean",
+      "sha256": "e8fa394da4df9cee9492c3d9fa81ba9e5d1c1e447c533ec39fc63d9e73d8dc1a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellValid.lean",
+      "sha256": "3c7c2ac1a764ebb8223ea12e5edc4c7b63a331c68926b214d0b3599a2c3695b3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistComparisonValid.lean",
+      "sha256": "f49932085415be2db493c44cb1f851b644d82ae5f89101bba6a8575f7f8badea"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistComparisonValid.lean",
+      "sha256": "f6260f8f549e7310cadf125e7db3b78269af21bd6f019724f4d36746f2143a06"
+    },
+    {
+      "path": "docs/e2e-results/v3-dist-comparison-valid/dependency-review.json",
+      "sha256": "7616a2a33bb61ae7e2ff6efaf030484f58124cccaeda863e5e04437f7358b123"
+    }
+  ]
+}
