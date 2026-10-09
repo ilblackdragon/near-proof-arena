@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-09",
+  "status": "ACTUAL_FAMILY_LAST_WRITE_WITH_EXPLICIT_ORDER",
+  "entry": "ProcPriorCodecFamilyLastWrite.consumer",
+  "assumptions": [
+    "Actual-family HoldsP and exact table list identity",
+    "No public bus68 sends and an actual live bus68 consumer",
+    "Ordered: all actual stage0 active addresses are naturally monotone",
+    "Bounded: actual stage0 active packed addresses are below P",
+    "StampOrdered: adjacent same-address next-write rows have strictly increasing natural stamps"
+  ],
+  "discharged": [
+    "Standalone LocalM eliminated through actual stage0 row-local extraction and derived active prefix.",
+    "Actual fused/pair/triple physical supplier identity and message matching derived.",
+    "Query ends its complete address group, excluding later matching writes.",
+    "If no matching write exists, query is initialized zero; otherwise query equals greatest matching physical-row write.",
+    "Greatest physical-row write has maximal natural stored stamp among all matching live stage0 writes."
+  ],
+  "remaining": [
+    "Transport actual fused comparator69 requests and receiver soundness to Ordered and StampOrdered, with independently authenticated natural operand bounds.",
+    "Identify every actual write67 value/key/stamp with decoded original records and prove complete inventory, including unknown endpoint handling and duplicate first-match lookup.",
+    "Convert maximal stored stamp into greatest original record ordinal and native decoded allowance."
+  ],
+  "not_claimed": [
+    "A zero value means no writes: an existing zero write is allowed.",
+    "Stored stamps already authenticated as original record ordinals.",
+    "Generated inventory alone proves arbitrary trace semantics.",
+    "End-to-end succinct validator replacement."
+  ]
+}

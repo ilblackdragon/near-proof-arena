@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "guard_count": 9,
+  "source_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWrites.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWriteInventory.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWriteBalance.lean",
+    "zk-formal/test/AuditProcPriorNativeMemoryWrites.lean"
+  ],
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWrites.lean": "1cd2b151176e0ccd596c8f9d0310bb0bbb99a3a3fe17e340084c2034bd388795",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWriteInventory.lean": "1b70ce2fe4acda1f672854529a4bb7e62e2822d2d3d7d148f9bfad35a92af0ba",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWriteBalance.lean": "f580436b763831462528d502da7a1c7240dccbb38e81deb4c21a9601b4cc050f",
+    "zk-formal/test/AuditProcPriorNativeMemoryWrites.lean": "a4559dba11fb8c998f342b859537df1435246b77dfa1f1ec006b99f51f61bbfe"
+  },
+  "logs": [
+    "/tmp/ProcPriorNativeMemoryWrites.log",
+    "/tmp/ProcPriorNativeMemoryWriteInventory.log",
+    "/tmp/ProcPriorNativeMemoryWriteBalance.log",
+    "/tmp/AuditProcPriorNativeMemoryWrites.log"
+  ],
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "prerequisites": [
+    "ProcPriorNativeMemoryBalance",
+    "ProcRecordWriteTraffic"
+  ],
+  "scope": "Exact all-physical memory67 receives preserve sorted writeEvents multiplicities, original ordinals, low24/high flag. record_balance matches same-bs selected RecordLinear physical sends; capacity from native raw length and64-layout32block bounds. Shared vertical installation and comparator provider separate.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWrites.lean",
+      "sha256": "1cd2b151176e0ccd596c8f9d0310bb0bbb99a3a3fe17e340084c2034bd388795"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWriteInventory.lean",
+      "sha256": "1b70ce2fe4acda1f672854529a4bb7e62e2822d2d3d7d148f9bfad35a92af0ba"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryWriteBalance.lean",
+      "sha256": "f580436b763831462528d502da7a1c7240dccbb38e81deb4c21a9601b4cc050f"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorNativeMemoryWrites.lean",
+      "sha256": "a4559dba11fb8c998f342b859537df1435246b77dfa1f1ec006b99f51f61bbfe"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-memory-writes-checkpoint/ProcPriorNativeMemoryWriteInventory.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-memory-writes-checkpoint/ProcPriorNativeMemoryWrites.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-memory-writes-checkpoint/AuditProcPriorNativeMemoryWrites.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-memory-writes-checkpoint/ProcPriorNativeMemoryWriteBalance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
