@@ -38,7 +38,7 @@ theorem limbs {AP:AirP} {pub:List Fp} {tr:Trace Fp}
       ZkFormal.Chacha.cv (raw tr) 0 r ProcPriorRecordTable.hi=ProcPriorIdLimbs.hi (ProcPriorRecordNativeField.selected (raw tr) 0 r link) := by
   have hv:=ProcessRepairRawBytes.overlay_local view
   obtain ⟨q,heq,hq,hsq,hfq⟩:=ProcPriorRecordBackwardBoundary.top_origin hv hr hs htop
-  obtain ⟨f,bs,st,link,hfh,hff,htau,hbs,hd,hlink,hword,_⟩:=ProcessRepairNativeWord.word view
+  obtain ⟨f,bs,st,link,hfh,_hfs,hff,htau,hbs,hd,hlink,hword,_⟩:=ProcessRepairNativeWord.word view
     hpubS hpubL hpubV hpubD hpubB hpubC I hprep fwd hrec hNW hVW hN hV hw hchain hK hU hpubR hpubVP hq hsq hfq
   have hid:=ProcPriorRecordWordIdentity.limb_identity hv hq hsq hfq 2 (by decide)
   have hfields:=(ProcPriorRecordTopSummary.fields hv hq hsq hfq).2.2.2

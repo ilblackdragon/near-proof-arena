@@ -1,0 +1,18 @@
+{
+  "strict": true,
+  "guards": 1,
+  "dependency_order": [
+    "ProcessRepairIdPreparedOrder"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdPreparedOrder.lean",
+      "sha256": "3e2941dc26c0959d63baf8892fdb7884414b908af9646394268cc84157ebf1d2"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdPreparedOrder.lean",
+      "sha256": "56520b9dc979ea38836c5fa5d38d4fe1c621cc68a7f0379a4a5cbe895e792d57"
+    }
+  ],
+  "scope": "Prepared/native actual forest/public inputs imply global lex order across all active ID rows. No supplied key range or order predicate. Full public coverage and first original ordinal semantics remain open."
+}

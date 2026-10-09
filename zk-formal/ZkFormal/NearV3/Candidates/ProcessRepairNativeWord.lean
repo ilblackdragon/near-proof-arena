@@ -31,7 +31,8 @@ theorem word {AP:AirP} {pub:List Fp} {tr:Trace Fp}
     (hs:ZkFormal.Chacha.cv (raw tr) 0 r (ProcPriorVertical4Linear.stage 3)=1)
     (hf:ZkFormal.Chacha.cv (raw tr) 0 r ProcPriorRecordTable.firstLimb=1) :
     ∃f,∃bs:NearSpec.Bytes,∃st:NearSpec.Bandwidth.State,∃link:NearSpec.Bandwidth.LinkAllowance,
-      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
+      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f (ProcPriorVertical4Linear.stage 2)=1 ∧
+      ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
       ZkFormal.Chacha.cv (raw tr) 0 f tau=ZkFormal.Chacha.cv (raw tr) 0 r ProcPriorRecordTable.tau ∧
       bs.map UInt8.toNat=(es[ZkFormal.Chacha.cv (raw tr) 0 f vid]!).bytes ∧
       NearSpec.Bandwidth.State.decode bs=some st ∧
@@ -69,6 +70,6 @@ theorem word {AP:AirP} {pub:List Fp} {tr:Trace Fp}
     exact hbj.symm.trans hbytej
   have hm:link∈st.links:=List.mem_of_getElem? hlink0
   have hsem:=ProcPriorRecordNativeField.decoded hv hr hs hf bs st hd link hm bytes
-  refine ⟨f,bs,st,link,hfh,hff,hqtf.symm.trans hqt,?_,hd,hlink0,hsem⟩
+  refine ⟨f,bs,st,link,hfh,hfs,hff,hqtf.symm.trans hqt,?_,hd,hlink0,hsem⟩
   rw [←hqv];exact hbs
 end ZkFormal.NearV3.Candidates.ProcessRepairNativeWord

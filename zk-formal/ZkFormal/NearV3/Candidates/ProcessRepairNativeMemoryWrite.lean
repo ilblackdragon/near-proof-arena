@@ -30,7 +30,8 @@ theorem row {AP:AirP} {pub:List Fp} {tr:Trace Fp}
     (ha:ProcPriorVerticalLastWrite.Live (memory tr) 0 r)
     (hq:ZkFormal.Chacha.cv (memory tr) 0 r ProcPriorMemoryTable.query=0):
     ∃f,∃bs:NearSpec.Bytes,∃st:NearSpec.Bandwidth.State,∃link:NearSpec.Bandwidth.LinkAllowance,
-      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
+      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f (ProcPriorVertical4Linear.stage 2)=1 ∧
+      ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
       ZkFormal.Chacha.cv (raw tr) 0 f tau=ZkFormal.Chacha.cv (memory tr) 0 r ProcPriorMemoryTable.tau ∧
       bs.map UInt8.toNat=(es[ZkFormal.Chacha.cv (raw tr) 0 f vid]!).bytes ∧
       NearSpec.Bandwidth.State.decode bs=some st ∧
@@ -41,7 +42,7 @@ theorem row {AP:AirP} {pub:List Fp} {tr:Trace Fp}
         min (min (link.allowance+fair) NearSpecV3.Scheduler.u64Max) 4500000 := by
   have ht:0<AP.tables.length:=by rw [view.length];decide +kernel
   have hi:ProcPriorRoutedWriteStamp.write∈AP.tables[0]!.interactions:=by rw [view.wires];exact ProcPriorRoutedWriteStamp.write_member
-  obtain ⟨q,hqh,hmsg,f,bs,st,link,hfh,hff,htau,hbs,hd,hlink,hlo,hbig,hfair⟩:=ProcessRepairNativeWriteReceived.received view
+  obtain ⟨q,hqh,hmsg,f,bs,st,link,hfh,hfs,hff,htau,hbs,hd,hlink,hlo,hbig,hfair⟩:=ProcessRepairNativeWriteReceived.received view
     hpubS hpubL hpubV hpubD hpubB hpubC I hprep fwd hrec hNW hVW hN hV hw hchain hK hU hpubR hpubVP hpubW
     ht hr hi (show ProcPriorRoutedWriteStamp.write.bus=67 from rfl) (show ProcPriorRoutedWriteStamp.write.send=false from rfl)
     (ProcPriorRoutedWriteStamp.write_live ha hq)
@@ -58,5 +59,5 @@ theorem row {AP:AirP} {pub:List Fp} {tr:Trace Fp}
   rw [he3] at hlo
   rw [he4] at hbig
   rw [he3,he4] at hfair
-  exact ⟨f,bs,st,link,hfh,hff,htau.trans he0,hbs,hd,hlink,hlo,hbig,hfair⟩
+  exact ⟨f,bs,st,link,hfh,hfs,hff,htau.trans he0,hbs,hd,hlink,hlo,hbig,hfair⟩
 end ZkFormal.NearV3.Candidates.ProcessRepairNativeMemoryWrite

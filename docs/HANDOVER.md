@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Coherent native write state PASS9 audit guards across7 endpoints: stage2 raw-frame provenance retained through word/write/read; every memory WRITE with same tau comes from one identical authenticated decoded State at original ordinal. Prior-read endpoint carries this interpretation for ALL same-instance writes plus selected last-write maximality; no supplied same-state/frame identity. Affected ID consumers rebuilt. Actual ID lex/global ordering and first-public exclusion PASS17guards; prepared global ordering PASS1guard discharges all key-range premises. Receipt native account lookup PASS13guards: each indexed receipt uses its actual native receiver accountKeyPath on canonical head0, yielding exact forest value at receipt kslot; actual KEYNIB/FINAL/grammar/provenance and namespace separation derived. Root independent final-source/axiom audits/hash checks PASS40 guards across packages (including rechecked existing endpoints). Public-ID coverage/ordinal minimality, account-slot ownership/native receipt execution, full distribution phase/global theorem/clean certificate/prover/judge/general replacement remain open.
+
+
 2026-10-09: Strengthened native prior-read provenance: last-write decoded allowance frame is first=1 and has SAME tau as actual query, derived from equal packed memory addresses and independently authenticated link<4096 bounds for write and query. No caller same-instance premise. Updated endpoint strict compiled and exact axiom audit PASS; native-prior-read package retains2 checked guards. Exact first-match native address, full execution/global theorem/clean certificate/prover/judge/general replacement remain open.
 
 

@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual receipt native account-key lookup on same canonical pre-state forest",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptKeyOwner.lean",
+      "sha256": "82cb27764fc51e47d81c8ea599eed7e81d29cf2473bec12a90615e89146c185e",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptKeyOwner.lean",
+      "audit_sha256": "540972cf5e1db67caadd7ca4a5dfbb1fd7d032ea6cd227e69059a0d0b5fe3f5b",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptWalkKey.lean",
+      "sha256": "dd09b85ff31723a00af340e4df468cc5e46fceec9bfe2b326e59ca8a8b3d647d",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptWalkKey.lean",
+      "audit_sha256": "770f2f2ea1985e6e5ea13d3a62660a2ef9ddc593d0bc672f43f4f1d8d1ffd1ff",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptReceiverShape.lean",
+      "sha256": "dacf491316398cf076a33f39c93c35f62b2d6da9f89b6d3ee7dcafa367503a21",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptReceiverShape.lean",
+      "audit_sha256": "816469078702eb6bd250b96198f6de026315e62b1f4120f5ac15d1bf30208158",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptNativeKey.lean",
+      "sha256": "589f5254d4a2295124479bfe7682d5c76fb8e104cb6892fa74f6953a1c5b82f9",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptNativeKey.lean",
+      "audit_sha256": "d234faa1ddd2612a0411f19a7454fb3e11bcf06480f8b5ce6ab69be54edba753",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptFinalFields.lean",
+      "sha256": "e1e6b34042d6502c6568399e8476ed53b89bc2e1c36a6eea039aabc8f934bbb7",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptFinalFields.lean",
+      "audit_sha256": "844e8185d334f0311785025486c62ece13ffa336c13e225e7530674049d68594",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptLookup.lean",
+      "sha256": "8008e57feb420d8b134e9481e1ca615924323ce2bd49f7ce86f6b9de63274e18",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptLookup.lean",
+      "audit_sha256": "ad8b00f721debac2e62334674fb9c41fccf5e0ff7cb76ef9f80a16117b5d8fba",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-receipt-lookup/dependency-review.json",
+      "sha256": "fd69719edc65ade08de86a8c224184db73caddd44e6bc50726d9ebc80b791a56"
+    }
+  ]
+}

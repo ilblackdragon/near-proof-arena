@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "Every same-chain receipt account FINAL lookup uses exact native receiver account key on canonical pre-state forest.",
+  "proof_chain": [
+    "Natural flattened receipt ordinal selects unique account-key provider; access-key providers occupy disjoint range.",
+    "Actual KEYNIB conservation plus queue namespace separation forces all walk symbols from that receipt.",
+    "Walk terminal marker and bounded positions recover complete native account key, including exact length.",
+    "Actual candidate receiver grammar derives byte bounds and 2..64-byte account ID length.",
+    "Prepared public receipt count discharges namespace bound; no extra8192 domain assumption.",
+    "Actual receipt FINAL inventory fixes walk ID,tau0,kind and kslot; forest lookup returns exact native value at same slot."
+  ],
+  "remaining": [
+    "Returned forest value at receipt kslot is not yet joined to account table membership/native decode via MEM balance.",
+    "Native ordered receipt execution and final state updates remain open.",
+    "Forest context and same receipt ListChain remain explicit genuine extraction premises, not generated witnesses."
+  ],
+  "build": "Strict Lean4.34.1 prebuilt dependency overlay; thirteen exact axiom guards."
+}

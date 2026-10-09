@@ -27,7 +27,8 @@ theorem write {AP:AirP} {pub:List Fp} {tr:Trace Fp}
     (hs:ZkFormal.Chacha.cv (raw tr) 0 r (ProcPriorVertical4Linear.stage 3)=1)
     (hwrite:ZkFormal.Chacha.cv (raw tr) 0 r ProcPriorRecordTable.writeGate=1) :
     ∃f,∃bs:NearSpec.Bytes,∃st:NearSpec.Bandwidth.State,∃link:NearSpec.Bandwidth.LinkAllowance,
-      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
+      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f (ProcPriorVertical4Linear.stage 2)=1 ∧
+      ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
       ZkFormal.Chacha.cv (raw tr) 0 f tau=ZkFormal.Chacha.cv (raw tr) 0 r ProcPriorRecordTable.tau ∧
       bs.map UInt8.toNat=(es[ZkFormal.Chacha.cv (raw tr) 0 f vid]!).bytes ∧
       NearSpec.Bandwidth.State.decode bs=some st ∧
@@ -39,13 +40,13 @@ theorem write {AP:AirP} {pub:List Fp} {tr:Trace Fp}
   have hv:=ProcessRepairRawBytes.overlay_local view
   obtain ⟨ham,htop,_,_⟩:=ProcPriorRecordSound.write_flags hv hr hs hwrite
   obtain ⟨q,heq,hq,hsq,hfq⟩:=ProcPriorRecordBackwardBoundary.top_origin hv hr hs htop
-  obtain ⟨f,bs,st,link,hfh,hff,htau,hbs,hd,hlink,_,hlo,hbig,hfair⟩:=ProcessRepairNativeWord.word view
+  obtain ⟨f,bs,st,link,hfh,hfs,hff,htau,hbs,hd,hlink,_,hlo,hbig,hfair⟩:=ProcessRepairNativeWord.word view
     hpubS hpubL hpubV hpubD hpubB hpubC I hprep fwd hrec hNW hVW hN hV hw hchain hK hU hpubR hpubVP hq hsq hfq
   have hid:=ProcPriorRecordWordIdentity.limb_identity hv hq hsq hfq 2 (by decide)
   rw [←heq] at hid
   have hselected:=ProcessRepairNativeWriteField.selected_allowance hv hq hsq hfq (by rw [←heq];exact ham) link
   rw [hselected,←heq] at hlo hbig hfair
-  refine ⟨f,bs,st,link,hfh,hff,htau.trans hid.1.symm,hbs,hd,?_,hlo,hbig,hfair⟩
+  refine ⟨f,bs,st,link,hfh,hfs,hff,htau.trans hid.1.symm,hbs,hd,?_,hlo,hbig,hfair⟩
   rw [hid.2]
   exact hlink
 end ZkFormal.NearV3.Candidates.ProcessRepairNativeWrite

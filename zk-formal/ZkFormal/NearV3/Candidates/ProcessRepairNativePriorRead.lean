@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Candidates.ProcessRepairNativeMemoryWrite
+import ZkFormal.NearV3.Candidates.ProcessRepairNativeWriteState
 import ZkFormal.NearV3.Candidates.ProcessRepairAuthenticatedLastWrite
 namespace ZkFormal.NearV3.Candidates.ProcessRepairNativePriorRead
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.V2 ZkFormal.Near ZkFormal.Chacha
@@ -41,6 +41,7 @@ theorem consumer {AP:AirP} {pub:List Fp} {tr:Trace Fp}
       ((ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.lo=0 ∧ ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.hi=0) ∨
        ∃w f,∃bs:NearSpec.Bytes,∃st:NearSpec.Bandwidth.State,∃link:NearSpec.Bandwidth.LinkAllowance,
         q=w+1 ∧ f<tr.height 0 ∧
+        ZkFormal.Chacha.cv (raw tr) 0 f (ProcPriorVertical4Linear.stage 2)=1 ∧
         ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
         ZkFormal.Chacha.cv (raw tr) 0 f tau=ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.tau ∧
         bs.map UInt8.toNat=(es[ZkFormal.Chacha.cv (raw tr) 0 f vid]!).bytes ∧
@@ -50,9 +51,18 @@ theorem consumer {AP:AirP} {pub:List Fp} {tr:Trace Fp}
         ProcPriorSummary.big link.allowance=decide (ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.hi=1) ∧
         (∀fair:Nat,(if ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.hi=1 then 4500000 else min (ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.lo+fair) 4500000)=
           min (min (link.allowance+fair) NearSpecV3.Scheduler.u64Max) 4500000) ∧
-        ∀u,u<tr.height 0→Live (memory tr) 0 u→ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.query=0→
+        (∀u,u<tr.height 0→Live (memory tr) 0 u→ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.query=0→
           ProcPriorAddressOrder.address (memory tr) 0 u=ProcPriorAddressOrder.address (memory tr) 0 q→
-          ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.stamp≤ZkFormal.Chacha.cv (memory tr) 0 w ProcPriorMemoryTable.stamp) := by
+          ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.stamp≤ZkFormal.Chacha.cv (memory tr) 0 w ProcPriorMemoryTable.stamp) ∧
+        ∀u,u<tr.height 0→Live (memory tr) 0 u→
+          ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.query=0→
+          ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.tau=ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.tau→
+          ∃other:NearSpec.Bandwidth.LinkAllowance,
+            st.links[ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.stamp]?=some other ∧
+            ProcPriorSummary.low other.allowance=ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.lo ∧
+            ProcPriorSummary.big other.allowance=decide (ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.hi=1) ∧
+            ∀fair:Nat,(if ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.hi=1 then 4500000 else min (ZkFormal.Chacha.cv (memory tr) 0 u ProcPriorMemoryTable.lo+fair) 4500000)=
+              min (min (other.allowance+fair) NearSpecV3.Scheduler.u64Max) 4500000) := by
   obtain ⟨q,hq,hqa,hqq,hmsg,hresult⟩:=ProcessRepairAuthenticatedLastWrite.consumer view hpubW hpub68 hpub40 hpubS h68
     I hprep fwd hrec hpub70 hpub72 hpub76 ht hr hi hb hsend hm
   refine ⟨q,hq,hqa,hmsg,hresult,?_⟩
@@ -60,8 +70,9 @@ theorem consumer {AP:AirP} {pub:List Fp} {tr:Trace Fp}
   · exact Or.inl hzero.1
   · right
     have hwh:w<tr.height 0:=by omega
-    obtain ⟨f,bs,st,link,hfh,hff,htau,hbs,hd,hlink,hlo,hbig,hfair⟩:=ProcessRepairNativeMemoryWrite.row view
+    obtain ⟨f,bs,st,hfh,hfs,hff,htau,hbs,hd,hAll⟩:=ProcessRepairNativeWriteState.coherent view
       hpubS hpubL hpubV hpubD hpubB hpubC I hprep fwd hrec hNW hVW hN hV hw hchain hK hU hpubR hpubVP hpubW hwh hwa hwq
+    obtain ⟨link,hlink,hlo,hbig,hfair⟩:=hAll w hwh hwa hwq rfl
     have hlen:(p.sched.map instOf).length≤33:=by simpa only [List.length_map] using prepD0_len hprep
     have hns:∀P0∈p.sched.map instOf,1≤P0.n ∧ P0.n≤64:=by
       intro P0 hP
@@ -76,5 +87,6 @@ theorem consumer {AP:AirP} {pub:List Fp} {tr:Trace Fp}
     rw [hlow] at hlo
     rw [hhigh] at hbig
     rw [hlow,hhigh] at hfair
-    exact ⟨w,f,bs,st,link,hqw,hfh,hff,htau.trans hsame,hbs,hd,hlink,hlo,hbig,hfair,fun u hu hua huq hue=>(hmax u hu hua huq hue).2⟩
+    exact ⟨w,f,bs,st,link,hqw,hfh,hfs,hff,htau.trans hsame,hbs,hd,hlink,hlo,hbig,hfair,(fun u hu hua huq hue=>(hmax u hu hua huq hue).2),
+      (fun u hu hua huq hut=>hAll u hu hua huq (hut.trans hsame.symm))⟩
 end ZkFormal.NearV3.Candidates.ProcessRepairNativePriorRead

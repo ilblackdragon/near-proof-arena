@@ -31,7 +31,8 @@ theorem received {AP:AirP} {pub:List Fp} {tr:Trace Fp}
     ∃r,r<tr.height 0 ∧
       ProcPriorRoutedFamilyWrite.verticalWrite.msgVal (raw tr) 0 r pub=i.msgVal tr tc rr pub ∧
     ∃f,∃bs:NearSpec.Bytes,∃st:NearSpec.Bandwidth.State,∃link:NearSpec.Bandwidth.LinkAllowance,
-      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
+      f<tr.height 0 ∧ ZkFormal.Chacha.cv (raw tr) 0 f (ProcPriorVertical4Linear.stage 2)=1 ∧
+      ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
       ZkFormal.Chacha.cv (raw tr) 0 f tau=ZkFormal.Chacha.cv (raw tr) 0 r ProcPriorRecordTable.tau ∧
       bs.map UInt8.toNat=(es[ZkFormal.Chacha.cv (raw tr) 0 f vid]!).bytes ∧
       NearSpec.Bandwidth.State.decode bs=some st ∧
