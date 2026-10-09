@@ -1,0 +1,17 @@
+{
+  "target": "ZkFormal.NearV3.Candidates.ProcPriorRoutedAuthenticatedRead",
+  "source_modules": 3075,
+  "successful_modules": 3075,
+  "all_source_modules_passed": true,
+  "source_drift": [],
+  "prebuilt_project_dependencies": false,
+  "initial_source_only_reused_modules": 328,
+  "extension_base_source_modules": 3029,
+  "lean_path": "/tmp/nearproof-codec-clean-20261009-b/lib",
+  "olean_symlinks": [],
+  "audit_guards": 742,
+  "audits_passed": true,
+  "manifest_sha256": "7a0c686143273436c4184acb669b15575b9015698633365efc7234641d6b6bc3",
+  "scope": "Source-only closure including concrete accepted prior selected-table local and seven joins, conditional full horizontal constructor/counts, arbitrary routed prior68 lastwrite with all address/stamp/order premises discharged through actual tables and public SPAR inventory, and native comparator ordering/budget baseline. Base3029 hash-verified source-built modules reused. Original decoded bytes/IDs/value soundness, full comparator provider/global Holds, complete transition certificate/prover/judge and general NEAR coverage remain incomplete.",
+  "evidence_sha256": "4e2b1cebb72b6a712b591ed3187dd50843e32eee650e56763ee0e250a059dad4"
+}

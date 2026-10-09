@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Installed external60/70/68 joins hold at arbitrary Codec/overlay times and common public vector, removing canonical component time0/empty-vector restriction for horizontal assembly. Strict incremental prebuilt-dependency audit; full global Holds remains separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorUniformTraffic.lean",
+      "sha256": "e9fb71ed889e88a7957f3d91add80c15f0d02fde54fd69d37b028ede29b9fbdb",
+      "audit": "zk-formal/test/AuditSchedulerPriorUniformTraffic.lean",
+      "audit_sha256": "ec9b7468423196aed72c281111e1a6ab7807aeab9a13b235eb1a0a9ab53ed11d",
+      "guards": 4
+    }
+  ]
+}
