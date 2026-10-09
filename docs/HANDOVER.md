@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual record byte-source identity PASS2modules3guards: live stage3 request matches raw stage2 record supplier with exact natural tau/record/offset/byte, offset<24 removes field aliases. Queue byte ownership and actual RawFrame StartClosed PASS2modules3guards: each actual raw byte stream message has same-ID position0 message, derived from repaired View and arbitrary origin without caller origin/height premises. Root independent strict rebuild/hash checks PASS6 incremental guards. Full native word/frame uniqueness, queue inventory/parser composition, Scan/Dist, global transition and real proof/judge remain open.
+
+
 2026-10-09: Raw backward origin PASS2modules9guards: every actual active raw row has earlier first active row at position0 with same tau/vid/present/count and exact physical displacement equal to position; physical height<=P excludes wrapping. Record word identity PASS1module2guards: instance tau and record ordinal are preserved across all three actual limb rows from Local constraints. Root independently rebuilt sources/audits and verified hashes:11 incremental guards. Whole-frame interval/record classification, native record-to-word bus association and queue StartClosed composition continue. Global transition/certificate/prover/judge remain incomplete.
 
 

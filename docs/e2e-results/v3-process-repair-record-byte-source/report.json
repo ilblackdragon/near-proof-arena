@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual live record byte request matches raw record supplier with exact natural tau/record/offset/byte equality; offset below24 excludes field aliasing. Same native frame and decoded word association remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordByteMessage.lean",
+      "sha256": "c1075a53ee279941fb6c31c6ad040bef8b22a96fcad248cde5a7ee82bdb5702d",
+      "audit": "zk-formal/test/AuditProcPriorRecordByteMessage.lean",
+      "audit_sha256": "7254a742c41311291e84274c6be8729fc01d526540b4cc104c204e5614462ab6",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordByteSource.lean",
+      "sha256": "9ca7eaa9ee38f5e0d100dbbdcab8f5a85465a0f41151ed03a2024a98d61ffdad",
+      "audit": "zk-formal/test/AuditProcessRepairRecordByteSource.lean",
+      "audit_sha256": "0d269d18abe5886a052d1db788d5cfce4368cb00807f9c56a1bdfc283a1c6fe9",
+      "guards": 1
+    }
+  ]
+}
