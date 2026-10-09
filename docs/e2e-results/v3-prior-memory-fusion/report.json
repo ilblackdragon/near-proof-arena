@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual repaired receipt selected inventory fused with baseline prior-memory candidate has auxiliary degree10 appended or9 prepended. Provisional extra buses, no trace or ownership admission. Motivates separate constrained gate column",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PriorMemoryFusion.lean",
+      "sha256": "3792f3577992c88ab4c0081eb53d082d5e6406730f62980264b226bbddc5ed67",
+      "audit": "zk-formal/test/AuditPriorMemoryFusion.lean",
+      "audit_sha256": "1bac897c20c28dc179b679936ce3658b08978ac10b446bcba5f231924e3197ce",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Installed Head TableLocal and exact PARENT balance for the SAME extracted Node/Value lists. Every node has depth below400 and belongs to an extracted Head instance. Actual ROOT/UPS/public pre-root and SHA/BYTES/DIGEST authentication remain open. No supplied ParentBal, generated list or collision injectivity assumption. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedHeadView.lean",
+      "sha256": "5e957d0c6bcac6e9a4a72078bfceae67366e29fb28d3ce45016936ee220f5ff9",
+      "audit": "zk-formal/test/AuditProcPriorRoutedHeadView.lean",
+      "audit_sha256": "16eb0a55da7a98fba65d0acb49b507d7968052b3b3b41aefc9714a8d07dd4739",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedParent.lean",
+      "sha256": "d922cc53a7ac1c5d3f734d5d69a49597062f7f1fd1ea0245a9ef46ef770f72f4",
+      "audit": "zk-formal/test/AuditProcPriorRoutedParent.lean",
+      "audit_sha256": "b48f02dfd860556379eb07aa2addf5bcecbf36a5e4995fc6d60854c702880b48",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedForestStructure.lean",
+      "sha256": "7f59f76337c83104433a4839d74801ac3572befbf441dadcc86043787651129e",
+      "audit": "zk-formal/test/AuditProcPriorRoutedForestStructure.lean",
+      "audit_sha256": "64ae831a2faeed02990235317ba604cca2ca43a080f91dedb6c7b19f987b7246",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-forest-structure/dependency-review.json",
+      "sha256": "88fe1e413f3c17dcfb563cb098f7553b6966521aee98bdfc0c8fdb14d1ba083e"
+    }
+  ]
+}

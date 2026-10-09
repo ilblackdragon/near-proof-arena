@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native QSH lookup module; five exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeShardLookup.lean",
+      "sha256": "362ee2a7b1e0ee543493c0ccaf0290d1fc260ae10acd3b2900e3e9ae00989057",
+      "audit": "zk-formal/test/AuditQvNativeShardLookup.lean",
+      "audit_sha256": "f0f0fa7738ce6f79fc4fdf93b2e443a473eb87a677a8c3ab9d0c4a7704ac0d26",
+      "guards": 5,
+      "log": "/tmp/nearproof-NativeShardLookup-audit-checked.log"
+    }
+  ]
+}

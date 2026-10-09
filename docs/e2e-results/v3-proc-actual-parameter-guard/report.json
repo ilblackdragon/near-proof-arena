@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "PV86 preparation discharges both 24-bit parameter bounds and exact parameter guard. Full prepared suffix reduces to the comparison-operand check under explicit round-key decrease. Round-key decrease and 29-bit operand bounds remain; full certificate and judge incomplete. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualParameterGuard.lean",
+      "sha256": "2b4a30b3e9c8503ff0b28058e9483ec75ad71837e2ab98938780c555928a18d9",
+      "audit": "zk-formal/test/AuditProcActualParameterGuard.lean",
+      "audit_sha256": "34656871132bf473960cd2116ede3844decc38edb19051267febcad95af78fd9",
+      "guards": 5
+    }
+  ]
+}

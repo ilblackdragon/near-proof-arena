@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Repaired sort full physical traffic equals original indexed receipt-ID bytes, including zero receipts. Acceptance derives same-trace Local plus traffic with no added positive-count or uniqueness premise. Receipt-side physical RIDS conservation and strongest allocation join remain pending. Prebuilt dependency checks, not full correctness/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SortGeneralTraffic.lean",
+      "sha256": "264b4431693f10c0168a9e49c5a3067065f1f32018dbd1a5c95526cea53ebfe1",
+      "audit": "zk-formal/test/AuditSortGeneralTraffic.lean",
+      "audit_sha256": "8c4d012c8c7c90e54e8ac6981d865bbab5be916934346162b1976daaf8a5c957",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSortTraffic.lean",
+      "sha256": "b4b45bd444da897b78523197e103c4fbe5982993724827b2bc256f27827fe2ef",
+      "audit": "zk-formal/test/AuditNativeSortTraffic.lean",
+      "audit_sha256": "3cd5efaa0ddd3056729b7a107f0df3c74b39a780c15260ea01576c2d40c65c11",
+      "guards": 2
+    }
+  ]
+}

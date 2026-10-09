@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete stage-overlaid raw/memory/ID candidate with semantics-preserving global interaction permutation. All bus multiplicities and TableLocal equivalence under permutation checked. Actual degree8 shape3401,115,7,115,22 size8378132 leaves10476 bytes. Stage-window assembly/extraction and record limb/query joins still open. No whole honest/sound/admission claim. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/InteractionPairing.lean",
+      "sha256": "9514f405d1704f62214548cab73461dedd698a7902f769fec27c9a1b5f04f73f",
+      "audit": "zk-formal/test/AuditInteractionPairing.lean",
+      "audit_sha256": "cfede97f92dbbefeac6e4ac80749d70073dce41e803a90b7bbe11ddfb6f06469",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PriorOverlaySlots.lean",
+      "sha256": "be3582373f579a30626d24dad945cc1fffc2e304e019aca20a9e0733470e29d6",
+      "audit": "zk-formal/test/AuditPriorOverlaySlots.lean",
+      "audit_sha256": "f235a94d1c1e783422ca65994b265264342dd57865c8a357ffabad3618a4f4f1",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/VerticalPriorFusion.lean",
+      "sha256": "364dae0946140de86be9ebfc09ab84ad507a913c580aca1346002f3fccc54e8e",
+      "audit": "zk-formal/test/AuditVerticalPriorFusion.lean",
+      "audit_sha256": "94557a7363fee65e752cf699aa0c8bacf407a1e07c478f3e8cbe563b95090e91",
+      "guards": 9
+    }
+  ]
+}

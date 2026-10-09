@@ -1,0 +1,137 @@
+{
+  "lane": "codec-native-hash",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAssignments.lean",
+      "sha256": "5aabedc457e8de4ba93e931cd9bcc8cb07fcf7aab42a3b918c525a616fa653cb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecAssignments.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCoreLegacy.lean",
+      "sha256": "9e20fbda3bc88e0fa6c64e7fb767f6a2bdc03969042cc0793621d613d7a22a50",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecCoreLegacy.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGen.lean",
+      "sha256": "56022b83249e28a0344651ee30fa45f578f219eaa402d41a0631458830d0716a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecGen.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRegression.lean",
+      "sha256": "c5ca2219d784ed93114c8c86cc4bec8f8e77864c35d2b9522b38de61b8f46126",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecRegression.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecQueries.lean",
+      "sha256": "b84e2b0220ad3fbdc0d484220d560c80a20c51d3780152fd700546f10d6caea2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecQueries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGrid.lean",
+      "sha256": "f49d5f527b82217cdb78d6056a120c0b196dadb04b9897729d72782002278c29",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecGrid.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SchedSetAllRange.lean",
+      "sha256": "e12a1f8dab9fcaf1e6c543e18f2cecf456f41e9c4bbefd1f4b0ba6ccb5002f2d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-SchedSetAllRange.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNonrecordPhase.lean",
+      "sha256": "89962f7703556be43239982a558c826380a6d4ad588142b8306fd9626299761a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecNonrecordPhase.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAssignmentReads.lean",
+      "sha256": "65341cc8efac201119f5dfa6aead09219ad3016b049107b171accecd780870c9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecAssignmentReads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRegisterMiss.lean",
+      "sha256": "bcbb74387d67579f20fb39ee2cb9f7724f57951f934f7f312a36ac260144651c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecRegisterMiss.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHeaderReads.lean",
+      "sha256": "3c1d7f9ee2752deb47c52f759ea0788023e16482d61f5a781e0aaae0afc72734",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecHeaderReads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHashReads.lean",
+      "sha256": "3c4943ac7dc21fdc4984e919773ba3f6f4a55f7ed830e16b4197d86f0705da27",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecHashReads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeHash.lean",
+      "sha256": "d15b675951f826e2e4a1bdbfe7e51a82d2d3ab786fb7511349b3a3aeb4bc9215",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-ProcPriorCodecNativeHash.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecRefactor.lean",
+      "sha256": "2be8cc78eb653fd71d039cbd77a703f3e0cb9d51f233d0ff52e963cb791d29d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-AuditProcPriorCodecRefactor.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecGen.lean",
+      "sha256": "eba6c2135444327719c59dbb48a1a539ff34c1127757d65af79a360d034c604a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-AuditProcPriorCodecGen.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedSetAllRange.lean",
+      "sha256": "e8a1ad9e28106786965d3a3c0776970a706fe4f3eafc3250d121cc3943fccb96",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-AuditSchedSetAllRange.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecAssignments.lean",
+      "sha256": "ff1e098d984047786013e6776c22f12145251f5a095daaceaf1a76289e97394c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-AuditProcPriorCodecAssignments.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecNativeHash.lean",
+      "sha256": "465f52bbe9118bbb89497581b38509a9f40b032193af8156c32d31d143eb4d16",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-hash-AuditProcPriorCodecNativeHash.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Thirteen modules38guards, includes generator/regression rechecks. Definitional whole executable core equivalence after helper extraction; contiguous register semantics, actual header/hash assignments, nonrecord zero-ehp phase and all19 added constraints on actual hashRow arrays with arbitrary next row. Original Codec constraints and full generator/TableLocal remain.",
+  "exact_axiom_guards": 38,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

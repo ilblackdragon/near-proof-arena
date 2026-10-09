@@ -1,0 +1,46 @@
+{
+  "lane": "native-node-digest-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestOrder.lean",
+      "sha256": "daa8e81d267131eb91eea015b6d13004ccd7db56fde29a2d9cb5a6728209bd02",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-digest-balance-NativeDigestOrder.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestJobs.lean",
+      "sha256": "44879e49098aeeb5161035f2fe42a73ab2efc2b3ae3f8ae527ff0e4bd3bd1117",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-digest-balance-NativeDigestJobs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestBoundJobs.lean",
+      "sha256": "08fdf4c684a1a772a3541e454ad57701500cda428907f3342e38dd4b036d4f38",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-digest-balance-NativeDigestBoundJobs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeNodeDigestBalance.lean",
+      "sha256": "5e3c1af3412b7cf5f8a63dbbe8e29ca9c377900af3cc0190036251097157a29d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-digest-balance-NativeNodeDigestBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeNodeDigestBalance.lean",
+      "sha256": "40e08458f3fc03b589f3dc1d147f4f473e383b5a1df4ca39e22ed84bea653158",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-digest-balance-AuditNativeNodeDigestBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules9guards. SAME replay forest and actual assigned node records: physical HEAD/node digest consumers equal concrete native node SHA digest outputs plus exact value-slot residual, preserving occurrences.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

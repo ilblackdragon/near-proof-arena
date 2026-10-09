@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME actual native repaired receipt trace and canonical chain: exact per-receipt SHA outputs split into physical PEO/RID consumers and indexed LEAF digests; physical receipt/Merkle MPOS conservation. Native outcome identity, PEO/RID equations, fixed lengths and outcome cap derived, not additional premises. Retains physical SHA-byte balance. Other receipt SHA families and complete global bus balance remain open. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptDigestPartition.lean",
+      "sha256": "e22843e948a9d4d32ac4da3e462bc0871feb22e69bad0562ddc4001c63dc2e22",
+      "audit": "zk-formal/test/AuditReceiptDigestPartition.lean",
+      "audit_sha256": "160381dfbde0f95d1562677ef3f0fb7c165c9614fabb014c45d203d40e1cc5c8",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptNativeMerklePositions.lean",
+      "sha256": "c4c120f6a89f496276b3b245dd8beea5195dce9148fc9527f8007db9e4094b91",
+      "audit": "zk-formal/test/AuditReceiptNativeMerklePositions.lean",
+      "audit_sha256": "75f66ef571c6dd7544bb1e6956282f1589a9755b3381c72cf51d2faf642a0a90",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptNativeDigestBalance.lean",
+      "sha256": "93fe2395e4df1c44b9c312be5c8c5d1832de9fe81125be9ba68bd8edd68c83fa",
+      "audit": "zk-formal/test/AuditReceiptNativeDigestBalance.lean",
+      "audit_sha256": "204f4e7a37c5e15a93965455fc86e51c3266335e249b8dd37cbc9c819d3f804a",
+      "guards": 2
+    }
+  ]
+}

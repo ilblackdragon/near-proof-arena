@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual entry and batch push logs equal stamped model-generated pushes under explicit clock and nonzero-key ordinal alignment. Across-round transport and sortPush contract remain open, as do full finish checks and certificate. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualGeneratedPush.lean",
+      "sha256": "f1f45081d7f60eacdf1806f68e0cf4852c9ae41defb1fbd6e60dda4794011005",
+      "audit": "zk-formal/test/AuditProcActualGeneratedPush.lean",
+      "audit_sha256": "cb72813a544ba8f3143028716b8f5a028cabaddd18c040be2003f9ac86eff994",
+      "guards": 4
+    }
+  ]
+}

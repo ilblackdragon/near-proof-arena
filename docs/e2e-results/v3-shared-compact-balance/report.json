@@ -1,0 +1,32 @@
+{
+  "lane": "shared-compact-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactJointTraffic.lean",
+      "sha256": "d4c0007b0f44df360004c666d8a88df30f3ea82a77ae2fbe10b9c1bd69e4bcc9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-compact-balance-CompactJointTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SharedCompactBalance.lean",
+      "sha256": "18c920bca0673b9e40af941e0fd29001c6d1d0a14e0000036618ef4299072344",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-compact-balance-SharedCompactBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSharedCompactBalance.lean",
+      "sha256": "e5157cfb6cb53e52f33f6ad7b92cb6d5f92a71b25888ce0a73b81437c4bb2900",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-compact-balance-AuditSharedCompactBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules4 guards. Physical EDGE/BMAP conservation on actual compact UPS after UPB patch, with shared prefixes and explicit coverage/renderer contracts.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

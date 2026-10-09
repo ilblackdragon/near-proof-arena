@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "scope": "Restored original prior-memory order after receipt-module filename collision; receipt module renamed ProcessRepairReceiptMemoryOrder. Both prior-read/coverage and receipt-memory consumer branches strictly rebuilt. Receipt package exact guards rechecked separately.",
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMemoryOrder.lean",
+      "sha256": "9bd63423f101c95c7fb540f7fa35bc8d3105d0c89ed858ac854940b58b2d9373"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairMemoryOrder.lean",
+      "sha256": "ec27ca123d54ed6608ca8979e5cf4323aab4042e4850ee4d8bb1d4515df89218"
+    }
+  ]
+}

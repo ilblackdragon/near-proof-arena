@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual slot5 Value local/view extraction and RawFrame byte identity. HoldsP on repaired family yields base ValV3 TableLocal on actual horizontal projection; val_view extracts one ValWf list es and original all-bus traffic. All present RawFrame bytes equal es[actual vid].bytes[actual pos], with in-range indices, and es[k].vid=k. No generated Value list or changed/native identifier allocation. Existing val_link/val_unique applied conditionally to SAME es yield exact node vid/length and unique node association. NodeWf3 and VParentBal remain explicit for node bridge; native forest/raw-byte authentication via node/hash semantics is not asserted. No public VBYTES traffic required for RawFrame byte conservation. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedValueView.lean",
+      "sha256": "79097d3c4d7b2500de4fb660a01b95ecac01d9b65d68da2a2efb7d344c23a5f4",
+      "audit": "zk-formal/test/AuditProcPriorRoutedValueView.lean",
+      "audit_sha256": "1a79c2e60087bee55d0624038f1b568641857d2d98b542bea9cff413a9eec92a",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedValueBytes.lean",
+      "sha256": "ce7cf992d7c6c8c24bd296961efc11747606ab913ba9e9f7394ca2012962441b",
+      "audit": "zk-formal/test/AuditProcPriorRoutedValueBytes.lean",
+      "audit_sha256": "3cafebc119724aff24ffecdd403b77d29caa411408bfbeebe78db5ab974e8855",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedValueNode.lean",
+      "sha256": "c5ccaaa58bcc256a0033d49a07fbd3a5d0acd1071b449b21a9ec48b31e9de13a",
+      "audit": "zk-formal/test/AuditProcPriorRoutedValueNode.lean",
+      "audit_sha256": "493358eca9bbdea8bfd9fc89c0fbbb4f32a71f24c343f7642efe637cd33cefe8",
+      "guards": 3
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-value-view/dependency-review.json",
+      "sha256": "143a6fd3c2f0c752cc80cebf59e541c302b61086978498d01b0be53068e29e98"
+    }
+  ]
+}

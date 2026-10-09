@@ -1,0 +1,39 @@
+{
+  "lane": "native-ranked-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/WalkRanksFlatten.lean",
+      "sha256": "2dad35c879903bedfeec574c0b9fd3b94a38dc9006531c5001681508f357f6f9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ranked-traffic-WalkRanksFlatten.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/WalkCounterMessages.lean",
+      "sha256": "7a11b208f7b0415ba921983a7187bf55abfc435614c2d960efe158aecfa06ded",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ranked-traffic-WalkCounterMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/WalkRankTraffic.lean",
+      "sha256": "5e4695d13f020578bc0923ff055412e84ff6dec65200c800970f0c6df5821817",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ranked-traffic-WalkRankTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditWalkRankTraffic.lean",
+      "sha256": "3a3a5fe905a252ff4f0db1d5b4a841be891fbb340efb4528dbf7efd7691f5bc5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ranked-traffic-AuditWalkRankTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual rankWalks EDGE/BMAP send/receive traffic equals exact prefix-count counter chains. Conservation under distinct provider keys and actual request coverage. Provider uniqueness/full head and terminal coverage still open.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

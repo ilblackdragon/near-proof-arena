@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 9,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryComparisonInventory.lean",
+      "sha256": "f9026a85e6f2285c6c0850c1a7828e3165dfd3c6488b1ed8719eab3366e1cb88"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundComparisonInventory.lean",
+      "sha256": "5f3545c35d109a1376bacd9ee8aceb24c37658f38065808a629df04dfa39d0f3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRunComparisonInventory.lean",
+      "sha256": "085524974750f978dc0af834a51e813e30e085d005a4e5592a9e46f66580cb49"
+    },
+    {
+      "path": "zk-formal/test/AuditProcActualComparisonInventory.lean",
+      "sha256": "084e0f88e75cd9a00d6db2427033f413aabcfe5ef9ad5fd363f6733ea225c057"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcActualMemoryComparisonInventory.log",
+    "/tmp/ProcActualRoundComparisonInventory.log",
+    "/tmp/ProcActualRunComparisonInventory.log",
+    "/tmp/AuditProcActualComparisonInventory.log"
+  ],
+  "scope": "Exact ordered Run.cmps decomposition into native segment/round requests, including stored grant sf and constant1 time/order checks, from successful ActualRun. Physical Mem/Proc renderer correspondence is next."
+}

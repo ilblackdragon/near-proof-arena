@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete node/value dup/hd/repE updates preserve full NodeWf3 and ValWf. Combined occurrence lookup gives actual representative provenance, excluding fallback for every node/value. Canonical entity IDs, native value transition tags, exact distinct-count accounting and ENT/DUP/UNIQ traffic remain integration obligations. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreDuplicateMetadata.lean",
+      "sha256": "fb5aa2bfa841de982be7d2b1caa0112ebe4b88205c9a404c7cf1cf22bf5fdbb8",
+      "audit": "zk-formal/test/AuditStoreDuplicateMetadata.lean",
+      "audit_sha256": "e782780964a836bcb4736dfa7c26561ef7009062df4ea0ed4184dc5f21dace13",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ValueDuplicateMetadata.lean",
+      "sha256": "330fa2cecd8b23e1fa1632e575ca3dba91d14411ee00a9e744d6aaee62c54805",
+      "audit": "zk-formal/test/AuditValueDuplicateMetadata.lean",
+      "audit_sha256": "34b910d4e2c46e0cd2d4213ed18490db99b5f7dd76ff509f6683bfb33261fa62",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/CombinedStoreOccurrences.lean",
+      "sha256": "e6eaab0457df022621139fcc43a2a1608ebdfe80a8ba82b1030ebd02410d4dba",
+      "audit": "zk-formal/test/AuditCombinedStoreOccurrences.lean",
+      "audit_sha256": "5d219545e4f17256f92c142df096ecbb049bfe7eb7c4384a3b33a6f3c7c1faca",
+      "guards": 5
+    }
+  ]
+}

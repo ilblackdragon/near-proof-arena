@@ -1,0 +1,53 @@
+{
+  "lane": "native-account-vpost",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountIdPermutation.lean",
+      "sha256": "6fa74acf55e8f34479a43e80d6fd2867696eda177eeee010efa60059a5734603",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-vpost-NativeAccountIdPermutation.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountJobPermutation.lean",
+      "sha256": "c76ab2943051a25d469d9b775ece3e7d39fa29c34727154e84b0874771f56bed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-vpost-NativeAccountJobPermutation.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountPostDigest.lean",
+      "sha256": "a4bc5f77a8ae2e481ff4d0a5f1f76266208b11d3e6fca6d66ff54201c5751447",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-vpost-NativeAccountPostDigest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountForestDigest.lean",
+      "sha256": "c45a34ff5d2999d06c4db5904cf1ca70eb594047565b5e05d9bd3a1b7e23e60a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-vpost-NativeAccountForestDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountJobPermutation.lean",
+      "sha256": "4c47edb6c4981391151e6e5f9657d79da5cbe575ac2de63e44dc827f2dc6d994",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-vpost-AuditNativeAccountJobPermutation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountForestDigest.lean",
+      "sha256": "4b590c6b1380a285234efbe7626fd6fd62ccef8b9a1360ebb1f04aa7881c3d6a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-vpost-AuditNativeAccountForestDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules13guards. Native original value indices injective, account IDs nodup/permutation and exact final SHA payloads. Account SHA digest multiset matches full physical postSlotDigests on SAME replay and empty-write implicit tail. Exact native writes key sequence is required and must be retained upstream.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-09",
+  "status": "ACTUAL_FAMILY_PRIOR68_LOCAL_ORIGIN_PASS",
+  "entry": "ProcPriorCodecFamilyRead.family_query_source",
+  "assumptions": [
+    "HoldsP AP pub tr",
+    "AP.tables equals ProcPriorCodecActualFamily.tables exactly",
+    "No public bus68 sends",
+    "Actual live physical bus68 receiver interaction and valid table/row indices"
+  ],
+  "derived": [
+    "Actual family shifted prior memory read is the sole bus68 sender interaction after pairing/triple packing.",
+    "Other physical family tables cannot send on68; this is checked against concrete tables.",
+    "Horizontal offset from actual selected prefix widths and actual overlay component location.",
+    "Projected arbitrary vertical Local and stage0 first/last/predecessor facts.",
+    "Actual matched memory query message and zero-or-immediate-write value origin."
+  ],
+  "remaining": [
+    "Comparator69 receiver extraction and operand bounds, global packed-address and stamp ordering.",
+    "Arbitrary RawFrame/ID/Record provenance and complete write67 inventory tied to decoded original bytes.",
+    "Full greatest-original-ordinal/native allowance theorem, then corrected scheduler semantic soundness."
+  ],
+  "notes": [
+    "No standalone-memory identity or caller-supplied ownership remains at family_query_source.",
+    "This does not assert zero value iff no writes; the zero disjunct can include real writes whose stored value is zero.",
+    "Packed address equality remains a field equality until authenticated row bounds discharge address_injective."
+  ],
+  "not_claimed": [
+    "Generated traces prove arbitrary AIR semantics",
+    "Decoded native last-write semantics",
+    "End-to-end validator replacement"
+  ]
+}

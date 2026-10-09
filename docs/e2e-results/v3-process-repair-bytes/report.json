@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 11,
+  "dependency_order": [
+    "ProcessRepairBalance",
+    "ProcessRepairParent",
+    "ProcessRepairVParent",
+    "ProcessRepairRawBytes",
+    "ProcessRepairValueBytes"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairBalance.lean",
+      "sha256": "73c532cbe098286d4fd1413e7e63ed14ac7c5b102fe482d88f30f9320ec109f2"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairParent.lean",
+      "sha256": "f08554c18774490b569bdf829269042efa9b2f69ac59032ec104204f51af3906"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairVParent.lean",
+      "sha256": "e4c5233541bf8c3ff0edb019f55a0c27734b4ef769bb2aab521b5a5571308b51"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRawBytes.lean",
+      "sha256": "d79317fce2da8b99e107381f9c105d448c9bc4c64e519b4557d304f4776c6452"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairValueBytes.lean",
+      "sha256": "a7df99745fd97e21227c5f884b9d1e17b2931f647af68c0c14fb1df95669a52f"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairBytes.lean",
+      "sha256": "b69187c689cce07d1117f60c4d3f49f58489c4cc25d285e62895642f237552db"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairBalance.log",
+    "/tmp/ProcessRepairParent.log",
+    "/tmp/ProcessRepairVParent.log",
+    "/tmp/ProcessRepairRawBytes.log",
+    "/tmp/ProcessRepairValueBytes.log",
+    "/tmp/AuditProcessRepairBytes.log"
+  ],
+  "scope": "View-based same-inventory global balance; same-list parent/value-parent balance and physical raw byte provenance into extracted values. No original Holds implication or whole forest hash authentication claim."
+}

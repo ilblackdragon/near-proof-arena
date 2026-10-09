@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME actual accepted execution constructs concrete forestOldInputs; complete metadata/count pipeline NodeOk/ValWf plus exact whole oldPost forest bytes and SHA MsgsOk, retaining exact structural final upsert relation. Arbitrary payload premise removed; shared request bounds explicit. Physical UPS rebasing/global window/table balance remain open. Prebuilt dependencies,not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PostMetadataPayloads.lean",
+      "sha256": "883786515e0db8e3139ceda6166d9eb7d6d643cd0f857aa8368294127a428873",
+      "audit": "zk-formal/test/AuditPostMetadataPayloads.lean",
+      "audit_sha256": "33f6d74f27e15b421bf017a71e05eff3e1b8b28b5673a6cf4616b9f82d1a4fb2",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeBoundPost.lean",
+      "sha256": "38b627ffda8c498764f90b4bde4e5dd3fbce4dfd26bc8998d45d564fe1521b90",
+      "audit": "zk-formal/test/AuditNativeBoundPost.lean",
+      "audit_sha256": "ab19a4f8b5ab210d90826e18be49b9aaa52c4bc6ad75288ab167e7b661b79e69",
+      "guards": 1
+    }
+  ]
+}

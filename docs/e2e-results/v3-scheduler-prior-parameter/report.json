@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Native actual Codec and Record parameter76 inventories and exact installed routed balance from SAME PriorCore. No supplied n equality/traffic/capacity premise; execution alignment derives n=prepared ID length. Arbitrary component times/common pub supported. Incremental strict prebuilt-dependency audit; whole global Holds remains separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecParameterTraffic.lean",
+      "sha256": "e3e4dfad9c8e735e5b9aa4703b67e1e68db07d55900296092977055e18f364dc",
+      "audit": "zk-formal/test/AuditProcCodecParameterTraffic.lean",
+      "audit_sha256": "30a29469db840e6d0aacc9f304646718bf984ecfdb1511498d3c0196578dc097",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordParameterTraffic.lean",
+      "sha256": "a50ccf25a73d93550a5f356cbbc7341ed305250adecd4f57ba6d11407aa02c43",
+      "audit": "zk-formal/test/AuditProcRecordParameterTraffic.lean",
+      "audit_sha256": "b8d3b87e8587fc31bf706639c5c5536bb53947d202a20ee454ba04b72afd9a80",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorParameter.lean",
+      "sha256": "cf07e5bd432ea06f1a3c462d57d1f5606213ed946c4cdd4bc5c5e3b242c33049",
+      "audit": "zk-formal/test/AuditSchedulerPriorParameter.lean",
+      "audit_sha256": "574254b4bd4a0bdb76afd2ca9bee2a468f6cf4f9a4115884d4697186ff3cbb41",
+      "guards": 2
+    }
+  ]
+}

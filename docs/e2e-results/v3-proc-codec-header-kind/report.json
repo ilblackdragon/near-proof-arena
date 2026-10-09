@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire120 retained cKind constraints on all5 physical native header rows. Actual output prefix rows and output.rows5=first executed k0f0g0 record derived from successful codecRows; proper first/last/next selectors and header4\u2192record5 edge discharged. Requires native PV86 params,0<n\u226464,tau<P. No Local,row-shape,byte-bound or boundary flag premise. Combined with SuffixKind covers all non-record rows; record kind legality remains separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecHeaderKind.lean",
+      "sha256": "e56f260cc3192d5e32c71c9519209ac3f238fe72720c7276449b618c3bb46268",
+      "audit": "zk-formal/test/AuditProcCodecHeaderKind.lean",
+      "audit_sha256": "c602b04bf3db998145ee18550c7be8a8b54c0ad6822248f5c6fe1eac41111a3d",
+      "guards": 5
+    }
+  ]
+}

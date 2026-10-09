@@ -1,0 +1,88 @@
+{
+  "lane": "native-account-memory-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountLastPosition.lean",
+      "sha256": "3f0ea0638d81b63b348b8e1f8bf269fb6ee4887904a9363ad89f9f2699eba0f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountLastPosition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountPreviousPayload.lean",
+      "sha256": "6f38a1292b04e52d1116cad805deb4bb744640d59d6b64277862204696a6ec30",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountPreviousPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountSlotPayload.lean",
+      "sha256": "ec54f599a9dd06c605fa9b5fde582e0c72cf4814d0ea3dbe154e0101e0bfec47",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountSlotPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountMemoryLanes.lean",
+      "sha256": "9edc45def0173b1cca06de6ff73dc0df4fe492185272f8f2878c778a326a932f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountMemoryLanes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountMemoryEndpoints.lean",
+      "sha256": "ff3ac65f7f7ab38da841db9c913c7cd7e92992b309f7bfa42c02df9f7efd0843",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountMemoryEndpoints.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountLedgerFinal.lean",
+      "sha256": "da33146b625cf4cf98e77bee9c43dc7775ce2b2526396849db1bd1d22ef936f2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountLedgerFinal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountFinalPayload.lean",
+      "sha256": "f9e30997c6bcf8524581b02e99fe83af609e6ade6bff70ecd9c98d2648aa0942",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountFinalPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountMemoryBalance.lean",
+      "sha256": "e6805dc35928fd1fe91c9350d758a77b640733bd80680f67fb8bf16ca6e3eb7f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-NativeAccountMemoryBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountMemoryLanes.lean",
+      "sha256": "9c3d1912a3f0de834fad6ef037ae44f46cd2a4a883b901b7e79012f8f441183c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-AuditNativeAccountMemoryLanes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountMemoryEndpoints.lean",
+      "sha256": "b9f235b88937cf8f03f7b7705dc88dcd818a8f32fec201264756850483c7acdc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-AuditNativeAccountMemoryEndpoints.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountMemoryBalance.lean",
+      "sha256": "b617a6d703a4603a37d9455f579020958af1fd9df5351435afe1832aa98cafe0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-payload-AuditNativeAccountMemoryBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Eight modules23guards. Actual original-value-ID ledger payloads, all16 byte lanes, real account initial/closing traffic, and full semantic native MEM multiset balance including repeated/empty receipt batches. Physical receipt renderer transport remains open.",
+  "exact_axiom_guards": 23,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

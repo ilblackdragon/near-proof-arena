@@ -1,0 +1,106 @@
+{
+  "lane": "routing-slice",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingLexComplete.lean",
+      "sha256": "5b877289aea8951b73e943aa4804ff8057162276214edeed0da4ae75b16080fd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingLexComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingFrame.lean",
+      "sha256": "585575ad0686a87f96593a803c3dc83de33bd6813e9a0ccdf054c93a1845eda7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingFrameArithmetic.lean",
+      "sha256": "71eb869cd2027a20513449bcc073bd9ca7f75a244a5f1fefe828947e34338519",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingFrameArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingFrameBits.lean",
+      "sha256": "5208b7e130f21b3947e70b91dd9e695d30b391bc02b1e148b7103abcc01ed186",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingFrameBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingFrameCells.lean",
+      "sha256": "6baa874b1a48b6952780bf79573137a8347d37c42d449bd8b0274b62f151c2c8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingFrameCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingFrameLocal.lean",
+      "sha256": "86cc327ed21e6888f0608e1baf0fa68c1357a28e92b08d41b7967c6a215c1ca4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingFrameLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingNativeFrames.lean",
+      "sha256": "a3556c2e6aadd6ce097d6c89f0ef589136158b3d2d3462469bc5fddc94a44e02",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingNativeFrames.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingFrameTransport.lean",
+      "sha256": "6e9e01c9c97852b99b5fef77f961d80f673ee5177188160582dac4c9b32b179a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingFrameTransport.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingSpan.lean",
+      "sha256": "3e5c7c1924c5a2b9be2116beac5f11bbc342ef6a2ef461cd44a2e0a85c69401f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingSpan.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingSpanQ.lean",
+      "sha256": "6316ea58a27fa9c559863993124394ecc13c17c751ce95332f6a58f891e0bb1e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingSpanQ.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingSlice.lean",
+      "sha256": "20c51293ea5f4cf89792ddbd89092adc6e3d6195d0d30dbd11c14489efe26302",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-RoutingSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRoutingFrames.lean",
+      "sha256": "5291f1e393008ef1a4ec9fd2344c18021a802eeac1d4262771482792aebf74a2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-AuditRoutingFrames.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRoutingSpan.lean",
+      "sha256": "d016ba57af7ec8cbdb7c1c58c09b506894825360f314dc118d6e7b380391b38c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-AuditRoutingSpan.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRoutingSlice.lean",
+      "sha256": "455ba96d3e99a416702c351bbd34652208ff411972ce5f195ae832fecd77083b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-slice-AuditRoutingSlice.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "11 routing-frame/span/slice modules and 33 exact guards independently checked against AIR artifacts. Actual decoded receipts yield coherent cRoute/qBound/bit/public-key slice. Full receipt TableLocal and global installation remain open."
+}

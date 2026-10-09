@@ -1,0 +1,221 @@
+{
+  "lane": "receipt-candidate-manybus",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateReceiptSpans.lean",
+      "sha256": "d8a07a570e8d73ada0369d2bd73d2afde9c6913bdd886fc6c8b0d96b213c927e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateReceiptSpans.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateMemoryReads.lean",
+      "sha256": "dbc7f27a8a7656fd6910c3c7fce200854b6f00585357c7e1afc03947f7859e7e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateMemoryReads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateIndexedTraffic.lean",
+      "sha256": "87f79415e98abd439f3ba3379e58fbad52734dae729105608f76d64018a67ea3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateIndexedTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateMemoryWrites.lean",
+      "sha256": "027fb624a440999d6f28ba54ab315e0bdb34d9f3218fd59975b47a48ad296141",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateMemoryWrites.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateReceiptIdsTraffic.lean",
+      "sha256": "b3a90f4f82e76265cd2a2fd1452629a0a9eda875567d21dceda3df1f99511612",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateReceiptIdsTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateReceiptPositionsTraffic.lean",
+      "sha256": "2ac7828c48c592612c0e092af45477ebbfd6250a9ba37aadc3b9c52e3a67af88",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateReceiptPositionsTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateAccessTrafficRows.lean",
+      "sha256": "001dc9193cde3e8d39d16b3ded1eff54a3154465a966320cb241c44ea229beb6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateAccessTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateAccessTraffic.lean",
+      "sha256": "2e11ed27e38578f157b72af069386c7338d4b508f767e326a82d9e6df61631df",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateAccessTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateSignerTrafficRows.lean",
+      "sha256": "a37f034e6447cd8c44c144a4a6280d3ff346585a16e69747fb10e39de61f4b9e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateSignerTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateSignerTrafficField.lean",
+      "sha256": "0809baa3ae2ffb9fa097d1a960678e83be8cc94e2181a8c241a9c7353d11602b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateSignerTrafficField.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateSignerTraffic.lean",
+      "sha256": "3e284865e1a4a509015f32e931d300ec328d03631b756770f421436127a903f5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateSignerTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBoundaryTrafficRows.lean",
+      "sha256": "0728c45f8c1c3eb9797c5aeb2c7651a51569b3d67bc743f659585b9a91cb709f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateBoundaryTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRouteRows.lean",
+      "sha256": "5e4b294b940ded5f42dcd63212458adbd1557005ca1d5a72f49d553d4bfec7c2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateRouteRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBoundaryTrafficIndex.lean",
+      "sha256": "e4cfc4d4d7907ddfc23ae1103151916dea4a8aefd193438bf20bdc4be308ad1e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateBoundaryTrafficIndex.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBoundaryTraffic.lean",
+      "sha256": "c5fde7b76caceb197629951e3806d33b51ff1f33564dd795675d697d056413b4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-RcptCandidateBoundaryTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateReceiptSpans.lean",
+      "sha256": "617132b5366a8b0466d4e4c52718a2c4e99c7f72451b8fb4c287ff9d55e32e8f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateReceiptSpans.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateMemoryReads.lean",
+      "sha256": "f98930aba87744005b834bf1771ab79f008fa87e989f9d202822a1a6d7dcb349",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateMemoryReads.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateIndexedTraffic.lean",
+      "sha256": "3437d983a817396605524b3a634b944220da1520da12e37ba09c027e164f004c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateIndexedTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateMemoryWrites.lean",
+      "sha256": "2f3a364524d35f1cdc907e59bcef9acd2805fec5c4bdbd3a52145a90e7b30f70",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateMemoryWrites.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateReceiptIdsTraffic.lean",
+      "sha256": "74517d8e33536966c354adeef3a0c37622420441adc3371269a7cae584072ac3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateReceiptIdsTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateReceiptPositionsTraffic.lean",
+      "sha256": "36e5c6b3985bda2297162a4d2cfcf00171547a43ce1002a5ac48bb9bd86036df",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateReceiptPositionsTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateAccessTrafficRows.lean",
+      "sha256": "148e805d6b39cc6d1cf06137e63e0e365f2b50f2a3de0fa0929210d915314790",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateAccessTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateAccessTraffic.lean",
+      "sha256": "b9d16b8018e039f868170391358311898da87d3d182f7588ecbb0ccba3dec6af",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateAccessTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateSignerTrafficRows.lean",
+      "sha256": "41ba5a5bb7b08af03fb09fb46ccd6a6ea8b75d98f52d50cad97a75e2c4f0a660",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateSignerTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateSignerTrafficField.lean",
+      "sha256": "1463f0ae8cf42ea3ef1e415c8f02c301475bef49837dcceedb1f5a8e46fb13cc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateSignerTrafficField.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateSignerTraffic.lean",
+      "sha256": "e243aaf77a28ff7ca8cd8d1c72b1d9c05637effd93bc6c09249be2c97592ac91",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateSignerTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBoundaryTrafficRows.lean",
+      "sha256": "64d0fba3d09aa62e63b91f62aff605b9b90451e4dc318720d8d189bd5a7d811c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateBoundaryTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRouteRows.lean",
+      "sha256": "46af7411b9d21f58457f41e80ee50a038e9c58f72e850e02fbefd555f26bd3ed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateRouteRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBoundaryTrafficIndex.lean",
+      "sha256": "aeff09b95c5b1109ce243256877b784ba8e06274cf8427c196412f9ff9eb1f3d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateBoundaryTrafficIndex.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBoundaryTraffic.lean",
+      "sha256": "388bdff48b046f3dd8f89a19a7d7ecdcb4d16122d37f06facf58c1887d09be6f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-manybus-AuditRcptCandidateBoundaryTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "15 modules63 guards. Candidate physical MEM/RIDS/MPOS/AKC/SREC/BND traffic, no new semantic provider premise.",
+  "exact_axiom_guards": 63,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

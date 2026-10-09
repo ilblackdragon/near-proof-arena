@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual consecutive successful byte steps share intermediate state and occupy neighboring physical rows. Eleven accumulator/carry equations at actual allowance byte positions0\u20136 from corrected generator success. No independent adjacency or row-shape premise. Prebuilt dependencies;24GiB cap; terminal and other groups still need assembly",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecExecutionAdjacentIndex.lean",
+      "sha256": "472c93e8dce156deb7ae5e77c6c873a89bcfb7772c85a407fc62c4de7f74c990",
+      "audit": "zk-formal/test/AuditProcCodecExecutionAdjacentIndex.lean",
+      "audit_sha256": "d665131d0f5f9464cbff742907ff8ceba8d2d72dee15bd411d0bc2933bc5d05f",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecExecutionAdjacentPosition.lean",
+      "sha256": "21310bcdfd32dd25cba2901b537485204f966f6c4a2d626a4a4b0b9455ba92d1",
+      "audit": "zk-formal/test/AuditProcCodecExecutionAdjacentPosition.lean",
+      "audit_sha256": "7a7c4db2efdf091254cf689476e2219185ad625d8cacb32e8bd6e6c79daea372",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordAdjacent.lean",
+      "sha256": "d0d75b761720adac6c3d785a378f187384a3705d73bd53be697621fbed4fcb2e",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordAdjacent.lean",
+      "audit_sha256": "6ca98ded8f8190e15e43cfaf1ac45d6c12ca1feaa5ebe9e9e70d333580e4a1f2",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedAllowanceInside.lean",
+      "sha256": "2859e5cb1c2efaa9348c39ff058692337d9761d83e3d44f68a5d896e22e0dea8",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedAllowanceInside.lean",
+      "audit_sha256": "45297bc06f5ea6604621231c04848c7ca5c87498897852d04cfd7ee0f9bb5d57",
+      "guards": 2
+    }
+  ]
+}

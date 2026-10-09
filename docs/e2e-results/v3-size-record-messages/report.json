@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual node/value SUM interactions belong to candidate tables and carry exact tag, payload bytes, and nonduplicate record count, with unit multiplicity. Empty values are counted as records. Full-table SIZE traffic and native forest validity remain separate. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SizeRecordMessages.lean",
+      "sha256": "b5c6d61a207c0e5af056ee73ab28480b47f25b7c18578e22b949e1370f862c1c",
+      "audit": "zk-formal/test/AuditSizeRecordMessages.lean",
+      "audit_sha256": "ff2e3510a5444648ed8a815370aa1bf4d743d809443cb0a62bfc0002cf297190",
+      "guards": 6
+    }
+  ]
+}

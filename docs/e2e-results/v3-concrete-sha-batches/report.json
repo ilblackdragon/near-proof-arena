@@ -1,0 +1,39 @@
+{
+  "lane": "concrete-sha-batches",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReceiptShaJobs.lean",
+      "sha256": "586c3a1f1aa25ae975e5cf28d1a44a23aac4d9e07a84fd63b0080a3ae824cd2c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-concrete-sha-batches-ReceiptShaJobs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeShaJobs.lean",
+      "sha256": "8aca6259e87d027728c5d4493b4df6948c30a5dc14d26e0cd45a40c7df897730",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-concrete-sha-batches-NativeShaJobs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditReceiptShaJobs.lean",
+      "sha256": "d4eeff421d1fd2fe13bd225097315d3c79dc8b8ba51ee00915f5b5933f32fe46",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-concrete-sha-batches-AuditReceiptShaJobs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeShaJobs.lean",
+      "sha256": "8878a6b55f3d1a9f38d0b2ce26d781ed16db6ed4dc4facbe5d789a9383f8d24a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-concrete-sha-batches-AuditNativeShaJobs.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Concrete receipt/account/Merkle and updated native node/value jobs instantiate workload bounds; execution length correspondence and global traffic remain explicit.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

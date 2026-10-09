@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Corrected arbitrary-trace sender geometry preserves exact original SDL receive/send interactions7/8 and all8 live sender payloads. Genuine HoldsP global balance, corrected table identity and SdlOwn imply each sender byte has a public SDL source or same-Codec predecessor send with matching payload. Does not yet eliminate predecessor cycles, derive tau non-wrap from prepared SPAR, or decode final public source to prepared ID. Bus70 is downstream Codec-to-ID lookup inventory and cannot independently authenticate prepared IDs. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundSdlRows.lean",
+      "sha256": "a0d175e2b20182219defa666ddb8a68788fc5a473f5a7da0b165cf1dbf92422c",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundSdlRows.lean",
+      "audit_sha256": "4d80b7129459147b984ccacc6cf786a765f27c3ffcffbb7a2d68ee6f31977ba9",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundSdlSource.lean",
+      "sha256": "4556a9774fbb4f17c4e3d1716b45b1451b4c761abf8165489df382f2cd8cbd67",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundSdlSource.lean",
+      "audit_sha256": "18ab550dfd6706efb0aeb2d0539999436bce6396e41829dc5752ab142dcc8058",
+      "guards": 3
+    }
+  ]
+}

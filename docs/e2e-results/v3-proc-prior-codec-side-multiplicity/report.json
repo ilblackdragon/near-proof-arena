@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Every multiplicity expression in all18 corrected Codec interactions evaluates to0 or1 on actual native header/hash/ash helper rows, for arbitrary bytes and instance data. Exact phase flags proved; no next-row premise. cKind constraints remain separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideMultiplicity.lean",
+      "sha256": "15958190643ebea53d64a7e80c2b19e2e6b8982a36e4c7413bd60cf4573aaff8",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideMultiplicity.lean",
+      "audit_sha256": "4e2b924847dbbfa4a6383072ed4aef211d31e3ac2efe7648a836bbc736fcbf87",
+      "guards": 7
+    }
+  ]
+}

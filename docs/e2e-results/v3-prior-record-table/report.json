@@ -1,0 +1,25 @@
+{
+  "lane": "prior-record-table",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordTable.lean",
+      "sha256": "ec437f23249eaa04d6eae38700350cf43e4b6f882a69d10c5892e98c5b8873d7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-record-table-ProcPriorRecordTable.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRecordTable.lean",
+      "sha256": "82ad744b885ef16fdb2db3de56055f63dc863a65d7cb6b44e14db0209fc23b54",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-record-table-AuditProcPriorRecordTable.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2guards. Concrete record join stage wf8 and shape23/4/7/4/log22; no honest TableLocal or full overlay admission yet.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

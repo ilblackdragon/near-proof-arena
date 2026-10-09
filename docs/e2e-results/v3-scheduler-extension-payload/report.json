@@ -1,0 +1,53 @@
+{
+  "lane": "scheduler-extension-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerParentChain.lean",
+      "sha256": "b015e9f79ad45ce0cada14aaa7678ce498aba33e619c5f9040530758c16fd5a2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-extension-payload-SchedulerParentChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerExtensionFieldSlice.lean",
+      "sha256": "7a03343372df6a944becc3d57d232d3f7734205dffb300d0a32de7e68188c06f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-extension-payload-SchedulerExtensionFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedExtensionDigest.lean",
+      "sha256": "759d3969e580ca57a28c76c1394083154c7aeee1327b5eb52f88354271bb0ed5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-extension-payload-SchedulerSignedExtensionDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerParentChain.lean",
+      "sha256": "07eb46f0561fcaff823958c1fb5672b8a432830a3931acd6f60bb1186f694d34",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-extension-payload-AuditSchedulerParentChain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerExtensionFieldSlice.lean",
+      "sha256": "58cfef075680456c8a44d9ecf7e2d02658c752f842eac2a6bdcd8b4183c96a09",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-extension-payload-AuditSchedulerExtensionFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedExtensionDigest.lean",
+      "sha256": "c4f66777676af4feb4061f48c39038ae0bf6ddefeea7047e940d5be0f61e566c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-extension-payload-AuditSchedulerSignedExtensionDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules9guards. Native parent adjacency covers RBI/WEX; signed native RDE/WEX/PT physical digest equals preceding job with actual serialized offset and child hash length. Branch/split payloads remain.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

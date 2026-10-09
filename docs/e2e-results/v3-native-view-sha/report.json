@@ -1,0 +1,25 @@
+{
+  "lane": "native-view-sha",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeViewShaRows.lean",
+      "sha256": "8cfa258fc352af3ee39f23007ded17be1afd734522c1653bf148cbb0308c36b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-view-sha-NativeViewShaRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeViewShaRows.lean",
+      "sha256": "925514e785f6d6e237220deb74bc9416d1d3e28080d58878dbb7a2cb0e108bd5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-view-sha-AuditNativeViewShaRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual nativeExecutionViews occurrence workload bound; updated final views require exact native pre/value occurrence correspondence and NodeWf3.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

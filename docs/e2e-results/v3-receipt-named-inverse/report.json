@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-named-inverse",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedScore.lean",
+      "sha256": "82cb518fd58e95a3d482b18eeb8dc9fba25dc14d212c210c67a84b6dd9dddb0d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-RcptNamedScore.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedFrame.lean",
+      "sha256": "a79033cb55cae1bdefe2ef840603879c0fc6f9e9ebc48b688f36a70a68dac698",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-RcptNamedFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedInversePhysical.lean",
+      "sha256": "7ab66a9c5c7a5dd0e88791d67f4a483c7b0b940cd0b9ac9100e0dc270cd3db9e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-RcptNamedInversePhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedCommute.lean",
+      "sha256": "0d34df8b9942e986531c972ac3ec9384ff39c348c66c646afc8a51ac6a79acb4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-RcptNamedCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedInverseComposition.lean",
+      "sha256": "d4bc567cd94434a778acfe9031b73f2d6ccfc90a72994f5551a32629987922a4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-RcptNamedInverseComposition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedScore.lean",
+      "sha256": "bb3dd2275765c76f05d273612025ba198b34db3065155bbe91adef893c541a17",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-AuditRcptNamedScore.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedFrame.lean",
+      "sha256": "520ac7740996f331e27460bd0b1583b8ca59c63b6e5e824e5fb891f1b3a3fbe3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-AuditRcptNamedFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedInversePhysical.lean",
+      "sha256": "f8f3354e7d7bc6133ef20727c4d71a9dc315114477ea79eb8f3544000c104fac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-AuditRcptNamedInversePhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedCommute.lean",
+      "sha256": "cfed818d827fb5082e09b32d8cfaf28ba7381e589d8d2d48e09c564ce3bf2868",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-AuditRcptNamedCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedInverseComposition.lean",
+      "sha256": "1decd1883556e3dfaa0c94a21c3499c8a4399dac9edd3cbfd3448e9856de28ae",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-named-inverse-AuditRcptNamedInverseComposition.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical receipt trace named-score inverses from decoded/native inputs, preserving prior constraints. Coverage710/881, eleven character constraints and other families remain.",
+  "exact_axiom_guards": 16,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

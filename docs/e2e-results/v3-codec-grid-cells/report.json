@@ -1,0 +1,25 @@
+{
+  "lane": "codec-grid-cells",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCells.lean",
+      "sha256": "d62d95c917c737427ebfe2286bd2fc139f905b5ae2b5b203c3c9a6a522a95393",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-grid-cells-ProcPriorCodecGridCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecGridCells.lean",
+      "sha256": "05be2e95319cdc73531ea681ff0579a1d9cd92763f48ffb004f3139c16e06050",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-grid-cells-AuditProcPriorCodecGridCells.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module10guards. All19 added Codec constraints hold on computed record projection, including seven ID shifts, wrap/zero tests/transitions for0<n<=64. Original Codec record constraints and imperative array indexing remain; not full TableLocal.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

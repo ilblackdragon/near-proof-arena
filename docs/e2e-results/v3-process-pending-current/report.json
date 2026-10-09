@@ -1,0 +1,39 @@
+{
+  "lane": "process-pending-current",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPendingCurrent.lean",
+      "sha256": "7262e1dea058203af8ffd83765a015d1753235f6a5d21b02f0a3d6bfa2c91b48",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-pending-current-ProcPendingCurrent.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPendingTransition.lean",
+      "sha256": "5c590e59664a20554a776ea4ed68464afd3ea03a41e2ea1bf0f7eb0c54b7308b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-pending-current-ProcPendingTransition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPreparedLinks.lean",
+      "sha256": "92027e6ff619504168e5447c6c322ae7c7dc947e16b402c1df0eceba796899aa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-pending-current-ProcPreparedLinks.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPendingCurrent.lean",
+      "sha256": "e8c3d5224fa247553ff51c3a2d2dd30c07e2922331e33c9ec33c69ee5107192b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-pending-current-AuditProcPendingCurrent.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules11guards: actual prepared requests unique/valid links, initial pending/current binding, and native entry preservation under distinct selected link/next-increase bounds. Full loop/replay/native refinement remains open.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary accepted raw frame has five header rows, count times 24 record rows, and 32 sanity rows. Metadata preserved and full extent bounded by physical height, without supplied count or byte bounds. Incremental strict compilation and axiom audits; not global correctness.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawWithin.lean",
+      "sha256": "3283012cb416589f5783e0b5cb0eec5141f44e60caa9547101634605cfb13e24",
+      "audit": "zk-formal/test/AuditProcPriorRawWithin.lean",
+      "audit_sha256": "8f204c7f5639eccbdb2f33868211ca0c8bc097f6576bb172887742fdc42d93a0",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawRecordSequence.lean",
+      "sha256": "596b3dfad9d64ff8ce0b643737511e947c8be348edf6629e69961f9e6d69520e",
+      "audit": "zk-formal/test/AuditProcPriorRawRecordSequence.lean",
+      "audit_sha256": "baa16b25c2075ccc7ed1cb54b35a3d8d58d6dbde4c9b0f41dfab1d9ec8edecba",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHeaderStart.lean",
+      "sha256": "84af61580ed071b215f46a94de52d51be4481b99f74d1d9ee11a0d54a860c1a7",
+      "audit": "zk-formal/test/AuditProcPriorRawHeaderStart.lean",
+      "audit_sha256": "39bbcde2635085972e9c681ecacb732e4583fd730274efc4a688b5ffa44034e7",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHashStart.lean",
+      "sha256": "d99cff545492635042c9aa36801acf2814c5e5a7a84083b701b9c8441724db52",
+      "audit": "zk-formal/test/AuditProcPriorRawHashStart.lean",
+      "audit_sha256": "eb73f1032ae269ad607cb3fe07822e91213fe9301bf33a7019c79a4df32372cd",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawFrameExtent.lean",
+      "sha256": "e3eda992dab8fc93bbb1221332a10b0914d07f6130d92472f0336f3bdfc3010e",
+      "audit": "zk-formal/test/AuditProcPriorRawFrameExtent.lean",
+      "audit_sha256": "35ebf5eec657ff4abf86ecab5711aba4e2b065daae88fbf652d5e3803f09bd0e",
+      "guards": 2
+    }
+  ]
+}

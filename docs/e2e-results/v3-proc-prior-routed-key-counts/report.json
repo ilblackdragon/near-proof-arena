@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact actual KEYNIB provider inventory: only selected13 receipt and selected18 repaired queue key. Any positive actual standalone walk KEYNIB receive has a positive same-payload provider in those two real projected tables via HoldsP. No hypothetical supplier or generated inventory. Receipt symbols/key association remain. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedKeyCounts.lean",
+      "sha256": "cf2f1e4301115c7795f952d61f4d1f65d5c78fe2518df4d3551e23f35418a6db",
+      "audit": "zk-formal/test/AuditProcPriorRoutedKeyCounts.lean",
+      "audit_sha256": "0104bb523a4c4787d394acde20303b38e7748ea8a3c5d1709c908f32c78ec425",
+      "guards": 4
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-key-counts/dependency-review.json",
+      "sha256": "0eeeb3e9a3b3ee974b8b7763b8768dc206c1e471a0b7e995f666351b4d9e37be"
+    }
+  ]
+}

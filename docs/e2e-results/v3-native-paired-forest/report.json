@@ -1,0 +1,60 @@
+{
+  "lane": "native-paired-forest",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePairedForest.lean",
+      "sha256": "7e9cbc2aedac33144f809b29266077bb8c1f2d98a30a0c5a42580844e47eeaf3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-forest-NodePairedForest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePairedIds.lean",
+      "sha256": "55bff5f0261fd7383738798aad5b8b4579ed4148f09957b2d7bdd9b3a92728c1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-forest-NodePairedIds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountLengths.lean",
+      "sha256": "cc85a8d2710e094343984c50ea11e6e007f1a72c7a1607977495185f770d51b5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-forest-NativeAccountLengths.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountWriteRun.lean",
+      "sha256": "b4cf9a9160bc06b55c01f1e29fedd4f0974a03419b715681b550c3a7c67ffbdb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-forest-NativeAccountWriteRun.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeNodeWf.lean",
+      "sha256": "c8cc9a009529dd1fe868001334f1fd0928d733c5274a93e05e3b3022bcb7e08b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-forest-NativeNodeWf.log"
+    },
+    {
+      "path": "zk-formal/test/AuditPairedForest.lean",
+      "sha256": "ffe88e059cb916366f660227c292a7ccb59fec1957ccf46e4513ac28895c927e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-forest-AuditPairedForest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeNodeWf.lean",
+      "sha256": "fff89ba08809e36db86bc31b6358f6aec6452ce823d2f2b9669a4685271da293",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-forest-AuditNativeNodeWf.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Whole paired native forest preserves original pre serialization and exact compact value IDs. Successful native receipt writes preserve value lengths; native forest shallow node validity derived. Global metadata/forest NodeWf3 still open.",
+  "exact_axiom_guards": 21,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

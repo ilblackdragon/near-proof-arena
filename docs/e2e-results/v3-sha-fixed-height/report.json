@@ -1,0 +1,60 @@
+{
+  "lane": "sha-fixed-height",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaHeight/Families.lean",
+      "sha256": "d2cb591fec7cf1a456d35573b1245ffa7aae7439c774d4a88cc91aebe9cb014d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-fixed-height-Families.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaHeight/Current.lean",
+      "sha256": "047132242d5b919be3c9b4aca36aa693265fb6addbe83a0ecd2e819ff5ccbb7c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-fixed-height-Current.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaHeight/Steps.lean",
+      "sha256": "eae2e396ddbbca2e3ecc58e03167f8f4b279e0d7791e11d2a241433f6aa2e265",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-fixed-height-Steps.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaHeight/Trace.lean",
+      "sha256": "01358a0b957eb270e01c590446b097e3f138a399420ca3aab0545173337c5d4a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-fixed-height-Trace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaHeight/Traffic.lean",
+      "sha256": "2561d9b3cb1d98d405e36dc0151d3218dbccc0b61de8a303e511c701883fa508",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-fixed-height-Traffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ShaHeight/Packed.lean",
+      "sha256": "c76f678f9876b3286ffdf103c6c81c538a2716d67196c94d117382a7208bb84a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-fixed-height-Packed.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaHeight.lean",
+      "sha256": "78f6a7aaab488bf445a5a5578ca0002e37fab1dcdf623b47f9f5723e0ac5fa98",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-fixed-height-AuditShaHeight.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual512-column SHA renderer at log22, local validity and exact traffic from MsgsOk; cyclic next-row boundary and zero padding traffic checked.",
+  "exact_axiom_guards": 18,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

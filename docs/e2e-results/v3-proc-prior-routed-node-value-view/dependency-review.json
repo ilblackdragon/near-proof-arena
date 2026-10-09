@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-09",
+  "discharged": [
+    "Actual selected slot4 retains NodeV3 constraints and multiplicity bits despite SIZE tuple extension. Horizontal projection preserves original first/last selectors and height.",
+    "Actual node3_view returns NodeWf3 and exact NodeTraffic for the installed trace.",
+    "VPARENT concrete fused sends are exactly shifted Node interaction6; receives exactly shifted Value interaction2; other physical tables have no VPARENT. Pair/triple padding preserves counts.",
+    "Actual HoldsP and no public VPARENT imply same-trace VParentBal. No separate conservation hypothesis.",
+    "nodes_for_values preserves an existing same-trace Value list es; raw_views gives one combined vs/es serving every present RawFrame byte."
+  ],
+  "remaining": [
+    "The extracted vs still needs actual HEAD/PARENT/EDGE/DIGEST/UPB semantic connections to authenticated native forest roots. NodeWf3 and VPARENT alone do not identify source forest bytes or assert hash injectivity.",
+    "Native forest allocation equivalence must connect its IDs to these preserved extracted IDs; the proof does not reallocate IDs or introduce an unrelated generated Value list.",
+    "Complete RawFrame framing, length/count no-wrap, byte ranges/authenticated native decode and Record limb reconstruction remain separate."
+  ],
+  "public_hypotheses": [
+    "No public VPARENT segments for actual conservation.",
+    "No public VBYTES segments for RawFrame byte identity."
+  ],
+  "cryptographic_boundary": "Existing node/value linkage establishes exact vid/length and unique node association, not native raw-byte equality from digest fields. Any required hash authenticity/collision assumptions must remain explicit in subsequent forest/root semantics."
+}

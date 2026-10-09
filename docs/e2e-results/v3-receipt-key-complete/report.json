@@ -1,0 +1,109 @@
+{
+  "lane": "receipt-key-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyAccessBytes.lean",
+      "sha256": "7370ef0e7b8f07f8a60fef02ca8cb45c1e9ca91682ba9417339273b456a656e7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-RcptKeyAccessBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyAccessLocal.lean",
+      "sha256": "7ea1232b09f5d2df9be464822ed159ba726997f89ca91d5f383f368a445c7a7c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-RcptKeyAccessLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyAccessPhysical.lean",
+      "sha256": "76e50a81a2b1c8706ff5fc19029b6d46ce314947924dd3ad8a7a1ea38a90b234",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-RcptKeyAccessPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyComplete.lean",
+      "sha256": "b17c5224fe230d5ceb125cc7ca907a8f4fee8378902a829277e0bf4b22dbbb13",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-RcptKeyComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyCommute.lean",
+      "sha256": "f6790672405fd7911e3b5e5939a44c52bae4ff463c9c3e95ffcf2eab23273723",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-RcptKeyCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyHeaderCommute.lean",
+      "sha256": "288da12ea1d4de8c68410535a59c79f977093a2f4ffcd14a10f41f069ef2d66c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-RcptKeyHeaderCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyNativeComplete.lean",
+      "sha256": "ab95ad6feb0f1a69715eba99b6fcd9b3c04d7f3de8be34e5128eca89be8a8897",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-RcptKeyNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyAccessBytes.lean",
+      "sha256": "29495357329d8ef3d9efb7135143386a6482b8be50d7865c5d000e5148f7ea4a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-AuditRcptKeyAccessBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyAccessLocal.lean",
+      "sha256": "2bc031f502db0974e7b2d9725e6b0fbbd26c721b37f209502f1a97b8ec6bbedb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-AuditRcptKeyAccessLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyAccessPhysical.lean",
+      "sha256": "41c5a43526b2fe9cb65ee2f9cbbe55791423fdcaecc943fa693891efec2c11ef",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-AuditRcptKeyAccessPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyComplete.lean",
+      "sha256": "23fff66c85e4fdb2f73516af6e8d1d14beac657b86112760ae48bff5af6778b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-AuditRcptKeyComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyCommute.lean",
+      "sha256": "3c90b9ceb8a17ad143c19e13f51808073a04f498fc07cf793eb58742e1c0462f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-AuditRcptKeyCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyHeaderCommute.lean",
+      "sha256": "04f1dbb4ca3f1f1a92c677ea674742d5d4725b48ecd39e062bfe4f4331802475",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-AuditRcptKeyHeaderCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyNativeComplete.lean",
+      "sha256": "5b7f3b67a43aebbdaed7b5ca142961fd4d190ce1515fd92cd5b7da2d137c3c72",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-complete-AuditRcptKeyNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "All49 key equations compose with prior753 on SAME actual character/key assigned trace:802/881. Seven newly reviewed modules and23 guards. Gas40/deposit39 and IDs/absence authentication/q7bit/BND/native digest binding remain open.",
+  "exact_axiom_guards": 23,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

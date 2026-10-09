@@ -1,0 +1,25 @@
+{
+  "lane": "process-shuffle-replay",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcShuffleReplay.lean",
+      "sha256": "369670cf3bd1069dc71c3a711f0d7807b704d1f49878338a309487b754e44271",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-shuffle-replay-ProcShuffleReplay.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcShuffleReplay.lean",
+      "sha256": "a88119689e1f406e424552cf11d6272ad26b80364f0e131052bc6850ea1bcd53",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-shuffle-replay-AuditProcShuffleReplay.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3guards: exact native successful shuffle yields successful generator shuffle replay with same output and stream position. Whole model-round replay remains open.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

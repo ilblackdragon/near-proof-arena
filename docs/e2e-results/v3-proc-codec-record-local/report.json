@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual successful allowance rows satisfy retained cRec indices25-32; terminal apost equals native final allowance using derived run bound. Generic record multiplicity bridge still requires actual row phase/flag facts. Not full cRec,cKind,TableLocal or transition completeness. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAllowanceData.lean",
+      "sha256": "09033e7d15e2e548802096bfb0a205667498804654c155be29dfea0533fdd1d2",
+      "audit": "zk-formal/test/AuditProcPriorCodecAllowanceData.lean",
+      "audit_sha256": "abe2794e56bb870c8972ff198c89467a5362e81f5a8ffb0d41d1e5e3a1ac3776",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAccumulatorLocal.lean",
+      "sha256": "bb2311e7c6fe7facc738b1723419c6f396312fb7b505df657a23f99b64f9d834",
+      "audit": "zk-formal/test/AuditProcPriorCodecAccumulatorLocal.lean",
+      "audit_sha256": "336d457e794bf66613f2a49543f4777902876191b80acd358b169a30182e850a",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecTerminalValue.lean",
+      "sha256": "e04a9e09197106a96ce30b362c9575feed57121e79f5102929dab1de48536c2a",
+      "audit": "zk-formal/test/AuditProcPriorCodecTerminalValue.lean",
+      "audit_sha256": "29563357cd5a3f2650ce2970286aadc012501186ea60197d154764c9a32fa10b",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordMultiplicity.lean",
+      "sha256": "91905bb83d8390d33e4cff71d78d55d6abbcb1a7f7ed8caab6e952d48fbdc740",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordMultiplicity.lean",
+      "audit_sha256": "be12de88246a580eb28cb5c0c9217e02416ea43bf0ea94426bb4308815e2c335",
+      "guards": 2
+    }
+  ]
+}

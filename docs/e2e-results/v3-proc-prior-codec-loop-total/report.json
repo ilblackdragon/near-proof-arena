@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Full nested codec records loop total from explicit per-record allowance and forwarding conditions. All three fields and all eight bytes covered; exact imperative records-loop equality is definitional. Whole codec wrapper integration and native forwarding binding remain. Prebuilt dependencies; full certificate/judge incomplete.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecLoopTotal.lean",
+      "sha256": "77ad8a194a158a553f30377dbfb0e7efdb4b481ee059d70c678d87d9aac92903",
+      "audit": "zk-formal/test/AuditProcPriorCodecLoopTotal.lean",
+      "audit_sha256": "c4198140b98b9b0e7351c766436db883e07c0dd38d1b89ec6ce9572acdbb66a4",
+      "guards": 6
+    }
+  ]
+}

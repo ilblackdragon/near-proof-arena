@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-raw-slots",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawSlots.lean",
+      "sha256": "d98bb19f423c12d8894ff84905bb7c5788222a50d5db47bf103f31a10e0c0b5e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-slots-ProcPriorRawSlots.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawSlots.lean",
+      "sha256": "b2f9ff2e51be2354668075f977df99e59c29cf8fbb3a97a0357982ad2d825288",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-slots-AuditProcPriorRawSlots.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module11guards. Exact raw frame slots/successors for header,24Nrecord bytes,sanity including zero records/padding. No full parser claim.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

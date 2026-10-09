@@ -1,0 +1,25 @@
+{
+  "lane": "native-receipt-query-inventory",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptQueryInventory.lean",
+      "sha256": "654325dd3d139325bd6f8c93ffccced0e48d293ac9dda7f427c26fdb7b22e221",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-query-inventory-NativeReceiptQueryInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptQueryInventory.lean",
+      "sha256": "ee92603fb608300e3abaf79eb5468e899a90f58e93a615c5c53b6b5e5cd2b8ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-query-inventory-AuditNativeReceiptQueryInventory.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4guards. Actual receipt locations retain indexed receipts; interleaved account/conditional access query inventory permutes to actual accountLookupQueries++accessKeyLookupQueries. KEYNIB and FINAL inventories transported. Physical extracted consumer fields/gates remain.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

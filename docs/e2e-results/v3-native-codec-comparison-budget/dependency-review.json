@@ -1,0 +1,40 @@
+{
+  "status": "strict PASS",
+  "dependency_order": [
+    "ProcCodecComparisonCost",
+    "ProcCodecComparisonTotal",
+    "ProcNativeCodecComparisonBudget"
+  ],
+  "audit": "zk-formal/test/AuditProcCodecComparisonCost.lean",
+  "guards": 10,
+  "options": [
+    "-j1",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false"
+  ],
+  "olean_root": "/tmp/nearproof-receipt-check",
+  "overlay": "/tmp/ups-proof",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonCost.lean": "01794198a0003a35ab28b43f4c56a583a85e15ccb2e654cbc6b8c62f23fffeaf",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonTotal.lean": "16349919fe6cc09e9bcfcffea48f276831b026c66a4d1006e83e26dee59031a1",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeCodecComparisonBudget.lean": "021a8343cb6a6175d0848b631a357da373e6ad876b1449c9326d3a820d61e9c9",
+    "zk-formal/test/AuditProcCodecComparisonCost.lean": "9d46f2cf25d24d4c9624dedca77bba528fd03c484d6a14cfac91581320cd5932"
+  },
+  "proved": [
+    "Actual successful corrected Codec output.cmps.length\u22646*n\u00b2",
+    "Same NativeBlock Valid list and n\u226464 supplies\u226424576 per block and\u2264786432 across32 blocks"
+  ],
+  "remaining": [
+    "ActualRun memory-log/round comparator count and ScanDist comparator count",
+    "CmpOk byte/operand validity of all old40 requests",
+    "Actual physical old40 traffic equality and combined shared provider assembly"
+  ],
+  "unproved_target": {
+    "run_per_call": 62976,
+    "codec_per_call": 24576,
+    "dist_per_call": 4224,
+    "all_32_calls": 2936832,
+    "old_allowance": 3090136
+  },
+  "validation": "Scoped strict checks/audits with prebuilt checked dependencies; no complete global comparator admission claim."
+}

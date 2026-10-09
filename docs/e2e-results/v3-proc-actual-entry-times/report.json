@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual entry/batch timestamp maps equal translated model bucket timestamps. Strict bucket order and round boundary transport discharge each indexed timestamp comparison, including final entry. Across-round metadata transport and remaining checks remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualEntryTimes.lean",
+      "sha256": "d81d1f51d8205fca428bf7e2d3266452cd33ce9866f30444e18ef720e5056467",
+      "audit": "zk-formal/test/AuditProcActualEntryTimes.lean",
+      "audit_sha256": "dac16c6a6dbb49325df3990c6c04e10da1050e30f09f934e27408d6cbb673677",
+      "guards": 6
+    }
+  ]
+}

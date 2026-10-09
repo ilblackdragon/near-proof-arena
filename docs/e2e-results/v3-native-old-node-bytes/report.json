@@ -1,0 +1,60 @@
+{
+  "lane": "native-old-node-bytes",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeValuePayload.lean",
+      "sha256": "de6d0d799d30a531670beca849818788af9a7621fa05626ff5a1b5b6636f82d7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-node-bytes-NativeValuePayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeChildPayload.lean",
+      "sha256": "4f81d6a7876fc54dc05d1a6d5a96482b84e39820d90f58bb7fcd6f069b31af34",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-node-bytes-NativeChildPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeNodePayload.lean",
+      "sha256": "0bd1d339fd28cb3f4f3b40f2e29a95f7622744082ae5e1dbd896a8ea9fa3d519",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-node-bytes-NativeNodePayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativePayloadSegments.lean",
+      "sha256": "9b9f68229a7aa4a5e72e4c2785ad68bdb187177e4d6b6d505c07914f1c38039e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-node-bytes-NativePayloadSegments.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAllNodePayloads.lean",
+      "sha256": "ebd920c41261f59f027dd067e75aae5acf139436d82fa26691a47c8331549b9a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-node-bytes-NativeAllNodePayloads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeOldNodeBytes.lean",
+      "sha256": "74ec8c0d48cffcdb0c1e5d8df60b13d042fe630a7883f5ff8e466f7300dcda92",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-node-bytes-NativeOldNodeBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeOldNodeBytes.lean",
+      "sha256": "dc59d16a25cf4841b778b5d0a5e19bbe51a8ddcf7f7b6644f2bd2638c70fc003",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-node-bytes-AuditNativeOldNodeBytes.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules19guards: all concrete oldTreeInputs updated records equal corresponding actual oldPost preorder node encodings, all child/slot payload premises derived. One-tree scope; forest offsets and physical UPS binding remain open.",
+  "exact_axiom_guards": 19,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

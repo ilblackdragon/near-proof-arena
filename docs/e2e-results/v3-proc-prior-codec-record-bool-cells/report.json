@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Generic sparse-record bound preservation for30 retained scalar/record Boolean columns; exact post-bit projection and actual successful-step post-bit boundedness with no incoming-state premise. Extra scalar assignment bounds remain hypothesis of row helper. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordBoolCells.lean",
+      "sha256": "bcab0371d55d7b9b2906b62f44a1b5be874e278149374ac7c6803b0529a08525",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordBoolCells.lean",
+      "audit_sha256": "27dc6798c8e08da5c5b70323cf10ba20ad9036c43b4e00197eb3b0ac92b489d7",
+      "guards": 5
+    }
+  ]
+}

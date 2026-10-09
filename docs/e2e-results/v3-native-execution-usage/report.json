@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Accepted actual D0a B<=2M execution supplies initialized forest and duplicate-chain metadata; exact provider count assignment preserves generated node/value/SIZE TableLocal and receiver traffic. Seven-trace SIZE conservation on same forest/count-assigned records/actual source dictionary/canonical public input. Request lengths<P explicit; complete requests/windows inventory and physical global placement open. Prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeExecutionUsage.lean",
+      "sha256": "99c17a2d7f0bb7bdaa5e296a8c1d681d5cc44ee11e8301d0955ac21358c8a869",
+      "audit": "zk-formal/test/AuditNativeExecutionUsage.lean",
+      "audit_sha256": "9241d5cb3c1a903a716052f7212935bebf68ed6dc36f922814d2d293bf0fb421",
+      "guards": 4
+    }
+  ]
+}

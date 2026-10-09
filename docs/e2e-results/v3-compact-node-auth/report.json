@@ -1,0 +1,36 @@
+{
+  "lane": "compact-node-auth",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/NodeSha.lean",
+      "sha256": "d6dd4cb246300d8cfe3f88693a5025b603f865d98a9ca08cfb3d2697ba175b1b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-node-auth-NodeSha.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/RootSha.lean",
+      "sha256": "327d9676c4abeb150ab9c6bca3780ab48cf52944010981ce66eb81a6a9e93317",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-node-auth-RootSha.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/MemoryBus.lean",
+      "sha256": "4ada9cf3a93666e993d1fa9a2d7bcfe0e1fa6ad7c2a9936778648e9fb902b857",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-node-auth-MemoryBus.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactNodeAuth.lean",
+      "sha256": "4f365b5f8d673e6633df06667782f1cdb7d554bf8ed772321eaa9a10fc9c8f69",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-node-auth-AuditCompactNodeAuth.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Three compact node/root SHA and MEMD modules, 14 exact guards independently checked against HPL artifacts. Global SHA inventory/balance, ID bounds and memory permutation remain explicit; downstream typed-node semantics incomplete."
+}

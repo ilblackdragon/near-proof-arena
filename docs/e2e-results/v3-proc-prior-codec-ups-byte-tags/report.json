@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual corrected Codec live BYTES sends authenticate tau through public SPAR/prep and retain tags11/12 with no field wrap. Actual compact UPS same-view sends retain tag12 from RootChain tau<33 and physical parts<=2^22, without CompactIdBound or512-part allocation promise. All are disjoint from Node/Value tags7/8/9. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedCodecByteTag.lean",
+      "sha256": "cbfd01b6ae350b33691df3b8a25eda9abeaa7eef53dcd089860415617bb76b3b",
+      "audit": "zk-formal/test/AuditProcPriorRoutedCodecByteTag.lean",
+      "audit_sha256": "81d5aa028fd192c2cef163f4016e6b0f020d6e791bcbf58b4165a54cbc183fce",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCompactUpsByteTag.lean",
+      "sha256": "09fee5720704211027caae335ac8d25e58e32c5620f0e96672243dfb0e131704",
+      "audit": "zk-formal/test/AuditProcPriorCompactUpsByteTag.lean",
+      "audit_sha256": "1644704d44088bae2aa949e6d51048a179f06abb745d96703fe0f7ec9da985c8",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-codec-ups-byte-tags/dependency-review.json",
+      "sha256": "6887a86d1dd0568f873880688f6d0bc2c2821a589233c5177b1902257b0fad06"
+    }
+  ]
+}

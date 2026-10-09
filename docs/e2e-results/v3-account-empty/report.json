@@ -1,0 +1,39 @@
+{
+  "lane": "account-empty",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AccountEmpty.lean",
+      "sha256": "d9dcb10fdca2abe233bd02fc3743e5fb53e24a39051952b516cf076aa7f0a795",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-empty-AccountEmpty.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AccountEmptySound.lean",
+      "sha256": "4db845c404d2e5bbbd74425d7d0b410815e6331af5b06ec95ab425ee21bfea27",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-empty-AccountEmptySound.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AccountEmptyTraffic.lean",
+      "sha256": "dc84ff848f1dc573d91a5f2ff612b7b84e418be5709ccc42f43b1a01a9ff558b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-empty-AccountEmptyTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAccountEmpty.lean",
+      "sha256": "60a338a832ab1c21b47dcd8ecb6f4f34e9df4fd7340ac47c46e3aa174057b733",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-empty-AuditAccountEmpty.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Empty account trace coverage, preserved nonempty soundness and exact empty traffic.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

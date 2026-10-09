@@ -1,0 +1,39 @@
+{
+  "lane": "native-joint-query-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayHeadKeys.lean",
+      "sha256": "a60bd5051606d2ce7214f221926f8a20bd5044504e20107006e90c3d98bf3085",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-joint-query-coverage-NativeReplayHeadKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedQueryCoverage.lean",
+      "sha256": "eec2c86f7d2be4bbbd8a08bf3db0e427ad350d5339e315345a9385fe2db2aba9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-joint-query-coverage-NativeRebasedQueryCoverage.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeExecutionJointCoverage.lean",
+      "sha256": "3ebd6f9de7f9ae7b1f4c5ffbcee188ce62c3e30d2ba2d9c0e6fe054becb199fc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-joint-query-coverage-NativeExecutionJointCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRebasedQueryCoverage.lean",
+      "sha256": "95a659019d52b795fdcbdb8358692fab7ee7158d967c9c096a5dc5ca0f33e60e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-joint-query-coverage-AuditNativeRebasedQueryCoverage.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules5 guards. HEAD transfer and actual original-query/rebased-UPS coverage on original providers, same indexed instance/replay hypotheses.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

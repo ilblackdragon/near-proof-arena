@@ -1,0 +1,32 @@
+{
+  "lane": "native-account-memory",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountMemoryVersion.lean",
+      "sha256": "a0c4f9c90d96ea58cc4dfa132c4bed4d63ce36155bdf071281ab7bc0af5b195c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-NativeAccountMemoryVersion.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountLastWrite.lean",
+      "sha256": "1ff1d6a99a3a5be1c3c2b762913415cb7e3792ff090162dd8ae6b4ff393df834",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-NativeAccountLastWrite.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountMemoryVersion.lean",
+      "sha256": "62c73117f17246847f09c3dca478e19bf3a124de1d7bedd1d6bcebb74ecb0b10",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-AuditNativeAccountMemoryVersion.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules7guards. Account-key encoding injectivity, prior receipt version matches closing key version, actual AccountWriteRun final read matches last write and closing AcctV version. Aggregate physical memory-lane conservation remains.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

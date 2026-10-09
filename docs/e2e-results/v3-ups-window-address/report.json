@@ -1,0 +1,46 @@
+{
+  "lane": "ups-window-address",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowSourceRoom.lean",
+      "sha256": "af8c0429d3e8feac5ecd2a20c9396cc9cd32cc9e70a50b95052b456519e78aa6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-address-UpsWindowSourceRoom.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowExtraBounds.lean",
+      "sha256": "2e9bdea4b382bb437d064ca9390a4d74d7dba6f742c7896fded3ba8e2b31e6f7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-address-UpsWindowExtraBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderSourceRoom.lean",
+      "sha256": "340a0fb2843addb4e131a9bf9f3872f798c5d932b1aca34da2dfe1189c4405c8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-address-NativeReaderSourceRoom.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowReadBounds.lean",
+      "sha256": "27fe303ff9e95826707a77aedd9a3a9f22224a4812e7ed1e1112f2c836db48c5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-address-UpsWindowReadBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsWindowAddress.lean",
+      "sha256": "0880d260e269e932792364631b8baf1d4eb423d3d1af0af582c11cd428e355aa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-address-AuditUpsWindowAddress.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules7 exact guards. All copied/extra rd addresses nonnegative, within actual native source serialization; nonfresh requirement derived. Conditional source-layout premise matches actual ByteInput.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

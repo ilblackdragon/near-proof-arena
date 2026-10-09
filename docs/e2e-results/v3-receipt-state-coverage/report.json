@@ -1,0 +1,123 @@
+{
+  "lane": "receipt-state-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityRows.lean",
+      "sha256": "d01ae3e1f3ea8836cea4e0ec9111a004e67cb196ea1e06b029e7c608eb0579a0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptEntityRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityInterior.lean",
+      "sha256": "9d26b5ea7c5d7763edb313cdd4d4532b01c2cbeb5aba590be03897a343017fff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptEntityInterior.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityCells.lean",
+      "sha256": "d6bfe90c832e0f9738c2f16a09b99b27cac58a15e91461b31e9a3c3366b35834",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptEntityCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityFlags.lean",
+      "sha256": "16921c670e5830da4cad4fab78b7cf1bdb0d5cf50e783c139e73a238b69b44d5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptEntityFlags.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityBoundaryLocal.lean",
+      "sha256": "bb75a5d7a61ff3b9f14acc25607dce4c70facec0504e869e07c11ec53410f27e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptEntityBoundaryLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityOtherLocal.lean",
+      "sha256": "730cfea4c54607f5b26c055a8d476b3a9857ba5139fcb7c7012c6f66e164a035",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptEntityOtherLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityPhysical.lean",
+      "sha256": "b0f3f8ca713c99e2661275c4f0740e13dd28ee2b4bc7bd3b01a2c0e2c238865f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptEntityPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateCoverage.lean",
+      "sha256": "db7239993ce834a49f2a7ec14f3cf95c49186cd1fbec04a21fc3e9805945515d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-RcptStateCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityRows.lean",
+      "sha256": "117241812c8f40b737db870b05e98e520021af1e9bef7334e0759277a93f4a74",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptEntityRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityInterior.lean",
+      "sha256": "cddb56e8642cbacfd5aac79ef394ee076d4dbad30d59cceb4f742ec544afa4ca",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptEntityInterior.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityCells.lean",
+      "sha256": "daa0f6290fa0470c098994010d04f5068f821f625356ffa64613ba531d001751",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptEntityCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityFlags.lean",
+      "sha256": "7bb890f04357ca60cce18f9298673750e5af1a5c0c12d4ccbcbc47f40b4e11eb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptEntityFlags.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityBoundaryLocal.lean",
+      "sha256": "108f999731e6cdd293a52b39d89efdc48f484e7a77381ea3b5246a8addafb14b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptEntityBoundaryLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityOtherLocal.lean",
+      "sha256": "4212ca147defcf73a12d7536a9317ae6b3f3b3f06f58793d43173ca058f6b061",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptEntityOtherLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityPhysical.lean",
+      "sha256": "3705897348b0d6f549994eb27ac03625846918b2221036760f601cf6d137d26c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptEntityPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateCoverage.lean",
+      "sha256": "2f3edf9e764d3c67f7060d29682c2ed0b2194d1b559aa0cc7ac70f60d2f15ff6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-coverage-AuditRcptStateCoverage.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same native log22 receipt trace636/881 constraints: all247 state constraints except refundSurplus. Full native semantic families remain open.",
+  "exact_axiom_guards": 33,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

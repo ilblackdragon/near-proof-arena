@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Same accepted PriorCore witness supplies valid corrected Codec comparisons and exact actual selected8 physical request counts; no supplied CmpOk or traffic premise. Run/Dist and full shared provider remain separate. Strict incremental audit using prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorCodecComparisons.lean",
+      "sha256": "3005517aa451d91a5a8518dcc5eb654bfd4f0c13839910098bf59cc998b9a7dc",
+      "audit": "zk-formal/test/AuditSchedulerPriorCodecComparisons.lean",
+      "audit_sha256": "2de1b90a94bccef65ffe6b577dd688bd84a1b1f5b77ed21356a81229be01d82e",
+      "guards": 3
+    }
+  ]
+}

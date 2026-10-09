@@ -1,0 +1,25 @@
+{
+  "lane": "ups-window-copy-bounds",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowCopyBounds.lean",
+      "sha256": "cfc106bdede86176cc22cbbf5735560466d4e2ed9f3207fcd3cd45b72ec474e6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-copy-bounds-UpsWindowCopyBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsWindowCopyBounds.lean",
+      "sha256": "bf6d01a0203a652f028a0063913771f3eb044de00b44a1ea1f3240f476220d1c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-copy-bounds-AuditUpsWindowCopyBounds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3 exact guards. Actual CopyFields/FieldsOk yields copied read non-NLF, nonnegative signed source address and address within actual pre-byte length. Full read gate excludes fresh bytes; extra-read address cases remain.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

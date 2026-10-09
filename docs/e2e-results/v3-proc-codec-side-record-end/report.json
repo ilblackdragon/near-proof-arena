@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire cRec group holds on actual header/hash/ash rows with arbitrary successor. Four terminal record equations follow actual execution/native parameters: bF, allowance debit, grant debit, exact final allowance. Saturation and remaining record/side-kind groups remain. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideRecord.lean",
+      "sha256": "20cd575a4ba20832d19a987248984d1edc8a2380df3ea60960461f4a55193b4f",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideRecord.lean",
+      "audit_sha256": "2ba368af77ea7b882c451cda51eaca81544838ccaa06a9fae1d73ad3c49739de",
+      "guards": 8
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecEndArithmetic.lean",
+      "sha256": "16cc3150a93e046364c77a7fdf3c23d7fc44300bcafad814bbfda633c0618aab",
+      "audit": "zk-formal/test/AuditProcPriorCodecEndArithmetic.lean",
+      "audit_sha256": "6a7f0f8ce4583e2a8d06a65a94eec010db717c6dd573c8270ee54e5cb5a46dcf",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecEndRows.lean",
+      "sha256": "885810341e8d6a89ca0998afed8835411431c5bb4766a9aa3085390be10b4ff1",
+      "audit": "zk-formal/test/AuditProcPriorCodecEndRows.lean",
+      "audit_sha256": "2952593d5fc354f8472b2855385f97156bab9d5c7904afbb5e4cf05eac76d29c",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecEndLocal.lean",
+      "sha256": "b29df1fb59cfe7319ded12243149f268d73306c74f9a44f13e5bdb4c778ead84",
+      "audit": "zk-formal/test/AuditProcPriorCodecEndLocal.lean",
+      "audit_sha256": "0923dcd03e6c5da82ede7373475a81da56e6a0fb8a37602f678b4cfee000d2a8",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "lane": "process-batch-success",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcLiveLinks.lean",
+      "sha256": "4661742f4ac64487dbf0028d681e938afb7452144c38cf9a0d202e6f5ce6aec2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-batch-success-ProcLiveLinks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBatchSuccess.lean",
+      "sha256": "b5a5cea070238fe90695055bfd1dc56abf7b917c9986d5a10d8496a36c5721ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-batch-success-ProcBatchSuccess.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcInitialLinks.lean",
+      "sha256": "39032dbf1539ae19ad460542b1ecb275ee7c3df38d67f222e4627d937fbb2f40",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-batch-success-ProcInitialLinks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPoppedSuccess.lean",
+      "sha256": "07c9c428be17bf433448a978e9ba619da0d2e91795fd23d3d6ed26d701bda0e8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-batch-success-ProcPoppedSuccess.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPreparedRequestGood.lean",
+      "sha256": "ac5b94095b2863dd4ac2df85d17e734c7645035fbd0354663ff577859286eb80",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-batch-success-ProcPreparedRequestGood.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcBatchSuccess.lean",
+      "sha256": "f449b5ff0e7dd8415c8cb1ec311818c41d03d95ca3d0cecf16d4154a6989c891",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-batch-success-AuditProcBatchSuccess.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules12 guards. From native successful shuffle, selected complete model bucket constructively succeeds and preserves current-allowance/link uniqueness. Initial invariants and positive bounded increases derive from prepared requests/A8/PV86. Outer ordinal/order and full native model existence remain.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

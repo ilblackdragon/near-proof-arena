@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Empty/raw/absent queue-mode linkage modules; five exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/EmptyProvider.lean",
+      "sha256": "6d1ab8763aa588e046597e0586c0aa77a4f46f850f5b08c28541893e33c7ca8f",
+      "audit": "zk-formal/test/AuditQvEmptyProvider.lean",
+      "audit_sha256": "2c533bc943084eb61d4e951d9dc59f838c43af4fb307ef115cb68672f958feec",
+      "guards": 1,
+      "log": "/tmp/nearproof-EmptyProvider-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/PhysicalEmptyRead.lean",
+      "sha256": "70691b55dff7ad09c1a37642013c23fb7b1e97cc81a00a067ee8f18a684d9868",
+      "audit": "zk-formal/test/AuditQvPhysicalEmptyRead.lean",
+      "audit_sha256": "93523014d60f5e638597b09f86adf57ef703a962b628c393ce2b4d339ab6c6eb",
+      "guards": 1,
+      "log": "/tmp/nearproof-PhysicalEmptyRead-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeReadModes.lean",
+      "sha256": "a297d174aafbda9f8d25fd2999e32becb32dc7702e30a13c90bdcf36144f1162",
+      "audit": "zk-formal/test/AuditQvNativeReadModes.lean",
+      "audit_sha256": "7e79b5c9e70bce85f3a89f3b6083889370e9c23b535e724fbb454e40bc7b9be5",
+      "guards": 2,
+      "log": "/tmp/nearproof-NativeReadModes-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/AbsentBufferedRead.lean",
+      "sha256": "3bb040a18d98576d25d800c0dd9c4634d944068daec2f357b62c29360acd13cd",
+      "audit": "zk-formal/test/AuditQvAbsentBufferedRead.lean",
+      "audit_sha256": "8f544f8bb3acf85468f304ef946b8a14921edba8d760dd59ecfa0e1469859ad5",
+      "guards": 1,
+      "log": "/tmp/nearproof-AbsentBufferedRead-audit-checked.log"
+    }
+  ]
+}

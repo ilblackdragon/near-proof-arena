@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Every declared actual raw-frame record has an actual amount/top record row with SAME instance and original ordinal, via final-byte23 coverage. Found flags/exact native shard index semantics and resulting complete write inventory remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordLastByte.lean",
+      "sha256": "8d6ecd7e17da09044240b5582844ebc38615ef2a1b5a05341797773c8c01bfdd",
+      "audit": "zk-formal/test/AuditProcPriorRecordLastByte.lean",
+      "audit_sha256": "90d32eb3f5b3c768cd7eb83dfa91cc6d3797d3f90881f4a79158a8cab52fcbdf",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordCoverage.lean",
+      "sha256": "eeb390fecc995afe6ad7ae287eec63e592f1fd3c99cdc9713a9609b883cb20e5",
+      "audit": "zk-formal/test/AuditProcessRepairRecordCoverage.lean",
+      "audit_sha256": "0930c292bdd842b5d90cd23a334b2e293a307c99dc5f2cf94de7ef106681aaa8",
+      "guards": 4
+    }
+  ]
+}

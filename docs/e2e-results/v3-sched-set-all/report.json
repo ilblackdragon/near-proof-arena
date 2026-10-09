@@ -1,0 +1,25 @@
+{
+  "lane": "sched-set-all",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SchedSetAll.lean",
+      "sha256": "f8b13f25aee8a39ba17b85df0aac92bbf2a69643cfe89de3beb18d8e122ceade",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sched-set-all-SchedSetAll.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedSetAll.lean",
+      "sha256": "b8935e776344aa97d6ffe7d721b61b0d6c2f034037a2423c1052437f3418ee41",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sched-set-all-AuditSchedSetAll.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module7guards. Imperative setAll width and final cell assignment semantics including duplicate writes. Concrete Codec array linkage remains.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

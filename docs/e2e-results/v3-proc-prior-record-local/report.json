@@ -1,0 +1,109 @@
+{
+  "lane": "proc-prior-record-local",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordLimbs.lean",
+      "sha256": "7fe10a716e6128cb22f34e1fb1d44ec4f5a7f137b1ef95ad1ad5760466aeaf02",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordLimbs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordCells.lean",
+      "sha256": "1d19ec0650937ec73872e772cd9910b301a9589feef80888d85777330576ab2d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordInner.lean",
+      "sha256": "9c92cec104644bed9ec50846d65ac5f7ffb912c82744fb866d29ddebe17f149e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordInner.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordWordEnd.lean",
+      "sha256": "e2cb2a6467f2945ad0cdd3fa989c38b7b6eadb2ece865dd7bb158f6f28caa5ac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordWordEnd.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordEnd.lean",
+      "sha256": "677b6fa8357aa265f12d0d32f37de218cec5809eff7ea177c82728a23a4bd15f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordEnd.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordNext.lean",
+      "sha256": "225fa4760949b1bda511fe67fe97a344d2266ebffa90725c78c53fde755c8bc5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordNext.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordHeader.lean",
+      "sha256": "de6763ae87a1e1964cf4ad7bbf7cce3ae55061e222964133e3fcf1ecae3ca042",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordHeader.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordEmpty.lean",
+      "sha256": "97d8499bee006253a52afa194dbb3fd67a78ab72c44c3796d2df665d356a4cfe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordEmpty.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordPadding.lean",
+      "sha256": "cdeca5f651b025b64cbbfa5bac6edc0cb9ef1dec8fa81e6e26add544f82dd1d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordPadding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordTrace.lean",
+      "sha256": "1190fc90a60349bf066a50e0c5a709a84b18dfb47de3e3a3d80c6cf4c9b2a173",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordConstraints.lean",
+      "sha256": "081ca0b487f7ca54c296f164c9398b891b864b6db9e6200167ac427a15d3fab9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordConstraints.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordBits.lean",
+      "sha256": "cd8e4fe6d5ae0c6c3d6f14d0b8fe46cb652c20c0afb2791b971935f88d8b4ad6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordLocal.lean",
+      "sha256": "032fbcfe798464f38b7b87ae0feffb2dd4e37bcb041f29fb163ef8245c51c80e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-ProcPriorRecordLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRecordLocal.lean",
+      "sha256": "22f047b9f33f7c45cb30a7a9dd51752f3a53829d5b3eb208ca497dfda203f1ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-record-local-AuditProcPriorRecordLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Thirteen modules31guards. Honest RecordLinear TableLocal: all58 constraints and eight interaction multiplicities, header/9rows per actual original record/padding/wrap; accepted source byte bound supplies row cap. Duplicate/unmatched IDs retained. Single tau0 block; multi-instance assembly and authenticated joins remain.",
+  "exact_axiom_guards": 31,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

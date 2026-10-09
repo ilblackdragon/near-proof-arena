@@ -1,0 +1,32 @@
+{
+  "lane": "native-receipt-mem-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemTraffic.lean",
+      "sha256": "af9a65625e8fab69a62db39e83cf6eb7bfc864799a8b4e0db71e231ec797670a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-physical-NativeReceiptMemTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemBalance.lean",
+      "sha256": "19bfd2345bc5787d6de5d72c3e7bbdf4a7372ca97d9dd74a91ef5c2d5dea91e5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-physical-NativeReceiptMemBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptMemPhysical.lean",
+      "sha256": "d82c8bb321cdd044990f2179cb10730edc187835ce6a2a86c11c339bda3a4227",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-physical-AuditNativeReceiptMemPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules3guards. Full physical receipt/account MEM conservation from SAME repaired receipt trace and native ledger. Canonical ListChain correspondence and occurrence order derived, actual account TableTraffic interface retained. Composition into strongest allocation is the next step.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

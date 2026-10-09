@@ -1,0 +1,74 @@
+{
+  "lane": "process-native-budget",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConvertedFacts.lean",
+      "sha256": "f8363cb024dd1fe39c732043f04a149784eef7130e2c193a1112c785cf2030bb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-ProcConvertedFacts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSenderPotential.lean",
+      "sha256": "fa244f76edd5d7049ad127c81d263fa450faffa1832cf3893232c908a647dbf9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-ProcSenderPotential.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ExceptArrayCount.lean",
+      "sha256": "8ea6510a63718cfe0c491230db84f30c78bf223dfce56422f4ce40e8eddce7e4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-ExceptArrayCount.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSpendBudget.lean",
+      "sha256": "b3a8bce3bd0967eb9842cb133a907ca194772163929372fbbf4e172fd1ebec3a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-ProcSpendBudget.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeBudget.lean",
+      "sha256": "71cb54ae6d8698f8e7f30fd38984069d44dd27e11c44da8ee5e5404475e6a937",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-ProcNativeBudget.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRequestCount.lean",
+      "sha256": "2f4305ac0f409347bb9a97c9525b1f5549de876498f854db17109fdadc576680",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-ProcRequestCount.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeSequence.lean",
+      "sha256": "92f6937669a02fd8b9fffb6ead6108272ad332345b88b78ce32ff64b8baaf02a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-ProcNativeSequence.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeBudget.lean",
+      "sha256": "1b4bf29f0ff79295714bbcc760a73d45257ec7d393d30c1072ffaca2882deb6e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-AuditProcNativeBudget.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeSequence.lean",
+      "sha256": "73f47ff2e89331cf90882161aae8af8acfb1f4c912f2d7bdfa7dba7bc16d8d9a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-budget-AuditProcNativeSequence.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules29 exact guards: actual native replay spending bounds and log22 row capacity; successful enumerated runInputs gives contiguous ordinals and candidate process TableLocal. Actual accepted input assembly and run success remain open.",
+  "exact_axiom_guards": 29,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

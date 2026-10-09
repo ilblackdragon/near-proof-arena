@@ -1,0 +1,25 @@
+{
+  "lane": "process-previous-state-regression",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPreviousStateRegression.lean",
+      "sha256": "5e5d5bea7e3335c94ab7eb80fdb72ab55cfc37d3b28a0aabf90ad32a93e39bca",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-previous-state-regression-ProcPreviousStateRegression.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPreviousStateRegression.lean",
+      "sha256": "7b256b26c1a188bf1b5cfae743adb247ac6b61f4c0afad8885f1aef543356585",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-previous-state-regression-AuditProcPreviousStateRegression.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module12 guards. Kernel fixture accepted by actual Scheduler.run distinguishes native ID-based prior allowance fold from positional a0Src. Not a full checkD0a witness. Model repair is required; no accepted-domain narrowing.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

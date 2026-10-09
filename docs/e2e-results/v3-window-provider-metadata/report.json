@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Original native mapped provider coverage transfers through duplicate-chain metadata and use assignment to FINAL actual node providers. Canonicality derived from final NodeWf3/post bytes yields exact natural membership. No separate base-node wellformedness premise. Strict checks with prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/WindowProviderMetadata.lean",
+      "sha256": "fdbceb28af4b13937bad0baee892736113cd2165b976f98e2cc5f763d928c8c5",
+      "audit": "zk-formal/test/AuditWindowProviderMetadata.lean",
+      "audit_sha256": "b4575d18af188e9249102bd5f5715b7e8c68c8f4de7a367290cde414e7051db5",
+      "guards": 3
+    }
+  ]
+}

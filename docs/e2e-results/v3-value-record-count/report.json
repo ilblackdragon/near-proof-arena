@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Honest value SIZE count column at the SUM row equals exact nonduplicate record count, including empty values. Natural canonical equality follows from physical row bound; native forest validity remains separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ValueRecordCount.lean",
+      "sha256": "0ddf0c98f105283a41f627c382f7e97895aef194995e2eee80d1c04c057e00bd",
+      "audit": "zk-formal/test/AuditValueRecordCount.lean",
+      "audit_sha256": "79a385b88db0b9bb449a06cfe43bb974a45f1b057f79eea661077e7db64f9b7f",
+      "guards": 5
+    }
+  ]
+}

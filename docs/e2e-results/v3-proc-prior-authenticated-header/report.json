@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual present raw header count equals three little-endian bytes of SAME extracted Value. Final theorem derives byte ranges from installed SHA/BYTES/VPARENT traffic via ValueRange, with no supplied byte/count bound. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedHeaderDecode.lean",
+      "sha256": "1d925eaee46e507b93ab114d3141232e652ba1929583a8f51d5671d450b4f61f",
+      "audit": "zk-formal/test/AuditProcPriorRoutedHeaderDecode.lean",
+      "audit_sha256": "ba8011c10cf48a599198d161029f9b23a8374b986e993f4efee9fd47e1f7f357",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedAuthenticatedHeader.lean",
+      "sha256": "8545ef5588870cd7543d05d772cc9109f8a5e06faaca4c1458cb6afc33dc7428",
+      "audit": "zk-formal/test/AuditProcPriorRoutedAuthenticatedHeader.lean",
+      "audit_sha256": "d8206fa700e8502970acdcb980a5246dfb5ed9fd4e46a8f21acb495fb6296886",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "lane": "native-receipt-mem-ledger",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemLedger.lean",
+      "sha256": "c4daf192c25bec9cccad31dc6bd488a356c843b91118af65995374331011c19d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-ledger-NativeReceiptMemLedger.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemOrder.lean",
+      "sha256": "574667a8b2743639219c3c30c5669ea6e3bd835858932790d063b82492f87cec",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-ledger-NativeReceiptMemOrder.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemBounds.lean",
+      "sha256": "d3f00f26f3d31996a921be8adf7d78134ab8c29a23a66218a7cc208d32a500b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-ledger-NativeReceiptMemBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptMemLedger.lean",
+      "sha256": "8c3b969243cbc79d334b008772c58fa6cc28c62f1812d3e3e03b369f00898ebe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-ledger-AuditNativeReceiptMemLedger.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptMemOrder.lean",
+      "sha256": "c83d2e1a0fe37216e703c92d8dccfaa1bbd6acb1440c03c60bc968b68ae3bf7c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-ledger-AuditNativeReceiptMemOrder.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptMemBounds.lean",
+      "sha256": "99ff36614863ca23d73df7e9be47d91246b6bafbf74cb95d85e8edddede9c410",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-ledger-AuditNativeReceiptMemBounds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules4guards. Actual per-block physical MEM packets equal SAME ledger lanes. Physical receipt locations preserve native occurrence order; original account slot/timestamps bounded from native accepted execution. Full canonical ListChain MEM aggregation remains.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

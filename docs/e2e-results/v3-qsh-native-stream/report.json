@@ -1,0 +1,79 @@
+{
+  "status": "PASS_SCOPED_QSH_CHECKS",
+  "date_utc": "2026-10-08T00:16:21.061602+00:00",
+  "lean": "4.34.1",
+  "options": [
+    "-j2",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false"
+  ],
+  "memory_limit_bytes": 17179869184,
+  "cpu_affinity": "8-15,24-31",
+  "module_count": 5,
+  "exact_axiom_guard_count": 19,
+  "allowed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "scope": "Actual TableLocal/IsSeg parser rows to exact native BufferedValue shard stream, given full native byte identification. Other parser modes are silent. Not a whole AIR or certificate check.",
+  "dependencies": "Read-only AIR artifacts plus checked main modules in previous v3-buffered-native-checkpoint. Scratch overlay /tmp/nearproof-root-lib.",
+  "git_state": "Uncommitted main workspace; .git read-only. Last pushed main20ff8369/AIR46cea66c unchanged.",
+  "checks": [
+    {
+      "module": "zk-formal/ZkFormal/NearV3/Qv/Extract/ShardRows.lean",
+      "module_sha256": "1b90c08e756a3687ada002f293a8315858207549666f5beb02074e22661f9273",
+      "audit": "zk-formal/test/AuditQvShardRows.lean",
+      "audit_sha256": "c1b09728fd78584c21f8611379b5abf86da801b5a564ef0f3e015acb99db42a5",
+      "exact_axiom_guards": 7,
+      "build_log": "/tmp/nearproof-shard-rows-check.log",
+      "audit_log": "/tmp/nearproof-ShardRows-audit-checked.log",
+      "status": "PASS"
+    },
+    {
+      "module": "zk-formal/ZkFormal/NearV3/Qv/Extract/ShardRecord.lean",
+      "module_sha256": "015a131e0585f5f44dff6bbf7b45edfc88417049526b61a416f542882342021b",
+      "audit": "zk-formal/test/AuditQvShardRecord.lean",
+      "audit_sha256": "fc2db065fe1d6ec942ff04671ac20a49b7e2fd82d60c51d714f7a9aa78d2d444",
+      "exact_axiom_guards": 6,
+      "build_log": "/tmp/nearproof-shard-record-check.log",
+      "audit_log": "/tmp/nearproof-ShardRecord-audit-checked.log",
+      "status": "PASS"
+    },
+    {
+      "module": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeShardBytes.lean",
+      "module_sha256": "87138ce8036c90e8376d950946a4988402885fb9d4f523ddb3da2541269c63f7",
+      "audit": "zk-formal/test/AuditQvNativeShardBytes.lean",
+      "audit_sha256": "7bfc7a69372c6aa3b24964f30c1ae5f8dcfb4d4ce6e275278a4e590c3fe8e039",
+      "exact_axiom_guards": 2,
+      "build_log": "/tmp/nearproof-native-shard-bytes-check.log",
+      "audit_log": "/tmp/nearproof-NativeShardBytes-audit-checked.log",
+      "status": "PASS"
+    },
+    {
+      "module": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeShardStream.lean",
+      "module_sha256": "8f7a6e7c2171cf4cf1ec6648ecb047ea25c24b96894ec4c84daae702a796fe95",
+      "audit": "zk-formal/test/AuditQvNativeShardStream.lean",
+      "audit_sha256": "4e0294e2c40eae0c9cd65e3de7d98341514cfe041d96cd9547d063296592e49b",
+      "exact_axiom_guards": 1,
+      "build_log": "/tmp/nearproof-native-shard-stream-check.log",
+      "audit_log": "/tmp/nearproof-NativeShardStream-audit-checked.log",
+      "status": "PASS"
+    },
+    {
+      "module": "zk-formal/ZkFormal/NearV3/Qv/Extract/ShardSilentModes.lean",
+      "module_sha256": "f71e5fc5cd17eab8a7be7945c38b0e08fa6f42b7794e5b06f9c1c55df6bf16f9",
+      "audit": "zk-formal/test/AuditQvShardSilentModes.lean",
+      "audit_sha256": "bd18185659db71b8889d23db23eee11b325ac3d96d5fad9c35dc3e09b132198c",
+      "exact_axiom_guards": 3,
+      "build_log": "/tmp/nearproof-shard-silent-modes-check.log",
+      "audit_log": "/tmp/nearproof-ShardSilentModes-audit-checked.log",
+      "status": "PASS"
+    }
+  ],
+  "remaining": [
+    "Value byte witness and SHA-derived byte bounds",
+    "Whole parser/walk QSH aggregation and global cancellation",
+    "Global Good/certificate/prover/judge"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "lane": "native-node-usage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodeUsage.lean",
+      "sha256": "dadfe563b72623d1361688e3e3564258923f9e69270087ea5f26525de717c3ba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-usage-NodeUsage.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodeUsageList.lean",
+      "sha256": "b37b96ddb646659263e28adbbedef46d42e1b22708dfae2ccb4d51c417eb3537",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-usage-NodeUsageList.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodeUsageTraffic.lean",
+      "sha256": "e9600719028d5709866f6be1d93d821b4e29a49023ffb414c8d71ac99b0a9152",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-usage-NodeUsageTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodeUsage.lean",
+      "sha256": "92b48bac7e7e2063bb0e5079293242ef4e98a62761848a1646f1050086e5773d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-usage-AuditNodeUsage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodeUsageList.lean",
+      "sha256": "2ee07cb7247140a064c5e2d08cbe5032ac3e734297cb80bf425258e366f06d00",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-node-usage-AuditNodeUsageList.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Concrete EDGE/BMAP/UPB request-count assignment, whole-list NodeWf3 preservation and exact terminal provider traffic. Request-list lengths<P, actual inventory coverage and counter ranks remain explicit.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Repaired View authenticates exact native decoded record and sanity bytes without old-family Holds. Native link field offsets identify sender, receiver and allowance digits. Arbitrary raw-row origin and record-table association remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairDecodedRecords.lean",
+      "sha256": "cfa680146bcdcf446546ee45a2e73bde1b5e98900637ee9ab2a7d086b6c1ab6c",
+      "audit": "zk-formal/test/AuditProcessRepairDecodedRecords.lean",
+      "audit_sha256": "e52b582d3875530c8ed4d380293ce0b23469f8024de5c4827ffb13c1272ef3b5",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeRecords.lean",
+      "sha256": "52f8fbbefb40796eff5656f9eddaad6ae993bf2a9c110c5b29b8ed9e6e26b9c5",
+      "audit": "zk-formal/test/AuditProcessRepairNativeRecords.lean",
+      "audit_sha256": "fe176c070b25431f13e0fb21c730f88f89fa4dfb963c7f4523c4401d091c114f",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordFieldBytes.lean",
+      "sha256": "31061d6970bb6ca1f68bf3485746e95cf336027a1887861e6d9c49541217b3fb",
+      "audit": "zk-formal/test/AuditProcPriorRecordFieldBytes.lean",
+      "audit_sha256": "e7d08c182b430d9fc092afcb3c48eacedb8dfd17d2b077cfec7f6bb5374ed984",
+      "guards": 3
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Kernel regression confirms old CombinedTable KEYNIB sends extra START and shifted positions incompatible with native lookup demand. New candidate removes START and numbers key+END from zero, retaining constraints; table wf checked. Candidate not installed: physical traffic proof, global family admission recertification and lookup closure remain. Existing old QV local/byte/FINAL facts do not imply global KEYNIB balance. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/QueueKeyRepair.lean",
+      "sha256": "faf4ec784182475b56faa4b60df65c2cc0a7d49b37ea00c035926c994c5c148f",
+      "audit": "zk-formal/test/AuditQueueKeyRepair.lean",
+      "audit_sha256": "c0e36888da1675e46c49ad4c2061330ef86287566a47e3c7a1361012258bfa65",
+      "guards": 4
+    }
+  ]
+}

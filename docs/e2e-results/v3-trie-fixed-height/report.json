@@ -1,0 +1,53 @@
+{
+  "lane": "trie-fixed-height",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/TrieHeight.lean",
+      "sha256": "18e6e08463f050c4a1b9f1e9110b593637587aad3d57b9ce24d57c35fdba31fc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-trie-fixed-height-TrieHeight.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CountLift.lean",
+      "sha256": "dc6a670989bef448a0829a98fed269f1ab4ad626d78395a00bf7775db5b3e102",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-trie-fixed-height-CountLift.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/TrieCountHeight.lean",
+      "sha256": "38c2097bd34dc4929b38eec7a20c6e3634b5c74207fcfcd07a533868c56ca1ab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-trie-fixed-height-TrieCountHeight.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CountLiftTraffic.lean",
+      "sha256": "0635f979758ccf712df39c853c044ea048ba6fb5b1e53518be0d1d6f849695c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-trie-fixed-height-CountLiftTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/TrieCountTraffic.lean",
+      "sha256": "a3c8ebee9aeda4ed2e882d99f3d138d09e6d5afe85baaefab9d17c3e7cd32a7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-trie-fixed-height-TrieCountTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditTrieHeight.lean",
+      "sha256": "6cae6417c09fafd5a01ee9aa4f0123e8dd62da06220fe41ef1da7e9797768f77",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-trie-fixed-height-AuditTrieHeight.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual node/value SIZEcount and uniq renderers atlog22, local validity and non-SIZE traffic unchanged. Exact amended SIZE formula checked; end count semantic binding remains open.",
+  "exact_axiom_guards": 21,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

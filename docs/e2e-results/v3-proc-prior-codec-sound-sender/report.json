@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary satisfying corrected Codec traces yield retained post-byte reconstruction and range, sender-register equality to later sender post-bytes, and public sender-ID limb bounds24/24/16 bits. No generator/native run premise. Explicit sender-phase, nonterminal flag, encoding-kind and row bounds remain for later block geometry. Does not claim publicID bus ownership/global equality or priorRead68 semantic binding. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundSender.lean",
+      "sha256": "c4c29a1f5b51a10a023b35f929bb114f51884bdd44e60042036843bfac8b89d7",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundSender.lean",
+      "audit_sha256": "a0565d7028cbb686565fdc18f9f31a4c8a955cd79877b6ab0b80f1b06b564981",
+      "guards": 5
+    }
+  ]
+}

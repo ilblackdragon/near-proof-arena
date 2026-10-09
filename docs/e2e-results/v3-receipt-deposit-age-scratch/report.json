@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-deposit-age-scratch",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositAgeScratch.lean",
+      "sha256": "09293cbe39eb8037c5ddf7e0d7d2ba3db87b1267d6447d79dda40b9499b2d271",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-age-scratch-RcptDepositAgeScratch.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositAgeScratch.lean",
+      "sha256": "b55a2395deda5fb83eb0240f7ea16cfcc7e92a334eae97a656997a191be38f15",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-age-scratch-AuditRcptDepositAgeScratch.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5guards: widened13bit deposit age scratch ownership excludes all other constraint groups/interactions; first-row r1/boolean patch integration remains open.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

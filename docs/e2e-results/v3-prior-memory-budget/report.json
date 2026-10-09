@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Separate prior-memory table proposal exceeds 8MiB by77685 before parser/ID tables. Provisional buses and no honest/sound family admission. Exact size model with prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PriorMemoryBudget.lean",
+      "sha256": "c73849e03596e349c2cf9649fe64ac912ad3e2a8b9c55aedf67d0491be641d2b",
+      "audit": "zk-formal/test/AuditPriorMemoryBudget.lean",
+      "audit_sha256": "65acab6157faed66f93662e86bc9896d7d7c1f315a7508985ba5a1c7b7503a40",
+      "guards": 5
+    }
+  ]
+}

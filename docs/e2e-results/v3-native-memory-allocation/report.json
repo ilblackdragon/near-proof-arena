@@ -1,0 +1,32 @@
+{
+  "lane": "native-memory-allocation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptMemoryBytes.lean",
+      "sha256": "7da95ea04a3058ebb8c52be648412f7c393236d08e000db6c5ea10c8443996b9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-memory-allocation-NativeReceiptMemoryBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeMemoryAllocation.lean",
+      "sha256": "e27c237c054cdeab25fe8a055bbb2dfa4e1851543e17e502b35a75cdb582b78e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-memory-allocation-NativeMemoryAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeMemoryAllocation.lean",
+      "sha256": "6c3912e96953dbc982dc5e83420f3482e81dcc481dc1d682f43c64780fc43994",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-memory-allocation-AuditNativeMemoryAllocation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules3guards including NativeAccountMemContext. Strongest NativeMemoryAllocation now includes full physical receipt/account MEM send=receive on SAME constructed traces, no additional acceptance assumptions. Retains account/key VBYTES partition, raw/ranked lookups, public/receipt/fourSHA equations. AKC/QV/Codec and scheduler digest closure remain.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

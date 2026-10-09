@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 9,
+  "prerequisite": "docs/e2e-results/v3-codec-comparison-valid/report.json",
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeCodecComparisonWitness.lean",
+      "sha256": "fb633b50c681b34e79df15bf30bf0930ca65c2edaaaf1c706717cc7bec20961c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecComparisonBlocks.lean",
+      "sha256": "ca0f0b29c8915b19c7f0b9438f71fc3e7d5e5a231626a554c05a92f950fa0d4a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecComparisonOrdered.lean",
+      "sha256": "955637a492b6769ee82ffbb092d17a98fadc0f4082812af0437fc4799fd68ad4"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecComparisonAllocation.lean",
+      "sha256": "8c62283c1ae566f5b786dcd2cd442e91da7d188e7d1c116e4d7675cd9dd24465"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecComparisonRecords.lean",
+      "sha256": "d3ebb27ceda1ddb39dd024816b10802b6a70352d0c5bcaacdcbfc545a23c5dc8"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorComparisonCore.lean",
+      "sha256": "26e1446c8b2b4509de5b29109852e813e67b89044771f10678fd0c6a5182b113"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeCodecComparison.lean",
+      "sha256": "dc98f2398b0bf11e24709339286fd5797abf8bd26bb7bf3384c8597dfc1099c6"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcNativeCodecComparisonWitness.log",
+    "/tmp/SchedulerCodecComparisonBlocks.log",
+    "/tmp/SchedulerCodecComparisonOrdered.log",
+    "/tmp/SchedulerCodecComparisonAllocation.log",
+    "/tmp/SchedulerCodecComparisonRecords.log",
+    "/tmp/SchedulerPriorComparisonCore.log",
+    "/tmp/AuditNativeCodecComparison.log"
+  ],
+  "scope": "Accepted native checker directly supplies SAME occurrence-allocated bs with PriorCore and all corrected Codec comparisons valid. Retains native distribution-derived bound before existential projection; no extra grant/CmpOk premise. Other old40 request validity and global family balance remain separate."
+}

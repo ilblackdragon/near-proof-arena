@@ -1,0 +1,46 @@
+{
+  "lane": "native-lookup-full-chain",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupChainTools.lean",
+      "sha256": "69be20783f5f0cb235e4d6eb55c5b6d117d35e5b63570e72c64ec660a7d5fb4b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-full-chain-NativeLookupChainTools.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionChain.lean",
+      "sha256": "e464c806ca2a8a4dc542cde24783deb509f7eee1c49aef45bf92c46fa81a96fc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-full-chain-NativeLookupExtensionChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupHead.lean",
+      "sha256": "3c642fe8e6c429d7a104c2f3c1008f5f31f92b9d29f4771e5ff3aa150d788795",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-full-chain-NativeLookupHead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupChain.lean",
+      "sha256": "25e8cc9fee7b58aeafa40d446695c32327469c3c94dae6787b8ea5a1da06dbcd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-full-chain-NativeLookupChain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupFullChain.lean",
+      "sha256": "32d402341c07a11a489d4caa5733470b82c132601912e76237387383142e2cb5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-full-chain-AuditNativeLookupFullChain.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact consecutive recursive native lookup row equations and resolved first-row target across leaves/extensions/branches including empty extensions. START/canonical bounds and provider coverage remain open.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

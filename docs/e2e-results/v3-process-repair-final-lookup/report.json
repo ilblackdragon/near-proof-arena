@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual arbitrary FINAL receiver and receipt semantic FINAL provenance to same forest lookup",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairFinalSource.lean",
+      "sha256": "cab8e7389ce5a6f7c164b25b70deb14502768479fa4016faedc8319b570af202",
+      "audit": "zk-formal/test/AuditProcessRepairFinalSource.lean",
+      "audit_sha256": "5e1bb70d6a2fc81a930c0ad68d8e83d3923a77eb63d77d8d80bdf28de48464a5",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairFinalLookup.lean",
+      "sha256": "1c2c3ec0d839da46685620b5185d1dd2467f4804412153ef596e1c7b6c183e25",
+      "audit": "zk-formal/test/AuditProcessRepairFinalLookup.lean",
+      "audit_sha256": "f6c1d509248ffef2a537eb560ab61b796f150dc4ae7f101d6e3bdd3e3fb43517",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptFinal.lean",
+      "sha256": "837296434c3ef696d16d0829381971685e72a6295b7ce98d979ed211f555f3f0",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptFinal.lean",
+      "audit_sha256": "6a0c0961ab21d3b78000c3bd616f1824f301ccce34d20c5e9da9ffe185e754f8",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-final-lookup/dependency-review.json",
+      "sha256": "65a04a951736501e7d465fd4e93b8b2e8742c67a5b25957e1f36ad3b05b6c00b"
+    }
+  ]
+}

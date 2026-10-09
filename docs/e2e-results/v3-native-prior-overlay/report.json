@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 10,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayNativeSources.lean",
+      "sha256": "a7fa82033ed79ad5c1d309b23819dbed98c30250294218d27219062bba9b6603"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorOverlay.lean",
+      "sha256": "89356ddb4f69a4d0ecc3347659828b9043db755d2a0820a24d2352c9456661e9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorActualOverlay.lean",
+      "sha256": "f83c90ad4f4719b4e15ecd080f3d01d386c7ab6c743df1d183985840b9ac450f"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPriorOverlay.lean",
+      "sha256": "e7ff992eb92bc791bc6ac915630b87e700baf8a667b40762e6c0ebf8a68df3c3"
+    }
+  ],
+  "prerequisites": [
+    "ProcPriorOverlayLocal seven-module checkpoint",
+    "ProcIdNativeLocal repaired tagged ID checkpoint",
+    "SchedulerPriorCore",
+    "ProcPriorCodecActualFamily"
+  ],
+  "scope": "Accepted checkD0a yields SAME bs PriorCore and executable four-stage priorOverlay TableLocal for installed ActualFamily.overlay. All component Local, cuts, padding and boundary conditions derived. No whole overlay traffic/global Holds claimed. ActualFamily presence route60 retained; baseline59 used only for constraint-equivalent Local transport. Comparator route69\u219240 handled by parent separately.",
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "limits": "16GiB ulimit, -j1, strict autoImplicit=false relaxedAutoImplicit=false",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayNativeSources.lean",
+      "sha256": "a7fa82033ed79ad5c1d309b23819dbed98c30250294218d27219062bba9b6603"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorOverlay.lean",
+      "sha256": "89356ddb4f69a4d0ecc3347659828b9043db755d2a0820a24d2352c9456661e9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorActualOverlay.lean",
+      "sha256": "f83c90ad4f4719b4e15ecd080f3d01d386c7ab6c743df1d183985840b9ac450f"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPriorOverlay.lean",
+      "sha256": "e7ff992eb92bc791bc6ac915630b87e700baf8a667b40762e6c0ebf8a68df3c3"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay/AuditSchedulerPriorOverlay.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay/ProcPriorOverlayNativeSources.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay/SchedulerPriorActualOverlay.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-prior-overlay/SchedulerPriorOverlay.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "dependency_scope": "Strict incremental source builds with prebuilt dependencies; not a full source-only certificate."
+}

@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-09",
+  "checked": [
+    "Installed selected slot5 constraints include every base ValV3 constraint. Its base multiplicity bits are among the retained Boolean constraints.",
+    "HoldsP therefore yields full base TableLocal on exact horizontal slot5 projection; canonical val_view yields one es with ValWf and original all-bus traffic.",
+    "Actual RawFrame VBYTES send matches actual Value byte row; extracted traffic yields exact es entry/byte. Row bound and consecutive IDs starting0 imply es[k].vid=k.",
+    "Conditional SAME-es node bridge uses existing Link3.val_link and val_unique, with explicit NodeWf3/VParentBal."
+  ],
+  "remaining": [
+    "Transport/extract actual selected node component, including SIZE and UPB changes, to NodeWf3 and exact original node traffic.",
+    "Derive actual B_VPARENT conservation for the SAME projected node/value views; classify public/other traffic rather than assume an independent VParentBal.",
+    "Connect same-vid extracted node/value data to native forest allocation and authenticated source roots, with required hash/node semantics; val_link establishes id/length, not equality between e.bytes and native raw values.",
+    "RawFrame framing/count/offset/length no-wrap and complete native decoding remain open."
+  ],
+  "identifier_scope": "No allocation or renumbering occurs in these bridges. RawFrame vid is preserved as exact extracted Value list index. Equality to an independently native-allocated forest vid is not yet established.",
+  "public_contract": "HoldsP/exact repaired family, no public VBYTES segments for raw byte conservation.",
+  "claim_limit": "Current results do not establish original trie byte identity or full state-transition soundness."
+}

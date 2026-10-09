@@ -1,0 +1,25 @@
+{
+  "lane": "codec-record-reads",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordReads.lean",
+      "sha256": "e3129c2cd9338d78552ac11f66a756f468f102e075a3d574fee2fe3a7d1ad41d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-reads-ProcPriorCodecRecordReads.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecRecordReads.lean",
+      "sha256": "e08bd2b4c35034be55635b1ba3709713b60a48fe9b13a80a30b9034d7b7411fa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-reads-AuditProcPriorCodecRecordReads.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual generated record phase, byte and instance projections for nineteen columns. No added no-overwrite premise; original full Codec Local still pending.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

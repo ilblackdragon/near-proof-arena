@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Named PriorCore package from actual accepted D0a retains SAME allocated native blocks, forest/raw/shared capacity, Codec/RawFrame/Record/Memory Local, and exact presence/raw-record/memory-read/memory-write/ID request+result counts. ID Local, public-ID/comparator providers, shared vertical clock and whole-family soundness remain open. Incremental audited build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorCore.lean",
+      "sha256": "180a51d94e05af67c19ffc67e0e78bb9a9a72c3875f01bb49bf60f5682428584",
+      "audit": "zk-formal/test/AuditSchedulerPriorCore.lean",
+      "audit_sha256": "774187ff8ea5ef77f9c79a7dd8c087b5973c9885783e181ba1861ac9cee1fdfd",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "lane": "native-access-key",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccessKeyKnown.lean",
+      "sha256": "5d07c752132bf32be865411ecec9a97285901da112dae505a87b45accf01131f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-NativeAccessKeyKnown.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccessKeyPrestate.lean",
+      "sha256": "868112caed36a54c84b7becce92d0ccb1a4e5f3c94409e19767c164557498af0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-NativeAccessKeyPrestate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccessKeyQueries.lean",
+      "sha256": "2ae5c11df364a4daf538daf85b9a8be53c4acb5c43ba8453b4bae3d1cf4376ed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-NativeAccessKeyQueries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccessKeyRows.lean",
+      "sha256": "fef9e941cf17d96d83392edede05b7addb16d6746cf862afeefa5c0f866dc785",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-NativeAccessKeyRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccessKeyLookup.lean",
+      "sha256": "fa0767bbb7594de29ba06291e2941fa763553218ef47eecfe2759dfd2f0800ab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-AuditNativeAccessKeyLookup.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules10guards. Actual conditional refund access-key queries succeed in original native prestate; IDs W_AK+original index. All receiver/access/queue/UPS rows<=3441404 under explicit native count/wf bounds,log22. Returned VID/full physical assembly remain open.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

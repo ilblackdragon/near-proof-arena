@@ -1,0 +1,39 @@
+{
+  "lane": "process-native-bucket",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeBucket.lean",
+      "sha256": "f94527c81a398394e72cb5141913fb409398bc0a3b20240e623f0138de083074",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-bucket-ProcNativeBucket.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativePush.lean",
+      "sha256": "57be2121ca96374f1fde7e2e349dcaa653712e96d865d306aab44171c2d003c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-bucket-ProcNativePush.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeBucketReplay.lean",
+      "sha256": "5beac7f06a9d794d29b23565df35a36c8fa76ed45dc0a7824381c6b3a53b0eb8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-bucket-ProcNativeBucketReplay.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeBucket.lean",
+      "sha256": "0d06a24d5bab53ff7ff120e65cadb3bc2fc80e849f5c8cfe89046a3b7d261cb7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-bucket-AuditProcNativeBucket.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules7 guards: actual native processBucket equals successful model entry replay for both state and pending bucket dictionary. Maximal bucket selection/model guard success and full native to model existence remain.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

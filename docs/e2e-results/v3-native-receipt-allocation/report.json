@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native execution, actual prepared source receipt renderer and canonical blocks choose exact duplicate-gated receipt SHA jobs used by four packed log22 SHA tables. Arbitrary receipt batch and receipt row/byte premises eliminated. Physical SHA BYTES composition includes repaired value, node, source, UPS, receipt/account/Merkle plus refund fragments; fresh-codec/sanity remain explicit. Existing trie/root/edge/value digest facts retained. Native account constructor and global constraints/certificate/prover/judge remain open. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptAllocation.lean",
+      "sha256": "3c20a319d6ab6a920878d9a806cd52756bebf9d5b15e86dd161a4391415b30ec",
+      "audit": "zk-formal/test/AuditNativeReceiptAllocation.lean",
+      "audit_sha256": "37ce8c3df563e33853c3fc256017cca07a07ad44922dbe6f33f4302cf87ad835",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "lane": "native-reader-old-post",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedWindowBytes.lean",
+      "sha256": "96febc7e26703b6cf1cb865b78dfcf73ee1d98b9909a52aef9dbc44ad7fdf617",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-old-post-NativeRebasedWindowBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderOldPost.lean",
+      "sha256": "c0be5fe8c7e12a32521a7f101dc3435f020b262459c25f68088d754be1495f9f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-old-post-NativeReaderOldPost.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderOldPost.lean",
+      "sha256": "bda37222283081ca7cdf895d65996e802eb4bca39b1f14fe1c621f7f99efbbc0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-old-post-AuditNativeReaderOldPost.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules3 guards. Actual reader sN selects ORIGINAL post-updated provider with exact copied post bytes and preserved source address depth. Generated pdep and initialized cid transfer remain.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

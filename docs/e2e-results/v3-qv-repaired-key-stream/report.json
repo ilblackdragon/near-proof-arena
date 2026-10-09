@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Repaired full physical native key stream and no-START property; six exact standard-axiom guards. Field provider ownership composes into Walk3 hsym; global ownership/balance remain explicit, not a full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/RepairedKeyTraffic.lean",
+      "sha256": "2c0c7533e07b6f119d5ce16ec411bf5e11a3e468788716b78e41f4ed8371c336",
+      "audit": "zk-formal/test/AuditQvRepairedKeyTraffic.lean",
+      "audit_sha256": "d8e44b9692313147513fcee1220766757fbeabec086f593d828b86c72b650ee6",
+      "guards": 3,
+      "log": "/tmp/nearproof-RepairedKeyTraffic-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/RepairedKeySymbols.lean",
+      "sha256": "51852c84082156027667d81844e1253f81ab1f918c13b813bf0ac9d42101958d",
+      "audit": "zk-formal/test/AuditQvRepairedKeySymbols.lean",
+      "audit_sha256": "f98e64d861efdcb292b4fe9753d964aa0b6247fb3d72edcd8325b3ab9d136774",
+      "guards": 3,
+      "log": "/tmp/nearproof-RepairedKeySymbols-audit-checked.log"
+    }
+  ]
+}

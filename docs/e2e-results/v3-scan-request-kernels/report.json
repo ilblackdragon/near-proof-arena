@@ -1,0 +1,71 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFactor.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestArithmetic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanBitmapArithmetic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBitCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRange.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanConvertedShape.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestKernels.lean",
+  "guards": 31,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFactor.lean": "73b199914b8a212c779b91d8b6a07cc799b9d80e380763da2a7be0f7c2b38f2d",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestArithmetic.lean": "bc4721f663666fcd7d1f68d83af009f765ae71affa1aa1163f5352a87f6ec4ca",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanBitmapArithmetic.lean": "aed9902357ba8b9dca697b1d7205fd5f623f2102e7e9401f956fef2c266ef21a",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestCells.lean": "5cb7b1a21374a4f5bbf98f34c4ee8727b57180f3fe9f91ccaff0881a2027a59d",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBitCells.lean": "8eab24807a6107e07cca3819d582794e296416447c5d8a20eca153b7ec653227",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRange.lean": "6ff47aae438aeef265946acffd8c8cd6e5f036edb53cb51e7a519e658bfd16fb",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanConvertedShape.lean": "cfe77993ae2b6c622ed5e192875af9f3dbc54491fd8fa81455c8cfb47e4415b8",
+    "zk-formal/test/AuditProcScanRequestKernels.lean": "104539ffb816869c6a8a8986e7844d0193a96b5cf7768a096783579bdd12f225"
+  },
+  "status": "strict PASS",
+  "proved": [
+    "Exact unchanged native request generator factorization.",
+    "Actual request control/payload/counter/quotient/flag and every quotient/remainder-bit cell.",
+    "Native PV86 D bound and23-bit quotient bound; quotient/remainder/bitmap recurrence/field inverse equations.",
+    "Actual request row satisfies all four Dist.cRange constraints over integers.",
+    "ActualRun success derives bitmap length5, exact setBits and link address for every converted request."
+  ],
+  "remaining": [
+    "Complete request control/body constraints and same generated-neighbor binding.",
+    "Full physical range/boolean and row case composition.",
+    "Distribution shard/grid local cases and whole trace boundaries."
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestFactor.lean",
+      "sha256": "73b199914b8a212c779b91d8b6a07cc799b9d80e380763da2a7be0f7c2b38f2d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestArithmetic.lean",
+      "sha256": "bc4721f663666fcd7d1f68d83af009f765ae71affa1aa1163f5352a87f6ec4ca"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanBitmapArithmetic.lean",
+      "sha256": "aed9902357ba8b9dca697b1d7205fd5f623f2102e7e9401f956fef2c266ef21a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestCells.lean",
+      "sha256": "5cb7b1a21374a4f5bbf98f34c4ee8727b57180f3fe9f91ccaff0881a2027a59d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestBitCells.lean",
+      "sha256": "8eab24807a6107e07cca3819d582794e296416447c5d8a20eca153b7ec653227"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRange.lean",
+      "sha256": "6ff47aae438aeef265946acffd8c8cd6e5f036edb53cb51e7a519e658bfd16fb"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanConvertedShape.lean",
+      "sha256": "cfe77993ae2b6c622ed5e192875af9f3dbc54491fd8fa81455c8cfb47e4415b8"
+    },
+    {
+      "path": "zk-formal/test/AuditProcScanRequestKernels.lean",
+      "sha256": "104539ffb816869c6a8a8986e7844d0193a96b5cf7768a096783579bdd12f225"
+    }
+  ],
+  "scope": "Incremental strict source rebuild with prebuilt dependencies; native request arithmetic/cells/ranges only, not full ScanDist TableLocal."
+}

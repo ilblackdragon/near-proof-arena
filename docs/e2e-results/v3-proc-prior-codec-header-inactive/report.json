@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All46 retained header-tail cKind constraints83..128 vanish on actual hash/ash rows with arbitrary successor/boundary selectors. Exact tail equality, length and filter-preservation checked. Does not prove these equations on actual header rows. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHeaderInactive.lean",
+      "sha256": "01920e2f0000c737434d59affd16b288576c367c9a63bc812eebfb997a5266c2",
+      "audit": "zk-formal/test/AuditProcPriorCodecHeaderInactive.lean",
+      "audit_sha256": "3fbe14b6c0d4559370ec45a355277840dbdd0cabfeab909928a32c39cbe23324",
+      "guards": 6
+    }
+  ]
+}

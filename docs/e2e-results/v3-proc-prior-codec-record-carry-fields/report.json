@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact actual record protected fields rs,al,gb,srcC,hasC,useC derived from base assignments and successful-step tail exclusion; physical position lookup and record-start rs1. Physical kR/rend/ekl exact gates derived from executed rows. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordCarryFields.lean",
+      "sha256": "df51e0a9cbd0141fdf92cc34247696f5557670a03f243c630f877a08283443b8",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordCarryFields.lean",
+      "audit_sha256": "c6994f3082d4a986a2dcd5611f3b3b7e5508c2535d27424c42088f004d02c57d",
+      "guards": 8
+    }
+  ]
+}

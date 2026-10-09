@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Reverse raw-record coverage now derives actual stage3 word selector/activity, third-byte gate and bounded natural offset with exact matched payload. Complete native write inventory and duplicate-ID first-match remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordByteActivity.lean",
+      "sha256": "34cd82c0ddfd881df215b1f4d5cdbd1f361bdaf007b00c04ff0ce4182f02b816",
+      "audit": "zk-formal/test/AuditProcPriorRecordByteActivity.lean",
+      "audit_sha256": "e8c843839383865e5513e2e096a209ed31952ec7ee041e1e6e8891f8e4653894",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordByteCoverage.lean",
+      "sha256": "fbaa258cd2a4bbbc9f2b729a20ad9a3b0434fb49acadd6d3c6c190dd4cbfc480",
+      "audit": "zk-formal/test/AuditProcessRepairRecordByteCoverage.lean",
+      "audit_sha256": "00ed8de3a4dcc993753a8ba9eff4f468a6f57f3bb1553d00fd0403d19d30a701",
+      "guards": 1
+    }
+  ]
+}

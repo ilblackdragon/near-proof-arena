@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact RawFrame sanity74 byte inventory and installed RawFrame-to-Codec balance from SAME accepted PriorCore, including absent-state zero bytes, arbitrary table times and common public input. Incremental strict audit; global Holds and root authentication remain separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawSanityTraffic.lean",
+      "sha256": "4f4bf44fac0ce916dc2dba580ac7df4a59c82fd0c2f4b5bb399b1b2be0538991",
+      "audit": "zk-formal/test/AuditProcRawSanityTraffic.lean",
+      "audit_sha256": "e810dc3a30c3b30f555a71cf4f32d8f359be335f937aaca8f0d326a6461bd2bf",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorSanity.lean",
+      "sha256": "ae88200bd4c3cb00fbe121af24ac6891fb732ae0489cd655a4be33fcb28489fb",
+      "audit": "zk-formal/test/AuditSchedulerPriorSanity.lean",
+      "audit_sha256": "7ea33b6bbc858bd58d3ff20117c79fa02297d6b63eca856a9364e7274377b5b1",
+      "guards": 3
+    }
+  ]
+}

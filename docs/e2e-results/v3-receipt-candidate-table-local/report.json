@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-candidate-table-local",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateTableLocal.lean",
+      "sha256": "8b359b7d963c6400e6f5a3359945cbcee4e154034da94fbe5ec889ce5b7ed0dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-table-local-RcptCandidateTableLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateNativeTable.lean",
+      "sha256": "44ac0e9225471048c21bdf56620059846aa07df1bdf37beef11690211b267685",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-table-local-RcptCandidateNativeTable.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateTableLocal.lean",
+      "sha256": "39ef6462db7eb38f98539515fdec55e8bf643ec9be276a72e1aa55b44f13b110",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-table-local-AuditRcptCandidateTableLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateNativeTable.lean",
+      "sha256": "1ca5381985156dd59ae4bd48d21483b1b5a088f2282a013c1077e1f402e4ee34",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-table-local-AuditRcptCandidateNativeTable.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules4 guards. Full TableLocal for isolated receiptArithmeticCandidate from actual native execution: all881 corrected equations, original interaction multiplicity bits and log22 height. Routing-q strengthening NOT included; soundness/degree/profile and global ownership remain.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,305 @@
+{
+  "lane": "receipt-candidate-listbytes",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListLengths.lean",
+      "sha256": "15036f89c5e4feb2a79b80c08c961fb49a8d901ca72f72f916f568ccb32509d6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListLengths.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateReceiptOffsets.lean",
+      "sha256": "ff82d8eccd15bf17c4d465eaa927165a5e36b838e228ed88638f1b1c233bd9fe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateReceiptOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateHeaderOffsets.lean",
+      "sha256": "b5dfc487269b00902cf605e9c051f22fa2abe4b062eeaa47ddbea03e6f63a2b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateHeaderOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateEncodedOffsets.lean",
+      "sha256": "6589c13784fd9b25e1eb0ae093dc062084727e61a7b321bcfcc38a8c371e4b46",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateEncodedOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListTerminal.lean",
+      "sha256": "2fd9269e736f55c87e26ca9fc03b568369833cf43d65f271693e11b75b857393",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListTerminal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListInterior.lean",
+      "sha256": "6c34a5b35f8c1dfc7b794e094c3772f50a69ed90129fdb599c80419212d8c84b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListInterior.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListGate.lean",
+      "sha256": "67b578a9245a96d2665192dbd922158e684a64e6f354bdb82c1f22a87d652f7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListGate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListConstants.lean",
+      "sha256": "91320a000e55758fb29f6946f785089ae339604243b51734a6b5a925502b849f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListConstants.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListIndices.lean",
+      "sha256": "ecea96b3927a079748234f6b14fcbcc315f66a09cb084f813fa802376ba29c10",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListIndices.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListCounts.lean",
+      "sha256": "80bda89d3a02e1e8ddcb03aeb858b3bfc85a8ee061cf516b6f4fd4b02af7d9bc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListCounts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGlobalCounters.lean",
+      "sha256": "dedc1b4f2374d3d8e5267ea26bf79739c33be17f57ed9c0c3137f676c080f533",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateGlobalCounters.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGlobalListCounters.lean",
+      "sha256": "2ec55f1e82cef79afdcca4fcf6839a82646e3b3d84804e7403b1ebf20d99778c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateGlobalListCounters.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBodyOffsets.lean",
+      "sha256": "447c994688fca38cf664d54eee433a959005bb04701cbeaae424cbf1e0390942",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateBodyOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListBodyOffsets.lean",
+      "sha256": "9e6809d1a075602819a216c8ca12b4622236ebdfd10c03649c712a1dcdffa7ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListBodyOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGlobalBodyOffsets.lean",
+      "sha256": "1637518e42528139604bfc23321d339b93fc7b6751245a732108f329ae15ceee",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateGlobalBodyOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidatePrefixOffsets.lean",
+      "sha256": "f65ef0e98e94ad12c88b40bc6c8d61a668fc64c5cf0e0ef5c0f85e6201e8173a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidatePrefixOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListView.lean",
+      "sha256": "44e4d1694976727badb229b9263e0f16494c1c6eb044f99bc64b9f2fe07485fd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListView.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateHeaderRegisters.lean",
+      "sha256": "2a5515a20f6f75b73cc1d0b48075f7ab4e300873ed2cb9e08f2452b1a2215d09",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateHeaderRegisters.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateHeaderTraffic.lean",
+      "sha256": "53d83b880be947821055faf146ee3de548db1204f20b9cfbca9469d28a1d0769",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateHeaderTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBlockBytes.lean",
+      "sha256": "bd08f7bb539db9ffc5794cf1a951d927f71a9f7de39cd6725949611151504930",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateBlockBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListByteTraffic.lean",
+      "sha256": "354787cedbcc1e92dd637ea64397ba21371cbfe14bc85898d71cb0550422e4bc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-RcptCandidateListByteTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListLengths.lean",
+      "sha256": "70072d1658ed8e88aa9d98c2ba080f27d15236b72b0b888c6d0436599a42a77d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListLengths.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateReceiptOffsets.lean",
+      "sha256": "7b965361d7a664c9e1186a5332583ec3f31cc522f9b7a55d51802aa1ca0201cb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateReceiptOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateHeaderOffsets.lean",
+      "sha256": "bb867c8ca1d979984763d5312a0f1c637be4211a517e4ad7ec974401b659911e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateHeaderOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateEncodedOffsets.lean",
+      "sha256": "4a6d6f127c4a5ac9137b9f94aacdd5498a6bb0ca1585467e43859afa4c485c24",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateEncodedOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListTerminal.lean",
+      "sha256": "4bcc650138e2e0e16dd0e97ffbc9429cfd10e6f9341393e7f37f8813123f202d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListTerminal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListInterior.lean",
+      "sha256": "8abba896dc8b5a6fac8c0e47c867419ed3f8450fada88cc5af7c04dff246353f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListInterior.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListGate.lean",
+      "sha256": "b64075d1e55b7dbbc434bfce9bb6c1093579f9ba76b571bcd16c20bc2a46b07b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListGate.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListConstants.lean",
+      "sha256": "305d34286cd0df70418225dcce7d0e78de5bc0139fd6b9262251f19639446669",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListConstants.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListIndices.lean",
+      "sha256": "d20a8c8b491d4f87a95f59167e4ca139b1e3b7cd077b2bebf8df2ede024244b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListIndices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListCounts.lean",
+      "sha256": "0c18a3652831e4d2b71749ea79e6deb71d2928d09db95fc1570b38ef0dd519fb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListCounts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGlobalCounters.lean",
+      "sha256": "bd984a0ffd439c39431c15646b54e65dcf46b055b74ba1991af8a5f98d84e9de",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateGlobalCounters.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGlobalListCounters.lean",
+      "sha256": "d1ec396d7b5f673d11c1d1107e59474f169278541ac0af136ca6c27e49f69d94",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateGlobalListCounters.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBodyOffsets.lean",
+      "sha256": "45f8298ffabf1c940dc3bf165026a548eedbded85f0ed70b6e508d0fea8f3260",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateBodyOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListBodyOffsets.lean",
+      "sha256": "c8546b0f251ca6a405f48febd90d4ef40771050e102223dc9aa4738a6ec2522a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListBodyOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGlobalBodyOffsets.lean",
+      "sha256": "278df7286625a5f50c93a370933f80014b65d09620851dc632075f6d2e3b022f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateGlobalBodyOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidatePrefixOffsets.lean",
+      "sha256": "28404c9bd56f303d0f092456214732375289df330783673d0b03158b724105b9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidatePrefixOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListView.lean",
+      "sha256": "f92c0ce02397e19bbe4be3aa4defbc5cc9fb04e758fed5788d020e678e2ff1c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListView.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateHeaderRegisters.lean",
+      "sha256": "6751d4545d5f5a399ed7180ed9dbd5ba119678ca3bd5b22a9988b51a91890bea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateHeaderRegisters.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateHeaderTraffic.lean",
+      "sha256": "9e1ffd3fb330f94bb65e0eee694cea1c6f216162f541a4cfa59ce76cdbcbbdc1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateHeaderTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBlockBytes.lean",
+      "sha256": "2d3017305bfd7ab1488ae0a0cda39ebec87164a5acae04a504afed7837fadc39",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateBlockBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListByteTraffic.lean",
+      "sha256": "647718bd0ea92a1f04504077fa341bfcef83da7c946ae58230a5445cbc1cbd75",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-listbytes-AuditRcptCandidateListByteTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "21 modules78 guards. List/header/counter/byte chain derived from candidate constraints. Remaining full global traffic explicit.",
+  "exact_axiom_guards": 78,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

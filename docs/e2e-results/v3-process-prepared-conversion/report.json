@@ -1,0 +1,39 @@
+{
+  "lane": "process-prepared-conversion",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBitmapShape.lean",
+      "sha256": "9514a06feb3cac8b71932741d7b6f68cfa5833e01b786c11a4ff4b45db891775",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prepared-conversion-ProcBitmapShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPreparedBitmaps.lean",
+      "sha256": "7f9ca193b1c0f2012bef927de26540ce20e67d88e35c6beb023d3ad944f4e178",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prepared-conversion-ProcPreparedBitmaps.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPreparedConversion.lean",
+      "sha256": "b436b1e5fe181f83df0868286f5fdd5a2e4a185f3b350e7e2ee39f2d56ab16be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prepared-conversion-ProcPreparedConversion.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPreparedConversion.lean",
+      "sha256": "608a34edf6654063ef7201bcc0b0d3608ae6d12357fb46a65a40b008c967e957",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prepared-conversion-AuditProcPreparedConversion.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules11guards: actual decoded/prepared scheduler requests have five-byte bitmaps; conversion exists, equals convRaw, passes consistency/count checks and length<=4096. Model/replay/shuffle phase remains open.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

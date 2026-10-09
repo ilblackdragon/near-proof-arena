@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Receipt/account SHA byte split includes actual native outcome Merkle physical byte producer, including empty outcomes. Explicit same-leaf binding, receipt/account traffic contracts and public refund consumer remain. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptMerkleShaBytes.lean",
+      "sha256": "82136c295d272adf93332e7601b50481fb21730c659104e00122908aaba77bd2",
+      "audit": "zk-formal/test/AuditReceiptMerkleShaBytes.lean",
+      "audit_sha256": "5b05e6eb172a76c9057765b7d5d35ed9cdbe2ff2cff598b4e57d98555cb9fbe0",
+      "guards": 1
+    }
+  ]
+}

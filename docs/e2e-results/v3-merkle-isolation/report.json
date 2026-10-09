@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Honest native Merkle trace has no sends outside BYTE/MPOS and no receives outside DIGEST/MPOS, including empty outcomes. Global receipt/SHA correspondence remains separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Isolation.lean",
+      "sha256": "2f590f20301727c023486fa09329b553edaea50fa3207b0cd636f1831a2dcac3",
+      "audit": "zk-formal/test/AuditMerkleRenderIsolation.lean",
+      "audit_sha256": "14e8d2ec118896c4202cb146e1f2ecee6fdde8f568de2b70e4e7fc8015e5f852",
+      "guards": 2,
+      "log": "/tmp/nearproof-Isolation-audit-checked.log"
+    }
+  ]
+}

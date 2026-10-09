@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Whole actual log22 node/value trace SIZE traffic is exactly one send of the semantic three-field tuple and no receives. No extra SIZE traffic occurs in active or padding rows. Native witness validity and global accounting remain separate. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SizeRecordTraffic.lean",
+      "sha256": "fc99e9242df59b17683b175a919862471a4975df5af28818335d2430f0855721",
+      "audit": "zk-formal/test/AuditSizeRecordTraffic.lean",
+      "audit_sha256": "72b0f80796d76c27198b491880032378e69b6dc89142ec51e8db205181498e63",
+      "guards": 6
+    }
+  ]
+}

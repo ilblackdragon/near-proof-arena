@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-key-gates",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyFrame.lean",
+      "sha256": "51d8db7d2cde24c11c2aa27edd0523aef1b5fa56d5d8c505f4e2909af8b67641",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-RcptKeyFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyGates.lean",
+      "sha256": "43d041a9ecf16ee945466b4536f07e40ed34dcc4737e5da8c170717b4a321f2f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-RcptKeyGates.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyCells.lean",
+      "sha256": "f867ac3c16308389894985f58433773460d2272c671ad6dcb6d7f7997a8ba302",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-RcptKeyCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyFinalArithmetic.lean",
+      "sha256": "235a16563d86e7c1131cd22794a2f63674c565b0bb050f7971de38e80b90a592",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-RcptKeyFinalArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyGateLocal.lean",
+      "sha256": "dd7545947ca0a36aef1eb0d9ec47211f6c52029b0dee4586691362be77755f15",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-RcptKeyGateLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyGatePhysical.lean",
+      "sha256": "f08d62aa8ed3f75a7660588af035802b1c7b2b958d67c3f54d12783c646cac93",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-RcptKeyGatePhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyFrame.lean",
+      "sha256": "ac758edf8a644e1a03cf432c99091c902a6c14ce2346e72eea3546e3f5f39f65",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-AuditRcptKeyFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyGates.lean",
+      "sha256": "0689e0b3ec0c6551923dc9366a2119d9d43a8de6a0f9ddbfbfb4d36c24f47240",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-AuditRcptKeyGates.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyCells.lean",
+      "sha256": "4e2e3de55c6e07c754ae3fa4881c4874cb6df788c5d8088855c7054cd835fb3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-AuditRcptKeyCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyFinalArithmetic.lean",
+      "sha256": "41e965b323c2b7afb273c9818c5b171cbe4fd3a0724798e8d162bc328ae9acf6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-AuditRcptKeyFinalArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyGateLocal.lean",
+      "sha256": "f7dbb9301906b6dbe26094b62300489377767c238bea5e64509d71d62080848a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-AuditRcptKeyGateLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyGatePhysical.lean",
+      "sha256": "03c701c35f9aed6c2130c39ada827a2597c5975c90492069d0ba40ad8f30be4f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-gates-AuditRcptKeyGatePhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual first2 key gates plus4 FINAL/AKC equations over complete physical trace including headers/padding, native symbol/coordinate and PK nibble scratch constructors. Not yet commuted into753-constraint assignment; provider account/access IDs explicit and unauthenticated.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

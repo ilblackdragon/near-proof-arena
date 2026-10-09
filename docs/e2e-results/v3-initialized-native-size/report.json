@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Initialized metadata preserves exact duplicate occurrence classes and serialized charges. Native initialized forest supplies NodeWf instead of raw-forest assumption; accepted native cardinality supplies forest count bound. Original SIZE receiver TableLocal and traffic checked. Explicit trie wf/fdepth/2M cap/Stored provenance remain. Prebuilt dependencies, not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/InitializedStoreAccounting.lean",
+      "sha256": "811427b153c22ba9f2bbd16144d8820fbb1e55946e1cbd30e48e9763d8bcc219",
+      "audit": "zk-formal/test/AuditInitializedStoreAccounting.lean",
+      "audit_sha256": "5734d82dd514756a1c4b8648af4724a359c01f3bd321e7cd56ac66cc2f4b3fa2",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/InitializedSizeValid.lean",
+      "sha256": "3d9e1535e78b0c744fee0c90a00a6353f7c6ba0dd69afa9a5aa541032b290e6d",
+      "audit": "zk-formal/test/AuditInitializedSizeValid.lean",
+      "audit_sha256": "44c9ca81d906e9ea86e9fe531b5f62d491ceb49204c62b7d6982311c18ebb660",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/InitializedNativeSize.lean",
+      "sha256": "6890423925008e9d3a15df2c02c97854f00331ae2e66c22a1000471900b75767",
+      "audit": "zk-formal/test/AuditInitializedNativeSize.lean",
+      "audit_sha256": "2c3c74fe1edb739ee1e4656ede8ea3c5dffedf72bc636eb7f59bc76b13ad595e",
+      "guards": 2
+    }
+  ]
+}

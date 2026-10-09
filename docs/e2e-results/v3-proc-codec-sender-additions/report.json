@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All8 additions11..18 on every actual physical native record row. Sender post-byte equality and seven ID-register shifts derive actual step cells and actual successor row indexing. Requires codecRows success,n\u226464,R.n=I.ids.length; no Local or register value premise. Duplicate IDs are accepted. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSenderCells.lean",
+      "sha256": "5c238840e3636294f19812f32d30edbaf87da84a441fb4bd98de214356d0d0e5",
+      "audit": "zk-formal/test/AuditProcPriorCodecSenderCells.lean",
+      "audit_sha256": "a095a3ea0dede447d7b006d05b8a23a50290d56005439fef02b5a33b4f051f5c",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecSenderAdditions.lean",
+      "sha256": "24984aa24b9ef1cad84586978fa5f6d1e752648f0bf986dfc7c98dea4d012efc",
+      "audit": "zk-formal/test/AuditProcCodecSenderAdditions.lean",
+      "audit_sha256": "01e977e262473237690c4907519eef45fc32bf2df6f596856dc7c59ea33a05c2",
+      "guards": 5
+    }
+  ]
+}

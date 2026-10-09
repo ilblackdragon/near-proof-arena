@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "guards": 8,
+  "scope": "Discharges arbitrary public70 sender ordinal bound from actual routed Codec local constraints and public SPAR binding",
+  "remaining": [
+    "Actual PubIdx SPAR inventory and public segment ownership",
+    "No public70/72 sends for result receiver theorem",
+    "Record endpoint-to-write index propagation belongs to memory_values lane",
+    "Same-key first-match semantics and final certificate remain separate"
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecPublicBound.lean",
+      "sha256": "1f2da16470d392711a9217a3abc9437a40e2c6dbda173f822bd9e3de786220ca"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedPublicId.lean",
+      "sha256": "07a19203a8b6cb9343cdc8f67aa7dc652da99b44a9e0b5978a5da1fdbeeaa5c6"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorPublicSenderBound.lean",
+      "sha256": "1de318fdc288293f924da8d1961569c4aa0b9e4c2d0175a1f6456838960f87d4"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorPublicBound.lean",
+      "sha256": "82f341bc0ace1417dfc2924fc22d7261cc96f71734154e24044470b42835b589"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-public-sender-bound/dependency-review.json",
+      "sha256": "3c98a8c38b0970864da522f4344266f750d80ce2fdbae5d64f743ca5abe80745"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-public-sender-bound/README.md",
+      "sha256": "f93203d749cb23435d9b86795130e941486ed57592f9c10e0b0e4a17df0539d3"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-public-sender-bound/SHA256SUMS",
+      "sha256": "d5d6e25f610d36d3c552a6755a7a2daeaa191608efb113cf03193bdb62cbe5e1"
+    }
+  ],
+  "dependency_scope": "Strict incremental source build with prebuilt dependencies, not full certificate."
+}

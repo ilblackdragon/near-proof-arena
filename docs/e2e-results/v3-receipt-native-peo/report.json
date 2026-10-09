@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-native-peo",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativePeoPositions.lean",
+      "sha256": "f6b69d2e8b5648403f94b0a402113e8d5603d25e8bea21c4b05637b3e1022344",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-RcptNativePeoPositions.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativePeoSlices.lean",
+      "sha256": "7c5efbaabfc1dd43ce712901002fd3b51fa247f3cc800f98738a55047b16cd4a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-RcptNativePeoSlices.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeBurntCells.lean",
+      "sha256": "c15c32c346680ae3f9051bbdaac61fa9398dcc894e836a0f1543152a98934fd0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-RcptNativeBurntCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativePeo.lean",
+      "sha256": "89ce567a61bd755387aa232adf12a8fde756150c32f9efb5acbb6571c4db4beb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-RcptNativePeo.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativePeoPositions.lean",
+      "sha256": "95a8bc68b0f16dfb2469a481e5a8c2243c64828fbdcb0e26b54f72046c377207",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-AuditRcptNativePeoPositions.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativePeoSlices.lean",
+      "sha256": "a72d2c79da137a999405f8a1a2e4f9f40c54bad12b83de064c11aa353ebcc3ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-AuditRcptNativePeoSlices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeBurntCells.lean",
+      "sha256": "d4ccd137deb26a5bd35a72408cf00521f982b00c21981bbd35505c9b15232f6b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-AuditRcptNativeBurntCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativePeo.lean",
+      "sha256": "ce0dd6269a37aa72f30939a8db271ea1d43ca5e6d9c71d3795afd4fba0d6b552",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-peo-AuditRcptNativePeo.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules10guards. Exact native PEO field/slice/burnt bytes and native digest stream; physical digest equals hash of actual emitted preimage, no supplied hash equation.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Memory log timestamp invariant is preserved by append and array modify; actual conversion read step advances it. Ordered positive logs make extracted timestamp/comparator scan succeed. Full conversion/grant replay invariant and exact finish scan factorization remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcMemoryTimeInvariant.lean",
+      "sha256": "bf2237687ce33d4dd4ad041de277bbb45ff93bb04e942b402c812c91724edd7f",
+      "audit": "zk-formal/test/AuditProcMemoryTimeInvariant.lean",
+      "audit_sha256": "755c0a28a136a7f61bdcec0082dde3e2f89fb45574de779be23728275d193d8e",
+      "guards": 7
+    }
+  ]
+}

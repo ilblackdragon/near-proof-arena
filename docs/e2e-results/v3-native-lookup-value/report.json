@@ -1,0 +1,39 @@
+{
+  "lane": "native-lookup-value",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupFinalTools.lean",
+      "sha256": "ae01057487398d7ca706f9ac448005b52d13381b84a0a4a826acf1d89b503e88",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-value-NativeLookupFinalTools.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupValueIndex.lean",
+      "sha256": "eef2e9ec4de5ee45ec478c276a064fecc9efc2bc7be3bbf25ad32ff65dbd0fe1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-value-NativeLookupValueIndex.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupValueProvider.lean",
+      "sha256": "0268e5b4dc7f4ac37285c7d4afb1a096923cd02ccce2394efd174987080cd558",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-value-NativeLookupValueProvider.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupValueIndex.lean",
+      "sha256": "98e28cbc9da73d10385c3bc19460c9c192aec644189c2f231468ba0dce128406",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-value-AuditNativeLookupValueIndex.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules10guards. Arbitrary recursive lookup terminal equals baseVID+Assembly.valueIndex; present result binds SAME forest value record/native bytes, absent result gives no VID. All structural cases and corrected extension mismatch retained.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

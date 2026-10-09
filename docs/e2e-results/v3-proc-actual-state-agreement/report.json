@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native distribution preserves allowances unconditionally. Successful corrected core event state bytes equal native accepted core output with unchanged decoded prior bytes. Event success and grants equivalence remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualStateAgreement.lean",
+      "sha256": "9513d90ef456bc9dd4a8401bb44b2a45cc9daf1560e5140cc57ea508223855be",
+      "audit": "zk-formal/test/AuditProcActualStateAgreement.lean",
+      "audit_sha256": "0cc06b21fea5861c1fddd79476d524f9e5d09715e06fce881f842a0f0e92dd94",
+      "guards": 4
+    }
+  ]
+}

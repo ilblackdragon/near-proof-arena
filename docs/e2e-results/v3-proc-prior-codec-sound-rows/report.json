@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Soundness-side arbitrary-trace row extraction for corrected Codec. From corrected Local, without any generator/native success premise, derive sender post-byte equals sender register head, seven nonterminal sender-register next-row equalities as naturals, and allowance pre-byte zero. Sender phase and nonterminal flags plus row bounds remain explicit. Does not derive full scheduler semantic correctness, block geometry, prior bus linkage, or global validator replacement. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundRows.lean",
+      "sha256": "53ef76323d1769f125e3789ba9626227ea793bffa0603fc5766ad2c2f12b3e69",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundRows.lean",
+      "audit_sha256": "ccaf8be0cfd08f57866d24b56f20c962aa0a9a889eefc14083bd2e1d26e4c3ee",
+      "guards": 6
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-codec-sound-rows/dependency-review.json",
+      "sha256": "813f9ca0bd8db67857e7a33dfac5789c8b57a63196471912565607e5d2514f7c"
+    }
+  ]
+}

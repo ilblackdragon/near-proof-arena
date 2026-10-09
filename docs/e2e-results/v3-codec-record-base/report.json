@@ -1,0 +1,25 @@
+{
+  "lane": "codec-record-base",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordBase.lean",
+      "sha256": "c5ee1338e23da098b04c5a9685c01d9d17ba5f4020f2464f9cf735f654e68645",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-base-ProcPriorCodecRecordBase.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecRecordBase.lean",
+      "sha256": "5c4730288a65f48ba20a2a51b281cb8dd6e47d7d21dc956ae0189e23c888d21b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-base-AuditProcPriorCodecRecordBase.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual corrected record row six base fields and eight sender-ID bytes from concrete generator extras; no arbitrary no-overwrite premise. Full Codec local pending.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

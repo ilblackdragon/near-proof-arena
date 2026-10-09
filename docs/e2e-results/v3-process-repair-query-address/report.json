@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Repaired View actual Codec/prior68 traffic derives memory query addresses; prepared last-write endpoint derives all query/stamp bounds with only write-address bound remaining. Actual public shard-index sender bound64 derives from prepared native SPAR. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueryBounds.lean",
+      "sha256": "b69bc0cab13d9f6e3838180a85f6c063edcb6776c041414a8ba2d52e0960efa2",
+      "audit": "zk-formal/test/AuditProcessRepairQueryBounds.lean",
+      "audit_sha256": "51f1bbab8a708221fd3151da4c68edfd41ee5eafae701566d4c7a82ba02ea33b",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueryAddress.lean",
+      "sha256": "f31333218238c2f78eab0976fe295225694f7de405d727cd42bd162a307d1728",
+      "audit": "zk-formal/test/AuditProcessRepairQueryAddress.lean",
+      "audit_sha256": "6cea93e4e9c281e31e9081f8ff1d4dcdd7a7534d7c42961d7c29d71450788150",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairPreparedLastWrite.lean",
+      "sha256": "3d80d78461050720416bff6dd19f3537e579631248b2fc1225fe1a7d34758422",
+      "audit": "zk-formal/test/AuditProcessRepairPreparedLastWrite.lean",
+      "audit_sha256": "2019354f1076b28606bc4dc79653bef0e9a07f3f503383835da9dcdcfe97e430",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairPublicSenderBound.lean",
+      "sha256": "eab3919973af24531d3215e9cc1cf487171b87ff94434bec60f69693383054cf",
+      "audit": "zk-formal/test/AuditProcessRepairPublicSenderBound.lean",
+      "audit_sha256": "57e50ac0c20d5c7b7b0ec9ab551af2b53beeed7b489286871e7b428e164296c8",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "actual_scope": "Kernel-checked KEYNIB inventory excludes every supplier except selected13 receipt and selected18 repaired queue. query_source follows from actual HoldsP and no public KEYNIB sends for that payload.",
+  "remaining": "Receipt symbol bounds, provider walk-ID separation, ordered key equality and binding to native state queries remain. Updated ProcessRepair family transport is a separate parallel lane.",
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

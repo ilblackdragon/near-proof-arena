@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "scope": "Exact physical selected RecordLinear write67 inventory; see hashed README and dependency review.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordAllTraffic.lean",
+      "sha256": "b1ccd45249afda2cff6888e9e1fd5a6465cd35a6f6c6440bf6db1ef01defd18d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordWriteTraffic.lean",
+      "sha256": "f2cf1acda4008563afb54c1911cafba2f63ea8dbb31b2e20faf35178500972b7"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRecordWriteTraffic.lean",
+      "sha256": "0148c338a4937438f958409640a5dd043f625617ddfa3e97b6e4b0552e957772"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-write-traffic/README.md",
+      "sha256": "47e49c1bf4b415906a87c566c179b7522365961000b61cf5e881ccc1e8dfc132"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-write-traffic/SHA256SUMS",
+      "sha256": "3327630b894131c58462288f9e2d3c1e206dcc52a5812b96de013109f6cd5f2e"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-write-traffic/dependency-review.json",
+      "sha256": "b477a57b74b21291b40ea02904a15c6919acc9710bcd1d5e9bf168476a14fac4"
+    }
+  ]
+}

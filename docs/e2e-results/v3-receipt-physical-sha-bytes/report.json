@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact logical/physical receipt+account SHA byte split retains public refund consumer and explicit Merkle producer. Uses actual repaired receipt TableTraffic and account byte-count contract. No final SHA balance claim; prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptPhysicalShaBytes.lean",
+      "sha256": "948597496efeca7dc85262d9f23d73dd3cbdc2994ea2d86c3593fd520d1ee64e",
+      "audit": "zk-formal/test/AuditReceiptPhysicalShaBytes.lean",
+      "audit_sha256": "2e554cf360b748ace55e543bb84b7a918bd4017b3c3eced2c612d0eb8fde9fc2",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "date": "2026-10-09",
+  "scope": {
+    "status": "strict PASS; exact axiom audit",
+    "guard_count": 21,
+    "dependency_order": [
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpCells.lean",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpRows.lean",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpInventory.lean",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpTraffic.lean"
+    ],
+    "audit": "zk-formal/test/AuditProcDistCmpInventory.lean",
+    "sources": [
+      {
+        "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpCells.lean",
+        "sha256": "12a96fbd1fc9a485b9b19ad98f9332bb9fa958b7b592685e054091c11f6e4b41"
+      },
+      {
+        "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpRows.lean",
+        "sha256": "b079cd1710aa50e1ce0ff5bf8e6d4e42e639313618454cc95fcfe0c73fc3b4de"
+      },
+      {
+        "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpInventory.lean",
+        "sha256": "d60b3a239d53bdac469bfac983e02ee43bfb22d8481f4fddf7d76360722b7c3e"
+      },
+      {
+        "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpTraffic.lean",
+        "sha256": "0a1e47d40c42d53b8e471afcacead5657065b6f2c735102b6b3a74fcea6a4a37"
+      },
+      {
+        "path": "zk-formal/test/AuditProcDistCmpInventory.lean",
+        "sha256": "cecd9c8a443903a2cb2ed779b622da3cc73546832b962220babc3631d297e509"
+      }
+    ],
+    "remaining": [
+      "Scan rows silence and full physical concatenation/capacity are separate.",
+      "No full ScanDist TableLocal claim or selected-family placement follows from this row inventory."
+    ],
+    "source_hashes": {
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpCells.lean": "12a96fbd1fc9a485b9b19ad98f9332bb9fa958b7b592685e054091c11f6e4b41",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpRows.lean": "b079cd1710aa50e1ce0ff5bf8e6d4e42e639313618454cc95fcfe0c73fc3b4de",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpInventory.lean": "d60b3a239d53bdac469bfac983e02ee43bfb22d8481f4fddf7d76360722b7c3e",
+      "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpTraffic.lean": "0a1e47d40c42d53b8e471afcacead5657065b6f2c735102b6b3a74fcea6a4a37",
+      "zk-formal/test/AuditProcDistCmpInventory.lean": "cecd9c8a443903a2cb2ed779b622da3cc73546832b962220babc3631d297e509"
+    }
+  },
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpCells.lean",
+      "sha256": "12a96fbd1fc9a485b9b19ad98f9332bb9fa958b7b592685e054091c11f6e4b41"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpRows.lean",
+      "sha256": "b079cd1710aa50e1ce0ff5bf8e6d4e42e639313618454cc95fcfe0c73fc3b4de"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpInventory.lean",
+      "sha256": "d60b3a239d53bdac469bfac983e02ee43bfb22d8481f4fddf7d76360722b7c3e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpTraffic.lean",
+      "sha256": "0a1e47d40c42d53b8e471afcacead5657065b6f2c735102b6b3a74fcea6a4a37"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistCmpInventory.lean",
+      "sha256": "cecd9c8a443903a2cb2ed779b622da3cc73546832b962220babc3631d297e509"
+    },
+    {
+      "path": "docs/e2e-results/v3-dist-comparison-inventory/dependency-review.json",
+      "sha256": "bf480042c6030a137463ba17aff015274f7452ed0d4ba6dddd838e6b0e1a1b1c"
+    }
+  ]
+}

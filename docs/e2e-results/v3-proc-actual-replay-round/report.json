@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual full round succeeds from model batch, shape, valid pointers and bucket guards; no entry-loop success premise. Exact suffix factorization checked. Across-round invariant and final checks remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayRound.lean",
+      "sha256": "cbfa9cb8d7e633e04430c1bc067e3e6db5625c5a20f9da1d697fa3d5ae907a0e",
+      "audit": "zk-formal/test/AuditProcActualReplayRound.lean",
+      "audit_sha256": "c45bdba21d0eede74c7b73e61c8ef9bea845b9fed92567f44e43916f1ea3b2fc",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundFactor.lean",
+      "sha256": "aaf560bc3ca17c1146ba34fa7d59f855a66ca81ab6f39cb923166108efea101f",
+      "audit": "zk-formal/test/AuditProcActualRoundFactor.lean",
+      "audit_sha256": "7543f0445540beb951a10a5787b3fd0a63b163827fb02d3a218b54a571982b8a",
+      "guards": 1
+    }
+  ]
+}

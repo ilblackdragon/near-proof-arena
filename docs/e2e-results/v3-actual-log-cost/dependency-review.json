@@ -1,0 +1,16 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualLogCost.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcActualLogCost.lean",
+  "guards": 3,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualLogCost.lean": "1540220ab83bfcef2cffb4988d9772b34c97596dae6839ff32b916703a5383a0",
+    "zk-formal/test/AuditProcActualLogCost.lean": "d2c0005ed3a5ed564ecd1ffaee830f678eb3250c6370254c6cbf4b2dc19db51c"
+  },
+  "remaining_work": [
+    "outer replay round and converted-read charging",
+    "segment creation count",
+    "whole accepted Run count"
+  ]
+}

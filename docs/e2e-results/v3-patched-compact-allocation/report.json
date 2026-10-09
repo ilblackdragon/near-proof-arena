@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "From actual compact TableLocal, reader rows have zero EDGE/BMAP gates. Arbitrary read-counter patch preserves every non-UPB physical row message and bus count. SAME allocated compact trace has local legality, log22, scheduler SHA byte inventory and ranked UPB balance. Provider key uniqueness/coverage explicit; fresh/sanity producers and full assembly open. Strict checks with prebuilt dependencies, not clean certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/WindowPatchOtherTraffic.lean",
+      "sha256": "6fa2f284a2c87b6920b2fd7300bd6641363dd7e92695ef0ea9068d20a43480d3",
+      "audit": "zk-formal/test/AuditWindowPatchOtherTraffic.lean",
+      "audit_sha256": "26784b9d203a599aa7777e641805f492204676892dfa9c07f7fad41b83a52736",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PatchedCompactAllocation.lean",
+      "sha256": "b54ad5328c89945dcf9096d7b0d2878b752c4c3e8f66ad0802c6954a488c0288",
+      "audit": "zk-formal/test/AuditPatchedCompactAllocation.lean",
+      "audit_sha256": "1d2f88e7508bd7943e5007c131c2b9ed8164bdd51c6584188a5e5ee5aa25a623",
+      "guards": 1
+    }
+  ]
+}

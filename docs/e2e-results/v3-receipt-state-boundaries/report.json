@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-state-boundaries",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateLastIndex.lean",
+      "sha256": "8311f6bce573355565be71f38123f5b6a19fd83973fd6d011fd8d36c323cbdc5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-RcptStateLastIndex.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateLastIndexPhysical.lean",
+      "sha256": "bdd377b9a5905c1dc71bd4640866b34b14c5ae584a51bef8d23168d436e7de67",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-RcptStateLastIndexPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateBoundary.lean",
+      "sha256": "9574a8fd8dc6a284f90df0eaad05806d881802ef2916c2fcb3e995e2e249db4a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-RcptStateBoundary.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateSuccessors.lean",
+      "sha256": "3dcc02a6fccf68619144e6facc7f9ae44df1aa439b5c6a0c0ac559abd6a5fa91",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-RcptStateSuccessors.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateSuccessorPhysical.lean",
+      "sha256": "35bc37d4df8eedd1c8d3219cbf9223d6dd2f8edeec61387fe65f873203ce7157",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-RcptStateSuccessorPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateLastIndex.lean",
+      "sha256": "f6cf79ee8ddaa3bbbde0ebc52002e890ab62e9e863c84fc7b1bd15f1b176310a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-AuditRcptStateLastIndex.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateLastIndexPhysical.lean",
+      "sha256": "7c5fa7a106c1eb334587c9be5630d082ab7b9548bab4bd065fe328022f9d5b8c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-AuditRcptStateLastIndexPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateBoundary.lean",
+      "sha256": "18891c3b0bcf6b7e82a39a34961bfa3e9ca8fe307cf55b009b39264665994343",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-AuditRcptStateBoundary.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateSuccessors.lean",
+      "sha256": "9f6750acde4dc0e62e9870736ad4686e5be9e90a8631390c20bc7060ac74464f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-AuditRcptStateSuccessors.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateSuccessorPhysical.lean",
+      "sha256": "0c2416e57e96b72893df6ab2f10c7154f5a2feb54f8ea6b1cfe3a64d65179ea8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-boundaries-AuditRcptStateSuccessorPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical trace23field-end plus22successor and2reset constraints. Joint581/881; remaining native/structural obligations explicit.",
+  "exact_axiom_guards": 28,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

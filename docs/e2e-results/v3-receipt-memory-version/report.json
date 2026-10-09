@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-memory-version",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateMemoryVersion.lean",
+      "sha256": "c957d07413a0104cc83e0716fef7cfc8b9014f2abd1b679fa7d68e50db7e5e17",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-memory-version-RcptCandidateMemoryVersion.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateMemoryVersion.lean",
+      "sha256": "e61621de79664278b3555bb437c7f02c24b2acb4137c97b904cd67b925daad19",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-memory-version-AuditRcptCandidateMemoryVersion.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4 guards. Physical MEM positive receive stream bounds imply previous-version bound and SAME receipt semantic Wf/traffic.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

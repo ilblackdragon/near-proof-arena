@@ -1,0 +1,109 @@
+{
+  "lane": "receipt-gas-delay",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasDelayFrame.lean",
+      "sha256": "f9318d896270d0bc326ae978865219d52e7a3a0ae3d20afecc71bd5d03ac796d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-RcptGasDelayFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasDelayCells.lean",
+      "sha256": "b4677b824d283290817f98e6858f7a3870ecf9f45a9cef8aac7dc1e66029210c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-RcptGasDelayCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasDelayLocal.lean",
+      "sha256": "4dcc39e8843478237b2ee5891ff00b7a2b0fa9ed27b0f4f7d2fdb4b66896dbed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-RcptGasDelayLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasDelayFootprint.lean",
+      "sha256": "b648d2731d8301a0dade76a43c348e9d464ba74e5e554638169cc0f87c68774e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-RcptGasDelayFootprint.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasDelayPhysical.lean",
+      "sha256": "b406cb63fc387305edfb9e1e4329ed1950837ab674ac26f103b39a4f541187af",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-RcptGasDelayPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasDelayCommute.lean",
+      "sha256": "026d0c4da48bf32630160aef879b93dd9411026792ff8528768ef32281a23d4b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-RcptGasDelayCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasDelayNativeComplete.lean",
+      "sha256": "5b0c57db5bff7ed3ff4d0a1d51cd154f5a4875cdfa63d039fac084fa65f3ae07",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-RcptGasDelayNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasDelayFrame.lean",
+      "sha256": "1c2b4653d7e445f322c109b39ab1d121458ea77acd9c46546759ad45381601a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-AuditRcptGasDelayFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasDelayCells.lean",
+      "sha256": "88ce55706a6098054d6ff630c76e27a208c52427ad4cf767029f0e0226038439",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-AuditRcptGasDelayCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasDelayLocal.lean",
+      "sha256": "15c8dfb520fea2aed722fa06cf16f422277afd2dd3f04caef7867ba80a8f9986",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-AuditRcptGasDelayLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasDelayFootprint.lean",
+      "sha256": "9d3c2bac7afead685f01e5be82f73064dbd764c2beb4a2637ac2387f0c36cbdf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-AuditRcptGasDelayFootprint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasDelayPhysical.lean",
+      "sha256": "fed6e9db5510ed65909d35d02e23fc0f37149a628fc2fa633f847dab3d9f4fd5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-AuditRcptGasDelayPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasDelayCommute.lean",
+      "sha256": "5d015300ae319bfb421dba44e2ae383593db30e9a7b26cac7f745bc2306bdbc4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-AuditRcptGasDelayCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasDelayNativeComplete.lean",
+      "sha256": "4b723e3460e76c5dc82324002c3535d3cb706a9121303e82e91d952320c0951e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-delay-AuditRcptGasDelayNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules30guards. All16 original gas delay-line equations compose on same trace with prior808:824/881. Remaining gas18/deposit39; gas public binding,system surplus overflow and deposit distance limitations remain explicit.",
+  "exact_axiom_guards": 30,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

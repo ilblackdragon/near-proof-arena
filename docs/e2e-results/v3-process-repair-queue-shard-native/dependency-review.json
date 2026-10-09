@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "build_order": [
+    "ProcessRepairQueueBuffered",
+    "ProcessRepairQueueNative",
+    "ProcessRepairQueueShardStream",
+    "ProcessRepairQueueShardBalance",
+    "ProcessRepairQueueShardNative"
+  ],
+  "same_witness": "Parser records select entries from supplied SAME es; native buffered bytes are exactly toBytes e.bytes. Existential shards preserve duplicates and order.",
+  "remaining": "Selecting buffered parser provider and tying main group walks to native group-data keys is a separate next theorem; no complete native state transition claim."
+}

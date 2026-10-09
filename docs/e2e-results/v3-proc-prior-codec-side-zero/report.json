@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All18 cKind zero-test equations on actual header/hash/ash helper rows. Bounds: header p<5, hash/ash j<32, tau<P; arbitrary next row and boundary selectors. Exact equality to cKind slice52..69 and filter-preservation prove retained-group identity. Does not establish remaining phase, reconstruction, adjacency, complete cKind or fullLocal. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideZero.lean",
+      "sha256": "8b0f6b1532e888e5cb08e5e4478d1ef0ccc7e615aefc56225f57413bbc27b8b0",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideZero.lean",
+      "audit_sha256": "faff270ea81a4c676f170fe63af4cd2f73ef0ad39449a902d53c792cd781b17f",
+      "guards": 21
+    }
+  ]
+}

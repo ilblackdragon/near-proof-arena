@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native and original source job contracts derived from SAME acceptance/preparation/witness and fed into four packed log22 SHA bins. Exact physical byte sends of four original source tables equal source SHA jobs, accounting overlaps/duplicates. Scheduler/receipt contracts and remaining global balance open. Prebuilt dependencies, not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/AcceptedSourceShaContract.lean",
+      "sha256": "85291575f3ee95936e02341b87f8f1f959bc0ac413e4391e70d87240cd6f4148",
+      "audit": "zk-formal/test/AuditAcceptedSourceShaContract.lean",
+      "audit_sha256": "cdd310625a4755c68f370c1bcd5850534fd2f8ba08fd6dfb31b8cc1f8a105ee8",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSourcePackedAllocation.lean",
+      "sha256": "090e031f362ee659e6ceb1afd18f19f75b35e26a85c7fe31ae8a750668eff3ba",
+      "audit": "zk-formal/test/AuditNativeSourcePackedAllocation.lean",
+      "audit_sha256": "136e8114e7c77ca1faafd46c1c191061bfbeff3b5751fa3a56c265ce813d4a5f",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSourceShaTraffic.lean",
+      "sha256": "b539eba287a00a7eceac936761e81d116e326151e8788d57d142b84f66acd121",
+      "audit": "zk-formal/test/AuditNativeSourceShaTraffic.lean",
+      "audit_sha256": "9b0f05e6a11760c85f65984a39eb90448823a1a9d0d763f3cfde565537856691",
+      "guards": 1
+    }
+  ]
+}

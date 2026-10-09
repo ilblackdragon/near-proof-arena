@@ -1,0 +1,53 @@
+{
+  "lane": "ups-terminal-id",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/NativeTerminalId.lean",
+      "sha256": "68864f21deadee53665076f31850cc964fd9b903618b1a0cf3fb1a94eb7dcdbf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-NativeTerminalId.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/ForestTerminalExact.lean",
+      "sha256": "ac4618193cf8b6bf3e65e574b5eb8f4dd253c36099247106e9223627a905b453",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-ForestTerminalExact.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/ForestNativeWalkExact.lean",
+      "sha256": "e9f695bccd6dcd537dc0330ed8cfd739bad2c853164ce3be93d1a7291ad49fe5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-ForestNativeWalkExact.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/SchedulerExactInstances.lean",
+      "sha256": "e4410afc1a79bca1b09800eebbc4f7ee8aa697f1372bfbd31f9cfe28667680e5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-SchedulerExactInstances.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/AcceptedExactTrafficList.lean",
+      "sha256": "c025456bdfcbbc04751a6463c49ac3f07d86113b77e6b1f1f4edb6beb8eac75c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-AcceptedExactTrafficList.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsTerminalId.lean",
+      "sha256": "fd6b0087e8382524c796df5146dbc321c25e9445203bf7220c5c90a038487abe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-AuditUpsTerminalId.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Extended accepted exact native traffic keeps ci=terminal index and positive BV/BI bitmap dispatch, alongside exact provider node ID. Same allocated/SHA witnesses; no added native domain restriction.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

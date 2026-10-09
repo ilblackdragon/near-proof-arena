@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Complete physical group-key/native runtime linkage module; two exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeGroupKey.lean",
+      "sha256": "017b46dcd7f08e9ecf7cdddecdab6455b9caeb3e8b1e7223779b8b8fba94303d",
+      "audit": "zk-formal/test/AuditQvNativeGroupKey.lean",
+      "audit_sha256": "fbc2cabc5a73004cfa65ba166222bb6f8a162dd9f764d1bfbcd43c70653ae5da",
+      "guards": 2,
+      "log": "/tmp/nearproof-NativeGroupKey-audit-checked.log"
+    }
+  ]
+}

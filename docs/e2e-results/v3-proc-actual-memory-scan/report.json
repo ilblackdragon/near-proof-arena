@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact generator memory scan, including actual accumulator order, succeeds for ordered segments; full suffix is definitionally factored through the extracted segment step. Constructed-segment ordering and remaining finish checks still require integration. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryScan.lean",
+      "sha256": "285164886497c1f5ffaed2ebc1ceaf5b6c87b36a3237be7aed3648b9ed04f106",
+      "audit": "zk-formal/test/AuditProcActualMemoryScan.lean",
+      "audit_sha256": "53e0046592a59331ec799ff20223df1755eaac0f0033a7ec7e7dea2eafbb4031",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryFactor.lean",
+      "sha256": "121f4255426be5c2121def194dd3c667e7968a127f04648f3313d646941df8b0",
+      "audit": "zk-formal/test/AuditProcActualMemoryFactor.lean",
+      "audit_sha256": "8bc2e6998434b0b12b85a8100295384ec3280039dc8eb1fb71de4bceb710120b",
+      "guards": 1
+    }
+  ]
+}

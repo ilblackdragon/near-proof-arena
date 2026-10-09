@@ -1,0 +1,53 @@
+{
+  "lane": "scheduler-fixed-height",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SchedHeight.lean",
+      "sha256": "a504220cf1c9649ed058d2853f736eaa9aa3061f406af5ba9232ad4275b1c1a2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fixed-height-SchedHeight.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CmpHeight.lean",
+      "sha256": "e2b450c47f9b60cac722198066b2963ed3496422f3a129de0a122d47a9822714",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fixed-height-CmpHeight.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/MemHeight.lean",
+      "sha256": "dbd8e06151fe4109e3e3eaeba421b674cf893b0de104303d5c1e67037da459b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fixed-height-MemHeight.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/MemHeightTraffic.lean",
+      "sha256": "bc19b6dfebde6349f8f61621acbfdfa75980770df43a09f6c135dde2f9d0ee20",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fixed-height-MemHeightTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SchedLocalHeight.lean",
+      "sha256": "1360a1b4028777a93d42c5aeecd625484f053c498bf8fcc033bee16dc7d8bd3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fixed-height-SchedLocalHeight.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedHeight.lean",
+      "sha256": "5593bafa6bb049763257d1c6c048955fc267cbf9b24b3b013659bed4b1cfd226",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fixed-height-AuditSchedHeight.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual comparator and memory traces at log22: local constraints, multiplicity bits and exact bus traffic. Scheduler input validity and memory row bound remain explicit; codec/scan/process completeness still open.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

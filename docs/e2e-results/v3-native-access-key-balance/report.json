@@ -1,0 +1,67 @@
+{
+  "lane": "native-access-key-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyEvents.lean",
+      "sha256": "09a68874b80b6d5deb51c17cf1f13230f4beadaf596a223bb98315cbbd8440b1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-NativeAccessKeyEvents.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyBalance.lean",
+      "sha256": "57624a31c3a62b7ac16b697fef25d93ed95bcc2c0d8e80427463d72a28fc2a9e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-NativeAccessKeyBalance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyOrder.lean",
+      "sha256": "583e1ddd9822b7803aba2fa15c00aadb567e89aabc2d452cb18711150e6cfdd7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-NativeAccessKeyOrder.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptLocationLayout.lean",
+      "sha256": "8bfee664c27dcabb5c404ec8b69f1a3a24ec13e8ca078849714fc4be3f4e06d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-NativeReceiptLocationLayout.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyView.lean",
+      "sha256": "a4e6f3ba62323b83e9d2260948b48353a9e4e7695f3caee769a0102e3b121e4f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-NativeAccessKeyView.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyPhysical.lean",
+      "sha256": "e8643e01b8a34b4f1ea96af23c4fb3663d4295fcea5fde2204df8d2ae1bfebba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-NativeAccessKeyPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyPhysicalBalance.lean",
+      "sha256": "0409ce87ccbe963a4f302629c9afd3105b3e8ebca151d6354a49c8fc32bdc081",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-NativeAccessKeyPhysicalBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccessKeyPhysicalBalance.lean",
+      "sha256": "88b10dc2c01dd0fcefc25cf587ae68466196625ff6675c533660043a9c51383e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-balance-AuditNativeAccessKeyPhysicalBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules14guards. Whole actual receipt and selected-provider physical B_AKC conservation with prefix-rank fallback, including repeated and absent accesses. Strongest allocation specialization ongoing.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

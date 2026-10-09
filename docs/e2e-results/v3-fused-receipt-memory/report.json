@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual fused MEM positive-count version bound yields SAME projected receipt semantic Wf and all-bus traffic. Component receive counts bounded by fused count; global provider ownership remains. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/FusedReceiptMemory.lean",
+      "sha256": "c0cba3707ca83848cad2003b855d14c64cd5c67cb93dd976870f2a5c6f737a60",
+      "audit": "zk-formal/test/AuditFusedReceiptMemory.lean",
+      "audit_sha256": "40c2d0d664adeac67b650bb56ee83eb2e608a35eff54101be60f50dfb0cea8f5",
+      "guards": 1
+    }
+  ]
+}

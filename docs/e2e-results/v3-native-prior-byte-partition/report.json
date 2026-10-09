@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Global account/access/queue/EmptyValue byte equation includes physical main prior parser for present and absent native reads. Actual occurrence and capacity derived from accepted data; explicit residual removes exactly prior occurrence when present. Native read/decode facts explicit. Implicit parser installation, repaired queue transport and strongest allocation integration remain pending. Prebuilt dependency checks, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePriorBytePartition.lean",
+      "sha256": "abb02bb53854777d6d6a70d68c411fad44c1a6bb3518ee4c6fd1c2f1ddddc2f4",
+      "audit": "zk-formal/test/AuditNativePriorBytePartition.lean",
+      "audit_sha256": "287b2b6776a4b86708fd0593c0d15808fc5cdebd5d26adef6a3b615c74d367a3",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact same-witness installed routed overlay traffic: noncomparison counts retained, shared40 merges old40+69 natural multiplicities, and internal67 writes/raw75 records balanced after installation. Full global Holds/comparator provider remain open. Strict incremental prebuilt-dependency audits.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorRoutedTraffic.lean",
+      "sha256": "fd181e709af342b185ff8c261ee71114a4a778557563b861876571f313b0b8b2",
+      "audit": "zk-formal/test/AuditSchedulerPriorRoutedTraffic.lean",
+      "audit_sha256": "3b49fbb020b3343ff727586e16360f51b91bda0b16d441872e438f075d3e003b",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorOverlayJoins.lean",
+      "sha256": "72ce54d25ed48000aca5b674e8234341e35cd487446689591e3e4ec630fa93e2",
+      "audit": "zk-formal/test/AuditSchedulerPriorOverlayJoins.lean",
+      "audit_sha256": "a5b305039b09a521937bbf41a3e9e637926f53d777cc922c59df87f9b8102be0",
+      "guards": 5
+    }
+  ]
+}

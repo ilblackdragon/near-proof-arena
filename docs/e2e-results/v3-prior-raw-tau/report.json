@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 21,
+  "dependency_order": [
+    "ProcPriorStageOrder",
+    "ProcPriorRawTauSteps",
+    "ProcPriorRawTauUnique",
+    "ProcessRepairRawNativeRecordFull"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorStageOrder.lean",
+      "sha256": "61ff3627e5415c7b82db6825ef753d3e450dd146956280cba6b7ecf0916801fc"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawTauSteps.lean",
+      "sha256": "7c30694735ee512d63092e5c10917063e839e597ead447bc683d8bba23f381a9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawTauUnique.lean",
+      "sha256": "4aab97c425f98eaeeed97a79982497b0a3210a4c3f57b84af198edba3f8a2350"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRawNativeRecordFull.lean",
+      "sha256": "ad4d3383d9699f4edc003d01d478dcffbd63c747c19ab7f4a19fe782e4685d52"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawTau.lean",
+      "sha256": "8318a2ad8200703022dff14946ec9b19de192e3972d4c2aad6bf2c9c1a6d7ecc"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcPriorStageOrder.log",
+    "/tmp/ProcPriorRawTauSteps.log",
+    "/tmp/ProcPriorRawTauUnique.log",
+    "/tmp/ProcessRepairRawNativeRecordFull.log",
+    "/tmp/AuditProcPriorRawTau.log"
+  ],
+  "scope": "Actual stage order, raw tau bound/monotonicity, uniqueness of first frame by tau from LocalV and height\u2264P. Enriched arbitrary native-byte endpoint retains first-stage and value ID."
+}

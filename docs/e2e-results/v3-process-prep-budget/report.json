@@ -1,0 +1,32 @@
+{
+  "lane": "process-prep-budget",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPrepBudget.lean",
+      "sha256": "6af0ff2fbb7768a35c9ac3029306580616030bee51b7e34ee74698ff2c735bfd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prep-budget-ProcPrepBudget.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConversionSuccess.lean",
+      "sha256": "6db573946a7b6dde2dffcdd14cb05023e9ae12d8fdb80fc855b531e97d74e453",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prep-budget-ProcConversionSuccess.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPrepBudget.lean",
+      "sha256": "faa4dc30b5454531ccefabfe61d9ef0740bfca637c87f9612e9f1eadcb5a50d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prep-budget-AuditProcPrepBudget.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules6 exact guards: actual prepD0 supplies prepared process input/count/capacity facts; native first conversion loop success under valid indices and five-byte bitmaps. Full generator success remains open.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual event distribution cannot fail with link-pass counts. Native core success derives corrected core event success and exact native poststate bytes. Grants equality and full replay success remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistEventRow.lean",
+      "sha256": "ea2636feee57a47d899ab4ba6dea6dc7eb192a1f7fbb7b7798c4bb44a8c68259",
+      "audit": "zk-formal/test/AuditProcDistEventRow.lean",
+      "audit_sha256": "127b4ba3a8991fc1050b08c740d6f03bc2816d4bbaf8db097dc9d9c0edcc61e2",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistEventTotal.lean",
+      "sha256": "0bbddf8ac5410b9e6be320a23286330fe9a3c9c61578411dfe53e939a589863a",
+      "audit": "zk-formal/test/AuditProcDistEventTotal.lean",
+      "audit_sha256": "8612db9af1b7f74198e0f62d2a852052eca2d3382923c92b67d38d9e5eaf506a",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualCoreTotal.lean",
+      "sha256": "28e7be9b3a7975ff2cfffcba27845e352322d7d513e82b9ab69a2f66d133805e",
+      "audit": "zk-formal/test/AuditProcActualCoreTotal.lean",
+      "audit_sha256": "df04f4904d51ef8cbbbfec06ac30731b39ad4420cd14d2c8c7295caa9fe456d3",
+      "guards": 2
+    }
+  ]
+}

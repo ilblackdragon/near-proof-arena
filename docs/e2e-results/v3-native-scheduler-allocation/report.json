@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "NativeSchedulerAllocation strongest SAME native API preserves NativeKeyAllocation facts and adds actual ranked/window-patched compact scheduler DIGEST receives=expectedDigests(schedulerShaJobs). Existing reader origins discharge encoded-instance premises, no new accepted assumptions. Codec sanity/global digest cancellation and full certificate/prover/judge remain. Prebuilt dependencies only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedSchedulerDigests.lean",
+      "sha256": "eac6d2aefdad9f0f9e096ba590efd724abd34c93099891cd7969f70cabfca75d",
+      "audit": "zk-formal/test/AuditRebasedSchedulerDigests.lean",
+      "audit_sha256": "f41ebc3afa85ff01b7a7770882500ce4580166d3b69ea617f20e69186568c9f5",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptSchedulerDigests.lean",
+      "sha256": "365ffc23eb617c2366a80dbd517a9b2d1cc5ab782017d5a101aaf026084233ea",
+      "audit": "zk-formal/test/AuditNativeReceiptSchedulerDigests.lean",
+      "audit_sha256": "de53c9b645d477047258d7000b6da2585c12bdc6ab34fb19bfac2b3ceb1ced89",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSchedulerAllocation.lean",
+      "sha256": "de651a5caaa8daa96e8efd36eab37d78d0e29b6c1785b280c12108b8a7125412",
+      "audit": "zk-formal/test/AuditNativeSchedulerAllocation.lean",
+      "audit_sha256": "8dcb5f9aba9301a976c20eca6823191eda9b3c53bfb70ba52acae7446b084d70",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "lane": "native-rebased-initialized-ids",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedChildIds.lean",
+      "sha256": "49c9b08293a6e6c464a03cd62de2e2d65127de7efda41edc377bf576d5f0b1dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-initialized-ids-NativeRebasedChildIds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedInitializedIds.lean",
+      "sha256": "1eb56ce306bf2aad64c7fac9ee2312b4353892a8d8df975a062333834eba4595",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-initialized-ids-NativeRebasedInitializedIds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRebasedInitializedIds.lean",
+      "sha256": "19030686c98a9f2a94c6846fad680b5bf3fbc74083b55f9dcd47563094c2b475",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-initialized-ids-AuditNativeRebasedInitializedIds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules10 guards. Whole global child/window ID list preserved by actual replay; original initialized then post-updated record at exact rebased index has same per-byte physical cidAt. Generated depth/UPB balance remain.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

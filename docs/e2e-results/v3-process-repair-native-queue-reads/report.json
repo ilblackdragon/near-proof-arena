@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Full native queue read contract from actual repaired AIR and SAME extracted authenticated forest: existence of MainValues.Valid and MainValues.Reads at canonical pre-head0, plus missingRequest.Holds for each native implicit ordinal1..p.hdr.K. Queue/parser/Walk/receipt witnesses extracted internally. Four strict source modules and five exact axiom guards.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueEmpty.lean",
+      "sha256": "876707755d8bca0d81246f2d02695a89b9538b37fde82834c1fb92568c6ccd6a",
+      "audit": "zk-formal/test/AuditProcessRepairQueueEmpty.lean",
+      "audit_sha256": "0d6ae0cb2b937e09d8dfacec5e615e4188f2b3ca9164e1b73d4455d4fd27d8de",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueCountRead.lean",
+      "sha256": "ad9aaf7b3d8cacb353233cb9319719c84147c5632dfe545978763469ed68736b",
+      "audit": "zk-formal/test/AuditProcessRepairQueueCountRead.lean",
+      "audit_sha256": "d71b8e764c2fb4f7ff139dafbdd40435af1ede1b979be8d5f436e68e68e17867",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMainQueue.lean",
+      "sha256": "5b5cf1ac72bfffbf49c76761cd38c761ca344008cb020e5ed71781fedec80252",
+      "audit": "zk-formal/test/AuditProcessRepairMainQueue.lean",
+      "audit_sha256": "ea7a7a6aa51dcaa4632c87b70af60380141aae2e0aceeccf6ee979f8a50d0a1c",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeQueueReads.lean",
+      "sha256": "93eb99facedf5d6bc092ce06460e656fc306c1d9aa58895e934a6666945f022c",
+      "audit": "zk-formal/test/AuditProcessRepairNativeQueueReads.lean",
+      "audit_sha256": "c9fbe5fe8b1223197a56a2a075bbf1eb10d228d15ebf71264ac1e66821f596c1",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-native-queue-reads/dependency-review.json",
+      "sha256": "3fa44d00d106b62fe6dc417378e0283d3a402cb3a978a909fd5640b563261fde"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Whole actual repaired queue KEYNIB traffic equals native key packets: placed-word prefix aggregation and exact parser/padding silence; no extra provider validity premise. Global receipt/walk KEYNIB join, installation and family recertification remain. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/QueueKeyRepairPrefix.lean",
+      "sha256": "9beb51fef70ba5d984aa8f836917c1beba83f7c160a6571eb9a9911ba1a5f582",
+      "audit": "zk-formal/test/AuditQueueKeyRepairPrefix.lean",
+      "audit_sha256": "cc670fe1c07a90341f56463b94c9ba7b8d7eac50de569fab0dbd209b5967d7de",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/QueueKeyRepairTraffic.lean",
+      "sha256": "54db75ed192dad26bd3b561b455f1a6f1c18e8af2eb3f93d4e990c5fdf081447",
+      "audit": "zk-formal/test/AuditQueueKeyRepairTraffic.lean",
+      "audit_sha256": "c4a647b7400ddeaada20580bd51bb25c59baed7cfe12cd4137bd7c515ff97b8e",
+      "guards": 3
+    }
+  ]
+}

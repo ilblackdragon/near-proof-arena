@@ -1,0 +1,38 @@
+{
+  "lane": "routing-trace",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQPatch.lean",
+      "sha256": "16784c37a7c653f27cb36364880a577f40007e7ebdb4daaa6077a4412ce4173c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-trace-RoutingQPatch.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQTrace.lean",
+      "sha256": "4f69183855a2c7678d67fec1094fbfd7c131fd92a9039c9185202c9ed651adfc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-trace-RoutingQTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingQPredecessor.lean",
+      "sha256": "68cff56dfde5679bfa404a6e8f6b72c9fe40ea7846beb96fbc328930f1a7f3af",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-trace-RoutingQPredecessor.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRoutingQTrace.lean",
+      "sha256": "0523ca2b51418b9a7fe4604b6073de75c6148e1ee2e436054d1a587b76f76d74",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-routing-trace-AuditRoutingQTrace.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict recompilation of isolated routing trace patch, exact traffic preservation and predecessor derivation; not active-table admission.",
+  "exact_axiom_guards": 10
+}

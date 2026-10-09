@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native forest/scheduler witnesses/compact instances/four SHA tables now choose node window requests from actual compact read inventory after allocation. Window capacity derived; prefix-ranked compact trace retains local validity and full SHA composition. Native ownership, fresh/sanity/receipt producers and full assembly remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedRequestedAllocation.lean",
+      "sha256": "86c0d2e2ae6c004c434a1e7ec8d2a2332aaf701a9aa57e0ccef53662aed8c911",
+      "audit": "zk-formal/test/AuditRebasedRequestedAllocation.lean",
+      "audit_sha256": "3eb6be4071d86ad6a4bc835fde7bbd33f64ac2f63c8ba082a11960acba3d861b",
+      "guards": 1
+    }
+  ]
+}

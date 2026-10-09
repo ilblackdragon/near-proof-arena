@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "completed": [
+    "Actual global BYTES receive count equals actual packed SHA component0..3 union",
+    "Actual triples dummy interactions on bus0 eliminated using exact count invariance",
+    "Any live actual DIGEST receive yields checked SHA preimage and every preimage byte has a genuine live BYTES supplier in same actual trace"
+  ],
+  "assumptions": [
+    "Actual HoldsP and exact repaired family tables",
+    "No public DIGEST or BYTES sends"
+  ],
+  "remaining": [
+    "Job-ID tag separation across actual BYTES suppliers, including nonwrapping ID encodings",
+    "Per-job position/value uniqueness to identify SHA preimage with SAME extracted node/value serialization",
+    "Public ROOT layout instantiation and final native forest/hash boundary"
+  ],
+  "observed_supplier_inventory": {
+    "fused_selected_slots_with_base_BYTE_sends": [
+      4,
+      5,
+      7,
+      8,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "other_physical_tables_with_base_BYTE_sends": [
+      6,
+      10
+    ],
+    "note": "Inventory observation only; next semantic tag/range separation must be proved, not assumed."
+  },
+  "validation": "Strict Lean builds and6 exact axiom guards"
+}

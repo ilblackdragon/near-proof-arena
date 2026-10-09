@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Corrected source full four physical cap22 TableLocal and exact carry balance on all reserved buses from concrete shifted placement, including new SIZE column. Unchanged native row bound16334272. Source SIZE/other traffic and dictionary sound extraction, active family replacement remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceShift.lean",
+      "sha256": "634b09a8e72a10acd5f581285ae4f46646eec4ccb1459e49bf735ee665b207b9",
+      "audit": "zk-formal/test/AuditUniqueSourceShift.lean",
+      "audit_sha256": "f839b5a3e72dbdc1c8d23fea88608715a07befd3100c504ebe15b8a33cbb9a8d",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourcePartitionTransfer.lean",
+      "sha256": "e9ea177db354198a014cbb5c4633b50c31c6e67a16ce1356facebd2b27753991",
+      "audit": "zk-formal/test/AuditUniqueSourcePartitionTransfer.lean",
+      "audit_sha256": "425d8bca07986eec488fc66b8a9c589219b8f3369826c05d66fd3ca4a472682c",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourcePhysicalLocal.lean",
+      "sha256": "945fa328a51d1c29a3b2d9250acd55f851e247002215f19bf723de67130ae032",
+      "audit": "zk-formal/test/AuditUniqueSourcePhysicalLocal.lean",
+      "audit_sha256": "598da3aa22aa12bf019ad6918c43a4cb48aa37f56c4b31360996c6a7b12fa709",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceFour.lean",
+      "sha256": "cd6aef9542ee34e32a90241dba66c55b9f0dd650587145896816bf5a61659b71",
+      "audit": "zk-formal/test/AuditUniqueSourceFour.lean",
+      "audit_sha256": "f18d6488e9690758271451b4b21b87a05e767b97df09869c821ba06f7a823b81",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceCarry.lean",
+      "sha256": "0e373c27e738b4ad89ff218c86a4ee8be89dad51239635c4097bf542efcefff8",
+      "audit": "zk-formal/test/AuditUniqueSourceCarry.lean",
+      "audit_sha256": "8ea79364e2d1735bdf803df4e9cd86ea07355964267156c9bda38448e3114c4f",
+      "guards": 2
+    }
+  ]
+}

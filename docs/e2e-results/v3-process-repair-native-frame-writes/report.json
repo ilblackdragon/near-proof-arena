@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "One authenticated decoded native frame now simultaneously provides coverage of every original native record and interpretation of every same-instance memory WRITE in that SAME State. Coverage includes exact allowance and conditional physical write emission at original ordinal when both found flags hold. Reverse direction derives State identity through physical raw-frame uniqueness; no caller same-state premise. Exact native first-match/address semantics remain open. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeFrameWrites.lean",
+      "sha256": "ea781432343ce8c16eca7ac7d590e6803a358104f1f018457a75042466abc006",
+      "audit": "zk-formal/test/AuditProcessRepairNativeFrameWrites.lean",
+      "audit_sha256": "77b16f63b23ad7c2ad50fa183d560761cf800ce8598379618d520150b738ef30",
+      "guards": 1
+    }
+  ]
+}

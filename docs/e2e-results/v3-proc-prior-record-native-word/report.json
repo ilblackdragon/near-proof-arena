@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual three-limb packed word and top-row saturation equal a bounded native word given eight explicit native byte equalities. Native byte provenance remains a separate obligation. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordNativeWord.lean",
+      "sha256": "8704039c13db5818c80b532b84199530fec00049be747ce7884fb55b6d452ac9",
+      "audit": "zk-formal/test/AuditProcPriorRecordNativeWord.lean",
+      "audit_sha256": "7bf045d671b3bd978f87d2e8efcc9c0c132cece9deb4ccd7299c7a61eb4f7607",
+      "guards": 3
+    }
+  ]
+}

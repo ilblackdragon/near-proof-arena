@@ -1,0 +1,32 @@
+{
+  "lane": "native-lookup-tree",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupTree.lean",
+      "sha256": "0263a744ebf63434be2e924fe2548db6a8e0dd7047782fdfc2035a823f9a93a1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-tree-NativeLookupTree.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupSymbols.lean",
+      "sha256": "5ba2e9ac357271eb24f765979a8b117ce339c19728b117f4eb70926cb64829f4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-tree-NativeLookupSymbols.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupTree.lean",
+      "sha256": "5ce80f2d1bfefa7cfdb1f199b1731d6f5f60864ec36130e6610f0dde69738a55",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-tree-AuditNativeLookupTree.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Executable recursive native leaf/extension/branch lookup, including absent/unresolved paths and compact preorder IDs. Definedness exactly PTrie.find for all trees/keys; exact symbols and row count. Full WalkWf and provider coverage pending.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,46 @@
+{
+  "lane": "sha-byte-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeShaTraffic.lean",
+      "sha256": "cc418d63e84621a65800b83b4557f362f3fe50162701a830ee0cfaac9f3d333f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-byte-traffic-NativeShaTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReceiptShaTraffic.lean",
+      "sha256": "68aeed898564d75b8f6e51a938a05822b742c031767a40b69ef70e05bdd24cad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-byte-traffic-ReceiptShaTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReceiptJobOrder.lean",
+      "sha256": "411f4be27074336b878d41d8d19b638d7996154b40297e664d7cb2538d6a4e18",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-byte-traffic-ReceiptJobOrder.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReceiptByteBatch.lean",
+      "sha256": "6f9d323921a06d55932626455bca2268a65538c46d1b5810811bf16deb7d93ef",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-byte-traffic-ReceiptByteBatch.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaByteTraffic.lean",
+      "sha256": "5eb4344ab4a2532e22ad4ccf17968100996a9b2d060bf3d15c1e3fb818ce4cf5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-byte-traffic-AuditShaByteTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact concrete native and receipt/account byte job traffic, preserving refunds separately; whole family ownership and constructor bindings remain open.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Intermediate generic queue record completeness with additional actual supplier traffic retained. Requires exact full VBYTES conservation and explicit StartClosed extra-supplier traffic. Intended RawFrame StartClosed discharge is pending actual origin proof; no unconditional native completeness claim.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueRecordComplete.lean",
+      "sha256": "9e6ee4dfed1e3f7769c7fb7e81d1c59d2538db84321ec7cf811347e3b8c01fe8",
+      "audit": "zk-formal/test/AuditProcessRepairQueueRecordComplete.lean",
+      "audit_sha256": "ec985f9519b0922b79125ed44982c5f20c843b7b9248fec6a22f55590f6dfa1a",
+      "guards": 1
+    }
+  ]
+}

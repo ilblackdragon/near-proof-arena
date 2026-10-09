@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Concrete full selected-table trace inserts accepted Codec at8 and prior overlay at19, preserving fused Local and exact natural counts through pair/triple reordering. Other selected traces must supply log22 and Local; no global Holds claim. Actual caps and column bounds kernel checked. Strict incremental prebuilt-dependency audit.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorHorizontal.lean",
+      "sha256": "fe9fd7fdf4c1f3ef86846ca14a3f7e9e553220679dc46c127318bfd54caf6221",
+      "audit": "zk-formal/test/AuditSchedulerPriorHorizontal.lean",
+      "audit_sha256": "0dd8bb65b23bea71ecc3c62e3b5339478d5afdf785efba4888e5dbe011ac7d88",
+      "guards": 6
+    }
+  ]
+}

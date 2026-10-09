@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "Actual repaired-family receipt MEM soundness: same extracted account inventory has unique slots; exact unchanged MEM traffic yields a natural message permutation and temporal order, then last-write payload equality for every receipt and final account. No supplied comparison/order predicate, no generated trace, and no claim of complete native receipt execution. Strict builds with prebuilt dependencies; 24GiB cap.",
+  "assumptions": [
+    "Actual ProcessRepairInterface.View with HoldsP and unchanged installed interactions",
+    "No public MEM or VBYTES segments",
+    "Same extracted Value inventory and ValWf for account uniqueness",
+    "Same actual receipt ListChain and optional account Wf, extracted internally by authenticated"
+  ],
+  "conclusions": [
+    "Account slots are unique",
+    "Natural MEM permutation, tprev equals previous same-slot write, tlast equals final same-slot write",
+    "Receipt before payload and final account payload match actual initial or preceding receipt write"
+  ],
+  "remaining": [
+    "Native arithmetic requires authenticated byte ranges and current receipt arithmetic Wf",
+    "Ordered memory semantics alone does not prove applyNewChunk or global validator replacement"
+  ],
+  "guards": 22,
+  "integration_note": "Receipt ordering lives in ProcessRepairReceiptMemoryOrder. Original prior-memory ProcessRepairMemoryOrder is preserved; both consumer branches rebuilt after resolving a filename collision."
+}

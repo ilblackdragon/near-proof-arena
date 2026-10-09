@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted ordered native scheduler calls (count<=33) construct decoded prior inputs, successful corrected runInputs and process TableLocal at log22. No generator or sequence success premise. Covers process table only; codec/other tables/global assembly and full certificate/judge remain incomplete. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualConstructedSequence.lean",
+      "sha256": "49ae3db649715305ff0255303455944c973f9554cdacb893556524d4a30d86ea",
+      "audit": "zk-formal/test/AuditProcActualConstructedSequence.lean",
+      "audit_sha256": "21e58f04645cf2e8c6fec4ab3aedb66e26f97ddbfe7f854b03d8fef4037c0991",
+      "guards": 5
+    }
+  ]
+}

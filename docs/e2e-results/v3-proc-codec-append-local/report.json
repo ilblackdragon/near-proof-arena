@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Full corrected Codec TableLocal for two concatenated actual generated blocks from singleton Local, n\u226464 and current tau<P. Actual final ash-to-next-header boundary, relocated first selector, all current/next physical cells, Boolean multiplicities, strict log22 capacity and padding are derived. Generic append_rows supports longer lists but full arbitrary-list concatenation/index extraction is not yet asserted. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecBoundaryLocal.lean",
+      "sha256": "1d1ad8114733c11caa6cb72e903cafc84a28a67c9de9ef880469827d217f6eeb",
+      "audit": "zk-formal/test/AuditProcCodecBoundaryLocal.lean",
+      "audit_sha256": "fb577213697b9a4f9030b55a32ef4778c2dc515d8c8d18125a309c48eb4b64ac",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedBoundary.lean",
+      "sha256": "9fa93660ce8c2b1b65e29e08adc8511f75b03f803b8e735e43d3c254cd4ad0c3",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedBoundary.lean",
+      "audit_sha256": "2b0c2d786d70c6610d2c4fa793a2b52edc1df8f6e91f26d6b48aeb95f3aa6ca4",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecAppendLocal.lean",
+      "sha256": "4ad7249e4781ce89b5dd742515a208227c6c4f1a04ada2c8f0d6b57a1fe259b4",
+      "audit": "zk-formal/test/AuditProcCodecAppendLocal.lean",
+      "audit_sha256": "2533d8f12189dc73471e8dde28921bc1110a656f3212b582e37bb2a70f6dc979",
+      "guards": 4
+    }
+  ]
+}

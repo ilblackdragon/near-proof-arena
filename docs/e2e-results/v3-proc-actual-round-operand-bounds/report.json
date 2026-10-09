@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact bucket and round comparison loops preserve operand bounds from explicit round time/key bounds and input comparator bounds. afterMemory_success discharges remaining checks under those semantic bounds and chronology. Deriving input bounds from prepared replay remains open. Prebuilt dependencies; full certificate/judge incomplete.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundOperandBounds.lean",
+      "sha256": "914365f6df5e3d905a2693aaa6731ca38e6b67312bd88a4899a089d5f93f9863",
+      "audit": "zk-formal/test/AuditProcActualRoundOperandBounds.lean",
+      "audit_sha256": "f40f7c02d99c42da849eb2a7f89257564ae3d8f4c5b6d82a7d63d50244ce24f2",
+      "guards": 8
+    }
+  ]
+}

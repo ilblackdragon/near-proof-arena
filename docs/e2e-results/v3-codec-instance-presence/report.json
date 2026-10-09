@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "guards": 9,
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawInstancePresence.lean",
+      "sha256": "da117a1239906945046576bf49ad40b79d9fe91c37c89e87560a15876b931c03"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeBlockPresence.lean",
+      "sha256": "c6bad988b1b9c9eb8199116cedb9bb3f95624add080b54b259a5c08da0575deb"
+    },
+    {
+      "path": "zk-formal/test/AuditProcBlockPresence.lean",
+      "sha256": "8a959c4e4969a2f91be7d03c66bd12c8fd653cb2c34bb720e8f2a967175d64fd"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-instance-presence/README.md",
+      "sha256": "dd597d5f07e6012601367d77ad1ebb17cb4a628ba062f1789b1303f3ac61750a"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-instance-presence/SHA256SUMS",
+      "sha256": "9483c0d5db59e759a5fcb71780235d3eae0554a6ff2f3fcdd8ddc8dd2298e42b"
+    }
+  ],
+  "scope": "Arbitrary native block physical lifted presence + actual prior byte binding; present byte physical fit remains explicit; raw Local and prior memory join not claimed. Prebuilt dependencies."
+}

@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-system-gas-zero",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemGasZero.lean",
+      "sha256": "9163b02ab7044ec3c10544a9f176d3a288c30c85594943d4d0e111042ed7d39f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-gas-zero-RcptSystemGasZero.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemGasZero.lean",
+      "sha256": "d78b8a23c287ebbfff5605ff4f6aad142ce66f7be1ab253bb529186e42fef353",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-gas-zero-AuditRcptSystemGasZero.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5guards: isolated candidate system zero scratch proves10 row-local gas product constraints without surplus price bound. Physical/global scratch transport open; original824 unchanged.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

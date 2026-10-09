@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Corrected-family View derives actual comparator40 semantics, memory address/stamp order and last-write result for prior68 consumers. No obsolete-family Holds; explicit natural address/stamp bounds remain to discharge from native record/index binding. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairComparatorSound.lean",
+      "sha256": "038b40b4ba2c6e9c88f54fa6ae0ee65452c7ec081e17a67df92e20ea6b78dcd1",
+      "audit": "zk-formal/test/AuditProcessRepairComparatorSound.lean",
+      "audit_sha256": "27fc4228c945705b41557fbf9017bf71794c298ceeea262ca7d8ed75b083a230",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMemoryRequests.lean",
+      "sha256": "60f8cbb6bc5cb5f5f948e46d1beeb6eea0479443d95754a10a85e785356b5849",
+      "audit": "zk-formal/test/AuditProcessRepairMemoryRequests.lean",
+      "audit_sha256": "0b2e3b7e2fac95a68a3ba929ea987c81275c1f5910d0b5d95d505fabf9cf72f5",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMemoryOrder.lean",
+      "sha256": "9bd63423f101c95c7fb540f7fa35bc8d3105d0c89ed858ac854940b58b2d9373",
+      "audit": "zk-formal/test/AuditProcessRepairMemoryOrder.lean",
+      "audit_sha256": "ec27ca123d54ed6608ca8979e5cf4323aab4042e4850ee4d8bb1d4515df89218",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairLastWrite.lean",
+      "sha256": "387693a10c5e2be009a7038a632baf87203aae186e319b4bf3200277648e48c6",
+      "audit": "zk-formal/test/AuditProcessRepairLastWrite.lean",
+      "audit_sha256": "b9123509f414c19f3a4dc49e684d7582f26d324f087df746b6a4adcef98af1fb",
+      "guards": 1
+    }
+  ]
+}

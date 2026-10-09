@@ -1,0 +1,18 @@
+{
+  "lane": "native-memory-context",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountMemContext.lean",
+      "sha256": "068112ec7578da4386504a9744020bbaa8404e9e7b12478a4ffb33896f4f1628",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-memory-context-NativeAccountMemContext.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module, guarded by companion NativeMemoryAllocation audit. Caller deposit ledger order/validity and actual applyReceipts context derived from SAME native main execution/scheduler step.",
+  "exact_axiom_guards": 0,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

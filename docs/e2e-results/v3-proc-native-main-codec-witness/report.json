@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Native accepted main chunk constructs corrected Codec output and preserves the exact original read/decode, successful prepared-prefix cv/st/rs/ev, ActualRun R, and successful distribution gd/sord/rord in one existential. Forwarding is bound to native execution; no Local, conditional linkage, uniqueness, or external forwarding guard premise. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeMainCodecWitness.lean",
+      "sha256": "65673da1fa14b2a24d42c09ad1b496789cf24c430747e25f03fa2b3b216fc1a6",
+      "audit": "zk-formal/test/AuditProcNativeMainCodecWitness.lean",
+      "audit_sha256": "e58288371f3a854800b1214d9ca046033b3baae15201a6c4bd88f531af273b5a",
+      "guards": 1
+    }
+  ]
+}

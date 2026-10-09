@@ -1,0 +1,32 @@
+{
+  "lane": "native-reader-forest",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderSourceId.lean",
+      "sha256": "0b9522d838f9cde19bd3990843dec4a53d951f8b58a43be211ed12ea985ac3f1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-forest-NativeReaderSourceId.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderForest.lean",
+      "sha256": "2d27c10c14c39c8732587f3d5f0fba2974fa2ea42582c8fb7db144a9331f23ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-forest-NativeReaderForest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderForest.lean",
+      "sha256": "5eda1e383fe7e1713e1323f571f10388660b561e1c6b4bb0e381c78e5f97071c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-forest-AuditNativeReaderForest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules2 guards: actual reader source sN equals global allocated occurrence.nid and rebased forest record at that exact index is its seedNodeView with native source bytes. Depth/original-post transfer remain.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

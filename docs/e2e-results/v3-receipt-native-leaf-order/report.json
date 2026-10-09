@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-native-leaf-order",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativePlanOrder.lean",
+      "sha256": "2c8c512971d2609e6a5cb8384a6d32105976f1962d54d5e8c07368c21033ebe5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-order-RcptNativePlanOrder.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeLocations.lean",
+      "sha256": "8147a5b0ffc4d98dc5ab5f183ca119bc1c04cee22b53ee1a62df5fba03f59c95",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-order-RcptNativeLocations.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeLeaves.lean",
+      "sha256": "ede49f0c2489f47de045ead5c46f2cc128ddd9438abd4294b6fcb65855cc4be9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-order-RcptNativeLeaves.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativePlanOrder.lean",
+      "sha256": "89ad54b3e8727eb9fe904b24eaa98f2291c1142fcbd18812a77a993303b57146",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-order-AuditRcptNativePlanOrder.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeLocations.lean",
+      "sha256": "17c3414ed43fbfe42447a7dc96e1f868145d000e66109e2aea0106b5df1edb3d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-order-AuditRcptNativeLocations.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeLeaves.lean",
+      "sha256": "93482b4e62d4b45030f73ed7f5ca7c6d2405e7b6f63636835d55773cf46cc403",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-order-AuditRcptNativeLeaves.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules9guards. Ordered actual locatedViews leaves equal successful native execution outcomes preimages, preserving empty lists/duplicates/system receipts. Extracted ListChain identity and all SHA renderer compatibility remain open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

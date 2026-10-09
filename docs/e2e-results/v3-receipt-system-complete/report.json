@@ -1,0 +1,179 @@
+{
+  "lane": "receipt-system-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCurrentInputFamily.lean",
+      "sha256": "320a141dc52e0fef9405bc69f2733853d56f7b1d85abe2319f6152dd661456b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptCurrentInputFamily.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemFrame.lean",
+      "sha256": "ad8cc10183935d1a64e5db73673fae9040b912a990c08dbf20de775d9066a3a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemCells.lean",
+      "sha256": "20e42e93a4de18a01cc397daed89cd298225f88d67ebf9bded90264ba0044289",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemArithmetic.lean",
+      "sha256": "ca9e930ed607ff9f99f669f181b39db20522ab9bb079f0518d8f3c635286ee4c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemIdentityLocal.lean",
+      "sha256": "3297569c45245d66748aba32ca3fb016147517f5243352390c94439490a86aea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemIdentityLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemCounter.lean",
+      "sha256": "2999b9ce65d5423b66c41050e639ce4e02529d9aef6a48e6ec8ad1e1c4b6d314",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemCounter.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemLookupArithmetic.lean",
+      "sha256": "f0fd5f9af43dfdfbca85b565b4805d70655d31363f8be3fe7611f6c8a61ff0f2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemLookupArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemLookupLocal.lean",
+      "sha256": "929620984a4ed8696c3e85d3411bbfc72a127ddc770291320119c3164b60ca07",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemLookupLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemLookupPhysical.lean",
+      "sha256": "99f891602f650b25d7424a0ce27b24da036c07f3459092c86bf90933e888da76",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemLookupPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemCounterPhysical.lean",
+      "sha256": "e070ea73b2a3a9f7ddea782bc599ffa42a00effb93237acd0278ad4ee7b7bf5e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemCounterPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemCommute.lean",
+      "sha256": "08b8818ef2de7898504aa518eb3e84347b44c6f7c0ad85f87022b782f9ba2cc4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemComplete.lean",
+      "sha256": "13dfb53d2fd8ba149106d1efab671418fc2a70b5f932667ea395b984106675b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-RcptSystemComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCurrentInputFamily.lean",
+      "sha256": "673a9d3034eb5ab7afaa44f54b6b36936cae8c5c13762e75d4a4808ff355df51",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptCurrentInputFamily.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemFrame.lean",
+      "sha256": "1b15c099b09efe74cd7540eaa0e0d1ec86c00acb4b2f39a57591d1dd0a26ee6c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemCells.lean",
+      "sha256": "4a89bfccc042cbdf1240ce1ed7d45cdebfd1672911f6ca6de5e75c959fa7f1f2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemArithmetic.lean",
+      "sha256": "38df499a4ca7461da47486a6ca8c26528676a739df10cf60102b505f75790489",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemIdentityLocal.lean",
+      "sha256": "f833dd49bdeb29f801e4f122b63f3767e9bad874305b8d23e0ed891d5fea8080",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemIdentityLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemCounter.lean",
+      "sha256": "156bfbbfc66cb0b6f7903f9ad38af3aaf42412da40cc5672e9957099554203da",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemCounter.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemLookupArithmetic.lean",
+      "sha256": "05df4350971ec1e1ca08871db0227fafffc65f9b93183efe80e61bb59744ee70",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemLookupArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemLookupLocal.lean",
+      "sha256": "2c12afcbf5ef82cf154ce1eac70dce82f6a98cfd27a965661bbaab6c1a3cff88",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemLookupLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemLookupPhysical.lean",
+      "sha256": "80d47e180c01ddff5e15f20de85dbe61291b10f27a811c2d283604d175efdc22",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemLookupPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemCounterPhysical.lean",
+      "sha256": "83a3ab6123ad67760f3d3f1a70e26494fe77fbfa6cc84d334a705e393949669c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemCounterPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemCommute.lean",
+      "sha256": "815d83bf6f63dcabcb2a466c9b1dca6435e8678b834ac62dc5d4ce5fa314d286",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemComplete.lean",
+      "sha256": "e5b29952d7beda30af32bbf368095d59b8377022043f9eb63d80c67fa723d11e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-complete-AuditRcptSystemComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical trace735/881 actual family constraints including all14 cSys. Native receipt identity, mismatch lookups and physical counter transition compose with previous families. Source/public/digest bindings retained; key49/routing18/gas40/deposit39 remain open.",
+  "exact_axiom_guards": 44,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

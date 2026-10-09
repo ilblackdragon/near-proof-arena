@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-id-order",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdOrder.lean",
+      "sha256": "f6ead95ce552eee3f7bc3ca04152ad81ac7fa16b42ce4d2cfeb69150c421ded8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-order-ProcPriorIdOrder.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorIdOrder.lean",
+      "sha256": "8b5d0dadd18b7b88fafd89e82a39bfc93a817f2ee021d4048d71881a37422dbd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-order-AuditProcPriorIdOrder.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact public-first original-index ID group order, duplicates retained.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

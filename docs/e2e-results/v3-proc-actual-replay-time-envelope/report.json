@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual replay cursor stamping bounds all emitted round starts by final clock. Memory chronology bounds every selected operation timestamp below final clock, including default-empty out-of-range logs. Final clock bound still required from prepared model execution. Prebuilt dependencies; full certificate/judge incomplete.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayTimeEnvelope.lean",
+      "sha256": "dd9e79dde42f917135755f0cf3b148949d74b254b3322bc54074e067ea105a87",
+      "audit": "zk-formal/test/AuditProcActualReplayTimeEnvelope.lean",
+      "audit_sha256": "6699a848c90c2549613cd4013e9a08df68673d15ecd1e4e9ba0eea1c6296f5b5",
+      "guards": 4
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete corrected source renderer changes only SIZE column. All other logical constraints and non-SIZE interactions are syntactically independent; their expression values agree on old/new traces. Four corrected partition shapes unchanged, wf/height and identical interaction definitions checked. New accumulator local transitions, traffic accounting/carry integration and active family replacement remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceRender.lean",
+      "sha256": "71c28a24c9deaa45800ffdfffcafd6d1c0ebe26766076bac35d93b7979e9f3bf",
+      "audit": "zk-formal/test/AuditUniqueSourceRender.lean",
+      "audit_sha256": "41c305f8a2d733ff5cf6f7c873f0b79a81fc854735770565e733e0206255ee14",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourcePartitions.lean",
+      "sha256": "957a6f9d0079594af687061e02208def86f5d208bb1193bc5468d446cbdc7253",
+      "audit": "zk-formal/test/AuditUniqueSourcePartitions.lean",
+      "audit_sha256": "f9138b646128a0dedd0f7e1d310e606d248d0047071bf3d05fe686c08905dd02",
+      "guards": 4
+    }
+  ]
+}

@@ -1,0 +1,305 @@
+{
+  "lane": "receipt-candidate-alltraffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMessages.lean",
+      "sha256": "01267ab6a0d259e6f0a127582ad9b1d540392ead7b3f7120bc206bfaf05300c0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateIndexedTrafficPerm.lean",
+      "sha256": "d51149e48b5a00ec2d12fb0b9324dfe2937c43aa808d25dcf86cc50d6959c4c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateIndexedTrafficPerm.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidatePlanTraffic.lean",
+      "sha256": "e62f21d3f9d393a642b34af1b8f26c0af5423b79bde1588449a7dcbc55c380a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidatePlanTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKey.lean",
+      "sha256": "b3d2aea743b320b5597d068941c025e6847a9773e07c6beb7ad10584d8c0902b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKey.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTrafficRows.lean",
+      "sha256": "f8ee109f5fb5cacbcfef82a20495284972947fafaeeaca618476ab29e4955e68",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTrafficGates.lean",
+      "sha256": "05d5f3305cdb01ecb2f41426cf294bb5821a107c5fea1cb3ab9287e554e03cad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyTrafficGates.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccountRows.lean",
+      "sha256": "129d910f792f99c0d66454ca9ca68e649c6a20b9e7d94895ed692631295864e2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyAccountRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccessRows.lean",
+      "sha256": "e0f2dbc80c5f2af8468e9eef308a05dee5f1141526c1c37fef52007d4b746e0f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyAccessRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccessMarkers.lean",
+      "sha256": "f763bb6c5273c2b8ee359f25a40776f4b0dc5b41b0bd794ca72293df4628e5a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyAccessMarkers.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyNibbleValues.lean",
+      "sha256": "a262dd68b775d16f35007469d9f6e0ce50505e326f9887b4cea8287d0bc959c3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyNibbleValues.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyByteFields.lean",
+      "sha256": "d1ac692af65aaa32226b10f40e6983600be505008d49545d01e2419b0c9d2659",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyByteFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerFields.lean",
+      "sha256": "510cf3cc5fc6f15ec689de7baa8852b9d4d9a00671f2d3b0be87c3b88240f8c0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyMarkerFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerValues.lean",
+      "sha256": "e9fe623041e5bd975007e2b9c0a7c54a37e1ed4272bb35f8ca9cc8271d7c6b77",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyMarkerValues.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerLayout.lean",
+      "sha256": "ba472c482924884b3119ebe2d634c996909266a55797befcf224df70cc63d1b9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyMarkerLayout.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyCanonical.lean",
+      "sha256": "9a9d543ff9f9d28a72bafa404d7c8605a49ce90b82951cede55a21c3a510b7c5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyCanonical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyPartition.lean",
+      "sha256": "e04d0deb40790926c051ca0c060156d739017aab20e400e30eaea25130e0a452",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyPartition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyLayoutFields.lean",
+      "sha256": "41614ecb75071c55278524d72a38836957886b318bea87d0c3ce30b3a14c9eb8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyLayoutFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyReceipt.lean",
+      "sha256": "28ea6db22e9697bb0bc28fcbbdd26809ee4cf57dd4cd6421dd6324219c39797a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyReceipt.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTraffic.lean",
+      "sha256": "3e64a35b374cdb48233a1a8a637dda796a2fdc006841564f899944b6ac055877",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateKeyTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateTableTraffic.lean",
+      "sha256": "97f36ca2232eef7d4c4ece664db466226743829f6b2630960ed139485f633e98",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateTableTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRepairedTraffic.lean",
+      "sha256": "534565ba5fcd9cd9c41dc77d724510f08a4f0352ebf9371f3ab679e82cdf2c5c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-RcptCandidateRepairedTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyMessages.lean",
+      "sha256": "b09bad6857665e4dc8f8ed755f8a18862957f35dbc6cbc2ca5e58cbfad5cd5da",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyMessages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateIndexedTrafficPerm.lean",
+      "sha256": "a45e106c326bf5ff53a4691a54cc3933dbe758fccf4354b8123595cb7c9b9746",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateIndexedTrafficPerm.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidatePlanTraffic.lean",
+      "sha256": "f5637bcc44cf3b592d888f7a52bc2fbd8656518b7304b2f288e6ba95cc7df199",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidatePlanTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKey.lean",
+      "sha256": "76f7dc5db417bfc87fe92c8f85ce7522c2b20fcb262735fab06155fb50d47eb2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKey.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyTrafficRows.lean",
+      "sha256": "858aad0a0fdf02c525e057887b76d798cf41f4c3304d3e8ff43b1d8cc9addcef",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyTrafficGates.lean",
+      "sha256": "a7613495f6944c7227ac6ba824ac7a05769605af42f042939f7ac51dd3a073bd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyTrafficGates.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyAccountRows.lean",
+      "sha256": "fa3cafdf7df9c8d03afd07e28d8564eba60560ab77a76054e3fe4b727e10cf55",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyAccountRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyAccessRows.lean",
+      "sha256": "f62f970a8ffba54021a022daa877b4c8fae7d6f3ab51101e2d60870dd0c87747",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyAccessRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyAccessMarkers.lean",
+      "sha256": "b60ae69ee4ae3a0c78cec709c472daff8426140bd401e0edc9829d1385fa5ca1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyAccessMarkers.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyNibbleValues.lean",
+      "sha256": "e5a5b38deeca0218c296efa633a06872abc22c68599c8da126280e8b3deaccdd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyNibbleValues.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyByteFields.lean",
+      "sha256": "7906a3b4e7232a5c35479b598f41be02e33cb11f24a4adc8e6256b08e821d13c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyByteFields.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyMarkerFields.lean",
+      "sha256": "839cce6a654e4a92d1598955a2548d485b891cc0285bccbdb1b7fd3cb6b1b204",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyMarkerFields.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyMarkerValues.lean",
+      "sha256": "66fd54a9f169d9f6cb7fbce284ff164246f2d758044869e696fd61aa85926d3e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyMarkerValues.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyMarkerLayout.lean",
+      "sha256": "c9f6ff8bf462b2341decf07c12b8d6e370e57477456a49f17d248d4448b0e902",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyMarkerLayout.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyCanonical.lean",
+      "sha256": "c58caad3f74a7610d012bc41deb24f780f0ba1d6db9c4797781b483ded18a9fd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyCanonical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyPartition.lean",
+      "sha256": "be7092c1d7245489729fb7ede3ce443a1ba2462734425e2bc0ca6fa3fe3127e3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyPartition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyLayoutFields.lean",
+      "sha256": "fdfa4e84c89b621c7a6b94edac1c12f7848d6ae7f72d94b15f669d3443ed673f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyLayoutFields.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyReceipt.lean",
+      "sha256": "623441ab8c4112126ceace4fa46dd2b526a9de8298b1703cf9726f02cfbf9c70",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyReceipt.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateKeyTraffic.lean",
+      "sha256": "75b9e8c94ea0c4e6046ecc281e2c33d746e0af5a96f125cfdb2e6b36ee82c4bf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateKeyTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateTableTraffic.lean",
+      "sha256": "7f3ef114c3a0280c86a12bbaf4c43c7ba7e1f11599c20c1a61bb7d38fc89ae81",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateTableTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRepairedTraffic.lean",
+      "sha256": "9fcb0eb1c6354f61a91cf3d721b84db8686c91d853970be3624cd13f12340c8c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-alltraffic-AuditRcptCandidateRepairedTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "21 modules80 guards. Full repaired receipt candidate extracts SAME physical ListChain and complete all-bus TableTraffic. No public/provider/old-local premise. Global semantic composition remains.",
+  "exact_axiom_guards": 80,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

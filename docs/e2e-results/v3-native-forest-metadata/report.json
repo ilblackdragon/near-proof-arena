@@ -1,0 +1,32 @@
+{
+  "lane": "native-forest-metadata",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestDepth.lean",
+      "sha256": "f0ef83d0fa50f4dcfdd9171529753076819da2c693648be286af54a12da94b33",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-forest-metadata-NativeForestDepth.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestIndices.lean",
+      "sha256": "3f1ea02504061caa6b5563e4abc71f853681ed113671e30e299e1e29a60079d3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-forest-metadata-NativeForestIndices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeForestMetadata.lean",
+      "sha256": "684b46884c5c0d25059ec578a4438baefd9ccbfc9c3df6666e1cb243f4ce8e90",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-forest-metadata-AuditNativeForestMetadata.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Whole original native forest preorder resOk and depth bounds from existing native trieFuel, plus revealed target index bounds. Canonical raw fields and global usages remain open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

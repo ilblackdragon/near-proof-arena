@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Comparator soundness for arbitrary bus including prior-order69 from actual HoldsP, exclusive comparator receiver ownership and no public supply. Explicit operand ranges below2^29 remain required. Does not yet derive prior-memory ranges, ordering send inventory, or outer fused comparator extraction. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcComparatorSound.lean",
+      "sha256": "f531c9921353b1959f80139143cf24b0b16a7bb987e841244bf141f92379e874",
+      "audit": "zk-formal/test/AuditProcComparatorSound.lean",
+      "audit_sha256": "0be9693d8e91a81a7d0727f9bc4344317321a450f5b0d9cbdd82a716da11ec80",
+      "guards": 2
+    }
+  ]
+}

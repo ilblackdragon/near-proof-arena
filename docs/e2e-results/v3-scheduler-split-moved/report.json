@@ -1,0 +1,81 @@
+{
+  "lane": "scheduler-split-moved",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitSlotFacts.lean",
+      "sha256": "6cff0a4b3e97a03569b05174ce658a40c2c066608fdb860b3599977b59f221d8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-SchedulerSplitSlotFacts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitHashOrder.lean",
+      "sha256": "e1eb2b40dcc292b720d67ee1b7466661e5f63b17eef462419661c6ea6c7928e3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-SchedulerSplitHashOrder.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitSingleSlice.lean",
+      "sha256": "47c2b6a5ccc9ca0361eb26b44dea3dd8805b0238d407ecd907823353a3fdf040",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-SchedulerSplitSingleSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitMovedSlices.lean",
+      "sha256": "cc37f6e635d5c893116333982fbf1175d144bd767a9b74ef86a36eeb624a9eb8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-SchedulerSplitMovedSlices.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedSplitMoved.lean",
+      "sha256": "50335218812bfe64b4305f6d3819061b43e0307f2ce13f711b5f5b54c03ba7b8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-SchedulerSignedSplitMoved.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitSlotFacts.lean",
+      "sha256": "71dc14890c8297025f2caf7970a386aec057900622b777cf2095a768d6aa3376",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-AuditSchedulerSplitSlotFacts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitHashOrder.lean",
+      "sha256": "bac3cb3d2f0f0b3b0864a014bd15733521317045e7e37f60db00a6c9eb257ae6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-AuditSchedulerSplitHashOrder.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitSingleSlice.lean",
+      "sha256": "45b778d93ffc83652d2954c8602f4f5dbcf5d0f51b5090305ae0261ceb01d942",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-AuditSchedulerSplitSingleSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitMovedSlices.lean",
+      "sha256": "26f037e4d417c63040bd5060308a9f2591f7d4deea346d4c2963685ea044d4ac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-AuditSchedulerSplitMovedSlices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedSplitMoved.lean",
+      "sha256": "3582e49784df29593d8d43782663c4dba0eea0537036864085f0b5d3a8694fd5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-moved-AuditSchedulerSignedSplitMoved.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules9guards. Exact physical LSb/ESl0 consumers equal actual fresh0 and moved1 jobs, with serialized39-byte header derived. Remaining split cases and aggregate digest conservation open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

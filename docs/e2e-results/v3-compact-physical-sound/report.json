@@ -1,0 +1,38 @@
+{
+  "lane": "compact-physical-sound",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PreparedLink.lean",
+      "sha256": "0f358d2313b9aae5d78eac1c191674fe888df9ab8cb1e21f7de06da9b6aab4b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-physical-sound-PreparedLink.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PhysicalSound.lean",
+      "sha256": "b927c5e7bb4ee6e09029c14ceb175e7fb6570bfee15375e6eea97d2aceb88c11",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-physical-sound-PhysicalSound.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactPreparedLink.lean",
+      "sha256": "73ccb103156c5b6363fead0a576e3f76792b9b6c5152c18ace7a0f498d8d19c1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-physical-sound-AuditCompactPreparedLink.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactPhysicalSound.lean",
+      "sha256": "c9551ad37ff4f323a4ff65670f217185625e74b4efd0b70eed6731b0a021664c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-physical-sound-AuditCompactPhysicalSound.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 2,
+  "scope": "Strict independent check: successful preparation supplies transition bounds and physical compact TableLocal extracts exact traffic plus native upsert/root/lookup semantics. Authenticated global bus interfaces remain explicit; not the whole certificate."
+}

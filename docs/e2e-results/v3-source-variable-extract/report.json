@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Twelve exact guards: four arbitrary accepted log22 source tables with potentially different heights and actual three-bus carry balance reconstruct one logical accepting source trace and semantic BlockChain. No honest placement, equal heights, or supplied boundary cell equalities. Logical log24 is only extraction. All external physical messages and exactly one SIZE arity3 source record are tied to the same recovered chain. Whole-AIR isolation remains open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceVariableProvider.lean",
+      "sha256": "f9d32d24a7000da3e184f42fe58a9d2ddfc79aef4f7b21f8e13d2a60fe17a165",
+      "audit": "zk-formal/test/AuditSourceVariableProvider.lean",
+      "audit_sha256": "31d2b071ae4e57716f9d3c74b0062f973149c8c95fbe537249a69839b367faf0",
+      "guards": 3,
+      "log": "/tmp/nearproof-SourceVariableProvider-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceVariableJoin.lean",
+      "sha256": "50eda6b435da0090851c1194f32c3a361893d00f78095b73a3b57c22cca12803",
+      "audit": "zk-formal/test/AuditSourceVariableJoin.lean",
+      "audit_sha256": "d89207226e516ae4415a3478a51fbb3f4b3b5989a29200ee3fdd8783326c747b",
+      "guards": 3,
+      "log": "/tmp/nearproof-SourceVariableJoin-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceVariableTrace.lean",
+      "sha256": "4ccf9ae0cdaefd23cdc258f0f7d85775c1bbec49fa9547b6554db32a2d2312b5",
+      "audit": "zk-formal/test/AuditSourceVariableTrace.lean",
+      "audit_sha256": "e80e115ea12bfdea028fa8e80e2616faf29db43e7b5e73aabd15180c071ae29c",
+      "guards": 2,
+      "log": "/tmp/nearproof-SourceVariableTrace-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceVariableSound.lean",
+      "sha256": "04c1172a2f9948f51561672163cc9692708e4bacb1b0238e2e5dc73f23296067",
+      "audit": "zk-formal/test/AuditSourceVariableSound.lean",
+      "audit_sha256": "0716ef3ac0a7666b83937f75b265b46300903b0b1cedf5fe5b363d564474298b",
+      "guards": 3,
+      "log": "/tmp/nearproof-SourceVariableSound-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceVariableExtract.lean",
+      "sha256": "b9fd95f758ab651482a9fcf0b9781e6a7480ac777fd1960527d504b4e506de14",
+      "audit": "zk-formal/test/AuditSourceVariableExtract.lean",
+      "audit_sha256": "ab0cb45bce2852d8223e7da41bdba24d9ee94ebbb2e32c69e018d31578f696f0",
+      "guards": 1,
+      "log": "/tmp/nearproof-SourceVariableExtract-audit-checked.log"
+    }
+  ]
+}

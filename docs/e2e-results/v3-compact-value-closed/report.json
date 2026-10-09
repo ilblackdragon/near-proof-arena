@@ -1,0 +1,29 @@
+{
+  "lane": "compact-value-closed",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/ValueBounds.lean",
+      "sha256": "0574f81a2006dd8d0b4190cb8d648f14d149bfb778879dbdf377bf4d37e05c69",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-value-closed-ValueBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/ValueClosed.lean",
+      "sha256": "44f225caa100ee9022339914df4e75972bc2e7934c435108df0c29d8ca1700ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-value-closed-ValueClosed.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactValueClosed.lean",
+      "sha256": "5d9ff6206686e4692c923d64619018a1806d9c70e752cb893b36a4b84cb40481",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-value-closed-AuditCompactValueClosed.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Two value closure modules and four exact guards independently checked against HPL artifacts. Value byte bounds/fresh digest derived rather than assumed; UPB/source shape, global SHA/MEMD, scheduler and WalkHyp interfaces remain explicit."
+}

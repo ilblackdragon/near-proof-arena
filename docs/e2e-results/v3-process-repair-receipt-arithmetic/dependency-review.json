@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "scope": "Actual repaired-family SHA byte ranges and receipt gp/deposit/burnt/refund ranges; ordered MEM propagates account initial bytes through receipt before/locked/storage lanes; corrected RcptE arithmetic including system gas, refunds and token totals. Strict prebuilt-dependency builds; no original receipt Local assumed.",
+  "guards": 10,
+  "assumptions": [
+    "Actual repaired View and same receipt ListChain",
+    "No public MEM segments and no public BYTES RECEIVES",
+    "Arithmetic intermediate uses exact ReceiptMemoryOrder.Context from prior audited package",
+    "Intermediate arithmetic explicitly assumes same-account initial Bytes8 and public gas-price Bytes8"
+  ],
+  "remaining": [
+    "Prepared wrapper must discharge initial/public byte hypotheses through SAME extracted values",
+    "Arithmetic/storage condition is exactly candidate modular-u128 condition, not unconditionally strengthened",
+    "Native receipt execution, routing/access keys and complete validator replacement remain open"
+  ],
+  "dependencies": [
+    "ProcessRepairReceiptMemoryOrder (renamed receipt-specific module; original ProcessRepairMemoryOrder preserved)"
+  ]
+}

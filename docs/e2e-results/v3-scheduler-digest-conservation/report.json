@@ -1,0 +1,151 @@
+{
+  "lane": "scheduler-digest-conservation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerFreshOnlyTargets.lean",
+      "sha256": "a9ff18bec2afc804b09bdcb730855cb8ee5837d2f1ced3bd4c089ac47a3b3db1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerFreshOnlyTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedFreshOnly.lean",
+      "sha256": "ff80050f81d4465a36186f90ab0cd15bf7b9ac1595b4f9eb47b7fc604a4c78bd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerSignedFreshOnly.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerJobMessages.lean",
+      "sha256": "b2ca9055a52d6ac9bfe39d1ba24c64411c6b4037ee46639bcc8448a1ffc076fc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerJobMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerDigestPlanFacts.lean",
+      "sha256": "411edf91eeccb208d0328ad146c628466f8f17938e28d2c4435786cffb9eed61",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerDigestPlanFacts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerParentMessages.lean",
+      "sha256": "6706fe1f219029ee265cfe249299d492afc41774f524417eaf21096ea29b7602",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerParentMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitMessages.lean",
+      "sha256": "d3af212053954526f77e36a71826d4bcf07b6f25da8dea4a56d14f2de904f96d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerSplitMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPartMessages.lean",
+      "sha256": "430d57a7b5c52c32db3cf3046364a313806454c40e77d7a2a7aa8afbcd00501d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerPartMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerNodeMessages.lean",
+      "sha256": "bb8eab01e37a2d2475dbf52f6d96a16722889fd87d56d61eb8dc86117bce4cfe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerNodeMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerInstanceMessages.lean",
+      "sha256": "8848c6fc502ef45f987331141b0533c2b77e4ff7fd6c743d92a5f4a6b8f155f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerInstanceMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerDigestConservation.lean",
+      "sha256": "d7dedcbd4e714bb1a6a149e2827707e7ba81c720509c45d77f0e0a35b90f000a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-SchedulerDigestConservation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerFreshOnlyTargets.lean",
+      "sha256": "e52d1360102dd7b29e4c5d5d8c32650cc515c270c1eda5ae6ececaf5729bc6f8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerFreshOnlyTargets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedFreshOnly.lean",
+      "sha256": "ab1f66870c498fcad1c598f524f41e6eee8121e16317038e8d72fee9307ff902",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerSignedFreshOnly.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerJobMessages.lean",
+      "sha256": "59a5f3759250563367ce29166d187112089561aa5a26ec1e4ccd2c267f42a271",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerJobMessages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerDigestPlanFacts.lean",
+      "sha256": "1b0fd298897654a21bc204cae715e1aeb9cf4507ca65b590406f547d598a9c16",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerDigestPlanFacts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerParentMessages.lean",
+      "sha256": "1c2f5b679edca13d3b26655dc97c8f88c6482bd2062a623085190b44b9d08740",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerParentMessages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitMessages.lean",
+      "sha256": "79a841f6609cb40d606b74d6b31609c5f3d685d3ea2f6c2696d236d81dbbc159",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerSplitMessages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPartMessages.lean",
+      "sha256": "463770d271e9f9cc02d7b999dfd5af8c1d9c98dd768551d23fc7d625e11bde5b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerPartMessages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerNodeMessages.lean",
+      "sha256": "fc707100983df16f5055b5bdc014d249efbb845740fab5ca9f8342441efd49c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerNodeMessages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerInstanceMessages.lean",
+      "sha256": "892aa4336bdb1c5c25dce3b152e3a5da3636cf79a06088aaed3daf3f646b04c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerInstanceMessages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerDigestConservation.lean",
+      "sha256": "f4563bbaffd355e49155086808535e11f8e66a05ad8bb083da357f12ca65cd55",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-conservation-AuditSchedulerDigestConservation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Ten modules15guards. Entire actual compact log22 physical scheduler DIGEST receives equal native schedulerShaJobs expectedDigests including all split lengths/hash bytes/IDs/multiplicities. Requires SAME existing constructor facts plus retained NativeEncodedInstance; propagation into strongest allocation remains.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

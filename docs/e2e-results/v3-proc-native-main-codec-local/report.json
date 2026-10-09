@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted native main chunk constructs original state read/decode, corrected ActualRun and Codec outputs, and proves the whole corrected Codec TableLocal for arbitrary trace time/public inputs. Native prefix, replay, distribution, parameter, trie read, and forwarding facts supply all local constraints; no Local/additions/nextshape or conditional witness linkage premise. Does not assert interaction/bus balance or a succinct end-to-end certificate. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeMainCodecLocal.lean",
+      "sha256": "ca9c30af02b92ce0f1ce0166a6562c60f818a3cf23ae115aa9eb44230813228d",
+      "audit": "zk-formal/test/AuditProcNativeMainCodecLocal.lean",
+      "audit_sha256": "02bd5f601419574b97007f2aa04c6e281499d8ac923236900aa45a404f1dee3d",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "status": "PASS",
+  "guard_count": 35,
+  "source_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemory.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryQueries.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryBalance.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryPair.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryChain.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryFrame.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryLocal.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryComplete.lean",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAcceptedMemory.lean",
+    "zk-formal/test/AuditSchedulerCodecAcceptedMemory.lean"
+  ],
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemory.lean": "ab8438579034c699d0e50535bc52567fe692bb9ae8fb2c916aa3bb5b19db9b91",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryQueries.lean": "eeffc81d50d04aa1b6f9186b82593a82deb50d407fd3c994777ed331b0a24672",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryBalance.lean": "ce7f08f35df67607b1dd9a122261b476c243ac3cff5901ef175cfc94be96abbd",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryPair.lean": "eec82572dc4522f21c404e1656eee0b37fc0c28f69b6f01aec7aeaf494d5ff51",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryChain.lean": "5a138378fa1b65536699a94a1e7d7a4b36b7907c5be08296942eede6c77ce633",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryFrame.lean": "add0d3d699d1c2c47d74d270da207136bcc00cd2c9fd8ec3e1568a08920f2ca8",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryLocal.lean": "09b9653aba3615b0402f41029c2d5e5f7adff01dc22f95a042f7da392c993d90",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryComplete.lean": "92cb2ce192ed1a9021c8bae9ddd2e3cf9ddad5f6e808934defb14cae4def1fae",
+    "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAcceptedMemory.lean": "b9392bd0b3b2318e89aa08f076ddf0794fb027ec00d2c4969a94c8105833f774",
+    "zk-formal/test/AuditSchedulerCodecAcceptedMemory.lean": "263e569e58f29635edb8d530f0f8ee18c623467b7c9bbc99721cad09ac24a478"
+  },
+  "logs": [
+    "/tmp/ProcPriorNativeMemory.log",
+    "/tmp/ProcPriorNativeMemoryQueries.log",
+    "/tmp/ProcPriorNativeMemoryBalance.log",
+    "/tmp/ProcPriorNativeMemoryPair.log",
+    "/tmp/ProcPriorNativeMemoryChain.log",
+    "/tmp/ProcPriorNativeMemoryFrame.log",
+    "/tmp/ProcPriorNativeMemoryLocal.log",
+    "/tmp/ProcPriorNativeMemoryComplete.log",
+    "/tmp/SchedulerCodecAcceptedMemory.log",
+    "/tmp/AuditSchedulerCodecAcceptedMemory.log"
+  ],
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "prerequisites": [
+    "SchedulerCodecAcceptedQueries",
+    "ProcPriorTraceLocal",
+    "ProcPriorMemoryLiftTraffic",
+    "ProcRawNativeBudget"
+  ],
+  "scope": "Executable native tagged-tau memory traces with same sorted rows, full TableLocal for baseline/gated memory, checked packed-address cross-instance transitions, canonical address bounds, raw-derived capacity, physical query permutation and natural Codec68 balance. Accepted allocated wrapper derives all dimensions/order/query/cap premises from checker. Vertical shared-window installation, write67 balance and comparator69 ownership remain separate; no whole-family admission/Holds claim.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemory.lean",
+      "sha256": "ab8438579034c699d0e50535bc52567fe692bb9ae8fb2c916aa3bb5b19db9b91"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryQueries.lean",
+      "sha256": "eeffc81d50d04aa1b6f9186b82593a82deb50d407fd3c994777ed331b0a24672"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryBalance.lean",
+      "sha256": "ce7f08f35df67607b1dd9a122261b476c243ac3cff5901ef175cfc94be96abbd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryPair.lean",
+      "sha256": "eec82572dc4522f21c404e1656eee0b37fc0c28f69b6f01aec7aeaf494d5ff51"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryChain.lean",
+      "sha256": "5a138378fa1b65536699a94a1e7d7a4b36b7907c5be08296942eede6c77ce633"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryFrame.lean",
+      "sha256": "add0d3d699d1c2c47d74d270da207136bcc00cd2c9fd8ec3e1568a08920f2ca8"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryLocal.lean",
+      "sha256": "09b9653aba3615b0402f41029c2d5e5f7adff01dc22f95a042f7da392c993d90"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryComplete.lean",
+      "sha256": "92cb2ce192ed1a9021c8bae9ddd2e3cf9ddad5f6e808934defb14cae4def1fae"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAcceptedMemory.lean",
+      "sha256": "b9392bd0b3b2318e89aa08f076ddf0794fb027ec00d2c4969a94c8105833f774"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecAcceptedMemory.lean",
+      "sha256": "263e569e58f29635edb8d530f0f8ee18c623467b7c9bbc99721cad09ac24a478"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/AuditSchedulerCodecAcceptedMemory.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemoryFrame.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/SchedulerCodecAcceptedMemory.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemoryLocal.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemoryPair.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemoryComplete.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemoryChain.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemoryQueries.log",
+      "sha256": "ef6f45036f37df6e0532cf3834c0bb3ef6eb1184b1a0d0e4b4c9d26799e5b07b"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemoryBalance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-codec-accepted-memory-checkpoint/ProcPriorNativeMemory.log",
+      "sha256": "dc84dc9f477f843dbc6252755bc3fadcd34d19775599c723237b580de670c1a4"
+    }
+  ]
+}

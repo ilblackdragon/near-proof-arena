@@ -1,0 +1,32 @@
+{
+  "lane": "native-reader-window-key",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayProviderWf.lean",
+      "sha256": "f674b7484e422da2291b03925605bfe7e6b017e0edc6ae7da23a8f235b107aa6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-window-key-NativeReplayProviderWf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderWindowKey.lean",
+      "sha256": "cfca3fa549a89bdbd787068fee01e950698d3f6fd65b6c5f1555ff1934f7b018",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-window-key-NativeReaderWindowKey.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderWindowKey.lean",
+      "sha256": "82b7dfbf00e4c49360bae59763275a294623ce694753935e14d0c91e0c62ea4e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-window-key-AuditNativeReaderWindowKey.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules4 guards. Full six-field reader source key equals original initialized updated provider windowKey; length/wf/preBytes contracts derived from actual replay. Ranking/global physical aggregation remain.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

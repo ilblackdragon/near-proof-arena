@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual installed routed prior68 last-write extraction with all range/order residuals discharged. Arbitrary Record sender/receiver top origins and carried found/index columns authenticate both endpoint indices through actual72, whose supplier bounds follow from actual public70 and SPAR. Bus76 authenticates Record tau/shards. Natural endpoint product+receiver<4096 is proved before field conversion. Actual67 write provenance transfers bounded write addresses; prior query/stamp packages close comparator prerequisites. Final consumer has no generated/native trace, caller range/order, standalone ownership, or public70 sender assumption. Explicit public contract: SPAR send ownership and PubIdx inventory equal successful prepared render; absent public68/40 traffic and absent public67/70/72/76 sends. Result is zero on no write or matching memory write maximal by physical row/stamp; decoded original raw-byte/ID/value identity and full transition soundness remain separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordEndpoint.lean",
+      "sha256": "d94fe5546ea62a7c69cb192f9265410c6cfbd256548c4227004dc4702839a968",
+      "audit": "zk-formal/test/AuditProcPriorRecordEndpoint.lean",
+      "audit_sha256": "817aadb82bbcd7ff2325d4ed441e99b6337d717b7baebd86c5774e72c1450404",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRecordIndices.lean",
+      "sha256": "805c29db11a9a7e69d505c1b52a8e26173f14614a75c466a4896402e18ed85b0",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRecordIndices.lean",
+      "audit_sha256": "d7137dad6a79101e8ac6017354f1f832ab4cbf76d03165c6305996b0237aeaf7",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedWriteAddress.lean",
+      "sha256": "cf72ef67bc097234fd12d61c92dcd52b93ef7a868eb7274080bd44b560da5a3d",
+      "audit": "zk-formal/test/AuditProcPriorRoutedWriteAddress.lean",
+      "audit_sha256": "7b64c00f40ee085c546a41d5b64ccf3927470a2f707ecf598ca6048677a15f87",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedAuthenticatedRead.lean",
+      "sha256": "b310801dad03ee0b9d32852288262acfc306f54145e08402fc688751d67404d3",
+      "audit": "zk-formal/test/AuditProcPriorRoutedAuthenticatedRead.lean",
+      "audit_sha256": "eedf154f09cad9a1164b66254de0df7ab412efdc90ee17d40cde0a8775c43e9c",
+      "guards": 1
+    }
+  ]
+}

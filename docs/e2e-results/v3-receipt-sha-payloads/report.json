@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-sha-payloads",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReceiptShaPayloads.lean",
+      "sha256": "fb35c286497f8b7ba8558ff3734f605ece6d0d3de555bc35088b6ca3cf39df3c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-sha-payloads-ReceiptShaPayloads.log"
+    },
+    {
+      "path": "zk-formal/test/AuditReceiptShaPayloads.lean",
+      "sha256": "7b8a525071eecb6fb719c1b187f6c97a56f5bf925d2e8a68783bfe937b6046a1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-sha-payloads-AuditReceiptShaPayloads.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Concrete RC,PEO,LEAF and conditionalRID preimages with encoded-byte-correlated cost bound. Full SHA allocation remains open.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

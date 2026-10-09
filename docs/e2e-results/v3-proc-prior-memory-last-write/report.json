@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary-memory row-order last-write semantics: with LocalM, natural global address monotonicity and active address bounds below P, each active query has no matching write and reads initialized zero, or reads the greatest physical-row matching write. Query terminal rules prevent any later matching address; sorting connects every preceding matching write to the predecessor. No generated event list or native allowance premise. Comparator-based global ordering can discharge the explicit monotonicity obligation; fused stage0 order transport, original-stamp maximality and authenticated complete decoded writes remain separate. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryLastWrite.lean",
+      "sha256": "e8b30fecdd8ec3cfec3d9e9a833744c16f1a54394c5f04894dd428d4e5fe7d7e",
+      "audit": "zk-formal/test/AuditProcPriorMemoryLastWrite.lean",
+      "audit_sha256": "32336141f983bba01b900baecaae75938f2a13c6a30e3acd838f8ad27bc5db12",
+      "guards": 8
+    }
+  ]
+}

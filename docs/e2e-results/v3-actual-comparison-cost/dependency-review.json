@@ -1,0 +1,19 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualComparisonCost.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcActualComparisonCost.lean",
+  "guards": 6,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcActualComparisonCost.lean": "b0c2910fa54a1943eb062ef81750ecb00e02f186e2207bd13ba42c6981473013",
+    "zk-formal/test/AuditProcActualComparisonCost.lean": "c2048368a47fe878fda41d4cc371f8e061eefe68ebc8076e5901d97448406fec"
+  },
+  "remaining_assumptions": [
+    "actual successful memory or round scans, arbitrary logs/lists"
+  ],
+  "remaining_work": [
+    "native replay log charging",
+    "nonempty round count charging",
+    "actual Run finish correspondence and native numeric instantiation"
+  ]
+}

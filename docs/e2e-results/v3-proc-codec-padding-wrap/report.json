@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Final all-zero padding row satisfies every corrected codec constraint and multiplicity expression with arbitrary cyclic next-row cells. Conservative syntactic zero test proved sound, exact table checked in kernel. Active-row constraints and global TableLocal remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecPaddingWrap.lean",
+      "sha256": "19970e30f8eef90f12083aee6bc356b3d233f5056f5b626c8f4fa8b9f3c354b4",
+      "audit": "zk-formal/test/AuditProcPriorCodecPaddingWrap.lean",
+      "audit_sha256": "533c54ab2951e61ac6049284a158a02703b4b34b4fd0cae798a3f4a74dc7ce72",
+      "guards": 3
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Native decoder totality from exact header/length, actual authenticated tag/high-byte zero, and present SAME Value native decode with declared record count and32-byte sanity hash. Final theorem derives byte/count/length conditions from actual installed traffic and constraints; no supplied successful decode. Native record/memory semantic connection remains separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorDecodeTotal.lean",
+      "sha256": "df00e570fefb2d96b3af9281513968bb29b7395114eeaccfe3da7d08855e7fa2",
+      "audit": "zk-formal/test/AuditProcPriorDecodeTotal.lean",
+      "audit_sha256": "e711741cd5e8d92547354bf48238306af88d6569a83f322c1e9e6dbd2b3b2502",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedHeaderZeros.lean",
+      "sha256": "52be32bbeef6b5e82946ef3a38180075923f44c36df9a8676f6a997cf47c7372",
+      "audit": "zk-formal/test/AuditProcPriorRoutedHeaderZeros.lean",
+      "audit_sha256": "e32af904e52a6431a84a8f16a2c0f0445369e867fcb406c5b33b0e34850dfcfa",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedNativeDecode.lean",
+      "sha256": "8f5f815f9ecee1b888319bcdd7237e8a2888fe6e22b9a3e817a0241c6c7defc6",
+      "audit": "zk-formal/test/AuditProcPriorRoutedNativeDecode.lean",
+      "audit_sha256": "d206d8bb97ca05cba06256322f81104e91acd228a90e05338abe4a79d39f624e",
+      "guards": 1
+    }
+  ]
+}

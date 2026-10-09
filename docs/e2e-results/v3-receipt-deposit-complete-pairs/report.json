@@ -1,0 +1,109 @@
+{
+  "lane": "receipt-deposit-complete-pairs",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositBorrowFrame.lean",
+      "sha256": "d92baeca2b4ce03011d5acba78d8575f5c05263625710b36caa9cc7f8b35a06a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-RcptDepositBorrowFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositBorrowLocal.lean",
+      "sha256": "8c066bfee9b2811855ffbf2786a43395bee57836a36922db0efd8c70b6707ad8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-RcptDepositBorrowLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositStakeFrame.lean",
+      "sha256": "b01480d611a432526954f7cbbbb5614d89e3fe8f3f82a078238d56a288853b95",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-RcptDepositStakeFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositStakeLocal.lean",
+      "sha256": "0e4d294bbaf3f360e99c5a0ae61361fbfe68fbc5b21344014de5f42d3abb1cbe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-RcptDepositStakeLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositLocal.lean",
+      "sha256": "a376165b2f1460ef74ca14f16f3e2ee96308b9c373ac7e10ddc6a9dad197e722",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-RcptDepositLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositAgePatch.lean",
+      "sha256": "f68fa241e938b1434c00db57ca80e4c202cad222174f0389be229f48c04d98b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-RcptDepositAgePatch.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositCandidateLocal.lean",
+      "sha256": "77b2296be4fffed3afd45c478ce9b02296dc35c0bf43d5cede8a1dacfab165b5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-RcptDepositCandidateLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositBorrowFrame.lean",
+      "sha256": "6db1eb5e0a7c609ed8a1b93140599d166f9a6c907dbb4bc7a15a42c18f8e9826",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-AuditRcptDepositBorrowFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositBorrowLocal.lean",
+      "sha256": "0aa171dd8a3ce6cf7a8159de77243e61dcf656737e12b9fae629362094acb8f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-AuditRcptDepositBorrowLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositStakeFrame.lean",
+      "sha256": "59920a9afe49c86d9fec0fcdebd8500528f0b52adaeb4ce1d5dfe60953375e06",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-AuditRcptDepositStakeFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositStakeLocal.lean",
+      "sha256": "04bc9fad77282a7ddc6210d235b0f4b9c38918cfbc929d5e9da6c19addb523ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-AuditRcptDepositStakeLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositLocal.lean",
+      "sha256": "95f30578ca1d008aa6a91ea7494673120cc22262d2a02516d33d135919d52b36",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-AuditRcptDepositLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositAgePatch.lean",
+      "sha256": "a9c9d1feca0b95ab2e258b14f83d1aa4c9daeceac1224d6b71ba0360dd15cd0d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-AuditRcptDepositAgePatch.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositCandidateLocal.lean",
+      "sha256": "a5a68412006a7817d49dcd539ba660da2dda9d3714d907e4f08208ecc95f2afc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-complete-pairs-AuditRcptDepositCandidateLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules19 guards. All39 corrected candidate deposit equations hold on same actual receipt row pairs; previous version/account ownership explicit. Physical transport and integration with842 remain; not881 global.",
+  "exact_axiom_guards": 19,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

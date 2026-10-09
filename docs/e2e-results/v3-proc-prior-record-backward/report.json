@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Every actual record top limb has a valid SAME-stage first limb exactly two rows earlier. Derives nonboundary/positive row and predecessor flags from local constraints, no generated-row/start premise. Arbitrary write summary composition can consume top_origin. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordBackwardBoundary.lean",
+      "sha256": "67a20626706c0f59b66b63d5effdcfccc56ac59b36ff58ce843946bc79be1bbf",
+      "audit": "zk-formal/test/AuditProcPriorRecordBackwardBoundary.lean",
+      "audit_sha256": "0b19214c60556ef5efb9037361c31bdadff62d86a41f6c89cc64a297741bae12",
+      "guards": 7
+    }
+  ]
+}

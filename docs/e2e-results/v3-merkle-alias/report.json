@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Nine exact guards: repaired Merkle local predicate is equivalent to original equations at log19 under exact v3 public alias; every bus message and multiplicity is identical under that alias. Full old log15 extractor must still be generalized to log19 and assembled.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleAlias.lean",
+      "sha256": "ef199f4abcfac86205876464ca9b3ff281a583368f8347235ded8dafad7df62f",
+      "audit": "zk-formal/test/AuditMerkleAlias.lean",
+      "audit_sha256": "146564956acf5eb35774490908fb2374c7209531d4cec51726a8d4ee86067d3d",
+      "guards": 4,
+      "log": "/tmp/nearproof-MerkleAlias-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleTraffic.lean",
+      "sha256": "152ed8ed1dca27e4940f4bee7e420209d05050521b09f22c12731a7f45b2f95c",
+      "audit": "zk-formal/test/AuditMerkleTraffic.lean",
+      "audit_sha256": "243adee62b1ebdce5a01cf64f557efd90546f702467342e029888763fa76aa30",
+      "guards": 5,
+      "log": "/tmp/nearproof-MerkleTraffic-audit-checked.log"
+    }
+  ]
+}

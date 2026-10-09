@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual native outgoing refund encodings form a contiguous public body stream; accepted normalized public descriptor counts exactly match refund fragments. SAME constructed account/receipt/trie/fourSHA allocation now uses actual public BYTES receive in its conservation equation. No arbitrary refund byte hypothesis. Scheduler fresh/sanity byte residual and full global bus constraints remain. Strict audits use prebuilt dependencies, not clean full-source certificate or prover/judge",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptRefundStream.lean",
+      "sha256": "81eaac37d7680321e032c7190592b9d8bc6daf35bb156d13eb483a312cd37c4a",
+      "audit": "zk-formal/test/AuditReceiptRefundStream.lean",
+      "audit_sha256": "8f094de16cf448d69ff58c0e7860ad22a7ba5e30438127989188b6deca506c86",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptSourcePublicBody.lean",
+      "sha256": "f81f50346ea7b31ad46f369a410badc718199d93553b4183f96f2ebaf8ffeb61",
+      "audit": "zk-formal/test/AuditReceiptSourcePublicBody.lean",
+      "audit_sha256": "5d6181028a3c55b5edee24626e3ba0cb3915579d0a2449d951b16bb18140191d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptPublicByteCount.lean",
+      "sha256": "ce4b55ebdb75071c24c69de45b99297b26db4f1a38ce06f169db740ebf313880",
+      "audit": "zk-formal/test/AuditReceiptPublicByteCount.lean",
+      "audit_sha256": "5314a79e29b7590b12740a668b1f2651c3f8668f9dd59443b96cfeb16d097522",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptPublicAllocation.lean",
+      "sha256": "a4227177c03682df26c7d233f7960d21fe5dbbd7ed2a351637c6f5474f2ef64c",
+      "audit": "zk-formal/test/AuditNativeReceiptPublicAllocation.lean",
+      "audit_sha256": "f3ab3fe65a1af0f6d63f7df18cc72edfb7ba265591620a55d922ccef6db1fa85",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeConstructedPublicAllocation.lean",
+      "sha256": "cb50d17c83873fe61ed878e9efd1eafe7b9cc9385564cf7b50efb50f1493ef73",
+      "audit": "zk-formal/test/AuditNativeConstructedPublicAllocation.lean",
+      "audit_sha256": "18657fc88a916d41eb125f42dc99addeeb8b34e7f87900f1ee2baeec38cebf29",
+      "guards": 1
+    }
+  ]
+}

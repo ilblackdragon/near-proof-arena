@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME physical EmptyValue forest VBYTES demand exactly enumerated at original occurrence IDs, preserving duplicates/empty values/metadata. Combined native account/receipt/public/trie/fourSHA allocation now splits full physical VBYTES receives into actual account sends, untouched original values and all implicit prestate values; remaining query/codec/access-key providers are explicit. Earlier digest/VSLOT balances retained. Strict audits use prebuilt dependencies, not full clean certificate or prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeValueByteInventory.lean",
+      "sha256": "1b240b8c402a2849e3abd3c50e92b178a02c8f50c4f859674f4a3c8304da7be7",
+      "audit": "zk-formal/test/AuditNativeValueByteInventory.lean",
+      "audit_sha256": "a031c7752b9fc1955c33443e5a4f18a7dbcb7b8fba27e1d6568b8d9ddfc865f3",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptValueBytes.lean",
+      "sha256": "298ca266babd1d2858b124523ed9de79a6369dbc3025de7beafd13451835dbf7",
+      "audit": "zk-formal/test/AuditNativeReceiptValueBytes.lean",
+      "audit_sha256": "4f1c157cce1e83a81f5b4301d2f33d7b244dd0355db96149ccf41aa60b4e72e1",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeValueByteAllocation.lean",
+      "sha256": "c798fd83a9af1f290eb177490ad043426066d7567afc2d7f951b52e59a687510",
+      "audit": "zk-formal/test/AuditNativeValueByteAllocation.lean",
+      "audit_sha256": "6212eacc948424c7c8bb6be6f6e4a03d64848cbf557e1b49cc0e0fe461c84a98",
+      "guards": 1
+    }
+  ]
+}

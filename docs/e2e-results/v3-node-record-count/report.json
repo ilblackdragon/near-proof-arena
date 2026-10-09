@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Honest node SIZE count column at the SUM row equals exact nonduplicate node-record count. Natural canonical equality follows from physical row bound; native forest validity remains separate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NodeRecordCount.lean",
+      "sha256": "59a93a8e6be54e594fcb2a0778ad805e9d6f3da27de9d21c3b6d00d6471fa367",
+      "audit": "zk-formal/test/AuditNodeRecordCount.lean",
+      "audit_sha256": "49589f36dd02131b825c8e44cff0c50f596c268a1652117d5ea3a00abaa5c806",
+      "guards": 5
+    }
+  ]
+}

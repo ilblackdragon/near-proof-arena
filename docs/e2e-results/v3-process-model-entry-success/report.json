@@ -1,0 +1,25 @@
+{
+  "lane": "process-model-entry-success",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelEntrySuccess.lean",
+      "sha256": "c4c051849ac624b1f408320ec94090cc579efc50af176feafe393223f1dfada4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-entry-success-ProcModelEntrySuccess.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcModelEntrySuccess.lean",
+      "sha256": "0b7355093fc64bc73623b7d1e0e42cce9ad1f7f03d616799795f757b23b814a5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-entry-success-AuditProcModelEntrySuccess.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2guards: actual model entry succeeds under valid selected index, pending/current allowance equality and positive increment. Full loop propagation/native refinement remains open.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

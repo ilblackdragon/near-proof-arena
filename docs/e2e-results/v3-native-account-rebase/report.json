@@ -1,0 +1,32 @@
+{
+  "lane": "native-account-rebase",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountAllocationBytes.lean",
+      "sha256": "1b29adf4926434c706f122b4dec66e14aa081044e7e56c6e7e7e6a90c6119168",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-rebase-NativeAccountAllocationBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountReadPair.lean",
+      "sha256": "39dd3f36ff99a2c1b1e0c62f1b1aefcf45da151610d8563045fdbd34fd4c6b79",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-rebase-NativeAccountReadPair.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountRebase.lean",
+      "sha256": "fe456b64d79b0b804b3f02bfa5a00b8745336957f32e5bbfd559f8a06c8cd14a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-rebase-AuditNativeAccountRebase.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules6guards. Actual constructor pre/post byte range, keyed receipt-stage before/after reads and suffix preservation. Original-pre reindexing theorem requires actual original/replay keyed reads; does not equate receipt-stage ordinals.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

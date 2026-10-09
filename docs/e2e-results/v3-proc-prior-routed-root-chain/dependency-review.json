@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "completed": [
+    "Installed slot7 compact UPS TableLocal and arbitrary physical segment extraction with exact all-bus traffic",
+    "Actual ROOT/MIDROOT inventory and projected global counts; no other physical tables participate except Head1",
+    "Real global conservation plus exact PubIdx public ROOT input/output records imply both root balances",
+    "Head count<P derived from SAME Head traffic and physical height; full RootChain preserves SAME extracted hs"
+  ],
+  "explicit_assumptions": [
+    "Actual HoldsP and exact repaired family tables",
+    "PubIdx ROOT send=[[0]++r0] and receive=[[K+1]++rK]",
+    "No public MIDROOT",
+    "K+1<P and root digest limbs<P"
+  ],
+  "remaining": [
+    "Instantiation of exact ROOT public inventory from actual public-preparation layout",
+    "Actual packed SHA semantic facts and BYTES/DIGEST ownership to prove SAME node/value forest hashes",
+    "Link hash-authenticated unfolded forest to independently native trie under explicit proof-model cryptographic assumptions"
+  ],
+  "not_claimed": [
+    "Complete native forest equality",
+    "Complete validator replacement"
+  ],
+  "validation": "Strict Lean builds and13 exact axiom guards; only propext/Classical.choice/Quot.sound"
+}

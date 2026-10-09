@@ -1,0 +1,67 @@
+{
+  "lane": "scheduler-rdb-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerBranchOffsets.lean",
+      "sha256": "6a4373137e7956533dabf503cc839fe39b783e467cfa11ce3ed7fdf8435dd43a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-SchedulerBranchOffsets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerBranchFieldSlice.lean",
+      "sha256": "505312636225771b4750e17703926f282b61e91b952e62ec3e6f1590f6f6ae78",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-SchedulerBranchFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRdbFieldSlice.lean",
+      "sha256": "c2a9d87bb9b605918571b98089c5111b4019efb911061d9f5b9bcf3d63ed30ca",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-SchedulerRdbFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedRdbDigest.lean",
+      "sha256": "cf4d60958ac4914571af8bfd900f37d66e40e709104c8c17153b45730a3bd911",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-SchedulerSignedRdbDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerBranchOffsets.lean",
+      "sha256": "8c6c3afcda51bc92b3a0b8e5ced02cec72154463c5ee9a375c3103f3af98b075",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-AuditSchedulerBranchOffsets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerBranchFieldSlice.lean",
+      "sha256": "2d5df7305b52c2b673ca9c3c92a47346152f9cca17b3e68eabaed554a75d6e89",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-AuditSchedulerBranchFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRdbFieldSlice.lean",
+      "sha256": "455270e760d4a24080f73183f6a59a292470a027459b0e23cb59e6750a597a2a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-AuditSchedulerRdbFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedRdbDigest.lean",
+      "sha256": "199e1b59a06c170ca88f0961fe3e1d036bf8b3e0466e0912fd6a5557f2a20d3e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rdb-payload-AuditSchedulerSignedRdbDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules6guards. Complete actual signed RDB physical digest-message equality against preceding native job, deriving child-window position, serialized offsets and child hash length.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

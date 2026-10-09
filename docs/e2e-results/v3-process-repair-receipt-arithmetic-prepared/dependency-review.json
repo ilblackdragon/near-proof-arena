@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "scope": "Prepared actual receipt arithmetic: extracts SAME accounts and actual receipt ListChain, derives exact ordered MEM Context, account Bytes8 from SAME authenticated Value inventory, and public gas-price Bytes8 from prepared public bytes. No caller-supplied receipt/account lists, memory order, or initial/public byte bounds. Strict prebuilt dependency build.",
+  "guards": 1,
+  "assumptions": [
+    "Actual repaired View and same Node/Value/UPS/Head forest context",
+    "Prepared SPAR ownership and prepared public bytes equality",
+    "Explicit no-public MEM/VBYTES and no-public BYTES receives; existing forest digest/byte sends ownership retained"
+  ],
+  "remaining": [
+    "Corrected arithmetic conclusion retains exact modular storage condition",
+    "Native ordered applyReceipts proof still needs account update invariant, access-key/routing/refund/source binding",
+    "No global validator replacement claim"
+  ]
+}

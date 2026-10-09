@@ -1,0 +1,59 @@
+{
+  "lane": "weighted-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UniqWeightedTraffic.lean",
+      "sha256": "382e79a4fae78fb041ed92257678d7412330019ad3ad157eecab410d2d49f193",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-weighted-payload-UniqWeightedTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UniqWeightedNondup.lean",
+      "sha256": "34aca4602777dd94f96ecc1efad30cd82adfd2e3141e33b89060366eb4a1c4b5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-weighted-payload-UniqWeightedNondup.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UniqPayload.lean",
+      "sha256": "3e024481ffe0249cdfe1e335c080ecae1b4375f0effe48f799770209f90d168a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-weighted-payload-UniqPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/RetainedStorePayload.lean",
+      "sha256": "8752f27f0b74b632c43de0450333b23a59d4980a561934ca287fc9e809018d87",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-weighted-payload-RetainedStorePayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativePayloadOwnership.lean",
+      "sha256": "860f9f5c1c0ea012d49ece157605e084c46b1785745642105f5b1527cc97857b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-weighted-payload-NativePayloadOwnership.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountNativePaid.lean",
+      "sha256": "d5ae7bee89574bdb5de48a2105d5e479d421e78383b6f11656b30d91484e3b85",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-weighted-payload-SizeCountNativePaid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptWeightedPayload.lean",
+      "sha256": "d2c66a094115dcf3dee9d18f1e2e408b19c1347db361a0fa3b1a13451e0e5b93",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-weighted-payload-AuditRcptWeightedPayload.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 18,
+  "scope": "Strict independent compilation of six same-view weighted uniqueness/store/native payload modules and exact audit. Removes independent payload and record-count domination premises from prepared_native_witness_paid. Native field/dictionary identity and global SIZE isolation remain explicit. Prebuilt dependencies, not whole clean certificate."
+}

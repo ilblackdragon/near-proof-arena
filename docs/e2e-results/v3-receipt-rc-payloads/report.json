@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-rc-payloads",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGroupTokens.lean",
+      "sha256": "aab9dd16d05dc8f0e14b364e08be0a28527dd248d65c0bb178ce78a876e9e40b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-RcptGroupTokens.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEncodingTokens.lean",
+      "sha256": "0c89bc7ec719b895f6eafade1479b1eb2b211324cd245a11002d94d0c277ec3d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-RcptEncodingTokens.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalGroupedEncoding.lean",
+      "sha256": "8a80a42bc99db80bc61e59525eb459ec4a58bb0201d94083b27db7ff4e553d17",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-RcptCanonicalGroupedEncoding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeHeaderRanges.lean",
+      "sha256": "783a61f86835add7d36c6a85ef1171a022f68bf7c23aa2d0160ac9d865b5da29",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-RcptNativeHeaderRanges.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeRcHeaders.lean",
+      "sha256": "a53e558da402e4c8fad4dea910c1d05ff4e58f72101a0efbb9b0931d5972acd6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-RcptNativeRcHeaders.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalRcPayloads.lean",
+      "sha256": "391283e56e8a51951a28095d8891d3a0b34a21e530ca8cb683a2ce06c633483a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-RcptCanonicalRcPayloads.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGroupTokens.lean",
+      "sha256": "2b7caf0d41ffba0b84f268f660a6bc9a96d4bc64896c82edbcbecf80dd46d2ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-AuditRcptGroupTokens.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEncodingTokens.lean",
+      "sha256": "1a0b8c3e1f6f114e24afd447941bde51760c7882eb9e1bc7e8fb21aaac4e15b4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-AuditRcptEncodingTokens.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalGroupedEncoding.lean",
+      "sha256": "f8eb4d17e5e5c84dcc0b11efbd27b14699c0a1e7590ae5f9fa6ee0ae4889b4a1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-AuditRcptCanonicalGroupedEncoding.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeHeaderRanges.lean",
+      "sha256": "bbd154d4eae4dedb7cf3809a258d903b2fbc2b92567d8224a5f0218a3bfc26aa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-AuditRcptNativeHeaderRanges.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeRcHeaders.lean",
+      "sha256": "dd18d4ad4c554e9982b85093ae6a7655acf991d148af0e56291fcba378dced5b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-AuditRcptNativeRcHeaders.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalRcPayloads.lean",
+      "sha256": "4b78084bcc5bb2f4254ae0545496bc19193fe8a140ebe0042ee6f4acdb362d9e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-rc-payloads-AuditRcptCanonicalRcPayloads.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules14guards. Actual ordered canonical RC payloads match native source-list serialization, including empty/repeated lists. Physical header ranges/count derived from honest stream and block Wf.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

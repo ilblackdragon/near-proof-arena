@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual model grant/process preserves native maxAllowance bound and generated final allowance endpoints fit24 bits. Actual successful record rows expose incoming accumulators, adjacent recurrence and terminal low24 value. Retained cRec evaluation and full TableLocal remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualAllowanceBound.lean",
+      "sha256": "b890dd4ab1e89ba1de7829396e74947d1180a7f47995efc5249989c4abd5dfb9",
+      "audit": "zk-formal/test/AuditProcActualAllowanceBound.lean",
+      "audit_sha256": "ea6233768f764f772f2a7fb17e673291a88ff090e27cbdb7a9a3d011709321ef",
+      "guards": 8
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAccumulatorRows.lean",
+      "sha256": "c49f3638942d374f90313b8ffdbcc50ee7c694aca444a724212f8ca86424023f",
+      "audit": "zk-formal/test/AuditProcPriorCodecAccumulatorRows.lean",
+      "audit_sha256": "84cfc445e8b325df00d37cfe13ca819fa7f9b1088a3c5a377658c4c5004e7cb7",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecAccumulatorAdjacent.lean",
+      "sha256": "7e949051e899586e432d95ed4b1d94f0dcf3f92ccd86ec1728692f57e8b0608a",
+      "audit": "zk-formal/test/AuditProcPriorCodecAccumulatorAdjacent.lean",
+      "audit_sha256": "a2daf13b4046c159f9aa89bd204da53457cd338d87d9eec029258dde86e45c1e",
+      "guards": 2
+    }
+  ]
+}

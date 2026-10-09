@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Original four source traces constructed at log22 directly from accepted native input; TableLocal and exact arity-three SIZE traffic. Seven-trace SIZE conservation with same node/value payload/count receiver,under explicit NodeOk/ValOk. Global family placement and remaining buses open. Prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSourceFour.lean",
+      "sha256": "775b27219f56554efdc0666e2eff574218d1b86c538d2ef5d9a6943b9797e7c2",
+      "audit": "zk-formal/test/AuditNativeSourceFour.lean",
+      "audit_sha256": "275db16ecbed21ec0ddaffaeaa83bbf5c265a0f4a20e6afa3308e513871de458",
+      "guards": 3
+    }
+  ]
+}

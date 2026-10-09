@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual memory comparison step, loop, and segment preserve operand bounds from explicit operation timestamp and grant-value bounds. operand_check discharges exact final check from Bounded. Replay operation bounds and full integration remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryOperandBounds.lean",
+      "sha256": "2efd3f8e3bb608fac7e69d0dcfc03e03340af59bb2595f25fd3f85435f02c598",
+      "audit": "zk-formal/test/AuditProcActualMemoryOperandBounds.lean",
+      "audit_sha256": "91a3cbdb208e7a7b2b5efcc8eeb6c3ae755e9e27b30bb9f4c585828e62059f1f",
+      "guards": 5
+    }
+  ]
+}

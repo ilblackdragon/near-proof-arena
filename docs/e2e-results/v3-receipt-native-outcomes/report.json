@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-native-outcomes",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeOutcomes.lean",
+      "sha256": "3c52d9fb879a86ff246b2803100589488aef42510f45e1760ad01019e67696f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-outcomes-RcptNativeOutcomes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeOutcomes.lean",
+      "sha256": "669d53b8cab5c20e9a48c93402bc720f7f68cb50028623888dd2d0152e786448",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-outcomes-AuditRcptNativeOutcomes.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4guards. Actual successful applyNewChunk outcomes equal ordered mapped native outcomes for original receipts, covering ordinary/refund/system branches. Physical extracted-view binding remains open.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

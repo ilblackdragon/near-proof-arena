@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual selected node/value dup filters count exactly one per transition-tagged byte class. Payload+4*count charge exactly matches representative charge and is bounded by original tagged stores given byte provenance. Native tags/provenance and byte faithfulness plus global duplicate traffic remain open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreSelectedClasses.lean",
+      "sha256": "c02ca407f6ffaa09945a6b97384e5bc99e925bdfda1fd377ed0f55f2b4dfc46e",
+      "audit": "zk-formal/test/AuditStoreSelectedClasses.lean",
+      "audit_sha256": "8fa2281b7e9f665b75997a7e77da09b70de05f0379129cb1a61febf549be6687",
+      "guards": 8
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreSelectedCounts.lean",
+      "sha256": "d15145fc759b7dbd74608e1be8e6d96c15783ba45c46580b1aecc3b9a8776250",
+      "audit": "zk-formal/test/AuditStoreSelectedCounts.lean",
+      "audit_sha256": "8c4de2fe6ee2707623d000ff2c9c92e16877a0a8a8f7a00545ea3201e2ef3018",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreSelectedCharge.lean",
+      "sha256": "f306ddc3af85823c3ebd36383233fa8e9a6f4da53f2701583c5caf7a36a3edec",
+      "audit": "zk-formal/test/AuditStoreSelectedCharge.lean",
+      "audit_sha256": "dfda4331381ec73a205ebf8f01afb1665b4795aece5c5ef8be80c99706e46023",
+      "guards": 2
+    }
+  ]
+}

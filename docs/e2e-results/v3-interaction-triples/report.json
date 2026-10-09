@@ -1,0 +1,39 @@
+{
+  "lane": "interaction-triples",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/InteractionTriples.lean",
+      "sha256": "46f218ba0df45be75b7b86f2a7d63e32fb93ed4fc7ae400139727938718a31af",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-interaction-triples-InteractionTriples.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/InteractionTriplesSum.lean",
+      "sha256": "a3a55a2dc895bc85d6c7f29a690a700f285225f3412eee1760046411de56b8a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-interaction-triples-InteractionTriplesSum.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/InteractionTriplesTransport.lean",
+      "sha256": "a0026fd27fda619510bc72c4892c63ce84cd27ff606f13b1cf5d2f1fe6432b66",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-interaction-triples-InteractionTriplesTransport.log"
+    },
+    {
+      "path": "zk-formal/test/AuditInteractionTriples.lean",
+      "sha256": "c0a7d87dede4d504b8094cf98418ec8063eee24b52dcc2bfcb76d0bb18383087",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-interaction-triples-AuditInteractionTriples.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules13guards. Generic pg3 interaction regrouping preserves TableLocal both ways and exact natural bus/message multiplicities on SAME trace. Inert slots have zero multiplicity. Concrete family budget kernel certificate still pending.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

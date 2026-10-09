@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native main queue request key tags are disjoint from account/access-key tags. Actual selected queue provider VIDs lie in exact original-state residual after both account writes and selected access providers. Full byte partition and implicit forest ownership remain. Prebuilt dependencies, not clean full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueOwnership.lean",
+      "sha256": "2f1ce63b1df6a6df8c8c527078e6afccf5e4e485032a1295faddacf2d2562213",
+      "audit": "zk-formal/test/AuditNativeQueueOwnership.lean",
+      "audit_sha256": "1fcbb30350894437e19622a70ded0b822415266ea1a4d777b2099e36129c83a6",
+      "guards": 4
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Corrected source exact traffic on all logical and physical buses, preserving non-SIZE messages and emitting exactly one corrected SIZE charge. Seven-component SIZE balance and receiver legality under explicit Valid. Receiver Valid follows from native store provenance and corrected original-store/source/public total budget; deriving that total from actual source dictionary bindings remains open, as do dictionary sound extraction and active family replacement. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceTraffic.lean",
+      "sha256": "6efe4c61c51c6b857e58e99f8103d0335c722eb07a1cc9d39ff2e05e0c92383a",
+      "audit": "zk-formal/test/AuditUniqueSourceTraffic.lean",
+      "audit_sha256": "0af768ee7d12ab650e68ad7d9e4405f1a0f8facd0aab9fa4e67317c20bd19317",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourcePhysicalTraffic.lean",
+      "sha256": "0ea30e7626fdd54d3f421a960ec5a5948f9adbbda6767fa8011a918f54d46750",
+      "audit": "zk-formal/test/AuditUniqueSourcePhysicalTraffic.lean",
+      "audit_sha256": "12281b1347ce46bf94c47eeb47151b1712b5dc2ac1014e63ee9867d2d18f39b1",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceSizeTraffic.lean",
+      "sha256": "6e536c577ec90a4fb28880ccd219c1436c3a5e1ed0264901c0f795a02fbc4d14",
+      "audit": "zk-formal/test/AuditUniqueSourceSizeTraffic.lean",
+      "audit_sha256": "1bcf2bf8f39b8056cf2c414c1a796ab5211d6f5d08bec9ab358a6f0e40ddea28",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSizeComponents.lean",
+      "sha256": "fe513c0f008adedf4285da665a48daad6d553b54d2a43addcb6dbb5c967ade56",
+      "audit": "zk-formal/test/AuditUniqueSizeComponents.lean",
+      "audit_sha256": "9836206cffc9aa031d0e635a206346c4c47aece0e2463990127c26134344453e",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSizeValid.lean",
+      "sha256": "8aed299b0ff8c03a3647e7c71cd308945dbc66aba68b0439c050e9d9c18c53a1",
+      "audit": "zk-formal/test/AuditUniqueSizeValid.lean",
+      "audit_sha256": "db784f2da73c51cb5997ed895c4ae7fe9e0253e065237b119957ef9141b70dab",
+      "guards": 1
+    }
+  ]
+}

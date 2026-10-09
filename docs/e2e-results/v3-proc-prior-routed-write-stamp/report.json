@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed routed-family WRITE stamp authentication. Corrected Record local constraints and real vertical window rules imply each active Record ordinal <= physical row, including virtual first/header reset, padding predecessor, same-record carry and record increment. HoldsP bounds physical height by 2^22; genuine Record67 supplier provenance transfers the original ordinal to every live stage0 WRITE stamp, proving stamp+1<2^29. No supplied height, ordinal/range, comparator order or generated/native trace premise. Only actual HoldsP/table identity and absence of public67 sends remain. WRITE timestamp/address and full decoded raw identity remain separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordOrdinal.lean",
+      "sha256": "84fa7d2b8dfc744848a9455f95466e532a2a891ab593d6c618b0f322c99fb388",
+      "audit": "zk-formal/test/AuditProcPriorRecordOrdinal.lean",
+      "audit_sha256": "17f1216eae17ec604847db428db74475c846fd696a9388ffc8be22af8819a490",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedWriteStamp.lean",
+      "sha256": "74b1a82e82e41343d6995336b7e8b8a2c5ba52533bbaab4945cf2712ca59012a",
+      "audit": "zk-formal/test/AuditProcPriorRoutedWriteStamp.lean",
+      "audit_sha256": "a26b7fb2c9727e3abca58d40e1cced152add5e4814f9f2acab2989f11f255ae6",
+      "guards": 6
+    }
+  ]
+}

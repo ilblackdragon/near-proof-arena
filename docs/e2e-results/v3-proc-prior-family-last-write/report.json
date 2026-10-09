@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary actual-family prior68 last-write and maximal-stamp semantics. Genuine HoldsP/tables identity/no public68 send binds a live physical consumer to actual projected stage0 query. Stage0 Local/prefix conditions are derived, eliminating standalone LocalM. With explicit natural address monotonicity, active address<P and adjacent same-address next-write strict stamp order, query has no matching live write and reads initialized zero or reads a write maximal in both physical row and stamp among all matching live writes. Native/decoded-original identification of write values and stamps is not assumed or concluded. Fused comparator order/range discharge and complete authenticated decoded write inventory remain. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryPredicate.lean",
+      "sha256": "2a5b51d5fb49afbc33a53af7d52fe731afcec5be0645c0bc894b2b50ccc37b1c",
+      "audit": "zk-formal/test/AuditProcPriorMemoryPredicate.lean",
+      "audit_sha256": "8fe56e19ad7d022060811afedde04b0f4d5046b73a8fd8b78deb0fc2e508cb23",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryStampMax.lean",
+      "sha256": "c5072452c1a750483d7bfc3d759c8ba3648a7d0f93cb2a6e759e7b83bb87e301",
+      "audit": "zk-formal/test/AuditProcPriorMemoryStampMax.lean",
+      "audit_sha256": "400cf04ddf94315df3d43eddf29fa5ed6510881976a82784803d21d48d88aef2",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalLastWrite.lean",
+      "sha256": "b449f9824f68d8dfbc91b715b16881962cb72b9595a9e32f76b9af79d70d7c8d",
+      "audit": "zk-formal/test/AuditProcPriorVerticalLastWrite.lean",
+      "audit_sha256": "de42f6d41f3d2708c9c361b5a4f2ef055b6687101e2ea35ff724dd6b151b830b",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecFamilyLastWrite.lean",
+      "sha256": "87bc4b34eb7ad36e324c6fc851ef1b6e2b88529b6bce0b734054d54c19d6049f",
+      "audit": "zk-formal/test/AuditProcPriorCodecFamilyLastWrite.lean",
+      "audit_sha256": "cf2ea8888be34054244505ba8759790eedf97c8b6c78f61b657daac597f9f1c2",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-family-last-write/dependency-review.json",
+      "sha256": "1a0a9b382188c8dffba5b356d594c83dd41a4255fa0c6c5044e4733ad56421e8"
+    }
+  ]
+}

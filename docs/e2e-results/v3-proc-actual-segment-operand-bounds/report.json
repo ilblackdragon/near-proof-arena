@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual segment construction and complete memory scan preserve operation-derived comparator bounds. finish_success combines push/final-state checks, ordered memory and round checks under explicit time/key/operation bounds. Prepared replay bounds remain to discharge. Prebuilt dependencies; full certificate/judge incomplete.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSegmentOperandBounds.lean",
+      "sha256": "921030ceaeb38c1fa490f2142071e7a79c8c7376ff072d6bf7429d0a25c730f7",
+      "audit": "zk-formal/test/AuditProcActualSegmentOperandBounds.lean",
+      "audit_sha256": "e11269f8d62127181f870394d17675945dcae1b5f28dbc78bb0542e36462b86f",
+      "guards": 7
+    }
+  ]
+}

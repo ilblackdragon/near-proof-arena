@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Original active source accounting is paid by accepted native witnesses: cardinality forces unused-entry reserve, each entry contributes at least56bytes. Accepted dictionary/whole8MiB budget/receiver validity checked under explicit native walk, decoded witness, store alignment, roots and forest assumptions. Filler-free candidate is NOT a native replacement when sources repeat. Strict checks use prebuilt dependencies; no full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/OriginalSourceReserve.lean",
+      "sha256": "e56a37e55453dd62e112e9ed3bb26adcb0384f5cf50b2a49be12d4598f688814",
+      "audit": "zk-formal/test/AuditOriginalSourceReserve.lean",
+      "audit_sha256": "fb80e806af88b251f29656c564faa80e0e1cd144e08a29021cedc081513a28a3",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/OriginalSourceNativeBudget.lean",
+      "sha256": "88ff75c688f3eb45c48a147d99f1d21c3630541ae0a5c0d74bf248ebae438435",
+      "audit": "zk-formal/test/AuditOriginalSourceNativeBudget.lean",
+      "audit_sha256": "4781fe9acff086a0e9c5696ebb259d7112f84848976fc3947499342ab898d009",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/OriginalSourceNativeTotal.lean",
+      "sha256": "80f18c339824da7b66e3995b012e9c79c6642b4679035f5af958717590633104",
+      "audit": "zk-formal/test/AuditOriginalSourceNativeTotal.lean",
+      "audit_sha256": "675a940cf8d4bbb4dcaf6dafd28643f131ae85461acd5d43fccb09174b6fc72c",
+      "guards": 2
+    }
+  ]
+}

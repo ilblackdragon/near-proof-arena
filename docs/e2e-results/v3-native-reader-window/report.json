@@ -1,0 +1,32 @@
+{
+  "lane": "native-reader-window",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedInitializedBytes.lean",
+      "sha256": "bd47c3dd23bb99ef837e651dcf016179711b86f5ee78902b21f13a2332c8e3e3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-window-NativeRebasedInitializedBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderWindow.lean",
+      "sha256": "ad59d27ebc9c876139e521e72dfc714951494a0f8bfc74230e809be747d28b6c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-window-NativeReaderWindow.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderWindow.lean",
+      "sha256": "0d2dbd44311de9c46181f194782bef9ef7166278043c953dbf4c90f175323185",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-window-AuditNativeReaderWindow.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules2 guards. ONE original initialized post-updated provider at actual part.sN simultaneously has pb=postserialization, pdep=depth and all pcid=ucid bytes. Source length/global request rank/balance remain.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

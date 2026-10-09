@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-native-states",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeFlags.lean",
+      "sha256": "2640d5f96ccc39d20829c84194ddf619b7b30593b9ab776e46fa27bb2d4a75ae",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-states-RcptNativeFlags.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeRefundLocal.lean",
+      "sha256": "094166761dd21c31f3223e012dc4e59b18438b8d2caa39e688406a6b7d44ff49",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-states-RcptNativeRefundLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeStates.lean",
+      "sha256": "b44590d8eb7817e4f770ee2fd164b6d87da9dd17d6ec986c559a9559c1296da8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-states-RcptNativeStates.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeFlags.lean",
+      "sha256": "abbe5fa50a7422825b65f879359d0a3d481b5d351d039034546faa5c1306a9a4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-states-AuditRcptNativeFlags.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeRefundLocal.lean",
+      "sha256": "1fc057805b7d767f44ecf16d92e38669bb71d8124ac8e02527521ad5950cc615",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-states-AuditRcptNativeRefundLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeStates.lean",
+      "sha256": "a90706f65694fa5a2ac4926e472ed73d393248f2df7c3c45ca46554f2d30951b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-states-AuditRcptNativeStates.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same native log22 trace637/881 constraints: all248 state equations with native surplus/refund and gas-price comparison flags. Remaining semantic families open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

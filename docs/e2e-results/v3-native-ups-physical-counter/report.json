@@ -1,0 +1,32 @@
+{
+  "lane": "native-ups-physical-counter",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsCounterSync.lean",
+      "sha256": "59c7a2f07d4d669ed4b3461a81944061e4df1b26bd03e2b24b5d97fe7d1c77e9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-counter-UpsCounterSync.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsCounterCanonical.lean",
+      "sha256": "708abd5a670215b28621dbda9df89a4cd882831f103ff90808a20518681c37a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-counter-UpsCounterCanonical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsPhysicalCounter.lean",
+      "sha256": "9cf57a6784155d7a392b4544e699d17f7a424de556235732c5ec5bbc13a8b551",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-counter-AuditUpsPhysicalCounter.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Physical UPS shared counter adapter sets u:=ub on bitmap mode, preserves InstOk and NativePartFamily; actual rank and rank+1 canonical follow accepted instance count<=32. Column105 field roundtrip exact. Actual interaction traffic composition remains open.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

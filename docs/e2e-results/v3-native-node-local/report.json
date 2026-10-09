@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual accepted D0a with B<=2M and native main/implicit execution discharges forest wf/depth/nonempty/count/payload prerequisites. Initialized duplicate-chain node/value count-extended TableLocal constructed from actual execution forest. Usage counts still zero; global buses and full assembly remain open. Prebuilt dependencies, not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeNodeLocal.lean",
+      "sha256": "3e4b745a4d9ba3f855c9d443b2eb112013c6f47ed3da1cdd6c6245a31f9001bf",
+      "audit": "zk-formal/test/AuditNativeNodeLocal.lean",
+      "audit_sha256": "ad1b7aacc2ab9fa39d41cdacad8eb30b0925a5c990d5b1e53366237bf4f87eb1",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeExecutionNodeLocal.lean",
+      "sha256": "3a8b1d4a43c172b0a4e3d092d4138078a38a20ad2491d2236e8d980e925a334c",
+      "audit": "zk-formal/test/AuditNativeExecutionNodeLocal.lean",
+      "audit_sha256": "b95b2eab1ea862091cf7804cc703ec7887c4a3e74261170da7fd09f24d45e45b",
+      "guards": 3
+    }
+  ]
+}

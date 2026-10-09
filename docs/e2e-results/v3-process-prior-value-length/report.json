@@ -1,0 +1,39 @@
+{
+  "lane": "process-prior-value-length",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorValueLength.lean",
+      "sha256": "9b5f2763e18c4195ec35693d31be36c4d0673cb7a928d24bfa864d279be0c2e0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-value-length-ProcPriorValueLength.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorValueLengthLift.lean",
+      "sha256": "3ef4c417b9f38a0e6cbb02125efed9a7fae3c9c478330f1fc4bb9a6c4da5235b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-value-length-ProcPriorValueLengthLift.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorValueLengthTraffic.lean",
+      "sha256": "8e209e553f860b407d6a1977652145cf4af71436b4960432951c5cb79e75ffde",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-value-length-ProcPriorValueLengthTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorValueLength.lean",
+      "sha256": "0767fe4033d581e3c9c998ad32968316ece6b92f95550656996516e9b5ffb23f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-value-length-AuditProcPriorValueLength.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules15guards. One-column authenticated value-header length relay, old-local projection, executable gated trace lift, exact extra LEN traffic and all old traffic unchanged. Gate selection uniqueness and global balance still explicit.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

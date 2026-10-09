@@ -1,0 +1,32 @@
+{
+  "lane": "native-final-allocation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptFinalBytes.lean",
+      "sha256": "02815ec78d50277f6885c5011dc10447e7482ae6d7dfe43b75e64944e81ab68c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-final-allocation-NativeReceiptFinalBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeFinalAllocation.lean",
+      "sha256": "6969dd50070e3734d4ef04949cf1932ad03945c529e3e2b4755f4f83dbf920c5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-final-allocation-NativeFinalAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeFinalAllocation.lean",
+      "sha256": "0426258a7eccc20b4884e603f310b443b8d79b2b19f5d86d6d095be972a703b5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-final-allocation-AuditNativeFinalAllocation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules2guards. NativeFinalAllocation preserves all NativeQueueAllocation facts and adds full physical ranked-walk FINAL sends=actual receipt+queue FINAL receives on SAME traces, no new accepted hypotheses. Queue still original table; repair transport ongoing.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "guards": 3,
+  "logs": [
+    "/tmp/SchedulerCodecImplicitBlocks.log",
+    "/tmp/AuditSchedulerCodecImplicitBlocks.log"
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecImplicitBlocks.lean",
+      "sha256": "ebb8b8cd506019886de0c42a82eeb9027a7eee28266f9f08f9f76bb015594c66"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecImplicitBlocks.lean",
+      "sha256": "2998ade5ce4c29d03cdbb8f316fc3746b253646a268989523a35ce0650adbd8e"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}

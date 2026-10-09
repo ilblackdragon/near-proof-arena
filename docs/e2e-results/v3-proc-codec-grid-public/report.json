@@ -1,0 +1,31 @@
+{
+  "strict": true,
+  "guards": 7,
+  "dependency_order": [
+    "ProcPriorCodecGridCounters",
+    "ProcPriorCodecGridIndices",
+    "ProcPriorCodecGridPublic"
+  ],
+  "prerequisites": [
+    "v3-proc-codec-grid-sound"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCounters.lean",
+      "sha256": "4ce9837016f4a9cccd8b61630c89a797b3429b9c6ca9e0eed08cb637b793affe"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridIndices.lean",
+      "sha256": "a64c1d88b6f2fea2038e5a602c96751c978abb275958aad04aa7659675509515"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridPublic.lean",
+      "sha256": "a4d7a21a762529b00a2722bf6be7d4f8c29a85300a9743554977ef9969dd365d"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecGridPublic.lean",
+      "sha256": "2fd400c71f9bc3f43d7d75d279817e0e94b8e533a80750721e58b11994f0c02b"
+    }
+  ],
+  "scope": "Corrected arbitrary Local enforces exact sender=k/n,receiver=k%n and every j<n has an actual live public70 send with srcC=j and same instance tau. Requires real header n1..64 and NN=n*n; no generated trace or original Local. Repaired View/prepared ownership and bus70 receiver coverage composition remain next."
+}

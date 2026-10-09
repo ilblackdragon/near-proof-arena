@@ -1,0 +1,67 @@
+{
+  "lane": "scheduler-fresh-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerFreshFieldSlice.lean",
+      "sha256": "0fcde0f3f1c8539fc3916f4c51456c80ae69fb08904ebcc2f96c211101dbe191",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-SchedulerFreshFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactDigestSlice.lean",
+      "sha256": "10278655bc4d28157ddacd49d1cebc3a5149b96526dfcbcd3ca6c1038ceead1f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-CompactDigestSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerFreshPhysicalDigest.lean",
+      "sha256": "d9f711019f34c359197feacab89949c0ee18eb8e49f1507fc3946125ca7f586c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-SchedulerFreshPhysicalDigest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedFreshDigest.lean",
+      "sha256": "85678f6c3339bf349a8c044d3973176cf34a45aa52bf3d0d022f583dfd56ed62",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-SchedulerSignedFreshDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerFreshFieldSlice.lean",
+      "sha256": "2c37249586d709bd4941100d28d3acdd86a382151ab91b69c1299315b8dbbd95",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-AuditSchedulerFreshFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactDigestSlice.lean",
+      "sha256": "74ae15b0d6a2d8f2e945361b90a081e7921afd17ca8fbb07a4eb2c396c8f68dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-AuditCompactDigestSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerFreshPhysicalDigest.lean",
+      "sha256": "daf9fcfbbf49ba6dc360053289e474167a0923f091facfdb96b36e19209f88f7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-AuditSchedulerFreshPhysicalDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedFreshDigest.lean",
+      "sha256": "15504ff0f27e1e851651e1a32959e03c93052f5925905cb5df10316f453dfc29",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-fresh-payload-AuditSchedulerSignedFreshDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules5guards. Exact fresh value digest payload at actual leaf/branch serialized offsets, preserving field reduction; actual encodeNativeParts transports result to signed native instance. Upper/split children and full scheduler digest conservation remain.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

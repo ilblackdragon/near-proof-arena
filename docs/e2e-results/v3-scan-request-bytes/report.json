@@ -1,0 +1,44 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestByteCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanByteTransition.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRegisters.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcScanRequestBytes.lean",
+  "guards": 10,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestByteCells.lean": "ed927183f83ccdbdcb4da7dfcb767b1d291f53cb7de4fcc262ed24fd16cd625f",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanByteTransition.lean": "4ac4e8f1ff5d8842e8cf663688bff155c74185282b6f0f45401dfad8ce9bbfbe",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRegisters.lean": "614f6aa6308d7fea1ca19f2f9f1c2bfb2291cec6b56afdfe8c71b538a1f5e5e7",
+    "zk-formal/test/AuditProcScanRequestBytes.lean": "90f6752937596fc823cbc9188b009993d9ec415fb983ecc49f481f8f13d4b6f4"
+  },
+  "proved": [
+    "Every generated bitmap register cell equals exact native byte/register formula.",
+    "Actual two-bit consumption and byte-end exhaustion equations.",
+    "Exact generated register rotation at byte ends and preservation otherwise."
+  ],
+  "remaining": [
+    "Scan.body field composition and actual neighbor/phase binding; distribution shard/grid Local."
+  ],
+  "no_domain_change": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestByteCells.lean",
+      "sha256": "ed927183f83ccdbdcb4da7dfcb767b1d291f53cb7de4fcc262ed24fd16cd625f"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanByteTransition.lean",
+      "sha256": "4ac4e8f1ff5d8842e8cf663688bff155c74185282b6f0f45401dfad8ce9bbfbe"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanRequestRegisters.lean",
+      "sha256": "614f6aa6308d7fea1ca19f2f9f1c2bfb2291cec6b56afdfe8c71b538a1f5e5e7"
+    },
+    {
+      "path": "zk-formal/test/AuditProcScanRequestBytes.lean",
+      "sha256": "90f6752937596fc823cbc9188b009993d9ec415fb983ecc49f481f8f13d4b6f4"
+    }
+  ],
+  "scope": "Incremental strict source rebuild with prebuilt dependencies; request bitmap/register arithmetic only, not full ScanDist Local."
+}

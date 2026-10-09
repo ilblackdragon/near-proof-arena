@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed Record parameter authenticity. Every active stage3 row descends through real window/Record constraints to an active header with unchanged tau/shards. Actual fused bus76 supplier is Codec kF; genuine HoldsP balance and public76-send absence bind that header to SPAR-authenticated Codec parameters. Accepted prep supplies count<=33 and n1..64, giving actual Record tau<33 and shards1..64. No raw75/generated trace, supplied header origin, standalone Codec identity, or caller parameter range. Explicit real public hypotheses: SPAR send ownership and PubIdx inventory equal prepared render; no public76 sends. Record endpoint-index propagation remains separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordOrigin.lean",
+      "sha256": "56fe0c3fa5ac82dbfd09899d0b01823602a8167b88fa71572eaa4b8f07394967",
+      "audit": "zk-formal/test/AuditProcPriorRecordOrigin.lean",
+      "audit_sha256": "a838701ac9e7005890dfcd8ea18a4db9b40bac06090b2048da616d0250003dd9",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRecordParameters.lean",
+      "sha256": "291b5c88b44ae12f65dcecf1fe638b32eedab3cb70b48faf6eaa2b7396afefee",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRecordParameters.lean",
+      "audit_sha256": "14e8896200fb2db4233c74cfc3ab6d33eb7057da8c494793dcf3f0f3f1efff2f",
+      "guards": 10
+    }
+  ]
+}

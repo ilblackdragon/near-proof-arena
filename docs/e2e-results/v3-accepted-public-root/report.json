@@ -1,0 +1,25 @@
+{
+  "lane": "accepted-public-root",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedPublicRootTraffic.lean",
+      "sha256": "4c63a8e2fd8ec433706862ad18aacbe675bd834a3853744ee96462c6ef4c16ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-public-root-AcceptedPublicRootTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedPublicRootTraffic.lean",
+      "sha256": "e27f312b68ffc085cf2b772c0a16c1bfdaa6efe8c50feca9779882f429ba3e36",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-public-root-AuditAcceptedPublicRootTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1guard. Actual boundedPrep(nativeHint) public ROOT descriptor counts, encoded length derived from native acceptance.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

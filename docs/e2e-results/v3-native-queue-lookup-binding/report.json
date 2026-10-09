@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete queue resolver uses exact original forest value offsets/local VIDs and preceding-use counts, with proved present/absent lookup flags. Accepted SAME MainValues and raw/ranked combined native lookup lists bind each concrete queue plan request including implicit prestates. Query paths invariant under resolver replacement. Full QV physical trace/provider VBYTES and QVC conservation remain. Strict checks use prebuilt dependencies, not full clean certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueIds.lean",
+      "sha256": "f05961fc271a3f5d3290d04ed561a84404885dc122ddac3d3162c719a77b1e1c",
+      "audit": "zk-formal/test/AuditNativeQueueIds.lean",
+      "audit_sha256": "0b686f578a4b0b8cdc8fdc120f521be9cfe416880de0070326c6a06faa5fcf3c",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueLookupBinding.lean",
+      "sha256": "88a2156ebd0f215748d082c3d48e04d3a142f5178a9fb00919424605904e01c7",
+      "audit": "zk-formal/test/AuditNativeQueueLookupBinding.lean",
+      "audit_sha256": "8a311fe032c85c40d422d3762c07824d7899e57a8e562895900f6ac56c0de519",
+      "guards": 6
+    }
+  ]
+}

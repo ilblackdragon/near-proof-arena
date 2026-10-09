@@ -1,0 +1,39 @@
+{
+  "lane": "native-reader-depth",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeSourceAddressDepth.lean",
+      "sha256": "9eff8c4ce3ee36c876fe01e006af38e70be4bd4b366ea0c6e03fa0542d8b2663",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-depth-NativeSourceAddressDepth.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativePartSourcePosition.lean",
+      "sha256": "dc9dd7fb0901b94ee75d3e3439fb973ef45636ffb7fdc42a66c61d4644f9d503",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-depth-NativePartSourcePosition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderDepth.lean",
+      "sha256": "1913f5f1b889c1929e9f6e210f869926648c793f495b5e0eba2375949b735661",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-depth-NativeReaderDepth.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderDepth.lean",
+      "sha256": "c9860735ad77d5d55b75c7c84d2a31b316d4955d9f83333b9f21f4b869ef8667",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-depth-AuditNativeReaderDepth.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules8 guards. Native recursion/encoder derives generated part.pdep=actual source address depth in exact terminal/upper order. NLF kind8 excluded only because it has no source UPB reads.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

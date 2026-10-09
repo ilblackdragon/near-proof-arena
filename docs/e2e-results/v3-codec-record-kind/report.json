@@ -1,0 +1,25 @@
+{
+  "lane": "codec-record-kind",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordKind.lean",
+      "sha256": "cbe477ee7ca808ccc0a458a123e40f25f576d55f4c2c893e593a519136ebc4a6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-kind-ProcPriorCodecRecordKind.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecRecordKind.lean",
+      "sha256": "c15f4580186e02d018b5ab3f7dd3cce3fca9aeb5072f91fcf8f6796fc1778397",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-kind-AuditProcPriorCodecRecordKind.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual corrected record phase flags and field partition identities from executable inputs. Full Codec local and adjacent-row composition pending.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

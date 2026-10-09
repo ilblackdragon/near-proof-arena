@@ -1,0 +1,80 @@
+{
+  "lane": "native-token-ledger",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeTokens.lean",
+      "sha256": "aa8cad1d870eef626a8a49c780183bcc26f4ded830e3cdccd89ec19fcbb27aea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-RcptNativeTokens.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptTokenLedger.lean",
+      "sha256": "22205c6129039c367869e7812c98c971c47262fb0e77b3355093a36c823fdd47",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-RcptTokenLedger.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptMainTokenLedger.lean",
+      "sha256": "2c57b481f2d3fddbcc8596d820561d819c7058ecffc953726a574dd57812b4b1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-RcptMainTokenLedger.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptHeaderTokens.lean",
+      "sha256": "d0e4de841ad1209f75c1e1d1856252b0836f9449af0e81235ad7e366b95ccc55",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-RcptHeaderTokens.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptLedgerIndex.lean",
+      "sha256": "6d4d55a13dd5b5d265b7a244e69acaf311749e63848d8adeea086f38eeba0c85",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-RcptLedgerIndex.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeTokens.lean",
+      "sha256": "64e1749e6f5710047397ab79845bf9dac3d5e11d808b8bd0a679e4720dd63866",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-AuditRcptNativeTokens.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptTokenLedger.lean",
+      "sha256": "3f71ef1642cecd7d4b9dc796d1136e37498aaf77e72b9479cece811580394863",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-AuditRcptTokenLedger.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptMainTokenLedger.lean",
+      "sha256": "c01adcfc2cff1ec23da4518ebf5c0849ddb03a91d12b44c5aa53d7f07317a810",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-AuditRcptMainTokenLedger.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptHeaderTokens.lean",
+      "sha256": "884899cf2b19b6c58265dd6f7efb2ed003ffdef2c9eaf7683cf2ba7b0d819b42",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-AuditRcptHeaderTokens.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptLedgerIndex.lean",
+      "sha256": "4f9c8758be3b4596f65471077bce65f8d08eaf39fb41154320548bf6be5f1018",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-token-ledger-AuditRcptLedgerIndex.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 21,
+  "scope": "Independent strict recompilation and exact standard-axiom audits of recorded modules against prebuilt dependency artifacts; not whole certificate or general NEAR replacement."
+}

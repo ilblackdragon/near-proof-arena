@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted MainValues constructs actual log22 mixed queue table with local constraints and full traffic, exact forest VID/prefix-rank resolver equality, capacity and physical QVC conservation. Global VBYTES ownership and other queue bus joins remain. Prebuilt dependency checks, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueCounters.lean",
+      "sha256": "6d3c93bbd7193c30f0272db16f42fe6d026c521aa5a4824170d243661b8b32a5",
+      "audit": "zk-formal/test/AuditNativeQueueCounters.lean",
+      "audit_sha256": "001f59c59a52a0aafeab1e6176690319fa0ac7e9cfea3a933bc8e2d370fc1c58",
+      "guards": 5
+    }
+  ]
+}

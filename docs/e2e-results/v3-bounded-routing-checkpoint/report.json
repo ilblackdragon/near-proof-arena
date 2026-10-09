@@ -1,0 +1,38 @@
+{
+  "lane": "bounded-routing",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingBoundedLayout.lean",
+      "sha256": "0c2153f5b252d7f1561f5670964c9cc9b1dd90692244fb81a66abb38fd3bc509",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-bounded-routing-RoutingBoundedLayout.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingBoundedPrep.lean",
+      "sha256": "4aa154f43807166deee9b22408d30ffea22114f17a1935171f53ece46db6006c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-bounded-routing-RoutingBoundedPrep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RoutingBoundedExamples.lean",
+      "sha256": "be7e61c93739f04bb180103a39ac9caec7f6e16ffe5f8ecf5ba616ef72b3e009",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-bounded-routing-RoutingBoundedExamples.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRoutingBoundedPrep.lean",
+      "sha256": "649b72238d3c15ef4a9a02c6c4def9a61eb2de1e543b28b3df4565434dd9a1a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-bounded-routing-AuditRoutingBoundedPrep.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict recompile of bounded native-layout normalization and prepared-public representation. Exact routing equivalence and accepted-preparation capacity; isolated candidate, not active admission.",
+  "exact_axiom_guards": 16
+}

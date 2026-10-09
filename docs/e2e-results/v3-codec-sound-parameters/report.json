@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "guards": 10,
+  "logs": [
+    "/tmp/ProcPriorCodecSoundOrigin.log",
+    "/tmp/ProcPriorCodecSoundParameters.log",
+    "/tmp/AuditProcPriorCodecSoundParameters.log"
+  ],
+  "scope": "Retained corrected constraints derive every active row first-header origin and seven constants. Genuine SPAR ownership gives active tau public bound and exact nn under ordinary public count bounds.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundOrigin.lean",
+      "sha256": "00a0a1e459539ee332d79f539eb322f1a1dc648222b06be22fa58f2402b819dd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundParameters.lean",
+      "sha256": "4adcd8fa73358c240123b4a9baf213ec991883df83fe42dd2f8c8b007ab47fe8"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecSoundParameters.lean",
+      "sha256": "4f28ab0cf6fdc40617cd543225fab39b0b2e009e01fe028619af9578fb1bde6c"
+    }
+  ],
+  "dependency_scope": "Strict audited modules using prebuilt dependencies; separate source-only closure evidence has its own scope."
+}

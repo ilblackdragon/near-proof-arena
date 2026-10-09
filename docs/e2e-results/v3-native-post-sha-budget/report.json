@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual accepted native post-updated, chain-accounted and usage-counted node/value SHA job inventory has <=2925275 rows. Derives wf/length/implicit-count premises; arbitrary payload correctness and global SHA union/table balance remain open. Prebuilt dependencies,not clean full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePostShaBudget.lean",
+      "sha256": "01a356bd3668e4aa5288a8ca20dae039929816818a5d8a3872598ea928e839e8",
+      "audit": "zk-formal/test/AuditNativePostShaBudget.lean",
+      "audit_sha256": "b6d7d5ced7fb7728e930c8ffaa169aef07566f2576d27613b61b1992cd4754f6",
+      "guards": 3
+    }
+  ]
+}

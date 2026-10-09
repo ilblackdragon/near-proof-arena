@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Complete actual conversion-read loop produces ordered positive logs before T0 from prepared request bounds. Actual grant entry and indexed entry loop preserve all three ordered memory log arrays. Across-round and finish integration remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReadMemory.lean",
+      "sha256": "a8307c2b658304e11e4277958a37be0b0b00605c50819343148bc483d2821767",
+      "audit": "zk-formal/test/AuditProcActualReadMemory.lean",
+      "audit_sha256": "994a577e06255ac99da7dfd8a700b3c90c0bf215f4f7944f4ef82a3c72dc0e43",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualGrantMemory.lean",
+      "sha256": "2a2ca12ade78cc000275ef75431d8287cacabb7fe117586b5f4839e07e10adf4",
+      "audit": "zk-formal/test/AuditProcActualGrantMemory.lean",
+      "audit_sha256": "2a812da98348b3df9a7975ffa7a03126397308746eaa02b8c32ff8541dc755e6",
+      "guards": 2
+    }
+  ]
+}

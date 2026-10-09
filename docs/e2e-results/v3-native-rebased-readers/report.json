@@ -1,0 +1,39 @@
+{
+  "lane": "native-rebased-readers",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ChosenRebasedInstances.lean",
+      "sha256": "7f157d7154f7111947cbfbaff3e9f3d45e5e18cc08a7ff6ec6a7dd13f13d9a54",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-readers-ChosenRebasedInstances.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedPhysicalBounds.lean",
+      "sha256": "83bd6dfebfccc7eed81d10dbd6fcc1d0742569e5f9f2104c62817e64d9ce878e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-readers-NativeRebasedPhysicalBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedReaders.lean",
+      "sha256": "ec76f917d1ffe84c6d3e161fb46ff9db77c8dfdc8867b6ea7783bbd6d0cf22c8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-readers-NativeRebasedReaders.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRebasedReaders.lean",
+      "sha256": "29a730104c29f7f7e81b7c1ee0c3f322c853af8a398ea42d3f4b34d0304212f1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-readers-AuditNativeRebasedReaders.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules3 guards: allocated exact rebased reader/SHA/dispatch instances retain same us/oldPost/writes, valid replay forest, exact global post bytes and accepted bounds. Physical provider coverage remains.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

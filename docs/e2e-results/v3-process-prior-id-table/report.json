@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-id-table",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdTable.lean",
+      "sha256": "5846d4752deae790f0899226d1070d56d3f19f3200aef8e27b147dee81418808",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-table-ProcPriorIdTable.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorIdTable.lean",
+      "sha256": "3b90fa9e25690a8a83660a065c2abbf6efaea5b489d2742caa3a3c227de7fa90",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-table-AuditProcPriorIdTable.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2 guards. Width20 first-public-ID AIR with canonical limbs, three authenticated inventory interactions and four order comparator interactions. Only isolated wf/shape; carry renderer/global ownership remains.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

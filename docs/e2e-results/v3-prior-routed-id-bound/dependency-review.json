@@ -1,0 +1,36 @@
+{
+  "status": "strict PASS",
+  "dependency_order": [
+    "ProcPriorVerticalIdRows",
+    "ProcPriorVerticalIdOrigin",
+    "ProcPriorRoutedFamilyId",
+    "ProcPriorRoutedIdBound"
+  ],
+  "audit": "zk-formal/test/AuditProcPriorRoutedId.lean",
+  "guards": 19,
+  "options": [
+    "-j1",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false"
+  ],
+  "olean_root": "/tmp/nearproof-receipt-check",
+  "overlay": "/tmp/ups-proof",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalIdRows.lean": "f9b0c5a689545b19b8e590498f8a98a9b781557fa1b876054c0d8ffbd6c3c07c",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalIdOrigin.lean": "2c594cf0db84f5e5cf74308c2f0ac7e7d58a03ef2a149d86e70971a38cfe1abe",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedFamilyId.lean": "07f95ec0183ff679bb215e3aaff9b7c45d8c536614e74e6c33304d1d9d484589",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedIdBound.lean": "abbab64837d6c12db57f52bb81d70ccf372466009d4739818f2dc28bb42fd8bd",
+    "zk-formal/test/AuditProcPriorRoutedId.lean": "f8bcc4835238b5fe058d7e75a0c4b58d0b3ba183efa295936c64215c4ad3d025"
+  },
+  "scope": "Actual routed-family arbitrary-trace ID stage1 public provenance and bounded result72 receivers",
+  "remaining": [
+    "Live public70 sender\u2192prepared ordinal authentication remains explicit; honest common-witness inventory is not used as arbitrary soundness.",
+    "Record receiver-index transport from its ID72 endpoint to a later write67 row remains a separate Record geometry obligation.",
+    "Uniform64, not same-tau n or first-match semantics; authenticated comparator/key ranges remain separate."
+  ],
+  "eliminated": [
+    "Standalone ID ownership premise",
+    "Generated ID or Codec trace assumption",
+    "Global-isFirst equals stage1 virtual first assumption"
+  ]
+}

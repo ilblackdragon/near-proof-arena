@@ -1,0 +1,22 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistComparisonCost.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcDistComparisonCost.lean",
+  "guards": 4,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistComparisonCost.lean": "847c15e3d9a7861063de8c0b800415a5e169817ad899ec607954f024e9c4fb39",
+    "zk-formal/test/AuditProcDistComparisonCost.lean": "f4e04960ad66f775aeef8aba80f398441272a87db99f06f8423f4dccf50a993c"
+  },
+  "remaining_assumptions": [
+    "actual distRows success for each supplied input/run/output",
+    "run.n<=64",
+    "list length<=32"
+  ],
+  "remaining_work": [
+    "Run.cmps aggregate count",
+    "CmpOk for all old40 requests",
+    "same accepted list physical traffic binding"
+  ],
+  "validation": "strict Lean -j1 autoImplicit=false relaxedAutoImplicit=false; scoped compiled dependencies"
+}

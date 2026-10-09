@@ -1,0 +1,25 @@
+{
+  "lane": "native-window-physical-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWindowPhysicalCoverage.lean",
+      "sha256": "0ffef38412bc561f247076a9af6c3cbbf04e1f5f84b953d77487fae16f68e679",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-window-physical-coverage-NativeWindowPhysicalCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeWindowPhysicalCoverage.lean",
+      "sha256": "d0195e5b5fca6ed854fce07c3896168b3609074d51707d68cd0eac3ef7c5cda8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-window-physical-coverage-AuditNativeWindowPhysicalCoverage.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2 guards. Converts mapped native coverage to exact natural provider membership using explicit base NodeWf3/postbyte bounds. Root metadata helper permits final assigned-provider bounds instead.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

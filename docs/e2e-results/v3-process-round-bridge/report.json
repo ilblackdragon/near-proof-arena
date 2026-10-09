@@ -1,0 +1,46 @@
+{
+  "lane": "process-round-bridge",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ExceptSummary.lean",
+      "sha256": "4743ffafc5db332656a347be9b22281bb02d429fe0fb4316150569e1c56723ee",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-bridge-ExceptSummary.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelRounds.lean",
+      "sha256": "a62fe20fc6770745a6fb807db9c90cbc21ba4d77ead783d0eda2e20708d59f4a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-bridge-ProcModelRounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ExceptVisited.lean",
+      "sha256": "71ba6fa939d0b42db6f825f48461c5f60dc4001e82e2db533d7e27560cd272c6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-bridge-ExceptVisited.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRoundBounds.lean",
+      "sha256": "f26a837b0d4620a7cdfaa9bb4cfc826f2d89cb396af3d8979eb38b912b94a2d5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-bridge-ProcRoundBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRoundBridge.lean",
+      "sha256": "e6d756d6d675321c12cf560b87cf884cd189a42833efbc7b36cb8a5341b7d184",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-bridge-AuditProcRoundBridge.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules8guards. Actual Gen.run exact ordered model round correspondence and K<P from checked native cursor chain. Zero-key ordinal sequencing remains explicit for complete RunData.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Additive repaired Sort family structural certificate: exact selected slot, table and AIR Wf, degree/header, same measured shape and 8238324-byte model bound. Original family unchanged. This is structural admission only, not full correctness, an executable prover or real judge validation. Prebuilt dependency checks.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SortEmptyFamilyWf.lean",
+      "sha256": "b1ea6b8eb689b09919d0b7bb3dc1c68da83e412d43aaf4edf427b4b7b190cbb9",
+      "audit": "zk-formal/test/AuditSortEmptyFamilyWf.lean",
+      "audit_sha256": "dd002d08cce9e5b14d6ed6ffa14cc9ab6614badd9f13d894ed3926a9a7220ced",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SortEmptyFamilyBounds.lean",
+      "sha256": "8e8df574564463b35fbcaf9b045ca907c2d6c08a2f57326b926f295a05b00894",
+      "audit": "zk-formal/test/AuditSortEmptyFamilyBounds.lean",
+      "audit_sha256": "fb866fc231e56fff50cd6e4d445876c3d5e7fe105b45f99595d427a84b475a4a",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SortEmptyFamilyAdmission.lean",
+      "sha256": "f2f532e8f9f57824a2cd0030dcabcd65e9395e302d150baddf594d0b61ffe80e",
+      "audit": "zk-formal/test/AuditSortEmptyFamilyAdmission.lean",
+      "audit_sha256": "3887a0f0df31231835b6627e5bb12b4cfba181905154819b370585137ce3bcb6",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SortEmptyFamily.lean",
+      "sha256": "d5da5767f098a3b42a0e6c20fad8156156ab543cebad3e0b52c9a80288dae5e2",
+      "audit": "zk-formal/test/AuditSortEmptyFamily.lean",
+      "audit_sha256": "a10ff9c31adf6f5582223e97d664fa3417553f79aacc0a4a1e216234a85c7507",
+      "guards": 3
+    }
+  ]
+}

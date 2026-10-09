@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Post digest updates preserve serialized byte bounds; actual native forest plus metadata/count/post assignments and seeded values yield every native NPRE/NPOST/VPRE hash payload byte<256. Full MsgsOk lengths/bin allocation/global binding remain open. Prebuilt dependencies,not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PostNodeBytes.lean",
+      "sha256": "e513d7a6b9e2456db645b794583d40989aa5dc5e556ff5b466276c6c2f7397cb",
+      "audit": "zk-formal/test/AuditPostNodeBytes.lean",
+      "audit_sha256": "4f97b57a4e5bbe02753ca5fdf9791edd353f96e6d58d9ddc4f26611c29751a58",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePostBytes.lean",
+      "sha256": "21a4bd7ceaee98e3bd572a6cb1de312e82c4785f83671608dadb5c6e75b35915",
+      "audit": "zk-formal/test/AuditNativePostBytes.lean",
+      "audit_sha256": "5cf990100d8b278e326330bbdd75b27633a33d4f79cfb47807c312a667d5534b",
+      "guards": 6
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-candidate-sound-arithmetic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasProduct.lean",
+      "sha256": "96aa8681110cd80ba057dd865b631cef977c13203c8c85324d370993c1d28a24",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-arithmetic-RcptCandidateGasProduct.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateDeposit.lean",
+      "sha256": "e55be4d362d21b6ae84bbeac497bc713b0372b9457636c1bb9b80f9f705bf149",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-arithmetic-RcptCandidateDeposit.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasTokens.lean",
+      "sha256": "1bcd3fd6c3e2a2cd40ca330162db02f506cae041f69ce5bbe0bbb0f21629423d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-arithmetic-RcptCandidateGasTokens.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasProduct.lean",
+      "sha256": "958666dc18f04a27b236990f09d3b50df5722e7fd9f3cefc6d9204a526c240b8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-arithmetic-AuditRcptCandidateGasProduct.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateDeposit.lean",
+      "sha256": "780450a64f4e54e080caafc2e3be1e611bf69503606f2959273c7d66153cd7c9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-arithmetic-AuditRcptCandidateDeposit.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasTokens.lean",
+      "sha256": "75c9101f7104d826e920eae8cdddb48af3a95c7ea83899010209b8bcee0dd330",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-arithmetic-AuditRcptCandidateGasTokens.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Candidate gas products, deposit balances and token recurrence from repaired constraints.",
+  "exact_axiom_guards": 34,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

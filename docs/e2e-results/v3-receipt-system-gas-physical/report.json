@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-system-gas-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemGasFootprint.lean",
+      "sha256": "9ac4add96c05d0d812926a506ed01a905a40ab913d45b39491e46bf1a9591f42",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-gas-physical-RcptSystemGasFootprint.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemGasPhysical.lean",
+      "sha256": "ad839811253afdc272cf268471978ff5f8b7ee9c9f4c06734a31f21490dfd078",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-gas-physical-RcptSystemGasPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemGasFootprint.lean",
+      "sha256": "e8c6800fed81b9306393fd58d0fb091d8f1e634921d4fc250e12b4847ebad732",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-gas-physical-AuditRcptSystemGasFootprint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemGasPhysical.lean",
+      "sha256": "d70a710a9fedef96820a369b95bc186c9ac7a48b85aae9999157f922d39b52d3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-gas-physical-AuditRcptSystemGasPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules6guards: candidate10 system multiplication constraints at every actual physical trace row for all-system lists, including padding/header/wrap. Mixed ordinary/system and other constraint preservation remain open; original824 unchanged.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

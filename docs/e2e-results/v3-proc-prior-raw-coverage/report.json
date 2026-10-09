@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Every declared raw frame byte has exact natural position, active stage2 and unchanged instance/value/presence/count. Record bytes additionally carry exact ordinal/offset. Uses actual frame extent and physical height<=modulus, no supplied count/byte bound. All bytes of present frames additionally match the SAME actual extracted Value entry at these positions via real VBYTES traffic. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawRecordPosition.lean",
+      "sha256": "8413a4696b6d2cf73228aefb45a58eed61efffaa92107c6219dade342d2c770a",
+      "audit": "zk-formal/test/AuditProcPriorRawRecordPosition.lean",
+      "audit_sha256": "caca0ad31c02f28ccc263d9cd595813c2cf476eca7d908f651e0ffccd405d037",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRawFrameBytes.lean",
+      "sha256": "e8bd76e3997b3579d0825950140b4ac4fcaf388d252da51132d66cdd54de3bf0",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRawFrameBytes.lean",
+      "audit_sha256": "59d7fe664bda683cd578cde50796ea7eaacceb7f2183b320271396e12bbe8963",
+      "guards": 1
+    }
+  ]
+}

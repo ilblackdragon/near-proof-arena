@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted actual queue plus physical account/access-key VBYTES sends and explicit residual equals physical EmptyValue demand. Residual is original values outside all3owners plus implicit nonqueue occurrences. Strongest allocation integration and residual Codec provider closure remain. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeCombinedBytePartition.lean",
+      "sha256": "bbb44503f64f77370157f26ccea8471be3b861d83d48c2ff81417530f94cbdff",
+      "audit": "zk-formal/test/AuditNativeCombinedBytePartition.lean",
+      "audit_sha256": "b5da35e9d94094eb58a46369e394f7f6fe5196a94413221732789ab569c60f64",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical QSH byte-position module; three exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/WalkShardPosition.lean",
+      "sha256": "2692775062ce49d897bdaaa0b4dcdc6e479abd426308f9aced7dec6a3f86ec3a",
+      "audit": "zk-formal/test/AuditQvWalkShardPosition.lean",
+      "audit_sha256": "8c239baa584610a21f692ae4f8caee46351eeacc3698017ddcb649e7a1ef64da",
+      "guards": 3,
+      "log": "/tmp/nearproof-WalkShardPosition-audit-checked.log"
+    }
+  ]
+}

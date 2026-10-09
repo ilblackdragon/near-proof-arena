@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual bus69 comparison enforces monotone packed prior-memory addresses over the entire active prefix. Prefix activity is derived from LocalM, not assumed. Comparator ownership, actual address interaction membership and authenticated packed address ranges remain explicit; shifted fused interaction transport and full last-write semantics remain open. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorAddressOrder.lean",
+      "sha256": "f83101b7ea6d36a3acc3601b885ef87a54c68b253915563ae247cec42db08c4c",
+      "audit": "zk-formal/test/AuditProcPriorAddressOrder.lean",
+      "audit_sha256": "ffad333cd067f41630a7f8feecb5ce14051a2a988da480f2d27fa05b6b8285b8",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "lane": "process-entry-event",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEntryEvent.lean",
+      "sha256": "344c92138075acdcefd6f26ea9ff074eee49fe41ef986c3e2de51b227c3a3422",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-entry-event-ProcEntryEvent.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcEntryEvent.lean",
+      "sha256": "002306f340bb28587238646d0b0d56be68b46f175644f9559b5ef758220bdb83",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-entry-event-AuditProcEntryEvent.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4guards: actual model entry emitted step equals generator-computed fields at valid converted request/increase, using native conversion state agreement. Whole replay invariants and model existence remain open.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

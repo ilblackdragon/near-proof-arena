@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Prepared actual replay pushes are strictly timestamp ordered and a permutation of actual popped records. Generated timestamps follow model event clock; initial pushes precede them; translation bound is derived from prepared request cap. qsort postconditions and complete certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcGeneratedTimeOrder.lean",
+      "sha256": "c07df89aca68a9792876ea49be3540a71e5e535e1429a1386bfdc9da0b818b71",
+      "audit": "zk-formal/test/AuditProcGeneratedTimeOrder.lean",
+      "audit_sha256": "8f2eac4950f6207cdb51d25df127c9317186fb5b3ba9bc3f64b03c373576b6ad",
+      "guards": 6
+    }
+  ]
+}

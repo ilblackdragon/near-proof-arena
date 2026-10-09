@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Combined native receipt/public/trie/fourSHA theorem removes arbitrary receipt accountId parameter. Concrete receipt account IDs equal original-prestate value slots returned by the SAME native combined lookup list, before and after occurrence counter ranking. Original lookup state remains independent of the selected replay poststate. Repeated receiver occurrences retained. Strict checks use prebuilt dependencies; physical receipt MEM transport and full certificate remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeRankedAccountIds.lean",
+      "sha256": "bc59de1d9ce26d4bc9eefdc51a73326211a9b8cceaa765c541e0a10e2b52f04b",
+      "audit": "zk-formal/test/AuditNativeRankedAccountIds.lean",
+      "audit_sha256": "1da2bb377eb036d525a3108a55daaab9f64dac8a9db4d11bf5a187e9adf22c6b",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptAccountIds.lean",
+      "sha256": "49e73e993f94d0419d6da34f4d872fba58fbd5cfd358c2309d66ccddace75d85",
+      "audit": "zk-formal/test/AuditNativeReceiptAccountIds.lean",
+      "audit_sha256": "285535db6215254d92138279b68722319a2268ae03e928707f8a4eee36efaa30",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptIdAllocation.lean",
+      "sha256": "463e443aa6b6ebc649fc85afc7859420d29e339c292324d61715e4bbecc052c6",
+      "audit": "zk-formal/test/AuditNativeReceiptIdAllocation.lean",
+      "audit_sha256": "d1a0ddae0c1453dbe0cb270fba6cf0c9da030287f1a176cff20b6cdc303a43c7",
+      "guards": 1
+    }
+  ]
+}

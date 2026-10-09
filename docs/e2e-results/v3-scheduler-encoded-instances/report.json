@@ -1,0 +1,25 @@
+{
+  "lane": "scheduler-encoded-instances",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/SchedulerEncodedInstances.lean",
+      "sha256": "dd89b844b81b7d7aceaaf276b7b023af2f112c1a41761ebdf15d94c2f43cf66a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-encoded-instances-SchedulerEncodedInstances.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerEncodedInstances.lean",
+      "sha256": "83f8ed6b70074bab149ffd3f2d098008fae7d8b5b1ea41cc0257d2b565b74eef",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-encoded-instances-AuditSchedulerEncodedInstances.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1guard. Strengthened SAME scheduler instance constructor retains exact encodeNativeParts/nativeInstance equality alongside all previous facts; allocation propagation remains.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

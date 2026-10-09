@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All actual record-word byte requests are installed and live, every row byte is authenticated or top-byte zero, and first-limb word has natural24/24/16-bit/u64 bounds. Final theorem derives byte bounds from installed SHA/BYTES/VPARENT traffic, no supplied byte/limb range. Native word value/memory semantic equality remains next. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordPhysicalBytes.lean",
+      "sha256": "ef18a3b6765b5440a6f782329f10d097450ecdd968af1b7a963a7fb0e14056a5",
+      "audit": "zk-formal/test/AuditProcPriorRecordPhysicalBytes.lean",
+      "audit_sha256": "549abe4f50767df08d4d08a72850151862756bd67de7191d6495e7de0e79a5aa",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordAuthenticatedWord.lean",
+      "sha256": "d8f080792429cf2d243efea001e8bf61c7dc9da96dc75d38477cc363735d8197",
+      "audit": "zk-formal/test/AuditProcPriorRecordAuthenticatedWord.lean",
+      "audit_sha256": "1e6770a17f629aed351e9f8739cf85124b171ab0e5df3b12cf028f14c85519e2",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual header register lookup, native parameter/header prefix equality and exact initial register/scalar fields;2-byte and3-byte natural reconstruction, field multiplication cast. Does not establish complete header local constraints. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHeaderRegisters.lean",
+      "sha256": "2800ef1704373eed56c138a681d0c8f3451775ea64ff877346889b92deb83945",
+      "audit": "zk-formal/test/AuditProcPriorCodecHeaderRegisters.lean",
+      "audit_sha256": "bb39aeb3d00c40b2e125e51171fbdd40142bbabf86d04bfc3aafb0f0cf8ae0be",
+      "guards": 8
+    }
+  ]
+}

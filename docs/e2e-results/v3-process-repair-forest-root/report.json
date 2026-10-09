@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Same extracted node/value forest native trie well-formedness and exact SHA root binding, composed with fully extracted native queue reads.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairForestRoot.lean",
+      "sha256": "a0e9f969f9b806833d4a028565186f0f34d72148ed7d61f6c541bb1ab29950cc",
+      "audit": "zk-formal/test/AuditProcessRepairForestRoot.lean",
+      "audit_sha256": "430961e1b3449cb3ef05a2b57f1a4b76e8b06b8a44b6a60e7f268ec1ff46c1e0",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeQueueState.lean",
+      "sha256": "1038f58ee02339fd772404e657bb621d9dfd1cd8bace6bbdc93b48f330d6d8ec",
+      "audit": "zk-formal/test/AuditProcessRepairNativeQueueState.lean",
+      "audit_sha256": "931c08ba5a1bbbde4f2095a45a713057197e51fa7516871cb4a04a8513abd8bc",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-forest-root/dependency-review.json",
+      "sha256": "1f5b0529ab964d6a0530a0eb2f2a6ee645cbb2651e4f0649c9e58085a16014cb"
+    }
+  ]
+}

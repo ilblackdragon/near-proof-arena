@@ -1,0 +1,168 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Process proof chain migrated to ActualRun native prior allowances: replay metadata/entries, round order, budgets, single/list locality and ordered sequence locality. All exported theorems audited. Successful corrected execution remains explicit; accepted-input total success, codec full Local, call-site and strongest-allocation wiring remain open. Original proofs unchanged. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualConverted.lean",
+      "sha256": "a95190b934413670ae34d95b4140e888b7ee0e2d56501f1963efac7a1c75edbc",
+      "audit": "zk-formal/test/AuditProcActualConverted.lean",
+      "audit_sha256": "3caa577e5c4368ed1c2e360b949dfba13be1f230bba7808931c8fe5b7c09c9bf",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayChain.lean",
+      "sha256": "7091f31ca6bdccd096728b490f2a3a4aec7c20ff24f8064757496e44ba7383f8",
+      "audit": "zk-formal/test/AuditProcActualReplayChain.lean",
+      "audit_sha256": "bcd47967f6c22a90c56b19a5caa5e8021bc4a17bdb121db0c580ce9cc482590e",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayShape.lean",
+      "sha256": "f0e319d6995c65a2add9a5821b5c87023070b9c26351c96d0ebd35a90f400a40",
+      "audit": "zk-formal/test/AuditProcActualReplayShape.lean",
+      "audit_sha256": "108355d5dc8c3a4ad74855902ab8d2b88d6f59e31be18bd7489fd2d3f022f5fa",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualConvertedFacts.lean",
+      "sha256": "aef9bf7178f6d6ca7af416f5f0876d781a180f2bdfd7347fb3336e46cb0cf0fd",
+      "audit": "zk-formal/test/AuditProcActualConvertedFacts.lean",
+      "audit_sha256": "17e25cf8957e39fbddd4df763fcac7fd9aaea9956f75d73a28c08432867683bb",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSenderPotential.lean",
+      "sha256": "4ebc7c330d71cb757506953265967fe9912182ef5e04536b6d14612c8e4b14a1",
+      "audit": "zk-formal/test/AuditProcActualSenderPotential.lean",
+      "audit_sha256": "8b48ff9b6dffe6242c7dffdc3b2b2a9f22421b9d05926c16ae221eb272328549",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayDecisions.lean",
+      "sha256": "5dacf3cff00262710dda6fd140d4cf2de55a717bd414e0c497829caa07028f39",
+      "audit": "zk-formal/test/AuditProcActualReplayDecisions.lean",
+      "audit_sha256": "3bbf208109d0198521c6428798d22fd55e2989ea6c0bf052c50319b9b1ef8e22",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayAllowance.lean",
+      "sha256": "09cc9126f5543f90e3046d94bc4a900fb8687210b03f35b52a1ab2c0eb65dbd5",
+      "audit": "zk-formal/test/AuditProcActualReplayAllowance.lean",
+      "audit_sha256": "fa97c509335b105ad68d460a6a5fc8fba3a8eb0e294412beb585c39f07148592",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSpendBudget.lean",
+      "sha256": "2e559aabff92f94fc0d514fad1fca231b3406c091281a3988d7cb9bbdc7c78b6",
+      "audit": "zk-formal/test/AuditProcActualSpendBudget.lean",
+      "audit_sha256": "b8551eca08ac082e983822c0d9ab35744ae46b2cdb944cb9331641c8993c3986",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayMetadata.lean",
+      "sha256": "caeb2989b82d20881f73e33708eecff3dc24413cb7eb04cf9e22faeceaacd95a",
+      "audit": "zk-formal/test/AuditProcActualReplayMetadata.lean",
+      "audit_sha256": "c08b5193b4cd03d7025d35437eeabc3c2135ac7275314ba5938050da7791f99e",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayEntries.lean",
+      "sha256": "7536b959b106b80294950387eb10e915ca550e167142831e7ed73629b29cbab9",
+      "audit": "zk-formal/test/AuditProcActualReplayEntries.lean",
+      "audit_sha256": "91a031f7c96d6d5be8073bf9572d90f1eca90609a62101aa36234b5b267e00df",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualModelRounds.lean",
+      "sha256": "3996a6c8785f539226adf2819d5c4851a881e0592ba0bd63a492ccacef15a0bb",
+      "audit": "zk-formal/test/AuditProcActualModelRounds.lean",
+      "audit_sha256": "b843243b1f9415caf1f4b9c50a4ee4a8b6aa0212a003e02b3eb4cbf9ae5c578e",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualModelStep.lean",
+      "sha256": "78b19e83618c270eaa32560404bf7b4ee0fd661dcae51ced3ce55cf61e6855be",
+      "audit": "zk-formal/test/AuditProcActualModelStep.lean",
+      "audit_sha256": "90c4ee89cdcc7e11d76a2563caa7db403d2c50b579dbc9c38e11ebb1da435a99",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundBounds.lean",
+      "sha256": "2704136bfb23f467825e78934d6688627c5402678d36a232ee1836f155fbd611",
+      "audit": "zk-formal/test/AuditProcActualRoundBounds.lean",
+      "audit_sha256": "9a9f065036f76d209adf31db5a7cf4a6b40e80b3ef5409d4e17576e38606c5f8",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualModelValid.lean",
+      "sha256": "48db94d2af3280614e0c0c9485c5140628f9d86bda86f2b722ca33d3ebb8b495",
+      "audit": "zk-formal/test/AuditProcActualModelValid.lean",
+      "audit_sha256": "f77b0901c7a765b350c845cce0263f820d9dcd49ed3b9a50cad9f1e5c741df8f",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualZeroPending.lean",
+      "sha256": "a11adf725083f1ac1ee719f1106bc849f79541ea30cb5f37bf89ba0fc7b3cc4f",
+      "audit": "zk-formal/test/AuditProcActualZeroPending.lean",
+      "audit_sha256": "01333fcbba10fb15e80a2d8882a0046cb2b68f7d0e146341615c63e1bf2b7f29",
+      "guards": 8
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualZeroTransition.lean",
+      "sha256": "794e6c1b8ea530a55ce76fd885f92aeae097f6a8ecd044b50587e1f831879ece",
+      "audit": "zk-formal/test/AuditProcActualZeroTransition.lean",
+      "audit_sha256": "6f38c42dcde1524391bbceea557621c908dfad6f0c48db7917bd5632b976f48e",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualZeroTrace.lean",
+      "sha256": "44767251493db975084369420686ca16269d26756a4e0cc1c3de3b51a7ea5008",
+      "audit": "zk-formal/test/AuditProcActualZeroTrace.lean",
+      "audit_sha256": "0469dbf40d2b0e6ccb19fef645c5a2afd69055cf33c9958d186df9a172d41ca0",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundOrder.lean",
+      "sha256": "0036cd3c1ff6b2fb5e2e30d1e8be4dc64985d6cc7b9a2905d79a7ac02a3a0672",
+      "audit": "zk-formal/test/AuditProcActualRoundOrder.lean",
+      "audit_sha256": "f94df48e83e150efd03e55cb8a71b08894211250998bd78449f52c1f85af8bde",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRunProjection.lean",
+      "sha256": "ef32baac92a212fc67ad27376f764e970e3971c4cbaadd41fe4404b74c711b9b",
+      "audit": "zk-formal/test/AuditProcActualRunProjection.lean",
+      "audit_sha256": "c749401ae205a0ac2baf72fc8f3655bc42fdc1cff53e5da3506c5bb57f79fe99",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualNativeComplete.lean",
+      "sha256": "119ca832a02cf080a7602db57f324eedd7667c9a117fdc6a165c3f8a1e9f63d1",
+      "audit": "zk-formal/test/AuditProcActualNativeComplete.lean",
+      "audit_sha256": "cd8d87e28495a7442895986de8d03ff27aff0dc35d187daf5f3db5ccf3b9e852",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualNativeBudget.lean",
+      "sha256": "6930960f20c2e6632c5df03d18bcc474de3ebae78f92b8961077cbbc42ef3700",
+      "audit": "zk-formal/test/AuditProcActualNativeBudget.lean",
+      "audit_sha256": "5d7ed423063525edee62b68e923ee463444a71fde351e57d2b58fb269a05070b",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRequestCount.lean",
+      "sha256": "3de4831c7c3e26c5b2d2b7d4d9c345410755f048b0dfee3188ae5744baed23f6",
+      "audit": "zk-formal/test/AuditProcActualRequestCount.lean",
+      "audit_sha256": "7c3c3875182b9651343a53ce5ccd9c12c556122c674d158bbdf44f6fda8d8c76",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualNativeSequence.lean",
+      "sha256": "a8f651435058c9702b8a9c28568ec485da07948a2da4641e5ea9c6379669a6b1",
+      "audit": "zk-formal/test/AuditProcActualNativeSequence.lean",
+      "audit_sha256": "b8f26d96defb1b3c55171ff6e9aa2de7207e74f5747e9d262ab1c8c5419f6fe8",
+      "guards": 5
+    }
+  ]
+}

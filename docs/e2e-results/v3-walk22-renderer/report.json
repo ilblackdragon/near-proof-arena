@@ -1,0 +1,46 @@
+{
+  "lane": "walk22-renderer",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/Walk22Gen.lean",
+      "sha256": "20b0a24b95438c1d2da770aa68c30507b403a78bba9fd1be7e570d16d250de20",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-walk22-renderer-Walk22Gen.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/Walk22Local.lean",
+      "sha256": "1a362f09d2922e3e89e1a080bca512cef90d98edf4a5e1329dbf17f74dd29c69",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-walk22-renderer-Walk22Local.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/Walk22Render.lean",
+      "sha256": "33d8edd74e1b9a28ee9431fd10a2c91e4610504d6587b6a9621ee0526bf31e3f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-walk22-renderer-Walk22Render.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/Walk22Compat.lean",
+      "sha256": "b5445c9fa8cc644551d01b10e7bd518d419051881de43007bb616768fca2241a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-walk22-renderer-Walk22Compat.log"
+    },
+    {
+      "path": "zk-formal/test/AuditWalk22Renderer.lean",
+      "sha256": "241b6ceb8692441b3e2c91dfccd946b11c47d388c425f4be36c504ea64e226b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-walk22-renderer-AuditWalk22Renderer.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules8guards. Existing renderer generalized to WalkOk.cap22 with same cells/records/rows definitionally equal; all local constraints and traffic checked at22,old WalkOk embeds. Whole native query-list Wf and physical trace composition remain.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete raw framing appended to gated length/memory/ID candidate. Degree8 shape3428,115,7,115,22. Full cost8403188 exceeds8MiB by14580 before record limb/query join and other global obligations. No admission or claimed savings. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RawFrameFusion.lean",
+      "sha256": "c7b7ad370eb0d5207f12584664ab34b32707aa996fa7ad70444e73ac2fe7afee",
+      "audit": "zk-formal/test/AuditRawFrameFusion.lean",
+      "audit_sha256": "6c197e595137f59874de1b720b03336c91ba7bf733c684a6fe3648a29ed54623",
+      "guards": 8
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Accepted preparation and native scheduler execution reduce complete corrected generator to exact afterMemory checks. Prefix/replay/push/state/RNG/constructed-memory-scan proofs compose on one replay result. Round ordering and comparison/parameter bounds remain; full certificate unfinished. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualAfterMemoryReduction.lean",
+      "sha256": "e9bca1e37c3b576ab77f505757ba6794e25ccecd781d57a7fa585d7bfb4e1627",
+      "audit": "zk-formal/test/AuditProcActualAfterMemoryReduction.lean",
+      "audit_sha256": "f8647ad21f9d5bae7269b524ec2f961fca941db565f9884ff123e253f82eb18d",
+      "guards": 6
+    }
+  ]
+}

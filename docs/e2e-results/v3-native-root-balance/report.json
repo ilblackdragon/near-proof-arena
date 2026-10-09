@@ -1,0 +1,46 @@
+{
+  "lane": "native-root-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeHeadRootRecords.lean",
+      "sha256": "a7c8eaac79ec0502f9480bdee61f85102622d2e82b17b9d6cb1c5c831c603ce7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-balance-NativeHeadRootRecords.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRootBalance.lean",
+      "sha256": "34dd06c52d342f1a16e46b02ae646b71f2a22f5031503af3fe0de69c41932c1d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-balance-NativeRootBalance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PreparedRootEndpoints.lean",
+      "sha256": "fe40cee922b35b215f33486f122bd777747edfd3495a781b85a30802d3414a73",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-balance-PreparedRootEndpoints.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PreparedRootChain.lean",
+      "sha256": "536ee1067023dd44ffe297b454c79b3ba815f18d30c1dda04efb0cdd6610dd8c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-balance-PreparedRootChain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRootBalance.lean",
+      "sha256": "beb566144019f67e4ebed3b62c7ea087affb75e2cf1f153c0b126e7a4a3ffbc1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-balance-AuditNativeRootBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules7guards. Exact physical HEAD plus patched compact ROOT conservation and actual prepared initial/final/count endpoints, retaining same native trace/allocation.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

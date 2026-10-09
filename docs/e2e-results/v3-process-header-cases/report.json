@@ -1,0 +1,39 @@
+{
+  "lane": "process-header-cases",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcHeaderContinue.lean",
+      "sha256": "f2167fb3e5572d2d68c214b51dd4ad24fa351cf61382082f9ad75c052964f866",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-header-cases-ProcHeaderContinue.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcHeaderKeys.lean",
+      "sha256": "498c2916096e95d3e58aead08c69226cb92fe7a6b175c493a23313a9d2b57b90",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-header-cases-ProcHeaderKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcHeaderPadding.lean",
+      "sha256": "ab4e6d54fd57894374846dd7bf49529189bbcfc6e8427f65bdd2776160ad8bc2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-header-cases-ProcHeaderPadding.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcHeaderCases.lean",
+      "sha256": "7781ef894904d4738d449004e3fef0367dd3eda1b31d5da2255ec0a3aaa4b40d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-header-cases-AuditProcHeaderCases.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Header constraints across entry/entry, final entry/header or tail, key/key, final key/header or tail and padding including final-row wrap. Ordinary replay sequencing facts remain explicit; actual replay invariants and whole trace assembly open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-deposit-ledger",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositLedger.lean",
+      "sha256": "74be9b01c72b51d62c3fcda51d83a045ea7977eb7e84a9af111dd67b1fa4b233",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-ledger-RcptDepositLedger.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositLedger.lean",
+      "sha256": "e9f9c9a3a100476f5c5dfacfa5e2967499b70b946d85a26d85830b05d19dc508",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-ledger-AuditRcptDepositLedger.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5 guards. Executable nativeDepositLedger replays ordinary/system transitions from exact post-scheduler trie; successful applyNewChunk yields exact receipt order and per-step NativeBalanceData. Physical deposit frames/version ownership remain.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

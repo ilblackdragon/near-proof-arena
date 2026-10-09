@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual replay bucket array equals stamped model popped records; model generated push multiset is conserved against this actual array. Actual generated-push array correspondence, sort contract and finish checks remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPoppedLog.lean",
+      "sha256": "59fda28dc218889c1072a8c2caa4da28213b497e63f6f30429918b29f276ac3e",
+      "audit": "zk-formal/test/AuditProcActualPoppedLog.lean",
+      "audit_sha256": "1df14f068ad4d87a462c135bd6274f95b49d64566b85f983d578e8d3bb595b10",
+      "guards": 5
+    }
+  ]
+}

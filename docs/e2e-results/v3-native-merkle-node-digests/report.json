@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME native receipt trace and canonical chain now include actual Merkle TableLocal, physical per-receipt plus internal-Merkle DIGEST conservation, and prepared public outcome-root binding derived from accepted checker/native execution. SAME accepted trie allocation matches physical HEAD/node DIGEST consumers to concrete node SHA outputs with exact value-slot residual. RC/account/value global closure, complete prover, clean certificate and judge remain open. Strict audits use prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptMerkleDigestBalance.lean",
+      "sha256": "7ff73c82b1b11d38dbeab541910fbf2fa01a416cafe0d308b2e6eeba3ef02cc4",
+      "audit": "zk-formal/test/AuditReceiptMerkleDigestBalance.lean",
+      "audit_sha256": "5b1a1f3801129fa913a3de5da2ccacdda58be0f58077eb3f0c10ecb5b5b875ad",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptNativeMerkleDigests.lean",
+      "sha256": "6d8fdc6803f0a0c3d9f749398757ef41c78691727093bc4bdbd9775d2048d36e",
+      "audit": "zk-formal/test/AuditReceiptNativeMerkleDigests.lean",
+      "audit_sha256": "10f85a715df7979a0c4a5df44e580a44035ae513ae6e9b37e64fb838bfc136be",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedNodeDigestAllocation.lean",
+      "sha256": "135fe40e524f907fd18fd65429ae42058e1cecc7770fb9d3195ee0eb8ee4ee48",
+      "audit": "zk-formal/test/AuditRebasedNodeDigestAllocation.lean",
+      "audit_sha256": "7b487b8c0e841d5c579748cbbaa7e62abd3e0853f270e74f6c92bd667ff54f18",
+      "guards": 1
+    }
+  ]
+}

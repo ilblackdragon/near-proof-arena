@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Full actual replay generated-push and popped-bucket arrays are bound to model logs; prepared processing discharges round ordinal premises. Initial conversion push/model binding and sortPush contract remain before final push-log comparison. Full certificate remains unfinished. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualTracePush.lean",
+      "sha256": "8a0e82fe2a52172a6f5da9593099968d9d41b8887f38f557fd7430df7295da63",
+      "audit": "zk-formal/test/AuditProcActualTracePush.lean",
+      "audit_sha256": "cf1a0df2443df8fbfc2c8d5a0553eb09142efc0b519628b2147b33839aba6bc6",
+      "guards": 3
+    }
+  ]
+}

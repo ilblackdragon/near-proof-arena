@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "guards": 8,
+  "strict": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorEventUniqueness.lean",
+      "sha256": "583726a37969a841153e9f7d5e69a61576fdd161e0afd1ebe7cdd34217872763"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorEventStrictOrder.lean",
+      "sha256": "a17637ba8f7ac4bb76789fd632da5edb2f3fd00795f8db53234ee035413f3b1f"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorEventStrictOrder.lean",
+      "sha256": "c33253abc2c186f67894375d929cbc7248838edf384c1a9531fece7f53acaeea"
+    }
+  ],
+  "scope": "Actual native prior events strictly ordered by(link,stamp), no record or current-ID uniqueness assumption. Full tagged comparator validity remains next.",
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorEventUniqueness.lean",
+      "sha256": "583726a37969a841153e9f7d5e69a61576fdd161e0afd1ebe7cdd34217872763"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorEventStrictOrder.lean",
+      "sha256": "a17637ba8f7ac4bb76789fd632da5edb2f3fd00795f8db53234ee035413f3b1f"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorEventStrictOrder.lean",
+      "sha256": "c33253abc2c186f67894375d929cbc7248838edf384c1a9531fece7f53acaeea"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-event-strict-order/AuditProcPriorEventStrictOrder.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-event-strict-order/ProcPriorEventStrictOrder.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-event-strict-order/ProcPriorEventUniqueness.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

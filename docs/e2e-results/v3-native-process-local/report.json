@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 2,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRunProcessLocal.lean",
+      "sha256": "73c624f0fb33ce4c9a70325cce820b1ab47e2b1686747c66f3604b57eacdf6c9"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRunProcessLocal.lean",
+      "sha256": "8e45b8e0e3016dc6ea4382f4af88623b66cf525548e38e29abde413284830d92"
+    }
+  ],
+  "logs": [
+    "/tmp/SchedulerRunProcessLocal.log",
+    "/tmp/AuditSchedulerRunProcessLocal.log"
+  ],
+  "scope": "prior_process_table derives full repaired Proc TableLocal on same ProcConcatGeometry.trace(bs.map run) from successful prep and SAME PriorCore. RunData from actual run, instance tau continuity from indexed allocation, capacity from native budget. No per-row semantics/range/capacity premises.",
+  "olean_overlay": "/tmp/ups-proof",
+  "limits": "Lean -j1,16GiB virtual memory,45s/file"
+}

@@ -1,0 +1,66 @@
+{
+  "lane": "receipt-semantics",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/RepeatedNativeEmpty.lean",
+      "sha256": "6fe4feea734c4450489c233b50ba1a83ce6f321e0622e5657acb44d53b703b39",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-RepeatedNativeEmpty.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeOccurrence.lean",
+      "sha256": "8020b79a74d25a487bd222b51ad598725807c4b9874c6f89bd3de51f900f672c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-NativeOccurrence.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PhysicalRepeatedOccurrence.lean",
+      "sha256": "f8a52e215740e0105d9101aa2a23565ad238c9003668337ae16fff87440c831e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-PhysicalRepeatedOccurrence.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PhysicalSourceCount.lean",
+      "sha256": "72c282843c6391e65591c71aeb325e587f1f1478dc1800567dd4169dffc21ef5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-PhysicalSourceCount.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PhysicalOrderedReceipts.lean",
+      "sha256": "dfbbe49ee74053dc82956caad92c164ab5e5c8eaea38fbb3f10f4f0784f33641",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-PhysicalOrderedReceipts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PhysicalSourceSemantics.lean",
+      "sha256": "54b539ee5c93c0cb970571554d303989bb0740ddc7b5b90801a0895b64074bab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-PhysicalSourceSemantics.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CandidateSourceSemantics.lean",
+      "sha256": "1ef22f2aced5aa96e343cba6c104b64c20fc365d6994ad004052b46bdcfd6448",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-CandidateSourceSemantics.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateSourceSemantics.lean",
+      "sha256": "6a39a1da6ee566a561d40bbda50e6e3a1c29ff5be4b5e27e00b5ad5dc167aa67",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-semantics-AuditRcptCandidateSourceSemantics.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven receipt source semantics modules independently recompiled; native routing and applied equality derived. Global buses/SHA/public binding remain explicit; not full certificate.",
+  "exact_axiom_guards": 8
+}

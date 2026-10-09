@@ -1,0 +1,81 @@
+{
+  "lane": "scheduler-field-digests",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/PhysicalFieldStarts.lean",
+      "sha256": "dccb328998cd1bc9d0012a97f5dd4ddc0326142e20b577335ad3674157716d2c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-PhysicalFieldStarts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactDigestFieldStarts.lean",
+      "sha256": "112eeeebab6cc7b2980f7f258ff1fc03ae93dd62bbd6c23277c5ff1b1e0afc94",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-CompactDigestFieldStarts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactLeafDigestInventory.lean",
+      "sha256": "abee2fda50f0c1764ef909da8462a63265f2fb6a4db132474104db56c481ae10",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-CompactLeafDigestInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactExtensionDigestInventory.lean",
+      "sha256": "c4fa4cf8ad2014e261b876700b532455d3ef170564b002a7ccfd0ad4414f9f1b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-CompactExtensionDigestInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactBranchDigestInventory.lean",
+      "sha256": "74820454d36ba214b85e528ae4b56e10aa9c4b9a2894d902cddcb77c4cd4f2a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-CompactBranchDigestInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditPhysicalFieldStarts.lean",
+      "sha256": "677eb740a76e36ae36355b3e562772310382c71283595e1195a3fe8018b06a87",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-AuditPhysicalFieldStarts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactDigestFieldStarts.lean",
+      "sha256": "c6ac0b30ff01111dea6fb7487f2e8c6dffb78cd9643600ded109f1db019abd93",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-AuditCompactDigestFieldStarts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactLeafDigestInventory.lean",
+      "sha256": "898924971c60d8927505d83a12cd60a1b95b3329ee07aee44be92755716b09f1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-AuditCompactLeafDigestInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactExtensionDigestInventory.lean",
+      "sha256": "1491f7d40488bc637eee79c0ef3da587d36c71254aae0bf0d585faa6922f80fd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-AuditCompactExtensionDigestInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactBranchDigestInventory.lean",
+      "sha256": "876b34b50c7fc0f8347a4b598e5daef615458ef07eb8069aac8e603c44f0bc0b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-field-digests-AuditCompactBranchDigestInventory.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules8guards. Exact physical digest-window start inventory for leaf/extension/branch layouts; actual key lengths and child bitmap order/multiplicity retained. Full window-to-native-job permutation remains open.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

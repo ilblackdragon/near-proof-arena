@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native core success produces corrected process execution and exact native output reconstruction after distribution. Full ActualRun success and emitted distribution equivalence remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualNativeResult.lean",
+      "sha256": "55d153165a9a76f475a484541326286f445a53b483800b909d5c06c6e9fda6b6",
+      "audit": "zk-formal/test/AuditProcActualNativeResult.lean",
+      "audit_sha256": "abd9dcabb86ce683a0e73f2e6487cec238f515d1dcaf70bedb1eee30218bd085",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "lane": "native-old-post-inputs",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayConstructor.lean",
+      "sha256": "2b59c647670b7a7bbdc07b9414da7cd86047661d65bc3b265821fcfab5e4d23d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-post-inputs-NativeReplayConstructor.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeOldPostInputs.lean",
+      "sha256": "33d70117cae38908dfabb7a4a30ee40ab36e29b3141cc23c6ca00e64d7ab0beb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-post-inputs-NativeOldPostInputs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeOldPostInputs.lean",
+      "sha256": "d3bfd26d9c93ebeb5a8a68f3f3c0b6d48fcc12e09e1d62c093c731913c59103c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-post-inputs-AuditNativeOldPostInputs.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules9guards: executable old-write replay and concrete oldTreeInputs arrays; activates only truly written value IDs, indexed child/value payload binding and same-index length preservation. Full preorder/global offset/untouched equality and UPS table binding remain open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

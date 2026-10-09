@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "source_build_order": [
+    "ProcessRepairVbytesCounts",
+    "ProcessRepairQueueSuppliers",
+    "ProcessRepairQueueComplete"
+  ],
+  "new_fact": "ProcessRepairQueueComplete.record closes actual queue parser record whole-stream ownership against SAME Value list.",
+  "dependencies": [
+    "ProcessRepairRawStartClosed.start_closed",
+    "ProcessRepairQueueRecordComplete.selected",
+    "AccountEmpty.sound_cases",
+    "acctV3_view",
+    "akey_view"
+  ],
+  "remaining": "Native buffered parser interpretation uses SAME Value byte-range (already available from ProcessRepairValueRange). Native group-key extraction/QSH composition still being implemented separately."
+}

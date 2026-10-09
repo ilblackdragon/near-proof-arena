@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual SAME native queue parser physical byte messages form a sublist of seeded original/implicit forest demand and are bounded packetwise by actual EmptyValue physical receives. No extra record-validity or capacity premises. This is inclusion only; disjoint ownership with account/access-key providers and complete partition remain. Prebuilt dependencies, not clean full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueBytes.lean",
+      "sha256": "f8ccffa77f99aa493f69a43403d877cf18648af276325f80ecf65187aa0cb308",
+      "audit": "zk-formal/test/AuditNativeQueueBytes.lean",
+      "audit_sha256": "1a75f7c86fb30b2875e1caa2bce0fea0fb3aa9c8e7e345286b6ee4ecc6ef4afd",
+      "guards": 2
+    }
+  ]
+}

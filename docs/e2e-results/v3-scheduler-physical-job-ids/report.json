@@ -1,0 +1,53 @@
+{
+  "lane": "scheduler-physical-job-ids",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerBranchContexts.lean",
+      "sha256": "1fa75a3ecaba0358272a7308ab57b689f7e9dc9618fcce90dd212cbbe3615c38",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-physical-job-ids-SchedulerBranchContexts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerBranchWindows.lean",
+      "sha256": "bac7ce26093f48f48bbcb45dcbe20bbf235cb4618ba861358cdf1dc4ddb30e6d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-physical-job-ids-SchedulerBranchWindows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPhysicalJobIds.lean",
+      "sha256": "4136c4c8e1ea8f8a9ff72c4c9c80b1e7c0f6ae3eecac4bacd0a06306da7c94c0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-physical-job-ids-SchedulerPhysicalJobIds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerBranchContexts.lean",
+      "sha256": "842716a1ce69d9a0ea8f227c1e604bf82c54aab613c56f47c1eb1f0f72ac4630",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-physical-job-ids-AuditSchedulerBranchContexts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerBranchWindows.lean",
+      "sha256": "6f223133f4f5106ae8c71b8d88af275c45c59884b5be412f76fdd8d99e3ecaed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-physical-job-ids-AuditSchedulerBranchWindows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPhysicalJobIds.lean",
+      "sha256": "26495167b54ce5f9066897c9833cd88fbf100fca3e05f26db3d87c96e55166cc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-physical-job-ids-AuditSchedulerPhysicalJobIds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules8guards. Native runtime derives actual DigestFrame and positive RDB/RBI child windows including insertions, removing those caller assumptions from whole-instance physical job-ID permutation. Actual InstOk/NativePartFamily remain; hash payloads are separate.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

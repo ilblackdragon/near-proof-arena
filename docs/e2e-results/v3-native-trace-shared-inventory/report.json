@@ -1,0 +1,46 @@
+{
+  "lane": "native-trace-shared-inventory",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeTraceUpsertBounds.lean",
+      "sha256": "94f41ac73cfadae84c06deb3f9d6b0db23aa805c0f89ec4f0755bc0ddde8a1cc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-trace-shared-inventory-NativeTraceUpsertBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeTraceExactInstances.lean",
+      "sha256": "38e5b54896b40f7f1a08d9320ea89463da438db6ee193ec674ccae614ed6b0de",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-trace-shared-inventory-NativeTraceExactInstances.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ForestProviderPrestate.lean",
+      "sha256": "faef70d750a4eace3c3c5dd929b21051a764335d96ed83e68015afb71256eea8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-trace-shared-inventory-ForestProviderPrestate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeTraceSharedInventory.lean",
+      "sha256": "f9b15c2c4d1276cfaa0595d0545c2f3240561dc35b09ee71389bd50d5bae59fd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-trace-shared-inventory-NativeTraceSharedInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeTraceSharedInventory.lean",
+      "sha256": "b8899cf5bfe7a5fabe937554b2268b3f241fd23e9ab9202684d86f23a7299aa5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-trace-shared-inventory-AuditNativeTraceSharedInventory.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules5guards: UPS instances tied to same chosen native trace, prestate provider invariance and combined EDGE/BMAP coverage. Whole scheduler intermediate/final post pairs are not equated; window inventory and post provider assembly remain open.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

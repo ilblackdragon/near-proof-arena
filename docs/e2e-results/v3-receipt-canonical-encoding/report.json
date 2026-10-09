@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-canonical-encoding",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalNativeEncoding.lean",
+      "sha256": "81b6a601861c3493f95257322b3fdc28be37f07b4a00dbf8efef25c522f45ea4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-canonical-encoding-RcptCanonicalNativeEncoding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalRefundEncoding.lean",
+      "sha256": "f0f834e5a1adf76da0b7b649436c9b7673993cccd0b3369207ee565c39bbb039",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-canonical-encoding-RcptCanonicalRefundEncoding.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalNativeEncoding.lean",
+      "sha256": "c4a524525c61f0d3efdf107a0bf64510e5d6c7d52f041ad9a750fd60aadd0a17",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-canonical-encoding-AuditRcptCanonicalNativeEncoding.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalRefundEncoding.lean",
+      "sha256": "d59432069d0b15ff7a3e949d313594739cd30d713486880c918d461024a2ea0d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-canonical-encoding-AuditRcptCanonicalRefundEncoding.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules4guards. Ordered canonical receipt encoding list equals native input encodings; actual canonical emitted refund list equals successful applyNewChunk.outgoing encodings, preserving duplicates/system/order.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

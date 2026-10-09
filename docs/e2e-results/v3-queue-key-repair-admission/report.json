@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Source correction: repaired queue is definitionally identical to existing Qv KeyTrafficRepair already in certified family slot18. Links exact repaired table to full air.wf, size8238324 and header certificate. No structural budget change or new recertification needed. Honest allocation old-CombinedTable replacement/global key closure remain. Prebuilt dependencies, not full correctness certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/QueueKeyRepairAdmission.lean",
+      "sha256": "ce1fa417c50d02b54697da8adecb7de50e39fed97e56c1a871e075035d62cbe7",
+      "audit": "zk-formal/test/AuditQueueKeyRepairAdmission.lean",
+      "audit_sha256": "9b60ad45eaae7d0a1511052423b4002f149be66419ad673f1e1fc10191bdbcff",
+      "guards": 3
+    }
+  ]
+}

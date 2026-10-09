@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-09",
+  "status": "CONFIRMED_MISSING_COMPARATOR69_RECEIVER",
+  "kernel_evidence": [
+    "ProcPriorComparatorInventory.no_receivers: concrete actual-family tables.all interaction predicate (bus !=69 or send) is true.",
+    "receiver_absent: every actual-family interaction on69 sends.",
+    "live_send_impossible: actual-family HoldsP plus no public69 segments contradicts any live69 send."
+  ],
+  "implication": "The current structural family cannot support ordinary nonzero prior-memory/ID comparison traffic. Generic comparator69 Own assumptions and conditional lastwrite order theorems are not instantiable for this family. Existing native Local and honest traffic component results do not establish globally balanced nonvacuous completeness.",
+  "provider_options": [
+    {
+      "option": "Install real Cmp.table69",
+      "advantage": "Preserves all existing prior-memory/ID bus definitions, honest69 traffic, and parameterized comparator semantic interfaces.",
+      "required": "Additive family variant; regenerate horizontal widths/offsets, concrete receiver ownership, local/global honest comparator trace, wf/degrees/multiplicity/proof-size certificate, extraction transport."
+    },
+    {
+      "option": "Reroute all prior comparator69 traffic to existing comparator40",
+      "advantage": "Can avoid adding comparator columns if combined trace capacity is proved.",
+      "required": "Explicitly change both prior-memory and ID comparison interactions plus generated traffic, merge with existing scheduler comparator demand, prove aggregate row capacity/operand bounds and ownership, regenerate family profiles/proof-size and extraction. Do not silently reinterpret bus69."
+    }
+  ],
+  "required_ranges": [
+    "All actual stage0 active rows: 4096*tau+link<2^29; intended authenticated tau<33 and link<4096 suffice.",
+    "Same-address active adjacent write comparisons: current stamp+1<2^29 and next stamp<2^29. Current query is impossible in such a pair by local terminal-query constraint, so only write stamps need provenance."
+  ],
+  "not_claimed": [
+    "Globally balanced honest actual-family trace exists for nonzero prior comparisons.",
+    "Conditional comparator ownership has been discharged.",
+    "End-to-end validator replacement."
+  ]
+}

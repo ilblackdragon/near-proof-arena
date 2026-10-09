@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual chain metadata duplicate predicate equals first representative selection. Actual patched node and value charges exactly equal byte-class charge; native original stores pay these records under unchanged preBytes cap, with native validity/provenance derived. ENT/DUP physical traffic and digest-sorted UNIQ integration remain open. Strict source checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ChainDuplicateFlags.lean",
+      "sha256": "62c2d46c7c1d33bdd0c003e5b7733137c4dff3d508d5f911cf8bddbfc7be4f87",
+      "audit": "zk-formal/test/AuditChainDuplicateFlags.lean",
+      "audit_sha256": "69c885a946b2545d8501493c4ea994d39de02966b7c4d4891d13b43e8498d1b4",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ChainStoreCharge.lean",
+      "sha256": "0145ac5121c1c888dfa627f1ca01c4e1928dcbbc08c76f23b95fa2efb6154c3d",
+      "audit": "zk-formal/test/AuditChainStoreCharge.lean",
+      "audit_sha256": "665a1d461129422fbc0548d0fd1297c647427171de01e1ee9657c253bf73eff3",
+      "guards": 5
+    }
+  ]
+}

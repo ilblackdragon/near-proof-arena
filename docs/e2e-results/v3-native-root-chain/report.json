@@ -1,0 +1,46 @@
+{
+  "lane": "native-root-chain",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRootRecords.lean",
+      "sha256": "9c995573b7487a46002f43880c55703e67f927f8cdc27a0867a394abfc0c40bb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-chain-NativeRootRecords.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRootChain.lean",
+      "sha256": "0ea3b03800b53cb413613d34ea9b6d0abc2aeab2612d632b5d145813680be64f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-chain-NativeRootChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRootHeader.lean",
+      "sha256": "b6ecfdeae36e379ea8108d62c2bfb36f4cbb3e364b6f2d230af10fd282f97f73",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-chain-NativeRootHeader.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRootWidths.lean",
+      "sha256": "f55ce5fac6db4c404537ba94d1d5def58c4302ff39899218f870c591428661f1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-chain-NativeRootWidths.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRootChain.lean",
+      "sha256": "dd2c48846eefa2043d2d1bfe20bccc1615ee80e1146dbdbc54d21c8a0e1a6efa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-root-chain-AuditNativeRootChain.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules9guards. Indexed allocated output records, actual native ordered root chain, SAME native trace endorsed final root from native uniqueness, output digest widths without output wf premise. Audit imports MIDROOT too.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-state-carry",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateReceiptContinuity.lean",
+      "sha256": "b916b160e19d5015bf21f376320fead5bfa75d8f32128c2f22a53d2a9e2a5e21",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-carry-RcptStateReceiptContinuity.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateReceiptCarry.lean",
+      "sha256": "0e51d60176d03338e8b7653976d2f1176ecd17b0731e89aaee9c79f1858fc67e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-carry-RcptStateReceiptCarry.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateCheckpoint.lean",
+      "sha256": "d9c33bb89716da83e03aa10de14f859d99c0a04c66350c3693c15e5e0fafa3e1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-carry-RcptStateCheckpoint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateReceiptContinuity.lean",
+      "sha256": "e02bb37cf6b0dec085115c3b5b9b2be464887580d6953ed70f749f4b3a12263e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-carry-AuditRcptStateReceiptContinuity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateReceiptCarry.lean",
+      "sha256": "6045b7ac1fc9e0fd4c4936bccb18c63d2a931eb317d72c1d08cb0b47ce35454c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-carry-AuditRcptStateReceiptCarry.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateCheckpoint.lean",
+      "sha256": "bd8e41bea68395c8598bc43e82978d768707e83620430447c0034f0ffb630f3c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-carry-AuditRcptStateCheckpoint.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same native physical receipt trace617/881 constraints, including21 receipt-constant carries.",
+  "exact_axiom_guards": 17,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

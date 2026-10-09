@@ -1,0 +1,25 @@
+{
+  "lane": "accepted-ranked-window-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedRankedWindowBalance.lean",
+      "sha256": "f82466bcd5a20a5b2bd8783f6a01952815ec7dca7d0db505af5f1ee52e74a502",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-ranked-window-balance-AcceptedRankedWindowBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedRankedWindowBalance.lean",
+      "sha256": "b7636361474dc127546cfba63624bdbdffca180317ae419100bcf40925f3e183",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-ranked-window-balance-AuditAcceptedRankedWindowBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Accepted UPB balance on same globally walk-prefix ranked instances. Prefix remains parameter until actual query inventory integration.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

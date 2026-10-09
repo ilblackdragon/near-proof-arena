@@ -1,0 +1,53 @@
+{
+  "lane": "native-lookup-bitmap-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupNoBitmap.lean",
+      "sha256": "217203610167c213ce413d8ff91fbcc9570e8f76164fc7faae34bf936ce4fa3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-bitmap-coverage-NativeLookupNoBitmap.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupBitmapProviders.lean",
+      "sha256": "59322ba8b42630fe26f1d09427b9ff330756fe1ca6df24c4067ee8028821270c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-bitmap-coverage-NativeLookupBitmapProviders.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupBitmapCoverage.lean",
+      "sha256": "1a57debe45fa92f48e178a668b07b01eaa9fde941971d6b17f48510f105f0e43",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-bitmap-coverage-NativeLookupBitmapCoverage.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupForestBitmaps.lean",
+      "sha256": "39841de834a1cba74ca252a27ecd9329eab502048e01bf0287f78cd790be2bde",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-bitmap-coverage-NativeLookupForestBitmaps.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupStartCoverage.lean",
+      "sha256": "e8e07baf56ec3935f5a9f2c5ad4000f73b1e82f3a1cf469234b74714e780eb1a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-bitmap-coverage-NativeLookupStartCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupBitmapCoverage.lean",
+      "sha256": "cd7410c4abe6c2b373593475b9f261806765aa7d79db04f439f8978436f38f56",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-bitmap-coverage-AuditNativeLookupBitmapCoverage.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules15 guards. BMAP and START provider coverage for actual wrapped lookup in SAME forest without provider hypotheses. EDGE uses same HEAD plus node inventory. Combined queue/account/UPS ranks remain open.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

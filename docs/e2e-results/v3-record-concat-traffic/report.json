@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "scope": "See hashed README for exact theorem scope and limitations.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawRecordPhysical.lean",
+      "sha256": "5f786018e1fdf82ae76bba5d8ec6a10667c1566c0e39168033f1a62877d428bd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatTraffic.lean",
+      "sha256": "ff84d54796c10ccb57cfe779af9359f7a37b1b848ca9673c6c46ec2f6934b262"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordSelectedTraffic.lean",
+      "sha256": "e5b042282d56b8863e9af767eae6c56a6bfe3f7a22a636f90517674cea48df62"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRecordConcatTraffic.lean",
+      "sha256": "bd937e8660703b00cc7b56881c034bb2dd4c030a60c53fdc94b91f94e0f9a0cf"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRecordSelectedTraffic.lean",
+      "sha256": "87a146c7486e426c505ec6a79525cf64ecfb2ba3d0f759fd8bbdbff7f8a53af1"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-concat-traffic/README.md",
+      "sha256": "c59d08a5eff1f25bb63f3b6d4651af68659248f8e9c3bc1db95a295fb30ecb86"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-concat-traffic/SHA256SUMS",
+      "sha256": "f5ba7ee6c664dc85cf28aeade1b194a8aa36371bc7a31123e1016c140e4eaaaf"
+    }
+  ]
+}

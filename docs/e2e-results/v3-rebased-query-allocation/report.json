@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native query walks and ranked compact instances derive shared prefixes/EDGE/BMAP inventories and combine local node/UPS/Walk, full UPB, fourpacked SHA/facts and byte/digest equality. No arbitrary prefix/request hypotheses. Fresh/sanity/receipt residuals and final EDGE/BMAP composition remain; prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedQueryAllocation.lean",
+      "sha256": "682fc5fc1d1b3af29f39a403168ab984037533a78acd3cb4ad3a36667be0596e",
+      "audit": "zk-formal/test/AuditRebasedQueryAllocation.lean",
+      "audit_sha256": "a75659cb66f95f93b3b5fcba31a7cace63a888f8c31c7b6a79af85f929b79a76",
+      "guards": 1
+    }
+  ]
+}

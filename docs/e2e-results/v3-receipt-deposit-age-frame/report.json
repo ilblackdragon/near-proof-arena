@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-deposit-age-frame",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositAgeFrame.lean",
+      "sha256": "fde44b747dc0f5fe3ec174643cb5cf7df29a088bfbaed65558bbaa5f30d8d027",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-age-frame-RcptDepositAgeFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositAgeFrame.lean",
+      "sha256": "49240e0c46cb6d83a664cb0e8cfde41173f7c343fb062607a3e34ad543b5c5d9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-age-frame-AuditRcptDepositAgeFrame.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5guards: actual first DEP13-bit age scratch equation and r1=0, overlap storage gate zero; authenticated previous<=current version and full physical deposit arithmetic remain open.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

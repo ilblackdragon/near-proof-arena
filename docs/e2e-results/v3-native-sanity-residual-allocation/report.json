@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Strongest NativeSanityResidualAllocation preserves all NativeSchedulerAllocation facts and adds global physical digest equation with actual compact scheduler receives, leaving only expectedDigests schedulerSanityJobs as explicit remainder. No new assumptions. Physical corrected Codec sanity installation and all other remaining obligations still open. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptSanityResidual.lean",
+      "sha256": "cae6116d99fff89a2c5441c90d3ea24650f39b44d272125d1cd16a21efa9e511",
+      "audit": "zk-formal/test/AuditNativeReceiptSanityResidual.lean",
+      "audit_sha256": "378b57f5469590860970364dd0a0fe5dad8f321471d1abcebcab60be7497b644",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSanityResidualAllocation.lean",
+      "sha256": "f3998445d6ea789e60c80209fd94cc9440f52e852528600b9af2fa026ad8a8b8",
+      "audit": "zk-formal/test/AuditNativeSanityResidualAllocation.lean",
+      "audit_sha256": "9b5bf059508f27f849c35f87e13aeba2386381a2a4cdf2aac4d56e914e207c9e",
+      "guards": 1
+    }
+  ]
+}

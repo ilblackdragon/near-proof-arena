@@ -1,0 +1,39 @@
+{
+  "lane": "accepted-query-window",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ExecutionProviderKeys.lean",
+      "sha256": "2034f7124e503e7564533acc5606f05796ab03f8c4b2a0476b59a42deb10827d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-query-window-ExecutionProviderKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedSameLookup.lean",
+      "sha256": "17d7ac58a349793729c0d14c9c1624ebf6fba7bf057d6c37d6bfa482f7930c9c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-query-window-AcceptedSameLookup.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedQueryWindowBalance.lean",
+      "sha256": "ad4224658237f3be620d6ba4ac01912f5ec0bb1f4b53ebfcb779df5029db4dc1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-query-window-AcceptedQueryWindowBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedQueryWindowBalance.lean",
+      "sha256": "f5c019c1a75b3d51c7eaf549ddb322cb1007526100a5d2dbc78d083d25301974",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-query-window-AuditAcceptedQueryWindowBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules5 guards. SAME accepted native query walks and scheduler allocation derive actual shared prefix/request inventories and local Walk+node+compact/full UPB. Explicit main/implicit execution witnesses; no arbitrary prefix/EDGE/BMAP inputs.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

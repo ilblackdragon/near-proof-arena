@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical SHA bin byte/digest counts preserve full allocated job multiset and multiplicity flags; actual native node/value physical sends discharge their exact byte contribution, with other families residual inventory. MsgsOk/bin allocation hypotheses explicit,not full assembled balance. Prebuilt dependencies,not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeShaBinBalance.lean",
+      "sha256": "364e1d736f233629519e16d460b2f410fb4bd1ec36b3eff17a6f7b3df3882e1a",
+      "audit": "zk-formal/test/AuditNativeShaBinBalance.lean",
+      "audit_sha256": "2d80c0a4562567aeeffd17dcf0b6308973f193dfc7f52ab6c86283fbd2403c73",
+      "guards": 3
+    }
+  ]
+}

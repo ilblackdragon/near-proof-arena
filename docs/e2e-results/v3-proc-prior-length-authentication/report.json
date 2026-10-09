@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual length-bus receivers are matched to sole installed Value announcements, gate implies real header, actual VPARENT traffic identifies SAME extracted Value ID and byte length. No supplied header/value length premise. Exact raw-frame length application remains next. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedLengthSource.lean",
+      "sha256": "17de7aa5d4a7d5f6adc161b94c6a5107c7eb32f77a3aab3165ae1c996de0ec56",
+      "audit": "zk-formal/test/AuditProcPriorRoutedLengthSource.lean",
+      "audit_sha256": "2b1366e0ba77eeb63e5a8ae11071a5dc79d6557b637115e8a184a4cc51000ecb",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedLengthView.lean",
+      "sha256": "f69e3078f3492823f4421836e5d38325b610446645411101c4bf74be5a0f2846",
+      "audit": "zk-formal/test/AuditProcPriorRoutedLengthView.lean",
+      "audit_sha256": "1ce24991e271a3ef682cbb0b39fd1393dc01b9e5e7ff1ae2177209917fa3cbdd",
+      "guards": 3
+    }
+  ]
+}

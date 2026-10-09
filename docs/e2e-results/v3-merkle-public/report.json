@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Six exact guards: actual Merkle table public count/root indexes remapped from v1 to v3, generic evaluation commutation, table wf under67buses/202public fields, unchanged shape and bus signature. Full reused Merkle semantic pipeline transport remains open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerklePublic.lean",
+      "sha256": "259422ad958a2fa3359fef48896bc7a3676193a1696b1d08fd417d03cfdcb028",
+      "audit": "zk-formal/test/AuditMerklePublic.lean",
+      "audit_sha256": "9965abd1f44d4b33d21f543f72ba96c6d7493e54e1aad96d75755641358726a4",
+      "guards": 6,
+      "log": "/tmp/nearproof-MerklePublic-audit-checked.log"
+    }
+  ]
+}

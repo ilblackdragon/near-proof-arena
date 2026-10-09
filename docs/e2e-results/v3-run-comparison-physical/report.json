@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 40,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/MemNativeCells.lean",
+      "sha256": "d7683d8c061c97c23765c849082a304b6fedadc353610c07134d9d92a46022af"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/MemComparisonRows.lean",
+      "sha256": "505a16e944542be934fbf2be44db72e5af87afdb7f74c12528802df9bc74d1e5"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcComparisonRows.lean",
+      "sha256": "0c9ec117bcad3465ff79f5a4423279dc0fb055dc62796d6ae59ffa9b37e2ca6a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcComparisonPhysical.lean",
+      "sha256": "ec39d50f6522dde115543b9cb2f2e41cce86bbcd75b674532f45dc62e8f2c4b0"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/MemConcatCells.lean",
+      "sha256": "47238452a4e1d15249281ad8a5f47bbb15fbfe0c67947bc1da233086cac5d086"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/MemComparisonPhysical.lean",
+      "sha256": "3860a67f4bd1162c4827db4f27b1d7fc6726d465fd9ff4899821faf2d50ae536"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryRowBudget.lean",
+      "sha256": "2b8154fcbe7e0bc1cad333b4118f3cab109a510826279515cd2da06664a5dc5a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRunComparisonTraffic.lean",
+      "sha256": "94e623fe248b11c45b2fba4f06516d67c722a81db2897f709f2883ccc6eefaef"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRunComparisonTraffic.lean",
+      "sha256": "84a58564f804a60472d30e82aea09d5052cd341e915f92a782fefa85fa39c723"
+    }
+  ],
+  "logs": [
+    "/tmp/MemNativeCells.log",
+    "/tmp/MemComparisonRows.log",
+    "/tmp/ProcComparisonRows.log",
+    "/tmp/ProcComparisonPhysical.log",
+    "/tmp/MemConcatCells.log",
+    "/tmp/MemComparisonPhysical.log",
+    "/tmp/ProcActualMemoryRowBudget.log",
+    "/tmp/SchedulerRunComparisonTraffic.log",
+    "/tmp/AuditSchedulerRunComparisonTraffic.log"
+  ],
+  "scope": "SAME PriorCore block list yields exact actual concatenated native memory+repaired process comparator40 sends equal run.cmps. Native metadata and both log22 capacities derived; memory67200/call/process13712/call. No Local/cap/tag/traffic premise. This does not establish memory TableLocal or full family installation/balance.",
+  "prerequisites": [
+    "v3-run-comparison-inventory",
+    "v3-run-memory-comparison-tags",
+    "v3-run-comparison-valid",
+    "v3-native-codec-comparison-valid",
+    "native ProcActualRunComparisonBudget (receipt lane)"
+  ]
+}

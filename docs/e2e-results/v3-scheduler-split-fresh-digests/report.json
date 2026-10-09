@@ -1,0 +1,53 @@
+{
+  "lane": "scheduler-split-fresh-digests",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/NativeSplitDigestWindows.lean",
+      "sha256": "0cf4d845d11a727539cf5ad98e0993cf3c3ff8af1f780cfc09903fabecc2f222",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-fresh-digests-NativeSplitDigestWindows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerFreshSlots.lean",
+      "sha256": "26c96d50146dcbae10dabf292daea89185432b7022b32b9b41243033f7d1b79c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-fresh-digests-SchedulerFreshSlots.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerFreshDigestWindow.lean",
+      "sha256": "4bb5132c2be8c546bdaa49e04015a071574f287aa37765a9a07036c360532ed3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-fresh-digests-SchedulerFreshDigestWindow.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeSplitDigestWindows.lean",
+      "sha256": "1431ca5ff2a170ffd00f681621f78dc3810ce1d4776bd922ccbe044c5acc56eb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-fresh-digests-AuditNativeSplitDigestWindows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerFreshSlots.lean",
+      "sha256": "745d648176547876fc32b466b7f71afe6b032b6b044fb393d8d997474e77982b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-fresh-digests-AuditSchedulerFreshSlots.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerFreshDigestWindow.lean",
+      "sha256": "6984967161f0f762f8c781ea55d86ee41e69ec2e45cb568c6fa6590c93d3fbeb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-fresh-digests-AuditSchedulerFreshDigestWindow.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules6guards. Native one/two-child split serialized digest windows and fresh-value bytes/hash preserved through actual recursion, all split/insert/ancestor cases. Physical window-to-job permutation remains.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "scope": "Exact Record-ID physical71/72 balance; ID Local boundary repair remains open. See hashed README.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordIdTraffic.lean",
+      "sha256": "f939614e764df23073559f73687e0f885308403f440d5e3836e8875e1c5da964"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdQueryTraffic.lean",
+      "sha256": "cd46c7ef0dcd7c0d88cb71a26a580dbf3074c74df425ac767fc94afe4b26ed0e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdConcatTraffic.lean",
+      "sha256": "f1e182d569b9a194b932e182fffb71d368c2f66bac0f494be985ac2e50642bde"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeIdBalance.lean",
+      "sha256": "25cfd36a1a5b6f8836ec7fbaa50668367e3db122139cd5dc19916db16d0f93fa"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeIdBalance.lean",
+      "sha256": "302119e0f5aceaf67539ee7ecbc0c0a5da43bf0aa703bbcc2e73d75c45756265"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-id-balance/README.md",
+      "sha256": "81c931aca34eff360f330eb67fa5ce5ed0201ddd7f8432033871adbcd70612d7"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-id-balance/SHA256SUMS",
+      "sha256": "17fadc837088ce1320a106f2f661e6d754e4c431ad20ddc2956704f1e326654a"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-id-balance/dependency-review.json",
+      "sha256": "b8970fc515ded462d532fb9c133908b326ab53474a135d0e64c7b402c058de42"
+    }
+  ]
+}

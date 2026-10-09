@@ -1,0 +1,31 @@
+{
+  "lane": "source-three-packing",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceShaResidualPacking.lean",
+      "sha256": "5b84a3a6aba3d2eaeeefbb063e6f8850544c1ecbdddbe2aeeb6be170d9c6d726",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-three-packing-SourceShaResidualPacking.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceSchedulerThreePacking.lean",
+      "sha256": "e36778ac1d60db19adc3715749b1f9a791596ac695505b934ea93a5e157f9fe7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-three-packing-SourceSchedulerThreePacking.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSourceShaThreePacking.lean",
+      "sha256": "7b1c0fe6c4fff7194416450ce2a703974aaff0b242efc19791905866eb08ca01",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-three-packing-AuditSourceShaThreePacking.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_axiom_guards": 6,
+  "scope": "Accepted source, upsert and sanity whole-message jobs fit three SHA bins; excludes remaining families. Independent strict rebuild with prebuilt dependencies."
+}

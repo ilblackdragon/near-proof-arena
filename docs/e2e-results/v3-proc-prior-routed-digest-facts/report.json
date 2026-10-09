@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual full DIGEST supplier inventory equals four physical packed SHA components plus specified SHA256-empty supplier. Both branches have checked SHA semantics. Any arbitrary live actual DIGEST consumer has actual SHA preimage and each nonempty byte received by actual SHA union, from HoldsP and no public digest sends. No generated jobs or assumed exclusive SHA supplier. BYTES source identity remains to be joined. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedDigest.lean",
+      "sha256": "5cc4cc03bf123e99da46bfd754003596e99403bac3211686b212e1f099a2d3c4",
+      "audit": "zk-formal/test/AuditProcPriorRoutedDigest.lean",
+      "audit_sha256": "0b86677103e2ddb1ae8bd3fbbc4bf5a5d9e3302e11d14fbfa443751a0a4445e3",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedDigestFacts.lean",
+      "sha256": "bed98fac96b3f4ab916548724e72a5cd764518ef2605193d6655a58dde60cb62",
+      "audit": "zk-formal/test/AuditProcPriorRoutedDigestFacts.lean",
+      "audit_sha256": "8a0e1a01f93f1cb1fa5613425f2d55e3021a9942ed8d79a84ad4f41a9d5c0709",
+      "guards": 4
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-digest-facts/dependency-review.json",
+      "sha256": "f9055e6df0bf73fd9734c1d2ec80ba2f51871dedee8bd8710dc1a06406287ea3"
+    }
+  ]
+}

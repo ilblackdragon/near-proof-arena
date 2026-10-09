@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Repaired queue actual natural and field row traffic plus whole-key message composition for all4kinds agrees with native key positions without START. Whole mixed table aggregation, installation and admission recertification remain. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/QueueKeyRepairRows.lean",
+      "sha256": "d36398b084ded6d6526d6892aba405e6eacf70ab357a5fa6d74eb52a39a62ff1",
+      "audit": "zk-formal/test/AuditQueueKeyRepairRows.lean",
+      "audit_sha256": "187d2a7fd77043a2dfddb7a49da1095a7b8a118ce074e8b624e5fcc57e203589",
+      "guards": 5
+    }
+  ]
+}

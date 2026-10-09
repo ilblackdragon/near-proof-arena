@@ -1,0 +1,95 @@
+{
+  "lane": "scheduler-codec-sanity",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecHashCells.lean",
+      "sha256": "30bfb7ea39254ecd5f34978825bdba6a73931b77e1716d03d248eb0d8e172b0e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-SchedulerCodecHashCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecHashTraffic.lean",
+      "sha256": "5247fb8b4b416fd9ed89fc97b554c3d523794cfd80e83c2ea7ae4b1e6d2b31f2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-SchedulerCodecHashTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecHashBlock.lean",
+      "sha256": "6b4dd110647f58ec2023dc36aba1749235c715d2a2b844953687fe454fae5715",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-SchedulerCodecHashBlock.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecNonhash.lean",
+      "sha256": "0c8b58781bdce63aeb218c7f30e4ac39fd21fafb18a077e0f2eba7efb219d968",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-SchedulerCodecNonhash.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecSanityInput.lean",
+      "sha256": "2f3976b5d945c5c422e43bdee416e2399567d6b322b2a3891dd862abd78d1597",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-SchedulerCodecSanityInput.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecNativeSanity.lean",
+      "sha256": "97c550d956409d5df6b476d59bfde2e3048fc543bd5dd13d4376007c978ac357",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-SchedulerCodecNativeSanity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecHashCells.lean",
+      "sha256": "9a3f9a7030264e1b2b596fb7e72715ba102039b4bc632a03336d7f92f610ee76",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-AuditSchedulerCodecHashCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecHashTraffic.lean",
+      "sha256": "1d72dcfba16a4e1579cb5540ca2d640b3380f82c3cb10afc233eb30691f559f1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-AuditSchedulerCodecHashTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecHashBlock.lean",
+      "sha256": "3da2fb43449b71e699559d83296918d821c5dfdda53e3b1750c9649493bcc7a2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-AuditSchedulerCodecHashBlock.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecNonhash.lean",
+      "sha256": "9e1a2413be5246496e1853a1bc333fe1ebe35eb378e3ad5394849e376e1f07cc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-AuditSchedulerCodecNonhash.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecSanityInput.lean",
+      "sha256": "babed64bc141416321258b93c28be8a45981df4515557a4d0f0a1bae430c8eba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-AuditSchedulerCodecSanityInput.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecNativeSanity.lean",
+      "sha256": "25a2bd3b31ad06fb749a198840d43341aeefde55fc3860ce16095e6237315da9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-codec-sanity-AuditSchedulerCodecNativeSanity.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual corrected Codec hash cells, physical hash row and 32-row block DIGEST traffic, nonhash silence and native sanity input linkage. Whole generator placement and concatenation remain open.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

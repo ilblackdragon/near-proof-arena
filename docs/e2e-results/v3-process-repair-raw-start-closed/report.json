@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family RawFrame VBYTES stream StartClosed, derived from live interaction and actual backward first-row origin without shape/height/byte premises; actual queue byte provenance to SAME Value list. Strict source builds and 3 exact axiom guards. RawOrigin dependency audited in v3-prior-raw-origin.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueByte.lean",
+      "sha256": "1a29597dd04b62de3a127efba20bc4529a5ec3be93482626cb25fd19f4fba2a8",
+      "audit": "zk-formal/test/AuditProcessRepairQueueByte.lean",
+      "audit_sha256": "1ef1ab9ce62a834fec3bfde00b232cb55eabe928fe548d7be9e9998ce38828be",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRawStartClosed.lean",
+      "sha256": "e061f24248da7c15105a0a1ba2100c8926f9c253b920a455f0bc2ff8a3c4450d",
+      "audit": "zk-formal/test/AuditProcessRepairRawStartClosed.lean",
+      "audit_sha256": "8ee91360b8043a19489f924c437efd85a1495019cdafd1f65bafcb713298bee4",
+      "guards": 2
+    }
+  ]
+}

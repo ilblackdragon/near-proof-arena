@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Corrected source accumulator exact active rows, terminal total, within-block and cross-block recurrence. Full field constraint lifting, traffic/carry integration and active family replacement remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceCounter.lean",
+      "sha256": "e9678061d426f38dd53f9a0ef1588e072f932ac1fd9180ce4e4eb77c22243c16",
+      "audit": "zk-formal/test/AuditUniqueSourceCounter.lean",
+      "audit_sha256": "f18c1f9c7620e20cee6e6630a4bf16b506ef8471157e07597409e3faa3ade0c1",
+      "guards": 6
+    }
+  ]
+}

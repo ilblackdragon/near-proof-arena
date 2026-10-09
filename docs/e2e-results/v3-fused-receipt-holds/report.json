@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Receipt SAME projected views semantic Wf/all-bus traffic from concrete GatedMemoryAdmission Holds plus public ranges; no independent MEM version/ownership premise. HoldsP public protocol adaptation still pending. Component soundness only, prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/FusedReceiptHolds.lean",
+      "sha256": "1a80e056ec34a5896d470370580d086395176652af7b6d0794b58e76d40661a1",
+      "audit": "zk-formal/test/AuditFusedReceiptHolds.lean",
+      "audit_sha256": "a78f9f37c24c3c986a6a339812054c2cdad87430e16f619399b811aec83592c6",
+      "guards": 1
+    }
+  ]
+}

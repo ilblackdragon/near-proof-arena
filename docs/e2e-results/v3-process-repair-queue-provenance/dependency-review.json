@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "remaining_group_key_chain": [
+    "Use actual parser record grammar and generic VBYTES provenance to establish SAME value byte prefix plus exact length/completeness.",
+    "Existing physical_native_shard_balance cannot be invoked directly: its old VBYTES inventory omits actual RawFrame senders. Do not claim old queue/account/akey global equality.",
+    "Recover buffered shard list and QSH native stream; actual QSH balance is now derived.",
+    "Bind group key to same native buffered occurrence and consume repaired QueuePrepared.lookup."
+  ],
+  "same_witness": "sender_entry receives caller SAME ValWf es and exact physical Value traffic; it never freshly extracts unrelated es.",
+  "proved": [
+    "Any actual live VBYTES sender packet identifies a bounded byte position of SAME es entry with exact byte value.",
+    "Global QSH traffic has only queue selected18 ownership in either direction; actual HoldsP plus no public QSH gives queue send/receive count equality."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "strict": true,
+  "guards": 8,
+  "dependency_order": [
+    "ProcessRepairIdPublicOrder",
+    "ProcPriorIdPublicPrefix",
+    "ProcessRepairIdPublicGlobal",
+    "ProcessRepairIdPhysicalLookup"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdPublicOrder.lean",
+      "sha256": "68f62122d649b3c9856d66d24ab8c57efffaf9737a3c832dadf4893377888460"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdPublicPrefix.lean",
+      "sha256": "44b01b030b97dbf49b63abd95141b7e992071f6b0dafee3bfae575db78efe3c5"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdPublicGlobal.lean",
+      "sha256": "238cf93cfae57c52945b43d499c833fd91360d020389db66aff26d8b881f0626"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdPhysicalLookup.lean",
+      "sha256": "efe6fff017d535c6e1020a4d6008194d9dc4dc871006addc7b44eb22074e4865"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdPhysicalLookup.lean",
+      "sha256": "f1f28a6de0d752d5e90f102d088b694d0eaf0bef052a349cd343ffd592a0cf16"
+    }
+  ],
+  "scope": "Actual fourth comparator forces strict same-key public ordinal order; query result is minimal matching physical public ordinal; existence of matching physical public forces found1. Generic canonical key/public ordinal bounds explicit, derived by earlier native/prepared bounds. Complete prepared public coverage still needed for native lookup equality."
+}

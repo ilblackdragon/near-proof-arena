@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Remaining38 retained header-tail constraints91..128. Exact native header p<4 to p+1 closes all local bytes,31register shifts,header-kind continuation and inactive end flags. Header p4 end theorem derives equations from next fS1,kidx0,g0,rs1; binding these to actual first record remains separate. Arbitrary boundary selectors. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHeaderFlow.lean",
+      "sha256": "4aa9a397b502c8457e33bc34b984d509a12597020e7068e209564d208fede48c",
+      "audit": "zk-formal/test/AuditProcPriorCodecHeaderFlow.lean",
+      "audit_sha256": "1f29ec5d6080f880423d0f1bc2de0b3cb1aa64204e712fd1297f2374a521c384",
+      "guards": 10
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family buffered parser native interpretation and exact QSH request/native shard-stream permutation. SAME Value bytes authenticated through SAME extracted forest; complete VBYTES ownership includes actual RawFrame competition. No supplied byte range, generated inventory, record completeness or QSH conservation in authenticated wrapper. Five strict modules / five exact guards.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueBuffered.lean",
+      "sha256": "c8e1c3d68a93ba031cb1db7a8a6c037f779b26c565378ec40f54c5ab1f1c04f6",
+      "audit": "zk-formal/test/AuditProcessRepairQueueBuffered.lean",
+      "audit_sha256": "ac0d9c761ed34a1b358a863ec2f7acd8719ad22923900cd67d72cd497a32b0eb",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueNative.lean",
+      "sha256": "45bbc39d948561137d008d4a6f751758872aed8b35187eb346e66527d2272f49",
+      "audit": "zk-formal/test/AuditProcessRepairQueueNative.lean",
+      "audit_sha256": "ad6e87388586e6cb96ce5f314dff8b086061f423bd2c72d9478c1ca2a5098f51",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueShardStream.lean",
+      "sha256": "5784e38b81bd95d8a806393c2818cdfda1ca5efdb39b8e208f7cd84f34fbdcba",
+      "audit": "zk-formal/test/AuditProcessRepairQueueShardStream.lean",
+      "audit_sha256": "d72aaaec3ec901953a76004f8933b12cc09819e18374dd89e89663f8c760360d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueShardBalance.lean",
+      "sha256": "72879db2f1d2c1f61b08a63c7960428cb3029b8eacdff33cb376f8d593296781",
+      "audit": "zk-formal/test/AuditProcessRepairQueueShardBalance.lean",
+      "audit_sha256": "df94e7ebdc72d23c2902d65792fe86168e022344f9901b5577db905385a88188",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueShardNative.lean",
+      "sha256": "18b6a15e101d29afade6b6ddcf2588c0bac74901dbc62d47918977990b8a56bd",
+      "audit": "zk-formal/test/AuditProcessRepairQueueShardNative.lean",
+      "audit_sha256": "d0842f998ebbadc6d362eeff83c9ee3bf4262ec2d90b86d0bd1203887311832c",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-queue-shard-native/dependency-review.json",
+      "sha256": "6678198192420879bd55a2806a7824141ebc9099c0c0ff71fd50a56bbb583b42"
+    }
+  ]
+}

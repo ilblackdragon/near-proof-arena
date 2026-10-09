@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME chosen native forest/us/allocated compact instances with local legality plus four packed SHA local tables. Physical native/source/compact byte senders discharge consumer inventory, leaving exactly native fresh relay, sanity and receipt jobs. Whole scheduler job partition preserves objects/multiplicities and fresh relay values. Receipt SHA contracts/global residual traffic remain open. Prebuilt dependencies, not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SchedulerShaSplit.lean",
+      "sha256": "9de2565740c25597d692ccadee596dab22174079b59a9b441454460baa820fb6",
+      "audit": "zk-formal/test/AuditSchedulerShaSplit.lean",
+      "audit_sha256": "c975327c2343f818afdf6ea11defe9a523e62ee2ed3958b5fe5f4dedbcd09783",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SchedulerPhysicalShaSplit.lean",
+      "sha256": "bd7091cb04c9de23ac877d6ec9c6eb9f70e97dbecd53ab9d9fe0ce42b9aa4740",
+      "audit": "zk-formal/test/AuditSchedulerPhysicalShaSplit.lean",
+      "audit_sha256": "f112d7924a0d8a00491ef04d9330ac391477ad1adcfe784040392622f119a7c3",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedCompactPackedAllocation.lean",
+      "sha256": "28268b5b73800d2d378a5ca098126cf710de168409539dd4900446d59ccbbfe8",
+      "audit": "zk-formal/test/AuditRebasedCompactPackedAllocation.lean",
+      "audit_sha256": "187855413d57f7c3b5c337e5b97745e9bd467f17375af9a91774abf79e0f33b2",
+      "guards": 1
+    }
+  ]
+}

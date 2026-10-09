@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual constructed account VSLOT send equals SAME physical node VSLOT receives, derived by projecting natural VPOST digest permutation before field encoding. Combined native/public/receipt/fourSHA allocation retains this equality and prior digest cancellation. Account pre-byte traffic is exact activated original-ID portion; explicit untouched remainder partitions main pre-values. Remaining providers/implicit values and global VBYTES/MEM balance still open. Strict audits use prebuilt dependencies, not clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccountSlotBalance.lean",
+      "sha256": "23ff776fca9d15f511e040cffdf4a59ea7fb450be78be8f42be427228367de3c",
+      "audit": "zk-formal/test/AuditNativeAccountSlotBalance.lean",
+      "audit_sha256": "0dd4bd72321fe380efc31d2d290236d8535204a80b31ccdbe6b747b45380a976",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptSlotBalance.lean",
+      "sha256": "323a8ec3591eddb620dd61deac59fc419492b3ad6619e3e7a7a7c21241f5c379",
+      "audit": "zk-formal/test/AuditNativeReceiptSlotBalance.lean",
+      "audit_sha256": "2c93755756e4aaddc4bbed454dd8f72a5ddd501017e3c9ec58173efbb039f02f",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccountSlotAllocation.lean",
+      "sha256": "c98402ed23413b7d6c6b8a1a34ec514d434072b718b9788e7aeeab55674d0e03",
+      "audit": "zk-formal/test/AuditNativeAccountSlotAllocation.lean",
+      "audit_sha256": "bfe14b82b8a64c429235bf2cd3aa98bd1c82c96a77ea9813e8194311ed6fc3be",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccountPreBytes.lean",
+      "sha256": "0060c34a19b199913ad3d5b1aaa8c73617d6c8ae07606d1481881e31383b7634",
+      "audit": "zk-formal/test/AuditNativeAccountPreBytes.lean",
+      "audit_sha256": "3e0cf526cd519c54d99a8b5f60b11f3909734c5508d1bffae285dafcba03e56e",
+      "guards": 4
+    }
+  ]
+}

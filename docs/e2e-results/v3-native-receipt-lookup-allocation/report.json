@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Strongest combined native receipt/public/trie/fourSHA theorem now fixes both account and access-key IDs to original prestate slots. Conditional access queries preserve receipt identity through filtering and counter ranking. Accepted lookup absence remains legitimate and is distinguished from unresolved proof nodes; existing access-key bytes are fetched at the exact original VID. Existing access-key slots belong to the exact non-account byte remainder, proving no overlap with account providers. Physical receipt/access-key byte-provider bus closure remains. Strict checks use prebuilt dependencies, not clean full certificate or prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessByteOwnership.lean",
+      "sha256": "16abcfe5bb78053ca227f4f338aa1536612966f43d97deaee5b1e84fc721b947",
+      "audit": "zk-formal/test/AuditNativeAccessByteOwnership.lean",
+      "audit_sha256": "497e73969cbea88e6a58df87d33a816c1ea086f0694c65a73df63896d738c066",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptAccessIds.lean",
+      "sha256": "25f5a2b87ca807829ed121632bfeda10a7643375b7867e89a217cf1d182b65cf",
+      "audit": "zk-formal/test/AuditNativeReceiptAccessIds.lean",
+      "audit_sha256": "760d7331b393718efd580d8299a573cc4c4ca589c402567c100d6d621cc20f7f",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptLookupAllocation.lean",
+      "sha256": "dd2f0ba08631d25dffb7b1bc269cf774ed1216042aa4be4c66b0154943ecafc4",
+      "audit": "zk-formal/test/AuditNativeReceiptLookupAllocation.lean",
+      "audit_sha256": "d02f0a4580758847579e8af1c1cae0619776e9c77643683b9389564be954263d",
+      "guards": 1
+    }
+  ]
+}

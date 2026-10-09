@@ -1,0 +1,32 @@
+{
+  "lane": "native-ups-physical-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsPhysicalSegments.lean",
+      "sha256": "81827f1b07ae749b87c7d7d92c1c64254a98dd85dfc80f8df5e59b78febbad88",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-balance-UpsPhysicalSegments.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsPhysicalBalance.lean",
+      "sha256": "cd20067e5a79dfc18c9d78961c1a5a0677b375cc10470fa4386110ce4c0e3c01",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-balance-UpsPhysicalBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsPhysicalBalance.lean",
+      "sha256": "9b66acdaa496dbfae72564f0e632684bb341b29efdb646c54959cb1249f7459d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-balance-AuditUpsPhysicalBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual physical segment lookup and ups_render_traffic yield exact full UPS EDGE/BMAP counts and provider balance. Same ranked instance list, UpsShape/TableLocal/honest placement and provider coverage remain explicit. This is UPS-only ordering; queue/account construction and shared consumer prefix ordering remain open.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

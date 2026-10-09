@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-deposit-native-arithmetic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositNativeData.lean",
+      "sha256": "6df842821f33367fa92b396407c00271fd4b6128d26c160ec900ff0c8420536a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-arithmetic-RcptDepositNativeData.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositArithmetic.lean",
+      "sha256": "23a7287abb73359ff7d935c1321cf5f95b079c6cfadc464eb616b470afb225b5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-arithmetic-RcptDepositArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositNativeData.lean",
+      "sha256": "1c339457a9656d5a254f4c44ba00f49a3273367e40cfecb77c4841e4bd1424bc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-arithmetic-AuditRcptDepositNativeData.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositArithmetic.lean",
+      "sha256": "dd264d67b62f8edc155b5d02b12dd0496522f63600f142d0c6be4028b982fd27",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-arithmetic-AuditRcptDepositArithmetic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules37 guards. Actual ordinary/system NativeBalanceData supplies decoded storage and scalar premises; deposit arithmetic generalized to five-field DepositArithmeticOk without artificial receipt-index/version bounds. Physical DEP frames/native account ledger remain; candidate842 unchanged.",
+  "exact_axiom_guards": 37,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

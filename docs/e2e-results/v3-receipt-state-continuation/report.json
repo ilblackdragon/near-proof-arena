@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-state-continuation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateCurrent.lean",
+      "sha256": "f40d9d8cb0429a12f8ea38f8ddb61d564fa7bf40a4c8edf6150ebcbae33eb151",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-continuation-RcptStateCurrent.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateContinuation.lean",
+      "sha256": "5cf70a91ffb6d1b0f302a07c2d9d5b810bf99577ccc7c1df10e0298cd440b42d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-continuation-RcptStateContinuation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateCurrent.lean",
+      "sha256": "ccebb38e4d5d03226a9d4ddea0f4d0c03097ef788a87d380d92f62f13a5ec3f4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-continuation-AuditRcptStateCurrent.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateContinuation.lean",
+      "sha256": "4980232cb34799e8211d7b2450b1b87f1e042f38f40f3d75bbcea1f0ffafb56d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-continuation-AuditRcptStateContinuation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical trace control and26continuation constraints.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

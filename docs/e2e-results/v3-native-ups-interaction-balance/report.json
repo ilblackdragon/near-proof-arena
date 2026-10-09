@@ -1,0 +1,32 @@
+{
+  "lane": "native-ups-interaction-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsInteractionAggregate.lean",
+      "sha256": "9e40adff34ed8d2c92b852b425c2292204b8e49a1977745ebc03f52c67dc56c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-interaction-balance-UpsInteractionAggregate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsInteractionBalance.lean",
+      "sha256": "7c772a6a74cf64b3f9c5c961f5d4807a3a9cd6ca3b7c69e7bdfe6db54bbfcddf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-interaction-balance-UpsInteractionBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsInteractionBalance.lean",
+      "sha256": "49838e5eaec5519f8ea4ac6bdd677e89ae10b797dc22be4cbeb8ac6904e84671",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-interaction-balance-AuditUpsInteractionBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual generated W0-W3 uMsgs across all ranked UPS instances equal reduced prefix-counter traffic. EDGE/BMAP provider chain balance; concrete head/node EDGE providers connected, arity derived from coverage. Non-walk/value/part/padding rows and ups_render_traffic exclusion still open; not full UPS table balance.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

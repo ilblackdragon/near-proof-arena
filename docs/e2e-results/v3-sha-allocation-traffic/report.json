@@ -1,0 +1,25 @@
+{
+  "lane": "sha-allocation-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ShaAllocationTraffic.lean",
+      "sha256": "aa4f2c639e2d77afe4a2ca01fd61315bf0f736f82d60d3be92d557bd38a9b5f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-allocation-traffic-ShaAllocationTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaAllocationTraffic.lean",
+      "sha256": "d8c6b27455e8479af38626b417e45d7fc10a424f8a4bd0a0744b85fce60935d5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-allocation-traffic-AuditShaAllocationTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four-bin allocation preserves exact expected BYTE and DIGEST streams with original multiplicity flags.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

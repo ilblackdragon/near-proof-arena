@@ -1,0 +1,57 @@
+{
+  "lane": "compact-fresh-fields",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/ByteRows.lean",
+      "sha256": "cbb8730dc2fe315aac52a5999b50a9daf023f011bd3c20b79065943589bddeee",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fresh-fields-ByteRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/WinRows.lean",
+      "sha256": "c801ff677413115a6b3c3fb6b193440b5c3a2161e84601a798fe5b48c3a6a510",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fresh-fields-WinRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Windows.lean",
+      "sha256": "433a272853bffee7c767bb83f3e5d4a3ad8ef1a7c3099310760ab68d8bd16920",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fresh-fields-Windows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/FieldBytes.lean",
+      "sha256": "7f0241c7b4514963ab29f64be7148db6873b845e233bc85f03034e30e90be761",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fresh-fields-FieldBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PartFresh.lean",
+      "sha256": "ac4eb3621d56833c02ce1f2e99af6bc72260eb7fbcd2b791526021554cdbdc14",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fresh-fields-PartFresh.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/AuthenticatedFresh.lean",
+      "sha256": "6e713e5b88a938de87bfe5ff36cf4b8207d38733b0b4649881758bad51eaf2d8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fresh-fields-AuthenticatedFresh.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactFreshFields.lean",
+      "sha256": "fb826fe4ea881278856882f9309ad449e93e7e23e7f376e8b3cba641eee5813b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fresh-fields-AuditCompactFreshFields.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Six compact fresh-field modules and 82 exact guards independently checked against HPL artifacts. Actual fresh VH binds SHA of codec value with field-derived digest gate/id/length; VLEN byte range, CompactIdBound, global inventory/balance and scheduler interface remain explicit."
+}

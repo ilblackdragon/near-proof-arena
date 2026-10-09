@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Genuine HoldsP, corrected Codec table identity and SdlOwn imply every live SDL receive has a real public SDL origin with identical byte/index payload. No timestamp bound, generator, or sender-start premise. Finite physical height\u22642^22<P excludes closed modular predecessor cycles using N+1 distinct iterates and a checked list pigeonhole argument. Public origin still requires decoding against authenticated prepared public inventory; global ownership remains explicit. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcSdlFiniteDescent.lean",
+      "sha256": "6362f287fa4b2aa3a719cd25e4fc9f9e453aa954a3ac536daa49c95f5ae5e287",
+      "audit": "zk-formal/test/AuditProcSdlFiniteDescent.lean",
+      "audit_sha256": "74f40443088b2b0483afdf31d4f663461da2f7d32f1ad9f139a3e01db9f86540",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundSdlFinite.lean",
+      "sha256": "938a19f7e703a3c1cee89cb3039b1b21cbd3c50897e2d9004db3abb857174769",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundSdlFinite.lean",
+      "audit_sha256": "de4ba21c1fc94dbd364c67d3f4cf09fcd2f5fd813e4763d841b61686d0266830",
+      "guards": 1
+    }
+  ]
+}

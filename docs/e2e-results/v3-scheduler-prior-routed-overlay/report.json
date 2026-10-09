@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted D0a constructs SAME PriorCore and concrete overlay locally valid at repaired routed-family selected slot19, retaining presence60 and routing comparator69 to40. Global traffic, fused installation and full certificate remain separate. Incremental audited build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorRoutedOverlay.lean",
+      "sha256": "8a7a5298c1c85e547ed9a11ada7fba624a591daf1d0bc4e13016c890fe709ac3",
+      "audit": "zk-formal/test/AuditSchedulerPriorRoutedOverlay.lean",
+      "audit_sha256": "8ec82b115dca0d6bcaccaf6fa8aa7c94987a53ec2069ddb49fc68bbdff2ac342",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "target": "ZkFormal.NearV3.Candidates.ProcPriorComparatorRoutedAdmission",
+  "source_modules": 2989,
+  "successful_modules": 2989,
+  "all_source_modules_passed": true,
+  "source_drift": [],
+  "prebuilt_project_dependencies": false,
+  "initial_source_only_reused_modules": 328,
+  "extension_base_source_modules": 2938,
+  "lean_path": "/tmp/nearproof-codec-clean-20261009-b/lib",
+  "olean_symlinks": [],
+  "audit_guards": 433,
+  "audits_passed": true,
+  "manifest_sha256": "23d6f1da1402176eb066f8d2b22a599582f66751381f0b49e189d2d1ff5c2cac",
+  "scope": "Accepted D0a with B<=2M constructs SAME Codec/RawFrame Local and exact presence balance using actual allocated native prior IDs, no supplied ID function. Includes exact native prior-byte inventory and sender/receiver prepared-ID extraction from arbitrary corrected Local under genuine SDL/SPAR/public ownership. Includes accepted exact physical priorRead68 inventory, executable same-ID lookup/forest provider and standalone arbitrary memory query extraction. Adds accepted selected Record Local and physical writes, actual combined-family prior-read extraction, comparator and prior-order contracts with explicit ranges. Includes native memory/ID data joins/common witness, actual-family conditional lastwrite and diagnosed missing69 receiver, repaired admitted shared40 routed family and transport. Older actual-family predicates remain explicit baseline contracts and are not claims about repaired family without transport. Source-only closure with hash-validated reuse of2938 earlier source-built modules. Remaining physical global ownership/joins, full prior lookup semantics, whole transition certificate and judge not proved.",
+  "evidence_sha256": "cd25bf4e52d95fe744b5a07ee36b3b784cdf458b083146678d0d671e38d0bc69"
+}

@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Repaired candidate routes prior comparison69 to actual installed scheduler comparator40, preserving payload/gates/constraints/width. Exact fused shape and admitted size remain8238324 bytes with150284 headroom, fp68697539256<2^36. A new appended comparator would exceed fp bound. This is structural admission, not complete renderer/global balance or whole-transition certificate. Prior old family proof transport to routed interactions remains explicit. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRoutedFamily.lean",
+      "sha256": "6f65f8dd7fb3b34a2c7fcd7dc08a9d13fede5ff42911f3aa5ddce390660640c4",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRoutedFamily.lean",
+      "audit_sha256": "521b606ad0e2be8e54d419ed3bc0395bc00dd8bfc909abcdb67b791f41e0415c",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRoutedProfile.lean",
+      "sha256": "cc95d9c4025896bcd33b15d59ce7bfbdb8f8f4c8095ff1f353a8a1ac61340781",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRoutedProfile.lean",
+      "audit_sha256": "7404dcd0dc44cee644fa90f585a080900b6ff3c556f321bd9aac2583446914b0",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRoutedDegree.lean",
+      "sha256": "f76a0145891e6413bda2d8af6aab15d9fc944455799118e6a67c93e5efa296b0",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRoutedDegree.lean",
+      "audit_sha256": "9771c69bb93cd53c21de3aeed87ede69edb120a0d14e27f1ad2896e942953115",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRoutedSize.lean",
+      "sha256": "cb6beacc47018fc1b5185ee6f20afccb11ca7c1ca78c5f5ddb64e90d54c27ae7",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRoutedSize.lean",
+      "audit_sha256": "8264eb0d820a4c565aec1b10dfd5e1e5350e472b69201a049260c2a5f52f87d6",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRoutedWf.lean",
+      "sha256": "7961ceea378361105bca0ee6a15bd5a7645c5671b9721fa23a792060097a4dce",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRoutedWf.lean",
+      "audit_sha256": "695ccfb771cc5c61bdabe905c904aff5c3259358243a7f58a10c7e2ea186471a",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRoutedAdmission.lean",
+      "sha256": "6eae1deb9ff710f7c071764e2fa45485ffdb4213239652687ba83e84e5341d3f",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRoutedAdmission.lean",
+      "audit_sha256": "723de53e410f746b4dba90eff7cebd21f6541448c50d71ca5fb0f1a4f2b38923",
+      "guards": 7
+    }
+  ]
+}

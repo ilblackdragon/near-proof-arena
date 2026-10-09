@@ -1,0 +1,25 @@
+{
+  "lane": "process-replay-boundary-guards",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayBoundaryGuards.lean",
+      "sha256": "a6e16f521e01c107872a17ca531037b60fafa2f3a33dd418e966bab7b1988da1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-replay-boundary-guards-ProcReplayBoundaryGuards.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcReplayBoundaryGuards.lean",
+      "sha256": "44dd650f6cd08bf18d1aab9798f4119ef4d350b47d7139293350df2a52a2fee0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-replay-boundary-guards-AuditProcReplayBoundaryGuards.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3guards: prepared seed length, rngAt position and final replay RNG-position check. Full scheduler model existence/state+log replay and capacity remain open.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native receipt/trie/four-SHA allocation with constructed account trace, proved account TableLocal and full TableTraffic. Eliminates arbitrary account trace and account byte traffic premise. Account view list and its range/wellformedness still explicit; scheduler/codec/global installation outstanding. Strict audit uses prebuilt dependencies, not clean full certificate or prover/judge",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccountDigestAllocation.lean",
+      "sha256": "35346b3244e5c34f93f7930ee996003e191e991d1c7b0e8804d0015aa915b069",
+      "audit": "zk-formal/test/AuditNativeAccountDigestAllocation.lean",
+      "audit_sha256": "cac1737be11144807ccf889f9840d74f811ec514f4852b1419ed55dcfb8a4378",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccountExecutionTrace.lean",
+      "sha256": "97f8da1b23a7ac4a6e01948a95f9491e3368b388294f6e1b2f7f54ae03292a45",
+      "audit": "zk-formal/test/AuditNativeAccountExecutionTrace.lean",
+      "audit_sha256": "12ef0f04f17ff19b812bce452425a01507884ed24fdfda1a1aaae542c476a1f8",
+      "guards": 1
+    }
+  ]
+}

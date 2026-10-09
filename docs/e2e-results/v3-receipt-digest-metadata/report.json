@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-digest-metadata",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDigestMetadata.lean",
+      "sha256": "d06811860d38cde4463792a32944178ba3c594bc9d4c02c6fbb4b9317f6e11fd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-RcptDigestMetadata.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDigestMetadataLocal.lean",
+      "sha256": "0509f4d75595338cb95d697693aedd57ec7157dba7a09eea8693832fbf95c24b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-RcptDigestMetadataLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDigestMetadataPhysical.lean",
+      "sha256": "1e0981ef895db93fc7b69056bbb6652d4a68ff6448c68f0fd5f416c110e0f67b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-RcptDigestMetadataPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeDigestCheckpoint.lean",
+      "sha256": "58333245aa2436112ab73bd54750761ecb9c495e860834d82b7b388c03961b58",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-RcptNativeDigestCheckpoint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDigestMetadata.lean",
+      "sha256": "531bfcea7df9e9f6b221ebc8b9bc534171f54c0815a2a9c55521dace90bab834",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-AuditRcptDigestMetadata.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDigestMetadataLocal.lean",
+      "sha256": "e17e2b243c955e612c33a5abf492b60464e84ec155acedc05da86d67e1e79cf6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-AuditRcptDigestMetadataLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDigestMetadataPhysical.lean",
+      "sha256": "1ef6b80ce335729d574bbb922dac38d0deb06bfa50f3af3bbb36b461752dd559",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-AuditRcptDigestMetadataPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeDigestCheckpoint.lean",
+      "sha256": "9f8f3a576e4aa6afa114c5e7827ad3e901f6662f3487ea5d924186d9f4042f6a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-digest-metadata-AuditRcptNativeDigestCheckpoint.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical native receipttrace642/881, five digest-request endpoint constraints checked.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

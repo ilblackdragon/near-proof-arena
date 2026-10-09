@@ -1,0 +1,53 @@
+{
+  "lane": "scheduler-split-new",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitPairWidth.lean",
+      "sha256": "1af81dc2ca1a51ee55487d8e0c61aca89cd8f2c252d75748cb0b6fa50ce4ab5a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-new-SchedulerSplitPairWidth.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitNewSlice.lean",
+      "sha256": "6b4ee2d356cb75680f729f506fe74369d60be4494419a9e08504a81cc9285277",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-new-SchedulerSplitNewSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedSplitNew.lean",
+      "sha256": "496d7d05d484c5265e9216df1d11e5efe9b641b5117474f9a54da4e4d6825af2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-new-SchedulerSignedSplitNew.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitPairWidth.lean",
+      "sha256": "9da1c53f6b3b4400b7932e27d9156d1b3a69412ab44817f2294722daf33109b5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-new-AuditSchedulerSplitPairWidth.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitNewSlice.lean",
+      "sha256": "809a80a76b4ebc03346df810923ee816e5fc0ebf41db95d65a2ac2096bff4013",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-new-AuditSchedulerSplitNewSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedSplitNew.lean",
+      "sha256": "9f955eecb2355cdc0fb3edb30f4bbad68c3371175d33802248085a4f8ba0a201",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-new-AuditSchedulerSignedSplitNew.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules3guards. Full actual LSa/ESn1 physical digest equality, copied child width derived; no extra byte/hash/length premise. Unified whole-instance permutation remains.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

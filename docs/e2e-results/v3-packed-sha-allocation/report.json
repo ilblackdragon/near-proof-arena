@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Allocated physical SHA bins use commonlog22 width512 packed renderer, local legality and exact allocated byte/digest counts. Native node/value producers discharge their residual share on same packed union. Alljob payload/budget/allocator and residual family integration premises remain explicit. Prebuilt dependencies, not a clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PackedShaBins.lean",
+      "sha256": "cbcf80f87adbd85ea87be5f7346d6fd3bbcb919c6d30e4538062b420193eabdc",
+      "audit": "zk-formal/test/AuditPackedShaBins.lean",
+      "audit_sha256": "57fb1bbf96e550a291c08f924d190d918169e4dea7ee96a38f2a3154271ee6fa",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PackedShaAllocation.lean",
+      "sha256": "6890fcd9432eaff92923126dd43f6e1628ef79ac8bdb05240fda68bf218b648b",
+      "audit": "zk-formal/test/AuditPackedShaAllocation.lean",
+      "audit_sha256": "89262156373821ae8c815825fe1db7917cfb7cb8407571f166e8ac665ab31c91",
+      "guards": 5
+    }
+  ]
+}

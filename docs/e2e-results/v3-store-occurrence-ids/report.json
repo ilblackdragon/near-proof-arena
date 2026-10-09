@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Value IDs equal physical record indices with no field wrap; all combined entity IDs canonical from original row caps. Node/value namespaces disjoint and entity IDs identify unique occurrence; marked head is actual class representative. Value transition tags, byte faithfulness, exact class-count accounting and global duplicate traffic remain open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreOccurrenceIds.lean",
+      "sha256": "4a4afe32612ec567bf91fdcc9295e847246db07bd51dea6ea88f0306de9f8216",
+      "audit": "zk-formal/test/AuditStoreOccurrenceIds.lean",
+      "audit_sha256": "61ab70975541a6e13da405a85c71f90339432369552f14a6b3946f462a5290c1",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreOccurrenceUnique.lean",
+      "sha256": "dd2ab6ae29bb5bb6379a3dc16f9cfeb2791e52a8d4b0fb6086a574df9c9f8990",
+      "audit": "zk-formal/test/AuditStoreOccurrenceUnique.lean",
+      "audit_sha256": "86da9123193effda957031694b89a4da0ed45a1e50ae4b0f57ab6c070558baaf",
+      "guards": 3
+    }
+  ]
+}

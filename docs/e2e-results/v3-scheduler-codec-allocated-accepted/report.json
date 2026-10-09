@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted D0a chooses prior value IDs from exact native forest allocation before generation, preserving main and implicit ID equalities. Samebs provides Codec+RawFrame Local, native rawcap and exact presence balance with no caller-supplied ID function. Present read is exact globally allocated seedValue. Full lookup/value table ownership and remaining global/semantic joins separate. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecOrderedValueIds.lean",
+      "sha256": "f779819b38fe83530bbec16b13970b727ee67547cd39cbe7ef11bcdac3ad605b",
+      "audit": "zk-formal/test/AuditSchedulerCodecOrderedValueIds.lean",
+      "audit_sha256": "0ed08d1082f91b948e63811c33287903bc4b5d3d321c80962ab6e4a140eaa375",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAllocatedIds.lean",
+      "sha256": "4819205b621f45705de9b20ae6c3af7a03f523c9cbf1e57d0ccc0309764e3892",
+      "audit": "zk-formal/test/AuditSchedulerCodecAllocatedIds.lean",
+      "audit_sha256": "6fe2b62a3c0b8450c8cf80df4baad837083aacc982af581fa157a5a1e3093717",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAllocatedAccepted.lean",
+      "sha256": "2278c292c0509c0e05f0a531e265607f36c0528c26c11701f925a66c62a11c96",
+      "audit": "zk-formal/test/AuditSchedulerCodecAllocatedAccepted.lean",
+      "audit_sha256": "1e10a465540fb5291eb780420b0d495b65ba1a0b7236b6487f59a108909de79b",
+      "guards": 1
+    }
+  ]
+}

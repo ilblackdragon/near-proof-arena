@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 17,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessRepairedFamily.lean",
+      "sha256": "e4a4a6d00fb9f1bcbc0826cbdd857391b405c55e0584c3e80b7745e4ad3bfde7"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessTransport.lean",
+      "sha256": "9f8517f4169a1c62871a756723c7697260ea7cf4a220f4900f7d5d4a8e398ecd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRepairedRunLocal.lean",
+      "sha256": "37ccedd459df9981de1c8ad37179d7ad00aa3df8225716fdf23745ba6a8b8d17"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorProcessFamily.lean",
+      "sha256": "13fbaf8a7844a8629ef17ef43db97d74558fa14c8421f29685ee3e46dea3f997"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcPriorProcessRepairedFamily.log",
+    "/tmp/ProcPriorProcessTransport.log",
+    "/tmp/SchedulerRepairedRunLocal.log",
+    "/tmp/AuditProcPriorProcessFamily.log"
+  ],
+  "scope": "Additive repaired candidate changes ONLY selected10 process constraints. Exact unchanged component widths/clocks/interactions and pg3 process shape; all nonprocess component Local equivalent, all component bus counts preserved, raw/paired/fused interactions exactly unchanged. Same PriorCore bs gives actual selected10 Process and selected11 Mem Local and combined40 comparator inventory. Structural full-family Wf/degree/header/size recertification still pending. No repaired-to-old process Local implication or complete proof admission claimed.",
+  "olean_overlay": "/tmp/ups-proof"
+}

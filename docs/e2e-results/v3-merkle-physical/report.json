@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Merkle semantic view and exact traffic at arbitrary physical candidate-table index via proof-only projection; no witness changes.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerklePhysical.lean",
+      "sha256": "5b548a422ce3f85146aa0bd205b1057a1d7d5443532abb2bfae57c61ce9cd0f5",
+      "audit": "zk-formal/test/AuditMerklePhysical.lean",
+      "audit_sha256": "9e38da0387eb6b9455e57bd10084fbeae21e59b4f15d7ded404408b1d6f55a7c",
+      "guards": 3,
+      "log": "/tmp/nearproof-MerklePhysical-audit-checked.log"
+    }
+  ]
+}

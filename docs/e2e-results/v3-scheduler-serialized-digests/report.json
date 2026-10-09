@@ -1,0 +1,53 @@
+{
+  "lane": "scheduler-serialized-digests",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRowTraffic.lean",
+      "sha256": "5779ba4a6792f76779906db50ddcef1ec260b8bcb4b1ad2396bfcdea07ab1e3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-serialized-digests-SchedulerCodecRowTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/NativeSerializedDigests.lean",
+      "sha256": "063ad8f32cc14a910c7a9be0cfd7961c4f652abcf6fe4c8eb72a4feea706630a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-serialized-digests-NativeSerializedDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerUpperDigestWindow.lean",
+      "sha256": "e57252ab26d12f221b37333d98b45d0dd89e371af3c7261b0d9d551319b31a12",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-serialized-digests-SchedulerUpperDigestWindow.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecRowTraffic.lean",
+      "sha256": "cc1a2a69568a467ffc25ea5b72a2ce6f9d380b3975a96dee62c3357fabb602d6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-serialized-digests-AuditSchedulerCodecRowTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeSerializedDigests.lean",
+      "sha256": "c2c189dfcfc939bac4ad4520f378252bf4cd65e324ed94f8a0c66dfc21bd93a8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-serialized-digests-AuditNativeSerializedDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerUpperDigestWindow.lean",
+      "sha256": "2c13df1e193a807748c869138a11b0ea5f8d0cce9314dc973ce6b54e0b9f4db1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-serialized-digests-AuditSchedulerUpperDigestWindow.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules9guards. Full physical codec digest row and native serialized leaf/branch/extension hash windows, including upper-parent predecessor job binding. Aggregate physical window permutation remains.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

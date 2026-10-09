@@ -1,0 +1,109 @@
+{
+  "lane": "receipt-routing-cells",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingAdjusted.lean",
+      "sha256": "d960f33f573b44a265ea79a1e5a494ed7e89d44c061ae8e0e5a88ae6ab745a68",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-RcptRoutingAdjusted.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingFootprint.lean",
+      "sha256": "0a97f4c619f196dcfa3cc49736f1205d21fb9ec21cb7a1622dbee30ef4da7d93",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-RcptRoutingFootprint.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingFrame.lean",
+      "sha256": "5f1228d3411cb2e8dc4b51a5b07915f57c063fbd76b8cba7d9a0ee39cf6db6a5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-RcptRoutingFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingBoolean.lean",
+      "sha256": "c6ab509a66c75ee3f18c56c83a9096d6747adcdd204852472391b25a2bcb18dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-RcptRoutingBoolean.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingCells.lean",
+      "sha256": "4903174131a752f1d350d77dea9633565e0fab3de358dae985d29cdf2d532d78",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-RcptRoutingCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingReceiver.lean",
+      "sha256": "a1e997d1e4c36c556ba3192e0a7c3cd40a7b76d1f98e184be7cf5fa48fb447c6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-RcptRoutingReceiver.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingRid.lean",
+      "sha256": "43472d5e6b903eb4453ada94c814a5f9d446cfbf49ffca343157e0502d32f23c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-RcptRoutingRid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingAdjusted.lean",
+      "sha256": "d05e2a5df28a98d928de393bb5af01bc41839c8fb0d3108a3927026e52fa1e7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-AuditRcptRoutingAdjusted.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingFootprint.lean",
+      "sha256": "c204c373777f0f80dfe23d827486a5eb0cd01d47965fc856e08cd398064dc08a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-AuditRcptRoutingFootprint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingFrame.lean",
+      "sha256": "df22d54acf586fe1153e65f366fed5178f5d25dc864f72acbe8d143ab7489e54",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-AuditRcptRoutingFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingBoolean.lean",
+      "sha256": "f8ef2ce8d0b58ac96341fc185c7fd19fde7aa7939bde6ff4c3d75fa5972f58c5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-AuditRcptRoutingBoolean.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingCells.lean",
+      "sha256": "7279f5dc05904a3d9f0674f2b0adb76060de38146b140ff6d34bd28a4570801d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-AuditRcptRoutingCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingReceiver.lean",
+      "sha256": "3157a01e17e79aaeb3bd7ae68d16d5415cdd59d47a45aa4b3fc9a538df311746",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-AuditRcptRoutingReceiver.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingRid.lean",
+      "sha256": "77a773730152d558b34e805195b386bbe152ef52dcd37363741ff490887d9a30",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-cells-AuditRcptRoutingRid.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual receiver/first-RID cells match adjusted native interval frames through Boolean/stream/token wrappers; routing scratch footprint checked. Successor continuity/inactive composition remain before claiming +18 physical constraints.",
+  "exact_axiom_guards": 21,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

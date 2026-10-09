@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Corrected conversion, core consistency, seed, shuffle and RNG guard proofs; extracted pre-replay prefix succeeds on prepared native inputs and matches native state/grants. Full replay run success and full-run factorization remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualConversionSuccess.lean",
+      "sha256": "6206e86459f7d91f658ac693ed02bbebef0cf8f183f18a089d275e53b99d559c",
+      "audit": "zk-formal/test/AuditProcActualConversionSuccess.lean",
+      "audit_sha256": "fd3e9e1e4c86af389dfdb036b444241c9d49a1f8dc296b0b144ee43db14567f2",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualConversionExact.lean",
+      "sha256": "a26c066009e290a72fd3fda89629b673bb0217ffaf895959aafd5c50f8397280",
+      "audit": "zk-formal/test/AuditProcActualConversionExact.lean",
+      "audit_sha256": "c4fa9b9d5c734165df523acfc43cb2fff3a3fa36b90b8131274dcbdfafa53576",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPreparedConversion.lean",
+      "sha256": "34e9e4c700a6bf7ae8f9b12d42a7c4066d8b74b1d3734c15793b2ade73b7c8bd",
+      "audit": "zk-formal/test/AuditProcActualPreparedConversion.lean",
+      "audit_sha256": "bb468a056960c9e691474dd2eeea2a8c65192af6ea453b6e3d46a8d221b08279",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualCoreReplay.lean",
+      "sha256": "4897989adf3549d000235c8b910fc44199912cb2401b7b32afeee67b5e6c49fd",
+      "audit": "zk-formal/test/AuditProcActualCoreReplay.lean",
+      "audit_sha256": "e65d409ac40a57d0606cc4e88d656f408844f7dc5731d51377d88a40d4dc6d2e",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayRounds.lean",
+      "sha256": "f4b4bfbb177347611368e16b6cdd71e74fb4cd83ac4cef06a53b6906eb31bbd3",
+      "audit": "zk-formal/test/AuditProcActualReplayRounds.lean",
+      "audit_sha256": "19010102abec8c8e7e9c26f735bff1a4ce8574f9a07fa0409a2c2fcc6eaab7c3",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayBoundaryGuards.lean",
+      "sha256": "3e632619684f645d8e991a3c9e87f1e50fd784dc0e9668edf107e4fb23a18810",
+      "audit": "zk-formal/test/AuditProcActualReplayBoundaryGuards.lean",
+      "audit_sha256": "68a575ed11f6ae36ec85835a12eb131ddbcbd26163e0aaa72f506201ee3eb606",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPrefix.lean",
+      "sha256": "bed9f9b654865c8b306280c6da2833dfc2455d5fd58ef4a3ee292d910b1aed34",
+      "audit": "zk-formal/test/AuditProcActualPrefix.lean",
+      "audit_sha256": "9ca1ff58b0b7e3b64db4c0460e1c667300c6f28c178522b7b2e7c5857783be15",
+      "guards": 1
+    }
+  ]
+}

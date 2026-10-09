@@ -1,0 +1,58 @@
+{
+  "strict": true,
+  "guards": 16,
+  "dependency_order": [
+    "ProcPriorIdFirstCarry",
+    "ProcPriorIdFirstOrigin",
+    "ProcPriorIdSameKey",
+    "ProcessRepairSdlInventory",
+    "ProcessRepairSdlFinite",
+    "ProcessRepairSdlIds",
+    "ProcessRepairSdlIndex",
+    "ProcessRepairPublicPacket",
+    "ProcessRepairPublicIdSource"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdFirstCarry.lean",
+      "sha256": "05f3d5e0dc0e05e862fc47d0c1a46ce44f53b6485e69f7f776bf5478b1631ee6"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdFirstOrigin.lean",
+      "sha256": "d22c61da2692db6c28da4b6f2ec6c6cc84a3d1173a8abf6f6bc4d650ddef2cec"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdSameKey.lean",
+      "sha256": "07fdb7327f1c3f466f45f499f2f1a6ad94935d9a74ba3f881a4198f92cd90068"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairSdlInventory.lean",
+      "sha256": "afdee511702a1ac092e438d790f789688304da63a10094c5e7cdf9c1a323b0b4"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairSdlFinite.lean",
+      "sha256": "0925782c88e4589de4fe9240d7eec359b15ac0ae0b747ab8d07de762ee2ca945"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairSdlIds.lean",
+      "sha256": "ae60e6ec2b41c4e3f88e010dd31595fb86db799c2d5168610f19abc1abe6f9fb"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairSdlIndex.lean",
+      "sha256": "7c29be10749d55d0f95311c151b6bf1c0d841350288effcb020756f31861d879"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairPublicPacket.lean",
+      "sha256": "6bfe9ab2f0624b444c0737f848f36aae38509506085050eba57c5f70fe70410d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairPublicIdSource.lean",
+      "sha256": "a8ded5e01be82450cf02cf6e6a348211239d680d1ec6fcb81650d6822beb8480"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairPublicIdSource.lean",
+      "sha256": "b41e8c4c0e38120c4bc8e1d57807d33e39a8d3dfc12993942004d4fc97b2a7d4"
+    }
+  ],
+  "scope": "Actual repaired View SDL finite public origin and prepared public70 full ID payload, no ID uniqueness. ID carry starts at found=0 public and propagates within same key. Does not yet prove all prepared IDs have physical public rows, sorted global first-match minimality or native lookup equality."
+}

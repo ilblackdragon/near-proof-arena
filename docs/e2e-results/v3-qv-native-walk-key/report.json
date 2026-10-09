@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Six exact guards: native nibble indexing/range, field message lookup and actual WalkR exact native key/length under explicit same-provider ownership. Global KEYNIB balance/identifier separation and FINAL binding remain open. Scoped AIR dependency check, not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeNibbleLookup.lean",
+      "sha256": "a138c491b8831af35343eb6f603466475d4bcb3e8e7f0349293e732cc51ec750",
+      "audit": "zk-formal/test/AuditQvNativeNibbleLookup.lean",
+      "audit_sha256": "ab998aac31009218043e6a97088f3f9d9e7fec88c253e72e45a0ff145407d2d2",
+      "guards": 4,
+      "log": "/tmp/nearproof-NativeNibbleLookup-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/RepairedKeyLookup.lean",
+      "sha256": "878b0c774e979493cb1f1b1eb370323e41b2a80dd34c21b3c1d0f1c63a881bb7",
+      "audit": "zk-formal/test/AuditQvRepairedKeyLookup.lean",
+      "audit_sha256": "3404ce29a273fbe1c957604bd36e78f5ccd9c25fc3c7e29aa2bdab80153fb459",
+      "guards": 1,
+      "log": "/tmp/nearproof-RepairedKeyLookup-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeWalkKey.lean",
+      "sha256": "82a7116bbd224f782fff165724d103c073ee54c87251e89fe89cc6e0ad81cfc3",
+      "audit": "zk-formal/test/AuditQvNativeWalkKey.lean",
+      "audit_sha256": "30940f7721bc6ffb7edb54e432101b4292d01ce6c6d1a64b56f6e73ae0117c95",
+      "guards": 1,
+      "log": "/tmp/nearproof-NativeWalkKey-audit-checked.log"
+    }
+  ]
+}

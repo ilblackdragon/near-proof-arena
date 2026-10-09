@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact generator comparison-loop factorization and success under explicit round-key decrease. Prepared replay discharges all bucket chronology premises. Full suffix reduces to operand and parameter checks under explicit round-key decrease; numeric bounds and full certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualComparisonFactor.lean",
+      "sha256": "fb8c60cc11ba84d95e58661a28c770ab15ae48510425bc1223d0bcd4e3bcdcff",
+      "audit": "zk-formal/test/AuditProcActualComparisonFactor.lean",
+      "audit_sha256": "f603cc7a0d323fb7a9e0f45480c4171884983c4ad87b04c6eaa003a113e349f4",
+      "guards": 6
+    }
+  ]
+}

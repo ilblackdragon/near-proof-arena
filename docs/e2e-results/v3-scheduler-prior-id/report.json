@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted D0a extends SAME PriorCore block witness with repaired ID TableLocal and exact repaired71/72 balances. All native ID ranges derived from prepared acceptance; no boundary metadata premise. Public70/shared comparator/vertical traffic and whole-family soundness remain separate. Incremental audited build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorId.lean",
+      "sha256": "7313ef496d2fd3a870b882a8a7267126662e08e34b67eb0991026f47e6d3267e",
+      "audit": "zk-formal/test/AuditSchedulerPriorId.lean",
+      "audit_sha256": "25848da35af18a25d9f972e7001c6ec658b316ee54d41aa0168ac9ce209c56f3",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "lane": "process-kind",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeRows.lean",
+      "sha256": "ec569ef22c8ec08f96fb52c7985385d8013a6a19750a1303ccf596f000db7534",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-kind-ProcNativeRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKindHeight.lean",
+      "sha256": "633f4355fbcb1cb9c73be797d36a7ea4426851f2e9eb171699b9febeaa3c8676",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-kind-ProcKindHeight.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcKind.lean",
+      "sha256": "6c7ef17f1eb8cf05a15679467962bd5348971dcaf54204379b3717d5aa604889",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-kind-AuditProcKind.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native process kind constraints at log22 from actual generated rows, with tau0 and row capacity explicit. Joined instances and other process constraint families remain open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

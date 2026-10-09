@@ -1,0 +1,32 @@
+{
+  "lane": "process-model-rng",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelRng.lean",
+      "sha256": "0c65678d3fc8a519ed632cb60e758f6167e46fab066ce57dd4e1b4833319e9f0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-rng-ProcModelRng.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayRounds.lean",
+      "sha256": "2ba8613ad8c7af332ac3c2fc75caef515d76b4ad3edd0761580ed4e28c00bcb7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-rng-ProcReplayRounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcModelRng.lean",
+      "sha256": "5656f9860e4d697eca908f0283a2ab8461b00c02b14ac90f8dcbfbb410c56c9f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-rng-AuditProcModelRng.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules7guards: whole model process trace propagates actual RNG cursor, generator replay executes all shuffle checks with same final RNG. Accepted model existence/non-shuffle checks remain open.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

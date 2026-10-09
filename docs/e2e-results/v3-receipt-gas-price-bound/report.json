@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-gas-price-bound",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasPriceBound.lean",
+      "sha256": "4f0ef6a86c13a7e04acafe51b818800f6f55be5f86e3e88531f5f6e3fa64c402",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-price-bound-RcptGasPriceBound.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasPriceBound.lean",
+      "sha256": "0439f44be0271f3eab6549992203e323c43d8cbd203a3a55fdb87a1bbc569b9f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-price-bound-AuditRcptGasPriceBound.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module6guards: actual decoder/preparation gasPrice<256^16 and prepared public gas evidence; no extra gas-price bound premise.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

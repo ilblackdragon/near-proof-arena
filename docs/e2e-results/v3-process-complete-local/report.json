@@ -1,0 +1,60 @@
+{
+  "lane": "process-complete-local",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRoundBoundary.lean",
+      "sha256": "cea3f15ca081d0d2379072bd1d0b9723f55a6c60364b0e1152346d37f06a7ded",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-complete-local-ProcRoundBoundary.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEntryHeaderNative.lean",
+      "sha256": "d762657d13f93e3e40cbd586cc8ff3929cdb515a5f551e4dd540f3c51510a652",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-complete-local-ProcEntryHeaderNative.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyHeaderNative.lean",
+      "sha256": "ffeca412c0cba22120ff87d6a01f745c2a69cc977871c2b33829013a47dc0218",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-complete-local-ProcKeyHeaderNative.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPositionCases.lean",
+      "sha256": "6f6c7d4c158fe39e099fa86afa8ce24ff204ae3b84eda3b865e5c4beb3d64d7f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-complete-local-ProcPositionCases.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcData.lean",
+      "sha256": "4f7db5ccef83964469819a721c64a918eff248f204f6b073ac38e071613b413a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-complete-local-ProcData.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcComplete.lean",
+      "sha256": "32df847a019397f1dcefafbb8845c0520f7102b509a50a483b6418d99b35d7c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-complete-local-ProcComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcComplete.lean",
+      "sha256": "3756b6d6b295cecf895e9b141c3ff70de46d131e3b19ce98ac996f67f697465e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-complete-local-AuditProcComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Full actual Proc.table TableLocal at log22 for one instance with tau0, row cap and RunData replay laws. No AIR-zero premises. Successful Gen.run must still supply RunData, and multi-instance concatenation remains open; selected fixed-height coverage remains10/19.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

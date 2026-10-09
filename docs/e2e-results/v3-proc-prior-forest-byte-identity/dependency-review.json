@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "completed": [
+    "SAME NodeWf3 list node IDs<2^22 imply natural msgId tag decoding with no field wrap",
+    "SAME ValWf list actual vid=index and job ID no-wrap",
+    "Any Node/Value combined provider for a fixed NPRE/VPRE ID and position has exact natural byte from same extracted list",
+    "Actual projected live Node/Value byte traffic is included in that exact inventory; per-position byte is unique"
+  ],
+  "assumptions": [
+    "NodeWf3/ValWf and same-trace extracted traffic; all available from frozen actual family view theorems"
+  ],
+  "remaining": [
+    "Exclude non-Node/Value suppliers for matching tags using their actual bounds and local provenance",
+    "Join full SHA preimage byte provenance with same forest source identity"
+  ],
+  "not_claimed": [
+    "Hypothetical otherIds disjointness",
+    "All global BYTES suppliers already classified",
+    "Independent native forest equality"
+  ],
+  "validation": "Strict Lean builds and8 exact axiom guards"
+}

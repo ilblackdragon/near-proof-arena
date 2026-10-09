@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact physical compact UPS BYTES send inventory including padding equals SAME allocated native output-node SHA jobs after field encoding. Caller-chosen allocated instances derive compact capacity/local legality from native charges. Fresh value codec relay and sanity producer remain separate, global SHA balance unfinished. Prebuilt dependencies, not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/CompactPhysicalShaBytes.lean",
+      "sha256": "7457a5c6e3e1a17899635e09dfa1eb737c56b60beb665971db690b75ffb53a81",
+      "audit": "zk-formal/test/AuditCompactPhysicalShaBytes.lean",
+      "audit_sha256": "17e4068bb4459dfd79f515d84faa9bdf4227b9277a7dc74d1306f7729dd712b1",
+      "guards": 5
+    }
+  ]
+}

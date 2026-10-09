@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed RawFrame phase endpoints, exact empty-count and header-start tests, initial byte/position/record zeros and count accumulator. Derived from projected Local, no generated witness. Incremental strict audit using prebuilt dependencies; full framing reconstruction and authenticated native decoding remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawEndpoints.lean",
+      "sha256": "00f73db54b62c957c8ec26e8d6ea1fc1d3b53fc5095ecee3a78fdd3545e7feac",
+      "audit": "zk-formal/test/AuditProcPriorRawEndpoints.lean",
+      "audit_sha256": "6822d26bc0d13234f2cc7770639a9a5b448312dbe1dfe665815a677b0d2b3bd4",
+      "guards": 6
+    }
+  ]
+}

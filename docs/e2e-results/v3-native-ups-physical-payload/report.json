@@ -1,0 +1,39 @@
+{
+  "lane": "native-ups-physical-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsSharedTraffic.lean",
+      "sha256": "40ea3bdc1e2aef2c0a3587cb173df90aed8969d8e14fbac19804d20c660faea1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-payload-UpsSharedTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsCellPayload.lean",
+      "sha256": "a9135069460d6e4df6b9e95b34b367ab8b092b8bdb22af2740bb4d3b7fd52eec",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-payload-UpsCellPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsEdgeArity.lean",
+      "sha256": "6b019a5efe3cfe5c8b1f34de8bb75e64e921ec70ecccce208dbd0e2a20a24392",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-payload-UpsEdgeArity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsPhysicalPayload.lean",
+      "sha256": "ea995e071ab07975a7a83af328cb868f5800994bcf6040ebd5633b2ab805c6a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-physical-payload-AuditUpsPhysicalPayload.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Shared-counter adapter yields exact EDGE/BMAP ranked inventory messages and actual wCell payload columns. EDGE length6 derived from native providers. Full interaction gates/uMsgs and table traffic still open.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

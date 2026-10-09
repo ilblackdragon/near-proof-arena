@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual selected12 shared comparator Local and natural-count balance against old scheduler inventory plus actual selected19 routed40 prior traffic, SAME accepted blocks. All prior request correctness/capacity/physical69-to40 inventory derived. Remaining old40 CmpOk and old count<=3090136 explicit; full global Holds not claimed. Strict incremental prebuilt-dependency audit.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorRoutedComparator.lean",
+      "sha256": "4ab5448f168ffab87baa117378dbc28025803d059aff91d7cbbdfbed4a61e555",
+      "audit": "zk-formal/test/AuditSchedulerPriorRoutedComparator.lean",
+      "audit_sha256": "fc771fe7f943c146a45f1699a510f7832add2d40612a9817f108525fe05b9ac6",
+      "guards": 4
+    }
+  ]
+}

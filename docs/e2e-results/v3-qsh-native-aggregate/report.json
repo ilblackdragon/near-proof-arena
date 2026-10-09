@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Two queue aggregation modules; six exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Physical global balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/ShardAggregate.lean",
+      "sha256": "530a8d55bc92e378cc561ca2e751bdbe3741f8288f377b7e2364b0638477b1e6",
+      "audit": "zk-formal/test/AuditQvShardAggregate.lean",
+      "audit_sha256": "872143fcdd5801e2adae70ef196ac729d55840b2b5c83d605137a1b6ce32fb59",
+      "guards": 5,
+      "log": "/tmp/nearproof-ShardAggregate-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeShardAggregate.lean",
+      "sha256": "5d280c83f10363f33c3a480ed9745008d5c92ecf0493a8618950aa06b2959b14",
+      "audit": "zk-formal/test/AuditQvNativeShardAggregate.lean",
+      "audit_sha256": "ef1dad1783b40f4b6411ea9afb74e8f9eae8ff7498a27b7c121087dd3e562213",
+      "guards": 1,
+      "log": "/tmp/nearproof-NativeShardAggregate-audit-checked.log"
+    }
+  ]
+}

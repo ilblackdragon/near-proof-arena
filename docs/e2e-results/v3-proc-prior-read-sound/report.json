@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary memory Local query extraction: zero default or immediate preceding write with equal field address and value. Genuine HoldsP, exclusive standalone gated memory68 ownership and no public68 supply select an actual memory query for each live corrected Codec priorRead; exact query-message cell equality is checked. No generated trace or native_queries premise. Not full last-write semantics: vertical stage extraction, authenticated RawFrame/ID/record writes, bounded operands and comparator69 order remain required. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemorySound.lean",
+      "sha256": "4073d20291c0fe9a056d7ec9ec5ff0f4c2f8e6cbdccd8db2fad39dc47998935a",
+      "audit": "zk-formal/test/AuditProcPriorMemorySound.lean",
+      "audit_sha256": "716defdd65377145f68b5d69626b34c32656dccfffec3cf0f76fd6d8384988f6",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorReadSound.lean",
+      "sha256": "daea12a388e0c212beaf73bf6665082544ffcc185065a6f0290208cc52a97407",
+      "audit": "zk-formal/test/AuditProcPriorReadSound.lean",
+      "audit_sha256": "5ecc70855e246055a3b402d043d4ffe2ded7e5ec85fa037ca1e25bd26ed5e268",
+      "guards": 4
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-read-sound/dependency-review.json",
+      "sha256": "7e46b6a568171a5ec450ad1f645b8234a5888a85aa6a010cb01a5f082ef4155b"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Successful scheduler read derives executable native lookup steps including proven absence. Allocated native block uses SAME value ID at lookup terminal and actual forest record, with no supplied steps. Physical lookup/value table joins and full arbitrary-AIR soundness remain separate. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerAllocatedLookup.lean",
+      "sha256": "77e02a2856850bdb4f582612c0b58ab460a6d8d7472daa8c0f17984e6fe62445",
+      "audit": "zk-formal/test/AuditSchedulerAllocatedLookup.lean",
+      "audit_sha256": "ee752519fd945e3f4712e3c06b7ab3408a4a12a0ff2042598fdb90fb0d46afc3",
+      "guards": 2
+    }
+  ]
+}

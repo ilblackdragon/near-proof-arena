@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual family HoldsP and no public67 supply match every physical write67 receiver to selected Record stage3 write with stage/writeGate1 and exact projected message. Sender exclusivity, horizontal offset and local stage validity derived from actual family. Record data authentication via RawFrame and ID results, operand ranges and stamp-max semantics remain open. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecFamilyWrite.lean",
+      "sha256": "3209cfd45e94a3b5c2c8aa9a5672ed12c8036df5413d5fa7305fc725f6583680",
+      "audit": "zk-formal/test/AuditProcPriorCodecFamilyWrite.lean",
+      "audit_sha256": "38f4f95450875c6fbae4485db6050fa53a0988fa447f37fc3aae873860710e34",
+      "guards": 8
+    }
+  ]
+}

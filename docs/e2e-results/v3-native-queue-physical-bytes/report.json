@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact actual log22 physical queue byte send counts equal native forest provider byte inventory on SAME accepted MainValues. Validity/capacity derived. Inventory split into original and implicit-state providers with actual global offsets. Full remaining-byte partition and global allocation join remain. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueuePhysicalBytes.lean",
+      "sha256": "84bd608bb506932c8d8a5ccd62cd82ada9cfe451f9a1041d2637168ca8838e8c",
+      "audit": "zk-formal/test/AuditNativeQueuePhysicalBytes.lean",
+      "audit_sha256": "7a76f07ba70e6a32d30d9367a78d1aab6f54e73a4ce15677bbe2ca6a933b0b18",
+      "guards": 4
+    }
+  ]
+}

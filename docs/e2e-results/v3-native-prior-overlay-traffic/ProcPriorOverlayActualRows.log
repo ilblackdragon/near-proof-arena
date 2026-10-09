@@ -1,0 +1,7 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayActualRows.lean:19:41: warning: This simp argument is unused:
+  hz
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [rowEnv, ProcPriorCells.env]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

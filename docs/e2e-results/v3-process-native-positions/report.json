@@ -1,0 +1,39 @@
+{
+  "lane": "process-native-positions",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEntryPosition.lean",
+      "sha256": "4aedd4371c627e8903f98083c46636c45767c805f150cd773a5aca4a5e6ad2dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-positions-ProcEntryPosition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEntryNative.lean",
+      "sha256": "c23af042777c235e8d10025d3fb68620f03e6a61587281ffe4e1952fbeb33afa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-positions-ProcEntryNative.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcHeaderNative.lean",
+      "sha256": "68aa9b8b05f88ec59c74c155e7402fba8148e6780649734fb2be61b8d18568a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-positions-ProcHeaderNative.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPosition.lean",
+      "sha256": "a070b9bee0d59bdc9b4fddcb3dffed6039a84faf390bac09dfe40553dea54950",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-positions-AuditProcPosition.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual generated header/entry positions and modulo-clock successors establish native cHdr/cEnt without adjacent-cell premises. Ordinary replay decisions/bounds/indices and round facts still explicit; Gen.run invariants and whole-trace composition remain open.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

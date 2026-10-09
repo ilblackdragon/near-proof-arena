@@ -1,0 +1,13 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayPadding.lean:50:66: warning: This simp argument is unused:
+  hmz
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [ProcPriorMemoryGated.table, ProcPriorMemoryGated.interactions, ProcPriorMemoryTable.table,
+    ProcPriorMemoryTable.interactions, ProcPriorMemoryTable.adjacent, ProcPriorMemoryTable.notE, ProcPriorIdTable.table,
+    ProcPriorIdTable.interactions, ProcPriorIdTable.adjacent, ProcPriorIdTable.notE, ProcPriorRawFrame.table,
+    ProcPriorRawFrame.interactions, ProcPriorRecordLinear.table, ProcPriorRecordLinear.interactions,
+    ProcPriorRecordTable.table, ProcPriorRecordTable.interactions, ProcPriorRecordTable.words,
+    ProcPriorRecordTable.queryGate, ProcPriorRecordTable.header, sub, c, n, k, Expr.evalWith, env, hzm, ha, haz, hnz,
+    List.replicate]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

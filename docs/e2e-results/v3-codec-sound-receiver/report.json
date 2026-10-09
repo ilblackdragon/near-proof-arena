@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "guard_count": 10,
+  "source_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundReceiver.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundReceiverSdl.lean",
+    "zk-formal/test/AuditProcPriorCodecSoundReceiver.lean"
+  ],
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundReceiver.lean": "573f796750df4d6e293acc7bc44d247b5e1740cef75dd0f440e7d13cec92fc38",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundReceiverSdl.lean": "ed83a1711c9d4176821db250ddd4368c782e86ccb0115234ec7c91736419494e",
+    "zk-formal/test/AuditProcPriorCodecSoundReceiver.lean": "dfb603ba98aed087c796ebf4ff9f6e5f2c0b8128f5fff252409fa47364153993"
+  },
+  "logs": [
+    "/tmp/ProcPriorCodecSoundReceiver.log",
+    "/tmp/ProcPriorCodecSoundReceiverSdl.log",
+    "/tmp/AuditProcPriorCodecSoundReceiver.log"
+  ],
+  "prerequisite": "ProcPriorCodecSoundSdlIds and its checked closure",
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "scope": "Corrected retained constraints derive receiver geometry from rs=1; genuine public SDL ownership authenticates eight receiver ID bytes. No global ownership construction or complete prior lookup extraction claimed.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundReceiver.lean",
+      "sha256": "573f796750df4d6e293acc7bc44d247b5e1740cef75dd0f440e7d13cec92fc38"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundReceiverSdl.lean",
+      "sha256": "ed83a1711c9d4176821db250ddd4368c782e86ccb0115234ec7c91736419494e"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecSoundReceiver.lean",
+      "sha256": "dfb603ba98aed087c796ebf4ff9f6e5f2c0b8128f5fff252409fa47364153993"
+    }
+  ],
+  "dependency_scope": "Strict audited modules using prebuilt dependencies; separate source-only closure evidence has its own scope."
+}

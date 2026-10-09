@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete chain metadata lookup by entity ID is exact under unique IDs. Chain predecessor canonicality follows actual IDs; node/value patches preserve full NodeOk/ValWf and actual count-extended TableLocal. Class partition, digest order and whole ENT/DUP traffic integration remain open. Strict source checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ChainMetadata.lean",
+      "sha256": "965ef1bdc7f83728720c3fbafe13087748e0616612870b993cc3aeb2cf046c6b",
+      "audit": "zk-formal/test/AuditChainMetadata.lean",
+      "audit_sha256": "14cabb671172eccda4a6ddcc962282b544dff5db5d8f95950aa9f63b919da38d",
+      "guards": 12
+    }
+  ]
+}

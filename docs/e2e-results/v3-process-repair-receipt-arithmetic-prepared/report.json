@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Prepared actual receipt arithmetic: extracts SAME accounts and actual receipt ListChain, derives exact ordered MEM Context, account Bytes8 from SAME authenticated Value inventory, and public gas-price Bytes8 from prepared public bytes. No caller-supplied receipt/account lists, memory order, or initial/public byte bounds. Strict prebuilt dependency build.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptArithmeticPrepared.lean",
+      "sha256": "03ffced900d4546d19a1705cb735586b7fd29cae2c527f6099645c8fcd2b93ea",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptArithmeticPrepared.lean",
+      "audit_sha256": "1c1fc3720a0c9676ad801c61cdd30e9aae5c678c4d9742327e816570602558b7",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-receipt-arithmetic-prepared/dependency-review.json",
+      "sha256": "19a88d5ed3aba0b04b9d70a2f71282eb0a177c4b9f9b1b99e7b05819e8e37efa"
+    }
+  ]
+}

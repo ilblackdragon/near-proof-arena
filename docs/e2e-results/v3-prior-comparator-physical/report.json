@@ -1,0 +1,112 @@
+{
+  "status": "PASS",
+  "guards": 21,
+  "strict": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonRows.lean",
+      "sha256": "c32d7167618ab54a7eee890d464cad5ab2c98534f8ee99388daca58d833bae16"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparisonEnumeration.lean",
+      "sha256": "a5d966014ddc6537d214b2930dab0044db18204b7f0e4e831afcf4c7d2c3f7c3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonInventory.lean",
+      "sha256": "8b530c55c855e24a9c1fd3bc5556c26a72123a5cd2c9d14a3d093c2bfa604784"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean",
+      "sha256": "64bfba5f68fd3561779e23953d342dbc4a488587847219de5ea9b73c46b07b44"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonRows.lean",
+      "sha256": "aee787152967db55284da0f805b3192d79bb52580a0d38e4bacb261001a8af3c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonInventory.lean",
+      "sha256": "6c48073a258bd1d89a2977f9d36277c5c00a9b2c76a4b820f88a664a30b6dd1a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorComparator.lean",
+      "sha256": "105a4cd0650141c3f1a1e3e5b77e35dc7a8b6d9e75176b9a2640fe56768ffa2d"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPriorComparator.lean",
+      "sha256": "60294102c5fecf5f66987da1aa7311c5b01723159da677c6e01f57a8dd154cce"
+    }
+  ],
+  "prerequisites": [
+    "ProcPriorMemoryComparisonTraffic",
+    "ProcPriorOverlayTrafficEval",
+    "ProcPriorIdComparisonValid"
+  ],
+  "scope": "Complete physical memory/ID comparator send enumeration including original/gated memory and repaired tagged-ID traces, padding/wrap and cross-block metadata. Shared existing comparator Local and receive balance now uses SAME accepted PriorCore with all prior CmpOk and capacity derived. Independent old40 inventory CmpOk and length\u22643090136 remain explicit pending receipt lane. Routed overlay physical composition is parent-owned.",
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonRows.lean",
+      "sha256": "c32d7167618ab54a7eee890d464cad5ab2c98534f8ee99388daca58d833bae16"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparisonEnumeration.lean",
+      "sha256": "a5d966014ddc6537d214b2930dab0044db18204b7f0e4e831afcf4c7d2c3f7c3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonInventory.lean",
+      "sha256": "8b530c55c855e24a9c1fd3bc5556c26a72123a5cd2c9d14a3d093c2bfa604784"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonTraffic.lean",
+      "sha256": "64bfba5f68fd3561779e23953d342dbc4a488587847219de5ea9b73c46b07b44"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonRows.lean",
+      "sha256": "aee787152967db55284da0f805b3192d79bb52580a0d38e4bacb261001a8af3c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonInventory.lean",
+      "sha256": "6c48073a258bd1d89a2977f9d36277c5c00a9b2c76a4b820f88a664a30b6dd1a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorComparator.lean",
+      "sha256": "105a4cd0650141c3f1a1e3e5b77e35dc7a8b6d9e75176b9a2640fe56768ffa2d"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPriorComparator.lean",
+      "sha256": "60294102c5fecf5f66987da1aa7311c5b01723159da677c6e01f57a8dd154cce"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/AuditSchedulerPriorComparator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/ProcPriorComparisonEnumeration.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/ProcPriorIdComparisonInventory.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/ProcPriorIdComparisonRows.log",
+      "sha256": "4fd940e40cf1f0882078bb92350d406279300ab0a4a320b4d74a2ddb231a0397"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/ProcPriorIdComparisonTraffic.log",
+      "sha256": "ecb761945098c05bf926598e6714fdd568d6cea1e4c07d9b92d7fd4c937301d6"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/ProcPriorMemoryComparisonInventory.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/ProcPriorMemoryComparisonRows.log",
+      "sha256": "2998384cf86ac7673b1a4133dbaebf196b0a14b286fa81f668eda1364cc0e7e7"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparator-physical/SchedulerPriorComparator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

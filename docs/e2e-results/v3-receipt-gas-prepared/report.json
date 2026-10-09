@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-gas-prepared",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasPrepared.lean",
+      "sha256": "7e2073a2b33297787ec823f5a71f0f561a1e1e3a470defcd9ae4142d0177511e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-prepared-RcptGasPrepared.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasPrepared.lean",
+      "sha256": "525bac11c704850ea1f22d321fdea5187a05455fec5a6168149ca119b0ac2f6d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-prepared-AuditRcptGasPrepared.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module6 exact guards: actual prepD0/native execution supplies GasPublicBytes for the prepared public bytes, including exact header/context gas-price binding. Separate decoder u128 bound and gas repair integration remain open.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

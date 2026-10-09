@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "guards": 4,
+  "logs": [
+    "/tmp/ProcCodecPublicIdTraffic.log",
+    "/tmp/ProcCodecPublicIdCells.log",
+    "/tmp/ProcCodecPublicIdRecord.log",
+    "/tmp/AuditProcCodecPublicIdRecord.log"
+  ],
+  "scope": "Actual record bus70 traffic; full physical enumeration and packed Nat limb correspondence pending",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPublicIdTraffic.lean",
+      "sha256": "18e3ffa2373bce17107670b085feec33ddfeca7730212721cd2075e071037f0f"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPublicIdCells.lean",
+      "sha256": "357e0cafde85b1904ff7350165ef6b90dd1e52be4ee23ad276f997cfcd68513d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPublicIdRecord.lean",
+      "sha256": "faa676e1330e8e943f009a766dda07382713c60f2f6e87744784ee4779bcd66b"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecPublicIdRecord.lean",
+      "sha256": "6ae9dd1d17bb263de3a7f2804d02352871abaa38b0dde80684263157e3beddf2"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}

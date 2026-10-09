@@ -1,0 +1,39 @@
+{
+  "lane": "native-repaired-queue-allocation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeRepairedQueueLocal.lean",
+      "sha256": "c2348b86be0c6a6cd4aeaa15b14dbcce8e065f8da245dac9fb5fa42eacc3c3bb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-repaired-queue-allocation-NativeRepairedQueueLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptRepairedQueueBytes.lean",
+      "sha256": "ea8d87c37accce2c4ca4ab9217d89c0d223e9b61b4c09cd88e48d54abd4d9589",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-repaired-queue-allocation-NativeReceiptRepairedQueueBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeRepairedQueueAllocation.lean",
+      "sha256": "279e8ae6a0a75621e6d399543286c8c488d4aa175644fa39eb2197c69175e904",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-repaired-queue-allocation-NativeRepairedQueueAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRepairedQueueAllocation.lean",
+      "sha256": "30bcd369728b18c9ee3e3e5e82a53bb998a6088f73c1a143042368833e2906f5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-repaired-queue-allocation-AuditNativeRepairedQueueAllocation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules3guards. Strongest NativeRepairedQueueAllocation preserves all earlier facts, replaces QV counts with repaired interactions and adds actual repaired QV Local and QVC balance. Header/count/fit derived; no added accepted hypotheses. Global KEYNIB integration next.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

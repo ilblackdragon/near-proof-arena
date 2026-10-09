@@ -1,0 +1,52 @@
+{
+  "lane": "receipt-header-streams",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptTerminalRows.lean",
+      "sha256": "8b66e1b56ad17121ca348663ad846328958393624553fd78b1acc1a004bde4b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-header-streams-RcptTerminalRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptHeaderStreams.lean",
+      "sha256": "8df5e8c6febfc1bf58af2d6dccccf82c0ace3c72573527be148328bb4e64eba8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-header-streams-RcptHeaderStreams.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptHeaderRegLocal.lean",
+      "sha256": "9440ec4fd40ab3373b86211deaefe8806059c563069519d4635c8908bfb9f26d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-header-streams-RcptHeaderRegLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptTerminalRows.lean",
+      "sha256": "3a05271c948635fa68ac31e5801e86f505a261a826bdfdc0385ef7ad9c0b4c2c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-header-streams-AuditRcptTerminalRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptHeaderStreams.lean",
+      "sha256": "d2749246997bf87194b14fa8969d29bed3200c8d4bd443b955b345a6a5f8de9d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-header-streams-AuditRcptHeaderStreams.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptHeaderRegLocal.lean",
+      "sha256": "ba95395544ebe798e0e07dc70a1d2bddf04c8d50648d004b4a9ea995173bc8ab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-header-streams-AuditRcptHeaderRegLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 13,
+  "scope": "Independent strict recompilation with both implicit-variable flags disabled and exact standard-axiom audits. Dependencies include prebuilt artifacts; not whole clean certificate, prover or judge validation."
+}

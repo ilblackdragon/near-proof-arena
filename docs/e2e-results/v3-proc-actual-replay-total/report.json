@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual conversion-read and full round replay succeed from prepared processing. Exact suffix factorization reduces remaining work to finish; final state and RNG equality guards are discharged. Push log, memory order, comparator and complete certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualFinalStateGuards.lean",
+      "sha256": "9c9f58f7a395fbf28fcb03c96bfd1cc32506ad97d08e0002171dcf51569e376f",
+      "audit": "zk-formal/test/AuditProcActualFinalStateGuards.lean",
+      "audit_sha256": "95add0d1c0b0fed8f775fb04c0383784ba42168c7014d16a18c036a8866897b1",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayFactor.lean",
+      "sha256": "a500b84d6feb92018f26c728ba74dceb818492ac3a4ebae747b1d681fa1aa3d1",
+      "audit": "zk-formal/test/AuditProcActualReplayFactor.lean",
+      "audit_sha256": "04779f8a4ad2e1817705470d9b8d20df9a935fe61f8adfe57ac4bcc737f8d51d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayTotal.lean",
+      "sha256": "94741ad741525f248592d9e354db0cdf2b2ab3b988b996828a13804a1535ea01",
+      "audit": "zk-formal/test/AuditProcActualReplayTotal.lean",
+      "audit_sha256": "06c7c18a63627b65693c8d0f73548d4ed15eaec15e57138b5319eff4db02c815",
+      "guards": 4
+    }
+  ]
+}

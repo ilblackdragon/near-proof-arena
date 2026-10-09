@@ -1,0 +1,43 @@
+{
+  "lane": "receipt-skeleton",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSkeleton.lean",
+      "sha256": "e817cee06233755f7857b59927de563a55e1c8580214289be9dc438a715a279f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-skeleton-RcptSkeleton.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSkeletonFields.lean",
+      "sha256": "ff7437d14e3b6ea55225369c3dbfccfdefc931793e3a6e5f7277495d1b806b17",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-skeleton-RcptSkeletonFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSkeletonControl.lean",
+      "sha256": "6d60c3cbdadfba119ed631730df91d371af63dba5e529178c7e3516c6aa4fd20",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-skeleton-RcptSkeletonControl.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSkeletonContinuation.lean",
+      "sha256": "496582903797def54e1fa4a39d5224c3c207f22748eefe85d86fda1aa2c8b100",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-skeleton-RcptSkeletonContinuation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSkeleton.lean",
+      "sha256": "46dc130f359cdc7ba4c6464bb6924a4d70434ff64ff125d412f6bbdafb49817e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-skeleton-AuditRcptSkeleton.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Four native receipt skeleton/field/control/continuation modules, 16 exact guards independently checked against AIR artifacts. Native row bounds and continuation subset of cStates; full receipt TableLocal remains open."
+}

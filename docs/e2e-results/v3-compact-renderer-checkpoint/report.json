@@ -1,0 +1,45 @@
+{
+  "lane": "compact-renderer",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactTraversal.lean",
+      "sha256": "85949dffa7ebab3a1566ce993d2ebb575e4457542f121bc3f69523965df1ef3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-renderer-CompactTraversal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactCells.lean",
+      "sha256": "94e30390d69e9fa9bab517789d8278ec1c8f4ff8de3b926ca98fd3371fd43aa7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-renderer-CompactCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactFrame.lean",
+      "sha256": "b3a38e601986da7e5131888c8e415c15733b316725d1945eb93d7e43beb30095",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-renderer-CompactFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactCurrentGroups.lean",
+      "sha256": "fbbe2363b32467bb5ebdf8f29ae59abb6d56ed3cb59ae5d237c00acbf3da2594",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-renderer-CompactCurrentGroups.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactRenderer.lean",
+      "sha256": "924644799b791139c8f84cbebaf64da2e7476851ee609f36a4e1ee4655d46aba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-renderer-AuditCompactRenderer.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict recompilation of four isolated compact renderer modules; boolean and planning groups only. Other constraints, completeness and extraction remain open.",
+  "exact_axiom_guards": 14
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Executable stacked and fused witness construction yields Holds for the exact admitted family from explicit native component legality, common fused clock and joint balance. Static bounds derived from inventory; actual witness clocks satisfy protocol header admission. Native premises remain to instantiate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalPack.lean",
+      "sha256": "14c41d31bc4d40e4c4d15fbe87bab5033710cc361289f796851d700a6f410e78",
+      "audit": "zk-formal/test/AuditHorizontalPack.lean",
+      "audit_sha256": "9cc6268c32434d52fbe23f6113aa21f3200253a3d0cf04a234f83e6bfd346cff",
+      "guards": 10
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalHeader.lean",
+      "sha256": "473c73a5b3e14dc29f2d0ccb76b53c8a4113f3cd0b76049fea516aaff2dc15b4",
+      "audit": "zk-formal/test/AuditHorizontalHeader.lean",
+      "audit_sha256": "d9de16f76d30a3ddfcbc345bd27160a2a54c4c83084f2dbcf6f8b68952fd7e7c",
+      "guards": 2
+    }
+  ]
+}

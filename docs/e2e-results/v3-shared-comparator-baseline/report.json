@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "guards": 13,
+  "strict": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparisonRequests.lean",
+      "sha256": "65bd2cd062a062a8cb3f02d94725d603b61f7f89ca29cd88b6ab91a63a498cab"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparisonBudget.lean",
+      "sha256": "5608ef97aa7b7eb86f2944548678aa4895158fc9d1832ed05c2503ac6cd77661"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSharedComparator.lean",
+      "sha256": "f912010dd6730e88a48563c509f657b08d338935d2e3806e4b3c4d8fe3531754"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonTraffic.lean",
+      "sha256": "fc95c060612be4b9baef3d387a8e5ebed39fc8a50cc526760150cc70988bc817"
+    },
+    {
+      "path": "zk-formal/test/AuditProcSharedComparator.lean",
+      "sha256": "4e77bd2bdc7269b3992e803c8e230ee9c8144ad50a02fc874a1eac3a9ce5fa83"
+    }
+  ],
+  "scope": "Executable prior comparison inventory; native prior row budget1104168; shared fixed-log22 comparator provider with exact receive sum and no sends; memory pair-env exact request traffic. CmpOk and old40 budget3090136 remain explicit. Full memory/ID physical inventory and native order/operand proofs pending. No family change or global balance claim.",
+  "prerequisites": [
+    "ProcIdNativeLocal",
+    "ProcPriorOverlayBudget",
+    "CmpHeight",
+    "ProcPriorVertical4Traffic"
+  ],
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparisonRequests.lean",
+      "sha256": "65bd2cd062a062a8cb3f02d94725d603b61f7f89ca29cd88b6ab91a63a498cab"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparisonBudget.lean",
+      "sha256": "5608ef97aa7b7eb86f2944548678aa4895158fc9d1832ed05c2503ac6cd77661"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcSharedComparator.lean",
+      "sha256": "f912010dd6730e88a48563c509f657b08d338935d2e3806e4b3c4d8fe3531754"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonTraffic.lean",
+      "sha256": "fc95c060612be4b9baef3d387a8e5ebed39fc8a50cc526760150cc70988bc817"
+    },
+    {
+      "path": "zk-formal/test/AuditProcSharedComparator.lean",
+      "sha256": "4e77bd2bdc7269b3992e803c8e230ee9c8144ad50a02fc874a1eac3a9ce5fa83"
+    },
+    {
+      "path": "docs/e2e-results/v3-shared-comparator-baseline/AuditProcSharedComparator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-shared-comparator-baseline/ProcPriorComparisonBudget.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-shared-comparator-baseline/ProcPriorComparisonRequests.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-shared-comparator-baseline/ProcPriorMemoryComparisonTraffic.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-shared-comparator-baseline/ProcSharedComparator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

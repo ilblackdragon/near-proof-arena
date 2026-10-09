@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-candidate-sound-basics",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBounds.lean",
+      "sha256": "b570baca7a5f382fa840e048d3331346d17f69f53a0c080845e2e19888c228fa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-RcptCandidateBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasSound.lean",
+      "sha256": "7c9b3a6718f98faf2347a9327e4332aa726ad6956cac96b7f6533a8ab25e4b8f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-RcptCandidateGasSound.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRegs.lean",
+      "sha256": "7f9fe875ce867da0e57f871c9e5b1f9f79ad5660d5c7cdb6bd92f358a16c7917",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-RcptCandidateRegs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasCompare.lean",
+      "sha256": "f390233954139fb972ba0cfd05f76f6ac04f56a76da0233b01e1245ab7da1a9d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-RcptCandidateGasCompare.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBounds.lean",
+      "sha256": "d635407e487d448d2cca361710b0e6f3b31eebdc6de120f5aafc55c27456aaac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-AuditRcptCandidateBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasSound.lean",
+      "sha256": "453d5f20a2363c08bc97e0404623bd126814d4d03cf79ee7ae05efb56564be7b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-AuditRcptCandidateGasSound.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRegs.lean",
+      "sha256": "9720e0d97ead43c4e44401be34f370c940a9134ad8c34c7917e86d8168214036",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-AuditRcptCandidateRegs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasCompare.lean",
+      "sha256": "452178ca3db708bd266449b3d5c999983cb33106f5dfa436f2b47736da191ed0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-basics-AuditRcptCandidateGasCompare.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Candidate age, registers, masked system gas and actual borrow comparison. Explicit authenticated version bound remains.",
+  "exact_axiom_guards": 26,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

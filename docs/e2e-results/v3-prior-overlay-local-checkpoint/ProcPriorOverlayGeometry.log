@@ -1,0 +1,207 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:25:26: warning: This simp argument is unused:
+  show ¬(1 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(2 : Nat) = 0 by decide, show ¬(2 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:25:52: warning: This simp argument is unused:
+  show ¬(2 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:26:6: warning: This simp argument is unused:
+  show ¬(2 : Nat) = 1 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:26:32: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:26:58: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 1 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:27:6: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 2 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:27:32: warning: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 2 by decide, ite_true, Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:37:54: warning: This simp argument is unused:
+  show ¬(2 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:38:8: warning: This simp argument is unused:
+  show ¬(2 : Nat) = 1 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:38:34: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:38:60: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 1 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:39:8: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 2 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:39:53: warning: This simp argument is unused:
+  Nat.sub_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 2 by decide, ite_false, ite_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:50:30: warning: This simp argument is unused:
+  show ¬(1 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(2 : Nat) = 0 by decide, show ¬(2 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:51:36: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:51:62: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 1 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:52:10: warning: This simp argument is unused:
+  show ¬(3 : Nat) = 2 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:52:55: warning: This simp argument is unused:
+  Nat.sub_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 2 by decide, ite_false, ite_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:62:30: warning: This simp argument is unused:
+  show ¬(1 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(2 : Nat) = 0 by decide, show ¬(2 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:62:56: warning: This simp argument is unused:
+  show ¬(2 : Nat) = 0 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:63:10: warning: This simp argument is unused:
+  show ¬(2 : Nat) = 1 by decide
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide, show ¬(3 : Nat) = 2 by decide, ite_false, ite_true,
+    Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:64:46: warning: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 2 by decide, ite_false, Nat.sub_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayGeometry.lean:64:55: warning: This simp argument is unused:
+  Nat.sub_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [start, stop, show ¬(1 : Nat) = 0 by decide, show ¬(2 : Nat) = 0 by decide,
+    show ¬(2 : Nat) = 1 by decide, show ¬(3 : Nat) = 0 by decide, show ¬(3 : Nat) = 1 by decide,
+    show ¬(3 : Nat) = 2 by decide, ite_false, ite_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

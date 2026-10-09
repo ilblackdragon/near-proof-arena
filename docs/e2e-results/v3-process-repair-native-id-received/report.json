@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Every actual live bus71 receiver matches SAME decoded original sender/receiver exact full payload including tau, original query ordinal and canonical 24/24/16 limbs. No supplied sender identity or key/native association. Exact lookup first-match semantics remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordIdSource.lean",
+      "sha256": "dbeb9919b09354e4020aa556f4f14bed900402d1aaa76640cf387cb6639456bb",
+      "audit": "zk-formal/test/AuditProcessRepairRecordIdSource.lean",
+      "audit_sha256": "a2c6a2e0de1a3ed07ec6f23f7f827a83bbcc69626d3ee59595988fb8d87a6979",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordQueryMessage.lean",
+      "sha256": "957a948f2f509bfd77678cdc630e854aa4e66c145eaff5ab117d08a06906f8d1",
+      "audit": "zk-formal/test/AuditProcPriorRecordQueryMessage.lean",
+      "audit_sha256": "6a26343f961c2d80b6645bfb0bc5badd9f70490749a39cc173c449949a645f26",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeIdReceived.lean",
+      "sha256": "ede8db92e05a86252f75e526cc0648e1e83967621ab9bb12758e1afb75c5794c",
+      "audit": "zk-formal/test/AuditProcessRepairNativeIdReceived.lean",
+      "audit_sha256": "ccf802766915f74d7c2476f57a03b2d6ab302b8be9bdd9f389469887d61e4141",
+      "guards": 1
+    }
+  ]
+}

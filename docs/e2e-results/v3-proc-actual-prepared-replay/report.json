@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Full actual outer round replay follows model processing with state, clock and RNG alignment preserved. Prepared processing discharges per-round guards; initial accumulator alignment is discharged for arbitrary conversion-read memory logs. Post-loop checks and full certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundTransition.lean",
+      "sha256": "5b96f2dc35c6d4755d570f27f701e070c0eaeafbbf36fd01a69dd9ec62c61781",
+      "audit": "zk-formal/test/AuditProcActualRoundTransition.lean",
+      "audit_sha256": "62399741a0e28d7aebbac5ed077af3d9f95d52442fa3025450ea7a77ddbb3dca",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPreparedReplay.lean",
+      "sha256": "e7ddb763bfd5e7a31c2d0bf50a2a23499240b5c3c520c252fde1063ddfdb495c",
+      "audit": "zk-formal/test/AuditProcActualPreparedReplay.lean",
+      "audit_sha256": "1436a20c1fb3f44c08701837c81256acd8576487b9a0ac9a2755e3986a30fc3e",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayInitial.lean",
+      "sha256": "341ed5ac5de6c34fe2e74df7fe8a04ca745518d133ae56c08353e448149d086e",
+      "audit": "zk-formal/test/AuditProcActualReplayInitial.lean",
+      "audit_sha256": "2934d305db8f179d1c0d9cb6a22472e3a8a441694880d278418ee33396f256bc",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-outcome-prepared",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptOutcomePrepared.lean",
+      "sha256": "6a05a759307cca82a39983e32ebc539656e01404e1808a7c2b3b74afe5f3f47d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-outcome-prepared-RcptOutcomePrepared.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptOutcomePrepared.lean",
+      "sha256": "88b22891ef134e9090edc7aa4a361b487b7098ffe306b480c738998371eae302",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-outcome-prepared-AuditRcptOutcomePrepared.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module6guards. Actual normalized prepared PH_OUT commits same native outcome root, derived from preparation and accepted checker/native uniqueness.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

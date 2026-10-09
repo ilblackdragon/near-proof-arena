@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-memory-providers",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateMemoryProviders.lean",
+      "sha256": "82f0ebfbcd5f81ad7293d54aae2f426aea38e5cc15b8f22447609905baf65e5e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-memory-providers-RcptCandidateMemoryProviders.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateMemoryProviders.lean",
+      "sha256": "4fa7365e4cfc91025c3a021d487efbf7b892fb9f38ac9964e9aec2044cd11893",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-memory-providers-AuditRcptCandidateMemoryProviders.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4 guards. Actual receipt sends have version<=2^22 without Wf; accounts version0. Only actual provider-count domination plus public ranges needed for full receipt soundness.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

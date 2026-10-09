@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Same accepted D0a native blocklist constructs complete Codec and RawFrame TableLocal. Exact native prestate occurrence equality charges repeats; rawrows<=B+1184 and B<=2000000 discharge capacity. Supplied value IDs and global/semantic ownership remain separate. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRawAccepted.lean",
+      "sha256": "e96521395cb1d70be42e33b0facdf7ade01ea2c1e62f4f5eff37c225c908f8cd",
+      "audit": "zk-formal/test/AuditSchedulerCodecRawAccepted.lean",
+      "audit_sha256": "93cfad51dff38dc3165bb2bfce6133def6dcfc59041f1706a1c11251321e2c36",
+      "guards": 2
+    }
+  ]
+}

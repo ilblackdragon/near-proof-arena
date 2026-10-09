@@ -1,0 +1,73 @@
+{
+  "lane": "receipt-routing",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/DecodedRoutingBoundaries.lean",
+      "sha256": "a19cce89fe0211ab6fcf943c0cad91fc64e5934d3fde29a575cc6f7b92b39bfb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-DecodedRoutingBoundaries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Link/BoundaryValidity.lean",
+      "sha256": "cf15ea99871a91033bb1f9fbdfe051340c66814012fb6fbdbdea8702cf0e8136",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-BoundaryValidity.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PreparedRoutingIntervals.lean",
+      "sha256": "c8f59e5399e1d9240e4e14db20da37e21012617e9957d99b12c7d610c58d9566",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-PreparedRoutingIntervals.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Link/BndDecode.lean",
+      "sha256": "7d15a9382b88ebf1f0095539c14efa398e51ed896c1a1e7ec7d6a0021e390f3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-BndDecode.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Link/BndAuthenticated.lean",
+      "sha256": "2dec4f70e1b52650d7998a9c2f0e5b6e3094cf8df176e80021f2fb3d9d208983",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-BndAuthenticated.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Link/PreparedNativeRouting.lean",
+      "sha256": "df44e55b06542c4c15ec7642118c4c1ef7bff6722a9ff1fcd06faae290eaa44f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-PreparedNativeRouting.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptBndAuthenticated.lean",
+      "sha256": "591d79a42522c75caee8717bbfb2d6016dfc4cc18264f53fe47baa3c43c6471e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-AuditRcptBndAuthenticated.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPreparedRouting.lean",
+      "sha256": "9dcd53103a8df53794377671565b7652ac19f9b7f6bf7a5c8240b27d435a5d3c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-AuditRcptPreparedRouting.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPreparedNativeRouting.lean",
+      "sha256": "d99472293645f61183e3b1bac259392d33fc71a175a5d915524d2a6d1fee942e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-AuditRcptPreparedNativeRouting.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict recompilation of six receipt native-routing modules and eleven exact guards; global BND balances are explicit premises, candidate not admitted.",
+  "exact_axiom_guards": 11
+}

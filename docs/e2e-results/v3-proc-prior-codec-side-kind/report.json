@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All38 retained cKind Boolean-group equations on actual header/hash/ash helper rows, including post-byte bits and seven record-gated Boolean constraints. Original eight retired pre-bit constraints excluded by exact filter equality. No position,byte bound,or adjacency assumptions. Remaining phase, inverse,header reconstruction and adjacency cKind equations separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSideKind.lean",
+      "sha256": "9e9734995e53a84bf7806245cfdcb5d0a27fda196255f6dff610dc99e2007fc6",
+      "audit": "zk-formal/test/AuditProcPriorCodecSideKind.lean",
+      "audit_sha256": "9547d67e1d7d99ac8719731d9c242d4959d6b5ad8258d41536292320c37bf988",
+      "guards": 16
+    }
+  ]
+}

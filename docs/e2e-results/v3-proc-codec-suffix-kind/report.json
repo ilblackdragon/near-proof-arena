@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire retained cKind on physical suffix rows of successful native Codec output, from5+24*n*n through all2^22 rows incl padding. Actual generated hash/ash current+next cells, zero first selector and final active-to-padding handoff derived. Premises n\u226464,tau<P and successful codecRows; no local legality premise. Prefix header/record kind constraints remain outside scope. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecSuffixKind.lean",
+      "sha256": "18beb7e998cd69f41c2c2887f0bed0b391de666d39fe685597ce4b20fc2cc77a",
+      "audit": "zk-formal/test/AuditProcCodecSuffixKind.lean",
+      "audit_sha256": "05df1cd78119ce99e944341b111a0cbb62226efc3e045e167bc2bef58c029d89",
+      "guards": 4
+    }
+  ]
+}

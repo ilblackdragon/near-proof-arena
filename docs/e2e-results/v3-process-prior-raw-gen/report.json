@@ -1,0 +1,46 @@
+{
+  "lane": "process-prior-raw-gen",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawGen.lean",
+      "sha256": "029f011317376039848469c5808eec66121ca681190dd81865bdf2e871bb2fd7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-gen-ProcPriorRawGen.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawBoolean.lean",
+      "sha256": "7a50864aa5e704780224e5079bbf065d0974183eddb9d08d88d6e8fc4847e806",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-gen-ProcPriorRawBoolean.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawChecks.lean",
+      "sha256": "8bdf51ede750b73d0703e99cc7fb813d5bc88dc12463a6072e2c0be5c6999036",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-gen-ProcPriorRawChecks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHeader.lean",
+      "sha256": "86a9507ce0191d95472ca495699432f2fe97db38a6c4afd95c379d2014bbef7b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-gen-ProcPriorRawHeader.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawGen.lean",
+      "sha256": "f07253f73ebad80f86ab3031a616d300ec8c1d9c5918f72424cdf0919cd03552",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-gen-AuditProcPriorRawGen.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules18guards. Executable raw Fp trace all slot types/padding, all multiplicity bits, actual native count header bytes/accumulator with high-byte zero derived. Complete raw TableLocal/transitions and record joins unfinished.",
+  "exact_axiom_guards": 18,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,32 @@
+{
+  "lane": "native-untouched-values",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeSetValues.lean",
+      "sha256": "b62a60e07d2fa19025b8c2aa543b5acc5f3df67f2edd06897cd0623d091db1f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-untouched-values-NativeSetValues.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeUntouchedValues.lean",
+      "sha256": "3be4b2cbc288c7a8a1b8e122cd6d5e59b481c97c4b459089ca412e82143de21c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-untouched-values-NativeUntouchedValues.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeUntouchedValues.lean",
+      "sha256": "a53ba666b7d32ee1e568f6e2131cc9eb95060bf839f8f5cd4dcc3db8016797a0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-untouched-values-AuditNativeUntouchedValues.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules5guards: exact native single-set compact List.set and whole ordered account replay unchanged values outside writtenValueIds. Concrete inactive oldTreeInputs retains actual old bytes.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

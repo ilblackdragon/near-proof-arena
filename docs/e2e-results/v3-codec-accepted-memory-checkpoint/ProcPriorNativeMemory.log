@@ -1,0 +1,16 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemory.lean:52:52: warning: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (1 : Fp) * 0 = 0 from by decide +kernel, show (1 : Fp) * 1 = 1 from by decide +kernel,
+    show (0 : Fp) ≠ 1 from by decide +kernel, ite_true, List.replicate_one, List.replicate_zero, not_false_eq_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemory.lean:52:81: warning: This simp argument is unused:
+  List.replicate_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (1 : Fp) * 0 = 0 from by decide +kernel, show (1 : Fp) * 1 = 1 from by decide +kernel,
+    show (0 : Fp) ≠ 1 from by decide +kernel, ite_true, ite_false, List.replicate_one, not_false_eq_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

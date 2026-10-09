@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Complete account pre-value equality and native AccountV1 decode from actual repaired-family traffic",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAccountStream.lean",
+      "sha256": "2c4fa60e7ffa27cf1d30836a631392e5f376a8dccc3a6cb4f172f3bebe9388f1",
+      "audit": "zk-formal/test/AuditProcessRepairAccountStream.lean",
+      "audit_sha256": "f37e0b9142523c2657c12e8f2517e1eb5ca0ac9864eeb6d8547019b87b66f699",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAccountComplete.lean",
+      "sha256": "2ddc3612c10497ac093db5f25a0cbac11fd139867292093c9d9ffb13e80926c7",
+      "audit": "zk-formal/test/AuditProcessRepairAccountComplete.lean",
+      "audit_sha256": "a6b258e245e976b8d65deff9783fcf8857be574c92a5ace4f6f648ebd9f62cd4",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAccountNative.lean",
+      "sha256": "49f5c0d96ae2049efa41cd8f18070a520f573099d539463594c5bf65edbf4566",
+      "audit": "zk-formal/test/AuditProcessRepairAccountNative.lean",
+      "audit_sha256": "7565e9eec7b5e9bb9ce0a95a3a9add82e1b791d9500fc65afb386c1ec747fe5e",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-account-native/dependency-review.json",
+      "sha256": "31e6bafee2548cd34b8004f4bd827a48f7992dbf1caed623a95a7fe2069bc3c8"
+    }
+  ]
+}

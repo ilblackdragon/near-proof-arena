@@ -1,0 +1,25 @@
+{
+  "lane": "native-ups-interaction-cells",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsInteractionCells.lean",
+      "sha256": "64cf524d2dbb38e16ed6a598cc1dc731e26a452bfe75a7a7116dffd33bfb777b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-interaction-cells-UpsInteractionCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsInteractionCells.lean",
+      "sha256": "36c17bbe2161cc21a1942cd09907314e8551beec2fb969628fd32857b5e41f99",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-interaction-cells-AuditUpsInteractionCells.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual generated UPS wCell rows produce exact EDGE/BMAP UpsRows.uMsgs gates and payloads. Shared-counter adapter transports messages; exact mod-P reduction retained without URowOk or extra field-canonical premise. Whole-instance aggregation and provider balance remain open.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

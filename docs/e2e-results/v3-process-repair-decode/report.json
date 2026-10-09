@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 10,
+  "dependency_order": [
+    "ProcessRepairLengthSource",
+    "ProcessRepairLengthView",
+    "ProcessRepairRawFrameBytes",
+    "ProcessRepairHeaderZeros",
+    "ProcessRepairHeaderDecode",
+    "ProcessRepairAuthenticatedHeader",
+    "ProcessRepairRawLength",
+    "ProcessRepairNativeDecode"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairLengthSource.lean",
+      "sha256": "23a28a35a999d55ea91ac9c1c76b39573c01ab901a4a6a6513a3829e64163329"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairLengthView.lean",
+      "sha256": "ee4844b48aad2cdeffc3538d9451be961e2e8a827194bd665e3410c6416a0854"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRawFrameBytes.lean",
+      "sha256": "6ce83e781a7e755bb047d00699b8da991fc1a48db44564242f1af9f96f2e04ff"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairHeaderZeros.lean",
+      "sha256": "16a16ff2a7fdb65f362d94c34c4828d8a23f0c00815e0c39349586e5c77619e8"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairHeaderDecode.lean",
+      "sha256": "3fb63e229d810dea3f2fe5180e868720e47d74d0d9f7276e71d0e2964d6fd01b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAuthenticatedHeader.lean",
+      "sha256": "c78cef530710143608491f7e982b3dd43ed7903a5f0274a664f4be4633a447ea"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRawLength.lean",
+      "sha256": "713d6dacdd58d94f44743bab85fc4faaa7d22e6904c49d4aec818f727f1ecc29"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeDecode.lean",
+      "sha256": "d87eb5e81c17b85fdd75a06ca0a096ac8515be0e5cf448355a4a4d338b7f2d80"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairDecode.lean",
+      "sha256": "f64e7f4cf06ab5939587ac0963a8294389825ecd910458b01efb67b8159db24c"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairLengthSource.log",
+    "/tmp/ProcessRepairLengthView.log",
+    "/tmp/ProcessRepairRawFrameBytes.log",
+    "/tmp/ProcessRepairHeaderZeros.log",
+    "/tmp/ProcessRepairHeaderDecode.log",
+    "/tmp/ProcessRepairAuthenticatedHeader.log",
+    "/tmp/ProcessRepairRawLength.log",
+    "/tmp/ProcessRepairNativeDecode.log",
+    "/tmp/AuditProcessRepairDecode.log"
+  ],
+  "scope": "View-based native Bandwidth.State.decode of SAME extracted authenticated value bytes at every present first raw frame, exact declared length and count, header zeros. Public inventory and semantic view/UPS-chain premises retained; no original Holds premise."
+}

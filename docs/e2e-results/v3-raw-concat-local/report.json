@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "guards": 17,
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawConcatActive.lean",
+      "sha256": "aae4e7fb347c915eb0d767f87d5a283005a1feca71ac4410aa85c7b8128ac361"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawConcatLocal.lean",
+      "sha256": "998a197aad20f26d4913ac97c4287a0a659bbf512fd8a10b6431fc3709adcd44"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawNativeLocal.lean",
+      "sha256": "b6b057eac190c3fc62096d1e09ad91a1cd8ea95ef9bb13ff34c810a57950f3d8"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawConcatTraffic.lean",
+      "sha256": "61cedc88bd88306865d05c6d1c1dafb75300fc5d98211d0e4f7a9bb30f3ae03e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawNativeBudget.lean",
+      "sha256": "4768f461a2f3eec3f1f7fe26b707ffc3d531a730e0d201cf32b52847c995a95c"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRawConcatLocal.lean",
+      "sha256": "13e6cfaa951a716889daf260350d046cea5c6c25c031e725b9350b6980525caf"
+    },
+    {
+      "path": "docs/e2e-results/v3-raw-concat-local/README.md",
+      "sha256": "ff220896396a0d81459342058afed2f602691f45ec90eff67f32ee266e49f8fc"
+    },
+    {
+      "path": "docs/e2e-results/v3-raw-concat-local/SHA256SUMS",
+      "sha256": "6089aad9c2f49c2a0bc559b97385dcb7b59cf89903def89664778a405fd2e597"
+    }
+  ],
+  "scope": "Whole RawFrame concatenation Local and all-bus decomposition; same actual prestate occurrence budget, including repeated accesses. Prebuilt dependencies."
+}

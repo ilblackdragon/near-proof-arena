@@ -1,0 +1,88 @@
+{
+  "lane": "process-native-invariants",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ExceptLoop.lean",
+      "sha256": "f462fb3771028c45ff52591aee0e4bfa34fc07ea774099e7e0cfc3c1f1f2a30c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ExceptLoop.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConverted.lean",
+      "sha256": "ed63e3ebfc65c50d774cd56f7e0eb0ac3f05e4e9c4f1f1f769c25b53140a05da",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ProcConverted.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayChain.lean",
+      "sha256": "877598582574ea0ce383bb003d1afd947cbdf8452a5f65a91b238cc8527f76db",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ProcReplayChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayMetadata.lean",
+      "sha256": "9aa04ea73797aa25db3af4a2af704a687abae123c0e86cfe6c07a67cb1db7a79",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ProcReplayMetadata.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ExceptRange.lean",
+      "sha256": "7a7b163cd6c6142562760b9daeab434838385a6f2b5ed7717d5da938edf60dd9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ExceptRange.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayShape.lean",
+      "sha256": "8c7da3e525f7b938bea9cfe96bac4f3e78464ce27fc2b6d91f7520dda2a8e83e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ProcReplayShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayDecisions.lean",
+      "sha256": "07b000f225e1306b2dbd107fffb9a0f575cc0d3632176d7086190db856797fc3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ProcReplayDecisions.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayAllowance.lean",
+      "sha256": "22a36228ae77a9193e0b45e49c948f79e87dbecdc0ff70098bf523e5695fe58f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ProcReplayAllowance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayEntries.lean",
+      "sha256": "83f901102d9214f81c20163b28b90e2200a8c9d94124e5a31063ab9ebedb9256",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-ProcReplayEntries.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcReplayInvariant.lean",
+      "sha256": "6283aa46e72dc13796beccb5b30b01ca4563598cd7f53d8d2ff5f5fc652a8e58",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-AuditProcReplayInvariant.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcReplayEntries.lean",
+      "sha256": "588d9e7ab196008e8335d5fb9d095c017427d5c185effa49272cac7746a0e292",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-invariants-AuditProcReplayEntries.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual successful Gen.run supplies native replay chain Initial/Follows and every EntryOk under PV86: positive round sizes, exact entries/index, rem bound, ok/zn, alOut bound. Nine modules27 guards. Round K bound/zero ordinal order remains explicit; full RunData from native replay not yet closed.",
+  "exact_axiom_guards": 27,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary accepted record first limb forces middle/top physical rows, preserves same word and limb fields, and yields natural24/24/16-bit u64 bound when byte-range facts are supplied. Final actual byte-bound connection remains next; no generated-row premise. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordWordTraversal.lean",
+      "sha256": "d0449278cd7038ae6e6670f3cbfd8a988ac1f168f15a401eb551b017725672ab",
+      "audit": "zk-formal/test/AuditProcPriorRecordWordTraversal.lean",
+      "audit_sha256": "0860faea6536c1a2ebaeb894a0b2a36fe888c1b30526811bab64f37afd93eebe",
+      "guards": 5
+    }
+  ]
+}

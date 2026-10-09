@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual installed four source partition Local transport and genuine carry-bus64/65/66 inventory/conservation yield all57-column joins. Existing variable log24 extraction proves original source counter bound and exact external traffic. Every actual source-partition byte message has canonical ID tag13, without generated trace/counter/carry agreement promises. Physical tables remain log22. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedSourceView.lean",
+      "sha256": "4f4b028c02b3e10ed1a29c22a512963497660d2f9b57ecbf823fa13179c708bc",
+      "audit": "zk-formal/test/AuditProcPriorRoutedSourceView.lean",
+      "audit_sha256": "c51ae1365cdecf0a2cc6a0b9f1c7f0fcc9454ed1d9676c40832a81df58a0f70e",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedSourceBoundary.lean",
+      "sha256": "178f05b381fe4d1a7fa5d24bbc6ccdde77801678ef4c94fd5ca254580ae73501",
+      "audit": "zk-formal/test/AuditProcPriorRoutedSourceBoundary.lean",
+      "audit_sha256": "ee085ca8d8679300ca42e872556b5adce851793d20552439c3fe5165e8ab7467",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedSourceByteTag.lean",
+      "sha256": "024915c837fb94b569548d86e7508490121d16791b4e709e98bada3a314237ed",
+      "audit": "zk-formal/test/AuditProcPriorRoutedSourceByteTag.lean",
+      "audit_sha256": "30b3d1f8ff8032cbea48790298a0137549ac0567dc70a07f893d0e512bc6b869",
+      "guards": 4
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-source-byte-tag/dependency-review.json",
+      "sha256": "c3b0112d164ec664004dc8b1fb1da9817089cb94442fa0b84296a3a58852a252"
+    }
+  ]
+}

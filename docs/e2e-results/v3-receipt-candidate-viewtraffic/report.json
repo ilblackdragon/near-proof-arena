@@ -1,0 +1,137 @@
+{
+  "lane": "receipt-candidate-viewtraffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRclTraffic.lean",
+      "sha256": "42173a7724eade872a14f8503c5bd9ce713d4e1160598c3adb10626f920fc8d8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateRclTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRclProof.lean",
+      "sha256": "5e4a39a19751fb0a06600062e090d3aa2b311f5c7bf96736e1464338b3f9cc5a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateRclProof.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRclDecode.lean",
+      "sha256": "2c53f62e85d6f0af086bb45fff196eef0750bd3d540cbbad2e65821ca8d3ce8d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateRclDecode.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateChainBytes.lean",
+      "sha256": "ed0bfedbe0ae287d5ece8f023c66fedd802f901088c3372dd0e0680ea7617d4e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateChainBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateViewPositions.lean",
+      "sha256": "ecc40d5a1ec95ba395d06cfa1c3836b01445fca7959a30de6779fcdd48f5994e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateViewPositions.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateIndexedBytes.lean",
+      "sha256": "17ad163d0dbd40e21cae35aebb140069053cfbf5e7691834b9af3cb513bdeac3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateIndexedBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBytesViewProof.lean",
+      "sha256": "1671f1ee3cbcfacb7e42f906b8d9bb34b439aa37b7f170bd28b3ab07496b2804",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateBytesViewProof.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRclViewProof.lean",
+      "sha256": "f55401ca8f102c33dfa245eeb8ac66c5c9d511e12e48134168d86e8f1ab05153",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateRclViewProof.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateViewFacts.lean",
+      "sha256": "fefe31e26bf867a7384253aef53a1c747b1ea054cee8c38a806f6334acf07204",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-RcptCandidateViewFacts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRclTraffic.lean",
+      "sha256": "3995269cb7dd66e9acf7018e8b404ff1cfaa1b38e9669414a4d2c2a5695717b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateRclTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRclProof.lean",
+      "sha256": "e831620ba0764ca80d2bb7f9fbdce941ae92c469827c467fdc99278cb13258f4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateRclProof.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRclDecode.lean",
+      "sha256": "2847f938a09102a1157c12d29e68f6dadf6e9ccbcd900c0304eabc11687ebc9a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateRclDecode.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateChainBytes.lean",
+      "sha256": "07d9439bf726c9d4a9567572ed5560d06c9afb165f869621d71b222ce71473f9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateChainBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateViewPositions.lean",
+      "sha256": "747226bed7bcca9f588338b4a18ef59c2c2cc0e2d620dbce54830e5712c67597",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateViewPositions.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateIndexedBytes.lean",
+      "sha256": "9ae6858eeaa6a31d017d1d8010afee4c3a073113e44cb474766a4ee4c61d9b67",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateIndexedBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBytesViewProof.lean",
+      "sha256": "511845d3734142a0c3828f8409b45567f7f3cf17920166295a2cb0a95bf055ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateBytesViewProof.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRclViewProof.lean",
+      "sha256": "10bd6e0cd8c1b3bdd19a4fc134741410094a96ca2419ce0d6c57f06b100bf28c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateRclViewProof.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateViewFacts.lean",
+      "sha256": "330f3b429c1a184ed7ea7eb2b819941cd919bd84cda08b77e975702d69cf8c14",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-viewtraffic-AuditRcptCandidateViewFacts.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Nine modules36 guards. Full physical BYTES and RCL extraction for concrete views from repaired candidate local.",
+  "exact_axiom_guards": 36,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,151 @@
+{
+  "lane": "receipt-gas-token",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenArithmetic.lean",
+      "sha256": "9e548691554ee7ae6272f2848a8d77b15c1820443b780ccea76ba69495ed7ac8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenFrame.lean",
+      "sha256": "eb92288024eae08f1fe8b90e73f0fb8f7097a254c38279904e2e3e18de2cba1b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenLocal.lean",
+      "sha256": "c381e463965d020800fe9ef681252faba6b8e07c69cb3a20275e35651ec6c073",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenNativeBounds.lean",
+      "sha256": "4671e39cdf2c037746071c8780ac820ee4bd5120ad0b5166375d85a81669e879",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenNativeBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCurrentOwnedFamily.lean",
+      "sha256": "1f9714f5283e13bf46c5e5276dc553700dd9ec47ae74c30d059afa2c7f1fec73",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptCurrentOwnedFamily.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenCurrent.lean",
+      "sha256": "3202a44b17874672f3e055659dfd3d217f160f608f0711aef6a879dcdb108337",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenCurrent.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenTransition.lean",
+      "sha256": "2233e98b8e3230bff2c28a46b56a0d3eea57d8f21ca9a5ba694a2f49f8d8686e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenTransition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenPhysical.lean",
+      "sha256": "7e6e00d01c71b995ef46a163d9da51a21ae06cd3fadee0f54f2a8a47d1262589",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenCommute.lean",
+      "sha256": "de39c3cb52dea54bd80c929d2bb231b9d8888dcfce4c5f5bceae064849018b9e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasTokenNativeComplete.lean",
+      "sha256": "f4851b7864cd99b54281ee87b9343b04e89dbb7851905661334deac19f999578",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-RcptGasTokenNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenArithmetic.lean",
+      "sha256": "a8f1bc23058d95a3159142b460f6a737feebed13b0763315582071186443be0c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenFrame.lean",
+      "sha256": "a11839a750a432189a9cea80cfedb0788f5809f222930da278e59f6ea1863694",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenLocal.lean",
+      "sha256": "931ea8ec92839e309d7484c4c223df9fae22de0ea6f7c7c907e4759fb937ce82",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenNativeBounds.lean",
+      "sha256": "10ac7d5504aef4bc3ffa5b5db30fdcf4dce8ad79ac263ef96d3ea0fc1c9f63d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenNativeBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCurrentOwnedFamily.lean",
+      "sha256": "5b2ee1388903a6d65d31dd0668e5d17d682e10afbd3027a30a708dcb4f5ca644",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptCurrentOwnedFamily.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenCurrent.lean",
+      "sha256": "863524ffb8bc78497c42901a152676765788df50d5307648d01263d427f3ed9a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenCurrent.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenTransition.lean",
+      "sha256": "7bd4511ea3c9a66360d2a09248ee4f490078c0b5e82bbdb3c8240448823bc0a0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenTransition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenPhysical.lean",
+      "sha256": "9156167baa040b88737fa618111aece7f90ca36f2a735db9c20ffa1c951546f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenCommute.lean",
+      "sha256": "24a8f6a84fd7c9363d5f4efc67b37ea6cae8393caafcf6618640a8407c32f2af",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasTokenNativeComplete.lean",
+      "sha256": "c7f25c8c51b5511b201b882812e65057a28ca25fa78620f6f3c8de34c5eb4e94",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-token-AuditRcptGasTokenNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Ten modules37 exact guards. Same mixed physical native receipt trace reaches832/881 original constraints. Actual native receipt token ledger bounds; previous828 preserved. Candidate gas-product/delay and deposit remaining.",
+  "exact_axiom_guards": 37,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual receipt account-slot ownership and authenticated native Account prestate reads",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptMemBalance.lean",
+      "sha256": "e0892909ba1c9c526c50716d1cca6a29aa9b29a0c8ee99f59a6c24bf8c848368",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptMemBalance.lean",
+      "audit_sha256": "0d476a28bf16cf40d8238470a88e107ea1aa9fc6f6deb46e74214fadf4149d00",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptMemProvider.lean",
+      "sha256": "a68c4d07060d538ef1a335079cfb9e63f1aad3be0959a321a7a80e1e58b844c3",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptMemProvider.lean",
+      "audit_sha256": "2024a731832af166b6deb617f09d4db7ae86682f9f0157138303b919e9c6fbd9",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptWf.lean",
+      "sha256": "c0991acc1ae5aec8ec9b50aa6ebd246d69fc998a75d21533e3e1006161d76893",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptWf.lean",
+      "audit_sha256": "6dbd90604c69beea07a6ad354eabc162a67d6ad432e0cb4ee9e2ef54d091963a",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptMemOrigin.lean",
+      "sha256": "845f0f8fd3f62e6ea8649fbb27346a58e1ef50a099fa23d93eaa1e1442bb13cf",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptMemOrigin.lean",
+      "audit_sha256": "99bfa25fb76ecd6e50cd598698bf4366e670a001ee9fca829915d2ad1db6d448",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptAccountReads.lean",
+      "sha256": "a4907c95e75d7f96d05395f7cc27e16e0a5ea02b3b2777827e541c61b7605271",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptAccountReads.lean",
+      "audit_sha256": "b33f4676288a59d2d5e828a08dbb37e991b380f3ce91caeb0cd953c7ba5521b6",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-receipt-account-reads/dependency-review.json",
+      "sha256": "2c39858606e6e81a69cb72122255a96fa6b2ac50f2711e2fc0255dac4d5d92da"
+    }
+  ]
+}

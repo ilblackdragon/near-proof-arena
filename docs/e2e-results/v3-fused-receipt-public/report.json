@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual HoldsP/native prep/prepared or bounded-routing public bytes imply SAME projected receipt semantic Wf+allbus traffic. Public ranges and MEM ownership derived, only static AP configuration remains. Receipt component only, not complete NEAR soundness; prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/FusedReceiptPublic.lean",
+      "sha256": "d230e29379b8b571c56980c82788593eccacbb675eeeea82a7037aff2568d84a",
+      "audit": "zk-formal/test/AuditFusedReceiptPublic.lean",
+      "audit_sha256": "4697b813af0fc68e9433995766b2109d2257df6e322e8e31636a0f92095848a4",
+      "guards": 3
+    }
+  ]
+}

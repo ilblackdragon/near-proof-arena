@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Five exact guards: actual ValE member ID maps to exact native bytes in record trie, and parser-selected bytes equal the present native lookup result. WalkHyp, ValWf, same-walk key/FINAL and parser ID remain explicit composition inputs. Recovered queue option composes with empty/buffered parser evidence. Not whole queue or certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeValueLookup.lean",
+      "sha256": "2bc88ca9a209339d0aaa62664f8d800f4b4aa8b01552ea8e0a9db77d5b6251e9",
+      "audit": "zk-formal/test/AuditQvNativeValueLookup.lean",
+      "audit_sha256": "562159d2a554a41e4df2101c0ca6e03c89e7061cb6de8c5414e90e4d828fccfe",
+      "guards": 2,
+      "log": "/tmp/nearproof-NativeValueLookup-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeQueueValue.lean",
+      "sha256": "b6148fbfc9cd309cef0feeee4d05191fc0db9488f61167631922cd1859826deb",
+      "audit": "zk-formal/test/AuditQvNativeQueueValue.lean",
+      "audit_sha256": "4da446590a3d6147b7cf974dc16cdf8a8ecc55472a27c1ebe01bbb1c48a2f286",
+      "guards": 3,
+      "log": "/tmp/nearproof-NativeQueueValue-audit-checked.log"
+    }
+  ]
+}

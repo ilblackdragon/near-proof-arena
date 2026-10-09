@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted missing-chunk transition constructs real scheduler state read/decode, corrected ActualRun and Codec outputs, and whole corrected Codec TableLocal for all trace time/public inputs. Actual nonzero index into prepared scheduler list derives tau<P from preparation count\u226433. Native nonmain helper retains exact prefix/process/distribution witnesses. No supplied Local, forwarding guard, grant array, or field timestamp bound. Caller still supplies correct call-to-prepared-index identity; no whole ordered-call extraction or bus/certificate claim. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeNonmainCodecLocal.lean",
+      "sha256": "856473ec1cca5fa47255b3f8af56d3d5ac4be3eeb86f0b17d9916044a63da52f",
+      "audit": "zk-formal/test/AuditProcNativeNonmainCodecLocal.lean",
+      "audit_sha256": "065badda3921d68b8f153214b321e1dccde0bc7b639ac13af4a87dfefa5886db",
+      "guards": 3
+    }
+  ]
+}

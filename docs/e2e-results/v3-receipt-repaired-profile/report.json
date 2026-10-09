@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Kernel computed repaired receipt shapeOf2=(263,9,5,9,22), exactly equal original; degree2=6 and expression column bounds valid. Replacing receipt in arbitrary family preserves static shape list. No installation/soundness/full-family admission claim. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptRepairedProfile.lean",
+      "sha256": "5da2edf5721eb9472c3cd86da8eb46735a51dfe0d6e5e04d622334b3256f6f5a",
+      "audit": "zk-formal/test/AuditReceiptRepairedProfile.lean",
+      "audit_sha256": "54401ecf2e6ef01b57958de37759790a7f637988c2ea0f8be40faa552275e2e0",
+      "guards": 5
+    }
+  ]
+}

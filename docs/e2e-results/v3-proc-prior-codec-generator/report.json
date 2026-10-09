@@ -1,0 +1,60 @@
+{
+  "lane": "proc-prior-codec-generator",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGen.lean",
+      "sha256": "899b30da20b39b637e0f7aab27765ce0f2d38f33c50ed89c87c5af6bd45a0d2d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-codec-generator-ProcPriorCodecGen.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRegression.lean",
+      "sha256": "c5ca2219d784ed93114c8c86cc4bec8f8e77864c35d2b9522b38de61b8f46126",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-codec-generator-ProcPriorCodecRegression.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecQueries.lean",
+      "sha256": "b84e2b0220ad3fbdc0d484220d560c80a20c51d3780152fd700546f10d6caea2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-codec-generator-ProcPriorCodecQueries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGrid.lean",
+      "sha256": "f49d5f527b82217cdb78d6056a120c0b196dadb04b9897729d72782002278c29",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-codec-generator-ProcPriorCodecGrid.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridField.lean",
+      "sha256": "d177b449102c3b2dee169e3685c1d961040e2a86d6ce29bf763b627d6537b65e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-codec-generator-ProcPriorCodecGridField.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecGen.lean",
+      "sha256": "eba6c2135444327719c59dbb48a1a539ff34c1127757d65af79a360d034c604a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-codec-generator-AuditProcPriorCodecGen.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecGridField.lean",
+      "sha256": "3270dcff368d0d6ef9016f1eb10f76af44d70849abe0bf6596c6fb9fd147b85c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-codec-generator-AuditProcPriorCodecGridField.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules22guards. Repaired native generator regression and successful metadata byte contract, exact last-write query inventory, public sender-row uniqueness, native field counter transitions and zero tests. Full generated row legality and authenticated joins remain.",
+  "exact_axiom_guards": 22,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

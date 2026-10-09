@@ -1,0 +1,218 @@
+{
+  "lane": "compact-semantics",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/HeaderBits.lean",
+      "sha256": "7c5dedffd903b9cec1ea2a08ea89e77a646efcf3858a55af8a2a2c27b766774c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-HeaderBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/NodeFieldBytes.lean",
+      "sha256": "20b831b9d38cb46e280049ecef65e58e48439ae814d714adafd739901341ee4d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-NodeFieldBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/MemRows.lean",
+      "sha256": "c273d5d0864fde85cab88bfeb027dd0382c38f30cc923d9b1d67eb7bed5a3294",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-MemRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Mem.lean",
+      "sha256": "ff5cb37ddf67959b8ec95148f1adb3ad6567f205af6c20f2462137a03416a77b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-Mem.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/NlfRows.lean",
+      "sha256": "cc01ab04589fec4cd3aa3b5f84eeb27c4c49692f487e3fb121b1deeae7386788",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-NlfRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/KindHeads.lean",
+      "sha256": "c42e8f60f7eac49171f46db2b70b53493df6e1a855489110b699d9e0cb07acc2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-KindHeads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PartCopy.lean",
+      "sha256": "ca07b9ed74e10403e31cd691749d5b8bbce75d9c13d8d1e6a1b09a859040f1be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-PartCopy.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/PartMemory.lean",
+      "sha256": "3bebf18ffb44010911f401674eaea5b50f7ccf1be5b4b5dab81616e46123e360",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-PartMemory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Shapes.lean",
+      "sha256": "23a30ce2f4e834a3ede92e32be74998913e769fd2a0a7a0401230fddb64a39fb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-Shapes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/NlfBytes.lean",
+      "sha256": "70b8d056cf4a77e0f5887c38f23e832fa5c19d3c9cbd4477e66129696afd15d3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-NlfBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/RlpBytes.lean",
+      "sha256": "b73de7017d4cbde7dfd27c820ba466ad153352afe100f7c6ac35ef4681edb105",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-RlpBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/RdeBytes.lean",
+      "sha256": "c9ac261fe91caa1e54d4ae228cc3844c94a2d24616a364054f963ca0a582e623",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-RdeBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/WexBytes.lean",
+      "sha256": "e7b134305d3d7322c02beeeda604083df6e3a4e3739a556bfb255365d0a13c58",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-WexBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/RbvBytes.lean",
+      "sha256": "37b27910b292030cd1ba5de9e28766b4f438456c3756c7fef4296b4a935a0a06",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-RbvBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/RbrBytes.lean",
+      "sha256": "f32e3c5316e43a58613d7c738ac07820bafcada1a95f94f5e76f7f451c516956",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-RbrBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/KidsBytes.lean",
+      "sha256": "1bb8bc40f9ec1e999df2642efe453fa1977a3eb18bcc92e9eccb67d7053ae7fb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-KidsBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/BranchK.lean",
+      "sha256": "599c378a6bfb033102903466a1e552e6fc42a3943c9411cf4ff80b3a49f7910e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-BranchK.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/RdbBytes.lean",
+      "sha256": "eeed59eb3f6997450cb329b50d075dbb3407617d2f26867aa01b6f809b152559",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-RdbBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/RbiBytes.lean",
+      "sha256": "f7c397d752facccd99a3301e08792a3a73b84c30cf2a36cfccab8f73b5711882",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-RbiBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/MvRows.lean",
+      "sha256": "b86fe8b3ace5c45e2a6467eb5999ae42b945d9a61970a62a9b1cbfb07f4d05e7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-MvRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/MvlBytes.lean",
+      "sha256": "d1fb9f1403dfea89ea10c707552759bb9fcd103192ee0570b1bb931286f2b726",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-MvlBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/MveBytes.lean",
+      "sha256": "d01717c3ec9dd70225e9e112df39b20c754f4b1a1e61f1175f82cd11caa069bf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-MveBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/SpbRows.lean",
+      "sha256": "8edf8ae17ae73ae18dd3f09233369d6f3287983e54bcbd25e8239d44fe6adf14",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-SpbRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/SpbBytes.lean",
+      "sha256": "77a4977761441509addc3c09d324d76ea7d345ae8d9e3877f6e9c578acc1d7d3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-SpbBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsParts.lean",
+      "sha256": "9dd2f4ea8c224d9ac04355e76a4fd1dda97dfae274de35197f60bcaf2a77bd12",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-UpsParts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsInd.lean",
+      "sha256": "c64de8df7be3ec42e96329a329114098d4d7b0ed00b72bb062c6625cbe17d06f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-UpsInd.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/UpsLook.lean",
+      "sha256": "17d3fc0af07a4c660f1de7dbd918fce08160fde9af9d21e2f9aabe97f3ad8d73",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-UpsLook.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/GlobalParts.lean",
+      "sha256": "16811da3bd6978e6ba7ab1a276f51a9b9c93d7811e802a9086d8dd9d904bb5ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-GlobalParts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/SourceValueBridge.lean",
+      "sha256": "4eb8923c6665feb20aeb2f2555e8d884e032a5808e2733f98e51872b683e0112",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-SourceValueBridge.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactSemantics.lean",
+      "sha256": "a49bd75c19529c87a401b6b40fb8fabb39d084a3878cc75467dd879a39ecd495",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-semantics-AuditCompactSemantics.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "29 compact semantic reconstruction modules, 114 exact guards independently checked against HPL artifacts. All 12 node cases and downward SHA/MEMD induction; source/UPB/shape, global buses and allocation remain explicit. ValueBounds/ValueClosed are later agent-only checks, not covered by this report."
+}

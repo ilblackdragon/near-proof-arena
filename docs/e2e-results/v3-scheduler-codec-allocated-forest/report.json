@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted allocated forest retains occurrence-sensitive preBytes bound for SAME Codec/RawFrame traces and presence balance. Repeated accesses charged repeatedly. Physical global value/lookup joins and full soundness remain separate. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAllocatedForest.lean",
+      "sha256": "1f2bcfa9f929eba130202fee1717179cbe3798693689eeb48a18f9322ee28cf6",
+      "audit": "zk-formal/test/AuditSchedulerCodecAllocatedForest.lean",
+      "audit_sha256": "e40778f02942ef4677b4544df8c86d74536b1307a5c630648e47787f2725918e",
+      "guards": 1
+    }
+  ]
+}

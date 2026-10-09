@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-native-leaf",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeOutcomes.lean",
+      "sha256": "3c52d9fb879a86ff246b2803100589488aef42510f45e1760ad01019e67696f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-RcptNativeOutcomes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeFieldPositions.lean",
+      "sha256": "3004c849887573453ff186e113c1f6db5425d698eb428f10de44bd38d5fac921",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-RcptNativeFieldPositions.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeByteCells.lean",
+      "sha256": "e45e68627ac1f2931d395979c6d62db20bf6d7b83c21b957412dbecc5fd14c56",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-RcptNativeByteCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeSlices.lean",
+      "sha256": "003f50266a3fdca818cec2b83309aecc67bd519cb74c26d3d0a3f4c3aa225e0f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-RcptNativeSlices.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeLeaf.lean",
+      "sha256": "5bf23a0161a40ef11f276010d964754b518152c297f7bf2dcc3c1d1a64dccd54",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-RcptNativeLeaf.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeOutcomes.lean",
+      "sha256": "669d53b8cab5c20e9a48c93402bc720f7f68cb50028623888dd2d0152e786448",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-AuditRcptNativeOutcomes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeFieldPositions.lean",
+      "sha256": "268a985a868f1066413224cb70b062175dd308f28adfcc347b7591b7718c73c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-AuditRcptNativeFieldPositions.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeByteCells.lean",
+      "sha256": "979dd4557e889570185bde1d7d92c6003ec5c517fe304a496cdf466cd6191bd1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-AuditRcptNativeByteCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeSlices.lean",
+      "sha256": "0a5509895ba3727f650784f9d4815c54ec45aec25f9cacee525ebc6fb4c6fc40",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-AuditRcptNativeSlices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeLeaf.lean",
+      "sha256": "49e78d43df52b88f90fb48bcb62565791b2e2e9ce3f0736f5cd1a75aad4dfdb4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-leaf-AuditRcptNativeLeaf.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules18guards, including previously committed native outcomes. Physical per-receipt byte slices and leaf equal native outcome preimage at actual located block. Digest stream/native identity prerequisites explicit.",
+  "exact_axiom_guards": 18,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

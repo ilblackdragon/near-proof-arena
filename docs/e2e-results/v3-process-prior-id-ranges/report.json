@@ -1,0 +1,32 @@
+{
+  "lane": "process-prior-id-ranges",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdLimbs.lean",
+      "sha256": "b75e451acf8f0e92448dacbb382e05f329f0d9c67eec1980b5c1b691d7176a9c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-ranges-ProcPriorIdLimbs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdRanges.lean",
+      "sha256": "adefe49b4affa4b85591d4c3849ac19f55766d5508b1fcd1d6e475974725da8d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-ranges-ProcPriorIdRanges.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorIdRanges.lean",
+      "sha256": "12cea6ff11f299af78fdfc1b5cacda518d1a3b986cd173a7cb25fbf744b1c546",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-ranges-AuditProcPriorIdRanges.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules9guards. Exact 24+24+16 u64 limbs, lex order, field and packed tau/high-limb injectivity, native decoded record ordinal bounds.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

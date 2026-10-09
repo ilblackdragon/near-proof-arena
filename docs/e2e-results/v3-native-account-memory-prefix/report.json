@@ -1,0 +1,53 @@
+{
+  "lane": "native-account-memory-prefix",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountLedgerPrefix.lean",
+      "sha256": "78918d9a46445cb531ab4fe5bd9de049186f6b20b864b3eaefdce0c077363852",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-prefix-NativeAccountLedgerPrefix.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeMemChain.lean",
+      "sha256": "592523a576921674f5f03b1c33f44939e4ea3834c95f305cabf1c47b93bd8083",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-prefix-NativeMemChain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountPrefixVersion.lean",
+      "sha256": "60ddfbcc4ccdbb792395c1dfd3cbbce9d7693eb86d86b559c78146d1c8d075fc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-prefix-NativeAccountPrefixVersion.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountSlotVersions.lean",
+      "sha256": "fae6151b3b75f6ca79e7bcfc08311ef1f95ca0628de4b6dd55a903c896264e4f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-prefix-NativeAccountSlotVersions.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountMemoryPairs.lean",
+      "sha256": "e62622b9de9839e9f273da488ce00949421e9a85d4891dbaeaf55692d828ee8a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-prefix-NativeAccountMemoryPairs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountMemoryPrefixes.lean",
+      "sha256": "d1088dfbb52fab99d256b5b4e886ff5a54d7474de8a69858af3af30ccc6e76a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-memory-prefix-AuditNativeAccountMemoryPrefixes.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules14guards. Actual native ledger prefix lookup/decode matches prior write version. Generic unbounded timestamp conservation and original-ID account/receipt send-read pair permutation. Payload and physical16-lane binding remain.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

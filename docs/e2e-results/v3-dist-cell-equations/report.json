@@ -1,0 +1,85 @@
+{
+  "status": "PASS strict Lean and 22 exact standard-axiom guards",
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardInverseCell.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardBools.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellRow.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellArithmetic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellDivisionCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellDivision.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCounts.lean"
+  ],
+  "audits": [
+    "zk-formal/test/AuditProcDistCellEquations.lean"
+  ],
+  "guard_count": 22,
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardInverseCell.lean": "24f6dec92de9c382ee7db04b3e8f943f228d2e7bf068ab01a0b52f835f205f2c",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardBools.lean": "ff717d0344a3ef367872d56dbfa3de851327c10faef1ed687150045cce4c3c5b",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellRow.lean": "68a4f8dd010c1e0c3caddd33cd52d2961314a49747394ba5b95d8aa0d2bfca70",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellArithmetic.lean": "e8ea86fca300d481eff93567ed0eb2af7012010ac4f7c5a7642d7cd36aaa321a",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCells.lean": "4bbe127c11b7c3dad7d6082a286326185b99793fcb1399ddc7844badfd171472",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellDivisionCells.lean": "7c992b02fab5922dcb63d60c335f117b4fdb17ec070f783b8ba95e731bc6d912",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellDivision.lean": "109daac1af53eed05056a5ecf8052a1189e194743ab218f5d1f9b9a3f8cc7d70",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCounts.lean": "ad0d939b2968a86f13fbc681a6a2212232136dceb5a82fda8d75f796039620a8",
+    "zk-formal/test/AuditProcDistCellEquations.lean": "f05c07fa6532762ff1e87e1e98ebaf332c064ee8b9f3421051f0dcdc754369d0"
+  },
+  "check": "/tmp/check-id.sh; Lean4.34.1 -j1 -DautoImplicit=false -DrelaxedAutoImplicit=false",
+  "scope": [
+    "Exact unchanged cellStep emitted row constructor",
+    "All shard Boolean columns, and remaining shard inverse projection",
+    "Actual grid cell complement bit cells and four physical division/complement equations",
+    "Grant/min-selector and remaining-budget field arithmetic",
+    "Native cell-loop count<=64 preservation; positive endpoint counts from successful actual cellStep"
+  ],
+  "remaining": [
+    "Grid remaining output/control/range and neighbor constraints",
+    "Shard neighbor constraints and full kind composition",
+    "Native initial count invariant and whole scan-then-distribution physical placement/TableLocal"
+  ],
+  "assumptions": [
+    "Physical division uses current-row equality, count<=64, allowed implies positive endpoints; successful cellStep supplies positivity",
+    "Count preservation starts from bounded original endpoint state; initial native bound still to compose",
+    "No frozen table/domain changes"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardInverseCell.lean",
+      "sha256": "24f6dec92de9c382ee7db04b3e8f943f228d2e7bf068ab01a0b52f835f205f2c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardBools.lean",
+      "sha256": "ff717d0344a3ef367872d56dbfa3de851327c10faef1ed687150045cce4c3c5b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellRow.lean",
+      "sha256": "68a4f8dd010c1e0c3caddd33cd52d2961314a49747394ba5b95d8aa0d2bfca70"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellArithmetic.lean",
+      "sha256": "e8ea86fca300d481eff93567ed0eb2af7012010ac4f7c5a7642d7cd36aaa321a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCells.lean",
+      "sha256": "4bbe127c11b7c3dad7d6082a286326185b99793fcb1399ddc7844badfd171472"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellDivisionCells.lean",
+      "sha256": "7c992b02fab5922dcb63d60c335f117b4fdb17ec070f783b8ba95e731bc6d912"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellDivision.lean",
+      "sha256": "109daac1af53eed05056a5ecf8052a1189e194743ab218f5d1f9b9a3f8cc7d70"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellCounts.lean",
+      "sha256": "ad0d939b2968a86f13fbc681a6a2212232136dceb5a82fda8d75f796039620a8"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistCellEquations.lean",
+      "sha256": "f05c07fa6532762ff1e87e1e98ebaf332c064ee8b9f3421051f0dcdc754369d0"
+    }
+  ],
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

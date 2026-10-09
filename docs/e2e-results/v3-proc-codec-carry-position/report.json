@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual incoming comparison-carry state\u22641 at every generated physical record byte. Proven from field reset0, exact ordered prefix steps and step preservation; cell binds bounded before-state to actual successful pushed physical row. No assumed carry invariant or row shape. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecCarryPosition.lean",
+      "sha256": "89a320bddb498484bc4e93d90d9a6a203f81fb6837d0c0c21042a9d0081161e9",
+      "audit": "zk-formal/test/AuditProcCodecCarryPosition.lean",
+      "audit_sha256": "3b87b02f7b8d1652c58b730b381dc862e9c6f6272c522be3181f17843a322342",
+      "guards": 6
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact physical count-extended node/value byte sends equal expectedBytes of the actual native SHA job inventory, instantiated from accepted execution and updated/counted records. Full hash bins validity/global byte balance and supplied payload correctness remain open. Prebuilt dependencies,not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePostShaTraffic.lean",
+      "sha256": "1b79a3a57faa746a80b8eedc02cdb41bfaeda7683f8ca4bc732a70a5e98a7dca",
+      "audit": "zk-formal/test/AuditNativePostShaTraffic.lean",
+      "audit_sha256": "7d06aed19f063a9c4e5710a8a3f65c21df32f7d6c139c0c4ce8f9d09e671d28f",
+      "guards": 2
+    }
+  ]
+}

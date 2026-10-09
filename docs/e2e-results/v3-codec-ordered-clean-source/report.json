@@ -1,0 +1,17 @@
+{
+  "target": "ZkFormal.NearV3.Assembly.SchedulerCodecOrderedNative",
+  "source_modules": 1920,
+  "successful_modules": 1920,
+  "all_source_modules_passed": true,
+  "source_drift": [],
+  "prebuilt_project_dependencies": false,
+  "initial_source_only_reused_modules": 328,
+  "extension_base_source_modules": 1907,
+  "lean_path": "/tmp/nearproof-codec-clean-20261009-b/lib",
+  "olean_symlinks": [],
+  "audit_guards": 40,
+  "audits_passed": true,
+  "manifest_sha256": "b02c1c9f78a95363f04efe2ac5f7f7e7ae818b830ec0d2ea44a0c43fa56469f4",
+  "scope": "Complete ordered corrected Codec local constraints and exact native sanity DIGEST inventory from accepted D0a execution. Source-only closure with hash-validated reuse of1907 prior source-built modules. Supplied value IDs still require provider binding; corrected semantic soundness, other global joins, full transition certificate and judge remain incomplete.",
+  "evidence_sha256": "e9dcff9c43cd1bf1ceb341850d82d2fcc9f78e4889afc75ecfa5baab2a50e6ca"
+}

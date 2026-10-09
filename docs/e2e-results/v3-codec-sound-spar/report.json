@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "guards": 3,
+  "logs": [
+    "/tmp/ProcPriorCodecSoundSpar.log",
+    "/tmp/AuditProcPriorCodecSoundSpar.log"
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundSpar.lean",
+      "sha256": "16545640f33e81a25490406f1abac61585d957f14a71fb9f178dd6cb8069ff16"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecSoundSpar.lean",
+      "sha256": "2e2d1821fd5e0f1bee15be91c113b8c077f630fb8a14a1d17b8a35e9149627c8"
+    }
+  ],
+  "dependency_scope": "Strict audited modules using prebuilt dependencies; separate source-only closure evidence has its own scope."
+}

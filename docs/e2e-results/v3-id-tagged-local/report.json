@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "Repaired native ID full TableLocal and exact71/72 balance; see hashed review.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedCells.lean",
+      "sha256": "5bbca7315f4397464fa2a9caf555aa0dec74407e1520460656b5a460b8843a51"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedBoundary.lean",
+      "sha256": "6353b00ec8f90e6ab31c599115550f8d38b58f491e70fe179eac8ec8a4e5e302"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedLocal.lean",
+      "sha256": "65bfd9111fe39a0b283d65ebd8a9e086143f9e5021f43209beda46b3dabe0f06"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedRows.lean",
+      "sha256": "102a86f9526ff687f2e54bdc7ac389ee07711d288d25f8f40780ea58fb029ca1"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedTrace.lean",
+      "sha256": "8f01ee04edee9f43ba8aa32fd8ad6889c7e17ae867f96f3d650e492bc1428bff"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdNativeLocal.lean",
+      "sha256": "940054258735f162450d0c1bcd7229913c3af23479778e2ce1aedd41f161d999"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedTraffic.lean",
+      "sha256": "f5f999d86c4b35063fdb6f207a5aa88244acd88d5aabdba27b0c403a5dc7121a"
+    },
+    {
+      "path": "zk-formal/test/AuditProcIdTagged.lean",
+      "sha256": "339f27f329e55e16c7184bda1e3699a115785c4bbfc87eee393d06ba1edacfd0"
+    },
+    {
+      "path": "docs/e2e-results/v3-id-tagged-local/README.md",
+      "sha256": "8f870b02c548d7f4ab8c8e7cb3cad79b87d02ff0830421a73c411e76fb3ac01c"
+    },
+    {
+      "path": "docs/e2e-results/v3-id-tagged-local/SHA256SUMS",
+      "sha256": "f8028d77d2b3f9687a306c071bea352fbfc1318c8330dcecdde0b3837764df6e"
+    },
+    {
+      "path": "docs/e2e-results/v3-id-tagged-local/dependency-review.json",
+      "sha256": "51445e7d5c20037747e5c9fc16abe3156f381c4db1c6981e234a06718d27f75f"
+    }
+  ]
+}

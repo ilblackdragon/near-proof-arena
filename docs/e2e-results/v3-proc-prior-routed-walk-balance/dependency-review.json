@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "actual_scope": "Physical2 standalone Walk extraction plus genuine EDGE/BMAP conservation including selected4 Node, Head physical1, and selected7 compact UPS. Dummy interactions and all other tables excluded by kernel-checked inventory.",
+  "pure_consumers": [
+    "Render.UpsRelay.Extract.allWalks_wf",
+    "Render.UpsRelay.Extract.ups_walkHyp",
+    "Link3.walk3_find'"
+  ],
+  "remaining": "KEYNIB provenance and authenticated concrete key association remain. Full WalkBal is not asserted for standalone walks alone.",
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

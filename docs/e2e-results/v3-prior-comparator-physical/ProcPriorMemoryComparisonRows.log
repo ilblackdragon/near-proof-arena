@@ -1,0 +1,30 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonRows.lean:39:41: warning: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (0 : Fp) * nxt ProcPriorMemoryTable.act = 0 from by grind,
+    show cur ProcPriorMemoryTable.act * (0 : Fp) = 0 from by grind,
+    show ∀ x : Fp, (0 : Fp) * x = 0 from by intros; grind, show (0 : Fp) ≠ 1 from by decide +kernel,
+    List.replicate_zero, List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonRows.lean:39:51: warning: This simp argument is unused:
+  List.replicate_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (0 : Fp) * nxt ProcPriorMemoryTable.act = 0 from by grind,
+    show cur ProcPriorMemoryTable.act * (0 : Fp) = 0 from by grind,
+    show ∀ x : Fp, (0 : Fp) * x = 0 from by intros; grind, show (0 : Fp) ≠ 1 from by decide +kernel, ite_false,
+    List.append_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonRows.lean:39:71: warning: This simp argument is unused:
+  List.append_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [show (0 : Fp) * nxt ProcPriorMemoryTable.act = 0 from by grind,
+    show cur ProcPriorMemoryTable.act * (0 : Fp) = 0 from by grind,
+    show ∀ x : Fp, (0 : Fp) * x = 0 from by intros; grind, show (0 : Fp) ≠ 1 from by decide +kernel, ite_false,
+    List.replicate_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

@@ -1,0 +1,39 @@
+{
+  "lane": "process-push-conservation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPushPerm.lean",
+      "sha256": "84dfdab855fabbb54f93ed53e480eba7041830cafd699406cdaef0cd218fb841",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-push-conservation-ProcPushPerm.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPushEntries.lean",
+      "sha256": "7548c18e76d07be3c0d3d75e26184ff3c354f98f74428a8b863414d37e18603b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-push-conservation-ProcPushEntries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPushConservation.lean",
+      "sha256": "94973556a60d607e199e688b40a61d308bdcfd55d3a9795f6bb0c331e1c9e470",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-push-conservation-ProcPushConservation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPushConservation.lean",
+      "sha256": "5c1cf4f969e957a68d02abbee13c86226f42b43ca3a02d449a39c1d981b0288b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-push-conservation-AuditProcPushConservation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules11 exact guards. Actual successful processEv conserves initial/generated/popped push multisets, including renderer timestamp translation. Does not establish core qsort equality guard or accepted execution to model success; full replay invariants and RNG capacity remain.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

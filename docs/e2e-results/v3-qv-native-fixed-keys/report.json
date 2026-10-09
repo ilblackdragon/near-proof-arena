@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical fixed queue keys module; three exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeFixedKeys.lean",
+      "sha256": "66a0d7f1543ae7358e0881b7caa4e7b0e1c11868628410f4aba2b1964ef7b6ac",
+      "audit": "zk-formal/test/AuditQvNativeFixedKeys.lean",
+      "audit_sha256": "69219134b0da00246f8366b6e19fed4c042457327fab9deea54ff034f94cecba",
+      "guards": 3,
+      "log": "/tmp/nearproof-NativeFixedKeys-audit-checked.log"
+    }
+  ]
+}

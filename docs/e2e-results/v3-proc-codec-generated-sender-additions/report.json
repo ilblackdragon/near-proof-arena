@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Sender byte and shift additions on every active row, including header and suffix. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedSenderAdditions.lean",
+      "sha256": "f6a2a56d3559cba1950a8e3e5dbf3bb0762457faeb6b872700e379081906f0c0",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedSenderAdditions.lean",
+      "audit_sha256": "9eb12d1d4b77ce552f0e4329e6d8608677110c57c4b6df9d68e476039e84de54",
+      "guards": 1
+    }
+  ]
+}

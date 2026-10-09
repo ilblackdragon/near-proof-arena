@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-source-rc-jobs",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalRcJobs.lean",
+      "sha256": "6f3bc8a5175f9acf7f041e4be3eacb605e9227619b07238f0ad4388e2177d9ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-RcptCanonicalRcJobs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSourceInputs.lean",
+      "sha256": "bfe8206818d033b788832319574d72f39219cc71e6281d4bfa6bdc41dd3c6de7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-RcptSourceInputs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSourceRcDigest.lean",
+      "sha256": "d9f1b68d6c29f251c515e9709259ae11a9cc340f95b68f90f404666c8c214507",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-RcptSourceRcDigest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSourceRcOutputs.lean",
+      "sha256": "29b5cd4d97f9682835719086f395f7856e7fc48b999cebbd212e3d856eb91391",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-RcptSourceRcOutputs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalRcJobs.lean",
+      "sha256": "299b35a9cbceb11320f1fb911d320563b8516e37d9f626447493bf2181537276",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-AuditRcptCanonicalRcJobs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSourceInputs.lean",
+      "sha256": "a16c02237ea91f1bebe20e0fdbc8cbdbb793a44e6774db4bbffefefbf9db9dd2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-AuditRcptSourceInputs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSourceRcDigest.lean",
+      "sha256": "880f8f46179c499e59ca72441217fe7a3ac6d9dd97d5c765a9f3762222afb71d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-AuditRcptSourceRcDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSourceRcOutputs.lean",
+      "sha256": "f747bcf62adaddb80adb7c388bec65b39bc4c90ec061e53d2dd4f8daca87175d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-jobs-AuditRcptSourceRcOutputs.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules10guards. Canonical source-list RC bytes/digests and accepted source input correspondence. Actual sourceRcShaJobs retains all occurrence preimages but sets digest flags from sourceDup; digest outputs exactly match nonduplicate source RC requests.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

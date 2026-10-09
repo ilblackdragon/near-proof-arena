@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual repaired receipt horizontal family structural AIR/header admission, multiplicity and field bounds. No complete trace/global bus balance or final scheduler repair admission. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalReceiptWf.lean",
+      "sha256": "c83584b0deb2f642cd635aaa3ddbed8be916a04872d702392a5ddbdfcb53aaf3",
+      "audit": "zk-formal/test/AuditHorizontalReceiptWf.lean",
+      "audit_sha256": "292f1a0a849c11610be5118d036ebe9aa78588fc6d2d670810c24dd9a89c6021",
+      "guards": 6
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact link-pass event distribution exists; native finish binds to the same decoded previous state and successful process or prefix witness through deterministic execution. Does not assume canonical prior state. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualNativeFinish.lean",
+      "sha256": "5a9a35b2ca0dfd6733fea17b8b375e0453b0624b113bea94c09c67b118015644",
+      "audit": "zk-formal/test/AuditProcActualNativeFinish.lean",
+      "audit_sha256": "c0fc7e0b7198da3357087466988d6d8d30c24bc29d741c7b97f1ba94efaf14ee",
+      "guards": 3
+    }
+  ]
+}

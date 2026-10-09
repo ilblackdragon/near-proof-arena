@@ -1,0 +1,39 @@
+{
+  "lane": "sort-general",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SortEmptySound.lean",
+      "sha256": "f295bbad6e3fe85f1750bc4adc16e763ee406802ce07920b1a03cb557bb4cef1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sort-general-SortEmptySound.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SortGeneralRows.lean",
+      "sha256": "558d8fdb580109bd66f919084c104e0fd5741dfd4c33032547326fea4bd10d11",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sort-general-SortGeneralRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SortGeneralTrace.lean",
+      "sha256": "163e6766c7121f49dd4f89f0e0ca875de66708ab9cb929ec4f76f57c6932f007",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sort-general-SortGeneralTrace.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSortGeneral.lean",
+      "sha256": "98ed652e9b8412f7f1b5dbb5311d1cb7395460b80a27f98aec7a923362fa1aca",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sort-general-AuditSortGeneral.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Candidate local traces are either globally silent or satisfy original Sort locality; old valid traces retained. Positive renderer extended to 8192 strict 32-byte IDs. Native constructor and new family admission pending.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

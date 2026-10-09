@@ -1,0 +1,31 @@
+{
+  "lane": "chain-paid",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountClaimFields.lean",
+      "sha256": "e5910f6340bf58c08b3bfda7d4a9f08d26c42f9063ebe8bbcfe75514bfaf81b3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-chain-paid-SizeCountClaimFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountChainPaid.lean",
+      "sha256": "da06f9a0fefd383e3192d022daec9ac6d458e30f6942f53dd100f16b89688756",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-chain-paid-SizeCountChainPaid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountChainPaid.lean",
+      "sha256": "734f6852c66e0b19b1fce604547c9d923a9b8c067dc95b7e5b93cf22a7db5b25",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-chain-paid-AuditRcptSizeCountChainPaid.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 4,
+  "scope": "Strict independent source recompilation and exact axiom audit against recorded prebuilt dependencies. Whole candidate AIR/certificate remains open."
+}

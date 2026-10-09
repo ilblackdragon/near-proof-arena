@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Full corrected codecRows success from successful ActualRun and PV86 params, with absent-state zero allowance and forwarding demand bound explicit. Header/hash loops total, nested records exact by definitional equality, native a2 projection discharges allowance guard. Native forwarding/absence integration and codec TableLocal remain; full certificate/judge incomplete. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecWrapperTotal.lean",
+      "sha256": "afc56d2e8b2c364fff487a02ef0ddd335d0e7cbbff20527a22c8220a8a696fe8",
+      "audit": "zk-formal/test/AuditProcPriorCodecWrapperTotal.lean",
+      "audit_sha256": "4efde3caa3150bfe8821162a26550c50a601899d2ab629b551278fea42d13687",
+      "guards": 6
+    }
+  ]
+}

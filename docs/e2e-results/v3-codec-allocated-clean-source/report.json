@@ -1,0 +1,17 @@
+{
+  "target": "ZkFormal.NearV3.Assembly.SchedulerCodecAllocatedAccepted",
+  "source_modules": 2801,
+  "successful_modules": 2801,
+  "all_source_modules_passed": true,
+  "source_drift": [],
+  "prebuilt_project_dependencies": false,
+  "initial_source_only_reused_modules": 328,
+  "extension_base_source_modules": 2750,
+  "lean_path": "/tmp/nearproof-codec-clean-20261009-b/lib",
+  "olean_symlinks": [],
+  "audit_guards": 192,
+  "audits_passed": true,
+  "manifest_sha256": "a4c28dc8b2ae7b590a940c45fa96d43b619050b1eb4052347d8b23a87cc5c90c",
+  "scope": "Accepted D0a with B<=2M constructs SAME Codec/RawFrame Local and exact presence balance using actual allocated native prior IDs, no supplied ID function. Includes exact native prior-byte inventory and sender/receiver prepared-ID extraction from arbitrary corrected Local under genuine SDL/SPAR/public ownership. Source-only closure with hash-validated reuse of2750 earlier source-built modules. Remaining physical global ownership/joins, full prior lookup semantics, whole transition certificate and judge not proved.",
+  "evidence_sha256": "3dabb278f0df3cc98314b996875f1fd5a6c9082f5479055bae15e97a8c2d357c"
+}

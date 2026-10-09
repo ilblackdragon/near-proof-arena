@@ -1,0 +1,25 @@
+{
+  "lane": "accepted-lookup-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedLookupPhysical.lean",
+      "sha256": "98d5bbd76192555a53884adf1bbb192b93865998c3a96e378b9f48e1d53c491a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-lookup-physical-AcceptedLookupPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedLookupPhysical.lean",
+      "sha256": "a41179be9822d00cd41b8e175ac3000cb82fb9d3293d90332a0641278de79eaf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-lookup-physical-AuditAcceptedLookupPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module,1 exact guard: actual checkD0a acceptance derives the physical walk trace and required size/key bounds. Shared provider/poststate assembly remains open.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

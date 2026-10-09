@@ -1,0 +1,25 @@
+{
+  "lane": "ups-window-generated-address",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowGeneratedAddress.lean",
+      "sha256": "dfb775fc4de0f32d5efc8ebfb771e482ee09648b7965799f229ec802abbdd857",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-generated-address-UpsWindowGeneratedAddress.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsWindowGeneratedAddress.lean",
+      "sha256": "c045e77def1a7ef465058a30b28a258fc4294cd85cb6c03e40db988edb47ebb1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-generated-address-AuditUpsWindowGeneratedAddress.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2 guards. Every actual generated compact read belongs to indexed native nonfresh part with bounded source address and full mapped key. Exact native encoded instance/provider link remains.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

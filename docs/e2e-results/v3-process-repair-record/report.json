@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 10,
+  "dependency_order": [
+    "ProcessRepairRawSource",
+    "ProcessRepairRecordByteRange",
+    "ProcessRepairRecordPhysicalBytes",
+    "ProcessRepairRecordAuthenticatedWord",
+    "ProcessRepairRecordAuthenticatedSummary",
+    "ProcessRepairRecordAuthenticatedTop",
+    "ProcessRepairAuthenticatedRecordBytes"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRawSource.lean",
+      "sha256": "bbceaa4aa036430f0c82217dd50ba80566dd5fddf4e79554fe24c5690c1d0375"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordByteRange.lean",
+      "sha256": "a14a07b3135d9c30c94b014bc3e37da87d287837622950838f3d4e1411499ea0"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordPhysicalBytes.lean",
+      "sha256": "c109b47bfb32b79b91af46b018c01621196f51c06c6fadd68b86b9663c39cf80"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordAuthenticatedWord.lean",
+      "sha256": "3d07fc6789a65f7fc8fc4e5f39bc199c82210b10ec2d95592d3e80d0dd6d2b81"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordAuthenticatedSummary.lean",
+      "sha256": "e1c8fb922804e7076b815a492ec3a78db93ec5276eaf7e3d17e0f7b37cbf6798"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordAuthenticatedTop.lean",
+      "sha256": "8c11cdb319a077bff0523bde939ce40c2c86d4e827219e002e0bb9e7c569b99b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAuthenticatedRecordBytes.lean",
+      "sha256": "4cfc03a26188388553436d90731fc7503e7713d6482bd91b64255b5ed95663b0"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairRecord.lean",
+      "sha256": "5dc613b87d5b254e454e24b0bf0fcbe77e5d462be3252163ae1f46e961143bc4"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairRawSource.log",
+    "/tmp/ProcessRepairRecordByteRange.log",
+    "/tmp/ProcessRepairRecordPhysicalBytes.log",
+    "/tmp/ProcessRepairRecordAuthenticatedWord.log",
+    "/tmp/ProcessRepairRecordAuthenticatedSummary.log",
+    "/tmp/ProcessRepairRecordAuthenticatedTop.log",
+    "/tmp/ProcessRepairAuthenticatedRecordBytes.log",
+    "/tmp/AuditProcessRepairRecord.log"
+  ],
+  "scope": "Actual stage3 word bytes, u64 bounds and exact low/big saturated summaries from repaired View; first-limb geometry retained explicitly for separate backward-origin composition."
+}

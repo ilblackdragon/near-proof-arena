@@ -1,0 +1,46 @@
+{
+  "lane": "horizontal-transport",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalAssembly.lean",
+      "sha256": "1eef86c6687bb99ad81df2297654e1e2341f4669749c70e84398f5fbe6a1fca8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-transport-HorizontalAssembly.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalTraffic.lean",
+      "sha256": "379535103d592af13136cc626eabdff0072e02145e4bb858dadc2eb3d567e4b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-transport-HorizontalTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalProjection.lean",
+      "sha256": "97fb217c45b7013cb7ec1ff7f4b21e8b4332cea19703af1913ebe69139e20056",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-transport-HorizontalProjection.log"
+    },
+    {
+      "path": "zk-formal/test/AuditHorizontalAssembly.lean",
+      "sha256": "f114e6b476982c1e34ddfe6088f27b0f1869c86a287547eeb8c5b78d1d2b29ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-transport-AuditHorizontalAssembly.log"
+    },
+    {
+      "path": "zk-formal/test/AuditHorizontalProjection.lean",
+      "sha256": "c4d31fa09ff6419ddf23a4e6c67500668ae888a0e58558c8294b481203f57c0a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-transport-AuditHorizontalProjection.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Full-list equal-height trace assembly and arbitrary fused-trace projection preserve local validity and exact bus counts; native common heights remain open.",
+  "exact_axiom_guards": 20,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-native-refund",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeRid.lean",
+      "sha256": "95565efda6d5dc210bf989aa254081568155fef858a589c8e9cf8477dbec3ad4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-refund-RcptNativeRid.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalRefundDigest.lean",
+      "sha256": "5c71bc44f77d99ce4e471b11664e68de35ed27e9cef78f01f7861ad867fc8518",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-refund-RcptCanonicalRefundDigest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptHeightPrepared.lean",
+      "sha256": "65c98e194be5a8dd3fcc814cffc677e4720b9cfbce8548a7c8467a70c1ad89af",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-refund-RcptHeightPrepared.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeRid.lean",
+      "sha256": "bc8d79e9566a1831ed396bb73cd3d1fe45c2a80bdf133c8583dea5acd41ce43b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-refund-AuditRcptNativeRid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalRefundDigest.lean",
+      "sha256": "92835c737f1fc417f80c877b6f3502f986f9d4b182e4845db0a87baf90e7e584",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-refund-AuditRcptCanonicalRefundDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptHeightPrepared.lean",
+      "sha256": "d6695a1f1688f4e0a8ea4e72fcc9e596a2c8da70c01fbbb9515099c39c484be0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-refund-AuditRcptHeightPrepared.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules9guards. Native physical RID refund digest equation, canonical all-view transport, public block height from actual preparation/native context. No assumed refund hash or prepared height equality.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

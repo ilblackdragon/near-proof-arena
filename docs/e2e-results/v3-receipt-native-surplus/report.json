@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-native-surplus",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeSurplus.lean",
+      "sha256": "b4d8721eb28673f8a4747be0bd2593885e4a49a5d8312dfcf04d70788e7d521f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-surplus-RcptNativeSurplus.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeSurplus.lean",
+      "sha256": "002b488f59adbafc4318b7d66198ec9a462bf7ddfd7e0deb58d7273a369be159",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-surplus-AuditRcptNativeSurplus.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5guards: actual successful native batches imply corrected refundAmount<2^128 for each ordinary/system receipt, no extra system gas-price premise.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

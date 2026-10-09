@@ -1,0 +1,39 @@
+{
+  "lane": "four-sha-allocator",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceShaFourPacking.lean",
+      "sha256": "7e051fad603f4a721b600e9259048453b67a1586427436c338510549890d2156",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-four-sha-allocator-SourceShaFourPacking.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReceiptShaCapacity.lean",
+      "sha256": "8a05c86a4a8aae4f354df6d69c692445bb33c2a8c51f10f017174ec8b7d04c4c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-four-sha-allocator-ReceiptShaCapacity.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/FourShaJobAllocator.lean",
+      "sha256": "88cf4a9d4dd1969ffbd86099a2616f74fdf400358939ba90d5e2207c3a8a6aba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-four-sha-allocator-FourShaJobAllocator.log"
+    },
+    {
+      "path": "zk-formal/test/AuditFourShaJobAllocator.lean",
+      "sha256": "55ea12f1bb617ca69c065f4b1fe4d57367f94df64141a738b4cc34b72b5952b0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-four-sha-allocator-AuditFourShaJobAllocator.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four full-object SHA bins, exact multiset preservation and capacity under stated batch bounds.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "same_witness": "Head and Node requests use the same lists as installed TableTraffic. Parent balance is derived from actual bus conservation.",
+  "proved": "The public pre-state root hashes the exact serialization of the same extracted head node, via actual SHA and globally classified byte providers.",
+  "remaining": "Child/value digest links and semantic unfolded tree reconstruction remain separate. RootChain and extracted well-formedness/traffic witnesses remain explicit but have actual installed extraction APIs.",
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Initial representative metadata preserves full NodeOk and concrete count-extended node/value local validity and traffic, but is not globally balanced. Additive chain constructor proves exact per-class ENT balance, UNIQ-compatible immediate-predecessor DUP links and one charged record per class. Physical chain assignment and global sorted UNIQ integration remain open. Strict source checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreDuplicateComplete.lean",
+      "sha256": "7cfed58ee6bdf3318177d343e5b5c3093be853ab994e2d0ed925deb845e1c175",
+      "audit": "zk-formal/test/AuditStoreDuplicateComplete.lean",
+      "audit_sha256": "8ddd9674a7361bcf619371984229d8999af7bea7ee094b40f3fcd48fd19b4e3c",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreDuplicateChain.lean",
+      "sha256": "76b632b2c48645b611473aa58c7e27948601b7333d957a5c6972b30f3163b45f",
+      "audit": "zk-formal/test/AuditStoreDuplicateChain.lean",
+      "audit_sha256": "1a4cfd25a619d90109955bcf03a942c7eeb2203b2ef4f4c4dda6c5f330e56068",
+      "guards": 4
+    }
+  ]
+}

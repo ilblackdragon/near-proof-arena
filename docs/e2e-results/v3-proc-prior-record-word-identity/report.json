@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual record word limb rows preserve instance tau and record ordinal from local constraints. Byte/native identity remains a separate obligation. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordWordIdentity.lean",
+      "sha256": "3d44fd307cf5932e5bbeac07efe84f09f4b2d1dceec05f02477ede56c4edfe7d",
+      "audit": "zk-formal/test/AuditProcPriorRecordWordIdentity.lean",
+      "audit_sha256": "35d76af092cab45c59b4910fc289c257dc74aaf55396b2d126743833ef56e109",
+      "guards": 2
+    }
+  ]
+}

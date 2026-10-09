@@ -1,0 +1,37 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGeneratorFactor.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardSuccess.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellBridge.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGridBridge.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGeneratorSuccess.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeOldComparisonCapacity.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcNativeOldComparisonCapacity.lean",
+  "guards": 18,
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGeneratorFactor.lean": "590b2585ab0bc835e7fc35209dd0dc483d6ef2c4b325fb87097da84b11201c12",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistShardSuccess.lean": "f994bcdbbe6259dd0f1c55387e903a488decc8c9669c3ee87a25b036c6aafde5",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCellBridge.lean": "db2482a422ec8ae59dcc11311a739b299e1c04f5973a328ac65e3a37bc38d210",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGridBridge.lean": "e97fe456e04703fdc7b89bd7cf4ea9831a6788eb92015e72d764b69b9251a943",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGeneratorSuccess.lean": "00120b87d5805faaa622ba225e5e0ce5be344eb4d383e6e12c163430f90dc494",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeOldComparisonCapacity.lean": "65f2c9ee3057fae9ea87ec5efcd6ee62419710e511a5fc8e1c3c9ed8ee4f288b",
+    "zk-formal/test/AuditProcNativeOldComparisonCapacity.lean": "4632550aee43d0b52886c5513245fa0f7877faa144c78c28cd1d8a62c5e9bd59"
+  },
+  "dependencies": [
+    "ProcNativeOldComparisonBudget",
+    "ProcSharedComparator",
+    "ProcDistGridAgreement"
+  ],
+  "remaining_assumptions": [
+    "actual preparation success",
+    "existing SAME PriorCore p B bs",
+    "existing B<=2000000"
+  ],
+  "remaining_work": [
+    "Dist CmpOk native operand proof",
+    "old40 physical sender inventory",
+    "distribution grants correspondence for full ScanDist/Codec linkage"
+  ],
+  "validation": "strict Lean -j1 autoImplicit=false relaxedAutoImplicit=false; scoped compiled dependencies"
+}

@@ -1,0 +1,32 @@
+{
+  "lane": "native-query-keys",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueryKey.lean",
+      "sha256": "9a5802695e61547fa5b7e163cc6c8ce0ef9c1312760282ce51d0b8f2f28c4f21",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-query-keys-NativeQueryKey.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueryKeyTraffic.lean",
+      "sha256": "f180345274cedcfa4cf1cbf73ab00a333abafa61fc61ea47f2bd3914da7dfcaf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-query-keys-NativeQueryKeyTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeQueryKeyTraffic.lean",
+      "sha256": "81b105d158e5da8af85f0fb2d128d8670c77810012ea89abf37289c579c6cad8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-query-keys-AuditNativeQueryKeyTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules6guards. Whole physical ranked KEYNIB receive inventory equals SAME successful native query list keys and END/last flags. Repeated and absent requests retained; receipt consumer joins remain.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

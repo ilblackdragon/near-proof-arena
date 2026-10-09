@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "scope": "See hashed README for exact theorem scope and limitations.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecConcatTraffic.lean",
+      "sha256": "3d19f6e09f7313775cda14eeed09d73ea3d6dd8a6d5387109c3c67eee73021f4"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawPresenceList.lean",
+      "sha256": "fcb7cdb8c4aced4b1160005ea114f62853819263f23c427ff5569a45023769d6"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativePresenceBalance.lean",
+      "sha256": "f5bb9ad20be1a9799c5e05e96b96da26d36fcfcf9ab0163ee77d9857cfb70ecb"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativePresenceBalance.lean",
+      "sha256": "2b78cd50e08530cc5df8428f2d255f98f8d39a0885b9c09fa86bdc5aa8fc10de"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-presence-balance/README.md",
+      "sha256": "0fb866fd21d906b5e8f38e9b0845fe6451485b7ab3ff1b98351939eab7853cf0"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-presence-balance/SHA256SUMS",
+      "sha256": "5cce85c5b040ae44ae1425c0b12dd745b31bf868ee4fcfa3adc7e250327ebe8b"
+    }
+  ]
+}

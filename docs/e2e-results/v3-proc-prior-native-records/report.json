@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Same actual authenticated Value decodes natively and every original record/sanity parser byte equals the corresponding native decoded field byte. Final existential theorem supplies SAME state, exact count,32-byte hash and both byte identifications without supplied decode success. Record limb/memory semantic connection remains separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedDecodedRecords.lean",
+      "sha256": "4318f18768a23e0846fcfd1fb27302e8c8bcdc7104c788bc846a6ba53d84fd52",
+      "audit": "zk-formal/test/AuditProcPriorRoutedDecodedRecords.lean",
+      "audit_sha256": "b9e0b645fecfb949267cf64e6dbaff360439990afdbd4aed533e8c703c692f66",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedNativeRecords.lean",
+      "sha256": "056b0af74f9dcbabe76f42a1b9bbecb7eb87d745da37d6204aa48e748e673c60",
+      "audit": "zk-formal/test/AuditProcPriorRoutedNativeRecords.lean",
+      "audit_sha256": "d962d8eb0206361b90640d398a714cc440ee6f0fe42d40ed68b103bb657f10d1",
+      "guards": 1
+    }
+  ]
+}

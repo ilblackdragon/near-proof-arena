@@ -1,0 +1,39 @@
+{
+  "lane": "native-replay-providers",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayTargets.lean",
+      "sha256": "aed5d43e93491a841192436a52ef724341fb1f4a4c0342978cc2fbbc15fd440d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-providers-NativeReplayTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayProviderNode.lean",
+      "sha256": "d18fef3a7bd6c3a5a7b96cbd47874b6106571224604772ea0a737e00bc25e78b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-providers-NativeReplayProviderNode.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayProviderForest.lean",
+      "sha256": "4783c07c0fd10d241e7fe4130dd251afc49442a1cf51ecbda2931f9e48bbcaf2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-providers-NativeReplayProviderForest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReplayProviders.lean",
+      "sha256": "86ba14b225810eef2e52bf3d90db9220acfebe09b67ace38ab2f2e0895136802",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-providers-AuditNativeReplayProviders.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules13 guards. Receipt replay preserves resolved root/child IDs and ordered node EDGE/BMAP providers, including occurrence/value offsets.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

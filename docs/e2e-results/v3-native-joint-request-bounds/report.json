@@ -1,0 +1,25 @@
+{
+  "lane": "native-joint-request-bounds",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeJointRequestBounds.lean",
+      "sha256": "eaea66779a661de66112775cf45a137f16927c109839108edf60ab3dbee611e3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-joint-request-bounds-NativeJointRequestBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeJointRequestBounds.lean",
+      "sha256": "0110a81599bd3c8b5189e02080bf6d7e019edc9d51f8e822701546a2cb8d748e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-joint-request-bounds-AuditNativeJointRequestBounds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2guards: actual shared query/UPS rows<=3441404 and EDGE/BMAP counters<P under native size bounds; windows separate.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

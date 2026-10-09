@@ -1,0 +1,53 @@
+{
+  "lane": "native-queue-prefix",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsPhysicalPrefix.lean",
+      "sha256": "c5e3ace0117b2b24513dab52ad614e950f617b71c44e6c31eb8c436608dfc16a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-queue-prefix-UpsPhysicalPrefix.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsJointTraffic.lean",
+      "sha256": "a744182d03763d556a4ea28d8135c4c25b75dabb482e50a8fbc9084f3ece1c7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-queue-prefix-UpsJointTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupQueryComplete.lean",
+      "sha256": "772fcaf14b5fb6ff492ad1268c5e1a0a1f8b0f9ebe2f8a97d1f91beded86df0b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-queue-prefix-NativeLookupQueryComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeQueueLookup.lean",
+      "sha256": "e60bafbd99831085d7eb893b24a5cfc1b3a87051745e80579afcf1a5ae4eade8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-queue-prefix-NativeQueueLookup.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsPhysicalPrefix.lean",
+      "sha256": "5d996a7abbee144765d7149ab15ab0fd5d1b245856dd32c1711698de807e7de7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-queue-prefix-AuditUpsPhysicalPrefix.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeQueueLookup.lean",
+      "sha256": "c5d6f31503b7c0f77644ad680d4dceda49fd61d2693900519256fbeb8270a1a6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-queue-prefix-AuditNativeQueueLookup.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules14guards. Physical UPS counters include preceding query ranks; actual native main/implicit execution constructs queue query list and derives HEAD/EDGE/BMAP providers. Account instantiation,total rows,returned VID remain.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

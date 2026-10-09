@@ -1,0 +1,25 @@
+{
+  "lane": "native-lookup-joint",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupJointInventory.lean",
+      "sha256": "239ad3205568da422cc82600c4dc257f2d3f5d00b0869b213b58b8c97a565e03",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-joint-NativeLookupJointInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupJointInventory.lean",
+      "sha256": "a0b2c0f570d2515bf5ae919406006b4377923020a47636561aadfe7f714923c3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-joint-AuditNativeLookupJointInventory.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3guards. Query plus UPS inventories share rank prefixes and exact EDGE provider conservation. Physical shared-prefix UPS transport, native queries, combined bounds remain open.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

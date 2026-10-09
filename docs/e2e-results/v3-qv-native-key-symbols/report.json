@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical nibble-byte/native key-symbol modules; four exact standard-axiom guards. Scoped check against AIR dependency artifacts, not full certificate. Global byte and QSH balances remain hypotheses.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/WalkNibbleBytes.lean",
+      "sha256": "e9c9c6cb5acef7248a9991a010008e79dcd4d4db144b4f7137c2379a4fcda025",
+      "audit": "zk-formal/test/AuditQvWalkNibbleBytes.lean",
+      "audit_sha256": "f483ed01305e0ed551b08735a19a3a685c9a393c5c683d3a99fb654ac99b2da6",
+      "guards": 3,
+      "log": "/tmp/nearproof-WalkNibbleBytes-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeKeySymbols.lean",
+      "sha256": "c1e8f823fdd0a3e126de0ecdb6fcefd4795ead421d73b06c358188153e31b579",
+      "audit": "zk-formal/test/AuditQvNativeKeySymbols.lean",
+      "audit_sha256": "a149ea2d8b170c683b203baefc76df92074ed1cb7cde52f51d12ffead69ea207",
+      "guards": 1,
+      "log": "/tmp/nearproof-NativeKeySymbols-audit-checked.log"
+    }
+  ]
+}

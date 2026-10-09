@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical BYTE counts of the honest outcome trace equal the concrete whole-message Merkle SHA jobs, including the empty case. Global SHA allocation and DIGEST/MPOS ownership remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Bytes.lean",
+      "sha256": "a0abfe72faad2fa0daf570561f520563ee5d217f57fd127fc2ef2a6c6f529cd3",
+      "audit": "zk-formal/test/AuditMerkleRenderBytes.lean",
+      "audit_sha256": "3ecbdc1b17f63bcbe074d45fe1457ba585aa39709547d08a5d155f8bf4ed2de3",
+      "guards": 2,
+      "log": "/tmp/nearproof-Bytes-audit-checked.log"
+    }
+  ]
+}

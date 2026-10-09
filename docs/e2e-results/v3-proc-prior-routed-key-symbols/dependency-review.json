@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "actual_scope": "Selected18 KeyTrafficRepair Local is projected from actual HoldsP. Every repaired row symbol is a constrained nibble or END. The incompatible original START/key-position traffic is not used.",
+  "remaining": "Receipt key symbols and complete KEYNIB provider association to concrete native keys remain. This is not full lookup soundness.",
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

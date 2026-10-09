@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 7,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairInterface.lean",
+      "sha256": "443af79930bbec0ee94cc768a175e1f3ba9af63b6b348a3561fdc668fe0c8b69"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairTrieViews.lean",
+      "sha256": "93d43a392b064ed1ced5d601632f591c4096a79388cb76a026dfb9c55e3a8aee"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairInterface.lean",
+      "sha256": "182800555e2b266daafa36eff60d655c57f4731e35a93be29457b3311ff072f7"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairInterface.log",
+    "/tmp/ProcessRepairTrieViews.log",
+    "/tmp/AuditProcessRepairInterface.log"
+  ],
+  "scope": "Reusable View separates actual HoldsP from original interaction inventory/non-Proc Local/rest Local. Constructor from actual repaired family; no old Holds asserted. Same-trace node/value extractors produce SAME NodeS3/ValE lists with Wf and full original TableTraffic. Deep forest/value-hash/range APIs remain to be generalized through ownership/balance interface.",
+  "olean_overlay": "/tmp/ups-proof",
+  "limits": "Lean -j1,16GiB virtual memory,45s/file"
+}

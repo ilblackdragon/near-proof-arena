@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Isolated corrected source accumulator charges computed entry payload+44 and zero repeated references; public overhead drops occurrence count. Actual logical table shape unchanged and wf checked. Repeated-source accounting regression fixed. Native encoded limit admits corrected public bytes and pays unique source/original stores under explicit source binding and store alignment. Renderer local/traffic, source sound dictionary without fillers, partition/family integration remain open. Strict source checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceCharge.lean",
+      "sha256": "e7134d937866027eb68470ef2dde99c7f5707e2a2aebc24697da0af4664a931a",
+      "audit": "zk-formal/test/AuditUniqueSourceCharge.lean",
+      "audit_sha256": "b362e0e998433f8a9042dc44d841d06b6b122d1411e52a4152503e90b051f36b",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceBudget.lean",
+      "sha256": "bf565c9847beeda8c0ae8efcb358734f3ac36be5097b18f9ca5244c82f743d0b",
+      "audit": "zk-formal/test/AuditUniqueSourceBudget.lean",
+      "audit_sha256": "0294468236695d8c8e68cfb646698ea520f5cc49639ab38b3ded4ae8be0ec1c9",
+      "guards": 5
+    }
+  ]
+}

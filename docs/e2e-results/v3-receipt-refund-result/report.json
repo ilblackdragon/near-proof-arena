@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-refund-result",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeRefundResult.lean",
+      "sha256": "3506339648091a8da625e67364413c6aee9454b8f6353e15c25da19716626b64",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-refund-result-RcptNativeRefundResult.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeRefundResult.lean",
+      "sha256": "12e93fe2eb35878da540e816e69719b90d69d86f3530239fee322a49ca9e2ee0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-refund-result-AuditRcptNativeRefundResult.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Successful native applyReceipt yields exact refund suffix under constructed surplus flag; system execution preserves refund list.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact physical log22 padding rows discharge actual AIR constraints and multiplicity bits for arbitrary public inputs; table legality reduces to active-row proof with explicit capacity. Six additional retained cRec carry equations on actual allowance rows. Active-row TableLocal remains incomplete. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPhysicalPadding.lean",
+      "sha256": "48a317bf864d7c1c96acd9099d481d08b3052afe1a57a53fb6fe210031a2448c",
+      "audit": "zk-formal/test/AuditProcCodecPhysicalPadding.lean",
+      "audit_sha256": "745e0f5900b342fad342833c997980089ada5f8974d6e540d3cf2ea63c9abf14",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCarryRows.lean",
+      "sha256": "859e4d5d2c1e67c3bc7e9fcdea1308c2f405d2f544feba9432b24c8e65b1b6d8",
+      "audit": "zk-formal/test/AuditProcPriorCodecCarryRows.lean",
+      "audit_sha256": "1d48599b15608eec83af3115816cb502baf1441bb6d9f77360e948631e80fcb4",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCarryLocal.lean",
+      "sha256": "a6f8d9a79d86c02f6ae96caaf3a590dc7d4dbe03f069077111b282d05621f62c",
+      "audit": "zk-formal/test/AuditProcPriorCodecCarryLocal.lean",
+      "audit_sha256": "bdda991b6a9c33ac98bf6722b9b86179ade738cec1518af213a5a35d040e2612",
+      "guards": 2
+    }
+  ]
+}

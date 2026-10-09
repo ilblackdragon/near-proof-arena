@@ -1,0 +1,39 @@
+{
+  "lane": "native-field-bounds",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeNodeCanonical.lean",
+      "sha256": "47b556162f52bc41ff058bbd758ffb5fae687ffeeeacbb16a3447f477e91c4a4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-field-bounds-NativeNodeCanonical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestByteBounds.lean",
+      "sha256": "c5e84f110ccad8e61f81c3f48ca3a33c5dc435ad78ca0a0c5b3912ec1a492437",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-field-bounds-NativeForestByteBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeNodeCanonical.lean",
+      "sha256": "8c01e5a8e280bef37ec8a35f583e8b916d92a00579515d2cb617e4587cdfcf4f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-field-bounds-AuditNativeNodeCanonical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeForestByteBounds.lean",
+      "sha256": "be0d1da014cb29a84853451d87d9d7af4846c5fd42a6e5b075391f050f4cc9bd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-field-bounds-AuditNativeForestByteBounds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual native node fields canonical from wf/allocation/byte premises; byte premises discharged from unchanged2M native cap.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

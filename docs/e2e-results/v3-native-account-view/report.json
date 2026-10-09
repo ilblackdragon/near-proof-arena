@@ -1,0 +1,25 @@
+{
+  "lane": "native-account-view",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountView.lean",
+      "sha256": "35564021c98def3de54d2f2ca0edeca3b1f1475ba92ed45c19f44e6f254d9610",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-view-NativeAccountView.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountView.lean",
+      "sha256": "e41a2d7ed17e5365956aadb2db349323d2202e350a9626b81f81d3c02bd865cf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-view-AuditNativeAccountView.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module6guards. Native Account.decode plus chosen field-bounded IDs/versions constructs singleton AcctWf, 8-bit SHA bytes, and exact updated native Account.encode including unchanged suffix. Whole account-list allocation remains.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

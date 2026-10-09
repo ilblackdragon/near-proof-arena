@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Link gates cRec41/48 and forwarding payload cRec60\u201362 hold on every active physical row; forwarding uses same native prefix/run/distribution and derives24bit bound. Prebuilt dependencies;24GiB cap. 46 header-only equations also proved inactive on every actual record row. Remaining active groups and full certificate open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordHeaderInactive.lean",
+      "sha256": "d983947747e7a65e6ca361055f2ee9d3591a93758952ca945cb0633c726886a1",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordHeaderInactive.lean",
+      "audit_sha256": "dc3b50a6d910dabebd3fe8f38adbe4a40d18b76a769fd0279fee40b756fdc623",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecLinkGateCells.lean",
+      "sha256": "c32ad4524a54ba46a2fd764de224882bf319b84cab288a62172bd8394a5aba7b",
+      "audit": "zk-formal/test/AuditProcPriorCodecLinkGateCells.lean",
+      "audit_sha256": "025b2e69935bd01c9d2a06fd4ba4b834ca512e60b0e51c7b6bcd81dedbccb1e7",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeLinkGates.lean",
+      "sha256": "6a14afaffd58c6e3f2a09847835890a54bd0f070fd5e25c63eb5f8021b7d0e2d",
+      "audit": "zk-formal/test/AuditProcPriorCodecNativeLinkGates.lean",
+      "audit_sha256": "3871b5a4df793102ecd6431168a6a38e18571cfe0b3e9d4ff646c490e9f61184",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecLinkGateLocal.lean",
+      "sha256": "26207cbb256afbbd463291caeffaadcee00012dc729d2a0d3128dd38627f0338",
+      "audit": "zk-formal/test/AuditProcPriorCodecLinkGateLocal.lean",
+      "audit_sha256": "2602facd4f1a225a00fe28a249d42bbab9eef14c1250a10472dc83bd602c2e15",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedLinkGates.lean",
+      "sha256": "fa70a7e08df047a4d694293070b1fe731ad7eee27fb533dfee4f23710a54c07a",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedLinkGates.lean",
+      "audit_sha256": "af3e7b4db254ca711f9b7c91eff1ac101a226a364acd6cd4052fbdf7a548aebf",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardPayloadCells.lean",
+      "sha256": "7c88b3c00fbd6d7be3afea485cfd37ec85b361cb5afd3aa3a68bdb6fe80cdd04",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardPayloadCells.lean",
+      "audit_sha256": "514f07fc33eba2215909ed09f53a5d2a2a62e1a244c99b0a1a6dda18d581f5e4",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardPayloadRows.lean",
+      "sha256": "a9ffe4399f7c4d5e4d41f23250cceff463b86fdc43afaa3378e5224124ac662b",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardPayloadRows.lean",
+      "audit_sha256": "aca1c1643cb38246b00d952e2a3110b5d55b26a953d0c8b3472b98565a16205b",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardPayloadLocal.lean",
+      "sha256": "6c9bd9146f454022d2d3036b46ec8b8a9cfac81f6a67103e0f9766ed57a99159",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardPayloadLocal.lean",
+      "audit_sha256": "f512078a7d9d253d80f21f0e6cdded10f75c5703a35ef0bdb001095cc2e5cfee",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardPayloadNative.lean",
+      "sha256": "2f6eda74a5ae1e7670a36493031decdd1aeff86e526589c5ee11d5e4e70e29e7",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardPayloadNative.lean",
+      "audit_sha256": "a567d1ec4ec6dff1be43cc88383d61733a9089d37b53a09b9206e4c586d3fcb2",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedForwardPayload.lean",
+      "sha256": "1aee82acd8efc779b8f8a845db97badc6d0688692430377894089ebce5422f26",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedForwardPayload.lean",
+      "audit_sha256": "f64f1821987c19d74e8afca724704b16510b3137acd34111ddc2e601892f0222",
+      "guards": 2
+    }
+  ]
+}

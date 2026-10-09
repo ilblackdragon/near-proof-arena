@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Paired pre/post node payloads preserve child-window IDs and match the actual renderer physical child-ID column under WriteTreePair and pre-view wf. Actual paired forest validity,full NodeOk and post-state assembly remain open; prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedNodeWindows.lean",
+      "sha256": "ce987190f480c2dacd880f6da4e4ce724ea08273abdfe121520c9e1742f5a315",
+      "audit": "zk-formal/test/AuditPairedNodeWindows.lean",
+      "audit_sha256": "bbde8811f09c5a04786ccf73b18c59af5c1ce64d516d78b02e005b500e47ec81",
+      "guards": 4
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "lane": "codec-plain",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecPlainStep.lean",
+      "sha256": "0840f30f562da7b7969ed9d96c192e373deb4c4c43118186edb2e91987485f09",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-plain-ProcPriorCodecPlainStep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecPlainCells.lean",
+      "sha256": "00ecde4596c949b07dcb7e3e796eac4185b7fa72d9e8a08c10166be55a9d234c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-plain-ProcPriorCodecPlainCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecPlainAdjacent.lean",
+      "sha256": "177ce14d2883010704df0c8397b84c124e57475ccdca3fce8f3d9980c5e962d9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-plain-ProcPriorCodecPlainAdjacent.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecPlain.lean",
+      "sha256": "443088ff24c64401e0f4ca2b0de9fbe80787e47a1cca7cc77bc94a9b71d904ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-plain-AuditProcPriorCodecPlain.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual native sender/receiver step row append and adjacent inside-field record equations; full original Codec Local and boundary composition pending.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

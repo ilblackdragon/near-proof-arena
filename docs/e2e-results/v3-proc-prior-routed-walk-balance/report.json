@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Installed physical2 Walk view and exact actual EDGE/BMAP counts across SAME Node, Head, standalone Walk, compact UPS. Derives genuine full participant conservation from HoldsP and absence of public path buses. No generated trace or caller balance. KEYNIB key authentication remains separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedWalkView.lean",
+      "sha256": "21f2a90580b52acab9260be4dcd4c434f776977dc7883234fec5bf5c19c7f210",
+      "audit": "zk-formal/test/AuditProcPriorRoutedWalkView.lean",
+      "audit_sha256": "bbff7ae2a5d109b3c2efbeebaa5f8e464b1572de01b8cc9625b57aa4276b62e8",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedWalkCounts.lean",
+      "sha256": "d993bb23d89b05c61c89ee19717838d86abc7df873e86492cf2f90e9e01771fc",
+      "audit": "zk-formal/test/AuditProcPriorRoutedWalkCounts.lean",
+      "audit_sha256": "3ea9c76f6faada76aab065f354c984df785f0f64e729b0d4e6aa0f4034b64ba2",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedWalkBalance.lean",
+      "sha256": "f69809b734991f18d756ca4a81445107953cb67d781820010d8b7664bceb25b9",
+      "audit": "zk-formal/test/AuditProcPriorRoutedWalkBalance.lean",
+      "audit_sha256": "702af2840a4f3271549b40b4dc1c8d518c3ecf529e8e9248f72486614b3436b2",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-walk-balance/dependency-review.json",
+      "sha256": "9df37131c86cab63db510a63bd1630d323d690a68afe99492560a51a242f3c91"
+    }
+  ]
+}

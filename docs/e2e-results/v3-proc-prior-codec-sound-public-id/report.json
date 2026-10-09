@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary satisfying corrected Codec Local plus a live publicID row and explicit five-field bus70 payload equality imply all eight actual sender postbytes equal the expected 64-bit ID encoding. prepared_sender_bytes instantiates the expected ID from actual prepared sp.ids[sender] and derives the64bit range from prepD0 success. No generator, original CLocal, uniqueness, independent per-row flags, or extra room premise. Global ownership/balance must still supply the payload equality and valid sender selection; priorRead68 remains separate. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundPublicId.lean",
+      "sha256": "03ae96ddc5228954e2d9675919069915161dec3111ff5f2e067ed65c2ff796e6",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundPublicId.lean",
+      "audit_sha256": "96796040146cf20949c217bd26d7358091721ae2da0ad070264920394045c16d",
+      "guards": 4
+    }
+  ]
+}

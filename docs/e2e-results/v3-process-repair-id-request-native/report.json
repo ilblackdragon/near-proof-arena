@@ -1,0 +1,27 @@
+{
+  "strict": true,
+  "guards": 4,
+  "dependency_order": [
+    "ProcessRepairIdRequestRows",
+    "ProcessRepairIdRequestNative"
+  ],
+  "prerequisites": [
+    "ProcessRepairIdPublicRow",
+    "ProcessRepairNativeIdReceived"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdRequestRows.lean",
+      "sha256": "df19b18701cb22b7fe4323775c2d8fc557c1454221ec4e6e7105ec90f2fc07ad"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdRequestNative.lean",
+      "sha256": "e79a4ec077a2405f503bef6568ec5ac1a93dbe11f104fa6ce437459655848ffa"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdRequestNative.lean",
+      "sha256": "f7067196dadb9c01724a321b78f7267863fa4fc31713699282a4dd2a9e674697"
+    }
+  ],
+  "scope": "Every actual stage1 active nonpublic row is a live71 receiver with exact native prior-record selected-ID payload. Existing native forest/root/public contracts explicit. No first-match result claim."
+}

@@ -1,0 +1,60 @@
+{
+  "lane": "native-old-tree-replay",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeSetExists.lean",
+      "sha256": "389e674cf6855f42cceb8ab42f3e6789a00d16db74c5b27950721b4e0709eea9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-replay-NativeSetExists.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeSetInputValue.lean",
+      "sha256": "e4d2439b32eb4439aac53845df3d12d9cf44be50a22c39ea0cc1c8870a3e4111",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-replay-NativeSetInputValue.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountReplay.lean",
+      "sha256": "3e252a8148391ee082b6738ca77da28ecdc6038ee6531713ba4646060d954adc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-replay-NativeAccountReplay.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeOldTreeReplay.lean",
+      "sha256": "523d997d25833bfc66238f6fd62662dd89867362e5233e6f49af92e7da7d0d9c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-replay-NativeOldTreeReplay.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeSizedReplay.lean",
+      "sha256": "8899f0b7cf0ddd32442ef609528503414a46d2101541bf7df92e4f332b04a164",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-replay-NativeSizedReplay.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeSizedOldTree.lean",
+      "sha256": "7ac48fd9a2c3edc7afeb3b052ac3afd603d0f2789e95ff81479872612d41450b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-replay-NativeSizedOldTree.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeOldTreeReplay.lean",
+      "sha256": "8380e2994c19932cde0edb3990fdba720be329b1c83299a6dd91696138f44cab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-replay-AuditNativeOldTreeReplay.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules9guards: same actual native account writes replay on original prestate, preserving shape/value lengths and all account reads. Does not identify structural final trie; UPS reconstruction remains open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

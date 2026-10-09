@@ -1,0 +1,25 @@
+{
+  "lane": "native-account-touches",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountTouches.lean",
+      "sha256": "6cf3e9655a947f5bb78def58fa3a27031a1069d71382b0f0145fb0ebc8ad62f7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-touches-NativeAccountTouches.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountTouches.lean",
+      "sha256": "6edb58706c542505b17a44fa61996a0b692f960440f70b1a1c407193225d1df8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-touches-AuditNativeAccountTouches.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native account writes and canonical touched keys\u2264receipt count; Acct record renderer and empty account coverage remain open.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

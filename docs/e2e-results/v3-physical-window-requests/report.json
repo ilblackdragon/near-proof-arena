@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual physical UPS read key multiset preserves order and repetitions. Its counts equal physicalWindowUsers and its length is below field modulus from compact local log22. Actual assigned node provider receives have precisely these terminal counts. Native source coverage and full balance remain separate. Strict checks with prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PhysicalWindowRequests.lean",
+      "sha256": "e61e7aba8cffa2abfa628a4077a25988ac2cf5aef3acb11df686c5e08b5b6fc5",
+      "audit": "zk-formal/test/AuditPhysicalWindowRequests.lean",
+      "audit_sha256": "31c2a00f5bc3d937266c24a4b94fd2162f1273ebc09d5116567cbf70999fee6d",
+      "guards": 4
+    }
+  ]
+}

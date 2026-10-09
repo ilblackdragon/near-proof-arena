@@ -1,0 +1,32 @@
+{
+  "lane": "process-prior-events",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorEvents.lean",
+      "sha256": "367e0e6ea26fcbbcd5f7fa8f1b68e6b419c73a14f9d972973971b2bbe3f1f438",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-events-ProcPriorEvents.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorBudget.lean",
+      "sha256": "6488bd8e3bde72079e7ca546042cd337b22ccdb42040e94d60a463ece9721161",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-events-ProcPriorBudget.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorEvents.lean",
+      "sha256": "d17e9b7b046cfb61b4781638ffadb3581032102b8415fb41ac07a16def703a0c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-events-AuditProcPriorEvents.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules15 guards. Executable sorted original-ordinal write/query witness, verified permutation/order/provenance/native summary correspondence. Byte/id/write row capacities under explicit prior bytes<=2M,instances<=33,ids<=64. AIR transitions, comparator width and accepted budget linkage remain.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

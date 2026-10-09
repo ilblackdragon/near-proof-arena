@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete outcome preimages generate native merkleRoot including empty and promotion; honest outcome trace local validity and exact full physical traffic, with exact internal hash count and lengths. Whole-family SHA/MPOS balance remains open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/NativeRoot.lean",
+      "sha256": "a3e3f191a6aba6713036177c1cfe0500ebf2a5225b56776c3755e3804f28a682",
+      "audit": "zk-formal/test/AuditMerkleRenderNativeRoot.lean",
+      "audit_sha256": "dc3d6c6b8bb9c85702e31b062d98e49005569fda8df2f0519d9f719b2779d219",
+      "guards": 6,
+      "log": "/tmp/nearproof-NativeRoot-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/NativeTrace.lean",
+      "sha256": "98c6fb5b69c08a9fa2a9ad8cc7b2332dfbeee095a4e05a9d2aeecdbfd22ea00d",
+      "audit": "zk-formal/test/AuditMerkleRenderNativeTrace.lean",
+      "audit_sha256": "211f4f2ac8b3ad1d9473aa6a60d4c01f5cbbcd9317967569c95b52537c9dcf6a",
+      "guards": 4,
+      "log": "/tmp/nearproof-NativeTrace-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Traffic.lean",
+      "sha256": "a5b295a76f2b92bed0f32321f5fc3be7f6e7b57f5a58cb3ce71fc997d75ac079",
+      "audit": "zk-formal/test/AuditMerkleRenderTraffic.lean",
+      "audit_sha256": "ff6052da43e2107d7b13fb58e9f40be1cc8d27a7ddf543fe336bba6a1926f9a8",
+      "guards": 1,
+      "log": "/tmp/nearproof-Traffic-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/NativeTraffic.lean",
+      "sha256": "b08b8081f616af9165e533dbada0af76c2275ec73c5d4b3b3640615ae7c29063",
+      "audit": "zk-formal/test/AuditMerkleRenderNativeTraffic.lean",
+      "audit_sha256": "d2f8d3dae793f3f71d8f58dd3f2b1d9e26f7324b2d55d1d52e2fe2c7c3964c53",
+      "guards": 2,
+      "log": "/tmp/nearproof-NativeTraffic-audit-checked.log"
+    }
+  ]
+}

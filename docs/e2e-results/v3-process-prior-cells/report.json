@@ -1,0 +1,53 @@
+{
+  "lane": "process-prior-cells",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCells.lean",
+      "sha256": "495218448989e1ea986b3677b8da519477925f9ec40699c1aeac95a330e99b7e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-cells-ProcPriorCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorActive.lean",
+      "sha256": "3ec67184d0d9204a88ecb4da7171f18dfb772a2035ee87e1efac294b5db12ae9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-cells-ProcPriorActive.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorBoundary.lean",
+      "sha256": "bf424673f943c6edb46ffe5cadf464d3c27f47b2851b8b609f34b3669ef519b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-cells-ProcPriorBoundary.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCellBits.lean",
+      "sha256": "9b132863d20add75113ee8817708ea2ed5f858c847c0beb70f392689b5fa3296",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-cells-ProcPriorCellBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIndexed.lean",
+      "sha256": "ed082ab348dbe490b304f45ee6544ebec69be003c2cc9362af166a024103b14d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-cells-ProcPriorIndexed.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCells.lean",
+      "sha256": "4fd38ad596009954f61c6d2b7e0432ce25cfd8c3c066a006b3c494d9dfd81b05",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-cells-AuditProcPriorCells.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules14guards. Actual prior-memory expressions on active/last/padding/wrap rows and multiplicity bits; indexed native carry/reset/query end. Full physical TableLocal renderer next.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,137 @@
+{
+  "lane": "receipt-routing-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingInactive.lean",
+      "sha256": "ff619f675cb7722d0cb9b72a8d539ac7ea574d7900fad42a11bc220bfd624912",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingInactive.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingNext.lean",
+      "sha256": "5de01405765a8dcfbc2113577ab8baa42135d70754f335f572437e1a958a260c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingNext.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingRowLocal.lean",
+      "sha256": "c67102218a90711290bfc0e9e31e827c25a6d0d51cc3dbceac97c9dd1d212f7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingRowLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingNeighbors.lean",
+      "sha256": "e5a14a97cfefaa2e6e7b288667d7815e2fe1d513079b8bcdefed1a0e2915a4cf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingNeighbors.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingPhysicalReceiver.lean",
+      "sha256": "d3ac17496486ac6727181f7efe3fc1a3f24956b4cd5af904a26a85583481bc5d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingPhysicalReceiver.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingPhysical.lean",
+      "sha256": "122600650e68cca94d32415114f52125499249c2feca8e7b709b6e9664b43c61",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingCommute.lean",
+      "sha256": "1789069f47a8323732358751f31d42770ecc26f4050143c013e030983d62dd8a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingHeaderCommute.lean",
+      "sha256": "4a95f4ccf6aa2374ad35bbca747d69d73fab4edfe47b77807ce90646a68a612d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingHeaderCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingComplete.lean",
+      "sha256": "c437118661c2ab0244940eeed2c2649ca0f5113cc19da8c4e72adbd92010a80d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-RcptRoutingComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingInactive.lean",
+      "sha256": "fb0f415d70959bf0326a33fd53a5247f0221a40ff25308dad293dcf4b3bb10e8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingInactive.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingNext.lean",
+      "sha256": "f7493374466573e20eb7d1162d3c134b0e65a108d8c693f3d6b8a81429d2f497",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingNext.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingRowLocal.lean",
+      "sha256": "beba1c658179c5acb0679ba307d2de4ee2583a549ca385a4caa82854588e37d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingRowLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingNeighbors.lean",
+      "sha256": "965ebad7828ce057ae7f620164c7ac7832f40c452958680b8fc393a74b2fbaff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingNeighbors.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingPhysicalReceiver.lean",
+      "sha256": "3f0101b544ccc69ef8765e5bb785dfcb19b0ef6dc53d1670a8b66c8bfb72926a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingPhysicalReceiver.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingPhysical.lean",
+      "sha256": "f59180d9eadf321fe25d11fdc18f5749b229c834fe352e8ca2d529de18cad88b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingCommute.lean",
+      "sha256": "f7286dae2eb676488ae13f3eb20c0f3ee190e7229074dbc4d135d70ec00f7ed6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingHeaderCommute.lean",
+      "sha256": "f90c992d3eba897a6e6d7c488d6c6940e024ec3c1bf5750698b48dcff344f2d2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingHeaderCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingComplete.lean",
+      "sha256": "fd3cf4ec7d7897a48d8e33365fdaf16547aa7f9c02935ad612ce3f2aef67401e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-complete-AuditRcptRoutingComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Full18 routing constraints composed on same physical receipt trace with previous735 constraints, total753/881. Ordinary routing interval/positive endpoint premises explicit. Actual native derivation being connected separately; no complete TableLocal claim.",
+  "exact_axiom_guards": 28,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

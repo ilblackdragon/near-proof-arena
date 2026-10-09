@@ -1,0 +1,106 @@
+{
+  "lane": "size-prepared-paid",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountValView.lean",
+      "sha256": "4b0385cab88a03a9895b3336d6fcda295a00f7b2d42cd965bd06d97a9a0ebb40",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountValView.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountValComplete.lean",
+      "sha256": "43b3d7140604e036438b0c91f53c81d796f243140873eda4277635b05b26754e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountValComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountSourcePartitions.lean",
+      "sha256": "b3eb622396325df2ce9d040b68b9c01ace8c605af0dd2499013eded42f2dc4cd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountSourcePartitions.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountSourceBounds.lean",
+      "sha256": "0326c75317392f248f95786769b1f728047169ed75136c4bffcaa75cf1fcb118",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountSourceBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountNoWrap.lean",
+      "sha256": "b76b603685fec254bd94bbc12a106ef0b6dc9911e6f82766b0a72d16f585ae7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountNoWrap.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountPreparedOverhead.lean",
+      "sha256": "3d4bd71e3e921c9a02da2153c7e8e1ef4aa813d949d95a3d7097bc657a64715b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountPreparedOverhead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountNativeOverhead.lean",
+      "sha256": "65a919600b6f7e1a4ad6a2f2ca968e131e9f32f2e3976913e33d18eb6d386c37",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountNativeOverhead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountPreparedK.lean",
+      "sha256": "fbd2be9a799bc2aee030b6d38c3e16d9b2ac3b7f5dff75635e69924d6e92de3c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountPreparedK.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountAcceptedOverhead.lean",
+      "sha256": "72696cadd43ceb7c1702e2a0cdf938ece57ac80a7419071e1990fbfad0e90fe1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountAcceptedOverhead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SizeCountPreparedPaid.lean",
+      "sha256": "d7da23661f4699a1a8d1c39b1e57e750f5e9cf0bc5d9c3cd96f7a55e1dcac97b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-SizeCountPreparedPaid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountComplete.lean",
+      "sha256": "6eb838ba6d0979759a6773bee138f6d384067cc2d2b58a7395b4b0674791ff6a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-AuditRcptSizeCountComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountBounds.lean",
+      "sha256": "a27bc845377af9ab188201c0552c102baa5decc3dd052366aa50d5c58697d62c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-AuditRcptSizeCountBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountOverhead.lean",
+      "sha256": "cecf82396416ffbd83fcfacfcb27d503e5b184a4d7c5ada1f1e434ba7fad72e1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-AuditRcptSizeCountOverhead.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSizeCountAccepted.lean",
+      "sha256": "7f609ea9657c7bfde0d8112a31593fdb4bccf157e9078a7840d57a506530722c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-size-prepared-paid-AuditRcptSizeCountAccepted.log"
+    }
+  ],
+  "status": "PASS",
+  "scope": "10 candidate SIZE value/source/public-overhead modules and 24 exact guards independently checked against AIR artifacts. Includes accepted-native overhead cap completeness and no-wrap bounds; weighted retained payload and final concrete global provider isolation remain open."
+}

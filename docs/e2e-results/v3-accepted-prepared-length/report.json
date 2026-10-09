@@ -1,0 +1,53 @@
+{
+  "lane": "accepted-prepared-length",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PreparedByteLength.lean",
+      "sha256": "77d6bc82659c96eb1aa82562d8145e7c37a69459be8b7b4123e530d8d287aa0b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-prepared-length-PreparedByteLength.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativePreparedBody.lean",
+      "sha256": "85cfe8dde445135ca45e50742fc490b391777f1bccda1c1b9a81a8d4bc93af8b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-prepared-length-NativePreparedBody.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PreparedSchedulerCounts.lean",
+      "sha256": "6cc7f4593d339c63edb20294588ef2975efc06156df84c99160d6d83b78f4286",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-prepared-length-PreparedSchedulerCounts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedPreparedLength.lean",
+      "sha256": "08082f6957619a4c7ce38d4d143a29e3a5bee268f464a2866eaca09cbdfe396b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-prepared-length-AcceptedPreparedLength.log"
+    },
+    {
+      "path": "zk-formal/test/AuditPreparedNativeBody.lean",
+      "sha256": "991837d0c58b31e95e55a4f150156b891e1d9e71a8d418588753a4d06045cb45",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-prepared-length-AuditPreparedNativeBody.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedPreparedLength.lean",
+      "sha256": "884307d2d07c2578d5e6f3d17abccb13164b60a297dea17192c94ac15e53504e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-prepared-length-AuditAcceptedPreparedLength.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules8guards. Exact prepared-byte formula, actual native body bound and preparation scheduler counts yield normalized nativeHint prepared bytes at most2^26; no supplied length premise or changed acceptance domain.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

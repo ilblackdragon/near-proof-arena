@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual arbitrary four-stage vertical memory extraction. Stage0 predecessors and window selectors are derived from vertical Local; live bus68 sends force stage0 active query bits. HoldsP plus exclusive ProcPriorVertical4Linear sender68 ownership and no public68 supply binds corrected Codec priorRead to exact physical vertical tau/link/lo/hi and zero-or-immediate-write semantics. No standalone memory table, generated clock, chosen window or native trace premise. Global ordering, authenticated writes and outer horizontal-fusion ownership remain separate. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemorySoundRows.lean",
+      "sha256": "43965fd03c12c1695cc97c356e220fbb3e11d917fe00bbd15e5a5e871e529e61",
+      "audit": "zk-formal/test/AuditProcPriorMemorySoundRows.lean",
+      "audit_sha256": "669b7be6b24df1d283a0813cef427fe16f0fe1e48da8c5244772300c9ca3bded",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalMemorySound.lean",
+      "sha256": "24acf4d0fc70600a9a187ff2f673c4bdf45ca3ecd7deca2780e88a18c637c830",
+      "audit": "zk-formal/test/AuditProcPriorVerticalMemorySound.lean",
+      "audit_sha256": "1e7533767b862ee715a42f0cd737ba37149ff64b8bb76fb9d1a98dfdadbabc3d",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalReadSound.lean",
+      "sha256": "9df76bc8563cbeba6697f1817efcf3f260287bf9a989323492d6cd532b5ccce6",
+      "audit": "zk-formal/test/AuditProcPriorVerticalReadSound.lean",
+      "audit_sha256": "c520f2405ac4a7ba669078852379d01d82fdd9fee57bb3261599d0c5cb6bc92a",
+      "guards": 4
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-vertical-read-sound/dependency-review.json",
+      "sha256": "a51807325f447cd3582821e3fb21bc5c1671c6db9272cc2b1a99bc76a15d0773"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Accepted execution derives original prestate FullAccess9-byte encoding requirements, constructs one real access-key provider per selected original VID with actual receipt-use count, Wf/byte bounds and aligned TableLocal/full TableTraffic, including empty/absent batches. Exact physical VBYTES output equals selected original bytes. Joined to SAME strongest receipt/account/trie/fourSHA allocation without provider assumptions. AKC receipt multiplicities and final global VBYTES partition remain open. Prebuilt dependencies; not clean full certificate or prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyValidation.lean",
+      "sha256": "d5cba97867f9dddadebebee17d8e0f782c39fb0aa5f0c0432b5e779ac6ba37a2",
+      "audit": "zk-formal/test/AuditNativeAccessKeyValidation.lean",
+      "audit_sha256": "455bcd90f418d096ede8e3ee6cc304a61a0b3befcb9041148cd34aa55181c529",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyProviders.lean",
+      "sha256": "b5ead3598478a548d740efb55f82e7f940df93b1b5d3c89ac18286c660e50b28",
+      "audit": "zk-formal/test/AuditNativeAccessKeyProviders.lean",
+      "audit_sha256": "8fa23ed800b5f4ace5423210b8f295d07953c59134425aa6d6538a2cbad5e44b",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyTrace.lean",
+      "sha256": "56e36d6d8944fade41c338191c451a6c68c08b1558b3929ebe1611b8049ab6c7",
+      "audit": "zk-formal/test/AuditNativeAccessKeyTrace.lean",
+      "audit_sha256": "c920dd9231b3d625b1fe91be63a52db997679a4be4d676c751a9829f793c2cf2",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyAllocation.lean",
+      "sha256": "2105e3395677b8c918922d4978c5ec3ffdfbccf88e0d6862be22324138359f48",
+      "audit": "zk-formal/test/AuditNativeAccessKeyAllocation.lean",
+      "audit_sha256": "c75a5fe44e37f5576636e32d23e4bb50a46b15b3078c8676ed83ae008c3626e9",
+      "guards": 1
+    }
+  ]
+}

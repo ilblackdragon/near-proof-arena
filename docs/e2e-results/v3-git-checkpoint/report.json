@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-08",
+  "proof_checkpoint": "3760d4f97e741af6d0e78902e85fad0e4ee853e7",
+  "base": "20ff8369af3f2f5143085e0a196d77c15fd1022d",
+  "branch": "codex/near-state-proof-20261008",
+  "git_dir": "/tmp/nearproof-checkpoint-20261008.git",
+  "work_tree": "/data/illia/nearproof",
+  "bundle": "checkpoints/near-state-proof-20261008.bundle",
+  "commit_status": "SUCCESS",
+  "push_status": "FAILED",
+  "push_reason": "Could not resolve host: github.com",
+  "scope": "Progress checkpoint, not an end-to-end certificate/prover/judge success. Original .git remains read-only and untouched."
+}

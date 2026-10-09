@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual quicksort scan preserves pivot and examined-region classification. Completed partition places smaller records before returned pivot and non-smaller records after it, for arbitrary comparator. Recursive sortedness and final generator checks remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcQsortPivot.lean",
+      "sha256": "2b8a7bf982aec883b05fc3647471b6f6a537c56cc7fe9186750602ca3087b691",
+      "audit": "zk-formal/test/AuditProcQsortPivot.lean",
+      "audit_sha256": "ed0295cd13718188f6d29cbe0d32edcb70a3088bac21124a34395d9273d2f404",
+      "guards": 5
+    }
+  ]
+}

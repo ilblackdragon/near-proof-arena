@@ -1,0 +1,43 @@
+{
+  "strict": true,
+  "guards": 17,
+  "dependency_order": [
+    "ProcPriorIdPrefixGates",
+    "ProcPriorIdInterval",
+    "ProcessRepairIdLimbOrder",
+    "ProcessRepairIdLexOrder",
+    "ProcessRepairIdGlobalOrder",
+    "ProcessRepairIdFirstPublic"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdPrefixGates.lean",
+      "sha256": "76a56177b8931df5d1e3282fb24c895e394556373d4f725138859cb8a847d02e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdInterval.lean",
+      "sha256": "06c17cf7196a0899d9ef92c9c163a9e9bda30c936c372e8863fd11021a7aaa9e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLimbOrder.lean",
+      "sha256": "9371cc549ceb6dd329d0fa4c61faca2f516ad1a19855532fc762190bde7758fd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdLexOrder.lean",
+      "sha256": "b258f1c5f88b23bb63266b4ea22ad30f78a09f9f03d7c33c4f0869f39776ef36"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdGlobalOrder.lean",
+      "sha256": "2f7a009f7b4cd22996699a5ac9f5c4ac74aaaf37727b4d18bf4a1c4b216412fc"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdFirstPublic.lean",
+      "sha256": "c87c2c81c840a30fc1bc9dcd4eb1240b1dc8be72cbd82798ff4786c072dadb88"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdLexOrder.lean",
+      "sha256": "4cf2507926cc6e30b5724b1b737fefe69c7f9af7b326be73ee44daeeae9575f4"
+    }
+  ],
+  "scope": "Actual shared40 lex order, active stage1 intervals, equal-key convexity, found propagation and no earlier matching public before found0 origin. Natural keybounds remain explicit in generic global API and are discharged by prior IdRowBounds theorem. Full prepared public coverage/first original index remains open."
+}

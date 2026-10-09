@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Conversion IDs, keys and nonempty increments bind exact initial model pushes. Full actual replay pushed and popped arrays are permutations. sortPush contract, remaining finish checks and full certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualInitialPush.lean",
+      "sha256": "d5cb78bcf08313ed579d686b68652b65d3c253a9d32bcc23bc8781f98cc48de1",
+      "audit": "zk-formal/test/AuditProcActualInitialPush.lean",
+      "audit_sha256": "b79ae954817890fa19692575b4527e081746625e92e62d81e7ee62f714c0576c",
+      "guards": 5
+    }
+  ]
+}

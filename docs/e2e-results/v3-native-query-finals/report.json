@@ -1,0 +1,32 @@
+{
+  "lane": "native-query-finals",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueryFinal.lean",
+      "sha256": "201640b77e4f557681b4e6f660f3e930b829e6f5e5a08ff000845dfbc909c84d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-query-finals-NativeQueryFinal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueryFinalTraffic.lean",
+      "sha256": "e929c8dbe5bc765222441a39af43ddc87c46bdd952f81c7974a99fb0f06ca91e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-query-finals-NativeQueryFinalTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeQueryFinalTraffic.lean",
+      "sha256": "dfea98e9eea4cb96af3f1c85c08469c74d8408d6bd0e2fc917e5d90b21ad735b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-query-finals-AuditNativeQueryFinalTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules7guards. Complete physical ranked-walk FINAL sends equal SAME native query list results, including global VID offsets and absence. Consumer-side joins remain.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

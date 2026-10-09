@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Preserves actual raw stage2 frame provenance through native word/write/read endpoints. Every actual memory write at the same transition tau is decoded from one identical authenticated native State at its original stamp, with exact low/big/saturation. Frame uniqueness derives from actual physical order; no caller same-state premise. Native first-match address semantics and full execution remain open. Incremental certificate only. Prior-read endpoint also carries this single-state interpretation for every write at the query instance, along with selected last-write maximality.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWord.lean",
+      "sha256": "27c833eeb28ba9d20b7b83ac479e84be7bd023630a4e87d8366bfacd7e25b46b",
+      "audit": "zk-formal/test/AuditProcessRepairNativeWord.lean",
+      "audit_sha256": "e7ce17421d78f8f273b964251d62769d3ff97d90aebce6ad8217de9eb680dc77",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWrite.lean",
+      "sha256": "81ef9a75e165b67a178a482b35e32a5d4fbe6a25fba82194652a09f6bea34dbb",
+      "audit": "zk-formal/test/AuditProcessRepairNativeWrite.lean",
+      "audit_sha256": "a97477b8f4e909801fbd8c146f0b05de88b30e251c00ff8a4c4d0018b8a0191d",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWriteReceived.lean",
+      "sha256": "cb88b5300b6e6965e404cfc6d518cdaaecc0029b1e7346b5e88e0387e8d0c69e",
+      "audit": "zk-formal/test/AuditProcessRepairNativeWriteReceived.lean",
+      "audit_sha256": "744fc5c3bb7150ad34973efe36c62881565125141b24dca82e824fc46ee66694",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeMemoryWrite.lean",
+      "sha256": "dcd96a805aeb5148d868d417b7a0c449dc0bcc06f54cfee81dea880c6ae04704",
+      "audit": "zk-formal/test/AuditProcessRepairNativeMemoryWrite.lean",
+      "audit_sha256": "4b5615e15a7c78f9b9723b685e507885fa667591094d33962bd572dac115eba4",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeWriteState.lean",
+      "sha256": "5b8b67286964bda50338f4fcba521ef0dbce9342a884d2eaa85bea0e775897b3",
+      "audit": "zk-formal/test/AuditProcessRepairNativeWriteState.lean",
+      "audit_sha256": "6df8d7d8e9d8a6dd35138378043be5e3613451a2412ffb7df9fab6dc90c57ac5",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativePriorRead.lean",
+      "sha256": "7c18fa59db5d81b1d13c2d0fc7972a2d6aa8026cf94a9a9f2f7cf40bfd460f24",
+      "audit": "zk-formal/test/AuditProcessRepairNativePriorRead.lean",
+      "audit_sha256": "b689b04d7d6d92d12bb3b23cbba4692c77790284bf40736ac8322d862e3cd89e",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeTopWord.lean",
+      "sha256": "92727f98a4344fc1881672c9250a6aac812876b6c68303c0d71ab5f52034fc24",
+      "audit": "zk-formal/test/AuditProcessRepairNativeTopWord.lean",
+      "audit_sha256": "9971de2c0ae8f507c12c6b9a1ac379dbc1b760556f0264956d0d55b140ad137b",
+      "guards": 1
+    }
+  ],
+  "exact_axiom_guards": 9
+}

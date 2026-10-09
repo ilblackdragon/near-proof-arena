@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact physical UPB balance between actual assigned node table and ranked compact UPS trace. Node provider uniqueness derived, window capacity from physical log22, counters chosen from same actual read multiset. Concrete constructor proves both local tables and balance. Reader-to-native-provider coverage remains explicit. Prebuilt dependencies, not complete certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PhysicalWindowBalance.lean",
+      "sha256": "d23477b770cc7e2d212456fe0058a0fd567caa8c2c93204beb4b2971e42b8f57",
+      "audit": "zk-formal/test/AuditPhysicalWindowBalance.lean",
+      "audit_sha256": "14f66d49e51fd77fd40592202607c35b06e34e9e3f3c21b9a31aad69fb1bbb6a",
+      "guards": 4
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "status": "strict PASS; exact axiom audit",
+  "guards": 15,
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanCmpSilent.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistRowCost.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpPhysical.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeDistComparisonTraffic.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcNativeDistComparisonTraffic.lean",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcScanCmpSilent.lean": "ca66e74ce2ebe3851c6dd59e2a3a748b386daa6b0e7d3cdd4f04ee869602b406",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistRowCost.lean": "f404e89e1cc6b3107b2aefd2d90767dfc91230748508f7080369f816abb99b49",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpPhysical.lean": "98d2d836b1fe0a7854ed73a6c4b899cb2fe83fa7c140d1edf86a04e94de834dd",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeDistComparisonTraffic.lean": "3dba24ea2fbc8c6d835efd3b160094a0567813df8c20d22fe6f4ab6ef05c107b",
+    "zk-formal/test/AuditProcNativeDistComparisonTraffic.lean": "95373edc077e693532f286a87810b0e0de4523c658ae1a1107e7ef62c7e0840e"
+  },
+  "prerequisite_reports": [
+    "v3-dist-comparison-inventory",
+    "v3-dist-comparison-valid",
+    "v3-native-old-comparison-capacity"
+  ],
+  "api": "ProcNativeDistComparisonTraffic.count",
+  "premises": [
+    "actual prepD0 success",
+    "SAME PriorCore p B bs"
+  ],
+  "derived": [
+    "actual scan rows comparator-silent",
+    "actual generated distribution rows exact comparison inventory",
+    "actual aggregate rows<=2758688<=2^22",
+    "full fixedlog22 physical40 sends equal SAME distribution comparison list"
+  ],
+  "remaining": [
+    "Full ScanDist TableLocal is separate.",
+    "Selected-family grid-message truncation transport must preserve bus40; no selected-family admission conclusion in these lemmas."
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcScanCmpSilent.lean",
+      "sha256": "ca66e74ce2ebe3851c6dd59e2a3a748b386daa6b0e7d3cdd4f04ee869602b406"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistRowCost.lean",
+      "sha256": "f404e89e1cc6b3107b2aefd2d90767dfc91230748508f7080369f816abb99b49"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistCmpPhysical.lean",
+      "sha256": "98d2d836b1fe0a7854ed73a6c4b899cb2fe83fa7c140d1edf86a04e94de834dd"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeDistComparisonTraffic.lean",
+      "sha256": "3dba24ea2fbc8c6d835efd3b160094a0567813df8c20d22fe6f4ab6ef05c107b"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeDistComparisonTraffic.lean",
+      "sha256": "95373edc077e693532f286a87810b0e0de4523c658ae1a1107e7ef62c7e0840e"
+    }
+  ],
+  "scope": "Incremental strict source rebuild with prebuilt dependencies; physical comparison traffic only, not TableLocal or selected family admission."
+}

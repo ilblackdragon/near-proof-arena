@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Full actual global BYTES provider inventory and real supplier tag bounds authenticate Node/Value preimage bytes to SAME extracted lists. Every live actual NPRE/VPRE digest with matching jobID/length has checked SHA256 preimage exactly those bytes; whole-field length alias is ruled out by authenticated byte positions. No hypothetical otherIds/disjointness/generated trace/hash oracle premise. Actual query jobID/length linkage remains explicit until Head/Node traffic application. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedByteInventory.lean",
+      "sha256": "3142eef9e20ea38eb6402daa4a6c3bec7c5f15d0cb547b03e775552073834002",
+      "audit": "zk-formal/test/AuditProcPriorRoutedByteInventory.lean",
+      "audit_sha256": "97b1e6c15f7609d19c9228fa386f2d0079c666cbbb7ef4b5660d1064a982913e",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedFusedForestBytes.lean",
+      "sha256": "fe4337103ee6ea9ce2f7f353affcfdc0dd73fb4e5d503a8a054d0cbebedf48fd",
+      "audit": "zk-formal/test/AuditProcPriorRoutedFusedForestBytes.lean",
+      "audit_sha256": "91f65041702e72da60ecc3f79d348a9e5a299853d155346e0ddc61a253bc63c0",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedGlobalForestBytes.lean",
+      "sha256": "9a3f23a1669bddbe98546a9cf0b577571133f3c87c1d5615cb5c54c32cfe7491",
+      "audit": "zk-formal/test/AuditProcPriorRoutedGlobalForestBytes.lean",
+      "audit_sha256": "dea5dc68be950f1ecd38184c486c5bde100fd58adbe029010e0fd1ab0be8479f",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorForestPreimage.lean",
+      "sha256": "6e79d94d5aab9d99cbf735ae3008995dd7c888bf9785b04bec9000b699e888bf",
+      "audit": "zk-formal/test/AuditProcPriorForestPreimage.lean",
+      "audit_sha256": "dfb1402038307ef8a2c3ac32c87f97d81c548f3dcd6673837cc4ac908e4c59a4",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedForestDigest.lean",
+      "sha256": "e772e1e7a4eb4d3ff3c1c0f90dbacbda9e1c21108c0a9f4535490a6e7d042d33",
+      "audit": "zk-formal/test/AuditProcPriorRoutedForestDigest.lean",
+      "audit_sha256": "f2e2c3590836416f1434f6e057120325dec1e07819eb19e0e263116e0a5cc006",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-forest-digest/dependency-review.json",
+      "sha256": "d7b52d19816c1518ef04bcecd44a134ff745c1ecc0b7a6b65e57c285b9cf4361"
+    }
+  ]
+}

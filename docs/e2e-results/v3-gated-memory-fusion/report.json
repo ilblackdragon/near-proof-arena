@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete gated memory fused proposal: degree8,width3384,aux108,bytes8313300,headroom75308. Provisional bus allocation, parser/ID repairs and complete trace admission remain. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/GatedMemoryFusion.lean",
+      "sha256": "5ad0cd1c34e4d71d423dcf371e65ed27474854cc8f1bd8163e7a177081c40f07",
+      "audit": "zk-formal/test/AuditGatedMemoryFusion.lean",
+      "audit_sha256": "0e0cc81c9cc4b7b4146f28e73ec5de35dc36099cd8b8a6030162b04455bb45bd",
+      "guards": 8
+    }
+  ]
+}

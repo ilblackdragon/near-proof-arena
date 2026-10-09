@@ -1,0 +1,25 @@
+{
+  "lane": "compact-fixed-height",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CompactHeight.lean",
+      "sha256": "7f5152172d97c8d18c4efd96ee8948d3175be82435b5d6391da9e091db109583",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fixed-height-CompactHeight.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactHeight.lean",
+      "sha256": "e49103f348e4a3402ba88f658ffd7898a10906771e90f2e782fd0ea6a7ff5382",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-fixed-height-AuditCompactHeight.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual accepted native compact UPS renderer at log22, full local constraints and Boolean multiplicities with same native allocation witnesses.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

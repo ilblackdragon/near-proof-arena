@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted prepD0 and native runCore construct corrected generator reduction to sole 29-bit operand check, retaining native state/grants agreement. Success equivalence isolates exact remaining guard. Round-key decrease derived internally from actual model processing and prepared PV86 parameters. Operand bound remains unproved; full certificate/judge incomplete. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualOperandReduction.lean",
+      "sha256": "bf3aa0fcbbef0038423e93c6ebf1429c89fb29badf80751558ec6ebdc11e5b1b",
+      "audit": "zk-formal/test/AuditProcActualOperandReduction.lean",
+      "audit_sha256": "8261ad6bb907b22a4572d73bdb796cc18a1600d44d6ce81c2602e3e053c4e6b2",
+      "guards": 5
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Retagging prior69 to installed40 preserves TableLocal exactly, all traffic counts on other buses, and merges old40+69 natural counts without loss or deduplication. Generic arbitrary trace proof. Full selected-family projection, honest shared comparator construction and capacity remain separate. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRouting.lean",
+      "sha256": "1811d383c481170e8d78b15a565d8d51d1676ddcab1fc73253aa4e92dd59f4e7",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRouting.lean",
+      "audit_sha256": "d0df0953d157092aeb0ab465c6a7c3a79b39b2f33b5b2380139595817caef4b9",
+      "guards": 5
+    }
+  ]
+}

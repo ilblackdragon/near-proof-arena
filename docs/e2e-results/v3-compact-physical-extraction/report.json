@@ -1,0 +1,87 @@
+{
+  "lane": "compact-extraction",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Rows.lean",
+      "sha256": "c781811829c86b656d45c913a80db0af877ac60aa53cdd1941ec85ac9eedf0db",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-Rows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Kinds.lean",
+      "sha256": "f189a70b83557212cf77efdc9d2e0d570fc488dbb9c06bf17376cd4f0913c15b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-Kinds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Layout.lean",
+      "sha256": "832459dee0cd7359e1d637d2421ca7cf068638f14f48e1bee3c18a2474642de1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-Layout.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/NodeParts.lean",
+      "sha256": "ec500c18454ac22b5033bbe87b361d787f6f33b1c9ae179e45f7430b8e294556",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-NodeParts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/KindSteps.lean",
+      "sha256": "30148aee36c9d294268594a1fd8117de4d23a6339f96de14b3190af6a74c7f13",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-KindSteps.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Physical.lean",
+      "sha256": "8c0c434e8c6a42d6194de6946908b3c0f81dab5161aca815d7891baec5c7d0e3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-Physical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/Traffic.lean",
+      "sha256": "268cce0b597ce61853dd417228f5aafc937165cd37f3823e4b8d2a4ac36acc70",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-Traffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/TableTraffic.lean",
+      "sha256": "e75840188afb854cf52eaf24e2d4109a7e12716db52f5dbddfcf25f3df260813",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-TableTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactExtraction.lean",
+      "sha256": "690bce70c0a54609235b618b9e0ed7b0141921950f514b052e740ed847c355d9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-AuditCompactExtraction.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactPhysical.lean",
+      "sha256": "39e2b334a0c78529f7edfa7889920622fcd1dd81c72e1780844e3c04b295e5c6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-AuditCompactPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactTableTraffic.lean",
+      "sha256": "1ea4b3e366db3696c849270889991f526aaa7836109f47ce6f62558f6ebf786b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-extraction-AuditCompactTableTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict recompile of eight compact physical extraction modules: arbitrary TableLocal to segments/nodeparts/Wf/all-bus TableTraffic. Does not prove fresh SHA value binding or full semantic upsert soundness.",
+  "exact_axiom_guards": 40
+}

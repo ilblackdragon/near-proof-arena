@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 10,
+  "dependency_order": [
+    "ProcessRepairForeignByteTags",
+    "ProcessRepairCodecParameters",
+    "ProcessRepairCodecByteTag"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairForeignByteTags.lean",
+      "sha256": "8187162130c7fd2a6c38e7e1b183028f39bcd099383c583ee3153683aaeaaec5"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairCodecParameters.lean",
+      "sha256": "3dafd160cf1273f3e0604cf0641f5fdbe3a5e6f9be53b68f31ec8bc81485f5b4"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairCodecByteTag.lean",
+      "sha256": "21e4ba07bbbaafa18a3624e6d180bab413470c0297ff265a22162b9f5f06fd41"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairTags.lean",
+      "sha256": "4e43b63225369e3292437fa9df5da1227403aa0d6053acbdd1f89151fbdc5346"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairForeignByteTags.log",
+    "/tmp/ProcessRepairCodecParameters.log",
+    "/tmp/ProcessRepairCodecByteTag.log",
+    "/tmp/AuditProcessRepairTags.log"
+  ],
+  "scope": "View-based receipt/Merkle byte tag exclusion, corrected Codec SPAR parameter extraction and byte tag exclusion. Same public PubIdx retained. Source and account tag migration still open."
+}

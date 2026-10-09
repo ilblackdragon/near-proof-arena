@@ -1,0 +1,39 @@
+{
+  "lane": "process-prior-gated",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCanonical.lean",
+      "sha256": "11fb49b1a84679a4aa9ff2f081ab51b7f16c4db6405224d72e2c587a88e2db7b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-gated-ProcPriorCanonical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryGated.lean",
+      "sha256": "336fb143a64346ad6d671c0af50b16fbecb826bfc250c3f4a0d12633a2edbca3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-gated-ProcPriorMemoryGated.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCanonical.lean",
+      "sha256": "d2b3e9d01e7cf761eec7b2c60bad9981368b0c5a8d204ff7b9ef4ae6977ffe67",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-gated-AuditProcPriorCanonical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorMemoryGated.lean",
+      "sha256": "97bd626dd45376779a8a6801b9ed46305e100849ff9e72dbfb1921a789e9081e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-gated-AuditProcPriorMemoryGated.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules8 guards. Native canonical address ranges plus gate-column candidate preserving exact all-bus row traffic. Renderer/full sound ownership remains.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

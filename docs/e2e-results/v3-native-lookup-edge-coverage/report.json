@@ -1,0 +1,81 @@
+{
+  "lane": "native-lookup-edge-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupMismatchShape.lean",
+      "sha256": "b0963d8ff47c83b2f30c54d8e1807006c8bd07bbd6670c164431626a2560687e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-NativeLookupMismatchShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionProviders.lean",
+      "sha256": "9676e1bcb6b32ed07b1906535a8d6a426abe3f710bad96ad9c135539a1e0f04a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-NativeLookupExtensionProviders.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupExtensionCoverage.lean",
+      "sha256": "df67249b1a2f670182127469fedfd4c61c76e539f44f7db03e0e6fa18bd14a2a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-NativeLookupExtensionCoverage.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupChildCursor.lean",
+      "sha256": "d0a4e2b02c4fcd23ea4a76ebceba90cf6794bc6128e88c950b165ebb7bc9fe0c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-NativeLookupChildCursor.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupBranchCoverage.lean",
+      "sha256": "518df34752fc09ada342b597e28ef42f9d4a100da9fbb0812be62e6aadf2fbcd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-NativeLookupBranchCoverage.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupEdgeCoverage.lean",
+      "sha256": "243c55a1607eed56ed572025341b96b080bd9d226a20f31026f0b32f5663e494",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-NativeLookupEdgeCoverage.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupForestEdges.lean",
+      "sha256": "789f483ddbcf3e9f4622549f07d9a9fb12ed19bd3464f6be02c6d2d2fcdbdf80",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-NativeLookupForestEdges.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupExtensionCoverage.lean",
+      "sha256": "6bd529d19c3bf7e0107b0a8c908d3ee94cf719b36274cd06d8236b7a76296891",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-AuditNativeLookupExtensionCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupEdgeCoverage.lean",
+      "sha256": "0eba9116a04ee5ace2f7a240de49e825c746c8835ebad2be82ba9615bda20feb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-AuditNativeLookupEdgeCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupForestEdges.lean",
+      "sha256": "7cefc1624d0614b4fd03f82f89d32914516bd3f7788b2d3fb804525dd3f0a970",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-edge-coverage-AuditNativeLookupForestEdges.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules15 exact guards: every active arbitrary-key lookup EDGE request has provider in SAME actual forest. Extension mismatches, branch sibling cursor shifts, recursive occurrence offsets checked. BMAP/START/shared ranks remain open.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

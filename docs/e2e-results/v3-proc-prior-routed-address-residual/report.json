@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual routed prior68 last-write semantics with only WRITE address range residual. QUERY ranges follow from accepted preparation/SPAR, WRITE stamps from actual Record ordinal and bus67 provenance, both without native/generated trace premises. Result proves zero on missing address or last matching memory write maximal in physical row and stored original-record stamp. Exact public hypotheses remain explicit: SPAR inventory equals prepared render and send-only ownership, no public68/40 segments, no public67 sends. Caller must still authenticate WRITE packed address<2^29; full decoded-write value identity remains separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedAddressResidual.lean",
+      "sha256": "6a1ff0e9a2fa8a03e112329019706b0a45b17def484ff4b58ddee2e8ba115a14",
+      "audit": "zk-formal/test/AuditProcPriorRoutedAddressResidual.lean",
+      "audit_sha256": "267cbebd698f4d74084ed6dfb66c0555e15045b4f2fe16edc16105995098de0d",
+      "guards": 1
+    }
+  ]
+}

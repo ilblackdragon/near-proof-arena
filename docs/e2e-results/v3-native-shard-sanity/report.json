@@ -1,0 +1,60 @@
+{
+  "lane": "native-shard-sanity",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueShardBalance.lean",
+      "sha256": "ab215e7d8ac31f1e7a326bc518c17cbc861fb6c451732193526672bc9b60d91c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-shard-sanity-NativeQueueShardBalance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptShardBytes.lean",
+      "sha256": "fa64e5fa9293a069bfd04bb5be94beaeaa88ac6d09580ffe1833fed0b8842fe0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-shard-sanity-NativeReceiptShardBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeShardAllocation.lean",
+      "sha256": "47615cacfb8f175ffdcadcb0b45f8b65420c3e93fb4752914869c8c726480721",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-shard-sanity-NativeShardAllocation.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptShardSanity.lean",
+      "sha256": "85af9532780a346a8503656689ded57c631683de4506c873b01ce35216a6102b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-shard-sanity-NativeReceiptShardSanity.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeShardSanityAllocation.lean",
+      "sha256": "3846462f7bb67871464ca16c7514f2c161b09b16c512ee8139793c7e6022d1a1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-shard-sanity-NativeShardSanityAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeShardAllocation.lean",
+      "sha256": "a877f90983c86070531a213e4da7c228dedcaa814dc38f14ba58df4c9ccbe5a6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-shard-sanity-AuditNativeShardAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeShardSanityAllocation.lean",
+      "sha256": "e9d12b149fbccf2e418d0c8f64a21fad98cfa5ade67048df7ad1bdaabff337e2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-shard-sanity-AuditNativeShardSanityAllocation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native physical repaired queue QSH conservation integrated into strongest native allocation; all prior facts and both digest equations preserved. No new accepted premises.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

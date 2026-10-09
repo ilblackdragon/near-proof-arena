@@ -1,0 +1,32 @@
+{
+  "lane": "native-request-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/WalkRequestInventory.lean",
+      "sha256": "63b106d3e01eb412ab203feed7510f31c8c6d21f895b93642827cd008babc30e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-request-coverage-WalkRequestInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsRequestCoverage.lean",
+      "sha256": "c8b86400dd7132226a859c8f8b226ec768f6046e070b23897189dbe7440774a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-request-coverage-UpsRequestCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodeRequests.lean",
+      "sha256": "deee40c610b0b26fc1547a15ae7f03abfdafe2f2d2193fd2c0ab2d714e7231b3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-request-coverage-AuditNodeRequests.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual WalkWf3 request list bounds, rank-step validity, and native UPS prefix-provider coverage. START/head and terminal BMAP node binding remain explicit.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

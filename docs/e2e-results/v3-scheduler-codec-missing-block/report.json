@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "guards": 1,
+  "logs": [
+    "/tmp/SchedulerCodecMissingBlock.log",
+    "/tmp/AuditSchedulerCodecMissingBlock.log"
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecMissingBlock.lean",
+      "sha256": "47aa87f5e536c81ee4f61f40d8a490fe1afee7f2e51ba0276cadc54c6e399090"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecMissingBlock.lean",
+      "sha256": "9d48dd6d26afb67467594becacb914b7e56d229e36f57b3d37f02d31fae73fe2"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}

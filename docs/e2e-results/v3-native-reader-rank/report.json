@@ -1,0 +1,39 @@
+{
+  "lane": "native-reader-rank",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderRankOrigin.lean",
+      "sha256": "dabb7963c0ca5625f5b4c36e80c3200b5a38cac5e2c0eac3a0d90a0381444b32",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-rank-NativeReaderRankOrigin.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderRankAllocated.lean",
+      "sha256": "1a0815625ec4ff0d77d8b61c13a953728a0b9e06a6b552af30a7b4e977a7de5d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-rank-NativeReaderRankAllocated.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderRankList.lean",
+      "sha256": "74f527bc5c79575d10a50bae7da09dff7b37ddebadabf9edff0fa48c6b894c7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-rank-NativeReaderRankList.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderRank.lean",
+      "sha256": "a7d89149dd29314ab8bfb30dd8ec2f4e36f5245d91442cd6d1caedaf1e8f1eb9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-rank-AuditNativeReaderRank.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Walk-prefix ranking preserves exact origin, allocated instance and SHA evidence.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

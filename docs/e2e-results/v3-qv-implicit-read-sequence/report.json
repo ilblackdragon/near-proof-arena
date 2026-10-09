@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Five exact guards: actual terminal tau, exact K implicit request count including zero, ordered ordinary tau at each index, and native missingRequest.Holds for every transition. NativeQueueAssembly derives main Valid/Reads and all implicit reads from both global lookup bus permutations, local queue constraints, RootChain/WalkHyp and physical parser evidence. Final table isolation/extraction remains open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/ImplicitReadSequence.lean",
+      "sha256": "c1789357f25dae4d4015a7479b6b21da0bc3e760169ade73a1ea3cba6d82cb95",
+      "audit": "zk-formal/test/AuditQvImplicitReadSequence.lean",
+      "audit_sha256": "56a38d9a28fdaf5bb147a02514133296253aa65945564572a342a402b7b47689",
+      "guards": 4,
+      "log": "/tmp/nearproof-ImplicitReadSequence-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/NativeQueueAssembly.lean",
+      "sha256": "e3dd7c3b4388c29471fec40be2bd1386eb3d1c9107084a711b1ebd247c1eb975",
+      "audit": "zk-formal/test/AuditQvNativeQueueAssembly.lean",
+      "audit_sha256": "4088995c374c17c1d0aa1c64e13599d1cc680db9acbebd7b388c38644ca40d77",
+      "guards": 1,
+      "log": "/tmp/nearproof-NativeQueueAssembly-audit-checked.log"
+    }
+  ]
+}

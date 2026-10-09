@@ -1,0 +1,108 @@
+{
+  "status": "PASS",
+  "same_witness": "Receipt inventory uses same actual extracted ListChain; every receipt key symbol range derives from actual character/public-key scratch constraints. Lookup uses same vs/es/hs with actual standalone+compact UPS walks.",
+  "remaining": "Concrete native queue key/FINAL binding is next; updated ProcessRepair family transport is separate. No original Rcpt TableLocal is assumed.",
+  "dependency_rebuild_order": [
+    {
+      "order": 0,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKey.lean",
+      "sha256": "b3d2aea743b320b5597d068941c025e6847a9773e07c6beb7ad10584d8c0902b",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 1,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTrafficRows.lean",
+      "sha256": "f8ee109f5fb5cacbcfef82a20495284972947fafaeeaca618476ab29e4955e68",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 2,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTrafficGates.lean",
+      "sha256": "05d5f3305cdb01ecb2f41426cf294bb5821a107c5fea1cb3ab9287e554e03cad",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 3,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccountRows.lean",
+      "sha256": "129d910f792f99c0d66454ca9ca68e649c6a20b9e7d94895ed692631295864e2",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 4,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccessRows.lean",
+      "sha256": "e0f2dbc80c5f2af8468e9eef308a05dee5f1141526c1c37fef52007d4b746e0f",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 5,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccessMarkers.lean",
+      "sha256": "f763bb6c5273c2b8ee359f25a40776f4b0dc5b41b0bd794ca72293df4628e5a3",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 6,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyNibbleValues.lean",
+      "sha256": "a262dd68b775d16f35007469d9f6e0ce50505e326f9887b4cea8287d0bc959c3",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 7,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyByteFields.lean",
+      "sha256": "d1ac692af65aaa32226b10f40e6983600be505008d49545d01e2419b0c9d2659",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 8,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerFields.lean",
+      "sha256": "510cf3cc5fc6f15ec689de7baa8852b9d4d9a00671f2d3b0be87c3b88240f8c0",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 9,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerValues.lean",
+      "sha256": "e9fe623041e5bd975007e2b9c0a7c54a37e1ed4272bb35f8ca9cc8271d7c6b77",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 10,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerLayout.lean",
+      "sha256": "ba472c482924884b3119ebe2d634c996909266a55797befcf224df70cc63d1b9",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 11,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyCanonical.lean",
+      "sha256": "9a9d543ff9f9d28a72bafa404d7c8605a49ce90b82951cede55a21c3a510b7c5",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 12,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyPartition.lean",
+      "sha256": "e04d0deb40790926c051ca0c060156d739017aab20e400e30eaea25130e0a452",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 13,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyLayoutFields.lean",
+      "sha256": "41614ecb75071c55278524d72a38836957886b318bea87d0c3ce30b3a14c9eb8",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 14,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyReceipt.lean",
+      "sha256": "28ea6db22e9697bb0bc28fcbbdd26809ee4cf57dd4cd6421dd6324219c39797a",
+      "strict_build": "PASS"
+    },
+    {
+      "order": 15,
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTraffic.lean",
+      "sha256": "3e64a35b374cdb48233a1a8a637dda796a2fdc006841564f899944b6ac055877",
+      "strict_build": "PASS"
+    }
+  ],
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

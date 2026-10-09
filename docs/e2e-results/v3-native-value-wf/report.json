@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native seeded value validity follows from existing preBytes <= 2000000, including empty values. Selected patched native node/value record charge is bounded by actual original native stores, with value validity and provenance discharged. Canonical byte encoding is faithful for native nodes/values including cross-kind matches. Postforest integration and global duplicate traffic remain open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeValueWf.lean",
+      "sha256": "36dec47488e304be27a684b994c9b3537a070755a239317d953558a7536e0a9e",
+      "audit": "zk-formal/test/AuditNativeValueWf.lean",
+      "audit_sha256": "9e0334f809f0dccf1686e236290ef840b76542db931cd6dea330b58dca061d1e",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeByteFaithfulness.lean",
+      "sha256": "e8a085715956242224dfab1a9fe768228afb17d22f62d922db5f9a542bdcd445",
+      "audit": "zk-formal/test/AuditNativeByteFaithfulness.lean",
+      "audit_sha256": "966ef1252194534dbe4e6eabaa56f3d3776833b125de0cb4ad137766d8ef1e09",
+      "guards": 6
+    }
+  ]
+}

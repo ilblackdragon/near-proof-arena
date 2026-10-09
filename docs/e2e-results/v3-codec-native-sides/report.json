@@ -1,0 +1,25 @@
+{
+  "lane": "codec-native-sides",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNativeSides.lean",
+      "sha256": "b1cb944154c553bba289b9f75557c2bf5864fedec43f725b05fe88ec52d86d16",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-sides-ProcPriorCodecNativeSides.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecNativeSides.lean",
+      "sha256": "a603624151a6159a65d2a76a7a1075502abff4fe218cd91278577b6159c9eeed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-native-sides-AuditProcPriorCodecNativeSides.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3guards. Actual ashRow satisfies all19 additions unconditionally; actual headerRow satisfies additions with final-header next counters zero. Original constraints and record array linkage remain.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

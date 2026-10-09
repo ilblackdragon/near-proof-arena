@@ -1,0 +1,45 @@
+{
+  "lane": "relay-fresh",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayValue.lean",
+      "sha256": "341aebfd7e4fdeb886f591b5736568637ffc4da152c45d0f1e3c5a6aafe003e1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-relay-fresh-CodecRelayValue.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/RelayFreshSha.lean",
+      "sha256": "1b94e8b5c8b4615dfacb1304e00d614cacabeeb7c432db127b2bfd1fc2c29a48",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-relay-fresh-RelayFreshSha.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/RelayNativeInventory.lean",
+      "sha256": "9f1b9ebfc27eb04e90ee2dd3027f14e71eef3f5906cb14a139a69b937e76091e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-relay-fresh-RelayNativeInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/FreshDigest.lean",
+      "sha256": "9afc6e5f9809828272dec810e8f2ec497bbfe88becf05bfcf8b6bf70c33acbe2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-relay-fresh-FreshDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRelayFreshSha.lean",
+      "sha256": "32a6dc13de81a72f8986fd7c150e2059c695aeef3a8413176f3e9045f81868dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-relay-fresh-AuditRelayFreshSha.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Independent strict compile of Codec relay value/native inventory/fresh SHA bridge and compact FreshDigest. Global BYTES ownership/count equations remain explicit; no final global honest assembly or full upsert semantics.",
+  "exact_axiom_guards": 8
+}

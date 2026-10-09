@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Existing NativeReaderOrigin entails exact NativeEncodedInstance for SAME forest run. Retains encoding through prefix ranking; full physical scheduler DIGEST conservation transported through actual window counter patch. No second constructor choice; integration into shared allocation result still pending. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSchedulerEncodedOrigin.lean",
+      "sha256": "ddc6f657c1c31e18085e9ff717b1982820dc0a8a4550f6f59477a586405a544f",
+      "audit": "zk-formal/test/AuditNativeSchedulerEncodedOrigin.lean",
+      "audit_sha256": "52a0a94ebe6f3b920f71799b3615a5ece2d62ab09f1507dda9798a58187c3b96",
+      "guards": 3
+    }
+  ]
+}

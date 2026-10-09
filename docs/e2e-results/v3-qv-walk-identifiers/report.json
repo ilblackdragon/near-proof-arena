@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Four exact guards: actual main/implicit walk identifier formulas and within-phase uniqueness, with no-wrap derived from table height. Cross-phase and other-provider separation remain open; not full ownership or certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Qv/Extract/MainWalkIds.lean",
+      "sha256": "944181b59b56778f39f2e258211cf7569254f54c01ded6bd1ed3bf64cf443c23",
+      "audit": "zk-formal/test/AuditQvMainWalkIds.lean",
+      "audit_sha256": "c6a93a95d3f7cae4a71e2c37e2957bfa6f9213d3f03f176df6bc34974c1bb3b8",
+      "guards": 4,
+      "log": "/tmp/nearproof-MainWalkIds-audit-checked.log"
+    }
+  ]
+}

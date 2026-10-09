@@ -1,0 +1,95 @@
+{
+  "lane": "scheduler-native-digests",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerNativeDigests.lean",
+      "sha256": "8c06542680e27e10a78b60eabb0b0a5877dcd9a465f4ce0fb7d8ffc2faa36175",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-SchedulerNativeDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRootDigest.lean",
+      "sha256": "e23e0c474ac6c12af861d2ff65047054e952607d31be1cc5f5c6543bc17ff1dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-SchedulerRootDigest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactPhysicalDigests.lean",
+      "sha256": "9ae4aca656bb1bd347b909e78ec147119dcad8b943d9b9e3088cde744c42936f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-CompactPhysicalDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactDigestRows.lean",
+      "sha256": "8c370f4fe7babf282239e1d97f6ada5b06301d3eee633de43b581de7bd8255d2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-CompactDigestRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactWalkDigests.lean",
+      "sha256": "9a816463da67e8600be166e04a5c1531504f5753c1aae28a92cc5fe293e7a2a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-CompactWalkDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactWalkNativeRoot.lean",
+      "sha256": "d8d412f4c3edd6e915492e666b0fd16d17b47fb8d42ac58b07b03de211269adb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-CompactWalkNativeRoot.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerNativeDigests.lean",
+      "sha256": "6c6346ce6debf67fa908c67f62b71168acbd608c4dd5bb346988a1283d49fba7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-AuditSchedulerNativeDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRootDigest.lean",
+      "sha256": "8a7091fc62def02382bdea1be09315b8e1224f6bc1aa4f936b8a42246b01eccd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-AuditSchedulerRootDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactPhysicalDigests.lean",
+      "sha256": "56d9634510a1f97a44b50d2f780473d6c071472708438beadb88cbd47b5e7bd7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-AuditCompactPhysicalDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactDigestRows.lean",
+      "sha256": "d98877f80a1d2b780c0f5e8afd93fbbd5f7c16f544391d7f9b07d7181859a312",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-AuditCompactDigestRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactWalkDigests.lean",
+      "sha256": "be06aef8919824e306c03fc00686d39a73e65ef6ead541f75d805161716d2602",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-AuditCompactWalkDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactWalkNativeRoot.lean",
+      "sha256": "af96dc57ffec29a3396b8772eb8175d46477a803d7fee33aada63a559a5b524c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-native-digests-AuditCompactWalkNativeRoot.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules9guards. Actual upsert hash outputs and root job agree with physical W3 digest demand. Exact physical row inventory and walk/root binding; full child-window and codec sanity demand still outstanding.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

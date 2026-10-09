@@ -1,0 +1,123 @@
+{
+  "lane": "receipt-deposit-pairs",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositFrame.lean",
+      "sha256": "1a8b8b645b2e4b5616fec68b253f1f0f0e40f4188a5a634d88157dad6cceb2d4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositAddition.lean",
+      "sha256": "8230928c0425338932dd451996b379dbe7a85f7dedb708df8db1783526f088ef",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositAddition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositNonmax.lean",
+      "sha256": "2865cee967f151552172856b274a758cb47cb277a96bd0b7ff249fd00513ec23",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositNonmax.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositTotalFrame.lean",
+      "sha256": "5316044cee46c50fea81da32170038c57551e7782a613268023afdfc6a55aa6f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositTotalFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositTotalLocal.lean",
+      "sha256": "d3bc3aff97953f7cca9b77910c5d4ec04c529a7bf3796862ef71e488a7f95368",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositTotalLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositStorageFrame.lean",
+      "sha256": "2792ab28c995f988e7dd6c8406f9e5f176acbed48840c619e9f8e8266b6fe8c0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositStorageFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositStorageLocal.lean",
+      "sha256": "5e374c792cd50f08adc8c01de03a1cd37b3563b20ebbdad853d818d967a5d8d3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositStorageLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositDelayLocal.lean",
+      "sha256": "1ed487eff6de51dbffe27599ee08f370a248d3ef03604fb0c6b590a80ec6f6e8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-RcptDepositDelayLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositFrame.lean",
+      "sha256": "052d9494f15b66491e576dac44f9a4f4ecd74cc069490a48a3a7fda7ddfe487d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositAddition.lean",
+      "sha256": "6f110388776d4e214ae37f334c18c952e563294c530df27f7c76ed667b8638d3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositAddition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositNonmax.lean",
+      "sha256": "ad5742a7d6040743afbfb35f5f8a914c131e686c4d1686ea815d201d20168d3d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositNonmax.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositTotalFrame.lean",
+      "sha256": "fcecf5eea9cf170d42aaecd9ef7d402912fdf7189cc45369304ca726b1825690",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositTotalFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositTotalLocal.lean",
+      "sha256": "527b3b0ce32f654755cc5c90d1043e76444b9c30e163261ef0c44ae96f1a875d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositTotalLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositStorageFrame.lean",
+      "sha256": "1c1198c028fb78211cda14a84e449a7061238b19c0deda0a876870bcb31a474f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositStorageFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositStorageLocal.lean",
+      "sha256": "8d4693a35bac3cfb2e6144464c6cd48527f734defb31573726b4a03682d2c619",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositStorageLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositDelayLocal.lean",
+      "sha256": "5c23597e7c61a155178187cc74902e96f5384277d5142c87178bbb4ee0d3e170",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-pairs-AuditRcptDepositDelayLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Eight modules21 guards. Actual DEP pairs satisfy29/39 equations: addition/nonmax/total/storage/delay, using native data without artificial version bound. Borrow/stake/age10 and global migration remain; candidate842 unchanged.",
+  "exact_axiom_guards": 21,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

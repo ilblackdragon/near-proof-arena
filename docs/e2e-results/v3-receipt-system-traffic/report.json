@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-system-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemTraffic.lean",
+      "sha256": "a6636c5e81078e02a870115c5143ccab5eaefd5d845a5642843901f4f135836e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-RcptSystemTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemTrafficPlan.lean",
+      "sha256": "801a1a42c6aea420b00fb274071cb2c3be52d4675eb7707e66675fd543861109",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-RcptSystemTrafficPlan.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemTrafficRows.lean",
+      "sha256": "fe6cbaec51d03e587576d9b9951090a73923acaa2973104a5dfa509a0ae13033",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-RcptSystemTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemTrafficPhysical.lean",
+      "sha256": "30f6e957837b968dcdc6bc51c2aeec0de3a1c694e3f6bf0ac99231f1b614ad70",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-RcptSystemTrafficPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemCertificate.lean",
+      "sha256": "668279a3d9d816858183934b015d02187ee5493e7e2af31a45ad4ee28c13a094",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-RcptSystemCertificate.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemTraffic.lean",
+      "sha256": "22f285f7faf51feb280a86277ed0411d8ec6a8ce30cf6a2114da18a47bd20974",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-AuditRcptSystemTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemTrafficPlan.lean",
+      "sha256": "7b55bafad7dc7902b7ca82f91dc0bf364c53dddb1667ca3178f1fe36054e5fed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-AuditRcptSystemTrafficPlan.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemTrafficRows.lean",
+      "sha256": "f5e7195326c6803e87fa57e28ef531dae079c1490de974c24066dceb9657d054",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-AuditRcptSystemTrafficRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemTrafficPhysical.lean",
+      "sha256": "a516e4c4b41d6e825a2acd82370e7d5bda621cd012df234b9a0c6fb8599f53b0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-AuditRcptSystemTrafficPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemCertificate.lean",
+      "sha256": "b70b5bf995bca56ebb108de39378be65f9a5bcc41698256e31a5351d6933de25",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-system-traffic-AuditRcptSystemCertificate.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact ordered SREC sends=receives over actual shared735 trace including headers/padding. Capacity derived from prep/applyNewChunk; no separate bus-balance premise.",
+  "exact_axiom_guards": 17,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "guards": 10,
+  "scope": "Actual native Codec comparator count<=786432 from32 blocks/n<=64",
+  "remaining": [
+    "ActualRun memory-log/round comparator count and ScanDist comparator count",
+    "CmpOk byte/operand validity of all old40 requests",
+    "Actual physical old40 traffic equality and combined shared provider assembly"
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonCost.lean",
+      "sha256": "01794198a0003a35ab28b43f4c56a583a85e15ccb2e654cbc6b8c62f23fffeaf"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonTotal.lean",
+      "sha256": "16349919fe6cc09e9bcfcffea48f276831b026c66a4d1006e83e26dee59031a1"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeCodecComparisonBudget.lean",
+      "sha256": "021a8343cb6a6175d0848b631a357da373e6ad876b1449c9326d3a820d61e9c9"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecComparisonCost.lean",
+      "sha256": "9d46f2cf25d24d4c9624dedca77bba528fd03c484d6a14cfac91581320cd5932"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-codec-comparison-budget/dependency-review.json",
+      "sha256": "b16ce0f06058ee9501de6416cf532ed32ef56bdeeb50fb87f03fd6e523e8e66f"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-codec-comparison-budget/README.md",
+      "sha256": "c9e38f35c31a39c3d26f8bf4d64105787041b1a552eed6cdf5def513422a69f8"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-codec-comparison-budget/SHA256SUMS",
+      "sha256": "1f92b98909abf0a31eefaad18b5c34249fca19e39a18a3c12e78fe5be514101b"
+    }
+  ],
+  "dependency_scope": "Strict incremental prebuilt-dependency build; not full certificate."
+}

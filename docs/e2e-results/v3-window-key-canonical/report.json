@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "All six provider window key fields below modulus from NodeWf3/index/address and actual native post serialization. Native updated forest discharges bytes; exact physical field equality implies original natural key equality without wrap. Strict checks with prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/WindowKeyCanonical.lean",
+      "sha256": "d0d3cc0f6303a8d2fba8af7cd3fc23fb7f29c3aa23161328afe3b0a158e5af58",
+      "audit": "zk-formal/test/AuditWindowKeyCanonical.lean",
+      "audit_sha256": "38b7aa738ff27e5bffe1fe8df505f1254021b620f2af23ba02d6917b96fd92fa",
+      "guards": 3
+    }
+  ]
+}

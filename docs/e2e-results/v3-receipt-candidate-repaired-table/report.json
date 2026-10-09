@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-candidate-repaired-table",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateControl.lean",
+      "sha256": "0d54e75026936df5b03d94ccde827d6633e9a8c131a7dc949ffeb12606e41fc4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-RcptCandidateControl.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRoutingPatch.lean",
+      "sha256": "146455ccdf66f009f24f8deb13f66e496e4f9975ade9cd4a60e8a0e971deff09",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-RcptCandidateRoutingPatch.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRoutingTrace.lean",
+      "sha256": "ca5eb72ed2fccd56e89725b524dae8c35f84c944b2a1fccd4c6a7c9b4d5d4e77",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-RcptCandidateRoutingTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRoutingPredecessor.lean",
+      "sha256": "9e581712043d45919ed6a0dba5b2ce45dd4e9ecda73720ef0ed21cdde919c05b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-RcptCandidateRoutingPredecessor.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRoutingNative.lean",
+      "sha256": "1c34cdf998e5a270919d449778ddd515d1ef622cc7936ce8bf7234fc2d5493f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-RcptCandidateRoutingNative.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRepairedTable.lean",
+      "sha256": "88147aaa4a8ab0782fd1b079e180e35bf4165e9ff3e1d9404ae8300802208eb8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-RcptCandidateRepairedTable.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateControl.lean",
+      "sha256": "54cf4b71fa0ecdc8ccba70332234de3723402ad70da513b8ae116c84ed0594bc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-AuditRcptCandidateControl.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRoutingPatch.lean",
+      "sha256": "bb9d5c5410e8cafbea707fe5a7faf505f3c174ea7402e873b4a6e62714e00445",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-AuditRcptCandidateRoutingPatch.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRoutingTrace.lean",
+      "sha256": "b14763333b622f53e5117f3b4365d1e4e4b55edd1f5a0c25be3b558db60cb4a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-AuditRcptCandidateRoutingTrace.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRoutingPredecessor.lean",
+      "sha256": "7568708e97cda33b2784dd20382d03bfe3a513825cd18f43ebaaf3b9b80bf1b3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-AuditRcptCandidateRoutingPredecessor.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRoutingNative.lean",
+      "sha256": "68955599ac169e924b180b5eed3063c742ec21608390c9171b3265df1043843e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-AuditRcptCandidateRoutingNative.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRepairedTable.lean",
+      "sha256": "94709f3c322ce47fe4095297fe4a4891bc4eda827e7aa6718a6a969cabd2ac56",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-repaired-table-AuditRcptCandidateRepairedTable.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules56 exact guards. Full882 candidate TableLocal on same native log22 trace including q7 strengthening derived from actual bounded routing; every original bus count preserved. Candidate control extraction migrated without assuming old gas/deposit legality. Soundness/install remain.",
+  "exact_axiom_guards": 56,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

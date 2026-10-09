@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 9,
+  "dependency_order": [
+    "ProcPriorRawBackward",
+    "ProcPriorRawOrigin"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawBackward.lean",
+      "sha256": "ada73e127aa988539b4092c580c16ce265236e10759bca422b8dab4ecd68515c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawOrigin.lean",
+      "sha256": "393e9bac8fe7c97d26f1750ec5a9ce328d9bbb0bbdac66531d5c5f3c9c1c9a4c"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawOrigin.lean",
+      "sha256": "ae8ebe137c28c5de01f063e894450d7cc94fc8b61c4dcc20cc29741bf8484053"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcPriorRawBackward.log",
+    "/tmp/ProcPriorRawOrigin.log",
+    "/tmp/AuditProcPriorRawOrigin.log"
+  ],
+  "scope": "Any actual active raw row has earlier first row, same tau/vid/present/count, and exact natural pos with height\u2264P. Full frame interval/record classification remains next."
+}
