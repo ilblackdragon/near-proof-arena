@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecPadding strict PASS2 exact guards (kernel decision): all corrected constraints and every interaction multiplicity expression vanish on interior zero padding (cur=next=0,first=last=0,transition=1). Final padding-to-first active wrap and active rows remain unproved; no full TableLocal claim. Parallel record-row projection and side trailer/bits proofs ongoing. Prior8e9c9ce9 execution/accumulator checkpoint saved. Audits prebuilt-dependency. Goal active.
+
+
 2026-10-09: Codec execution/accumulator checkpoint strict PASS15 exact guards. ProcCodecExecutionTrace retains every successful intermediate state across byte/field/block loops, with adjacent_split sharing actual midpoint. ProcCodecGeneratedExecution connects public corrected codecRows to exact block execution beginning with headerRows and ending in hashRows/ashRows; no opaque Quiet-only prefix. ProcPriorCodecAccumulator/Loop derive actual byte accumulator transitions, preserve retired ap/big, and reconstruct low24 native post value over eight-byte allowance loop. Not yet retained cRec or full TableLocal: agents continuing row projection and side trailer/Boolean constraints. Prebuilt dependency audits. Goal active; last pushed c5e1708e, latest push464a471e DNS failed.
 
 

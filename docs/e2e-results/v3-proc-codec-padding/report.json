@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact corrected codec constraints and all interaction multiplicity expressions evaluate to zero on interior all-zero padding. Does not prove final padding-to-first active wrap or active row constraints. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecPadding.lean",
+      "sha256": "8efb8d6b791157651ba016f917e0ed17af932ab775cb5eda0b96331cafe1d690",
+      "audit": "zk-formal/test/AuditProcPriorCodecPadding.lean",
+      "audit_sha256": "066bf2eac0a4c555087c9416e3d326b12d5e8d31ce7c118660d0e775c46ac9e4",
+      "guards": 2
+    }
+  ]
+}
