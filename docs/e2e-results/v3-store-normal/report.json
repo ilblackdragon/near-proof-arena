@@ -1,0 +1,43 @@
+{
+  "status": "partial-formal-milestone",
+  "scope": "Nonexpanding normalized native trie stores; whole-witness FactorComplete remains open",
+  "integration": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1347,
+    "result": "pass",
+    "includes": [
+      "Assembly.StoreNormal",
+      "Assembly.WitnessStore",
+      "Assembly.TreeStore",
+      "Assembly.FactorSound"
+    ]
+  },
+  "audits": [
+    {
+      "command": "lake env lean test/AuditStoreNormal.lean",
+      "axiom_guards": 17,
+      "behavior_guards": 2,
+      "result": "pass"
+    },
+    {
+      "command": "lake env lean test/AuditAssemblyFactor.lean",
+      "axiom_guards": 3,
+      "result": "pass"
+    }
+  ],
+  "checked": [
+    "Stable byte dedup preserves first-match store lookup for arbitrary key collisions",
+    "Native partialTrie unchanged by deduplication",
+    "Per-store serialized cost includes vector and entry length prefixes and does not expand",
+    "Executable single-instance tree-view allocation connects to native store cost with explicit ID-capacity premises",
+    "Semantic-to-native factoring remains proved after ExtV3 store normalization"
+  ],
+  "open": [
+    "Whole-witness parser/canonical-encoding size preservation",
+    "Multi-instance view allocation and FactorComplete",
+    "AIR-to-Good and honest full trace",
+    "Full-u32 HPL repair integration",
+    "Queue/source partition completeness and candidate protocol admission",
+    "Final proof size, succinct Rust prover, certificate and judge"
+  ]
+}

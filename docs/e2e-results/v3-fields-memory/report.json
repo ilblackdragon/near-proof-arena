@@ -1,0 +1,33 @@
+{
+  "status": "pass",
+  "milestone": "All update-field constraints and current memory group",
+  "integration_jobs": 1133,
+  "memory_target_jobs": 111,
+  "memory_guards": 16,
+  "fields_commit": "7e83ee5d",
+  "field_constraints": 62,
+  "current_memory_constraints": 9,
+  "receipt_import": "Srcp.PathRun",
+  "receipt_commit": "c6ea7cb9",
+  "explicit_inputs": [
+    "FieldsOk canonical node serialization",
+    "WindowOk split child count and source-child-id semantics",
+    "MemOk representable computed carries and serialized result bytes"
+  ],
+  "remaining": [
+    "cBytes",
+    "memory register transitions",
+    "construct all semantic inputs from actual updates",
+    "source block/table assembly and SHA bus discharge",
+    "honest render, final AIR/prover/size certificate and real judge"
+  ],
+  "archive": "/data/illia/nearproof-deps/validation/v3-fields-memory-20261007",
+  "source_sha256": {
+    "zk-formal/ZkFormal/NearV3/Render/Ups/MemInput.lean": "9234df78c3aaa1c2c76398c91bb7206a5104ff8f5ba51e1ea770292a72a35f5f",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/GMemCurrent.lean": "799f0e1adef5ac7fe27433df66270d7d34a01f07021e3f3857cb2d1df8a7de5d",
+    "zk-formal/ZkFormal/NearV3/Render/UpsRender.lean": "0d3468b03267e90d49e98bc5e05973f5610b3228059869697bfae7322fb39cc5",
+    "zk-formal/ZkFormal/V3/Integration.lean": "dcbcd29b184e081285ef021d09ae219d3650b664b32b05c509c9dcbdac796697",
+    "zk-formal/test/AuditUpsMem.lean": "898d4fc92f11a366b39ef0aec8623be437596ea5ef51b84db709e935991c3418"
+  },
+  "limits": "Incremental integration only; no final validator replacement or clean judge-budget claim."
+}

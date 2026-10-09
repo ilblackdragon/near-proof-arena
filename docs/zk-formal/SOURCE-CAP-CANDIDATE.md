@@ -1,0 +1,940 @@
+# Source-proof budget candidate (not active)
+
+The current source renderer and SHA linker are checked. Their completeness contract still
+requires the existing `srcpRows ≤ 2^20` cap. The actual D0a relation has an 8 MiB witness
+limit but no Merkle path depth cap. This document proposes an architectural repair;
+no active table cap, frozen parameter, domain condition or admission theorem is changed.
+
+## Encoding and reuse
+
+Each decoded path item consumes a 32-byte sibling and one direction byte. Thus a witness
+can contain at most `floor(8,388,608 / 33) = 254,200` distinct encoded path items. This
+ignores all other serialization overhead and is deliberately conservative. `RawWitnessBudget.relD0a_selected_path_budget` now proves this directly from successful
+unchanged `RelD0a`: actual parser consumption charges 33 raw bytes per path item and
+last-wins computational selection is a sublist. No re-encoding-coverage premise is needed.
+Likewise, `1984 = 31*64` uses the existing source
+occurrence envelope and still needs its successful-preprocessing derivation.
+
+`lookupLast` can select one encoded proof at many source occurrences. A2 and distinct
+applied receipt IDs force a repeated selected proof's receipt list empty, but do not
+bound its path length. Replaying that path at every occurrence incurs up to 1984 times
+the encoded path cost. The following are conservative upper envelopes, not exhibited
+fully accepted adversarial witnesses:
+
+| Quantity | Per-occurrence replay | Each selected proof computed once |
+|---|---:|---:|
+| Path items processed | 504,332,800 | 254,200 |
+| Source rows (`33L + 64D`) | 32,277,364,672 | 16,334,272 |
+| K_SRC SHA input bytes (`32L + 64D`) | 32,277,362,688 | 16,332,288 |
+| Source SHA rows (`18L + 35D`) | 17,651,683,712 | 8,932,712 |
+
+For replay, both row envelopes require log35 tables; the largest source message number
+can reach 504,334,784, making `16*q + K_SRC` exceed the base field. A cap increase alone
+cannot support this envelope. The deduplicated envelopes require log24 if kept in one
+table. At blowup16 that means LDE log28, beyond Fp's two-adicity27.
+
+## Candidate architecture
+
+1. Select each used last-wins witness proof once. Keep an occurrence-to-proof reference
+   for every prepared source list. Do not deduplicate receipt application order.
+2. Check public key/root/reference consistency. Equal-key roots follow from the actual
+   shared lookup and successful receipt verification; no hash injectivity assumption is
+   needed. In soundness, this relation must be enforced, not assumed from arbitrary roots.
+3. Enforce empty duplicate receipt lists using A2 and distinct IDs. The unique selected
+   proof and all duplicate occurrences must share the same receipt list, leaf and path.
+   Merely skipping duplicate path verification without this linkage is unsound.
+4. Preserve the spec dictionary cardinality: `distinctKeys entries.length == used` counts
+   source occurrences, not unique selected keys. The witness encoder must retain the
+   existing unused filler-entry mechanism. Deduplicating hash computation does not permit
+   deleting those dictionary entries.
+5. Partition source computation into at least two log23 tables (splitting a long path
+   needs an authenticated accumulator/counter continuation). Partition SHA computation
+   similarly, with explicit ownership and global ID routing. Whole-message allocation
+   requires a proved bin-packing bound, not just a total-row inequality.
+
+With the existing A1 receipt envelope and `B0=1,998,836`, non-source receipt SHA work is
+1,243,407 rows and trie SHA work is 2,498,545. Adding unique source work gives **12,674,664
+SHA rows**, below two log23 tables' 16,777,216 combined rows. This does not include new
+wiring overhead or a proof of partition placement.
+
+## Proof-size model and limitations
+
+The isolated candidate shape model duplicates the existing SHA and source table shapes,
+sets each copy to log23, raises only the model's `maxLogLde` to27, and leaves other shapes
+unchanged. The g2 result is kernel checked:
+
+| Auxiliary grouping | Modeled proof bytes | Status |
+|---|---:|---|
+| g1 | 8,524,225 | exploratory `#eval`, exceeds 8 MiB |
+| g2 | **8,190,337** | updated for Ups200, margin **198,271** bytes |
+| g3 | 8,232,097 | exploratory `#eval`, margin 156,511 bytes |
+
+The model excludes added reference/continuation columns and interactions, queue tables,
+and any further assembly additions. It is not an AIR admission or security theorem.
+LDE27 reaches the field limit and needs revised verifier parameter/security validation.
+The small g2 margin makes unmeasured additions material. Existing frozen proof-size
+claims remain about their original shapes and parameters.
+
+Checked candidate modules: `Rcpt/Candidates/SourceBudget.lean`, `SourceSize.lean`,
+`SourceSizeCheck.lean`, `RawWitnessBudget.lean`, and `SourceCount.lean`. The existing complete source renderer is
+`Rcpt/Render/Srcp/ProofComplete.lean`; its row-budget premise remains explicit.
+
+## Checked repetition semantics and remaining integration
+
+`PreparedSourceCount.prepD0_source_count` now derives the 1,984 occurrence bound
+from successful real preprocessing, including the source slice and shuffle loops.
+`RawWitnessBudget.relD0a_selected_path_budget` derives the 254,200 selected-path-item
+bound directly from actual raw decoding and the unchanged 8 MiB check; no canonical
+re-encoding size premise remains.
+
+A lower-overhead candidate reuses the existing later-duplicate flag for deciding which
+occurrences compute a proof, and adds an all-occurrence repetition bit computed from
+prepared keys. The latter marks the first occurrence too. `SourceRepetition` proves
+that every marked occurrence has raw receipt-list length 12 under the routed distinct-ID
+condition, and that later duplicates are marked. It also defines the native equal-key
+root consistency check and proves it follows from shared last-wins verified entries.
+Representative verification then transfers to all occurrences under that check.
+
+These are isolated semantic APIs. The active SRC payload remains width33; adding the
+repetition bit requires a coordinated width34 public descriptor and AIR transition
+change. The current source header cannot be terminal or skip directly to another header,
+so header-only duplicate rows need new constraints and checked rendering. Deriving all
+semantic API premises from the complete successful validator/preparation paths remains
+an explicit integration obligation. No extra native check may narrow RelD0a.
+
+Root's provisional combined queue shape (48 main columns, 8 auxiliary terms, degree5,
+8 interactions, log22) gives an exploratory 8,313,602-byte total with the partitioned g2
+model, leaving only 75,006 bytes for all additional wiring. This is a planning estimate,
+not a checked final queue AIR shape or admission result. Continuations, public repetition
+metadata, proof partition ownership, and existing walk-table capacity must all fit the
+final accounting before any active cap or frozen pin is changed.
+
+The source authentication premise has now been extracted from the real validator:
+`Link.CheckedSources.checkD0_sources_verified` connects successful `checkD0` to its
+actual walk/witness decoder outputs and proves every new source slot's last-wins
+lookup, from/to shards, and Merkle-root verification. `Link.RelSources` derives those
+outputs and raw routing directly from `RelD0a`, and proves equal actual source keys
+have equal roots. `Candidates.PreparedVerified` preserves those authentications through
+the exact prepared slot/shuffle loops. Connecting the full `prepClaim` output to that
+same source-block slice is the remaining prepared-record bridge; no native consistency
+check has yet been added to active preprocessing.
+
+## Active log22 restriction and candidate protocol scope
+
+The active verifier does **not** admit the two-log23 model. `Air/Basic.lean:Table.wf`
+hardcodes `T.maxLog ≤ 22`; `V2/Air.lean:AirP.wf` directly reuses that predicate.
+`Candidates.SourceSize22.log23_not_wf` proves rejection for every table with maxLog23,
+independent of expression validity or a larger `Params.maxLogLde`. This is a protocol
+implementation restriction, not an additional restriction to impose on the NEAR domain.
+
+An alternative using four source partitions and four SHA partitions at log22 retains
+maxLDE26 but fails the proof-size target before new wiring. Exploratory evaluation of
+`Candidates.SourceSize22` gives:
+
+| log22 model | Proof bytes | Excess over 8 MiB |
+|---|---:|---:|
+| g1, no queue | 9,708,997 | 1,320,389 |
+| g2, no queue | 9,278,437 | 889,829 |
+| g3, no queue | 9,345,765 | 957,157 |
+| g2 + actual candidate parser shape (37,3,6,3,22) | 9,375,462 | 986,854 |
+| g2 + provisional combined queue shape (48,8,5,8,22) | 9,413,766 | 1,025,158 |
+
+These are shape-model `#eval` results, not kernel-checked admission claims. They still
+exclude new source repetition/continuation wiring. They make a separately reviewed
+log23 protocol generalization the preferred candidate over simply adding log22 tables.
+
+The candidate parameter record now sets both `maxLogLde=27` **and `posBits=27`**.
+Setting only maxLogLde leaves 26-bit query positions unable to sample the full largest
+LDE domain. Nine 27-bit positions still fit a 256-bit oracle answer (243 bits). The size
+model does not read posBits, so this necessary correction does not change its byte count.
+It does not establish protocol security or admission.
+
+Before active assembly can adopt log23, a separate candidate protocol must close:
+
+1. A parameterized or candidate-specific table-height well-formedness predicate and its
+   extraction facts (`Air/Basic`, `V2/Air`, `Udr/Np/Early`). Preserve the existing log22
+   predicate and deployed challenge pins while developing the candidate.
+2. Header/layout/subgroup bounds through log23 traces and log27 LDEs (`Udr/Np/Msg4`,
+   `Msg8`, `V2/Np/Early`, `V2/G/Early`, `V2/G/Groups`, `V2/G/V1`). The field's actual
+   two-adicity27 is the limit. Do not reuse default maxLDE26 facts by coercion.
+3. DEEP and FRI bad-challenge bounds (`Udr/Np/Chal7`, `Udr/Np/Late`, `V2/G/Late`,
+   `V2/G/Main`). Chal7 currently uses `T≤2^22`; Late currently bounds only logs≤26.
+   Recheck the `2^36` bad-event budget for the larger domains, and recompute actual
+   bus multiplicity/fingerprint bounds for every new partition and continuation.
+4. Query coverage and ROM soundness (`V2/G/Defs`, `Query`, `RomFull`): introduce an
+   explicit candidate parameter family, prove queryLog≤27, 9×27≤256, the required
+   agreement/dominance and QueryOk inequalities, verifier query count, and the final
+   128-bit numerical security inequality. `NpOkPg` currently forces the deployed
+   `pg g` family and is not a certificate for the candidate parameters.
+5. Honest-prover completeness and proof-byte accounting (`V2/PG/Np*`, `V2Prover`,
+   `V2/PG/Admission`), including hints, record descriptors, all AIR shapes, and the
+   8 MiB encoded proof cap. The active admission theorem is tied to deployed `pg`;
+   a new candidate admission theorem must compose the rebuilt semantic and crypto facts.
+
+No active protocol, challenge definition, or frozen pin has been changed by these
+candidate calculations. Current executable `DedupRender` has checked row accounting
+and header-only duplicate behavior, but still has no new AIR local/traffic or partition
+continuation theorem. Those obligations and the protocol work above remain open.
+
+## Actual-input candidate capacity closure
+
+`Candidates.DedupCompile` now compiles every actual prepared occurrence, preserving
+its root, index, and existing duplicate flag, while advancing source message counters
+only for first-occurrence leaf/path computation. `FirstSources` proves that retaining
+indices with the actual public duplicate flag false gives distinct keys. The selected
+entries are a permutation of their last-wins dictionary representatives, so their path
+sum is bounded directly by raw decoding.
+
+For successful unchanged `RelD0a`, successful actual `prepD0`, and the actual raw witness
+decoder outputs, the executable candidate now has checked bounds:
+
+- source renderer rows ≤16,334,272;
+- source hash-preimage bytes ≤16,332,288;
+- source SHA work (18-row leaf messages, 35-row path messages) ≤8,932,712;
+- source messages ≤256,184; next-message counter ≤256,185, with canonical field IDs.
+
+These bounds no longer take a path-depth or computed-path-sum premise. They do not
+assert that the new rows satisfy a yet-to-be-defined dedup AIR or that new SHA traces
+have been rendered and connected on the buses.
+
+`PartitionCapacity` checks exact logical-row reconstruction and two log23 physical
+source capacities with one carried boundary row. It also checks greedy whole-message
+SHA packing: the source-only envelope fits when each message has at most35 rows.
+The full 12,674,664-row SHA envelope fits two log23 partitions when each message has
+at most2,228,242 rows; an 8 MiB preimage has that row bound. Proving the largest-message
+premise for every non-source SHA input is still open. Likewise the carried boundary
+state must be authenticated and local/traffic soundness proved across the split; list
+placement lemmas alone do not establish those AIR contracts.
+
+## Concrete payloads and repeated-source semantics
+
+`DedupSha` proves that every actually decoded source leaf preimage has 32 bytes and
+all path preimages have 64 bytes. Their actual `msgRows` weights agree with the
+18/35-row accounting above, and the actual source payload sequence admits the checked
+two-log23 whole-message packing. This still does not prove SHA table rendering or bus
+balance.
+
+`PreparedReceipts` proves that actual preparation's shuffled source-list order, mapped
+through last-wins witness lookup and receipt routing, gives exactly native
+`appliedReceipts`. `PreparedRouting` transfers D0a's A2 routing guarantee to every
+prepared selected source. Combined with the native successful-check distinct receipt-ID
+guard (`Assembly.SourceResult`), `PreparedRepeated` proves that **every occurrence** of a
+repeated prepared key has an empty raw receipt list, including its first occurrence.
+Consequently the concrete candidate block has `L = 12`. This is derived from unchanged
+`RelD0a`, actual successful preparation, and actual witness decoding; there is no new
+receipt emptiness or key-distinctness assumption.
+
+`DedupTable` is an isolated concrete 57-column candidate with 122 constraints and five
+bus interactions. Kernel checks establish column bounds and degree at most four.
+Executable integer fixtures cover both path directions, duplicate-to-computed transitions,
+a physically full trace ending on a duplicate, and rejection of inconsistent repetition
+metadata/length. Its new public SRC payload is `[j, dup, repeated] ++ root`, so adopting it
+still requires coordinated public descriptor and binding changes. The active public SRC
+schema remains unchanged. General local, traffic, continuation, and candidate protocol
+admission proofs are tracked separately; these checks do not certify a succinct protocol.
+
+The candidate now has checked all-constraint local theorems for duplicate-to-root,
+duplicate-to-padding, and a duplicate physical last row. `DedupComputedLocal` transfers
+all original constraints on non-duplicate rows to the patched table, with exactly the
+new repetition metadata conditions. `DedupTraffic` connects actual candidate field bus
+traffic to natural row records and proves complete root-header messages. Complete
+rendered-trace locality, aggregate traffic, and authenticated partition continuation
+remain open. Seven executable fixtures and twelve transitive axiom guards check this
+isolated checkpoint; all dependencies use only Lean's standard logical axioms.
+
+## Current concrete source and reserved queue budget
+
+`SourceCurrentSize` replaces both synthetic 56-column source entries with the actual
+57-column `DedupTable` shape. At grouping2 its kernel-checked shape is
+`(w, aux, quot, fin, maxLog) = (57, 3, 5, 3, 23)`. Executable model evaluations give:
+
+| Included candidate components | Model bytes | Remaining below8MiB |
+| --- | ---: | ---: |
+| Actual source57/Ups200, two source/two SHA partitions | 8,192,193 | 196,415 |
+| Above plus actual parser37/3/6/3/log22 | 8,289,218 | 99,390 |
+| Above with combined queue52/8/6/8/log22 reserve | 8,338,178 | 50,430 |
+| Combined queue reserve plus explicit source carry-table shapes | 8,359,074 | 29,534 |
+
+The parser37 shape is now derived from the actual merged ValueTable.table; its original kernel check was at
+8463ced1/9f596fd8. The combined52 shape is a **provisional reserve**, including fifteen
+additional base columns for unimplemented queue walk/control and additional auxiliary,
+quotient, and final columns. It is not an implemented table or a proved capacity bound.
+The last row's exact model equality and29,534-byte margin are kernel checked. This is
+now the relevant source/queue estimate, replacing the earlier210,335-byte spare margin.
+Other unimplemented wiring must fit the remaining margin, and the final admitted AIR
+must be measured again; the table is not a final encoded-proof guarantee.
+
+`DedupPartitionTable` makes source continuation costs explicit. Its first partition
+suppresses all constraints and normal message multiplicities on its physical last row,
+which carries a complete57-field state to the second partition's first row. The second
+partition suppresses only global-first source constraints. Carry send/receive are
+unconditional endpoint selectors. Multiplicity digits are individually gated (they are
+binary digits, not a list of multiplicative factors). The first table has degree5 base
+constraints and shape57/4/7/4/log23; the second has shape57/3/5/3/log23. These extra
+interactions and gating cost20,896 modeled bytes. Source carry reserves bus64, distinct from QVC63 and QSH29; the integrated AIR needs
+at least65 buses. Separation from every other bus, a distinct namespace for any SHA
+continuation, and fingerprint/multiset soundness for the full57-field carry record
+must still be proved.
+
+The quotient cost is per table: `Stark/Protocol.lean` defines `Table.degree` from that
+table's base/multiplicity and generated auxiliary constraints, `Table.quotCount` as its
+degree minus one, and `layout` reads that count separately for each table. The source
+carry total degrees are8 and6, both below the unchanged blowup16 ceiling. `NpOkPg`
+and `headerOk` use that ceiling, so this change does not require a larger global blowup
+or larger quotient commitments for other tables. Candidate maxLog23/maxLde27 admission
+and the protocol security numerics still require the separate rebuilding described above.
+
+The overlap now has exact traffic-once and carry-count lemmas below. Global bus
+soundness integration and complete local soundness/completeness across the boundary
+remain obligations; syntactic size/degree checks alone do not establish them.
+
+The logical renderer's full five-bus contract is now checked by
+`DedupTrafficProof.table_traffic`: every root/leaf/path message is accounted for,
+duplicate computation is omitted, padding is silent, and SIZE is emitted exactly
+once with `sum (L + nonduplicatePathCharge)`. It needs only nonempty source blocks,
+32-byte root/leaf/sibling/accumulator widths, and the trace-to-renderer cell equality;
+it does not assume old source row caps or old `SrcpWf`. This closes logical aggregate
+traffic. Logical local completeness is now closed by the later TableLocal checkpoint below.
+
+`PreparedNonempty` now composes the actual `walkD0` decoder/lookup success with B2's
+new-slot membership and proves exact preservation of source-slot counts through
+preparation's shuffle loop. Thus actual successful `prepD0` with that native walk
+has a nonempty prepared source list. `DedupActualTraffic` derives all source block
+widths and nonemptiness from unchanged `RelD0a`, real preparation, and real witness
+decoding, then instantiates the complete five-bus logical `TableTraffic` theorem.
+
+`DedupCarry` checks carry messages against the actual partition interactions and
+`tableBusCount_eq`: exactly one left send and one right receive occur; the opposite
+sides emit none on64. Ideal carry-bus balance for this pair forces equality of the
+complete57-field tuple, hence all57 individual row cells. This is a conditional
+soundness lemma using exact bus counts, not a fixture comparison. Global assembly
+must still prove every other table/public segment is absent from64 and obtain that
+ideal balance from the existing cryptographic bus theorem. Full partition local legality is now checked below.
+
+`DedupPartitionTraffic.pair_messages` and `pair_counts` now prove that the two
+actual partition tables jointly emit exactly the logical renderer traffic on every
+non-carry bus, including the single terminal SIZE record. The common overlap row
+is suppressed only in the left table. The theorem uses equal physical heights,
+logical row coverage, and exact renderer cell bindings; it does not assume traffic
+equality. Honest overlap bindings also imply carry equality and exact carry-bus
+balance. The partition audit now checks26 theorem axiom closures.
+
+The merged Ups width increase187→200 adds12,064 modeled bytes. The updated
+source/carry model is8,359,074 bytes with29,534 bytes remaining. It uses the actual
+QV parser shape and still reserves an unimplemented combined52-column queue table.
+Earlier exploratory g1/g3 and four-log22 figures above predate this Ups repair.
+
+The candidate's complete SIZE budget now follows from actual accepted input:
+`prepD0_dictionary_count` in `Candidates/DictionaryCount.lean` extracts
+native `distinctKeys entries` cardinality equal to prepared source **occurrences**,
+and `prepD0_sources_le_entries` bounds those occurrences by encoded entries. It
+preserves unused filler entries and makes no selected-key distinctness assumption.
+`SourceSizeEncoding` proves each encoded entry pays its unique computation charge
+plus at least12 bytes of overhead. `DedupCompile.relD0a_size_bound` composes unique
+last-wins selection, actual repeated-source emptiness, native dictionary cardinality,
+and the decoder's canonical encoding non-expansion theorem to bound the full
+candidate SIZE by the unchanged8MiB raw witness budget. The candidate audit now
+checks98 axiom closures. This closes SIZE coverage; candidate AIR admission remains separate.
+
+The candidate now has checked all122-polynomial local cases for computed and
+initial roots, every internal leaf/path byte, the path-window boundary, leaf/path
+segment transitions, computed source-to-source transitions (including a following
+duplicate), terminal-to-padding transitions, physical terminal segments, and padding.
+These supplement the existing duplicate-header cases. `DedupAdjacency.adjAt`
+(the theorem is in the DedupRender namespace) proves the exact candidate descriptor
+succession, and `DedupRender.mult_bits` proves actual field-valued multiplicity bits.
+Whole logical-renderer composition is now checked below; physical partition TableLocal is now checked below.
+
+Physical terminal segments need cyclic successor `sg=0`: several inherited segment
+successor polynomials are not gated by `isTransition`. The logical trace wraps to
+its first root, which supplies this fact. The right partition instead has physical
+last padding on actual inputs:16,334,272 rows is strictly below the16,777,215-row
+pair capacity. `padding_physical_last` permits any cyclic successor, including a
+segment carry row. Partition completeness must use this actual capacity slack.
+No protocol height, cap, source domain, or candidate shape changed in this checkpoint.
+
+`DedupCompile.relD0a_table_local` now derives the complete logical candidate
+`TableLocal` from actual unchanged RelD0a, preparation, decoding, and renderer cell
+bindings. `TableFacts` contains only concrete semantic counter/index/repetition facts;
+its actual-input constructor proves each field. No AIR-satisfaction premise, old
+SrcpWf cap, or new path-depth premise is assumed. The proof covers all physical
+endpoints, internal/cross-source transitions, terminal SIZE, arbitrary padding, and
+field-valued multiplicity bits. Its log24 bound is an intermediate logical trace,
+not an admitted deployed table. Actual deployment still needs candidate extraction/soundness, final integrated
+bus disjointness/security, and the separate protocol admission family. The source AIR
+audit now checks77 transitive axiom closures and seven fixtures.
+
+`DedupCompile.relD0a_partition_local` now proves actual accepted input renders
+into **both physical log23 source tables** with all local constraints and
+multiplicity bits, from their concrete cell bindings. The only partition row
+condition, `R ≤ 2*2^23−2`, follows from the existing16,334,272-row bound; it
+ensures right-endpoint padding. Left constraints are suppressed only on the
+carried endpoint, preserving the preceding transition; the right first row omits
+exactly four global-first equations. A syntactic theorem checks every remaining
+right expression is independent of `isFirst` and is an original constraint or
+zero. Carry send/receive multiplicities are bits on every physical row. Together
+with the already checked exact five-bus traffic and full-row carry equality, this
+closes renderer local completeness for the physical source pair. The partition
+audit now checks41 transitive axiom closures (standard Lean axioms only). Frozen
+maxLog22 admission is unchanged: the separate candidate protocol family, source
+extraction, and integrated bus security remain explicit obligations.
+
+The right candidate table now explicitly enforces `isLast*(rt+sg)=0`. Honest
+renderer padding alone was insufficient for soundness: the old last-row
+constraints could follow a cyclic path carry (`next.sg=1`) and suppress terminal
+`q=qe`/length checks. `AuditSourceEndpoint.lean` gives a kernel-checked local
+regression with `qe=le=999`: all old right equations hold on the terminal row,
+and the new endpoint equation rejects it. This is a local counterexample to the
+missing endpoint invariant, not a claimed complete forged AIR trace.
+
+Both actual-input partition TableLocal proofs still pass from the already proved
+row slack. Direct field-valued reverse transfer now recovers all logical equations
+from nonterminal left rows and all non-first equations from arbitrary right rows;
+it does not infer integer polynomial equality from field equality. The added
+endpoint equation plus root/segment disjointness proves both endpoint activity
+flags individually zero for arbitrary accepting field traces. Rebuilding the
+exact shape/cost target preserves the source right shape57/3/5/3/log23 and total
+8,359,074-byte model with29,534 bytes reserved. The partition audit now checks49
+axiom closures; four kernel regression assertions pass. Frozen admission and
+active source tables remain unchanged.
+
+`DedupPartitionTable.joined_sound` now closes sound partition reconstruction from
+**arbitrary accepting field traces**, not just honest renderer cells. It takes
+both physical `TableLocal` predicates, equal heights, and exact isolated carry-bus
+balance. The carry theorem authenticates all57 source columns; evaluation
+congruence explicitly uses the constraints'57-column bound. The reconstruction
+keepsH−1 left rows, allH right rows, and clones the final inactive right row once,
+producing logical height2H (log≤24). Checked inactive-row lemmas permit both the
+new padding transition and the changed cyclic successor. All logical local
+constraints and multiplicity-bit checks follow from the physical predicates.
+
+`joined_messages` and `joined_counts` preserve every external message/count
+exactly, including terminal SIZE. The cloned padding row emits no base traffic;
+this property is derived from arbitrary source constraints, not a renderer
+assumption. `AuditSourceJoined.lean` checks24 transitive axiom closures and three
+physical-pair/logical-trace fixtures (leaf overlap, both path directions, duplicate
+header). This is the source partition soundness bridge; candidate source semantic
+extraction, global isolation of bus64, and the separate protocol security and
+admission certificate remain unfinished.
+
+Candidate semantic extraction now proves `DedupProof.extract_units`: every
+accepting logical source trace has a nonempty consecutive decomposition into
+one-row roots and32/64-row leaf/path segments, followed only by padding. It uses
+the candidate logical log24 bound below the actual field modulus, not the old
+source table's log20 cap. `old_row_of_nodup` recovers every original source
+constraint on computed roots, segments, and padding. Skipped roots are treated
+separately: they force repeated=1, L=12, qe=q, le=0, and no digest request; a
+nonterminal skip advances j by one while preserving q. The all-occurrence
+repetition bit also forces L=12 on the first computed occurrence. Segment
+metadata, window counters, and register shifts are derived from arbitrary field
+constraints. `AuditDedupExtract.lean` checks33 axiom closures. Grouping these units
+into complete source views and closing their exact semantic traffic remains next.
+
+`DedupProof.extract_blocks` now groups arbitrary accepting logical source rows
+into a finite nonempty `BlockChain` of computed proof blocks and one-row skipped
+headers. Natural source/SHA counters and identifiers are bounded using the
+logical log24 height below the field modulus. Every computed block has its full
+32-row leaf and finite sequence of 64-row path items, with consecutive hash
+indices, matching root endpoints, canonical field representatives, and exact
+vector lengths. Skips have L=12 and preserve the hash counter. The chain ends at
+exactly `DedupRender.R bs`, and every remaining row is inactive. This is an
+extraction theorem, not an assumption that accepting traces are honest renders.
+`AuditDedupBlocks.lean` checks 44 transitive axiom closures. Cross-block numbering,
+exact semantic traffic, byte/SHA linkage, and prepared repetition metadata remain
+the next source extraction obligations; skipped roots still require linkage to
+the earlier same-key computed proof.
+
+Cross-block extraction now proves consecutive natural source indices and the
+correct hash-counter link `next.ql = previous.qe + 1`; a skipped block has
+`qe + 1 = ql`, so no nonexistent duplicate computation is counted. Every block
+has either computed `BlockWf` or the exact empty skip shape. Root traffic now
+matches `DedupRender.rootMsgs` on all non-SIZE buses directly from arbitrary
+accepting rows, including the actual repetition bit and absence of a digest
+receive for skips. `BlockSpan.repeated_empty` derives L=12 from that root's actual
+bit. `AuditDedupBlockLinks.lean` checks 17 transitive axiom closures. Leaf/path
+traffic and chain SIZE composition remain separate obligations.
+
+`BlockChain.full_traffic` now proves exact whole-trace traffic on every non-SIZE
+bus and both directions. The proof recovers leaf digest bytes in order, both
+64-byte path concatenation orders, one predecessor digest request per path item,
+and the exact root/leaf/path message concatenation for every extracted block.
+Skipped headers emit no private proof traffic, and trailing inactive rows emit
+nothing on any bus. The semantic `chainMsgs` reads only each root's repetition
+bit from the trace; all root positions follow from extracted block lengths.
+Consequently this is not an honest-renderer assumption or a restatement of raw
+row traffic. Prepared public SRC balance must still authenticate those bits.
+Seven modules compile and `AuditDedupPayloadTraffic.lean` checks 26 transitive
+axiom closures. Final SIZE traffic, SHA-bus semantic linkage, and candidate
+AIR-to-Good assembly remain unfinished.
+
+`DedupProof.extract_source` now packages complete combinatorial extraction and
+exact traffic on all five source buses from arbitrary accepting logical traces.
+The SIZE gate is uniquely the final active row even when the final block is a
+one-row duplicate skip. Its payload is exactly the field cast of the natural
+sum of L plus 33 per computed path item, with no local no-wrap assumption.
+The extracted sequence is nonempty, has exact natural j indices starting at 0,
+starts its hash numbering at 1, and obeys every consecutive endpoint link.
+`AuditDedupExtractProof.lean` checks 20 transitive axiom closures. Together with
+`joined_sound`, the physical pair can now be linked to this extraction without
+assuming an honest renderer. Remaining source obligations are global bus
+isolation and size no-wrap, byte/SHA semantics, prepared SRC repetition/key/root
+matching, and source semantics within the complete AIR-to-Good assembly.
+
+Candidate SHA semantic linking now closes for every computed source block.
+`BlockChain.payload_wf` derives canonical source IDs and disjoint computed
+intervals directly from arbitrary candidate rows; skipped intervals are empty.
+`payload_field_unique` and `payload_bytes_isolate` prove exact message isolation
+without the old per-occurrence computation model or log20 source cap. The existing
+closed `ShaFacts`/`sha_core` contract then supplies byte ranges and source digest
+values. `source_hashes_of_sha` reconstructs every predecessor and final digest;
+`BlockChain.verifyReceiptProof` concludes the unchanged native receipt-proof
+verifier from exact SHA bus contracts and the linked RC leaf digest/path.
+Seven modules compile and `AuditDedupSourceSha.lean` checks 30 transitive axiom
+closures. No collision assumption is introduced. Global bus-to-contract assembly,
+RC leaf binding, prepared source metadata/root consistency, skipped-occurrence
+same-key reuse, and size no-wrap remain explicit premises/obligations.
+
+Candidate public source binding and skipped-proof reuse are now checked.
+`SourcePublic.plan` has 34 payload bytes (dup, repeated, root32), giving 35 field
+limbs after the record index. It is additive; active SRC33 and frozen descriptors
+are unchanged. Exact descriptor-record evaluation, canonical record decoding,
+and field-count equality authenticate the extracted occurrence count, source
+indices, both bits and roots. `BlockChain.bind_prepared` discharges the public
+index bound using actual prepD0's at-most-1984 source count. It also derives L=12
+for every publicly repeated occurrence, including the first computed one.
+
+`prepSourceD0` is a candidate-only executable preparation wrapper that checks
+equal-key roots/from-shards. Its soundness and completeness are kernel checked:
+unchanged RelD0a plus successful prepD0 implies wrapper success, so this introduces
+no new accepted-input assumption. `first_source_cover` proves every prepared key
+has a nonduplicate first occurrence using the actual sourceDup computation.
+`BlockChain.sources_authenticated` combines these facts with SHA authentication
+of computed blocks to authenticate every last-wins source entry, including
+skips. RC leaf/dictionary/path binding and global exact bus contracts remain
+explicit premises. Six modules compile; `AuditDedupSourcePublic.lean` checks
+26 axiom closures and seven kernel fixtures. Candidate final assembly must still
+select SRC34 and the preparation wrapper and rebuild the complete statement
+layout/admission certificate; neither is silently installed in the frozen family.
+
+`DedupPartitionTable.physical_source_extract` now packages the complete physical
+source bridge: arbitrary accepting left/right tables plus exact isolated carry
+balance produce a logical block chain, a nonempty bounded semantic sequence and
+exact external message multiplicities on all buses except the carry namespace.
+`AuditDedupPhysicalExtract.lean` checks its transitive axiom closure. This directly
+composes the checked partition, extraction, SHA and public-source interfaces;
+global carry isolation remains a final assembly obligation.
+
+The next receipt-side blocker is now explicit: `RcptV3ViewStmt` is defined but no
+whole-table theorem constructs `RcptV3Wf`. Existing `Extract/V` proofs cover
+per-receipt field layout, bytes, basic bus traffic, characters and keys. Whole
+list/header decomposition, encoded-length no-wrap, receipt arithmetic/system/
+routing facts and table traffic composition still need proof. In particular,
+RCL equality alone is a field equality; deriving repeated L=12 implies an empty
+receipt list requires the actual list encoded length below P. This must come from
+receipt row/span bounds, not an extra domain premise or an assumed extracted view.
+
+### Actual receipt list decomposition and length bound
+
+`Rcpt/Extract/V/ListBlocks`, `ListChain`, and `ListLengths` now derive complete
+physical receipt-list blocks from the unchanged `RcptV3.table` local constraints.
+Every block has its actual twelve-row header, a possibly empty consecutive list
+of receipt layouts, and a next-header or padding boundary. Row-zero extraction
+produces a nonempty chain with exact physical row sum; padding cannot resume
+active rows after its end. This is extraction, not an assumed `RcptV3Wf` view.
+For each extracted receipt, the exact encoding length is `123 + Vt`, bounded by
+its physical receipt interval. Consequently every extracted list's full encoding
+length is below the actual table height and therefore below `P`. Length twelve
+is equivalent to an empty extracted receipt list. These bounds impose no new
+receipt-list or domain restriction.
+
+Validation: three modules build; `AuditRcptListExtraction.lean` checks nineteen
+exact transitive axiom outputs (only the standard Lean axioms). Still open:
+header count/index and encoded-offset reconstruction, complete receipt traffic,
+and the remaining system/routing/arithmetic obligations needed to construct
+`RcptV3Wf` and bind source RCL/dictionary/leaf data. The no-wrap bound alone does
+not establish that RCL traffic contains the extracted encoding length.
+
+`ReceiptOffsets`, `HeaderOffsets`, and `EncodedOffsets` additionally reconstruct
+the actual offset cells: receipt starts have `rf=1`; a header starts the next
+receipt at offset twelve and count one; each receipt's `oEnd` adds its exact
+extracted encoding length; adjacent layouts preserve that end offset. The
+whole block's terminal `oEnd` now equals its natural `lOffs` length cast into
+`Fp`, including empty lists. Thus the earlier physical bound applies to the
+actual terminal offset, not merely an unrelated semantic encoding. Ten exact
+transitive axiom guards pass. Terminal `le`/RCL traffic, global list indices,
+and full semantic receipt extraction remain separate outstanding obligations.
+
+`ListTerminal` closes the positive terminal RCL direction: a block boundary has
+`rf=0`, its preceding row is a real break, and therefore `le=1`. The actual
+terminal row's RCL traffic is exactly one message carrying its list-index cell
+and the extracted full encoding length. Five exact axiom guards pass. This
+does not yet exclude RCL messages elsewhere or reconstruct the global index
+sequence; those are the next whole-traffic obligations.
+
+`ListInterior`, `ListGate`, `ListConstants`, and `ListIndices` exclude every
+interior list-end gate, prove all block rows active, preserve every `lconsts`
+column inside the block, and reconstruct the global list-index sequence.
+For a chain starting at physical row zero, header `k` has index `k` in `Fp`;
+the terminal row has the same index. The gate is exactly `q+1=block.stop` on
+all block rows. Thirteen exact axiom guards pass. Remaining RCL composition
+work is the full row-traffic multiset and padding exclusion, followed by the
+source/receipt bus binding; full receipt semantic extraction remains open.
+
+`RclTraffic` and `RclProof` now close whole receipt-table RCL traffic exactly:
+the ordered sends are the extracted blocks' records, one per list, carrying the
+header's preserved index and its nonwrapping encoded length. No inactive row,
+including the cyclic physical last row, emits RCL; the table has no RCL receives.
+Eight exact axiom guards pass. The source-to-receipt global bus ownership/balance
+composition and full semantic receipt extraction remain explicit work.
+
+`RclDecode` and `DedupReceiptLengths` connect the channels semantically. Twelve
+header rows per list bound the natural list count below `P`; exact RCL record
+matching uniquely decodes both index and encoded length. Under the actual source
+and receipt local constraints, extracted chains, and explicit equality of their
+physical RCL counts, a source block of length twelve has an actually empty
+extracted receipt list at that exact index. Duplicate and all-occurrence repeated
+flags derive this length from their existing local source constraints, including
+the first computed occurrence. Ten exact axiom guards pass. No `RcptV3Wf`, new
+encoding bound, or restricted domain is assumed. Global RCL ownership and balance
+must still be supplied by assembly; receipt bytes, header count, system/routing,
+and arithmetic semantics remain open parts of whole receipt-view extraction.
+
+`ListCounts` and `ListView` reconstruct the actual per-list receipt counter:
+every receipt increments it; terminal `cj` and header `nj` equal the extracted
+receipt count in `Fp`. Header registers 8/9 hold its low two count bytes, and
+registers 10/11 are forced zero. The view is now defined from those actual
+registers and extracted receipt layouts. Under range checking of the two emitted
+count bytes, its natural `n0+256*n1` equals the actual receipt count, using the
+physical row bound to rule out modular aliasing. Nine exact axiom guards pass.
+The range checks remain an explicit BYTES/SHA obligation, not an added input
+restriction or an already-proved semantic receipt-view assumption.
+
+`HeaderRegisters` and `HeaderTraffic` prove the actual twelve header BYTES
+messages, exactly `emitAt RC(j) 0 (hdrBytes pub view)`. Active-field register
+shifting supplies each byte; public loads fix the first eight own-shard bytes;
+the count registers and forced zero high bytes supply the remaining four. The
+other two header emission slots are disabled. Seven exact axiom guards pass.
+No byte-range claim is hidden in this equality: range checking must still be
+linked to the BYTES/SHA channel before using the natural header-count theorem.
+
+`GlobalCounters` and `GlobalListCounters` reconstruct global receipt numbering:
+headers preserve `r` and body offset, the first receipt inherits them, receipts
+increment `r`, and the next list header inherits the previous terminal `r+rl`.
+Header `k` therefore has the natural prefix receipt count cast into `Fp`, with
+initial counter zero; receipt `i` within the list adds `i`. Empty lists are
+included. Ten exact axiom guards pass. These are actual physical counters, not
+extra witnesses or assumptions. Global refund-body offset reconstruction is
+still needed to assemble existing per-receipt byte traffic.
+
+`BodyOffsets`, `ListBodyOffsets`, `GlobalBodyOffsets`, and `PrefixOffsets` now
+reconstruct both offset families completely at receipt starts: RC offsets are
+12 plus preceding receipt encoding lengths in the list; body offsets are 8 plus
+all preceding enabled refund lengths, across headers and receipts. Actual
+`o2End` adds exactly `rfLen`, with refund encoding length `129+2*Ls+32*kt`;
+non-refund receipts add zero. The additive prefix theorem is proved over the
+actual consecutive physical layouts. Thirteen exact axiom guards pass. Whole
+BYTES traffic composition and the remaining semantic receipt Wf obligations
+remain open; no new external counter or range assumption was introduced here.
+
+`BlockBytes`, `ListByteTraffic`, and `ChainBytes` now prove complete physical
+receipt-table BYTES send extraction. The result is a permutation of ordinary
+`chainByteMsgs` starting at list index zero, receipt index zero, and body offset
+eight. Each list contains its concrete public/count header and all existing V3
+receipt byte views (RC encodings, refunds, PEO, LEAF, and RID preimages), positioned
+by exact natural prefix lengths. The physical padding, including the cyclic last
+row, emits no bytes. Six exact axiom guards pass. The final theorem has no
+external counter, offset, or semantic-view assumptions: only TableLocal and the
+extracted chain. Pure reformatting to the existing `rcptSends3` API and the
+remaining whole receipt Wf/other-bus obligations are still open.
+
+`ViewPositions`, `IndexedBytes`, and `BytesViewProof` close the final BYTES API
+bridge. A generic flatten-prefix identity aligns the actual prefix positions
+with `baseR`, `lOffs`, and `bOffs`; `chainByteMsgs` now equals the unchanged
+`rcptSends3` BYTES list exactly. `ListChain.bytes_view_traffic` proves both
+`TableTraffic` count directions for the concrete extracted list views, and
+`extract_bytes_view` obtains the physical chain from TableLocal alone. Thirteen
+exact axiom guards pass. Thus semantic BYTES extraction is complete; full
+`RcptV3ViewStmt` still needs the other channels and receipt well-formedness.
+
+`RclViewProof` and `ViewFacts` close the RCL channel against the unchanged
+`rcptSends3`/`rcptRecvs3` API, in both count directions. The concrete views also
+satisfy table nonemptiness, all `nj` field equations, and header canonicity.
+The `nj` field equation needs no byte-range premise; only its stronger natural
+interpretation does. Seven exact axiom guards pass. BYTES and RCL are now both
+complete semantic table-traffic channels; other receipt channels and full Wf
+remain outstanding.
+
+`ReceiptShape` and `ReceiptCanon` establish the active V3 structural receipt
+facts: every required vector length, the five canonical small lookup values,
+post-balance byte range from the actual V3 boolean bit columns, all inherited raw
+vectors, and all routing metadata including natural positions. Consequently the
+entire concrete table-view `canon` field is proved. Eight exact axiom guards
+pass. The proofs use actual V3 constraints; no V1 table-local premise is assumed.
+Account validity, system/refund arithmetic, equality tests, and routing order
+semantics remain outstanding semantic Wf obligations.
+
+`CharClass`, `StrField`, `NameLengths`, `ReceiptIds`, `Named`, and `ReceiptNamed`
+now derive all three native account-ID grammar/byte-range facts and the receiver's
+named-account rule from the actual V3 constraints and extracted receipt layout.
+The character and named-account arithmetic matches the inherited rules, but every
+constraint-membership proof is checked against the active V3 table. Only pure
+AccountId grammar lemmas are reused. Ten exact axiom guards pass. V3 predecessor
+`system` equivalence is deliberately separate and remains open, as do the other
+arithmetic/routing Wf fields. No byte, string-length, or account-validity premise
+was added to `ids_of` or `named_of`.
+
+`SystemFlag`, `SmallSquares`, `SystemString`, and `ReceiptSystem` close the
+V3-specific predecessor/system equivalence. `system_of` proves the exact
+`RcptE.Wf.sysIff` field from only actual TableLocal and Layout. The flag forces
+length six; the six squared byte distances sum to at most 196,608, strictly
+below BabyBear, so the accumulator's field zero implies bytewise native system
+string equality. The converse uses the actual inverse constraint. Nine exact
+axiom guards pass. No V1 non-system restriction or new account-domain premise
+is assumed. Other system/refund arithmetic and equality/routing Wf fields remain
+open.
+
+`ReceiptEquality`, `ReceiptUnequal`, and `ReceiptAccessFlag` close the complete
+`ee`, `neq`, and `akf` fields of the actual extracted receipt Wf. Equal mode
+forces system mode, equal native lengths, all receiver/signer SREC gates, and
+signer received-byte equality. Unequal system mode either proves a length
+difference or extracts an actual selected signer byte with a nonzero difference;
+the signer counter excludes a missing witness. Only TableLocal and Layout are
+required. Three exact axiom guards pass. Remaining per-receipt fields are
+`tprev_le`, the combined arithmetic/token-chain statement, and routing order.
+
+`ReceiptPrevious.tprev_le_of` closes previous-receipt ordering under the exact
+existing `RcptE.Wf.tprev_le` guard (`tprev < P - 512`). It derives the difference
+from the active V3 nine-bit deposit-row check and uses the reconstructed receipt
+counter. One exact axiom guard passes. The guard is unchanged semantic API, not
+a new domain restriction. Per-receipt arithmetic/token accumulation and routing
+order are now the remaining Wf obligations.
+
+`GasCompare`, `Deposit`, and `ReceiptBalance` close the actual V3 gas-price
+borrow chain and all four balance/storage clauses of the semantic arithmetic
+field. Deposit byte carries prove the exact post-balance, exclusion of u128::MAX,
+locked-balance addition without overflow, storage-charge reduction modulo 2^128,
+and both large/small-storage branches. `balance_of` uses only the same input-byte
+premises already present in `RcptE.Wf.arith`; every AIR membership is checked
+against active V3 constraints. Twenty exact axiom guards pass. Pure natural
+byte-sum lemmas are reused; no V1 table-local premise is assumed. System-aware
+gas burn/refund and token accumulation remain open, along with routing order.
+
+`GasProduct` and `GasTokens` prove the V3 effective-price, product, and token
+chains. Burn price is zero for system receipts and otherwise the ge-selected
+price; delay lines and convolution use actual `pc` cells. Refund products use
+the unchanged raw surplus, while `gp_hr` explicitly requires non-system mode
+and reads V3's `gq` gate. Token preservation now covers list-header rows as well
+as ordinary non-GP rows. Fifteen exact axiom guards pass. Full semantic arithmetic
+assembly must still combine the system/no-refund branch and public-price minimum
+with these row facts; no complete RcptE.Wf arithmetic claim is made yet.
+
+`ReceiptArithmetic.arith_of` closes the complete unchanged V3 per-receipt
+arithmetic statement: native gas-price minimum, zero system burn/no system refund,
+ordinary refund iff nonzero surplus, exact refund product, token addition and
+128-bit bound, plus the checked balance/storage clauses. `ReceiptWf.wf_of_route`
+assembles every RcptE.Wf field with only three remaining caller obligations:
+RouteOk, the already-reconstructed global receipt counter/canonicity, and byte
+bounds on the entering token state. Routing is the sole unextracted per-receipt
+field; propagating entering token bytes through all lists is a separate table
+assembly obligation. Both exact transitive axiom guards pass.
+
+`RouteRows` and `RoutePrefix` close the exact routing positions and length
+fields: physical receiver-plus-end-marker rows, actual prefix-flag updates,
+boolean-union lookup gate, mandatory first lookup, and no reopening after a
+lookup stops. The concrete optional-record list projects to precisely
+`range rlk.length`, with length between one and receiver length plus one.
+Fourteen exact axiom guards pass. RouteOk.sem (natural byte comparisons and
+lexicographic interval semantics) remains open; no semantic interval premise is
+hidden in these structural routing proofs.
+
+`RouteCompare`, `RouteValues`, and `RouteSemantic` close the complete routing
+interval semantics. Actual nine-bit differences give natural unsigned-byte
+comparisons with no wrap; inverse/equality constraints preserve prefix flags;
+the final upper comparison is strict. Existing pure lexicographic lemmas then
+prove the exact native interval (including a missing upper bound). Consequently
+`ReceiptWellformed.wf_of` derives every per-receipt RcptE.Wf field from TableLocal,
+Layout, global receipt-index canonicity/cast, and the entering-token byte
+invariant. Thirteen exact transitive axiom guards pass. No routing/semantic
+receipt premise remains. Whole-table token propagation, final public totals,
+and outstanding traffic channels still require assembly; the full receipt
+view statement is not claimed complete yet.
+
+`TokenBytes` proves the incoming token-byte invariant for every active physical
+row directly from zero initialization, GP rotation/new-byte constraints, and
+preservation across both receipts and list headers. `IndexedWellformed` proves
+flattened receipt indices below the physical row count and field modulus, then
+combines the actual list/global counters with complete per-receipt extraction.
+`ListChain.indexed_wf` therefore has no external receipt/token/routing premise:
+only TableLocal and the extracted chain. Six exact axiom guards pass. The
+remaining token assembly task is equality of consecutive receipts' actual token
+endpoints, followed by the final public total; other unclosed traffic channels
+and public receipt/body totals also remain.
+
+`TokenCarry` and `HeaderTokens` prove exact token register preservation across
+non-GP active intervals, receipt entry/GP entry, GP output/receipt terminal,
+consecutive receipts, list headers, and empty-list terminals. Ten exact axiom
+guards pass. These are field equalities for the actual generated bytes, rather
+than only independent byte bounds, and will join the per-receipt Wf endpoints
+into the table's single token sequence. Final public token/count/body binding
+and the remaining bus channels are still pending.
+
+`TokenValues`, `TokenSequence`, and `TokenPublic` compose the complete physical
+receipt chain into one exact token run from zero, across arbitrary empty and
+nonempty lists, ending at the bytewise public burnt-token value. Seventeen exact
+axiom guards include the public-total alias regressions. The final token total
+has no cast ambiguity because all sixteen bytes bind independently.
+
+`PublicAlias` exposes an overbroad universal receipt-view specification: bytes
+[1,0,0,120] decode to BabyBear P but field-compress to zero; [9,0,0,120] decode to
+P+8 but field-compress to eight. Active PH_N and PH_BLEN occur only in compressed
+cEnd equations. Thus byte range alone cannot establish the stated natural count/
+body equalities. `ReceiptPublicRanges` records the required decoded totals <P;
+these must be discharged from actual native Prep/public binding, without
+restricting the accepted native domain or changing frozen AIR constraints.
+The regressions prove the exact cast alias, not an independently instantiated
+full malicious table. Correctly scoped extraction/public admissibility and
+native-bound composition are in progress.
+
+`TokenList` and `TableTokens` close the complete table token field: a concrete
+sequence begins at zero, every flattened globally indexed receipt satisfies
+its full Wf predicate at adjacent sequence values, and the final value equals
+the bytewise public burnt balance. Seven exact axiom guards pass. Count/body
+natural public binding and the remaining global bus channels stay open.
+
+`TableTotals` proves the actual terminal count and refund-body position across
+all extracted lists, then uses the active cEnd equations to bind both public
+field totals. Four exact axiom guards pass. Natural equality intentionally
+remains separate: extracted bounds and real Prep/public range binding are
+required to rule out the retained cast-alias counterexamples.
+
+`TotalBounds` derives both extracted natural totals below BabyBear P from the
+unchanged physical 2^22 height cap. The actual signer grammar bounds signer
+length by 64, so each enabled refund is shorter than its receipt layout; the
+eight-byte body prefix still leaves ample characteristic slack. Three exact
+axiom guards pass. No extra layout, receipt, or native-domain bound is assumed.
+
+`NaturalTotals` and `TableWellformed` close every field of `RcptV3Wf` for the
+actual physically extracted lists, conditional only on explicit
+`ReceiptPublicRanges pub` and the field's existing public-byte premises. The
+actual local AIR supplies layout decomposition, complete indexed receipt Wf,
+token chaining/public final value, nonempty list sequence, header counts,
+canonicity, and natural final count/body equality. Eight exact guards pass.
+The overbroad unscoped `RcptV3ViewStmt` is not asserted. Native successful Prep
+must still establish these public ranges, and global non-BYTES/non-RCL traffic
+composition remains unfinished; this is not full transition soundness.
+
+`PrepCount` extracts the unchanged successful `prepClaim` gas-limit check and
+`prepBody` compute guard, proving `prepD0 ... = .ok p` implies `p.hdr.n ≤ 5000`
+and `p.hdr.n < P`. Three exact guards pass. Thus public count admissibility needs
+only its concrete packed-header correspondence, not an added native restriction
+or a new header-width assumption. The proof retains only needed check facts
+when decomposing native monadic code and builds in approximately one second.
+
+`PreparedRanges` completes the public admissibility bridge: exact second-u32
+header reads recover the native receipt count, and exact body-length header
+reads recover the actual body length. Successful native Prep supplies count
+≤5000 and root widths; the actual prepared public byte-string length <P
+supplies body length <P. `extract_prepared_wellformed` now derives the complete
+`RcptV3Wf` directly from local AIR on that actual public statement, successful
+native preparation, and its encoded size bound. Five exact guards pass.
+The encoded statement size is a protocol admission obligation already needed
+for packing; it is not inferred from a four-byte serialized count and does not
+change the native domain. Traffic composition remains separately unfinished.
+
+`ReceiptSpans` supplies a generic exact decomposition of all physical traffic
+into receipt intervals when actual headers/padding are silent. `MemoryReads`
+instantiates it for account-memory receives, proves header/padding silence from
+local constraints, and equates the full physical B_MEM receive list to the
+unchanged indexed `rcptRecvs3` API. Eight exact guards pass. This is a whole-table
+traffic equality, including empty lists and physical padding; memory sends and
+other channels remain to be composed.
+
+`IndexedTraffic` proves actual receipt counters equal natural flattened indices
+and composes per-receipt messages into the unchanged located-view enumeration.
+`MemoryWrites` closes the complete B_MEM send side, including silent list
+headers/padding and the exact global r+1 write version. Six exact guards pass.
+Both account-memory directions now have whole-table semantic equalities.
+
+`ReceiptIdsTraffic` closes both B_RIDS directions for the whole physical table:
+all 32 receipt-ID bytes carry the exact natural global index, headers/padding
+emit nothing, and both physical/semantic receive sides are empty. Six exact
+guards pass. Checked whole-table channels now include BYTES, RCL, MEM, and RIDS;
+KEYNIB, DIGEST, FINAL, MPOS, SREC, AKC, and BND remain to be completed.
+
+`ReceiptPositionsTraffic` closes both B_MPOS directions: each receipt emits
+exactly one global leaf-position message [0,r,K_LEAF+16*r,68], all headers and
+padding are silent, and both receive lists are empty. Seven exact guards pass.
+The remaining whole-table receipt channels are KEYNIB, DIGEST, FINAL, SREC,
+AKC, and BND.
+
+`AccessTrafficRows` and `AccessTraffic` close both B_AKC directions. Actual gate
+constraints isolate the receipt's T0 row, copied equality flag and boolean
+access-key flag match the semantic enable condition exactly, and the send uses
+the natural successor counter cast into the field. No arbitrary header/padding
+lookup remains. Eight exact guards pass. Remaining receipt channels: KEYNIB,
+DIGEST, FINAL, SREC, BND.
+
+`SignerTrafficRows`, `SignerTrafficField`, and `SignerTraffic` close both B_SREC
+directions. Gate constraints confine messages to the appropriate receiver or
+signer field; exact row selections, actual character bytes, and global receipt
+indices agree with the unchanged semantic filter lists. Header/padding silence
+is proved, with no extra selected-byte assumptions. Ten exact guards pass.
+Remaining whole-table receipt channels: KEYNIB, DIGEST, FINAL, BND.
+
+`BoundaryTrafficRows`, `BoundaryTrafficIndex`, and `BoundaryTraffic` close both
+B_BND directions. The actual route window contains precisely receiver bytes
+and their end marker; copied boundary pair and constrained byte indices yield
+exact addresses. Selected tuples and counter successors match the semantic
+lookup list, with no extraneous header/padding messages. Ten exact guards pass.
+Remaining whole-table receipt traffic: KEYNIB, DIGEST, FINAL.
+
+`FinalTrafficRows`, `FinalTrafficValues`, and `FinalTraffic` close both B_FINAL
+directions. Each receipt consumes precisely its successful account result and
+its equality-enabled access-key result, with exact global walk IDs and concrete
+record/flag values. The two physical message rows are disjoint; all other rows,
+headers, and padding are silent. Thirteen exact guards pass. Only KEYNIB and
+DIGEST remain for whole-table receipt traffic extraction.
+
+The `DigestTraffic*` series closes both B_DIGEST directions. Physical lookup
+starts are exactly optional refund-ID and unconditional partial-outcome digest
+fields. Loaded digest registers equal their 32 reconstructed bytes; active end
+constraints fix message IDs and input lengths (48 or 37+32*hr+receiver length).
+All other receipt rows, headers, and padding are silent. Twenty exact guards
+pass. KEYNIB is now the only remaining whole-table receipt traffic channel.
+
+`KeyMessages` checks the pure canonical symbol-list algebra: explicit END marker,
+position-preserving concatenation, and two indexed nibbles per byte. Three exact
+guards pass. The remaining KEYNIB proof must use permutation, because the
+physical access-key separator is emitted before signer bytes but carries its
+canonical later position; treating physical emission order as semantic order
+would be incorrect. No KEYNIB traffic closure is claimed yet.
+
+`IndexedTrafficPerm` and `PlanTraffic` prove exact multiplicity-preserving
+composition from local receipt permutations and the physical plan's complete
+field partition. `KeyTrafficRows` proves the second key gate and excludes key
+messages from all non-key states, headers, and padding. Eleven exact guards
+pass. Account/access field-to-canonical-symbol matching remains the KEYNIB gap.
+
+### KEYNIB row extraction checkpoint
+
+`KeyTrafficGates`, `KeyAccountRows`, `KeyAccessRows`, and `KeyAccessMarkers` derive exact traffic for every emitting KEYNIB state, including account prefix/end rows, both character nibbles, access type/kind/public-key bytes, separators, terminal markers, and disabled gates. These are actual local-AIR consequences; complete receipt/list permutation composition remains open. The targeted build and 18 exact transitive axiom guards pass, with only standard axioms. No table, domain, cap, or public descriptor changes.
+
+`KeyNibbleValues` now proves emitted character/public-key nibbles equal the actual native byte div/mod16; the public-key case derives its bounded byte from the eight actual Boolean scratch bits and local equation, without an extra byte premise. `KeyByteFields` closes complete receiver/signer/public-key field traffic and disabled access fields. `KeyMarkerFields` closes the two actual receiver-prefix rows and proves each marker field reduces exactly to its first row. Eight further exact axiom guards pass. Whole-receipt/list KEYNIB permutation remains the composition obligation.
+
+`KeyMarkerValues`/`KeyMarkerLayout` now bind every complete marker field to natural receipt metadata, deriving key-type bytes from the actual register load. `KeyCanonical` proves exact account/access symbol expansions and the separator permutation that reconciles physical access-field order with canonical access-key order, retaining every position and message multiplicity. The targeted build and 15 exact axiom guards pass. The remaining KEYNIB obligation is composing these checked fields over complete receipt/list intervals.
+
+### Complete KEYNIB traffic extraction
+
+`KeyPartition` proves the exact physical partition into nine key fields and silence of every other receipt row. `KeyLayoutFields` and `KeyReceipt` compose all native byte/marker messages, with a proved permutation for the signer separator. `KeyTraffic` then closes both KEYNIB directions over the entire table, including list headers and padding, using actual global receipt indices. Thirteen exact transitive axiom guards pass. Together with the prior bus modules, every individual receipt traffic channel is now checked; the aggregate TableTraffic plus admissible-public wellformed-view theorem is the next composition step.
+
+### Complete receipt view extraction from actual AIR
+
+`Extract/V/TableTraffic.ListChain.view_traffic` now combines all eleven buses, both send/receive directions, and proves every other bus empty. `Extract/V/ViewProof.extract_view` provides one and the same physical list view satisfying full `RcptV3Wf` and full `TableTraffic`, under the explicit `ReceiptPublicRanges` premise. `extract_prepared_view` discharges that premise from unchanged successful native `prepD0`, actual `pubOf (preparedBytes p overhead)`, and prepared-public length `< P`. The four aggregate transitive axiom guards pass with only propext/Classical.choice/Quot.sound. The complete receipt AIR→view gap is therefore closed at the correctly scoped actual-public boundary; the old unrestricted `RcptV3ViewStmt` remains overbroad due to the recorded u32 cast aliases and is not claimed. Global view assembly/bus semantic linking and the complete succinct protocol theorem remain separate obligations.
+
+### Native receipt-list encoding bridge
+
+`Link/NativeEncoding` derives exact native receipt serialization from V3 `RcptE.Wf`, including system receipts, without importing the V1 non-system slice premise. `NativeListEncoding` composes actual list payloads with the ordinary count encoded by the physical header; `PreparedOwner` binds PH_OWN bytes to the actual prepared native shard u64. Nine axiom guards pass. The next RC SHA bridge must still prove actual byte-message isolation and derive the list leaf digest; no native SourceSemantics claim is made from serialization alone.
+
+### Source RC leaf authenticated from actual receipt bytes
+
+`Link/ListByteIsolation` classifies every RC byte and its exact offset across all list headers and receipt fields. `ListByteIds` derives canonical sender IDs from actual physical row bounds, excluding cross-list and cross-kind field aliases. `ListEncodingBounds` supplies canonical payload limbs and exact RCL lengths. `ListSha` applies the closed SHA contract to these proved streams, range-checks count bytes through SHA, and derives the native list hash. `Candidates/DedupListDigest` uses actual source/receipt RCL balance to identify the matching list and derive its leaf hash. `DedupNativeEntry.native_entry_verified` constructs an Assembly source entry from the extracted list/path and proves the unchanged native `verifyReceiptProof`, with no assumed native-list leaf hash. Twenty-one exact transitive axiom guards pass. Explicit remaining composition premises are SHA/bus ownership, actual public ranges/owner binding, and source key/from-shard dictionary selection; duplicate reuse and complete SourceSemantics assembly remain next.

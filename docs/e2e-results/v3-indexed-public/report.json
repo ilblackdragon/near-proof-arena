@@ -1,0 +1,31 @@
+{
+  "status": "pass",
+  "milestone": "R1 indexed public segment protocol and generic PubIdx bridge",
+  "integration_jobs": 1168,
+  "axiom_guards": 5,
+  "behavior_guards": 14,
+  "coverage": [
+    "constant message prefixes",
+    "generated indices including positions above255",
+    "dynamic little-endian public payload offsets",
+    "payload fit rejection",
+    "message-width fingerprint budget",
+    "exact public counts from per-segment contents",
+    "unchanged legacy toy admission"
+  ],
+  "remaining": [
+    "bind concrete prepared NEAR records and header offsets",
+    "final AIR assembly and actual proof admission"
+  ],
+  "archive": "/data/illia/nearproof-deps/validation/v3-indexed-public-20261007",
+  "source_sha256": {
+    "zk-formal/ZkFormal/V2/Air.lean": "d124498ad3d6501a46117ac4be56ff1461d832dbf4000915a5f9188077bfa349",
+    "zk-formal/ZkFormal/V2/Export.lean": "5f204bbc919201fa95bd41c20600ecb1fce9653d659147e147779709054b7516",
+    "zk-formal/ZkFormal/V2/Np/Bus.lean": "6e46253781010714f0b6e4df101024964db56e0fe9dc99ddc06380b60b80d3b4",
+    "zk-formal/ZkFormal/V2/Toy.lean": "e442f21a754c599d3a3abdb432898da2cd249f892f15ac55d4eec3b643e3a724",
+    "zk-formal/ZkFormal/V2/IndexedPublic.lean": "803800739c2f1358baf3f96f543f80454cb2e309ae78190520349d2fd22c2ad4",
+    "zk-formal/ZkFormal/V3/Integration.lean": "ba86e98ccd84f79a249cfbb09eea075beb192db5acd57e65aafb9c75956b95ab",
+    "zk-formal/test/AuditIndexedPublic.lean": "5662be96048892ba6b9876381b6d8941490e7e5e6b370f4f45cf927f7a9f5e8f",
+    "docs/zk-formal/FORMATS.md": "2bbbe67e498da8cde70c7b16f3df492eac5518e9938cdfd052742f5bf328996b"
+  }
+}

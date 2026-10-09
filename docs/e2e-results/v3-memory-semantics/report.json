@@ -1,0 +1,23 @@
+{
+  "status": "pass",
+  "milestone": "Memory proof obligations from scalar semantics",
+  "integration_jobs": 1167,
+  "memory_axiom_guards": 24,
+  "byte_constraints": 62,
+  "semantic_constructor": "memOk_of_semantics",
+  "semantic_inputs": [
+    "ordinary NodeEncoding and memory-byte range",
+    "decoded memory usage equals computed RV",
+    "signed operand bounds and nonnegative total bound",
+    "outside operand bounds and truncation bit range"
+  ],
+  "remaining": "These semantic inputs must still be established by actual upsert construction. Final assembly/prover and judge remain open.",
+  "archive": "/data/illia/nearproof-deps/validation/v3-memory-semantics-20261007",
+  "source_sha256": {
+    "zk-formal/ZkFormal/NearV3/Render/Ups/MemBounds.lean": "21deadfc376bab20be9ac28ee9d2cb5fd94ad687f1c21f0c0901482f49897295",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/MemSemantic.lean": "9ca3180297e2eb2deba5758131cd91bce1a589553ccd65855e63a32968d703bb",
+    "zk-formal/test/AuditUpsMem.lean": "e196cac2b316d3a4db8d9d9fddcc9de4469eda4572c62f60039ca4ffd4feb2d7",
+    "zk-formal/ZkFormal/NearV3/Render/UpsRender.lean": "aec10179728ad43d714c9c1d26a122c8aaa4037acf71dc8654ad08cd69969f7a",
+    "zk-formal/ZkFormal/V3/Integration.lean": "89df466bc2048d493b439cd9dd316d407e5ed33eef0fadc444b0e9d7e28b0104"
+  }
+}

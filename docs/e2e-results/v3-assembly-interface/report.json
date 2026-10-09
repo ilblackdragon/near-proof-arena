@@ -1,0 +1,37 @@
+{
+  "status": "partial-formal-milestone",
+  "scope": "Executable witness and explicit semantic factoring interfaces; no proved FactorSound/Complete",
+  "integration": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1329,
+    "result": "pass",
+    "includes": [
+      "Assembly.Witness",
+      "Assembly.Execution",
+      "Assembly.Good",
+      "Assembly.Compute",
+      "Assembly.Forward",
+      "Qv.ReadPlan"
+    ]
+  },
+  "queue_audit": {
+    "behavior_guards": 11,
+    "axiom_guards": 38,
+    "result": "pass"
+  },
+  "checked": [
+    "Witness reconstruction from actual extracted views with ordered source dictionary/fillers",
+    "GoodV3 states ordinary source/runtime/domain/header conditions without invoking checkD0/RelD0a",
+    "Good.decode and amended-domain obligations derived",
+    "Actual runtime compute/forwarding obligations",
+    "Concrete queue read requests and conditional walk-ID/count bounds"
+  ],
+  "open": [
+    "FactorSound and FactorComplete are proposition definitions only",
+    "AIR-to-Good and honest complete AIR trace",
+    "Queue parser/read AIR candidate proofs",
+    "Source deduplication/partition implementation",
+    "Actual proof-size/security admission",
+    "Succinct prover and judge"
+  ]
+}

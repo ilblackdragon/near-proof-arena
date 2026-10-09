@@ -1,0 +1,20 @@
+import ZkFormal.NearV3.Assembly.UpsertShaJobs
+#print axioms ZkFormal.NearV3.Assembly.upsertShaFrom_length
+#print axioms ZkFormal.NearV3.Assembly.upsertShaFrom_get
+#print axioms ZkFormal.NearV3.Assembly.upsertShaFrom_member
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJobs_length
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJobs_value
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJobs_part
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJobs_bytes
+#print axioms ZkFormal.NearV3.Assembly.upsertJobId_injective
+#print axioms ZkFormal.NearV3.Assembly.upsertJobId_kind
+#print axioms ZkFormal.NearV3.Assembly.upsertJobId_bound
+#print axioms ZkFormal.NearV3.Assembly.partialTrie_shaJobs_count
+#print axioms ZkFormal.NearV3.Assembly.partialTrie_shaJobs_ids
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJob_node_digest
+#print axioms ZkFormal.NearV3.Assembly.upsertShaFrom_ids_ordered
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJobs_ids_nodup
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJobs_transitions_disjoint
+#print axioms ZkFormal.NearV3.Assembly.upsertShaFrom_byte_count
+#print axioms ZkFormal.NearV3.Assembly.upsertShaJobs_byte_count
+#print axioms ZkFormal.NearV3.Assembly.upsertJobId_renderer

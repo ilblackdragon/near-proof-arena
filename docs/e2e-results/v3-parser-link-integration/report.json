@@ -1,0 +1,1426 @@
+{
+  "status": "PASS",
+  "source_head": "b04c7e2c101f254b71cb7e7fee6c029d3a3613a9",
+  "scope": "Selected integration imports and 156 scoped Lean audits; not an end-to-end correctness certificate or judge validation.",
+  "build_jobs": 1968,
+  "audit_count": 156,
+  "axiom_checks": 1178,
+  "behavior_guards": 15,
+  "axiom_policy": "Printed axiom sets restricted to propext, Classical.choice, Quot.sound; guard_msgs files also checked by Lean.",
+  "audits": [
+    {
+      "file": "test/AuditBranchRecordId.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "6b33b957c56f248727303c43d31706177c1f5e23f205567862297e8985f9596a",
+      "axiom_checks": 12,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditBranchSideAllocation.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "0902394b39ef84f88a467f89c0c25990716c152a567c431470220743b7b49a37",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditDedupPhysicalExtract.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "d79480a3860111950c1f13897b4066f031aedcc89e66e97496dddbf5f07e11d1",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditDedupReceiptLengths.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "15e9b5fed04c03e79d7cea219d08309ae31c56dd4f5823dfc0ddb35b429c544f",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditEncodedKindTypes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "6e3a22f2e8f6ca190f25479ab252bf516b59344cd027695f6d3a8478c2a939e2",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditExtendedRecordId.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "adeef568504670ea585ba958e8db086f23d88d76738dbe00249096f1fc292adb",
+      "axiom_checks": 20,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditFieldEnd.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "8d2c8a29c9710cc1a4a2ce7d46081acd2f75cff310a2a46ff525d1f3b226aee8",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditForestAddress.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "8e6b391702e13b6501a87a7be47749dad3cd5a43dc88a32eabf88b0fe957f04d",
+      "axiom_checks": 3,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditForestNodeBytes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "f5b009fc446dcad4a7b0a5bd81174e85e91cd239ff6faad4ea1302ce82f5e130",
+      "axiom_checks": 5,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditForestPrefixProviders.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "b8daca6cb1eb58569ceb8e48d252e0a4f3855d6b702bfedac9a4ec04c60e8c63",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditForestTerminalProvider.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "d63ea0ff083282c33830fea7fc74d37085ea83c31a52809b68c0279f57f76c34",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditForestTerminalSafe.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "74310417f4b204b5061b4813f8843763e9adc0d42f617c7eb45b4cfbcd2c8b93",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditMainShape.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "02771c5bc8b0e471a356941a3871cbfd611c8d0b4854d239ba3af21bf4e2684f",
+      "axiom_checks": 3,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditNativeByteFamily.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "eb4ab01828dec3095724dff38b7fa1f0437799326895e971634c7f057ec49364",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditNativeChildId.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "e702326bc857a6a4cd8d87a9142cf613c98a2734ad81eed07dc817dee6bd7322",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditNativeInstanceOk.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "778c7a925728b90aa569313e09f7a7d46314692585c8a7e15925c925d1947cd2",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditNativeKeyEdge.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "fa370d74d7f5ac943a948f3b9f1d93a32763fd4a71f0e99537ac87a1d3a218ea",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditNativeMemoryAllocation.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "3e52cdde7ea94495879fbbd028b65706c80c8715cfed61dd640fe24e9cb5f88c",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditNativeMemoryFamily.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "c45d6d756924103afedfaa919345c56c76fff87b723d4135b47c19d2f988b4d4",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditNativePartEncoding.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "b1802494884bb607e7137918671263789085d7b66e59afa8dfd36bf5df115e96",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditNativePartPlan.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "925dd6f85f663814f769ed7eae14ef8edf13518d472c529a5bf18dd46c27b057",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditNativePathIds.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "bff464dcda03f92bca3c6d60b04eab4ef1a558423531feb28327256fbbfa1b82",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditNativePlanMemory.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "295887492e74b3629d171ed3c7d3220e787ca8471abc8bbf8265f1c11bda111a",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditNativePrefixEdges.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "7eadd24d9c43ef987504f144c46ae39bacbb56925022ea71cf6de305c7d56330",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditNativePrefixPhysical.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "286eaecd9f4912a5d147fe42370acb082942ece89a35132f017895f99d2e18fc",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditNativeProperEdges.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "fcc60bb573c4240c163d2b78d6cabbec6c8843ddd6db15ce4d85faa6856364b8",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditNativeRepeatedOverflow.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "0dbb66c7963bed25347e2e47a58751575d19d9f4b31e53d316bd756c74a1a54b",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditNativeTerminalPrefixEdge.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "5736fef9db1e41da1259a94b7ccf47a0452ef5a80d236ec9de1002b75be483b7",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditNativeTerminalProvider.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "54f0c22823d29d3385667f3b891a26cad60c541fff5c34f6183a2fc435d86bba",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditNativeUpperMemory.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "a879b93c80601ca8d5f6de59f8550f379688e360ac4da47215bdd2365aa1ea9f",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditNativeValueEdge.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "536565a794014c403a084799d5e811f772054e310771c45063a126c3ef04835b",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditNativeWalkBitmap.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "c3273598c90dc74c6cf9b510bf9afbb85cb6c03611838bd8574d574b34e276fd",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditNativeWalkConstruction.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "60a1ac7a4fe3fe165c6eac73ccb5741bc470b26f9c12cbc4bce227530b1aec53",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditNativeWalkMismatch.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "081367de6fdf7eed3fe3c3d4a6d9f47343e811f9be0c7177f60fc2f553ba6f43",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditNativeWalkProviders.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "fdc1ba251aeea77f7d95b8aa0e78fa20a014ffa617d8c7bf0502857953ecacee",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditNativeWindowCount.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "3c344cf7ae7138edd81362dcbf498d7ffde4d33cc6b0075f6932c7999fbe1a24",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditNodeWalkEdges.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "576f7767168f0dcaaddae3416397a3886bf6f7bb8ab5dcef450ee35ae8d5b565",
+      "axiom_checks": 9,
+      "guard_msgs_count": 9
+    },
+    {
+      "file": "test/AuditOccurrenceAddress.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "22a1c4881fab9ea81f45ccf53d3239362a952a5261b678f3b91ea6a4d47a1e3c",
+      "axiom_checks": 3,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditOccurrenceResolvedId.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "6f7300874399b9e0b79a782a4178aa08bf0db793ab8a5cad3d460ef2d06f26fd",
+      "axiom_checks": 7,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditOriginalBlobIds.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "ad7c34acb1a85a77a55abdd44735b63d35dd73b390ad98385ad679b0d5bffa93",
+      "axiom_checks": 7,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditPartAddress.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "32da6fb1a69ef39689ae3eda63d2baccd0f8dba0b50647f18cd54ce43a60373f",
+      "axiom_checks": 4,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditPathAddress.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "7f0bdb977ad7b976f34b4b884c10b687c0103ecaf5f5b9fec2a777561823585a",
+      "axiom_checks": 2,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditPathRecordId.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "bdd18141435223575491905b81f6cb5e52274c865fb29b382b7ea301d4351018",
+      "axiom_checks": 9,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditPathView.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "d40f728191421015b365ecea6aa631a8a02d8fad3d5901a1035c405ff0c49dbd",
+      "axiom_checks": 5,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditPositionedPart.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "dfdc29a75608794cb80f99deaa76939fafa1eb3de95178bdbe637b26e3d38110",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditPostShadows.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "979ed543efe7c4c0ce9df78b62711cbadf5aff27aff8c0e826a40ac0d8fde4d3",
+      "axiom_checks": 19,
+      "guard_msgs_count": 19
+    },
+    {
+      "file": "test/AuditQueryWitness.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "a978accbed51693649985a586b57aadef5ab308442db45af9a4694a3069dae9e",
+      "axiom_checks": 15,
+      "guard_msgs_count": 15
+    },
+    {
+      "file": "test/AuditQueueCapacity.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "35eb3c160a612874c64d048d7ea29838cbfc899e914a697c776edbe9e50d7827",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditQueueCounterClass.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "08e9e623b905090c3f840e689e63aa0d8eae36a341694f0947477d4a7e6ae731",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditQueueGlobalBalance.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "c2907410b7199d53fb6b07ae76be0a6dab851cb1df9392a8cd6828a3715eaed2",
+      "axiom_checks": 9,
+      "guard_msgs_count": 9
+    },
+    {
+      "file": "test/AuditQueueLocation.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "d5377524d921227758b7c5275d3be04bcb1a4dde481cbfb91aa32b2ffd1f473c",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditQueuePhysicalBalance.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "5da92eef5e1ae0eaf06d07bbd91c2b640fccf84a5f939a04dfdd633a51c6edf2",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditQueueProviderModes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "964d85cd3a0118cc44bb0b206b95d51a3036bf4c5c7f8177e284e939fc926be0",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditQueueProviders.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "1f7a942b512192088d1c066044dc8530c64bfc6f4baa18b96252d0c750573ee7",
+      "axiom_checks": 34,
+      "guard_msgs_count": 34
+    },
+    {
+      "file": "test/AuditQueueRankOwnership.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "2173b1ede777b29d4a9c73c8d685aefdad628a43040c1144b4b5bf9720fcb172",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditQueueRanks.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "5a2384ad16840a930bfe21f73d4e40972ecb422dfcd204067c50bb6954bd73f1",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditQueueRender.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "3fa43924775af8f7be53b8b400f61db05b01b01ac24bbf74411f98b9c17a659e",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditQueueSeed.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "ab973f147566ecce828079f074dd52e13fc73a70c0e626b1cb99a24493ac5859",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditQueueShardBalance.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "06f52e9aa26c6827939159234a351456537aa0b185637f35884c1e8f416c41cc",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditQueueShardPayload.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "40cf128673338420cbd305b0b73cf93026ee57c6f98f223036bb953b1a53b410",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditQueueUsers.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "2827bdb471ed7d0b61c811741f7e8a9f19fddea5e83b00f78a08f27cedf45e74",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditQueueValueBytes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "1063de38abc051bdcdc2bd4cd17c7ba317ab0f339943287932017045bf84efd1",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditQueueWalk.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "17fef49c57373716dafe2749aed81df3bc911b09339051e6edbc63f7a960dd38",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditQvByteLink.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "e562f1722988b6b3d46b5d369902017a0c37cd76f36121712adaf9a386b8f49a",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditQvCounterAggregate.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "cea58a38c2f4848aba29d9a4eb7eab5103b407dd5c72882679aeb5892ba9f5bc",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditQvCounterProvider.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "18c310cb369254998a5fc5f259487484547e56e30a54c9d446c266b7118159e9",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditQvCounterTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "89b01788334d761f49f1610b6b1e35cec37bb51dd024612a21ac0da01f2574c3",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditQvFinalAggregate.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "3fcae6b8628637a84d9c89bae18f6cdeab943d9925a94f17277e44b319e0321a",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditQvFinalTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "fc98788a44bb65242c20f324035873e37d6ee340bb9ff403f027e82f905af6ed",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditQvKeyTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "59c4579cd25340f638a13fcb76b03a51a069bd1149155322a364e449a8789da8",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditQvParserAggregate.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "53d6be1351ec5b27c5b74352de92fc2a400b7ed5e55f82b61591a6e6e53fa717",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditQvParserBytes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "713653782134d576c4d4323037c21b0ed208fb655042aa18fb44b7a6e23061f9",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditQvParserCounter.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "b3075bdeb296f00aafc4647c67ea9be90498e262bbdca367988903a1be27c9b4",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditQvParserFacts.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "7d5189cf03dd893485844d8262fc674d8fcb9f1d654be15b78b061223fd912be",
+      "axiom_checks": 9,
+      "guard_msgs_count": 9
+    },
+    {
+      "file": "test/AuditQvParserModes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "82f8bc1156037dd644aa1d1a193c2901241af5bc8bf66557b6df17172272a135",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditQvParserRecord.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "8553bb47232232e5c6fefa1d0e82ce43d0b078483727804679c85941137aebd7",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditQvParserRows.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "5fca744cba669df2bf3abb39fd348bbc21c0676e8687c348e8d5e010da6bd9d0",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditQvParserSegments.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "0cbf3a783a2fe3718f4e5902466f4b4c05627caa63efb68e668dfffa439936b1",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditQvParserView.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "ecdeffe89fe4774e204a8ddea710e985cb901bb1a5a93761a1bcefc748bf8465",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditQvProviderLink.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "0dabf66dad9836d5232f55b89872ea2a310c46ad3b4ca40ca6e108f3cd3bb795",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditQvWalkCount.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "897bacb26a4a7954285d97b135504780bbf5a09bcf87119028174e4e8a625860",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditQvWalkExtraction.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "e11dfdf1b5c17036274d06e2dcfdf5f2fc5a20e4a861cbb1d6d8622546f47a1e",
+      "axiom_checks": 24,
+      "guard_msgs_count": 24
+    },
+    {
+      "file": "test/AuditQvWalkIndex.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "f548d227d260143d3f9c73a239c3b7675ec36f4b91d7ff8f533727d9d701cb2a",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditQvWalkMain.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "d84287ce271c6d85b959b64995e5a23bf4119ee53a7c14064610b55a4ec38389",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditQvWalkPhase.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "c5ef2bc2d81b12accc0f2adac8313e6ee79b820f90d09f48f9793d8bc196b7e7",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditRcptAccessTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "fd0b7fe587175087a52e520cb1bf37a595d4e7cd510dc0ae88926462cde6fa81",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditRcptArithmetic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "bbdd27ac9abbc74bf4a0346e5c815e8ead4b09c65de4b0eca25444dae1e1edf8",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditRcptBalance.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "a826abe7ae029b681336d60e38bc427bc1f3022670d618ea01e9155d1d63850c",
+      "axiom_checks": 20,
+      "guard_msgs_count": 20
+    },
+    {
+      "file": "test/AuditRcptBodyOffsets.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "e1cf3dd892c558c2feb7fcf809bc201f6f7b283dfe6d1b2ae3f74832e67b0e8b",
+      "axiom_checks": 13,
+      "guard_msgs_count": 13
+    },
+    {
+      "file": "test/AuditRcptBoundaryTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "dd91da6d60f2a66d7deb7a00bb5324333415165f1561023ade991beb163eba84",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditRcptBytesView.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "da60290a1842a3f47bcf507129d11fd5a57019f4f5244681bd823806ec20417d",
+      "axiom_checks": 13,
+      "guard_msgs_count": 13
+    },
+    {
+      "file": "test/AuditRcptCanon.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "af8c2e7d33c4f787637768d1bcf10b7a7b7926d633e7fbea3cc3179b28851797",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditRcptChainBytes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "97e96bba83e8fa5d9da36074d79eaf843c91322802c6828921732a359903f257",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditRcptDigestTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "69a92b8932733e77d5ff7dc8e414b7162deab37afaa114378efceba0bbb43bc4",
+      "axiom_checks": 20,
+      "guard_msgs_count": 20
+    },
+    {
+      "file": "test/AuditRcptEncodedOffsets.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "7b8e990a62dcd6c54f991d73dbfa0c82f043dfca7d9c7bc215f2f186a800b7b1",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditRcptEquality.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "aaa51e853b64265bbfb446acf91b684632faedc25c2c3ca73492952001707114",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditRcptFinalTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "bf23015cb8a3286d5d0108e836474b5a742beac0dbe5389d26e2741b917d1f69",
+      "axiom_checks": 13,
+      "guard_msgs_count": 13
+    },
+    {
+      "file": "test/AuditRcptGas.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "7477b4dbdde5c77d9cb9b72996e15573eee4c81cf40c6b8414cb873064c7868f",
+      "axiom_checks": 15,
+      "guard_msgs_count": 15
+    },
+    {
+      "file": "test/AuditRcptGlobalCounts.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "84579304758ee5f6a71c8a7e398ebc98ab8b963ce39efe98972e5e7b971d1a50",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditRcptHeaderBytes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "5a8564209cfc185308209fe34166712c0249ed512ceacf6c4233b4da7c9322ba",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditRcptIds.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "daae5c706f1a12efb7f55f9c71085da991b64d4f7b37149454a50af222cad676",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditRcptIdsTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "bebf24c13a0ed41f1fd4544ac3bdc70645c8d803ab2d09bab2e1c918b1cea06a",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditRcptIndexedWf.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "94c9d6daf8675803c461ede56cd0963f3d4d9145202edd3202c11fe80adf40f9",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditRcptKeyMessages.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "2c81b5aa28bc8c174bee04bb7c82a255070ee881d130059782275e4e4419b1e8",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditRcptKeyTrafficRows.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "6053bf7ebe54d1785dfbf12650c8473f27cd061dc36a8a97aea16fc349294012",
+      "axiom_checks": 11,
+      "guard_msgs_count": 11
+    },
+    {
+      "file": "test/AuditRcptListCounts.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "b3187fef60aa22819937572f840be945418ca1f4e047113f0feb0d676bd617e0",
+      "axiom_checks": 9,
+      "guard_msgs_count": 9
+    },
+    {
+      "file": "test/AuditRcptListExtraction.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "372de2b828acb9a0b920bfe8693fb40649362e97c522aca3b9b306b89c369101",
+      "axiom_checks": 19,
+      "guard_msgs_count": 19
+    },
+    {
+      "file": "test/AuditRcptListIndices.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "ff1f0a5630064f0b9eb378b0303e7f3e510ae15745f45582a18a0a2e04970876",
+      "axiom_checks": 13,
+      "guard_msgs_count": 13
+    },
+    {
+      "file": "test/AuditRcptListTerminal.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "b102124c00a28810ede50dc96209ae041c51114b763ccd1f7c5c0ab164d0bc3e",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditRcptMemoryReads.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "71b9104639ccec57062f6ff3a056a4728e84a4de2aef0a61c3d7c2d50c4d07cb",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditRcptMemoryWrites.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "da1de659a41ca36444fc721dca8876a066289268d5d6b1f053d49815e74d37b4",
+      "axiom_checks": 6,
+      "guard_msgs_count": 6
+    },
+    {
+      "file": "test/AuditRcptPrepCount.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "841e175a3248872b7450b14f691913e9adfac99798cf78936811077f1f5c1591",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditRcptPreparedRanges.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "90de02b1a0bf7e7ff6f4d1960d06862ace6bf86d7c72842f862c9f2dc7891ab9",
+      "axiom_checks": 5,
+      "guard_msgs_count": 5
+    },
+    {
+      "file": "test/AuditRcptPrevious.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "f493549ce28ec705c8d78fdf815a0fb3d2c18045e185060ba869bc28df36e60c",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditRcptRcl.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "06ae2240ae9bda595f68437f66a862d5cfb68004664cac869afae2d1aa16c33a",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditRcptRoutePrefix.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "a11ef61240c3fe00f4f63fc601bfc3d8d985e72005a6c90e013248aaa286ed58",
+      "axiom_checks": 14,
+      "guard_msgs_count": 14
+    },
+    {
+      "file": "test/AuditRcptSignerTraffic.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "1b93743f7a6b94547a0ef155dfb1b65f846519bb170d8b62a1eb1721af04838d",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditRcptSystem.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "57be18fea7c2bf728333708899e401d8fcf6b7caf0a13a4d37e274c8e32e836e",
+      "axiom_checks": 9,
+      "guard_msgs_count": 9
+    },
+    {
+      "file": "test/AuditRcptTableTokens.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "019d87e005254821dd21698d3f0ce27afb2822fb4db115abc60f22badeeed60e",
+      "axiom_checks": 7,
+      "guard_msgs_count": 7
+    },
+    {
+      "file": "test/AuditRcptTableTotals.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "ea94a8744df44074673819db2abe6f2f5f570f490ca2f753991b993fbbf7cd13",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditRcptTableWellformed.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "00b14d9709fd7ac8853ae5a84c2ed13095b0debb4f3df30c407c48375ef4f4d8",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditRcptTokenCarry.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "b822c3f93523befc2485d4fb61551a9a190896d3546aa649cd1aef4ad294714f",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditRcptTokenSequence.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "dc2db8b6328d3f979debf9c410c9ea501ab0a9fd51d51e3bcd298a6a8620cd9c",
+      "axiom_checks": 17,
+      "guard_msgs_count": 17
+    },
+    {
+      "file": "test/AuditRcptTotalBounds.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "fcc23f7203dfbd586a769ad483d06eec6b6ee66e4b67884aa08ef8eccc9e4296",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditRcptWellformed.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "684d6ffd10143213a6f5938a5ec6aaa0dee75b851f5c354f7c19da388e88f0b6",
+      "axiom_checks": 13,
+      "guard_msgs_count": 13
+    },
+    {
+      "file": "test/AuditReadUnfoldBound.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "97ffa6c0a57627161373b5e45191955dafa64fe70838e6ba34f988e9711fcec2",
+      "axiom_checks": 12,
+      "guard_msgs_count": 12
+    },
+    {
+      "file": "test/AuditReceiptShape.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "345f57711319e0d9558d2ad8cc1ccf7a23f45d6a26410f1cf13da93de8e82cef",
+      "axiom_checks": 6,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditResolvedAddress.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "8d0860763df6d1d45a5c41dd89d702f47405d07932780884492fbd599f8f9216",
+      "axiom_checks": 5,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditSeedProperEdges.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "c45f1f7aa9060f019e6e8d936de21edf92297a6e7c37aaf6e08b5481993bba2f",
+      "axiom_checks": 1,
+      "guard_msgs_count": 1
+    },
+    {
+      "file": "test/AuditSeedTerminalEdges.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "c4a8bf82b0958eaec6553017862033fbf77ca6c1e488329f011c37d089d15cd6",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditSeedWalkEdges.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "943e6f96c260cd1aaf786164ed353f22e75944603971c023d6eff322132549a0",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditSetRevealed.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "62b45e35f5267c27b2fa9981fcdcf5c3bddd8b7e45b0384072dde2fb3ae5cba4",
+      "axiom_checks": 4,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditSignedInstance.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "45a4903405a8a770d0ea6c091374d44a9281452f370c3ef8a21e9903b66a2c9c",
+      "axiom_checks": 3,
+      "guard_msgs_count": 3
+    },
+    {
+      "file": "test/AuditSourceAddresses.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "e5bb3643eb0a89dbbfc1d2a4aa64659479332c929c62dbaf185525b0a2afb733",
+      "axiom_checks": 7,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditSourceCoverage.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "27d5de8f0ef572c066c1202332f1aa6bf5d1c852c2db5e2fcf9fbf188b5bd216",
+      "axiom_checks": 7,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/AuditSourceDepthAllocation.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "b27bf3aac20d926f48647cee113fb9ff13495100a648e1cfca3cc201eedf39d0",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditSourceLevelAllocation.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "522ebbb719c552f9d90655504d64aea1a25f37579e903c218d77d74f75fd9f21",
+      "axiom_checks": 4,
+      "guard_msgs_count": 4
+    },
+    {
+      "file": "test/AuditTransitionQueries.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "6a33acdd2c9b3b6583138429e42bae05977098b49aeac3fe7f008ff6508015d9",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditTreeChildLookup.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "7801538dec4c1f495551da3f559c83f1e0de3dde11a7b59ee4ebb69ca8083c5e",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeOutputChain.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "5e0b59e11651bf61fe3d22c54aa7544317f23acbdfc5f60b2d29d55b4ab4a7d8",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeOutputLinks.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "9ec552e3623e8bb92287681f6963a6e68687c39a6266e4d01109180e6a408576",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeRootAndBytes.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "e521a58661a69583b0f2da3cb1790d643cbf170adec248b3cfec18734cdd2c45",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeSourceChain.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "47e0738e58110ad634542c6b3e5d6e5ea0899c59cdd76577e9d9cdfdd1055308",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeTerminalEnd.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "19a9ab97bff8204adfa23b46edf2aec7069f5d94c23108909f35def63240c7b4",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeValueTerminal.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "04ed3e5659fa0b7e7de7329173933cd5424be4bd0c134afa3ada9b977633d73e",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeWalkKeys.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "ec21be9e614a9cff63419bb9b7e39495c0e72802cec9851da7d3066491826ff8",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTreeWalkShape.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "190cdced770b49b780e04fb9ff517e0abf94c0e046712e8223eef8c259847f3f",
+      "axiom_checks": 2,
+      "guard_msgs_count": 2
+    },
+    {
+      "file": "test/AuditTrieShape.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "1a6005c022676b1b122b117eb7523434bdb57d196341f8fdcc5c4a1dbc5f75c9",
+      "axiom_checks": 17,
+      "guard_msgs_count": 17
+    },
+    {
+      "file": "test/AuditUnfoldStoreEq.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "030cdef25d5526e93a896f7a38edc76dfdc9ac156729af92a55afbc63deff20c",
+      "axiom_checks": 10,
+      "guard_msgs_count": 10
+    },
+    {
+      "file": "test/AuditValueIndex.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "fb648e7e49536e77dccc303d227255646595daf43e6cf839fd2bd3b44cbfe434",
+      "axiom_checks": 8,
+      "guard_msgs_count": 8
+    },
+    {
+      "file": "test/AuditViewSegment.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 0,
+      "sha256": "8b778af0f78d36ceca85b01d94ff60354caf5d3e0ebe6da5d62d599e83472ffe",
+      "axiom_checks": 10,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/BranchOccurrenceRepeated.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 5,
+      "sha256": "86369b47aac1796fac6ec138c951f3af5332f7235e9246c9f7b795ef24afff48",
+      "axiom_checks": 0,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/OccurrenceAddressRepeated.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 3,
+      "sha256": "cd7b40f64f6edb867328dd4bb7fe5ae745d9379ec35b5b78c53d6d040090f6a9",
+      "axiom_checks": 0,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/OccurrenceResolverOffPath.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 6,
+      "sha256": "86f07de43ff04e697f6a6d4436170719fa92659119cd3e0c2856b4bd4ab50ef5",
+      "axiom_checks": 0,
+      "guard_msgs_count": 0
+    },
+    {
+      "file": "test/QvCombinedCandidate.lean",
+      "exit_code": 0,
+      "behavior_guards": 15,
+      "theorem_examples": 0,
+      "sha256": "9ee60b140b9e6cd3f1c7a7c487f90e78e4e33999e5cde7a98f0ea7e219b4a67a",
+      "axiom_checks": 197,
+      "guard_msgs_count": 197
+    },
+    {
+      "file": "test/TrieShapeOverflow.lean",
+      "exit_code": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 4,
+      "sha256": "f5972b7f60d45bf0c1e4acea2516e8deb3f7fd1c397fa5e6cf4cc9f3dbf4017a",
+      "axiom_checks": 0,
+      "guard_msgs_count": 0
+    }
+  ],
+  "external_logs": "/data/illia/nearproof-deps/validation/v3-parser-link-20261007",
+  "remaining": [
+    "Whole AIR soundness/completeness and certificate",
+    "Queue full-value consumption and mode semantics",
+    "Receipt KEYNIB traffic",
+    "Global native allocation/counters",
+    "Reference checker/admission",
+    "Succinct prover and real judge",
+    "Broader NEAR replacement coverage"
+  ]
+}

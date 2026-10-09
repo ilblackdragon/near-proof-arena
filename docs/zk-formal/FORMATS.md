@@ -248,3 +248,87 @@ The root must equal the committed root.
 * There are no count prefixes anywhere: lengths come from the schedule.
 * The multiproof stream is interleaved per level (§5), not all rows first.
 * The aux layout and bus check are defined in §3 (this was L8's open item).
+
+## 8. `np-udr-stark-v2`: the public-message bus (additive; §1–§7 unchanged)
+
+Status: lane `lane/v3-bus`, 2026-10-06. Design: `V3-D0-DESIGN.md` §2.4, §10 decision 2.
+v2 is v1 with one extra kind of bus traffic: messages that the verifier reads from
+the public vector (the claim bytes, `pub[i] = cb[i]`) and puts on the AIR's buses.
+**Proof bytes, transcript, schedule, layout and every per-position check are those
+of v1** (§2–§5). The prover's messages do not change. Only the clear-text bus check
+of §3 differs.
+
+| Topic | Lean definition |
+|---|---|
+| `PubSeg`, `AirP`, `HoldsP`, `holdsP_iff_holds`, `AirP.wf` | `zk-formal/ZkFormal/V2/Air.lean` |
+| AIR export `np-air-v2` | `zk-formal/ZkFormal/V2/Export.lean` (`AirP.exportJson`) |
+| Verifier (`globalChecksP`, `prepP`, `Iop.verifierP`, `verifierP`) | `zk-formal/ZkFormal/V2/Verifier.lean` |
+
+### 8.1 AIR export `np-air-v2`
+
+```json
+{"format":"np-air-v2","numBuses":B,"numPub":P,"tables":[ ...exactly as np-air-v1... ],
+ "pubSegs":[{"bus":b,"send":true,"width":w,"countAt":i,"start":s,
+             "prefix":[...],"indexBase":null,"startAt":null}, ...],"maxPub":M}
+```
+
+`prefix` defaults to `[]`, `indexBase` to null, and `startAt` to null. These
+settings preserve the original static byte-only segment. `width` always counts
+payload bytes, not generated message fields. Dynamic offsets allow compact
+packing of variable-length segments in the deterministic prepared statement.
+
+`AirP` extends v1's `Air`. With `"pubSegs":[]`, the semantics are exactly v1's
+(`holdsP_iff_holds`).
+
+### 8.2 Public segments
+
+For each segment `s`, in `pubSegs` order:
+
+* count `n = Σ_{k<4} pub[countAt + k]·256^k` (little-endian u32 over 4 public bytes;
+  an index past the claim reads 0);
+* payload offset `base` is `start` when `startAt = null`; otherwise it is the
+  little-endian u32 at public bytes `startAt..startAt+3`;
+* record `j < n` is the field encoding of `prefix`, followed by `[indexBase+j]`
+  when `indexBase` is not null, followed by `[pub[base + j·w + c] for c < w]`;
+  generated constants and indices are field elements, so an index above 255
+  is not truncated to a byte;
+* the segment **fits** iff `base + n·w ≤ min(|cb|, maxPub)`.
+  The verifier rejects otherwise (`pubFit`);
+* each record is one message on bus `b`: a send if `send`, else a receive, with
+  multiplicity 1.
+
+`HoldsP`: v1's `Holds` conditions (heights, constraints, bits), every segment fits,
+and for every bus `b` and message `m`:
+`#sends_trace(b,m) + #sends_pub(b,m) = #recvs_trace(b,m) + #recvs_pub(b,m)`.
+
+### 8.3 Verifier change (replaces the last line of §3's bus check)
+
+With `α = α_fp` and `γ` (challenges 0 and 1), and v1's fingerprint convention
+`fp(m ‖ (b+1)) = Σ_k m_k α^k + (b+1)·α^{|m|}`:
+
+```
+Π_pub(s) = ∏ over public messages (b, s, m), in segment and record order, of (γ − fp(m ‖ (b+1)))
+accept iff  okLens  ∧  pubFit  ∧  ALI identities (as v1)  ∧
+            (∏ send finals) · Π_pub(true) = (∏ receive finals) · Π_pub(false)
+```
+
+The product order does not matter (the field is commutative). Lean folds left from 1.
+The cost is one fingerprint and one `K` multiplication per public message.
+
+### 8.4 Static bounds (`AirP.wf`, checked once per AIR, not by the verifier)
+
+`AirP.wf maxDeg` = v1's table conditions ∧ `bus < numBuses` and `width ≥ 1` for every
+segment ∧ `multBoundP ≤ 2^36` ∧ `fpBoundP ≤ 2^36`, where
+`pubBound = Σ_s ⌊maxPub / width_s⌋` bounds the number of public messages,
+`multBoundP = multBound + pubBound` and
+`fpBoundP = (Σ_t 2^maxLog_t·|interactions_t| + pubBound) · (max(max trace msg length, max public message width) + 1)`.
+A public message's width is `|prefix| + (indexBase != null ? 1 : 0) + width`.
+Generated fields must be included in the fingerprint degree budget; they do not
+increase the payload-based count bound. `PubSeg.record_length` and the full
+`V2.Np.Bus` proof check this distinction.
+v2's L3 side condition is `NpOkP AP prm = NpOk AP.toAir prm ∧ AP.wf 16`.
+
+### 8.5 Honest prover
+
+Unchanged: the v1 honest prover for `AP.toAir` (`Prover.Np.npProver`). Its finals
+satisfy the v2 equation whenever the trace satisfies `HoldsP` (`Prover.Np.busProdP`).

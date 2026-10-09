@@ -25,3 +25,34 @@ name = "ZkToySpec"
 [[require]]
 name = "NearSpec"
 path = "../spec/lean"
+
+# v3 D0 statement (`NearSpecV3`, lane v3-store: `ZkFormal.NearV3.Spec.*` reasons about
+# `NearSpecV3.partialTrie`). Same NearSpec / ArenaCore packages as above (resolved by name).
+[[require]]
+name = "NearSpecV3"
+path = "../spec/lean/v3"
+
+# lane v3-spec: the reference candidate's witness normal form (`normSW`, `normW`, `normalW`
+# and their lemmas), compiled from its own sources (read-only) so that the v3 witness encoder
+# can be stated against it.
+[[lean_lib]]
+name = "ReexecV3D0"
+srcDir = "../examples/reexec-v3-d0/formal"
+
+# lane v3-spec: D0a tools (not part of the ZkFormal library build). Compiled with the
+# candidate-side @[csimp] fast paths (ZkFormal.V3.Fast.*).
+[[lean_exe]]
+name = "nearspec-v3-check-d0a"
+root = "ZkFormal.V3.Tools.CheckD0a"
+
+[[lean_exe]]
+name = "nearspec-v3-test-prep"
+root = "ZkFormal.V3.Tools.TestPrep"
+
+[[lean_exe]]
+name = "nearspec-v3-bench"
+root = "ZkFormal.V3.Tools.Bench"
+
+[[lean_exe]]
+name = "nearspec-v3-test-encw"
+root = "ZkFormal.V3.Tools.TestEncodeWitness"

@@ -1,0 +1,40 @@
+{
+  "status": "partial-formal-milestone",
+  "scope": "Exact queue parser semantics and authenticated pre-state reads; no queue AIR yet",
+  "integration": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1323,
+    "result": "pass",
+    "includes": [
+      "Qv.ByteBuffers",
+      "Qv.ReceiptPreserve",
+      "Ups.ByteConstructors (all twelve kinds)"
+    ]
+  },
+  "queue_audit": {
+    "behavior_guards": 11,
+    "axiom_guards": 32,
+    "result": "pass",
+    "allowed_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "checked": [
+    "Exact empty queue byte equality and buffered vector accepted encodings",
+    "Repeated and unsorted buffered shard IDs preserved",
+    "Actual runtime reads and missing-chunk determinacy-only semantics",
+    "All main queue reads moved to pre-state by actual scheduler/receipt write preservation",
+    "Exact buffered size 4+24*n; bounds remain conditioned on authenticated byte budget",
+    "Buffered byte witnesses avoid u64-to-field truncation"
+  ],
+  "remaining": [
+    "Queue AIR, extraction and honest renderer",
+    "Actual authenticated value/row budget without obsolete A4",
+    "Full semantic factoring, concrete AIR assembly and size bound",
+    "Source proof deduplication/partition architecture",
+    "Rust succinct prover, final certificate and actual judge validation",
+    "Broader NEAR coverage beyond D0a"
+  ]
+}

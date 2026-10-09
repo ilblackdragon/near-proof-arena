@@ -1,0 +1,35 @@
+{
+  "milestone": "upsV3 cPlan completeness",
+  "status": "pass",
+  "integration_jobs": 1097,
+  "targeted_jobs": 118,
+  "guarded_axiom_checks": 5,
+  "axioms_allowed": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "semantic_inputs": "Explicit PartOk per actual constructed part; existing InstOk and UpsOk unchanged",
+  "coverage": [
+    "first node row",
+    "other node rows",
+    "value rows",
+    "walk rows",
+    "padding via groupOk_by"
+  ],
+  "remaining": [
+    "derive PartOk from actual trie update construction",
+    "cFields",
+    "cBytes",
+    "cMem",
+    "full honest assembly and real judge validation"
+  ],
+  "archive": "/data/illia/nearproof-deps/validation/v3-ups-plan-20261007",
+  "source_sha256": {
+    "zk-formal/ZkFormal/NearV3/Render/Ups/PlanInput.lean": "b97be24c6a2b2ab1a3f8a615b3a0a2ac73b819f1ccb706fe61443dff85505872",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/GPlan.lean": "6aa093016317b9cf5ac6e4824171d4c31bc4052ca48856628892a3dc74e9e3b7",
+    "zk-formal/ZkFormal/NearV3/Render/UpsRender.lean": "5ffb6d66aee60955ac788382d7299d9637e157b02f242c6702f63b54e30ddfef",
+    "zk-formal/test/AuditUpsPlan.lean": "99817bf33d4fe43e56ff116883bf91e8c2e00ec6c4760134c2e755eb53ccb5a3"
+  },
+  "limitations": "Incremental integration; neither a clean budget measurement nor a completed succinct state-transition proof."
+}

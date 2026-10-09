@@ -1,0 +1,110 @@
+{
+  "recorded_at": "2026-10-07T02:33:34.208848+00:00",
+  "base_commit": "8c40110e88a1915b60712fa056617f31bf023b8f",
+  "status": "pass_for_listed_checks",
+  "source_sha256": {
+    "zk-formal/ZkFormal/V3/Integration.lean": "85da7aa71a2bedc60a58a8454e696251c674592d8162face064d395d80e8071a",
+    "zk-formal/ZkFormal/Size/V3Synth.lean": "4cb337366872593b1c3c95d3d9f3330e48cc57f15a9b7444455582d94e6a8f58",
+    "zk-formal/ZkFormal/Size/V3Eval.lean": "b8b3e09a425c4b2c2813ae21a918af3de078519432ff5bbe536f5b1d1264f19f",
+    "zk-formal/ZkFormal/NearV3/Sched/Complete/Height.lean": "d2f44a87bb1fc80ba33a11464f698ac87c62ad3291c4bafa00ab36ffa99a99b5",
+    "zk-formal/test/AuditV3Integration.lean": "86249e8f435406161742e19d8c97ea00309cb0c80b28475897019f71e8d97117"
+  },
+  "build": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1089,
+    "success": true,
+    "memory_cap": "16G",
+    "cpu_affinity": "8-15,24-31",
+    "lean_num_threads": 4,
+    "clean_judge_budget_measurement": false
+  },
+  "receipt_branch_integrated": "fad713e5",
+  "receipt_merge": "8c40110e",
+  "import_gap": {
+    "unreached_modules_before_receipt_merge": 339,
+    "additional_proof_modules_in_integration_target": 369,
+    "drivers_and_compiler_fast_paths_are_separate_targets": true
+  },
+  "initial_failure": "trie_shapes_check failed in the kernel: synthetic upsV3 width was 186, integrated M7e table width is 187",
+  "shape_checks": {
+    "trie_tables": 6,
+    "scheduler_tables": 5,
+    "receipt_tables": 6,
+    "aux_groups": [
+      1,
+      2,
+      3
+    ],
+    "method": "decide +kernel"
+  },
+  "synthetic_size_bounds": {
+    "scope": "23-table synthetic AIR, one SHA table, no qvV3; not the final assembled prover",
+    "g1": 7451071,
+    "g2": 7147423,
+    "g3": 7194495,
+    "increase_per_group_bytes": 928,
+    "hint_max_bytes": 1295017,
+    "g2_with_hint_excess_over_8_MiB": 53832
+  },
+  "conditional_word_budget": {
+    "words": 770000,
+    "chacha_rows_with_padding_upper_bound": 4141411,
+    "fits_maxLog": 22,
+    "current_table_maxLog": 21,
+    "domain_or_table_changed": false
+  },
+  "axiom_audit": [
+    {
+      "declaration": "ZkFormal.NearV3.Sched.Complete.lane_770k_22",
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "declaration": "ZkFormal.NearV3.Sched.Complete.laneMaxes_770k",
+      "axioms": []
+    },
+    {
+      "declaration": "ZkFormal.Size.V3.trie_shapes_check",
+      "axioms": [
+        "propext"
+      ]
+    },
+    {
+      "declaration": "ZkFormal.Size.V3.sched_shapes_check",
+      "axioms": [
+        "propext"
+      ]
+    },
+    {
+      "declaration": "ZkFormal.Size.V3.rcpt_shapes_check",
+      "axioms": [
+        "propext"
+      ]
+    },
+    {
+      "declaration": "ZkFormal.Size.V3.v3_sizeOfWeq_g2",
+      "axioms": [
+        "propext"
+      ]
+    },
+    {
+      "declaration": "ZkFormal.Size.V3.v3_bound",
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ]
+    }
+  ],
+  "artifacts": "/data/illia/nearproof-deps/validation/v3-recovery-20261007-023334",
+  "remaining": [
+    "Receipt, trie and scheduler completeness",
+    "Indexed public segments",
+    "Domain word/path bounds",
+    "Roll-in alignment and final two-SHA/queue-aware size proof",
+    "nearAirV3 assembly, FactorSound/FactorComplete, honestTrace_fits and admission",
+    "Rust prover v2 and real judge timing"
+  ]
+}
