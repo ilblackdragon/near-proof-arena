@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 41,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessRepairedProfile.lean",
+      "sha256": "304eff7af70b152cf6146aa015a8c825e6f2584e876c7290e79ad4a40b7cd5e0"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessRepairedDegree.lean",
+      "sha256": "9f19d85497ab224a9a14651f7a080cbb702b43df7257f03548f62cb43aa4be21"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessRepairedWf.lean",
+      "sha256": "516eb0a28f8b5198114fc8c622f9f710aebdf3245ae2e0799386c97a3a6f973c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessRepairedSize.lean",
+      "sha256": "04bdc85bf9e9e365955e6f550e68ba466db113b64a45ef8079ab1675f227f555"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessRepairedAdmission.lean",
+      "sha256": "7143ef720db312f3d03a7c9a23c48463ea82f7fb0e511f93c4339a9b52d54c54"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessRepairedSound.lean",
+      "sha256": "c7bbd1371eb72ec0b37d03204feaa6a21094dea3964eb7fd77185eaf1e9fad28"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorProcessProjection.lean",
+      "sha256": "b3ce49033c8604908729eed8db2263d78969a01db2da2d4f4c24eee2a5a30de4"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorProcessCertified.lean",
+      "sha256": "d1d65049edee3b7af3d86423ea9368dd71d7bf7d780794a2c3d5d8fb073dcb67"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcPriorProcessRepairedProfile.log",
+    "/tmp/ProcPriorProcessRepairedDegree.log",
+    "/tmp/ProcPriorProcessRepairedWf.log",
+    "/tmp/ProcPriorProcessRepairedSize.log",
+    "/tmp/ProcPriorProcessRepairedAdmission.log",
+    "/tmp/ProcPriorProcessRepairedSound.log",
+    "/tmp/ProcPriorProcessProjection.log",
+    "/tmp/AuditProcPriorProcessCertified.log"
+  ],
+  "certificate": {
+    "bytes": 8238324,
+    "byte_cap": 8388608,
+    "byte_headroom": 150284,
+    "fused_shape": [
+      3402,
+      90,
+      7,
+      90,
+      22
+    ],
+    "degree": 8,
+    "mult_bound": 1038721028,
+    "fp_bound": 68697539256,
+    "fp_headroom": 21937480,
+    "air_wf": true,
+    "header_max": true
+  },
+  "scope": "Full structural/proof-size recertification of additive selected10 boundary-repaired family. Direct HoldsP shared comparator soundness uses new family, never old Holds. Generic nonprocess_local projects every unchanged table at exact OLD column offsets from new fused TableLocal. process_local exposes repaired Proc Local. No global native installation/completeness/soundness claim beyond these checked scopes.",
+  "prerequisite_report": "docs/e2e-results/v3-process-repaired-family/report.json",
+  "olean_overlay": "/tmp/ups-proof",
+  "limits": "Lean -j1,16GiB virtual memory,45s/file"
+}

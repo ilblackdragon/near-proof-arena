@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual selected18 repaired queue key Local extraction and every live repaired KEYNIB row symbol nibble-or-END. Uses actual constrained nibble bits, preserves repaired zero-based key positions and no START. Receipt key providers and global key association remain separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedKeyView.lean",
+      "sha256": "10a23ca96f3377636466d8b27b0ce8c9d2695c526954d237e8cbec48867b86ec",
+      "audit": "zk-formal/test/AuditProcPriorRoutedKeyView.lean",
+      "audit_sha256": "05e75d1d737e205f02ff143a0c9b05f5d92c633bca09541754eed9e849317397",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedKeySymbols.lean",
+      "sha256": "e69015b907c73785d0d90a9811df2acb61881293d65de8b61ccb2544e79e1d86",
+      "audit": "zk-formal/test/AuditProcPriorRoutedKeySymbols.lean",
+      "audit_sha256": "d3d4ab7ca77096f676340abb77ce15057bebb0ce71a421c5a0480fbc2a91802c",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-key-symbols/dependency-review.json",
+      "sha256": "64ee856627043d5cf48842c8241fca7e0412bd26ce4060d97aed064965a86b4e"
+    }
+  ]
+}
