@@ -75,7 +75,7 @@ theorem checkD0a_prepClaim_exists {B : Nat} {cb wb : Bytes} {k : WalkD0} {w : St
     simpa only [a1,hk,decide_eq_true_eq] using hr.2.1
   have ha8 : k.blks.all (fun b => b.slots.all fun (_,ci) =>
       decide (ci.bwRequests.map (·.toShard)).Nodup) = true := by
-    simpa only [a8,hk] using hr.2.2.2.2.2
+    simpa only [a8,hk] using hr.2.2.2.2.2.1
   unfold checkD0a at h
   obtain ⟨u,hu,_⟩ := ReexecV3D0.bind_ok' h
   cases u

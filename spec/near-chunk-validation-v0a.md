@@ -1,4 +1,4 @@
-# `near/pv86/chunk-validation/v0`, domain **D0a** — D0 with amendments A1, A2, Canon0f
+# `near/pv86/chunk-validation/v0`, domain **D0a** — D0 with amendments A1, A2, Canon0f, A7–A10
 
 Status: **unsigned draft**, 2026-10-06 (lane `v3-spec`). Additive successor of domain D0
 (`spec/near-chunk-validation-v0.md` §6, `NearSpecV3.RelD0`), which is pinned by the signed
@@ -9,16 +9,20 @@ challenge `near-chunk-validation-d0-1` and is **not modified**. Draft challenge:
 ## 1. The relation
 
 ```
-RelD0a(B)(cb, w) := RelD0(cb, w) ∧ A1(cb) ∧ A2(cb, w) ∧ Canon0f(cb, w) ∧ unfoldBytes(cb, w) ≤ B ∧ A8(cb)
+RelD0a(B, W, Dp)(cb, w) := RelD0(cb, w) ∧ A1(cb) ∧ A2(cb, w) ∧ Canon0f(cb, w) ∧ unfoldBytes(cb, w) ≤ B
+                           ∧ A8(cb) ∧ chachaWords(cb, w) ≤ W ∧ (∀ used source proof e, |e.path| ≤ Dp)
 ```
 
-The challenge instance is `B = B0 = 2,000,000` (§2.4).
+The challenge instance is `B = B0 = 2,000,000` (§2.4), `W = W0 = 770,000` (§2.6) and
+`Dp = Dp0 = 32` (§2.7). `W0` and `Dp0` are user decisions of 2026-10-09.
 
-Lean: `NearSpecV3.ChunkValidationV0a` (`RelD0a B`, `a1`, `a2`, `canon0f`, `a7`, `unfoldBytes`, `a8`;
-executable verdict `checkD0a B`; **proved**: `relD0a_iff : RelD0a B cb w ↔ checkD0a B cb w = .ok ()`,
-`relD0a_relD0 : RelD0a B cb w → RelD0 cb w` (for every `B`), `relD0a_mono`). A pure
-restriction: every D0a proof is a D0 proof of the same claim; no soundness statement
-mentions `B`. The claim
+Lean: `NearSpecV3.ChunkValidationV0a` (`RelD0a B cb w (W := W0) (Dp := Dp0)`, `a1`, `a2`, `canon0f`,
+`a7`, `unfoldBytes`, `a8`, `a9`, `chachaWords`, `a10`, `maxPathDepth`; executable verdict
+`checkD0a B cb w (W := W0) (Dp := Dp0)`; **proved**: `relD0a_iff : RelD0a B cb w W Dp ↔
+checkD0a B cb w W Dp = .ok ()`, `relD0a_relD0 : RelD0a B cb w W Dp → RelD0 cb w` (for all
+bounds), `relD0a_mono` (in `B`), `relD0a_mono_all` (in `B`, `W`, `Dp`),
+`Scheduler.run_eq_mid` (the counted RNG is the run's own)). A pure restriction: every D0a proof
+is a D0 proof of the same claim; no soundness statement mentions the bounds. The claim
 and witness formats are unchanged (`spec/claim-v3.md`).
 
 ## 2. Amendments (out-of-domain conditions added to D0's table)
@@ -29,6 +33,8 @@ and witness formats are unchanged (`spec/claim-v3.md`).
 | `w.proof_routing` (A2) | every receipt of every *used* source receipt proof (the entry the last-wins lookup selects for a new source chunk) routes, under `L(epoch_id)`, to the validated shard | no receipt is Merkle-hashed but filtered out (proof-size bound) |
 | `w.unfolded` (A7) | `unfoldBytes(cb, w) ≤ B0 = 3,000,000` (§2.4) | the AIR hashes every revealed node *occurrence* (tree-shaped records); a witness can share one subtree under many slots, so the unfolded size — not `|base_state|` — bounds the SHA and node tables |
 | `c.bw_requests` (A8) | in every block of the claim's segment, every chunk slot's `BandwidthRequests` has at most one request per `to_shard` (claim-only; `prepD0` checks it natively) | bounds the requests the in-AIR scheduler converts and processes (`≤ n²` per applied block), hence the scan / process table heights |
+| `e.chacha_words` (A9) | the bandwidth-scheduler runs of all applied transitions (main at B2, each implicit block) draw `≤ W0 = 770,000` ChaCha20 words in total (§2.6) | bounds the in-AIR ChaCha lane: `chachaV3 ≤ 86·⌈K/16⌉ ≤ 4,141,410 < 2²²` rows; the rejection-sampling fuel alone allows ≈ 9.9 M words |
+| `w.path_depth` (A10) | every *used* source receipt proof's Merkle path has `≤ Dp0 = 32` items (§2.7) | bounds the in-AIR source-proof table: `srcpV3 ≤ 1984·(33 + 64·32) = 4,128,704 ≤ 2²²` rows; `rootFromPath` alone accepts any length |
 | `e.sched_canonical` (Canon0f) | every `0x0f` (`BandwidthSchedulerState`) value the run reads — main pre-state and each implicit transition's pre-state — is absent or `V1` whose links are exactly the layout's `n²` links `(sender, receiver)` in sender-major order (any allowances, any sanity hash) | the in-AIR scheduler decodes the previous state as exactly `n²` ordered links |
 
 ### 2.1 A1 source check (nearcore 2.13.4, `44f7ae6c`)
@@ -145,6 +151,62 @@ contain one entry per distinct used key **plus** `#used − #distinct` filler en
 keys (any D0-shaped content); the AIR's `srcp` must bind equal lists to equal keys (one entry
 per key), count the filler entries, and never route a filler entry's receipts. The reference
 normal form (`normalW`: dedup + sort) keeps filler entries (distinct keys).
+
+### 2.6 A9 `e.chacha_words`: definition, `W0`, liveness
+
+**Definition** (`NearSpecV3.chachaWords`, `a9`). Every applied transition τ (main at B2, then
+each implicit block, oldest first) runs `Scheduler.run` once with a fresh
+`ChaCha20Rng::from_seed(prev_block_hash)`; its only RNG use is the shuffle of each equal-allowance
+bucket in `process_bandwidth_requests` (`scheduler.rs:362`, `gen_index` rejection sampling). The
+words a run draws are its RNG's stream position afterwards (`Scheduler.rngWords = 16·ctr −
+|buf|`; nearcore `ChaCha20Rng::get_word_pos`). `chachaWords cb w = Σ_τ` words drawn by τ's run,
+with the run's inputs exactly `prims.sched`'s (`schedInsD0`: the walk's block contexts and the
+`0x0f` value of τ's pre-trie). `Scheduler.runMid` repeats `run` up to its last RNG use, and
+`Scheduler.run_eq_mid` (**proved**) shows `run = (runMid …).map finish`, so the counted RNG is
+the run's own. Decidable; computed independently by the Python checker (every `ChaCha20Rng`
+the D0 checker's scheduler creates counts its `next_u32` calls) and the oracle (a copy of
+nearcore's scheduler core on nearcore's inputs with `rand_chacha`'s `get_word_pos`, its
+resulting state checked against nearcore's own post-state on every honest witness).
+
+**`W0 = 770,000`** (user decision 2026-10-09). With `≤ 33` scheduler instances, the in-AIR
+lane has `genV3 = K ≤ 770,000 < 2²⁰`, `chachaV3 = 86·⌈K/16⌉ ≤ 86·(W0 + 15·33)/16 = 4,141,410`
+`< 2²²` rows and `shufV3 ≤ 174,149` (`ZkFormal…Sched.Complete.lane_770k_22`, `lane_W0`); the
+largest bound that fits `2²²` is 779,840 (`chachaMax_tight`). The alternative 360,000 (≈ 16 %
+over twice the worst-case expectation) is superseded. Without A9 the bound is only the fuel
+bound `K + 64·Rd ≤ 64·S`, ≈ 9.9 M words at the worst A7/A8 claim (`worstK_exceeds`).
+Not a nearcore invariant: the count depends on hash outputs (rejections in `gen_index`) and on
+how many equal-allowance requests the claim's chunk headers carry.
+
+**Liveness.** A9 never makes a false statement provable; a chunk whose scheduler runs draw
+more than `W0` words is **out of D0a: unprovable in this domain, never wrongly accepted**. An
+honest run draws about one word per request in a shuffled bucket of size ≥ 2 (rejections
+are rare), so exceeding `W0` takes ≈ 770 k bucket entries over ≤ 33 runs — far above any
+real block (a run has at most `n²` requests with ≤ 40 increases each, so `n ≤ 9` shards give
+≤ 3,240 entries per run); the measured maxima are in §3.
+
+### 2.7 A10 `w.path_depth`: definition, `Dp0`, liveness
+
+**Definition** (`NearSpecV3.a10`, `maxPathDepth`): every used source receipt proof (the entry
+`checkD0`'s last-wins lookup selects for a new source chunk, `usedProofs`) has
+`|e.proof.path| ≤ Dp`. `verifyReceiptProof` (`rootFromPath`, nearcore `verify_path`) accepts a
+path of any length.
+
+**`Dp0 = 32`** (user decision 2026-10-09: the largest depth that keeps the source-proof table
+within `2²²` rows and the 8 MiB bound). `srcpV3` spends per used proof one root row, a 32-row
+leaf segment and one 64-row segment per path item, exactly (`SrcpGen.R_eq`); there are at most
+`31·64 = 1984` used proofs (`usedProofs_count`, `prepD0_source_count`). Hence
+`rows ≤ 1984·(33 + 64·Dp)`: `Dp = 32` gives 4,128,704 ≤ 2²² = 4,194,304, `Dp = 33` gives
+4,255,680 > 2²² (`ZkFormal.NearV3.Rcpt.SrcpDepth.dp0_largest`, attained: `dp0_tight`). The
+design's rounder estimate `1984·(2 + Dp)·64` would allow 31. At `Dp0` the receipt-side SHA
+rows (A1 worst case) are 3,501,199 `< 2²²` and the source-proof SHA rows alone 2,257,792
+(one SHA table). The 8 MiB proof-size model already counts `srcpV3` at its aligned cap `2²²`,
+so the bound is unchanged (V3-D0-DESIGN §3.5). `Dp0 ≥ 16`; nearcore emits `⌈log₂ #shards⌉ ≤ 6`
+items at ≤ 64 shards.
+
+**Liveness.** A10 never makes a false statement provable; a witness with a longer used path
+is **out of D0a: unprovable in this domain, never wrongly accepted**. Honest producers never
+emit one (the path is the outgoing-receipts Merkle tree over the layout's shards); the
+oracle's path-depth mutants exercise the boundary (32 items: in D0a; 33: `w.path_depth`).
 
 ## 3. Reference oracle and tests
 

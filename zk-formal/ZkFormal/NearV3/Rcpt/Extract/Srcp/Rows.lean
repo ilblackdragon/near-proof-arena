@@ -295,7 +295,7 @@ theorem gzStep {r : Nat} (hr : r + 1 < tr.height tt) (hl : tr.cell tt r sl = 1) 
   have b := isBool hL hr' (x := gz) (by simp [bools])
   rcases b with h | h <;> rw [h] at h1 h2 ⊢ <;> constructor <;> intro h' <;> first | grind | exact absurd h' (by decide)
 
-theorem height_le : tr.height tt ≤ 2 ^ 20 := by
+theorem height_le : tr.height tt ≤ 2 ^ 22 := by
   have := hL.log_le; unfold Trace.height; exact Nat.pow_le_pow_right (by omega) this
 
 /-! ## Units -/

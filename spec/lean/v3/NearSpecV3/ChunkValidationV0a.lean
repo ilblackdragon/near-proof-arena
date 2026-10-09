@@ -1,13 +1,14 @@
 import NearSpecV3.ChunkValidationV0
 
 /-!
-# `NearSpecV3.ChunkValidationV0a` — `RelD0a`: D0 with amendments A1, A2, Canon0f
+# `NearSpecV3.ChunkValidationV0a` — `RelD0a`: D0 with amendments A1, A2, Canon0f, A7–A10
 
 Additive successor of `NearSpecV3.ChunkValidationV0` (which is pinned by the signed
 challenge `near-chunk-validation-d0-1` and is not modified). The amended relation is a pure
 restriction of `RelD0` (spec/near-chunk-validation-v0a.md, V3-D0-DESIGN §4, §10, §11):
 
-  `RelD0a B cb w := RelD0 cb w ∧ A1 cb ∧ A2 cb w ∧ Canon0f cb w ∧ A7 B cb w ∧ A8 cb`
+  `RelD0a B cb w W Dp := RelD0 cb w ∧ A1 cb ∧ A2 cb w ∧ Canon0f cb w ∧ A7 B cb w ∧ A8 cb ∧
+    A9 W cb w ∧ A10 Dp cb w`   (`W`, `Dp` default to the challenge's `W0 = 770,000`, `Dp0 = 32`)
 
 * **A1** (`c.gas_limit`): the chunk `gas_limit` in the last-new-chunk block's (B2) slot of the
   validated shard is at most `10^15` (mainnet genesis, 1000 Tgas). nearcore never changes a
@@ -22,6 +23,12 @@ restriction of `RelD0` (spec/near-chunk-validation-v0a.md, V3-D0-DESIGN §4, §1
   (`runtime/runtime/src/congestion_control.rs:503-523`) and rejects a chunk header whose
   requests differ from the chunk extra's (`chain/chain/src/validate.rs:280-298`), so every
   chunk header of a valid chain satisfies it. Claim-only.
+* **A9** (`e.chacha_words`, user decision 2026-10-09): the scheduler runs of all applied
+  transitions draw at most `W` ChaCha20 words in total (`chachaWords cb w ≤ W`, below). Not a
+  nearcore invariant (the count depends on hash outputs); it bounds the in-AIR ChaCha lane.
+* **A10** (`w.path_depth`, user decision 2026-10-09): every used source receipt proof's Merkle
+  path has at most `Dp` items. nearcore produces `⌈log₂ #shards⌉ ≤ 6`; it bounds the in-AIR
+  source-proof table.
 * **Canon0f** (`e.sched_canonical`): every `BandwidthSchedulerState` value the D0 run reads at
   `0x0f` — in the main pre-state and in each implicit transition's pre-state — is absent or
   decodes as `V1` whose links are exactly the layout's `n²` links `(sender, receiver)` in
@@ -31,7 +38,7 @@ restriction of `RelD0` (spec/near-chunk-validation-v0a.md, V3-D0-DESIGN §4, §1
   `increase_allowances`), and nothing else writes the key (spec/near-chunk-validation-v0a.md
   §2.3 has the source check).
 
-The three predicates are total `Bool` functions of `(cb, w)`; where the pair does not even
+The predicates are total `Bool` functions of `(cb, w)`; where the pair does not even
 decode they return `false` (irrelevant: `RelD0` is false there). They read the trie through
 the witness's own declared roots (`main.post_state_root`, `implicit[k].post_state_root`),
 which `RelD0` checks against the relation's computed roots.
@@ -288,30 +295,215 @@ def a8 (cb : Bytes) : Bool :=
   | .ok k => k.blks.all fun b => b.slots.all fun (_, ci) => decide (ci.bwRequests.map (·.toShard)).Nodup
   | .error _ => false
 
-/-- **The D0a relation**, with the unfolded-size bound `B` a parameter (the challenge
-instance is `B0`, `ChallengeD0a`). -/
-def RelD0a (B : Nat) (cb w : Bytes) : Prop :=
-  RelD0 cb w ∧ a1 cb = true ∧ a2 cb w = true ∧ canon0f cb w = true ∧ a7 B cb w = true ∧
-    a8 cb = true
+/-! ## A9 `e.chacha_words`: ChaCha20 words drawn by the scheduler runs
 
-instance (B : Nat) (cb w : Bytes) : Decidable (RelD0a B cb w) := by unfold RelD0a; infer_instance
+Every applied transition τ (main, then each implicit one) runs `Scheduler.run` once, with a
+fresh `Rng.ofSeed prev_block_hash`; the only RNG use is the bucket shuffle of
+`processRequests` (`requests.shuffle(&mut self.rng)`, scheduler.rs:362). The words a run
+draws are its RNG's stream position afterwards, `16·ctr − |buf|` (`Scheduler.rngWords`; nearcore
+`ChaCha20Rng::get_word_pos`). `chachaWords cb w` = Σ_τ words drawn by τ's run (0 if the run
+fails; then `RelD0` is false anyway). The run's inputs are exactly `prims.sched`'s
+(`schedInsD0` rebuilds them from `triesD0`'s pre-tries and the walk's block contexts), and
+`Scheduler.run_eq_mid` (**proved**) shows that `run` continues from the very state whose RNG
+is counted.
+
+The fuel bound alone does not bound the total (`ZkFormal…Sched.Complete.worstK`: ≈ 9.9 M
+words); `W0 = 770,000` (user decision 2026-10-09) keeps the in-AIR ChaCha lane at
+`86·⌈K/16⌉ ≤ 4,141,410 < 2^22` rows (`lane_770k_22`). -/
+
+namespace Scheduler
+
+/-- Stream position of an RNG that started at `Rng.ofSeed` (`ctr = 0`, `buf = []`): the
+number of 32-bit words drawn so far. -/
+def rngWords (r : NearSpecV3.Rng) : Nat := 16 * r.ctr - r.buf.length
+
+/-- `run`'s intermediate result after `process_bandwidth_requests` (the last RNG use). -/
+structure Mid where
+  prev : NearSpec.Bandwidth.State
+  p : Params
+  allowed : Array Bool
+  st : St
+
+/-- `run` up to and including `processRequests` (the same steps, verbatim). -/
+def runMid (cfg : Config) (cc : CongestionConfig) (ids : List Nat) (prevState : Option Bytes)
+    (congestion : List (Nat × CongestionInfo × Nat))
+    (requests : List (Nat × List BandwidthRequest)) (prevBlockHash : Bytes) : Option Mid := do
+  let prev ← match prevState with
+    | none => some NearSpec.Bandwidth.State.initial
+    | some b => NearSpec.Bandwidth.State.decode b
+  let n := ids.length
+  if n = 0 then none
+  let p ← Params.calculate cfg n
+  let status := statuses cc ids congestion
+  let links := List.range (n * n)
+  let allowed : Array Bool := (links.map fun l => linkAllowed status (l / n) (l % n)).toArray
+  let allow0 := prev.links.foldl (fun (a : Array Nat) la =>
+      match indexOf ids la.sender, indexOf ids la.receiver with
+      | some s, some r => a.set! (s * n + r) la.allowance
+      | _, _ => a) (Array.replicate (n * n) 0)
+  let reqs := convertRequests p ids requests
+  let st : St := ⟨Array.replicate n p.maxShardBandwidth, Array.replicate n p.maxShardBandwidth,
+    allow0, Array.replicate (n * n) 0, Rng.ofSeed prevBlockHash⟩
+  let fair := p.maxShardBandwidth / n
+  let st := { st with allowance := st.allowance.map fun a => Nat.min (Nat.min (a + fair) u64Max) p.maxAllowance }
+  let st := links.foldl (fun st l => (tryGrant n allowed st l p.base).2) st
+  let st ← processRequests n allowed st reqs
+  some ⟨prev, p, allowed, st⟩
+
+/-- The rest of `run` (no RNG use). -/
+def finish (ids : List Nat) (m : Mid) : Output :=
+  let n := ids.length
+  let links := List.range (n * n)
+  let st := distribute n m.allowed m.st
+  let sid (i : Nat) : Nat := ids.getD i 0
+  let newLinks : List NearSpec.Bandwidth.LinkAllowance :=
+    links.map fun l => ⟨sid (l / n), sid (l % n), st.allowance[l]!⟩
+  let allShards := u32 n ++ concatAll (ids.map u64)
+  let newState : NearSpec.Bandwidth.State :=
+    ⟨newLinks, sha256 (m.prev.sanityHash ++ sha256 allShards)⟩
+  ⟨newState.encode, links.map fun l => ((sid (l / n), sid (l % n)), st.granted[l]!), m.p⟩
+
+/-- **`run` factors through `runMid`**: the counted RNG is the run's own. -/
+theorem run_eq_mid (cfg : Config) (cc : CongestionConfig) (ids : List Nat) (prev : Option Bytes)
+    (cong : List (Nat × CongestionInfo × Nat)) (req : List (Nat × List BandwidthRequest))
+    (seed : Bytes) :
+    run cfg cc ids prev cong req seed = (runMid cfg cc ids prev cong req seed).map (finish ids) := by
+  unfold run runMid finish
+  by_cases hn : ids.length = 0
+  · cases prev with
+    | none => simp [hn]
+    | some b => cases NearSpec.Bandwidth.State.decode b <;> simp [hn]
+  · cases hp : Params.calculate cfg ids.length with
+    | none =>
+      cases prev with
+      | none => simp [hn, hp]
+      | some b => cases NearSpec.Bandwidth.State.decode b <;> simp [hn, hp]
+    | some p =>
+      cases prev with
+      | none =>
+        simp only [hn, hp, Option.bind, ↓reduceIte, bind]
+        generalize processRequests _ _ _ _ = r
+        cases r <;> rfl
+      | some b =>
+        cases hd : NearSpec.Bandwidth.State.decode b with
+        | none => simp only [hn, hp, hd, Option.bind, ↓reduceIte, bind]; rfl
+        | some st =>
+          simp only [hn, hp, hd, Option.bind, ↓reduceIte, bind]
+          generalize processRequests _ _ _ _ = r
+          cases r <;> rfl
+
+/-- Words drawn by one run (`0` if the run aborts). -/
+def wordsDrawn (cfg : Config) (cc : CongestionConfig) (ids : List Nat) (prevState : Option Bytes)
+    (congestion : List (Nat × CongestionInfo × Nat))
+    (requests : List (Nat × List BandwidthRequest)) (prevBlockHash : Bytes) : Nat :=
+  match runMid cfg cc ids prevState congestion requests prevBlockHash with
+  | some m => rngWords m.st.rng
+  | none => 0
+
+end Scheduler
+
+/-- Words drawn by the run `prims.sched i` (same argument conversion as `prims`). -/
+def schedWords (i : SchedIn) : Nat :=
+  Scheduler.wordsDrawn Scheduler.Config.pv86 CongestionConfig.pv86 i.shardIds i.prev
+    (i.statuses.map fun (s, c, m) => (s, toCI c, m))
+    (i.requests.map fun (s, rs) => (s, rs.map fun r => ⟨r.toShard, r.bitmap⟩))
+    i.prevBlockHash
+
+/-- `prims.sched i` is `runMid` on the counted arguments, then `finish`. -/
+theorem prims_sched_eq_mid (i : SchedIn) :
+    prims.sched i =
+      ((Scheduler.runMid Scheduler.Config.pv86 CongestionConfig.pv86 i.shardIds i.prev
+        (i.statuses.map fun (s, c, m) => (s, toCI c, m))
+        (i.requests.map fun (s, rs) => (s, rs.map fun r => ⟨r.toShard, r.bitmap⟩))
+        i.prevBlockHash).map (Scheduler.finish i.shardIds)).map fun o =>
+          ⟨o.state, fun a b => ((o.granted.find? (·.1 == (a, b))).map (·.2)).getD 0⟩ := by
+  show (Scheduler.run _ _ _ _ _ _ _).map _ = _
+  rw [Scheduler.run_eq_mid]
+
+/-- The scheduler inputs of every applied transition, in `checkD0`'s order (main at B2, then
+each implicit block oldest first): the block context's layout, own shard, slot statuses,
+requests and `prev_hash`, and the `0x0f` value of the transition's pre-trie
+(`schedStep` reads it with `readKey t keyBwState`). -/
+def schedInsD0 (cb wb : Bytes) : Except String (List SchedIn) := do
+  let k ← walkD0 cb
+  let w ← decodeW wb
+  let B2 ← match k.blks[k.b2i]? with | some b => pure b | none => throw "walk"
+  let prevB2 ← match k.blks[k.b2i + 1]? with | some b => pure b | none => throw "walk"
+  let ts ← triesD0 cb wb
+  let ctxs := blockCtx k.L k.H.shardId k.slotB2.gasLimit B2 prevB2.hdr.nextGasPrice ::
+    (k.implicitBlks.zip w.implicit).map fun (M, _) =>
+      blockCtx k.L k.H.shardId k.slotB2.gasLimit M M.hdr.nextGasPrice
+  pure ((ctxs.zip ts).map fun (ctx, pre, _) =>
+    ⟨ctx.layout.shardIds, ctx.own, (pre.find keyBwState).getD none, ctx.statuses, ctx.requests,
+     ctx.prevBlockHash⟩)
+
+/-- Σ ChaCha20 words drawn by all scheduler runs of the claim. -/
+def chachaWords (cb w : Bytes) : Nat :=
+  match schedInsD0 cb w with
+  | .ok l => (l.map schedWords).sum
+  | .error _ => 0
+
+/-- A9 (`e.chacha_words`). -/
+def a9 (W : Nat) (cb w : Bytes) : Bool := decide (chachaWords cb w ≤ W)
+
+/-- A9 bound of the challenge instance (user decision 2026-10-09; derivation
+spec/near-chunk-validation-v0a.md §2.6). -/
+def W0 : Nat := 770000
+
+/-! ## A10 `w.path_depth`: Merkle-path length of the used source receipt proofs
+
+`verifyReceiptProof` accepts a path of any length (`rootFromPath`); nearcore's producer
+emits `⌈log₂ #shards⌉ ≤ 6` items. The in-AIR source table (`srcpV3`) spends
+`33 + 64·|path|` rows per used proof, so a per-proof bound `Dp` bounds its height:
+`1984 · (33 + 64·32) = 4,128,704 ≤ 2^22` and `1984 · (33 + 64·33) > 2^22`
+(`ZkFormal.NearV3.Rcpt.SrcpDepth`). `Dp0 = 32` (user decision 2026-10-09; the largest depth
+that fits; spec v0a §2.7). -/
+
+/-- Longest Merkle path of a used source proof (`0` if none / undecodable). -/
+def maxPathDepth (cb w : Bytes) : Nat :=
+  match walkD0 cb, decodeW w with
+  | .ok k, .ok sw => ((usedProofs k sw).map fun e => e.proof.path.length).foldr max 0
+  | _, _ => 0
+
+/-- A10 (`w.path_depth`). -/
+def a10 (Dp : Nat) (cb w : Bytes) : Bool :=
+  match walkD0 cb, decodeW w with
+  | .ok k, .ok sw => (usedProofs k sw).all fun e => decide (e.proof.path.length ≤ Dp)
+  | _, _ => false
+
+/-- A10 bound of the challenge instance. -/
+def Dp0 : Nat := 32
+
+/-- **The D0a relation**, with the unfolded-size bound `B` a parameter (the challenge
+instance is `B0`, `ChallengeD0a`), and the A9 word bound `W` and A10 depth bound `Dp`
+defaulting to the challenge's `W0`, `Dp0`. -/
+def RelD0a (B : Nat) (cb w : Bytes) (W : Nat := W0) (Dp : Nat := Dp0) : Prop :=
+  RelD0 cb w ∧ a1 cb = true ∧ a2 cb w = true ∧ canon0f cb w = true ∧ a7 B cb w = true ∧
+    a8 cb = true ∧ a9 W cb w = true ∧ a10 Dp cb w = true
+
+instance (B : Nat) (cb w : Bytes) (W Dp : Nat) : Decidable (RelD0a B cb w W Dp) := by
+  unfold RelD0a; infer_instance
 
 /-- Executable verdict: `checkD0`, then the amendments (each reported as out of domain). -/
-def checkD0a (B : Nat) (cb w : Bytes) : Except String Unit := do
+def checkD0a (B : Nat) (cb w : Bytes) (W : Nat := W0) (Dp : Nat := Dp0) : Except String Unit := do
   checkD0 cb w
   check (a1 cb) "out of domain (c.gas_limit): chunk gas_limit above 10^15"
   check (a2 cb w) "out of domain (w.proof_routing): a used receipt proof holds a receipt routed to another shard"
   check (canon0f cb w) "out of domain (e.sched_canonical): 0x0f value is not the layout's canonical link list"
   check (a7 B cb w) "out of domain (w.unfolded): unfolded trie bytes above the bound"
   check (a8 cb) "out of domain (c.bw_requests): a chunk's bandwidth requests repeat a to_shard"
+  check (a9 W cb w) "out of domain (e.chacha_words): scheduler runs draw more ChaCha20 words than the bound"
+  check (a10 Dp cb w) "out of domain (w.path_depth): a used receipt proof's Merkle path is longer than the bound"
 
-theorem relD0a_iff (B : Nat) (cb w : Bytes) : RelD0a B cb w ↔ checkD0a B cb w = .ok () := by
+theorem relD0a_iff (B : Nat) (cb w : Bytes) (W : Nat := W0) (Dp : Nat := Dp0) :
+    RelD0a B cb w W Dp ↔ checkD0a B cb w W Dp = .ok () := by
   unfold RelD0a RelD0 acceptsD0 checkD0a check
   cases h : checkD0 cb w with
   | error e => simp [bind, Except.bind]
   | ok u =>
     cases a1 cb <;> cases a2 cb w <;> cases canon0f cb w <;> cases a7 B cb w <;> cases a8 cb <;>
-      simp [bind, Except.bind, pure, Except.pure]
+      cases a9 W cb w <;> cases a10 Dp cb w <;>
+      simp [bind, Except.bind]
 
 /-- A7 bound of the challenge instance: unfolded trie bytes (pre + post-write copies, all
 transitions); `B0 = 2,000,000` (lead decision, user-approved; derivation
@@ -319,41 +511,60 @@ spec/near-chunk-validation-v0a.md §2.4: 1.25 SHA rows/byte · 2 M = 2.5 M of 2^
 def B0 : Nat := 2000000
 
 /-- The D0a domain conditions at bound `B` (Bool form). -/
-def inD0a (B : Nat) (cb w : Bytes) : Bool :=
-  a1 cb && a2 cb w && canon0f cb w && a7 B cb w && a8 cb
+def inD0a (B : Nat) (cb w : Bytes) (W : Nat := W0) (Dp : Nat := Dp0) : Bool :=
+  a1 cb && a2 cb w && canon0f cb w && a7 B cb w && a8 cb && a9 W cb w && a10 Dp cb w
 
 /-- The D0a domain conditions at bound `B`. -/
-def InD0a (B : Nat) (cb w : Bytes) : Prop :=
-  a1 cb = true ∧ a2 cb w = true ∧ canon0f cb w = true ∧ a7 B cb w = true ∧ a8 cb = true
+def InD0a (B : Nat) (cb w : Bytes) (W : Nat := W0) (Dp : Nat := Dp0) : Prop :=
+  a1 cb = true ∧ a2 cb w = true ∧ canon0f cb w = true ∧ a7 B cb w = true ∧ a8 cb = true ∧
+    a9 W cb w = true ∧ a10 Dp cb w = true
 
-/-- The D0a domain at the challenge bound `B0`. -/
+/-- The D0a domain at the challenge bounds `B0`, `W0`, `Dp0`. -/
 def InD0a0 (cb w : Bytes) : Prop := InD0a B0 cb w
 
-theorem inD0a_iff (B : Nat) (cb w : Bytes) : inD0a B cb w = true ↔ InD0a B cb w := by
+theorem inD0a_iff (B : Nat) (cb w : Bytes) (W : Nat := W0) (Dp : Nat := Dp0) :
+    inD0a B cb w W Dp = true ↔ InD0a B cb w W Dp := by
   unfold inD0a InD0a
   simp only [Bool.and_eq_true, and_assoc]
 
-instance (B : Nat) (cb w : Bytes) : Decidable (InD0a B cb w) :=
-  decidable_of_iff _ (inD0a_iff B cb w)
+instance (B : Nat) (cb w : Bytes) (W Dp : Nat) : Decidable (InD0a B cb w W Dp) :=
+  decidable_of_iff _ (inD0a_iff B cb w W Dp)
 
 instance (cb w : Bytes) : Decidable (InD0a0 cb w) := by unfold InD0a0; infer_instance
 
 /-- `RelD0a B` is `RelD0` restricted to the domain `InD0a B`. -/
-theorem relD0a_iff_inD0a (B : Nat) (cb w : Bytes) : RelD0a B cb w ↔ RelD0 cb w ∧ InD0a B cb w :=
+theorem relD0a_iff_inD0a (B : Nat) (cb w : Bytes) (W : Nat := W0) (Dp : Nat := Dp0) :
+    RelD0a B cb w W Dp ↔ RelD0 cb w ∧ InD0a B cb w W Dp :=
   Iff.rfl
 
-/-- Same at the challenge bound. -/
+/-- Same at the challenge bounds. -/
 theorem relD0a_iff_in (cb w : Bytes) : RelD0a B0 cb w ↔ RelD0 cb w ∧ InD0a0 cb w := Iff.rfl
 
-/-- Soundness direction: every D0a witness is a D0 witness (for every bound `B`). -/
-theorem relD0a_relD0 {B : Nat} {cb w : Bytes} (h : RelD0a B cb w) : RelD0 cb w := h.1
+/-- Soundness direction: every D0a witness is a D0 witness (for all bounds). -/
+theorem relD0a_relD0 {B : Nat} {cb w : Bytes} {W Dp : Nat} (h : RelD0a B cb w W Dp) :
+    RelD0 cb w := h.1
 
-/-- The bound is monotone. -/
-theorem relD0a_mono {B B' : Nat} (hB : B ≤ B') {cb w : Bytes} (h : RelD0a B cb w) : RelD0a B' cb w := by
-  obtain ⟨h0, h1, h2, h3, h4, h5⟩ := h
-  refine ⟨h0, h1, h2, h3, ?_, h5⟩
-  unfold a7 at *
-  simp only [decide_eq_true_eq] at *
-  omega
+/-- The bounds are monotone (each of `B`, `W`, `Dp`). -/
+theorem relD0a_mono_all {B B' W W' Dp Dp' : Nat} (hB : B ≤ B') (hW : W ≤ W') (hD : Dp ≤ Dp')
+    {cb w : Bytes} (h : RelD0a B cb w W Dp) : RelD0a B' cb w W' Dp' := by
+  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7⟩ := h
+  refine ⟨h0, h1, h2, h3, ?_, h5, ?_, ?_⟩
+  · unfold a7 at *
+    simp only [decide_eq_true_eq] at *
+    omega
+  · unfold a9 at *
+    simp only [decide_eq_true_eq] at *
+    omega
+  · unfold a10 at *
+    revert h7
+    split
+    · simp only [List.all_eq_true, decide_eq_true_eq]
+      exact fun h e he => Nat.le_trans (h e he) hD
+    · exact id
+
+/-- The A7 bound is monotone (at any fixed `W`, `Dp`). -/
+theorem relD0a_mono {B B' : Nat} (hB : B ≤ B') {cb w : Bytes} {W Dp : Nat}
+    (h : RelD0a B cb w W Dp) : RelD0a B' cb w W Dp :=
+  relD0a_mono_all hB (Nat.le_refl W) (Nat.le_refl Dp) h
 
 end NearSpecV3

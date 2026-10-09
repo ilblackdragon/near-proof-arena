@@ -322,24 +322,13 @@ theorem lane_heights (B0 T κ W maxLog : Nat) (Ps : List IStat) (h7 : A7 B0 Ps) 
     have : 86 * (total genRows Ps + 15 * T) ≤ 86 * (W + 15 * T) := Nat.mul_le_mul_left _ (by omega)
     unfold chachaMax; omega
 
-/-- Instantiation with `W = 360,000` words (`B0 = 2,000,000`, `T = 33`, `κ = 43`): `shufV3`
-`≤ 174,149`, `genV3 ≤ 360,000 < 2^20`, `chachaV3 ≤ 1,937,660 < 2^21` rows (the lane's own
-`gen_complete` / `chacha_complete` bounds), so all `≤ 2^22`. -/
-theorem lane_22 (Ps : List IStat) (h7 : A7 2000000 Ps) (h8 : A8 Ps) (hb : Steps 43 Ps)
-    (hT : Ps.length ≤ 33) (hW : total genRows Ps ≤ 360000) :
-    total shufRows Ps + 1 ≤ 2 ^ 22 ∧ total genRows Ps + 1 ≤ 2 ^ 20 ∧
-    total chachaRows Ps + 1 ≤ 2 ^ 21 := by
-  refine ⟨(lane_heights 2000000 33 43 360000 22 Ps h7 h8 hb hT hW (by decide) (by decide) (by decide)).1,
-    fits hW (by decide), ?_⟩
-  have := chacha_total (Ps := Ps) hT
-  omega
-
-theorem laneMaxes_22 : shufMax 2000000 33 43 = 174149 ∧ chachaMax 360000 33 = 1937660 := by decide
-
-/-- Conditional capacity for the alternative `W = 770,000` word budget. The RNG
-generator still fits `2^20`, but the ChaCha bound needs `2^22` instead of the
-current table's `2^21`. This is a row-count theorem only: it neither changes
-`RelD0a` nor raises `Chacha.Table.maxLog` or its completeness assumptions. -/
+/-- **Lane heights at the RelD0a word bound `W0 = 770,000`** (A9 `e.chacha_words`, user decision
+2026-10-09; `B0 = 2,000,000`, `T = 33`, `κ = 43`): `shufV3 ≤ 174,149 < 2^22`,
+`genV3 ≤ 770,000 < 2^20`, `chachaV3 ≤ 4,141,410 < 2^22` rows (`laneMaxes_770k`). The ChaCha
+bound needs `2^22`; the deployed `Chacha.Table.maxLog` is still `21` (raising it is blocked by
+the fingerprint budget of four candidate families, `chacha_cap_short` and
+STATUS-V3-AIR §5), so this is a row-count theorem, not yet the table's completeness bound. It
+replaces the earlier `W = 360,000` instantiation (`lane_22`, chachaV3 `≤ 1,937,660 < 2^21`). -/
 theorem lane_770k_22 (Ps : List IStat) (h7 : A7 2000000 Ps) (h8 : A8 Ps) (hb : Steps 43 Ps)
     (hT : Ps.length ≤ 33) (hW : total genRows Ps ≤ 770000) :
     total shufRows Ps + 1 ≤ 2 ^ 22 ∧ total genRows Ps + 1 ≤ 2 ^ 20 ∧
@@ -350,6 +339,14 @@ theorem lane_770k_22 (Ps : List IStat) (h7 : A7 2000000 Ps) (h8 : A8 Ps) (hb : S
 
 theorem laneMaxes_770k : chachaMax 770000 33 = 4141410 ∧
     chachaMax 770000 33 + 1 ≤ 2 ^ 22 ∧ 2 ^ 21 < chachaMax 770000 33 + 1 := by decide
+
+/-- `shufV3`'s maximum at `B0` (unchanged by `W`). -/
+theorem shufMax_B0 : shufMax 2000000 33 43 = 174149 := by decide
+
+/-- The largest word bound whose ChaCha lane fits `2^22` rows (with `T = 33`) is `779,840`;
+`W0 = 770,000` is within it. -/
+theorem chachaMax_tight : chachaMax 779840 33 + 1 ≤ 2 ^ 22 ∧ 2 ^ 22 < chachaMax 779841 33 + 1 := by
+  decide
 
 /-- **Worst case of the lane tables** under A7, A8, the step budget and the fuel bound
 (maximum of `Σ (S − Rd)` over claims of `≤ 33` instances with `C = N`, `S = C + 43·n`, one

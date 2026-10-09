@@ -230,9 +230,9 @@ supersede the older size summaries below. Evidence and exact source hashes:
 The conditional `lane_770k_22` row-count theorem and `laneMaxes_770k` compile:
 at W = 770,000 and T ≤ 33 the conservative ChaCha bound is 4,141,411 rows with
 padding. This fits 2^22, but exceeds the current `Chacha.Table.maxLog = 21`.
-The existing W = 360,000 theorem remains unchanged. No new domain conjunct or
-table-height change has been made; 770,000 would require updating the table,
-its completeness bounds and size accounting before assembly.
+**Update 2026-10-09:** W0 = 770,000 is now RelD0a conjunct A9, and `lane_prep`
+uses it. The W = 360,000 theorem is removed. The table cap stays at 21 for now
+because of the fingerprint budget (§5.2).
 
 **Alignment milestone:** the integration target now passes 1,092 jobs. New
 `Size.Aligned` proves the smaller opening bound for the actual verifier
@@ -347,15 +347,18 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
 ## 5. Decisions pending (user / coordinator)
 
 1. **Size cap:** retain B0 = 2.0 MB and 8 MiB. Implement honest-trace padding for the now-proved conditional roll-in alignment bound with two SHA tables.
-2. **ChaCha words bound W:** a new execution-level conjunct of `RelD0a`, "Σ ChaCha words drawn by all scheduler runs ≤ W".
+2. **ChaCha words bound W: DECIDED by the user on 2026-10-09: W0 = 770,000.** It is RelD0a conjunct A9 `e.chacha_words`: Σ ChaCha words drawn by all scheduler runs ≤ W0 (lane `lane/v3-domain-bounds`, V3-D0-DESIGN §17).
    * Why it is needed: the formal worst case (`worstK_exceeds`: genV3 ≈ 9.9 M rows, chachaV3 ≈ 53 M rows) exceeds 2²².
-   * Options: W = 360,000 (≈ 16 % over twice the worst-case expectation) or W = 770,000 (the 2²² limit).
-   * It is not a deterministic nearcore invariant: rejections depend on hash outputs. The liveness note is the same as A7's.
-   * If approved, it should go into `RelD0a` **before** `lane/v3-d0a-spec` freezes.
+   * Rows at W0: chachaV3 ≤ 4,141,410 < 2²²; the largest W that fits is 779,840. `lane_prep` now assumes `Σ K ≤ W0`; `lane_22` (W = 360,000) is removed.
+   * It is not a deterministic nearcore invariant: rejections depend on hash outputs. Liveness: a chunk over W0 is out of D0a, so it is unprovable but never wrongly accepted.
+   * **Open:** `Chacha.Table.maxLog` is still 21 (`chacha_cap_short`). Raising it to 22 does not change the 8 MiB model, because the aligned model already pads ChaCha to 2²². It does push four measured candidate families over the fingerprint budget 2^36: `ProcPriorProcessRepaired`, `SortEmpty`, `ProcPriorCodec` and `ProcPriorComparatorRouted` go from `fpBound` 68,697,539,256 to 69,427,348,152. ChaCha has 6 interactions in those families, so the extra cost is 2^21 · 6 · 58. The other six families still fit. The raise is held until that budget is re-planned, and the bus budget is unchanged.
 3. **Receipt lane:** active after a usage-limit interruption, not a user pause.
    * The saved work is merged; continue the remaining view/render/link proofs.
    * Required implementation work includes edits to `spec/lean/v3/NearSpecV3/PrepD0.lean` (R2: header fields `|B|`, witness overhead, per-list and routing records)? PrepD0 is unsigned and is NOT part of the d0a-spec branch.
-4. **Source-proof path length:** RelD0a allows unbounded Merkle paths (`rootFromPath`); nearcore produces ⌈log₂ shards⌉. Options: a domain conjunct, or count path bytes into a budget. srcp heights are kept parametric in `Dp`.
+4. **Source-proof path length: DECIDED by the user on 2026-10-09: Dp0 = 32.** It is RelD0a conjunct A10 `w.path_depth`: every used source Merkle path has ≤ Dp0 items.
+   * Dp0 is the largest depth that keeps srcp within 2²² rows: 1984 · (33 + 64 · 32) = 4,128,704, while 33 would give 4,255,680 (`Rcpt.SrcpDepth.dp0_largest`).
+   * `srcpV3.maxLog` is now 22. The aligned 8 MiB margin is unchanged at 917,367 B.
+   * nearcore emits ⌈log₂ shards⌉ ≤ 6. Liveness: a longer path is out of D0a, so it is unprovable but never wrongly accepted.
 5. A8 is **decided**: it is in RelD0a (nearcore-enforced, `congestion_control.rs:503-523`, `validate.rs:280-298`), with difftest 0 disagreements and 845/845 mutants out of domain.
 
 ## 6. `lane/v3-d0a-spec` (RelD0a for near-chunk-v3) and main
@@ -421,11 +424,11 @@ WIP commits that do **not** build:
   * no constructed case near 2.0 MB yet;
   * the challenge draft JSON is not regenerated (run spec/tools/build_challenge_draft_v3_stark.py after merging, if wanted).
 * After the merge: send the merge commit to the D3 lane (agent adc6aa5fe4a25279e) so it can add tier d0a, re-freeze and sign near-chunk-v3.
-* **Note:** if W (§5.2) is approved, it changes RelD0a. Decide whether it goes in before this merge (re-freeze once) or as a later D0a revision.
+* **Note:** W (§5.2) and Dp (§5.4) were decided on 2026-10-09 and are in RelD0a as A9/A10 on `lane/v3-domain-bounds`.
 
 Scheduler wrap-up specifics:
 * Heights take prepD0, A7 and a per-instance `Replay`; Gen.run → Replay is still to prove.
-* `lane_22`/`lane_prep` are conditional on W = 360,000.
+* `lane_prep` is conditional on the A9 bound W0 = 770,000 (`lane_770k_22`, `lane_W0`); `lane_22` (W = 360,000) was removed on 2026-10-09.
 * SchedTablesTest was rerun after the clog2 change: 600/600, 48/48. The SchedFullTest rerun is incomplete; its last full pass predates the clog2 change.
 
 Trie wrap-up specifics:

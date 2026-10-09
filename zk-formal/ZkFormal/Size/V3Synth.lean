@@ -39,11 +39,12 @@ def schedS : Nat → List TShape
   | _ => [sh 91 6 7 6 22, sh 119 4 7 4 22, sh 64 4 7 4 22, sh 18 2 7 2 22, sh 33 1 3 1 22]
 
 /-- Receipt side, lane `v3-rcpt` head `fad713e5` (`rcptV3, acctV3, akeyV3, bndV3, srcpV3, sizeV3`;
-kernel-checked there `weqRcpt 1 = 867`, `3 = 795`). -/
+kernel-checked there `weqRcpt 1 = 867`, `3 = 795`; `srcpV3` cap 22 since the A10 path-depth
+bound, 2026-10-09). -/
 def rcptS : Nat → List TShape
-  | 1 => [sh 263 18 3 18 22, sh 16 13 3 13 17, sh 7 3 3 3 16, sh 6 3 3 3 13, sh 56 5 3 5 20, sh 31 1 3 1 2]
-  | 2 => [sh 263 9 5 9 22, sh 16 7 5 7 17, sh 7 2 5 2 16, sh 6 2 5 2 13, sh 56 3 5 3 20, sh 31 1 3 1 2]
-  | _ => [sh 263 6 7 6 22, sh 16 5 7 5 17, sh 7 2 5 2 16, sh 6 2 5 2 13, sh 56 2 7 2 20, sh 31 1 3 1 2]
+  | 1 => [sh 263 18 3 18 22, sh 16 13 3 13 17, sh 7 3 3 3 16, sh 6 3 3 3 13, sh 56 5 3 5 22, sh 31 1 3 1 2]
+  | 2 => [sh 263 9 5 9 22, sh 16 7 5 7 17, sh 7 2 5 2 16, sh 6 2 5 2 13, sh 56 3 5 3 22, sh 31 1 3 1 2]
+  | _ => [sh 263 6 7 6 22, sh 16 5 7 5 17, sh 7 2 5 2 16, sh 6 2 5 2 13, sh 56 2 7 2 22, sh 31 1 3 1 2]
 
 /-- `mrk`, `sort`: v1 tables (real) with the v3 heights (`maxLog` 19, 18; V3-D0-DESIGN §3.1). -/
 def v1S (g : Nat) : List TShape :=

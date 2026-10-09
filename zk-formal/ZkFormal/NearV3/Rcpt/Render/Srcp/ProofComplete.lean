@@ -17,10 +17,11 @@ theorem proof_inputs_complete {xs : List ProofInput} (h : ProofInputsOk xs)
   refine ⟨table_local hw hlog hc, table_traffic hw ?_ hc⟩
   simpa [Trace.height, hlog] using le_pow_logOf (R (blocksOfProofs xs))
 
-/-- The raw witness byte bound alone cannot imply the existing source row cap.
-This is a budget diagnostic, not a claim that an arbitrary such path passes full validation. -/
+/-- The raw witness byte bound alone cannot imply the existing source row cap (hence the
+RelD0a depth conjunct A10, `Rcpt.SrcpDepth`). This is a budget diagnostic, not a claim that
+an arbitrary such path passes full validation. -/
 theorem witness_bytes_do_not_bound_source_rows :
     ∃ depth : Nat, 33 * depth ≤ 8388608 ∧ 2 ^ SrcpV3.maxLog < 33 + 64 * depth := by
-  exact ⟨16384, by decide, by decide⟩
+  exact ⟨65536, by decide, by decide⟩
 
 end ZkFormal.NearV3.Render.SrcpGen

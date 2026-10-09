@@ -21,9 +21,9 @@ present, previous allowances `a0`, the rounds `rs` the process table records, th
   `B0 = 2,000,000`, `maxLog = 22`): the five scheduler tables fit `2^22` given **only A7** and
   the replays.
 * `replay_draws`: the replay's RNG ends at stream position `K` with `K + 64·Rd ≤ 64·S` (the
-  fuel bound, all the spec gives); `lane_prep`: `shufV3 ≤ 2^22`, and **given** a bound
-  `Σ K ≤ 360,000` on the words drawn (not a spec consequence: `worstK_exceeds`),
-  `genV3 < 2^20`, `chachaV3 < 2^21`.
+  fuel bound, all the spec gives); `lane_prep`: `shufV3 ≤ 2^22`, and **given** the RelD0a
+  word bound `Σ K ≤ W0 = 770,000` (A9 `e.chacha_words`, not a consequence of the rest of the
+  spec: `worstK_exceeds`), `genV3 < 2^20`, `chachaV3 < 2^22`.
 -/
 
 namespace ZkFormal.NearV3.Sched.Complete
@@ -126,13 +126,16 @@ theorem replay_draws (sp : SchedPub) (a0 : Nat → Nat) (rs : List RoundD) (hR :
   exact ⟨t0, stF, ps, hsim, lp_draws sp.ids sp.params sp.allowed a0 sp.seed _ hsim hne⟩
 
 /-- **Lane tables from `prepD0`**: `shufV3` fits `2^22` from A7 and the replays; `genV3` and
-`chachaV3` fit the lane's bounds (`2^20`, `2^21`) given `Σ K ≤ 360,000` words. -/
+`chachaV3` fit `2^20` and `2^22` given the RelD0a word bound `Σ K ≤ W0` (A9). The replay's
+`K` is the instance's RNG stream position (`replay_draws`); identifying it with the spec's
+`Scheduler.wordsDrawn` (the A9 count) is part of the open `Gen.run → Replay` link. -/
 theorem lane_prep {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p)
     (xs : List HInst) (hx : xs.map HInst.sp = p.sched) (hrep : ∀ x ∈ xs, Replay x.sp x.a0 x.rs)
-    (h7 : A7 2000000 (xs.map HInst.stat)) (hW : total IStat.genRows (xs.map HInst.stat) ≤ 360000) :
+    (h7 : A7 2000000 (xs.map HInst.stat))
+    (hW : total IStat.genRows (xs.map HInst.stat) ≤ NearSpecV3.W0) :
     let Ps := xs.map HInst.stat
     total IStat.shufRows Ps + 1 ≤ 2 ^ 22 ∧ total IStat.genRows Ps + 1 ≤ 2 ^ 20 ∧
-    total IStat.chachaRows Ps + 1 ≤ 2 ^ 21 := by
+    total IStat.chachaRows Ps + 1 ≤ 2 ^ 22 := by
   have hok : ∀ x ∈ xs, SchedPubOk x.sp ∧ x.sp.allowed.size = x.sp.ids.length * x.sp.ids.length :=
     fun x hxm => have hm : x.sp ∈ p.sched := hx ▸ List.mem_map_of_mem hxm
       ⟨prepD0_sched h x.sp hm, prepD0_asz h x.sp hm⟩
@@ -141,6 +144,6 @@ theorem lane_prep {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .o
     rw [← hx, List.length_map] at this
     exact this
   obtain ⟨h8, hb⟩ := stats_ok xs hok hrep
-  exact lane_22 _ h7 h8 hb (by simpa using hT) hW
+  exact lane_770k_22 _ h7 h8 hb (by simpa using hT) hW
 
 end ZkFormal.NearV3.Sched.Complete

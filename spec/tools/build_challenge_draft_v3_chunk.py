@@ -146,8 +146,9 @@ WEIGHT_SOURCE = (
 # Match Tier.rank in ChallengeChunkV3. Rank 0 is reserved for the formal D0a
 # tier. Do not expose D0a here with an empty class list: that would let it
 # abstain on every benchmark input without COVERAGE_GAP_IN_TIER. Its workload
-# classes must first be checked against the final D0a domain (including the
-# still-pending ChaCha/source-path bounds), then assigned explicitly.
+# classes must first be checked against the final D0a domain (including A9
+# e.chacha_words W0 = 770,000 and A10 w.path_depth Dp0 = 32, decided 2026-10-09),
+# then assigned explicitly.
 TIERS = [("D0", 1, ".d0"), ("D1", 2, ".d1"), ("D2", 3, ".d2"), ("D3a", 4, ".d3a")]
 TIER_RANK = {t: r for t, r, _ in TIERS}
 

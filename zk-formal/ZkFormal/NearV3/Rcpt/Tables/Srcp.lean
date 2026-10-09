@@ -22,8 +22,9 @@ Per applied list `j` (consecutive from `0`), a block of rows:
   loads `reg` from the previous message's digest `DIGEST (SRC(q−1), pl, reg)` (`pl = 32` after
   the leaf segment, else `64`); sibling bytes are free.
 
-`q` counts segments over the whole table (SHA ids `K_SRC + 16·q`, distinct).  The path length
-is unconstrained, as in `rootFromPath`.
+`q` counts segments over the whole table (SHA ids `K_SRC + 16·q`, distinct).  The AIR does
+not constrain the path length (as `rootFromPath`); the height cap `2^22` holds every RelD0a
+witness because A10 bounds each used path by `Dp0 = 32` items (`Rcpt.SrcpDepth`).
 -/
 
 namespace ZkFormal.NearV3.SrcpV3
@@ -138,8 +139,11 @@ def interactions : List Interaction :=
     recv B_SRC (c rt) ([c j, c dup] ++ regs),
     send B_SIZE (c gz) [k 2, c sz] ]
 
-/-- `≤ 1984` lists × (`1 + 32 + 64·depth`), depth `≤ 6` on honest witnesses (`< 2^20`). -/
-def maxLog : Nat := 20
+/-- `≤ 1984` lists × (`1 + 32 + 64·depth`) rows; under the RelD0a conjunct A10
+(`w.path_depth`, every used proof's path `≤ Dp0 = 32` items, user decision 2026-10-09) that is
+`≤ 1984 · 2081 = 4,128,704 ≤ 2^22` (`Rcpt.SrcpDepth.srcpRows_le_A10`). nearcore's own paths
+have `⌈log₂ #shards⌉ ≤ 6` items. -/
+def maxLog : Nat := 22
 
 def table : Table :=
   { width := width, constraints := constraints, interactions := interactions, maxLog := maxLog }

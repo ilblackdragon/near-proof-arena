@@ -23,6 +23,7 @@ User directives (binding):
   * Price model: N_v = 50 validators **per shard**.
   * B0 = 2.0 MB for D0a.
   * A8 is in RelD0a.
+  * A9 and A10 are in RelD0a (2026-10-09): ChaCha words drawn by all scheduler runs ≤ W0 = 770,000, and every used source Merkle path ≤ Dp0 = 32 items.
   * D3 error kinds count as one failure; floats come in a later stage; block facts are derived from headers.
 * **Security and operations:**
   * Repo: GitHub `ilblackdragon/near-proof-arena`, private.
@@ -100,7 +101,7 @@ User directives (binding):
    * Options: proof-only refactoring of the offending terms (experiments are preserved under `/data/illia/nearproof-deps/validation/`), or an upstream fix to lean4lean.
    * Do not weaken the three-checker policy.
 2. **The D0a tier needs real workload-class coverage in the draft.** An empty class list would silently allow abstention on every input.
-3. **Domain bounds that are still your decisions:** the ChaCha word bound W and the source Merkle-path budget. Freeze the trusted tree only once both are settled.
+3. **Domain bounds A9/A10** (decided by the user on 2026-10-09) are implemented on `lane/v3-domain-bounds`, which is not merged yet. Merge it before the freeze.
 4. **Freeze, then measure, then release:**
    * freeze once;
    * run the joint w1 paired-baseline window with the cost tooling;
@@ -121,7 +122,8 @@ User directives (binding):
 * field constraints (62/62);
 * R1 indexed public segments (protocol);
 * many native-execution extraction bridges (prepared IDs, SDL, codec, raw frames, queue traffic);
-* the roll-in aligned size bound. The padded two-SHA model is 6,164,160 B, leaving 929,431 B under 8 MiB after the maximum hint. This holds only if padding that preserves `HoldsP` is constructed.
+* the roll-in aligned size bound. The padded two-SHA model is 6,176,224 B, leaving 917,367 B under 8 MiB after the maximum hint. This holds only if padding that preserves `HoldsP` is constructed.
+* the domain bounds (`lane/v3-domain-bounds`): `srcpV3` at `maxLog` 22 under A10, and the ChaCha lane row bound at W0. The size margin is unchanged.
 
 **Not done:**
 * the global assembled AIR `nearAirV3`;
@@ -131,7 +133,8 @@ User directives (binding):
 * the padding construction;
 * the remaining byte and receipt-render constraints;
 * the Rust v2 prover;
-* any real judge run.
+* any real judge run;
+* `Chacha.Table.maxLog` 21 → 22, which the A9 lane needs. It is held because four candidate families would exceed the 2^36 fingerprint budget; see STATUS-V3-AIR §5.
 
 The work so far is an extensive collection of conditional lemmas. The end-to-end theorem does not exist yet.
 

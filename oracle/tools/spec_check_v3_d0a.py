@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Independent Python checker for domain D0a of near/pv86/chunk-validation/v0
-(spec/near-chunk-validation-v0a.md): RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 ∧ A8.
+(spec/near-chunk-validation-v0a.md): RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 ∧ A8 ∧ A9 ∧ A10.
 
 Runs the D0 checker (spec_check_v3.py, unmodified: it is pinned with the live D0
 challenges) and, on an accepting case, the amendments:
@@ -19,12 +19,19 @@ challenges) and, on an accepting case, the amendments:
                          PartialTrie instances), positions are walked on the raw node bytes.
   A8  c.bw_requests      in every block of the claim's segment, every chunk slot's
                          BandwidthRequests has pairwise distinct to_shard values.
+  A9  e.chacha_words     the bandwidth-scheduler runs of all applied transitions draw at
+                         most W (default W0 = 770,000) ChaCha20 words in total. Independent
+                         count: every ChaCha20Rng the D0 checker's scheduler (v3lib/sched.py)
+                         creates is a counting instance; the words drawn are its next_u32 calls.
+  A10 w.path_depth       every used source receipt proof's Merkle path has at most D
+                         (default Dp0 = 32) items.
 
-Violations are reported joined by "," in the order A1, A2, C0f, A7, A8 (the order of the
-Lean checkD0a checks; Lean reports only the first failing one).
+Violations are reported joined by "," in the order A1, A2, C0f, A7, A8, A9, A10 (the order
+of the Lean checkD0a checks; Lean reports only the first failing one).
 
-usage: spec_check_v3_d0a.py [--bound B] CASE_DIR...
-       (one JSON line per case, as spec_check_v3.py, plus "unfold")
+usage: spec_check_v3_d0a.py [--bound B] [--words-bound W] [--depth-bound D] CASE_DIR...
+       (one JSON line per case, as spec_check_v3.py, plus "unfold", "chacha_words",
+       "max_path_depth")
 """
 import json
 import os
@@ -36,6 +43,8 @@ from v3lib.prim import PartialTrie, nibbles, decode_node  # noqa: E402
 
 MAX_GAS_LIMIT = 10 ** 15
 B0 = 2_000_000
+W0 = 770_000
+DP0 = 32
 
 # ---------------- A7: record the tries the D0 checker builds ----------------
 _TRIES = []
@@ -55,6 +64,30 @@ class RecTrie(d0.PartialTrie):
 
 
 d0.PartialTrie = RecTrie
+
+# ---------------- A9: count the ChaCha20 words the scheduler runs draw ----------------
+_RNGS = []
+
+
+class CountingRng(d0.sched.ChaCha20Rng):
+    def __init__(self, seed):
+        super().__init__(seed)
+        self.words = 0
+        _RNGS.append(self)
+
+    def next_u32(self):
+        self.words += 1
+        return super().next_u32()
+
+
+d0.sched.ChaCha20Rng = CountingRng
+
+
+def sched_words(layout, prev_state, congestion, bw_requests, seed):
+    """Words drawn by one scheduler run (v3lib/sched.run with a counting RNG)."""
+    _RNGS.clear()
+    d0.sched.run(layout, prev_state, congestion, bw_requests, seed)
+    return sum(r.words for r in _RNGS)
 
 
 def _parse(raw):
@@ -184,11 +217,13 @@ def amendments(claim_b, witness_b):
     if own_slot.inner.gas_limit > MAX_GAS_LIMIT:
         v.append("c.gas_limit")
     routed = True
+    depth = 0
     for S in blocks[b2i:stop]:
         for s in S.slots:
             if s.height_included != S.height:
                 continue
-            receipts = W['proofs'][s.inner.chunk_hash][0]
+            receipts, _from, _to, path = W['proofs'][s.inner.chunk_hash]
+            depth = max(depth, len(path))
             if any(d0.account_to_shard(L, x.recv) != H.shard_id for x in receipts):
                 routed = False
     if not routed:
@@ -201,7 +236,7 @@ def amendments(claim_b, witness_b):
         root = T['post_state_root']
     if not all(canonical(L, x) for x in reads):
         v.append("e.sched_canonical")
-    return v
+    return v, depth
 
 
 def a8_ok(claim_b):
@@ -215,21 +250,24 @@ def a8_ok(claim_b):
     return True
 
 
-def check_case(d, bound=B0):
-    """(verdict, reason, unfold_bytes or None)."""
+def check_case(d, bound=B0, words_bound=W0, depth_bound=DP0):
+    """(verdict, reason, unfold_bytes, chacha_words, max_path_depth); the last three are None
+    unless the D0 checker accepts."""
     _TRIES.clear()
+    _RNGS.clear()
     verdict, reason = d0.check_case(d)
     tries = list(_TRIES)
+    words = sum(r.words for r in _RNGS)
     if verdict != "accept":
-        return verdict, reason, None
+        return verdict, reason, None, None, None
     try:
         cb = open(os.path.join(d, "claim.bin"), "rb").read()
         wb = open(os.path.join(d, "witness.bin"), "rb").read()
-        v = amendments(cb, wb)
+        v, depth = amendments(cb, wb)
         u = unfold_bytes(tries)
     except Exception as e:  # a bug in this checker
         print("spec_check_v3_d0a: INTERNAL ERROR on %s: %r" % (d, e), file=sys.stderr)
-        return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e), None
+        return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e), None, None, None
     if u > bound:
         v.append("w.unfolded")
     try:
@@ -237,20 +275,26 @@ def check_case(d, bound=B0):
             v.append("c.bw_requests")
     except Exception as e:  # a bug in this checker
         print("spec_check_v3_d0a: INTERNAL ERROR on %s: %r" % (d, e), file=sys.stderr)
-        return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e), None
+        return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e), None, None, None
+    if words > words_bound:
+        v.append("e.chacha_words")
+    if depth > depth_bound:
+        v.append("w.path_depth")
     if v:
-        return "out_of_domain", ",".join(v), u
-    return "accept", "ok", u
+        return "out_of_domain", ",".join(v), u, words, depth
+    return "accept", "ok", u, words, depth
 
 
 def main():
     args = sys.argv[1:]
-    bound = B0
-    if args[:1] == ["--bound"]:
-        bound, args = int(args[1]), args[2:]
+    bounds = {"--bound": B0, "--words-bound": W0, "--depth-bound": DP0}
+    while args[:1] and args[0] in bounds:
+        bounds[args[0]], args = int(args[1]), args[2:]
     for d in args:
-        v, reason, u = check_case(d, bound)
-        print(json.dumps(dict(case=d, verdict=v, reason=reason, unfold=u)))
+        v, reason, u, k, p = check_case(d, bounds["--bound"], bounds["--words-bound"],
+                                        bounds["--depth-bound"])
+        print(json.dumps(dict(case=d, verdict=v, reason=reason, unfold=u, chacha_words=k,
+                              max_path_depth=p)))
         sys.stdout.flush()
 
 
