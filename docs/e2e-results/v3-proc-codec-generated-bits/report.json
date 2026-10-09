@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Successful corrected codec generation derives all18 multiplicity bits across actual nested loops and all physical rows including padding/wrap. Native64-shard bound derives capacity/nonempty. Full TableLocal now reduces solely to active row constraints; those remain incomplete. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedBits.lean",
+      "sha256": "19fd20c16ba9cb4535c028d7a24215995b5114eba9a4e714dbf70327a635b864",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedBits.lean",
+      "audit_sha256": "ca225affa749effdb740bd95729d4ba80f7ef85eaed00dad835d9d21476ca804",
+      "guards": 9
+    }
+  ]
+}

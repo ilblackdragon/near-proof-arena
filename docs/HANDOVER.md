@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcCodecGeneratedBits strict PASS9 exact guards. Full successful corrected generator supplies all18 interaction-bit obligations through actual byte/field/block loops, headers, hash and ash; physical_bits includes padding and wrap. capacity derives nonempty and strict log22 capacity from R.n<=64. table_of_constraints reduces full corrected TableLocal solely to actual active-row constraints: no bit, flag, width, padding or capacity assumptions beyond native64-shard bound. Active cKind and remaining cRec still open. Side isZ projection split underway after24GiB compound elaboration memory failure; no completion claim on that module. Prebuilt dependencies24GiB audit. Goal active; last push478ee12d DNS failed.
+
+
 2026-10-09: Physical row bridge PASS5 and actual record multiplicity PASS5 exact guards. ProcCodecPhysicalRows transfers concrete active pair equations to actual AIR eval at commonlog22, derives final-active-to-zero-padding successor, then table_of_rows reduces full TableLocal to row-pair constraints and bits with strict capacity. ProcPriorCodecGateAssignments/NativeGates/NativeMultiplicity derive all18 multiplicity Boolean obligations on actual successful record rows, with no independent flag/sparse-write premises. Root next lifts bits across generated loops; agents retain cRec boundary/end and side isZ/cKind. Full constraints/certificate/judge remain open; prebuilt deps24GiB audit. Goal active.
 
 
