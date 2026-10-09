@@ -115,6 +115,17 @@ User directives (binding):
 * About 5,000 modules. Integration target: `ZkFormal.V3.Integration`.
 * About 2,400 axiom-audit files in `zk-formal/test/`. Run each with `lake env lean test/<file>`.
 
+**Assembly lane (`agent/v3-assembly`, 2026-10-09):** the assembled AIR and the admission
+certificate now exist; see `docs/zk-formal/STATUS-V3-ASSEMBLY.md` and
+`zk-formal/ZkFormal/NearV3/Assembly/{NearAir,NearAirCheck,NearAirSize,HintCodec,NearAdmission}.lean`.
+* `nearAirV3` (25 tables, `pubSegs = Public.preparedSegments`), `nearAirV3_wf`, `nearAirV3_npOkPg`.
+* Aligned size bound at `auxGroup = 2`: `6,276,897` B (`nearV3_size`).
+* `nearV3_admission` / `nearV3_admission_with_extract_b`: `AdmissionStatement` of
+  `near-chunk-validation-d0-stark`, with the soundness premise discharged from `ExtractV3Stmt`
+  through the proved `factorSound`.
+* The A9/A10 domain decisions (`W0 = 770,000`, `Dp0 = 32`) are merged from `lane/v3-domain-bounds`.
+* Still open: `ExtractV3Stmt`, `RenderV3Stmt`, `AlignedV3Stmt`, `FitsV3Stmt`, the Rust prover.
+
 **Done:**
 * soundness views and links for the trie, scheduler, ChaCha and receipts;
 * ChaCha completeness;
