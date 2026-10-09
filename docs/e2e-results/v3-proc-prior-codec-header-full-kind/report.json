@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Entire120 retained cKind constraints on actual native header p<4-to-p+1 and header4-to-native-first-record k0f0g0. All parameter/register/byte/instance/boundary equations discharged from PV86 Params.calculate,R.n\u226464,tau<P; proper first selector,zero last selector. No row-shape or extra boundary flag premise. Physical placement separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHeaderFullKind.lean",
+      "sha256": "d8af8fae73071fe6834749cddcee7a48efb6c28d687a704ab7ec8e7fe89084b2",
+      "audit": "zk-formal/test/AuditProcPriorCodecHeaderFullKind.lean",
+      "audit_sha256": "1653043244c075499ebcd083266078ea94244c5948ea9a54595a1c74824c3a88",
+      "guards": 2
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual unconditional first-record row k0,f0,g0 has rs1,pos5 and exactly matching seven instance constants. General sparse record position projection proved. Complements PlainAdjacent.cells for header-to-record edge; physical placement separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecHeaderRecord.lean",
+      "sha256": "b4173f88516a5c92a45db0d0095347c9e9c62e00de1df3f05e36b4c6b2d1225c",
+      "audit": "zk-formal/test/AuditProcPriorCodecHeaderRecord.lean",
+      "audit_sha256": "1b2ee30879d221a4af254a423111d28b47a6df7d47ac9ade4a6d00d11c971651",
+      "guards": 4
+    }
+  ]
+}

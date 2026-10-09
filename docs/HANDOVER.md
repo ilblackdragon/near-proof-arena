@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Adjacent execution and complete side-kind checkpoint: strict PASS21 exact guards. ExecutionAdjacentIndex/Position and GeneratedRecordAdjacent recover actual consecutive byte steps with shared intermediate state at neighboring physical rows. GeneratedAllowanceInside closes11 accumulator/carry equations at actual allowance positionsg<7. HeaderRecord/FullKind and HeaderKind.physical close all120 retained kind equations at all5 actual header rows, including header4→actual first record; premises native params,0<n<=64,tau<P. Combined prior SuffixKind covers all non-record kind constraints including padding. Record Boolean/zero groups now parallel agents; terminal inactive equations, other record transitions/additions/global joins still open. Prebuilt dependency audits; full certificate/judge incomplete. Previous34011d9f push failed GitHub DNS.
+
+
 2026-10-09: Exact physical record provenance checkpoint: strict PASS41 exact guards. ExecutionIndex/Position recover actual nested steps, exact offsets and preserved suffix; GeneratedRecordPosition locates actual successful byte step at5+24*k+8*f+g. RecordKindPosition discharges six phase and46 inactive-header equations at those physical indices. GeneratedRecordIndex covers cRec0/11/33/34 on all active physical rows. HeaderRegisters/Initial/Flow prove native eight initial equations and38 remaining header-tail equations internally; headerp4 successor still requires actual first-record flags, now supported by physical index theorem. Prebuilt dependency audits; full adjacency/active constraint assembly/global joins/certificate/judge remain open. Previous9d76218a push failed GitHub DNS; recovery bundle updated.
 
 
