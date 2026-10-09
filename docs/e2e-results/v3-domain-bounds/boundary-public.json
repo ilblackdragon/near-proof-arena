@@ -1,0 +1,36 @@
+{
+ "cases": 362,
+ "families": {
+  "e.chacha_words": {
+   "at_bound_ok": 139,
+   "below_ok": 0,
+   "below_skipped_zero": 139,
+   "below_tested": 0,
+   "cases": 139,
+   "failure_count": 0,
+   "failures": [],
+   "values": 1
+  },
+  "w.path_depth": {
+   "at_bound_ok": 139,
+   "below_ok": 139,
+   "below_skipped_zero": 0,
+   "below_tested": 139,
+   "cases": 139,
+   "failure_count": 0,
+   "failures": [],
+   "values": 4
+  },
+  "w.unfolded": {
+   "at_bound_ok": 139,
+   "below_ok": 139,
+   "below_skipped_zero": 0,
+   "below_tested": 139,
+   "cases": 139,
+   "failure_count": 0,
+   "failures": [],
+   "values": 41
+  }
+ },
+ "in_d0a": 139
+}

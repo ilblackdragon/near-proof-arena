@@ -182,7 +182,10 @@ more than `W0` words is **out of D0a: unprovable in this domain, never wrongly a
 honest run draws about one word per request in a shuffled bucket of size ≥ 2 (rejections
 are rare), so exceeding `W0` takes ≈ 770 k bucket entries over ≤ 33 runs — far above any
 real block (a run has at most `n²` requests with ≤ 40 increases each, so `n ≤ 9` shards give
-≤ 3,240 entries per run); the measured maxima are in §3.
+≤ 3,240 entries per run). **Measured** (Lean = Python = oracle on every case): full corpus max
+3 words per D0a case (5 per run on honest witnesses), heavy-request corpus max 8 per D0a case
+(165 cases non-zero; 16 on any honest witness), nearcore's 600 scheduler vectors max 102 per
+run; 0 honest witnesses out of A9.
 
 ### 2.7 A10 `w.path_depth`: definition, `Dp0`, liveness
 
@@ -205,8 +208,10 @@ items at ≤ 64 shards.
 
 **Liveness.** A10 never makes a false statement provable; a witness with a longer used path
 is **out of D0a: unprovable in this domain, never wrongly accepted**. Honest producers never
-emit one (the path is the outgoing-receipts Merkle tree over the layout's shards); the
-oracle's path-depth mutants exercise the boundary (32 items: in D0a; 33: `w.path_depth`).
+emit one (the path is the outgoing-receipts Merkle tree over the layout's shards).
+**Measured**: honest max depth 3 on every corpus (headroom 29 levels), 0 honest witnesses out
+of A10; the oracle's path-depth mutants (nearcore accepts both) are in D0a at 32 items and
+`w.path_depth` at 33 in Lean and Python (845/845 full, 59/59 public, 559/559 heavy-request).
 
 ## 3. Reference oracle and tests
 
@@ -228,3 +233,24 @@ oracle's path-depth mutants exercise the boundary (32 items: in D0a; 33: `w.path
 * 3-way difftest: `oracle/tools/difftest_v3_d0a.py`; public fixtures
   `oracle/fixtures/v3/public-d0a/` (seed 4243, 2 chains × 40 blocks); full set seed 4243,
   9 chains × 120 blocks. Results: `docs/zk-formal/STATUS-V3-SPEC.md`.
+* **A9 / A10 (2026-10-09).** Oracle: `src/sched.rs` is an independent copy of nearcore's
+  scheduler core (request conversion, link permissions, allowances, base grants,
+  `process_bandwidth_requests` with `rand_chacha`); `d0a.rs` replays every scheduler run of the
+  witness (main at B2 and each implicit block) on nearcore's own block contexts and pre-state,
+  reads `get_word_pos()` after the last shuffle, and checks the replica's new `0x0f` state against
+  nearcore's actual post-state (generation aborts on any mismatch); `w.path_depth` uses the
+  witness's `MerklePath` lengths. Meta fields `chacha_words`, `chacha_words_runs`,
+  `max_path_depth`. **Path-depth mutants** (`src/pathmut.rs`, every accepted D0a case whose
+  segment starts at B2): a used source proof of B2 is extended with deterministic synthetic
+  siblings to exactly 32 items (`w.path_depth_at_bound`, in D0a) and to 33 items
+  (`w.path_depth_over`, expected `out_of_domain` / `w.path_depth`); the chunk's
+  `prev_outgoing_receipts_root` and the hash chain are recomputed, the mutated B2 is injected
+  into the judging client's store, and **nearcore's own validator judges each mutant** (all
+  accepted: `Rel` holds); a negative control (last sibling flipped) is rejected by nearcore.
+  `sched-words` runs the replica on nearcore's 600 scheduler vectors
+  (`oracle/fixtures/v3/vectors-d0a/scheduler_words.json`); `oracle/tools/sched_words_v3.py`
+  compares it with Python and Lean (`nearspec-v3-test-words`). `--heavy-requests` (default
+  off) makes two non-own shards burst 300–500 transfers to a third so that nearcore emits
+  bandwidth requests and the scheduler draws words. Boundary: `oracle/tools/d0a_boundary_v3.py`
+  (each in-domain case at its own value `V` accepts, at `V − 1` is out of domain for that
+  family). Results: `docs/e2e-results/v3-domain-bounds/report.json`, STATUS-V3-AIR §5.

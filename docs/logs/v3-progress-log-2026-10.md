@@ -6551,3 +6551,31 @@ A fresh original-vs-logged full D2 comparison (67,384 cases) is running with
 outputs at `/data/illia/nearproof-deps/validation/v3-d2-logged-20261007`.
 Inspect its `summary.json` before starting another run. It is not yet a pass.
 
+
+## 2026-10-09 — lane/v3-domain-bounds: RelD0a A9 (`e.chacha_words`) and A10 (`w.path_depth`)
+
+User decisions (2026-10-09): ChaCha20 word bound W0 = 770,000 and a source Merkle-path
+budget as explicit, decidable RelD0a conjuncts.
+
+* Spec (`NearSpecV3.ChunkValidationV0a`, unsigned): `chachaWords`/`a9`, `maxPathDepth`/`a10`;
+  `Scheduler.runMid`/`finish` with `run_eq_mid` (proved: `run` continues from the counted
+  RNG's state), `prims_sched_eq_mid`, `schedInsD0`; `RelD0a B cb w (W := W0) (Dp := Dp0)`;
+  `relD0a_iff`, `relD0a_relD0`, `relD0a_mono`, `relD0a_mono_all`, `inD0a_iff` proved
+  ({propext, Quot.sound}).
+* Dp0 = 32: largest depth with `srcpV3 ≤ 2^22` (1984·(33+64·32) = 4,128,704; 33 → 4,255,680),
+  `Rcpt.SrcpDepth`; `srcpV3.maxLog` 20 → 22; receipt-side SHA at Dp0 3,501,199 < 2^22.
+* W0 = 770,000: `lane_prep` now at W0 (chachaV3 ≤ 4,141,410 < 2^22; largest W 779,840);
+  `lane_22` (360k) removed. `Chacha.Table.maxLog` kept at 21: at 22 four candidate families
+  exceed the fingerprint budget 2^36 (fpBound 68,697,539,256 → 69,427,348,152:
+  ProcPriorProcessRepaired, SortEmpty, ProcPriorCodec, ProcPriorComparatorRouted; six other
+  families fit; evaluated with `#eval`, not kernel-checked). Size model unchanged with ChaCha
+  and srcp at 22 (evaluated): aligned padded two-SHA 6,176,224 B, margin 917,367 B after the
+  1,295,017 B hint (the handover's 929,431 predates commit 96944b6b).
+* `GoodV3` carries A9/A10; `FactorSound` updated; `checkD0a_good_except_unfolded` derives A10
+  and takes A9 (like A7) as an explicit premise on the reconstructed witness.
+* Build: all 5,147 ZkFormal jobs (every module + `nearspec-v3-check-d0a`) pass; 49 relevant
+  axiom audits pass, incl. new `test/AuditV3DomainBounds.lean` (31 guarded).
+* Oracle (`lane/v3-domain-bounds-oracle`, merged): nearcore scheduler replica (state = nearcore
+  post-state on 5,392 + 357 + 3,589 runs, 0 mismatches), path-depth mutants judged by
+  nearcore, `sched-words`, `--heavy-requests`.
+* Evidence: `docs/e2e-results/v3-domain-bounds/`.

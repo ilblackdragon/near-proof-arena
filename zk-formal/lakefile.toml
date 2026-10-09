@@ -56,3 +56,8 @@ root = "ZkFormal.V3.Tools.Bench"
 [[lean_exe]]
 name = "nearspec-v3-test-encw"
 root = "ZkFormal.V3.Tools.TestEncodeWitness"
+
+# lane v3-domain-bounds: A9 word count on nearcore's scheduler vectors.
+[[lean_exe]]
+name = "nearspec-v3-test-words"
+root = "ZkFormal.V3.Tools.TestWords"

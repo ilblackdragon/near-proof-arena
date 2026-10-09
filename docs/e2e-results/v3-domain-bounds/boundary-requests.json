@@ -1,0 +1,26 @@
+{
+ "cases": 2030,
+ "families": {
+  "e.chacha_words": {
+   "at_bound_ok": 2030,
+   "below_ok": 165,
+   "below_skipped_zero": 1865,
+   "below_tested": 165,
+   "cases": 2030,
+   "failure_count": 0,
+   "failures": [],
+   "values": 7
+  },
+  "w.path_depth": {
+   "at_bound_ok": 2030,
+   "below_ok": 2030,
+   "below_skipped_zero": 0,
+   "below_tested": 2030,
+   "cases": 2030,
+   "failure_count": 0,
+   "failures": [],
+   "values": 4
+  }
+ },
+ "in_d0a": 2030
+}

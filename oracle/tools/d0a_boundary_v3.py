@@ -13,7 +13,7 @@ above every generated case except for the A10 path-depth mutants, which sit at D
 Dp0 + 1 (see difftest_v3_d0a.py).
 
 usage: d0a_boundary_v3.py --lean EXE --python FILE [--report OUT.json] [--lean-jsonl F]
-                          CASE_DIR...
+                          [--families w.unfolded,e.chacha_words,w.path_depth] CASE_DIR...
        (--lean-jsonl: reuse a Lean run at the default bounds to select the cases)
 """
 import argparse, collections, json, subprocess, sys
@@ -41,6 +41,7 @@ def main():
     ap.add_argument("--python", required=True)
     ap.add_argument("--report")
     ap.add_argument("--lean-jsonl", nargs="*")
+    ap.add_argument("--families", default=",".join(BOUNDS))
     ap.add_argument("cases", nargs="+")
     a = ap.parse_args()
     if a.lean_jsonl:
@@ -55,6 +56,8 @@ def main():
     report = {"cases": len(a.cases), "in_d0a": len(inside), "families": {}}
     ok_all = True
     for fam, (flag, field) in BOUNDS.items():
+        if fam not in a.families.split(","):
+            continue
         groups = collections.defaultdict(list)
         for d in inside:
             groups[base[d][field]].append(d)

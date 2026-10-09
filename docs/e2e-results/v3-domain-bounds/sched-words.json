@@ -1,0 +1,10 @@
+{
+ "cases": 600,
+ "lean_compared": 600,
+ "lean_mismatch": 0,
+ "max_words": 102,
+ "nonzero": 369,
+ "oracle_mismatch": 0,
+ "problems": [],
+ "state_mismatch": 0
+}

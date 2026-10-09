@@ -351,6 +351,12 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
    * Why it is needed: the formal worst case (`worstK_exceeds`: genV3 ≈ 9.9 M rows, chachaV3 ≈ 53 M rows) exceeds 2²².
    * Rows at W0: chachaV3 ≤ 4,141,410 < 2²²; the largest W that fits is 779,840. `lane_prep` now assumes `Σ K ≤ W0`; `lane_22` (W = 360,000) is removed.
    * It is not a deterministic nearcore invariant: rejections depend on hash outputs. Liveness: a chunk over W0 is out of D0a, so it is unprovable but never wrongly accepted.
+   * Measured words drawn (Lean = Python = oracle):
+     * full corpus: max 3 per case in D0a, max 5 per run on honest witnesses;
+     * `--heavy-requests` corpus: max 8 per case in D0a (165 cases > 0), 16 on any honest witness;
+     * nearcore's 600 scheduler vectors: max 102 per run.
+     * Headroom against W0 is ≥ 48,000× per case, and ≥ 230× even at 33 runs of the vector maximum.
+     * Honest cases out of domain for A9: 0 (out of 4,597 and 2,667 honest witnesses).
    * **Open:** `Chacha.Table.maxLog` is still 21 (`chacha_cap_short`). Raising it to 22 does not change the 8 MiB model, because the aligned model already pads ChaCha to 2²². It does push four measured candidate families over the fingerprint budget 2^36: `ProcPriorProcessRepaired`, `SortEmpty`, `ProcPriorCodec` and `ProcPriorComparatorRouted` go from `fpBound` 68,697,539,256 to 69,427,348,152. ChaCha has 6 interactions in those families, so the extra cost is 2^21 · 6 · 58. The other six families still fit. The raise is held until that budget is re-planned, and the bus budget is unchanged.
 3. **Receipt lane:** active after a usage-limit interruption, not a user pause.
    * The saved work is merged; continue the remaining view/render/link proofs.
@@ -359,6 +365,9 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
    * Dp0 is the largest depth that keeps srcp within 2²² rows: 1984 · (33 + 64 · 32) = 4,128,704, while 33 would give 4,255,680 (`Rcpt.SrcpDepth.dp0_largest`).
    * `srcpV3.maxLog` is now 22. The aligned 8 MiB margin is unchanged at 917,367 B.
    * nearcore emits ⌈log₂ shards⌉ ≤ 6. Liveness: a longer path is out of D0a, so it is unprovable but never wrongly accepted.
+   * Measured honest path depth: max 3 on every corpus, so the headroom is 29 levels. Honest cases out of domain for A10: 0.
+   * nearcore accepts the path-depth mutants at 32 and at 33 items. Lean and Python accept all of them at 32 and report `w.path_depth` for all of them at 33 (845/845 full, 59/59 public, 559/559 requests).
+   * Difftests: full 13,306, public 421 and requests 9,230 cases, all with 0 disagreements. Boundary tests (each case accepts at its own value V and is out of domain at V − 1): 0 failures. Evidence: `docs/e2e-results/v3-domain-bounds/report.json`.
 5. A8 is **decided**: it is in RelD0a (nearcore-enforced, `congestion_control.rs:503-523`, `validate.rs:280-298`), with difftest 0 disagreements and 845/845 mutants out of domain.
 
 ## 6. `lane/v3-d0a-spec` (RelD0a for near-chunk-v3) and main

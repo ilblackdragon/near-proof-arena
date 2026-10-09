@@ -1,0 +1,247 @@
+{
+ "a10_path_depth_mutants": {
+  "w.path_depth_at_bound": {
+   "cases": 559,
+   "lean.accept": 559,
+   "lean.out_of_domain_w.path_depth": 0,
+   "nearcore_accepts": 559,
+   "python.accept": 559,
+   "python.out_of_domain_w.path_depth": 0
+  },
+  "w.path_depth_over": {
+   "cases": 559,
+   "lean.accept": 0,
+   "lean.out_of_domain_w.path_depth": 559,
+   "nearcore_accepts": 559,
+   "python.accept": 0,
+   "python.out_of_domain_w.path_depth": 559
+  }
+ },
+ "a10_reported_elsewhere": {
+  "lean": 0,
+  "python": 0
+ },
+ "a2_foreign_routed_mutants": {
+  "cases": 264,
+  "lean.out_of_domain": 264,
+  "python.out_of_domain": 264
+ },
+ "a8_dup_bw_request_mutants": {
+  "cases": 559,
+  "lean.out_of_domain_c.bw_requests": 559,
+  "python.out_of_domain_c.bw_requests": 559
+ },
+ "a8_reported_elsewhere": {
+  "lean": 0,
+  "python": 0
+ },
+ "a9_reported": {
+  "lean": 0,
+  "python": 0
+ },
+ "amendments_on_honest_witnesses": {
+  "c.bw_requests": 0,
+  "c.gas_limit": 0,
+  "e.chacha_words": 0,
+  "e.sched_canonical": 0,
+  "honest_witnesses": 2667,
+  "w.path_depth": 0,
+  "w.proof_routing": 0,
+  "w.unfolded": 0
+ },
+ "cases_dir": "var/requests-d0a (seed 7171, 6 chains x 120 blocks, --heavy-requests; worktree v3-domain-bounds-oracle)",
+ "chacha_words": {
+  "compared_lean_python": 3412,
+  "compared_oracle": 3412,
+  "distribution": {
+   "max": 8,
+   "min": 0,
+   "n": 3412,
+   "nonzero": 276,
+   "p50": 0,
+   "p90": 0,
+   "p99": 3
+  },
+  "distribution_in_d0a": {
+   "max": 8,
+   "min": 0,
+   "n": 2030,
+   "nonzero": 165,
+   "p50": 0,
+   "p90": 0,
+   "p99": 3
+  },
+  "mismatch_count": 0,
+  "mismatches": []
+ },
+ "counts": {
+  "d0.cases": 639,
+  "d0.expected_accept": 639,
+  "d0.lean.accept": 639,
+  "d0.python.accept": 639,
+  "mutants.amendment.c.bw_requests": 559,
+  "mutants.amendment.w.path_depth": 559,
+  "mutants.amendment.w.proof_routing": 264,
+  "mutants.cases": 7310,
+  "mutants.expected_accept": 1391,
+  "mutants.lean.accept": 1391,
+  "mutants.lean.out_of_domain": 1490,
+  "mutants.lean.reject": 4429,
+  "mutants.python.accept": 1391,
+  "mutants.python.out_of_domain": 1382,
+  "mutants.python.reject": 4537,
+  "ood.cases": 1281,
+  "ood.expected_accept": 0,
+  "ood.lean.out_of_domain": 1281,
+  "ood.python.out_of_domain": 1281
+ },
+ "disagreement_list": [],
+ "disagreements": 0,
+ "domain": "D0a",
+ "implementations": [
+  "nearcore-oracle",
+  "lean",
+  "python"
+ ],
+ "max_path_depth": {
+  "compared_lean_python": 3412,
+  "compared_oracle": 3412,
+  "distribution": {
+   "max": 33,
+   "min": 1,
+   "n": 3412,
+   "nonzero": 3412,
+   "p50": 3,
+   "p90": 33,
+   "p99": 33
+  },
+  "distribution_in_d0a": {
+   "max": 32,
+   "min": 1,
+   "n": 2030,
+   "nonzero": 2030,
+   "p50": 3,
+   "p90": 32,
+   "p99": 32
+  },
+  "mismatch_count": 0,
+  "mismatches": []
+ },
+ "mutation_families": {
+  "c.drop_last_block|expected_accept=False": 104,
+  "c.dup_bw_request|expected_accept=False": 559,
+  "c.epoch_start_flip|expected_accept=False": 104,
+  "c.extra_block|expected_accept=False": 104,
+  "c.inner_rest_flip|expected_accept=False": 104,
+  "c.slot_height_flip|expected_accept=False": 104,
+  "c.slot_inner_flip|expected_accept=False": 104,
+  "hdr.bandwidth_requests|expected_accept=False": 104,
+  "hdr.congestion|expected_accept=False": 312,
+  "hdr.encoded_length|expected_accept=False": 104,
+  "hdr.encoded_merkle_root|expected_accept=False": 104,
+  "hdr.gas_limit|expected_accept=False": 104,
+  "hdr.height_created|expected_accept=True": 104,
+  "hdr.height_included(unchecked)|expected_accept=True": 104,
+  "hdr.prev_balance_burnt|expected_accept=False": 104,
+  "hdr.prev_gas_used|expected_accept=False": 104,
+  "hdr.prev_outcome_root|expected_accept=False": 104,
+  "hdr.prev_outgoing_receipts_root|expected_accept=False": 104,
+  "hdr.prev_state_root|expected_accept=False": 104,
+  "hdr.proposals|expected_accept=False": 104,
+  "hdr.proposed_split|expected_accept=False": 104,
+  "hdr.tx_root|expected_accept=False": 104,
+  "t.chain_id(unused_in_D0)|expected_accept=True": 104,
+  "t.minimum_stake(unused_in_D0)|expected_accept=True": 104,
+  "t.rs_params|expected_accept=False": 104,
+  "w.applied_receipts_hash|expected_accept=False": 104,
+  "w.base_state|expected_accept=False": 104,
+  "w.base_state|expected_accept=True": 104,
+  "w.corrupt_proof|expected_accept=False": 104,
+  "w.drop_node|expected_accept=False": 1271,
+  "w.drop_proof|expected_accept=False": 104,
+  "w.dup_key_last_bad|expected_accept=False": 104,
+  "w.dup_key_last_good|expected_accept=True": 104,
+  "w.epoch_id|expected_accept=False": 104,
+  "w.extra_proof|expected_accept=False": 104,
+  "w.foreign_routed_receipt|expected_accept=False": 264,
+  "w.implicit|expected_accept=False": 42,
+  "w.main_block_hash(unchecked)|expected_accept=True": 104,
+  "w.main_post_root|expected_accept=False": 104,
+  "w.path_depth_at_bound|expected_accept=True": 559,
+  "w.path_depth_over|expected_accept=False": 559,
+  "w.trailing_byte|expected_accept=False": 104,
+  "w.unsorted_keys|expected_accept=True": 104
+ },
+ "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "oracle_summary": {
+  "chacha_replay_errors": 0,
+  "chacha_replica_checked": 3589,
+  "chacha_replica_mismatches": 0,
+  "d0_cases": 639,
+  "d0_violation_counts": {
+   "c.no_split_gate": 120,
+   "c.no_tx_flags": 678,
+   "c.not_genesis": 30,
+   "c.own_congestion_zero": 1341,
+   "c.segment": 1,
+   "c.single_epoch": 265,
+   "e.compute": 390,
+   "e.forwarded": 1049,
+   "e.queues_empty": 1341,
+   "r.shape": 71,
+   "r.success": 278,
+   "w.no_txs": 1194
+  },
+  "heavy_requests": true,
+  "honest_accepted_by_nearcore": 2667,
+  "honest_witnesses": 2667,
+  "mutants": 7310,
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "ood_cases_written": 1281,
+  "path_depth_controls": {
+   "judged": 1118,
+   "rejected_by_nearcore": 1118
+  },
+  "path_depth_mutants": {
+   "w.path_depth_at_bound": {
+    "accepted_by_nearcore": 559,
+    "written": 559
+   },
+   "w.path_depth_over": {
+    "accepted_by_nearcore": 559,
+    "written": 559
+   }
+  },
+  "protocol_version": 86,
+  "seed": 7171
+ },
+ "statement": "near/pv86/chunk-validation/v0",
+ "unfold_bytes": {
+  "compared_lean_python": 3412,
+  "compared_oracle": 639,
+  "distribution": {
+   "max": 18378,
+   "min": 1248,
+   "n": 3412,
+   "nonzero": 3412,
+   "p50": 3458,
+   "p90": 7441,
+   "p99": 9230
+  },
+  "distribution_in_d0a": {
+   "max": 18378,
+   "min": 1248,
+   "n": 2030,
+   "nonzero": 2030,
+   "p50": 3406,
+   "p90": 7603,
+   "p99": 11587
+  },
+  "mismatch_count": 0,
+  "mismatches": []
+ },
+ "wall_seconds": {
+  "lean": 2272.059856414795,
+  "python": 16.69182777404785
+ }
+}

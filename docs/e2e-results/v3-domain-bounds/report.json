@@ -1,0 +1,494 @@
+{
+ "boundary": {
+  "full": {
+   "families": {
+    "e.chacha_words": {
+     "at_bound_ok": 2928,
+     "below_ok": 5,
+     "below_skipped_zero": 2923,
+     "below_tested": 5,
+     "cases": 2928,
+     "failure_count": 0,
+     "values": 4
+    },
+    "w.path_depth": {
+     "at_bound_ok": 2928,
+     "below_ok": 2928,
+     "below_skipped_zero": 0,
+     "below_tested": 2928,
+     "cases": 2928,
+     "failure_count": 0,
+     "values": 4
+    }
+   },
+   "in_d0a": 2928
+  },
+  "public": {
+   "families": {
+    "e.chacha_words": {
+     "at_bound_ok": 139,
+     "below_ok": 0,
+     "below_skipped_zero": 139,
+     "below_tested": 0,
+     "cases": 139,
+     "failure_count": 0,
+     "values": 1
+    },
+    "w.path_depth": {
+     "at_bound_ok": 139,
+     "below_ok": 139,
+     "below_skipped_zero": 0,
+     "below_tested": 139,
+     "cases": 139,
+     "failure_count": 0,
+     "values": 4
+    },
+    "w.unfolded": {
+     "at_bound_ok": 139,
+     "below_ok": 139,
+     "below_skipped_zero": 0,
+     "below_tested": 139,
+     "cases": 139,
+     "failure_count": 0,
+     "values": 41
+    }
+   },
+   "in_d0a": 139
+  },
+  "requests": {
+   "families": {
+    "e.chacha_words": {
+     "at_bound_ok": 2030,
+     "below_ok": 165,
+     "below_skipped_zero": 1865,
+     "below_tested": 165,
+     "cases": 2030,
+     "failure_count": 0,
+     "values": 7
+    },
+    "w.path_depth": {
+     "at_bound_ok": 2030,
+     "below_ok": 2030,
+     "below_skipped_zero": 0,
+     "below_tested": 2030,
+     "cases": 2030,
+     "failure_count": 0,
+     "values": 4
+    }
+   },
+   "in_d0a": 2030
+  }
+ },
+ "build": {
+  "audits_failed": 0,
+  "audits_run": 49,
+  "result": "all modules + nearspec-v3-check-d0a built",
+  "zkformal_jobs": 5147
+ },
+ "date": "2026-10-09",
+ "decisions": {
+  "A10 w.path_depth": "Dp0 = 32 (user decided a path budget; 32 = largest depth with srcp <= 2^22)",
+  "A9 e.chacha_words": "W0 = 770,000 (user, 2026-10-09)"
+ },
+ "difftests": {
+  "full": {
+   "a10_path_depth_mutants": {
+    "w.path_depth_at_bound": {
+     "cases": 845,
+     "lean.accept": 845,
+     "lean.out_of_domain_w.path_depth": 0,
+     "nearcore_accepts": 845,
+     "python.accept": 845,
+     "python.out_of_domain_w.path_depth": 0
+    },
+    "w.path_depth_over": {
+     "cases": 845,
+     "lean.accept": 0,
+     "lean.out_of_domain_w.path_depth": 845,
+     "nearcore_accepts": 845,
+     "python.accept": 0,
+     "python.out_of_domain_w.path_depth": 845
+    }
+   },
+   "a10_reported_elsewhere": {
+    "lean": 0,
+    "python": 0
+   },
+   "a9_reported": {
+    "lean": 0,
+    "python": 0
+   },
+   "amendments_on_honest_witnesses": {
+    "c.bw_requests": 0,
+    "c.gas_limit": 599,
+    "e.chacha_words": 0,
+    "e.sched_canonical": 0,
+    "honest_witnesses": 4597,
+    "w.path_depth": 0,
+    "w.proof_routing": 0,
+    "w.unfolded": 0
+   },
+   "cases": 13306,
+   "disagreements": 0,
+   "measures": {
+    "chacha_words": {
+     "compared_lean_python": 5230,
+     "compared_oracle": 5230,
+     "distribution": {
+      "max": 3,
+      "min": 0,
+      "n": 5230,
+      "nonzero": 9,
+      "p50": 0,
+      "p90": 0,
+      "p99": 0
+     },
+     "distribution_in_d0a": {
+      "max": 3,
+      "min": 0,
+      "n": 2928,
+      "nonzero": 5,
+      "p50": 0,
+      "p90": 0,
+      "p99": 0
+     },
+     "mismatch_count": 0
+    },
+    "max_path_depth": {
+     "compared_lean_python": 5230,
+     "compared_oracle": 5230,
+     "distribution": {
+      "max": 33,
+      "min": 1,
+      "n": 5230,
+      "nonzero": 5230,
+      "p50": 3,
+      "p90": 33,
+      "p99": 33
+     },
+     "distribution_in_d0a": {
+      "max": 32,
+      "min": 1,
+      "n": 2928,
+      "nonzero": 2928,
+      "p50": 3,
+      "p90": 32,
+      "p99": 32
+     },
+     "mismatch_count": 0
+    },
+    "unfold_bytes": {
+     "compared_lean_python": 5230,
+     "compared_oracle": 927,
+     "distribution": {
+      "max": 7917,
+      "min": 1248,
+      "n": 5230,
+      "nonzero": 5230,
+      "p50": 3709,
+      "p90": 5069,
+      "p99": 7234
+     },
+     "distribution_in_d0a": {
+      "max": 7851,
+      "min": 1248,
+      "n": 2928,
+      "nonzero": 2928,
+      "p50": 3648,
+      "p90": 5082,
+      "p99": 7234
+     },
+     "mismatch_count": 0
+    }
+   },
+   "wall_seconds": {
+    "lean": 2011.5793607234955,
+    "python": 10.77753758430481
+   }
+  },
+  "public": {
+   "a10_path_depth_mutants": {
+    "w.path_depth_at_bound": {
+     "cases": 59,
+     "lean.accept": 59,
+     "lean.out_of_domain_w.path_depth": 0,
+     "nearcore_accepts": 59,
+     "python.accept": 59,
+     "python.out_of_domain_w.path_depth": 0
+    },
+    "w.path_depth_over": {
+     "cases": 59,
+     "lean.accept": 0,
+     "lean.out_of_domain_w.path_depth": 59,
+     "nearcore_accepts": 59,
+     "python.accept": 0,
+     "python.out_of_domain_w.path_depth": 59
+    }
+   },
+   "a10_reported_elsewhere": {
+    "lean": 0,
+    "python": 0
+   },
+   "a9_reported": {
+    "lean": 0,
+    "python": 0
+   },
+   "amendments_on_honest_witnesses": {
+    "c.bw_requests": 0,
+    "c.gas_limit": 0,
+    "e.chacha_words": 0,
+    "e.sched_canonical": 0,
+    "honest_witnesses": 290,
+    "w.path_depth": 0,
+    "w.proof_routing": 0,
+    "w.unfolded": 0
+   },
+   "cases": 421,
+   "disagreements": 0,
+   "measures": {
+    "chacha_words": {
+     "compared_lean_python": 300,
+     "compared_oracle": 300,
+     "distribution": {
+      "max": 0,
+      "min": 0,
+      "n": 300,
+      "nonzero": 0,
+      "p50": 0,
+      "p90": 0,
+      "p99": 0
+     },
+     "distribution_in_d0a": {
+      "max": 0,
+      "min": 0,
+      "n": 139,
+      "nonzero": 0,
+      "p50": 0,
+      "p90": 0,
+      "p99": 0
+     },
+     "mismatch_count": 0
+    },
+    "max_path_depth": {
+     "compared_lean_python": 300,
+     "compared_oracle": 300,
+     "distribution": {
+      "max": 33,
+      "min": 1,
+      "n": 300,
+      "nonzero": 300,
+      "p50": 3,
+      "p90": 33,
+      "p99": 33
+     },
+     "distribution_in_d0a": {
+      "max": 32,
+      "min": 1,
+      "n": 139,
+      "nonzero": 139,
+      "p50": 3,
+      "p90": 32,
+      "p99": 32
+     },
+     "mismatch_count": 0
+    },
+    "unfold_bytes": {
+     "compared_lean_python": 300,
+     "compared_oracle": 64,
+     "distribution": {
+      "max": 6500,
+      "min": 1248,
+      "n": 300,
+      "nonzero": 300,
+      "p50": 3160,
+      "p90": 4392,
+      "p99": 6500
+     },
+     "distribution_in_d0a": {
+      "max": 6500,
+      "min": 1248,
+      "n": 139,
+      "nonzero": 139,
+      "p50": 3065,
+      "p90": 4392,
+      "p99": 6500
+     },
+     "mismatch_count": 0
+    }
+   },
+   "wall_seconds": {
+    "lean": 98.84667134284973,
+    "python": 0.5295803546905518
+   }
+  },
+  "requests": {
+   "a10_path_depth_mutants": {
+    "w.path_depth_at_bound": {
+     "cases": 559,
+     "lean.accept": 559,
+     "lean.out_of_domain_w.path_depth": 0,
+     "nearcore_accepts": 559,
+     "python.accept": 559,
+     "python.out_of_domain_w.path_depth": 0
+    },
+    "w.path_depth_over": {
+     "cases": 559,
+     "lean.accept": 0,
+     "lean.out_of_domain_w.path_depth": 559,
+     "nearcore_accepts": 559,
+     "python.accept": 0,
+     "python.out_of_domain_w.path_depth": 559
+    }
+   },
+   "a10_reported_elsewhere": {
+    "lean": 0,
+    "python": 0
+   },
+   "a9_reported": {
+    "lean": 0,
+    "python": 0
+   },
+   "amendments_on_honest_witnesses": {
+    "c.bw_requests": 0,
+    "c.gas_limit": 0,
+    "e.chacha_words": 0,
+    "e.sched_canonical": 0,
+    "honest_witnesses": 2667,
+    "w.path_depth": 0,
+    "w.proof_routing": 0,
+    "w.unfolded": 0
+   },
+   "cases": 9230,
+   "disagreements": 0,
+   "measures": {
+    "chacha_words": {
+     "compared_lean_python": 3412,
+     "compared_oracle": 3412,
+     "distribution": {
+      "max": 8,
+      "min": 0,
+      "n": 3412,
+      "nonzero": 276,
+      "p50": 0,
+      "p90": 0,
+      "p99": 3
+     },
+     "distribution_in_d0a": {
+      "max": 8,
+      "min": 0,
+      "n": 2030,
+      "nonzero": 165,
+      "p50": 0,
+      "p90": 0,
+      "p99": 3
+     },
+     "mismatch_count": 0
+    },
+    "max_path_depth": {
+     "compared_lean_python": 3412,
+     "compared_oracle": 3412,
+     "distribution": {
+      "max": 33,
+      "min": 1,
+      "n": 3412,
+      "nonzero": 3412,
+      "p50": 3,
+      "p90": 33,
+      "p99": 33
+     },
+     "distribution_in_d0a": {
+      "max": 32,
+      "min": 1,
+      "n": 2030,
+      "nonzero": 2030,
+      "p50": 3,
+      "p90": 32,
+      "p99": 32
+     },
+     "mismatch_count": 0
+    },
+    "unfold_bytes": {
+     "compared_lean_python": 3412,
+     "compared_oracle": 639,
+     "distribution": {
+      "max": 18378,
+      "min": 1248,
+      "n": 3412,
+      "nonzero": 3412,
+      "p50": 3458,
+      "p90": 7441,
+      "p99": 9230
+     },
+     "distribution_in_d0a": {
+      "max": 18378,
+      "min": 1248,
+      "n": 2030,
+      "nonzero": 2030,
+      "p50": 3406,
+      "p90": 7603,
+      "p99": 11587
+     },
+     "mismatch_count": 0
+    }
+   },
+   "wall_seconds": {
+    "lean": 2272.059856414795,
+    "python": 16.69182777404785
+   }
+  }
+ },
+ "dp0_derivation": {
+  "Dp=31": 4001728,
+  "Dp=32": 4128704,
+  "Dp=33": 4255680,
+  "cap": 4194304,
+  "max_lists": 1984,
+  "rows_per_list": "33 + 64*|path| (SrcpGen.R_eq)",
+  "theorem": "ZkFormal.NearV3.Rcpt.SrcpDepth.dp0_largest / dp0_tight"
+ },
+ "fingerprint_budget_chacha22": {
+  "busBudget": 68719476736,
+  "failing_families": [
+   "ProcPriorProcessRepaired",
+   "SortEmpty",
+   "ProcPriorCodec",
+   "ProcPriorComparatorRouted"
+  ],
+  "fitting_families": [
+   "CurrentFamily",
+   "Packed4",
+   "HorizontalReceipt",
+   "GatedMemory",
+   "GatedLength",
+   "VerticalPrior",
+   "ProcPriorTriple (68,697,539,256 after)"
+  ],
+  "fpBound_after": 69427348152,
+  "fpBound_before": 68697539256,
+  "method": "#eval, not kernel-checked"
+ },
+ "lane": "lane/v3-domain-bounds",
+ "scheduler_vectors_words": {
+  "cases": 600,
+  "lean_compared": 600,
+  "lean_mismatch": 0,
+  "max_words": 102,
+  "nonzero": 369,
+  "oracle_mismatch": 0,
+  "state_mismatch": 0
+ },
+ "size_bound": {
+  "aligned_padded_twoSha_g2": 6176224,
+  "hint_max": 1295017,
+  "margin_under_8MiB": 917367,
+  "note": "929,431 in older docs predates commit 96944b6b; the kernel-checked figure on main is 917,367",
+  "unchanged_with_chacha_and_srcp_at_22": true
+ },
+ "w0_rows": {
+  "Chacha.Table.maxLog": 21,
+  "chachaV3_max": 4141410,
+  "genV3_max": 770000,
+  "largest_W_fitting_2^22": 779840,
+  "shufV3_max": 174149
+ }
+}
