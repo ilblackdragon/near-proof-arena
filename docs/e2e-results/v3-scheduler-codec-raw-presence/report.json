@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Same accepted D0a native blocklist constructs complete Codec/RawFrame Local plus exact full physical SPOST presence conservation; capacity derived from native occurrence bytes at B<=2M. Other global joins, supplied value IDs and semantic ownership remain separate. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRawPresence.lean",
+      "sha256": "a8f094298f50ab059bc0fa04f762d5c460d9b28686aec0a3af7117722b158507",
+      "audit": "zk-formal/test/AuditSchedulerCodecRawPresence.lean",
+      "audit_sha256": "e831017b562bdefc6fe4e961a9c19b5c2d0f3caf7fe12a2e153fcce7c1862fa8",
+      "guards": 1
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-09",
+  "status": "PARTIAL_ARBITRARY_TRACE_EXTRACTION",
+  "proved": [
+    "ProcPriorMemorySound.query_origin: every active query in arbitrary baseline memory Local has zero value or immediately preceding active non-query row with equal field address and value.",
+    "ProcPriorMemorySound.address_injective: authenticated tau<33 and link<4096 on both rows turn packed field address equality into exact tau/link equality.",
+    "ProcPriorReadSound.query_source: genuine HoldsP, standalone gated-memory table identity, exclusive bus68 send ownership and zero public68 supply bind live corrected Codec receive to actual memory query and its local origin.",
+    "ProcPriorReadSound.message_fields: actual matched query/Codec messages have equal natural tau, link/kidx, lo/apR and hi/bigR cells."
+  ],
+  "existing_generator_only": [
+    "ProcPriorValues.query_last_write establishes generated query event value from original decoded records; it does not extract arbitrary AIR rows.",
+    "ProcPriorCodecQueries.native_queries identifies the honest generated query inventory with native previous allowances.",
+    "ProcPriorDecodedLocal, ProcPriorIdLocal, ProcPriorRecordLocal and ProcPriorRawLocal prove generated traces satisfy Local."
+  ],
+  "remaining": [
+    {
+      "bridge": "Vertical component extraction",
+      "detail": "ProcPriorVertical4Linear embeds memory with stage0 gate and window first/last selectors. Own in ProcPriorReadSound names the standalone ProcPriorMemoryGated table; it cannot be instantiated directly for the fused vertical family without extracting the actual stage0 window and preserving global traffic."
+    },
+    {
+      "bridge": "Comparator69 soundness and ranges",
+      "detail": "Existing Sched.cmp_sound is fixed to B_SCMP=40. Prior memory and ID comparator bus is69. Must parameterize actual comparator ownership and derive natural operand bounds before using row order. Honest comparator generation does not supply arbitrary-trace operand bounds."
+    },
+    {
+      "bridge": "Global memory order",
+      "detail": "Local query_origin identifies immediate preceding write only. Address sorting must rule out separated duplicate groups, and stamp ordering must prove this write has greatest original ordinal. Address pack4096*tau+link requires bounded authenticated tau/link to be injective."
+    },
+    {
+      "bridge": "Authenticated write provenance and completeness",
+      "detail": "RawFrame original VBYTES/length/presence, bus75 record bytes, first-public ID lookup with duplicate handling on70/71/72, RecordLinear parameter76 and write67 inventories need arbitrary-trace semantic extraction. Presence of a prior write alone does not establish omitted-writes completeness or last-write native semantics."
+    }
+  ],
+  "not_claimed": [
+    "Arbitrary AIR priorRead equals decoded native allowance",
+    "Full bus conservation",
+    "Generated-trace completeness implies soundness",
+    "End-to-end validator replacement"
+  ]
+}

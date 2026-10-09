@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "scope": "See hashed README for exact theorem scope and limitations.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRawNativeBytesList.lean",
+      "sha256": "33f930d2fc3a794bf0575018df1c6d3d0e8a0bbb0ceee6e8f382a9e9e0257fd2"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRawNativeBytesList.lean",
+      "sha256": "bf7abb17979025999b59308f7cbe81daca080f573fa0c579e12652abddaf4242"
+    },
+    {
+      "path": "docs/e2e-results/v3-raw-native-bytes-list/README.md",
+      "sha256": "e1c124e8053fe9681fd88d68d22955f785d688c20f4604c8e8e68b8294a012d2"
+    },
+    {
+      "path": "docs/e2e-results/v3-raw-native-bytes-list/SHA256SUMS",
+      "sha256": "8a3d72b79aaecc205bf9a1aaefbcdb1e3d2463f11681943b583c080b5aa0d145"
+    }
+  ]
+}

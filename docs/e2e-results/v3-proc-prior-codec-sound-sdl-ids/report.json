@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary corrected Codec sender starts authenticate all eight post bytes to the actual prepared layout via genuine HoldsP, SdlOwn, PubIdx and exact prepared public SDL inventory. Finite SDL descent removes any timestamp bound; no old Codec CLocal, generator, assumed payload equality, independent flags, or room premise. Byte identity uses Sched.idByte at the actual record kidx; srcC/index interpretation remains separate. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundSdlIds.lean",
+      "sha256": "c7f692e43582b6b0ad83589c7859dc4380e0f6b2f93352b10d0ac90ab4eca5d0",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundSdlIds.lean",
+      "audit_sha256": "69ae26b7c871ac1683ce29b1660b3854fc688e51b30719af299e10e362c5803e",
+      "guards": 6
+    }
+  ]
+}

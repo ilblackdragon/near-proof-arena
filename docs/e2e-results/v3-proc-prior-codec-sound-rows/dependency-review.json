@@ -1,7 +1,7 @@
 {
   "date": "2026-10-09",
   "status": "SEMANTIC_BRIDGE_INCOMPLETE",
-  "completed": "Generated-trace completeness and arbitrary-trace sender row extraction are distinct. Only the latter source is an initial soundness bridge.",
+  "completed": "Generated-trace completeness remains separate from arbitrary-trace soundness. Corrected arbitrary sender geometry, bounded byte extraction, finite SDL public-origin descent, actual prepared-layout sender bytes and exact publicID packet authentication now have checked additive lemmas. ProcPriorCodecSoundPacket.prepared_packet discharges srcC/grid interpretation using initialized srcC\u2264row, physical height, authenticated SPAR n and SDL public kidx bounds.",
   "legacy_consumer": "ZkFormal.NearV3.Sched.schedCore_sound in Sched/Link/Sound.lean",
   "legacy_assumptions": [
     "HoldsP AP pub tr",
@@ -29,8 +29,6 @@
     }
   ],
   "smallest_next_bridges": [
-    "Port retained post-byte bit reconstruction to corrected Local and prove every sender register byte equals a later bounded sender post-byte via added shifts.",
-    "Bind packed publicId message on bus70 to actual prepared current-layout sender ID; require explicit ownership/global balance and row selection.",
     "Bind priorRead bus68 to exact parsed previous-state last-write memory, retaining original prior state rather than reconstructing current-layout prior bytes.",
     "Rebuild block-level extraction and corrected scheduler semantic theorem using repaired ownership/interfaces."
   ],
@@ -44,6 +42,6 @@
     "codec": "ProcPriorCodecActual.publicId is SEND bus70",
     "id_table": "ProcPriorIdTable.table70 71 72 69 consumes public inventory bus70; its Local does not independently bind keys to prepared layout",
     "authentication_root": "Retained Codec SDL receive/send interactions7/8 with public prepared SDL seed inventory and SdlOwn global ownership",
-    "remaining": "Prove arbitrary-trace tau bounds via prepared SPAR/block extraction, descend predecessor tau without field wrap, decode authenticated public SDL seed, then infer packed bus70 identity. A hypothetical authenticated ID-table receiver inventory would assume the missing claim."
+    "remaining": "Public SDL origin, prepared-layout byte decoding and exact bus70 sender index/ID packet are now proved without a tau bound. ProcPriorCodecSoundPacket.prepared_packet combines genuine SDL and SPAR ownership/inventory; it proves srcC=kidx/n<n using source_le_row, physical height\u22642^22 and n\u226464 before natural division. Global HoldsP, SdlOwn, SparOwn, PubIdx and exact prepared SDL/SPAR inventories remain explicit. This authenticates packet values, not full bus conservation or priorRead memory semantics."
   }
 }

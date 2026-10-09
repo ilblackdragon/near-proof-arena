@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Scheduler prior value ID comes from actual prestate forest valueIndex. Actual present read yields exact globally allocated seedValue bytes and matching native lookup terminal; absent read forces canonical zero ID. Does not yet instantiate this ID choice in accepted Codec block constructor or discharge global ownership. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorValueId.lean",
+      "sha256": "09744aa82ae728fde7deeee200b3446a522173b491f9e8a13814f0c31f8d00ec",
+      "audit": "zk-formal/test/AuditSchedulerPriorValueId.lean",
+      "audit_sha256": "969bd1eab9d02ffccf466ef57eadb758747f847e4a0c59ab047bf48c469d793a",
+      "guards": 3
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary live corrected Codec publicID packets authenticate the actual prepared sender index and canonical ID limbs from HoldsP, SdlOwn, SparOwn, PubIdx and exact rendered prepared SDL/SPAR inventories. Corrected predecessor rules prove srcC\u2264physical row; height\u22642^22 and authenticated n\u226464 make index products less than P. SDL public seeds prove kidx<n\u00b2; live receiver-zero plus exact natural index equation gives srcC=kidx/n<n. No supplied range, division, payload, nn, timestamp, native trace or old Codec CLocal premises at prepared_packet. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundIndex.lean",
+      "sha256": "4d67997cfb4cc48df7ce07021a0b4ea5c9ba7661758866f4946c4c4999ae8824",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundIndex.lean",
+      "audit_sha256": "49f2a673b0aba8835ed66ca67ecc34ffc3052ae65d7b4918b578a935ba3bfaf8",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundIndexSdl.lean",
+      "sha256": "9b06ee10827c39f5aa2e9e5f69ee54941ab3568a7b69d9c94b14535e737a203b",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundIndexSdl.lean",
+      "audit_sha256": "48f924821879397e06f6ea7bce2b980cae37ba40c28bf497474c50ec47a6a148",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundPacket.lean",
+      "sha256": "986cf8a3a586ef96389b432ff5c75dfde21d461182f3a09a3d8e6f1d0686fbf2",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundPacket.lean",
+      "audit_sha256": "efe80b183e715017be043e296915aa8224b64cb472ed9c51132e6981b30a5c58",
+      "guards": 4
+    }
+  ]
+}
