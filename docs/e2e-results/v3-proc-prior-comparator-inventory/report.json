@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Critical concrete missing-provider audit: actual ProcPriorCodecActualFamily.tables has no receiving interaction on bus69. Exact kernel computation establishes receiver absence. Genuine HoldsP/tables identity and no public69 segments imply any live69 send is impossible, via real global send matching. Therefore conditional comparator69 ownership cannot be instantiated in this family; nontrivial prior comparison traffic requires actual comparator installation or explicit rerouting. No full proof or nonvacuous completeness is claimed. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorInventory.lean",
+      "sha256": "6bcb430ed8e50df4fb5024ca8317c6614b26c2e30f966d2c1200aaddaf8bc5c8",
+      "audit": "zk-formal/test/AuditProcPriorComparatorInventory.lean",
+      "audit_sha256": "95ebeb05d38f15cc98068cedd754a3477c4d8c1844b9aafc753a6233eb79d501",
+      "guards": 3
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-comparator-inventory/dependency-review.json",
+      "sha256": "b4d2a79c2a5661a3427493d5c5e626d9c2a8d6b964b2556c7909bea068cf1123"
+    }
+  ]
+}

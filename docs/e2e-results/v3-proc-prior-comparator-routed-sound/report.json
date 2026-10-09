@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual routed-family shared comparator40 soundness for all original scheduler and routed prior memory/ID sends. Receiver identity, other-table ownership and projected comparator Local are derived from the concrete fused/pair/triple family. Only actual HoldsP/table identity, public40 exclusion, live send and bounded natural operands remain. No standalone Own or comparison outcome premise. Order-request transport and authenticated operand bounds remain separate. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorComparatorRoutedSound.lean",
+      "sha256": "d0b6265fe65e0710bcf7e571100e67eba5313872e559436b08b7836dc143f23e",
+      "audit": "zk-formal/test/AuditProcPriorComparatorRoutedSound.lean",
+      "audit_sha256": "b61b6496e9f365124c80155bfa35398060b3390623ac0329537fb434cd4c267d",
+      "guards": 8
+    }
+  ]
+}
