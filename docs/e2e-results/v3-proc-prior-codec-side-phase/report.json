@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All6 cKind phase equations on actual header/hash/ash rows; exact cKind slice46..51 and retained filter identity. Active-row last selector zero, hash/ash first selector zero, header first selector zero or p=0. No successor data premise. Remaining instance carry, byte, header and adjacency equations separate. Prebuilt dependencies;24GiB virtual-memory cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSidePhase.lean",
+      "sha256": "dbcdc5ee404fc7b5229985e98919e63496b89d3497b5a8f032486c819ec663b1",
+      "audit": "zk-formal/test/AuditProcPriorCodecSidePhase.lean",
+      "audit_sha256": "369052d5f0b5a6d174229c5b709b7ecbd262786c8be6df3a3adf68b18e72353f",
+      "guards": 6
+    }
+  ]
+}

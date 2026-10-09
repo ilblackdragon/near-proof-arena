@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Forward/trailer, comparator and side-phase checkpoint: strict PASS13 exact axiom guards. ForwardCells/ForwardRows project actual metadata and ForwardLocal closes cTrl13/14; RecordTrailer.actual closes entire cTrl on every successful record row, arbitrary next/boundary selectors. CompareRows/CompareLocal close allowance cRec49–51. SidePhase closes six retained cKind phase equations on header/hash/ash with explicit boundary premises. Prebuilt dependencies only; physical assembly and other active constraint groups remain open. Last committed checkpoint ea1d32ec push failed DNS github.com. Verified recovery bundle updated. Goal remains active; no full transition certificate or judge success.
+
+
 2026-10-09: Terminal saturation and side zero-test checkpoint: strict PASS27 exact axiom guards. CarryBit/RecordFair/EndSaturation derive actual cRec55 from native prefix and terminal execution, completing terminal arithmetic54–58 with previous EndLocal. SideZero proves all18 retained zero-test equations on actual header/hash/ash rows with valid indices and tau<P. Prebuilt dependency audits; full active constraint assembly, global joins and end-to-end judge remain open. Parallel work continues on side phase and record forwarding.
 
 

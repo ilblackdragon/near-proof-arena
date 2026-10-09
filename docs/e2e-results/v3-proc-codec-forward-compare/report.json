@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "All cTrl equations on actual record rows, including forwarding metadata cTrl13/14 and allowance comparator cRec49\u201351, exact successful step rows. Prebuilt dependencies;24GiB cap. Remaining constraints and whole TableLocal open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordTrailer.lean",
+      "sha256": "0923182102408005b081152c3be3ff44f885ec5eb47dd1f188d78008119eb651",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordTrailer.lean",
+      "audit_sha256": "5f79294fcf5f771d49799cc892594f74b6f5a239bf511df51a2707c073ea1c2f",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardCells.lean",
+      "sha256": "7a30d6e9b08e2862003d47fea0d7a4b587556152e94d4c806c509a2781a895b1",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardCells.lean",
+      "audit_sha256": "e4e95d4966ca5ba8f5208afdbc65bd4e04317bc13f32b024e54c464f8cf213e1",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardRows.lean",
+      "sha256": "ad8c361e6f73378907a7e9c5a11065f12d20c87c9f9047f870649cd8fc07859f",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardRows.lean",
+      "audit_sha256": "f5d4897ae3576ef5cdefdd1e2a2168065d2d39a359770810b7047c9fd50de4f6",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardLocal.lean",
+      "sha256": "6de759872d25a25b62f112f1b9748d278192d7593eb10d4d6c6e32c8be60636f",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardLocal.lean",
+      "audit_sha256": "f0e87d0e06225f7ed4bb815085f2f62b51cf69539cfeaa417861faad6129f5c3",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCompareRows.lean",
+      "sha256": "372cd01d452fa2c95648efdff17a8708b6d4aa7dbb1de9d2cb6adf096bd25eb2",
+      "audit": "zk-formal/test/AuditProcPriorCodecCompareRows.lean",
+      "audit_sha256": "ffffcd8e12efdd16a2fb4bcb68bf5d8e0b56b7bbf7f84b5b59dcbb5fde08fe36",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCompareLocal.lean",
+      "sha256": "d72aa220a03d904712602ccc53b1d1ac95955d6874215278b64ec3d95eb50a14",
+      "audit": "zk-formal/test/AuditProcPriorCodecCompareLocal.lean",
+      "audit_sha256": "fd22496e11bc14435865fd0a9132842cf244618d9c66e542be5a352650f96831",
+      "guards": 1
+    }
+  ]
+}
