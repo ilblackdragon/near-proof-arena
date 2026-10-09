@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family SHA byte ranges and receipt gp/deposit/burnt/refund ranges; ordered MEM propagates account initial bytes through receipt before/locked/storage lanes; corrected RcptE arithmetic including system gas, refunds and token totals. Strict prebuilt-dependency builds; no original receipt Local assumed.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairByteRange.lean",
+      "sha256": "30e252786d6a3f340c8b9b58718fe2ed03f7d8802d4b5f63cf167ade53b19f69",
+      "audit": "zk-formal/test/AuditProcessRepairByteRange.lean",
+      "audit_sha256": "6277cd64edebeaaf56f9efe479de59e9574173bea5ef57305947f444d3aac65f",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptByteRange.lean",
+      "sha256": "3832b4a62770ebf086587c0096f1fdc05ec8627ef90c47834a572fda50feadc4",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptByteRange.lean",
+      "audit_sha256": "2d1717d672b1657b7a33d0b8e632df1a430ec31188b170ba75caf0fd9fa095ef",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptPayloadBytes.lean",
+      "sha256": "7cd161105115dd70e298f6bb3926049e531ef14463e281a0c368f6e2862a4c8a",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptPayloadBytes.lean",
+      "audit_sha256": "93a46faf30d74eb83d875ea8417470d4cf2cc35e8a5a8ab5f939bf03e7cbcebe",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMemoryLanes.lean",
+      "sha256": "9bee21da26c058714e6410fea7cb4fb1034c7f44b92f03f33fbb9260e4736baa",
+      "audit": "zk-formal/test/AuditProcessRepairMemoryLanes.lean",
+      "audit_sha256": "be379b9cef876c5b69085e25b5d84091d4752a7ab972daa73344a68b0f09ac16",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptArithmetic.lean",
+      "sha256": "de2272dd5f467d8b932371911b521bdeb082a3e0641ea7085d707a5edb4c2b04",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptArithmetic.lean",
+      "audit_sha256": "cf21524169590c7a169b71c50c751a510f340128ad405dcbc5ad711296cfb5f6",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-receipt-arithmetic/dependency-review.json",
+      "sha256": "151b784e5a6ce7ba28eab9017243e45e9275b1e0125237bc0c87f7fb8670ba14"
+    }
+  ]
+}
