@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Corrected arbitrary-trace sender soundness strict PASS5 exact guards. SoundSender extracts postbyte reconstruction/range from retained pbits, transports sender shift register to future bounded postbytes and derives24/24/16 packed-ID limb ranges from corrected Local with no generator premise. Per-row senderphase/e7/encoding/range hypotheses still explicit; corrected blockgeometry lane now discharging them. Bus70 ownership and priorRead68 semantic relation remain separate. Main source-only build b last1600/1907, no completed certificate yet; finalize then extend-ordered procedure in priorentry. RawFrame cannot have standalone nonzero-tau Local due first*tau constraint; ordered rawconcat beginningtau0 required and assigned. Actual publicID70 traffic another agent. Full transition certificate/judge incomplete. Previouse120906b push failed DNS.
+
+
 2026-10-09: COMPLETE native accepted D0a corrected Codec Local integration strict PASS3 exact guards. SchedulerCodecOrderedNative.accepted_codec_table constructs SAME ordered bs<=32 with each Valid/n64, run.tau=index, and full concatenated corrected Codec TableLocal from prepD0,walkD0,decodeW,checkD0a acceptance; no native-trace/Local/order assumptions. accepted_codec_local_digest adds exact physical DIGEST inventory for samebs. Supplied vids still need provider joins; no general NEAR or semantic soundness claim. Source-only mainCodec build b last1349/1907 stillrunning. AFTER b completes run finalize.py (main target), then optional extend-ordered.py reuses only hashchecked source-built results to target Assembly.SchedulerCodecOrderedNative; do not run extension while currentbuild/finalize ongoing. Agents rawconcatLocal, publicID70 actualtraffic, corrected arbitrarytrace sender extraction. Full semantic/global certificate/judge incomplete. Previous05e79955 push failed DNS.
 
 
