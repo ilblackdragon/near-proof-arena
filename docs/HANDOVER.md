@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcActualReplayTimeEnvelope and agent ProcActualPriorKeyCap independently strict PASS, eight exact guards. Cursor stamping bounds all round starts by final replay time; memory chronology bounds every selected log timestamp including default-empty out-of-range reads. Final clock bound remains explicit. Prior key cap now derived internally from PV86 model/replay, all rd.Kq<=KSENT<2^29. Remaining prepared final-clock and grant-value bounds in active agents; full certificate/prover/judge incomplete. Prebuilt dependencies only. Previouse805e42c push DNS failed. Goal active.
+
+
 2026-10-09: ProcActualOperandReduction strengthened, strict PASS five exact guards. native_reduction starts from accepted prepD0 and native runCore, constructs prior decode and corrected generator equality to sole 29-bit operand guard, retaining exact native state/grant agreement. guard_success_iff/run_success_iff isolate remaining check without claiming it true. Operand bounds/full certificate/prover/judge still incomplete. Agent environment reset removed receipt_gap; new memory_values owns replay grant bounds, timestamp and prior-key tasks retained. Prior32cb14fb push failed GitHub DNS; last confirmed remotec5e1708e. Prebuilt dependencies only. Goal active.
 
 
