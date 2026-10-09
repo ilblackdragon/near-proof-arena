@@ -6,6 +6,12 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Full distribution header local PASS5guards: every ScanDist constraint on actual header and all eight next-row obligations derived from actual first cell; native scalar bounds/nonfirst/nonlast/current-next placement remain explicit for whole phase. Root independent strict sources/audit/hash verification PASS. Fresh4209-module source-only build remains running separately (frozen7d54d822; this new header checkpoint is not part of that snapshot).
+
+
+2026-10-09: Fresh source-only rebuild STARTED at frozen7d54d822, workspace /tmp/nearproof-repaired-clean-20261009-d, exec session21053. Staged4209 source modules including prior3075 closure and737 committed Lean changes; zero reused project oleans. First209 modules PASS with no failure at build-start checkpoint. New scripts/proof_source_snapshot.py freezes committed sources and hash-checked prior/additional source roots, dependency-orders strict Lean compilation, records source/output hashes and resource bounds. Source-only archive and running metadata in docs/e2e-results/v3-repaired-clean-source. This is NOT completed certificate evidence; poll actual session21053 before continuing/restarting. Global theorem/prover/judge/general replacement remain incomplete.
+
+
 2026-10-09: Bidirectional native-frame WRITE interpretation PASS1guard: SAME authenticated decoded native State simultaneously covers every original native record with exact allowance and conditional physical write emission, and interprets every same-instance physical memory WRITE at its original ordinal with exact low/big/saturation. Reverse State identity derived through actual frame uniqueness; no caller decoded association. Distribution cell current/interior PASS7guards: all first26 grid equations and all disabled shard equations on actual cells, plus all8 interior next-row sender count/budget update equations. Native count/positivity and physical current/next binding premises remain explicit until full phase composition. Root independent strict final-source/audit rebuild/hash checks PASS8guards. Exact prepared ID coverage/first-match, ordered native receipt updates, boundary/kind/range/phase/global theorem, clean certificate/prover/judge/general replacement remain open.
 
 

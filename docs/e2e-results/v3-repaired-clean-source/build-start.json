@@ -1,0 +1,16 @@
+{
+  "status": "RUNNING",
+  "revision": "7d54d8223520e0bd01fc73fd7880c907fce2b557",
+  "source_modules": 4209,
+  "changed_targets": 737,
+  "prebuilt_project_dependencies": false,
+  "successful_modules_at_checkpoint": 209,
+  "failed_modules_at_checkpoint": [],
+  "workspace": "/tmp/nearproof-repaired-clean-20261009-d",
+  "exec_session": 21053,
+  "source_manifest_sha256": "77c7e0d563fbb47f06e0cf42fd899b246f5f0c21edebb3daf20142d30c988bf7",
+  "source_archive_sha256": "b2f3f88177e6bdab8c590986bdb0752a3b294dd4a753da9ff3350f16c91b2a5e",
+  "scope": "Fresh source-only closure build is in progress, not a completed clean certificate. Includes prior3075 source closure and all737 committed Lean changes since d29cf043; additional missing dependencies copied from explicit source roots and hashed. Global transition theorem, prover/judge and general replacement remain incomplete.",
+  "replay_smoke": "PASS one frozen module, fresh project library",
+  "tampered_source_test": "PASS rejected source hash mismatch before compilation"
+}

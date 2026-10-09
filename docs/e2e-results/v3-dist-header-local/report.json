@@ -1,0 +1,54 @@
+{
+  "status": "PASS strict Lean and 5 exact standard-axiom guards",
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeader.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeaderPhysical.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeaderNext.lean"
+  ],
+  "audits": [
+    "zk-formal/test/AuditProcDistHeader.lean"
+  ],
+  "guard_count": 5,
+  "sha256": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeader.lean": "7f6164927bf18267ebc08479424570c218113522547461a9a060601e0e7ad0a3",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeaderPhysical.lean": "d0d8cfb9fc8f8a17f4b7c985e1b963b449dd8f4004b86ccf2a222972e698af24",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeaderNext.lean": "6de91e0f914b58c2ed192680207154a9a385ee2f21ee35ce514345f55b16657d",
+    "zk-formal/test/AuditProcDistHeader.lean": "d0bca32c41b3ed7a2967a8d6a5675c378eacbff3b2ea706a80ce5fe908432750"
+  },
+  "check": "/tmp/check-id.sh; Lean4.34.1 -j1 -DautoImplicit=false -DrelaxedAutoImplicit=false",
+  "scope": [
+    "All ScanDist constraints on actual grid-header row shape",
+    "All eight header next-row obligations derived from actual first-cell constructor",
+    "Header serialization/canonical row bounds"
+  ],
+  "remaining": [
+    "Cell kind/range and terminal boundary equations",
+    "Shard neighbor/kind composition",
+    "Actual full scan-then-distribution physical phase placement/TableLocal"
+  ],
+  "assumptions": [
+    "Current header and next first-cell physical bindings",
+    "Header not physical first/last",
+    "Header tau/n/index/source/count/left canonical <P; native bound composition still needed",
+    "No table/domain changes"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeader.lean",
+      "sha256": "7f6164927bf18267ebc08479424570c218113522547461a9a060601e0e7ad0a3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeaderPhysical.lean",
+      "sha256": "d0d8cfb9fc8f8a17f4b7c985e1b963b449dd8f4004b86ccf2a222972e698af24"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistHeaderNext.lean",
+      "sha256": "6de91e0f914b58c2ed192680207154a9a385ee2f21ee35ce514345f55b16657d"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistHeader.lean",
+      "sha256": "d0bca32c41b3ed7a2967a8d6a5675c378eacbff3b2ea706a80ce5fe908432750"
+    }
+  ],
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
