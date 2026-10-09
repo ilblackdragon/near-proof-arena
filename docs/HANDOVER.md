@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual-family priorRead source extraction PASS15guards derives horizontal offset, only sender68, vertical stage0 Local and zero-or-immediate-write directly from HoldsP/actual family identity/no public68. Physical selected Record write67 inventory PASS11guards retains recognized duplicate records and original ordinals, drops unknown IDs per native semantics. Root AddressOrder PASS2guards proves global active-prefix monotonic packed addresses; StampOrder PASS1guard derives strictly increasing next-write ordinals via genuine comparator69 and actual gateEq. Comparator ownership/ranges/physical shifted interaction transport remain explicit; authenticated arbitrary writes and full lastwrite not yet complete. Agents continue memory physical inventory, ID71/72, arbitrary global ordering. Previous turn progressed via c09f5ce5/b280bf25; push DNS blocked.
+
+
 2026-10-09: Prior-order comparator contract PASS2 exactguards. ProcComparatorSound.sound generalizes actual HoldsP comparator ownership to arbitrary bus; prior_ge supplies bus69 ordered result under explicit operand bounds<2^29. No presumed generated row or comparison result. Actual prior-memory ordering send extraction, authenticated ranges, and combined-family comparator ownership remain open. Checkpointc09f5ce5 push DNS failed; verified bundle retained.
 
 

@@ -1,0 +1,9 @@
+{
+  "modules": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordAllTraffic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordWriteTraffic.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcRecordWriteTraffic.lean",
+  "guards": 11,
+  "status": "strict PASS"
+}

@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual paired/triple-packed corrected-family prior68 extraction. HoldsP, exact AP.tables identity and no public68 supply bind every live physical bus68 consumer to the actual horizontal stage0 memory query with preserved message and zero-or-immediate-write local semantics. Horizontal offset/layout, window selectors, memory Local and all other physical tables bus68 send exclusion are derived. No chosen window, supplied ownership, generated trace, native trace or per-row Local premise. Authenticated complete writes and comparator order remain separate from this local-origin result. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecFamilyProjection.lean",
+      "sha256": "43d7bd73e331b84d5e1baa7cfd9e0bbdf57296cb0fc6ba92b2254929f3b136c8",
+      "audit": "zk-formal/test/AuditProcPriorCodecFamilyProjection.lean",
+      "audit_sha256": "25c9d7e7463be27b5fc5070742f5a40131825328d1d97d0a2403adbb248a943e",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecFamilyRead.lean",
+      "sha256": "aadf5f634ad728499c4044aba83df0fdef61cfec0af4236e6ee1d0956d2f8931",
+      "audit": "zk-formal/test/AuditProcPriorCodecFamilyRead.lean",
+      "audit_sha256": "e7845f554d8c41f49dbf3cf0d28cc7b188f48acb5d8714f04d410d95b4c31711",
+      "guards": 9
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-family-read-sound/dependency-review.json",
+      "sha256": "54c2a3074212111165c3e168446d2e96c6e4ca54ab5b4f820bfd090615f3f297"
+    }
+  ]
+}

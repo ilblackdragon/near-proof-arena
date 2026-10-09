@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual gated prior-memory stamp comparison enforces strict increase of original write ordinals within an address group. Gate activity is derived from row gateEq and active/same/next-write flags. Actual interaction membership, comparator ownership and operand ranges remain explicit; combined-family transport and full last-write semantics remain open. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorStampOrder.lean",
+      "sha256": "2c1e77d15222552a5d5824119eb6a2fa25f62a6f54d66d21b231aecc8b13957c",
+      "audit": "zk-formal/test/AuditProcPriorStampOrder.lean",
+      "audit_sha256": "4909491a058e931e2aa497572cf0fc5f6d203833ce214805191d88e5c9964a6d",
+      "guards": 1
+    }
+  ]
+}
