@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "guards": 11,
+  "logs": [
+    "/tmp/ProcCodecPublicIdPhysical.log",
+    "/tmp/ProcCodecPublicIdEnumeration.log",
+    "/tmp/ProcCodecPublicIdInventory.log",
+    "/tmp/ProcCodecPublicIdPacked.log",
+    "/tmp/AuditProcCodecPublicIdInventory.log"
+  ],
+  "scope": "Full single-instance physical bus70 inventory; prepared actual-run count matches canonical24/24/16 ID limbs. Honest completeness only; no bus70 sound authentication.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPublicIdPhysical.lean",
+      "sha256": "43de4a7ab60a5685e510d077a5447b13dea90b2bf82825cc6d01c7d182b1c094"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPublicIdEnumeration.lean",
+      "sha256": "31631956f1f2c08c1afc0f2a67e20a6b282d75a0a424ddffcb2eada249b7d2bb"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPublicIdInventory.lean",
+      "sha256": "2400d139599846b71ae31198411c9f1f5d1869835322f314ad10e35fb248053d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPublicIdPacked.lean",
+      "sha256": "1d84d65e4ead64b437a384b18ba94f574a89cf2d7848c1adc532c03f2d1dcff5"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecPublicIdInventory.lean",
+      "sha256": "b36376931cb44ce3c259ed614ceb89b29b3ddf3b407b0d1ae8edff71c8ebeba1"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}

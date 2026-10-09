@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Genuine HoldsP plus corrected Codec table identity, SDL ownership and explicit nonwrapping tau bound on every live SDL send imply every live SDL receive descends to a public SDL seed with identical byte/index payload. Source rows need not be sender starts: send and receive multiplicities are definitionally identical. Public seed remains to be decoded against authenticated prepared public inventory. Nonwrap premise is explicit pending SPAR or finite-height derivation. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundSdlDescent.lean",
+      "sha256": "6860180ed2d2f7e3ee9d984873d6f3b2639df7164ebbd099d29819b99760aa81",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundSdlDescent.lean",
+      "audit_sha256": "7bec323517805b9dcf3ff4362f549723eb1f97673fc3dd0ee65fea9fa68d20f4",
+      "guards": 3
+    }
+  ]
+}
