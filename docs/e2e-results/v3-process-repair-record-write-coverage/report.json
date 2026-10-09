@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual amount/top row with both found flags enabled forces actual memory WRITE with same natural tau/link/stamp/low/big payload. Found flags/native first-match index semantics remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordWriteGate.lean",
+      "sha256": "c4b310b18b092f12000fe97a6fa57547f2efa04b72fdcaae5e2a425e33968cc6",
+      "audit": "zk-formal/test/AuditProcPriorRecordWriteGate.lean",
+      "audit_sha256": "6f070f54d007cb81c433ca33d982957c35320dedf76625da60edbe2a6179d79d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordWriteCoverage.lean",
+      "sha256": "d81afc9aea6af3d9d214e638460c8e8ef6ae709df855af0df674b8a3e0170ef9",
+      "audit": "zk-formal/test/AuditProcessRepairRecordWriteCoverage.lean",
+      "audit_sha256": "73c899a16ee291dee09eb20031a33effdd825054e7ee1037a12a24463b8a782a",
+      "guards": 3
+    }
+  ]
+}

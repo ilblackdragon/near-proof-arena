@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual record-to-memory write coverage PASS4guards: amount/top with both found flags implies writeGate1 and actual memory stage0 WRITE with identical natural tau/link/stamp/low/big. No supplied emission/memory row. Found flags/native exact indices remain separate. Actual stage1 ID request native binding PASS4guards: every active query row instantiates bus71 receiver theorem and authenticates SAME original decoded sender/receiver payload; public and query row semantic sources now both proved. Root final-source/audit strict rebuild/hash checks PASS8 incremental guards. Physical ID order/public coverage/first-match, native execution/full ScanDist/global theorem/clean certificate/prover/judge/general replacement remain open.
+
+
 2026-10-09: Reverse actual memory write coverage PASS5guards: every live67 supplier reaches real stage0 act1/query0 row with identical payload; native gate/exact address correctness separate. Public ID authenticity and group carry PASS17guards: actual70 supplier and stage1 public row exact SAME prepared sp.ids[ordinal] limbs/tau/index; repaired SDL finite/index inventory and actual first-origin/same-key propagation, no old Holds. Account native value PASS6guards: complete SAME Value bytes=a.pre from actual all-supplier traffic/start closure, native72-byte Account decode=Link.accOf a with optional empty account extraction and forest-derived byte ranges. Root independent strict final-source/audit rebuild/hash checks PASS28 incremental guards. Exact first-match ID order/coverage, native execution, full ScanDist/global theorem/certificate/prover/judge/general replacement remain open.
 
 
