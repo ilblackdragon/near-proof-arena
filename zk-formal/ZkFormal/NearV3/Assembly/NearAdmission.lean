@@ -45,6 +45,12 @@ theorem nearAirV3_npOkPg_2 : ZkFormal.V2.G.NpOkPg nearAirV3 (ZkFormal.V2.G.pg 2)
 /-- The proved inner-proof size bound (item 6), used as `maxInner`. -/
 def v3MaxInner : Nat := 6276897
 
+/-- The hint-budget of the completeness obligation: `4 + this + maxInner ≤ 8 MiB`. -/
+def v3MaxHintBytes : Nat := 2000000
+
+theorem v3MaxHintBytes_fits :
+    4 + v3MaxHintBytes + v3MaxInner ≤ challengeParamsD0a.maxProofBytes := by decide
+
 theorem v3MaxInner_le : v3MaxInner ≤ ZkFormal.Prover.Np.G.dp.maxProofBytes := by
   show v3MaxInner ≤ 8388608
   decide
@@ -180,5 +186,55 @@ theorem hsound_of_extract (hext : ExtractV3Stmt) :
     exact ⟨witnessOfV3 k x, (NearSpecV3.relD0a_iff NearSpecV3.B0 (WfClaim.encode c) _).mpr
       (ZkFormal.NearV3.Assembly.factorSound NearSpecV3.B0 (WfClaim.encode c) k h p x hg)⟩
   · exact absurd hp (by simp)
+
+/-- The canonical prepared-statement codec on raw witness bytes: decode the clear
+hint, then `prepD0 ∘ Prep.encode`. -/
+def prepV3b (cb : List UInt8) (hb : List UInt8) : Option (List UInt8) :=
+  (ZkFormal.NearV3.Assembly.Hint.decode hb).bind (prepV3 cb)
+
+/-- **Soundness premise from `ExtractV3Stmt`, on raw witness bytes.** The clear hint
+bytes decode to the `Hint` of `ExtractV3Stmt`; the prepared statement is `prepV3`. -/
+theorem hsound_of_extract_b (hext : ExtractV3Stmt) :
+    ∀ (c : WfClaim) (hb cb' : List UInt8) (tr : Trace Fp),
+      prepV3b (WfClaim.encode c) hb = some cb' →
+      HoldsP nearAirV3 (Udr.pubOf Fp cb') tr → ∃ w, WfClaim.RelD0a c w := by
+  intro c hb cb' tr hp hH
+  unfold prepV3b at hp
+  rcases hd : ZkFormal.NearV3.Assembly.Hint.decode hb with _ | h
+  · rw [hd] at hp; simp at hp
+  · rw [hd] at hp; simp only [Option.bind_some] at hp
+    exact hsound_of_extract hext c h cb' tr hp hH
+
+/-- **The admission certificate with soundness discharged by `ExtractV3Stmt` and a
+concrete raw-hint codec.**  The clear hint is chosen by `hintSel`; the prepared
+statement is `prepV3b`.  Only completeness (`hcomp` + `halign`) and the framing
+remain. -/
+theorem nearV3_admission_with_extract_b (hext : ExtractV3Stmt)
+    (art : ArtifactDescription) (pub : List UInt8) (hpub : sha256 pub = art.publicDigest)
+    (split : List UInt8 → Option (List UInt8 × List UInt8))
+    (join : List UInt8 → List UInt8 → List UInt8)
+    (himpl : art.impl.Connection challengeParamsD0a.verifyFuel
+      (ZkFormal.Prover.Np.G.npVerifierP challengeSpecD0a nearAirV3 split prepV3b).toVerifier)
+    (hintSel : WfClaim → List UInt8 → NearSpecV3.Hint)
+    (hsplits : ∀ h π : List UInt8, split (join h π) = some (h, π))
+    (traceOf : WfClaim → List UInt8 → Trace Fp)
+    (hcomp : ∀ c w, challengeSpecD0a.Domain c → challengeSpecD0a.Rel c w →
+      ∃ cb', prepV3b (WfClaim.encode c)
+          (ZkFormal.NearV3.Assembly.Hint.encode (hintSel c w)) = some cb' ∧
+        HoldsP nearAirV3 (Udr.pubOf Fp cb') (traceOf c w) ∧
+        (ZkFormal.Prover.Np.G.VdP nearAirV3).headerOk
+          (trHdr nearAirV3.toAir (traceOf c w)) = true)
+    (halign : ∀ c w, challengeSpecD0a.Domain c → challengeSpecD0a.Rel c w →
+      RollAligned nearAirV3.toAir ZkFormal.Prover.Np.G.dp
+        (trHdr nearAirV3.toAir (traceOf c w)))
+    (hjoin : ∀ c w π, challengeSpecD0a.Domain c → challengeSpecD0a.Rel c w →
+      π.length ≤ v3MaxInner →
+      (join (ZkFormal.NearV3.Assembly.Hint.encode (hintSel c w)) π).length ≤
+        challengeParamsD0a.maxProofBytes) :
+    AdmissionStatement challengeParamsD0a art :=
+  nearV3_admission art pub hpub split prepV3b join himpl
+    (fun c w => ZkFormal.NearV3.Assembly.Hint.encode (hintSel c w))
+    (fun c w π _ _ => hsplits _ _) traceOf
+    (fun c h cb' tr hp hH => hsound_of_extract_b hext c h cb' tr hp hH) hcomp halign hjoin
 
 end ZkFormal.NearV3.Assembly
