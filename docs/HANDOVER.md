@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcActualOperandReduction strengthened, strict PASS five exact guards. native_reduction starts from accepted prepD0 and native runCore, constructs prior decode and corrected generator equality to sole 29-bit operand guard, retaining exact native state/grant agreement. guard_success_iff/run_success_iff isolate remaining check without claiming it true. Operand bounds/full certificate/prover/judge still incomplete. Agent environment reset removed receipt_gap; new memory_values owns replay grant bounds, timestamp and prior-key tasks retained. Prior32cb14fb push failed GitHub DNS; last confirmed remotec5e1708e. Prebuilt dependencies only. Goal active.
+
+
 2026-10-09: Three modules strict PASS, nineteen exact guards. Agent ProcActualModelKeyCap independently rebuilt/audited: initial allowance cap plus actual model pending invariant derives all keys below sentinel and nonzero replay decrease without cap premise. Root ProcActualSegmentOperandBounds composes bounded construction/full memory scan and conditional finish success. Root ProcActualOperandReduction integrates key discharge: corrected full generator under successful prepared prefix reduces to sole 29-bit comparison operand check; no extra key premise. Timestamp total and memory grant-value bounds still underway. Full integration/certificate/prover/judge incomplete, prebuilt dependencies only. Priorc5e1708e pushed. Goal active.
 
 

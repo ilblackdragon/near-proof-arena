@@ -31,4 +31,41 @@ theorem run_reduction (sp : SchedPub) (hs : SchedPubOk sp)
   rw [ProcActualRunFactor.run_of_prefix _ tau cv st rs ev h,
     ProcActualEntryFactor.rest_eq,ProcActualRoundFactor.rest_eq]
   exact he
+open NearSpec NearSpecV3 in
+/-- Accepted preparation and native execution construct the complete corrected
+scheduler run up to the single remaining operand guard. -/
+theorem native_reduction {cb : Bytes} {hint : Hint} {p : Prep}
+    (hp : prepD0 cb hint=.ok p) (sp : SchedPub) (hsp : sp∈p.sched)
+    (ctx : ApplyCtx) (hpub : schedPub ctx=some sp)
+    (oldBytes : Option Bytes) (nativeOut : Output) (hcore : runCore sp oldBytes=some nativeOut) (tau : Nat) :
+    ∃prev cv st,∃(ev : Ev),∃s gs,∃cs : ProcActualMemoryScan.Cmps,ProcActualCore.decodePrevious oldBytes=some prev ∧
+      ActualRun.run (ProcPreparedSequence.input sp prev) tau=
+        (do
+          Gen.check (cs.all fun (x,y,_)=>x<2^29 && y<2^29) "comparison operand ≥ 2^29"
+          pure (ProcActualParameterGuard.result (ProcPreparedSequence.input sp prev) tau cv st s gs cs)) ∧
+      ev.state=nativeOut.state ∧ ev.granted=nativeOut.granted.map Prod.snd := by
+  obtain ⟨prev,cv,st,rs,ev,hprev,hprefix,hstate,hgrants⟩ :=
+    ProcActualPrefix.prepared_prefix hp sp hsp ctx hpub oldBytes nativeOut hcore
+  obtain ⟨s,gs,cs,he⟩ := run_reduction sp (prepD0_sched hp sp hsp) prev tau cv st rs ev hprefix
+  exact ⟨prev,cv,st,ev,s,gs,cs,hprev,he,hstate,hgrants⟩
+
+theorem guard_success_iff (cs : ProcActualMemoryScan.Cmps) (r : Run) :
+    (∃out,(do
+      check (cs.all fun (x,y,_)=>x<2^29 && y<2^29) "comparison operand ≥ 2^29"
+      pure r : Except String Run)=.ok out) ↔
+      (cs.all fun (x,y,_)=>x<2^29 && y<2^29)=true := by
+  cases hc : cs.all (fun (x,y,_)=>x<2^29 && y<2^29) <;>
+    simp [check,hc,bind,Except.bind,pure,Except.pure]
+
+theorem run_success_iff (sp : SchedPub) (hs : SchedPubOk sp)
+    (prev : NearSpec.Bandwidth.State) (tau : Nat) (cv : Array CReq) (st : PState)
+    (rs : List Round) (ev : Ev)
+    (h : ProcActualPrefix.runPrefix (ProcPreparedSequence.input sp prev)=.ok (cv,st,rs,ev)) :
+    ∃cs : ProcActualMemoryScan.Cmps,
+      (∃r,ActualRun.run (ProcPreparedSequence.input sp prev) tau=.ok r) ↔
+        (cs.all fun (x,y,_)=>x<2^29 && y<2^29)=true := by
+  obtain ⟨s,gs,cs,he⟩ := run_reduction sp hs prev tau cv st rs ev h
+  refine ⟨cs,?_⟩
+  rw [he]
+  exact guard_success_iff cs _
 end ZkFormal.NearV3.Candidates.ProcActualOperandReduction
