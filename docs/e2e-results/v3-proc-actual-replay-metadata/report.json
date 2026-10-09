@@ -1,6 +1,6 @@
 {
   "date": "2026-10-08",
-  "status": "UNVERIFIED_BUILD_BLOCKED",
+  "status": "SUPERSEDED_RESOLVED",
   "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayMetadata.lean",
   "sha256": "bac0dacd5c1eb6a3891ab61a81e79256b1a0de80203f92c47f8f924696ae2dd3",
   "scope": "WIP replay cursor stamping, exact model key sequence, zero rules, and nonzero key decrease conditional on sentinel bounds. Latest source is not verified.",
@@ -18,5 +18,6 @@
     "Prove comparison operand bounds.",
     "Full integration, clean certificate, prover and real judge validation."
   ],
-  "last_verified_checkpoint": "f4f0157eb85479193ba32a22dd7083c9236d9407"
+  "last_verified_checkpoint": "f4f0157eb85479193ba32a22dd7083c9236d9407",
+  "resolution": "Root accidentally reused existing ProcActualReplayMetadata module name, creating an import cycle. Original restored byte-for-byte from f4f0157e; new work moved to ProcActualReplayKeyTrace. Both compile, seven exact guards pass, and ProcActualParameterGuard rebuild passes. See v3-proc-actual-replay-key-trace/report.json."
 }

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual replay preserves cursor stamping and exact model key/zero sequence. Model process trace gives zero rules and nonzero key decrease conditional on sentinel bounds. Sentinel bounds and comparison operands remain open. Prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayKeyTrace.lean",
+      "sha256": "618bf00e9ed92fb0efbe23db67415addb44b256f1e7e0b3e663ef9d8bbea189a",
+      "audit": "zk-formal/test/AuditProcActualReplayKeyTrace.lean",
+      "audit_sha256": "fc01b31525dd2bbeecdb920bb816d23eeef795e68f3c0035617f50ea6bf399df",
+      "guards": 7
+    }
+  ]
+}
