@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual first-limb word low/big summary equals native saturated increase for reconstructed u64. Final theorem derives limb ranges from actual authenticated traffic; no supplied range. Identity with particular native decoded record and memory write remains separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordSummarySound.lean",
+      "sha256": "44bdd724ad38c2d06a6d41e88ceb95270ace37338b52c6846a23f42b92d252ce",
+      "audit": "zk-formal/test/AuditProcPriorRecordSummarySound.lean",
+      "audit_sha256": "db6b301adec7396710206d07f0931d1afd4cdc9438f68e458a5dbaef71a6a107",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordAuthenticatedSummary.lean",
+      "sha256": "1c763c9c74cbea8efdbaa31e6ee2ca81f5571fa18a26677086dd100e1917b427",
+      "audit": "zk-formal/test/AuditProcPriorRecordAuthenticatedSummary.lean",
+      "audit_sha256": "8df97cc9a6a9466acb7c16c043699e9e7106c9259fee0ad386c608441dfbde7f",
+      "guards": 1
+    }
+  ]
+}
