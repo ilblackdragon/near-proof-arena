@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Raw byte positions PASS1module7guards. Explicit field increment/wrap across header and record boundaries; exact header positions; cumulative record starts; exact hash-start and all32 sanity positions follow from previously proved physical frame extent and height<=field modulus, without supplied count range. Independently strict rebuilt and axiom audited. Incremental certificate only; byte authentication, complete frame parsing and global composition remain next.
+
+
 2026-10-09: Raw framing PASS5modules9guards proves complete 5+24*count+32 physical extent for arbitrary accepted frames, with metadata preserved and no supplied count/byte bound. Global forest digest PASS5modules14guards classifies actual global byte providers and authenticates SAME serialized node/value preimages; actual digest request linkage remains next. Native memory chains PASS7modules26guards derives OpsOk from successful ActualRun; MemConcatLocal still conditional on SegOk/capacity, canonical bounds remain. Physical distribution comparison inventory PASS4modules15guards includes silent scans/padding and actual capacity; this interleaved traffic constructor does NOT claim ScanDist Local, which needs phase-ordered construction. Root independently strict rebuilt all sources/audits and validated hashes. Total64 incremental guards; source-only archive3075/742 unchanged. Global assembly, certificate expansion, real prover/judge and general NEAR coverage remain open.
 
 

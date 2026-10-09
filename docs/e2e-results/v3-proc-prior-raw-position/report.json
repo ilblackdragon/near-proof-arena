@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Raw frame positions advance across phases with explicit field wrap alternative; header positions exact, record starts bounded naturally, hash start and sanity positions derived from actual frame extent plus physical height at most modulus. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawPosition.lean",
+      "sha256": "fa2f7c552bbc2bec9b7071f4777e70c44518cf34ad84997c417a98b5e9b8af49",
+      "audit": "zk-formal/test/AuditProcPriorRawPosition.lean",
+      "audit_sha256": "c6efbefa4dab90cb8942fa965fc517e9d97c778487c40aa37be1121a2e864958",
+      "guards": 7
+    }
+  ]
+}
