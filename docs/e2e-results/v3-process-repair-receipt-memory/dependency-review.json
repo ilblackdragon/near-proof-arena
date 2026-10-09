@@ -16,5 +16,6 @@
     "Native arithmetic requires authenticated byte ranges and current receipt arithmetic Wf",
     "Ordered memory semantics alone does not prove applyNewChunk or global validator replacement"
   ],
-  "guards": 22
+  "guards": 22,
+  "integration_note": "Receipt ordering lives in ProcessRepairReceiptMemoryOrder. Original prior-memory ProcessRepairMemoryOrder is preserved; both consumer branches rebuilt after resolving a filename collision."
 }

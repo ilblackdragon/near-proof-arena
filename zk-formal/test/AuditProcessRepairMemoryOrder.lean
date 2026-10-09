@@ -1,55 +1,33 @@
 import ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder
 
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.memR_nodup' depends on axioms: [propext,
+/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.adjacent_order' depends on axioms: [propext,
  Classical.choice,
  Quot.sound] -/
 #guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.memR_nodup
+#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.adjacent_order
 
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.read_in_W' depends on axioms: [propext] -/
+/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.local_memory' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.read_in_W
+#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.local_memory
 
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.memW_key' depends on axioms: [propext,
+/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.ordered' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.ordered
+
+/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.next_write_order' depends on axioms: [propext,
  Classical.choice,
  Quot.sound] -/
 #guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.memW_key
+#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.next_write_order
 
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.rd_ne' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.rd_ne
-
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.rd_ne_ar' depends on axioms: [propext,
+/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.stamp_ordered' depends on axioms: [propext,
  Classical.choice,
  Quot.sound] -/
 #guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.rd_ne_ar
+#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.stamp_ordered
 
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.read_time' depends on axioms: [propext, Quot.sound] -/
-#guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.read_time
-
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.tprev_eq' depends on axioms: [propext,
+/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.order_predicates' depends on axioms: [propext,
  Classical.choice,
  Quot.sound] -/
 #guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.tprev_eq
-
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.tlast_eq' depends on axioms: [propext,
- Classical.choice,
- Quot.sound] -/
-#guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.tlast_eq
-
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.mem_read' depends on axioms: [propext,
- Classical.choice,
- Quot.sound] -/
-#guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.mem_read
-
-/-- info: 'ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.mem_final' depends on axioms: [propext,
- Classical.choice,
- Quot.sound] -/
-#guard_msgs in
-#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.mem_final
+#print axioms ZkFormal.NearV3.Candidates.ProcessRepairMemoryOrder.order_predicates
