@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-09",
+  "status": "PARTIAL_SEMANTIC_CHAIN",
+  "checked_physical_bridges": [
+    "Actual Record raw75 receiver -> unique stage2 RawFrame record sender, preserving tau, record, offset, byte.",
+    "Present active RawFrame VBYTES send -> actual selected Value slot5 receiver row, preserving vid, pos, byte.",
+    "Absent RawFrame present=0 forces byte=count=0; this alone does not prove absence of rec rows."
+  ],
+  "remaining_chain": [
+    {
+      "step": "Value original-byte authentication",
+      "existing": [
+        "ZkFormal.NearV3.ValProof.val_view extracts ValWf + exact traffic from TableLocal ValV3.table.",
+        "ZkFormal.NearV3.Link.Vals3.val_link / val_unique link extracted values to node values with NodeWf3, ValWf, VParentBal and row bound."
+      ],
+      "missing": "Transport actual selected SizeCount/length/empty-extended Value Local and interaction bits to base ValV3 TableLocal; combine exact same-trace extracted view and node/trie authenticated inputs. VBYTES matching alone authenticates only physical equality."
+    },
+    {
+      "step": "RawFrame framing",
+      "missing": "Derive arbitrary row/block origin and phase ranges, offset<24 on rec, record<count, count/length nonwrap, and pos=5+24*record+offset. Bind original-value presence via corrected Codec SPOST and exact length via Value bus73. Prove missing present excludes records and all original records are covered."
+    },
+    {
+      "step": "Record bytes/words",
+      "missing": "Instantiate actual stage3 three raw75 receivers for each limb; authenticate byte ranges from original value; combine byte0+256*byte1+65536*byte2 with limb carries into full 64-bit sender/receiver/allowance and original ordinal."
+    },
+    {
+      "step": "Native semantics",
+      "missing": "Connect found indices to exact original decoded IDs (not merely <64) and allowance saturation/hi semantics; combine maximal-stamp memory result with native last recognized duplicate winner."
+    }
+  ],
+  "direction_warning": "RawFrame sends VBYTES; Value table receives. The receiver must obtain its semantics independently from Value/Node/trie soundness. Generated ProcRawNativeBytesList inventory is not an arbitrary-trace proof.",
+  "explicit_public_hypotheses": [
+    "No public75 sends for record_source.",
+    "No publicVBYTES segments for byte_source."
+  ],
+  "no_claim": "These bridges do not establish full native decoder or general validator replacement."
+}

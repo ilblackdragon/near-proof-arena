@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Native Codec/Record parameter76 exact inventory and installed SAME-core balance PASS3modules10guards; derives run.n=pub.ids.length from actual execution and all capacities, arbitrary table times supported. This eighth join is additive SchedulerPriorParameter.routed_parameter_balance (PriorInstalled structure still lists original seven). All native prior memory/ID comparison CmpOk derived PASS3modules9guards without supplied order/range/uniqueness, repeated IDs retained; actual physical comparator enumeration and old40 aggregate still open. Arbitrary RawFrame75→actual stage2 and present VBYTES→actual Value slot5 gb row PASS3modules22guards; exact byte/vid/pos preserved but original trie-byte semantics/value view/RawFrame framing remain separate. Total41new incrementalguards; source-only archive remains3075/742. Full global certificate/prover/judge/general NEAR coverage incomplete.
+
+
 2026-10-09: Source-only authenticated closure finalized PASS3075modules/742 exact axiom guards (including additional lower-level traffic audit), no source drift/prebuilt project dependencies/symlink oleans. Archive v3-codec-authenticated-clean-source. Adds full installed joins/conditional horizontal constructor/authenticated lastwrite and comparator-order baseline. NEW separate incremental uniform external traffic PASS4guards: Codec60/70 and reverse68 join at arbitrary table times/common pub, removing old canonical time0 restriction. Full global comparator physical traffic/old40 budget, original raw bytes/key/value semantic connection, complete certificate/prover/judge and general NEAR coverage incomplete. Checkpoint38974e3c bundle verified; push DNS failed.
 
 

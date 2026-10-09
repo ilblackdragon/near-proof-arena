@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary installed RawFrame physical provenance. Every actual75 record-byte receive matches unique actual stage2 RawFrame rec/act row and exact tau/record/offset/byte. Every present active RawFrame byte matches actual selected Value slot5 gb1 row with exact vid,pos,byte through VBYTES conservation and concrete receiver ownership. Stage2 corrected local flags, kinds, byteGate and absent byte/count zero derived. No generated inventory, standalone component ownership, chosen virtual window or native trace. Explicit no-public75 sends and no-publicVBYTES traffic remain. Does NOT yet establish decoded original bytes: Value view/trie authentication, RawFrame coordinate/count geometry and native record reconstruction remain. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawSound.lean",
+      "sha256": "cd8ad8a0a4f03756497e2036aa93bcad881af568ff49e95a15942915cd977824",
+      "audit": "zk-formal/test/AuditProcPriorRawSound.lean",
+      "audit_sha256": "0f8d2ec3ffe75e463c557edefeadb15cd0f3392429a90dd72e663ca3a5fb0820",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRawSource.lean",
+      "sha256": "fdec0894f05d9801b1dbe7642312f459cb7242f6cf3902a406afbac39044ec51",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRawSource.lean",
+      "audit_sha256": "8762b1e20c45f0d5d72863f3b6f480590ba376add849117e1572994cc91027d9",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRawBytes.lean",
+      "sha256": "0bf822242dbc08a096d3abc837438ed34994af74d79df70b2a45ec38a085bbd1",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRawBytes.lean",
+      "audit_sha256": "2e1014dd52fb1655bd6b7adfbbd20f8ff2a1ad1d2c95728508d12086419c6d46",
+      "guards": 9
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-raw-source/dependency-review.json",
+      "sha256": "bc4b8f3827c3c4d19e6d15614b3ab96b875d152e311c6538a0b7aca3e1ec6d1b"
+    }
+  ]
+}

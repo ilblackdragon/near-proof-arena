@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "guards": 9,
+  "strict": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdStrictOrder.lean",
+      "sha256": "18163be6983596f3d5f7ba2d33d55d45a60cea8dccde881db601fa38366023a2"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean",
+      "sha256": "63b27c22143102f36834739462ae7873759beb2fbb98fbbc206cfd199b786d87"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonValid.lean",
+      "sha256": "a5ed57408b3154d7104704573ba6d74c74baff2e8d740122d4056bc044f1e2fe"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorComparisonValid.lean",
+      "sha256": "fe3f8c3b0e12fbafe07a2c1b1f3e4eac426f004b53946471534bbb6d7f34f5c4"
+    }
+  ],
+  "prerequisites": [
+    "ProcPriorIdEventOrder",
+    "ProcPriorMemoryComparisonValid",
+    "SchedulerPriorCore"
+  ],
+  "scope": "All memory and ID prior requests satisfy CmpOk derived from SAME accepted PriorCore and preparation. No independent range/order/ID uniqueness assumption. Physical comparator traffic inventory remains separate.",
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdStrictOrder.lean",
+      "sha256": "18163be6983596f3d5f7ba2d33d55d45a60cea8dccde881db601fa38366023a2"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean",
+      "sha256": "63b27c22143102f36834739462ae7873759beb2fbb98fbbc206cfd199b786d87"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonValid.lean",
+      "sha256": "a5ed57408b3154d7104704573ba6d74c74baff2e8d740122d4056bc044f1e2fe"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorComparisonValid.lean",
+      "sha256": "fe3f8c3b0e12fbafe07a2c1b1f3e4eac426f004b53946471534bbb6d7f34f5c4"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-valid/AuditProcPriorComparisonValid.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-valid/ProcPriorIdComparisonPair.log",
+      "sha256": "878e3e64672fb9bf57935fb81550b881f3de831e35f913c921b040c560eb7e8f"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-valid/ProcPriorIdComparisonValid.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-valid/ProcPriorIdStrictOrder.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:35:21: warning: This simp argument is unused:
+  Prod.fst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.snd, ite_eq_left htop]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:35:30: warning: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.fst, ite_eq_left htop]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:48:27: warning: This simp argument is unused:
+  Prod.fst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.snd, ite_eq_left hh]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:48:36: warning: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.fst, ite_eq_left hh]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:57:27: warning: This simp argument is unused:
+  Prod.fst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.snd, ite_eq_left hh]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:57:36: warning: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.fst, ite_eq_left hh]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:65:27: warning: This simp argument is unused:
+  Prod.fst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.snd, ite_eq_left (show a.2.event.ordinal + 1 ≤ b.2.event.ordinal by omega)]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdComparisonPair.lean:65:36: warning: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [CmpOk, Prod.fst, ite_eq_left (show a.2.event.ordinal + 1 ≤ b.2.event.ordinal by omega)]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
