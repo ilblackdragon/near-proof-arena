@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual reset-state field prefix at every physical record position; all5 terminal arithmetic equations on every active generated row from native run. Seven instance carry equations on adjacent active rows and byte-position77 at every physical record row, including final record-to-hash. Prebuilt dependencies;24GiB cap; full cKind/record/additions/global certificate remains open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecExecutionFieldPrefix.lean",
+      "sha256": "ddcd4baecb9886322d59178ef0c63de0948948908754ee46d1642de391c60121",
+      "audit": "zk-formal/test/AuditProcCodecExecutionFieldPrefix.lean",
+      "audit_sha256": "2a4dcb6405d414778820a546fd4266aaea1a277a690653c3a7d2f07f82dbbdb4",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordPrefix.lean",
+      "sha256": "e24e58109669cecb69331fa4d8abac90908aa1d5bc90a641bf79cc8c4596c0a5",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordPrefix.lean",
+      "audit_sha256": "9a7d630508bc33ec2faa20ae219505273c5ac18fd63c9135d3c37b75caf0604a",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecEndInactive.lean",
+      "sha256": "a389e06c0d8f93358499071122a57f01c83ba9c02a895441a53ed3b2e12a9844",
+      "audit": "zk-formal/test/AuditProcPriorCodecEndInactive.lean",
+      "audit_sha256": "e63a8212304344dcd16f3cbab138131e1941f58774c7ad8b288e4559442b1009",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedTerminal.lean",
+      "sha256": "4addd96310e304457259844970d5d45b60ad6828dd07d268489fbb876733ac0e",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedTerminal.lean",
+      "audit_sha256": "dff59e895f83d4bcd4fff5cdc2bdc1e4380c19184a2e6c67c60aa363b02f9299",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedInstance.lean",
+      "sha256": "cf5a1fa214087ac6638b1781c58e9b54643e9a23f75981311c3286aaf46f19ca",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedInstance.lean",
+      "audit_sha256": "f5a414bad1b4995bb0cae578d7c9d1e310449667913d075d3a1e839b8bcf7c0e",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordPositionCell.lean",
+      "sha256": "a9bfea9dbd1663e4dfdc3dca86ce24512555acc55f0448131f5fe110f8829c46",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordPositionCell.lean",
+      "audit_sha256": "c291d8f92f0389ce2eccab69fa6095f91614d609b20911cc0a6e9a62ceb725e8",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedRecordBytePosition.lean",
+      "sha256": "baccaac0fd71f3f21fd67eab94ce290d3807fa4961463f2a50d80a545f659d62",
+      "audit": "zk-formal/test/AuditProcCodecGeneratedRecordBytePosition.lean",
+      "audit_sha256": "e30d281328e9200ccd5775c017a4fdb81e751e2e5783823a3cae3c41cd94f8c7",
+      "guards": 6
+    }
+  ]
+}

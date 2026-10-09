@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Native terminal arithmetic and instance-position checkpoint: strict PASS23 exact guards. ExecutionFieldPrefix/GeneratedRecordPrefix recover actual loop from reset state through byteg at exact physical index. GeneratedTerminal.active closes all5 cRec54–58 across every active row from actual prepared native run; no independent prefix/carry/value-bound premise. EndInactive derives other-row gating from actual index/zero projections. GeneratedInstance adds7 carry equations across every adjacent active pair; RecordPositionCell/GeneratedRecordBytePosition close cKind77 at all physical record positions incl final record→hash. Boolean/byte kind assembly remains parallel; full record/addition constraints/global joins/certificate/judge still open. Prebuilt dependency audits24GiB; prior31524006 push failed GitHub DNS.
+
+
 2026-10-09: Complete active accumulator/carry and zero-test checkpoint: strict PASS16 exact guards. TerminalGates/Inactive close g7 for all11 accumulator/carry equations; GeneratedAccumulatorCarry covers every record position; PhysicalRecordGroups.active_of_records classifies actual header/record/suffix indices and discharges side cases, yielding all11 equations at every active row. RecordZeroCells/Rows/TwoCells/TwoRows/Local and GeneratedZeroTests prove all18 zero tests on every generated/active physical row with n<=64,tau<P, no inverse/register assumptions. Record Boolean comparison-bit invariant is being derived from actual field-prefix execution; instance carry/position77 remains parallel. Full table/global joins/certificate/judge not achieved. Prebuilt dependency audit24GiB; prior431e47cb push failed GitHub DNS.
 
 
