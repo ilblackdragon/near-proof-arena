@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary corrected Codec Local plus one valid row rs=1 forces all eight sender row bounds, sender phases, exact byte indices, nonterminal flags, encoding kinds, shifted sender bytes and24/24/16limb bounds. No generator or independent per-row flag/room premise. public_id_start derives rs=1 from live corrected rs*nzb multiplicity. Retained-only equations used; no corrected-to-original CLocal implication. Bus70 ownership/expectedID matching and original priorRead68 memory soundness remain separate. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundGeometry.lean",
+      "sha256": "9aad97729e2af5b3b50fd2ddb0f776b9b57049c2238dbc3dbfa68801d0c003e2",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundGeometry.lean",
+      "audit_sha256": "67eab87555c66caef533a6c29e9917ab801fb524d40d79c9de2485f2a1addc9e",
+      "guards": 12
+    }
+  ]
+}

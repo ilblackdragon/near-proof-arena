@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Corrected semantic geometry/publicID and rawconcat kernels strict PASS29 exact guards. SoundGeometry from arbitrary corrected Local +valid start row derives all8sender rows/byteequal/ranges, room before traceend and packed24/24/16ranges; live publicID gate yields start, no generator/perrowflags/extra-room premise. PublicIdTraffic/Cells/Record isolate actual bus70 physical record traffic, singleton iff f0g0 and receiver0, no ID uniqueness. RawConcatBoundary/Stamp/Interior/Geometry prove actual tau+1 boundary, interior constraints, perinstance-first erasure, exact block offsets/coverage/padding; full rawLocal extension underway. Source-only mainCodec build b last1843/1907 (97%), not yet finished; finalizer also includes standalone cache-free replay.py (syntax checked, not separately executed). Full semantic ownership/priorlastwrite/global certificate/judge incomplete. Previouscda390d1 push failed DNS.
+
+
 2026-10-09: Corrected arbitrary-trace sender soundness strict PASS5 exact guards. SoundSender extracts postbyte reconstruction/range from retained pbits, transports sender shift register to future bounded postbytes and derives24/24/16 packed-ID limb ranges from corrected Local with no generator premise. Per-row senderphase/e7/encoding/range hypotheses still explicit; corrected blockgeometry lane now discharging them. Bus70 ownership and priorRead68 semantic relation remain separate. Main source-only build b last1600/1907, no completed certificate yet; finalize then extend-ordered procedure in priorentry. RawFrame cannot have standalone nonzero-tau Local due first*tau constraint; ordered rawconcat beginningtau0 required and assigned. Actual publicID70 traffic another agent. Full transition certificate/judge incomplete. Previouse120906b push failed DNS.
 
 
