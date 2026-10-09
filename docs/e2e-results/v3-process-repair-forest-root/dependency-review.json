@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "scope": "Same extracted node/value forest native trie well-formedness and exact SHA root binding, composed with fully extracted native queue reads.",
+  "proof_chain": [
+    "Actual repaired View transports Parent and VParent conservation for same vs/es.",
+    "rootedDag3 derives ranked rooted DAG from actual node bytes and same Head.",
+    "fullTree_wfR proves native trie wf; exact nodeEnc and actual Head SHA prove native hashOf equals Head.pre.",
+    "RootChain.pre0 binds canonical head zero to r0; NativeQueueState returns same root trie and extracted MainValues.Valid/Reads plus implicit reads."
+  ],
+  "remaining": [
+    "Input View, extracted node/value/head/UPS lists, RootChain and public segment ownership remain explicit genuine forest context.",
+    "No native applyNewChunk/applyMissingChunk execution reconstructed here. GoodV3 executions, receipt/account state semantics, source semantics and native witness/store construction remain separate obligations.",
+    "No hash injectivity or HashFunctional premise added. No claim of full validator replacement."
+  ],
+  "build": "Strict Lean 4.34.1, j2, autoImplicit=false, relaxedAutoImplicit=false; prebuilt dependency overlay. Parent clean source closure remains separate."
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary actual top-word limbs equal SAME decoded native field; live record ID query derives stage/top/sender-or-receiver flags and carries exact original sender/receiver limbs. Native association and activity are derived; lookup first-match result remains separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeTopWord.lean",
+      "sha256": "c56814f15081cf59ac67230a198747bae02c46ca5ee49953c6a18de0939ed279",
+      "audit": "zk-formal/test/AuditProcessRepairNativeTopWord.lean",
+      "audit_sha256": "9971de2c0ae8f507c12c6b9a1ac379dbc1b760556f0264956d0d55b140ad137b",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordQueryActivity.lean",
+      "sha256": "c3caae1bd2da3b9fb85087d839303d32220a6a62550fa3aa9e6f772f997fbf85",
+      "audit": "zk-formal/test/AuditProcPriorRecordQueryActivity.lean",
+      "audit_sha256": "a027258c81fc38227c98101498ff39460d5f9982d02a26301d4d585f42a4a149",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativeIdQuery.lean",
+      "sha256": "b0ff3fc6686e26a42897a2d10d0a740f4b8246c2e8b2eb42d109a59e28dabc6f",
+      "audit": "zk-formal/test/AuditProcessRepairNativeIdQuery.lean",
+      "audit_sha256": "9f884dfeba7fd7d63bcb5f8a296b6df615f09e73995080c20d70dfd1fc7cb305",
+      "guards": 1
+    }
+  ]
+}

@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Exact live native ID query PASS3guards: arbitrary top-row limbs equal SAME authenticated native field; positive record query multiplicity derives actual stage/top/ID selectors and lo/mid/hi of original sender or receiver. No supplied native association or stage/top premise. Canonical native forest/queue state PASS4guards: SAME fullTree wf=true, native hashOf bytes=Head.pre and canonical head0=r0, composed with internally extracted valid main/implicit queue reads. No new hash injectivity assumption. Root independently rebuilt final sources/audits and hash checks PASS7 incremental guards. Native ID first-match lookup, account/receipt/native execution reconstruction, full Scan/Dist/global theorem/clean certificate/prover/judge/general replacement remain open.
+
+
 2026-10-09: Complete raw-record row coverage PASS5guards: final-byte23 forces amount/top selector and each declared raw-frame ordinal has an actual stage3 amount/top row with SAME instance/ordinal. Write emission/first-match ID semantics remain separate. Repaired authenticated last-write PASS5guards: record found-index and prepared parameter bounds derive write addresses, so actual prior68 consumer Result has NO caller address/stamp/hwrite premise. Genuine public bus exclusions/SPAR inventory remain. Root independent final-source/audit rebuild/hash checks PASS10 incremental guards. Complete native write semantics, exact duplicate-ID lookup, full Scan/Dist/global theorem/clean certificate/prover/judge/general NEAR replacement remain open.
 
 
