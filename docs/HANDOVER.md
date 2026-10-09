@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual selected13 repaired receipt Local/SAME byte inventory/natural list+receipt counts<2^22 PASS6guards. Critical scope: selected13 is ReceiptCandidateRouting.candidateTable, not older RoutingQCandidate; uses candidate-specific extraction without old TableLocal. Node/Value SAME-list byte identity+nonwrapping tags+position uniqueness PASS2modules8guards; global supplier separation still open. Native Run exact request-list decomposition through segment/round inventories PASS3modules9guards with no op-tag/order assumptions; physical Mem/Proc joins remain next. Root independently strict rebuilt frozen sources/audits. Total23new incrementalguards; source-only archive3075/742 unchanged. Receipt/source/account/Merkle ID separation, full framing/native decoding, remaining comparison joins, global certificate/prover/judge/general NEAR coverage incomplete.
+
+
 2026-10-09: RawFrame header count extraction PASS4guards: exact three little-endian bytes and count<2^24 from arbitrary Local/first, with three byte<256 premises still explicit. Actual unchanged Dist generator totality and accepted SAME-bs old40/shared capacity PASS6modules18guards; no supplied Dist success/count cap remains, old40<=2936832 and shared<=2^22. Actual SHA BYTES receiver inventory and genuine live-byte supplier for every digest preimage byte PASS2modules6guards; supplier ID/tag disjointness and per-position uniqueness still open. Native memory op tags and stored grant comparison-bit correctness PASS3modules13guards from actual successful Run. Root independently strict rebuilt all frozen source/audits. Total41new incrementalguards; source-only archive3075/742 unchanged. Full byte authentication/framing/native decoding, Run/Dist traffic+Dist validity, global certificate/prover/judge/general NEAR coverage remain open.
 
 

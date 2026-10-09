@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual selected13 repaired arithmetic receipt table Local and SAME extracted list byte inventory, plus natural list/receipt counts below2^22 from physical grammar. Uses candidate-specific extraction, no old-table Local assumption. Receipt job-ID tag separation remains next; not full byte authentication.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedReceiptView.lean",
+      "sha256": "51961877f3223920f044866a26bca39b4d60291ff4b13bae89745a39d88bbee7",
+      "audit": "zk-formal/test/AuditProcPriorRoutedReceiptView.lean",
+      "audit_sha256": "e5f604921197b1791c9bf66e5bddced86932bc1d1d2ccdcc182a2307bdbf632c",
+      "guards": 6
+    }
+  ]
+}

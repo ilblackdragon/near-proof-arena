@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "SAME extracted Node/Value job IDs are nonwrapping and retain natural tags; pre-state Node and Value byte providers uniquely identify actual list index/position/value. Actual projected live Node/Value traffic maps into exactly this inventory. No caller-defined otherIds or unrelated forest list. Other BYTES supplier exclusion remains separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorForestByteIdentity.lean",
+      "sha256": "66e2317ad44469b85b35b2ed682ed197b7811764740a502f823cc34d51f89c68",
+      "audit": "zk-formal/test/AuditProcPriorForestByteIdentity.lean",
+      "audit_sha256": "6deb34bdb9ad6089865b00800ca97a16af46ae2dfeb994f979724cf5a8eed0df",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedForestBytes.lean",
+      "sha256": "491ed1ea978b48d3f4f21b276ebdd7cd6409113d65b3a8e98c88279b2c7cea63",
+      "audit": "zk-formal/test/AuditProcPriorRoutedForestBytes.lean",
+      "audit_sha256": "643df3231d741bc8b9958785b88acb6d86a63234a815dbe97c609b5fc12718a6",
+      "guards": 4
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-forest-byte-identity/dependency-review.json",
+      "sha256": "644b74fd09d94ed126dae44567acfa722915f8f8dcd964dc4824816180a6ee2a"
+    }
+  ]
+}
