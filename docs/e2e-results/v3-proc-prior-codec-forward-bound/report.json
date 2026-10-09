@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Concrete native fwdLinks membership implies codec first-match forwarding lookup bound, conditional on native per-demand grant bounds. Does not establish those native bounds or codec TableLocal. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecForwardBound.lean",
+      "sha256": "fc1089cf6fbdf886e7b7974242710e782bc05bcea01cf6d666db6f5796ec8e08",
+      "audit": "zk-formal/test/AuditProcPriorCodecForwardBound.lean",
+      "audit_sha256": "f58ddc5a2cf5c0ce10b892ff3fef31fc42ebfc3d2d76cd529710c2640d704b57",
+      "guards": 3
+    }
+  ]
+}

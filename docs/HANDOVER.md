@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcActualMemoryFinal strict PASS (14 exact guards) proves replay memory log final link allowance/grant values equal native process arrays; prepared_link_final discharges shape premises. ProcPriorCodecForwardBound strict PASS (3 guards) connects native fwdLinks membership bounds to codec first-match lookup checks. Native forwarding size/grant equivalence remains open: PrepD0 documents it as tested, not proved, and prep acceptance alone cannot discharge it. Clean scheduler closure currently 780/828, not yet complete. These audits use prebuilt dependencies. Goal active; latest remote c5e1708e, subsequent pushes DNS-blocked.
+
+
 2026-10-09: ProcPriorCodecNativeTotal strict PASS, four exact guards. Native prior decode derives zero selected allowances when absent; decoded_codec_success removes absent-state premise. native_nonmain constructs both corrected scheduler and codec outputs for accepted native calls with tau!=0; executable forwarding check is absent there. Main tau0 forwarding remains open, as does codec TableLocal/global integration; non-main success is not full D0a/general completeness. Clean scheduler rebuild still agent-owned; no completion claimed. Prior328c714f push DNS failed. Prebuilt deps for current codec audit. Goal active.
 
 
