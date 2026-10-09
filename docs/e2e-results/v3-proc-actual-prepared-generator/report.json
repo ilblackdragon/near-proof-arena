@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Prepared corrected scheduler generator totality derived from accepted prepD0 and native runCore. All generator checks discharged internally using timestamp potential, memory grant values, key caps and exact replay. Additive ActualRun candidate only; original generator replacement, full table-local/global integration, clean full-source certificate, prover and real judge remain incomplete. Strict builds with prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayTimestampPotential.lean",
+      "sha256": "7534a3ef7ae75a77b4dc921c8ce99338bc93ebb4a86b014e51d89557aa05ae81",
+      "audit": "zk-formal/test/AuditProcReplayTimestampPotential.lean",
+      "audit_sha256": "f5c3f4724629649a8c4f028e8c9cb240392cd4e7e1ffe0d56579cac714836315",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayTimestampRounds.lean",
+      "sha256": "8894e9f41ab5b4d2606c4e704c9fe801244cf61c4917c76b616bff1e24555e1e",
+      "audit": "zk-formal/test/AuditProcReplayTimestampRounds.lean",
+      "audit_sha256": "616aaa441ae2fa100aebe82529c7fb07cd53db6568eb6dfdf1b88a938176f8a7",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayTimestampBounds.lean",
+      "sha256": "3d96b13dca34b9259d93ac8efdf5ed0a3afe12f914d0e3052e5985c403cee3f8",
+      "audit": "zk-formal/test/AuditProcReplayTimestampBounds.lean",
+      "audit_sha256": "c0c3c89d7ae8c28151d9f2fa51be62568f6c3930a638a94023efa68940446849",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcReplayTimestampActual.lean",
+      "sha256": "0c704e3a4971e011fcbc0f09d0f4fc3c4e747cc416da00fa4a72d3f2b3d059fb",
+      "audit": "zk-formal/test/AuditProcReplayTimestampActual.lean",
+      "audit_sha256": "df2e6e8d2b75066a61197b0b08535bbaba6e3e6a649a381f325cbf0f48d7e7c0",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualMemoryValues.lean",
+      "sha256": "acf9226ed20754e01f4eaae8dfa5ba17b3046c94705865edf7290cc6e5c34838",
+      "audit": "zk-formal/test/AuditProcActualMemoryValues.lean",
+      "audit_sha256": "55a140c25ea1ceb5ed60e70cb8f5b00b74098080b4267e94b58dc0058b979f6b",
+      "guards": 11
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPreparedGenerator.lean",
+      "sha256": "80dada4809275e7966dda60b39a7abdacaf735328394808ee4a52ba6664e3b72",
+      "audit": "zk-formal/test/AuditProcActualPreparedGenerator.lean",
+      "audit_sha256": "6000fca62651b824180f893a8f04c0a749c72f1a8a49342c36011e9ba26f195c",
+      "guards": 6
+    }
+  ]
+}

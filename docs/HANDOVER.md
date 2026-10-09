@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: SCHEDULER GENERATOR TOTALITY milestone, six modules independently strict PASS with35 exact guards. ProcActualPreparedGenerator.native_success derives corrected ActualRun.run success from accepted prepD0+schedPub+native runCore, with exact prior decoding and no comparator/time/value assumptions. Timestamp potential bounds actual final clock<=1,310,720; replay memory value invariant bounds grant inputs/increments; integration discharges all checks. This is additive corrected generator totality, NOT full D0a/proof-system completeness or general NEAR replacement. Original generator replacement, scheduler Local/global assembly, clean full-source certificate/prover/real judge remain incomplete. Prebuilt dependencies only. Prior33e5ff54 push DNS failed. Goal active.
+
+
 2026-10-09: ProcActualReplayTimeEnvelope and agent ProcActualPriorKeyCap independently strict PASS, eight exact guards. Cursor stamping bounds all round starts by final replay time; memory chronology bounds every selected log timestamp including default-empty out-of-range reads. Final clock bound remains explicit. Prior key cap now derived internally from PV86 model/replay, all rd.Kq<=KSENT<2^29. Remaining prepared final-clock and grant-value bounds in active agents; full certificate/prover/judge incomplete. Prebuilt dependencies only. Previouse805e42c push DNS failed. Goal active.
 
 
