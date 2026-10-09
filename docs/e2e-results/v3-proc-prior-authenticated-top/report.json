@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual first-limb authenticated word low/big/native saturated arithmetic transfers to SAME top-limb row where writes are emitted. No supplied byte/limb range in final theorem. Particular native decoded-record identity and arbitrary-write reverse traversal remain separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordTopSummary.lean",
+      "sha256": "3aeef1742ef816351ffcc63e8d02889314bec9797b1364b03feb7ce91f62c754",
+      "audit": "zk-formal/test/AuditProcPriorRecordTopSummary.lean",
+      "audit_sha256": "87cac66e8c8046f3b332d68d4599cab11b2a4880a3949eb4ccef351d5d97b488",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordAuthenticatedTop.lean",
+      "sha256": "13928ad07845a934b294470f132dbe0c4e2af983418d8479d529c65d852d7a45",
+      "audit": "zk-formal/test/AuditProcPriorRecordAuthenticatedTop.lean",
+      "audit_sha256": "4777d33fabb261403098f675a2067750c8eac166f008bc3e250412e9082da799",
+      "guards": 1
+    }
+  ]
+}

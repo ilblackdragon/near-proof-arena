@@ -1,0 +1,101 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 22,
+  "dependency_order": [
+    "ProcessRepairSourceView",
+    "ProcessRepairSourceByteTag",
+    "ProcessRepairVbytesIdBound",
+    "ProcessRepairAccountByteTag",
+    "ProcessRepairFusedForestBytes",
+    "ProcessRepairGlobalForestBytes",
+    "ProcessRepairForestDigest",
+    "ProcessRepairForestRequests",
+    "ProcessRepairHeadHash",
+    "ProcessRepairKidHash",
+    "ProcessRepairValueHash",
+    "ProcessRepairNodeBytes",
+    "ProcessRepairForestEncoding",
+    "ProcessRepairValueRange"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairSourceView.lean",
+      "sha256": "66701f15c07538c1dfdb37f0aa8664c91a1e13398f5e113dc7c574e73fc4d682"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairSourceByteTag.lean",
+      "sha256": "1a65904675d24d7d5b236bc7bddaaf002b15564e5b3a0c5dfccf8bd252995d5c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairVbytesIdBound.lean",
+      "sha256": "c484e6869795ba290c70d5b8ac645e5a2141c81acb3f944b0ffd94ce5686fe8c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAccountByteTag.lean",
+      "sha256": "ee4a795bd458e432ebd39899e2c37611e661ff95bb4f2b897190074076c600fa"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairFusedForestBytes.lean",
+      "sha256": "d48dbb2d9049b51faf93210bfdc9e0600ea73688c73dd0a717699cc6449a5d6f"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairGlobalForestBytes.lean",
+      "sha256": "aaa8868535679cd338fc2cae0b7639a617a5260a22d2dce6d3c5372fdd4bf783"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairForestDigest.lean",
+      "sha256": "ad0e1c736f9ce21b5217b4b61e2d83715e10502935f0409e9c92212886fd270d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairForestRequests.lean",
+      "sha256": "3f37d65b76671e1fba22fd28ab4f7e59e634ef4bd36281a4eb809617a1068785"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairHeadHash.lean",
+      "sha256": "8fe6478cafeb6226f9ec59a382b7a23f033112bbd1f63af39f77395a8f56f3b6"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairKidHash.lean",
+      "sha256": "9fdbb4591104a4d51df89c0244663d4b63300ca52f133574ea9e7653c9f84d02"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairValueHash.lean",
+      "sha256": "e9f5c25d32cd5db3fa6b0ac95f37c2069b1142af22dde45afaf6652944b67a80"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNodeBytes.lean",
+      "sha256": "27d301059eb688ecaeb5e95b0f7f7028f4e852bd415a9b0d7e7e185a805926a3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairForestEncoding.lean",
+      "sha256": "c30e8ed1abadd1861b0409ebacc74882535f53850d640aaa594b95b3c1e9ddae"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairValueRange.lean",
+      "sha256": "450550ec05e0d708590bf6214dd9eb536996a0cd132d8cec2b8a93dc4d9b7847"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairForest.lean",
+      "sha256": "1da60a9fb646d2f5a8fffac4032056ef8412b0ddfdf6d5b88811fdd3c4dee574"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcessRepairSourceView.log",
+    "/tmp/ProcessRepairSourceByteTag.log",
+    "/tmp/ProcessRepairVbytesIdBound.log",
+    "/tmp/ProcessRepairAccountByteTag.log",
+    "/tmp/ProcessRepairFusedForestBytes.log",
+    "/tmp/ProcessRepairGlobalForestBytes.log",
+    "/tmp/ProcessRepairForestDigest.log",
+    "/tmp/ProcessRepairForestRequests.log",
+    "/tmp/ProcessRepairHeadHash.log",
+    "/tmp/ProcessRepairKidHash.log",
+    "/tmp/ProcessRepairValueHash.log",
+    "/tmp/ProcessRepairNodeBytes.log",
+    "/tmp/ProcessRepairForestEncoding.log",
+    "/tmp/ProcessRepairValueRange.log",
+    "/tmp/AuditProcessRepairForest.log"
+  ],
+  "scope": "View-based actual source boundaries and source/account tag exclusion, same-list global forest SHA preimages, head/child/value hashes, all revealed node/value bytes, native fullTree encoding. Public inventory, extracted semantic traffic and UPS root chain remain explicit; no old Holds implication."
+}
