@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary record packed-limb constraints derive natural24/16-bit equality given byte bounds. Actual live record-byte receivers obtain byte<256 from actual RawFrame sources; absent rows zero and present rows SAME authenticated Value. Final received theorem derives range from installed SHA/BYTES/VPARENT traffic. Row-specific limb/memory composition remains next. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordPacked.lean",
+      "sha256": "869648eb5ef115b5e9a0f62db10bfad5306c48e73b301a70b1c8e23f633b4bd8",
+      "audit": "zk-formal/test/AuditProcPriorRecordPacked.lean",
+      "audit_sha256": "1db54079785019e15a013397e23f3d17ab14639252ebcae85fdc8661bf28728d",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRecordByteRange.lean",
+      "sha256": "39d54582ac8f7e91a8989389993633ed45c1040b25109b49b31ed6b78bda24cb",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRecordByteRange.lean",
+      "audit_sha256": "d54a73df5c4d1e3e41afd579d3eb2578bb3d6caf925842cac1c29a4bcb395940",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedAuthenticatedRecordBytes.lean",
+      "sha256": "b5c618a8c29beecec44256e2633cb4028999f9496e71dfbc47f89ce40b5c9bc0",
+      "audit": "zk-formal/test/AuditProcPriorRoutedAuthenticatedRecordBytes.lean",
+      "audit_sha256": "aa2e54cf770f13a3d00bce25fd0f266ed23cd5f56c5738b087b7ad40554c14f2",
+      "guards": 1
+    }
+  ]
+}

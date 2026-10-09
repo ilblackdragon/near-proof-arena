@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Record limb/byte range PASS3modules6guards: packed24-bit and top16-bit natural equations from local constraints plus bytes, actual global live record-byte receiver bound derived from real RawFrame supplier and SAME Value range; absent rows zero. Final authenticated receiver theorem has no supplied byte range. Row-specific limb aggregation/native memory relation still next. Native Scan request kernels PASS7modules31guards: exact native factoring/arithmetic/bitmap/cells/23+6bit arrays/range constraints and conversion shape. Full request body/neighbors/ScanDist Local still open. Root independently strict rebuilt all sources/audits and verified hashes;37 incrementalguards. Source-only archive3075/742 unchanged; repaired-family deep proof migration, full certificate/prover/judge/general NEAR coverage incomplete.
+
+
 2026-10-09: Native record/sanity identification PASS2modules5guards: SAME actual authenticated Value decodes natively; every24-byte original record and32-byte sanity suffix agrees with SAME native state at exact offsets, no generated-row/decode premise in final existential theorem. Repaired-family interface/extraction PASS2modules7guards derives genuine new HoldsP, old interaction inventory, unchanged non-Proc/rest Local and SAME Node/Value extraction; no old Holds asserted, deep hash/range APIs still migrating. Global KEYNIB count/source PASS1module4guards restricts actual providers to receipt13/repaired queue18; receipt symbol/native key association still open. Root independently rebuilt frozen sources/audits and validated hashes;16 incrementalguards. Source-only archive3075/742 unchanged. Next root record limb/native memory correspondence, remaining ScanDist Local, global repaired-family transport/certificate/prover/judge/general NEAR coverage incomplete.
 
 
