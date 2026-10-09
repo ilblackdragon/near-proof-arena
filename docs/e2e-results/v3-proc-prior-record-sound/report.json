@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary vertical Record component constraints extracted at actual stage3; live writeGate forces amount/topLimb/both found flags1. Repaired routed-family live67 consumer obtains actual Record supplier with these derived flags and exact message. Index range, timestamp/ordinal range and decoded bytes still require proof; no generated trace or assumed Record Local. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordSound.lean",
+      "sha256": "86b7243510cc732b07b2bf858a293723cb6fbae7b6c11d2270b85d67595984af",
+      "audit": "zk-formal/test/AuditProcPriorRecordSound.lean",
+      "audit_sha256": "ab08b74ef38670a452686fbb396883986873eb87dcc1a45762343d9841403261",
+      "guards": 4
+    }
+  ]
+}

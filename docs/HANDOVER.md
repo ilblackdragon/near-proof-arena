@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Repaired ID executable trace full Local/traffic PASS7modules32guards; actual-next cross-timestamp inverse/equality/gates repaired while message columns unchanged, prepared ID ranges derived. Root accepted_prior_id PASS1guard extends SAME accepted PriorCore with repaired ID Local and repaired71/72 joins (no supplied ranges/shape). Arbitrary Record stage3 extraction/write flags PASS4guards, actual repaired-family67 consumer gets amount/topLimb/both found flags1; indices/tau/ordinal ranges and raw byte semantics remain open. Overlay standalone Vertical4Linear raw59 differs from actual installed raw60, but actualFamily.components.set2 already repairs to Sched.B_SPOST; traffic instantiation must use ACTUAL components, no table mutation needed. Agents continue70 inventory, concrete actual overlay, query bounds. Full certificate/judge incomplete.
+
+
 2026-10-09: Repaired source-only closure finalized PASS2989modules/433guards, no source drift/prebuilt project dependencies. New incremental actual routed68 final consumer PASS16guards discharges comparator/order/ownership/window/Local, remaining ONLY live memory address<2^29 and write stamp+1<2^29 plus public40/68 exclusions; decoded original write authentication remains. Routed-family Record67 provenance PASS9guards. Generic shared overlayLocal PASS7modules17guards handles actual cuts and arbitrary foreign next padding from component Local+zero suffix; concrete ID source/local installation pending. Source-only archive predates these latest42guards; evidence scope separate. Agents now query-bound authentication, repaired ID Local, concrete overlay installation; root next Record write-bound authentication. Full certificate/judge incomplete.
 
 
