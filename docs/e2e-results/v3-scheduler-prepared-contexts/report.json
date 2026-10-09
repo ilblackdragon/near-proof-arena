@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "guards": 5,
+  "logs": [
+    "/tmp/SchedulerPreparedContexts.log",
+    "/tmp/AuditSchedulerPreparedContexts.log"
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPreparedContexts.lean",
+      "sha256": "3873c871c33c755479f93ab04e77e91c7ecb472389cdd03d364956eb644b1b64"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerPreparedContexts.lean",
+      "sha256": "51fc095e1cb20130ef7dfc74bb863e0773c95aa140746a36c427c98d71f29588"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}

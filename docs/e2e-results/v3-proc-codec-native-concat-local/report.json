@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Whole corrected Codec physical TableLocal for arbitrary NativeBlock list length\u226433, including empty. Requires each actual block Valid,n\u226464,tau<P and singleton Local. indexed_table derives all tau<P from actual list indexing. All inter-block ash/header edges, moved first selectors, current/next positions, multiplicity bits, strict log22 capacity, and final cyclic padding are constructed. This is concatenation completeness under per-block native witnesses; does not yet construct the ordered list from whole accepted preparation or prove all bus conservation. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecNativeConcatLocal.lean",
+      "sha256": "39228acf6b4ee1ed4d3192da0f96359f3f2f87973b4bd88f78bd88e281ab8b16",
+      "audit": "zk-formal/test/AuditProcCodecNativeConcatLocal.lean",
+      "audit_sha256": "7164006d0c575b772c1974791d1d08d4ec1c2bb0c96950f54ff132c0f7282214",
+      "guards": 6
+    }
+  ]
+}
