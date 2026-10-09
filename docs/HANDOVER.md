@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Record word traversal PASS1module5guards: arbitrary first limb forces next middle/top rows, preserves same word/limb values, yields24/24/16-bit/u64 natural bound given byte ranges. Actual row-level supplied-byte link still next. ProcessRepair balance/parent/vparent/raw-byte/Value provenance PASS5modules11guards uses View actual new Holds, never old Holds. Installed forest lookup PASS4modules10guards plus16 rebuilt receipt-key dependencies: SAME actual receipt key inventory/symbols, global KeynibOk and all standalone/compact UPS FINAL values equal find on SAME authenticated unfolded forest. Native query-key/FINAL association still separate. Root independently strict rebuilt all frozen sources/audits and validated hashes;26 incrementalguards. Source-only archive3075/742 unchanged; repaired deep SHA/forest migration, native record-memory semantics, remaining ScanDist Local, full certificate/prover/judge/general NEAR coverage remain open.
+
+
 2026-10-09: Record limb/byte range PASS3modules6guards: packed24-bit and top16-bit natural equations from local constraints plus bytes, actual global live record-byte receiver bound derived from real RawFrame supplier and SAME Value range; absent rows zero. Final authenticated receiver theorem has no supplied byte range. Row-specific limb aggregation/native memory relation still next. Native Scan request kernels PASS7modules31guards: exact native factoring/arithmetic/bitmap/cells/23+6bit arrays/range constraints and conversion shape. Full request body/neighbors/ScanDist Local still open. Root independently strict rebuilt all sources/audits and verified hashes;37 incrementalguards. Source-only archive3075/742 unchanged; repaired-family deep proof migration, full certificate/prover/judge/general NEAR coverage incomplete.
 
 

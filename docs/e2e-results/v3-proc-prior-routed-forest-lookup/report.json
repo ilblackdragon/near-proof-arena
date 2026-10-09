@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual SAME receipt ListChain KEYNIB inventory and symbol bounds, full actual global KeynibOk, and lookup on SAME authenticated unfolded forest for all standalone and compact UPS walks. Real EDGE/BMAP/KEYNIB ownership derived, no caller path balance or range. Concrete native key/FINAL association remains next. Sixteen receipt key dependency sources rebuilt strict. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorReceiptKeySymbols.lean",
+      "sha256": "64451e29f11e3624f08f3c95ef8343a3b82c0a686f78a24fe30d6ba205b925d4",
+      "audit": "zk-formal/test/AuditProcPriorReceiptKeySymbols.lean",
+      "audit_sha256": "8d473b9b8356ece24fd6c596208c0546e28c4231b4ad377c12fb2486b9b69cd1",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedReceiptKeys.lean",
+      "sha256": "39f98badd29f73fe6557fd9aba43c58340e0a9be65d76e3a42c378137903e726",
+      "audit": "zk-formal/test/AuditProcPriorRoutedReceiptKeys.lean",
+      "audit_sha256": "b3681a47760e474472ac44cd9cb2fde84578dc4b01b75c613492748d21842509",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedKeySound.lean",
+      "sha256": "b72804dc4a2e3dbd12ba3c866426a9368ca48888c3a0951ab8e74886d5dfb7c9",
+      "audit": "zk-formal/test/AuditProcPriorRoutedKeySound.lean",
+      "audit_sha256": "3c85f294d050bfa10782b6950c9bdb393844b05e881340a473e5af51f3955b78",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedForestLookup.lean",
+      "sha256": "877d0fa6738064b485fe743c9acaad58d214d3c0f9f97380622f3a146128b59d",
+      "audit": "zk-formal/test/AuditProcPriorRoutedForestLookup.lean",
+      "audit_sha256": "8ae2986c5f8a14b53d06e09d6a5766ee8b4a5ec5b7e22177ae7e7945e335e9fc",
+      "guards": 1
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-proc-prior-routed-forest-lookup/dependency-review.json",
+      "sha256": "0930cb690a5a743ac6101cf3bdf517f8d653a5e9b69779a78025894fda9199ae"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKey.lean",
+      "sha256": "b3d2aea743b320b5597d068941c025e6847a9773e07c6beb7ad10584d8c0902b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTrafficRows.lean",
+      "sha256": "f8ee109f5fb5cacbcfef82a20495284972947fafaeeaca618476ab29e4955e68"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTrafficGates.lean",
+      "sha256": "05d5f3305cdb01ecb2f41426cf294bb5821a107c5fea1cb3ab9287e554e03cad"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccountRows.lean",
+      "sha256": "129d910f792f99c0d66454ca9ca68e649c6a20b9e7d94895ed692631295864e2"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccessRows.lean",
+      "sha256": "e0f2dbc80c5f2af8468e9eef308a05dee5f1141526c1c37fef52007d4b746e0f"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyAccessMarkers.lean",
+      "sha256": "f763bb6c5273c2b8ee359f25a40776f4b0dc5b41b0bd794ca72293df4628e5a3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyNibbleValues.lean",
+      "sha256": "a262dd68b775d16f35007469d9f6e0ce50505e326f9887b4cea8287d0bc959c3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyByteFields.lean",
+      "sha256": "d1ac692af65aaa32226b10f40e6983600be505008d49545d01e2419b0c9d2659"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerFields.lean",
+      "sha256": "510cf3cc5fc6f15ec689de7baa8852b9d4d9a00671f2d3b0be87c3b88240f8c0"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerValues.lean",
+      "sha256": "e9fe623041e5bd975007e2b9c0a7c54a37e1ed4272bb35f8ca9cc8271d7c6b77"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyMarkerLayout.lean",
+      "sha256": "ba472c482924884b3119ebe2d634c996909266a55797befcf224df70cc63d1b9"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyCanonical.lean",
+      "sha256": "9a9d543ff9f9d28a72bafa404d7c8605a49ce90b82951cede55a21c3a510b7c5"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyPartition.lean",
+      "sha256": "e04d0deb40790926c051ca0c060156d739017aab20e400e30eaea25130e0a452"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyLayoutFields.lean",
+      "sha256": "41614ecb75071c55278524d72a38836957886b318bea87d0c3ce30b3a14c9eb8"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyReceipt.lean",
+      "sha256": "28ea6db22e9697bb0bc28fcbbdd26809ee4cf57dd4cd6421dd6324219c39797a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateKeyTraffic.lean",
+      "sha256": "3e64a35b374cdb48233a1a8a637dda796a2fdc006841564f899944b6ac055877"
+    }
+  ]
+}
