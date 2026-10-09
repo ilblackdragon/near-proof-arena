@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Six cKind phase partition/boundary equations hold on actual successful record rows with first=last=0, arbitrary next/trans, valid field/byte indices. Physical record positioning and remaining constraint groups still required. Prebuilt dependencies;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordPhase.lean",
+      "sha256": "66fdec62e35db6e2938827277ac0cabe6072e31bceaa00c08bdb27ef3fcb71dc",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordPhase.lean",
+      "audit_sha256": "27a3eb4e3a6dfe0d6ea654671d1b7436f7a9f7efb659787fff5c87ff85273ab5",
+      "guards": 2
+    }
+  ]
+}

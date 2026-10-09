@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecRecordPhase strict PASS2 exact guards. Six original cKind phase partition/boundary equations proved on actual successful record-step output rows, valid field/byte indices, arbitrary successor/trans with first=last=0. Actual record physical positioning still to connect. Broad simplification hit1M heartbeat bound; replaced with explicit expression reduction and closed field identities, now subsecond compile. Parallel agents continue a1 saturation and side zero-test groups; no full active constraint/TableLocal or transition certificate yet. Prebuilt deps24GiB audit; goal active.
+
+
 2026-10-09: ProcPriorCodecSideRecord + EndArithmetic/Rows/Local strict PASS14 exact guards. Entire original cRec (hence retained filtered group) vanishes on actual header/hash/ash rows, arbitrary successor and instance bytes; offCols includes previously untracked a0g/u0g. EndArithmetic derives credited allowance covers base debit from pv86 parameters, EndRows extracts actual terminal cells, EndLocal.native closes equations54,56-58 using actual run/byte loop/final step and previously derived endpoint bound. Saturation equation55 still active agent task; cKind zero-test projection memory issue isolated by staged simplification, resumed. Full active constraints/TableLocal/transition certificate/judge remain open. Prebuilt deps24GiB cap; goal active; push6c1cf49e DNS failed.
 
 
