@@ -12,7 +12,7 @@
     },
     {
       "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairNativePriorRead.lean",
-      "sha256": "b4d490d9dfeea92b561ad092f3872144ff66fd055f7ff70a4ba2039b8447cb0e",
+      "sha256": "62f7ae093787eaa7038f408b73a34c1b4c303003e37cdab7d6862b7ec4810296",
       "audit": "zk-formal/test/AuditProcessRepairNativePriorRead.lean",
       "audit_sha256": "b689b04d7d6d92d12bb3b23cbba4692c77790284bf40736ac8322d862e3cd89e",
       "guards": 1

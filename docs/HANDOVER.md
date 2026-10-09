@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Strengthened native prior-read provenance: last-write decoded allowance frame is first=1 and has SAME tau as actual query, derived from equal packed memory addresses and independently authenticated link<4096 bounds for write and query. No caller same-instance premise. Updated endpoint strict compiled and exact axiom audit PASS; native-prior-read package retains2 checked guards. Exact first-match native address, full execution/global theorem/clean certificate/prover/judge/general replacement remain open.
+
+
 2026-10-09: Actual ID key ranges/shared comparator/top-order PASS7guards: all active stage1 public/query keys derive canonical tau/limb bounds from actual provenance, all four ID comparisons route through actual shared comparator40, adjacent packed top-key order proved. Full lower-limb/global order and first-match remain open. Distribution shard equations PASS22guards: exact emitted shard row, quotient/remainder ranges, average equations including zero count, output payload equations, all grid equations on shard rows, and ordinal inverse arithmetic. Native range/physical placement premises remain explicit until whole-phase composition; actual grid rows and neighbor transitions remain open. Root independently rebuilt all15 source modules and both exact-axiom audits and checked source hashes:29 incremental guards. Global transition, clean certificate, executable prover, real judge and general replacement remain incomplete.
 
 

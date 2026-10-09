@@ -41,6 +41,8 @@ theorem consumer {AP:AirP} {pub:List Fp} {tr:Trace Fp}
       ((ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.lo=0 ∧ ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.hi=0) ∨
        ∃w f,∃bs:NearSpec.Bytes,∃st:NearSpec.Bandwidth.State,∃link:NearSpec.Bandwidth.LinkAllowance,
         q=w+1 ∧ f<tr.height 0 ∧
+        ZkFormal.Chacha.cv (raw tr) 0 f first=1 ∧
+        ZkFormal.Chacha.cv (raw tr) 0 f tau=ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.tau ∧
         bs.map UInt8.toNat=(es[ZkFormal.Chacha.cv (raw tr) 0 f vid]!).bytes ∧
         NearSpec.Bandwidth.State.decode bs=some st ∧
         st.links[ZkFormal.Chacha.cv (memory tr) 0 w ProcPriorMemoryTable.stamp]?=some link ∧
@@ -60,8 +62,19 @@ theorem consumer {AP:AirP} {pub:List Fp} {tr:Trace Fp}
     have hwh:w<tr.height 0:=by omega
     obtain ⟨f,bs,st,link,hfh,hff,htau,hbs,hd,hlink,hlo,hbig,hfair⟩:=ProcessRepairNativeMemoryWrite.row view
       hpubS hpubL hpubV hpubD hpubB hpubC I hprep fwd hrec hNW hVW hN hV hw hchain hK hU hpubR hpubVP hpubW hwh hwa hwq
+    have hlen:(p.sched.map instOf).length≤33:=by simpa only [List.length_map] using prepD0_len hprep
+    have hns:∀P0∈p.sched.map instOf,1≤P0.n ∧ P0.n≤64:=by
+      intro P0 hP
+      obtain ⟨sp,hsp,rfl⟩:=List.mem_map.mp hP
+      have hs:=prepD0_sched hprep sp hsp
+      exact ⟨hs.n1,hs.n64⟩
+    have hqb:=ProcessRepairQueryAddress.query_address view hpubS h68 I _ fwd hrec hlen hns hq hqa hqq
+    have hwb:=ProcessRepairWriteAddress.write_address view hpubS hpubW hpub70 hpub72 hpub76 I hprep fwd hrec hwh hwa hwq
+    have hsame:ZkFormal.Chacha.cv (memory tr) 0 w ProcPriorMemoryTable.tau=ZkFormal.Chacha.cv (memory tr) 0 q ProcPriorMemoryTable.tau:=by
+      unfold ProcPriorAddressOrder.address at haddr
+      omega
     rw [hlow] at hlo
     rw [hhigh] at hbig
     rw [hlow,hhigh] at hfair
-    exact ⟨w,f,bs,st,link,hqw,hfh,hbs,hd,hlink,hlo,hbig,hfair,fun u hu hua huq hue=>(hmax u hu hua huq hue).2⟩
+    exact ⟨w,f,bs,st,link,hqw,hfh,hff,htau.trans hsame,hbs,hd,hlink,hlo,hbig,hfair,fun u hu hua huq hue=>(hmax u hu hua huq hue).2⟩
 end ZkFormal.NearV3.Candidates.ProcessRepairNativePriorRead
