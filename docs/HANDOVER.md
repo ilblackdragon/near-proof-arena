@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Repaired query address/public sender bounds PASS7guards: actual Codec/SPAR/prior68 traffic derives read addresses, prepared last-write endpoint now needs only write-address bound (query/stamp all derived), public shard-index bounds64 derive from native prep. Canonical queue reads PASS3guards: fixed main delayed/buffered/yield and all native implicit queue reads bind SAME canonical root-chain heads and exact Option values, removing arbitrary unrelated head/tau/count. Root independent strict final-source/audit rebuild/hash checks PASS10 incremental guards. Correct native first-match ID/address semantics, full Scan/Dist placement/shard/grid, global theorem/clean certificate/prover/judge/general replacement remain incomplete.
+
+
 2026-10-09: Repaired write-stamp bounds PASS3guards: every live bus67 receiver stamp derives from physical original record row, and prior68 last-write endpoint removes supplied stamp bound; address range remains pending ID/native address composition. Native Scan request facts/local PASS2modules3guards derive request D/bits/link/key bounds from successful ActualRun and actual PV86 calculation; physical current/next placement, terminal metadata and flags/next-kind remain explicit. Actual QVC/group-read provider composition PASS6guards derives buffered parser selection from present read and binds group keys to SAME native buffered Value. Root independent final-source/audit rebuild/hash checks PASS12 incremental guards. Full shard/grid/phase Local, global transition/certificate/prover/judge/general replacement remain incomplete.
 
 

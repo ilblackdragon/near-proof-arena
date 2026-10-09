@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family queue reads target canonical RootChain head per transition with exact native Option value. Main fixed keys read pre-head0; every native implicit ordinal1..p.hdr.K has missingRequest.Holds on its canonical head. Actual prepared public K decoded without independent count bound. Three exact guards.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairQueueCanonicalRead.lean",
+      "sha256": "574954fcebff39fe3360e6d748fc39e5a4be8fb2f21e041cf6086a9abfc5d2a1",
+      "audit": "zk-formal/test/AuditProcessRepairQueueCanonicalRead.lean",
+      "audit_sha256": "fe2254b1065403290b53f8ecef1039cc98378d50fd5189301886c47ec3a57464",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairImplicitQueueReads.lean",
+      "sha256": "cbaf15a2e3030f8fa0ffecd292d44432b1a7a0aec6e55a48f7a0bbc0714ccc18",
+      "audit": "zk-formal/test/AuditProcessRepairImplicitQueueReads.lean",
+      "audit_sha256": "0d3f296346c1b500ca259773302425e9677a1b96327160207b99e45fa4298ae2",
+      "guards": 1
+    }
+  ]
+}
