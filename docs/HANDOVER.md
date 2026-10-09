@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecSideRecord + EndArithmetic/Rows/Local strict PASS14 exact guards. Entire original cRec (hence retained filtered group) vanishes on actual header/hash/ash rows, arbitrary successor and instance bytes; offCols includes previously untracked a0g/u0g. EndArithmetic derives credited allowance covers base debit from pv86 parameters, EndRows extracts actual terminal cells, EndLocal.native closes equations54,56-58 using actual run/byte loop/final step and previously derived endpoint bound. Saturation equation55 still active agent task; cKind zero-test projection memory issue isolated by staged simplification, resumed. Full active constraints/TableLocal/transition certificate/judge remain open. Prebuilt deps24GiB cap; goal active; push6c1cf49e DNS failed.
+
+
 2026-10-09: ProcCodecGeneratedBits strict PASS9 exact guards. Full successful corrected generator supplies all18 interaction-bit obligations through actual byte/field/block loops, headers, hash and ash; physical_bits includes padding and wrap. capacity derives nonempty and strict log22 capacity from R.n<=64. table_of_constraints reduces full corrected TableLocal solely to actual active-row constraints: no bit, flag, width, padding or capacity assumptions beyond native64-shard bound. Active cKind and remaining cRec still open. Side isZ projection split underway after24GiB compound elaboration memory failure; no completion claim on that module. Prebuilt dependencies24GiB audit. Goal active; last push478ee12d DNS failed.
 
 
