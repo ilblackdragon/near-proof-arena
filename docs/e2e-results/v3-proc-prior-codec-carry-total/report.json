@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Exact allowance-byte carry and full eight-byte loop success: byte2 sets threshold bit and later bytes retain it. End allowance check follows actual linkPass agreement/PV86 params/absent-state zero, with forwarding still explicit. Complete codec and full certificate/judge remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCarryTotal.lean",
+      "sha256": "eeb5647da5d4040239d2791f5e64ebb5c10a687416ba5ec5738d10ed32cb0330",
+      "audit": "zk-formal/test/AuditProcPriorCodecCarryTotal.lean",
+      "audit_sha256": "c6d467517661505061ef4063f8c3bd3d76315b3a84de4afa76044cdbd5484c63",
+      "guards": 4
+    }
+  ]
+}

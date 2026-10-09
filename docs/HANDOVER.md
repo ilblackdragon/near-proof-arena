@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: ProcPriorCodecCarryTotal strict PASS, four exact guards. Exact allowance-byte step sets comparison bit at byte2 and preserves it thereafter. bytes_success handles contiguous subranges with carry invariant; allowance_bytes proves all8 actual allowance steps succeed from actual linkPass equality/PV86/absent-state zero and explicit forwarding bound, deriving carry internally. Whole codec loop/native forwarding binding remain. Source-only scheduler rebuild passed436/828 at latest agent report, still running, no certificate claim. Prior088fefaf push DNS failed. Prebuilt dependencies for new codec audit. Goal active.
+
+
 2026-10-09: ProcPriorCodecAllowanceGuard(agent) and ProcPriorCodecRecordTotal(root) independently strict PASS, six exact guards. Corrected codec allowance arithmetic agrees with actual linkPass under explicit carry/absent-state premises. Exact record step total from end allowance equality plus forwarding guard when tau0; no end guards required on non-end bytes. Full codec loop/carry/native forwarding binding remain open. Source-only rebuild launched by ups_fields in /tmp/nearproof-scheduler-clean-20261009-a;113th module exposed manifest single-component ArenaCore import omission, parser fixed and resumed retaining112 successful source builds, session59493 agent-owned. No clean-certificate claim yet. Prior10b3c2bd push DNS failed. Goal active.
 
 
