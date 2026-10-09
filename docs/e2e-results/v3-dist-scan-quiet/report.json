@@ -1,0 +1,29 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistScanQuiet.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcDistScanQuiet.lean",
+  "guards": 2,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistScanQuiet.lean": "6fc680c0f32f50d8117c033e77115882e8f69bcf2d5e6cbd015697da56d91460",
+    "zk-formal/test/AuditProcDistScanQuiet.lean": "5565e5d749c535398d8c145fabafac409fd8c09c982ca1f28ac53af2db2f0fc6"
+  },
+  "proved": [
+    "All Scan.own constraints vanish when scan control columns kP,kS,fQ,re,us0,us1 are zero; integer and physical field versions."
+  ],
+  "remaining": [
+    "Derive zero controls from every actual distribution row; full Dist shard/grid constraints and phase placement."
+  ],
+  "no_domain_change": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistScanQuiet.lean",
+      "sha256": "6fc680c0f32f50d8117c033e77115882e8f69bcf2d5e6cbd015697da56d91460"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistScanQuiet.lean",
+      "sha256": "5565e5d749c535398d8c145fabafac409fd8c09c982ca1f28ac53af2db2f0fc6"
+    }
+  ]
+}

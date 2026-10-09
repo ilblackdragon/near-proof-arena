@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Reverse actual record-byte bus coverage: every live bus75 supplier matches one of three physical record-byte receivers with positive multiplicity and exact payload. Does not yet prove complete native write inventory or decoded ID address. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordByteReceiver.lean",
+      "sha256": "a173f65406f5e66539aa08a34e75c6293f11fd1b039fcc30ef3c5a37512a5d10",
+      "audit": "zk-formal/test/AuditProcessRepairRecordByteReceiver.lean",
+      "audit_sha256": "c7d1f1f5c55c627177d35d864e6bcee14e4b0added9050a289be23318777e3cf",
+      "guards": 4
+    }
+  ]
+}

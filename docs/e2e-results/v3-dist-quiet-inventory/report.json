@@ -1,0 +1,48 @@
+{
+  "dependency_order": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietRows.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietInventory.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcDistQuietInventory.lean",
+  "guards": 18,
+  "status": "strict PASS",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietCells.lean": "a0c3a82e5677b5e62d29dde06d2ea2110d65b80567905538af5faa741cd1c46b",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietRows.lean": "8bba146383b0da9c2d45a9a232b8685c15c2a93f6ef18b203351f8f53e59c38a",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietInventory.lean": "fecaed2b3c3f93a5d7e857e99bbff113b0e89ef557b265ad0881ca0c175a4be3",
+    "zk-formal/test/AuditProcDistQuietInventory.lean": "be1e07c51e07e70ef9b4768e4978d92cc26230278f30c6158b7ff96a2a46ea37"
+  },
+  "proved": [
+    "Every actual successful distRows output row has all six scan control columns zero, via exact native shard/cell/header generation and whole-loop preservation.",
+    "Actual physical row bound to any such generated distribution row satisfies ALL Scan.own constraints."
+  ],
+  "remaining": [
+    "Dist constraints on shard/grid/header rows; whole phase placement/Local."
+  ],
+  "premises": [
+    "Unchanged native distRows success and exact physical row binding; no synthetic zero-column premise in physical theorem."
+  ],
+  "prerequisites": [
+    "v3-dist-scan-quiet"
+  ],
+  "no_domain_change": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietCells.lean",
+      "sha256": "a0c3a82e5677b5e62d29dde06d2ea2110d65b80567905538af5faa741cd1c46b"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietRows.lean",
+      "sha256": "8bba146383b0da9c2d45a9a232b8685c15c2a93f6ef18b203351f8f53e59c38a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistQuietInventory.lean",
+      "sha256": "fecaed2b3c3f93a5d7e857e99bbff113b0e89ef557b265ad0881ca0c175a4be3"
+    },
+    {
+      "path": "zk-formal/test/AuditProcDistQuietInventory.lean",
+      "sha256": "be1e07c51e07e70ef9b4768e4978d92cc26230278f30c6158b7ff96a2a46ea37"
+    }
+  ]
+}
