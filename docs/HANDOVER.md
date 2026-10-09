@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Native forwarding bridges strict PASS8 exact guards: ProcNativeForwardFold relates actual Except fold callback to forwardAll and proves concatenation; ProcNativeForwardInitial proves native initial limit size equals SchedOut grant even with duplicate statuses, then derives demand_grant; ProcActualSegmentGrant proves generated memory.wfin plus actual distribution event grant equals native final grant with nonoverflow derived. Runtime applyReceipts extraction and shard-ID grant lookup being worked by parallel agents. All current audits prebuilt-dependency; prior clean828-module scheduler closure remains separately scoped. Goal active; push1d95a108 DNS-blocked.
+
+
 2026-10-09: Clean source scheduler closure PASS: 828/828 modules,29 exact guards through ProcActualConstructedSequence, no prebuilt project dependencies, no source drift. Portable source/log evidence and report committed under docs/e2e-results/v3-scheduler-clean-source. This is restricted scheduler/process-table validation, not whole-transition or judge validation. ProcActualMemoryFinal extended to20 guards with exact segment indexing and run_link_final tying R.segs final values to model al/g. ProcNativeForwardSize strict PASS5 guards: sequential actual tryForward successes conserve per-shard size budget and bound fwdSizes. Still need runtime sequence extraction, native initial grants agreement, full codec Local/global joins. Current additions use prebuilt dependencies. Push677cc157 failed DNS; bundle verified. Goal active.
 
 

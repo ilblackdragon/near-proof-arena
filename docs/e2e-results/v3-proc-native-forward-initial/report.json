@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Native initial Limit.get size equals scheduler grant for status shards, with duplicate statuses permitted and first-match semantics preserved. Successful forwardAll bounds fwdSizes demands by actual scheduler grants. Native runtime extraction remains separate. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeForwardInitial.lean",
+      "sha256": "46421801487386064235f8b1a281a8a85c8e66703e62ae4ae2e5d0ced1402a91",
+      "audit": "zk-formal/test/AuditProcNativeForwardInitial.lean",
+      "audit_sha256": "6c499efd3195878ee67e36f92071ef4f68957f2832ad518a359058d0ff64fabf",
+      "guards": 5
+    }
+  ]
+}

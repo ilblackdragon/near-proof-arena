@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual Except forwarding fold implies native forwarding sequence. Generated segment endpoint plus event distribution grant equals native final grant with budget-derived nonoverflow. Runtime extraction and grant indexing remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeForwardFold.lean",
+      "sha256": "401d1b908acfb524860d4eb370b6edf6f30d53e7e164011989fac4c341c007b1",
+      "audit": "zk-formal/test/AuditProcNativeForwardFold.lean",
+      "audit_sha256": "601ba469feebfe5433fde46b847b61430894ca018c1f3a0076c51b3bef52b1b7",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSegmentGrant.lean",
+      "sha256": "6177a055090169e472b5c8c38db6b3ad46d69b3533797ce0a95b96a7b351d283",
+      "audit": "zk-formal/test/AuditProcActualSegmentGrant.lean",
+      "audit_sha256": "28c0ef9e0caf9fed23328cfd7d58ab7a64625a19e9b0720b9b31aeafb4c06bd3",
+      "guards": 1
+    }
+  ]
+}
