@@ -1,0 +1,27 @@
+{
+  "status": "PREPARED_NOT_RUN_ON_FULL_BUILD",
+  "legacy_audit_files": 122,
+  "legacy_exact_guards": 742,
+  "legacy_archive_sha256": "4073b25a4bfa010fe27f8396f5eac3a0cb87784426858fcff3a3178a52e02989",
+  "auditor_sha256": "01d746a86889370bdf7b34784c58463dc744c9df14d2e4fd33e830a8a59a4b59",
+  "smoke_tests": {
+    "valid_completed_single_module_and_exact_guard": "PASS",
+    "incomplete_build_rejection": "PASS",
+    "forbidden_axiom_despite_accepting_exact_guard": "PASS"
+  },
+  "full_build_workspace": "/tmp/nearproof-repaired-clean-20261009-d",
+  "full_build_exec_session": 21053,
+  "command": [
+    "python3",
+    "scripts/proof_source_audit.py",
+    "--snapshot",
+    "/tmp/nearproof-repaired-clean-20261009-d",
+    "--legacy-audits",
+    "/tmp/nearproof-repaired-legacy-audits",
+    "--output",
+    "/tmp/nearproof-repaired-clean-20261009-d-final-audits",
+    "--lean",
+    "/home/illia/.elan/toolchains/leanprover--lean4---v4.34.1/bin/lean"
+  ],
+  "scope": "Final audit is prepared and tested, but the full source build must finish successfully before it can run. Neither this record nor smoke tests establish a full certificate or global transition theorem."
+}

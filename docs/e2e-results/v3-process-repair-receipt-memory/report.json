@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual repaired-family receipt MEM soundness: same extracted account inventory has unique slots; exact unchanged MEM traffic yields a natural message permutation and temporal order, then last-write payload equality for every receipt and final account. No supplied comparison/order predicate, no generated trace, and no claim of complete native receipt execution. Strict builds with prebuilt dependencies; 24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairAccountUnique.lean",
+      "sha256": "ba2088bad9d9bc176372f41ab0b8f66070a14083f70c05fd1af81c9e79392775",
+      "audit": "zk-formal/test/AuditProcessRepairAccountUnique.lean",
+      "audit_sha256": "d7c3a3249b7f3a07d055e3983a53cf3f36aec0f37d28aab4b0dedc573fdf1fb7",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptIndexed.lean",
+      "sha256": "5783d71277c075cc3a5420f28b4c661d298a7f8026de7c0d37b0665b3a156f7a",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptIndexed.lean",
+      "audit_sha256": "a514c302732461460da8149d1fd05b7e8ddea98ee869c8c62dc2cf0d391ce905",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMemoryNatural.lean",
+      "sha256": "00ab35dae422a86b7a274fa9a5283d0ff0e895c8555a0c63e08f92e978618717",
+      "audit": "zk-formal/test/AuditProcessRepairMemoryNatural.lean",
+      "audit_sha256": "24c661847df0279726a7c5dcc071d7e92988d02f9c05637776dfd24563d513c5",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMemoryOrder.lean",
+      "sha256": "534f8daefeb7da732833cd922c26e9f8727ac541fe2207cc236bbeb13e01b572",
+      "audit": "zk-formal/test/AuditProcessRepairMemoryOrder.lean",
+      "audit_sha256": "20b3e017ededa85e5801bc61714b16b4345ad4799235139b4e12584053c5a4d0",
+      "guards": 10
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairReceiptMemory.lean",
+      "sha256": "6c8110ec6632fe559faca5bb278778acd080d63fbd7964e885ca6893e4015bd3",
+      "audit": "zk-formal/test/AuditProcessRepairReceiptMemory.lean",
+      "audit_sha256": "4de3a503dc8663640e716ef7b2092b0a73ec34de241dc78be5f64c3c84a9a9a3",
+      "guards": 2
+    }
+  ],
+  "checked": [
+    {
+      "path": "docs/e2e-results/v3-process-repair-receipt-memory/dependency-review.json",
+      "sha256": "ba608fbc314a96bedac1054adc677d0e239c3a5836f22b7ef68dff1f8d9d63a9"
+    }
+  ]
+}

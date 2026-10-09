@@ -1,0 +1,48 @@
+{
+  "strict": true,
+  "guards": 21,
+  "dependency_order": [
+    "ProcPriorCodecGridAmount",
+    "ProcPriorCodecGridNext",
+    "ProcPriorCodecGridStride",
+    "ProcPriorCodecGridRecords",
+    "ProcPriorCodecGridHeader",
+    "ProcPriorCodecGridComplete",
+    "ProcPriorCodecGridCarry"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridAmount.lean",
+      "sha256": "32b37285730a8a9daea80140d01eccc80d1eed65db09ca925c3607def3bb7f0e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridNext.lean",
+      "sha256": "e5158f03dadc0e19dfa283f544c54a0c3b4ba33ca2afc63418dc466fc2d25209"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridStride.lean",
+      "sha256": "6de533a6879b724253f5d4cea209194f23c680463f1640c8691f2c33541e822e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridRecords.lean",
+      "sha256": "ae9db16ae9663472f1248c8b8331ef04f908f8146cd7819498377adcaabef858"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridHeader.lean",
+      "sha256": "a7bc9751d4626b092bf98e8bede8804166de2a84c7948cf08a72a580090006e1"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridComplete.lean",
+      "sha256": "4c8d5bbbeee32824459171918829aaa8b8b7aa650bc491f38e4fef1d6df95f86"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGridCarry.lean",
+      "sha256": "d60cedb54c7314b0c3435b53af4ca45a24e2cb85aa2c4e3ca948d8336fa5b539"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecGridSound.lean",
+      "sha256": "770dc0fc1711bf2d6ece0dd94bfef160feebf432f0d3a0fcce12c40ad7bb1733"
+    }
+  ],
+  "scope": "Arbitrary corrected Codec Local forces 5-row header, all NN record starts at stride24, exact kidx, preserved instance constants and per-record counter carries. No original CLocal or generated trace premise. NN<=4096 explicit for grid. Prepared ID public-send coverage and native first-match composition remain open."
+}

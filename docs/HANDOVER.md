@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Corrected Codec grid sound PASS21guards derives actual header→all NN record starts at stride24, exact kidx and instance constants, without old CLocal/generated shape. Prepared public coverage still needs counter enumeration. Actual receipt-memory semantics PASS22guards derive unique account slots, natural MEM permutation, exact previous/final last-write times and payload equality from repaired actual traffic; native byte/arithmetic/state-update composition remains open. All43 distribution cGrid equations composed PASS4guards with actual cell/interior constructor and explicit terminal Next predicate; whole physical placement/kind/ranges remain open. Root independently rebuilt source/audits/hash-checked47guards. Fresh4209-source build session21053 still live,797PASS at latest poll; final audit now prepared in scripts/proof_source_audit.py with frozen122legacy audits/742guards and current snapshot audits. Positive completed-smoke, incomplete rejection, and forbidden-axiom rejection even with accepting guard allPASS. Full audit MUST wait for completed source build; preparation metadata/legacy archive in v3-repaired-clean-source. Global transition/prover/judge/general replacement incomplete.
+
+
 2026-10-09: Full distribution header local PASS5guards: every ScanDist constraint on actual header and all eight next-row obligations derived from actual first cell; native scalar bounds/nonfirst/nonlast/current-next placement remain explicit for whole phase. Root independent strict sources/audit/hash verification PASS. Fresh4209-module source-only build remains running separately (frozen7d54d822; this new header checkpoint is not part of that snapshot).
 
 
