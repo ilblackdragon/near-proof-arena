@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "strict": true,
+  "guards": 7,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonValidStep.lean",
+      "sha256": "b3e93ef2e1b23d82fe391335656da9af5f72c9089cdfbe5ba9f0946c229e8046"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonValidLoops.lean",
+      "sha256": "04fa652d49e611c54b14a04a9bc9b8c6040e077563f2cae8c4fa6bea9c673931"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonValidTotal.lean",
+      "sha256": "b40d0198a0920b70bac38deb860c5219f1fa7d13605b63c81ba84bdb25329c86"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecComparisonValidNative.lean",
+      "sha256": "3f1112c417ea31d18fa72946c2348c3f7bdf27ea383e660a26c9b140dea94190"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecComparisonValid.lean",
+      "sha256": "2ba1d47a7c9899d3441062144a3ba9b54e1eb5f10559ab9d24bf34bb96ea0116"
+    }
+  ],
+  "logs": [
+    "/tmp/ProcCodecComparisonValidStep.log",
+    "/tmp/ProcCodecComparisonValidLoops.log",
+    "/tmp/ProcCodecComparisonValidTotal.log",
+    "/tmp/ProcCodecComparisonValidNative.log",
+    "/tmp/AuditProcCodecComparisonValid.log"
+  ],
+  "scope": "Actual complete codecRows comparator validity; native theorem derives operands from exact process-prefix/run/distribution witnesses. Same accepted block-list enrichment still required."
+}

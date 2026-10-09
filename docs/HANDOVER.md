@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual RawFrame sanity74 exact inventory and installed RawFrame-to-Codec balance PASS2modules10guards, including absent-state zeros and arbitrary times/common pub. Native Codec comparison validity plus enriched accepted SAME-bs PriorCore PASS10modules16guards retains distribution witnesses before existential projection, removes extra grant/CmpOk premise. Actual Head extraction/PARENT conservation/forest structure PASS3modules9guards, same Node/Value lists, depth<400; public ROOT/UPS and SHA/native byte authentication remain open. Root independently rebuilt frozen sources and exact audits using prebuilt dependencies. Total35new incremental guards; source-only archive3075/742 unchanged. Full global certificate/prover/judge/general NEAR coverage incomplete.
+
+
 2026-10-09: Actual Codec sanity74 receive inventory PASS2modules10guards: exactly32 ordered tau/index/prior-byte messages including absent zeros; RawFrame send inventory/installed74 balance still open. Actual Value view/same-es RawFrame bytes/conditional node association PASS14guards plus actual Node view/VPARENT/same-es assembly PASS16guards now discharges NodeWf3/VParentBal from actual installed tables. Native original trie root/hash/forest-byte semantics still explicit gap, not inferred from value ID/length. Native Dist cost<=n²+2n/4224 per call/135168 across32 PASS4guards; actual memory/round scan charges PASS6guards but native log/entry/round bounds and old40 aggregate remain open. Total50new incrementalguards; source-only archive3075/742 unchanged. Full global certificate/prover/judge/general NEAR coverage incomplete.
 
 
