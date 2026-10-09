@@ -1,0 +1,25 @@
+{
+  "base": "01-h10008-s0",
+  "case": "01-h10008-s0-w.path_depth_over",
+  "chacha_words": 0,
+  "chacha_words_runs": [
+    0
+  ],
+  "d0a_violations": [
+    "w.path_depth"
+  ],
+  "domain": "D0a",
+  "expected_reason": "w.path_depth",
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "expected_rel_d0a": false,
+  "expected_verdict": "out_of_domain",
+  "in_d0": true,
+  "in_d0a": false,
+  "kind": "mutant",
+  "max_path_depth": 33,
+  "mutation": "w.path_depth_over",
+  "nearcore": "ok",
+  "path_mutated_slot": 0,
+  "verdict_source": "nearcore"
+}

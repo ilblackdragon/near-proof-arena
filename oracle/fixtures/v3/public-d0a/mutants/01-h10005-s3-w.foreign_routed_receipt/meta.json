@@ -1,6 +1,10 @@
 {
   "base": "01-h10005-s3",
   "case": "01-h10005-s3-w.foreign_routed_receipt",
+  "chacha_words": 0,
+  "chacha_words_runs": [
+    0
+  ],
   "d0a_violations": [
     "w.proof_routing"
   ],
@@ -12,6 +16,7 @@
   "in_d0": true,
   "in_d0a": false,
   "kind": "mutant",
+  "max_path_depth": 3,
   "mutation": "w.foreign_routed_receipt",
   "nearcore": "not judged (mutated block not in the store); Rel holds by construction",
   "verdict_source": "construction"

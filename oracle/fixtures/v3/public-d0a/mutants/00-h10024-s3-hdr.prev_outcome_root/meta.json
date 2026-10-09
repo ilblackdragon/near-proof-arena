@@ -1,6 +1,10 @@
 {
   "base": "00-h10024-s3",
   "case": "00-h10024-s3-hdr.prev_outcome_root",
+  "chacha_words": 0,
+  "chacha_words_runs": [
+    0
+  ],
   "d0a_violations": [],
   "domain": "D0a",
   "expected_rel": false,
@@ -9,6 +13,7 @@
   "in_d0": true,
   "in_d0a": true,
   "kind": "mutant",
+  "max_path_depth": 2,
   "mutation": "hdr.prev_outcome_root",
   "nearcore": "validate: InvalidOutcomesProof",
   "verdict_source": "nearcore"

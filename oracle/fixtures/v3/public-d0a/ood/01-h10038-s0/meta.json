@@ -1,5 +1,9 @@
 {
   "case": "01-h10038-s0",
+  "chacha_words": 0,
+  "chacha_words_runs": [
+    0
+  ],
   "chain_params": "ChainParams { seed: 4243012730, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None }",
   "d0a_violations": [
     "c.own_congestion_zero",
@@ -29,6 +33,7 @@
   "in_d0": false,
   "in_d0a": false,
   "kind": "honest",
+  "max_path_depth": 3,
   "nearcore": "ok",
   "unfold_bytes": 6065
 }
