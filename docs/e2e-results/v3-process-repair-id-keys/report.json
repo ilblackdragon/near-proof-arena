@@ -1,0 +1,40 @@
+{
+  "strict": true,
+  "guards": 8,
+  "dependency_order": [
+    "ProcessRepairRecordParameters",
+    "ProcPriorIdKeyCarry",
+    "ProcPriorIdKeyOrigin",
+    "ProcessRepairFamilyId"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairRecordParameters.lean",
+      "sha256": "ac35dbc9207221d17ecc67881a5c1566087edb9306ca76057c42c07b2ddacb0f"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdKeyCarry.lean",
+      "sha256": "8d43c9e70aa6f1a57577ceaf51fc130a786d37b7d4bf78a9ccafbc85b316e87c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdKeyOrigin.lean",
+      "sha256": "852dacffe46175f3521c2b2eb239a7d96c09906b6092003c00c8438d7aca932a"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairFamilyId.lean",
+      "sha256": "d0b86bf68dd048dca1f8b3444f3810e20b1351c8841ee7c6b10f311b6b0bcdda"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdKeys.lean",
+      "sha256": "8143b13e62a778fcc3eb8bdd32adf88238322bb2d0d96d03e1336deabad0f2cc"
+    }
+  ],
+  "scope": "Repaired View actual record SPAR bounds and ID result supplier; arbitrary found ID key origin retains low/mid naturals and packed tau/high field equality. Full canonical unpacking, first-match minimality, and write address correctness remain open.",
+  "logs": [
+    "docs/e2e-results/v3-process-repair-id-keys/ProcessRepairRecordParameters.log",
+    "docs/e2e-results/v3-process-repair-id-keys/ProcPriorIdKeyCarry.log",
+    "docs/e2e-results/v3-process-repair-id-keys/ProcPriorIdKeyOrigin.log",
+    "docs/e2e-results/v3-process-repair-id-keys/ProcessRepairFamilyId.log",
+    "docs/e2e-results/v3-process-repair-id-keys/AuditProcessRepairIdKeys.log"
+  ]
+}

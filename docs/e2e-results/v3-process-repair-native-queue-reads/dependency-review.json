@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "build_order": [
+    "ProcessRepairQueueEmpty",
+    "ProcessRepairQueueCountRead",
+    "ProcessRepairMainQueue",
+    "ProcessRepairNativeQueueReads"
+  ],
+  "proved": "ProcessRepairNativeQueueReads.authenticated returns existential native MainValues with validity and all main queue reads on canonical pre-head0; every implicit transition has its native delayed read.",
+  "derived_not_assumed": [
+    "actual queue Local",
+    "actual WalkChain and ParserChain",
+    "actual standalone Walk list/traffic",
+    "actual receipt ListChain",
+    "same value byte ranges",
+    "queue/receipt KEYNIB ownership",
+    "FINAL key/value binding",
+    "full VBYTES conservation including RawFrame competition",
+    "QSH native shard stream and provider uniqueness",
+    "QVC parser provider matching",
+    "prepared receipt<=5000 and K<=32 native bounds",
+    "fixed/group key decoding and canonical-head lookup",
+    "native empty/buffered parser acceptance"
+  ],
+  "remaining_explicit": [
+    "SAME Node/Value/Head/UPS extracted lists with their Wf/traffic",
+    "RootChain with K<33 and exact public SPAR/prepared statement/ownership",
+    "genuine repaired-family View, not old HoldsP"
+  ],
+  "limits": [
+    "This theorem supplies native queue-read semantics; it does not itself prove the full native NEAR state transition or receipt execution.",
+    "Canonical forest root/hash authentication is provided by separate modules. Native trie equality/public root security must be composed under the proof model cryptographic assumptions.",
+    "Trie shape/cost admission remains separate and is not replaced by a fixed-cost lookup assumption."
+  ],
+  "validation": "Strict Lean4.34.1 -j2 autoImplicit=false relaxedAutoImplicit=false, exact axioms only propext/Quot.sound/Classical.choice; no sorry, added axioms or native_decide."
+}

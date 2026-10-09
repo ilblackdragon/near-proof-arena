@@ -1,0 +1,21 @@
+{
+  "strict": true,
+  "guards": 2,
+  "dependency_order": [
+    "ProcessRepairIdBound"
+  ],
+  "prerequisites": [
+    "ProcessRepairFamilyId"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdBound.lean",
+      "sha256": "4daa05c49115d75c597a6a9cc3fad15b489ae77cd9c56a7d284f86d77a1e3271"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdBound.lean",
+      "sha256": "2eccb410e46ac3b5f5239cef31ee5faaf6e70aad8baef932cc31037f2a8772a3"
+    }
+  ],
+  "scope": "Actual repaired-view public and found result index bounds. PublicSendBound remains supplied; no native first-match claim."
+}

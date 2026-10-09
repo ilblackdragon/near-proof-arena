@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Reverse actual record byte coverage PASS2guards now derives stage3/word activity, valid byte gating and offset<24. Repaired record parameter and ID found-origin key carry PASS8guards preserves index/low/mid/packed tau-high; canonical unpack and first-match minimality remain open. Repaired found-index bound PASS2guards supports coarse write-address range, distinct from exact native address correctness. Full native queue read contract PASS5guards returns MainValues.Valid and canonical pre-head0 Reads plus all implicit reads; extracts actual queue/parser/walk/list chains internally and derives bytes/ranges/keys/native buffered witnesses, retaining SAME forest/root/public authentication context. Root independently rebuilt final sources/audits and checked hashes:17 incremental guards. Complete native write inventory, exact ID semantics, whole Scan/Dist/global theorem/clean certificate/prover/judge/general replacement remain open.
+
+
 2026-10-09: Reverse raw-record byte coverage PASS4guards: actual bus75 live supplier matches one of3 physical stage3 byte request interactions with positive multiplicity and identical payload. Complete native record/write inventory remains separate. Generated Dist Scan-side constraints PASS20guards: Quiet2 plus Cells/Rows/Inventory18 proves all Scan.own constraints for every actual unchanged distribution row, deriving zero controls from generator/loops. Dist shard/grid equations and phase placement/full TableLocal remain open. Root independently rebuilt final sources/audits and checked hashes:24 incremental guards. Global transition/clean certificate/prover/judge/general NEAR replacement incomplete.
 
 
