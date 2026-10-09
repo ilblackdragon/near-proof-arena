@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted D0a supplies SAME block witness for repaired selected Codec/overlay Local and seven installed joins: internal67/71/72/75, external60/68/70. External Codec counts at time0/empty pub; horizontal relocation and remaining external buses/comparator are separate. Does not claim whole-family HoldsP. Strict incremental audit with prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorOverlayIdJoins.lean",
+      "sha256": "040bbf88b75f11cbddddf8dbe6caf851a272c4f311024a4da06804777d428719",
+      "audit": "zk-formal/test/AuditSchedulerPriorOverlayIdJoins.lean",
+      "audit_sha256": "13db74c330329068b2b87d3b77eb83957a23ddfbfd40fd703e86e822ba7c6012",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorOverlayExternal.lean",
+      "sha256": "ce240f8b4c35a51dae61e1d19d7729eac99a2c4fa35fad34c1d6256ccc957117",
+      "audit": "zk-formal/test/AuditSchedulerPriorOverlayExternal.lean",
+      "audit_sha256": "46dedd557d2beb5ba0b6e631ac4599b6c24336ef6daa269a77c977c035cb0897",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorInstalled.lean",
+      "sha256": "cef0fd8dcc38403851aee0dd2d7f46cab1d7ea8b5e124fff2ea6afb2000592fd",
+      "audit": "zk-formal/test/AuditSchedulerPriorInstalled.lean",
+      "audit_sha256": "3f43292cf359517ea4edc87b3df62f04a3941c0cc7ebe09ee1ac45b6da21923e",
+      "guards": 2
+    }
+  ]
+}
