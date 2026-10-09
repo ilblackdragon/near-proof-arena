@@ -6,6 +6,7 @@ import ZkFormal.NearV3.Assembly.NearAirCheck
 import ZkFormal.NearV3.Assembly.NearAirSize
 import ZkFormal.NearV3.Assembly.HintCodec
 import ZkFormal.NearV3.Assembly.NearAdmission
+import ZkFormal.NearV3.Assembly.ExtractV3
 import ZkFormal.NearV3.Assembly.OccurrenceAddress
 import ZkFormal.NearV3.Assembly.OriginalBlobIds
 import ZkFormal.NearV3.Assembly.ReceiptShape
