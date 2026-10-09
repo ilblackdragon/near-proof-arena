@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual RawFrame length request is live for present first rows; SAME extracted Value length equals37+24*count with field wrap excluded by physical extent. Full frame byte list equals SAME extracted Value bytes, ruling out trailing/missing bytes. No supplied length/count bound; no-public bus73/VBYTES premises explicit. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedRawLength.lean",
+      "sha256": "052731098f7eac86b8a4b80c58bd3a57d9dc217f2cde0a5c9edf88a164b6291c",
+      "audit": "zk-formal/test/AuditProcPriorRoutedRawLength.lean",
+      "audit_sha256": "ff7dd89a6034cee3b61f7a83774c66ca61b567f7c4d093390e6c096abd21bbbf",
+      "guards": 6
+    }
+  ]
+}
