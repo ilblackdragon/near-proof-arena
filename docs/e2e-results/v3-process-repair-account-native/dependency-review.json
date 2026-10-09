@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "scope": "Actual arbitrary repaired account pre-values equal complete same Value records and decode as native 72-byte AccountV1.",
+  "proof_chain": [
+    "Actual optional-empty AcctV3 view retains notMax/length/canonical invariants.",
+    "Actual VBYTES balance includes queue, accounts, access keys and RawFrame. Same-ID position-zero closure of every other supplier and unique demanded (vid,pos) isolate whole account stream.",
+    "Natural canonical limbs and stream permutation imply exact ordered e.bytes=a.pre, not a prefix.",
+    "Actual same forest ValueRange yields Bytes8; original decode_pre plus notMax gives native Account.decode, no sentinel assumption."
+  ],
+  "remaining": [
+    "No claim yet that receipt FINAL/MEM consumers access the decoded account at the native receiver key.",
+    "Receipt ordered memory execution, native applyNewChunk execution and full GoodV3 remain open.",
+    "Genuine repaired View, same forest/traffic and public ownership context remain explicit; no generated witnesses or Account read assumption."
+  ],
+  "build": "Strict Lean 4.34.1 prebuilt dependency overlay; six exact axiom guards."
+}

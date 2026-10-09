@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Every actual emitted bus67 write matches a live stage0 memory WRITE row with identical payload. Activity/query0 derives from positive gate and Local. Complete native gate/address correctness remains separate. Incremental certificate only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalWriteActivity.lean",
+      "sha256": "3afa0a0ef17df1ff67bb7b11fb88aa1fffc20ef95121df548e9a5cb1db8f38f5",
+      "audit": "zk-formal/test/AuditProcPriorVerticalWriteActivity.lean",
+      "audit_sha256": "f93b2db460c16075501939fc158facfbbbadc715acb3f2f9965e45e0e57d30fe",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairMemoryWriteConsumer.lean",
+      "sha256": "f85c87c279638ced11f2c3ca5defcba20782a3e930f5982c2f2e5302f753cfd9",
+      "audit": "zk-formal/test/AuditProcessRepairMemoryWriteConsumer.lean",
+      "audit_sha256": "99f1939f03cbe13ea2a9563a7ddb178eb802b0e7bd32eaa519d1c853c68504a3",
+      "guards": 4
+    }
+  ]
+}

@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Reverse actual memory write coverage PASS5guards: every live67 supplier reaches real stage0 act1/query0 row with identical payload; native gate/exact address correctness separate. Public ID authenticity and group carry PASS17guards: actual70 supplier and stage1 public row exact SAME prepared sp.ids[ordinal] limbs/tau/index; repaired SDL finite/index inventory and actual first-origin/same-key propagation, no old Holds. Account native value PASS6guards: complete SAME Value bytes=a.pre from actual all-supplier traffic/start closure, native72-byte Account decode=Link.accOf a with optional empty account extraction and forest-derived byte ranges. Root independent strict final-source/audit rebuild/hash checks PASS28 incremental guards. Exact first-match ID order/coverage, native execution, full ScanDist/global theorem/certificate/prover/judge/general replacement remain open.
+
+
 2026-10-09: Actual native ID request bus closure PASS8guards: classify unique record71 supplier, transport actual positive multiplicity, and prove arbitrary live ID71 receiver exact SAME decoded original sender/receiver payload including tau/query ordinal/canonical limbs. No supplied key/native/sender association; first-match result semantics remain separate. Actual account extraction PASS1guard preserves empty-or-AcctV3Wf and SAME traffic, avoiding false nonempty assumption; complete native Account pre-byte decode still open. Root independent final-source/audit rebuild/hash checks PASS9 incremental guards. Native execution/global assembly/full ScanDist/certificate/prover/judge/general replacement remain incomplete.
 
 

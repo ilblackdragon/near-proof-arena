@@ -1,0 +1,22 @@
+{
+  "strict": true,
+  "guards": 1,
+  "dependency_order": [
+    "ProcessRepairIdPublicRow"
+  ],
+  "prerequisites": [
+    "ProcessRepairPublicIdSource",
+    "ProcessRepairIdBound"
+  ],
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcessRepairIdPublicRow.lean",
+      "sha256": "6eb0d0ef117c4af0e778564fa6f4cd5acad96a26b62c55f667e012320bf6873e"
+    },
+    {
+      "path": "zk-formal/test/AuditProcessRepairIdPublicRow.lean",
+      "sha256": "902284effdd97d4fdd1f287eb6c7c5c1ac52c2895a7f4cd02aaac88c11411fd6"
+    }
+  ],
+  "scope": "Actual repaired stage1 public row canonical tau/index/ID limbs from same prepared layout; no first-match or completeness claim."
+}
