@@ -1,0 +1,8 @@
+zk-formal/ZkFormal/NearV3/Candidates/ProcPriorNativeMemoryQueries.lean:17:72: warning: This simp argument is unused:
+  hq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [queryMessage, ProcPriorCodecQueries.message, ProcPriorCells.bit, hh, show Fp.ofNat 0 = 0 from rfl,
+    show Fp.ofNat 1 = 1 from rfl]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

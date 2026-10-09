@@ -1,0 +1,16 @@
+{
+  "modules": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordIdTraffic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcIdQueryTraffic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcIdConcatTraffic.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeIdBalance.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcNativeIdBalance.lean",
+  "guards": 19,
+  "status": "strict PASS",
+  "remaining": [
+    "ID concatenation endpoint metadata/local",
+    "comparator69 inventory",
+    "vertical placement"
+  ]
+}

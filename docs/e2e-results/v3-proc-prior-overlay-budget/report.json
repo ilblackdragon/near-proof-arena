@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual four-component row sum memory+ID+RawFrame+selected Record plus4 stage padding rows is at most3134900, strictly below2^22, from SAME native old records, n<=64, bs<=32, raw<=2001184. Avoids independent full-budget overcount; repeated occurrences retained. Vertical boundary/clock installation remains separate. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorOverlayBudget.lean",
+      "sha256": "98f8cf04c125f17c612ff68b93d585a5a9e6f31eb01d760284dee321aef2bd98",
+      "audit": "zk-formal/test/AuditProcPriorOverlayBudget.lean",
+      "audit_sha256": "83189b991afc5db44aa64022d36f1826d99305b32c9754caed3685c5a73d7937",
+      "guards": 2
+    }
+  ]
+}
