@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Terminal saturation and side zero-test checkpoint: strict PASS27 exact axiom guards. CarryBit/RecordFair/EndSaturation derive actual cRec55 from native prefix and terminal execution, completing terminal arithmetic54–58 with previous EndLocal. SideZero proves all18 retained zero-test equations on actual header/hash/ash rows with valid indices and tau<P. Prebuilt dependency audits; full active constraint assembly, global joins and end-to-end judge remain open. Parallel work continues on side phase and record forwarding.
+
+
 2026-10-09: ProcPriorCodecRecordPhase strict PASS2 exact guards. Six original cKind phase partition/boundary equations proved on actual successful record-step output rows, valid field/byte indices, arbitrary successor/trans with first=last=0. Actual record physical positioning still to connect. Broad simplification hit1M heartbeat bound; replaced with explicit expression reduction and closed field identities, now subsecond compile. Parallel agents continue a1 saturation and side zero-test groups; no full active constraint/TableLocal or transition certificate yet. Prebuilt deps24GiB audit; goal active.
 
 

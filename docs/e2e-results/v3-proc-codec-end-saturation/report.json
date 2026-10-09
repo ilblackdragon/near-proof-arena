@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Actual terminal saturation cRec55 from native prefix and terminal execution, carry bit and fair projections. Prebuilt dependencies;24GiB cap; full active constraints remain open",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCarryBit.lean",
+      "sha256": "7b44f71de1ced73b948710220f5d8b9660f7552213ed987be2e1ffa9b6ffdfc4",
+      "audit": "zk-formal/test/AuditProcPriorCodecCarryBit.lean",
+      "audit_sha256": "6cfe79f976afe6023d7bf62c7e44099af41938bcac008b7e7eb284fc11889332",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordFair.lean",
+      "sha256": "f795b500d492bff7331261d84d021f09f4f5c22c3bff37fc311a8adcf374d68f",
+      "audit": "zk-formal/test/AuditProcPriorCodecRecordFair.lean",
+      "audit_sha256": "a890a0c79902b1982a740f638664d32417ff696acdafee73fcff158e60f140a0",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecEndSaturation.lean",
+      "sha256": "cb4b75975f4f7bb96e4fe54b4061e8dbd6a324947a96e9555e54e1e2c5179cb7",
+      "audit": "zk-formal/test/AuditProcPriorCodecEndSaturation.lean",
+      "audit_sha256": "2bf4b1d446a9debd0d711b65293701156c671b444061912450f4de2189e8d8d4",
+      "guards": 3
+    }
+  ]
+}
