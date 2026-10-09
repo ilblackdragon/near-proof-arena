@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "scope": "Selected RecordLinear concatenated Local; exact limitations in hashed README and dependency review.",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatBoundary.lean",
+      "sha256": "b3fe59c52d240d251515ce28488c5fd7801526f548e9e94e89695510469dc96c"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatCells.lean",
+      "sha256": "c6c7651a8ea521b8428311d9806ba24abaa0a099a14230905ac733e7f684d8f1"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordBlockLocal.lean",
+      "sha256": "5963fea9f0968171a2f058b343e011e1bbeb822582f74b9cdec6cf06f2cb6db3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatGeometry.lean",
+      "sha256": "487251a31a0faf2e1421c8da8dedd459d1f356891253b32b2aae4c6e2f15796e"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatActive.lean",
+      "sha256": "bc67c4e48d73848d10dcd2e0515385b97b4661bef5c14760a21031c2d5313526"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatLocal.lean",
+      "sha256": "5f41ee2107a6a684be8179162c1b7d0f163401738d17c22f1d672471117c87ae"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRecordConcatLocal.lean",
+      "sha256": "4f47612c214deab8e4ad48f15b2dab72638329faef292898540b3ec6ea248f40"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-concat-local/README.md",
+      "sha256": "89738d97e02a70c29453e4c10d87667b656197b3e450c8e3084d9b9818b968d9"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-concat-local/SHA256SUMS",
+      "sha256": "b65eb087b59705d9ca8b55587ef2a41dd7c248c180d4e68e7029f828133152a9"
+    },
+    {
+      "path": "docs/e2e-results/v3-record-concat-local/dependency-review.json",
+      "sha256": "5291c7ca4aae883dd3d755a723ead10852cc3bcdc495a176ad8db90c3c3c884f"
+    }
+  ]
+}

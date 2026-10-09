@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted D0a constructs SAME allocated Codec/RawFrame/selected RecordLinear traces with full Local, exact SPOST and raw-record75 balance and physical priorRead68 inventory. Actual prepared layout ids used for Record. Memory and ID joins, whole soundness, certificate and judge remain separate. Incremental audited build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecAcceptedRecords.lean",
+      "sha256": "e35b5e6d5161c2caf78cdd13d82c41df40c765dfd9caf55ba6992ea59167e606",
+      "audit": "zk-formal/test/AuditSchedulerCodecAcceptedRecords.lean",
+      "audit_sha256": "a8c8b97dcb10443cd2f13f2ab97158f033f1af5079f4709e981fb2abec88a6cb",
+      "guards": 1
+    }
+  ]
+}

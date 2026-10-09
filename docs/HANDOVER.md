@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Source-only accepted-query closure PASS2816 modules/223 exact guards, no drift or prebuilt project dependencies. Actual vertical memory stage0 extraction PASS16guards removes standalone-table/generated-window assumptions; comparator ordering/authenticated writes/outer horizontal ownership remain open. Selected RecordLinear concatenated Local PASS18guards. Root accepted_record_tables PASS1guard now constructs SAME allocated Codec+RawFrame+selected RecordLinear full Local, exact SPOST/raw-record75 balance, prepared query68 inventory directly from checkD0a acceptance B<=2M. Record uses actual b.pub.ids. Memory/ID joins, full certificate and judge still incomplete. Previous turn classified progress; checkpoint06319485 push DNS failed.
+
+
 2026-10-09: Accepted query assembly PASS4 modules/4 guards retains indexed prepared scheduler pub and actual execution in SAME allocated Codec/Raw traces, deriving exact physical priorRead68 queryEvents directly from acceptance. Executable allocated lookup bridge PASS2 guards derives lookup steps from successful read, distinguishes proven absence from unknown hash, and uses SAME valueID at terminal and forest value record. Physical lookup/value ownership and matched memory provider remain open; agents continue selected Record Local, actual stage0 memory soundness, and memory query balance. Extended source-only query build started in clean workspace b. Previous turn progressed via commits411538d4/d5080fc4 and verified bundle; network push still DNS-blocked.
 
 

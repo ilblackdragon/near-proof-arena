@@ -1,0 +1,14 @@
+{
+  "modules": [
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatBoundary.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatCells.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordBlockLocal.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatGeometry.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatActive.lean",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcRecordConcatLocal.lean"
+  ],
+  "audit": "zk-formal/test/AuditProcRecordConcatLocal.lean",
+  "guards": 18,
+  "overlay": "/tmp/ups-proof:/tmp/nearproof-receipt-check",
+  "status": "strict PASS"
+}
