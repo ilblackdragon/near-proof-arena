@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Corrected codec additions16/19 complete: strict PASS21 exact guards. First8 StartIndex derives inverse tests and source/receiver index relation with 0<n<=64. SenderCells/SenderAdditions plus GeneratedSenderAdditions derive final8 byte/shift additions on every active physical row from actual codec and native n=ids.length. Crossrecord8/9 and allowance-byte10 remain in progress. Native accepted-chunk witness retention is parallel. Independent source-only closure remains running in /tmp/nearproof-codec-clean-20261009-a; not yet certified. Global joins/full transition certificate/judge still incomplete. Previousdfd803e1 push failed DNS.
+
+
 2026-10-09: COMPLETE active retained cRec checkpoint: strict PASS14 exact guards. RecordEntryLocal/RecordEntry derive cRec17–24 including allowance reset from actual field-prefix execution. RecordPartition gives exact kernel62-equation partition; GeneratedRecordAssembly.active assembles every retained record equation from same native prepared prefix/run/distribution, without Local/cell/entry assumption. NativeAdditionsResidual.table_of_additions now requires only19 corrected additions at active rows; all kind/record/trailer/bits/capacity/padding obligations discharged. Addition first8 and sender/crossrecord groups underway. Independent source-only1555-module closure started at /tmp/nearproof-codec-clean-20261009-a (execsession85095), target NativeAdditionsResidual,24GiB per compiler, no prebuilt project path; not yet certified. Incremental audits still prebuilt. Full global certificate/judge incomplete. Previous3703f304 push failed GitHub DNS.
 
 

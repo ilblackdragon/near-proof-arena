@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "guards": 11,
+  "logs": [
+    "/tmp/ProcPriorCodecStartZeroCells.log",
+    "/tmp/ProcPriorCodecStartZeroRows.log",
+    "/tmp/ProcPriorCodecStartIndexData.log",
+    "/tmp/ProcPriorCodecStartIndexLocal.log",
+    "/tmp/ProcCodecPhysicalAdditionGroups.log",
+    "/tmp/ProcCodecGeneratedStartIndex.log",
+    "/tmp/codecstartindex-audit.log"
+  ],
+  "scope": "first8 corrected additions allphysical; derive every rowfield/inverse and use range; only0<n<=64 and actualcodec success",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecStartZeroCells.lean",
+      "sha256": "4fc5dc2dbcf28f02223d9d933459aef271faca2e2ff82274631ea00ddffa5d7d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecStartZeroRows.lean",
+      "sha256": "d5dea8c87f7238c98d1cef9534de6b744425da71db9e858cb7d36f53ab5af98d"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecStartIndexData.lean",
+      "sha256": "fe2eb3adf115e09ad4e6f53168b4afcb38491459e0654d056c6ee5f58c4887b7"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecStartIndexLocal.lean",
+      "sha256": "9f3574527e3f162613d50071f6314a063c483c522a8238342f23714a14a67a99"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecPhysicalAdditionGroups.lean",
+      "sha256": "b31932895bb904dd26a360e01a488da53c0944fb07e10646c9a355a712fb4dc7"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCodecGeneratedStartIndex.lean",
+      "sha256": "b65a94f04f58360f52b96d1b034f71c8a3ee54f12cf5cf70b08f798042ae0d2f"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCodecGeneratedStartIndex.lean",
+      "sha256": "7667aa4d671c4a983a949943cd19d71938f0689d8c179c76dd06c22578153743"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact axiom guards using prebuilt dependencies."
+}
