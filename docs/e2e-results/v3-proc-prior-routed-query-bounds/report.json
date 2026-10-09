@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary current routed-family query address authentication: retained corrected Codec record transitions yield kidx<NN; active header origins yield NN=nn squared; actual fused SPAR receiver ownership and exact public inventory give tau<33 and n1..64. Concrete fused bus68 receiver classification and genuine balance transport bounds to every live stage0 QUERY row: tau<33, link<4096, packed address<2^29. No generated trace, standalone Codec table identity, old Codec Local, supplied order, comparator gate, or row-range premise. Explicit remaining public assumptions: SPAR send-only public segments, PubIdx records equal render Ps fwd.par, Ps length<=33/all n1..64, no public68 segments. WRITE address and original stamp authentication remain separate. Strict prebuilt-dependency build, 24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecSoundRecordBound.lean",
+      "sha256": "d3340ac52ee52840b15018ec99a2ffcb022bea95c6869d8256ea66529aeaa627",
+      "audit": "zk-formal/test/AuditProcPriorCodecSoundRecordBound.lean",
+      "audit_sha256": "ded51f9732b6afa8fedc5b76fe7a7c14351b7b86532d8186cd908ba37b90d240",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedCodecProjection.lean",
+      "sha256": "f3d8fef1be4671db7b479b7cfaaaa96b7b9c66bba787ad7af3ddd2878fc9efbc",
+      "audit": "zk-formal/test/AuditProcPriorRoutedCodecProjection.lean",
+      "audit_sha256": "d2df14bbbc37db0beea9aa0618fa87b87ed5d9b76d3bee1dc6f39e4edfef3b80",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedCodecParameters.lean",
+      "sha256": "f16f94528e94ca9d6c59a88af61d5a97d6a453e1321dbdd943e9020a8eedae29",
+      "audit": "zk-formal/test/AuditProcPriorRoutedCodecParameters.lean",
+      "audit_sha256": "9615e3d719d0f9e4214886c50a3926678aec037e12a5277607fb83007e0db65c",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedQueryBounds.lean",
+      "sha256": "a489d1e16e9649d007a01e9e8b4730745889f3a5e64fbe29ca6f20ab361110b4",
+      "audit": "zk-formal/test/AuditProcPriorRoutedQueryBounds.lean",
+      "audit_sha256": "0fc6954e5630d0f692843a9136e868a025e9621b36fe32bd62da6b253749b617",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedQueryAddress.lean",
+      "sha256": "8449030e43fb0b57eb5412c67127c55bca37c087f481ebd9880918d809d3c336",
+      "audit": "zk-formal/test/AuditProcPriorRoutedQueryAddress.lean",
+      "audit_sha256": "5b6f044e683900680980d65508a9af406275a73b7db8e911c60847a8511cf88c",
+      "guards": 3
+    }
+  ]
+}

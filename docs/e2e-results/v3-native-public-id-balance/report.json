@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "guards": 10,
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedPublic.lean",
+      "sha256": "48b53a524b07e51defa7039e47ff2b48ba490585655c00ea5f95706b931efda8"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativePublicIdBalance.lean",
+      "sha256": "396ced6f1fcbd71d69640638c0a503e60396964f443585c98ac9dbae5eee9b1f"
+    },
+    {
+      "path": "zk-formal/test/AuditProcIdPublic.lean",
+      "sha256": "eb01a0567feec0e962c4269f67f1e09a337501fb523f2a9501d114269812b1c0"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-public-id-balance/README.md",
+      "sha256": "a62bdb54949a92ff88b88c359337b892f0e0b2f5681970a7464f286b57670f47"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-public-id-balance/SHA256SUMS",
+      "sha256": "29c341d7541b7b777baf1d8bb55c76a9e0a0ed69279fc6f425e9aee9badae4ca"
+    },
+    {
+      "path": "docs/e2e-results/v3-native-public-id-balance/dependency-review.json",
+      "sha256": "602994c57e28d3b61e8ed1b2d8b1b3526975dd644a24f1280dbb69af126ab7bc"
+    }
+  ],
+  "scope": "Same-block exact natural-count public70 balance, including repeated IDs. Strict incremental checks with prebuilt dependencies; full global certificate remains open."
+}

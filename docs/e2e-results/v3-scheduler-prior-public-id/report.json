@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Any SAME accepted PriorCore block witness has exact Codec to repaired ID public70 traffic balance. Ranges, prepared membership and capacity derived; duplicate occurrences retained. Fused installation and global comparator traffic remain separate. Incremental audited build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerPriorPublicId.lean",
+      "sha256": "9d972d74a907b668e34e523fbb1f249fb0a8d99e5d9b8e7a4c8f01c02db1b4cc",
+      "audit": "zk-formal/test/AuditSchedulerPriorPublicId.lean",
+      "audit_sha256": "e41572df0cf0e912f4466a6040ce2de47f1ca2d6a79bf734fe04498fe5661c60",
+      "guards": 1
+    }
+  ]
+}

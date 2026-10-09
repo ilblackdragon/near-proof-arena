@@ -1,0 +1,31 @@
+{
+  "status": "strict PASS",
+  "dependency_order": [
+    "ProcIdTaggedPublic",
+    "ProcNativePublicIdBalance"
+  ],
+  "audit": "zk-formal/test/AuditProcIdPublic.lean",
+  "guards": 10,
+  "options": [
+    "-j1",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false"
+  ],
+  "olean_root": "/tmp/nearproof-receipt-check",
+  "overlay": "/tmp/ups-proof",
+  "source_hashes": {
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedPublic.lean": "48b53a524b07e51defa7039e47ff2b48ba490585655c00ea5f95706b931efda8",
+    "zk-formal/ZkFormal/NearV3/Candidates/ProcNativePublicIdBalance.lean": "396ced6f1fcbd71d69640638c0a503e60396964f443585c98ac9dbae5eee9b1f",
+    "zk-formal/test/AuditProcIdPublic.lean": "eb01a0567feec0e962c4269f67f1e09a337501fb523f2a9501d114269812b1c0"
+  },
+  "premises": [
+    "Actual successful prepD0",
+    "Same NativeBlock list, each Valid, pub member of prepared scheduler, actual process run",
+    "At most32 blocks and raw row charge\u22642001184 (accepted block/charge APIs already supply these)"
+  ],
+  "remaining": [
+    "Vertical installation/routing is separate; theorem compares actual full component traces.",
+    "Accepted global wrapper needs retain SAME-bs prepared execution witness; no separate chosen ID input is admitted."
+  ],
+  "validation": "New modules checked with prebuilt checked dependencies, not an independent entire source closure."
+}

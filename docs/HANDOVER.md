@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Query address authentication PASS6modules23guards: actual routed live memory query yields tau<33/link<4096/address<2^29 from accepted prep and authenticated SPAR inventory, with no supplied range/generated trace. Concrete accepted four-stage overlay Local PASS10guards; repaired routed selected19 wrapper PASS2guards retains presence60/comparator40. Exact native public70 balance PASS10guards and PriorCore.public_id PASS1guard keep SAME blocks and duplicate occurrences. Arbitrary Record onehot/write shape PASS3guards. Total new incremental48guards; source-only archive remains earlier2989/433 scope. Write address/stamp authentication, global traffic/comparator construction, full certificate/prover/judge and general NEAR coverage remain incomplete.
+
+
 2026-10-09: Repaired ID executable trace full Local/traffic PASS7modules32guards; actual-next cross-timestamp inverse/equality/gates repaired while message columns unchanged, prepared ID ranges derived. Root accepted_prior_id PASS1guard extends SAME accepted PriorCore with repaired ID Local and repaired71/72 joins (no supplied ranges/shape). Arbitrary Record stage3 extraction/write flags PASS4guards, actual repaired-family67 consumer gets amount/topLimb/both found flags1; indices/tau/ordinal ranges and raw byte semantics remain open. Overlay standalone Vertical4Linear raw59 differs from actual installed raw60, but actualFamily.components.set2 already repairs to Sched.B_SPOST; traffic instantiation must use ACTUAL components, no table mutation needed. Agents continue70 inventory, concrete actual overlay, query bounds. Full certificate/judge incomplete.
 
 

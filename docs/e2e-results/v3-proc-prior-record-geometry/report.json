@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Arbitrary stage3 Record constraints derive word sum<=act, limb sum=word sum and unique active amount/top live-write shape. No supplied onehot geometry or generated trace. Original ordinal/tau/index bounds and decoded bytes remain open. Strict incremental build uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordGeometry.lean",
+      "sha256": "f1746a412e474943a15df7f03ee0f532687173d8c9e87ed4e5bc2d70d6a038bb",
+      "audit": "zk-formal/test/AuditProcPriorRecordGeometry.lean",
+      "audit_sha256": "543a2ecdcd579ade9da383983bb3999515602324e5a16819107dd116eab25c12",
+      "guards": 3
+    }
+  ]
+}

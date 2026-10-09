@@ -1,0 +1,3 @@
+48b53a524b07e51defa7039e47ff2b48ba490585655c00ea5f95706b931efda8  zk-formal/ZkFormal/NearV3/Candidates/ProcIdTaggedPublic.lean
+396ced6f1fcbd71d69640638c0a503e60396964f443585c98ac9dbae5eee9b1f  zk-formal/ZkFormal/NearV3/Candidates/ProcNativePublicIdBalance.lean
+eb01a0567feec0e962c4269f67f1e09a337501fb523f2a9501d114269812b1c0  zk-formal/test/AuditProcIdPublic.lean

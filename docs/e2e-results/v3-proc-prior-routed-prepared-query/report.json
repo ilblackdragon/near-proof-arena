@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Accepted prepD0 supplies instance/shard bounds for arbitrary routed-family stage0 QUERY address authentication. HoldsP/exact routed-family tables, exact PubIdx public SPAR inventory, SPAR public send ownership and absence of public68 imply every live query has tau<33,link<4096,address<2^29. No generated trace, native execution, row range or ordering premise. WRITE bounds and original-stamp identity remain separate. Strict prebuilt-dependency build;24GiB cap.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRoutedPreparedQuery.lean",
+      "sha256": "7a591d0d2c4bfae44c8fcd24bd9f0a20f1993ed1a21b65203d219bbf31975d8b",
+      "audit": "zk-formal/test/AuditProcPriorRoutedPreparedQuery.lean",
+      "audit_sha256": "c1240d1d440546f2d822323d1653550ee107417466aa9e4a13afb0d14f83dbc7",
+      "guards": 1
+    }
+  ]
+}
