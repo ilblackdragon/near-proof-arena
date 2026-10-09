@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "guards": 12,
+  "strict": true,
+  "sources": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryStrictOrder.lean",
+      "sha256": "6165e1baf632587e2a8e1397b1279d94e7ac1e79b0ca561fa410d06bd9cf73d3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonValid.lean",
+      "sha256": "d979aaa514be6effdb8634c63c1afda4205a4a04ac138cdf192aa16ccf3fb619"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdEventOrder.lean",
+      "sha256": "75d2fa4b0438099a71ac8bf59385751332675b9cced51b6f552c4f43ba8fb8af"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorComparisonNativeOrder.lean",
+      "sha256": "cd00537ebe7f314767f73099952ca0f05dcaa771ef5f1029673de8637b7e5d74"
+    }
+  ],
+  "prerequisites": [
+    "ProcPriorEventUniqueness",
+    "ProcPriorEventStrictOrder",
+    "ProcPriorComparisonBudget"
+  ],
+  "scope": "Native memory comparison CmpOk fully derived from actual tagged order/ranges, no independent comparator validity premise; ID events Nodup and same-key public ordinals strictly increasing despite duplicate IDs. Full ID CmpOk and physical inventories remain.",
+  "lean_path": "/tmp/ups-proof:/data/illia/nearproof-wt/v3-hpl/formal-core/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/v3/.lake/build/lib/lean:/data/illia/nearproof-wt/v3-hpl/spec/lean/.lake/build/lib/lean",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryStrictOrder.lean",
+      "sha256": "6165e1baf632587e2a8e1397b1279d94e7ac1e79b0ca561fa410d06bd9cf73d3"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryComparisonValid.lean",
+      "sha256": "d979aaa514be6effdb8634c63c1afda4205a4a04ac138cdf192aa16ccf3fb619"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdEventOrder.lean",
+      "sha256": "75d2fa4b0438099a71ac8bf59385751332675b9cced51b6f552c4f43ba8fb8af"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorComparisonNativeOrder.lean",
+      "sha256": "cd00537ebe7f314767f73099952ca0f05dcaa771ef5f1029673de8637b7e5d74"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-native-order/AuditProcPriorComparisonNativeOrder.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-native-order/ProcPriorIdEventOrder.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-native-order/ProcPriorMemoryComparisonValid.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/e2e-results/v3-prior-comparison-native-order/ProcPriorMemoryStrictOrder.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

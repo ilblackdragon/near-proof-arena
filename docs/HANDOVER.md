@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-09: Actual routed authenticated prior68 lastwrite PASS4modules15guards: ALL query/write address and write-stamp ranges derived, no supplied order/range/generated trace/standalone ownership/public70 ordinal contract. Remaining true public SPAR inventory/exclusion assumptions; decoded original bytes/keys/values still separate. Full selected-trace column constructor PASS6guards inserts accepted Codec8/overlay19 and preserves fused Local/counts through pair/triple reorder, with other slots log22/Local explicit. Native event strict order and memory CmpOk plus ID event ordinal order PASS20guards; duplicate records/IDs retained. Total41new incrementalguards. Source-only archive still3029/561 pending extension. Full global certificate/prover/judge and general NEAR coverage incomplete.
+
+
 2026-10-09: SAME accepted PriorInstalled witness PASS9guards connects selected Codec/overlay Local and seven installed joins67/71/72/75/60/68/70; external Codec counts currently time0/empty pub, horizontal relocation separate. Arbitrary active Record tau<33/shards1..64 PASS13guards via real76 Codec header and SPAR, no supplied row origin/parameter range. Actual public70 ordinal bound PASS8guards removes caller sender-bound premise from routed result72 bound. Comparator baseline PASS13guards: prior request budget1104168, unchanged log22 shared provider conditional Local/counts and memory pair request equality; full physical inventory/native CmpOk/old40 aggregate budget remain open. Total43new incrementalguards; source-only archive remains3029/561. Full certificate/prover/judge and broader NEAR coverage remain incomplete.
 
 
