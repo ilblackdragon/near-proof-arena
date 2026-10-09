@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-09",
+  "status": "PASS",
+  "scope": "Extend exact generated Codec and whole scheduler DIGEST physical inventories to33 instances, matching prepared scheduler count bound. Concatenated Local and global certificate are separate obligations. Incremental audit uses prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeDigest33.lean",
+      "sha256": "c30d5745f5a11923d6a7f45d9db73caa83327f7c0deedf1dc3611b258c85d161",
+      "audit": "zk-formal/test/AuditProcNativeDigest33.lean",
+      "audit_sha256": "63ef57607ede24f7a6816ddd67b77d31d83dfb54d110a47ee6aff2893caf6b4d",
+      "guards": 3
+    }
+  ]
+}

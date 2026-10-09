@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "guards": 2,
+  "logs": [
+    "/tmp/SchedulerCodecMainBlock.log",
+    "/tmp/AuditSchedulerCodecMainBlock.log"
+  ],
+  "scope": "Actual main NativeBlock construction, local legality, singleton physical DIGEST count; no multi-block Local claim",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecMainBlock.lean",
+      "sha256": "054b6a86a9a9fa6d305ad105422ad64510eef2a32d1f019a911a79b15c22191d"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecMainBlock.lean",
+      "sha256": "073f0c9c5d322c63b9dbc0aaef51dd0186e22a881d15f3c71835c9dfca8f066f"
+    }
+  ],
+  "dependency_scope": "Strict incremental build and exact guards using prebuilt dependencies."
+}
