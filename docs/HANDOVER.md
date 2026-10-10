@@ -1,4 +1,4 @@
-# NEAR Proof Arena — handover (updated 2026-10-09)
+# NEAR Proof Arena — handover (updated 2026-10-10)
 
 This is for the next lead agent. Read it first. The raw working log for 2026-10-07 to 2026-10-09 (≈6,500 lines) now lives in `docs/logs/v3-progress-log-2026-10.md`. Use it only for evidence lookup.
 
@@ -40,7 +40,7 @@ User directives (binding):
 * **CPUs 0-7 and 16-23 are reserved for the live benchmark worker w1.**
   * Stop w1 only in short, logged windows with an empty queue (`docs/LIVE.md` §5f).
   * If a run is interrupted, restart w1.
-* **Disk:** `/` is at **96%** and `/data` at **92%**.
+* **Disk:** `/` is at **98%** and `/data` at **89%** (2026-10-10).
   * Delete merged worktrees and their `target/` dirs.
   * Session scratchpads under `/tmp/claude-1002/...` are large (`lean`, `npai-e2e`, `elan` ≈ 25 GB) and can go once you have confirmed nothing needs them.
 * **Merging:**
@@ -54,7 +54,11 @@ User directives (binding):
 
 ## 2. Repository state
 
-* **main** contains everything below. It was merged from `integration/v3-20261009` on 2026-10-09, which combined:
+* **2026-10-10:** `integration/v3-20261010` merged into main:
+  * `agent/v3-assembly` at `85a02cb1` (committed tip only), which includes `RcptV3ViewStmt` (rcpt-view package done), all per-table views from `HoldsP`, and the `LinkV3` interface. The lane is **still active**: an agent has uncommitted work in `/data/illia/nearproof-wt/integration`, so don't touch that worktree. Merge its next commits the same way.
+  * `NearV3/Candidates/ProcActualGrantOperands` was fixed (binder type annotations) and committed; it was the one module that failed to build on 2026-10-09.
+  * New guarded audit `zk-formal/test/AuditNearV3Admission.lean`.
+* **main** (2026-10-09) contains everything below. It was merged from `integration/v3-20261009` on 2026-10-09, which combined:
   * `lane/v3-air`, `lane/v3-hpl`, `lane/v3-assembly`, `lane/v3-qvals`, `lane/v3-public`;
   * `lane/v3-d3`;
   * `codex/near-state-proof-20261008`, which was recovered from the local bundle `checkpoints/near-state-proof-20261008.bundle` because the codex sandbox could not push;
@@ -101,7 +105,7 @@ User directives (binding):
    * Options: proof-only refactoring of the offending terms (experiments are preserved under `/data/illia/nearproof-deps/validation/`), or an upstream fix to lean4lean.
    * Do not weaken the three-checker policy.
 2. **The D0a tier needs real workload-class coverage in the draft.** An empty class list would silently allow abstention on every input.
-3. **Domain bounds A9/A10** (decided by the user on 2026-10-09) are implemented on `lane/v3-domain-bounds`, which is not merged yet. Merge it before the freeze.
+3. ~~Domain bounds A9/A10~~: merged to main (`b06167fa`), with difftests showing 0 disagreements.
 4. **Freeze, then measure, then release:**
    * freeze once;
    * run the joint w1 paired-baseline window with the cost tooling;
@@ -154,14 +158,14 @@ is on no critical path and can proceed in parallel immediately.
 * field constraints (62/62);
 * R1 indexed public segments (protocol);
 * many native-execution extraction bridges (prepared IDs, SDL, codec, raw frames, queue traffic);
-* the roll-in aligned size bound. The padded two-SHA model is 6,176,224 B, leaving 917,367 B under 8 MiB after the maximum hint. This holds only if padding that preserves `HoldsP` is constructed.
+* the roll-in aligned size bound. On the concrete `nearAirV3` at `auxGroup = 2` it is **6,276,897 B**, leaving 816,694 B under 8 MiB after the maximum hint body (1,295,017 B). The earlier 6,176,224 B figure came from the padded two-SHA model. The bound holds only if padding that preserves `HoldsP` is constructed (`AlignedV3Stmt`).
 * the domain bounds (`lane/v3-domain-bounds`): `srcpV3` at `maxLog` 22 under A10, and the ChaCha lane row bound at W0. The size margin is unchanged.
 
 **Not done:**
-* the global assembled AIR `nearAirV3`;
-* `FactorSound` / `FactorComplete` against `checkD0a`;
-* `honestTrace_fits`;
-* the admission certificate;
+* `ExtractV3Stmt`, which needs `RcptV3ViewStmt` and `LinkV3Stmt`;
+* `RenderV3Stmt` + `AlignedV3Stmt`: honest trace rendering and assembly;
+* `FitsV3Stmt` (`honestTrace_fits`);
+* review note: `nearV3_admission_with_extract_b` requires an unconditional `split (join h π) = some (h, π)`, but `HintCodec.split_join` needs `h.length < 2^32`. Weaken the premise to the `Domain ∧ Rel` form that `nearV3_admission` uses, or bound the hint;
 * the padding construction;
 * the remaining byte and receipt-render constraints;
 * the Rust v2 prover;
@@ -185,7 +189,7 @@ The Lean build of all ZkFormal modules on the integration branch is filled in be
 
 * **Lean build (2026-10-09):** `lake build` over all 5,102 ZkFormal targets on the integration branch. Every module builds except `NearV3/Candidates/ProcActualGrantOperands`.
   * That file is an uncommitted WIP file from the main checkout: it has typeclass errors, and nothing imports it.
-  * It was left out of main. It is still untracked in `/data/illia/nearproof`, so finish it or delete it.
+  * Fixed and committed on 2026-10-10 (see §2).
 * **Not re-run in this merge:**
   * the about 2,400 audit files in `zk-formal/test/`, which are run individually;
   * the D3 reference check-local;
@@ -208,7 +212,7 @@ The Lean build of all ZkFormal modules on the integration branch is filled in be
 * **Future challenges:**
   * 1 Pgas as a single STARK, which needs Goldilocks, a distributed prover and precompiles;
   * a cross-shard whole-block proof (`BENCHMARK_SPEC.md` §14.11).
-* **Disk:** `/` about 96%, `/data` about 87%. Remove merged worktrees and their build dirs once they are clean and pushed.
+* **Disk:** `/` about **98%** (20 GB free), `/data` about 89% (2026-10-10). Remove merged worktrees and their build dirs once they are clean and pushed.
 
 ## 9. Key documents
 
