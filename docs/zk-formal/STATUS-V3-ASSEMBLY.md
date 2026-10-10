@@ -33,11 +33,14 @@ and `docs/HANDOVER.md` first.
   per-table views** instantiated at those indices from one `HoldsP` witness
   (`nodeView … sizeView`, plus `rcptV3_view_nearAir`).
 * **The composition plumbing** (`Assembly/NearAirBus.lean`, `ComposeV3.lean`,
-  `RenderV3Assemble.lean`, `RenderV3.lean`): `busCount_nearAirV3` (the `busCount`
-  decomposition over the 25 tables), `holdsP_of_parts`/`balance_decomp` (assemble
-  `HoldsP` from per-table `TableLocal`s + fit + balance), `count_sel`, and the
-  named render/heights obligation types (`FitsV3Stmt`, `LocalStmtV3`,
-  `TrafficStmtV3`, `BusStmtV3`).
+  `RenderV3Assemble.lean`, `RenderV3Trace.lean`, `RenderV3.lean`):
+  `busCount_nearAirV3` (the `busCount` decomposition over the 25 tables),
+  `holdsP_of_parts`/`holdsP_of_table_traffic` (assemble `HoldsP` from per-table
+  `TableLocal`s + fit + balance), `count_sel`, and `traceSum` composition
+  (`tableLocal_traceSum`, `tableTraffic_traceSum`: every per-table obligation is
+  invariant under reindexing a full trace from per-table traces). The named
+  render/heights obligation types are in `RenderV3.lean` (`FitsV3Stmt`,
+  `LocalStmtV3`, `TrafficStmtV3`, `BusStmtV3`).
 * **The link interface** (`Assembly/LinkV3.lean`): `LinkV3Stmt`, `V3Records`,
   `relD0a_of_good`.
 
