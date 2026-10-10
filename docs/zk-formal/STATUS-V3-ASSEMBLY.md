@@ -96,3 +96,29 @@ trace generators, no candidate package.  The only v3 packages are re-execution.
 Everything protocol-level, size-level and static is already discharged.  The
 remaining work is the per-table view/link/render volume (items 2–5), the Rust
 prover (item 8), and governance (item 9).
+
+## 5. Parallelisation: work packages for other agents
+
+The assembly layer is **frozen**; every package below plugs into a fixed
+interface in `Assembly/NearAir.lean` (`nearAirV3`, its table indices in
+`Assembly/ExtractV3.lean`) and the three statements in `Assembly/NearAdmission.lean`
+(`ExtractV3Stmt`, `RenderV3Stmt`, `AlignedV3Stmt`).  None of the packages below
+needs to change the frozen AIR, the spec (`NearSpecV3`) or a signed challenge.
+Work in one worktree per agent, one lane branch; integrate to `agent/v3-assembly`.
+
+| pkg | item | deliverable | interface it fills | self-contained in | deps |
+|---|---|---|---|---|---|
+| **Rust prover** | 8 | `np-udr-stark-v2` Rust prover + a candidate package that emits a real proof | the model `npVerifierP … nearAirV3 split prepV3b` (already exist); table `Air` export format in `docs/zk-formal/FORMATS.md` | `examples/np-udr-stark-v2/` (new), `runners/` | **none** — the AIR, buses and public segments are frozen |
+| **rcpt-view** | 2 | `RcptV3ViewStmt` (`Rcpt/Extract/RcptView.lean:215`) | per-table view | `zk-formal/…/Rcpt/Extract/` | none |
+| **srcp-render** | 2 | `srcpV3` render (`Rcpt/Render/Srcp/**`) | render for `T_SRCP` | `zk-formal/…/Rcpt/Render/` | none |
+| **qv-render** | 2 | `qvV3` render (`Qv/Candidates/**`) | render for `T_QV` | `zk-formal/…/Qv/` | none |
+| **ups-render** | 2 | `upsV3` render M7d (`Render/Ups/**`, `cPlan/cFields/cBytes/cMem`) | render for `T_UPS` | `zk-formal/…/Render/Ups/` | none |
+| **link** | 3 | `LinkV3Stmt` + `goodOfViews` ⇒ `ExtractV3Stmt`, composing `Link/*` into `GoodV3` | `ExtractV3Stmt` | `zk-formal/…/Assembly/` | needs the per-table views (already: node/walk/head/val/uniq/ups/acct/akey/bnd/size) |
+| **heights** | 5 | `FitsV3Stmt` = `honestTrace_fits` for `nearAirV3`, from `InD0a` (A1/A7/A8/A9/A10) | the `maxInner` side condition of `admission_v2H` | `zk-formal/…/Assembly/` | view types (frozen); `Sched/Complete/Height.lean` exists |
+| **render-assembly** | 4 | `renderV3` + `RenderV3Stmt` + `AlignedV3Stmt` | completeness half | `zk-formal/…/Assembly/`, `Render/` | per-table renders (head/val/bnd/akey/node/uniq/walk exist; others from pkg above) |
+| **governance** | 9 | add D0a tier + weights, freeze once, sign/register/deploy, judge run | — | `challenges/`, `oracle/`, `docs/` | a candidate (pkg Rust prover) |
+
+The **critical path** is `link` → `render-assembly` → governance; the **Rust
+prover** is fully independent and can start immediately.  The two integration
+targets are `lake build ZkFormal.V3.Integration` (proofs) and the candidate
+build recipe (Rust).
