@@ -66,18 +66,26 @@ into `GoodV3`, using the `Link/` folder (`root_tau`, `build_tau`, `walks_tau`,
 `HeaderCompose`, `NativeGoodGap`).  This is v1's `Near/Extract/Statements.lean`
 `LinkStmt`; it is the `link` work package.
 
-### 3.2 `RenderV3Stmt` (completeness)
+### 3.2 `RenderV3Stmt` (completeness, item 4)
 ```
 ∀ B cb w, checkD0a B cb w = .ok () →
-  ∃ h p tr, prepD0 cb h = .ok p ∧ HoldsP nearAirV3 (Udr.pubOf Fp (Prep.encode p)) tr
+  ∃ h p oh tr, prepD0 cb h = .ok p ∧ HoldsP nearAirV3 (Udr.pubOf Fp (Public.preparedBytes p oh)) tr
     ∧ (Hint.encode h).length < 2^32 ∧ (VdP nearAirV3).headerOk (trHdr nearAirV3.toAir tr) = true
 ```
-Honest trace construction.  `Render/Padded*.lean` has aligned generators for
-head/value/boundary/access-key/node/uniq/walk; the remaining tables
-(`rcptV3`, `srcpV3`, `qvV3`, `upsV3` render M7d, `mrk`/`sort`, ChaCha/scheduler)
-and the whole-trace assembly are **missing**.
+Honest trace construction, v1's `Render/Trace.lean:render` + `Render/Compose.lean:render_stmt`
+scaled to `nearAirV3`.  **Infrastructure added:** `Assembly/ComposeV3.lean`
+(`holdsP_of_parts` assembles `HoldsP` from the per-table `TableLocal`s, the public
+fit and the balance; `balance_decomp`) and `Assembly/NearAirBus.lean`
+(`busCount_nearAirV3` decomposes `busCount` over the 25 tables).  The per-table
+local+traffic renders that exist (`Render/{HeadRender,NodeRender,ValRender,
+WalkRender,UniqRender,UpsRender}.lean`, `Render/Padded*.lean`,
+`Rcpt/Render/Srcp/**`, `Rcpt/Render/{AcctRender,AkeyRender,BndRender,SizeRender}`,
+`Qv/Candidates/**`) still need a single `renderV3 : Prep → ExtV3 → Trace Fp`
+assembling them in the fixed `nearAirV3` order, plus the renders for
+`rcptV3`/`srcpV3`/`qvV3`/`chacha`/`scheduler`, and the per-bus `BusStmt`-analogue
+over the 25 tables.  This is v1's ~23 k LOC `Near/Render/`.
 
-### 3.3 `AlignedV3Stmt` (roll-in alignment)
+### 3.3 `AlignedV3Stmt` (roll-in alignment, item 4)
 The honest trace's headers land on regular arity-8 commit layers
 (`Size/PadHeader.lean` has `rollAligned_of_trace_mod3`); needs the concrete
 `traceOf` from 3.2.
@@ -85,8 +93,10 @@ The honest trace's headers land on regular arity-8 commit layers
 ### 3.4 Heights (item 5)
 `honestTrace_fits`/`FitsV3Stmt`: derive each `tr.log t ≤ nearAirV3.tables[t].maxLog`
 from `InD0a` (A1/A7/A8/A9/A10).  The scheduler arithmetic exists
-(`Sched/Complete/Height.lean`, `heights_prep`); the trie/rcpt height bounds are
-carried in the view types (`NodeWf3.rows`, `WalkWf3`, …).  Downstream of 3.1/3.2.
+(`Sched/Complete/Height.lean`, `heights_prep`); the trie/rcpt row bounds are
+already carried in the view types (`NodeWf3.rows ≤ 2^22`, `WalkWf3`,
+`RcptV3Wf`, …), so once `renderV3` sets `log t = 22` the height obligation reduces
+to the view row bounds.  Downstream of 3.2.
 
 ### 3.5 Rust prover (item 8)
 `np-udr-stark-v2` does not exist in Rust: no `AirP`/`pubSegs`, no `nearAirV3`
