@@ -6,6 +6,7 @@ import ZkFormal.NearV3.Assembly.NearAirBus
 import ZkFormal.NearV3.Assembly.ComposeV3
 import ZkFormal.NearV3.Assembly.RenderV3
 import ZkFormal.NearV3.Assembly.RenderV3Assemble
+import ZkFormal.NearV3.Assembly.RenderV3Trace
 import ZkFormal.NearV3.Assembly.NearAirCheck
 import ZkFormal.NearV3.Assembly.NearAirSize
 import ZkFormal.NearV3.Assembly.HintCodec
