@@ -47,21 +47,24 @@ Exactly **three** named statements, all about `nearAirV3`, plus the Rust prover.
 
 ### 3.1 `ExtractV3Stmt` (soundness; `Assembly/NearAdmission.lean`)
 ```
-∀ B cb h p tr, prepD0 cb h = .ok p →
-  HoldsP nearAirV3 (Udr.pubOf Fp (Prep.encode p)) tr → ∃ k x, GoodV3 B cb k h p x
+∀ B cb h p oh tr, prepD0 cb h = .ok p →
+  HoldsP nearAirV3 (Udr.pubOf Fp (Public.preparedBytes p oh)) tr → ∃ k x, GoodV3 B cb k h p x
 ```
-This is v1's `extract_of_views` scaled to 25 tables.  It needs:
-* `TableLocal` for every table from `HoldsP` (mechanical: fix the `nearAirV3`
-  table indices);
-* per-table views: `node3_view`, `walk3_view`, `head_view`, `val_view`,
-  `uniq_view`, `ups_view`, `acctV3_view`, `akey_view`, `bnd_view`, `size_view`
-  are **proved**; `RcptV3ViewStmt` (`Rcpt/Extract/RcptView.lean:215`) is stated
-  but **not yet proved**;
-* a **`LinkV3Stmt`** joining the views (the `Link/` folder has `root_tau`,
-  `build_tau`, `walks_tau`, `post_tau`, `store_hashFunctional`, `post_sets_tau`,
-  `Chain3`, `PerTau3`) into `GoodV3`, mirroring v1's `Near/Extract/Statements.lean`
-  `LinkStmt`.  **Not written.**
-* `prepD0`/`Hint` facts and the `mrk`/`sort`/`qvV3` view plumbing.
+This is v1's `extract_of_views` scaled to 25 tables.  **Done:**
+* `TableLocal` for every table from `HoldsP` (`Assembly/ExtractV3.lean`, the
+  `*Local` lemmas);
+* all eleven per-table views instantiated at the fixed table indices
+  (`Assembly/ViewsV3.lean`, `Assembly/ExtractV3.lean:rcptV3_view_nearAir`) —
+  `node3_view`, `walk3_view`, `head_view`, `val_view`, `uniq_view`, `ups_view`,
+  `acctV3_view`, `akey_view`, `bnd_view`, `size_view`, plus `RcptV3ViewStmt` for
+  `nearAirV3` from `RcptV3Proof.extract_prepared_view`.
+
+**Remaining:** the `LinkV3Stmt` (`Assembly/LinkV3.lean`) joining the view records
+into `GoodV3`, using the `Link/` folder (`root_tau`, `build_tau`, `walks_tau`,
+`post_tau`, `store_hashFunctional`, `post_sets_tau`, `Chain3`, `PerTau3`) and the
+`Assembly/` semantic modules (`Execution`, `ImplicitComplete`, `SourceComplete`,
+`HeaderCompose`, `NativeGoodGap`).  This is v1's `Near/Extract/Statements.lean`
+`LinkStmt`; it is the `link` work package.
 
 ### 3.2 `RenderV3Stmt` (completeness)
 ```
