@@ -43,17 +43,18 @@ def V3Records.toExt (r : V3Records) : ExtV3 :=
 
 /-- **The linking statement.** Given the extracted records, their well-formedness
 (the view post-conditions) and the prepared statement, reconstruct `ExtV3` and
-prove `GoodV3`.  This is v1's `LinkStmt` for `nearAirV3` and the open composition
-point of the `link` package: the fields of `GoodV3` (source semantics, exact
-execution, header semantics, amendments) are exactly what the link must derive
-from the per-table view facts and the `nearAirV3` bus balances. -/
+prove `GoodV3`.  `GoodV3` is purely semantic (it has no bus-traffic field), so the
+link needs only the view facts and the native facts the `Assembly/` modules
+already connect (execution, source, headers, amendments) — no `nearAirV3`
+bus-balance decomposition.  This is v1's `LinkStmt` for `nearAirV3` and the open
+composition point of the `link` package. -/
 def LinkV3Stmt : Prop :=
   ∀ (B : Nat) (cb : Bytes) (k : WalkD0) (h : Hint) (p : Prep) (r : V3Records),
     walkD0 cb = .ok k → prepD0 cb h = .ok p →
     ZkFormal.NearV3.NodeWf3 r.nodes → ZkFormal.NearV3.HeadWf r.heads →
     ZkFormal.NearV3.ValWf r.values → ZkFormal.NearV3.WalkWf3 r.walks →
     ZkFormal.NearV3.UpsWf r.ups →
-    ZkFormal.NearV3.RcptV3Wf (ZkFormal.Udr.pubOf Fp (Prep.encode p)) r.lists →
+    ZkFormal.NearV3.RcptV3Wf (ZkFormal.Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p 0)) r.lists →
     GoodV3 B cb k h p r.toExt
 
 /-- The D0a relation produced by the AIR through the link: `ExtractV3Stmt` gives

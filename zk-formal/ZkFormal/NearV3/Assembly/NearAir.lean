@@ -57,8 +57,25 @@ def nearTablesV3 : List ZkFormal.Air.Table :=
   ZkFormal.NearV3.Rcpt.Budget.rcptTables ++
   [ZkFormal.NearV3.Qv.Candidates.KeyTrafficRepair.table] ++ v1Tables
 
-/-- The full trie-and-beyond table list: two SHA instances first, then `nearTablesV3`. -/
-def nearTablesFull : List ZkFormal.Air.Table := [shaTable, shaTable] ++ nearTablesV3
+/-- The full trie-and-beyond table list, fully literal (so `busCount` decomposes
+by `rfl`): two SHA instances first, then the trie, ChaCha, scheduler, receipt,
+queue-value and v1 tables in the fixed order.  `nearTablesFull_literal` ties it
+to the composed `nearTablesFull`. -/
+def nearTablesFull : List ZkFormal.Air.Table :=
+  [shaTable, shaTable,
+   ZkFormal.NearV3.NodeV3.tableU, ZkFormal.NearV3.HeadV3.table, ZkFormal.NearV3.ValV3.table,
+   ZkFormal.NearV3.WalkV3.table, ZkFormal.NearV3.Uniq.table, ZkFormal.NearV3.UpsV3.table,
+   ZkFormal.Chacha.Table.table ZkFormal.NearV3.Sched.B_SCHACHA,
+   ZkFormal.Chacha.Rng.Table.table ZkFormal.NearV3.Sched.B_SCHACHA ZkFormal.NearV3.Sched.B_SGEN,
+   ZkFormal.Chacha.Shuffle.Table.table ZkFormal.NearV3.Sched.B_SSIN ZkFormal.NearV3.Sched.B_SSOUT
+     ZkFormal.NearV3.Sched.B_SSMEM ZkFormal.NearV3.Sched.B_SGEN ZkFormal.NearV3.Sched.B_SSHUF,
+   ZkFormal.NearV3.Sched.Codec.table, ZkFormal.NearV3.Sched.ScanDist.table,
+   ZkFormal.NearV3.Sched.Proc.table, ZkFormal.NearV3.Sched.Mem.table,
+   ZkFormal.NearV3.Sched.Cmp.table ZkFormal.NearV3.Sched.B_SCMP,
+   ZkFormal.NearV3.RcptV3.table, ZkFormal.NearV3.AcctV3.table, ZkFormal.NearV3.AkeyV3.table,
+   ZkFormal.NearV3.BndV3.table, ZkFormal.NearV3.SrcpV3.table, ZkFormal.NearV3.SizeV3.table,
+   ZkFormal.NearV3.Qv.Candidates.KeyTrafficRepair.table,
+   ZkFormal.NearV3.Candidates.MerklePublic.table, {ZkFormal.Near.Sort.table with maxLog := 18}]
 
 /-- `numBuses` covers every bus any table uses (max in use is `B_QVC = 63`). -/
 def nearBuses : Nat := 77
