@@ -2,17 +2,18 @@ import ZkFormal.NearV3.Assembly.NearAirBus
 import ZkFormal.NearV3.Assembly.ComposeV3
 
 /-!
-# ZkFormal.NearV3.Assembly.RenderV3Assemble — the render-composition plumbing
+# ZkFormal.NearV3.Assembly.RenderV3Assemble — helpers for the render composition
 
 v1's `Render/Compose.lean:render_stmt` proves `Holds nearAir` from the per-table
 `LocalStmt`/`TrafficStmt` and the per-bus `BusStmt`.  The same composition works
-for `nearAirV3`; the two trace-free ingredients are supplied here:
+for `nearAirV3`, and this module supplies the two trace-free ingredients:
 
 * `count_sel` — a table's `tableBusCount` equals the count of the messages of its
   `TableTraffic` (v1's `count_sel`);
-* `holdsP_of_table_traffic` — assemble `HoldsP nearAirV3` from the per-table
-  `TableLocal`s, the per-table `tableBusCount`-decomposed balance, and the public
-  fit, via `busCount_nearAirV3` (`NearAirBus`) and `holdsP_of_parts` (`ComposeV3`).
+* `holdsP_of_parts` / `balance_decomp` (`ComposeV3`) and `busCount_nearAirV3`
+  (`NearAirBus`) — assembling `HoldsP` from the per-table `TableLocal`s, the
+  public fit and the balance, with the `nearAirV3` bus count decomposed over its
+  25 tables.
 
 The remaining `render-assembly` work is the concrete `renderV3` trace and the
 per-table `TableLocal`/`TableTraffic` pairs (see
@@ -38,25 +39,5 @@ theorem count_sel {is : List Interaction} {tr : Trace Fp} {t : Nat} {pub : List 
   cases s
   · exact (h b m).2
   · exact (h b m).1
-
-/-- **`HoldsP nearAirV3` from per-table obligations.**  The balance is given in the
-`nearAirV3`-decomposed (per-table `tableBusCount`) form; `busCount_nearAirV3`
-connects it to the AIR's `busCount`.  `count_sel` turns `tableBusCount` into the
-count of each table's traffic, so the render package supplies the traffic balance.
--/
-theorem holdsP_of_table_traffic {pub : List Fp} {tr : Trace Fp}
-    (hL : ∀ (t : Nat) (ht : t < nearAirV3.tables.length),
-      ZkFormal.Near.TableLocal nearAirV3.tables[t] tr t pub)
-    (hfit : pubFit nearAirV3 pub = true)
-    (hbal : ∀ b m,
-      (nearTablesFull.mapIdx fun (t : Nat) (T : ZkFormal.Air.Table) =>
-          tableBusCount T.interactions tr t pub b true m).sum + pubCount nearAirV3 pub b true m =
-        (nearTablesFull.mapIdx fun (t : Nat) (T : ZkFormal.Air.Table) =>
-          tableBusCount T.interactions tr t pub b false m).sum + pubCount nearAirV3 pub b false m) :
-    HoldsP nearAirV3 pub tr := by
-  refine holdsP_of_parts hL hfit ?_
-  intro b m
-  rw [busCount_nearAirV3 tr pub b true m, busCount_nearAirV3 tr pub b false m]
-  exact hbal b m
 
 end ZkFormal.NearV3.Assembly
