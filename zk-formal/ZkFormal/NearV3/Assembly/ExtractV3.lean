@@ -11,6 +11,8 @@ import ZkFormal.NearV3.Rcpt.Extract.AcctProof
 import ZkFormal.NearV3.Rcpt.Extract.AkeyProof
 import ZkFormal.NearV3.Rcpt.Extract.BndProof
 import ZkFormal.NearV3.Rcpt.Extract.SizeProof
+import ZkFormal.NearV3.Rcpt.Extract.V.ViewProof
+import ZkFormal.NearV3.Public.Prepared
 
 /-!
 # ZkFormal.NearV3.Assembly.ExtractV3 — the AIR-to-semantics link
@@ -162,5 +164,24 @@ theorem srcpLocal (h : HoldsP nearAirV3 pub tr) :
 theorem sizeLocal (h : HoldsP nearAirV3 pub tr) :
     ZkFormal.Near.TableLocal ZkFormal.NearV3.SizeV3.table tr T_SIZE pub :=
   tableLocal_of_holdsP h getElem?_size
+
+/-! ## The `rcptV3` view of the assembled AIR (item 2, `rcpt-view`) -/
+
+/-- **`RcptV3ViewStmt` for `nearAirV3`**, from successful native preparation and the
+packed public-size bound.  The receipts view is the exact traffic of the extracted
+list view; `prepared_receipt_ranges` discharges the public-range premise from
+`prepD0` (`Public.preparedBytes`, the concrete `nearAirV3.pubSegs`). -/
+theorem rcptV3_view_nearAir {cb : Bytes} {h : NearSpecV3.Hint} {p : NearSpecV3.Prep} {oh : Nat}
+    (hp : NearSpecV3.prepD0 cb h = .ok p)
+    (hsize : (ZkFormal.NearV3.Public.preparedBytes p oh).length < ZkFormal.Algebra.P)
+    (tr : Trace Fp) (t : Nat)
+    (hL : ZkFormal.Near.TableLocal ZkFormal.NearV3.RcptV3.table tr t
+      (Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p oh))) :
+    ∃ ls, ZkFormal.NearV3.RcptV3Wf (Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p oh)) ls ∧
+      ZkFormal.Near.TableTraffic ZkFormal.NearV3.RcptV3.interactions tr t
+        (Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p oh))
+        (ZkFormal.NearV3.rcptTraffic3
+          (Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p oh)) ls) :=
+  ZkFormal.NearV3.RcptV3Proof.extract_prepared_view hp oh hsize tr t hL
 
 end ZkFormal.NearV3.Assembly
