@@ -75,8 +75,8 @@ theorem tableLocal_of_holdsP {AP : AirP} {pub : List Fp} {tr : Trace Fp}
 
 /-- The `nearAirV3` table list in positional form. -/
 theorem nearTablesFull_eq : nearAirV3.tables =
-    [shaTable, shaTable, ZkFormal.NearV3.NodeV3.tableU, ZkFormal.NearV3.HeadV3.table,
-     ZkFormal.NearV3.ValV3.table, ZkFormal.NearV3.WalkV3.table, ZkFormal.NearV3.Uniq.table,
+    [shaTable, shaTable, ZkFormal.NearV3.NodeV3.tableU, {ZkFormal.NearV3.HeadV3.table with maxLog := 13},
+     ZkFormal.NearV3.ValV3.table, {ZkFormal.NearV3.WalkV3.table with maxLog := 22}, ZkFormal.NearV3.Uniq.table,
      ZkFormal.NearV3.UpsV3.table,
      ZkFormal.Chacha.Table.table ZkFormal.NearV3.Sched.B_SCHACHA,
      ZkFormal.Chacha.Rng.Table.table ZkFormal.NearV3.Sched.B_SCHACHA ZkFormal.NearV3.Sched.B_SGEN,
@@ -97,9 +97,11 @@ theorem tables_eq : nearAirV3.tables = nearAirV3Air.tables := rfl
 /-! ## Per-index lookups (the interface the per-table views plug into) -/
 
 theorem getElem?_node : nearAirV3.tables[T_NODE]? = some ZkFormal.NearV3.NodeV3.tableU := rfl
-theorem getElem?_head : nearAirV3.tables[T_HEAD]? = some ZkFormal.NearV3.HeadV3.table := rfl
+theorem getElem?_head : nearAirV3.tables[T_HEAD]? =
+    some {ZkFormal.NearV3.HeadV3.table with maxLog := 13} := rfl
 theorem getElem?_val : nearAirV3.tables[T_VAL]? = some ZkFormal.NearV3.ValV3.table := rfl
-theorem getElem?_walk : nearAirV3.tables[T_WALK]? = some ZkFormal.NearV3.WalkV3.table := rfl
+theorem getElem?_walk : nearAirV3.tables[T_WALK]? =
+    some {ZkFormal.NearV3.WalkV3.table with maxLog := 22} := rfl
 theorem getElem?_uniq : nearAirV3.tables[T_UNIQ]? = some ZkFormal.NearV3.Uniq.table := rfl
 theorem getElem?_ups : nearAirV3.tables[T_UPS]? = some ZkFormal.NearV3.UpsV3.table := rfl
 theorem getElem?_rcpt : nearAirV3.tables[T_RCPT]? = some ZkFormal.NearV3.RcptV3.table := rfl
@@ -122,7 +124,7 @@ theorem nodeLocal (h : HoldsP nearAirV3 pub tr) :
   tableLocal_of_holdsP h getElem?_node
 
 theorem headLocal (h : HoldsP nearAirV3 pub tr) :
-    ZkFormal.Near.TableLocal ZkFormal.NearV3.HeadV3.table tr T_HEAD pub :=
+    ZkFormal.Near.TableLocal {ZkFormal.NearV3.HeadV3.table with maxLog := 13} tr T_HEAD pub :=
   tableLocal_of_holdsP h getElem?_head
 
 theorem valLocal (h : HoldsP nearAirV3 pub tr) :
@@ -130,7 +132,7 @@ theorem valLocal (h : HoldsP nearAirV3 pub tr) :
   tableLocal_of_holdsP h getElem?_val
 
 theorem walkLocal (h : HoldsP nearAirV3 pub tr) :
-    ZkFormal.Near.TableLocal ZkFormal.NearV3.WalkV3.table tr T_WALK pub :=
+    ZkFormal.Near.TableLocal {ZkFormal.NearV3.WalkV3.table with maxLog := 22} tr T_WALK pub :=
   tableLocal_of_holdsP h getElem?_walk
 
 theorem uniqLocal (h : HoldsP nearAirV3 pub tr) :

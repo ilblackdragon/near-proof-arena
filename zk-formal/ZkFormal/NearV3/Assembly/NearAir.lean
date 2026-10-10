@@ -63,8 +63,9 @@ queue-value and v1 tables in the fixed order.  `nearTablesFull_literal` ties it
 to the composed `nearTablesFull`. -/
 def nearTablesFull : List ZkFormal.Air.Table :=
   [shaTable, shaTable,
-   ZkFormal.NearV3.NodeV3.tableU, ZkFormal.NearV3.HeadV3.table, ZkFormal.NearV3.ValV3.table,
-   ZkFormal.NearV3.WalkV3.table, ZkFormal.NearV3.Uniq.table, ZkFormal.NearV3.UpsV3.table,
+   ZkFormal.NearV3.NodeV3.tableU, {ZkFormal.NearV3.HeadV3.table with maxLog := 13},
+   ZkFormal.NearV3.ValV3.table, {ZkFormal.NearV3.WalkV3.table with maxLog := 22},
+   ZkFormal.NearV3.Uniq.table, ZkFormal.NearV3.UpsV3.table,
    ZkFormal.Chacha.Table.table ZkFormal.NearV3.Sched.B_SCHACHA,
    ZkFormal.Chacha.Rng.Table.table ZkFormal.NearV3.Sched.B_SCHACHA ZkFormal.NearV3.Sched.B_SGEN,
    ZkFormal.Chacha.Shuffle.Table.table ZkFormal.NearV3.Sched.B_SSIN ZkFormal.NearV3.Sched.B_SSOUT

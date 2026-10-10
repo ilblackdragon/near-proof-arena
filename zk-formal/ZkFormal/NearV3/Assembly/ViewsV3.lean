@@ -36,17 +36,17 @@ theorem nodeView (h : HoldsP nearAirV3 pub tr) :
 
 /-- Walk records and their exact traffic, from `HoldsP` at `T_WALK`. -/
 theorem walkView (h : HoldsP nearAirV3 pub tr) :
-    ∃ ws, ZkFormal.NearV3.WalkWf3 ws ∧ (ws.flatMap (·.steps)).length ≤ 2 ^ 21 ∧
+    ∃ ws, ZkFormal.NearV3.WalkWf3 ws ∧ (ws.flatMap (·.steps)).length ≤ 2 ^ 22 ∧
       ZkFormal.Near.TableTraffic ZkFormal.NearV3.WalkV3.interactions tr T_WALK pub
         (ZkFormal.NearV3.walkTraffic3 ws) :=
-  ZkFormal.NearV3.walk3_view tr pub T_WALK (walkLocal h)
+  ZkFormal.NearV3.walk3_view_at 22 (by decide) tr pub T_WALK (walkLocal h)
 
 /-- Head records and their exact traffic, from `HoldsP` at `T_HEAD`. -/
 theorem headView (h : HoldsP nearAirV3 pub tr) :
     ∃ hs, ZkFormal.NearV3.HeadWf hs ∧
       ZkFormal.Near.TableTraffic ZkFormal.NearV3.HeadV3.interactions tr T_HEAD pub
         (ZkFormal.NearV3.headTraffic hs) :=
-  ZkFormal.NearV3.head_view tr pub T_HEAD (headLocal h)
+  ZkFormal.NearV3.head_view_at 13 (by decide) tr pub T_HEAD (headLocal h)
 
 /-- Value records and their exact traffic, from `HoldsP` at `T_VAL`. -/
 theorem valView (h : HoldsP nearAirV3 pub tr) :
