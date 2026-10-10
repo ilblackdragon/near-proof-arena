@@ -3,6 +3,7 @@ import ZkFormal.NearV3.Assembly.NearAirCheck
 import ZkFormal.NearV3.Assembly.Good
 import ZkFormal.NearV3.Assembly.FactorSound
 import ZkFormal.NearV3.Assembly.HintCodec
+import ZkFormal.NearV3.Public.Prepared
 import ZkFormal.V2.PG.Admission
 import NearSpecV3.ChallengeD0a
 
@@ -85,11 +86,13 @@ theorem nearV3_lo (hdr : List Nat)
   exact (verifier_headerOk h).2
 
 /-- **Soundness obligation.** Any trace accepted on a prepared statement that
-`prepD0` produces reconstructs concrete semantic views `GoodV3`. -/
+`prepD0` produces reconstructs concrete semantic views `GoodV3`.  The public vector
+is the protocol packing `Public.preparedBytes` (the concrete `nearAirV3.pubSegs`). -/
 def ExtractV3Stmt : Prop :=
-  ∀ (B : Nat) (cb : List UInt8) (h : NearSpecV3.Hint) (p : NearSpecV3.Prep) (tr : Trace Fp),
+  ∀ (B : Nat) (cb : Bytes) (h : NearSpecV3.Hint) (p : NearSpecV3.Prep) (oh : Nat)
+    (tr : Trace Fp),
     NearSpecV3.prepD0 cb h = .ok p →
-    HoldsP nearAirV3 (Udr.pubOf Fp (NearSpecV3.Prep.encode p)) tr →
+    HoldsP nearAirV3 (Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p oh)) tr →
     ∃ k x, GoodV3 B cb k h p x
 
 /-- **Completeness obligation.** Every `RelD0a` claim admits a hint, a prepared
@@ -97,18 +100,19 @@ statement and an honest trace satisfying `HoldsP` with an admissible header. -/
 def RenderV3Stmt : Prop :=
   ∀ (B : Nat) (cb w : List UInt8),
     NearSpecV3.checkD0a B cb w = .ok () →
-    ∃ (h : NearSpecV3.Hint) (p : NearSpecV3.Prep) (tr : Trace Fp),
+    ∃ (h : NearSpecV3.Hint) (p : NearSpecV3.Prep) (oh : Nat) (tr : Trace Fp),
       NearSpecV3.prepD0 cb h = .ok p ∧
-      HoldsP nearAirV3 (Udr.pubOf Fp (NearSpecV3.Prep.encode p)) tr ∧
+      HoldsP nearAirV3 (Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p oh)) tr ∧
       (ZkFormal.NearV3.Assembly.Hint.encode h).length < 256 ^ 4 ∧
       (ZkFormal.Prover.Np.G.VdP nearAirV3).headerOk (trHdr nearAirV3.toAir tr) = true
 
 /-- **Honest roll-in alignment.** The honest traces of `RenderV3Stmt` are
 roll-in aligned, so the aligned size bound (`nearV3_size`) applies. -/
 def AlignedV3Stmt : Prop :=
-  ∀ (B : Nat) (cb w : List UInt8) (h : NearSpecV3.Hint) (p : NearSpecV3.Prep) (tr : Trace Fp),
+  ∀ (B : Nat) (cb w : List UInt8) (h : NearSpecV3.Hint) (p : NearSpecV3.Prep) (oh : Nat)
+    (tr : Trace Fp),
     NearSpecV3.checkD0a B cb w = .ok () → NearSpecV3.prepD0 cb h = .ok p →
-    HoldsP nearAirV3 (Udr.pubOf Fp (NearSpecV3.Prep.encode p)) tr →
+    HoldsP nearAirV3 (Udr.pubOf Fp (ZkFormal.NearV3.Public.preparedBytes p oh)) tr →
     (ZkFormal.Prover.Np.G.VdP nearAirV3).headerOk (trHdr nearAirV3.toAir tr) = true →
     RollAligned nearAirV3.toAir ZkFormal.Prover.Np.G.dp (trHdr nearAirV3.toAir tr)
 
@@ -163,10 +167,11 @@ theorem nearV3_admission
     v3MaxInner hsize v3MaxInner_le hjoin d0a_model d0a_assm d0a_tb d0a_qh d0a_qp
     8 Assembly.g2_8 hlo Assembly.g2_8_dom Assembly.udr2_K24_min8_ok nearAirV3_npOkPg_2 nearV3_NVu
 
-/-- The canonical prepared-statement codec: `prepD0` then `Prep.encode`. -/
+/-- The canonical prepared-statement codec: `prepD0` then the protocol packing
+`Public.preparedBytes` (the concrete `nearAirV3.pubSegs` public vector). -/
 def prepV3 (cb : List UInt8) (h : NearSpecV3.Hint) : Option (List UInt8) :=
   match NearSpecV3.prepD0 cb h with
-  | .ok p => some (NearSpecV3.Prep.encode p)
+  | .ok p => some (ZkFormal.NearV3.Public.preparedBytes p 0)
   | .error _ => none
 
 /-- **Soundness premise from `ExtractV3Stmt`.** The AIR-to-semantics obligation, composed
@@ -182,7 +187,7 @@ theorem hsound_of_extract (hext : ExtractV3Stmt) :
   · rename_i p hprep
     injection hp with hcb'
     subst hcb'
-    obtain ⟨k, x, hg⟩ := hext NearSpecV3.B0 (WfClaim.encode c) h p tr hprep hH
+    obtain ⟨k, x, hg⟩ := hext NearSpecV3.B0 (WfClaim.encode c) h p 0 tr hprep hH
     exact ⟨witnessOfV3 k x, (NearSpecV3.relD0a_iff NearSpecV3.B0 (WfClaim.encode c) _).mpr
       (ZkFormal.NearV3.Assembly.factorSound NearSpecV3.B0 (WfClaim.encode c) k h p x hg)⟩
   · exact absurd hp (by simp)

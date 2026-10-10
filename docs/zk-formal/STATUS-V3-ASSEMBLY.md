@@ -47,21 +47,24 @@ Exactly **three** named statements, all about `nearAirV3`, plus the Rust prover.
 
 ### 3.1 `ExtractV3Stmt` (soundness; `Assembly/NearAdmission.lean`)
 ```
-∀ B cb h p tr, prepD0 cb h = .ok p →
-  HoldsP nearAirV3 (Udr.pubOf Fp (Prep.encode p)) tr → ∃ k x, GoodV3 B cb k h p x
+∀ B cb h p oh tr, prepD0 cb h = .ok p →
+  HoldsP nearAirV3 (Udr.pubOf Fp (Public.preparedBytes p oh)) tr → ∃ k x, GoodV3 B cb k h p x
 ```
-This is v1's `extract_of_views` scaled to 25 tables.  It needs:
-* `TableLocal` for every table from `HoldsP` (mechanical: fix the `nearAirV3`
-  table indices);
-* per-table views: `node3_view`, `walk3_view`, `head_view`, `val_view`,
-  `uniq_view`, `ups_view`, `acctV3_view`, `akey_view`, `bnd_view`, `size_view`
-  are **proved**; `RcptV3ViewStmt` (`Rcpt/Extract/RcptView.lean:215`) is stated
-  but **not yet proved**;
-* a **`LinkV3Stmt`** joining the views (the `Link/` folder has `root_tau`,
-  `build_tau`, `walks_tau`, `post_tau`, `store_hashFunctional`, `post_sets_tau`,
-  `Chain3`, `PerTau3`) into `GoodV3`, mirroring v1's `Near/Extract/Statements.lean`
-  `LinkStmt`.  **Not written.**
-* `prepD0`/`Hint` facts and the `mrk`/`sort`/`qvV3` view plumbing.
+This is v1's `extract_of_views` scaled to 25 tables.  **Done:**
+* `TableLocal` for every table from `HoldsP` (`Assembly/ExtractV3.lean`, the
+  `*Local` lemmas);
+* all eleven per-table views instantiated at the fixed table indices
+  (`Assembly/ViewsV3.lean`, `Assembly/ExtractV3.lean:rcptV3_view_nearAir`) —
+  `node3_view`, `walk3_view`, `head_view`, `val_view`, `uniq_view`, `ups_view`,
+  `acctV3_view`, `akey_view`, `bnd_view`, `size_view`, plus `RcptV3ViewStmt` for
+  `nearAirV3` from `RcptV3Proof.extract_prepared_view`.
+
+**Remaining:** the `LinkV3Stmt` (`Assembly/LinkV3.lean`) joining the view records
+into `GoodV3`, using the `Link/` folder (`root_tau`, `build_tau`, `walks_tau`,
+`post_tau`, `store_hashFunctional`, `post_sets_tau`, `Chain3`, `PerTau3`) and the
+`Assembly/` semantic modules (`Execution`, `ImplicitComplete`, `SourceComplete`,
+`HeaderCompose`, `NativeGoodGap`).  This is v1's `Near/Extract/Statements.lean`
+`LinkStmt`; it is the `link` work package.
 
 ### 3.2 `RenderV3Stmt` (completeness)
 ```
@@ -96,3 +99,29 @@ trace generators, no candidate package.  The only v3 packages are re-execution.
 Everything protocol-level, size-level and static is already discharged.  The
 remaining work is the per-table view/link/render volume (items 2–5), the Rust
 prover (item 8), and governance (item 9).
+
+## 5. Parallelisation: work packages for other agents
+
+The assembly layer is **frozen**; every package below plugs into a fixed
+interface in `Assembly/NearAir.lean` (`nearAirV3`, its table indices in
+`Assembly/ExtractV3.lean`) and the three statements in `Assembly/NearAdmission.lean`
+(`ExtractV3Stmt`, `RenderV3Stmt`, `AlignedV3Stmt`).  None of the packages below
+needs to change the frozen AIR, the spec (`NearSpecV3`) or a signed challenge.
+Work in one worktree per agent, one lane branch; integrate to `agent/v3-assembly`.
+
+| pkg | item | deliverable | interface it fills | self-contained in | deps |
+|---|---|---|---|---|---|
+| **Rust prover** | 8 | `np-udr-stark-v2` Rust prover + a candidate package that emits a real proof | the model `npVerifierP … nearAirV3 split prepV3b` (already exist); table `Air` export format in `docs/zk-formal/FORMATS.md` | `examples/np-udr-stark-v2/` (new), `runners/` | **none** — the AIR, buses and public segments are frozen |
+| **rcpt-view** | 2 | `RcptV3ViewStmt` (`Rcpt/Extract/RcptView.lean:215`) | per-table view | `zk-formal/…/Rcpt/Extract/` | none |
+| **srcp-render** | 2 | `srcpV3` render (`Rcpt/Render/Srcp/**`) | render for `T_SRCP` | `zk-formal/…/Rcpt/Render/` | none |
+| **qv-render** | 2 | `qvV3` render (`Qv/Candidates/**`) | render for `T_QV` | `zk-formal/…/Qv/` | none |
+| **ups-render** | 2 | `upsV3` render M7d (`Render/Ups/**`, `cPlan/cFields/cBytes/cMem`) | render for `T_UPS` | `zk-formal/…/Render/Ups/` | none |
+| **link** | 3 | `LinkV3Stmt` + `goodOfViews` ⇒ `ExtractV3Stmt`, composing `Link/*` into `GoodV3` | `ExtractV3Stmt` | `zk-formal/…/Assembly/` | needs the per-table views (already: node/walk/head/val/uniq/ups/acct/akey/bnd/size) |
+| **heights** | 5 | `FitsV3Stmt` = `honestTrace_fits` for `nearAirV3`, from `InD0a` (A1/A7/A8/A9/A10) | the `maxInner` side condition of `admission_v2H` | `zk-formal/…/Assembly/` | view types (frozen); `Sched/Complete/Height.lean` exists |
+| **render-assembly** | 4 | `renderV3` + `RenderV3Stmt` + `AlignedV3Stmt` | completeness half | `zk-formal/…/Assembly/`, `Render/` | per-table renders (head/val/bnd/akey/node/uniq/walk exist; others from pkg above) |
+| **governance** | 9 | add D0a tier + weights, freeze once, sign/register/deploy, judge run | — | `challenges/`, `oracle/`, `docs/` | a candidate (pkg Rust prover) |
+
+The **critical path** is `link` → `render-assembly` → governance; the **Rust
+prover** is fully independent and can start immediately.  The two integration
+targets are `lake build ZkFormal.V3.Integration` (proofs) and the candidate
+build recipe (Rust).

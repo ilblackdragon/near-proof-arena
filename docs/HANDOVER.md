@@ -126,6 +126,27 @@ certificate now exist; see `docs/zk-formal/STATUS-V3-ASSEMBLY.md` and
 * The A9/A10 domain decisions (`W0 = 770,000`, `Dp0 = 32`) are merged from `lane/v3-domain-bounds`.
 * Still open: `ExtractV3Stmt`, `RenderV3Stmt`, `AlignedV3Stmt`, `FitsV3Stmt`, the Rust prover.
 
+**Parallel work packages for other agents.**  The assembly layer is frozen
+(`nearAirV3`, its table indices, and the three statements).  Each package below is
+self-contained and plugs into a fixed interface; full detail in
+`docs/zk-formal/STATUS-V3-ASSEMBLY.md` §5.  One worktree + lane branch per agent;
+integrate to `agent/v3-assembly`.
+
+| pkg | item | deliverable / file | deps |
+|---|---|---|---|
+| **Rust prover** | 8 | `np-udr-stark-v2` Rust prover + candidate package (`examples/np-udr-stark-v2/`, new). AIR/buses/public segments are frozen; export format in `docs/zk-formal/FORMATS.md`. **Fully independent — start now.** | none |
+| **rcpt-view** | 2 | prove `RcptV3ViewStmt` (`Rcpt/Extract/RcptView.lean:215`) | none |
+| **srcp-render** | 2 | `srcpV3` render (`Rcpt/Render/Srcp/**`) | none |
+| **qv-render** | 2 | `qvV3` render (`Qv/Candidates/**`) | none |
+| **ups-render** | 2 | `upsV3` render M7d (`Render/Ups/**`) | none |
+| **link** | 3 | prove `LinkV3Stmt` (`Assembly/LinkV3.lean`) ⇒ `ExtractV3Stmt`; per-table `*Local` and `*ViewStmt` wiring is fixed in `Assembly/ExtractV3.lean`. | views (most exist) |
+| **heights** | 5 | `FitsV3Stmt`/`honestTrace_fits` for `nearAirV3` from `InD0a`; `Sched/Complete/Height.lean` exists. | views |
+| **render-assembly** | 4 | `renderV3` + `RenderV3Stmt` + `AlignedV3Stmt` | renders |
+| **governance** | 9 | D0a tier + weights, freeze, sign/register/deploy, judge run | Rust prover |
+
+Critical path: `link` → `render-assembly` → governance.  The **Rust prover** (item 8)
+is on no critical path and can proceed in parallel immediately.
+
 **Done:**
 * soundness views and links for the trie, scheduler, ChaCha and receipts;
 * ChaCha completeness;
