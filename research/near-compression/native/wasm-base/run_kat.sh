@@ -14,6 +14,15 @@ pass=0; fail=0
 for w in "$OUT"/progs/*.wasm; do
   n=$(basename "$w" .wasm)
   "$TOOL" prep "$w" main $G0 > "$OUT/progs/$n.prep.json"
+  # A program whose only imports are outside the checker's domain (the HOST row cannot carry the
+  # signature: `validator_stake` np=3, `gas` i32) must be rejected as ineligible.  That rejection is
+  # the KAT: there is no trace to generate.
+  if [ "$(python3 -c "import json;print(json.load(open('$OUT/progs/$n.prep.json')).get('eligible'))")" = "False" ]; then
+    if [ "$(python3 -c "import json;print(json.load(open('$OUT/progs/$n.json')).get('result'))")" = "ineligible" ]; then
+      pass=$((pass+1)); continue
+    fi
+    fail=$((fail+1)); echo "FAIL $n (unexpectedly ineligible)"; continue
+  fi
   read -r nloc ngl nimp <<<"$(python3 -c "import json;d=json.load(open('$OUT/progs/$n.prep.json'));print(len(d['localTags']),d.get('ngl',0),1 if d.get('hosts') else 0)")"
   AIRK=air; [ "$nimp" = 1 ] && AIRK=airH
   [ -f "$OUT/$AIRK-$nloc-g$ngl.json" ] || "$TOOL" $AIRK "$nloc" "$ngl" > "$OUT/$AIRK-$nloc-g$ngl.json"

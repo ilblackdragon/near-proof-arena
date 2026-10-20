@@ -543,10 +543,40 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
             cases.push((format!("HOST[row {r}].tP0+1"), cell(th, r, tp0, plus1())));
         }
         cases.push(("HOST.act=0".into(), cell(th, 0, col(th, "act"), Box::new(|_| F::ZERO))));
+        // Swap the host id to **another id present in the table**: the row still type-checks against
+        // HOSTT, so what rejects it is the code record / HOSTQ binding.  This is the case that
+        // matters for the context family, whose ids are all `np = 1` or `np = 0` in one module.
+        let hid = col(th, "hid");
+        let np = col(th, "np");
+        let ar = col(th, "ar");
+        let w = g.mats[th].width;
+        let rows = g.rows_per_table[th].1;
+        if let Some(r) = (0..rows).find(|&r| {
+            let cur = g.mats[th].values[r * w + hid].as_canonical_u32();
+            // a different id whose (np, ar) agrees, so only the *which function* part changes
+            (0..prep.host_tab.len() as u32).any(|k| {
+                k != cur
+                    && prep.host_tab[k as usize][1] == g.mats[th].values[r * w + np].as_canonical_u32() as u64
+                    && prep.host_tab[k as usize][2] == g.mats[th].values[r * w + ar].as_canonical_u32() as u64
+            })
+        }) {
+            let cur = g.mats[th].values[r * w + hid].as_canonical_u32();
+            let alt = (0..prep.host_tab.len() as u32)
+                .find(|&k| {
+                    k != cur
+                        && prep.host_tab[k as usize][1] == g.mats[th].values[r * w + np].as_canonical_u32() as u64
+                        && prep.host_tab[k as usize][2] == g.mats[th].values[r * w + ar].as_canonical_u32() as u64
+                })
+                .unwrap();
+            cases.push((
+                format!("HOST[row {r}].hid {cur} -> {alt} (same signature)"),
+                cell(th, r, hid, Box::new(move |_| F::from_u64(alt as u64))),
+            ));
+        }
     }
     if let Ok(to) = std::panic::catch_unwind(|| tb("HOSTO")) {
         if g.rows_per_table[to].1 > 0 {
-            for c in ["st", "r0", "g0", "g1", "ar", "mult"] {
+            for c in ["st", "r0", "g0", "g1", "ar", "mult", "q1", "q2", "q7"] {
                 cases.push((format!("HOSTO.{c}+1"), cell(to, 0, col(to, c), plus1())));
             }
         }

@@ -6,12 +6,13 @@ import WasmBase.CheckFacts
 Extends `WasmBase.check`/`checkModule` without touching them:
 
 * an import call is a straight-line instruction with the signature `(np, ar)` of the **fixed host
-  table** (`Chips.hostIdOf` / `Chips.hostSig`), and the code record `[pc, opHost, h, fee, hid, np, ar, 0]`;
+  table** (`Chips.hostChipIdOf` / `Chips.hostChipSig`, which reject a listed function whose `(np, ar)`
+does not fit the HOST message shape — only `validator_stake`, `np = 3`), and the code record `[pc, opHost, h, fee, hid, np, ar, 0]`;
 * `analyzeH` / `verifyAtH` / `structOkH` / `recordAtH` are the same static pass with that extra case;
 * `checkModuleH` additionally requires every import to be a function import declared in the host
   table and returns the checked functions, their code records and the cachec HOSTT rows.
 
-Every condition is decidable (`hostIdOf` is a `find?` over a fixed list).
+Every condition is decidable (`hostChipIdOf` is a `find?` over a fixed list).
 -/
 namespace WasmBase
 open NearSpecV3.Wasm
@@ -20,7 +21,7 @@ open NearSpecV3.Wasm
 def sigOfH (p : Prepared) (fi : Nat) : Option (Nat × Nat) :=
   if fi < p.m.imports.size then
     match p.m.imports[fi]? with
-    | some im => if im.kind = 0 then (Chips.hostIdOf im.name).bind Chips.hostSig else none
+    | some im => if im.kind = 0 then (Chips.hostChipIdOf im.name).bind Chips.hostChipSig else none
     | none => none
   else sigOf p fi
 
@@ -160,7 +161,7 @@ def checkModuleH (cfg : NearCfg) (p : Prepared) (entry : Nat) : Option ModOutH :
     if fns.head? = some entry ∧ total < 2 ^ 20 ∧ layoutOk fns offs sizes total = true ∧
         fns.all (fun fn => ((p.funcs[fn]?.map (calleesOf p)).getD []).all (fns.contains ·)) ∧
         (pfs.head?.map (·.type.params.size)) = some 0 ∧
-        p.m.imports.all (fun im => im.kind = 0 ∧ (Chips.hostIdOf im.name).isSome) then
+        p.m.imports.all (fun im => im.kind = 0 ∧ (Chips.hostChipIdOf im.name).isSome) then
       some { mod := { fns, cks, offs, sizes, codeSize := total, records := recs.toArray,
                       maxFee := (cks.map (·.maxFee)).foldl max 0 + (cks.map (·.prologue)).foldl max 0,
                       funcs := (List.range fns.length).map fun k => funcRow (offs.getD k 0) (cks.getD k default) },

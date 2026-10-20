@@ -45,3 +45,4 @@ import WasmBase.Main.HostChipFacts
 import WasmBase.Main.HostLinks
 import WasmBase.Main.RowHostSpec
 import WasmBase.Main.ExecHost
+import WasmBase.HostCtx

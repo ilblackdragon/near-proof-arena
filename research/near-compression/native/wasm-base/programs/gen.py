@@ -308,6 +308,77 @@ def hosttrap():
     return {'name': 'hosttrap', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps}
 
 
+def hostctxword():
+    """The Shape-A word getters: `block_index`, `block_timestamp`, `epoch_height`, `storage_usage`,
+    `prepaid_gas` summed; `used_gas` called (its value depends on the charges, so it is dropped)."""
+    imps = [('env', 'block_index', [], 'i64'), ('env', 'block_timestamp', [], 'i64'),
+            ('env', 'epoch_height', [], 'i64'), ('env', 'storage_usage', [], 'i64'),
+            ('env', 'prepaid_gas', [], 'i64'), ('env', 'used_gas', [], 'i64')]
+    acc = 0
+    b = [('i64.const', 0), ('local.set', acc)]
+    for k in range(5):
+        b += [('call', k), ('local.get', acc), 'i64.add', ('local.set', acc)]
+    b += [('call', 5), ('drop',), ('local.get', acc)]
+    return {'name': 'hostctxword', 'result': 'i64', 'locals': ['i64'], 'body': b, 'imports': imps,
+            'localidx': {'a': 0}}
+
+
+def hostctxmem():
+    """The Shape-B `u128` getters: each writes 16 bytes at a pointer; the program calls all four
+    and reads the words back (`i64.load` at 8, 16, 24, 32), which is 0 for the harness context."""
+    imps = [('env', 'account_balance', ['i64'], None), ('env', 'account_locked_balance', ['i64'], None),
+            ('env', 'attached_deposit', ['i64'], None), ('env', 'validator_total_stake', ['i64'], None)]
+    b = []
+    for k, ptr in enumerate((8, 16, 24, 32)):
+        b += [('i64.const', ptr), ('call', k)]
+    acc = 0
+    b += [('i64.const', 0), ('local.set', acc)]
+    for ptr in (8, 16, 24, 32):
+        b += [('i32.const', ptr), 'i64.load', ('local.get', acc), 'i64.add', ('local.set', acc)]
+    b += [('local.get', acc)]
+    return {'name': 'hostctxmem', 'result': 'i64', 'locals': ['i64'], 'body': b, 'imports': imps,
+            'memory': True}
+
+
+def hostctxreg():
+    """The Shape-C register fillers (one register id each) plus `random_seed`, then return the number
+    of calls made: the point is that each call runs and produces no word."""
+    names = ['current_account_id', 'chain_id', 'signer_account_id', 'signer_account_pk',
+             'predecessor_account_id', 'refund_to_account_id', 'random_seed']
+    imps = [('env', n, ['i64'], None) for n in names]
+    b = []
+    for k in range(len(names)):
+        b += [('i64.const', k), ('call', k)]
+    b += [('i64.const', len(names))]
+    return {'name': 'hostctxreg', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps}
+
+
+def hostctxcode():
+    """`current_contract_code`: the harness context is `AccountContract::None`, so the answer is 0."""
+    imps = [('env', 'current_contract_code', ['i64'], 'i64')]
+    b = [('i64.const', 0), ('call', 0), ('i64.const', 1), 'i64.add']
+    return {'name': 'hostctxcode', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps}
+
+
+def hostctxgas():
+    """`gas` takes an `i32` while the HOST row's argument slots are `i64`-tagged, so a module
+    importing it is **outside the checker's domain**: `prep` must report `eligible:false`.  It is a
+    KAT program precisely to pin that rejection (see `results/pq-host-ctx/README.md`)."""
+    imps = [('env', 'gas', ['i32'], None)]
+    b = [('i32.const', 0), ('call', 0), ('i64.const', 3)]
+    return {'name': 'hostctxblocked_gas', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps,
+            'expect_ineligible': True}
+
+
+def hostctxblockedstake():
+    """`validator_stake` has `np = 3`; the HOSTQ message has two argument slots, so a module
+    importing it is outside the checker's domain (`eligible:false`)."""
+    imps = [('env', 'validator_stake', ['i64', 'i64', 'i64'], None)]
+    b = [('i64.const', 0), ('i64.const', 8), ('i64.const', 32), ('call', 0), ('i64.const', 1)]
+    return {'name': 'hostctxblocked_stake', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps,
+            'expect_ineligible': True}
+
+
 def main():
     out = sys.argv[1]
     iters = [int(a) for a in sys.argv[2:]] or [8, 64]
@@ -320,7 +391,15 @@ def main():
     progs += [globkat(n) for n in iters]
     progs += [callkat(n) for n in iters] + [fib(n) for n in (1, 10)] + [calltrap()]
     progs += [hostkat(n) for n in iters[:2]] + [hostarg(), hosttrap()]
+    progs += [hostctxword(), hostctxmem(), hostctxreg(), hostctxcode()]
+    progs += [hostctxgas(), hostctxblockedstake()]
     for p in progs:
+        if p.get('expect_ineligible'):
+            with open(os.path.join(out, p['name'] + '.wasm'), 'wb') as f:
+                f.write(assemble(p))
+            with open(os.path.join(out, p['name'] + '.json'), 'w') as f:
+                json.dump({'name': p['name'], 'result': 'ineligible', 'type': p['result'], 'steps': 0}, f)
+            continue
         res, steps = run(p)
         with open(os.path.join(out, p['name'] + '.wasm'), 'wb') as f:
             f.write(assemble(p))

@@ -94,7 +94,9 @@ def run(prog, fuel=10 ** 8):
         if depth > 2000:
             raise RuntimeError('call depth')
         if fi < nimp:
-            # host functions of the fixed table; only the pure context getters and panic here
+            # host functions of the fixed table; the D3a context getters with the harness defaults
+            # (`NearSpecV3.Wasm.CallCtx`), plus `panic`.  The register fillers and the arithmetic
+            # `gas` have no observable value: they are modelled by their side effect only.
             name = imports[fi][1]
             if name == 'block_index':
                 return 10
@@ -103,9 +105,23 @@ def run(prog, fuel=10 ** 8):
             if name == 'epoch_height':
                 return 1
             if name == 'storage_usage':
-                return 1000
+                return 0      # `St.storageUsage`, not `CallCtx.storageUsage`
             if name == 'prepaid_gas':
                 return 0
+            if name == 'used_gas':
+                return 0      # `gas.used = burnt + promises`; not gas-modelled here
+            if name == 'current_contract_code':
+                return 0      # `AccountContract::None`
+            if name in ('account_balance', 'account_locked_balance', 'attached_deposit',
+                        'validator_total_stake'):
+                # `setU128H ptr v`: the harness values are all 0
+                ptr = args[0] if args else 0
+                for k in range(16):
+                    mem[ptr + k] = 0
+                return None
+            if name in ('current_account_id', 'chain_id', 'signer_account_id', 'signer_account_pk',
+                        'predecessor_account_id', 'refund_to_account_id', 'random_seed'):
+                return None   # `regSetH`: no result word
             if name == 'register_len':
                 return (1 << 64) - 1
             if name == 'panic':

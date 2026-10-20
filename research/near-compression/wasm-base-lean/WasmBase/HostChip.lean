@@ -1,4 +1,5 @@
 import WasmBase.Chips
+import NearSpecV3.Wasm.HostSigs
 /-!
 # WasmBase.HostChip — the HOST chip and the host-function table (direct-Wasm PQ base layer)
 
@@ -45,11 +46,48 @@ def busHostR : Nat := 209
 def busHostB : Nat := 210
 def busHostT : Nat := 9
 
-/-- Fixed host table `(id, name, #params, #results)`; `np ≤ 2`, `ar ≤ 1` (the message shape). -/
+/-- The message shape a HOST row can carry: at most two argument words (`np ≤ 2`) and at most one
+result word (`ar ≤ 1`).  This is a property of the chip (its `HOSTQ` message has two argument slots
+and its `stkSend` carries one result word), not of the host-function table: a function whose
+signature does not fit is listed in `hostFns` with its **exact** arity but cannot be called in this
+slice.  Widening the chip is a different lane's job. -/
+def hostShapeOk (np ar : Nat) : Bool := np ≤ 2 && ar ≤ 1
+
+/-- The HOST row's argument slots are **i64** (`cTag0`/`cTag1` force `tagP j = 1` and the trace
+generator asserts `tag = 1`), so a function with an `i32` parameter cannot be called either: its
+argument would carry tag `0`.  Only `gas` (`params = [i32]`) is affected.  Widening the tag to a bit
+is a chip change, another lane's job. -/
+def hostArgsI64 (name : String) : Bool :=
+  match NearSpecV3.Wasm.hostSigs.find? (·.1 = name) with
+  | some (_, ft) => ft.params.all (· == .i64)
+  | none => false
+
+/-- Fixed host table `(id, name, #params, #results)`, in **id order** (`hostFns[j]` has id `j`;
+the cached `HOSTT` trace and the trace generator both index it by id).
+
+Ids `0..7` are the first slice (bound and proved with the HOST chip).  Ids `8..21` are the D3α
+*context / state-read* family added by `lane/pq-host-ctx`; their arities are the exact ones of
+`NearSpecV3.Wasm.hostSigs` (`HostSigs.lean`).  Two are listed for completeness but are **outside the
+HOST row's shape** and so rejected by `checkModuleH` (`hostChipIdOf = none`):
+
+* `validator_stake` — `np = 3`, and the `HOSTQ` message has two argument slots;
+* `gas` — its parameter is `i32`, and the row's argument slots are `i64`-tagged.
+
+Both are recorded as blocked in `results/pq-host-ctx/README.md`.  Ids `0..7` are unchanged. -/
 def hostFns : List (Nat × String × Nat × Nat) :=
   [(0, "block_index", 0, 1), (1, "block_timestamp", 0, 1), (2, "epoch_height", 0, 1),
    (3, "storage_usage", 0, 1), (4, "prepaid_gas", 0, 1), (5, "used_gas", 0, 1),
-   (6, "register_len", 1, 1), (7, "panic", 0, 0)]
+   (6, "register_len", 1, 1), (7, "panic", 0, 0),
+   -- context / state-read family (D3α)
+   (8, "current_account_id", 1, 0), (9, "chain_id", 1, 0),
+   (10, "signer_account_id", 1, 0), (11, "signer_account_pk", 1, 0),
+   (12, "predecessor_account_id", 1, 0), (13, "refund_to_account_id", 1, 0),
+   (14, "account_balance", 1, 0), (15, "account_locked_balance", 1, 0),
+   (16, "attached_deposit", 1, 0), (17, "random_seed", 1, 0),
+   (18, "current_contract_code", 1, 1), (19, "gas", 1, 0),
+   (20, "validator_total_stake", 1, 0),
+   -- blocked: `np = 3` (the HOSTQ message has two argument slots)
+   (21, "validator_stake", 3, 0)]
 
 /-- Host id of an imported function name (`none`: not in the fixed table ⇒ outside the domain). -/
 def hostIdOf (name : String) : Option Nat :=
@@ -58,6 +96,21 @@ def hostIdOf (name : String) : Option Nat :=
 /-- Signature `(np, ar)` of a host id. -/
 def hostSig (id : Nat) : Option (Nat × Nat) :=
   (hostFns.find? (fun x => x.1 = id)).map fun x => (x.2.2.1, x.2.2.2)
+
+/-- Host id of `name` **if its signature fits the HOST row**: `np ≤ 2`, `ar ≤ 1`, and every
+parameter is `i64`.  This is what the checker uses, so the two listed-but-unusable entries
+(`validator_stake`, `gas`) are not callable. -/
+def hostChipIdOf (name : String) : Option Nat :=
+  (hostFns.find? (fun x => x.2.1 = name && hostShapeOk x.2.2.1 x.2.2.2 && hostArgsI64 name)).map (·.1)
+
+/-- Signature of a host id, restricted to the shapes the HOST chip carries. -/
+def hostChipSig (id : Nat) : Option (Nat × Nat) :=
+  (hostSig id).bind fun (np, ar) =>
+    if hostShapeOk np ar then
+      (match hostFns.find? (·.1 = id) with
+       | some x => if hostArgsI64 x.2.1 then some (np, ar) else none
+       | none => none)
+    else none
 
 /-- The cached host-table row `[id, np, ar, 0, 0, 0, 0, 0]`. -/
 def hostRow (id np ar : Nat) : List Nat := [id, np, ar, 0, 0, 0, 0, 0]
