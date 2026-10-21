@@ -100,6 +100,13 @@ No trusted setup, algebraic-group, lattice, or PoW-hardness assumption is used.
 
 ### 1.1 Context
 
+**Deployment scope (R5).** The D3 admission path remains capped and uses no
+composition, as decided in `D3_WASM_REQUIREMENTS.md` §2.5. A-IC(τ) therefore
+constrains the research recursion tail, not that deployed admission path. The
+293,077-byte FINAL is a recursion-tail measurement and is not a deployed D3
+security guarantee. This paper keeps SHA-384 throughout (U-7); no lattice or
+algebraic-hash wrapper is proposed.
+
 A hash-based proof stack has two parts: a **base relation** (an execution or
 state claim proved by a STARK over an AIR set) and a **tail** that aggregates
 many base proofs into one short proof. The tail is what a light client verifies,
@@ -267,9 +274,10 @@ is a state function `S(x, τ) ∈ {0,1}` on partial transcripts and an extractor
 * (K4) if the verifier accepts `τ`, then `S(x, τ) = 1`.
 
 This implies CMS19's rbr knowledge soundness and is the form consumed by the
-QROM compilation. The extractor need not be efficient for the final soundness
-conclusion; here an efficient one exists (Guruswami–Sudan list decoding within
-Johnson, DKT26's deterministic decoders beyond it).
+QROM compilation. An existential extractor can suffice for a query-only
+relation-soundness statement. The computational peeling reduction additionally
+needs a concrete runtime bound for database readout and the actual list decoder;
+that bound is not established by an existential statement.
 
 **Lemma 2.2 (list form).** If after the round-0 commitment the state has the
 form
@@ -810,6 +818,42 @@ The fix is to check the final proof's program openings against a pinned program
 (and level). This is implemented and tested: a 776-row verify-nothing final is
 accepted without the check and rejected with it.
 
+### 7.5 Peeling and the G-P1 cost boundary
+
+A conditional peeling theorem has the following correctly composed form:
+
+```
+p_false <= (sqrt(epsilon_inner + epsilon_outer_bad + delta_sim)
+            + sqrt(ell_V / 2^336))^2.
+```
+
+`Qrom.Peeling.bound` proves the scalar implication, and a checked counterexample
+rejects the old expression that added `epsilon_outer_bad` outside the square.
+Instantiating this theorem requires an actual extractor, NV faithfulness and an
+inner-system security game with its setup, advice/preprocessing and resource
+model specified. The total reduction time includes initialization, simulation,
+measurement and decoding; it cannot be inferred from a query-count substitution.
+
+G-P1 investigates only whether the compressed-oracle simulation cost can be
+quasi-linear. `aic-research/LEMMA.md` §6 gives a written lower bound, G-P1-C, for
+the universal online **fixed-interface circuit** model: q=2r calls require at
+least r(r-1) two-qubit gates in the last r calls for exact simulation. The
+argument combines a backward output-cone count with the quantum random-access
+code bound; a small statistical simulation error retains a quadratic bound.
+The finite cone count is checked in `Qrom.QueryCost`; the quantum information
+argument is written and requires independent review, not claimed as a fully
+formalized theorem.
+
+This excludes the proposed speedup in that precise model, not in every memory
+model or for every reduction. QRAM primitives, uncharged classical feedback,
+adversary-specific recompilation and computational simulation lie outside the
+statement. An inner assumption in such a different model must be explicit.
+Theorem O separately gives a conditional obstruction to query-only recursive
+semantics, assuming a false concrete inner proof and the required completeness.
+It does not show that imposing a time cap makes literal A-IC true, nor that its
+numerical assumptions have been validated. Neither result closes the open
+family-QROM or NV premises.
+
 ---
 
 ## 8. Systems realisation
@@ -915,7 +959,7 @@ bytes; that is a base-envelope question, not a tail redesign.
 | PoW hardness | not used; grinding only *reduces* error and is charged in the rbr game |
 | collision resistance of 26–42 B digests | not used; replaced by the block-robust property (42 B default, 26–28 B optional) |
 | trusted setup, pairings, groups, lattices | not used; hash-only, transparent |
-| efficient extraction (for soundness) | not needed; the theorem is existential (an efficient extractor exists anyway) |
+| efficient extraction | not needed for a purely existential relation claim; required and not yet costed for the computational peeling reduction |
 
 ### 9.3 The proximity-conjecture separation, explicitly
 

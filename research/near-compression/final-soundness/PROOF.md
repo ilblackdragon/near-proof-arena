@@ -157,9 +157,10 @@ E with:
 Consequence. For any accepting τ, look at the first prefix where S becomes 1. Either it
 follows a verifier move (a "lucky challenge"), or it follows a prover move and E succeeds on
 that prefix. Definition 2.1 implies CMS19's rbr knowledge soundness. It is the shape that
-Theorem 6.4 consumes. E need not be efficient for the soundness conclusion of the Main Theorem
-(§7.4); an efficient E exists here anyway (Guruswami–Sudan list decoding up to the Johnson
-radius used below; beyond Johnson, DKT26 §9's deterministic decoders).
+Theorem 6.4 consumes. An existential extractor can suffice for a query-only
+relation-soundness statement. The computational peeling reduction in §7.3
+requires a concrete bound on database readout and the actual list decoder;
+existence or asymptotic polynomiality alone does not supply that bound.
 
 **Definition 2.2 (list states).** Let F = (F₁..F_W) be the stacked round-0 oracle, a word of
 the interleaved code RS^W[F, L₀, 2^{log h}]. Let δ₀ := 1 − a₀ (§1.1, U-13) and
@@ -814,10 +815,16 @@ NV-faithfulness and statement linkage would turn that trace into an accepted
 false **concrete** inner proof. This would yield a bound of the form
 
 ```
-ε_recursive(A) ≤ ε_outer(A) + ε_inner(B),
+ε_recursive(A) ≤ (sqrt(ε_inner(B) + ε_outer_bad + δ_sim) + sqrt(ℓ_V/2^336))²,
 ```
 
-where B is the actual extraction reduction. To use a computational assumption,
+where B is the actual extraction reduction and δ_sim bounds its simulation
+discrepancy. `Qrom.Peeling.bound` checks this scalar implication. The original
+peeling formula omitted a replacement cross term. G-P1-C in
+`aic-research/LEMMA.md` §6 supplies a written quadratic gate lower bound for a
+universal fixed-interface online simulator; it does not cover QRAM or arbitrary
+adversary-specific reductions. Its finite causal-cone count is kernel-checked.
+ To use a computational assumption,
 B must be efficient under an explicitly charged runtime/advice budget. Oracle
 simulation and database extraction must be included; an existential witness
 or the query substitution `q -> 2q` does not establish this requirement. If the

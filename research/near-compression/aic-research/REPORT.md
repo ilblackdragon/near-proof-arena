@@ -1,5 +1,14 @@
 # Removing A-IC: research report
 
+> **2026-10-21 update:** G-P1 is now the authorized, narrowly scoped research
+> priority. See `LEMMA.md` §§5–7 for the corrected peeling bound, cost-model
+> investigation and the model-specific G-P1-C lower bound. Earlier claims here that a simulator
+> upper bound or BHT collision complexity proves inner-system insecurity are
+> withdrawn: neither supplies a concrete accepted-proof attack. The family QROM
+> instantiation and NV faithfulness remain independent open premises. No new
+> recursive architecture or relaxation of SHA-384/U-7 is authorized.
+
+
 Lane `lane/pq-aic-research` (from `lane/pq-final-soundness`), 2026-10-18. Question: is there a
 **proven** bound for the recursive SWIRL stack without A-IC (PROOF.md Assumption 7.3), at
 ≤ 2⁻¹²⁸ against ≤ 2⁶⁴ quantum queries (U-2, U-6)? Failing that, what is the weakest assumption,

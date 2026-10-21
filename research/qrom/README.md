@@ -21,6 +21,8 @@ paper's recursive protocol secure, and is not closed except for two cited facts.
 | `OracleBridge.lean` | A fixed concrete output matches one independent uniform oracle output with probability `1/card Y`; acceptance minus that marginal lower-bounds consistency failure | Includes a general probability-space inequality. Protocol fixed-pair occurrence and completeness must still be supplied; no concrete forgery is asserted. |
 | `Sampler.lean` | Every accepted residue has exactly two preimages below `2*p`, hence conditional probability `1/p` | Finite counting only; adaptive oracle selection, rejection-loop length and runtime are separate obligations. |
 | `Adaptive.lean` | History-dependent bad-set cardinalities give a union bound over uniformly sampled challenge trajectories | Classical uniform challenges; the actual sampler and QROM game still need reduction to this experiment. |
+| `Peeling.lean` | Correct scalar peeling bound, regression against the omitted cross term, and quadratic scan count | Simulation, extraction and protocol premises remain explicit. |
+| `QueryCost.lean` | Backward-cone cardinality and conditional gate lower bound | Quantum causality and the random-access-code information bound in G-P1-C are not formalized here. |
 | `Audit.lean` | Counterexamples to the old probability-additive replacement premise and full-entry matrix model; one-query amplitude regression; axiom output | Included in the default build. |
 
 No new axioms or `sorry` are used. Kernel axioms are `propext`, `Classical.choice`,
@@ -62,7 +64,8 @@ by naming them. `Main.lean` exposes this boundary explicitly.
 
 ## Validation
 
-Run `lake build` in this directory. `Qrom.Audit` is a default-library import, so
+The 2026-10-21 build passes (8,722 jobs); source hashes and scope are recorded
+in `VALIDATION.json`. Run `lake build` in this directory. `Qrom.Audit` is a default-library import, so
 its regression proofs and axiom checks are included. On the shared development
 host use the repository's `heavy` wrapper and reserved non-benchmark CPUs.
 The pinned Mathlib path in `lakefile.toml` is machine-local; clean standalone
