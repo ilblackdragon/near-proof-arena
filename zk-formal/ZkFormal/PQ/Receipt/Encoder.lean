@@ -520,9 +520,13 @@ def etable : ZkFormal.Air.Table :=
 theorem pbe_shape : etable.width = 15 ∧ etable.constraints.length = 23 ∧
     etable.interactions.length = 4 ∧ etable.maxLog = 22 := by decide
 
-theorem pbe_degree_bound : (etable.constraints.map Expr.degree).foldr max 0 ≤ 3 := by
+/-- The largest constraint degree the table actually uses: `3`. -/
+theorem pbe_degree : (etable.constraints.map Expr.degree).foldr max 0 = 3 := by
   unfold etable eCons eBits eGroupCons eLenCons eFrameCons ePhaseCons
   decide
+
+theorem pbe_degree_bound : (etable.constraints.map Expr.degree).foldr max 0 ≤ 3 := by
+  rw [pbe_degree]; decide
 
 theorem pbe_degree_le (e : Expr) (he : e ∈ etable.constraints) : e.degree ≤ 3 := by
   have hle : ∀ (l : List Expr) (x : Expr), x ∈ l → x.degree ≤ (l.map Expr.degree).foldr max 0 := by
