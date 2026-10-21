@@ -1000,8 +1000,10 @@ capacity form) would not affect them either.
 4. **A-IC.** Specify a coherent recursive hash model or a computational bridge.
    The query-only obstruction does not justify assigning that bridge zero error,
    and a runtime cap alone does not identify concrete SHA-384 with an independent RO.
-5. **Tight-heights kernel.** The univariate-skip encoding of the stacking kernel
-   is validated by code and 24 tamper tests but not yet derived line by line.
+5. **Tight-heights kernel.** The univariate-skip polynomial correction for aligned
+   chunks is now derived in PROOF §3.7 and checked in `Qrom.Stacking`, including
+   binary predecessor wraparound. Its Rust/NV execution correspondence remains
+   part of item 3; this is not a full circuit-faithfulness theorem.
 6. **Program-binding rerun.** The 287,477 B O-2 chain ran with `bind = false` and
    is superseded; 293,077 B (G2 gate) is the measured number with program binding enabled.
 7. **No workload joined end to end.** The 293,077 B result is the recursion tail
@@ -1190,7 +1192,7 @@ established the headline security guarantee**:
 | Workstream | New evidence | Remaining gate |
 |---|---|---|
 | Family QROM and WHIR | Kernel-checked Merkle support/counting, accepted-residue counting and classical adaptive-union lemmas. Thirteen measured FINAL scalar DKT folds now compose with parent reconstruction and the backend fold formula; their scalar exceptional-count sum divided by the Ext12 field size is below `2^-283`. | Actual compressed-oracle family potential, all transition estimates and measured-event inclusion; full adaptive WHIR transfer, batching/list products and all other moves. The scalar figure is not a total security bound. |
-| NV faithfulness | Clean-build SHA/GLUE tests (7) and transcript tests (9) pass. `FAITHFUL.md` now states the exact accepted-trace obligations and distinguishes its audit evidence from a theorem. | Formal semantics of the pinned AIR and native verifier, integer bus equality, program/statement binding, and arithmetic-port composition for arbitrary satisfying traces. |
+| NV faithfulness | The univariate-skip chunk correction and Boolean predecessor identity are checked in `Qrom.Stacking`; PROOF §3.7 maps them to the pinned source. Clean-build SHA/GLUE tests (7) and transcript tests (9) pass. `FAITHFUL.md` now states the exact accepted-trace obligations and distinguishes its audit evidence from a theorem. | Formal semantics of the pinned AIR and native verifier, integer bus equality, program/statement binding, and arithmetic-port composition for arbitrary satisfying traces. |
 | Recursive hash model | Checked fixed-output/independent-oracle marginal and acceptance inequalities expose the missing justification in literal A-IC. | A coherent model and a valid reduction. A time cap alone does not make a concrete SHA output equal an independent oracle output. An explicit inner-system security assumption would give a conditional endpoint, not prove that assumption. |
 | Ledger and measured artifact | Exact integer query-threshold/certificate-input audit; historical calculators cannot report established security. A clean dependency build reproduces the FINAL SHA-256 and 293,077-byte size. | Full error ledger, source-to-theorem/VK linkage and every family member. Full six-proof reproduction with negative controls is tracked separately in the G2 gate record. |
 

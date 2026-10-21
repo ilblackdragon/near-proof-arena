@@ -72,3 +72,11 @@ The pinned Mathlib path in `lakefile.toml` is machine-local; clean standalone
 reproduction also requires packaging that dependency pin.
 
 Primary reference: Chung–Fehr–Huang–Liao, [Corollary 4.2 and Lemma 4.3](https://arxiv.org/pdf/2010.11658).
+
+### Tight-height kernel component
+
+`Qrom/Stacking.lean` proves the exact univariate-skip chunk rotation correction
+at arbitrary evaluation points, including Boolean predecessor wraparound.
+`STACKING-VALIDATION.json` records the checked declarations and pinned backend
+source hashes. The source mapping is in `final-soundness/PROOF.md` §3.7.
+This is a polynomial theorem; the Rust/NV execution connection remains open.

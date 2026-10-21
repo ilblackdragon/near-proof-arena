@@ -353,11 +353,62 @@ openings.
 * Rows ≥ H contribute 0.
 * The sumcheck errors are standard. ∎
 
-(a) and (b) are exactly the code's `c_i` and `δ_i` (levers README "Mechanism";
-stacked_pcs.rs:90-103, stacked_reduction.rs:220-236), written in the multilinear encoding.
-The code uses the univariate-skip encoding (eq_D(ωr₀, ·) for the shift). Translating (b) into
-that encoding was not re-derived line by line here (G-6). For a whole column, (c, δ) = (1, 0)
-and (b) is the ordinary rotation kernel.
+**Univariate-skip derivation (G-6, 2026-10-21).** Write a row as
+`(z, v)` in `D × {0,1}^n`, where `|D| = 2^l_skip`, with low coordinates
+first. A tight chunk has `m = log_height-l_skip` free Boolean coordinates
+and fixed high address `a`; its source block index is `o = src_row/|D|`.
+The descending binary decomposition in `StackedLayout::new_tight` makes
+`o` a multiple of `2^m`. Split the evaluation point as `(r0, y, b)`,
+where y has length m. Put `c = eqCube(a,b)`, `Z(x) = ∏(1-x_i)` and
+`O(y) = ∏y_i`. The backend's recursive Boolean kernels satisfy
+
+```
+eqCube(x ++ a, y ++ b) = eqCube(x,y) * c
+rotCube(x ++ a, y ++ b)
+  = c * rotCube(x,y) + Z(x)*O(y)*(rotCube(a,b)-c).
+```
+
+These are polynomial identities over any commutative ring, proved by
+induction on the low-coordinate lists in `Qrom/Stacking.lean`
+(`eq_append`, `rot_append`). For a Boolean address a, `rot_boolean` proves
+`rotCube(a,b) = eqCube(pred(a),b)`, where pred is little-endian subtraction
+of one with wraparound. Thus the full predecessor of the chunk's first
+row has weight `e_prev = O(y)*eqCube(pred(a),b)`, and
+`delta = e_prev - c*O(y)`, exactly the products in `chunk_factors`.
+This also covers source offset zero: subtraction wraps to all ones.
+
+The univariate-skip kernel implemented by `eval_rot_kernel_prism` is
+
+```
+K(u,r) = E*eqCube(x,y) + A*B*(rotCube(x,y)-eqCube(x,y)),
+E = eq_D(u0, omega*r0), A = eq_D(u0,1), B = eq_D(omega*r0,1).
+```
+
+Substituting the two identities above gives, at arbitrary evaluation points,
+
+```
+K((u0,x,a),(r0,y,b)) = c*K((u0,x),(r0,y)) + B*A*Z(x)*delta.
+```
+
+`prism_chunk_address` proves this equality in Lean without assuming the
+conclusion or restricting evaluation points to the Boolean cube. It is the
+verifier's `c * rot_kernel_prism + corr`: the code's `corr` is
+`eq_D(omega*r0,1) * eq_D(u0,1) * prod(1-u[1..=m]) * delta`.
+The non-rotated restriction is the first identity multiplied by its
+univariate equality factor. The outer stacked-position equality weight
+and lambda batching multiply both sides, so preserve these identities.
+Whole columns have an empty high address and delta zero
+(`whole_column_delta`). Chunks smaller than `|D|` are not introduced by
+the tight-height constructor; the separate upstream striding path is not
+proved here.
+
+**Scope.** This closes the missing polynomial derivation for aligned tight
+chunks, with a source correspondence argument for the pinned replay tree's
+`poly_common.rs`, `prover/stacked_pcs.rs` and `verifier/stacked_reduction.rs`.
+Source hashes are in `research/qrom/STACKING-VALIDATION.json`. It does not
+formalize Rust execution, layout parsing or the NV arithmetic port. Those
+remain part of the arbitrary-satisfying-trace theorem S-21; no complete
+security claim follows from this kernel identity alone.
 
 H is prover-chosen and absorbed (mod.rs:149-152). By (a) and (b), the statement proven is R
 for the zero-padded trace, for every H. So tight heights cost nothing in soundness, provided

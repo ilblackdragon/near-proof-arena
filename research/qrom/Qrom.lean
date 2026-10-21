@@ -17,3 +17,5 @@ import Qrom.Adaptive
 import Qrom.Peeling
 
 import Qrom.QueryCost
+
+import Qrom.Stacking

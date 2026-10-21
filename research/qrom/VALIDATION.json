@@ -2,7 +2,7 @@
   "date_utc": "2026-10-21",
   "lean_version": "4.33.1",
   "build": "lake build",
-  "jobs": 8722,
+  "jobs": 8723,
   "result": "pass",
   "source_sha256": {
     "Qrom/Adaptive.lean": "73ff78466d0f1f9fcf416c2d8660d63edcc09bd82a9d1c033e4f0618bd5c9fb6",
@@ -18,12 +18,13 @@
     "Qrom/Peeling.lean": "0bf583c916a59df615ad470cc8699fce86d5df528c883863227e7b14b45ffe0b",
     "Qrom/QueryCost.lean": "3602d7f34b95a91bdf2e99217a5c7c2908b90d274ccfa51c3ed306398d289591",
     "Qrom/Sampler.lean": "c7407f584abee6afafb870f42c64c0a9d525e0469abf4d54cc0ae79a7485af6a",
+    "Qrom/Stacking.lean": "1cf273a650c815cdf7ba635bd5e5b04b208b1be6057c387077a509d22b5ca794",
     "Qrom/Transcript.lean": "c28c16b35deb03e8d3157fdee9aeeea2dece7d1822692aafb4ba5dbf88bc1a7a",
     "Qrom/Transition.lean": "845e98fdee7197c3e39054881ace890e6cd6b8c275140909ef96a9b6f5a16dc8",
-    "Qrom.lean": "0bec372a70d57885f5761400ff7192fd9fddc6669b0a6410b2814b2198445c17",
+    "Qrom.lean": "fa31fed2372f687b0c7a42717b0dcd5547d6941c63f434cdd8caf323717dde66",
     "lakefile.toml": "29864997a1f9df4bb86ff84c6a27adb0e42ea944fb8c83d6873f151d9f8a8b51",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71"
   },
-  "scope": "Conditional mathematical components. G-P1-C quantum causal/information argument is written, not fully formalized. Protocol family instantiation and NV faithfulness remain open.",
+  "scope": "Conditional mathematical components and general tight-chunk polynomial identities. G-P1-C quantum argument is written, not fully formalized. Actual protocol-family instantiation and NV trace semantics remain open.",
   "security_established": false
 }
