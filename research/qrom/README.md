@@ -24,6 +24,11 @@ paper's recursive protocol secure, and is not closed except for two cited facts.
 | `Peeling.lean` | Correct scalar peeling bound, regression against the omitted cross term, and quadratic scan count | Simulation, extraction and protocol premises remain explicit. |
 | `QueryCost.lean` | Backward-cone cardinality and conditional gate lower bound | Quantum causality and the random-access-code information bound in G-P1-C are not formalized here. |
 | `Audit.lean` | Counterexamples to the old probability-additive replacement premise and full-entry matrix model; one-query amplitude regression; axiom output | Included in the default build. |
+| `Instance.lean` | Complex database-register Hilbert space; coordinate projections (real and complex linear), idempotence, contraction, nesting | One oracle point. No adversary workspace or Fourier register. |
+| `Reflection.lean` | Reflection in `ℂ ∙ w` with `‖w‖² = 2`: a **real linear isometry** whose squared entries are `0, 1/M, 1/M, 1/M² ≤ 9/M²`, so `EntryBounds` is inhabited by an actual unitary; exact rank-one block identity; `Chg` bound `2|Chg|/M` | The operator is the one-point `cO_{xŷ}`, not the lifted `Σ_{x,ŷ} \|x,ŷ⟩⟨x,ŷ\| ⊗ cO_{xŷ}`. |
+| `ConcreteInstance.lean` | `concreteEvolution`: a `PotentialEvolution` with every field discharged; `concrete_qrom_bound` applies `qrom_binary_bound` end to end, with the measured-event inclusion **proved** (`le_refl`) rather than assumed | The level function and `Chg` are supplied, not the transcript potential. One repeated query operator. `Replacement` remains cited. |
+| `Extraction.lean` | Canonical extraction as a filter on `(digest, children)` nodes: singleton uniqueness, insert-fresh, erase, replace, and the two honest children-reassignment statements | A model of the database; no refinement from the Rust parser. |
+| `Fanout.lean` | Long-output occurrence counts, `C(k,2)` within-output pairs, `J(2t+1)` fanout, mixed-width `≤ ℓ/2³³⁶`, and the absorb digest sum that yields `C + 3q` only when each message has at most three digests | Counting only; the counts still have to enter a lifted operator's `G`. |
 
 No new axioms or `sorry` are used. Kernel axioms are `propext`, `Classical.choice`,
 and `Quot.sound` (some results use fewer).
@@ -62,10 +67,30 @@ To instantiate `PotentialEvolution` for the paper, construct or rigorously reduc
 contains additional protocol-specific obligations. No theorem here discharges them
 by naming them. `Main.lean` exposes this boundary explicitly.
 
+**Partial progress (2026-10-21, `lane/pq-family-qrom`).** The list above is no
+longer entirely open:
+
+* `EntryBounds` is now *inhabited*: `Reflection.qopEntries` is the squared-entry
+  function of an explicit complex linear isometry.
+* `PotentialEvolution` has a compiled instance (`ConcreteInstance`), with the
+  measured-event inclusion proved rather than assumed, and a `Chg` block
+  constant of `2|Chg|/M` instead of the interface's `10|Chg|/M`.
+* Canonical extraction is defined and its insertion/deletion/reassignment
+  behaviour is proved on a node model (`Extraction`).
+* Long-output fanout, the mixed-width sum, and the per-message absorb digest
+  count are proved as arithmetic (`Fanout`), making `C + 3q` an instance.
+
+Still open: the global multi-point compressed-oracle operator and its commutation
+with database projectors, the base layer's state function, the Rust parser
+refinement, and `Replacement` itself. See
+`../../../docs/logs/pq-family-qrom-2026-10-21.md` for the item-by-item table.
+
 ## Validation
 
-The 2026-10-21 build passes (8,722 jobs); source hashes and scope are recorded
-in `VALIDATION.json`. Run `lake build` in this directory. `Qrom.Audit` is a default-library import, so
+The 2026-10-21 family-instantiation build passes (**8,728 jobs**); source
+hashes and scope are recorded in `VALIDATION.json`. The `lane/pq-family-qrom`
+track adds five modules (`Instance`, `Reflection`, `ConcreteInstance`,
+`Extraction`, `Fanout`); the earlier figure in this line (8,722) predates them. Run `lake build` in this directory. `Qrom.Audit` is a default-library import, so
 its regression proofs and axiom checks are included. On the shared development
 host use the repository's `heavy` wrapper and reserved non-benchmark CPUs.
 The pinned Mathlib path in `lakefile.toml` is machine-local; clean standalone
