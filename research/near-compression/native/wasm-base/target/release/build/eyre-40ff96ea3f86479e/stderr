@@ -1,0 +1,9 @@
+error[E0554]: `#![feature]` may not be used on the stable release channel
+ --> /data/illia/nearproof/research/near-compression/native/wasm-base/target/release/build/eyre-40ff96ea3f86479e/out/probe.rs:2:5
+  |
+2 |     #![feature(error_generic_member_access)]
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0554`.

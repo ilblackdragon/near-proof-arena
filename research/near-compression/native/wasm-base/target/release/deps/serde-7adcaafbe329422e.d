@@ -1,0 +1,14 @@
+/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/deps/serde-7adcaafbe329422e.d: /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs /data/illia/nearproof/research/near-compression/native/wasm-base/target/release/build/serde-e82989b6c6873380/out/private.rs
+
+/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/deps/libserde-7adcaafbe329422e.rlib: /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs /data/illia/nearproof/research/near-compression/native/wasm-base/target/release/build/serde-e82989b6c6873380/out/private.rs
+
+/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/deps/libserde-7adcaafbe329422e.rmeta: /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs /data/illia/nearproof/research/near-compression/native/wasm-base/target/release/build/serde-e82989b6c6873380/out/private.rs
+
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs:
+/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/build/serde-e82989b6c6873380/out/private.rs:
+
+# env-dep:OUT_DIR=/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/build/serde-e82989b6c6873380/out

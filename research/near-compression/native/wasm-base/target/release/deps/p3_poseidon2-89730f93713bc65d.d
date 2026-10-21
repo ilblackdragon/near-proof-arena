@@ -1,0 +1,11 @@
+/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/deps/p3_poseidon2-89730f93713bc65d.d: /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/lib.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/external.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/generic.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/internal.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/round_numbers.rs
+
+/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/deps/libp3_poseidon2-89730f93713bc65d.rlib: /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/lib.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/external.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/generic.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/internal.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/round_numbers.rs
+
+/data/illia/nearproof/research/near-compression/native/wasm-base/target/release/deps/libp3_poseidon2-89730f93713bc65d.rmeta: /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/lib.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/external.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/generic.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/internal.rs /home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/round_numbers.rs
+
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/lib.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/external.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/generic.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/internal.rs:
+/home/illia/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/p3-poseidon2-0.4.3/src/round_numbers.rs:
