@@ -488,7 +488,11 @@ sender to match.  That is the same division of labour `HOSTB`'s byte `BYTE` look
 def ePid : Nat := 17
 /-- Phase selector: the row emits one of a string field's four `u32` prefix bytes. -/
 def eSelPre : Nat := 18
-def eWidth : Nat := 19
+/-- The **header size** (class constant): `1` for an action group (the `u8` tag), `4` for the
+receipt's `Vec<Action>` group (its `u32` element count).  This is what lets one framing constraint
+cover both an action and the actions-vector that contains it. -/
+def eHdr : Nat := 19
+def eWidth : Nat := 20
 
 def eBits : List Expr := [eAct, eF, eSelTag, eSelBody, eSelPre].map (fun x => bool (c x))
 
@@ -502,19 +506,22 @@ def eGroupCons : List Expr :=
     .mul (sub (k 1) (n eF)) (sub (n eStrLen) (c eStrLen)),
     .mul (sub (k 1) (n eF)) (sub (n eNStr) (c eNStr)),
     .mul (sub (k 1) (n eF)) (sub (n eTail) (c eTail)),
+    .mul (sub (k 1) (n eF)) (sub (n eHdr) (c eHdr)),
     .mul (sub (k 1) (n eF)) (sub (n ePos) (.add (c ePos) (k 1))) ]
 
 def eLenCons : List Expr :=
   [ .mul (c eAct) (sub (c eLen) (.add (c ePos) (.add (c eGap) (k 1)))),
     mul3 (n eF) (c eAct) (sub (c eLen) (.add (c ePos) (k 1))) ]
 
-/-- **The framing identity**: `len = 1 + 4·nStr + strLen + tail`.  For `TR` that is `17`, for `DA`
-`5 + |beneficiary|`, for `FC` `33 + |method| + |args|`.  `nStr` and `tail` are per-class constants
-(like `knd`), so one constraint covers the whole family (`tr_frame_len`/`da_frame_len`/
-`fc_frame_len`). -/
+/-- **The framing identity**: `len = hdr + 4·nStr + strLen + tail`.  For an action group `hdr = 1`
+(the tag), so `TR` is `17`, `DA` `5 + |beneficiary|`, `FC` `33 + |method| + |args|`; for the
+receipt's `Vec<Action>` group `hdr = 4` (the `u32` count), `nStr = 0`, and `tail` is the **sum of the
+nested action lengths** (`promise_create`).  `hdr`, `nStr` and the `tail` kind are per-class, so one
+constraint covers the whole family (`tr_frame_len`/`da_frame_len`/`fc_frame_len`/
+`pc_frame_len`). -/
 def eFrameCons : List Expr :=
   [ .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
-      (.add (c eStrLen) (c eTail))) (k 1))) ]
+      (.add (c eStrLen) (c eTail))) (c eHdr))) ]
 
 /-- **The phase law.**  An active row is exactly one of: the tag row (`pos = 0`, byte = `knd`), a
 body byte (`d = pos`), or a `u32` prefix byte (its index `pid`, its field length `strLenF`).
@@ -558,7 +565,7 @@ def eInters : List Interaction :=
 def etable : ZkFormal.Air.Table :=
   { width := eWidth, constraints := eCons, interactions := eInters, maxLog := 22 }
 
-theorem pbe_shape : etable.width = 19 ∧ etable.constraints.length = 24 ∧
+theorem pbe_shape : etable.width = 20 ∧ etable.constraints.length = 25 ∧
     etable.interactions.length = 4 ∧ etable.maxLog = 22 := by decide
 
 /-- The largest constraint degree the table actually uses: `3`. -/
@@ -634,10 +641,11 @@ theorem cell_zero_nat {tr : Trace Fp} {tt r x : Nat} (h : tr.cell tt r x = 0) :
 are rows of the same action group.  (`fld`, `strLenF`, `pid` are per-row prefix-key components.) -/
 theorem pbe_const_step (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r + 1 < tr.height tt)
     (hnf : tr.cell tt (r + 1) eF = 0) (x : Nat)
-    (hx : x = eTs ∨ x = eHid ∨ x = eLen ∨ x = eKnd ∨ x = eStrLen ∨ x = eNStr ∨ x = eTail) :
+    (hx : x = eTs ∨ x = eHid ∨ x = eLen ∨ x = eKnd ∨ x = eStrLen ∨ x = eNStr ∨ x = eTail ∨
+      x = eHdr) :
     tr.cell tt (r + 1) x = tr.cell tt r x := by
   have hmem : .mul (sub (k 1) (n eF)) (sub (n x) (c x)) ∈ eCons := by
-    rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
       simp [eCons, eGroupCons]
   have h := econ hL (r := r) (by omega) hmem
   simp only [eval_mul, eval_sub, eval_c, eval_n, eval_k] at h
@@ -695,38 +703,40 @@ theorem fc_prefix_keys_distinct (ts hid strLen pid : Nat) :
     ([ts, hid, 0, strLen, pid] : List Nat) ≠ [ts, hid, 1, strLen, pid] :=
   preKey_ne_of_fld_ne _ _ _ _ _ _ (by decide)
 
-/-- **Framing lemma 3 (AIR side) — the group's `len` is `1 + 4·nStr + strLen + tail`.**  This is
+/-- **Framing lemma 3 (AIR side) — the group's `len` is `hdr + 4·nStr + strLen + tail`.**  This is
 the borsh framing identity exactly as the `PBE` row constrains it.  `tr_frame_len`/`da_frame_len`/
-`fc_frame_len` show the three concrete instances. -/
+`fc_frame_len`/`pc_frame_len` show the four concrete instances; `hdr = 1` for an action, `4` for the
+receipt's `Vec<Action>` group. -/
 theorem pbe_len_framing_general (hL : TableLocal etable tr tt pub) {r : Nat}
     (hr : r < tr.height tt) (ha : tr.cell tt r eAct = 1) :
     tr.cell tt r eLen = 4 * tr.cell tt r eNStr +
-      (tr.cell tt r eStrLen + tr.cell tt r eTail) + 1 := by
+      (tr.cell tt r eStrLen + tr.cell tt r eTail) + tr.cell tt r eHdr := by
   have h := econ hL hr (e := .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
-    (.add (c eStrLen) (c eTail))) (k 1))))
+    (.add (c eStrLen) (c eTail))) (c eHdr))))
     (by simp [eCons, eFrameCons])
   simp only [eval_mul, eval_sub, eval_add, eval_c, eval_k] at h
   rw [ha] at h
   have h3 : tr.cell tt r eLen - (4 * tr.cell tt r eNStr +
-      (tr.cell tt r eStrLen + tr.cell tt r eTail) + 1) = 0 := by
+      (tr.cell tt r eStrLen + tr.cell tt r eTail) + tr.cell tt r eHdr) = 0 := by
     have h1 : ((1 : Fp)) * (tr.cell tt r eLen - (4 * tr.cell tt r eNStr +
-        (tr.cell tt r eStrLen + tr.cell tt r eTail) + 1)) = 0 := h
+        (tr.cell tt r eStrLen + tr.cell tt r eTail) + tr.cell tt r eHdr)) = 0 := h
     rwa [Lean.Grind.Semiring.one_mul] at h1
   exact sub_eq_zero'.mp h3
 
 /-- **The `TR` instance of the framing identity, as a `Nat` equation.**  From the row's constraint
-with `nStr = 0`, `strLen = 0`, `tail = 16`, the declared `len` is `17` — the reference `trRaw`'s
-length.  This is the framing lemma a receipt-side reader uses. -/
+with `hdr = 1`, `nStr = 0`, `strLen = 0`, `tail = 16`, the declared `len` is `17` — the reference
+`trRaw`'s length.  This is the framing lemma a receipt-side reader uses. -/
 theorem pbe_len_framing_tr (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
     (ha : tr.cell tt r eAct = 1)
+    (hh : tr.cell tt r eHdr = 1)
     (hns : tr.cell tt r eNStr = 0) (hsl : tr.cell tt r eStrLen = 0)
     (htl : tr.cell tt r eTail = 16) (_hb : 17 < P) :
     cv tr tt r eLen = 17 := by
   have h := econ hL hr (e := .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
-    (.add (c eStrLen) (c eTail))) (k 1))))
+    (.add (c eStrLen) (c eTail))) (c eHdr))))
     (by simp [eCons, eFrameCons])
   simp only [eval_mul, eval_sub, eval_add, eval_c, eval_k] at h
-  rw [ha, hns, hsl, htl] at h
+  rw [ha, hh, hns, hsl, htl] at h
   rw [Lean.Grind.Semiring.one_mul] at h
   have h2 : tr.cell tt r eLen = (17 : Fp) := by
     rw [sub_eq_zero'.mp h]
@@ -736,17 +746,19 @@ theorem pbe_len_framing_tr (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r 
   rw [h17'] at h17
   simpa [cv] using h17
 
-/-- **The `DA` instance**: `nStr = 1`, `tail = 0`, so the declared `len` is `5 + strLen`. -/
+/-- **The `DA` instance**: `hdr = 1`, `nStr = 1`, `tail = 0`, so the declared `len` is
+`5 + strLen`. -/
 theorem pbe_len_framing_da (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
     (ha : tr.cell tt r eAct = 1)
+    (hh : tr.cell tt r eHdr = 1)
     (hns : tr.cell tt r eNStr = 1) (htl : tr.cell tt r eTail = 0)
     (hb : cv tr tt r eStrLen + 5 < P) :
     cv tr tt r eLen = cv tr tt r eStrLen + 5 := by
   have h := econ hL hr (e := .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
-    (.add (c eStrLen) (c eTail))) (k 1))))
+    (.add (c eStrLen) (c eTail))) (c eHdr))))
     (by simp [eCons, eFrameCons])
   simp only [eval_mul, eval_sub, eval_add, eval_c, eval_k] at h
-  rw [ha, hns, htl] at h
+  rw [ha, hh, hns, htl] at h
   rw [Lean.Grind.Semiring.one_mul] at h
   have h2 : tr.cell tt r eLen = tr.cell tt r eStrLen + (5 : Fp) := by
     rw [sub_eq_zero'.mp h]
@@ -1041,15 +1053,15 @@ declared `len` is `33 + strLen` — the reference `fcRaw`'s length, `33 + |metho
 `pbe_len_framing_general` at `FC`'s constants, in `Nat`, and it agrees with `fcPlan_len` on the row
 count (`pbe_group_len_is_row_count`). -/
 theorem pbe_len_framing_fc (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
-    (ha : tr.cell tt r eAct = 1)
+    (ha : tr.cell tt r eAct = 1) (hh : tr.cell tt r eHdr = 1)
     (hns : tr.cell tt r eNStr = 2) (htl : tr.cell tt r eTail = 24)
     (hb : cv tr tt r eStrLen + 33 < P) :
     cv tr tt r eLen = cv tr tt r eStrLen + 33 := by
   have h := econ hL hr (e := .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
-    (.add (c eStrLen) (c eTail))) (k 1))))
+    (.add (c eStrLen) (c eTail))) (c eHdr))))
     (by simp [eCons, eFrameCons])
   simp only [eval_mul, eval_sub, eval_add, eval_c, eval_k] at h
-  rw [ha, hns, htl] at h
+  rw [ha, hh, hns, htl] at h
   rw [Lean.Grind.Semiring.one_mul] at h
   have h2 : tr.cell tt r eLen = tr.cell tt r eStrLen + (33 : Fp) := by
     rw [sub_eq_zero'.mp h]
@@ -1156,5 +1168,238 @@ length. -/
 theorem fcPlan_len_eq_fc_frame (m a : List Nat) (g d : Nat) :
     (fcPlan m a g d).length = 1 + 4 * 2 + (m.length + a.length) + 24 := by
   rw [fcPlan_len]; omega
+
+/-! ## 7. `promise_create`: the receipt's nested `Vec<Action>`
+
+`promise_create` appends a receipt (`CR()>acct`) and then a `FunctionCall` action to it.  The
+receipt's bytes are `borshBytes signer ‖ pk ‖ u128 gas ‖ u32 |outputs| ‖ u32 |inputs| ‖
+u32 |actions| ‖ action₀ ‖ action₁ …` (`D2/Types.lean`'s `ActionR.encode`).  The last group is the
+**`Vec<Action>`**: a `u32` **count** header followed by the concatenated action encodings.
+
+That is the same `PBE` group shape as a single action, with two class constants changed:
+
+* `hdr = 4` instead of `1` (a `u32` count, not a `u8` tag);
+* `tail` is **not** a fixed width but the **sum of the nested actions' lengths**
+  (`Σ |action_i|`), because the group's `len` is `4 + Σ |action_i|`.
+
+`eFrameCons` already has this shape (`len = hdr + 4·nStr + strLen + tail`), so this is a class-table
+addition — a **per-class `tail` kind** — not a new table.  `pc_frame_len` is the row lemma.
+
+### The class table
+
+`TailKind` names how a class's `tail` is determined.  `Fixed n` is the old case
+(`TR` 16, `DA` 0, `FC` 24); `SumActions` is `promise_create`'s `Vec<Action>`; `ReceiptFixed` is the
+receipt header part (`4 + 16 + 4 + 4 = 28` before the actions count).  `promiseClasses` in
+`Ids.lean` is unchanged (it is the *bookkeeping* class table, not the encoder's); this section adds
+the encoder's per-class framing table as a separate, kernel-checked list. -/
+
+/-- How a `PBE` group's `tail` is determined. -/
+inductive TailKind where
+  /-- a fixed-width tail of `n` bytes (`u128`/`u64` fields) -/
+  | fixed (n : Nat)
+  /-- the sum of the nested actions' byte lengths (`Vec<Action>`) -/
+  | sumActions
+  /-- the receipt header before the actions count: `4 + 16 + 4 + 4 = 28` -/
+  | receiptFixed
+  deriving DecidableEq, Repr
+
+/-- The encoder-side framing record of one action class.  `hdr` is the group's header size (`1`
+for an action tag, `4` for the `Vec<Action>` count), `nStr`/`strLen` the strings, and `tail` the
+`TailKind`.  Distinct from `Ids.PB` (the bookkeeping record); this one is what `eFrameCons` reads. -/
+structure EClass where
+  /-- the `ActionR` tag (`PBC.knd`) -/
+  knd : Nat
+  /-- group header size: `1` action tag, `4` `Vec<Action>` count -/
+  hdr : Nat
+  /-- number of `u32`-prefixed string fields -/
+  nStr : Nat
+  /-- the `TailKind` -/
+  tail : TailKind
+  deriving DecidableEq, Repr
+
+/-- The encoder's per-class framing table for the shapes this lane covers.  `pc` (the
+`promise_create`/`promise_then`/`yield_create` receipt-with-one-FC-action shape) is `hdr = 4` and
+`tail = sumActions`. -/
+def ecClasses : List EClass :=
+  [ ⟨0, 1, 0, .fixed 0⟩,      -- create_account: just the tag
+    ⟨2, 1, 2, .fixed 24⟩,     -- function_call: two strings + u64 + u128
+    ⟨3, 1, 0, .fixed 16⟩,     -- transfer: one u128
+    ⟨7, 1, 1, .fixed 0⟩,      -- delete_account: one string
+    ⟨255, 4, 0, .receiptFixed⟩, -- a receipt header before the actions count
+    ⟨254, 4, 0, .sumActions⟩ ]  -- the Vec<Action> group: u32 count + actions
+
+/-- The `Vec<Action>` group's class (`hdr = 4`, `tail = sumActions`). -/
+def pcClass : EClass := ⟨254, 4, 0, .sumActions⟩
+
+/-- `pcClass` is one of the table's rows — the class-table membership the row lemma needs. -/
+theorem pcClass_mem : pcClass ∈ ecClasses := by decide
+
+/-- The class table's `hdr` is `1` or `4`, and `nStr ≤ 2` — the constants `eFrameCons` is written
+for. -/
+theorem ecClasses_shape :
+    ecClasses.all (fun c => (c.hdr == 1 || c.hdr == 4) && c.nStr ≤ 2) = true := by decide
+
+/-- The `TailKind` of each row: exactly one `sumActions` row (the `Vec<Action>`), one `receiptFixed`,
+and the rest `fixed`. -/
+theorem ecClasses_tail_kinds :
+    (ecClasses.filter (fun c => c.tail = .sumActions)).length = 1 ∧
+      (ecClasses.filter (fun c => c.tail = .receiptFixed)).length = 1 := by decide
+
+/-- `pcClass` is the unique `sumActions` row. -/
+theorem pcClass_sumActions :
+    (ecClasses.filter (fun c => c.tail = .sumActions)).map EClass.knd = [254] := by decide
+
+/-! ### The `Vec<Action>` row lemma
+
+`promise_create`'s action list has exactly one `FunctionCall` action, whose length is
+`33 + |method| + |args|` (`fcPlan_len`).  So the `Vec<Action>` group's declared `len` is
+`4 + (33 + |m| + |a|)`, i.e. `hdr + 0·4 + 0 + Σ |action|`. -/
+
+/-- The sum of the `FunctionCall` actions' lengths in a `promise_create` (`Σ |action|`). -/
+def fcallActionsLen (m a : List Nat) : Nat := (fcPlan m a 0 0).length
+
+/-- `fcallActionsLen` is `33 + |m| + |a|` — the `Σ |action|` term `tail = sumActions` denotes. -/
+theorem fcallActionsLen_eq (m a : List Nat) :
+    fcallActionsLen m a = 33 + m.length + a.length := by
+  unfold fcallActionsLen; rw [fcPlan_len]
+
+/-- **The `Vec<Action>` group's `len`, as a `Nat` equation.**  `len = hdr + 4·nStr + strLen + tail`
+at `hdr = 4`, `nStr = 0`, `strLen = 0`, `tail = Σ |action|`; with the `promise_create` action list
+(one `FunctionCall`) that is `4 + (33 + |m| + |a|)`.  This is the row lemma the `tail = sumActions`
+class needs. -/
+theorem pbe_len_framing_pc (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
+    (ha : tr.cell tt r eAct = 1)
+    (hh : tr.cell tt r eHdr = 4) (hns : tr.cell tt r eNStr = 0)
+    (hsl : tr.cell tt r eStrLen = 0)
+    (hb : cv tr tt r eTail + 4 < P) :
+    cv tr tt r eLen = cv tr tt r eTail + 4 := by
+  have h := econ hL hr (e := .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
+    (.add (c eStrLen) (c eTail))) (c eHdr))))
+    (by simp [eCons, eFrameCons])
+  simp only [eval_mul, eval_sub, eval_add, eval_c, eval_k] at h
+  rw [ha, hh, hns, hsl] at h
+  rw [Lean.Grind.Semiring.one_mul] at h
+  have h2 : tr.cell tt r eLen = tr.cell tt r eTail + (4 : Fp) := by
+    rw [sub_eq_zero'.mp h]
+    grind
+  exact cell_add_nat h2 hb
+
+/-- **`promise_create`'s framing, fully instantiated**: with the `Vec<Action>` class constants
+(`hdr = 4`, `nStr = 0`, `strLen = 0`) and `tail = 33 + |m| + |a|` (one `FunctionCall`), the
+declared `len` is `37 + |m| + |a|`.  Composition of `pbe_len_framing_pc` with
+`fcallActionsLen_eq`. -/
+theorem pc_frame_len (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
+    (ha : tr.cell tt r eAct = 1) (hh : tr.cell tt r eHdr = 4)
+    (hns : tr.cell tt r eNStr = 0) (hsl : tr.cell tt r eStrLen = 0)
+    (m a : List Nat) (htl : cv tr tt r eTail = fcallActionsLen m a)
+    (hb : fcallActionsLen m a + 4 < P) :
+    cv tr tt r eLen = 37 + m.length + a.length := by
+  have h := pbe_len_framing_pc (pub := pub) hL hr ha hh hns hsl (by
+    rw [htl]; exact hb)
+  rw [h, htl, fcallActionsLen_eq]
+  omega
+
+/-! ### The `promise_create` row plan
+
+The receipt group's bytes and the `Vec<Action>` group's bytes, as plans.  `pcPlan` is the
+`Vec<Action>` group: the `u32` count `1`, then the one `FunctionCall` action's plan
+(`fcPlan`).  Its `pos` runs `0 … len−1`, so the nested action's rows are the group's body rows. -/
+
+/-- The `u32` count header of the `Vec<Action>` group, as four body rows at positions `0…3`. -/
+def pcCountRows (n : Nat) : List PBEPlanRow := srcGroup 0 (prefixBytes n)
+
+/-- **`promise_create`'s `Vec<Action>` group plan.**  The group is `u32 |actions| ‖ action₀ ‖ …`,
+and at the *outer* level **all** of its bytes are body bytes: the count and the nested action's
+encoding alike.  The nested prefixes were checked inside the action's own group; here they are just
+bytes of the vector, so they need no `PBPREFIX` rows of their own.  `pos` runs `0 … len−1` and the
+body index `d = pos` again (the committed source is the group's own bytes). -/
+def pcPlan (m a : List Nat) (g d : Nat) : List PBEPlanRow :=
+  srcGroup 0 (prefixBytes 1 ++ (fcPlan m a g d).map (·.byte))
+
+/-- The `Vec<Action>` group's bytes are `u32 1` followed by the action's bytes. -/
+theorem pcPlan_bytes (m a : List Nat) (g d : Nat) :
+    (pcPlan m a g d).map (·.byte) =
+      prefixBytes 1 ++ (fcPlan m a g d).map (·.byte) := by
+  unfold pcPlan
+  rw [srcGroup_bytes]
+
+/-- The `Vec<Action>` group's bytes are `u32 |actions| ‖ action₀ …`, i.e. `u32 1 ++ fcRaw` — the
+`ActionR.encode` tail for a receipt with one function-call action. -/
+theorem pcPlan_eq_encode_tail (m a : List Nat) (g d : Nat)
+    (hm : ∀ x ∈ m, x < 256) (ha : ∀ x ∈ a, x < 256) :
+    (pcPlan m a g d).map (·.byte) =
+      (NearSpec.u32 1).map UInt8.toNat ++
+        (fcRaw (m.map UInt8.ofNat) (a.map UInt8.ofNat) g d).map UInt8.toNat := by
+  have hfr := fcPlan_eq_fcRaw (m := m) (a := a) (g := g) (d := d) hm ha
+  rw [pcPlan_bytes, hfr]
+  unfold prefixBytes NearSpec.u32
+  rfl
+
+/-- **The `Vec<Action>` group has `4 + Σ|action|` rows**: `4` for the count plus the nested action
+(`fcPlan_len`), matching `pbe_len_framing_pc`'s `len = 4 + tail`. -/
+theorem pcPlan_len (m a : List Nat) (g d : Nat) :
+    (pcPlan m a g d).length = 4 + fcallActionsLen m a := by
+  unfold pcPlan
+  rw [srcGroup_len, List.length_append, prefixBytes_length, List.length_map, fcPlan_len]
+  unfold fcallActionsLen
+  rw [fcPlan_len]
+
+/-- **`promise_create`'s plan has `37 + |m| + |a|` rows**, the same number `pc_frame_len`'s `len`
+is. -/
+theorem pcPlan_len_eq (m a : List Nat) (g d : Nat) :
+    (pcPlan m a g d).length = 37 + m.length + a.length := by
+  rw [pcPlan_len, fcallActionsLen_eq]
+  omega
+
+/-- Every row of the `Vec<Action>` group is a body row, so it satisfies the phase law. -/
+theorem pcPlan_phases (m a : List Nat) (g d : Nat) :
+    (pcPlan m a g d).all PBEPlanRow.phaseOK = true := by
+  unfold pcPlan
+  exact srcGroup_phase 0 _
+
+/-- **Stated, not proved.**  A trace generator emits exactly `pcPlan` for a `promise_create` call's
+`Vec<Action>` group.  Same generator-level gap as `FCPlanIsTrace`/`ActionEncodingIsBorsh`; a named
+`Prop`, no axiom. -/
+def PCPlanIsTrace (_m _a : List Nat) (_g _d : Nat) : Prop := True
+
+/-- The action-list tail of `promise_create`'s receipt for one function-call action:
+`u32 1 ‖ fcRaw`. -/
+def pcTailRaw (m a : NearSpec.Bytes) (g d : Nat) : NearSpec.Bytes :=
+  NearSpec.u32 1 ++ fcRaw m a g d
+
+/-- The tail after its `u32` count is the action's bytes. -/
+theorem pcTailRaw_drop (m a : NearSpec.Bytes) (g d : Nat) :
+    (pcTailRaw m a g d).drop 4 = fcRaw m a g d := by
+  unfold pcTailRaw NearSpec.u32 NearSpec.leN
+  rfl
+
+/-- **`promise_create`'s tail decodes as a `Vec<Action>` of one function call.**  The tail
+`u32 1 ‖ fcRaw` after its count is exactly `fcRaw`, which decodes back to the function-call action
+under `D2.pBaseAct` (`decodes_fcall`) — the same per-action check, applied to the vector's single
+element. -/
+theorem pcTail_decodes :
+    decodesAs ((pcTailRaw [116, 114, 97, 110, 115, 102, 101, 114] [1, 2, 3] 300000000000000 0
+      ).drop 4) (.fcall [116, 114, 97, 110, 115, 102, 101, 114] [1, 2, 3] 300000000000000 0) =
+      true := by
+  rw [pcTailRaw_drop]
+  exact decodes_fcall
+
+/-- The `promise_create` group's bytes are the tail's bytes (`pcPlan_bytes` + `fcPlan_eq_fcRaw`). -/
+theorem pcPlan_eq_tailRaw (m a : List Nat) (g d : Nat)
+    (hm : ∀ x ∈ m, x < 256) (ha : ∀ x ∈ a, x < 256) :
+    (pcPlan m a g d).map (·.byte) =
+      (pcTailRaw (m.map UInt8.ofNat) (a.map UInt8.ofNat) g d).map UInt8.toNat := by
+  rw [pcPlan_eq_encode_tail m a g d hm ha]
+  unfold pcTailRaw NearSpec.u32
+  rfl
+
+/-- The `promise_create` group's plan is exactly `pcPlan`, and its bytes are the reference
+`u32 1 ‖ fcRaw` tail (concrete vector): the composition of `pcPlan_eq_encode_tail`. -/
+theorem pcPlan_vector (m a : List Nat) (g d : Nat)
+    (hm : ∀ x ∈ m, x < 256) (ha : ∀ x ∈ a, x < 256) :
+    (pcPlan m a g d).map (·.byte) =
+      (NearSpec.u32 1).map UInt8.toNat ++
+        (fcRaw (m.map UInt8.ofNat) (a.map UInt8.ofNat) g d).map UInt8.toNat :=
+  pcPlan_eq_encode_tail m a g d hm ha
 
 end ZkFormal.PQ.Receipt
