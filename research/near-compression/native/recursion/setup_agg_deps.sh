@@ -1,34 +1,34 @@
 #!/usr/bin/env bash
-# Base/aggregation lane (lane/pq-base-aggregation): the recursion trees of setup_recursion_deps.sh
-# plus patches/openvm-recursion-agg.patch (n-to-1 aggregation node, nv/agg.rs) applied on top of
-# patches/openvm-recursion-sha384.patch in openvm-sha384.
+# lane/pq-agg-rebase: the aggregation / n-to-1 node overlay.
 #
-#   NEARPROOF_PQ_DEPS   target root (default /data/illia/nearproof-deps/pq-base-agg; never the
-#                       recursion lane's pq-recursion tree)
-# Idempotent: an existing overlaid tree is verified (base + overlay reproduce its `git diff`).
+#   setup_cpu_fast_deps.sh        the full base chain (native, unified, recursion, stream, cpu-fast)
+#   patches/openvm-recursion-agg.patch
+#                                 the nv/agg.rs node, its tests, the ChainStart op + bus, and the
+#                                 `bind_child` hook in build_verifier (program binding for NV
+#                                 children of an aggregation node)
+#
+# The overlay used to sit on openvm-recursion-sha384.patch alone, i.e. before G2, so it stopped
+# applying when G2 landed.  It is now generated against the full chain by make_agg_patches.sh.
+#
+#   NEARPROOF_PQ_DEPS   target root (default /data/illia/nearproof-deps/pq-agg; never a shared tree)
+# Idempotent: an existing overlaid tree is verified against base + overlay, never re-patched.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
-export NEARPROOF_PQ_DEPS=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-base-agg}
+export NEARPROOF_PQ_DEPS=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-agg}
 DEPS=$NEARPROOF_PQ_DEPS
-case "$DEPS" in */pq-recursion|*/pq-native|*/openvm) echo "refusing shared tree" >&2; exit 1;; esac
-BASE=$HERE/patches/openvm-recursion-sha384.patch
+case "$DEPS" in */pq-recursion|*/pq-native|*/pq-stream|*/openvm) echo "refusing shared tree" >&2; exit 1;; esac
 AGG=$HERE/patches/openvm-recursion-agg.patch
 T=$DEPS/openvm-sha384
 if [ ! -f "$T/.agg-overlay" ]; then
-  "$HERE/setup_recursion_deps.sh"
+  "$HERE/setup_cpu_fast_deps.sh"
   git -C "$T" apply "$AGG"
   git -C "$T" add -N .
   touch "$T/.agg-overlay"
 fi
-# verify: a fresh checkout + base + overlay reproduces the tree's diff
-tmp=$(mktemp -d "$DEPS/.verify.XXXX")
-trap 'rm -rf "$tmp"' EXIT
-git clone -q --no-checkout "$T" "$tmp/t"
-git -C "$tmp/t" checkout -q --detach "$(git -C "$T" rev-parse HEAD)"
-git -C "$tmp/t" apply "$BASE" 2>/dev/null
-git -C "$tmp/t" add -N .
-git -C "$tmp/t" apply "$AGG"
-git -C "$tmp/t" add -N .
-diff <(git -C "$T" diff -- . ':!.agg-overlay' | grep -v '^index ') <(git -C "$tmp/t" diff | grep -v '^index ') >/dev/null \
-  || { echo "$T differs from base + agg overlay" >&2; exit 1; }
+# verify: the overlay regenerated from the live tree equals the pinned patch
+CHK=$(mktemp -d "$DEPS/.aggverify.XXXX")
+trap 'rm -rf "$CHK"' EXIT
+AGG_PATCH_OUT=$CHK NEARPROOF_PQ_DEPS="$DEPS" "$HERE/make_agg_patches.sh" >/dev/null
+cmp -s "$CHK/openvm-recursion-agg.patch" "$AGG" \
+  || { echo "$T differs from base + agg overlay (regenerate with make_agg_patches.sh)" >&2; exit 1; }
 echo "agg deps OK: $DEPS"
