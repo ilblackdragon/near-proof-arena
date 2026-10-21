@@ -36,7 +36,13 @@ for w in "$OUT"/progs/*.wasm; do
   fi
   read -r nloc ngl nimp nreg nsha <<<"$(python3 -c "import json;d=json.load(open('$OUT/progs/$n.prep.json'));hs=d.get('hosts',[]);reg=any(h.get('hid') in (48,49) and h.get('regs') for h in hs);sha=any(h.get('hid')==53 for h in hs);print(len(d['localTags']),d.get('ngl',0),1 if hs else 0,1 if reg else 0,1 if sha else 0)")"
   AIRK=air; [ "$nimp" = 1 ] && AIRK=airH; [ "$nreg" = 1 ] && AIRK=airR; [ "$nsha" = 1 ] && AIRK=airX
-  [ -f "$OUT/$AIRK-$nloc-g$ngl.json" ] || "$TOOL" $AIRK "$nloc" "$ngl" > "$OUT/$AIRK-$nloc-g$ngl.json"
+  # Regenerate the AIR export when the Lean tool is newer: the exported AIR carries the
+  # column list, the interaction counts and `numPub`, any of which a Lean change can move.  Reusing
+  # a stale export fails with unrelated-looking bus/height errors ("no col reg", numPub mismatch).
+  AIRJ="$OUT/$AIRK-$nloc-g$ngl.json"
+  if [ ! -f "$AIRJ" ] || [ "$TOOL" -nt "$AIRJ" ]; then
+    "$TOOL" $AIRK "$nloc" "$ngl" > "$AIRJ"
+  fi
   # Python reference vs Lean spec (value and step count).  Host programs are not gas-modelled by the
   # Python interpreter, so only the outcome is compared there.
   python3 - "$OUT/progs/$n.json" "$OUT/progs/$n.prep.json" "$nimp" <<'PY'

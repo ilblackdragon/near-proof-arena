@@ -55,6 +55,7 @@ import WasmBase.Main.SoundHost
 import WasmBase.Main.HostChipBits
 import WasmBase.HostCtx
 import WasmBase.Main.RegFacts
+import WasmBase.Main.RegWalk
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors
