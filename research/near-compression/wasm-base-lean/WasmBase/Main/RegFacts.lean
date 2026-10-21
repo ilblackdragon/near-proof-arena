@@ -27,6 +27,66 @@ open NearSpecV3.Wasm hiding P
 set_option linter.unusedSimpArgs false
 set_option maxRecDepth 4000
 
+/-! ## Table access for `wasmBaseRegAir`
+
+`wasmBaseRegAir = wasmBaseHostAir ++ [REG]`, so tables `0..25` are the host AIR's and REG is at 26.
+Every host-AIR fact (`host_air_get`, `host_air_22` … `host_air_25`) lifts by `List.getElem_append_left`;
+the proof obligations differ only in the index bound (`t < 26` here vs `t < 26` there), so each lift
+is a one-liner. -/
+
+theorem reg_air_get (nloc ngl t : Nat) (ht : t < 26) :
+    (wasmBaseRegAir nloc ngl).tables[t]'(by rw [reg_air_len]; omega) =
+      (wasmBaseHostAir nloc ngl).tables[t]'(by rw [host_air_len]; exact ht) := by
+  simp only [wasmBaseRegAir]
+  exact List.getElem_append_left (by rw [host_air_len]; exact ht)
+
+theorem reg_air_22 (nloc ngl : Nat) :
+    (wasmBaseRegAir nloc ngl).tables[22]'(by rw [reg_air_len]; decide) = Host.table := by
+  rw [reg_air_get nloc ngl 22 (by decide)]; exact host_air_22 nloc ngl
+
+theorem reg_air_23 (nloc ngl : Nat) :
+    (wasmBaseRegAir nloc ngl).tables[23]'(by rw [reg_air_len]; decide) = HostO.table := by
+  rw [reg_air_get nloc ngl 23 (by decide)]; exact host_air_23 nloc ngl
+
+theorem reg_air_24 (nloc ngl : Nat) :
+    (wasmBaseRegAir nloc ngl).tables[24]'(by rw [reg_air_len]; decide) = HostTab.table := by
+  rw [reg_air_get nloc ngl 24 (by decide)]; exact host_air_24 nloc ngl
+
+theorem reg_air_25 (nloc ngl : Nat) :
+    (wasmBaseRegAir nloc ngl).tables[25]'(by rw [reg_air_len]; decide) = HostB.table := by
+  rw [reg_air_get nloc ngl 25 (by decide)]; exact host_air_25 nloc ngl
+
+/-- The base-AIR table at index `t < 22` is the same in `wasmBaseRegAir`. -/
+theorem reg_air_base (nloc ngl t : Nat) (ht : t < 22) :
+    (wasmBaseRegAir nloc ngl).tables[t]'(by rw [reg_air_len]; omega) =
+      (wasmBaseAir nloc ngl).tables[t]'(by simp [air_len]; exact ht) := by
+  rw [reg_air_get nloc ngl t (by omega)]
+  exact host_air_get nloc ngl t ht
+
+/-- The HOST constraints vanish on a `wasmBaseRegAir` trace. -/
+theorem reg_air_host_constr {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 22) :
+    ∀ e ∈ Host.table.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0 := by
+  have ht : 22 < (wasmBaseRegAir nloc ngl).tables.length := by rw [reg_air_len]; decide
+  have hc := table_constr H ht hr
+  rw [reg_air_22] at hc
+  exact hc
+
+/-- Index 16 of `wasmBaseRegAir` is `Byte.table`. -/
+theorem reg_air_16b (nloc ngl : Nat) :
+    (wasmBaseRegAir nloc ngl).tables[16]'(by rw [reg_air_len]; decide) = Byte.table := by
+  rw [reg_air_get nloc ngl 16 (by decide)]
+  exact host_air_get nloc ngl 16 (by decide) ▸ air_t16b nloc ngl
+
+/-- The BYTE constraints vanish on a `wasmBaseRegAir` trace (index 16). -/
+theorem reg_air_byte_constr {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 16) :
+    ∀ e ∈ Byte.table.constraints, e.eval (natRow (rowNat tr 16 r) (tr.row pub 16 r)) = 0 := by
+  have ht : 16 < (wasmBaseRegAir nloc ngl).tables.length := by rw [reg_air_len]; decide
+  have hc := table_constr H ht hr
+  rw [reg_air_16b] at hc
+  exact hc
+
 /-! ## Row constraints -/
 
 /-- The named REG constraints vanish on every REG row (from `Holds`). -/

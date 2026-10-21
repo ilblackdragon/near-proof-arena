@@ -356,4 +356,125 @@ theorem reg_len_const {nloc ngl : Nat} {pub : List F} {tr : Trace}
       (rowNat tr 26 r Reg.blen : F) := by grind
   exact natEq e h1 h2
 
+/-! ## The group walk
+
+The row lemmas above are successor-shaped: `reg_pos_step` and `reg_len_const` say what the *next* row
+is, given that it is a byte row with `f = 0`.  The walk turns them into a statement about a whole
+group: from a group-start byte row `r0`, bytes occupy `pos = 0, 1, …` consecutively and the group
+ends at a length row carrying that count.
+
+Two things make the induction go through, and both are worth stating because the naive attempt
+fails:
+
+* **Row existence must be carried.**  `reg_byte_succ_not_start` is about the next row, so the
+  induction carries `r0 + n < tr.height 26` alongside the byte facts.  Deriving existence from the
+  walk itself is circular.
+* **Termination is `cFirst`/`cLast`, not `pos < len`.**  A byte row's successor has `f = 0`
+  (`cOnlyLenEnds`) while the last row starts a group (`cLast`), so a byte row is never the last row
+  (`reg_byte_not_last`).  The walk therefore cannot fall off the table: the group's length row is
+  reached first. -/
+
+/-- **Row 0 starts a group** (`cFirst` forces `f = 1`). -/
+theorem reg_row0_f {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) (htr : 0 < tr.height 26) :
+    rowNat tr 26 0 Reg.f = 1 := by
+  have ht := (reg_walk_26 (nloc := nloc) (ngl := ngl)).1
+  have hT := (reg_walk_26 (nloc := nloc) (ngl := ngl)).2
+  have hcon := table_constr H ht htr
+  rw [hT] at hcon
+  have hc := hcon Reg.cFirst (by simp [Reg.table, Reg.constraints])
+  simp only [Reg.cFirst, Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', Expr.eval,
+    Reg.f, natRow, Trace.row, beq_self_eq_true, ite_true] at hc
+  have hf1 : (rowNat tr 26 0 Reg.f : F) = 1 := by
+    rcases reg_f_bit H htr with hf | hf
+    · rw [show (rowNat tr 26 0 15 : F) = 0 from by rw [show (15 : Nat) = Reg.f from rfl, hf]; rfl] at hc
+      grind
+    · rw [hf]; rfl
+  exact natEq hf1 (rowNat_lt tr 26 0 Reg.f) (by decide)
+
+theorem reg_byte_not_last {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 26)
+    (hk : rowNat tr 26 r Reg.kind = 0) :
+    r + 1 < tr.height 26 := by
+  rcases Nat.lt_or_ge (r + 1) (tr.height 26) with h | h
+  · exact h
+  · exfalso
+    have hlast : r + 1 = tr.height 26 := by omega
+    have ha : rowNat tr 26 r Reg.act = 1 := reg_byte_active H hr hk
+    have hf0 : rowNat tr 26 ((r + 1) % tr.height 26) Reg.f = 0 := reg_byte_succ_not_start H hr ha hk
+    rw [hlast, Nat.mod_self] at hf0
+    have hf1 := reg_row0_f H (by omega)
+    omega
+
+/-- One step of the walk: from a byte row at `r0 + n` (with `f = 0` unless `n = 0`, `pos = n`,
+`len = L`), the successor is inside the table and still carries `len = L`. -/
+theorem reg_step {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 26)
+    (hk : rowNat tr 26 r Reg.kind = 0) :
+    r + 1 < tr.height 26 ∧
+      rowNat tr 26 (r + 1) Reg.f = 0 ∧
+      rowNat tr 26 (r + 1) Reg.blen = rowNat tr 26 r Reg.blen := by
+  have hlt := reg_byte_not_last H hr hk
+  have hmod : (r + 1) % tr.height 26 = r + 1 := Nat.mod_eq_of_lt hlt
+  have ha : rowNat tr 26 r Reg.act = 1 := reg_byte_active H hr hk
+  have hf0 := reg_byte_succ_not_start H hr ha hk
+  rw [hmod] at hf0
+  refine ⟨hlt, hf0, ?_⟩
+  have := reg_len_const H hr (by rw [hmod]; exact hf0)
+  rw [hmod] at this
+  exact this
+
+/-- **The group walk.**  From a group-start byte row `r0` with count `L`, the rows `r0 … r0+L−1`
+are the group's bytes (`kind = 0`, `pos = i`, `len = L`) and row `r0+L` is its length row.
+
+Proved by induction on the offset, carrying row existence (the first conjunct) so the successor
+lemmas apply.  The `n < L` bound is not an input to termination: it is what makes the byte case
+impossible at `n = L`, because `cLastByte` would then say `L = n` too. -/
+theorem reg_group_walk {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r0 : Nat} (hr0 : r0 < tr.height 26)
+    (hf : rowNat tr 26 r0 Reg.f = 1) (hk : rowNat tr 26 r0 Reg.kind = 0) :
+    ∀ n, n ≤ rowNat tr 26 r0 Reg.blen → r0 + n < tr.height 26 →
+      (rowNat tr 26 (r0 + n) Reg.blen = rowNat tr 26 r0 Reg.blen) ∧
+      ((n < rowNat tr 26 r0 Reg.blen) →
+        rowNat tr 26 (r0 + n) Reg.kind = 0 ∧ rowNat tr 26 (r0 + n) Reg.pos = n) := by
+  intro n
+  induction n with
+  | zero =>
+    intro _ hlt
+    refine ⟨rfl, ?_⟩
+    intro _
+    have hp := reg_start_pos H hr0 hf hk
+    exact ⟨hk, by simpa using hp⟩
+  | succ n ih =>
+    intro hle hlt
+    have hnle : n ≤ rowNat tr 26 r0 Reg.blen := by omega
+    have hnlt : r0 + n < tr.height 26 := by omega
+    obtain ⟨hlen, hbyte⟩ := ih hnle hnlt
+    have hk' : rowNat tr 26 (r0 + n) Reg.kind = 0 := (hbyte (by omega)).1
+    obtain ⟨hstep, hf0', hlen'⟩ := reg_step H hnlt hk'
+    -- `r0 + (n+1) = (r0+n) + 1`
+    have hidx : r0 + (n + 1) = (r0 + n) + 1 := by omega
+    rw [hidx]
+    have hlen'' : rowNat tr 26 ((r0 + n) + 1) Reg.blen = rowNat tr 26 r0 Reg.blen := hlen'.trans hlen
+    refine ⟨hlen'', ?_⟩
+    intro hn1
+    -- the successor is a byte row (it cannot be a length row: then `cLastByte` gives `L = n+1`)
+    have hkind : rowNat tr 26 ((r0 + n) + 1) Reg.kind = 0 := by
+      rcases reg_kind_bit H hstep with h | h
+      · exact h
+      · exfalso
+        have hmod2 : ((r0 + n) + 1) % tr.height 26 = (r0 + n) + 1 := Nat.mod_eq_of_lt hstep
+        have hlb := reg_last_byte H hnlt (by rw [hmod2]; exact hf0') (by rw [hmod2]; exact h)
+        have hb : rowNat tr 26 (r0 + n) Reg.blen = rowNat tr 26 (r0 + n) Reg.pos + 1 := hlb
+        have hp : rowNat tr 26 (r0 + n) Reg.pos = n := (hbyte (by omega)).2
+        omega
+    refine ⟨hkind, ?_⟩
+    have hmod : ((r0 + n) + 1) % tr.height 26 = (r0 + n) + 1 := Nat.mod_eq_of_lt hstep
+    have hps := reg_pos_step H hnlt (by rw [hmod]; exact hf0')
+      (by rw [hmod]; exact hkind)
+    rw [hmod] at hps
+    rw [hps]
+    have hp0 := hbyte (by omega)
+    omega
+
 end WasmBase
