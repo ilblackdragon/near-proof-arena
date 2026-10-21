@@ -949,7 +949,40 @@ theorem regLenAgree_lone_length {rid len tp : Nat} (hlen : len ≠ 0) :
   rw [hcount] at hh
   omega
 
+
+/-! ## Why `hsend` is a hypothesis, and why it is load-bearing
+
+`regLenAgree_group` takes
+
+```
+hsend : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.2.1 = true → o.2.2.2 ≤ 1
+```
+
+This is not a formality.  The walk's termination at the group's length row needs `gap < 2^16`,
+because at offset `L` the constraint `cPosLtLen` reads `L − L − 1 − gap = 0`, which
+`gap = P − 1` satisfies for every `L` (`reg_gap_wraparound` below): only the R16 bound on `gap`
+excludes a byte row at offset `len`.  And `gap < 2^16` comes from `reg_r16_query_16bit`, i.e. from
+`lookup_sound`, which needs `hsend`.
+
+`hsend` is **not derivable from `Holds (wasmBaseRegAir …)` alone**, because REG adds space-6 traffic
+on the CH bus, so a REG trace does not satisfy `Holds (wasmBaseAir …)` and the base AIR's `occ_bits`
+(`Main/Exec.lean`) cannot be applied.  It *is* derivable from `Holds` plus the per-chip flag facts,
+which is exactly the situation of the base AIR's `hsend` (there it comes from `occ_bits H hpub CF`
+with `CF : ChipFacts`).  Closing it for REG therefore means replicating the per-chip count bounds
+against `wasmBaseRegAir`; that is `lane/pq-host-memio`'s remaining Step 1.1 and it does not change
+the group-walk argument, only the provenance of `hsend`. -/
+
+/-- **`gap = P − 1` satisfies `cPosLtLen` at `pos = len`.**  This is the wraparound the R16 bound on
+`gap` exists to exclude: the field equation alone cannot rule out a byte row at offset `len`. -/
+theorem reg_gap_wraparound (L : Nat) :
+    ((L : F) - (L : F) - 1 - ((P - 1 : Nat) : F)) = 0 := by
+  have hP : P = 2013265921 := P_val
+  rw [show ((P - 1 : Nat) : F) = -1 from by
+    rw [show (P - 1 : Nat) = P - 1 from rfl]; rw [hP]; decide]
+  grind
+
 end WasmBase
+
 
 
 

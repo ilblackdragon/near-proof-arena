@@ -12,6 +12,15 @@ Full write-up: `research/near-compression/results/pq-host-memio/RESULTS.md`.
 | `d9ca88fac` | `regLenAgree_group` (the corrected obligation) + `reg_pos_lt_len`, `reg_gap_lt`, `reg_r16_recv`, the slot/message lemmas |
 | `ae666c104` | HOSTB `r16 pos` + `r16 blen`; generator + two tamper cases |
 
+## What is still open (do not overclaim Part 1)
+
+`regLenAgree_group` takes the R16 `hsend` bound as a **hypothesis** — that is the handoff's Step 1.1
+(`reg_r16_send_bits`), not closed. It is load-bearing (`reg_gap_wraparound`: `gap = P−1` satisfies
+`cPosLtLen` at `pos = len` for every `len`, so only `gap < 2^16` kills the byte row at offset `len`)
+and not derivable from `Holds (wasmBaseRegAir)` alone (REG's space-6 traffic means a REG trace does
+not satisfy `Holds (wasmBaseAir)`, so the base AIR's `occ_bits` does not apply). Closing it means
+restating the 13 chips' `*_flags` bounds for `wasmBaseRegAir`; it does not touch the walk argument.
+
 ## The finding a reviewer must know
 
 **`Register.RegLenAgree` is false as stated**, not merely unproved. `register_len` emits one length
@@ -33,6 +42,14 @@ corrected the reasoning here.
 
 Second thing the handoff got right and worth restating: the **HOSTB hole is real** and is now closed
 (`r16 pos`, `r16 blen`). Predicted exactly.
+
+## A trap I fell into and corrected in my own write-up
+
+I first recorded that a *same-time* `chRecv`/`chSend` pair on space 3 would "compose mechanically and
+force `memory[addr] = bv`". **That is false.** `busNat` matches on `(bus, direction, message)`, so two
+identical messages in opposite directions land in the same bucket and cancel for every count — the
+pair is vacuous (the same device as HOSTB's pre-existing `reg = 0` self-permutation). Only the real
+`tp < ts` LOAD shape, which *re-times* the message, asserts anything. RESULTS.md §3 now records this.
 
 ## Part 2(b) was not built, deliberately
 

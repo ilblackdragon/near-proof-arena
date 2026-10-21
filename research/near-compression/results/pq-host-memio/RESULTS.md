@@ -6,7 +6,10 @@ This lane had two parts. **Part 1 is complete.** **Part 2 is half done**: the pr
 hole is closed and generated/KAT-verified; the `(ptr, len)` → linear-memory *link* is designed and
 scoped but not built, for the reason recorded in §3.
 
-Everything below is `Holds`-only or generator-only; no `sorry`, no `axiom`, no `native_decide`.
+No `sorry`, no `axiom`, no `native_decide`.  **One honest caveat, stated up front:**
+`regLenAgree_group` still takes the R16 `hsend` bound as a *hypothesis* — that is the handoff's
+Step 1.1 (`reg_r16_send_bits`), and it is not closed.  §1.6 explains exactly why it is load-bearing
+and why it is not derivable from `Holds (wasmBaseRegAir)` alone.
 
 ---
 
@@ -72,6 +75,7 @@ the group. So the corrected statement is true for *every* register access, inclu
 | `reg_byteslot_eval`, `reg_lenslot_eval`, `reg_ch_sends`, `reg_byte_msg`, `reg_len_msg`, `reg_byte_row_msg`, `reg_len_row_msg` | the space-6 slot encodings and the exact send messages |
 | **`regLenAgree_group`** | the corrected obligation |
 | **`regLenAgree_lone_length`** | the refutation of the stated one |
+| **`reg_gap_wraparound`** | `gap = P−1` satisfies `cPosLtLen` at `pos = len` (why `hsend` is needed) |
 
 ### 1.4 Why the walk is shaped the way it is (the two traps)
 
@@ -96,6 +100,30 @@ The R16 lookups that *are* load-bearing for `reg_pos_lt_len` are the existing on
 `pos` to a value below `2^16` (useful independently), but keeping it is a belt-and-braces choice,
 not the difference between true and false. The lane log records this so the next reader does not
 re-derive the wrong justification.
+
+### 1.6 The one hypothesis left open: `hsend` (Step 1.1)
+
+`regLenAgree_group` takes
+
+```
+hsend : ∀ o ∈ occs (wasmBaseRegAir …) tr pub, o.2.1 = true → o.2.2.2 ≤ 1
+```
+
+**It is load-bearing, not cosmetic.** Termination needs `gap < 2^16`: at offset `L` the constraint
+`cPosLtLen` reads `L − L − 1 − gap = 0`, and `gap = P − 1` satisfies that for *every* `L` — proved as
+`reg_gap_wraparound`. Only the R16 bound on `gap` excludes a byte row at offset `len`, and that bound
+comes from `reg_r16_query_16bit`, i.e. from `lookup_sound`, which needs `hsend`.
+
+**It is not derivable from `Holds (wasmBaseRegAir …)` alone.** REG adds space-6 traffic on the CH bus,
+so a REG trace does *not* satisfy `Holds (wasmBaseAir …)`; the base AIR's `occ_bits`
+(`Main/Exec.lean`), which is how `hsend` is obtained for the base AIR, therefore does not apply. For
+the base AIR `hsend` itself is a hypothesis too (`occ_bits H hpub CF` with `CF : ChipFacts`), so the
+REG version needs the same thing: per-chip count bounds re-stated against `wasmBaseRegAir`.
+
+That is mechanical but non-trivial (13 chip tables × their `*_flags` lemmas, all of which currently
+take `Holds (wasmBaseAir)`), and it **does not touch the group-walk argument** — only where `hsend`
+comes from. So this is a clean follow-up, and the walk/`RegLenAgree` mathematics below is complete
+and independent of it.
 
 ---
 
@@ -148,20 +176,31 @@ an emitter on the CH bus, which:
    itself lists as a separate sub-problem ("`ptr` is the destination address of a byte read, carried
    for the **deferred** MEMIO link").
 
-**A partial design that does compose, and why it is not enough.** Emitting `chRecv 3 addr … ts` and
-`chSend 3 addr … ts` *at the same time* makes HOSTB's CH block a **no-op on the multiset** (a recv
-and a send of the identical message), so the permutation statement is unchanged and the join closes
-mechanically. It also forces `memory[addr] = bv` at `ts`, which is the real semantic content. What it
-does **not** do is model the host *consuming* the byte at an earlier time (the `tp < ts` part of
-LOAD's shape), so it does not yet prove "the bytes are the memory contents at the moment the host
-reads them" — only "equal at the call's time". That is an honest weaker statement, and it is the
-maximum that fits without the MEMIO view extension.
+**There is no meaningful middle ground, and I checked before claiming one.** The tempting cheap
+version is a *same-time* pair — `chRecv 3 addr … ts` and `chSend 3 addr … ts` of the **identical**
+message. I first wrote down that this "composes mechanically and also forces `memory[addr] = bv`".
+That is **false**, and it is worth stating why, because it is the trap in this design:
+
+`busNat` (`Air.lean`) matches occurrences on `(bus, direction, message)`. A recv and a send of the
+*identical* message therefore contribute `+c` and `−c` to the **same** bucket, so the pair cancels
+identically for every `c` — it imposes **no constraint whatsoever**. It is the same vacuous device
+as HOSTB's pre-existing `reg = 0` "self-permutation" (whose own module docstring says it stands in
+for the state side). Such a pair would have been a link in name only.
+
+The real LOAD shape is `chRecv … tp` then `chSend … ts` with `tp < ts` and **different** messages.
+That one is not vacuous: the recv at `tp` can only balance against a message some other table
+produced — i.e. it genuinely asserts "memory byte `bv` at `addr` was live at `tp`", and the send
+re-times it to `ts`. Which is exactly why it does **not** compose for free: it changes the CH
+multiset (one message at `tp` consumed, one at `ts` produced), and `memRaw`/`HeapOK`'s `tpm` map is
+what has to absorb that re-timing. So the choice is between a vacuous pair and the full MEMIO
+compose. I did not ship the vacuous one.
 
 **Recommendation.** Land the range-check fix (§2) now — it is a real hole and it is closed. Do the
-`(ptr, len)` link together with the MEMIO view extension in a dedicated lane; attempting it here
-would have meant either expanding `HeapOK`/`RelW` (a change to the base memory model, beyond this
-lane's remit and touching proved files) or shipping the same-time no-op form and overstating what it
-proves.
+`(ptr, len)` link together with the MEMIO view extension in a dedicated lane. The work there is
+bounded and has a template: a row lemma `hostb_mem_step` shaped exactly like `StepMem.heap_update`
+(re-time the buffer bytes `[ptr, ptr+len)` to `ts`, `HeapOK` at `t+1`), then feed it into
+`host_rel_restart`'s `HostStepRely.heap` field. What must **not** be done is the same-time pair
+above, which proves nothing.
 
 **What is ready for that lane.** `HOSTB`'s `inters` has a commented, working `memAddr` expression
 (`ptrLo + 65536·ptrHi + pos`) and the two `chRecv`/`chSend` space-3 interactions, plus a
