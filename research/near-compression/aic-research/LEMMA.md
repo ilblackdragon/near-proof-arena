@@ -260,8 +260,12 @@ particular, with a deterministic fixed public verifier, any existing short
 accepting false pair can be hard-coded into a nonuniform adversary and output
 in time linear in its length. Charging only online time cannot exclude it.
 An assumption quantifying over arbitrary setup-dependent advice would therefore
-be false whenever such a pair exists. A uniform/preprocessing-bounded or
-random-setup game must be specified before calling `S_(d-1)` meaningful; this
+be false whenever such a pair exists. Uniformity alone does not repair a
+concrete fixed-instance statement quantified over all algorithms: a finite
+hard-coded pair is also computable. An asymptotic uniform-family claim, a game
+that fixes the adversary before fresh randomness, or a precisely charged
+preprocessing model must be specified and justified before calling `S_(d-1)`
+meaningful. None follows merely from the name "standard-model security"; this
 note does not alter the implementation to introduce a setup.
 
 The result, when all premises are established, relocates the recursive semantic

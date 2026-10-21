@@ -151,83 +151,61 @@ standard-model statement about our system is a non-falsifiable SNARG-soundness a
   the committed AIR. So the attack does not apply as written. This is worth an explicit audit
   line (§5, H-2).
 
-## 5. Direction 5: a bespoke argument for our structure
+## 5. Current focused investigation: G-P1
 
-Results are in LEMMA.md.
+`LEMMA.md` §§5–7 is the current technical result. It separates three questions:
 
-* **Precise obstruction.**
-  * Thm O [T]: the adversary hard-codes a false-statement proof π₀ that is valid under the
-    in-circuit hash. It proves layers 1..d−1 honestly with that hash, using no H-queries, and
-    proves layer d honestly with H (≤ 2⁴⁶ queries).
-  * Remark 1.2: the set of pairs an AIR certifies cannot depend on a random H.
-  * Cor O.2: the only failing step of PROOF Thm 7.4 is step 2, bullet 2. No argument inside an
-    oracle model can repair it.
-  * Exactly three exits exist: (i) a time bound on in-circuit hash computation, i.e. a
-    standard-model assumption; (ii) an H-dependent certified relation (native re-check, which is
-    non-succinct, or the AROM); (iii) identification, i.e. A-IC.
-* **Consequence for PROOF.md.** Read inside the model of Thm 6.4, which bounds queries but not
-  time, A-IC is *false* for the Thm O adversary (Remark 2.1). The Main Theorem is therefore only
-  meaningful for time-bounded adversaries. A-IC should be restated as **A-IC(τ)**: "for adversaries
-  of running time ≤ τ". Thm O's adversary needs time ≈ 2³⁶⁰ to find π₀, so A-IC(τ) for any
-  realistic τ is not contradicted.
-* **Best conjecture-free positive statement, Lemma P [T].**
-  * Setup: idealise only a final-layer-only FS domain P_fin and keep every in-circuit domain
-    concrete.
-  * Result: depth-d soundness ≤ (√(standard-model break of the depth-(d−1) system) + 2⁻¹⁶⁰)² +
-    2⁻¹³⁵·².
-  * Cost: the reduction's running time is τ_A + Sim(t).
-  * Cor P.1: with naive compressed-oracle simulation, Sim = Θ(t²) ≈ 2¹³⁸. At that time scale the
-    inner assumption is false (Grover grinding τ²ε_rbr > 1; BHT collisions on 336-bit nodes at
-    2¹¹²). If Sim = Õ(t) (gate G-P1, open), it becomes usable.
-  * Either way, it *relocates* A-IC to a GW11-type non-falsifiable assumption about the inner
-    system. It does not remove A-IC.
+1. **Query-only obstruction.** Theorem O lifts an existing false concrete inner
+   proof to an outer forgery, under explicit witness/inner completeness and
+   outer query/completeness bounds. Its old numerical cap estimates and its
+   universal “any oracle model” wording are withdrawn. A time restriction may
+   exclude this route, but does not make concrete SHA equal an independent RO.
+2. **Peeling.** The correct probability expression is
+   `(sqrt(epsilon_inner + epsilon_outer_bad + delta_sim) + sqrt(slack))^2`.
+   Its scalar derivation is kernel-checked. The actual family potential,
+   extractor, NV faithfulness and inner assumption remain premises, not proved
+   by that scalar theorem. Advice and preprocessing must be included in the
+   inner game; a fixed accepting false pair can otherwise be hard-coded.
+3. **Simulation cost.** The written G-P1-C argument gives a quadratic lower
+   bound for a universal online fixed-interface circuit simulator, with
+   arbitrary private quantum encodings. At 2^64 calls and 336-bit outputs,
+   exact simulation needs more than 2^128 gates in the stated model. Lean
+   checks the cone count and arithmetic, not the full quantum information
+   argument. Independent review remains necessary. QRAM, uncharged feedback
+   and adversary-specific reductions are outside this statement.
 
-**Verdict:** a proven lemma that removes A-IC is impossible for this architecture (Thm O). Lemma P
-is the best reduction that avoids idealising in-circuit hashing, and it does not beat A-IC.
+A generic collision or grinding work factor is not, by itself, a proof of an
+accepted false statement for this concrete system. The earlier claim that a
+quadratic simulator upper bound proves `S_(d-1)` false is withdrawn.
 
----
+## 6. Claim and artifact boundaries
 
-## 6. Best achievable outcome vs the ~299 KB final layer
+| Object | Current claim |
+|---|---|
+| Single/family outer layer | Correct conditional operator bound; actual protocol instantiation still open. |
+| Recursive semantics | Separate conditional research theorem requiring a coherent model/game, faithfulness and resource accounting. |
+| G2 artifact | FINAL is measured at 293,077 bytes; reproduction evidence lives in `results/pq-stream-commit/g2-gate`. No total security number is established by that measurement. |
+| Deployed D3 admission path | R5 keeps it capped, without composition; the recursive A-IC assumption is not load-bearing for that path. |
 
-| option | what is assumed | status | final proof | bound |
-|---|---|---|---|---|
-| **A-IC(τ), current design** | identification, time-bounded | proven given A-IC(τ), T\*, NV-faithful | ~299 KB | 2⁻¹³⁵·² (2⁻¹³²·⁴ with a union over layers) |
-| H-1 + Lemma P | QRO on P_fin only + S_{d−1} (standard model) | proven reduction; G-P1 open; S_{d−1} not falsifiable | ~299 KB (+0 B) | 2⁻¹³⁵·² + ε_S at time τ_A + Sim(2⁶⁴) |
-| non-recursive base proof | QROM only | **fully proven** (Cor 6.5) | ≫ 300 KB (base app proof) | 2⁻¹³⁵·² |
-| CGSY weak relativized | classical ROM | classical proof only, no quantum | ≥ \|π₀\| + all inner traces | — |
-| AROM PCD | random extension (uninstantiable) | classical, asymptotic | accumulator ≈ 10 MB for SHA-sized w (estimate); not SHA-384 | no quantum bound |
+The final/inner domain separation is already present in the pinned G2 code;
+there is no outstanding H-1 architecture change to approve.
 
-**Best outcome reached:** within 300 KB, A-IC is necessary up to the choice among the exits of
-Cor O.2. A proof of exactly where it is necessary is the deliverable.
+## 7. Scope decision (2026-10-21)
 
-## 7. Recommendation: close, with zero-cost follow-ups
+The user authorized the narrowly scoped G-P1 investigation, without changing the
+construction. Its model-specific negative result is documented; it is not
+promoted to a theorem excluding every possible simulation or reduction.
+A-IC(τ) remains a proposed research endpoint requiring a coherent formulation,
+not a proven consequence of the time bound or Theorem O. The actual family-QROM
+and NV proof obligations must remain visible in the paper.
 
-1. **Close the "proven bound without A-IC" goal.** Gate for reopening: a published theorem
-   giving succinct recursion with in-circuit hashing in a model that avoids Thm O. That means
-   exit (ii) with a quantum analysis, e.g. a QAROM PCD theorem *and* an arithmetization-friendly
-   instantiation acceptable under U-7. Both are currently absent. Check yearly; do not fund in
-   the meantime.
-2. **Update PROOF.md / GAPS S-23** on the soundness lane (not edited here; this lane writes only
-   `aic-research/`). Change S-23 from "open" to "**closed: provably impossible in any oracle model
-   (LEMMA Thm O); assumption required**". Restate Assumption 7.3 as A-IC(τ) with an explicit time
-   bound, and cite CGSY24 §2.3 as the literature's form of the same heuristic.
-3. **Contract wording (user decision).** U-6's "≤ 2⁶⁴ quantum queries" with no time bound is
-   unattainable for any recursive claim (Cor O.1). Propose "≤ 2⁶⁴ quantum queries and time
-   ≤ τ" for the recursive statement; U-6 stands unchanged for single layers.
-4. **H-1 (spec change, ask the user).** Give the final layer's native prover/verifier its own
-   prefix32/np8 (P_fin ≠ P_in).
-   * Cost: 0 proof bytes and 0 circuit change. No circuit ever verifies layer d, and NV_d keeps
-     verifying its child with P_in.
-   * Effect: no circuit ever computes the idealised domain. That removes self-reference, the
-     KRS-style diagonalisation surface, and makes the Lemma P statement apply to the code.
-5. **H-2 (audit, no change expected).** Confirm that SHA-384 is evaluated only in committed AIR
-   rows, never inside an uncommitted GKR layer, and that LogUp-GKR uses only the canonical
-   fractional-sum circuit (KRS §5, Remark 3). Confirm that application hashes (NEAR's SHA-256
-   trie) stay standard-model functions, disjoint from the SHA-384 oracle (BCG §1 regime; already
-   so in Lemma 7.2).
-6. **Optional, low priority.** Gate G-P1 (an Õ(t) compressed-oracle simulation) would make
-   Lemma P concretely meaningful. It is still not a removal of A-IC.
+Keep U-7, SHA-384 throughout. No lattice or algebraic-hash wrapper is funded;
+relaxing U-7 would require a separate user decision. R5's deployment decision
+also remains unchanged.
 
 ## Files
-* `LEMMA.md`: Thm O, Lemmas E.1–E.3, Cors O.1–O.2, Lemma P, Cor P.1, with a status table.
-* Downloaded PDFs are in the session scratchpad only; none are committed.
+
+* `LEMMA.md`: corrected Theorem O and peeling accounting; G-P1 cost model,
+  written lower bound and its precise limits.
+* `../../qrom/Qrom/Peeling.lean` and `QueryCost.lean`: scalar regression,
+  finite cone counting and exact numerical consequences only.
