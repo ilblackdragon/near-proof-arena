@@ -78,6 +78,18 @@ theorem reg_air_16b (nloc ngl : Nat) :
   rw [reg_air_get nloc ngl 16 (by decide)]
   exact host_air_get nloc ngl 16 (by decide) ▸ air_t16b nloc ngl
 
+/-- Index 15 of `wasmBaseRegAir` is `Range16.table`. -/
+theorem reg_air_15r (nloc ngl : Nat) :
+    (wasmBaseRegAir nloc ngl).tables[15]'(by rw [reg_air_len]; decide) = Range16.table := by
+  rw [reg_air_get nloc ngl 15 (by decide)]
+  exact host_air_get nloc ngl 15 (by decide) ▸ air_t15r nloc ngl
+
+/-- The RANGE16 values of a `wasmBaseRegAir` trace: height `2^16` and `v = row`. -/
+theorem reg_range16_values {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) :
+    tr.height 15 = 65536 ∧ ∀ r, r < tr.height 15 → rowNat tr 15 r Range16.val = r :=
+  range16_values H (by rw [reg_air_len]; decide) (reg_air_15r nloc ngl)
+
 /-- The BYTE constraints vanish on a `wasmBaseRegAir` trace (index 16). -/
 theorem reg_air_byte_constr {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 16) :
