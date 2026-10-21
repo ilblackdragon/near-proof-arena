@@ -97,10 +97,33 @@ patch, so "everything builds" was the only signal anyone had.
   `nv_program_pow_identity`, `o2_agreement_table`, `o2_round0_multi_commit`,
   `nv_prep_cached`, `nv_tight_heights`, `nv_merkle_op_tamper` all pass.
 
-### Follow-up (not done here)
+### Follow-up, resolved the same day
 
-Fix `sha384::e2e_tests` to use `replay2`/T\*, or mark the three tests `#[ignore]`
-with a comment naming T\*. Leaving them red is the worst option: the next person
-will read a red e2e test as a soundness regression. Preferred fix is to port the
-debug helpers to `replay2`, since `replay_transcript` otherwise remains a
-second, divergent transcript implementation in the tree.
+Both stale tests are now fixed at the source of truth, i.e. in the pinned
+patches, not in a deps tree:
+
+1. **`sha384::e2e_tests`** — the three tests are marked
+   `#[ignore = "legacy chained-transcript path; predates T*, superseded by nv::"]`
+   and the module header explains why. They exercise `system::VerifierSubCircuit`,
+   which `nv` replaced and which nothing else imports; porting them to `replay2`
+   would mean resurrecting a dead circuit, so marking them is the honest fix.
+
+2. **`nv_stmt_covers_cached_root`** — this one was a genuine trap. It was
+   *already* fixed in `patches/p4-statement-test.rs` by `f09a88b44`, but the copy
+   that actually reaches the tree lives in
+   `patches/openvm-recursion-cpu-fast.patch`, which still appended the cached
+   limbs to the statement message. The shipped code chains a Merkle node
+   (`StatementClaim::digest`), so the test compared two different constructions
+   and failed. Fixed by regenerating `openvm-recursion-cpu-fast.patch` with
+   `make_cpu_fast_patches.sh` from a tree carrying the corrected body; the
+   regenerated patch differs from the old one only in that test.
+
+Verification after both fixes, on the `pq-stream-g2` tree:
+`cargo test --release -p openvm-recursion-circuit --lib` →
+**85 passed, 0 failed, 6 ignored** (the 6 are the 3 legacy e2e tests, 3
+pre-existing `#[ignore]`s). The full patch stack applies cleanly from a pristine
+OpenVM `f08bf28` checkout.
+
+Note for whoever touches these next: `p4-statement-test.rs` is **not** the only
+copy of that test. `openvm-recursion-cpu-fast.patch` carries its own, and a fix
+applied only to the former will not reach the tree.

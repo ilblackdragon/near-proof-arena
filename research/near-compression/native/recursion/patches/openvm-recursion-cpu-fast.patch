@@ -1,7 +1,7 @@
 diff --git a/crates/recursion/src/nv/tests.rs b/crates/recursion/src/nv/tests.rs
 --- a/crates/recursion/src/nv/tests.rs
 +++ b/crates/recursion/src/nv/tests.rs
-@@ -1772,3 +1772,60 @@ fn nv_statement_inert_without_cached_roots() {
+@@ -1772,3 +1772,67 @@ fn nv_statement_inert_without_cached_roots() {
      assert_eq!(super::circuit::StatementClaim::new(proof.public_values.clone()).digest(), b.statement.unwrap());
      println!("NV_INERT program rows {} (statement = G1 digest, no cached roots)", b.instrs.len());
  }
@@ -11,7 +11,10 @@ diff --git a/crates/recursion/src/nv/tests.rs b/crates/recursion/src/nv/tests.rs
 +/// A child proof whose AIR carries a cached main (the shape `pq-state-port`'s TAPE has) is
 +/// verified by the NV circuit.  The statement digest must cover the cached commitment:
 +///
-+/// * the honest child's statement digest is `statement_digest(public_values ++ cached_limbs)`;
++/// * the honest child's statement digest is `statement_digest(public_values)` with each cached
++///   commitment chained in by one Merkle-node compression, which is what the NV program emits.
++///   (The earlier P4 draft appended the limbs to the statement message instead; that overflows
++///   the one-block leaf job, so the shipped construction chains a node.)
 +/// * a statement that covers only the public values (the pre-P4 behaviour) must differ;
 +/// * and a child whose cached root is swapped must produce a different statement.
 +///
@@ -29,23 +32,27 @@ diff --git a/crates/recursion/src/nv/tests.rs b/crates/recursion/src/nv/tests.rs
 +    let cached = proof.trace_vdata[0].as_ref().unwrap().cached_commitments.clone();
 +    assert_eq!(cached.len(), 1, "one cached commitment");
 +
-+    // the P4 statement: public values followed by the cached commitment's limbs
-+    let mut with_cached: Vec<Vec<F>> = proof.public_values.clone();
-+    with_cached.push(crate::nv::fmt::digest_limbs(cached[0]).to_vec());
-+    let d_p4 = crate::sha384::config::statement_digest(&with_cached);
++    // the P4 statement: the G1 digest, then each cached commitment chained by a node compression
++    let node = |l: crate::sha384::config::Digest, r: crate::sha384::config::Digest| {
++        use openvm_stark_backend::hasher::MerkleHasher;
++        crate::sha384::config::ShaHasher.compress(l, r)
++    };
++    let mut d_p4 = crate::sha384::config::statement_digest(&proof.public_values);
++    for c in &cached {
++        d_p4 = node(d_p4, *c);
++    }
 +    let d_pv_only = crate::sha384::config::statement_digest(&proof.public_values);
 +    assert_ne!(d_p4, d_pv_only, "the cached root must change the statement digest");
 +
 +    // a child whose cached root differs gives a different P4 statement, same PV digests
 +    let mut swapped = cached[0];
 +    swapped[0] ^= 1;
-+    let mut with_swapped: Vec<Vec<F>> = proof.public_values.clone();
-+    with_swapped.push(crate::nv::fmt::digest_limbs(swapped).to_vec());
-+    assert_ne!(
-+        crate::sha384::config::statement_digest(&with_swapped),
-+        d_p4,
-+        "a swapped cached root must give a different statement"
-+    );
++    let mut with_swapped = crate::sha384::config::statement_digest(&proof.public_values);
++    for c in &cached {
++        let c = if *c == cached[0] { swapped } else { *c };
++        with_swapped = node(with_swapped, c);
++    }
++    assert_ne!(with_swapped, d_p4, "a swapped cached root must give a different statement");
 +    assert_eq!(
 +        crate::sha384::config::statement_digest(&proof.public_values),
 +        d_pv_only,
