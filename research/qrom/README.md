@@ -1,125 +1,107 @@
-# QROM game: ANALYSIS Lemmas 1 and 2, formalized with Mathlib
+# QROM bound components and their instantiation boundary
 
-Status: 2026-10-20. Research package, **not** part of the gated `zk-formal` build.
+Updated 2026-10-21 after the paper soundness review. Research package using Mathlib;
+not part of the admitted `zk-formal` certificate or its package whitelist.
 
-## Why this package exists
+The package proves conditional mathematical lemmas. It does **not** yet prove the
+paper's recursive protocol secure, and is not closed except for two cited facts.
 
-`zk-formal` is bound by the challenge's `allowed_packages = [ArenaCore, NearSpec]`
-(`docs/zk-formal/DESIGN.md` F4: **no Mathlib**). Every proof that must enter a certificate has to
-be Mathlib-free. This package is separate so the QROM arguments can be developed with Mathlib
-available; anything here that must enter a certificate still has to be re-proved in `zk-formal`.
+## Checked components
 
-`research/` is outside `make pin-check` (which covers `oracle/v3` only) and outside CI.
-
-## What was proved
-
-| file | content | ANALYSIS reference |
+| File | Result | Premises and scope |
 |---|---|---|
-| `Qrom/Transition.lean` | `block_le_a`, `block_le_b`, `block_le_c` — the three cases of the one-query transition bound `‖A·cO·B‖²` | §3 **Lemma 1** |
-| `Qrom/Path.lean` | `Ahat_step` (the recursion holds with equality, by Pascal's rule) and `path_bound` (the induction `a ≤ Â`, giving `‖Π_{κ≥K+1}ψ_t‖ ≤ A_t`) | §3 **Lemma 2** |
-| `Qrom/Main.lean` | **`qrom_bound`** — the whole chain assembled: Lemma 1 bounds ⇒ operator norm ⇒ mass recurrence ⇒ Lemma 2 ⇒ Fact A | Thm 6.4 conclusion shape |
-| `Qrom/FactA.lean` | `hits_le` / `fibre_card` (the finite counting step: hitting any of `ℓ` coordinates has `≤ ℓ·N^(t−1)`-many oracles) and `fact_a` (the square-root form, with the Zhandry/CFHL21 replacement as an explicit hypothesis) | §3 **Fact A** |
-| `Qrom/Operator.lean` | `matL` (a matrix as a linear map), `restr`/`restr_idem` (level projection), `block_sq_le` and **`block_norm_le`** (entrywise bound ⇒ block operator norm) | §3 "the max over the block norms" |
-| `Qrom/Instantiate.lean` | Hilbert-space model: `proj`/`projL`, `norm_proj_sq`/`norm_proj_le`/`norm_proj_mono`, `proj_idem`, `mass`, `mass_antitone`, **`mass_recurrence`** (block operator norms ⇒ the per-level recurrence), `instantiate` (Lemma 2 for a real state) | §3 "for diagonal Π, ‖Π_{≥j} cO Π_{=i}‖ is the max of the block norms", Lemma 2, step 6 |
+| `Transition.lean` | Three Frobenius block estimates | Actual squared-entry function; finite-entry bound only off diagonal; source/target blocks disjoint. Zero-frequency identity blocks vanish. |
+| `Operator.lean` | Complex matrix action bounded by its Frobenius block sum; `complex_block_finite` composes the repaired entry bound | Equality between actual matrix norm squares and `EntryBounds.entry` is explicit. The global compressed-oracle operator is not constructed. |
+| `Instantiate.lean` | `mass_recurrence` from contractive operators, idempotent projectors, decomposition and block bounds | Generic normed-space lemma, plus illustrative real coordinate projections. |
+| `Path.lean` | `path_bound`: the amplitude is at most `Ahat` | Abstract nonnegative transition weights and initial condition. |
+| `FactA.lean` | `Replacement` and `fact_a` use CFHL21's square-root form | The replacement theorem is cited, not proved. Finite counting lemmas do not establish it. |
+| `Main.lean` | `PotentialEvolution.recurrence`, `amplitude_bound`, `qrom_bound`, `qrom_binary_bound` | Recurrence is derived from operator premises; measured bad-event probability is bounded by the **squared** projection norm. Result: `p ≤ (Ahat + sqrt slack)^2`, or `(t*g + sqrt slack)^2` for a Boolean potential. |
+| `Transcript.lean` | Honest chain edge is not `WideBad`; safe accepting transcript yields a witness | Deterministic part only. No bound on probability of verifier flips is asserted. |
+| `MerkleSupport.lean` | Unreferenced node insertion preserves graph reachability; reference targets bounded by `fixedRoots + 3*q` under typed support counts | Native parser/extractor correspondence and wide-query bounds remain open. |
+| `OracleBridge.lean` | A fixed concrete output matches one independent uniform oracle output with probability `1/card Y`; acceptance minus that marginal lower-bounds consistency failure | Includes a general probability-space inequality. Protocol fixed-pair occurrence and completeness must still be supplied; no concrete forgery is asserted. |
+| `Sampler.lean` | Every accepted residue has exactly two preimages below `2*p`, hence conditional probability `1/p` | Finite counting only; adaptive oracle selection, rejection-loop length and runtime are separate obligations. |
+| `Adaptive.lean` | History-dependent bad-set cardinalities give a union bound over uniformly sampled challenge trajectories | Classical uniform challenges; the actual sampler and QROM game still need reduction to this experiment. |
+| `Peeling.lean` | Correct scalar peeling bound, regression against the omitted cross term, and quadratic scan count | Simulation, extraction and protocol premises remain explicit. |
+| `QueryCost.lean` | Backward-cone cardinality and conditional gate lower bound | Quantum causality and the random-access-code information bound in G-P1-C are not formalized here. |
+| `Audit.lean` | Counterexamples to the old probability-additive replacement premise and full-entry matrix model; one-query amplitude regression; axiom output | Included in the default build. |
+| `Instance.lean` | Complex database-register Hilbert space; coordinate projections (real and complex linear), idempotence, contraction, nesting | One oracle point. No adversary workspace or Fourier register. |
+| `Reflection.lean` | Reflection in `ℂ ∙ w` with `‖w‖² = 2`: a **real linear isometry** whose squared entries are `0, 1/M, 1/M, 1/M² ≤ 9/M²`, so `EntryBounds` is inhabited by an actual unitary; exact rank-one block identity; `Chg` bound `2|Chg|/M` | The operator is the one-point `cO_{xŷ}`, not the lifted `Σ_{x,ŷ} \|x,ŷ⟩⟨x,ŷ\| ⊗ cO_{xŷ}`. |
+| `ConcreteInstance.lean` | `concreteEvolution`: a `PotentialEvolution` with every field discharged; `concrete_qrom_bound` applies `qrom_binary_bound` end to end, with the measured-event inclusion **proved** (`le_refl`) rather than assumed | The level function and `Chg` are supplied, not the transcript potential. One repeated query operator. `Replacement` remains cited. |
+| `Extraction.lean` | Canonical extraction as a filter on `(digest, children)` nodes: singleton uniqueness, insert-fresh, erase, replace, and the two honest children-reassignment statements | A model of the database; no refinement from the Rust parser. |
+| `Fanout.lean` | Long-output occurrence counts, `C(k,2)` within-output pairs, `J(2t+1)` fanout, mixed-width `≤ ℓ/2³³⁶`, and the absorb digest sum that yields `C + 3q` only when each message has at most three digests | Counting only; the counts still have to enter a lifted operator's `G`. |
 
-Axioms: `propext`, `Classical.choice`, `Quot.sound` only. No `sorry`.
+No new axioms or `sorry` are used. Kernel axioms are `propext`, `Classical.choice`,
+and `Quot.sound` (some results use fewer).
 
-### Lemma 1 (one-query transition bound)
+## What changed in the repair
 
-The compressed oracle's one-point unitary `cO_{xŷ}` is modelled by its squared entry bounds
-(ANALYSIS Fact B, from CFHL21 Lemma 4.3): alphabet `Y = Fin M`, register `Ȳ = Option (Fin M)`
-with `none = ⊥`, and
+1. The old `qrom_bound` assumed `p' ≤ Ahat`, did not use its computed mass bound,
+   and confused an amplitude with a probability. The new theorem actually uses
+   the operator-derived recurrence and projection-event relation.
+2. CFHL21 Corollary 4.2 states `sqrt p ≤ sqrt p' + sqrt(ℓ/N)`;
+   it does not state `p ≤ p' + ℓ/N`. The cross term is retained.
+3. CFHL21 Lemma 4.3 bounds finite **off-diagonal** entries by `3/M`.
+   Diagonal entries are unrestricted by this bound, and the zero-frequency
+   query is the identity. The old constant-entry model could not be unitary.
+4. A state output used as the next input is a legitimate transcript edge.
+   Only distinct-output collisions and return to the initial state enter the
+   illustrative `WideBad` predicate. A full family potential must also include
+   narrow collisions and first verifier flips, with canonical extraction defined.
 
-* `⊥ → ⊥` is `0`,
-* `|γ_{⊥,r}|² = |γ_{u,⊥}|² = 1/M`,
-* `|γ_{u,r}|² ≤ 9/M²`.
+## Remaining protocol work
 
-The operator norm is bounded by the Frobenius norm over the block (ANALYSIS step 1). The three
-cases are proved directly on the double sum:
+To instantiate `PotentialEvolution` for the paper, construct or rigorously reduce:
 
-* **(a)** `⊥ ∉ A`: `blockSum ≤ |A|·(1/M + 9/M)`.
-* **(b)** `⊥ ∈ A`, `⊥ ∉ B`: `blockSum ≤ 10·|B|/M`.
-* **(c)** both avoid `⊥`: `blockSum ≤ 9·|A|·|B|/M²`.
+* the complex compressed-oracle state, including adversary workspace and Fourier
+  query register; support bounds and commutation with database projectors;
+* a finite, canonically framed verifier family, and unambiguous transcript parsing;
+* canonical Merkle extraction and the Boolean potential on all database states,
+  including deletion/reassignment of entries;
+* every block estimate for that potential (absorb, narrow, long-output challenge,
+  zero-frequency), with exact root counts and long-output fanout;
+* the measured-event inclusion, plus a valid invocation of CFHL21 replacement
+  for adaptive verifier queries and mixed output widths;
+* the resulting numerical constants and a separate recursive hash-model bridge.
 
-### Lemma 2 (path lemma)
+`EntryBounds` and `Replacement` are two external interfaces, but the list above
+contains additional protocol-specific obligations. No theorem here discharges them
+by naming them. `Main.lean` exposes this boundary explicitly.
 
-Stated and proved on `ℝ`-valued sequences, which is faithful: the compressed-oracle argument
-supplies the recursion from Lemma 1 and the commutation of the adversary's unitaries with the
-diagonal projectors, and nothing else about quantum mechanics enters.
+**Partial progress (2026-10-21, `lane/pq-family-qrom`).** The list above is no
+longer entirely open:
 
-* `Ahat_step`: `Â_{s+1}(j) = Â_s(j) + Σ_{i<j} G_{i,j}·Â_s(i)` — the recursion with **equality**,
-  via Pascal's rule `C(s+1,m+1) = C(s,m) + C(s,m+1)`.
-* `path_bound`: from `a_0 ≤ Â_0` and the recursion for `a`, induction on `s` gives `a_t ≤ Â_t`.
+* `EntryBounds` is now *inhabited*: `Reflection.qopEntries` is the squared-entry
+  function of an explicit complex linear isometry.
+* `PotentialEvolution` has a compiled instance (`ConcreteInstance`), with the
+  measured-event inclusion proved rather than assumed, and a `Chg` block
+  constant of `2|Chg|/M` instead of the interface's `10|Chg|/M`.
+* Canonical extraction is defined and its insertion/deletion/reassignment
+  behaviour is proved on a node model (`Extraction`).
+* Long-output fanout, the mixed-width sum, and the per-message absorb digest
+  count are proved as arithmetic (`Fanout`), making `C + 3q` an instance.
 
-### Fact A (real oracle → measured database)
+Still open: the global multi-point compressed-oracle operator and its commutation
+with database projectors, the base layer's state function, the Rust parser
+refinement, and `Replacement` itself. See
+`../../../docs/logs/pq-family-qrom-2026-10-21.md` for the item-by-item table.
 
-The counting content is proved: `fibre_card` (fixing one of `t` coordinates leaves `N^(t-1)`
-free) and `hits_le` (union bound: at most `ℓ·N^(t-1)` oracles hit any of `ℓ` coordinates).
-The Zhandry/CFHL21 *replacement* inequality is the genuinely quantum step and is kept as an
-explicit hypothesis `Replace` in `fact_a`; only the square-root algebra around it is proved.
+## Validation
 
-### Instantiation (Hilbert space)
+The 2026-10-21 family-instantiation build passes (**8,728 jobs**); source
+hashes and scope are recorded in `VALIDATION.json`. The `lane/pq-family-qrom`
+track adds five modules (`Instance`, `Reflection`, `ConcreteInstance`,
+`Extraction`, `Fanout`); the earlier figure in this line (8,722) predates them. Run `lake build` in this directory. `Qrom.Audit` is a default-library import, so
+its regression proofs and axiom checks are included. On the shared development
+host use the repository's `heavy` wrapper and reserved non-benchmark CPUs.
+The pinned Mathlib path in `lakefile.toml` is machine-local; clean standalone
+reproduction also requires packaging that dependency pin.
 
-The state lives in `EuclideanSpace ℝ ι`; `proj P` zeroes coordinates outside the level predicate
-`P`. Proved: `norm_proj_sq` (`‖proj P x‖² = Σ_{i∈P} x_i²`), `norm_proj_le` (contraction),
-`norm_proj_mono` (nested levels), `proj_idem` (it is a projector).
+Primary reference: Chung–Fehr–Huang–Liao, [Corollary 4.2 and Lemma 4.3](https://arxiv.org/pdf/2010.11658).
 
-**`mass_recurrence`** is the step ANALYSIS states in one sentence ("for diagonal `Π`,
-`‖Π_{≥j} cO Π_{=i} P_{≤s}‖` is the maximum over the block norms of Lemma 1"):
+### Tight-height kernel component
 
-  `‖Π_j (cO ψ)‖ ≤ ‖Π_j ψ‖ + Σ_{i<j} g_i · ‖Π_i ψ‖`, given `‖Π_j ∘ cO ∘ Π_{=i}‖ ≤ g_i`.
-
-**A hypothesis the prose omits.** The derivation is *false* without idempotence of `Π_{=i}`: the
-block bound controls `cO` applied to `Π_{=i}ψ`, not to `ψ`, so the chain needs
-`(Π_j cO Π_{=i})(Π_{=i}ψ) = (Π_j cO Π_{=i})ψ`. `mass_recurrence` therefore takes
-`P i ∘L P i = P i` explicitly, and `proj_idem` discharges it for the concrete model.
-
-`instantiate` then applies Lemma 2 to `mass lev ∘ ψ`, with nonnegativity supplied by
-`mass_nonneg` rather than assumed.
-
-## Status: the chain is closed except two cited modelling facts
-
-The full chain is now proved and assembled in `Qrom/Main.lean:qrom_bound`:
-
-```
-Lemma 1 entrywise bounds   (block_le_a/b/c)          proved
-  ⇒ block operator norm    (block_norm_le)           proved
-  ⇒ per-level recurrence   (mass_recurrence)         proved (needs projector idempotence)
-  ⇒ chain-sum bound        (path_bound)              proved
-  ⇒ Fact A square roots    (fact_a)                  counting + algebra proved
-  ⇒ qrom_bound                                        proved
-```
-
-**Two inputs remain cited, not derived.** They are named explicitly at the top of `Qrom/Main.lean`
-and are not hidden behind vague hypotheses:
-
-1. **`OracleModel`** (ANALYSIS Fact B / CFHL21 Lemma 4.3): that the compressed oracle's
-   one-point transition has the matrix entries whose squared bounds `block_le_*` analyse. The
-   *consequent* bounds are proved; that the entries are the right ones is the modelling step.
-2. **`Replace`** (CFHL21 Cor 4.2): the real-oracle-to-measured-database inequality
-   `√p ≤ √p' + √(ℓ/N)`. Its counting half (`hits_le`, `fibre_card`) and its square-root algebra
-   (`sqrt_add_le`, `fact_a`) are proved; the inequality itself needs the compressed-oracle
-   purification, which is not formalized here.
-
-So this is **not** yet a proof of `PROOF.md` Theorem 6.4: the two cited facts are exactly the
-places where the paper cites Zhandry and CFHL21. What the package does prove is that those two
-citations are the *only* remaining gaps — every other step of Lemmas 1 and 2, the operator
-assembly, and the final composition are machine-checked. The paper must keep saying the QROM
-composition rests on CFHL21 Cor 4.2 and Fact B.
-
-### Finding worth recording
-
-The step ANALYSIS states in one sentence ("for diagonal `Π`, `‖Π_{≥j} cO Π_{=i} P_{≤s}‖` is the
-maximum over the block norms of Lemma 1") is **false without idempotence** of the level operators:
-the block bound controls `cO` applied to `Π_{=i}ψ`, not `ψ`. `mass_recurrence` therefore takes
-`P i ∘L P i = P i` explicitly, and `proj_idem`/`restr_idem` discharge it.
-
-## Build
-
-```sh
-cd research/qrom
-lake build          # uses the Mathlib checkout at /data/illia/nearproof-deps/arklib-dkt/ArkLib
-```
-
-The `lakefile.toml` points `mathlib` at that checkout to avoid a second 7 GB copy. If it moves,
-update the `path` there.
+`Qrom/Stacking.lean` proves the exact univariate-skip chunk rotation correction
+at arbitrary evaluation points, including Boolean predecessor wraparound.
+`STACKING-VALIDATION.json` records the checked declarations and pinned backend
+source hashes. The source mapping is in `final-soundness/PROOF.md` §3.7.
+This is a polynomial theorem; the Rust/NV execution connection remains open.

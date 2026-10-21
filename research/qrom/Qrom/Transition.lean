@@ -18,7 +18,10 @@ The output alphabet is `Y = Fin M` and the database register is `Ȳ = Option (Fi
 
 * `⊥ → ⊥` is `0`,
 * `|γ_{⊥,r}|² = |γ_{u,⊥}|² = 1/M`   (`u, r ∈ Y`),
-* `|γ_{u,r}|² ≤ 9/M²`               (`u, r ∈ Y`).
+* `|γ_{u,r}|² ≤ 9/M²`               (`u, r ∈ Y`, **`u ≠ r`**).
+
+For zero frequency the query is the identity; its blocks between disjoint levels vanish.
+All bounds below require disjoint source/target blocks.
 
 The block norm is bounded by the Frobenius norm over the block, `Σ_{u∈A, r∈B} |γ_{u,r}|²`, which is
 ANALYSIS's step 1.
@@ -36,43 +39,39 @@ open scoped BigOperators
 /-- `Ȳ = Option (Fin M)`: the database register's alphabet, `none` is `⊥`. -/
 abbrev DB (M : ℕ) := Option (Fin M)
 
-/-- Squared amplitude bounds of the one-point unitary `cO_{xŷ}`, per ANALYSIS Fact B. -/
+/-- Squared entries of a nonzero-frequency one-point query. Diagonal entries are
+unrestricted. These are bounds on an actual entry function, not a model of a
+unitary by a constant off-diagonal matrix. CFHL21 Lemma 4.3 supplies the bounds;
+constructing its operator and the global database remains a separate obligation. -/
 structure EntryBounds (M : ℕ) where
-  /-- `|γ_{⊥,r}|²` for `r ∈ Y` -/
-  bot_r : ℝ
-  /-- `|γ_{u,⊥}|²` for `u ∈ Y` -/
-  u_bot : ℝ
-  /-- `|γ_{u,r}|²` for `u, r ∈ Y` -/
-  u_r : ℝ
-  /-- `= 1/M` -/
-  hbr : bot_r = 1 / (M : ℝ)
-  /-- `= 1/M` -/
-  hub : u_bot = 1 / (M : ℝ)
-  /-- `≤ 9/M²` -/
-  hur : u_r ≤ 9 / ((M : ℝ) * (M : ℝ))
-  hbr_nn : 0 ≤ bot_r
-  hub_nn : 0 ≤ u_bot
-  hur_nn : 0 ≤ u_r
+  entry : DB M → DB M → ℝ
+  nonneg : ∀ u r, 0 ≤ entry u r
+  bot_bot : entry none none = 0
+  bot_r : ∀ r, entry none (some r) = 1 / (M : ℝ)
+  u_bot : ∀ u, entry (some u) none = 1 / (M : ℝ)
+  off_diag : ∀ u r, u ≠ r → entry (some u) (some r) ≤ 9 / ((M : ℝ) * M)
 
-/-- Squared amplitude of a transition. `⊥ → ⊥` is zero. -/
-def amp {M : ℕ} (E : EntryBounds M) : DB M → DB M → ℝ
-  | none, none => 0
-  | none, some _ => E.bot_r
-  | some _, none => E.u_bot
-  | some _, some _ => E.u_r
+def amp {M : ℕ} (E : EntryBounds M) : DB M → DB M → ℝ := E.entry
 
-theorem amp_nonneg {M : ℕ} (E : EntryBounds M) (u r : DB M) : 0 ≤ amp E u r := by
-  cases u <;> cases r <;> simp [amp, E.hbr_nn, E.hub_nn, E.hur_nn]
+theorem amp_nonneg {M : ℕ} (E : EntryBounds M) (u r : DB M) : 0 ≤ amp E u r :=
+  E.nonneg u r
 
-theorem amp_bot_r {M : ℕ} (E : EntryBounds M) (r : Fin M) : amp E none (some r) = 1 / (M : ℝ) := by
-  simp [amp, E.hbr]
+theorem amp_bot_r {M : ℕ} (E : EntryBounds M) (r : Fin M) : amp E none (some r) = 1 / (M : ℝ) :=
+  E.bot_r r
 
-theorem amp_u_bot {M : ℕ} (E : EntryBounds M) (u : Fin M) : amp E (some u) none = 1 / (M : ℝ) := by
-  simp [amp, E.hub]
+theorem amp_u_bot {M : ℕ} (E : EntryBounds M) (u : Fin M) : amp E (some u) none = 1 / (M : ℝ) :=
+  E.u_bot u
 
-theorem amp_u_r_le {M : ℕ} (E : EntryBounds M) (u r : Fin M) :
-    amp E (some u) (some r) ≤ 9 / ((M : ℝ) * (M : ℝ)) := by
-  simpa [amp] using E.hur
+theorem amp_u_r_le {M : ℕ} (E : EntryBounds M) (u r : Fin M) (hne : u ≠ r) :
+    amp E (some u) (some r) ≤ 9 / ((M : ℝ) * M) :=
+  E.off_diag u r hne
+
+/-- Different potential levels give disjoint blocks, hence no diagonal entries. -/
+theorem disjoint_entry_ne {M : ℕ} {A B : Finset (DB M)} (hAB : Disjoint A B)
+    {u r : DB M} (hu : u ∈ A) (hr : r ∈ B) : u ≠ r := by
+  intro h
+  subst r
+  exact Finset.disjoint_left.mp hAB hu hr
 
 /-- The Frobenius block sum `Σ_{u∈A, r∈B} |γ_{u,r}|²`. -/
 noncomputable def blockSum {M : ℕ} (E : EntryBounds M) (A B : Finset (DB M)) : ℝ :=
@@ -98,7 +97,7 @@ theorem card_some_le {M : ℕ} (S : Finset (DB M)) (hS : ∀ r ∈ S, r ≠ none
 
 /-- **Lemma 1(c).** Every term is `u_r ≤ 9/M²`, and `|A|, |B| ≤ M`. -/
 theorem block_le_c {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
-    (A B : Finset (DB M)) (hA : ∀ u ∈ A, u ≠ none) (hB : ∀ r ∈ B, r ≠ none) :
+    (A B : Finset (DB M)) (hAB : Disjoint A B) (hA : ∀ u ∈ A, u ≠ none) (hB : ∀ r ∈ B, r ≠ none) :
     blockSum E A B ≤ 9 * (A.card : ℝ) * (B.card : ℝ) / ((M : ℝ) * (M : ℝ)) := by
   have hMpos : (0 : ℝ) < (M : ℝ) := by exact_mod_cast hM
   have hM2 : (0 : ℝ) < (M : ℝ) * (M : ℝ) := mul_pos hMpos hMpos
@@ -106,7 +105,10 @@ theorem block_le_c {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
     intro u hu r hr
     obtain ⟨a, rfl⟩ := Option.ne_none_iff_exists'.mp (hA u hu)
     obtain ⟨b, rfl⟩ := Option.ne_none_iff_exists'.mp (hB r hr)
-    exact amp_u_r_le E a b
+    apply amp_u_r_le E a b
+    intro hab
+    apply disjoint_entry_ne hAB hu hr
+    exact congrArg some hab
   calc blockSum E A B
       ≤ ∑ _u ∈ A, ∑ _r ∈ B, 9 / ((M : ℝ) * (M : ℝ)) := by
         refine Finset.sum_le_sum fun u hu => Finset.sum_le_sum fun r hr => hbound u hu r hr
@@ -119,7 +121,7 @@ theorem block_le_c {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
 /-- **Lemma 1(a).** With `⊥ ∉ A`, each `u ∈ A` contributes `1/M` for `r = ⊥` (at most one such
 `r`) and at most `9/M` across the `r ∈ Y` (at most `M` of them). -/
 theorem block_le_a {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
-    (A B : Finset (DB M)) (hA : ∀ u ∈ A, u ≠ none) :
+    (A B : Finset (DB M)) (hAB : Disjoint A B) (hA : ∀ u ∈ A, u ≠ none) :
     blockSum E A B ≤ (A.card : ℝ) * (1 / (M : ℝ) + 9 / (M : ℝ)) := by
   have hMpos : (0 : ℝ) < (M : ℝ) := by exact_mod_cast hM
   have hM2 : (0 : ℝ) < (M : ℝ) * (M : ℝ) := mul_pos hMpos hMpos
@@ -161,7 +163,10 @@ theorem block_le_a {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
     have hbound : ∀ r ∈ B.filter (fun r => r ≠ none), amp E (some a) r ≤ 9 / ((M:ℝ)*(M:ℝ)) := by
       intro r hr
       obtain ⟨b, rfl⟩ := Option.ne_none_iff_exists'.mp (Finset.mem_filter.mp hr).2
-      exact amp_u_r_le E a b
+      apply amp_u_r_le E a b
+      intro hab
+      apply disjoint_entry_ne hAB hu (Finset.mem_filter.mp hr).1
+      exact congrArg some hab
     calc ∑ r ∈ B.filter (fun r => r ≠ none), amp E (some a) r
         ≤ ∑ _r ∈ B.filter (fun r => r ≠ none), 9 / ((M : ℝ) * (M : ℝ)) :=
           Finset.sum_le_sum hbound
@@ -186,7 +191,7 @@ theorem block_le_a {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
 /-- **Lemma 1(b).** With `⊥ ∈ A` and `⊥ ∉ B`, the `u = ⊥` row contributes `1/M` per `r ∈ B`, and
 each other row at most `9/M²` per `r ∈ B`. -/
 theorem block_le_b {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
-    (A B : Finset (DB M)) (hAb : none ∈ A) (hBn : none ∉ B) :
+    (A B : Finset (DB M)) (hAB : Disjoint A B) (hAb : none ∈ A) (hBn : none ∉ B) :
     blockSum E A B ≤ 10 * (B.card : ℝ) / (M : ℝ) := by
   have hMpos : (0 : ℝ) < (M : ℝ) := by exact_mod_cast hM
   have hM2 : (0 : ℝ) < (M : ℝ) * (M : ℝ) := mul_pos hMpos hMpos
@@ -208,7 +213,10 @@ theorem block_le_b {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
     have hb : ∀ r ∈ B, amp E (some a) r ≤ (9 / ((M : ℝ) * (M : ℝ)) : ℝ) := by
       intro r hr
       obtain ⟨b, rfl⟩ := Option.ne_none_iff_exists'.mp (hBY r hr)
-      exact amp_u_r_le E a b
+      apply amp_u_r_le E a b
+      intro hab
+      apply disjoint_entry_ne hAB (Finset.mem_erase.mp hu).2 hr
+      exact congrArg some hab
     calc ∑ r ∈ B, amp E (some a) r
         ≤ ∑ _r ∈ B, (9 / ((M : ℝ) * (M : ℝ)) : ℝ) := Finset.sum_le_sum hb
       _ = (B.card : ℝ) * (9 / ((M : ℝ) * (M : ℝ))) := by
@@ -236,5 +244,60 @@ theorem block_le_b {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
           le_trans hother (mul_le_mul_of_nonneg_right hcardErase (by positivity))
         linarith
     _ = 10 * (B.card : ℝ) / (M : ℝ) := by field_simp; ring
+
+/-- Changed-set form used by a potential argument. The off-diagonal condition
+is derived from i < j, not assumed of arbitrary matrix entries. -/
+theorem consequence_chg {M : ℕ} (hM : 0 < M) (E : EntryBounds M)
+    (κ : DB M → ℕ) (i j : ℕ) (hij : i < j) (Chg : Finset (DB M))
+    (hstable : ∀ r, r ∉ Chg → κ r = κ none) :
+    blockSum E (Finset.univ.filter fun r => j ≤ κ r)
+      (Finset.univ.filter fun r => κ r = i) ≤ 10 * (Chg.card : ℝ) / (M : ℝ) := by
+  classical
+  let A := Finset.univ.filter fun r => j ≤ κ r
+  let B := Finset.univ.filter fun r => κ r = i
+  have hAB : Disjoint A B := by
+    apply Finset.disjoint_left.mpr
+    intro r ha hb
+    have ha' : j ≤ κ r := (Finset.mem_filter.mp ha).2
+    have hb' : κ r = i := (Finset.mem_filter.mp hb).2
+    omega
+  have hpos : (0 : ℝ) < M := by exact_mod_cast hM
+  change blockSum E A B ≤ _
+  by_cases hnone : none ∈ A
+  · have hBn : none ∉ B := fun hb => Finset.disjoint_left.mp hAB hnone hb
+    have hsub : B ⊆ Chg := by
+      intro r hr
+      by_contra hn
+      have hr' : κ r = i := (Finset.mem_filter.mp hr).2
+      have hb : j ≤ κ none := (Finset.mem_filter.mp hnone).2
+      have heq := hstable r hn
+      omega
+    have hc : (B.card : ℝ) ≤ Chg.card := by exact_mod_cast Finset.card_le_card hsub
+    exact (block_le_b hM E A B hAB hnone hBn).trans
+      (div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_left hc (by norm_num)) (by positivity))
+  · have hAn : ∀ r ∈ A, r ≠ none := fun r hr heq => hnone (heq ▸ hr)
+    have hsub : A ⊆ Chg := by
+      intro r hr
+      by_contra hn
+      apply hnone
+      have heq := hstable r hn
+      have hr' : j ≤ κ r := (Finset.mem_filter.mp hr).2
+      simp only [A, Finset.mem_filter, Finset.mem_univ, true_and]
+      omega
+    have hc : (A.card : ℝ) ≤ Chg.card := by exact_mod_cast Finset.card_le_card hsub
+    have heq : (A.card : ℝ) * (1 / (M : ℝ) + 9 / M) = 10 * A.card / M := by ring
+    have h := block_le_a hM E A B hAB hAn
+    rw [heq] at h
+    exact h.trans
+      (div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_left hc (by norm_num)) (by positivity))
+
+/-- A zero-frequency query is the identity and cannot change the potential level. -/
+theorem identity_block_zero {M : ℕ} (A B : Finset (DB M)) (hAB : Disjoint A B) :
+    (∑ u ∈ A, ∑ r ∈ B, (if u = r then (1 : ℝ) else 0)) = 0 := by
+  apply Finset.sum_eq_zero
+  intro u hu
+  apply Finset.sum_eq_zero
+  intro r hr
+  simp [disjoint_entry_ne hAB hu hr]
 
 end Qrom

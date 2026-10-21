@@ -1,0 +1,17 @@
+# Recursive-hash-endpoint research support. NOT part of the judge-trusted
+# `ArenaCore`: it imports `ArenaCore.Security.ROM`/`Prob` for the arena's
+# `PrLE`/`RomSound` vocabulary and states the reduction *shape* with the missing
+# inner assumption as a named hypothesis. Nothing in the admission path imports it.
+name = "HashBridge"
+version = "0.1.0"
+defaultTargets = ["HashBridge"]
+
+[leanOptions]
+autoImplicit = false
+
+[[lean_lib]]
+name = "HashBridge"
+
+[[require]]
+name = "ArenaCore"
+path = "../../formal-core"

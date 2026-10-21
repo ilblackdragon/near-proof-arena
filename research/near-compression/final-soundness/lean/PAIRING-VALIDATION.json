@@ -1,0 +1,44 @@
+{
+  "date_utc": "2026-10-21",
+  "purpose": "Pin the backend tree that the WHIR per-move conditioning table was derived from, separately from the Lean axiom audit in G2-VALIDATION.json.",
+  "security_established": false,
+  "tree": "/data/illia/nearproof-deps/pq-stream/stark-backend-unified",
+  "git_commit": "fc1f9e4b610707bf002eb464fde0c250008d8d34",
+  "upstream_release": "d667af5 (stark-backend v2.0.1) + nearproof base patch",
+  "why_unified": "Only stark-backend-unified has WHIR-Y (PROOF.md:40, GAPS.md:63) and the x15 odd-domain patch. The sibling stark-backend/ tree (whir.rs sha 595f4309...) lacks both and must not be used.",
+  "source_sha256": {
+    "crates/stark-backend/src/verifier/whir.rs": "84634f20d7dfb2fadbd5cb4407104f68a5407c1d417e522421c65b07178510ff",
+    "crates/stark-backend/src/odd_domain.rs": "427e8d73770cc03beb9b7b1153b9233637f12755a7c492d6065945b294540162",
+    "crates/stark-backend/src/hasher.rs": "10c530c66d800826597defaab20fcef27fd8c5705404e914351b34df4b6e09c8",
+    "crates/stark-backend/src/config.rs": "250e5d9f248c6b6daae9f04972e22e68f30c72b2513e50043de4606d5bd60f83"
+  },
+  "line_references_used": {
+    "odd_factor_absorb": "whir.rs:49-52",
+    "mu_pow_check": "whir.rs:55-57",
+    "mu_sample": "whir.rs:59",
+    "k_round": "whir.rs:130",
+    "fold_sumcheck_absorb": "whir.rs:139-140",
+    "fold_pow": "whir.rs:143-145",
+    "alpha_sample": "whir.rs:146-151",
+    "final_poly_or_commit": "whir.rs:154-165",
+    "z0_sample": "whir.rs:166-167",
+    "y0_absorb": "whir.rs:170-171",
+    "query_pow": "whir.rs:174-185",
+    "query_indices": "whir.rs:187-196",
+    "merkle_checks": "whir.rs:219-312",
+    "whir_y_absorb": "whir.rs:316-319",
+    "gamma_sample": "whir.rs:326",
+    "final_claim_check": "whir.rs:370-400",
+    "sample_ext_uniform_on_ext12": "transcript/traits.rs:29-31",
+    "sample_index_exact": "transcript/traits.rs:62-74",
+    "odd_root": "odd_domain.rs:44-48",
+    "query_root": "odd_domain.rs:52-67",
+    "sample_query_index": "odd_domain.rs:71-81",
+    "hash_coset": "hasher.rs:43-51"
+  },
+  "notes": [
+    "whir.rs is 541 lines in this tree; the line numbers in PROOF.md section 6.5 range to 326 and are consistent with this file, but the section 6.5 table does not name the unified tree explicitly.",
+    "sample_ext draws twelve independent base-field samples, so alpha, z0, gamma and mu are uniform on Ext12. Query indices are uniform on 15*2^(L-k) via sample_index_exact and use a different denominator.",
+    "mu_pow_bits and folding_pow_bits are 0 in the measured FINAL configs (run.log:45,47), so the fold PoW contributes no soundness in those rows."
+  ]
+}

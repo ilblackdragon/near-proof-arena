@@ -2,32 +2,19 @@ import ZkFormal.Udr.Statements
 import ZkFormal.Udr.Code
 
 /-!
-# ZkFormal.Udr.McaToGap — obligation S-28, the "DKT26 ⇒ WHIR" lift
+# Unique-decoding utilities (not the DKT-to-WHIR list-decoding bridge)
 
-GAPS.md row S-28: the proximity input the protocol uses is an RS-level MCA statement with an
-explicit integer error count (`E`, "at most `E` bad challenges"). WHIR/FRI consumes a *proximity
-gap* in the `Udr` formulation. Nobody had written down the step between the two.
+`mca_count_to_gap` restates a premise that is definitionally `LineGap`.
+`strong_from_mca` applies an existing theorem **only when `2 * e < d`** and
+returns `max E e`, not E. These declarations do not instantiate DKT26 at
+Johnson or beyond-Johnson radii. They are retained for compatibility.
 
-This file proves that step, abstractly, with the count `E` as a parameter.
-
-## The chain
-
-1. **`mca_count_to_gap`** — if a line has at most `E` challenges `z` that are good but not
-   *contained* (the MCA failure count), then the code has a line proximity gap with threshold
-   `E`: at most `E` bad challenges. This is the MCA ⇒ `LineGap` conversion.
-2. **`strong_from_mca`** — composing with `Udr.strong_of_gap` gives the containment conclusion
-   the fold step needs, from the MCA count alone.
-3. **`fold_union`** — WHIR folds `k` times per round; each fold is a line. If each sub-round has
-   threshold `E`, the round's containment failure count is at most `k·E` (union bound over the
-   sub-rounds, conditioned on the earlier challenges).
-4. **`good_challenges_of_gap`** — instantiates `Fri.GoodChallenges` from per-move gaps.
-
-## What is *not* proved, and must not be implied
-
-The hypotheses `MCA` / `hcount` are the **DKT26 input**, not something derived here. DKT26
-Thm 5.12 supplies the integer `E` (and its Lean development proves the count); this file shows
-the conversion is exact and loses nothing, i.e. the lift is a composition, not a new bound.
-That is exactly what S-28 asks for.
+The valid RS-level Johnson/interleaving/tensor-fold composition is in the
+Mathlib/ArkLib companion `research/near-compression/final-soundness/lean/DKTGlue.lean`.
+Connecting its full-agreement-set conclusions (and the O-2 certificates) to the
+actual WHIR folding, block distance and round-by-round state is a separate,
+still open formalization obligation. `fold_union` below is an arithmetic sum
+bound, not a proof about adaptively sampled fold transcripts.
 -/
 
 namespace ZkFormal.Udr
@@ -38,20 +25,16 @@ open Lean.Grind
 section Field
 variable {K : Type} [Field K] {ι : Type}
 
-/-- **MCA ⇒ proximity gap.** Suppose at most `E` challenges make the line point good without
-giving correlated agreement. Then every list of `> E` good challenges forces `CA`, which is
-exactly `LineGap C e E`.
-
-`hcount` is the DKT26 count in the form the paper uses. -/
+/-- Definitional restatement of a supplied `LineGap` premise; no DKT theorem is
+imported or instantiated here. -/
 theorem mca_count_to_gap {n d : Nat} (C : LinCode ι K n d) {e E : Nat}
     (hcount : ∀ (u0 u1 : Word ι K) (Ks : List K), Ks.Nodup →
       E < count Ks (fun z => Good C e u0 u1 z) → CA C e u0 u1) :
     LineGap C e E :=
   hcount
 
-/-- **The lift, in the form the fold step consumes.** From the DKT26 count `E` plus the
-unique-decoding condition `2e < d`, every code has the containment conclusion on all but `E`
-challenges. `Udr.strong_of_gap` does the composition; this theorem only names it. -/
+/-- Unique-decoding corollary of an assumed gap. The exceptional count is
+`max E e`; this does not extend containment to list-decoding radii. -/
 theorem strong_from_mca {n d : Nat} (C : LinCode ι K n d) {e E : Nat} (he : 2 * e < d)
     (hgap : LineGap C e E) (u0 u1 : Word ι K) (Ks : List K) (hKs : Ks.Nodup) :
     count Ks (fun z => ¬ Strong C e u0 u1 z) ≤ max E e :=
@@ -73,8 +56,8 @@ theorem foldr_add_eq (f : Nat → Nat) :
 /-- **`k`-fold union bound.** A round folds `k` times. If each sub-round's containment failure
 count is at most `E`, the round's total is at most `k·E`: a union bound over the sub-rounds.
 
-This is the whole content of "the lift survives the fold structure": the error is additive in the
-number of folds, which is what WHIR's Thm 5.2 assumes. -/
+This sums supplied natural-number bounds only. It does not establish their
+validity after conditioning on earlier random challenges. -/
 theorem fold_union (k E : Nat) (failures : Nat → Nat)
     (h : ∀ s, s < k → failures s ≤ E) :
     (List.range k).foldr (fun s acc => failures s + acc) 0 ≤ k * E := by
@@ -88,6 +71,11 @@ theorem fold_union (k E : Nat) (failures : Nat → Nat)
       ih (fun s hs => h s (by omega))
     rw [foldr_add_eq failures (List.range k) (failures k), Nat.add_mul, Nat.one_mul]
     omega
+
+/-- Regression: at rate 1/16, the Johnson error fraction 3/4 is outside
+unique decoding. A containment theorem requiring `2e < d` cannot justify this
+parameter point (RS length 256, dimension 16, distance 241). -/
+theorem johnson_example_not_unique : ¬ (2 * 192 < (256 - 16 + 1 : Nat)) := by decide
 
 end Field
 

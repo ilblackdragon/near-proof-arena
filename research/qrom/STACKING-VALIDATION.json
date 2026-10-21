@@ -1,0 +1,29 @@
+{
+  "date_utc": "2026-10-21",
+  "result": "PASS",
+  "security_established": false,
+  "command": "lake build; lake env lean Qrom/Stacking.lean",
+  "lean_version": "4.33.1",
+  "build_jobs": 8723,
+  "source_sha256": "1cf273a650c815cdf7ba635bd5e5b04b208b1be6057c387077a509d22b5ca794",
+  "audit_log_sha256": "72996a2dbdbb9c92185dbf791b320cd125e9fd0acdedae179eb32e1bc2d18752",
+  "declarations": [
+    "eq_append",
+    "rot_append",
+    "prism_chunk",
+    "whole_column_delta",
+    "rot_boolean",
+    "prism_chunk_address"
+  ],
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "backend_source_sha256": {
+    "crates/stark-backend/src/poly_common.rs": "839fbd1fe2283f9f7b1fbf626903537306c92571e0618e5c80a809cff929fe5c",
+    "crates/stark-backend/src/prover/stacked_pcs.rs": "4e277007650f4d1459c15196bdbccbcbfdad6a07b05cfbafda6b303e7a71cd7a",
+    "crates/stark-backend/src/verifier/stacked_reduction.rs": "792d56fa8bc657c25a2be5dff9fb500a8e358541b6bf05cc54f2c9a432c09f17"
+  },
+  "scope": "General polynomial identities and Boolean predecessor identity checked by Lean. Written mapping to the pinned backend in PROOF section 3.7. No formal Rust semantics, layout/parser proof, short-column striding proof or NV accepted-trace theorem."
+}

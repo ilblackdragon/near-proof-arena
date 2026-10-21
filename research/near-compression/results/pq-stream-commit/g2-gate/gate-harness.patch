@@ -1,0 +1,42 @@
+--- a/crates/recursion/src/nv/tests.rs
++++ b/crates/recursion/src/nv/tests.rs
+@@ -517,6 +517,14 @@
+             }
+         }
+         let (v, q, sh, words) = run(&circ, &vk, &p, &format!("L{level}"));
++        if let Some(d) = &save_dir {
++            use openvm_stark_backend::codec::Encode;
++            use sha2::Digest as _;
++            let mut bytes = vec![];
++            q.encode(&mut bytes).unwrap();
++            std::fs::write(format!("{d}/L{level}.proof"), &bytes).unwrap();
++            println!("L{level}_PROOF_SHA256 {:x} bytes={}", sha2::Sha256::digest(&bytes), bytes.len());
++        }
+         let root = q.trace_vdata[0].as_ref().unwrap().cached_commitments[0];
+         println!("NV_G2 L{level} program rows {} committed heights {:?} cached root {root:?}", words.len(), sh.iter().map(|s| s.0).collect::<Vec<_>>());
+         assert!(super::circuit::check_statement(&q.public_values[0], &p0.public_values), "L{level} statement");
+@@ -556,6 +564,24 @@
+     let setup = super::vd::VdSetup { vk_final: vkf, program: words_f, level: levels as u32 + 1 };
+     super::vd::verify_final(&setup, &fe, &p0.public_values, &pf, false).expect("V_d (pinned program) accepts the final proof");
+     println!("NV_VD final accepted: level {}, pinned program {} rows", setup.level, setup.program.len());
++    if env_usize("NV_VD_FORGE", 0) != 0 {
++        use super::vd::{forge_statement_program, prove_traces, verify_final, VdSetup};
++        let mut other = p0.public_values.clone();
++        let a = other.iter().position(|v| !v.is_empty()).unwrap();
++        other[a][0] += F::ONE;
++        let err = verify_final(&setup, &fe, &other, &pf, false).expect_err("wrong claim accepted");
++        println!("NV_VD wrong claim rejected: {err}");
++        let wrong_level = VdSetup { level: setup.level - 1, ..setup.clone() };
++        let err = verify_final(&wrong_level, &fe, &p0.public_values, &pf, false).expect_err("wrong level accepted");
++        println!("NV_VD wrong level ({}) rejected: {err}", wrong_level.level);
++        let d = crate::sha384::config::statement_digest(&p0.public_values);
++        let (mats, bforge) = fcirc.generate_program(forge_statement_program(setup.level, d));
++        let (vk_forge, p_forge) = prove_traces(&fcirc, &fe, mats, bforge.public_values());
++        assert_eq!(vk_forge.pre_hash, setup.vk_final.pre_hash, "the forgery uses the pinned final vk");
++        verify_final(&setup, &fe, &p0.public_values, &p_forge, true).expect("without the program check V_d is fooled");
++        let err = verify_final(&setup, &fe, &p0.public_values, &p_forge, false).expect_err("forged final accepted with the program check");
++        println!("NV_VD forged final ({} rows) accepted without the program check, rejected with it: {err}", bforge.instrs.len());
++    }
+ }
+
+ /// Keygen only: per-AIR constraint degree, width and interactions.

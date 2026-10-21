@@ -11,27 +11,13 @@ Cor 4.2), and to `PROOF.md` Theorem 6.4 step 7:
 where `p` is the probability that the real oracle agrees with the adversary's claimed answers at
 `ℓ` points, and `p'` the same probability for the *measured* compressed-oracle database.
 
-## Where the content is
+## Scope
 
-The theorem has two ingredients:
-
-1. **A finite counting fact.** For each output assignment `y` the adversary claims, the set of
-   oracles consistent with it has density `N^{-ℓ}`. Summing over assignments bounds the total.
-   Written as a union bound over the `ℓ` queried points, this is what yields `p'`.
-2. **A proximity/commutator step (Zhandry / CFHL21).** The real oracle and the measured database
-   differ in squared distance by `ℓ/N`; taking square roots gives the `√(ℓ/N)` slack.
-
-Ingredient 2 is the genuinely quantum-mechanical one and is taken as a **named hypothesis**
-(`Replace`), exactly as `PROOF.md` cites it. Ingredient 1 is elementary and is proved here.
-
-## What is proved
-
-* `union_bound_queries` — the union bound at the heart of the counting step: the probability that
-  *some* one of `ℓ` independent points is predicted is at most `ℓ/N`.
-* `sqrt_replace` — the algebraic form of the step: if the real probability is at most the measured
-  one plus `ℓ/N` in *squared* distance, then the square roots satisfy `√p ≤ √p' + √(ℓ/N)`
-  (via `√(a+b) ≤ √a + √b`).
-* `fact_a` — the combination, with `Replace` as the explicit hypothesis.
+`hits_le` and `fibre_card` prove finite counting facts. They do not prove the
+quantum replacement inequality. `Replacement` names the cited square-root
+inequality exactly; `fact_a` squares it without dropping the cross term.
+The earlier probability-additive premise `p ≤ p' + ℓ/N` was stronger than the
+cited result and has been removed from this interface.
 
 This package is research (`Qrom`, Mathlib allowed); `zk-formal` may not depend on Mathlib.
 -/
@@ -108,12 +94,21 @@ theorem hits_le (t N : ℕ) (hN : 0 < N) (T : Finset (Fin t)) :
         push_cast
         ring
 
-/-- **Fact A.** With the Zhandry/CFHL21 replacement hypothesis (`Replace`) supplying the
-squared-distance inequality, the square roots satisfy the bound `PROOF.md` step 7 uses. -/
-theorem fact_a (p p' : ℝ) (ℓ N : ℕ) (hN : 0 < N) (hp : 0 ≤ p) (hp' : 0 ≤ p')
-    (Replace : p ≤ p' + (ℓ : ℝ) / (N : ℝ)) :
-    Real.sqrt p ≤ Real.sqrt p' + Real.sqrt ((ℓ : ℝ) / (N : ℝ)) :=
-  have hslack : (0:ℝ) ≤ (ℓ:ℝ) / (N:ℝ) := by positivity
-  sqrt_le_add_sqrt p p' ((ℓ : ℝ) / (N : ℝ)) hp hp' Replace hslack
+/-- The replacement inequality is supplied in its actual CFHL21 Corollary 4.2
+form. It is not a probability-additive inequality: squaring produces a cross term.
+This declaration is an interface, not a proof of the oracle replacement theorem. -/
+def Replacement (p p' slack : ℝ) : Prop :=
+  Real.sqrt p ≤ Real.sqrt p' + Real.sqrt slack
+
+/-- Convert the cited square-root bound to a probability bound, retaining the cross term. -/
+theorem fact_a (p p' slack : ℝ) (hp : 0 ≤ p)
+    (hreplace : Replacement p p' slack) :
+    p ≤ (Real.sqrt p' + Real.sqrt slack) ^ 2 := by
+  have hs := Real.sq_sqrt hp
+  have hn := Real.sqrt_nonneg p
+  have hn' := Real.sqrt_nonneg p'
+  have hns := Real.sqrt_nonneg slack
+  unfold Replacement at hreplace
+  nlinarith
 
 end Qrom
