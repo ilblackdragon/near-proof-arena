@@ -18,7 +18,7 @@ A row is one Keccak-f round.  Columns, in order:
 | `A` | 1,600 | the state entering the round, lane `l` bit `k` at `64·l + k` |
 | `C` | 320 | `theta` column parities `C[x][k]` |
 | `CA` | 960 | the 3 chain auxiliaries per `C` bit (degree-lowering of the 5-way XOR) |
-| `D` | 320 | `D[x][k] = C[x−1][k] ^ C[x+1][k+1]` |
+| `D` | 320 | `D[x][k] = C[x−1][k] ^ C[x+1][k−1]` |
 | `T` | 1,600 | `A ^ D` (rho and pi are *wiring* on `T`, no columns) |
 | `X` | 64 | `chi`'s result on lane 0, before `iota` |
 | `sel` | 24 | one-hot round selector (`iota`'s `rc` index) |
@@ -35,7 +35,7 @@ Per bit, in the order `theta → D → T → chi → iota`:
 * **booleanity** — `A`, `C`, `CA`, `D`, `T`, `X`, `sel` are bits (`b·(b−1) = 0`), and `Σ sel = 1`.
 * **theta** — `CA[x][k][0] = A[x]^A[x+5]`, `CA[·][1] = CA[·][0]^A[x+10]`, `CA[·][2] = CA[·][1]^A[x+15]`,
   `C[x] = CA[·][2]^A[x+20]`: four XOR-of-two equations per bit, each degree 2.
-* **D** — `D[x][k] = C[x−1][k] ^ C[x+1][(k+1) mod 64]`.  The `rotl 1` is a **column index**, so the
+* **D** — `D[x][k] = C[x−1][k] ^ C[x+1][(k−1) mod 64]`.  The `rotl 1` is a **column index**, so the
   rotation by a constant costs nothing.  Degree 2.
 * **T** — `T[l][k] = A[l][k] ^ D[l mod 5][k]`.  Degree 2.
 * **rho/pi** — no constraint.  `B[m][j] = T[piSrc m][(j + 64 − rotc(piSrc m)) mod 64]`: a fixed
@@ -153,9 +153,10 @@ def thetaConstr (x k : Nat) : List Expr :=
    xorEq (v (caBit x k 1)) (v (aBit (x + 15) k)) (v (caBit x k 2)),
    xorEq (v (caBit x k 2)) (v (aBit (x + 20) k)) (v (cBit x k))]
 
-/-- `D[x][k] = C[x−1][k] ^ C[x+1][k+1]`: the `rotl 1` is the `+1` in the index. -/
+/-- `D[x][k] = C[x−1][k] ^ rotl(C[x+1], 1)[k]`, and `rotl(v,1)[k] = v[k−1 mod 64]`: the rotation by a
+constant is the `−1` in the column index, so it costs no column. -/
 def dConstr (x k : Nat) : Expr :=
-  xorEq (v (cBit ((x + 4) % 5) k)) (v (cBit ((x + 1) % 5) ((k + 1) % W))) (v (dBit x k))
+  xorEq (v (cBit ((x + 4) % 5) k)) (v (cBit ((x + 1) % 5) ((k + W - 1) % W))) (v (dBit x k))
 
 /-- `T[l][k] = A[l][k] ^ D[l mod 5][k]`. -/
 def tConstr (l k : Nat) : Expr :=
