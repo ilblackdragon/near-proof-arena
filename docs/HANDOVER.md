@@ -269,7 +269,7 @@ bytes and digest. Tamper 11/11 rejected. KAT contributed 9 new hash programs (88
 |---|---:|---|
 | `sha256` | 9,333 · blocks | **built** |
 | `ripemd160` | ≈9-11k · blocks | yes, ~2-3 weeks |
-| `keccak256` / `keccak512` | ≈3-5k **per round**, degree ≥ 9 | **blocked**: 64-bit lane rotate/xor with no 64-bit-multiply gadget in the base layer |
+| `keccak256` / `keccak512` | ≈118,582 cells/permutation (bit-sliced) | **feasible at degree 3**; the chi step is built and proved (see below). **The earlier "needs a 64-bit-multiply gadget" claim was wrong** |
 
 Envelope: 27 AIRs total (≤32), degree 4 (≤8), widest message 12 fields incl. bus (≤128). The
 classical `ZkFormal.Sha.Table` was the reference; porting it beat a from-scratch narrow AIR.
@@ -310,9 +310,52 @@ encoder optional. Total ≈6-10 lane-weeks (was 7-12).
    `hostQ_no_bridge`/`hostB_no_bridge` are unchanged in content and now compare the *old* shapes
    (`Join.hostQOld`/`hostBOld`) against the current wire, so the gap stays proved.
 
+### Keccak and ActionR (2026-10-21, merged `fa00bcd5e`)
+
+**Keccak: the recorded blocker was wrong, and chi is proved.** Keccak-f has **no multiplication** —
+theta is a 5-way XOR plus `rotl(C,1)`, rho is `rotl`, pi is a lane permutation, chi is `a ^ (~b & c)`,
+iota is a XOR with a round constant. The base layer already has both needed primitives at i64: the
+**BIT** chip (i64 and/or/xor) and the **SHIFT** chip (`P = A·2^e mod 2^(2w)`, `rotl`/`rotr`), both
+KAT-tested. Both are byte-sliced, so the "three sub-multiplies ⇒ degree ≥ 9" premise had no subject.
+
+`WasmBase/ChiAir.lean`: a 48-column `CHI` table with **zero row constraints** and 24 BYTE lookups,
+using the identity `(~b) & c = c ^ (c & b)` — no NOT column, no range gadget, no 64-bit arithmetic.
+`chi_sound` proves `val8 r = val8 a ^^^ ((2^64−1−val8 b) &&& val8 c)`; `and_not` proves the lane
+identity; `ChiVectors.lean` has **16 differential vectors** (all-zero, all-ones, alternating phases,
+single bits, byte stamps, random, spec round constants) closed by kernel `decide`, plus `chi_diff`.
+Axioms: `{propext, Classical.choice, Quot.sound}`.
+
+Cost (`results/pq-keccak-air/model.py`): round row 4,826 cols / 9,689 constraints / degree 3 /
+0 interactions; **118,582 cells per permutation**; 872 / 1,647 cells per input byte for
+keccak256 / keccak512 — i.e. 6.0× / 11.3× SHA-256. More expensive, but **buildable at degree 3** and
+well inside the NV envelope. Remaining: the 24-round permutation AIR itself (composition in
+`results/pq-keccak-air/README.md` §3), and wiring `CHI.table` into an `Air` value.
+
+**ActionR: the join wire is fixed, and the encoder is built for four action kinds.**
+`PQ/Join/Statement.lean` was migrated to the real chip wire — `HOSTQ` **22** fields (was 8),
+`HOSTB` **5** (was 4), `HOSTR` field 6 now the signature's `ar`; `wasmBusMax` corrected 6 → 9. The
+old shapes survive as `hostQOld`/`hostBOld` so the gap stays a theorem (`hostQ_old_not_current`,
+`hostB_old_not_current`), and `Receipt/Ids.lean`'s `hostQ_no_bridge`/`hostB_no_bridge` still hold
+unchanged. `hostQ22`/`hostB5` are proved *equal* to the join's definitions by `rfl`, so the two
+spellings cannot fork again.
+
+`PQ/Receipt/Encoder.lean`: reference encodings checked against the spec's own decoder `D2.pBaseAct`
+(`decodesAs`) by kernel `decide` on real vectors, with a discriminating negative case. Rows
+(`encAction`) proved equal to those bytes for **transfer, delete-account, create-account and
+function-call**; `PBE` is 15 cols / 23 constraints (deg ≤ 3) / 4 interactions / maxLog 22. Framing
+proved: `encAction_length`, `prefixBytes_value`, the per-shape lengths (`receipt_tr_len` 82/114 for
+ed25519/secp, `receipt_da_len`), and row-side `pbe_len_framing_general`,
+**`pbe_group_len_is_row_count`** (declared `len` = row count), `pbe_msg_len`/`pbe_buses` (bytes on
+the existing `HOSTB` 210, no second wire).
+
+Remaining: the `FC`/`promise_create` row instances (`FC` is 3/4 done — two string prefixes need a
+per-field index in the `PBE` group key; `promise_create`'s nested `Vec<Action>` needs `tail` as a sum
+of action lengths), then `RIDS`/`SRC`/`RCL` + `newReceipts`, `HostCallTrace`, and
+`ActionBytesAreHostBytes`. Price unchanged: the encoder is 31 %, the SHA 69 %.
+
 ### Still open
 
-* `ripemd160` AIR; the two Keccaks need a 64-bit-multiply gadget first (a base-layer change).
+* `ripemd160` AIR (≈2-3 weeks, same shape as SHA-256).
 * `RIDS`/`SRC`/`RCL` + `newReceipts` fold, and the `HostCallTrace`
   induction (Wasm side).
 * The `ActionR` encoder AIR (lane `pq-actionr` started it: `PQ/Receipt/Encoder.lean`).
