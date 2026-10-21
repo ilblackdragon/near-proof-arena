@@ -1,0 +1,31 @@
+{
+  "date_utc": "2026-10-21",
+  "lean_version": "4.33.1",
+  "arklib_commit": "a5aa2677fee4e3a79d6bb05136631cce4a08587d",
+  "scope": "13 measured FINAL scalar folds, domain algebra and rational budget only; not full WHIR or QROM soundness",
+  "source_sha256": {
+    "lean/DKTG2FoldCerts.lean": "d26e3818241d8ee01013867cd5419942af6b0ef0522175425d3161af176979eb",
+    "lean/DKTWhirFold.lean": "23f603e27c181e9eca097124e27c64e131051671539eea89b806a7462f26161c",
+    "lean/DKTG2FoldTransfer.lean": "b99130bfcdeb071f221a1d1512dd2499a69a41da22f9b60960b3f1a47ca8f6d5",
+    "calc/g2_fold_certificates.py": "1a402d9b720776add018149b51df6799da013091cefda1711af7024d9d206f20"
+  },
+  "exit_codes": {
+    "DKTG2FoldCerts": 0,
+    "DKTWhirFold": 0,
+    "DKTG2FoldTransfer": 0
+  },
+  "axiom_audit_counts": {
+    "DKTG2FoldCerts": 13,
+    "DKTWhirFold": 3,
+    "DKTG2FoldTransfer": 14
+  },
+  "allowed_kernel_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "scalar_budget_numerator": "243070745342134118005592704",
+  "scalar_budget_denominator": "2013265921^12",
+  "exact_scalar_budget_lt": "2^-283",
+  "security_established": false
+}

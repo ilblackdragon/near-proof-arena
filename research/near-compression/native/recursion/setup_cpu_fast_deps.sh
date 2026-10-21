@@ -5,9 +5,9 @@
 #   patches/plonky3-ext12-simd.patch      (Ext12 under AVX2/AVX-512 builds: p3 had no SIMD path for
 #                                          degree 12 and panicked; one-dot-product Ext12 mul)
 #   patches/openvm-recursion-cpu-fast.patch (8-lane AVX-512 SHA-384: grinding, Merkle leaves/nodes)
-#   patches/p4-tape-statement.patch       (P4: cached commitments - TAPE, CODE - enter the
-#                                          statement digest V_d checks; a no-op for children with no
-#                                          cached main, so the recorded G2 gate bytes are unchanged)
+# P4's node-fold statement binding and its tests are already in the pinned
+# openvm-recursion-sha384.patch. The obsolete append-limbs P4 overlay must not
+# be applied on top: it describes a different statement encoding.
 # Every fast path is byte-identical to the original code; NEARPROOF_CPU_FAST=0 selects the original
 # code at run time. Build with RUSTFLAGS="-C target-cpu=native" for the AVX-512 packing.
 set -euo pipefail
@@ -21,10 +21,6 @@ if [ ! -f "$DEPS/.cpu-fast-overlay" ]; then
   git -C "$DEPS/stark-backend-unified" add -N .
   (cd "$DEPS/plonky3-ext12" && patch -s -p1 < "$HERE/patches/plonky3-ext12-simd.patch")
   git -C "$DEPS/openvm-sha384" apply "$HERE/patches/openvm-recursion-cpu-fast.patch"
-  git -C "$DEPS/openvm-sha384" apply "$HERE/patches/p4-tape-statement.patch"
-  # the P4 test (`nv_stmt_covers_cached_root`): append to the NV test module
-  T="$DEPS/openvm-sha384/crates/recursion/src/nv/tests.rs"
-  grep -q nv_stmt_covers_cached_root "$T" || { printf '\n' >> "$T"; cat "$HERE/patches/p4-statement-test.rs" >> "$T"; }
   git -C "$DEPS/openvm-sha384" add -N .
   touch "$DEPS/.cpu-fast-overlay"
 fi

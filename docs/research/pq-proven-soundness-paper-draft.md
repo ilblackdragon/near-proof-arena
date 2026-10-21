@@ -627,10 +627,13 @@ The appropriate existing RS-level results are in the separate ArkLib companion
 `final-soundness/lean/DKTGlue.lean`: `johnson_lineExact`,
 `johnson_levelWitness` and `johnson_tensorFold` preserve full agreement sets
 without the unique-decoding restriction. The O-2 certificate files likewise
-produce exceptional-set bounds and exact power agreement. What still needs a
-proof is their instantiation into the actual WHIR fold, interleaved/block-distance
-notions, per-subcode radius conditions, and round-by-round state. The certified
-numeric inputs do not by themselves establish that protocol transfer.
+produce exceptional-set bounds and exact power agreement. The same ArkLib pin
+also contains `BinaryFoldAgreement.lean`, reconstructing parent polynomials on
+square-paired domains. The new `DKTWhirFold.lean` identifies the backend's local
+fold algebra with that operation and constructs such domains from primitive
+roots of even order. Remaining work includes the backend's ordered coset
+identification, interleaving, all rounds and the round-by-round state. The
+certified numeric inputs do not by themselves establish that protocol transfer.
 
 **O-1 (Johnson).** DKT26 Thm 5.12 gives line MCA at `a = √ρ_(−) + η_0` with
 error `E/|F|` for arbitrary evaluation sets, plus Cor 7.7 (interleaving is
@@ -747,8 +750,12 @@ g² = 10 max(3q/2^336, ε_rbr + 2^20(2q+1)/2^384)
 
 would numerically yield 134.688 bits at `t=2^64`, `ε_rbr=2^-268.01`, with the
 printed verifier slack. **This is a historical calculation, not an established
-security bound.** Multiple roots per absorb and multiple state outputs per
-long-output challenge require explicit accounting. `PROOF.md` §6.4 lists the
+security bound.** The native commit call absorbs one root, and the checked
+`MerkleSupport.target_count` accounts for node outputs, children, commits and
+fixed roots under typed support bounds. Its correspondence to the full
+extractor and the multiple state outputs per long-output challenge still need
+proof. The native sampler also lacks the claimed `2^20` block cap; a matching
+cap or a truncation reduction is required. `PROOF.md` §6.4 lists the
 missing local transition and extraction obligations. Use `ℓ_V` for openings;
 `g` is an amplitude bound, not an opening count.
 
@@ -765,6 +772,21 @@ finite family. It needs all of the following:
    a time bound and an error term if the bridge is computational.
 4. Base-faithful for the selected relation, or an explicitly stated conditional
    base-relation interface for a tail-only theorem.
+
+The old literal A-IC identification is not justified by adding a runtime cap.
+For one fixed concrete pair `(m, SHA384(m))`, an independent oracle agrees with
+probability `2^-384`. If accepting executions require that pair and acceptance
+has probability at least `1-δ`, consistency fails with probability at least
+`1-δ-2^-384`. `Qrom.OracleBridge` checks this marginal argument, including the
+general probability-space inequality; a protocol application must establish
+the fixed-pair and acceptance premises. This is a model obstruction, not a
+demonstrated forgery against the concrete implementation.
+
+A possible alternative is an outer-layer QROM reduction to computational
+soundness of the concrete inner proof system. That inner assumption, the
+extractor's efficiency and the complete simulation cost must be explicit;
+this paper does not currently prove or quantify them. Merely assuming the
+desired inner security would not establish the headline guarantee.
 
 A single database can avoid a depth union only after the simultaneous extraction
 property is proved. It is not justified by the existence of separate per-layer
@@ -1115,3 +1137,27 @@ use only `propext`, `Classical.choice` and `Quot.sound`. The updated
 `McaToGap.lean` checks against the existing package dependencies; `make pin-check`
 and `git diff --check` pass. These checks validate the repaired components and
 repository pins, not the open protocol instantiations or an e2e security claim.
+
+### C.6 Progress on the four security workstreams (2026-10-21)
+
+The requested work has produced additional checked components, but **has not
+established the headline security guarantee**:
+
+| Workstream | New evidence | Remaining gate |
+|---|---|---|
+| Family QROM and WHIR | Kernel-checked Merkle support/counting, accepted-residue counting and classical adaptive-union lemmas. Thirteen measured FINAL scalar DKT folds now compose with parent reconstruction and the backend fold formula; their scalar exceptional-count sum divided by the Ext12 field size is below `2^-283`. | Actual compressed-oracle family potential, all transition estimates and measured-event inclusion; full adaptive WHIR transfer, batching/list products and all other moves. The scalar figure is not a total security bound. |
+| NV faithfulness | Clean-build SHA/GLUE tests (7) and transcript tests (9) pass. `FAITHFUL.md` now states the exact accepted-trace obligations and distinguishes its audit evidence from a theorem. | Formal semantics of the pinned AIR and native verifier, integer bus equality, program/statement binding, and arithmetic-port composition for arbitrary satisfying traces. |
+| Recursive hash model | Checked fixed-output/independent-oracle marginal and acceptance inequalities expose the missing justification in literal A-IC. | A coherent model and a valid reduction. A time cap alone does not make a concrete SHA output equal an independent oracle output. An explicit inner-system security assumption would give a conditional endpoint, not prove that assumption. |
+| Ledger and measured artifact | Exact integer query-threshold/certificate-input audit; historical calculators cannot report established security. A clean dependency build reproduces the FINAL SHA-256 and 293,077-byte size. | Full error ledger, source-to-theorem/VK linkage and every family member. Full six-proof reproduction with negative controls is tracked separately in the G2 gate record. |
+
+The native sampler has no enforced `J = 2^20` block cap. The previous simulation
+claim therefore cannot be applied as written. For a fixed independent prefix
+needing `K` accepted candidates, exhaustion is a binomial-tail event, not the
+probability that every candidate is rejected; adaptive quantum selection needs
+its own argument. Changing the native sampler alone would also require an NV
+correspondence update and a new artifact measurement.
+
+`calc/audit_g2.py --require-security` and `calc/bound.py --require-security`
+return failure while these obligations remain open. An audit pass means the
+recorded artifact and the stated arithmetic checks agree; it does not mean a
+128-bit recursive security theorem has been proved.

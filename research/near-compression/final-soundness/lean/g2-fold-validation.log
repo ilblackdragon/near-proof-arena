@@ -1,0 +1,47 @@
+DKTG2FoldCerts
+'DKTG2FoldCerts.mca0' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca11' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldCerts.mca12' depends on axioms: [propext, Classical.choice, Quot.sound]
+
+DKTWhirFold
+/data/illia/nearproof-wt/pq-paper-soundness/research/near-compression/final-soundness/lean/DKTWhirFold.lean:60:0: warning: automatically included section variable(s) unused in theorem `DKTWhirFold.primitive_half_turn`:
+  [NeZero 2]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [NeZero 2] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+/data/illia/nearproof-wt/pq-paper-soundness/research/near-compression/final-soundness/lean/DKTWhirFold.lean:69:0: warning: automatically included section variable(s) unused in theorem `DKTWhirFold.coprime_product_injective`:
+  [NeZero 2]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [NeZero 2] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+'DKTWhirFold.backendFold_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTWhirFold.primitiveSquareDomain' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTWhirFold.cosetMajorSquareDomain' depends on axioms: [propext, Classical.choice, Quot.sound]
+
+DKTG2FoldTransfer
+'DKTG2FoldTransfer.final_r0_s1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r1_s1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r1_s2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r1_s3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r1_s4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r2_s1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r2_s2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r2_s3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r2_s4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r3_s1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r3_s2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r3_s3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.final_r3_s4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'DKTG2FoldTransfer.finalScalarFoldBudget_fraction_lt' depends on axioms: [propext, Classical.choice, Quot.sound]

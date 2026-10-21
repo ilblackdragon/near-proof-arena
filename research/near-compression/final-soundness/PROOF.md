@@ -552,8 +552,8 @@ H is a quantum random oracle (Lemma 1.1). The adversary makes ≤ t superpositio
 Analysis uses Zhandry's compressed oracle; notation as in weak-binding ANALYSIS.md §2–3
 (database D, ⊥, Lemma 1 there).
 
-### 6.2 The transcript T\* (the protocol proven)
-T\* differs from the code only in how challenge words are produced:
+### 6.2 The transcript T* (implemented schedule, incomplete proof correspondence)
+The later G2 implementation uses counter-mode challenge words:
 * **(T\*-1) Squeeze.** Let κ be the state right after the last absorb of a verifier move
   (flush H3, commit H4). Challenge blocks are B_j := H(5, κ‖le32(j)) for j = 1, 2, …,
   consumed with the existing rejection rule. When the next absorb happens, its input state is
@@ -562,12 +562,19 @@ T\* differs from the code only in how challenge words are produced:
   is the state after flush. Accept iff the first z bits of B₁ are zero. Index words start
   after the PoW bits. The next state is the last block consumed.
 
-T\* costs no proof bytes and no extra verifier compressions: the squeeze input grows by
-4 bytes and stays inside one SHA-384 block. The honest grinding cost is unchanged: one
-compression, B₁, per attempt.
+The byte and compression costs must be taken from the pinned implementation;
+they are not established by this schedule description. The historical source
+snapshot used a sequential squeeze chain. The rebuilt G2 source uses
+`ShaTranscript::sample` and `SqueezeSrc::block` in `sha384/config.rs` with T*
+enabled. `observe_commit` flushes and hashes **one digest** per commit call.
+Fixed VK roots must still be included in the extraction reference set.
 
-**Code today [C]:** σ_{j+1} = H(5, σ_j) (SHA:160-171). The PoW is checked on s′ = H(7, σ‖w)
-itself, with indices from H(5, s′), … (SHA:142-186).
+**New implementation/proof mismatch (2026-10-21):** `sample` increments a `u32`
+counter and loops until enough candidates are accepted. It does not reject at
+`J = 2^20`. The finite-cap simulation below therefore does not yet apply to
+this implementation. Circuit row limits might imply a bound for valid extracted
+NV executions, but that implication and the native outer-verifier case require
+proof. Do not silently use the hypothetical cap as an implementation fact.
 
 ### 6.3 Lemmas
 
@@ -587,15 +594,23 @@ paths. Duplicate indices must carry equal leaf digests, which the code checks.
 *Proof.* Induction on the level: each known node is either a computed parent or a leaf, and
 each parent's children are known or streamed. ∎
 
-**Lemma 6.3 (counter mode is one call) [T].** Let G(κ) := (H(5, κ‖1), …, H(5, κ‖J)). Its
+**Lemma 6.3 (finite counter-mode oracle simulation; protocol application open).** Let G(κ) := (H(5, κ‖1), …, H(5, κ‖J)). Its
 components are independent random functions, so G is a random function with J·384-bit
 output. Any t-query algorithm with oracle H can be simulated perfectly by a 2t-query algorithm
 with oracle access to G (and to H on the other domains). The same holds for
 (σ, w) ↦ (H(7, σ‖w‖j))_{j≤J}.
 
 *Proof.* To answer a query |κ, j, y⟩: compute G(κ) into an ancilla, XOR component j into y,
-and uncompute with a second query. J is a cap; a proof needing more than J = 2²⁰ blocks in
-one move is rejected, which affects completeness only (probability ≤ (1/16)^{12·2²⁰}). ∎
+and uncompute with a second query. This covers only queries whose counter
+lies in `1..J`; the simulator also retains H on other domains. ∎
+
+For a capped verifier, a move requiring `K` accepted 32-bit candidates can
+exhaust `J` blocks without *all* candidates being rejected. For `N` available
+candidate words, the classical fresh-prefix tail is
+`Pr[Binomial(N, 2p/2^32) < K]`, where PoW-reserved words are removed from `N`.
+The old `(1/16)^(12J)` expression was not this event. Applying a truncation
+argument to adaptive quantum-selected keys additionally needs its own reduction
+and loss. Neither an implemented cap nor that reduction is presently supplied.
 
 ### 6.4 Theorem: QROM straight-line knowledge soundness for families of layers
 
@@ -765,116 +780,80 @@ The native final verifier V_d checks:
 **Lemma 7.2 (Base-faithful) [A here].** For every T ∈ R_{vk_0}(x_0), the chunk-validation
 statement named by x_0 holds.
 
-**Assumption 7.3 (A-IC(τ): in-circuit SHA-384 is the oracle, for adversaries running in time ≤ τ = 2¹²⁸; U-12).** Without the time bound the assumption is false in the query-only model of Thm 6.4 (Thm O, `lane/pq-aic-research` LEMMA.md). Let D be the measured database
-of Theorem 6.4. For every i ≥ 1 and every T ∈ R_{vk_i}(x_i) such that T = unstack(c) for
-some c in the list Λ₀ of an accepting layer-i transcript in D, every pair (m, y) ∈ Q_i(T) is
-D-consistent: m ∈ dom(D) and D(m) = y, in the domain-separated oracle of Lemma 1.1.
+**Former Assumption 7.3 (A-IC): withdrawn as a justification in the independent-oracle model.**
+The old premise required every concrete SHA-384 pair in every extracted NV
+trace to occur in the measured database of an independently sampled oracle H.
+Adding a time cap does not justify that identification. At a fixed input m,
+`Pr[H(m) = SHA384(m)] = 2^-384`. If acceptance has probability at least `1-δ`
+and consistency requires this pair, consistency fails with probability at least
+`1-δ-2^-384`. `Qrom.OracleBridge` proves the finite counting statement and the
+corresponding general probability-space inequality. Applying the latter to a
+particular extracted trace still requires establishing the fixed-pair occurrence
+and acceptance premises; it is not an attack on SHA-384 or the concrete scheme.
 
-### 7.2 Why A-IC is needed
-* In the QROM, H is a random function independent of SHA-384. The NV AIR checks
-  y = SHA-384(m) arithmetically: a concrete function.
-* If H ≠ SHA-384, an inner proof whose hashes are SHA-384 values is, with overwhelming
-  probability, not even V^H-consistent. The recursive statement "NV_i accepts" then says
-  nothing about V_{i−1}^H.
-* If instead SHA-384 inside circuits is replaced by an oracle gate, the AIR can no longer
-  check it, so the IOP relation is undefined.
+### 7.2 Separate the outer relation from recursive semantics
+The outer QROM theorem can meaningfully establish membership in the *concrete*
+NV AIR relation. Such a trace certifies that the concrete inner verifier accepts.
+It does not imply that an independently sampled H accepts the inner proof.
+The old A-IC argument cannot transport acceptance between these verifiers.
 
-So the pure QROM has no coherent model in which the recursive statement is meaningful and
-provable. Any identification of the in-circuit function with the oracle is an assumption
-outside the ROM. A-IC is that identification, stated at the single point where the proof uses
-it: membership of inner-proof hash evaluations in the adversary's oracle database.
+Two possible research endpoints are distinct:
+* Keep this implementation and explicitly assume appropriately quantified
+  computational soundness of the inner concrete-hash proof system. This is a
+  substantive cryptographic assumption, not a consequence of SHA collision
+  resistance alone or a proved recursive security guarantee.
+* Change the construction/model so that the inner verification relation and
+  oracle semantics are linked by a valid theorem. A new construction needs its
+  own quantum proof and measurements; the existing 293,077-byte artifact does
+  not measure it.
 
-### 7.3 The composition theorem
+### 7.3 A possible peeling reduction, not yet established
+A valid reduction would need an extractor which, outside an event of probability
+`ε_outer`, turns an accepted false outer statement into a satisfying NV trace.
+NV-faithfulness and statement linkage would turn that trace into an accepted
+false **concrete** inner proof. This would yield a bound of the form
 
-**Theorem 7.4 (conditional composition, given a completed family instantiation of 6.4, 7.1–7.3 and T\*).** Under the hypotheses of the Main Theorem,
-Pr[V_d accepts π_d ∧ the chunk statement is false] ≤ (t′G + √(ℓ_V/2³³⁶))², with ε = the
-maximum rbr-KS error over the layer family {vk_0, …, vk_d}.
+```
+ε_recursive(A) ≤ ε_outer(A) + ε_inner(B),
+```
 
-*Proof.*
-1. Apply Theorem 6.4 to the family. Outside an event of the stated probability, κ(D) = 0, and
-   π_d is D-consistent and accepting. By the stronger form, **every** accepting transcript in D
-   has its first flip at a prover move: the round-0 commitment, so its Λ₀ contains a valid
-   witness.
-2. **Induction on i = d, d−1, …, 1.** The layer-i transcript is accepting and in D, so some
-   T_i ∈ Λ₀ satisfies T_i ∈ R_{vk_i}(x_i), with program = P_i (Lemma 3.6).
-   * By NV-faithful (F1)–(F3), π_{i−1} = dec_i(T_i) is accepted by V′_{i−1}^{SHA-384}, with
-     x_{i−1} linked to x_i.
-   * By A-IC, every hash in Q_i(T_i), and so every FS-chain entry and Merkle node of π_{i−1},
-     is D-consistent. So π_{i−1}'s transcript is an accepting transcript **in D**.
-   * By step 1, it has a valid witness T_{i−1}.
-3. At i = 0, T_0 ∈ R_{vk_0}(x_0), and by Base-faithful the statement holds.
-4. Statement linkage: by (F3), x_0's statement digest equals x_d's, which V_d compares with
-   the claimed chunk statement. ∎
+where B is the actual extraction reduction. To use a computational assumption,
+B must be efficient under an explicitly charged runtime/advice budget. Oracle
+simulation and database extraction must be included; an existential witness
+or the query substitution `q -> 2q` does not establish this requirement. If the
+inner assumption permits an independent final-domain oracle, state that game;
+otherwise prove and cost the simulation removing it.
 
-**Properties.**
-* **Straight-line.** There is one run, one database measurement and no rewinding. That
-  matters because rewinding quantum provers is the obstacle that rules out classical
-  recursive-extraction arguments in the QROM. The extracted chain T_d → π_{d−1} → T_{d−1} → …
-  is a deterministic function of (D, π_d).
-* **Error accumulation.** None beyond the family maximum ε and the shared query budget t. The
-  bad event "D contains a non-extractable accepting transcript" is one event for all layers. A
-  per-layer union bound, (d+1)× the single-layer bound, is also valid and gives 2⁻¹³²·⁴ at
-  d + 1 = 7.
-* **Extractor efficiency is not needed.** The conclusion is the truth of the base statement,
-  and the inner extractions are existential (list membership). An efficient extractor exists
-  anyway (GS list decoding), which gives knowledge soundness with a poly(n) extractor for every
-  layer.
+No numerical `ε_inner` or validated reduction is supplied here. In particular,
+assuming the desired concrete inner security and then calling the result
+"proven recursive security" would conceal the central obligation. The prior
+Theorem 7.4 and its depth-independent numerical conclusion are withdrawn.
 
-### 7.4 What d contributes
-d enters only through:
-* the family of state functions: ε is the max over layer shapes;
-* the number of A-IC applications (d);
-* the NV-faithful obligations.
-
-The number 2⁻¹³⁵·² does not depend on d.
+### 7.4 Depth and resource accounting
+Depth affects the verifier family, faithfulness obligations, extraction chain
+and reduction cost. Whether the final failure probability needs a per-layer
+sum depends on the completed game/reduction. No depth-independent security
+number is currently established.
 
 ---
 
-## 8. In-circuit SHA-384 vs SHA-384 as a random oracle
+## 8. Model boundary and related composition work
 
-### 8.1 The problem (stated in §7.2)
-Recursion runs V_{i−1}, including its random-oracle calls, inside the AIR of layer i.
-RO-model proofs treat the hash as an oracle with no circuit. So the RO-model soundness of
-layer i says nothing about statements that mention the hash's code.
+An outer proof of concrete verifier execution and a recursive proof of the base
+statement are different theorems. Section 7 now states the missing implication
+without identifying concrete SHA with an independent oracle.
 
-### 8.2 Literature (each checked in the full text by a research agent; PDFs in the session scratchpad)
+The prior-art discussion in the paper compares straight-line PCD composition
+(CGSY24), algebraic-oracle PCD (CCGOS23), relativized-argument limitations (BCG25)
+and QROM extraction (CMS19, CFHL21, CDHZ26). None is instantiated here as a
+quantitative theorem for this concrete recursion circuit. In particular, the
+classical composition literature does not by itself supply the required quantum
+reduction or its runtime bound.
 
-| work | model | what it proves for our structure |
-|---|---|---|
-| Chiesa–Ojha–Spooner, Fractal, Eurocrypt 2020 (ePrint 2019/1076) | ROM/QROM for one SNARG | Thm 10.1: adaptive KS O(t²κ + t³2^{−λ}) in the QROM. Recursion (Thm 11.5, constant depth) only "assuming a secure instantiation": heuristic. |
-| Barbara–Chiesa–Guan, "Relativized Succinct Arguments in the ROM Do Not Exist", TCC 2025 (ePrint 2024/728) | ROM | **Impossibility**: Thm 4.1/Cor 4.2, Thm 5.1/Cor 5.2. No succinct argument for oracle-NP relative to a random oracle. So a proof of recursion that treats the inner hash as the same oracle cannot exist in general, and A-IC cannot be a ROM theorem for arbitrary relations. |
-| Chen–Chiesa–Gur–O'Connor–Spooner, AROM, Eurocrypt 2023 (ePrint 2023/587) | arithmetized RO, classical | Thm 9.4: unbounded-depth PCD by straight-line extraction, for a different construction in which circuits query an oracle with a low-degree arithmetization. Asymptotic only; no quantum version. Our SHA AIR is not an AROM. |
-| Chiesa–Guan–Samocha–Yogev, TCC 2024 (ePrint 2023/1646) | any oracle model, classical | Thm 5.1, Remark 5.2: κ_PCD ≤ κ_ARG(…) from straight-line extractors. In the pure ROM the PCD predicate must not query the oracle (Q = 0), i.e. the in-circuit hash is a heuristic instantiation. Classical. The closest analogue of Theorem 7.4. |
-| Arc (ePrint 2024/1731) Thm 4.3; WARP (ePrint 2025/753) Thm 10.3; Bünz–Mishra–Nguyen–Wang (ePrint 2024/474) | ROM, classical | Accumulation schemes only. PCD "by heuristic instantiation"; 2024/474 §3.3: "we do not know how to build secure PCD schemes in the ROM". WARP's QROM status is conjectured (footnote 1). |
-| Chiesa–Di–Hu–Zheng (ePrint 2025/2166) | QROM | Thm 11.3: one BCS reduction step with adaptive straight-line extraction. No composition. |
-| Hall-Andersen–Nielsen, Eurocrypt 2023 (IVC impossibility in the ROM) | ROM | Not re-checked here (theorem numbers unverified). |
-
-**Verdict.**
-* No known result gives a proven bound for depth-d recursion with the verifier's hash in the
-  circuit, classical or quantum.
-* For the general relativized version there is a proven impossibility (BCG).
-* The weakest explicit assumption that completes the proof with a concrete, straight-line,
-  depth-independent bound is **A-IC** (7.3).
-
-### 8.3 Why A-IC is the weakest workable form
-* It is used once per layer, for one purpose: inner-proof hash evaluations are recorded oracle
-  points. It does not assume knowledge soundness of anything. All extraction is proven
-  (Theorem 6.4).
-* Alternative 1: per-layer standard-model knowledge assumptions ("the SHA-384-instantiated
-  SWIRL is KS with error ε_i against size-s adversaries"). This needs extractors whose size
-  feeds the next layer's adversary. At concrete security that is unknown, and it forces the
-  assumption at budgets ≫ 2⁶⁴: it is stronger and not concrete.
-* Alternative 2: AROM. That needs a different construction and has no quantum analysis.
-* A-IC is false for contrived relations (BCG), as the RO heuristic is false for contrived
-  schemes (Canetti–Goldreich–Halevi). It is a heuristic about this specific scheme, of the same
-  kind as U-1's adopted R-a.
-
-### 8.4 Contract status
-The proven-bound contract is not met. Besides the recursive hash-model
-obligation, the concrete family-QROM and DKT-to-WHIR instantiations remain
-open. The non-recursive theorem avoids the recursive hash bridge but still
-needs those protocol proofs. A user decision to adopt A-IC cannot discharge
-these mathematical obligations.
+The contract remains open even for the outer layer until the family, sampler and
+WHIR obligations are completed. For recursive semantics it additionally needs
+NV faithfulness, statement binding and the model/reduction in §7. Merely adopting
+A-IC or replacing its name with "hash security" does not close those obligations.
 
 ---
 
@@ -902,7 +881,7 @@ For t = 2⁶⁴, T\*, z = 32, U-13 proximity inputs, ×15, 42-B digests. Output 
 
 **Required before reusing these numbers:** completion of the concrete family
 instantiation and its constants, the DKT26 → WHIR transfer, validation of T*
-against the pinned implementation, NV/Base-faithfulness and a precise recursive
+against the pinned implementation, NV/Base-faithfulness, the sampler-cap correspondence and a precise recursive
 hash model. These repairs may change the numbers. See GAPS.md.
 Under the superseded BCGM m = 3 inputs the same table gave −135.23 (−132.42 with the union).
 

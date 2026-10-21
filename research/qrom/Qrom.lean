@@ -8,3 +8,8 @@ import Qrom.Main
 
 import Qrom.Transcript
 import Qrom.Audit
+
+import Qrom.OracleBridge
+import Qrom.MerkleSupport
+import Qrom.Sampler
+import Qrom.Adaptive

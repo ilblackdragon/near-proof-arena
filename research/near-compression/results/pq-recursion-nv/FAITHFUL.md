@@ -1,5 +1,31 @@
 # NV-faithful: the narrow verifier circuit arithmetises the native SWIRL verifier
 
+> **Security review update, 2026-10-21.** This is a source audit and test record,
+> not a completed accepted-trace-to-execution theorem. Statements below that
+> NV-faithful “holds” are conditional on the listed port-fidelity and bus
+> semantics obligations. The G2 replay exercises honest execution and selected
+> attacks; it does not quantify over all satisfying traces. The paper must not
+> treat those tests as a proof of Lemma 7.1.
+
+The remaining theorem must start from an arbitrary satisfying assignment to
+**the pinned G2 AIR**, conditioned on exact bus multiset equality, and construct
+an accepting execution of the pinned native inner verifier. Its components are:
+
+| Component | Required conclusion | Existing evidence / remaining work |
+|---|---|---|
+| SHA/GLUE and limb ranges | Every hash job equals concrete truncated SHA-384 on its framed input | Carry bounds, source argument and tamper tests; encode the actual AIR equations and derive integer semantics for every supported shape. This does not identify SHA with an independent random oracle. |
+| Transcript | Every emitted challenge, rejection and next state equals native `ShaTranscript` | §R.3 and subsequent revisions; prove job uniqueness, ordering and range guards from constraints. Native counter-mode sampling has no `J = 2^20` rejection cap, so that claimed cap cannot be used. |
+| Program and public tape | Executed instructions and exposed statement equal the pinned program and claim; recursive level decreases | §Z and binding tests; prove arbitrary-trace program reconstruction, anchors/BIND and public-input linkage for the exact G2 version. |
+| Verifier arithmetic | GKR, batched constraints, rotations, univariate skip and stacking compute the native verifier predicates | Differential tests remain insufficient; prove each translation against native semantics, including per-AIR heights and zero tails. |
+| LogUp | Apart from a separately proved algebraic bad event, bus equality is integer multiset equality | Prove multiplicity/range bounds and count actual interactions/tuple degrees; do not assume field equality implies integer equality. |
+| Composition | The reconstructed execution consumes the same proof openings, statement and parameters | Compose the preceding results for arbitrary accepted traces; then supply the independent inner-proof soundness/model theorem. |
+
+The 2026-10-21 clean build additionally passes seven SHA/GLUE tests and nine
+transcript tests in the 42-byte/coset-leaf configuration. These are regression
+evidence only. A formalization of the actual AIR and native verifier is still
+required; adding a Lean premise named `faithful` would not discharge it.
+
+
 Lane `lane/pq-nv-circuit-soundness`, 2026-10-18. **Audited versions: lane/pq-recursion-sha384 @
 3c9d479ab (§0–§7), re-audited @ 95c08894c / head 7cdc8c90e (§R)** (patch `native/recursion/patches/openvm-recursion-sha384.patch`, unified backend
 `stark-backend-unified.patch`). The fixes below are on this branch only (not merged into

@@ -17,6 +17,10 @@ paper's recursive protocol secure, and is not closed except for two cited facts.
 | `FactA.lean` | `Replacement` and `fact_a` use CFHL21's square-root form | The replacement theorem is cited, not proved. Finite counting lemmas do not establish it. |
 | `Main.lean` | `PotentialEvolution.recurrence`, `amplitude_bound`, `qrom_bound`, `qrom_binary_bound` | Recurrence is derived from operator premises; measured bad-event probability is bounded by the **squared** projection norm. Result: `p ≤ (Ahat + sqrt slack)^2`, or `(t*g + sqrt slack)^2` for a Boolean potential. |
 | `Transcript.lean` | Honest chain edge is not `WideBad`; safe accepting transcript yields a witness | Deterministic part only. No bound on probability of verifier flips is asserted. |
+| `MerkleSupport.lean` | Unreferenced node insertion preserves graph reachability; reference targets bounded by `fixedRoots + 3*q` under typed support counts | Native parser/extractor correspondence and wide-query bounds remain open. |
+| `OracleBridge.lean` | A fixed concrete output matches one independent uniform oracle output with probability `1/card Y`; acceptance minus that marginal lower-bounds consistency failure | Includes a general probability-space inequality. Protocol fixed-pair occurrence and completeness must still be supplied; no concrete forgery is asserted. |
+| `Sampler.lean` | Every accepted residue has exactly two preimages below `2*p`, hence conditional probability `1/p` | Finite counting only; adaptive oracle selection, rejection-loop length and runtime are separate obligations. |
+| `Adaptive.lean` | History-dependent bad-set cardinalities give a union bound over uniformly sampled challenge trajectories | Classical uniform challenges; the actual sampler and QROM game still need reduction to this experiment. |
 | `Audit.lean` | Counterexamples to the old probability-additive replacement premise and full-entry matrix model; one-query amplitude regression; axiom output | Included in the default build. |
 
 No new axioms or `sorry` are used. Kernel axioms are `propext`, `Classical.choice`,
