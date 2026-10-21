@@ -57,3 +57,5 @@ import WasmBase.Main.RegFacts
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors
+import WasmBase.ChiAir
+import WasmBase.ChiVectors
