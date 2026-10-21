@@ -304,16 +304,18 @@ encoder optional. Total ≈6-10 lane-weeks (was 7-12).
 **Two flags for the join:**
 1. `two_max_receipts_over_cap`: two 4 MiB-argument receipts exceed a 2^21 SHA table — the per-byte
    path does not compose past a couple of maximum receipts. This is a real capacity constraint.
-2. `PQ/Join/Statement.lean`'s `HOSTQ`/`HOSTB` are **still the stale 8- and 4-field shapes**;
-   `hostQ_no_bridge` / `hostB_no_bridge` prove they cannot silently merge with the widened wire.
-   **Fix this before any join work.**
+2. ~~`PQ/Join/Statement.lean`'s `HOSTQ`/`HOSTB` are still the stale 8- and 4-field shapes.~~
+   **FIXED 2026-10-21 (lane `pq-actionr`)**: migrated to the HOST chip's wire (`HOSTQ` 22 fields,
+   `HOSTR` 8 with `ar` in field 6, `HOSTB` 5 with `hid`). `Receipt/Ids.lean`'s
+   `hostQ_no_bridge`/`hostB_no_bridge` are unchanged in content and now compare the *old* shapes
+   (`Join.hostQOld`/`hostBOld`) against the current wire, so the gap stays proved.
 
 ### Still open
 
 * `ripemd160` AIR; the two Keccaks need a 64-bit-multiply gadget first (a base-layer change).
-* The receipt `ActionR` encoder, `RIDS`/`SRC`/`RCL` + `newReceipts` fold, and the `HostCallTrace`
+* `RIDS`/`SRC`/`RCL` + `newReceipts` fold, and the `HostCallTrace`
   induction (Wasm side).
-* The `Join/Statement.lean` wire fork above.
+* The `ActionR` encoder AIR (lane `pq-actionr` started it: `PQ/Receipt/Encoder.lean`).
 
 ## Parallel lanes to run next
 

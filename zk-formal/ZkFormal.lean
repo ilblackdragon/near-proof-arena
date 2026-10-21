@@ -389,5 +389,6 @@ import ZkFormal.PQ.Receipt.Table
 import ZkFormal.PQ.Receipt.Rows
 import ZkFormal.PQ.Receipt.Bookkeeping
 import ZkFormal.PQ.Receipt.Wire
+import ZkFormal.PQ.Receipt.Encoder
 import ZkFormal.PQ.Receipt.Cost
 import ZkFormal.PQ.Receipt.Statement

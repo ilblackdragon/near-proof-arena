@@ -142,10 +142,15 @@ Reuses the existing wire.  No second wire, no new bus for the traffic.
 
 `hostQ_no_bridge`/`hostB_no_bridge` prove an old-width message can **never** equal a new-width
 one (different lengths).  So a joined proof that kept the old shapes would *fail to balance*
-rather than silently merge two wires — the failure is loud, which is the right failure.  **But
-`Statement.lean` must be updated to the wide shapes before the join is attempted**; this lane
-records the fact and the witness (`Ids.hostQ22`, `hostB5`, `hostR8` + length lemmas) but does not
-edit `Statement.lean` (it is another lane's file and the change needs its own review).
+rather than silently merge two wires — the failure is loud, which is the right failure.
+
+**Fixed 2026-10-21 (lane `pq-actionr`).**  `PQ/Join/Statement.lean` is now migrated to the widened
+wire: `hostQ` is 22 fields, `hostR` 8 (with `ar` in field 6), `hostB` 5 (with `hid`).  The old
+shapes survive as `Join.hostQOld`/`Join.hostBOld` **only** so `hostQ_no_bridge`/`hostB_no_bridge`
+keep their content; they now compare the old shapes against the current ones and are proved by the
+same length argument (`hostQ_old_not_current`, `hostB_old_not_current`, unchanged axioms).
+`Ids.hostQ22`/`hostB5`/`hostR8` are now *equal* to the join's definitions
+(`hostQ22_eq_join`/`hostB5_eq_join`, both `rfl`), so the two spellings can never fork again.
 
 ---
 
@@ -255,21 +260,88 @@ Both were unreachable without the exact length, which is now a theorem.
 
 ---
 
-## 5. What is not done (and why that is the honest boundary)
+## 5. The borsh `ActionR` encoder (lane `pq-actionr`, 2026-10-21)
 
-* **The `ActionR` encoder** — not attempted, per scope.  §3 says it is 2–3 weeks, not 4–6.
+`zk-formal/ZkFormal/PQ/Receipt/Encoder.lean`.  The encoder is now **built for the borsh shape**, not
+just priced.  It starts at `promise_batch_action_transfer` (np=2: `[3] ‖ u128 amount`) and
+generalises to `promise_batch_action_delete_account` (np=3: one `borshBytes`) and
+`promise_batch_action_function_call` (np=7: two `borshBytes` + `u64` + `u128`).
+
+**The reference encodings, checked against the spec's *decoder*.**  `trRaw`/`daRaw`/`caRaw`/`fcRaw`
+are the spec's own byte construction; `decodesAs` runs `D2.pBaseAct` on them.  Kernel `decide`
+facts (`decodes_transfer_{zero,one,fee,near,u64}`, `decodes_delete_{bob,dotted}`, `decodes_create`,
+`decodes_fcall`, `decodes_fcall_empty`) show the bytes decode back to exactly that action, with the
+raw bytes round-tripping; `decodes_discriminates` shows the check has teeth.  Axioms `[propext]`.
+
+**The rows' bytes equal the reference bytes.**  `encAction` is the AIR-shaped byte list (a tag, then
+a list of typed fields `str`/`u64`/`u128`); `encAction_transfer`/`_delete`/`_create`/`_fcall` prove
+it equals the reference list position for position.  `encAction_transfer_body` gives the
+position-indexed form a generator fills rows from.
+
+**The framing lemmas — the point of the exercise.**
+
+| lemma | statement |
+|---|---|
+| `encAction_length` | `|action| = 1 + Σ field lengths`, with `4+\|str\|` / `8` / `16` per field |
+| `prefixBytes_value` | `leNat (u32 n) = n` — the prefix *is* the count (spec's own `leNat`) |
+| `prefixBytes_getD` | byte `k` of the prefix is `n / 256^k % 256` |
+| `tr_frame_len` / `da_frame_len` / `fc_frame_len` | `1 + 4·nStr + strLen + tail` = the reference length, per shape |
+| `receipt_tr_len{,_ed25519,_secp256k1}`, `receipt_da_len` | the receipt-level length, per shape |
+
+**The AIR (`PBE`).**  15 columns, 23 constraints (all degree ≤ 3), 4 interactions, `maxLog = 22`;
+`pbe_wf` kernel-checks admissibility, `pbe_degree` / `pbe_degree_le` the degree bound.  One row per
+emitted byte; body bytes come from a committed array on bus 214 (the §3.3 cached-source design) and
+`u32` prefix bytes from a 4-row table on bus 213.  The row lemmas:
+
+| lemma | statement |
+|---|---|
+| `pbe_len_framing_general` | `len = 1 + 4·nStr + strLen + tail` (the framing identity, field form) |
+| `pbe_len_framing_tr` | the `TR` instance: `len = 17` |
+| `pbe_len_framing_da` | the `DA` instance: `len = strLen + 5` |
+| `pbe_group_len_is_row_count` | **the declared `len` is the number of emitting rows** — the direction a prover cannot fake |
+| `pbe_tag` / `pbe_tag_pos` | the tag byte is the action's `knd`, and it is at position `0` |
+| `pbe_phase` / `pbe_body_pos` | every active row is tag or body, and a body row is at `5 + d` |
+| `pbe_pos_offset` / `pbe_len_const` | `pos` is the offset in the group; `len` is group-constant |
+| `pbe_msg_len` / `pbe_buses` | the `HOSTB` message is 5 fields and the table uses only the existing buses |
+
+Axioms of every one: `⊆ {propext, Classical.choice, Quot.sound}`; no `sorry`, no `native_decide`,
+no `implemented_by`.
+
+**Wire.**  `PBE` sends each byte on the existing `HOSTB` (210), `dir = 1`, 5-field message — the
+same shape `Wire.PBB` and `HostB.msg` use.  No second byte wire.
+
+**Cost, corrected.**  At the D3α maximum receipt the encoder is 268 M cells (31 %), so a single-row-
+per-byte encoder at 64 columns stays the right shape; the extra 15-column framing table is `15 ·
+L` cells, i.e. **~23 % of the 64-column encoder's rows** — negligible next to the SHA (69 %).  The
+`TR`/`DA`/`FC` lengths are now theorems (`receipt_tr_len` accounts for `49 + |signer| + |pk|`
+before `pk_encode_len`), so a change to `ActionR.encode` that moved a length breaks the build.
+
+**What remains on the encoder.**  The `FC` shape's *body* rows are the same mechanism as `TR`/`DA`
+(committed source), but the two prefixes need two `PBPREFIX` groups per call, so a fully general
+`PBE` needs a per-`(call, field)` prefix group key — the table has one `(ts, hid, strLen, pos)`
+tuple and would need the field index added.  `promise_create`'s nested `Vec<Action>` is the same
+`u32 |actions|` prefix with `nStr = 0, tail = Σ action lengths`; the constraint form is already
+general (`eFrameCons` takes `tail` as a class constant), so it is a class-table addition, not a new
+table.  Pinning a source byte to linear memory stays `ActionBytesAreHostBytes` (`Wire.lean`).
+
+---
+
+## 6. What is not done (and why that is the honest boundary)
+
+* **The `FC`/`promise_create` encoder instances** — §5 states exactly what is missing (the
+  per-field prefix group key and the nested-`Vec` class row); the `TR`/`DA`/`create` shapes and the
+  framing lemmas that generalise are built.
 * **`RIDS`/`SRC`/`RCL` + `newReceipts` fold** — not attempted; §3.3 now says this is where the
   cost is, and it is the next lane.
 * **The `RunHost` call-log induction** (`HostCallTrace`) — stated, not proved; it is a Wasm-side
   theorem about `pushPromiseH`/`pushAction`/`thenDataIdsH`.
-* **`Statement.lean`'s stale HOSTQ/HOSTB** — identified and witnessed (§2.1), not edited: it is
-  another lane's file.  **This must be fixed before the join.**
+* ~~**`Statement.lean`'s stale HOSTQ/HOSTB**~~ — **fixed** (§2.1): the join speaks the wide wire.
 * **`Holds` for the full joined AIR** — `pbc_wf` is the table's own admissibility; there is no
   `nearAirV3`-level assembly for `PBC` because the promise family has no state-side instance yet.
 
 ---
 
-## 6. Reproduce
+## 7. Reproduce
 
 ```
 # Lean (the whole library, including this lane)
