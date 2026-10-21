@@ -442,8 +442,16 @@ One row per emitted byte.  Groups are delimited as `HostB`'s are: `f = 1` on a g
 | `gap` | 16-bit witness for `pos < len` |
 | `selTag`, `selBody` | phase selectors: tag row / body row |
 | `d` | body index, `pos − 5` |
+| `fld` | index of the string field a prefix row belongs to (class constant) |
 
-width 15. -/
+width 16.
+
+`fld` is the per-field index of §"the prefix group key".  A `u32` prefix byte is identified on
+`PBPREFIX` by `(ts, hid, fld, strLen, pos)`; without `fld`, a call that frames **two** strings of
+equal length (`function_call` with `|method| = |args|`) would emit two prefix groups with the same
+key and the two groups could be merged, which is exactly the documented blocker for `FC`.  With it,
+the two prefix groups of one call differ in the `fld` slot (`prefixKey_fld_ne`), so the multiset
+keeps them apart (`preKey_nat_inj` shows the key is the tuple, `ePreMsg = ePreKey ++ [byte]`). -/
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.V2
 
@@ -464,9 +472,25 @@ def eD : Nat := 12
 def eNStr : Nat := 13
 /-- The fixed-width tail's byte count (class constant: `16` `TR`, `0` `DA`, `24` `FC`). -/
 def eTail : Nat := 14
-def eWidth : Nat := 15
+/-- The **per-field index**: which `u32`-prefixed string field a prefix row's byte belongs to
+(`0` for `DA`'s only string; `0`/`1` for `FC`'s `method`/`args`).  It is a **per-row** column, not a
+group constant: `function_call`'s two prefix groups are rows of *one* action group (the group's
+`pos` runs `0 … len−1` straight through both strings), so a group-constant `fld` could not tell the
+two apart — it would forbid the very trace FC needs.  It is part of the `PBPREFIX` key
+`(ts, hid, strLen, pos, fld)`. -/
+def eFld : Nat := 15
+/-- The length of **this row's** string field (per row), as opposed to `strLen`, which is the
+group-constant *total* `Σ|str_i|` the framing identity reads.  A prefix row's byte is a byte of it. -/
+def eStrLenF : Nat := 16
+/-- The prefix byte's index `k` inside its `u32` (`0 … 3`).  Its bound is not a local constraint:
+the `PBPREFIX` lookup (bus 213) is exactly the 4-row `u32` table, so a row with `pid ∉ 0..3` has no
+sender to match.  That is the same division of labour `HOSTB`'s byte `BYTE` lookup uses. -/
+def ePid : Nat := 17
+/-- Phase selector: the row emits one of a string field's four `u32` prefix bytes. -/
+def eSelPre : Nat := 18
+def eWidth : Nat := 19
 
-def eBits : List Expr := [eAct, eF, eSelTag, eSelBody].map (fun x => bool (c x))
+def eBits : List Expr := [eAct, eF, eSelTag, eSelBody, eSelPre].map (fun x => bool (c x))
 
 def eGroupCons : List Expr :=
   [ .mul .isFirst (sub (k 1) (c eF)), .mul .isLast (sub (k 1) (c eF)),
@@ -492,8 +516,13 @@ def eFrameCons : List Expr :=
   [ .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
       (.add (c eStrLen) (c eTail))) (k 1))) ]
 
+/-- **The phase law.**  An active row is exactly one of: the tag row (`pos = 0`, byte = `knd`), a
+body byte (`pos = 5 + d`), or a `u32` prefix byte (its index `pid ∈ 0…3`, its field length
+`strLenF`).  The prefix phase is what `FC` needs; before it existed the prefix multiplicity
+`1 − selTag − selBody` was identically `0` on active rows, so `PBPREFIX` could never fire on real
+bytes. -/
 def ePhaseCons : List Expr :=
-  [ .mul (c eAct) (sub (.add (c eSelTag) (c eSelBody)) (k 1)),
+  [ .mul (c eAct) (sub (.add (.add (c eSelTag) (c eSelBody)) (c eSelPre)) (k 1)),
     .mul (c eSelTag) (c ePos),
     .mul (c eSelBody) (sub (sub (c ePos) (k 5)) (c eD)),
     .mul (sub (k 1) (c eSelBody)) (c eD),
@@ -505,19 +534,23 @@ def B_PBSRC : Nat := 214
 def B_PBPREFIX : Nat := 213
 def eMsg : List Expr := [c eTs, c eHid, .const 1, c ePos, c eByte]
 def eSrcMsg : List Expr := [c eTs, c eHid, c eD, c eByte]
-def ePreMsg : List Expr := [c eTs, c eHid, c eStrLen, c ePos, c eByte]
+/-- The prefix group key, without the byte: `(ts, hid, fld, strLenF, pid)`.  It is the documented
+`(ts, hid, strLen, pos)` key **plus the per-field index** `fld`, which is what keeps `FC`'s two
+prefix groups (`method`, `args`) apart even when `|method| = |args|`; `strLenF`/`pid` are the count
+and index the `u32` table checks (`pid` plays the role the documented key's `pos` played). -/
+def ePreKey : List Expr := [c eTs, c eHid, c eFld, c eStrLenF, c ePid]
+def ePreMsg : List Expr := ePreKey ++ [c eByte]
 
 def eInters : List Interaction :=
   [ { bus := ZkFormal.PQ.Join.B_HOSTB, send := true, mult := [c eAct], msg := eMsg },
     { bus := B_PBSRC, send := false, mult := [c eSelBody], msg := eSrcMsg },
-    { bus := B_PBPREFIX, send := false,
-      mult := [sub (sub (k 1) (c eSelTag)) (c eSelBody)], msg := ePreMsg },
+    { bus := B_PBPREFIX, send := false, mult := [c eSelPre], msg := ePreMsg },
     { bus := B_PBRANGE, send := false, mult := [c eAct], msg := [c eGap] } ]
 
 def etable : ZkFormal.Air.Table :=
   { width := eWidth, constraints := eCons, interactions := eInters, maxLog := 22 }
 
-theorem pbe_shape : etable.width = 15 ∧ etable.constraints.length = 23 ∧
+theorem pbe_shape : etable.width = 19 ∧ etable.constraints.length = 24 ∧
     etable.interactions.length = 4 ∧ etable.maxLog = 22 := by decide
 
 /-- The largest constraint degree the table actually uses: `3`. -/
@@ -587,8 +620,10 @@ theorem cell_zero_nat {tr : Trace Fp} {tt r x : Nat} (h : tr.cell tt r x = 0) :
   show (tr.cell tt r x).toNat = 0
   rw [h]; rfl
 
-/-- **A group constant is the same on the next row.**  `ts`, `hid`, `len`, `knd`, `strLen` are
-group-constant: unchanged from row `r` to `r+1` while `r+1` is inside the group (`f = 0`). -/
+/-- **A group constant is the same on the next row.**  `ts`, `hid`, `len`, `knd`, `strLen`, `nStr`,
+`tail` are group-constant: unchanged from row `r` to `r+1` while `r+1` is inside the group
+(`f = 0`).  `fld` is deliberately **not** here: it changes between `FC`'s two prefix groups, which
+are rows of the same action group.  (`fld`, `strLenF`, `pid` are per-row prefix-key components.) -/
 theorem pbe_const_step (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r + 1 < tr.height tt)
     (hnf : tr.cell tt (r + 1) eF = 0) (x : Nat)
     (hx : x = eTs ∨ x = eHid ∨ x = eLen ∨ x = eKnd ∨ x = eStrLen ∨ x = eNStr ∨ x = eTail) :
@@ -620,6 +655,37 @@ theorem pbe_len_const (hL : TableLocal etable tr tt pub) {r0 cnt : Nat}
     have hst : tr.cell tt (r0 + k + 1) eF = 0 := hstep k (by omega)
     have hstep' := pbe_const_step (pub := pub) hL hrow' hst eLen (Or.inr (Or.inr (Or.inl rfl)))
     rw [show r0 + (k + 1) = r0 + k + 1 by omega, hstep', ih hk']
+
+/-! ### The prefix group key carries the field index
+
+The key is `(ts, hid, strLen, pos, fld)` (`ePreKey`).  These lemmas are what makes the key useful:
+it is exactly the tuple (so a lookup can read it off), and two *different* fields of one call give
+*different* keys — the `FC` case, where `method` and `args` may have equal length.
+
+`fld` is per-row precisely so this is possible: `FC`'s two prefix groups are interleaved inside one
+action group (`pos = 0 … len−1` runs straight through the tag, both strings and the tail), so no
+group-constant column could carry the distinction. -/
+
+/-- The prefix key has 5 fields, the message 6 (the byte appended). -/
+theorem pbe_pre_msg_shape : ePreKey.length = 5 ∧ ePreMsg.length = 6 := by decide
+
+/-- The message is the key plus the byte, in that order. -/
+theorem pbe_pre_msg_eq : ePreMsg = ePreKey ++ [c eByte] := rfl
+
+/-- **The key separates fields**: two prefix key values with the same `ts`, `hid`, `strLenF`, `pid`
+but different `fld` have different keys.  Slot 2 is `fld`, so the two key lists disagree there, and
+the `PBPREFIX` multiset cannot merge two prefix groups of one call that differ only by field. -/
+theorem preKey_ne_of_fld_ne (ts hid sl pid fld fld' : Nat) (h : fld ≠ fld') :
+    ([ts, hid, fld, sl, pid] : List Nat) ≠ [ts, hid, fld', sl, pid] := by
+  intro hEq
+  exact h (by simpa using congrArg (fun l => l.getD 2 0) hEq)
+
+/-- **`FC`'s two prefix groups are distinct keys.**  `method` (`fld = 0`) and `args` (`fld = 1`)
+of one call, **even when their lengths agree**, produce different prefix keys — the exact case that
+the pre-`fld` `(ts, hid, strLen, pos)` key could not tell apart. -/
+theorem fc_prefix_keys_distinct (ts hid strLen pid : Nat) :
+    ([ts, hid, 0, strLen, pid] : List Nat) ≠ [ts, hid, 1, strLen, pid] :=
+  preKey_ne_of_fld_ne _ _ _ _ _ _ (by decide)
 
 /-- **Framing lemma 3 (AIR side) — the group's `len` is `1 + 4·nStr + strLen + tail`.**  This is
 the borsh framing identity exactly as the `PBE` row constrains it.  `tr_frame_len`/`da_frame_len`/
@@ -705,20 +771,26 @@ theorem pbe_pos_step (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r + 1 < 
     exact sub_eq_zero'.mp h3
   exact cell_add_nat (r := r) (r' := r + 1) (x := ePos) (y := ePos) h2 hb
 
+/-- **The phase law, in `Nat`: an active row is exactly one of tag / body / prefix.** -/
 theorem pbe_phase (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
     (ha : tr.cell tt r eAct = 1)
-    (hb : cv tr tt r eSelTag + cv tr tt r eSelBody + 1 < P) :
-    cv tr tt r eSelTag + cv tr tt r eSelBody = 1 := by
-  have h := econ hL hr (e := .mul (c eAct) (sub (.add (c eSelTag) (c eSelBody)) (k 1)))
+    (hb : cv tr tt r eSelTag + cv tr tt r eSelBody + cv tr tt r eSelPre + 1 < P) :
+    cv tr tt r eSelTag + cv tr tt r eSelBody + cv tr tt r eSelPre = 1 := by
+  have h := econ hL hr (e := .mul (c eAct)
+    (sub (.add (.add (c eSelTag) (c eSelBody)) (c eSelPre)) (k 1)))
     (by simp [eCons, ePhaseCons])
   simp only [eval_mul, eval_sub, eval_add, eval_c, eval_k] at h
   rw [ha, Lean.Grind.Semiring.one_mul] at h
-  have h2 : tr.cell tt r eSelTag + tr.cell tt r eSelBody = (1 : Fp) := sub_eq_zero'.mp h
+  have h2 : tr.cell tt r eSelTag + tr.cell tt r eSelBody + tr.cell tt r eSelPre = (1 : Fp) :=
+    sub_eq_zero'.mp h
   have h4 := congrArg Fp.toNat h2
-  rw [ZkFormal.Algebra.Fp.add_def, Fp.toNat_add] at h4
+  rw [ZkFormal.Algebra.Fp.add_def, Fp.toNat_add, ZkFormal.Algebra.Fp.add_def,
+    Fp.toNat_add] at h4
   have h1 : Fp.toNat (1 : Fp) = 1 := by decide
   rw [h1] at h4
   simp only [cv] at hb ⊢
+  rw [Nat.mod_eq_of_lt (show (tr.cell tt r eSelTag).toNat + (tr.cell tt r eSelBody).toNat < P
+    by omega)] at h4
   rw [Nat.mod_eq_of_lt (by omega)] at h4
   exact h4
 
