@@ -507,12 +507,10 @@ impl Builder {
         if !ok {
             self.failures.push(format!("pow ({bits} bits)"));
         }
-        self.pow_wit.clear();
-        for (i, &w) in witness.iter().enumerate() {
-            let v = self.load_f(w);
-            self.push(Op::Unit1, v.addr, 0, job, 16 + i as u32, v.val, F::ZERO);
-            self.pow_wit.push(v);
-        }
+        // The witness units are sent by the hash-chain row of this PoW block, not the program:
+        // the number of PoW-run blocks depends on the proof, so their units cannot come from a
+        // fixed program instruction (gap G1; see `tr_pow_blocks`).
+        let _ = &self.pow_wit;
         let p3 = crate::sha384::config::TAG_POW as u32 + self.anchor_first(job);
         self.push(Op::Anchor, t, witness.len() as u32, job, p3, EF::ZERO, F::ZERO);
         // output word 0 as limbs (l0, l1, l2) from the hash chain
