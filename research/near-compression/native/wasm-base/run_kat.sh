@@ -2,12 +2,22 @@
 # Known-answer tests: every program of programs/gen.py through (1) the Python reference
 # interpreter, (2) the Lean spec (`wasmbase-tool prep`: prepare + check + spec `step` run),
 # (3) the Rust trace generator + full constraint and bus pre-check (`check`).
+#
+# Both sides must be rebuilt before trusting a result:
+#   cd ../../wasm-base-lean && lake build wasmbase-tool   # after any Lean AIR change
+#   cd . && cargo build --release                        # after any src/*.rs change
+# A stale binary or tool has produced false failures three times; bin.sh now
+# rejects a binary older than its sources, but it cannot see the Lean tool.
+#
 # Usage: run_kat.sh <scratch_dir> [hash_iters...]
+# Env:   WASMBASE_BIN   override the binary path (still staleness-checked)
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 OUT=${1:?scratch dir}; shift
 TOOL=$HERE/../../wasm-base-lean/.lake/build/bin/wasmbase-tool
-BIN=${WASMBASE_BIN:-/data/illia/nearproof-deps/pq-wasm-base/target/release/nearproof-wasm-base}
+# shellcheck source=bin.sh
+. "$HERE/bin.sh"
+BIN=$(resolve_bin) || exit 1
 G0=1000000000000000
 python3 "$HERE/programs/gen.py" "$OUT/progs" "$@" >/dev/null
 pass=0; fail=0
