@@ -168,6 +168,9 @@ pub struct Builder {
     chain_first: Option<u32>,
     /// [agg] build_verifier leaves level / statement exposure to the caller
     pub agg: bool,
+    /// [agg] bind the child's program (set for NV children of an aggregation node; `agg` alone
+    /// suppresses the level/statement exposure, this enables the program binding specifically)
+    pub bind_child: bool,
 }
 
 impl Builder {
@@ -208,6 +211,7 @@ impl Builder {
             chain_pending: true,
             chain_first: None,
             agg: false,
+            bind_child: false,
         }
     }
 

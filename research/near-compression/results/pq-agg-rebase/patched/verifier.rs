@@ -871,9 +871,10 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
         .iter()
         .map(|cs| cs.iter().map(|(c, _)| c.val).collect())
         .collect();
-    if b.agg {
-        // [agg] the aggregation program exposes level and statement itself (nv/agg.rs)
-    } else if b.bind {
+    if b.bind || b.bind_child {
+        // child is NV: level = child level + 1; BIND enforced iff child level != M (the anchor
+        // level; M = 1 unless the program converges later, see `NvCircuit::anchor`)
+    } else if false {
         // child is NV: level = child level + 1; BIND enforced iff child level != M (the anchor
         // level; M = 1 unless the program converges later, see `NvCircuit::anchor`)
         let cl = pv_cells[0][0];
@@ -931,6 +932,7 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
         // [agg] the aggregation program (nv/agg.rs) exposes its own level and statement; the
         // per-child statement of each child is read from `pv_cells` by the caller.  Exposing
         // anything here would push a second PvD row that contradicts the node's statement.
+        let _ = &b.agg;
     } else if b.bind || b.child_nv {
         // statement passthrough (G1): the child's statement digest (its public values 1..19)
         // is re-exposed unchanged

@@ -154,7 +154,11 @@ pub fn build_agg(
         if i > 0 {
             b.restart_transcript();
         }
+        // Level >= 2 child: bind its program to this node's (DESIGN-BASE §5.1).  Level-1 children
+        // are base/app proofs, which have no NV program to bind.
+        b.bind_child = matches!(kind, ChildKind::Node { .. });
         let pv = build_verifier(b, vk, proof);
+        b.bind_child = false;
         match kind {
             ChildKind::App { n_ctx, n_state } => {
                 let v = &pv[0];

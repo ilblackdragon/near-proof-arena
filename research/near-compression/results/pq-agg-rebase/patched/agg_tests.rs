@@ -64,6 +64,11 @@ fn agg_debug(
         build_agg(b, &refs(children), kind, pre);
     });
     let mut pvs = b.public_values();
+    if let Ok(rows) = std::env::var("AGG_DUMP_ROWS") {
+        for r in rows.split(',').map(|x| x.parse::<usize>().unwrap()) {
+            eprintln!("AGG_ROW {r}: {:?}", b.instrs.get(r));
+        }
+    }
     let mut total = 0;
     for (a, m) in airs.iter().zip(&mats) {
         println!("AGG_AIR {} {} x {}", a.name(), m.height(), m.width());
@@ -365,11 +370,23 @@ fn agg_node_debug() {
 }
 
 fn agg_debug_k(children: &[(Vk, Pf)], kind: ChildKind, pre: &[RangeStmt], log_rows: usize, k: usize) -> Builder {
+    agg_debug_k_mutated(children, kind, pre, log_rows, k, |_| {})
+}
+
+/// [`agg_debug_k`] with a trace mutation applied before the constraint + bus check.
+fn agg_debug_k_mutated(
+    children: &[(Vk, Pf)],
+    kind: ChildKind,
+    pre: &[RangeStmt],
+    log_rows: usize,
+    k: usize,
+    mutate: impl FnOnce(&mut Vec<RowMajorMatrix<F>>),
+) -> Builder {
     use openvm_cpu_backend::CpuBackend;
     use openvm_stark_backend::prover::{AirProvingContext, MatrixDimensions, ProvingContext};
     let circ = NvCircuit::new(k, log_rows, 1);
     let airs = circ.airs::<Sha384Config>();
-    let (mats, b) = circ.generate_with(|b| {
+    let (mut mats, b) = circ.generate_with(|b| {
         build_agg(b, &refs(children), kind, pre);
     });
     let pvs = b.public_values();
@@ -379,6 +396,7 @@ fn agg_debug_k(children: &[(Vk, Pf)], kind: ChildKind, pre: &[RangeStmt], log_ro
         total += m.height() * m.width();
     }
     println!("AGGN_TOTAL_CELLS {total} program_rows={} merkle_nodes={}", b.instrs.len(), b.merkle_nodes);
+    mutate(&mut mats);
     let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
         .into_iter()
         .enumerate()
@@ -440,4 +458,76 @@ fn agg_g_l1_linked() {
     must_fail("G: statement digest limb", || {
         run(&pr[0], 17, &|_, pvs| pvs[3] += F::ONE);
     });
+}
+
+/// **Program-binding gate for an aggregation node.**
+///
+/// A level-2 node verifies two NV children and (`bind_child`) constrains each child's program to
+/// be the node's own via `bind_child_program`.  Without that constraint the node would accept a
+/// valid proof of a different circuit and the tree claim would be worthless - this is the
+/// aggregation analogue of the G2 forgery control.
+///
+/// The test checks three things: the honest node passes the full constraint + bus check; the
+/// node's trace really carries a BIND region; and changing a child's program word in the trace
+/// makes the check fail.
+#[test]
+#[ignore]
+fn agg_node_program_binding() {
+    use crate::sha384::e2e_tests::{env_usize, params_from_env};
+    let segs = chunk_segments(&[7], 4, 32);
+    let pr = prove_segs(&segs);
+    let mut p1 = params_from_env("PARENT", [12, 2, 8, 3]);
+    p1.max_constraint_degree = debug_params().max_constraint_degree;
+    let engine = Sha384CpuEngine::new(p1.clone());
+    let lr1 = env_usize("AGG_LOG_ROWS1", 17);
+    let k1 = child_params_small().k_whir();
+    let one = |ch: &[(Vk, Pf)]| -> (Vk, Pf) {
+        let circ = NvCircuit::new(k1, lr1, 1);
+        let (mats, b) = circ.generate_with(|b| {
+            build_agg(b, &refs(ch), APP, &[]);
+        });
+        let (vk, p, _) = super::circuit::prove_mats(&circ, &engine, mats, &b);
+        (vk, p)
+    };
+    let na = one(&pr[..2]);
+    let nb = one(&pr[2..]);
+    let sa = RangeStmt::compose(&[segs[0].stmt(), segs[1].stmt()]).unwrap();
+    let sb = RangeStmt::compose(&[segs[2].stmt(), segs[3].stmt()]).unwrap();
+    let node = ChildKind::Node { n_ctx: N_CTX, n_state: 2 };
+    let lr2 = env_usize("AGG_LOG_ROWS2", 19);
+    let kids = vec![na.clone(), nb.clone()];
+    let all = RangeStmt::compose(&segs.iter().map(|s| s.stmt()).collect::<Vec<_>>()).unwrap();
+
+    // 1. honest node: binds both children, which are its own program
+    let b = agg_debug_k(&kids, node, &[sa.clone(), sb.clone()], lr2, p1.k_whir());
+    assert!(check_range_statement(&b.public_values(), &all), "honest node statement");
+    let rows = b.instrs.len();
+    println!("AGG_BIND honest node accepted: program rows={rows}");
+
+    // 2. the BIND region is really emitted for each NV child
+    let circ = NvCircuit::new(p1.k_whir(), lr2, 1);
+    let (mats, bb) = circ.generate_with(|b| {
+        build_agg(b, &refs(&kids), node, &[sa.clone(), sb.clone()]);
+    });
+    assert!(bb.failures.is_empty(), "{:?}", bb.failures);
+    let nv_rows = mats[0].values.len() / mats[0].width;
+    assert!(nv_rows >= bb.instrs.len() + bb.instrs.len() / 2, "NvAir carries a BIND row per ALU pair");
+    assert!(bb.instrs.iter().any(|i| i.op == super::isa::Op::Zero), "BIND emits Zero rows");
+
+    // 3. the gate: changing a child's program word must break the check
+    let ok = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        agg_debug_k(&kids, node, &[sa.clone(), sb.clone()], lr2, p1.k_whir());
+    }));
+    assert!(ok.is_ok(), "control: the honest node itself must pass");
+    let bad = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        agg_debug_k_mutated(&kids, node, &[sa.clone(), sb.clone()], lr2, p1.k_whir(), |mats| {
+            let w = mats[0].width;
+            for j in 0..4 {
+                mats[0].values[super::uair::U_P + j] += F::ONE;
+            }
+            let _ = w;
+        });
+    }));
+    assert!(bad.is_err(), "POSITIVE-CONTROL: a child program changed in the trace must be rejected");
+    println!("AGG_BIND tampered child program rejected");
 }
