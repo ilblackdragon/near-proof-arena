@@ -8,6 +8,20 @@
 > completeness, or that A-IC(τ) becomes true upon imposing a time limit.
 > Its cap-based numerical estimates need revision for the actual sampler.
 > Sections 5–7 below supersede the former Lemma P and Corollary P.1.
+>
+> **2026-10-21 hash-bridge addendum.** The marginal obstruction is no longer
+> only about one fixed pair. `Qrom.OracleBridgeSet` proves the fixed-pair-set
+> count (`agree_card`, `agree_count_mul`) and the resulting trade-off
+> (`acceptance_PrLE`, `delta_ge_one_sub_agreement`), and
+> `research/hash-bridge/HashBridge/Endpoint.lean` proves the adaptive
+> demand-sequence version in the arena's `PrLE` vocabulary
+> (`consistency_probability_multi`, `failure_lower_bound_multi`,
+> `failure_single_pair`). The bound gets *worse* for the identification as the
+> number of pairs grows, so "the set of pairs actually used" does not rescue
+> literal A-IC. `ENDPOINTS.md` in this directory adjudicates (a)–(d) and
+> recommends the conditional endpoint (c); the reduction shape is
+> kernel-checked there (`inner_computational_soundness`), the assumption is
+> named, and no recursive security guarantee is claimed.
 
 
 Lane `lane/pq-aic-research`, 2026-10-18. Companion to `REPORT.md`. Notation and numbering of
