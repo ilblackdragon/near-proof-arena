@@ -263,9 +263,11 @@ Both were unreachable without the exact length, which is now a theorem.
 ## 5. The borsh `ActionR` encoder (lane `pq-actionr`, 2026-10-21)
 
 `zk-formal/ZkFormal/PQ/Receipt/Encoder.lean`.  The encoder is now **built for the borsh shape**, not
-just priced.  It starts at `promise_batch_action_transfer` (np=2: `[3] ‖ u128 amount`) and
-generalises to `promise_batch_action_delete_account` (np=3: one `borshBytes`) and
-`promise_batch_action_function_call` (np=7: two `borshBytes` + `u64` + `u128`).
+just priced.  It covers `promise_batch_action_transfer` (np=2: `[3] ‖ u128 amount`),
+`promise_batch_action_delete_account` (np=3: one `borshBytes`),
+`promise_batch_action_function_call` (np=7: two `borshBytes` + `u64` + `u128`) **and**
+`promise_create`'s receipt-with-a-nested-`Vec<Action>` (§5.1–5.3); §5.4 gives the exact remaining
+list.
 
 **The reference encodings, checked against the spec's *decoder*.**  `trRaw`/`daRaw`/`caRaw`/`fcRaw`
 are the spec's own byte construction; `decodesAs` runs `D2.pBaseAct` on them.  Kernel `decide`
@@ -288,49 +290,163 @@ position-indexed form a generator fills rows from.
 | `tr_frame_len` / `da_frame_len` / `fc_frame_len` | `1 + 4·nStr + strLen + tail` = the reference length, per shape |
 | `receipt_tr_len{,_ed25519,_secp256k1}`, `receipt_da_len` | the receipt-level length, per shape |
 
-**The AIR (`PBE`).**  15 columns, 23 constraints (all degree ≤ 3), 4 interactions, `maxLog = 22`;
+**The AIR (`PBE`).**  20 columns, 25 constraints (all degree ≤ 3), 4 interactions, `maxLog = 22`;
 `pbe_wf` kernel-checks admissibility, `pbe_degree` / `pbe_degree_le` the degree bound.  One row per
 emitted byte; body bytes come from a committed array on bus 214 (the §3.3 cached-source design) and
 `u32` prefix bytes from a 4-row table on bus 213.  The row lemmas:
 
 | lemma | statement |
 |---|---|
-| `pbe_len_framing_general` | `len = 1 + 4·nStr + strLen + tail` (the framing identity, field form) |
+| `pbe_len_framing_general` | `len = hdr + 4·nStr + strLen + tail` (the framing identity, field form) |
 | `pbe_len_framing_tr` | the `TR` instance: `len = 17` |
 | `pbe_len_framing_da` | the `DA` instance: `len = strLen + 5` |
+| `pbe_len_framing_fc` | the `FC` instance: `len = strLen + 33` (`nStr = 2`, `tail = 24`) |
+| `pbe_len_framing_pc` | the `Vec<Action>` instance: `len = tail + 4` (`hdr = 4`, `tail = Σ|action|`) |
 | `pbe_group_len_is_row_count` | **the declared `len` is the number of emitting rows** — the direction a prover cannot fake |
 | `pbe_tag` / `pbe_tag_pos` | the tag byte is the action's `knd`, and it is at position `0` |
-| `pbe_phase` / `pbe_body_pos` | every active row is tag or body, and a body row is at `5 + d` |
+| `pbe_phase` / `pbe_body_pos` | every active row is exactly one of tag / body / prefix; a body row reads the source at `d = pos` |
 | `pbe_pos_offset` / `pbe_len_const` | `pos` is the offset in the group; `len` is group-constant |
 | `pbe_msg_len` / `pbe_buses` | the `HOSTB` message is 5 fields and the table uses only the existing buses |
 
 Axioms of every one: `⊆ {propext, Classical.choice, Quot.sound}`; no `sorry`, no `native_decide`,
 no `implemented_by`.
 
+**Column changes this lane made (and why).**
+
+| column | why |
+|---|---|
+| `fld` | the per-field index of the prefix group key (§5.1) |
+| `strLenF` | *this* field's length (per row); `strLen` stays the group-constant total |
+| `pid` | the byte index inside the `u32`; its bound is the 4-row `u32` table on bus 213 |
+| `selPre` | the prefix phase — without it the `PBPREFIX` multiplicity `1 − selTag − selBody` was identically `0`, so no prefix row could ever fire |
+| `hdr` | the group header size: `1` for an action's `u8` tag, `4` for the `Vec<Action>` count (§5.2) |
+
+`pbe_group_len_is_row_count` was **not** weakened: same statement, same proof.
+
 **Wire.**  `PBE` sends each byte on the existing `HOSTB` (210), `dir = 1`, 5-field message — the
 same shape `Wire.PBB` and `HostB.msg` use.  No second byte wire.
 
 **Cost, corrected.**  At the D3α maximum receipt the encoder is 268 M cells (31 %), so a single-row-
-per-byte encoder at 64 columns stays the right shape; the extra 15-column framing table is `15 ·
-L` cells, i.e. **~23 % of the 64-column encoder's rows** — negligible next to the SHA (69 %).  The
+per-byte encoder at 64 columns stays the right shape; the extra 20-column framing table is `20 ·
+L` cells, i.e. **~31 % of the 64-column encoder's rows** — still negligible next to the SHA (69 %).  The
 `TR`/`DA`/`FC` lengths are now theorems (`receipt_tr_len` accounts for `49 + |signer| + |pk|`
 before `pk_encode_len`), so a change to `ActionR.encode` that moved a length breaks the build.
 
-**What remains on the encoder.**  The `FC` shape's *body* rows are the same mechanism as `TR`/`DA`
-(committed source), but the two prefixes need two `PBPREFIX` groups per call, so a fully general
-`PBE` needs a per-`(call, field)` prefix group key — the table has one `(ts, hid, strLen, pos)`
-tuple and would need the field index added.  `promise_create`'s nested `Vec<Action>` is the same
-`u32 |actions|` prefix with `nStr = 0, tail = Σ action lengths`; the constraint form is already
-general (`eFrameCons` takes `tail` as a class constant), so it is a class-table addition, not a new
-table.  Pinning a source byte to linear memory stays `ActionBytesAreHostBytes` (`Wire.lean`).
-
 ---
+
+## 5.1 The per-field prefix group key (`FC`'s blocker)
+
+`PBPREFIX` keys a prefix group by `(ts, hid, strLen, pos)`.  `function_call` emits **two** `u32`
+prefixes in one call, so when `|method| = |args|` the two groups had the *same* key and the
+multiset could merge them.  The key is now `(ts, hid, fld, strLenF, pid) ‖ [byte]` (`ePreKey`,
+`ePreMsg = ePreKey ++ [byte]`, `pbe_pre_msg_shape`/`pbe_pre_msg_eq`), and:
+
+* `preKey_ne_of_fld_ne` — same `ts`/`hid`/`strLenF`/`pid`, different `fld` ⇒ different keys;
+* `fc_prefix_keys_distinct` — `method` (`fld = 0`) vs `args` (`fld = 1`) of one call, **at equal
+  lengths**, are different keys.
+
+`fld` is a **per-row** column, not a group constant: `FC`'s two prefix groups are rows of *one*
+action group (`pos` runs `0 … len−1` straight through the tag, both strings and the tail), so no
+group-constant column could carry the distinction.  This is why `pbe_const_step` does **not** list
+`fld` (it lists `ts`, `hid`, `len`, `knd`, `strLen`, `nStr`, `tail`, `hdr`).
+
+## 5.2 The `FC` row instance
+
+`PBEPlanRow` + `preGroup`/`srcGroup`/`fixedGroup` + `fcPlan` give the concrete row list for one
+call, in borsh/emission order (`[2] ‖ u32|m| ‖ m ‖ u32|a| ‖ a ‖ u64 g ‖ u128 d`):
+
+| lemma | statement |
+|---|---|
+| `fcPlan_bytes` | the plan's bytes are `encAction 2 [str m, str a, u64 g, u128 d]`, position for position |
+| `fcPlan_eq_fcRaw` | … and are `fcRaw`'s bytes (via `encAction_fcall`) |
+| `fcPlan_decodes` | the plan's bytes decode back under the spec's `D2.pBaseAct` on the `decodes_fcall` vector: plan → `encAction` → `fcRaw` → spec decoder, closed |
+| `fcPlan_len` / `fcPlan_len_eq_fc_frame` | exactly `33 + |m| + |a|` rows, matching `fc_frame_len` |
+| `fcPlan_phases` | every plan row obeys the phase law |
+| `fcPlan_prefix_fields` | the two prefix groups carry `fld = 0` and `fld = 1` |
+
+Because `args`' prefix sits **between** `method`'s bytes and `args`' bytes, a body-relative source
+index (`pos − 5`) would need a running prefix counter; the body index is therefore `d = pos`, the
+action byte offset, uniform over `TR`/`DA`/`FC` and matching the committed source array.
+
+## 5.3 `promise_create`'s `Vec<Action>`
+
+`promise_create` appends a receipt and then a `FunctionCall` action, so the receipt's last group is
+a `Vec<Action>`: a `u32` **count** (`hdr = 4`) followed by the concatenated action encodings, with
+`len = 4 + Σ|action_i|`.  The framing constraint already had this shape, so it is a class-table
+addition, not a new table:
+
+* `TailKind = fixed n | sumActions | receiptFixed`, and the encoder-side class table `ecClasses` +
+  `pcClass` (`hdr = 4`, `nStr = 0`, `tail = sumActions`); kernel checks `pcClass_mem`,
+  `ecClasses_shape`, `ecClasses_tail_kinds`, `pcClass_sumActions` (the `sumActions` row is unique).
+  `Ids.PB` is untouched — that is the *bookkeeping* table, this is the *encoder's*.
+* `pbe_len_framing_pc` (`len = tail + 4`), `pc_frame_len` (`len = 37 + |m| + |a|` with one `FC`
+  action), `fcallActionsLen_eq` (`Σ|action| = 33 + |m| + |a|`).
+* Rows: `pcPlan = srcGroup over (u32 1 ‖ fcPlan bytes)`; at the outer level every byte of the
+  vector is a body byte (an element action's own prefixes are checked inside the action's group),
+  so `d = pos` again.  Proved: `pcPlan_bytes`, `pcPlan_eq_encode_tail` (`u32 1 ‖ fcRaw`),
+  `pcPlan_eq_tailRaw`, `pcPlan_len` (`4 + Σ|action|`), `pcPlan_len_eq` (`37 + |m| + |a|`),
+  `pcPlan_phases`, `pcTailRaw_drop`, `pcTail_decodes` (the tail's single action decodes under
+  `D2.pBaseAct`).
+
+**Stated, not proved.**  `FCPlanIsTrace` / `PCPlanIsTrace` — that the trace *generator* emits exactly
+`fcPlan`/`pcPlan`.  That is the generator half of `Wire.ActionEncodingIsBorsh` (a statement about the
+trace producer, not about the row constraints), so they stay named `Prop`s.  Pinning a source byte to
+linear memory stays `ActionBytesAreHostBytes` (`Wire.lean`).
+
+## 5.4 Coverage: which `promise_*` functions have a complete encoder instance
+
+"Complete" for a function means **every byte the function causes to be encoded is covered by a
+proved instance**: each action kind it appends (reference bytes + row plan + framing), *and*, if it
+creates the receipt, that receipt's shape.  An action that appends to a receipt created earlier
+needs only the action instance.  The 23 `promise_*` functions split three ways.
+
+**(a) Complete (6).**
+
+| function | what it encodes | instances |
+|---|---|---|
+| `promise_batch_action_transfer` | `TR` action | `trRaw`/`encAction_transfer`, `pbe_len_framing_tr` |
+| `promise_batch_action_delete_account` | `DA` action | `daRaw`/`encAction_delete`, `pbe_len_framing_da` |
+| `promise_batch_action_create_account` | `CA` action | `caRaw`/`encAction_create` |
+| `promise_batch_action_function_call` | `FC` action | `fcRaw`/`fcPlan`, §5.1–5.2 |
+| `promise_batch_action_function_call_weight` | `FC` action (weight is not in the bytes) | §5.2 |
+| `promise_create` | receipt (no outputs, no inputs, one action) + `FC` | `Cost.receipt_len` + §5.1–5.3 (`pc_frame_len`, `pcPlan_*`) |
+
+`promise_create` is the only function that both creates a receipt *and* appends an action, and it is
+the one whose receipt shape `Cost.receipt_len` (no outputs, no inputs, `u32 1` actions) and `pcPlan`
+(the `Vec<Action>` tail) together cover byte-exactly.
+
+**(b) Nothing to encode — no receipt and no action appended (6).**  `promise_and` (joint promise,
+no receipt), `promise_yield_resume`, `promise_yield_resume_with_yield_id` (`YR` resume records, not
+receipts), `promise_results_count`, `promise_result`, `promise_return`.  Their bookkeeping is
+`PBC`/`Ids.PB`; the encoder has no instance to give them, and none is needed.
+
+**(c) Remaining, with the exact gap (11).**
+
+| function | action / receipt | gap |
+|---|---|---|
+| `promise_batch_action_deploy_contract` | `deploy` (tag 1) | no `deployRaw`/`encAction_deploy` (one `borshBytes code`) |
+| `promise_batch_action_stake` | `stake` (tag 4) | no `stakeRaw` (`u128 ‖ PublicKey.encode`) |
+| `promise_batch_action_add_key_with_full_access` | `addKey` (tag 5) | no `addKeyRaw` (`pk ‖ u64 nonce ‖ [1]`) |
+| `promise_batch_action_add_key_with_function_call` | `addKey` (tag 5) | no `addKeyRaw` (`pk ‖ u64 nonce ‖ [0] ‖ FcPerm.encode`) |
+| `promise_batch_action_delete_key` | `deleteKey` (tag 6) | no `deleteKeyRaw` (`PublicKey.encode`) |
+| `promise_batch_create` | receipt, **zero** actions | the empty-`Vec<Action>` class row (`tail = 0`, count `0`) is not proved |
+| `promise_batch_then` | receipt with **inputs** (deps), zero actions | empty-`Vec<Action>` row **and** the `u32 |inputs|` prefix |
+| `promise_then` | receipt with **inputs** (deps) + `FC` | the `u32 |inputs|` prefix (the `FC` action itself is done) |
+| `promise_yield_create` | **yield** receipt (yield tag, one input) + `FC` | the yield receipt shape (`yield = true`, inputs) |
+| `promise_yield_create_with_id` | **yield** receipt (yield tag, one input) + `FC` | same as `promise_yield_create` |
+| `promise_set_refund_to` | mutates `refundTo` | the `v2` receipt's `refund_to` (`encOptBytes`) field |
+
+So the remaining work is **5 action encodings** (`deploy`, `stake`, `addKey` ×2, `deleteKey`, each
+one `BField` list), **one empty-`Vec<Action>` class row**, **the receipt `inputs`/`outputs` prefix** for
+the `then`/`yield` family, and **the `v2` `refund_to` field** — no new table, no new bus, no change to
+`pbe_group_len_is_row_count`.
 
 ## 6. What is not done (and why that is the honest boundary)
 
-* **The `FC`/`promise_create` encoder instances** — §5 states exactly what is missing (the
-  per-field prefix group key and the nested-`Vec` class row); the `TR`/`DA`/`create` shapes and the
-  framing lemmas that generalise are built.
+* **The 11 functions of §5.4(c)** — 5 action encodings (`deploy`, `stake`, `addKey` ×2,
+  `deleteKey`), the empty-`Vec<Action>` class row (`promise_batch_create`), the receipt
+  `inputs`/`outputs` prefix (`promise_batch_then`, `promise_then`, the two `yield_create`s), and
+  `promise_set_refund_to`'s `v2` `refund_to`.  `FC` and `promise_create` are **done** (M2/M3).
 * **`RIDS`/`SRC`/`RCL` + `newReceipts` fold** — not attempted; §3.3 now says this is where the
   cost is, and it is the next lane.
 * **The `RunHost` call-log induction** (`HostCallTrace`) — stated, not proved; it is a Wasm-side
@@ -347,7 +463,7 @@ table.  Pinning a source byte to linear memory stays `ActionBytesAreHostBytes` (
 # Lean (the whole library, including this lane)
 HEAVY_MEM=24G taskset -c 14-15,28-29 /data/illia/nearproof-deps/bin/heavy sh -c \
   'cd zk-formal && lake build'
-# → Build completed successfully (3057 jobs).
+# → Build completed successfully (3058 jobs).
 
 # the lane's own modules
 HEAVY_MEM=24G taskset -c 14-15,28-29 /data/illia/nearproof-deps/bin/heavy sh -c \
@@ -368,6 +484,20 @@ rcpt_row        : axioms [propext, Classical.choice, Quot.sound]
 prevR_counter_is_count : axioms [propext, Classical.choice, Quot.sound]
 promiseClasses_policy  : no axioms
 receipt_len_ed25519    : axioms [propext, Quot.sound]
+-- this lane (M1-M3)
+pbe_shape (20, 25, 4, 22) : no axioms
+fcPlan_bytes           : axioms [propext, Quot.sound]
+fcPlan_decodes         : axioms [propext]
+pbe_len_framing_fc     : axioms [propext, Classical.choice, Quot.sound]
+pc_frame_len           : axioms [propext, Classical.choice, Quot.sound]
+pcTail_decodes         : axioms [propext]
+pcClass_sumActions     : no axioms
 ```
+
+Axiom audit for the lane's own lemmas (checked with `#print axioms` over all of
+`Encoder.lean`): every theorem is `⊆ {propext, Classical.choice, Quot.sound}`; the `decide`-only
+ones (`pbe_shape`, `pbe_msg_len`, `pbe_buses`, `preKey_ne_of_fld_ne`, `fc_prefix_keys_distinct`,
+`pcClass_*`, `ecClasses_*`) use at most `{propext}`.  No `sorry`, no `native_decide`, no
+`implemented_by`.
 
 Commit: see `git log -1` on this branch.
