@@ -1,0 +1,96 @@
+{
+  "date_utc": "2026-10-21",
+  "result": "PASS: all six proof hashes and all required log markers match",
+  "security_established": false,
+  "original_manifest_sha256": "1a66b64756938445a6872ae1fad3a8b07b886e962cc946906685c559b1ce0035",
+  "proofs": {
+    "L1.proof": {
+      "sha256": "9364e10d731ed76e66284f95801258d88c482106ae2e8aba91c7905afd6ee58e",
+      "bytes": 288297,
+      "matches_recorded": true
+    },
+    "L2.proof": {
+      "sha256": "6fbf62bd7eae5cd06c31bdcdb8027d5e0ea73364f41459128c0b87c2e88aadab",
+      "bytes": 357805,
+      "matches_recorded": true
+    },
+    "L3.proof": {
+      "sha256": "fe13835dea6520f388fda1d8430b625acbbefff7889066cbc45887dbb5bd9bee",
+      "bytes": 364283,
+      "matches_recorded": true
+    },
+    "L4.proof": {
+      "sha256": "c4c0fa8af946cce8a322d910d68f3c9aa4a873ce4dad69ee1952c25b741d5f52",
+      "bytes": 362939,
+      "matches_recorded": true
+    },
+    "L5.proof": {
+      "sha256": "176251e8de11cd26220b41609ac41508f8e999d352c8f047c097d6777cffd272",
+      "bytes": 364577,
+      "matches_recorded": true
+    },
+    "FINAL.proof": {
+      "sha256": "a4f65ab8dac7bb2005c5640d0d38bcf4428543166d758afa43aa6365afa84323",
+      "bytes": 293077,
+      "matches_recorded": true
+    }
+  },
+  "required_log_lines_verified": [
+    "NV_G2 converged: 5 levels, 1 bound by BIND, anchor M = 3",
+    "FINAL_PROOF_BYTES total=293077",
+    "FINAL_SOUNDNESS total=268.2",
+    "FINAL_PROOF_SHA256 a4f65ab8dac7bb2005c5640d0d38bcf4428543166d758afa43aa6365afa84323 bytes=293077",
+    "NV_VD final accepted: level 6, pinned program 125550 rows",
+    "NV_VD wrong claim rejected: statement digest differs from the claim",
+    "NV_VD wrong level (5) rejected: level 6 != pinned 5",
+    "NV_VD forged final (776 rows) accepted without the program check, rejected with it: final program openings differ from the pinned program",
+    "test result: ok. 1 passed; 0 failed",
+    "EXIT 0"
+  ],
+  "replay_log": "replay-2026-10-21.log",
+  "replay_log_sha256": "9a536c84bd80f86c8f334ae978a111d143c28438d49c9da98fba0869630292f8",
+  "binary_sha256": "8bcf287f8414bedd18f513575a7edb33fedaeffeb825084658bf6082f10a1895",
+  "rustc_version": "rustc 1.91.1 (ed61e7d7e 2025-11-07)",
+  "cargo_lock_sha256": "0950453910db455a3e9dd3041bf0700e511fda68a4b8ea10cf420772b54ad90d",
+  "compiled_nv_tests_sha256": "5c3df9ad0c77a23223ca4808e217faa99a44579653c00aba621c480ddfc1ea18",
+  "source_files_sha256": {
+    "research/near-compression/native/patches/plonky3-ext12.patch": "cd82dbb5f650b277146db19eecaa93fc133c4095de429e0db36f60c7c6d83c50",
+    "research/near-compression/native/patches/stark-backend-d667af5.patch": "1f68eab3cdaf981d002cbb73206eea25c8b931504b9a3175862d5fe7fd893a63",
+    "research/near-compression/native/patches/stark-backend-levers.patch": "de97a0f38c7774df8ea82553cadc34cedf645a95c18810a2e053ca08f493b96b",
+    "research/near-compression/native/recursion/patches/openvm-recursion-cpu-fast.patch": "cdae2cd19c25204c7a51400be07a6005e3508509e2ff87fcf2f0941890f57631",
+    "research/near-compression/native/recursion/patches/openvm-recursion-sha384.patch": "0fdb2086fb688be86aa6027640cbcd5bbd74aebb3884deae9e03f12810ce0407",
+    "research/near-compression/native/recursion/patches/openvm-recursion-stream.patch": "94161824b0cba327d8315c19fe5cc1dbad0eb0bd44918a0125d44946640db3e5",
+    "research/near-compression/native/recursion/patches/plonky3-ext12-simd.patch": "cff41c46458fc3370763937ad596cd94570de4840c53ee40315f542abf30661d",
+    "research/near-compression/native/recursion/patches/stark-backend-cpu-fast.patch": "c5bc2de94822d022b6b5276c5349355131e00ec00978a5ea7aa457a0d8104756",
+    "research/near-compression/native/recursion/patches/stark-backend-stream.patch": "9cc2ec3e76760815f3706412869e9210c200a1cda04d248f50bb90a7715871ce",
+    "research/near-compression/native/recursion/patches/stark-backend-unified.patch": "a7353e03e49fa46c0424654a2f1dd853160e45044ac8ddfd7514aa0a97fee0b2",
+    "research/near-compression/native/recursion/run_g2_chain.sh": "81a2ad708eb8d31b6cba52febf25a347b845c4d2a82ede5a19ccb05acd9a8f54",
+    "research/near-compression/native/recursion/setup_cpu_fast_deps.sh": "d565433a66ed91ebfdcc74f8fbb73e0d02001f411eb2971527bd79b989eb10a6",
+    "research/near-compression/native/recursion/setup_recursion_deps.sh": "3630c8909d8e8459175b3ae81c70307088110a870b634fde7d79a30e6b346f42",
+    "research/near-compression/results/pq-stream-commit/g2-gate/gate-harness.patch": "70ebb62f355d25f93166d27520e4a662f4707ef03b4441920d41e0c7a38e6af9",
+    "research/near-compression/results/pq-stream-commit/g2-gate/reproduce.sh": "98e0c61f5c946f4be1fc8ba41711f1691da16c6a55fb46ee06642685ba50ccc0"
+  },
+  "upstream_heads": {
+    "openvm-sha384": "f08bf2836409f3c0a5f6b6cfe73eb177a8a3e8c8",
+    "stark-backend": "d667af5929d0ea9e5194adf639d6bddeb8c10f9a",
+    "stark-backend-unified": "bfce27d1a82216fe1bc770f5c5d8651a9e3a100e"
+  },
+  "execution": {
+    "threads": 16,
+    "cpuset": "8-15,24-31",
+    "memory_cap": "32G",
+    "interaction_log": 28,
+    "build": "cargo test --locked --release -p openvm-recursion-circuit --lib --no-run --message-format=json-render-diagnostics -j 16",
+    "rustflags": "-C target-cpu=native",
+    "deps_root": "/data/illia/nearproof-deps/pq-security-repro2",
+    "target_dir": "/data/illia/nearproof-deps/pq-security-repro2-target",
+    "test": "nv::tests::nv_chain"
+  },
+  "provenance_notes": [
+    "Dedicated dependencies and target directory created from pinned upstreams and repository patches; initial release build compiled them from scratch.",
+    "Initial run reproduced FINAL exactly, but exposed missing intermediate-proof saving and negative-control instrumentation.",
+    "The second build reuses those independently built dependencies and adds only gate-harness.patch to the Rust test module; reproduce.sh restores the checked source after building.",
+    "Blank context in gate-harness.patch was normalized after the build; applying it reconstructs identical compiled test-source bytes.",
+    "The historical MANIFEST.json is unchanged. This supplemental record closes its clean-replay criterion only, not a security proof."
+  ]
+}

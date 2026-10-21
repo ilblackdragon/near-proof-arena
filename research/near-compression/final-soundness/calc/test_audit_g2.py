@@ -18,6 +18,7 @@ class AuditG2Tests(unittest.TestCase):
     def test_recorded_inputs_pass_without_establishing_security(self):
         report = audit(self.gate)
         self.assertTrue(report['artifact_checks_pass'])
+        self.assertTrue(report['independent_replay_record_checks_pass'])
         self.assertFalse(report['security_established'])
         self.assertEqual(report['final_proof_bytes'], 293077)
 
@@ -27,6 +28,23 @@ class AuditG2Tests(unittest.TestCase):
         data[0] ^= 1
         path.write_bytes(data)
         self.assertIn('proof digest: FINAL.proof', audit(self.gate)['failures'])
+
+    def test_altered_replay_proof_record_is_rejected(self):
+        path = self.gate / 'REPLAY-2026-10-21.json'
+        record = json.loads(path.read_text())
+        record['proofs']['FINAL.proof']['sha256'] = '0' * 64
+        path.write_text(json.dumps(record))
+        report = audit(self.gate)
+        self.assertFalse(report['independent_replay_record_checks_pass'])
+        self.assertIn('replay: proof digest FINAL.proof', report['failures'])
+
+    def test_altered_replay_log_is_rejected(self):
+        record = json.loads((self.gate / 'REPLAY-2026-10-21.json').read_text())
+        path = self.gate / record['replay_log']
+        path.write_text(path.read_text() + '\nmodified evidence\n')
+        report = audit(self.gate)
+        self.assertFalse(report['independent_replay_record_checks_pass'])
+        self.assertIn('replay: log digest', report['failures'])
 
     def test_one_fewer_query_fails_exact_target(self):
         path = self.gate / 'run.log'

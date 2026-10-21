@@ -13,11 +13,11 @@ Run: 2026-10-19 15:01–15:47 UTC, 24 threads, peak RSS 17.15 GB. Log: `run.log`
 | 1 | real-settings FINAL bytes ≤ ~296 KB | **293,077 B** — PASS (+6,923 B under 300 KB) |
 | 2 | V_d accepts the FINAL under the pinned program | PASS (level 6, program 125,550 rows) |
 | 3 | forged verify-nothing FINAL rejected with the program check (and accepted without it) | PASS, control live |
-| 4 | the chain reproduces on a clean deps setup with identical proof sha256s | `reproduce.sh` + `MANIFEST.json`; independent re-run outstanding |
+| 4 | the chain reproduces on a clean deps setup with identical proof sha256s | **PASS** — all six hashes and required controls match; `REPLAY-2026-10-21.json` |
 
 ## Settings
 
-* 268-bit target = 236 query bits + z = 32 wide-PoW; 42-byte digests; coset leaves; ×15; every
+* Parameter-selection target: 268 bits = 236 query bits + z = 32 wide-PoW; 42-byte digests; coset leaves; ×15; every
   lever; `m = 64` with kernel-proved O-2 certificates only (`NEARPROOF_DKT_EXCLUDE`).
 * Parent (penultimate) shape: `n_stack 18`, `k 4`, `log_blowup 7`, `k1 2`, `log_final 6`,
   queries `[44, 35, 27, 23]`.
@@ -68,15 +68,18 @@ NV_VD forged final (776 rows) accepted without the program check, rejected with 
 
 ## What this does and does not establish
 
-**Establishes:** the G2 binding design works at real PQ settings end-to-end — cached program
-commitment, anchors while heights change, BIND once converged, a single-commitment FINAL pinned by
-V_d, and a live forgery control. 293,077 B is a **measured** final, not a model.
+**Establishes:** chain generation and verification at the recorded parameters, with cached
+program commitments, anchors while heights change, BIND once converged, a single-commitment FINAL
+pinned by V_d, and a live forgery control. The independent replay reproduces all six proof files
+byte-for-byte. FINAL is a measured 293,077 bytes.
 
 **Does not establish:**
 * 1 Pgas or a NEAR chunk. The app is the fib fixture; this measures the recursion tail only.
 * The interaction-count path: `max_interaction_count` stays 2^28 here, and the NV circuit's own
   AIRs fit it. The D1-class base needs 2^30 (see `tools/d1-pq-envelope`).
-* Byte-identity from a clean rebuild. That is criterion 4 and needs an independent run.
+* A completed security theorem. `FINAL_SOUNDNESS` is calculator output under proof premises;
+  the family-QROM instantiation, full WHIR transfer, NV faithfulness and recursive hash model
+  remain open. See the paper Appendix C and `final-soundness/PROOF.md`.
 
 ## Known risks
 
@@ -86,7 +89,29 @@ V_d, and a live forgery control. 293,077 B is a **measured** final, not a model.
    Any added program rows (a wider app table, extra checks) can push it over and cost L 24 -> 25.
 2. **293,077 B is 5,600 B above the earlier 287,477 B** provisional measurement (that one ran with
    `bind = false`). The margin to 300 KB is 6,923 B, i.e. 2.3 %.
-3. **Cost:** the chain is 46 min wall on 24 threads; the FINAL alone is 441 s and 14 GB.
+3. **Historical cost:** the original chain took 46 min wall on 24 threads; its FINAL alone
+   took 441 s and 14 GB. The independent replay below uses different thread settings.
+
+## Independent replay (2026-10-21)
+
+`REPLAY-2026-10-21.json` records all six matching proof hashes, every required log
+marker, the rebuilt binary, lockfile, compiled test-source hash and source inputs.
+`replay-2026-10-21.log` is the complete run. The original `MANIFEST.json` is kept
+as historical evidence; its pending criterion 4 is closed by this supplemental
+record. Reproduction is an implementation check, not a proof of soundness.
+
+The fresh dependency setup exposed two setup issues (textual comparison of
+successive patch hunks and an obsolete statement-encoding overlay) and missing
+test instrumentation. The fixes preserve source-content checking.
+`gate-harness.patch` only saves L1–L5 and exercises wrong-claim, wrong-level and
+forged-final controls in the chain test. `reproduce.sh` applies it for the build
+and restores the checked source afterward. All resulting proof bytes match the
+historical manifest.
+
+The replay used 16 threads on CPUs 8–15 and 24–31, with a 32 GB memory cap,
+from dedicated dependencies and a dedicated build directory. The first clean
+build reproduced FINAL; the subsequent test-instrumented build reused those
+independently built dependencies and completed the full gate.
 
 ## Reproduce
 
@@ -94,7 +119,9 @@ V_d, and a live forgery control. 293,077 B is a **measured** final, not a model.
 research/near-compression/results/pq-stream-commit/g2-gate/reproduce.sh <fresh-deps-dir>
 ```
 
-Needs network for the pinned upstreams, the DKT certificate files of `lane/pq-dkt-verify`
-@ `fb0efdb11` (or `CERTS=`/`EXCL=` copies with the recorded hashes), ~60 GB RAM, 24 threads.
-It sets up the trees, builds, runs the chain, then compares every proof SHA-256 and every
-required log line against `MANIFEST.json`.
+Needs network for the pinned upstreams and the repository DKT certificate files (or
+`CERTS=`/`EXCL=` copies with the recorded hashes). Defaults to 16 threads and the
+non-benchmark CPU set above; build memory defaults to 32 GB and chain memory to
+60 GB (`HEAVY_MEM=32G` was sufficient for this replay). It sets up the checked trees,
+builds with `--locked`, selects Cargo's reported test executable, runs the chain,
+and compares every proof SHA-256 and required log line against `MANIFEST.json`.

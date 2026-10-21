@@ -93,7 +93,31 @@ def audit(gate=GATE, formal=FORMAL):
                             'query_component_bits_with_grinding': str(bits),
                             'exact_query_target_pass': query_ok, 'subcodes': subcodes})
         reports[role] = details
+    # Validate the supplemental replay record when present. This checks saved
+    # evidence, not a new execution of the prover or a security theorem.
+    replay_path = gate / 'REPLAY-2026-10-21.json'
+    replay_checked = None
+    if replay_path.exists():
+        before = len(failures)
+        replay = json.loads(replay_path.read_text())
+        replay_log = gate / replay['replay_log']
+        replay_text = replay_log.read_text()
+        check(replay['original_manifest_sha256'] == digest(gate / 'MANIFEST.json'),
+              'replay: original manifest digest')
+        check(digest(replay_log) == replay['replay_log_sha256'], 'replay: log digest')
+        check(set(replay['proofs']) == set(manifest['proofs_sha256']), 'replay: proof set')
+        for name, expected in manifest['proofs_sha256'].items():
+            item = replay['proofs'].get(name, {})
+            check(item.get('sha256') == expected, f'replay: proof digest {name}')
+            check(item.get('bytes') == manifest['proof_bytes'][name.removesuffix('.proof')],
+                  f'replay: proof length {name}')
+            check(expected in replay_text, f'replay: logged proof digest {name}')
+        for marker in manifest['required_log_lines']:
+            check(marker in replay_text, f'replay: log marker {marker}')
+        check(replay['binary_sha256'] in replay_text, 'replay: logged binary digest')
+        replay_checked = len(failures) == before
     return {
+        'independent_replay_record_checks_pass': replay_checked,
         'artifact_manifest_sha256': digest(gate / 'MANIFEST.json'),
         'run_log_sha256': digest(gate / 'run.log'),
         'artifact_checks_pass': not failures, 'failures': failures,
@@ -106,7 +130,6 @@ def audit(gate=GATE, formal=FORMAL):
             'NV accepted-trace-to-execution theorem for the pinned program generator',
             'Coherent recursive hash model and quantified computational reduction',
             'Complete bound for the measured VK and every layer, including base relation',
-            'Independent clean build and byte-identical replay (not implied by this audit)',
         ],
     }
 

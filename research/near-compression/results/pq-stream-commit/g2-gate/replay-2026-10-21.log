@@ -1,0 +1,523 @@
+Wed Oct 21 01:10:01 UTC 2026
+               total        used        free      shared  buff/cache   available
+Mem:             125          17          44           0          64         107
+67f7c96596e79dd3ee35de07f4cf597328e2263712329e24fcc141dcdb9dc07d  /data/illia/nearproof-wt/pq-paper-soundness/research/near-compression/results/pq-stream-commit/g2-gate/../../../final-soundness/calc/dkt_certs_o2.json
+250ac4bf22d7dad71ee46f90f3e916b33fb6ba7860e9f0882276f94c09179f63  /data/illia/nearproof-wt/pq-paper-soundness/research/near-compression/results/pq-stream-commit/g2-gate/../../../final-soundness/lean/DKTCertsO2_big.keys
+8bcf287f8414bedd18f513575a7edb33fedaeffeb825084658bf6082f10a1895  /data/illia/nearproof-deps/pq-security-repro2/bin/nv-g2s
+
+running 1 test
+test nv::tests::nv_chain ... MEMPROF commit.stacked_matrix rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+STREAM_COMMIT width=1 ext=1 c=1 log_domain=11 k=3 n=10 sub=2^11 subcosets=1 dropped=4 stored_digests=31 secs=0.0 dft=0.0 leafhash=0.0
+MEMPROF commit.tree rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF prove.after_commit rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF zerocheck.gkr_input rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF zerocheck.after_gkr rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF zerocheck.round0 rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF zerocheck.fold_ple rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF zerocheck.mle_rounds rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF prove.after_rap_constraints rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF openings.after_stacking rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF whir.f_evals rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+STREAM_COMMIT width=1 ext=12 c=1 log_domain=10 k=3 n=7 sub=2^10 subcosets=1 dropped=4 stored_digests=15 secs=0.0 dft=0.0 leafhash=0.0
+MEMPROF whir.round0.g_tree rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+MEMPROF whir.round0.queries rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+STREAM_COMMIT width=1 ext=12 c=1 log_domain=9 k=3 n=4 sub=2^9 subcosets=1 dropped=4 stored_digests=7 secs=0.0 dft=0.0 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+MEMPROF whir.round1.queries rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+STREAM_REBUILD rows=128 leaves=16 secs=0.00
+MEMPROF whir.round2.queries rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+MEMPROF prove.after_openings rss_gb=0.01 hwm_gb=0.01 cpu_s=0.0 wall_s=0.0
+NV_PARENT_PARAMS l_skip=2 n_stack=18 k=4 log_blowup=7 queries=[44, 35, 27, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+NV_PARENT_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 1048576, 46305254, 44, false), (2013265920, 262144, 18228420, 35, true), (2013265920, 16384, 4453003, 27, true), (2013265920, 1024, 1447040, 23, false)]
+NV_FINAL_PARAMS l_skip=2 n_stack=18 k=4 log_blowup=7 queries=[41, 38, 29, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+NV_FINAL_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 1048576, 37140791, 41, true), (2013265920, 524288, 26000207, 38, true), (2013265920, 32768, 6325509, 29, true), (2013265920, 2048, 1559051, 23, true)]
+NV_FIXED_HEIGHTS []
+NV_PHASE before_dag 1414
+NV_DAG air=0 nodes=21 rows_so_far=1464
+NV_PHASE after_dag 1477
+NV_PHASE after_stacking 1785
+NV_QCOST round=0 queries=10 rows=2080 per_query=208 nbits=8 k=3 merkle_nodes=80
+NV_QCOST round=1 queries=4 rows=836 per_query=209 nbits=7 k=3 merkle_nodes=108
+NV_QCOST round=2 queries=2 rows=406 per_query=203 nbits=6 k=3 merkle_nodes=120
+NV_PHASE end 7634
+MEMPROF commit.stacked_matrix rss_gb=0.12 hwm_gb=0.12 cpu_s=0.1 wall_s=0.0
+STREAM_COMMIT width=1 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=30.5 dft=16.3 leafhash=0.0
+MEMPROF commit.tree rss_gb=3.94 hwm_gb=5.09 cpu_s=176.2 wall_s=30.6
+MEMPROF commit.stacked_matrix rss_gb=4.04 hwm_gb=5.09 cpu_s=176.5 wall_s=30.6
+STREAM_COMMIT width=5 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=62.8 dft=34.0 leafhash=15.0
+MEMPROF commit.tree rss_gb=6.89 hwm_gb=7.71 cpu_s=520.1 wall_s=93.6
+MEMPROF prove.after_commit rss_gb=6.82 hwm_gb=7.71 cpu_s=520.1 wall_s=93.6
+MEMPROF zerocheck.gkr_input rss_gb=6.82 hwm_gb=7.71 cpu_s=520.1 wall_s=93.6
+MEMPROF gkr.layers_built rss_gb=8.30 hwm_gb=8.30 cpu_s=523.0 wall_s=94.0
+GKR_FILL total_wall_s=0.37
+MEMPROF zerocheck.after_gkr rss_gb=6.85 hwm_gb=8.30 cpu_s=532.2 wall_s=95.3
+MEMPROF zerocheck.round0 rss_gb=6.84 hwm_gb=8.30 cpu_s=539.5 wall_s=95.8
+MEMPROF zerocheck.fold_ple rss_gb=6.84 hwm_gb=8.30 cpu_s=539.5 wall_s=95.8
+MEMPROF zerocheck.mle_rounds rss_gb=6.87 hwm_gb=8.30 cpu_s=559.9 wall_s=97.5
+MEMPROF prove.after_rap_constraints rss_gb=6.87 hwm_gb=8.30 cpu_s=559.9 wall_s=97.5
+MEMPROF openings.after_stacking rss_gb=6.87 hwm_gb=8.30 cpu_s=567.8 wall_s=98.1
+MEMPROF whir.f_evals rss_gb=6.94 hwm_gb=8.30 cpu_s=569.0 wall_s=98.3
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=18 sub=2^18 subcosets=7680 dropped=4 stored_digests=15728641 secs=42.1 dft=38.8 leafhash=0.0
+MEMPROF whir.round0.g_tree rss_gb=7.77 hwm_gb=8.30 cpu_s=1145.4 wall_s=140.5
+STREAM_REBUILD rows=2816 leaves=704 secs=0.05
+STREAM_REBUILD rows=2816 leaves=704 secs=0.01
+MEMPROF whir.round0.queries rss_gb=7.77 hwm_gb=8.30 cpu_s=1212.5 wall_s=145.2
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=14 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=28.9 dft=25.6 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=8.45 hwm_gb=8.67 cpu_s=1584.5 wall_s=174.2
+STREAM_REBUILD rows=8960 leaves=560 secs=0.03
+MEMPROF whir.round1.queries rss_gb=7.79 hwm_gb=8.67 cpu_s=1784.8 wall_s=191.6
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=10 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=32.8 dft=29.0 leafhash=0.0
+MEMPROF whir.round2.g_tree rss_gb=8.46 hwm_gb=8.69 cpu_s=2111.5 wall_s=224.5
+STREAM_REBUILD rows=6912 leaves=432 secs=0.00
+MEMPROF whir.round2.queries rss_gb=7.80 hwm_gb=8.69 cpu_s=2227.6 wall_s=237.7
+STREAM_REBUILD rows=5888 leaves=368 secs=0.00
+MEMPROF whir.round3.queries rss_gb=7.06 hwm_gb=8.69 cpu_s=2340.3 wall_s=250.2
+MEMPROF prove.after_openings rss_gb=1.32 hwm_gb=8.69 cpu_s=2340.6 wall_s=250.5
+L1_RESOURCES wall_s=250.5 peak_rss_gb=8.69 program_rows=7634
+L1_AIR NvAir h=262144 w=72 rot=1 int/row=48 deg=9
+L1_AIR Sha512Air4 h=65536 w=83 rot=1 int/row=17 deg=9
+L1_AIR TableAir4 h=128 w=9 rot=1 int/row=2 deg=8
+L1_AIR ByteAir h=65536 w=5 rot=1 int/row=1 deg=3
+L1_SUMMARY cols=169 opened=287 interactions=13762816 L=24 cells=25691264 sha_cells=5440640 other_cells=20250624 alu_used=6865 merkle_nodes=120 leaf_blocks=35 prove_s=250.5
+L1_SOUNDNESS total=269.6 logup=323.4 proximity=280.1 query=269.6
+L1_PROOF_BYTES total=288297 gkr=29960 relations=23336 stacking=2372 whir=232388
+L1_PROOF_SHA256 9364e10d731ed76e66284f95801258d88c482106ae2e8aba91c7905afd6ee58e bytes=288297
+NV_G2 L1 program rows 7634 committed heights [262144, 65536, 128, 65536] cached root [538466357942526591, 17282455695712837268, 5200506355823280597, 5770322676211052981, 6313915424953475826, 25762]
+NV_G2_ANCHOR L2: anchor level M = 1 (child bound by its root = C_M)
+NV_PHASE before_dag 25211
+NV_DAG air=0 nodes=4650 rows_so_far=31455
+NV_DAG air=1 nodes=5848 rows_so_far=38900
+NV_DAG air=3 nodes=32 rows_so_far=39445
+NV_DAG air=2 nodes=1234 rows_so_far=40759
+NV_PHASE after_dag 40841
+NV_PHASE after_stacking 49915
+NV_QCOST round=0 queries=44 rows=18421 per_query=419 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 112993
+NV_G2_FLOOR L2: natural committed [230740, 922496, 128, 65536] -> new floor [234348, 936912, 128, 65536]
+NV_PHASE before_dag 25211
+NV_DAG air=0 nodes=4650 rows_so_far=31455
+NV_DAG air=1 nodes=5848 rows_so_far=38900
+NV_DAG air=3 nodes=32 rows_so_far=39445
+NV_DAG air=2 nodes=1234 rows_so_far=40759
+NV_PHASE after_dag 40841
+NV_PHASE after_stacking 49915
+NV_QCOST round=0 queries=44 rows=18421 per_query=419 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 112993
+MEMPROF commit.stacked_matrix rss_gb=1.78 hwm_gb=1.92 cpu_s=2341.4 wall_s=250.9
+STREAM_COMMIT width=1 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=36.9 dft=20.5 leafhash=0.0
+MEMPROF commit.tree rss_gb=4.58 hwm_gb=5.52 cpu_s=2511.7 wall_s=287.9
+MEMPROF commit.stacked_matrix rss_gb=5.26 hwm_gb=5.52 cpu_s=2513.2 wall_s=288.1
+STREAM_COMMIT width=91 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=211.0 dft=155.8 leafhash=39.4
+MEMPROF commit.tree rss_gb=9.23 hwm_gb=11.06 cpu_s=4469.0 wall_s=501.0
+MEMPROF prove.after_commit rss_gb=8.84 hwm_gb=11.06 cpu_s=4469.1 wall_s=501.1
+MEMPROF zerocheck.gkr_input rss_gb=8.84 hwm_gb=11.06 cpu_s=4469.1 wall_s=501.1
+MEMPROF gkr.layers_built rss_gb=11.83 hwm_gb=11.83 cpu_s=4475.0 wall_s=502.1
+GKR_FILL total_wall_s=1.42
+MEMPROF zerocheck.after_gkr rss_gb=8.88 hwm_gb=11.83 cpu_s=4494.5 wall_s=505.1
+MEMPROF zerocheck.round0 rss_gb=8.88 hwm_gb=11.83 cpu_s=4518.1 wall_s=507.1
+MEMPROF zerocheck.fold_ple rss_gb=8.88 hwm_gb=11.83 cpu_s=4518.1 wall_s=507.1
+MEMPROF zerocheck.mle_rounds rss_gb=8.85 hwm_gb=11.83 cpu_s=4630.9 wall_s=517.0
+MEMPROF prove.after_rap_constraints rss_gb=8.85 hwm_gb=11.83 cpu_s=4630.9 wall_s=517.0
+MEMPROF openings.after_stacking rss_gb=8.85 hwm_gb=11.83 cpu_s=4739.1 wall_s=526.0
+MEMPROF whir.f_evals rss_gb=9.04 hwm_gb=11.83 cpu_s=4759.6 wall_s=528.2
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=18 sub=2^18 subcosets=7680 dropped=4 stored_digests=15728641 secs=47.3 dft=43.4 leafhash=0.0
+MEMPROF whir.round0.g_tree rss_gb=9.81 hwm_gb=11.83 cpu_s=5314.9 wall_s=575.6
+STREAM_REBUILD rows=2816 leaves=704 secs=1.00
+STREAM_REBUILD rows=2816 leaves=704 secs=0.01
+MEMPROF whir.round0.queries rss_gb=9.81 hwm_gb=11.83 cpu_s=5348.2 wall_s=578.7
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=14 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=29.9 dft=26.3 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=10.51 hwm_gb=11.83 cpu_s=5692.9 wall_s=608.7
+STREAM_REBUILD rows=8960 leaves=560 secs=0.02
+MEMPROF whir.round1.queries rss_gb=9.85 hwm_gb=11.83 cpu_s=5720.1 wall_s=611.3
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=10 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=29.1 dft=25.6 leafhash=0.0
+MEMPROF whir.round2.g_tree rss_gb=10.51 hwm_gb=11.83 cpu_s=6079.0 wall_s=640.4
+STREAM_REBUILD rows=6912 leaves=432 secs=0.00
+MEMPROF whir.round2.queries rss_gb=9.85 hwm_gb=11.83 cpu_s=6145.7 wall_s=645.0
+STREAM_REBUILD rows=5888 leaves=368 secs=0.00
+MEMPROF whir.round3.queries rss_gb=9.10 hwm_gb=11.83 cpu_s=6160.3 wall_s=646.0
+MEMPROF prove.after_openings rss_gb=2.31 hwm_gb=11.83 cpu_s=6160.6 wall_s=646.3
+L2_RESOURCES wall_s=395.6 peak_rss_gb=11.83 program_rows=112994
+L2_AIR NvAir h=262144 w=72 rot=1 int/row=48 deg=9
+L2_AIR Sha512Air4 h=1048576 w=83 rot=1 int/row=17 deg=9
+L2_AIR TableAir4 h=128 w=9 rot=1 int/row=2 deg=8
+L2_AIR ByteAir h=65536 w=5 rot=1 int/row=1 deg=3
+L2_SUMMARY cols=169 opened=287 interactions=30474496 L=25 cells=107283584 sha_cells=87032960 other_cells=20250624 alu_used=112992 merkle_nodes=4847 leaf_blocks=727 prove_s=395.6
+L2_SOUNDNESS total=269.6 logup=323.4 proximity=280.1 query=269.6
+L2_PROOF_BYTES total=357805 gkr=32408 relations=24296 stacking=6500 whir=294360
+L2_PROOF_SHA256 6fbf62bd7eae5cd06c31bdcdb8027d5e0ea73364f41459128c0b87c2e88aadab bytes=357805
+NV_G2 L2 program rows 112994 committed heights [262144, 1048576, 128, 65536] cached root [16566055515556983538, 12290326049080594309, 7417537073123413625, 16296302924174203432, 4335488104976098612, 17697]
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33275
+NV_DAG air=0 nodes=4650 rows_so_far=39949
+NV_DAG air=3 nodes=32 rows_so_far=41247
+NV_DAG air=2 nodes=1234 rows_so_far=42561
+NV_PHASE after_dag 42643
+NV_PHASE after_stacking 59062
+NV_QCOST round=0 queries=44 rows=25989 per_query=591 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 129966
+NV_G2_ANCHOR L3: anchor level M = 2 (child bound by its root = C_M)
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33275
+NV_DAG air=0 nodes=4650 rows_so_far=39949
+NV_DAG air=3 nodes=32 rows_so_far=41247
+NV_DAG air=2 nodes=1234 rows_so_far=42561
+NV_PHASE after_dag 42643
+NV_PHASE after_stacking 59062
+NV_QCOST round=0 queries=44 rows=25989 per_query=591 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 129966
+NV_G2_FLOOR L3: natural committed [261024, 995712, 128, 65536] -> new floor [262144, 1011272, 128, 65536]
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33275
+NV_DAG air=0 nodes=4650 rows_so_far=39949
+NV_DAG air=3 nodes=32 rows_so_far=41247
+NV_DAG air=2 nodes=1234 rows_so_far=42561
+NV_PHASE after_dag 42643
+NV_PHASE after_stacking 59062
+NV_QCOST round=0 queries=44 rows=25989 per_query=591 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 129966
+MEMPROF commit.stacked_matrix rss_gb=2.78 hwm_gb=2.94 cpu_s=6161.6 wall_s=646.7
+STREAM_COMMIT width=1 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=30.7 dft=16.2 leafhash=0.0
+MEMPROF commit.tree rss_gb=5.65 hwm_gb=6.46 cpu_s=6333.8 wall_s=677.5
+MEMPROF commit.stacked_matrix rss_gb=6.36 hwm_gb=6.46 cpu_s=6335.6 wall_s=677.7
+STREAM_COMMIT width=99 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=188.6 dft=140.4 leafhash=34.2
+MEMPROF commit.tree rss_gb=9.99 hwm_gb=11.92 cpu_s=8685.1 wall_s=867.9
+MEMPROF prove.after_commit rss_gb=9.59 hwm_gb=11.92 cpu_s=8685.1 wall_s=868.0
+MEMPROF zerocheck.gkr_input rss_gb=9.59 hwm_gb=11.92 cpu_s=8685.1 wall_s=868.0
+MEMPROF gkr.layers_built rss_gb=12.59 hwm_gb=12.59 cpu_s=8691.3 wall_s=868.9
+GKR_FILL total_wall_s=2.46
+MEMPROF zerocheck.after_gkr rss_gb=9.64 hwm_gb=12.59 cpu_s=8711.0 wall_s=871.9
+MEMPROF zerocheck.round0 rss_gb=9.64 hwm_gb=12.59 cpu_s=8734.7 wall_s=873.8
+MEMPROF zerocheck.fold_ple rss_gb=9.64 hwm_gb=12.59 cpu_s=8734.7 wall_s=873.8
+MEMPROF zerocheck.mle_rounds rss_gb=9.63 hwm_gb=12.59 cpu_s=8849.2 wall_s=884.2
+MEMPROF prove.after_rap_constraints rss_gb=9.63 hwm_gb=12.59 cpu_s=8849.2 wall_s=884.2
+MEMPROF openings.after_stacking rss_gb=9.63 hwm_gb=12.59 cpu_s=8965.3 wall_s=894.1
+MEMPROF whir.f_evals rss_gb=9.72 hwm_gb=12.59 cpu_s=8986.8 wall_s=896.2
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=18 sub=2^18 subcosets=7680 dropped=4 stored_digests=15728641 secs=44.6 dft=41.0 leafhash=0.0
+MEMPROF whir.round0.g_tree rss_gb=10.49 hwm_gb=12.59 cpu_s=9560.0 wall_s=940.9
+STREAM_REBUILD rows=2816 leaves=704 secs=1.00
+STREAM_REBUILD rows=2816 leaves=704 secs=0.01
+MEMPROF whir.round0.queries rss_gb=10.49 hwm_gb=12.59 cpu_s=9997.2 wall_s=972.8
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=14 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=30.2 dft=26.7 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=11.19 hwm_gb=12.59 cpu_s=10351.4 wall_s=1003.1
+STREAM_REBUILD rows=8960 leaves=560 secs=0.02
+MEMPROF whir.round1.queries rss_gb=10.53 hwm_gb=12.59 cpu_s=10693.7 wall_s=1028.0
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=10 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=29.5 dft=26.2 leafhash=0.0
+MEMPROF whir.round2.g_tree rss_gb=11.19 hwm_gb=12.59 cpu_s=11065.0 wall_s=1057.5
+STREAM_REBUILD rows=6912 leaves=432 secs=0.00
+MEMPROF whir.round2.queries rss_gb=10.53 hwm_gb=12.59 cpu_s=11201.4 wall_s=1067.0
+STREAM_REBUILD rows=5888 leaves=368 secs=0.00
+MEMPROF whir.round3.queries rss_gb=9.77 hwm_gb=12.59 cpu_s=11409.1 wall_s=1082.7
+MEMPROF prove.after_openings rss_gb=2.83 hwm_gb=12.59 cpu_s=11409.5 wall_s=1083.0
+L3_RESOURCES wall_s=436.4 peak_rss_gb=12.59 program_rows=129966
+L3_AIR NvAir h=262144 w=72 rot=1 int/row=48 deg=9
+L3_AIR Sha512Air4 h=1048576 w=83 rot=1 int/row=17 deg=9
+L3_AIR TableAir4 h=128 w=9 rot=1 int/row=2 deg=8
+L3_AIR ByteAir h=65536 w=5 rot=1 int/row=1 deg=3
+L3_SUMMARY cols=169 opened=287 interactions=30474496 L=25 cells=107283584 sha_cells=87032960 other_cells=20250624 alu_used=129965 merkle_nodes=4847 leaf_blocks=1167 prove_s=436.4
+L3_SOUNDNESS total=269.6 logup=323.4 proximity=280.1 query=269.6
+L3_PROOF_BYTES total=364283 gkr=32408 relations=24296 stacking=6884 whir=300454
+L3_PROOF_SHA256 fe13835dea6520f388fda1d8430b625acbbefff7889066cbc45887dbb5bd9bee bytes=364283
+NV_G2 L3 program rows 129966 committed heights [262144, 1048576, 128, 65536] cached root [14049182762746826332, 12439410176324179304, 8988575336487938996, 9694322156607239378, 13364690812507315195, 12391]
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33274
+NV_DAG air=0 nodes=4650 rows_so_far=39948
+NV_DAG air=3 nodes=32 rows_so_far=41246
+NV_DAG air=2 nodes=1234 rows_so_far=42560
+NV_PHASE after_dag 42642
+NV_PHASE after_stacking 53917
+NV_QCOST round=0 queries=44 rows=26693 per_query=607 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 125549
+NV_G2_ANCHOR L4: anchor level M = 3 (child bound by its root = C_M)
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33274
+NV_DAG air=0 nodes=4650 rows_so_far=39948
+NV_DAG air=3 nodes=32 rows_so_far=41246
+NV_DAG air=2 nodes=1234 rows_so_far=42560
+NV_PHASE after_dag 42642
+NV_PHASE after_stacking 53917
+NV_QCOST round=0 queries=44 rows=26693 per_query=607 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 125549
+NV_G2_FLOOR L4: natural committed [254636, 999936, 128, 65536] fits floor [262144, 1011272, 128, 65536]
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33274
+NV_DAG air=0 nodes=4650 rows_so_far=39948
+NV_DAG air=3 nodes=32 rows_so_far=41246
+NV_DAG air=2 nodes=1234 rows_so_far=42560
+NV_PHASE after_dag 42642
+NV_PHASE after_stacking 53917
+NV_QCOST round=0 queries=44 rows=26693 per_query=607 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 125549
+MEMPROF commit.stacked_matrix rss_gb=3.23 hwm_gb=3.39 cpu_s=11410.5 wall_s=1083.4
+STREAM_COMMIT width=1 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=29.5 dft=15.1 leafhash=0.0
+MEMPROF commit.tree rss_gb=6.11 hwm_gb=6.87 cpu_s=11587.1 wall_s=1113.0
+MEMPROF commit.stacked_matrix rss_gb=6.82 hwm_gb=6.87 cpu_s=11589.0 wall_s=1113.2
+STREAM_COMMIT width=99 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=180.6 dft=135.2 leafhash=31.4
+MEMPROF commit.tree rss_gb=9.68 hwm_gb=11.61 cpu_s=14123.0 wall_s=1295.2
+MEMPROF prove.after_commit rss_gb=9.29 hwm_gb=11.61 cpu_s=14123.0 wall_s=1295.2
+MEMPROF zerocheck.gkr_input rss_gb=9.29 hwm_gb=11.61 cpu_s=14123.0 wall_s=1295.2
+MEMPROF gkr.layers_built rss_gb=12.28 hwm_gb=12.28 cpu_s=14129.6 wall_s=1296.1
+GKR_FILL total_wall_s=3.26
+MEMPROF zerocheck.after_gkr rss_gb=9.33 hwm_gb=12.28 cpu_s=14150.0 wall_s=1298.7
+MEMPROF zerocheck.round0 rss_gb=9.35 hwm_gb=12.28 cpu_s=14174.6 wall_s=1300.2
+MEMPROF zerocheck.fold_ple rss_gb=9.35 hwm_gb=12.28 cpu_s=14174.6 wall_s=1300.2
+MEMPROF zerocheck.mle_rounds rss_gb=9.33 hwm_gb=12.28 cpu_s=14298.0 wall_s=1308.3
+MEMPROF prove.after_rap_constraints rss_gb=9.33 hwm_gb=12.28 cpu_s=14298.0 wall_s=1308.3
+MEMPROF openings.after_stacking rss_gb=9.33 hwm_gb=12.28 cpu_s=14419.2 wall_s=1316.2
+MEMPROF whir.f_evals rss_gb=9.45 hwm_gb=12.28 cpu_s=14442.4 wall_s=1318.2
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=18 sub=2^18 subcosets=7680 dropped=4 stored_digests=15728641 secs=40.5 dft=37.2 leafhash=0.0
+MEMPROF whir.round0.g_tree rss_gb=10.25 hwm_gb=12.28 cpu_s=15025.1 wall_s=1358.8
+STREAM_REBUILD rows=2816 leaves=704 secs=0.90
+STREAM_REBUILD rows=2816 leaves=704 secs=0.01
+MEMPROF whir.round0.queries rss_gb=10.25 hwm_gb=12.28 cpu_s=15140.3 wall_s=1366.2
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=14 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=28.8 dft=25.6 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=10.90 hwm_gb=12.28 cpu_s=15514.8 wall_s=1395.2
+STREAM_REBUILD rows=8960 leaves=560 secs=0.02
+MEMPROF whir.round1.queries rss_gb=10.24 hwm_gb=12.28 cpu_s=15806.9 wall_s=1413.6
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=10 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=28.4 dft=25.2 leafhash=0.0
+MEMPROF whir.round2.g_tree rss_gb=10.90 hwm_gb=12.28 cpu_s=16184.7 wall_s=1442.0
+STREAM_REBUILD rows=6912 leaves=432 secs=0.00
+MEMPROF whir.round2.queries rss_gb=10.24 hwm_gb=12.28 cpu_s=16338.5 wall_s=1451.8
+STREAM_REBUILD rows=5888 leaves=368 secs=0.00
+MEMPROF whir.round3.queries rss_gb=9.52 hwm_gb=12.28 cpu_s=16395.5 wall_s=1455.4
+MEMPROF prove.after_openings rss_gb=3.00 hwm_gb=12.28 cpu_s=16395.8 wall_s=1455.7
+L4_RESOURCES wall_s=372.5 peak_rss_gb=12.28 program_rows=125550
+L4_AIR NvAir h=262144 w=72 rot=1 int/row=48 deg=9
+L4_AIR Sha512Air4 h=1048576 w=83 rot=1 int/row=17 deg=9
+L4_AIR TableAir4 h=128 w=9 rot=1 int/row=2 deg=8
+L4_AIR ByteAir h=65536 w=5 rot=1 int/row=1 deg=3
+L4_SUMMARY cols=169 opened=287 interactions=30474496 L=25 cells=107283584 sha_cells=87032960 other_cells=20250624 alu_used=125548 merkle_nodes=4847 leaf_blocks=1211 prove_s=372.5
+L4_SOUNDNESS total=269.6 logup=323.4 proximity=280.1 query=269.6
+L4_PROOF_BYTES total=362939 gkr=32408 relations=24296 stacking=6884 whir=299110
+L4_PROOF_SHA256 c4c0fa8af946cce8a322d910d68f3c9aa4a873ce4dad69ee1952c25b741d5f52 bytes=362939
+NV_G2 L4 program rows 125550 committed heights [262144, 1048576, 128, 65536] cached root [3961203967208780754, 5983467647746370357, 13197244450401963456, 16147536299280344909, 10247343006823850431, 39156]
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33274
+NV_DAG air=0 nodes=4650 rows_so_far=39948
+NV_DAG air=3 nodes=32 rows_so_far=41246
+NV_DAG air=2 nodes=1234 rows_so_far=42560
+NV_PHASE after_dag 42642
+NV_PHASE after_stacking 53917
+NV_QCOST round=0 queries=44 rows=26693 per_query=607 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 125549
+NV_G2_ANCHOR L5: anchor level M = 3 (child bound by BIND)
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33274
+NV_DAG air=0 nodes=4650 rows_so_far=39948
+NV_DAG air=3 nodes=32 rows_so_far=41246
+NV_DAG air=2 nodes=1234 rows_so_far=42560
+NV_PHASE after_dag 42642
+NV_PHASE after_stacking 53917
+NV_QCOST round=0 queries=44 rows=26693 per_query=607 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 125549
+NV_G2_FLOOR L5: natural committed [254764, 1001472, 128, 65536] fits floor [262144, 1011272, 128, 65536]
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33274
+NV_DAG air=0 nodes=4650 rows_so_far=39948
+NV_DAG air=3 nodes=32 rows_so_far=41246
+NV_DAG air=2 nodes=1234 rows_so_far=42560
+NV_PHASE after_dag 42642
+NV_PHASE after_stacking 53917
+NV_QCOST round=0 queries=44 rows=26693 per_query=607 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 125549
+MEMPROF commit.stacked_matrix rss_gb=3.46 hwm_gb=3.63 cpu_s=16396.9 wall_s=1456.1
+STREAM_COMMIT width=1 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=29.0 dft=14.8 leafhash=0.0
+MEMPROF commit.tree rss_gb=6.17 hwm_gb=7.01 cpu_s=16572.8 wall_s=1485.2
+MEMPROF commit.stacked_matrix rss_gb=6.88 hwm_gb=7.01 cpu_s=16574.8 wall_s=1485.4
+STREAM_COMMIT width=99 ext=1 c=15 log_domain=27 k=2 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=62914561 secs=177.3 dft=132.9 leafhash=30.8
+MEMPROF commit.tree rss_gb=9.91 hwm_gb=11.85 cpu_s=19084.6 wall_s=1664.2
+MEMPROF prove.after_commit rss_gb=9.51 hwm_gb=11.85 cpu_s=19084.6 wall_s=1664.2
+MEMPROF zerocheck.gkr_input rss_gb=9.51 hwm_gb=11.85 cpu_s=19084.6 wall_s=1664.2
+MEMPROF gkr.layers_built rss_gb=12.50 hwm_gb=12.50 cpu_s=19091.2 wall_s=1665.1
+GKR_FILL total_wall_s=4.06
+MEMPROF zerocheck.after_gkr rss_gb=9.55 hwm_gb=12.50 cpu_s=19111.7 wall_s=1667.6
+MEMPROF zerocheck.round0 rss_gb=9.55 hwm_gb=12.50 cpu_s=19136.0 wall_s=1669.1
+MEMPROF zerocheck.fold_ple rss_gb=9.55 hwm_gb=12.50 cpu_s=19136.0 wall_s=1669.1
+MEMPROF zerocheck.mle_rounds rss_gb=9.55 hwm_gb=12.50 cpu_s=19258.6 wall_s=1677.2
+MEMPROF prove.after_rap_constraints rss_gb=9.55 hwm_gb=12.50 cpu_s=19258.6 wall_s=1677.2
+MEMPROF openings.after_stacking rss_gb=9.55 hwm_gb=12.50 cpu_s=19381.6 wall_s=1685.2
+MEMPROF whir.f_evals rss_gb=9.73 hwm_gb=12.50 cpu_s=19404.1 wall_s=1687.0
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=18 sub=2^18 subcosets=7680 dropped=4 stored_digests=15728641 secs=40.2 dft=37.0 leafhash=0.0
+MEMPROF whir.round0.g_tree rss_gb=10.40 hwm_gb=12.50 cpu_s=19984.0 wall_s=1727.3
+STREAM_REBUILD rows=2816 leaves=704 secs=0.90
+STREAM_REBUILD rows=2816 leaves=704 secs=0.01
+MEMPROF whir.round0.queries rss_gb=10.40 hwm_gb=12.50 cpu_s=20388.3 wall_s=1752.9
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=14 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=28.1 dft=25.0 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=11.09 hwm_gb=12.50 cpu_s=20764.8 wall_s=1781.1
+STREAM_REBUILD rows=8960 leaves=560 secs=0.02
+MEMPROF whir.round1.queries rss_gb=10.43 hwm_gb=12.50 cpu_s=20898.0 wall_s=1789.8
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=10 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=28.4 dft=25.1 leafhash=0.0
+MEMPROF whir.round2.g_tree rss_gb=11.09 hwm_gb=12.50 cpu_s=21276.9 wall_s=1818.2
+STREAM_REBUILD rows=6912 leaves=432 secs=0.00
+MEMPROF whir.round2.queries rss_gb=10.43 hwm_gb=12.50 cpu_s=21313.4 wall_s=1820.5
+STREAM_REBUILD rows=5888 leaves=368 secs=0.00
+MEMPROF whir.round3.queries rss_gb=9.73 hwm_gb=12.50 cpu_s=21522.3 wall_s=1833.7
+MEMPROF prove.after_openings rss_gb=3.06 hwm_gb=12.50 cpu_s=21522.6 wall_s=1834.0
+L5_RESOURCES wall_s=378.1 peak_rss_gb=12.50 program_rows=125550
+L5_AIR NvAir h=262144 w=72 rot=1 int/row=48 deg=9
+L5_AIR Sha512Air4 h=1048576 w=83 rot=1 int/row=17 deg=9
+L5_AIR TableAir4 h=128 w=9 rot=1 int/row=2 deg=8
+L5_AIR ByteAir h=65536 w=5 rot=1 int/row=1 deg=3
+L5_SUMMARY cols=169 opened=287 interactions=30474496 L=25 cells=107283584 sha_cells=87032960 other_cells=20250624 alu_used=125548 merkle_nodes=4847 leaf_blocks=1211 prove_s=378.1
+L5_SOUNDNESS total=269.6 logup=323.4 proximity=280.1 query=269.6
+L5_PROOF_BYTES total=364577 gkr=32408 relations=24296 stacking=6884 whir=300748
+L5_PROOF_SHA256 176251e8de11cd26220b41609ac41508f8e999d352c8f047c097d6777cffd272 bytes=364577
+NV_G2 L5 program rows 125550 committed heights [262144, 1048576, 128, 65536] cached root [3961203967208780754, 5983467647746370357, 13197244450401963456, 16147536299280344909, 10247343006823850431, 39156]
+NV_G2 converged: 5 levels, 1 bound by BIND, anchor M = 3
+NV_PHASE before_dag 27002
+NV_DAG air=1 nodes=5848 rows_so_far=33274
+NV_DAG air=0 nodes=4650 rows_so_far=39948
+NV_DAG air=3 nodes=32 rows_so_far=41246
+NV_DAG air=2 nodes=1234 rows_so_far=42560
+NV_PHASE after_dag 42642
+NV_PHASE after_stacking 53917
+NV_QCOST round=0 queries=44 rows=26693 per_query=607 nbits=25 k=2 merkle_nodes=2552
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=3497
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4226
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4847
+NV_PHASE end 125549
+MEMPROF commit.stacked_matrix rss_gb=4.24 hwm_gb=4.24 cpu_s=21525.0 wall_s=1834.4
+STREAM_COMMIT width=99 ext=1 c=15 log_domain=27 k=1 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=125829121 secs=254.8 dft=165.6 leafhash=54.9
+MEMPROF commit.tree rss_gb=10.18 hwm_gb=12.90 cpu_s=23946.2 wall_s=2090.7
+MEMPROF prove.after_commit rss_gb=9.78 hwm_gb=12.90 cpu_s=23946.2 wall_s=2090.8
+MEMPROF zerocheck.gkr_input rss_gb=9.78 hwm_gb=12.90 cpu_s=23946.2 wall_s=2090.8
+MEMPROF gkr.layers_built rss_gb=12.69 hwm_gb=12.90 cpu_s=23952.2 wall_s=2092.2
+GKR_FILL total_wall_s=5.60
+MEMPROF zerocheck.after_gkr rss_gb=9.78 hwm_gb=12.90 cpu_s=23973.0 wall_s=2096.9
+MEMPROF zerocheck.round0 rss_gb=9.78 hwm_gb=12.90 cpu_s=23997.0 wall_s=2099.8
+MEMPROF zerocheck.fold_ple rss_gb=9.78 hwm_gb=12.90 cpu_s=23997.0 wall_s=2099.8
+MEMPROF zerocheck.mle_rounds rss_gb=9.78 hwm_gb=12.90 cpu_s=24111.5 wall_s=2113.7
+MEMPROF prove.after_rap_constraints rss_gb=9.78 hwm_gb=12.90 cpu_s=24111.5 wall_s=2113.7
+MEMPROF openings.after_stacking rss_gb=9.78 hwm_gb=12.90 cpu_s=24228.2 wall_s=2127.1
+MEMPROF whir.f_evals rss_gb=9.86 hwm_gb=12.90 cpu_s=24251.5 wall_s=2130.8
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=19 sub=2^19 subcosets=3840 dropped=4 stored_digests=15728641 secs=134.1 dft=113.0 leafhash=16.2
+MEMPROF whir.round0.g_tree rss_gb=10.61 hwm_gb=12.90 cpu_s=24727.4 wall_s=2265.0
+STREAM_REBUILD rows=1312 leaves=656 secs=1.52
+MEMPROF whir.round0.queries rss_gb=10.61 hwm_gb=12.90 cpu_s=24908.1 wall_s=2279.6
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=15 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=31.9 dft=28.1 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=11.22 hwm_gb=12.90 cpu_s=25240.0 wall_s=2311.8
+STREAM_REBUILD rows=9728 leaves=608 secs=0.06
+MEMPROF whir.round1.queries rss_gb=10.56 hwm_gb=12.90 cpu_s=25437.1 wall_s=2328.6
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=11 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=32.1 dft=28.0 leafhash=0.0
+MEMPROF whir.round2.g_tree rss_gb=11.22 hwm_gb=12.90 cpu_s=25814.0 wall_s=2360.7
+STREAM_REBUILD rows=7424 leaves=464 secs=0.00
+MEMPROF whir.round2.queries rss_gb=10.56 hwm_gb=12.90 cpu_s=26017.9 wall_s=2374.5
+STREAM_REBUILD rows=5888 leaves=368 secs=0.00
+MEMPROF whir.round3.queries rss_gb=9.86 hwm_gb=12.90 cpu_s=26315.0 wall_s=2393.5
+MEMPROF prove.after_openings rss_gb=3.19 hwm_gb=12.90 cpu_s=26315.2 wall_s=2393.8
+FINAL_RESOURCES wall_s=559.7 peak_rss_gb=12.90 program_rows=125550
+FINAL_AIR NvAir h=262144 w=76 rot=1 int/row=48 deg=9
+FINAL_AIR Sha512Air4 h=1048576 w=83 rot=1 int/row=17 deg=9
+FINAL_AIR TableAir4 h=128 w=9 rot=1 int/row=2 deg=8
+FINAL_AIR ByteAir h=65536 w=5 rot=1 int/row=1 deg=3
+FINAL_SUMMARY cols=173 opened=291 interactions=30474496 L=25 cells=107283584 sha_cells=87032960 other_cells=20250624 alu_used=125548 merkle_nodes=4847 leaf_blocks=1211 prove_s=559.7
+FINAL_SOUNDNESS total=268.2 logup=323.4 proximity=281.6 query=268.2
+FINAL_PROOF_BYTES total=293077 gkr=32408 relations=24292 stacking=6832 whir=229346
+FINAL_VK_REGIMES m=64 margin_milli=50 target=236 rounds(n,k,A,q,regime)=[(2013265920, 1048576, 37140791, 41, "O2"), (2013265920, 524288, 26000207, 38, "O2"), (2013265920, 32768, 6325509, 29, "O2"), (2013265920, 2048, 1559051, 23, "O2")]
+FINAL_PROOF_SHA256 a4f65ab8dac7bb2005c5640d0d38bcf4428543166d758afa43aa6365afa84323 bytes=293077
+NV_VD final accepted: level 6, pinned program 125550 rows
+NV_VD wrong claim rejected: statement digest differs from the claim
+NV_VD wrong level (5) rejected: level 6 != pinned 5
+MEMPROF commit.stacked_matrix rss_gb=3.26 hwm_gb=12.90 cpu_s=26315.4 wall_s=2393.9
+STREAM_COMMIT width=1 ext=1 c=15 log_domain=27 k=1 n=20 sub=2^20 subcosets=1920 dropped=4 stored_digests=125829121 secs=54.0 dft=25.5 leafhash=0.0
+MEMPROF commit.tree rss_gb=8.84 hwm_gb=12.90 cpu_s=26584.0 wall_s=2447.9
+MEMPROF prove.after_commit rss_gb=8.76 hwm_gb=12.90 cpu_s=26584.0 wall_s=2447.9
+MEMPROF zerocheck.gkr_input rss_gb=10.26 hwm_gb=12.90 cpu_s=26606.6 wall_s=2449.6
+MEMPROF zerocheck.after_gkr rss_gb=10.26 hwm_gb=15.88 cpu_s=26634.5 wall_s=2454.6
+MEMPROF zerocheck.round0 rss_gb=10.26 hwm_gb=15.88 cpu_s=26640.7 wall_s=2455.1
+MEMPROF zerocheck.fold_ple rss_gb=10.26 hwm_gb=15.88 cpu_s=26640.7 wall_s=2455.1
+MEMPROF zerocheck.mle_rounds rss_gb=10.26 hwm_gb=15.88 cpu_s=26655.0 wall_s=2456.1
+MEMPROF prove.after_rap_constraints rss_gb=8.76 hwm_gb=15.88 cpu_s=26655.1 wall_s=2456.2
+MEMPROF openings.after_stacking rss_gb=8.76 hwm_gb=15.88 cpu_s=26656.1 wall_s=2456.2
+MEMPROF whir.f_evals rss_gb=8.76 hwm_gb=15.88 cpu_s=26656.3 wall_s=2456.3
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=19 sub=2^19 subcosets=3840 dropped=4 stored_digests=15728641 secs=96.6 dft=82.2 leafhash=10.8
+MEMPROF whir.round0.g_tree rss_gb=9.51 hwm_gb=15.88 cpu_s=27184.3 wall_s=2552.9
+STREAM_REBUILD rows=1312 leaves=656 secs=0.01
+MEMPROF whir.round0.queries rss_gb=9.51 hwm_gb=15.88 cpu_s=27231.4 wall_s=2556.1
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=15 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=29.3 dft=26.0 leafhash=0.0
+MEMPROF whir.round1.g_tree rss_gb=10.19 hwm_gb=15.88 cpu_s=27609.7 wall_s=2585.8
+STREAM_REBUILD rows=9728 leaves=608 secs=0.04
+MEMPROF whir.round1.queries rss_gb=9.53 hwm_gb=15.88 cpu_s=27693.0 wall_s=2591.8
+STREAM_COMMIT width=1 ext=12 c=15 log_domain=27 k=4 n=11 sub=2^16 subcosets=30720 dropped=4 stored_digests=15728641 secs=29.2 dft=25.9 leafhash=0.0
+MEMPROF whir.round2.g_tree rss_gb=10.21 hwm_gb=15.88 cpu_s=28062.1 wall_s=2621.0
+STREAM_REBUILD rows=7424 leaves=464 secs=0.00
+MEMPROF whir.round2.queries rss_gb=9.56 hwm_gb=15.88 cpu_s=28122.0 wall_s=2624.8
+STREAM_REBUILD rows=5888 leaves=368 secs=0.00
+MEMPROF whir.round3.queries rss_gb=8.84 hwm_gb=15.88 cpu_s=28748.9 wall_s=2669.9
+MEMPROF prove.after_openings rss_gb=3.26 hwm_gb=15.88 cpu_s=28749.2 wall_s=2670.2
+NV_VD forged final (776 rows) accepted without the program check, rejected with it: final program openings differ from the pinned program
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 93 filtered out; finished in 2670.23s
+
+	Command being timed: "/data/illia/nearproof-deps/pq-security-repro2/bin/nv-g2s nv::tests::nv_chain --ignored --exact --nocapture --test-threads 1"
+	User time (seconds): 28239.10
+	System time (seconds): 510.28
+	Percent of CPU this job got: 1076%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 44:30.37
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 16655636
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 465149425
+	Voluntary context switches: 4190178
+	Involuntary context switches: 32196872
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 4624
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+EXIT 0
