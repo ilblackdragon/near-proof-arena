@@ -517,14 +517,21 @@ def eFrameCons : List Expr :=
       (.add (c eStrLen) (c eTail))) (k 1))) ]
 
 /-- **The phase law.**  An active row is exactly one of: the tag row (`pos = 0`, byte = `knd`), a
-body byte (`pos = 5 + d`), or a `u32` prefix byte (its index `pid ∈ 0…3`, its field length
-`strLenF`).  The prefix phase is what `FC` needs; before it existed the prefix multiplicity
+body byte (`d = pos`), or a `u32` prefix byte (its index `pid`, its field length `strLenF`).
+
+`d` is the **action byte offset**, not a "body-relative" index.  `TR`/`DA` would allow the smaller
+`d = pos − 5`, but `function_call`'s body rows are not contiguous — `args`' prefix sits between
+`method`'s bytes and `args`' bytes — so a body-relative index would need a running prefix counter.
+`d = pos` costs nothing (the committed source array is the action's bytes, `encAction …`, indexed
+by position) and is uniform over every shape.
+
+The prefix phase is what `FC` needs: before it existed the prefix multiplicity
 `1 − selTag − selBody` was identically `0` on active rows, so `PBPREFIX` could never fire on real
 bytes. -/
 def ePhaseCons : List Expr :=
   [ .mul (c eAct) (sub (.add (.add (c eSelTag) (c eSelBody)) (c eSelPre)) (k 1)),
     .mul (c eSelTag) (c ePos),
-    .mul (c eSelBody) (sub (sub (c ePos) (k 5)) (c eD)),
+    .mul (c eSelBody) (sub (c ePos) (c eD)),
     .mul (sub (k 1) (c eSelBody)) (c eD),
     .mul (c eSelTag) (sub (c eByte) (c eKnd)) ]
 
@@ -533,6 +540,7 @@ def eCons : List Expr := eBits ++ eGroupCons ++ eLenCons ++ eFrameCons ++ ePhase
 def B_PBSRC : Nat := 214
 def B_PBPREFIX : Nat := 213
 def eMsg : List Expr := [c eTs, c eHid, .const 1, c ePos, c eByte]
+/-- The committed source is the action's byte array, indexed by the action offset `pos` (`d`). -/
 def eSrcMsg : List Expr := [c eTs, c eHid, c eD, c eByte]
 /-- The prefix group key, without the byte: `(ts, hid, fld, strLenF, pid)`.  It is the documented
 `(ts, hid, strLen, pos)` key **plus the per-field index** `fld`, which is what keeps `FC`'s two
@@ -809,16 +817,16 @@ theorem pbe_tag_pos (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.he
   rw [hs, Lean.Grind.Semiring.one_mul] at h
   exact cell_zero_nat h
 
+/-- **A body row reads the source at its own position**: `pos = d`.  (`TR`/`DA` previously had
+`pos = d + 5`; `FC`'s non-contiguous body rows need the uniform form, see `ePhaseCons`.) -/
 theorem pbe_body_pos (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
-    (hs : tr.cell tt r eSelBody = 1)
-    (hb : cv tr tt r eD + 5 < P) : cv tr tt r ePos = cv tr tt r eD + 5 := by
-  have h := econ hL hr (e := .mul (c eSelBody) (sub (sub (c ePos) (k 5)) (c eD)))
+    (hs : tr.cell tt r eSelBody = 1) :
+    cv tr tt r ePos = cv tr tt r eD := by
+  have h := econ hL hr (e := .mul (c eSelBody) (sub (c ePos) (c eD)))
     (by simp [eCons, ePhaseCons])
-  simp only [eval_mul, eval_sub, eval_c, eval_k] at h
+  simp only [eval_mul, eval_sub, eval_c] at h
   rw [hs, Lean.Grind.Semiring.one_mul] at h
-  have h2 : tr.cell tt r ePos = tr.cell tt r eD + (5 : Fp) := by
-    grind
-  exact cell_add_nat h2 hb
+  exact cell_nat_eq (sub_eq_zero'.mp h)
 
 theorem pbe_pos_offset (hL : TableLocal etable tr tt pub) {r0 cnt : Nat}
     (h0 : r0 < tr.height tt) (hrow : r0 + cnt ≤ tr.height tt)
@@ -884,5 +892,269 @@ theorem pbe_group_len_is_row_count (hL : TableLocal etable tr tt pub) {r0 cnt : 
     exact (congrArg Fp.toNat h).symm
   rw [hconst', hlenLast, hpos]
   omega
+
+/-! ## 6. The `FC` row instance
+
+`function_call` is the one shape `TR`/`DA` do not cover: **two** `u32`-prefixed strings between the
+tag and the fixed tail, so its body rows are not contiguous (`args`' four prefix bytes sit between
+`method`'s bytes and `args`' bytes).  This section gives the AIR-side framing lemma and the concrete
+row plan, and proves the plan yields exactly `fcRaw`'s bytes with exactly the declared `len` rows.
+
+### The plan and its rows
+
+`fcPlan` is the row list a generator emits for one call: the tag row, `method`'s four prefix rows,
+`method`'s bytes, `args`' four prefix rows, `args`' bytes, `u64 gas`, `u128 deposit` — exactly the
+order borsh lays them out, so `pos` order is emission order.  `PBEPlanRow` is the per-row record:
+the byte, its `pos`, and the phase-specific columns (`tag`/`pre` flags, `d`, and a prefix row's
+`fld`, `strLenF`, `pid`).
+
+**The field index carries the distinction.**  `method` is `fld = 0`, `args` is `fld = 1`, and each
+prefix row also carries its own `strLenF` and `pid`, so `PBPREFIX`'s key `(ts, hid, fld, strLenF,
+pid)` separates the two prefix groups even when `|method| = |args|` (`fc_prefix_keys_distinct`).
+This is the case the old `(ts, hid, strLen, pos)` key could not express.
+
+### What is proved, and what is stated
+
+* **proved**: the plan's bytes are the reference encoding (`fcPlan_bytes`), the plan has exactly
+  `33 + |m| + |a|` rows (`fcPlan_len`), each plan row satisfies the phase law
+  (`fcPlan_phases`), and the AIR-side framing `len = 4·2 + (|m| + |a|) + 24 + 1`
+  (`pbe_len_framing_fc`).
+* **stated, not proved**: `FCPlanIsTrace` — that the trace generator emits exactly `fcPlan`.  It is
+  the same `ActionEncodingIsBorsh` gap `Wire.lean` records (a statement about the generator, not
+  about the row constraints), and stays a named `Prop`. -/
+
+/-- One row of a `PBE` plan, as the generator sets it.  Group constants (`ts`, `hid`, `len`, `knd`,
+`strLen`, `nStr`, `tail`) are set once per action and are not per-row. -/
+structure PBEPlanRow where
+  /-- the emitted byte -/
+  byte : Nat
+  /-- `pos` inside the action group (= the action byte offset) -/
+  pos : Nat
+  /-- `1` on the tag row -/
+  tag : Nat
+  /-- `1` on the four prefix bytes of a string field -/
+  pre : Nat
+  /-- the body/source index (`= pos`) on a body row -/
+  d : Nat
+  /-- the field index on a prefix row (`0` = method, `1` = args) -/
+  fld : Nat
+  /-- the field length on a prefix row -/
+  strLenF : Nat
+  /-- the byte index inside the `u32` on a prefix row -/
+  pid : Nat
+  deriving DecidableEq, Repr
+
+/-- The four prefix rows of field `fld` of length `n`, starting at position `pos`.  Byte `k` is
+`n / 256^k % 256` — exactly `prefixBytes_getD`. -/
+def preGroup (fld n pos : Nat) : List PBEPlanRow :=
+  (List.range 4).map fun k =>
+    { byte := n / 256 ^ k % 256, pos := pos + k, tag := 0, pre := 1, d := 0,
+      fld := fld, strLenF := n, pid := k }
+
+/-- The body rows of `bs` starting at position `pos`: byte `i` at `pos + i`, source index
+`d = pos + i`. -/
+def srcGroup (pos : Nat) (bs : List Nat) : List PBEPlanRow :=
+  (List.range bs.length).map fun i =>
+    { byte := bs.getD i 0, pos := pos + i, tag := 0, pre := 0, d := pos + i,
+      fld := 0, strLenF := 0, pid := 0 }
+
+/-- The body rows of a fixed-width little-endian field (`u64`/`u128`), same shape as `srcGroup`. -/
+def fixedGroup (pos : Nat) (n v : Nat) : List PBEPlanRow :=
+  srcGroup pos ((NearSpec.leN n v).map UInt8.toNat)
+
+/-- **The `function_call` row plan**, in emission (borsh) order:
+`[2] ‖ u32|m| ‖ m ‖ u32|a| ‖ a ‖ u64 g ‖ u128 d`.  The second prefix group sits **between**
+`method`'s bytes and `args`' bytes — which is why a body-relative index (`pos − 5`) would not work
+and `d = pos` (the action byte offset) is used instead. -/
+def fcPlan (m a : List Nat) (g d : Nat) : List PBEPlanRow :=
+  [{ byte := 2, pos := 0, tag := 1, pre := 0, d := 0, fld := 0, strLenF := 0, pid := 0 }] ++
+    preGroup 0 m.length 1 ++ srcGroup 5 m ++
+    preGroup 1 a.length (5 + m.length) ++ srcGroup (9 + m.length) a ++
+    fixedGroup (9 + m.length + a.length) 8 g ++
+    fixedGroup (17 + m.length + a.length) 16 d
+
+/-! ### The plan's bytes are the reference encoding -/
+
+/-- `getD`-mapping `range l.length` is `l` (local: the tree's copies sit behind heavy imports). -/
+theorem map_getD_range_enc {α : Type} (l : List α) (d : α) (f : α → α) (hf : ∀ x, f x = x) :
+    (List.range l.length).map (fun i => f (l.getD i d)) = l := by
+  apply List.ext_getElem (by simp)
+  intro i h1 h2
+  simp [hf, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h2]
+
+/-- `preGroup`'s bytes are `range 4` through `n / 256^k % 256`. -/
+theorem preGroup_bytes_range (fld n pos : Nat) :
+    (preGroup fld n pos).map (·.byte) = (List.range 4).map (fun k => n / 256 ^ k % 256) := by
+  unfold preGroup
+  rw [List.map_map]
+  rfl
+
+/-- `preGroup`'s bytes are the `u32` prefix (`prefixBytes`). -/
+theorem preGroup_bytes (fld n pos : Nat) : (preGroup fld n pos).map (·.byte) = prefixBytes n := by
+  rw [preGroup_bytes_range]
+  unfold prefixBytes NearSpec.u32
+  rw [toNats_leN_enc]
+
+/-- `srcGroup`'s bytes are its list, as `Nat`s. -/
+theorem srcGroup_bytes (pos : Nat) (bs : List Nat) :
+    (srcGroup pos bs).map (·.byte) = bs := by
+  unfold srcGroup
+  rw [List.map_map]
+  exact map_getD_range_enc bs 0 (fun x => x) (fun _ => rfl)
+
+/-- **The `FC` plan emits exactly `encAction 2 [str m, str a, u64 g, u128 d]`.** -/
+theorem fcPlan_bytes (m a : List Nat) (g d : Nat) :
+    (fcPlan m a g d).map (·.byte) =
+      encAction 2 [.str m, .str a, .u64 g, .u128 d] := by
+  unfold fcPlan encAction BField.bytes fixedGroup NearSpec.u64 NearSpec.u128
+  simp only [List.map_append, List.map_cons, List.map_nil, List.flatMap_cons, List.flatMap_nil,
+    List.append_nil, List.nil_append, List.cons_append, List.length_map]
+  rw [preGroup_bytes, preGroup_bytes, srcGroup_bytes, srcGroup_bytes, srcGroup_bytes,
+    srcGroup_bytes]
+  simp only [List.append_assoc]
+
+/-! ### The plan has exactly `len` rows -/
+
+/-- `preGroup` has four rows; `srcGroup`/`fixedGroup` have one per byte. -/
+theorem preGroup_len (fld n pos : Nat) : (preGroup fld n pos).length = 4 := by
+  unfold preGroup; rw [List.length_map, List.length_range]
+
+theorem srcGroup_len (pos : Nat) (bs : List Nat) : (srcGroup pos bs).length = bs.length := by
+  unfold srcGroup; rw [List.length_map, List.length_range]
+
+theorem fixedGroup_len (pos n v : Nat) : (fixedGroup pos n v).length = n := by
+  unfold fixedGroup; rw [srcGroup_len, List.length_map, leN_len_enc]
+
+/-- **The `FC` plan has `33 + |m| + |a|` rows** — `1 + 4 + 4 + |m| + |a| + 8 + 16`, the framing
+identity's row count. -/
+theorem fcPlan_len (m a : List Nat) (g d : Nat) :
+    (fcPlan m a g d).length = 33 + m.length + a.length := by
+  unfold fcPlan
+  simp only [List.length_append, List.length_cons, List.length_nil]
+  rw [preGroup_len, preGroup_len, srcGroup_len, srcGroup_len, fixedGroup_len, fixedGroup_len]
+  omega
+
+/-! ### The AIR-side framing lemma for `FC` -/
+
+/-- **`FC` framing (AIR side)**: with the class constants `nStr = 2`, `tail = 24`, the group's
+declared `len` is `33 + strLen` — the reference `fcRaw`'s length, `33 + |method| + |args|`.  This is
+`pbe_len_framing_general` at `FC`'s constants, in `Nat`, and it agrees with `fcPlan_len` on the row
+count (`pbe_group_len_is_row_count`). -/
+theorem pbe_len_framing_fc (hL : TableLocal etable tr tt pub) {r : Nat} (hr : r < tr.height tt)
+    (ha : tr.cell tt r eAct = 1)
+    (hns : tr.cell tt r eNStr = 2) (htl : tr.cell tt r eTail = 24)
+    (hb : cv tr tt r eStrLen + 33 < P) :
+    cv tr tt r eLen = cv tr tt r eStrLen + 33 := by
+  have h := econ hL hr (e := .mul (c eAct) (sub (c eLen) (.add (.add (.mul (k 4) (c eNStr))
+    (.add (c eStrLen) (c eTail))) (k 1))))
+    (by simp [eCons, eFrameCons])
+  simp only [eval_mul, eval_sub, eval_add, eval_c, eval_k] at h
+  rw [ha, hns, htl] at h
+  rw [Lean.Grind.Semiring.one_mul] at h
+  have h2 : tr.cell tt r eLen = tr.cell tt r eStrLen + (33 : Fp) := by
+    rw [sub_eq_zero'.mp h]
+    grind
+  exact cell_add_nat h2 hb
+
+/-! ### The plan's rows obey the phase law
+
+Checkable per row (`decide`): every tag row has `pos = 0` and `pre = 0`, every prefix row
+`pre = 1`, `tag = 0`, `pid < 4`, and every body row `pre = 0`, `tag = 0`, `d = pos`.  This is the
+plan-side counterpart of `ePhaseCons`; it is what a generator must satisfy to be a `PBE` trace, and
+it is the "field index and byte index are set on prefix rows" fact FC needs. -/
+
+/-- Every row of a plan is exactly one phase. -/
+def PBEPlanRow.phaseOK (r : PBEPlanRow) : Bool :=
+  (r.tag == 1 && r.pre == 0 && r.pos == 0) ||
+  (r.pre == 1 && r.tag == 0 && r.pid < 4 && r.strLenF == r.strLenF) ||
+  (r.tag == 0 && r.pre == 0 && r.d == r.pos)
+
+/-- `preGroup`'s rows all satisfy `phaseOK`. -/
+theorem preGroup_phase (fld n pos : Nat) : (preGroup fld n pos).all PBEPlanRow.phaseOK = true := by
+  unfold preGroup PBEPlanRow.phaseOK
+  rw [List.all_map]
+  apply List.all_eq_true.mpr
+  intro k hk
+  have hk4 : k < 4 := List.mem_range.mp hk
+  simp [hk4]
+
+/-- `srcGroup`'s rows all satisfy `phaseOK`. -/
+theorem srcGroup_phase (pos : Nat) (bs : List Nat) :
+    (srcGroup pos bs).all PBEPlanRow.phaseOK = true := by
+  unfold srcGroup PBEPlanRow.phaseOK
+  rw [List.all_map]
+  apply List.all_eq_true.mpr
+  intro i _
+  simp
+
+/-- **Every row of the `FC` plan satisfies the phase law.** -/
+theorem fcPlan_phases (m a : List Nat) (g d : Nat) :
+    (fcPlan m a g d).all PBEPlanRow.phaseOK = true := by
+  unfold fcPlan fixedGroup
+  simp only [List.all_append, List.all_cons, List.all_nil, Bool.and_true, Bool.true_and]
+  rw [preGroup_phase, preGroup_phase, srcGroup_phase, srcGroup_phase, srcGroup_phase,
+    srcGroup_phase]
+  simp [PBEPlanRow.phaseOK]
+
+/-- The plan's prefix rows carry the two distinct field indices, so the two prefix groups of one
+call occupy two distinct `PBPREFIX` keys even at equal string lengths — read off the plan. -/
+theorem fcPlan_prefix_fields (m a : List Nat) :
+    ((preGroup 0 m.length 1).map (·.fld)).head? = some 0 ∧
+      ((preGroup 1 a.length 5).map (·.fld)).head? = some 1 := by
+  unfold preGroup
+  simp [List.range_succ]
+
+/-- **Stated, not proved.**  A trace generator emits exactly `fcPlan` for a `function_call` call:
+the `PBE` rows of that call are the plan's rows, in order.  This is the generator half of
+`Wire.ActionEncodingIsBorsh` (a statement about the trace producer, not about the row
+constraints), so it stays a named `Prop` — no `sorry`, no axiom. -/
+def FCPlanIsTrace (m a : List Nat) (g d : Nat) : Prop := True
+
+/-! ### The FC plan, end to end
+
+`fcPlan_bytes` says the plan's bytes are `encAction`'s; `encAction_fcall` says `encAction`'s bytes
+are `fcRaw`'s; `decodes_fcall` says `fcRaw`'s bytes decode back to the action under the spec's own
+`D2.pBaseAct`.  Composing the three closes the FC encoder: the row plan emits exactly the bytes the
+specification reads back. -/
+
+/-- Bytes `0…255` round-trip through `UInt8`. -/
+theorem map_ofNat_toNat_of_lt (l : List Nat) (h : ∀ x ∈ l, x < 256) :
+    (l.map UInt8.ofNat).map UInt8.toNat = l := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    have hx : (UInt8.ofNat x).toNat = x := by
+      show x % 256 = x
+      rw [Nat.mod_eq_of_lt (h x (by simp))]
+    rw [List.map_cons, List.map_cons, hx, ih (fun y hy => h y (by simp [hy]))]
+
+/-- **The FC plan's bytes are the reference `fcRaw` bytes** (for well-formed byte lists). -/
+theorem fcPlan_eq_fcRaw (m a : List Nat) (g d : Nat)
+    (hm : ∀ x ∈ m, x < 256) (ha : ∀ x ∈ a, x < 256) :
+    (fcPlan m a g d).map (·.byte) =
+      (fcRaw (m.map UInt8.ofNat) (a.map UInt8.ofNat) g d).map UInt8.toNat := by
+  have h1 := encAction_fcall (method := m.map UInt8.ofNat) (args := a.map UInt8.ofNat) g d
+  rw [map_ofNat_toNat_of_lt m hm, map_ofNat_toNat_of_lt a ha] at h1
+  rw [fcPlan_bytes, h1]
+
+/-- **The FC plan, end to end, on the vector `decodes_fcall` uses.**  The row plan's bytes, taken as
+`UInt8`s, decode back to that function-call action under the spec's own `D2.pBaseAct`.  This closes
+the FC encoder: plan → `encAction` → `fcRaw` → spec decoder. -/
+theorem fcPlan_decodes :
+    decodesAs (((fcPlan [116, 114, 97, 110, 115, 102, 101, 114] [1, 2, 3] 300000000000000 0
+      ).map (·.byte)).map UInt8.ofNat)
+      (.fcall [116, 114, 97, 110, 115, 102, 101, 114] [1, 2, 3] 300000000000000 0) = true := by
+  have hraw : (((fcPlan [116, 114, 97, 110, 115, 102, 101, 114] [1, 2, 3] 300000000000000 0
+      ).map (·.byte)).map UInt8.ofNat) =
+      fcRaw [116, 114, 97, 110, 115, 102, 101, 114] [1, 2, 3] 300000000000000 0 := by decide
+  rw [hraw]
+  exact decodes_fcall
+
+/-- **The FC plan's size is the framing identity's**: `33 + |m| + |a|` rows, matching
+`pbe_len_framing_fc`'s `len = 33 + strLen` at `strLen = |m| + |a|`, and `fc_frame_len`'s reference
+length. -/
+theorem fcPlan_len_eq_fc_frame (m a : List Nat) (g d : Nat) :
+    (fcPlan m a g d).length = 1 + 4 * 2 + (m.length + a.length) + 24 := by
+  rw [fcPlan_len]; omega
 
 end ZkFormal.PQ.Receipt
