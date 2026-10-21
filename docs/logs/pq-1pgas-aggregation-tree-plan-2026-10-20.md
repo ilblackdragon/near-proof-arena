@@ -315,3 +315,51 @@ constant in the first place.
 The gate (Step 4, program binding) is unaffected by the above and still unstarted. Step 5 (a real
 `seg-v1` leaf) is untouched. The honest sizing in §5 stands, with Step 1 reduced by the deps fix
 and increased by the `ChainStart` row.
+
+## 8. Outcome (2026-10-21): steps 1-4 done, including the binding gate
+
+The agg overlay is rebased onto G2 and **program binding works**. Five distinct defects were
+between the overlay as written and a sound node; all are fixed and measured:
+
+| # | defect | evidence |
+|---|---|---|
+| 1 | `build_verifier` emitted its own app-statement `PvD` row in agg mode (two contradicting rows) | row 1231 -> 26312 |
+| 2 | the rebase took the pre-G1 `pow()`, emitting PoW witness rows from the program (14 phantom sends) | `nv_dof_*` 14 -> 0 unbalanced |
+| 3 | chain-start flag shared the Anchor `k2` tag field (audit B6) | own `ChainStart` row (`Rsv27`), new bus allocated last |
+| 4 | main's audit-B5 `is_first * ns == 0` vs the agg transcript's **global** squeeze counter | `when_first_row` instead; both chain tests pass |
+| 5 | `Node` children were never program-bound | `bind_child` -> the G2 BIND block, per child |
+
+Test state on the rebased overlay:
+
+| test | result |
+|---|---|
+| `agg_circuit_debug`, `agg_g_l1_linked`, `agg_program_honest`, `agg_program_tamper`, `agg_segment_chain_native`, `agg_shape` | 6/6 pass |
+| `agg_node_program_binding` (**the gate**) | pass, with a live positive control |
+| `agg_node_debug` (2-to-1 over two real N1 proofs, 3 tampers) | pass |
+| `agg_chain` (N1a/N1b/N2, final statement `[0,4)`) | pass |
+| `nv::` non-heavy regression | 41/41 pass |
+
+The gate is enforced by the circuit, not by a host assertion: at `PARENT_N_STACK=17` the honest
+node verifies (85,584 program rows) and flipping one child program word makes the debug constraint
+check fail at `NvAir row 0`.
+
+### What this changes in §5
+
+Steps 1-4 are done, so the remaining sizing is:
+
+| step | status |
+|---|---|
+| 1. re-base overlay | **done** (plus the two base-deps fixes, merged to main) |
+| 2. real L2 proof | **done** (`agg_chain`) |
+| 3. depth >= 3, ragged | **partly**: `arity_split` gives binary-only circuits; ragged is handled at the statement layer only |
+| 4. program binding (gate) | **done** |
+| 5. real `seg-v1` leaf | **unchanged, still the blocker** (20-40 d) |
+| 6. scale + measure to 1 Pgas | unstarted |
+| 7. soundness theorem | unstarted |
+
+The tree machinery now works on fixtures. A real 1 Pgas chunk is still gated on step 5: the leaves
+are still Fibonacci/segment fixtures, not NEAR state transitions.
+
+Sizing limits recorded while doing this, since they bite at every scale: level-2 traces are 2^20
+NvAir rows (`n_stack >= 20` for the parent), N1 children need `n_stack >= 17`, and the NvAir height
+cap is the same one that constrains the real chain.
