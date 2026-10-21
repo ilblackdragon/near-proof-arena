@@ -13,7 +13,21 @@ P = 2013265921
 nloc, ncode, out = sys.argv[1], sys.argv[2], sys.argv[3]
 n = sys.argv[4] if len(sys.argv) > 4 else '16'
 tool = os.path.join(HERE, '../../wasm-base-lean/.lake/build/bin/wasmbase-tool')
-binp = os.environ.get('WASMBASE_BIN', '/data/illia/nearproof-deps/pq-wasm-base/target/release/nearproof-wasm-base')
+def _resolve_bin():
+    """Prefer the in-repo build; the deps path usually has no binary. Refuse a stale one."""
+    if os.environ.get('WASMBASE_BIN'):
+        return os.environ['WASMBASE_BIN']
+    cands = [os.path.join(HERE, 'target/release/nearproof-wasm-base'),
+             os.path.join(os.environ.get('NEARPROOF_PQ_DEPS',
+                                         '/data/illia/nearproof-deps/pq-wasm-base'),
+                          'target/release/nearproof-wasm-base')]
+    for c in cands:
+        if os.access(c, os.X_OK):
+            return c
+    sys.exit('nearproof-wasm-base not found; build with: (cd %s && cargo build --release)' % HERE)
+
+
+binp = _resolve_bin()
 os.makedirs(out, exist_ok=True)
 airp, pts, rj = (os.path.join(out, f) for f in ('air.json', 'points.txt', 'rust.jsonl'))
 host = os.environ.get('WASMBASE_AIRH') == '1'

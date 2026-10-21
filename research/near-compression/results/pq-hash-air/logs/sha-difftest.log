@@ -1,0 +1,3 @@
+SHA256 DIFFTEST 16 vectors
+SHA256 DIFFTEST 16/16 vectors: AIR cells == sha2 (message bytes and digest)
+SHA256 DIFFTEST OK

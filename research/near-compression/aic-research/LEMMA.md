@@ -1,5 +1,29 @@
 # The A-IC obstruction, and what any replacement for A-IC must assume
 
+> **2026-10-21 review and G-P1 scope.** The historical numerical claims below
+> are not established security bounds. The family instantiation and NV theorem
+> they invoke remain open. Theorem O is a conditional obstruction under H-ex(C),
+> recursive-witness completeness and outer completeness; it does not prove
+> H-ex for concrete SHA-384, that an honest test establishes universal
+> completeness, or that A-IC(τ) becomes true upon imposing a time limit.
+> Its cap-based numerical estimates need revision for the actual sampler.
+> Sections 5–7 below supersede the former Lemma P and Corollary P.1.
+>
+> **2026-10-21 hash-bridge addendum.** The marginal obstruction is no longer
+> only about one fixed pair. `Qrom.OracleBridgeSet` proves the fixed-pair-set
+> count (`agree_card`, `agree_count_mul`) and the resulting trade-off
+> (`acceptance_PrLE`, `delta_ge_one_sub_agreement`), and
+> `research/hash-bridge/HashBridge/Endpoint.lean` proves the adaptive
+> demand-sequence version in the arena's `PrLE` vocabulary
+> (`consistency_probability_multi`, `failure_lower_bound_multi`,
+> `failure_single_pair`). The bound gets *worse* for the identification as the
+> number of pairs grows, so "the set of pairs actually used" does not rescue
+> literal A-IC. `ENDPOINTS.md` in this directory adjudicates (a)–(d) and
+> recommends the conditional endpoint (c); the reduction shape is
+> kernel-checked there (`inner_computational_soundness`), the assumption is
+> named, and no recursive security guarantee is claimed.
+
+
 Lane `lane/pq-aic-research`, 2026-10-18. Companion to `REPORT.md`. Notation and numbering of
 `../final-soundness/PROOF.md` (cited as PROOF §x / Thm 6.4 / Lemma 7.1 / Assumption 7.3).
 
@@ -8,21 +32,18 @@ Tags (as in PROOF.md): **[T]** proven here, complete as written, not yet reviewe
 the level of [T] — each such step is marked **(unproven step)**; **[P]** proven in a cited
 published source; **[A]** assumption.
 
-## 0. Results
+## 0. Current results and proof status
 
-| # | statement | tag |
+| Result | Established scope | Open boundary |
 |---|---|---|
-| Thm O | In **every** oracle model in which native verification uses a random function H and adversaries are bounded only in their H-queries, the depth-d ≥ 1 recursive system is **insecure** (success probability ≈ 1, ≤ 2⁴⁶ H-queries), as soon as the base verifier, run with the in-circuit hash, accepts one proof of one false statement. | [T] |
-| Lemma E.1 | That hypothesis holds unconditionally when the circuit's hash rows are unconstrained (the "relativized"/oracle-gate model). | [T] at protocol level |
-| Lemma E.2 | Abstract "lucky move" lemma: for a uniformly random in-circuit function F, one prover message turns a false sumcheck-type claim into a true one, except with probability ≤ 2⁻¹²⁰⁰⁰. | [T] |
-| Lemma E.3 | Hence, for a uniformly random F, the hypothesis of Thm O holds except with probability ≤ 2⁻¹¹⁹⁹⁰. | [S] |
-| Cor O.1 | Any proof of the U-6 statement (≤ 2⁶⁴ quantum queries, no time bound) for the recursive claim implies that V₀^{SHA-384} is **perfectly sound**: no false base statement has any accepting proof. | [T] |
-| Cor O.2 | The break in PROOF Thm 7.4 is exactly step 2, bullet 2 (the A-IC application), and it cannot be repaired inside any such model. Every valid proof must use (i) a time bound on in-circuit hash computation, (ii) an H-dependent certified relation (native re-check: non-succinct; or an algebraic oracle: AROM), or (iii) an identification (A-IC). | [T] |
-| Lemma P | ("peel") With the final layer's FS domain idealised and every in-circuit domain concrete, depth-d soundness reduces, with additive loss = Thm 6.4's bound, to **standard-model** soundness of the depth-(d−1) system with concrete SHA-384, against an adversary whose running time is the original one plus the cost of simulating the compressed oracle. | [T] |
-| Cor P.1 | With a naive simulation (time Θ(t²)) Lemma P gives nothing at t = 2⁶⁴: the needed inner assumption is false at time 2¹²⁸ (generic Grover grinding). Whether a simulation in quasi-linear time Õ(t) exists is gate G-P1. | [T] given the cited simulation cost |
+| Theorem O | Conditional lifting of an existing false concrete inner proof to an outer-oracle forgery | H-ex(C), witness/inner completeness and a quantified outer completeness/query budget must be supplied; no concrete-SHA H-ex proof is claimed. |
+| E.1–E.3 | Historical protocol-level construction and random-function argument | E.3 contains an explicit unwritten case check; the sampler-cap instantiation is invalid for the pinned implementation. These do not prove concrete SHA-384 admits a false proof. |
+| Lemma P accounting | Correct scalar peeling inequality, kernel-checked | Actual family potential, extraction, NV faithfulness, coherent inner security game and resource bounds remain open. |
+| G-P1-C | Written quadratic lower bound for universal fixed-interface circuit simulation, including arbitrary private quantum encodings | Independent review required; the quantum information argument is not formalized. QRAM, feedback and adversary-specific reductions are outside its scope. |
 
-Net: a proven bound without A-IC (or without some time-bounded computational assumption on
-SHA-384) is **impossible for this architecture in any oracle model**, not merely unknown.
+Theorem O establishes a conditional obstruction in its defined model. It does
+not prove a universal impossibility for all oracle models or the necessity or
+truth of the particular A-IC(τ) formulation.
 
 ---
 
@@ -62,46 +83,44 @@ is **unbounded in running time** — the convention of PROOF Thm 6.4 and of the 
 **Definition 1.5 (C-completeness).** For every i ≥ 1 and every (x_{i−1}, π_{i−1}) with
 V_{i−1}^C(π_{i−1}) = 1, the honest layer-i prover run with hash C (C = graph(F)), on the honest
 NV_i witness, outputs π_i with V_i^C(π_i) = 1. This is completeness of SWIRL instantiated with F.
-It fails only if some PoW move has no witness, or a sampler exceeds the cap J (PROOF Lemma 6.3).
-For SHA-384 it is what the running system exhibits; for case (b) it is trivial (answers are
-free); for uniformly random F it fails with probability ≤ 2¹⁰·e^{−2³²} (Lemma E.3 step 5).
+This is a universal premise, not a conclusion from successful honest test
+runs. The old cap-based completeness estimate does not apply to the uncapped
+native sampler. For an outer adversary with a capped runtime/query budget, a
+separate completeness bound is needed.
 
 ---
 
-## 2. Theorem O
+## 2. Theorem O (conditional query-only obstruction)
 
-**Theorem O [T].** Fix d ≥ 1 and C with H-ex(C) and C-completeness. In M(C) there is an adversary
-A that makes at most Q_hon ≤ 2⁴⁶ queries to H such that
+**Theorem O.** Fix d >= 1 and C independent of the external oracle H. Assume
+H-ex(C), inner C-completeness and NV witness completeness/statement linkage at
+every required level. Also assume the honest outer prover, on the resulting
+valid relation witness, makes at most Q_out H-queries and is accepted with
+probability at least 1-epsilon_comp. Then in M(C) there exists an adversary
+using at most Q_out H-queries which produces an accepted outer proof naming a
+false base statement with probability at least 1-epsilon_comp.
 
-  Pr_H[ V_d^H accepts (x_d, π_d) ∧ the chunk statement named by x_d is false ] ≥ 1 − 2⁻¹⁰⁰⁰.
+*Proof.* Choose the accepting false base pair furnished by H-ex(C). An
+unbounded adversary can find it without H-queries, or take it as nonuniform
+advice independent of H. Apply witness completeness and inner C-completeness
+at levels 1,...,d-1. This yields a concrete inner accepting proof naming the
+same false base statement, still without querying H. Its honest NV_d witness
+satisfies the outer relation by witness completeness. Run the assumed outer
+prover with H on that witness. Its query bound and acceptance probability are
+exactly Q_out and 1-epsilon_comp, and statement linkage preserves falsity. ∎
 
-*Proof.*
-1. **Inner layers, no H-queries.** A hard-codes (x₀, π₀) from H-ex(C). It needs no H-query to
-   find them: they exist independently of H (C is independent of H, Remark 1.2), and A is
-   unbounded in time (or takes them as non-uniform advice). For i = 1, …, d−1, A runs the honest
-   layer-i prover with hash C (case (a): computing F; case (b): any consistent answers) on the
-   honest NV_i witness that encodes π_{i−1}. By NV-faithful's converse direction (the honest NV_i
-   witness exists whenever V_{i−1}^C accepts — this is NV completeness, which the circuit lane
-   proves together with Lemma 7.1) and C-completeness, V_i^C(π_i) = 1, with x_i linked to x_{i−1}
-   by (F3). None of this touches H.
-2. **Final layer.** A runs the honest layer-d prover **with H** on the honest NV_d witness for
-   π_{d−1} (valid: π_{d−1} is V_{d−1}^C-accepting, which is exactly what R_{vk_d} certifies in
-   M(C)). Its H-queries are its commitment hashing (≤ 2³⁰ for a domain of 2^{log h + b} = 2²⁷
-   leaves plus folds and the W columns' leaf hashing) and its PoW grinding (≤ 8 query moves,
-   capped at 2⁴² attempts each). So Q_hon ≤ 2⁴⁶ ≪ t = 2⁶⁴.
-3. **Acceptance.** SWIRL with H is perfectly complete except for the PoW and sampler caps. With
-   z = 32 and a cap of 2⁴² attempts per move, a move fails with probability (1 − 2⁻³²)^{2⁴²} ≤
-   e^{−2¹⁰}; the sampler-cap failure is ≤ (1/16)^{12·2²⁰} per move (PROOF Lemma 6.3). Union over
-   ≤ 2¹⁰ moves: failure ≤ 2⁻¹⁰⁰⁰.
-4. **Falsity.** By (F3), the base-statement digest in x_d equals x₀'s, which is false. ∎
+A numerical query-only contradiction follows **if** Q_out is below the claimed
+query budget and 1-epsilon_comp exceeds the claimed failure bound. The previous
+numbers Q_out <= 2^46 and epsilon_comp <= 2^-1000 have not been re-established
+for the pinned implementation; the prior sampler-cap argument was invalid.
 
-**Remark 2.1 (consistency with PROOF.md).** Thm O does not contradict the Main Theorem, which
-assumes A-IC. It shows that, read inside the model in which Thm 6.4 is proven, **A-IC is false**
-for the adversary of Thm O: the pairs Q_d(T_d) are C-pairs that A never queried (case (a): they
-are F-values, and F ≠ H; case (b): they are arbitrary). So A-IC can only be read as a statement
-about time-bounded, real-world adversaries — outside every oracle model. This agrees with the
-derivation from BCG24's §2.4 flip technique (BCG24 itself only proves the relation-level
-impossibility, Thms 4.1/5.1/6.1; see REPORT §1).
+**Interpretation.** Within these hypotheses, query-only recursive semantic
+security requires either excluding the false inner pair (perfect inner
+soundness), restricting the adversary's computational/advice capabilities, or
+changing the relation/model. This is a necessity result under explicit premises,
+not evidence that a runtime restriction suffices. Literal consistency between
+concrete SHA and an independent H has a separate marginal obstruction even for
+fixed efficiently computed pairs (`Qrom.OracleBridge`).
 
 ---
 
@@ -186,105 +205,250 @@ statistically sound succinct non-interactive proof with a fixed hash, which fail
 
 ---
 
-## 4. Corollaries
+## 4. Consequence for the paper
 
-**Corollary O.1 [T].** Suppose a proof establishes: "for every quantum adversary making ≤ 2⁶⁴
-queries to SHA-384-as-random-oracle (no time bound), Pr[V_d accepts ∧ chunk statement false] ≤
-2⁻¹²⁸", for some d ≥ 1, in any model satisfying Definition 1.3. Then ¬H-ex(graph SHA-384): V₀ with
-concrete SHA-384 is perfectly sound.
+Under Theorem O's completeness and budget premises, a query-only recursive
+soundness theorem with error below 1-epsilon_comp would imply the negation of
+H-ex(C). This is its precise contrapositive. No proof of perfect soundness or
+its negation for the concrete SHA-384 base verifier is supplied here.
 
-*Proof.* Contrapositive of Theorem O (with C-completeness, which the running system exhibits;
-if it failed, π₁ would not exist, but then also no honest recursion would run). ∎
-
-So the contract U-2 + U-6, as worded (query-bounded only), **cannot be met by any proof** for the
-recursive claim; it can only be met (a) for the non-recursive base proof (PROOF Cor 6.5), or
-(b) under an assumption that ties in-circuit computation to the oracle or bounds the
-adversary's time.
-
-**Corollary O.2 [T] (the precise obstruction).** In PROOF Thm 7.4, steps 1, 2 (bullet 1), 3 and 4
-hold in M(graph F). Step 2 bullet 2 — "by A-IC, every hash in Q_i(T_i) is D-consistent" — is the
-only step that fails, and by Theorem O no argument confined to M(C) can replace it, for any C
-(Remark 1.2 makes C independent of H in every oracle model). A replacement must leave M(C) in one
-of three ways:
-* (i) **bound the adversary's time** on in-circuit hash computation (standard-model assumption on
-  SHA-384) — the best such reduction is Lemma P;
-* (ii) **make the certified relation H-dependent**: either the native verifier re-queries every
-  certified pair (CGSY24 Thm 6.5; proof grows by every in-circuit hash input of every layer, i.e.
-  by at least the size of π₀ itself, so it is dominated by sending π₀) or the oracle is algebraic
-  (AROM, CCGOS23 Thm 9.4: classical only, asymptotic, an uninstantiable random-extension
-  assumption, SHA-384 has no low-degree arithmetization);
-* (iii) **identify** in-circuit evaluations with oracle queries (A-IC, or CGSY24 §2.3's conjecture
-  "attacks on the real scheme are no more effective than on the idealised one").
+The computational peeling route instead bounds the resources of the extracted
+inner adversary. It is a separate conditional theorem, stated next. Its cost
+and advice model must be explicit; calling it A-IC(τ) does not discharge these
+requirements.
 
 ---
 
-## 5. Lemma P (peel one layer into the standard model)
+## 5. Corrected Lemma P: conditional peeling accounting
 
-**Setting (model M_mix).** Layer d's native prover and verifier use FS/Merkle hash domain P_fin,
-modelled as a QRO H. Every hash computed inside any circuit (layers 1..d verify layers 0..d−1)
-uses domain P_in ≠ P_fin, evaluated concretely: F := SHA-384(P_in-framed ·). This needs P_fin to
-be a final-layer-only prefix (REPORT §5, change H-1); in the code today the prefix is shared, so
-M_mix does not describe the code yet. The adversary A is quantum with ≤ t H-queries and running
-time τ_A (F counted as ordinary gates).
+**Scope.** The final layer uses an independent QRO on `P_fin`; all in-circuit
+hash evaluations use concrete SHA-384 on `P_in`. The pinned G2 implementation
+already separates these domains (`new_final` and the final node prefix). The
+old statement that H-1 is absent from the code is obsolete. No construction
+change is proposed.
 
-**Assumption S_{d−1}(τ, ε_S) [A, standard model].** No quantum algorithm of time ≤ τ outputs
-(x_{d−1}, π_{d−1}) with V_{d−1}^F(π_{d−1}) = 1 and the base statement named by x_{d−1} false, with
-probability > ε_S.
+Let `p` be the real outer false-statement acceptance probability and `p_D` the
+corresponding measured-database event. Suppose the actual family proof supplies
 
-**Lemma P [T].** Assume NV-faithful(d) (Lemma 7.1 with SHA-384 = F) and T\* for layer d. For every
-A as above there is B (no oracle) with τ_B ≤ τ_A + Sim(t) + Ext such that
+```
+sqrt(p) <= sqrt(p_D) + sqrt(slack),   slack = ell_V / 2^336,
+```
 
-  Pr[A wins in M_mix] ≤ ( √Pr[B breaks S_{d−1}] + 2⁻¹⁶⁰ )² + (t′G)²,
+and an implemented extraction reduction B satisfies
 
-with t′, G as in PROOF Thm 6.4 for the one-element family {vk_d}. Here Sim(t) is the cost of
-simulating Zhandry's compressed oracle for t queries and measuring D, and Ext = poly(n) is the
-cost of reading π_d's transcript from D and list-decoding T_d (PROOF S-25, Guruswami–Sudan).
+```
+p_D <= Pr[B breaks the concrete inner system] + epsilon_bad + delta_sim.
+```
 
-*Proof.*
-1. B runs A with H replaced by the compressed oracle on the P_fin domain. This is a perfect
-   simulation [P: Zha19]. A's F-computations are ordinary computation, unaffected.
-2. B measures D and reads A's output π_d.
-3. By PROOF Thm 6.4 step 7 (Fact A) applied to the event W = "V_d^H accepts and the base statement
-   is false": √Pr_real[W] ≤ √Pr_D[π_d is D-consistent, accepting, statement false] + √(ℓ_V/2³³⁶),
-   with √(ℓ_V/2³³⁶) ≤ 2⁻¹⁶⁰.
-4. By Thm 6.4 steps 2–6 (one IOP, family {vk_d}), Pr[κ(D) = 1] ≤ (t′G)². If κ(D) = 0 and π_d is
-   D-consistent and accepting, then by step 8 the round-0 list Λ₀ contains c with
-   T_d := unstack(c) ∈ R_{vk_d}(x_d), and B finds it by list decoding.
-5. B outputs π_{d−1} := dec_d(T_d), x_{d−1} := pv_d(T_d). By (F1) with F, V_{d−1}^F accepts; by
-   (F3) the base statement is x_d's, which is false on the event W.
-6. So Pr[B breaks S_{d−1}] ≥ Pr_D[D-consistent accepting false] − (t′G)², and rearranging gives
-   the claim. ∎
+Here `epsilon_bad` is the proved outer bad-event probability and `delta_sim`
+bounds the event-probability discrepancy of an approximate simulator/extractor.
+For an exact simulation, `delta_sim = 0`. If the stated inner security game
+bounds B's success by `epsilon_S`, then
 
-**Corollary P.1 (concrete accounting) [T, given the simulation cost].** With t = 2⁶⁴, (t′G)² and
-2⁻¹⁶⁰ are as in PROOF §9 (total 2⁻¹³⁵·²). The inner assumption is needed at time
-τ = τ_A + Sim(2⁶⁴).
-* A straightforward compressed-oracle implementation keeps a database of ≤ t entries and touches
-  all of them per query: Sim(t) = Θ(t²·n) ≈ 2¹³⁸ gates. At time 2¹³⁸ the inner layer is broken by
-  generic quantum grinding with success ≈ τ²·ε_rbr = 2²⁷⁶·2⁻²⁶⁸·⁵ > 1, and the 336-bit node
-  digests admit BHT collisions at 2¹¹². So **S_{d−1}(2¹³⁸, 2⁻¹²⁸) is false**, and Lemma P yields
-  nothing at the contract level.
-* If Sim(t) = Õ(t)·poly(n) (gate **G-P1**: not established here; known efficient simulations are
-  only stated as poly(t, n) per query), τ ≈ 2⁶⁴⁺ᶜ and S_{d−1} is not contradicted by any generic
-  attack (τ²ε ≈ 2^{128+2c−268.5}).
-* Even then, S_{d−1} is an adaptive-soundness assumption for a SNARG for NP with a fixed hash.
-  It is not falsifiable in Naor's sense, and Gentry–Wichs (ePrint 2010/610, Thm 5.1) rules out
-  black-box reductions of it to any falsifiable assumption. It is the depth-(d−1) system's own
-  security. So Lemma P *relocates* A-IC (to a standard-model statement about the inner system)
-  rather than removing it.
+```
+p <= (sqrt(epsilon_S + epsilon_bad + delta_sim) + sqrt(slack))^2.
+```
 
----
+This scalar implication is checked in `Qrom/Peeling.lean`. The former expression
+`(sqrt(epsilon_S) + sqrt(slack))^2 + epsilon_bad` omitted a cross term.
+The same file checks a counterexample with `epsilon_S = 0`,
+`epsilon_bad = slack = 1/16`, `p_D = 1/16` and `p = 1/4`.
+These scalar results do not construct B or discharge the protocol premises.
 
-## 6. Status
+B's required resource bound is
 
-| item | tag | open step |
-|---|---|---|
-| Thm O | [T] | uses NV completeness (circuit lane) and C-completeness (exhibited by the running system) |
-| Lemma E.1 | [T] protocol level | — |
-| Lemma E.2 | [T] | — |
-| Lemma E.3 | [S] | step 3: case check of message families over all PIOP sub-protocols |
-| Cor O.1, O.2 | [T] | — |
-| Lemma P | [T] | requires P_fin ≠ P_in (change H-1, not in code) |
-| Cor P.1 | [T] | G-P1: quasi-linear compressed-oracle simulation |
+```
+T_B <= T_A + T_init + T_sim(q_sim, lambda, delta_sim)
+             + T_measure(q_sim, lambda) + T_extract(q_sim, n).
+```
+
+Charge simulated verifier queries, long-output expansion, database readout,
+list recovery and trace decoding. `T_extract = poly(n)` independent of the
+measured database is not established. The exact decoder at the actual O-2
+radius needs a concrete cost bound; citing an existential codeword or an
+asymptotically polynomial decoder is insufficient at the headline parameters.
+
+**Inner assumption.** State the setup distribution, parameter family, permitted
+advice and preprocessing, memory model, time unit and success event. In
+particular, with a deterministic fixed public verifier, any existing short
+accepting false pair can be hard-coded into a nonuniform adversary and output
+in time linear in its length. Charging only online time cannot exclude it.
+An assumption quantifying over arbitrary setup-dependent advice would therefore
+be false whenever such a pair exists. Uniformity alone does not repair a
+concrete fixed-instance statement quantified over all algorithms: a finite
+hard-coded pair is also computable. An asymptotic uniform-family claim, a game
+that fixes the adversary before fresh randomness, or a precisely charged
+preprocessing model must be specified and justified before calling `S_(d-1)`
+meaningful. None follows merely from the name "standard-model security"; this
+note does not alter the implementation to introduce a setup.
+
+The result, when all premises are established, relocates the recursive semantic
+assumption to the inner concrete system. It does not prove the inner assumption,
+nor is it currently a complete protocol theorem.
+
+## 6. G-P1: the exact investigation and present result
+
+**Question.** For arbitrary adaptive q-query adversaries, is there an online
+compressed-oracle simulator, with a readable final database and the required
+joint-state equivalence, whose total ordinary bounded-arity quantum gate count
+is `q * poly(lambda, log q, log(1/delta))`? Include initialization, reversal,
+conversion to the measurement basis and extraction. Require a concrete
+approximation error `delta`; exact simulation is a stronger variant.
+
+**Literature baseline.** Don–Fehr–Majenz–Schaffner, Theorem 4.3 and Appendix B,
+state total simulator time `O(q_RO*q_E*Time[f] + q_RO^2)` for their sparse
+representation. This provides a quadratic upper bound, not a lower bound on
+all simulators. The sorted representation and its readout are described
+explicitly. [Online-Extractability in the QROM](https://arxiv.org/pdf/2103.03085)
+
+The September 2026 version of Foxman–Lombardi–Ma–Nehoran–Wright defines efficient
+on-the-fly simulation as polynomial time in the query number and `log N`; that
+definition does not supply the quasi-linear bound sought here (§3).
+[Quantum Lazy Sampling and Path Recording for Any Group](https://arxiv.org/pdf/2606.30281)
+
+**Candidate route and cost boundary.** A coherent dictionary could avoid a
+linear scan if lookup, insertion and deletion have polylogarithmic cost, preserve
+one canonical encoding per database, and uncompute all temporary information.
+Ambainis §6 explicitly uses quantum random-access gates for its history-independent
+data structure and explains why retaining insertion history changes interference.
+That is evidence for a route in an augmented memory model, not an ordinary-gate
+implementation of G-P1. [Quantum walk algorithm for element distinctness](https://arxiv.org/abs/quant-ph/0311001)
+
+A classical balanced tree or hash table is insufficient: quantum lookup must
+work on superpositions, and two paths reaching the same database must interfere
+as the same encoded state. A randomized dictionary also needs a worst-case
+coherent execution bound and a bound on bad-seed amplitude, not merely expected
+classical lookup time. Adding unit-cost QRAM/QRAG to the reduction requires the
+inner security assumption to use that stronger model too.
+
+### G-P1-C: a lower bound in the fixed-interface circuit model
+
+**Model.** The simulator is online and black-box: it receives only each oracle
+query/answer register and has private memory. Call j is implemented by a fixed
+circuit U_j of one- and two-qubit gates, chosen independently of the query value,
+private random data and the adversary's code. It may use arbitrary encodings,
+ancillas, entanglement and query-number-dependent preprocessing; count all gates
+between one returned answer and the next. All data-dependent controls are
+represented as circuit gates. No unit-cost QRAM, uncharged classical memory
+lookups/feedback, data-dependent circuit descriptions, or access to the
+adversary's saved answers is supplied. The answer is returned on a fixed wire.
+This is the coherent circuit implementation of the universal compressed-oracle
+interface, not a lower bound on every conceivable security reduction.
+
+**Proposition G-P1-C [written proof; not a fully formalized quantum theorem].**
+Let q = 2r and let the oracle domain contain r distinct inputs. Any such
+simulator perfectly reproducing a random function for every q-query adversary
+uses at least `r(r-1)` two-qubit gates in its last r calls. Therefore its total
+ordinary gate count is Ω(q²), even for one-bit outputs. For a simulator whose
+complete output distributions are within statistical distance δ < 1/4 for
+every such adversary, the bound becomes
+
+```
+r * (r * (1 - h_2(2*delta)) - 1),
+```
+
+where `h_2` is binary entropy. In particular a fixed sufficiently small δ still
+gives Ω(q²). A trace-distance guarantee on the joint interaction implies the
+statistical-distance premise used here.
+
+**Proof.**
+
+1. The adversary first queries fixed distinct inputs x_1,...,x_r with blank
+   answer registers and saves their first output bits Y_1,...,Y_r in its private
+   memory. In the ideal experiment Y is uniformly distributed on {0,1}^r.
+   In subsequent calls it uses a fresh blank answer register. Fix any later
+   call j, after a fixed sequence of repeated queries to x_1. Just before this
+   call, condition the simulator's private state on the initial saved string Y.
+   Write that conditional state as rho_Y. It is independent of the as-yet
+   unchosen next index i. Tracing out other adversary registers is harmless.
+
+2. Run U_j backwards from its designated output bit, collecting the input
+   wires in its causal cone. A one-qubit gate adds no wire; a two-qubit gate
+   intersecting the cone adds at most one. Thus a circuit with g_j two-qubit
+   gates has at most g_j+1 input wires in this cone. Let C_j be the subset of
+   simulator memory wires in it. The reduced state sigma_Y on C_j determines
+   the output statistics for every address x_i: prepare that address and the
+   blank answer locally. Operations outside the cone cannot signal to the
+   output, including when the memory is entangled. Crucially C_j is the same
+   subset for every i because the circuit is fixed.
+
+3. In the exact case, measuring that output recovers Y_i with certainty for
+   every Y and i. Hence Y -> sigma_Y is a perfect quantum random-access code
+   for r independent bits. The perfect case of Nayak's random-access-code bound
+   gives |C_j| >= r. Equivalently, states for two different Y must have
+   orthogonal supports, since some decoder distinguishes a differing bit
+   perfectly; the encoding space consequently has dimension at least 2^r.
+   Therefore g_j >= r-1. This argument applies to every j = r+1,...,2r,
+   using the same fixed prefix and fixed repeated-query continuation. Summing
+   proves the exact claim.
+
+4. For the approximate case, the simulated prefix distribution mu of Y is
+   within δ of uniform. For each i, the test that the next answer differs from
+   saved Y_i has probability at most δ under mu. Reweighting to uniform adds
+   at most δ, since the conditional error is a function into [0,1]. Define
+   rho_Y arbitrarily on zero-probability strings. The resulting random-access
+   code has uniform-average bit error at most 2δ for each index. The average-
+   error form of the same information bound gives
+   `|C_j| >= r*(1-h_2(2δ))`. To see this form directly, for uniform independent
+   bits, the chain rule and strong subadditivity give
+   `I(Y:C_j) >= sum_i I(Y_i:C_j)`; data processing and binary Fano bound each
+   term below by `1-h_2(error_i)`, while `I(Y:C_j) <= |C_j|` for a classical-
+   quantum encoding. Concavity of binary entropy gives the displayed bound.
+   Repeating the gate-cone count and summing proves the approximate claim. ∎
+
+The information-theoretic ingredient is
+[Nayak, Theorem 2.3](https://arxiv.org/pdf/quant-ph/9904093).
+The application to this online simulator and its causal cones is the argument
+above, not a claim that Nayak states G-P1-C. `Qrom/QueryCost.lean` checks only
+the finite cone-cardinality induction and the conditional gate-count inference;
+it does not formalize quantum causality, trace distance or the information bound.
+Independent review of the full model-to-lower-bound argument remains necessary.
+
+**Output width and the headline time cap.** For an m-bit output, keep all
+rm independent prefix bits and take the union of the backward cones of the m
+fixed answer wires. Its input size is at most g_j+m. A decoder can select any
+of the m returned bits after choosing any of the r addresses, so the perfect
+random-access-code bound gives `g_j >= m(r-1)`. The total is at least
+`m*r*(r-1)`; with statistical error δ the bound is
+`r*(rm*(1-h_2(2δ))-m)` by the same proof. For q=2^64 and m=336, the exact
+lower bound is `336*2^63*(2^63-1) > 2^128` gates. The last inequality and the
+multi-output cone count are checked in `Qrom.QueryCost`. Thus the universal
+exact circuit simulator alone exceeds the proposed 2^128-gate reduction budget;
+this says nothing by itself about an attack on the inner system. It also does
+not price a QRAM or parallel-depth resource model.
+
+**Scope checks.** Arbitrary preprocessing and encodings do not evade this
+argument if all information about Y remains in private qubits and every call
+uses the stated fixed circuit interface. Measuring Y into an uncharged classical
+controller and compiling a different circuit per Y leaves this model. So does
+letting the simulator read the adversary's saved Y. A QRAM lookup is a many-wire
+primitive and is likewise outside the two-qubit-gate accounting. A reduction
+that inspects or recompiles the adversary, a computational rather than statistical
+simulation, or a different time/memory model is not excluded by G-P1-C.
+
+**Verdict.** G-P1 is negative for the universal fixed-interface ordinary-circuit
+simulator specified above, subject to review of this written proof. The broader
+question under other computation models remains open here. A quasi-linear QRAM
+route would require an explicit stronger-model inner assumption and a coherent
+dictionary proof; it cannot be used as an ordinary-gate result. No security
+headline is upgraded on the strength of this cost investigation alone.
+
+## 7. Consequences for the paper and endpoint
+
+* Keep outer-layer security and recursive semantic security as distinct claims.
+  The repaired abstract QROM inequality is proved; the actual family premises
+  remain open. Do not label the latter fully proved by citing the former.
+* Theorem O supports a **conditional** query-only obstruction. Its hypotheses
+  must remain visible. It does not establish literal concrete-SHA/independent-RO
+  consistency under a runtime cap, nor the necessity of that particular A-IC.
+* A-IC(τ) remains a proposed research endpoint requiring a coherent game. G-P1
+  may make a different, explicit inner-system assumption usable; it cannot
+  repair an inconsistent oracle-identification assumption by itself.
+* R5 (`D3_WASM_REQUIREMENTS.md` §2.5) ships capped D3 without composition.
+  The recursive assumption is not a premise of that admission path. This
+  research tail and its 293,077-byte measurement are separate from deployment.
+* U-7 remains SHA-384 throughout. No lattice or algebraic-hash wrapper is funded
+  by this investigation; relaxing U-7 would be a separate user decision.
 
 ## References
 BCG24 = Barbara–Chiesa–Guan, ePrint 2024/728 (TCC 2025), Defs 3.5, 3.13, 3.14; Thms 4.1, 5.1, 6.1;

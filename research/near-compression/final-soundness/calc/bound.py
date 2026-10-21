@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""End-to-end soundness bound for the PQ recursive SWIRL stack (lane/pq-final-soundness).
+"""Historical parameter calculation; NOT an established security bound.
+
+The family constants and recursive model used below are unproved/withdrawn.
+These are historical study shapes, not the measured G2 VK. Use audit_g2.py for
+artifact checks and exact query arithmetic; neither script establishes security.
 
 Evaluates every term of PROOF.md:
   * the per-move round-by-round knowledge (rbr-KS) errors of one SWIRL layer
@@ -12,7 +16,8 @@ Evaluates every term of PROOF.md:
     simulation factor t -> 2t of Lemma 6.3;
   * cross-checks: CMS19 Thm 8.6 constants and CDHZ (ePrint 2025/2166) Thm 11.3 + 6.10.
 
-Asserts that the total is <= 2^-128 at t = 2^64 quantum queries, or prints the shortfall.
+Checks that the historical formula evaluates below 2^-128; this is only an
+arithmetic regression. --require-security exits 2 because proof obligations remain.
 
 Default regime: **U-13** (user decision 2026-10-18; MCA-UPGRADE.md).  The proximity inputs of
 PROOF.md section 4 come from DKT26 (ePrint 2026/2056; Lean: github.com/quangvdao/ArkLib @ a5aa2677):
@@ -205,11 +210,11 @@ def main_u13():
     eps = worst_all[0]
     tot = fs_bound_k0(eps, T_LOG)
     print(f"eps_rbr-KS (max over all moves of all layers) = 2^{eps:.2f}   [{worst_all[1]}]")
-    print(f"Theorem 6.4 / 7.4: total <= 2^{tot:.2f};  conservative union over 7 layers 2^{tot + LOG2(7):.2f}")
+    print(f"WITHDRAWN formula (unestablished premises): value = 2^{tot:.2f};  conservative union over 7 layers 2^{tot + LOG2(7):.2f}")
     print(f"   cross-checks: CMS19 2^{cms19(eps, T_LOG):.2f};  CDHZ 2^{cdhz(eps, T_LOG):.2f}")
     margin = GOAL - (tot + LOG2(7))
-    print(f"{'PASS' if margin >= 0 else 'FAIL'}: total <= 2^{GOAL} with {margin:.2f} bits margin (7-layer union), "
-          f"conditional on GAPS.md (A-IC(tau), NV-faithful, Base-faithful, T*, DKT26->WHIR step paper-level).")
+    print(f"{'FORMULA BELOW TARGET' if margin >= 0 else 'FORMULA ABOVE TARGET'}: value <= 2^{GOAL} with {margin:.2f} bits margin (7-layer union), "
+          f"NOT a security result; see GAPS.md for unproved premises and the retired A-IC model.")
     assert margin >= 0
 
 
@@ -244,32 +249,36 @@ def main():
     eps = worst_all[0]
     print(f"eps_rbr-KS (max over all moves of all layers) = 2^{eps:.2f}   [{worst_all[1]}]")
     tot = fs_bound_k0(eps, T_LOG)
-    print("\nTheorem 6.1 / 7.2 (one compressed database for all d+1 layers; T* transcript):")
+    print("\nWITHDRAWN family formula (unestablished premises):")
     print(f"   t' = 2t (Lemma 6.3) ; G^2 = 10 max(3t'/2^{NARROW}, eps + 2^{J_LOG}(2t'+1)/2^{WIDE})")
-    print(f"   total soundness/extraction failure  <= 2^{tot:.2f}")
+    print(f"   historical formula value = 2^{tot:.2f}")
     for d in (6, 7):
         print(f"   conservative union over d+1 = {d + 1} layers: 2^{tot + LOG2(d + 1):.2f}")
     print("\ncross-checks (not used for the claim):")
     print(f"   CMS19 Thm 8.6 constants 6(t^2 eps + 4t^3/2^336):        2^{cms19(eps, T_LOG):.2f}")
     print(f"   CDHZ Thm 11.3 + 6.10 + 8.3 (w <= t, k = 200 rounds):   2^{cdhz(eps, T_LOG):.2f}")
-    print("\ncode as written (sequential squeeze chain, PoW bits in the absorb output):")
+    print("\nhistorical sequential-squeeze snapshot (superseded by the G2 T* implementation):")
     no_grind = eps + Z
-    print(f"   no proven grinding credit -> eps = 2^{no_grind:.2f} -> Thm 6.1 gives "
+    print(f"   no proven grinding credit -> eps = 2^{no_grind:.2f} -> old formula gives "
           f"2^{fs_bound_k0(no_grind, T_LOG, factor=1):.2f}  (and even this needs the one-call model [H-M])")
 
     margin = GOAL - (tot + LOG2(7))
     print()
     if tot + LOG2(7) <= GOAL:
-        print(f"PASS: total <= 2^{GOAL} with {margin:.2f} bits margin (conservative 7-layer union), "
-              f"conditional on the assumptions listed in GAPS.md (A-IC, NV-faithful, Base-faithful, T* transcript).")
+        print(f"FORMULA BELOW TARGET: value <= 2^{GOAL} with {margin:.2f} bits margin (conservative 7-layer union), "
+              f"NOT a security result; family, sampler, WHIR and recursive-model obligations remain.")
     else:
-        print(f"FAIL: total exceeds 2^{GOAL} by {-margin:.2f} bits")
+        print(f"FORMULA ABOVE TARGET: value exceeds 2^{GOAL} by {-margin:.2f} bits")
     assert tot + LOG2(7) <= GOAL
 
 
 if __name__ == '__main__':
     import sys
+    print('HISTORICAL CALCULATION ONLY: security is NOT established; these are not the G2 parameters.\n')
     if '--bcgm' in sys.argv:
         main()
     else:
         main_u13()
+
+    if '--require-security' in sys.argv:
+        sys.exit(2)

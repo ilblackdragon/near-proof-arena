@@ -1,0 +1,6 @@
+'Qrom.Stacking.eq_append' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Qrom.Stacking.rot_append' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Qrom.Stacking.prism_chunk' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Qrom.Stacking.whole_column_delta' depends on axioms: [propext]
+'Qrom.Stacking.rot_boolean' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Qrom.Stacking.prism_chunk_address' depends on axioms: [propext, Classical.choice, Quot.sound]

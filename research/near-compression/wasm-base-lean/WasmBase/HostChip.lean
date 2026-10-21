@@ -131,7 +131,18 @@ def hostCtxFns : List (Nat × String × Nat × Nat) :=
    (41, "current_contract_code", 1, 1), (42, "gas", 1, 0),
    (43, "validator_total_stake", 1, 0), (44, "validator_stake", 3, 0)]
 
-def hostFns : List (Nat × String × Nat × Nat) := hostFnsBase ++ promiseFns ++ hostCtxFns ++ hostLogFns
+/-- The four D3α hash host functions (`lane/pq-hash-air`), ids 53..56.  All are `(3, 0)` in the
+PV86 linker table (`HostSigs.lean:33-38`): `sha256(len, ptr, reg)` etc., all `i64` parameters and
+no result word — the answer goes into a register.  Appended **last**, so every previously assigned
+id stays stable. -/
+def hostHashFns : List (Nat × String × Nat × Nat) :=
+  [(53, "sha256", 3, 0), (54, "keccak256", 3, 0), (55, "keccak512", 3, 0), (56, "ripemd160", 3, 0)]
+
+def hostFns : List (Nat × String × Nat × Nat) :=
+  hostFnsBase ++ promiseFns ++ hostCtxFns ++ hostLogFns ++ hostHashFns
+
+/-- The hash ids in the fixed table. -/
+def hostHashIds : List Nat := [53, 54, 55, 56]
 
 /-- The HOST row accepts up to 9 arguments and at most one result. -/
 def hostShapeOk (np ar : Nat) : Bool := np ≤ 9 && ar ≤ 1
@@ -354,9 +365,17 @@ def gHi : Expr := v (ga + 2) + 65536 * v (ga + 3)
 def rLo : Expr := v rb + 65536 * v (rb + 1)
 def rHi : Expr := v (rb + 2) + 65536 * v (rb + 3)
 def qMsg : List Expr := (List.range qLen).map fun i => v (q i)
+/-- The oracle's two interactions, named so that an extension table (`WasmBase.Chips.HostOH`) can
+keep them and append its own.  `table` stays spelled out exactly as before, so every proof that
+unfolds it is unaffected. -/
+def inters : List Inter := [
+  ⟨busHostQ, false, v mult, qMsg⟩,
+  ⟨busHostR, true, v mult, [v (q 0), v st, rLo, rHi, gLo, gHi, v ar, 0]⟩]
 def table : Table := ⟨"HOSTO", cols, [], [
   ⟨busHostQ, false, v mult, qMsg⟩,
   ⟨busHostR, true, v mult, [v (q 0), v st, rLo, rHi, gLo, gHi, v ar, 0]⟩]⟩
+
+theorem table_inters : table.inters = inters := rfl
 end HostO
 
 /-! ## HOSTB: the byte-string wire of a host call

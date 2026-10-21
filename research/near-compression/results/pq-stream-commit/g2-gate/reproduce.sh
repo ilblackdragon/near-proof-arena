@@ -4,7 +4,8 @@
 #   reproduce.sh <fresh DEPS dir> [CARGO_TARGET_DIR]
 # Needs network for the first setup (pinned stark-backend from GitHub, Plonky3 0.4.3 from crates.io,
 # OpenVM v2.1.0-rc.1), the DKT certificate files of lane/pq-dkt-verify @ fb0efdb11 at the paths in
-# MANIFEST.json (or CERTS= / EXCL= pointing at copies with the recorded sha256), ~60 GB RAM, 24 threads.
+# MANIFEST.json (or CERTS= / EXCL= pointing at copies with the recorded sha256).
+# THREADS defaults to 16 and CPUSET to the repository's non-benchmark CPUs.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 NATIVE=$(cd "$HERE/../../../native/recursion" && pwd)
@@ -12,11 +13,36 @@ DEPS=${1:?fresh deps dir}
 export NEARPROOF_PQ_DEPS=$DEPS
 export CARGO_TARGET_DIR=${2:-$DEPS-target}
 mkdir -p "$DEPS"
+export THREADS=${THREADS:-16}
+export CPUSET=${CPUSET:-8-15,24-31}
+export CERTS=${CERTS:-$HERE/../../../final-soundness/calc/dkt_certs_o2.json}
+export EXCL=${EXCL:-$HERE/../../../final-soundness/lean/DKTCertsO2_big.keys}
 # 1. trees: pinned upstreams + stark-backend-unified + openvm-recursion-sha384 + stream overlay + fast CPU overlay
 "$NATIVE/setup_cpu_fast_deps.sh"
 # 2. build (AVX-512 packing; identical bytes without it, only slower)
-( cd "$DEPS/openvm-sha384" && RUSTFLAGS="-C target-cpu=native" cargo test --release -p openvm-recursion-circuit --lib --no-run -j 24 ) 2>&1 | tail -2
-EXE=$(ls -t "$CARGO_TARGET_DIR"/release/deps/openvm_recursion_circuit-* | grep -v '\.d$' | head -1)
+( cd "$DEPS/openvm-sha384"
+  # Test instrumentation only: save intermediate bytes and exercise V_d controls.
+  # Restore the checked source even when the build fails.
+  git apply "$HERE/gate-harness.patch"
+  trap 'git apply -R "$HERE/gate-harness.patch"' EXIT
+  env HEAVY_MEM=${BUILD_MEM:-32G} RUSTFLAGS="-C target-cpu=native" \
+  taskset -c "$CPUSET" /data/illia/nearproof-deps/bin/heavy \
+  cargo test --locked --release -p openvm-recursion-circuit --lib --no-run \
+    --message-format=json-render-diagnostics -j "$THREADS" ) > "$DEPS/build.jsonl"
+# Select Cargo's reported test executable, never an old binary by modification time.
+EXE=$(python3 - "$DEPS/build.jsonl" <<'PY'
+import json, sys
+artifacts = []
+for line in open(sys.argv[1]):
+    event = json.loads(line)
+    if (event.get('reason') == 'compiler-artifact'
+            and event.get('target', {}).get('name') == 'openvm_recursion_circuit'
+            and event.get('profile', {}).get('test') and event.get('executable')):
+        artifacts.append(event['executable'])
+assert len(set(artifacts)) == 1, artifacts
+print(artifacts[-1])
+PY
+)
 mkdir -p "$DEPS/bin"; cp "$EXE" "$DEPS/bin/nv-g2s"
 # 3. run (writes $DEPS/ckpt/g2gate/{run.log,L*.proof,FINAL.proof})
 BIN="$DEPS/bin/nv-g2s" OUT="$DEPS/ckpt/g2gate" "$NATIVE/run_g2_chain.sh" g2gate

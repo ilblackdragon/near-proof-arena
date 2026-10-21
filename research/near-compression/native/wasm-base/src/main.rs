@@ -9,6 +9,7 @@
 //!       Lean/Rust differential test (Rust side: the verifying key's symbolic DAG)
 #[allow(dead_code, clippy::all)]
 mod config;
+mod sha;
 mod air;
 mod tracegen;
 
@@ -650,6 +651,34 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
                 Box::new(|_| F::from_u64(65536)))));
         }
     }
+    // SHA-256: a digest bit, the digest multiplicity, a schedule word, a data flag, and the
+    // message-level columns (the call summary and the register key)
+    if let Ok(ts) = std::panic::catch_unwind(|| tb("SHA256")) {
+        let (w, dmult) = (g.mats[ts].width, col(ts, "c543"));
+        let nrows = g.rows_per_table[ts].1;
+        if nrows > 0 {
+            // the digest word 0 bit 0 (`colSt 0 0` = column 96) of the digest row
+            if let Some(r) = (0..nrows).find(|&r| g.mats[ts].values[r * w + dmult] == F::ONE) {
+                cases.push((format!("SHA256[row {r}].digest bit+1"), cell(ts, r, 96, plus1())));
+                cases.push((format!("SHA256[row {r}].sh_len+1"), cell(ts, r, col(ts, "sh_len"), plus1())));
+                cases.push((format!("SHA256[row {r}].sh_hid+1"), cell(ts, r, col(ts, "sh_hid"), plus1())));
+                cases.push((format!("SHA256[row {r}].sh_ts+1"), cell(ts, r, col(ts, "sh_ts"), plus1())));
+                cases.push((format!("SHA256[row {r}].sh_rin+1"), cell(ts, r, col(ts, "sh_rin"), plus1())));
+            }
+        }
+        // a start row's `S` flag: the call summary's receive
+        if let Some(r) = (0..nrows).find(|&r| g.mats[ts].values[r * w + col(ts, "c519")] == F::ONE) {
+            cases.push((format!("SHA256[start row {r}].sh_ts+1"), cell(ts, r, col(ts, "sh_ts"), plus1())));
+            cases.push((format!("SHA256[start row {r}].S=0"), cell(ts, r, col(ts, "c519"), Box::new(|_| F::ZERO))));
+        }
+        // a schedule word column on a round row: breaks `cSched`/`cRound`
+        let round0 = col(ts, "c502");
+        if let Some(r) = (1..nrows).find(|&r| g.mats[ts].values[r * w + round0] == F::ONE) {
+            for c in ["c256", "c384", "c520", "c537"] {
+                cases.push((format!("SHA256[round row {r}].{c}+1"), cell(ts, r, col(ts, c), plus1())));
+            }
+        }
+    }
     // the register wire (channel space 6)
     if let Ok(tr) = std::panic::catch_unwind(|| tb("REG")) {
         let (w, act) = (g.mats[tr].width, col(tr, "act"));
@@ -738,6 +767,9 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
             g.mats[ta].values.swap(c, w + c);
         })));
     }
+    // the SHA-256 cases first: they are the newest and a long run can exhaust memory on the
+    // pre-existing suite before reaching the end of the list
+    cases.sort_by_key(|(n, _)| if n.starts_with("SHA256") { 0 } else { 1 });
     let mut rejected = 0;
     let total = cases.len();
     for (name, m) in cases {
@@ -792,6 +824,75 @@ fn dag_eval(vk: &MultiStarkVerifyingKey<Sha384Config>, ai: usize, cached: usize,
     (cons, ints)
 }
 
+/// **The SHA-256 differential test.**  For each vector, build the table's rows from `src/sha.rs`
+/// (the generator `check`/`prove` use), then read the digest back out of the *committed cells*
+/// through the AIR's own byte layout (`sha::digest_of_row`) and the message back through the `W`
+/// columns and data flags (`sha::message_of_rows`).  Both are compared against `sha2`'s
+/// `Sha256`, i.e. against FIPS 180-4, on: the empty input, one block, the padding boundaries and a
+/// multi-block input.  When a `prep` file is given, the spec's own observed digest (`hid = 53`'s
+/// register fill) is compared too, so the chain is AIR cells = `sha2` = the spec's `sha256`.
+///
+/// This is the differential test the results README reports; it needs no proof, only the trace.
+fn cmd_sha_difftest(prep_path: Option<&str>) {
+    use sha2::{Digest, Sha256};
+    let mut lens: Vec<usize> = vec![0, 1, 3, 55, 56, 63, 64, 65, 100, 119, 120, 127, 128, 129, 200, 1000];
+    if let Some(p) = prep_path {
+        // the vectors the prep actually hashed
+        let ev = sha::spec_vectors(p);
+        lens = ev.iter().map(|v| v.len()).collect();
+    }
+    let mut bad = 0;
+    println!("SHA256 DIFFTEST {} vectors", lens.len());
+    for (i, &n) in lens.iter().enumerate() {
+        // the vector: `byte j = (37 j + 11 i + 5) mod 256` is not used; use a deterministic ramp so
+        // the boundary lengths are exercised with non-trivial bytes
+        let bytes: Vec<u8> = if let Some(p) = prep_path {
+            sha::spec_vectors(p)[i].clone()
+        } else {
+            (0..n).map(|j| ((37 * j + 11 * i + 5) % 256) as u8).collect()
+        };
+        let rows = sha::rows(&[sha::Msg { id: 1, bytes: bytes.clone(), dmult: true }],
+                             1, 0, 53, 0, bytes.len() as u64);
+        let cells = &rows.rows;
+        let msg = sha::message_of_rows(cells);
+        let dg = sha::digest_of_row(sha::last_digest_row(cells).expect("digest row"));
+        let want: [u8; 32] = Sha256::digest(&bytes).into();
+        let ok = msg == bytes && dg == want;
+        if !ok {
+            bad += 1;
+            println!(
+                "  len {n:5}: msg {} digest {}",
+                if msg == bytes { "ok" } else { "MISMATCH" },
+                if dg == want { "ok" } else { "MISMATCH" }
+            );
+        }
+        if let Some(p) = prep_path {
+            let spec = sha::spec_vectors(p)[i].clone();
+            let _ = spec;
+        }
+    }
+    println!("SHA256 DIFFTEST {}/{} vectors: AIR cells == sha2 (message bytes and digest)",
+        lens.len() - bad, lens.len());
+    assert_eq!(bad, 0, "SHA-256 differential test failed");
+    if let Some(p) = prep_path {
+        let evs = sha::spec_events(p);
+        let mut ok = 0;
+        for (i, dg) in evs.iter().enumerate() {
+            let bytes = sha::spec_vectors(p)[i].clone();
+            let rows = sha::rows(&[sha::Msg { id: 1, bytes: bytes.clone(), dmult: true }],
+                                 1, 0, 53, 0, bytes.len() as u64);
+            let mine = sha::digest_of_row(sha::last_digest_row(&rows.rows).unwrap());
+            if mine == *dg {
+                ok += 1;
+            }
+        }
+        println!("SHA256 DIFFTEST spec: {ok}/{} observed `sha256` fills == the AIR's digest rows",
+            evs.len());
+        assert_eq!(ok, evs.len(), "spec vs AIR digest mismatch");
+    }
+    println!("SHA256 DIFFTEST OK");
+}
+
 fn cmd_difftest(air_path: &str, points_out: &str, rust_out: &str, n: usize) {
     set_levers();
     let spec = load(air_path);
@@ -837,6 +938,7 @@ fn main() {
         Some("prove") => cmd_prove(&a[2], &a[3], a.get(4).map(|s| s.as_str()).unwrap_or("small")),
         Some("tamper") => cmd_tamper(&a[2], &a[3]),
         Some("difftest") => cmd_difftest(&a[2], &a[3], &a[4], a.get(5).map(|s| s.parse().unwrap()).unwrap_or(16)),
+        Some("sha-difftest") => cmd_sha_difftest(a.get(2).map(|s| s.as_str())),
         _ => eprintln!("usage: see source header"),
     }
     let _: Option<RowMajorMatrix<F>> = None;

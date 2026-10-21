@@ -2,6 +2,8 @@ import WasmBase.Check
 import WasmBase.HostChip
 import WasmBase.RegChip
 import WasmBase.HostCheck
+import WasmBase.ShaAir
+import WasmBase.ShaSound
 /-!
 `wasmbase-tool` — exporter and verifier-side preparation for the direct-Wasm base layer.
 
@@ -14,6 +16,9 @@ import WasmBase.HostCheck
 * `wasmbase-tool eval <nloc> <ngl> <points>`: evaluate every constraint, interaction count and message
   of `wasmBaseAir nloc ngl` at the given points (difftest; selectors are free field values).
 * `wasmbase-tool evalH <nloc> <ngl> <points>`: the same for `wasmBaseHostAir`.
+* `wasmbase-tool airX <nloc> <ngl>`: `wasmBaseHashAir` (= `wasmBaseHostAir` with `HOSTO`
+  extended by the hash-call summary, plus the SHA256 table).
+* `wasmbase-tool evalX <nloc> <ngl> <points>`: the same for `wasmBaseHashAir`.
 * `wasmbase-tool airR <nloc> <ngl>`: `wasmBaseRegAir` (= `wasmBaseHostAir` plus the REG table).
 * `wasmbase-tool evalR <nloc> <ngl> <points>`: the same for `wasmBaseRegAir`.
 -/
@@ -38,7 +43,7 @@ def WasmBase.Expr.toJson : WasmBase.Expr → String
   | .sub a b => s!"[\"-\",{a.toJson},{b.toJson}]"
   | .mul a b => s!"[\"*\",{a.toJson},{b.toJson}]"
 
-def interJson (i : Inter) : String :=
+def interJson (i : WasmBase.Inter) : String :=
   s!"\{\"bus\":{i.bus},\"send\":{i.send},\"count\":{Expr.toJson i.count},\"msg\":{jList (i.msg.map Expr.toJson)}}"
 
 /-- Number of leading columns committed as a separate cached trace (CODE: the records; DATA: the
@@ -224,6 +229,7 @@ def evalPoints (nloc ncode : Nat) (path : String) (which : Nat := 0) : IO Unit :
   let A := match which with
     | 1 => wasmBaseHostAir nloc ncode
     | 2 => wasmBaseRegAir nloc ncode
+    | 3 => Chips.wasmBaseHashAir nloc ncode
     | _ => wasmBaseAir nloc ncode
   let lines ← IO.FS.lines path
   for ln in lines do
@@ -249,9 +255,11 @@ def main (args : List String) : IO Unit := do
   | ["air", l, n] => IO.println (airJson (wasmBaseAir l.toNat! n.toNat!))
   | ["airH", l, n] => IO.println (airJson (wasmBaseHostAir l.toNat! n.toNat!))
   | ["airR", l, n] => IO.println (airJson (wasmBaseRegAir l.toNat! n.toNat!))
+  | ["airX", l, n] => IO.println (airJson (Chips.wasmBaseHashAir l.toNat! n.toNat!))
   | ["prep", path, exportName, g0] => prep path exportName g0.toNat!
   | ["prep", path, exportName, g0, inp] => prep path exportName g0.toNat! inp
   | ["eval", l, n, path] => evalPoints l.toNat! n.toNat! path
   | ["evalH", l, n, path] => evalPoints l.toNat! n.toNat! path 1
   | ["evalR", l, n, path] => evalPoints l.toNat! n.toNat! path 2
-  | _ => IO.eprintln "usage: wasmbase-tool air|airH|airR <nloc> <ngl> | prep <wasm> <exportName> <g0> [inputHex] | eval|evalH|evalR <nloc> <ngl> <points>"
+  | ["evalX", l, n, path] => evalPoints l.toNat! n.toNat! path 3
+  | _ => IO.eprintln "usage: wasmbase-tool air|airH|airR|airX <nloc> <ngl> | prep <wasm> <exportName> <g0> [inputHex] | eval|evalH|evalR|evalX <nloc> <ngl> <points>"

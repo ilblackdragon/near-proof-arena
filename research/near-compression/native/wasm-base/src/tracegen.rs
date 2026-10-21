@@ -3,6 +3,8 @@
 //! implementation of family F1 over the records; its results are compared with the Lean spec run
 //! (`prep.json`) and with the Python reference interpreter.
 use crate::air::{AirSpec, TableSpec};
+use crate::sha;
+use crate::sha::NCOLS;
 use p3_baby_bear::BabyBear as F;
 use p3_field::{Field, PrimeCharacteristicRing, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
@@ -294,6 +296,24 @@ impl Mem<'_> {
     }
 }
 
+/// The bytes a `sha256(len, ptr, reg)` call hashes: `memOrRegH ptr len` reads register `ptr` when
+/// `len = u64::MAX` (the register branch of `Host.lean:111`) and `[ptr, ptr+len)` from memory
+/// otherwise.  Registers come from the spec's own post-call file (`ev.regs`), so the trace is
+/// exactly what the spec did.
+fn hash_input(mem: &mut Mem, len: u64, ptr: u64, ev: &HostEv) -> Vec<u8> {
+    if len == u64::MAX {
+        let bs = ev
+            .regs
+            .iter()
+            .find(|(id, _)| *id == ptr)
+            .map(|(_, bs)| bs.clone())
+            .unwrap_or_default();
+        bs.into_iter().map(|b| (b & 0xff) as u8).collect()
+    } else {
+        (0..len).map(|i| mem.get(ptr + i).0 as u8).collect()
+    }
+}
+
 fn binop(op: u64, a: u64, b: u64) -> u64 {
     let w: u32 = if (0x7C..=0x8A).contains(&op) { 64 } else { 32 };
     let m: u64 = if w == 64 { u64::MAX } else { 0xffff_ffff };
@@ -377,11 +397,16 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let has_host = air.tables.iter().any(|x| x.name == "HOST");
     let mut host = if has_host { Some(Tab::new(&air.tables[air.index("HOST")])) } else { None };
     let mut hosto = if has_host { Some(Tab::new(&air.tables[air.index("HOSTO")])) } else { None };
+    // `wasmBaseHashAir` extends the oracle with the `sha` flag and the hash-call summary
+    let has_sha = air.tables.iter().any(|x| x.name == "SHA256");
+    // SHA-256 rows, one `ShaRows` per hash call (in call order)
+    let mut sha_calls: Vec<sha::ShaRows> = vec![];
     let mut hostt = if has_host { Some(Tab::new(&air.tables[air.index("HOSTT")])) } else { None };
     let mut hostb = if has_host { Some(Tab::new(&air.tables[air.index("HOSTB")])) } else { None };
     // The register wire (channel space 6): present only in `wasmBaseRegAir` (table index 26).
     let has_reg = air.tables.iter().any(|x| x.name == "REG");
     let mut reg = if has_reg { Some(Tab::new(&air.tables[air.index("REG")])) } else { None };
+    let shat = if has_sha { Some(Tab::new(&air.tables[air.index("SHA256")])) } else { None };
     // indexed by **host id**: the table's ids are not contiguous (`abort`/`write_register`
     // reserve 11/14), so the vector must reach the largest id, not the row count
     let mut host_calls: Vec<u64> =
@@ -512,6 +537,20 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 for (i, v) in req.iter().enumerate() {
                     o.u(&format!("q{i}"), *v);                }
                 o.u("st", ev.st).limbs("r", rl).limbs("g", gl).u("ar", ar).u("mult", 1);
+                if has_sha {
+                    // `sha` is 1 exactly on the four hash ids: the oracle states what the call did
+                    let is_hash = [53u64, 54, 55, 56].contains(&hid);
+                    o.u("sha", is_hash as u64);
+                    if hid == 53 && ev.st == 0 {
+                        // `sha256(len, ptr, reg)`: hash the spec's input bytes
+                        let (len, ptr, reg) = (args[0], args[1], args[2]);
+                        let input = hash_input(&mut mem, len, ptr, &ev);
+                        sha_calls.push(sha::rows(
+                            &[sha::Msg { id: reg, bytes: input, dmult: true }],
+                            ts, 0, hid, ptr, len,
+                        ));
+                    }
+                }
                 // The register wire.  `input` (host id 48) fills register 0 with the spec's
                 // `ctx.input`; `read_register` (49) reads one; `register_len` (6) reads only a
                 // length.  The bytes come from the spec's own post-call register file (`ev.regs`),
@@ -1493,6 +1532,25 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
             hb.row().u("act", 0).u("f", 1).u("gap", 0);
         }
         tabs.insert("HOSTB".into(), hb);
+        if let Some(st_) = shat {
+            let mut st_ = st_;
+            let names: Vec<String> = st_.spec.cols.clone();
+            for sr in sha_calls.iter() {
+                for row in sr.rows.iter() {
+                    let col: Vec<(String, u64)> =
+                        names.iter().take(NCOLS).enumerate().map(|(i, n)| (n.clone(), row[i])).collect();
+                    let mut r = st_.row();
+                    for (n, v) in col {
+                        r.u(&n, v);
+                    }
+                }
+            }
+            // an empty table still needs `≥ 4` padding rows
+            while st_.rows.len() < 4 {
+                st_.row();
+            }
+            tabs.insert("SHA256".into(), st_);
+        }
         if let Some(rg) = reg {
             let mut rg = rg;
             for rec in reg_rows.iter() {

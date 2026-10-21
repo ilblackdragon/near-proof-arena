@@ -6,7 +6,9 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 S=${1:?scratch}; LOG=${2:?logdir}
 mkdir -p "$S" "$LOG"
 TOOL=$HERE/../../wasm-base-lean/.lake/build/bin/wasmbase-tool
-BIN=${WASMBASE_BIN:-/data/illia/nearproof-deps/pq-wasm-base/target/release/nearproof-wasm-base}
+# shellcheck source=bin.sh
+. "$HERE/bin.sh"
+BIN=$(resolve_bin) || exit 1
 RUN="nice -n 10 env HEAVY_MEM=20G taskset -c 8-15 /data/illia/nearproof-deps/bin/heavy"
 export RAYON_NUM_THREADS=8 WASMBASE_POW=0
 python3 "$HERE/programs/gen.py" "$S/progs" 64 256 1024 >/dev/null

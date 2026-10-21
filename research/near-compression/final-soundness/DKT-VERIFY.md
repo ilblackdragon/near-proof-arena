@@ -584,3 +584,44 @@ realizable, which it is not over BabyBear.
 * For the infeasible b8 h20, round 3 is J64 anyway.
 
 All 173 entries pass the engine re-evaluation, and 164 have kernel proofs.
+
+## Measured G2 FINAL scalar-fold transfer (2026-10-21)
+
+`lean/DKTG2FoldCerts.lean` selects the 13 child-code certificates needed by the
+recorded FINAL rounds (1, 4, 4, 4 binary folds). The generator
+`calc/g2_fold_certificates.py` reads the measured round records through
+`calc/audit_g2.py`, checks the pinned certificate inputs, and copies the existing
+kernel proof bodies. It does not promote `#eval!` output into a theorem.
+
+All 13 selected MCA theorems were checked by Lean 4.33.1 against ArkLib commit
+`a5aa2677fee4e3a79d6bb05136631cce4a08587d`. `DKTWhirFold.lean` proves:
+
+* the backend operation `u + (gamma-x)*(u-v)/(2*x)` equals ArkLib's binary fold;
+* primitive even-order cosets give square-paired domains;
+* the coset-major layout with an odd cyclic factor gives such a domain when the
+  declared generator orders and coprimality conditions hold.
+
+`DKTG2FoldTransfer.lean` composes each certificate with ArkLib's
+`exists_parentPolynomial_of_exactAgreement`. It recovers the parent polynomial
+and agreement threshold in the list regime, without unique decoding. Its exact
+rational arithmetic proves that the sum of the 13 rounded exceptional-count
+bounds, divided by `2013265921^12`, is less than `2^-283` (approximately 283.23
+bits). All 30 audited declarations across these three files use only
+`propext`, `Classical.choice`, and `Quot.sound`.
+
+Recheck with:
+
+```sh
+research/near-compression/final-soundness/lean/check_g2_folds.sh \
+  /data/illia/nearproof-deps/arklib-dkt/ArkLib \
+  /data/illia/nearproof-deps/pq-security-lean
+```
+
+**Boundary:** this is a scalar-fold result for FINAL, conditional on the supplied
+field/domain data. It is not full WHIR soundness. Still required are the actual
+Rust domain/index/field correspondence; the history-dependent received-word
+invariant and challenge law; initial multi-column batching; list-size products;
+sumcheck, OOD, shift and final-query terms; and all parent/base family members.
+`Qrom.Adaptive` supplies a classical adaptive counting lemma, but its premises
+have not been instantiated for WHIR or replaced by a QROM reduction. The
+`2^-283` figure must not be substituted for the total proximity or security error.

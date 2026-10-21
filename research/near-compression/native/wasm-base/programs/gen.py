@@ -324,6 +324,52 @@ def regkat():
             'memory': True, 'input': INPUT.hex()}
 
 
+SHA_INPUT = bytes(range(1, 1 + 100))
+
+
+def shakat(nbytes):
+    """`sha256(nbytes, 128, 0)` over a data-image payload at offset 128, then `register_len(0)`:
+    covers the hash's memory branch, the digest register write and its 32-byte length.  The result
+    is `32 * 1000 + 7` if the digest register is 32 bytes long."""
+    imps = [('env', 'sha256', ['i64', 'i64', 'i64'], None),
+            ('env', 'register_len', ['i64'], 'i64')]
+    b = [('i64.const', nbytes), ('i64.const', 128), ('i64.const', 0), ('call', 0),
+         ('i64.const', 0), ('call', 1), ('i64.const', 1000), 'i64.mul', ('i64.const', 7), 'i64.add']
+    return {'name': f'shakat{nbytes}', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps,
+            'memory': True, 'data': [(128, SHA_INPUT[:nbytes])]}
+
+
+def shaloop(n):
+    """`n` `sha256` calls over the same memory range: an empty input, one block, and a multi-block
+    input across the iterations.  The accumulator mixes the digest register's length."""
+    imps = [('env', 'sha256', ['i64', 'i64', 'i64'], None),
+            ('env', 'register_len', ['i64'], 'i64')]
+    b = [('i64.const', 0), ('local.set', 1)]
+    for k in range(n):
+        b += [('i64.const', k), ('i64.const', 128), ('i64.const', 0), ('call', 0),
+              ('local.get', 1), ('i64.const', 1000), 'i64.mul', ('local.set', 1),
+              ('i64.const', 0), ('call', 1), ('local.get', 1), 'i64.add', ('local.set', 1)]
+    b += [('local.get', 1)]
+    return {'name': f'shaloop{n}', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps,
+            'memory': True, 'data': [(128, SHA_INPUT[:n])]}
+
+
+def sharegkat():
+    """The **register** branch of `memOrRegH`: `input(0)` fills register 0 with the 5-byte call
+    input, then `sha256(2^64-1, 0, 1)` hashes register 0 into register 1.  `register_len(1)` is 32,
+    so the result is `32*1000 + 5` (the input register is still 5 bytes)."""
+    imps = [('env', 'input', ['i64'], None),
+            ('env', 'sha256', ['i64', 'i64', 'i64'], None),
+            ('env', 'register_len', ['i64'], 'i64')]
+    b = [('i64.const', 0), ('call', 0),
+         # `len = -1` is `2^64 - 1 = u64Bound - 1`: the register branch of `memOrRegH`
+         ('i64.const', -1), ('i64.const', 0), ('i64.const', 1), ('call', 1),
+         ('i64.const', 1), ('call', 2), ('i64.const', 1000), 'i64.mul',
+         ('i64.const', 0), ('call', 2), 'i64.add']
+    return {'name': 'sharegkat', 'result': 'i64', 'locals': [], 'body': b, 'imports': imps,
+            'memory': True, 'input': INPUT.hex()}
+
+
 def regloop(n):
     """`input(0)`, then `n` rounds of `read_register(0, 64) + i64.load` with the length; the register
     is filled once and read `n` times (the re-entrant case is out of scope: the read rows of later
@@ -478,6 +524,7 @@ def main():
     progs += [hostctxword(), hostctxmem(), hostctxreg(), hostctxcode()]
     progs += [hostctxgas()]
     progs += [regkat(), logkat(), logtrap()] + [regloop(n) for n in iters[:1]]
+    progs += [shakat(k) for k in (0, 1, 55, 56, 63, 64, 65, 100)] + [sharegkat()]
     for p in progs:
         with open(os.path.join(out, p['name'] + '.wasm'), 'wb') as f:
             f.write(assemble(p))

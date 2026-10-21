@@ -35,8 +35,24 @@ checkout_patched() {  # <dir> <patch>
     mv "$tmp" "$dir"
   fi
   [ "$(git -C "$dir" rev-parse HEAD)" = "$OPENVM_REV" ] || { echo "$dir: wrong revision" >&2; exit 1; }
-  diff <(git -C "$dir" diff | grep -v '^index ') <(grep -v '^index ' "$patch") >/dev/null \
-    || { echo "$dir: working tree differs from $patch" >&2; exit 1; }
+  # A pinned patch may contain successive edits to the same file. Compare the
+  # resulting tree, not its textual diff layout. A separate index leaves the
+  # user's checkout/index untouched and still rejects any content difference.
+  local expected_index
+  expected_index=$(mktemp "$DEPS/.expected-index.XXXX")
+  rm "$expected_index"
+  GIT_INDEX_FILE="$expected_index" git -C "$dir" read-tree HEAD
+  if ! GIT_INDEX_FILE="$expected_index" git -C "$dir" apply --cached --whitespace=nowarn "$patch"; then
+    rm -f "$expected_index"
+    return 1
+  fi
+  if ! diff <(git -C "$dir" diff HEAD | grep -v '^index ') \
+      <(GIT_INDEX_FILE="$expected_index" git -C "$dir" diff --cached HEAD | grep -v '^index ') >/dev/null; then
+    rm -f "$expected_index"
+    echo "$dir: working tree differs from $patch" >&2
+    return 1
+  fi
+  rm -f "$expected_index"
 }
 
 checkout_patched "$DEPS/openvm-stock" "$HERE/patches/openvm-stock-calib.patch"

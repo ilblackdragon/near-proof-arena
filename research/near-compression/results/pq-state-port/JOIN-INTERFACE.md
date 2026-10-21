@@ -1,7 +1,14 @@
 # Wasm ↔ state join: the interface the two lanes must agree on
 
-Lane `pq-state-port`, 2026-10-19.  Companion to `Join.lean` (the proved bus partition) and to
-`pq-wasm-base` `results/pq-wasm-base/README.md` §14 (the design note this narrows to signatures).
+Lane `pq-state-port`, 2026-10-19; host-wire shapes revised 2026-10-21 (lane `pq-actionr`, see §3).
+
+**Status of §3 (2026-10-21):** the message shapes below are now the *current* wire, not a
+proposal. `zk-formal/ZkFormal/PQ/Join/Statement.lean` was migrated to them; before that it
+declared the pre-widening 8/4-field shapes and the join could not balance. The old shapes survive
+as `hostQOld`/`hostBOld`, only to keep `hostQ_no_bridge`/`hostB_no_bridge` meaningful.
+
+Companion to `Join.lean` (the proved bus partition) and to `pq-wasm-base`
+`results/pq-wasm-base/README.md` §14 (the design note this narrows to signatures).
 
 Scope: this is the **interface**, not the implementation.  It fixes (a) the bus ids and message
 shapes both sides must agree on, (b) the exact Lean signatures each side's theorem must expose, so
@@ -52,45 +59,59 @@ machinery it already has (`WalkV3`, `KEYNIB`).  This is the key reuse decision.
 
 ## 2. The HOST chip (the one new AIR)
 
-One row per host call, on the Wasm side.  Columns (proposal, 16):
+**Built** — `research/near-compression/wasm-base-lean/WasmBase/HostChip.lean`.  One row per host
+call, on the Wasm side.  Columns: `act, hid, np, ar, st, nres, ga0..3, r0..3`, the `np` argument
+flags `pf j`, and the `nArgs = 9` argument slots `tagP j, P j _0..3, tP j, hP j` (see that file's
+`cols`).
 
-```
-pc, op(=OP_HOST), h(pc hash), fee, host_id, np, ar, ts, S,
-status, r_lo, r_hi, g_lo, g_hi, mem_ptr, mem_len
-```
+Constraints (per row, degree ≤ 4): `act`, `st`, `ar`, `pf j` are bits; `pf` is prefix-closed
+(`pf (j+1) · (1 − pf j) = 0`); `np = Σ pf j`; `nres = (1 − st)·ar`; the 16-bit limb pairs are in
+range through `RANGE16`; an absent argument's tag and limbs are zero.
 
-Constraints (per row, degree ≤ 4):
+1. **request**: send on `HOSTQ` the message
+   `[ts, hid, S, np, (aLo j, aHi j) for j < 9]` with count `1`, where `aLo j = P j₀ + 2¹⁶·P j₁`
+   and `aHi j = P j₂ + 2¹⁶·P j₃` are the two 16-bit words of argument `j` (`HostChip.lean:305`).
+   **22 fields.**
+2. **response**: receive on `HOSTR` the message `[ts, st, rLo, rHi, gLo, gHi, ar, 0]`.  **8
+   fields.**  The seventh field is the signature's `ar`, not zero.
+3. `st = 0` (ok) ⇒ the row after pushes `nres = ar` results and continues at `pc+1`;
+   `st = 1` (host abort / gas) ⇒ the run traps with `g := g_after`.
+4. the budget register (channel space 6) is `g := gLo + 2¹⁶·gHi` after the row.
 
-1. `op = OP_HOST` implies `h = pcHashAndFee` (as `FETCH` rows already do);
-2. `np, ar` are the signature's counts, read from the FUNC-bound host table (`host_id`);
-3. **request**: send on `HOSTQ` the message
-   `[ts, host_id, S, a0, a1, a2, a3, a4]` with count `1`, where `a_i` are the top `np` stack words
-   (two rows if `np > 5`);
-4. **response**: receive on `HOSTR` the message
-   `[ts, status, r_lo, r_hi, g_lo, g_hi]` with count `1`;
-5. `status = 0` (ok) ⇒ the row after pushes `ar` results and continues at `pc+1`;
-   `status ∈ {1, 2}` (gas exceeded / host error) ⇒ the run traps;
-6. the budget register (new channel space 6) is `g := g_lo + 2^16·g_hi` after the row.
-
-The Wasm side never learns *how* the host answered; it learns only `(status, results, gas)`.
+Responses are served inside the trace by a witness oracle `HOSTO`; the join replaces it with the
+state tables on the same buses.  The Wasm side never learns *how* the host answered; it learns only
+`(st, results, gas)`.
 
 ## 3. `HOSTQ` / `HOSTR` / `HOSTB` message shapes
 
+**Revised 2026-10-21 (lane `pq-actionr`).** The first version of this section had the narrow
+8-field `HOSTQ` and the 4-field `HOSTB` from before the chip was widened.  Those shapes cannot
+balance against the chip; `PQ/Join/Statement.lean` is now migrated to the shapes below, and that
+file's `hostQOld`/`hostBOld` + `hostQ_old_not_current`/`hostB_old_not_current` (and
+`Receipt/Ids.lean`'s `hostQ_no_bridge`/`hostB_no_bridge`) keep the gap as a proved `≠`.
+
 ```
-HOSTQ  [ts, host_id, S, a0, a1, a2, a3, a4]        one per host call
-HOSTR  [ts, status, r_lo, r_hi, g_lo, g_hi]        one per host call
-HOSTB  [ts, pos, byte]                              one per payload byte
+HOSTQ  [ts, hid, S, np, (aLo j, aHi j)_{j<9}]   one per host call   22 fields
+HOSTR  [ts, st, rLo, rHi, gLo, gHi, ar, 0]      one per host call    8 fields
+HOSTB  [ts, hid, dir, pos, byte]                 one per payload byte 5 fields
 ```
 
-`ts` is the Wasm execution time (strictly increasing per host call), `S` the instruction gas so
-far, `pos` the byte offset within the call's payload.  `status`: `0` ok, `1` gas exceeded, `2` host
-error.
+`ts` is the Wasm execution time (strictly increasing per host call), `hid` the fixed host-table id
+(the same value the request carries), `S` the instruction gas so far, `np` the call's arity
+(`≤ 9`), `dir` `0` = request byte (Wasm → state) / `1` = response byte (state → Wasm), `pos` the
+byte offset within the call's payload, `ar` the signature's result count (`0` or `1`).  `st`: `0`
+ok, `1` host abort/gas.
+
+The join's Lean spelling (`PQ/Join/Statement.lean`): `hostQ ts hid S np a`, `hostR ts st r gAfter
+ar`, `hostB ts hid dir pos byte`; `hostQ_width`/`hostR_width`/`hostB_width` are their widths, and
+`hostQ_header` shows fields 0–3 are `(ts, hid, S, np)` — which is what lets the state side tie a
+byte group to its call by `(ts, hid)`.
 
 **Byte arguments.**  A host call with a byte payload (key, value, account id, args, log, return
-data) emits `HOSTB` rows with contiguous `pos < mem_len`; the state side joins them by `(ts, pos)`
-and checks `pos` is exactly `0..mem_len−1` with no gaps or duplicates.  Reads (`storage_read`,
-`input`, context getters) run the other way: the state side **sends** `HOSTB`, the Wasm MEMIO rows
-**receive** it into space 3.
+data) emits `HOSTB` rows with contiguous `pos < len`; the state side joins them by `(ts, hid, dir)`
+and checks `pos` is exactly `0..len−1` with no gaps or duplicates (`Wire.bytesWellFormed`).  Reads
+(`storage_read`, `input`, context getters) run the other way: the state side **sends** `HOSTB`, the
+Wasm MEMIO rows **receive** it into space 6.
 
 **Gas.**  `S` at the row is the instruction gas so far.  The state side reproduces `sync`
 (`burned += R · (S − S_prev)`) and returns the new budget `g_after` as `(g_lo, g_hi)` in `HOSTR`.
@@ -217,8 +238,9 @@ Step 4 is new but small in code and large in care.  Step 5 is the recursion lane
   the Wasm AIR grows by the host semantics (weeks more).
 * If the state side delivers storage through a different mechanism (e.g. an in-AIR trie walk on the
   Wasm side), `HOSTB` is unused and the join bus count drops to two.
-* If `ts` cannot be made unique (e.g. two host calls on the same row), `HOSTB`'s `(ts, pos)` key
-  breaks and a `(ts, seq)` pair is needed instead.  The current chips have one host call per row,
-  so this holds.
+* If `ts` cannot be made unique (e.g. two host calls on the same row), `HOSTB`'s `(ts, hid, pos)`
+  key breaks and a `(ts, hid, seq)` pair is needed instead.  The current chips have one host call
+  per row, so this holds.  (`hid` is part of the key precisely so that a shared `ts` policy cannot
+  splice one call's bytes onto another's.)
 
 These are the decisions to confirm with the two lanes before step 1 starts.

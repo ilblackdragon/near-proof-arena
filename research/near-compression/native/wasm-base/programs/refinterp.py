@@ -2,6 +2,8 @@
 §4.4.8; it shares no code with the Lean spec or the Rust trace generator).  Returns the result
 value and the number of executed instructions (excluding the implicit function prologue)."""
 
+import hashlib
+
 M32, M64 = (1 << 32) - 1, (1 << 64) - 1
 
 
@@ -142,6 +144,18 @@ def run(prog, fuel=10 ** 8, input_bytes=()):
                 return None   # `regSetH`: no result word
             if name == 'register_len':
                 return (1 << 64) - 1
+            if name == 'sha256':
+                # `hashHost C.sha256Base C.sha256Byte Crypto.sha256 a0 a1 a2`: read the input, fill
+                # the register with the 32-byte digest.  `len = 2^64 - 1` reads register `ptr`.
+                length, ptr, reg = args[0], args[1], args[2]
+                if length == (1 << 64) - 1:
+                    d = regs.get(ptr, [])
+                else:
+                    d = [mem.get(ptr + k, 0) for k in range(length)]
+                regs[reg] = list(hashlib.sha256(bytes(d)).digest())
+                return None
+            if name in ('keccak256', 'keccak512', 'ripemd160'):
+                raise RuntimeError('hash host not modelled: ' + name)
             if name == 'panic':
                 raise Trap('GuestPanic')
             if name.startswith('promise_'):

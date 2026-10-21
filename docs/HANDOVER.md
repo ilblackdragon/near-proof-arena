@@ -246,6 +246,120 @@ induction: `exec_of_rows` threads *one* gas segment, but a host call resynchroni
   branch mid-session and a merge landed in it (`MERGE_HEAD` + `UU` conflicts) while I was editing.
 * **Verify content, not HEAD movement** (already lesson 4 below; it bit again).
 
+## Hash and receipt families: both lanes landed (2026-10-21)
+
+Two parallel lanes on top of `origin/main` @ `f51c8563c`, merged and pushed as `57bbd3478`.
+Verified independently on a clean worktree: `lake build` 219 (wasm-base) + 3,057 (zk-formal) jobs,
+KAT **97/97** (was 88), `make pin-check`, no `sorry`/`native_decide`/`implemented_by`.
+
+### `pq-hash-air` — a SHA-256 AIR on the PQ stack
+
+**What it is.** `WasmBase/ShaAir.lean` (454 lines): a 44-column, 17-rows-per-block SHA-256 AIR,
+degree 4, 5 interactions/row, 9,333 cells per block. Plus `ShaSound.lean` (the soundness leg) and
+`ShaVectors.lean`. Exported as `wasmbase-tool airX`; `wasmBaseAir` stays byte-identical.
+
+**Measured.** Real proof of a 100-byte-input SHA program: 1,637,754 B, 43.7 s prove, 0.054 s verify,
+268.4-bit soundness. Differential test against `sha2` on **16/16 vectors** (empty, 1, 3, 55, 56, 63,
+64, 65, 100, 119, 120, 127, 128, 129, 200, 1000 bytes) — AIR cells equal the reference on message
+bytes and digest. Tamper 11/11 rejected. KAT contributed 9 new hash programs (88 -> 97).
+
+**Per-function verdict.**
+
+| function | cells/call | feasible on PQ? |
+|---|---:|---|
+| `sha256` | 9,333 · blocks | **built** |
+| `ripemd160` | ≈9-11k · blocks | yes, ~2-3 weeks |
+| `keccak256` / `keccak512` | ≈118,582 cells/permutation (bit-sliced) | **feasible at degree 3**; the chi step is built and proved (see below). **The earlier "needs a 64-bit-multiply gadget" claim was wrong** |
+
+Envelope: 27 AIRs total (≤32), degree 4 (≤8), widest message 12 fields incl. bus (≤128). The
+classical `ZkFormal.Sha.Table` was the reference; porting it beat a from-scratch narrow AIR.
+
+**Finding worth noting:** before the declaration bus (212) was added, a `Dmult = 0` trace was
+*accepted* — the digest declaration was not bound. That is recorded in the lane README; the fix is
+in the merged tree.
+
+### `pq-receipt-air` — the promise/receipt bookkeeping AIR, and a corrected price
+
+**What it is.** `zk-formal/ZkFormal/PQ/Receipt/{Table,Ids,Rows,Statement,Wire,Cost,Bookkeeping}.lean`:
+`PBC`, one row per `promise_*` call in `ts` order — **49 columns, 51 constraints (degree ≤ 4), 29
+interactions, maxLog 16**, `Air.wf` clean at maxDeg 8. The 13 class fields live in a cached `PBK`
+table consumed on bus 211 (the `HOSTT`/`CODE`/`TAPE` pattern), so static columns are pinned by a bus
+receive rather than witnessed. Wire reuses `HOSTQ`/`HOSTR`/`HOSTB` (+2 interactions, no second wire).
+
+**Proved** (axioms ⊆ std3): the class transcription is checked against a **second independently
+written** list via `decide` (`promiseClasses_*`); the row/chain lemmas (`rcpt_row`, `prm_row`,
+`rcpt_chain`, `tgt_lt` i.e. `tgt < rcpt`, `dep_le` i.e. `dep ≤ 128`); and the counter obligation
+`Statement.prevR_counter_is_count` — **the receipt counter is `#{k<n | addR k = 1}`**, a count of
+`PBK` bits, not a guessed integer.
+
+**Stated-not-proved** (named `Prop`s): `HostCallTrace`, `TgtIsReceipt`, `ActionBytesAreHostBytes`,
+`ActionEncodingIsBorsh`.
+
+**The price correction — this changes the plan.** DESIGN.md called the borsh `ActionR` encoder the
+dominant cost (4-6 weeks). Measured at the D3α limits (4,194,722-byte maximum receipt): the encoder
+is 268 M cells and the SHA over those bytes is 606 M — **the hash is 69 %, the encoder 31 %**. The
+encoder is separable from the SHA/`RIDS` work, so the sequence becomes SHA/`RIDS` first and the
+encoder optional. Total ≈6-10 lane-weeks (was 7-12).
+
+**Two flags for the join:**
+1. `two_max_receipts_over_cap`: two 4 MiB-argument receipts exceed a 2^21 SHA table — the per-byte
+   path does not compose past a couple of maximum receipts. This is a real capacity constraint.
+2. ~~`PQ/Join/Statement.lean`'s `HOSTQ`/`HOSTB` are still the stale 8- and 4-field shapes.~~
+   **FIXED 2026-10-21 (lane `pq-actionr`)**: migrated to the HOST chip's wire (`HOSTQ` 22 fields,
+   `HOSTR` 8 with `ar` in field 6, `HOSTB` 5 with `hid`). `Receipt/Ids.lean`'s
+   `hostQ_no_bridge`/`hostB_no_bridge` are unchanged in content and now compare the *old* shapes
+   (`Join.hostQOld`/`hostBOld`) against the current wire, so the gap stays proved.
+
+### Keccak and ActionR (2026-10-21, merged `fa00bcd5e`)
+
+**Keccak: the recorded blocker was wrong, and chi is proved.** Keccak-f has **no multiplication** —
+theta is a 5-way XOR plus `rotl(C,1)`, rho is `rotl`, pi is a lane permutation, chi is `a ^ (~b & c)`,
+iota is a XOR with a round constant. The base layer already has both needed primitives at i64: the
+**BIT** chip (i64 and/or/xor) and the **SHIFT** chip (`P = A·2^e mod 2^(2w)`, `rotl`/`rotr`), both
+KAT-tested. Both are byte-sliced, so the "three sub-multiplies ⇒ degree ≥ 9" premise had no subject.
+
+`WasmBase/ChiAir.lean`: a 48-column `CHI` table with **zero row constraints** and 24 BYTE lookups,
+using the identity `(~b) & c = c ^ (c & b)` — no NOT column, no range gadget, no 64-bit arithmetic.
+`chi_sound` proves `val8 r = val8 a ^^^ ((2^64−1−val8 b) &&& val8 c)`; `and_not` proves the lane
+identity; `ChiVectors.lean` has **16 differential vectors** (all-zero, all-ones, alternating phases,
+single bits, byte stamps, random, spec round constants) closed by kernel `decide`, plus `chi_diff`.
+Axioms: `{propext, Classical.choice, Quot.sound}`.
+
+Cost (`results/pq-keccak-air/model.py`): round row 4,826 cols / 9,689 constraints / degree 3 /
+0 interactions; **118,582 cells per permutation**; 872 / 1,647 cells per input byte for
+keccak256 / keccak512 — i.e. 6.0× / 11.3× SHA-256. More expensive, but **buildable at degree 3** and
+well inside the NV envelope. Remaining: the 24-round permutation AIR itself (composition in
+`results/pq-keccak-air/README.md` §3), and wiring `CHI.table` into an `Air` value.
+
+**ActionR: the join wire is fixed, and the encoder is built for four action kinds.**
+`PQ/Join/Statement.lean` was migrated to the real chip wire — `HOSTQ` **22** fields (was 8),
+`HOSTB` **5** (was 4), `HOSTR` field 6 now the signature's `ar`; `wasmBusMax` corrected 6 → 9. The
+old shapes survive as `hostQOld`/`hostBOld` so the gap stays a theorem (`hostQ_old_not_current`,
+`hostB_old_not_current`), and `Receipt/Ids.lean`'s `hostQ_no_bridge`/`hostB_no_bridge` still hold
+unchanged. `hostQ22`/`hostB5` are proved *equal* to the join's definitions by `rfl`, so the two
+spellings cannot fork again.
+
+`PQ/Receipt/Encoder.lean`: reference encodings checked against the spec's own decoder `D2.pBaseAct`
+(`decodesAs`) by kernel `decide` on real vectors, with a discriminating negative case. Rows
+(`encAction`) proved equal to those bytes for **transfer, delete-account, create-account and
+function-call**; `PBE` is 15 cols / 23 constraints (deg ≤ 3) / 4 interactions / maxLog 22. Framing
+proved: `encAction_length`, `prefixBytes_value`, the per-shape lengths (`receipt_tr_len` 82/114 for
+ed25519/secp, `receipt_da_len`), and row-side `pbe_len_framing_general`,
+**`pbe_group_len_is_row_count`** (declared `len` = row count), `pbe_msg_len`/`pbe_buses` (bytes on
+the existing `HOSTB` 210, no second wire).
+
+Remaining: the `FC`/`promise_create` row instances (`FC` is 3/4 done — two string prefixes need a
+per-field index in the `PBE` group key; `promise_create`'s nested `Vec<Action>` needs `tail` as a sum
+of action lengths), then `RIDS`/`SRC`/`RCL` + `newReceipts`, `HostCallTrace`, and
+`ActionBytesAreHostBytes`. Price unchanged: the encoder is 31 %, the SHA 69 %.
+
+### Still open
+
+* `ripemd160` AIR (≈2-3 weeks, same shape as SHA-256).
+* `RIDS`/`SRC`/`RCL` + `newReceipts` fold, and the `HostCallTrace`
+  induction (Wasm side).
+* The `ActionR` encoder AIR (lane `pq-actionr` started it: `PQ/Receipt/Encoder.lean`).
+
 ## Parallel lanes to run next
 
 Lanes 1-4 are done (see above). The remaining critical path is the **tightening** of what landed,
@@ -268,7 +382,7 @@ independent and cheap.
 **7 is not a proof lane.** Read the `UpsV3AppliesLog` note above before dispatching it: `upsert` at a
 ContractData key needs a table parameterisation, which is a render/AIR change with a size/model cost.
 
-### Merge discipline that worked (learned twice now)
+### Merge discipline that worked (learned three times now)
 
 1. Merge the **frontier** lane (the one containing the others' commits), not every lane.
 2. Shared log files conflict **additively**: keep both sections.
@@ -278,7 +392,20 @@ ContractData key needs a table parameterisation, which is a render/AIR change wi
    files.
 5. **Rebuild before believing a test failure.** A stale `wasmbase-tool` made 4 KATs fail; the Lean
    source was fine. After any Lean change that adds a table, rebuild the tool and the Rust crate.
-6. Always run `pin-check`, the `zk-formal` build, `cargo fmt --check`, `clippy -D warnings`, the KAT
+   This has now happened three times (the third: a tracked `nearproof-wasm-base` predating the REG
+   chip panicked in `sharegkat`, turning 97/97 into 74/97). `run_kat.sh`/`measure*.sh`/`difftest.py`
+   resolve the binary through `native/wasm-base/bin.sh`, which prefers the in-repo build and refuses
+   one older than its sources — but it cannot see the Lean tool, which still needs
+   `cd research/near-compression/wasm-base-lean && lake build wasmbase-tool`.
+6. **A deps tree that builds is not necessarily the tree the patch describes.**
+   `$NEARPROOF_PQ_DEPS/<lane>/stark-backend-unified` can drift from
+   `patches/stark-backend-unified.patch` and still compile, because the code the crate uses is
+   unchanged. `setup.sh` catches this and refuses; trust it rather than working around it. Repair is
+   reset to the `nearproof base patch` commit then `git apply` the current patch (what
+   `setup_unified_deps.sh` does for a fresh tree). Only `pq-wasm-base` is repaired as of 2026-10-21;
+   `pq-recursion`, `pq-stream-g2`, `pq-cpu2` and the rest are still stale and should be rebuilt
+   before being cited for a fresh G2 reproduction.
+7. Always run `pin-check`, the `zk-formal` build, `cargo fmt --check`, `clippy -D warnings`, the KAT
    suite and the G2 manifest check before promoting to main.
 
 ## 0a. State at stop (2026-10-15) — HISTORICAL, superseded by the sections above
@@ -302,7 +429,8 @@ ContractData key needs a table parameterisation, which is a render/AIR change wi
   `nearAirV3D1` = 33 tables (walk every tx key: `walkU`, `nmemV3`, `uvalV3`, `nodeD1`, `uniqD1`; `ridV3`
   `l` range check); conformance 257 fixtures, AIR A7 = `unfoldBytesD1` incl. the R-5 counterexample.
   Phase 2: views, receipt/Merkle copies (generator `zk-formal/scripts/rcpt_d1_copy.py`), links 65/113
-  copies + walk copies; NOT yet: `A7D1Step`, `LinkD1CoreStmt`, F1/R1/R2/A1. Next steps:
+  copies + walk copies; F1 proved (`factorSoundD1_B0 : FactorSoundD1 B0`, `D1/F1/`, 2026-10-21);
+  NOT yet: `A7D1Step`, `LinkD1CoreStmt`, R1/R2/A1. Next steps:
   `docs/logs/v3-d1-a7b-2026-10.md`, `docs/logs/v3-d1-phase2-2026-10.md`, plan `docs/zk-formal/V3-D1-PHASE2.md`.
   Untested: no fixture exercises a stub / `nmemV3` query yet; real D1a proof on the 33-table AIR not re-run.
 * **D3a / 1 Pgas / PQ:** study `docs/zk-formal/V3-D3A-STUDY.md`; performance design + CPU spikes

@@ -77,6 +77,22 @@ close mechanically, and why it is a strictly weaker statement.
 * `#print axioms`: `regLenAgree_group`, `reg_group_walk`, `reg_gap_lt`, `reg_pos_lt_len` ⊆
   `[propext, Classical.choice, Quot.sound]`.
 
+## Merge into main (2026-10-21)
+
+Merged `main` (`4885e5834`) into the lane in the worktree and re-verified before fast-forwarding
+main. One conflict, in `native/wasm-base/src/tracegen.rs`: main added the SHA-256 host block
+(`has_sha` / `sha_calls`) at the same point where this lane updated the register-wire comment.
+Resolution keeps main's SHA block and this lane's corrected host ids (48/49, not the pre-canonical
+12/13). No semantic overlap.
+
+Post-merge verification (all in the worktree, before touching main):
+
+* `lake build` — **225 jobs** (main's Keccak/SHA modules added), green.
+* KAT — **97 passed, 0 failed** (main's SHA programs included; was 88).
+* tamper — **101/101 rejected** (99 pre-existing + this lane's `HOSTB pos=2^16`, `len=2^16`).
+* axioms of `regLenAgree_group`, `reg_group_walk`, `reg_gap_wraparound` ⊆ the standard three;
+  `regLenAgree_lone_length` ⊆ `[propext, Quot.sound]`.
+
 ## Next
 
 A dedicated MEMIO lane for the `(ptr, len)` link, with `memRaw`/`HeapOK`/`RelW` extended to the host
