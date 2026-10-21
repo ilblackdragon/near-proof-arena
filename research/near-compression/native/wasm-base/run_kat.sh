@@ -53,6 +53,36 @@ else:
     l = sp['stack'][-1]['limbs']; v = l[0] | l[1] << 16 | l[2] << 32 | l[3] << 48
     assert v == ref['result'], (v, ref['result'])
 PY
+  # A HOSTB group that is **absent** still balances its bus, so `check` cannot tell "the payload
+  # was carried" from "no payload group existed".  `logkat` pins this: its three calls are
+  # `log_utf8(0,5)`, `log_utf16(8,4)`, `value_return(0,5)` over known memory, and the byte-payload
+  # ids are 45/46/50 (`Chips.hostByteIds`).  Assert the bytes, not just the balance.
+  if [ "$n" = "logkat" ]; then
+    "$BIN" hostb-dump "$OUT/$AIRK-$nloc-g$ngl.json" "$OUT/progs/$n.prep.json" > "$OUT/progs/$n.hostb.log" 2>&1
+    hostb_ok=1
+    python3 - "$OUT/progs/$n.hostb.log" > "$OUT/progs/$n.hostb.check" 2>&1 <<'PYHOSTB' || hostb_ok=0
+import re, sys
+rows = []
+for ln in open(sys.argv[1]):
+    m = re.match(r"HOSTB ts=(\d+) dir=(\d+) pos=(\d+) byte=(\d+) len=(\d+) hid=(\d+)", ln)
+    if m:
+        ts, d, pos, byte, ln_, hid = map(int, m.groups())
+        rows.append((ts, d, pos, byte, ln_, hid))
+want = {45: [104, 101, 108, 108, 111], 46: [104, 0, 105, 0],
+        50: [104, 101, 108, 108, 111]}
+got = {}
+for ts, d, pos, byte, ln_, hid in rows:
+    got.setdefault(hid, {})[pos] = byte
+assert set(got) == set(want), f"HOSTB ids {sorted(got)} != {sorted(want)}: a payload group is missing"
+for hid, exp in want.items():
+    act = [got[hid][i] for i in sorted(got[hid])]
+    assert act == exp, f"HOSTB payload for hid {hid} is {act}, want {exp}"
+print(f"HOSTB payload OK: {len(rows)} rows, ids {sorted(got)} carry their memory bytes")
+PYHOSTB
+    if [ "$hostb_ok" = 0 ]; then
+      fail=$((fail+1)); echo "FAIL $n (HOSTB payload)"; tail -3 "$OUT/progs/$n.hostb.check"; continue
+    fi
+  fi
   if "$BIN" check "$OUT/$AIRK-$nloc-g$ngl.json" "$OUT/progs/$n.prep.json" > "$OUT/progs/$n.check.log" 2>&1; then
     pass=$((pass+1))
   else

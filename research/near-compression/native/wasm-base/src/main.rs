@@ -230,6 +230,39 @@ fn cmd_check(air_path: &str, prep_path: &str) {
     println!("CHECK OK result {:?}", g.result);
 }
 
+/// `hostb-dump <air.json> <prep.json>`: print every HOSTB row as `ts dir pos byte len hid`.
+///
+/// Exists because a HOSTB group that is **absent** still balances its bus, so every constraint and
+/// bus check passes while a host call's payload silently is not carried.  That is exactly how the
+/// `[8, 9, 10, 15]` id bug (`log_utf8` is 45) survived a green KAT: no group was emitted, and no
+/// check missed one.  Printing the rows makes "did the payload actually appear" observable.
+fn cmd_hostb_dump(air_path: &str, prep_path: &str) {
+    let spec = load(air_path);
+    let (_prep, g) = generate(&spec, prep_path);
+    let (idx, w) = spec
+        .tables
+        .iter()
+        .enumerate()
+        .find(|(_, t)| t.name == "HOSTB")
+        .map(|(i, t)| (i, t.cols.len()))
+        .expect("no HOSTB table in this AIR");
+    let m = &g.mats[idx];
+    let col = |r: usize, c: usize| m.values[r * w + c].as_canonical_u32() as u64;
+    let n = m.values.len() / w;
+    let mut printed = 0;
+    for r in 0..n {
+        // `act` is column 7; padding rows have `act = 0`
+        if col(r, 7) == 1 {
+            println!(
+                "HOSTB ts={} dir={} pos={} byte={} len={} hid={}",
+                col(r, 0), col(r, 1), col(r, 2), col(r, 3), col(r, 4), col(r, 5)
+            );
+            printed += 1;
+        }
+    }
+    println!("HOSTB_ROWS {printed}");
+}
+
 fn choose_shape(g: &Gen, which: &str, degree: usize) -> SystemParams {
     let total = cells(g);
     let maxh = g.mats.iter().map(|m| m.values.len() / m.width).max().unwrap();
@@ -938,6 +971,7 @@ fn main() {
         Some("prove") => cmd_prove(&a[2], &a[3], a.get(4).map(|s| s.as_str()).unwrap_or("small")),
         Some("tamper") => cmd_tamper(&a[2], &a[3]),
         Some("difftest") => cmd_difftest(&a[2], &a[3], &a[4], a.get(5).map(|s| s.parse().unwrap()).unwrap_or(16)),
+        Some("hostb-dump") => cmd_hostb_dump(&a[2], &a[3]),
         Some("sha-difftest") => cmd_sha_difftest(a.get(2).map(|s| s.as_str())),
         _ => eprintln!("usage: see source header"),
     }
