@@ -382,7 +382,7 @@ independent and cheap.
 **7 is not a proof lane.** Read the `UpsV3AppliesLog` note above before dispatching it: `upsert` at a
 ContractData key needs a table parameterisation, which is a render/AIR change with a size/model cost.
 
-### Merge discipline that worked (learned twice now)
+### Merge discipline that worked (learned three times now)
 
 1. Merge the **frontier** lane (the one containing the others' commits), not every lane.
 2. Shared log files conflict **additively**: keep both sections.
@@ -392,7 +392,20 @@ ContractData key needs a table parameterisation, which is a render/AIR change wi
    files.
 5. **Rebuild before believing a test failure.** A stale `wasmbase-tool` made 4 KATs fail; the Lean
    source was fine. After any Lean change that adds a table, rebuild the tool and the Rust crate.
-6. Always run `pin-check`, the `zk-formal` build, `cargo fmt --check`, `clippy -D warnings`, the KAT
+   This has now happened three times (the third: a tracked `nearproof-wasm-base` predating the REG
+   chip panicked in `sharegkat`, turning 97/97 into 74/97). `run_kat.sh`/`measure*.sh`/`difftest.py`
+   resolve the binary through `native/wasm-base/bin.sh`, which prefers the in-repo build and refuses
+   one older than its sources — but it cannot see the Lean tool, which still needs
+   `cd research/near-compression/wasm-base-lean && lake build wasmbase-tool`.
+6. **A deps tree that builds is not necessarily the tree the patch describes.**
+   `$NEARPROOF_PQ_DEPS/<lane>/stark-backend-unified` can drift from
+   `patches/stark-backend-unified.patch` and still compile, because the code the crate uses is
+   unchanged. `setup.sh` catches this and refuses; trust it rather than working around it. Repair is
+   reset to the `nearproof base patch` commit then `git apply` the current patch (what
+   `setup_unified_deps.sh` does for a fresh tree). Only `pq-wasm-base` is repaired as of 2026-10-21;
+   `pq-recursion`, `pq-stream-g2`, `pq-cpu2` and the rest are still stale and should be rebuilt
+   before being cited for a fresh G2 reproduction.
+7. Always run `pin-check`, the `zk-formal` build, `cargo fmt --check`, `clippy -D warnings`, the KAT
    suite and the G2 manifest check before promoting to main.
 
 ## 0a. State at stop (2026-10-15) — HISTORICAL, superseded by the sections above
