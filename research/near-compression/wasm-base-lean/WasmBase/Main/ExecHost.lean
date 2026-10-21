@@ -49,19 +49,28 @@ keeps the segment (`RowSpec`'s `RelW` at `S_seg segb`); each HOST row restarts i
 (`(S_seg, segb) ↦ (S + fee, g_after)`, `StepHost.host_seg`).  The honest statement is:
 
 ```
-theorem wasm_base_exec_host (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub)
-    (CF : ChipFacts X nloc ngl pub tr) (CH : HostChipFacts X nloc ngl pub tr)
-    (HOK : HostOK tr resp) (HR : HostResp resp)
-    (hfeeN : …) (hg64 : X.g0 < 2 ^ 64) (init : …) :
-    ∃ sN segs, runHost … = .fin sN ∧ sN.frames = [] ∧
-      -- the final segment is `(S_final, g_final)` from the last HOST row (or `(0, g0)` if none)
-      (segs = [] → X.R * S_final + sN.gas.g = X.g0) ∧
-      (∀ (S_seg segb) ∈ segs, X.R * (S_final - S_seg) + sN.gas.g = segb)
+theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
+    (H0 : Holds (wasmBaseAir nloc ngl) pub tr)          -- NOT implied by H (bus balance is joined)
+    (hpub : PubOK X nloc ngl pub) (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
+    (seg) (hkeep : SegKeep tr pub seg) (hhold : HoldRow X tr pub seg)  -- HoldRow = the missing
+                                                                      -- host row's RowSpecSeg
+    (st) (hstStatus : (st : F) = pub.pubStatus) (hlen) (boundary: init/entry/gas) :
+    (actListHost tr pub).length + 1 = (pub.pubN).toNat ∧
+    (st = 1 → ∃ sN, run X.cfg X.p (#rows) s0 = .fin sN ∧ sN.frames = [] ∧
+      X.R * (pubS − S_seg_final) + sN.gas.g = segb_final) ∧
+    (st = 2 → ∃ sN e, run … = .abort sN e ∧ …)
 ```
 
-where `HostChipFacts` = `ChipFacts` with the `rows` field extended by `host_rowspec` at table 22
-(and `inactive`/`counts` extended with the gating caveat above).  What is already available:
+It lives in `WasmBase/Main/SoundHost.lean`.  The bus premises `hst`/`hch` are **discharged** from
+`Holds` + `H0` (`host_hst`/`host_hch`), and the instruction rows' row facts from
+`Main.Final.chipFacts`; `HostOK`/`HostResp` are not parameters (their content is inside
+`HoldRow`'s `RowSpecSeg`).  What is still assumed is stated there: `H0` (which the host trace's
+`Holds` does not give, because the joined bus balance does not split), `HoldRow` (the active HOST
+rows' segment-aware row facts — no lemma for it exists), `SegKeep`, `hstepgas`, `hlen`, and the
+boundary/entry facts.  `SoundHost.lean` also records, with kernel-checked refutations, that the
+previously published harness was vacuous over host traces (`hstepgas` unsatisfiable, `h2` excluding
+host rows, `RowFactsSegMap` indexed by list position).  What is already available:
 
 * `host_rowspec` (the HOST row's `RowSpec` at the trace level) and `RowHostSpec.host_arg_stack` /
   `host_word_stack` (piece 1 at the `RelW` boundary);

@@ -127,17 +127,46 @@ structure RowFactsSeg (X : Ctx) (inS outS : List F) (cons prod : List Msg) (sgin
   prodT : ∀ x ∈ prod, x.tp < ZkFormal.Algebra.P ∧ ((x.tp : Nat) : F) = lvl inS
   prodNd : prod.Nodup
 
-/-- A row whose segments are read off the STATE-time indexed thread `seg`: row `k` runs at STATE
-time `k+1` and leaves the segment at `k+2`.  Permutation-safe, because the index is the STATE time
-(carried by `pos`), not the row's position in the permuted list. -/
+/-- A row whose segments are read off the STATE-time indexed thread `seg`: a row whose input STATE
+message carries time `t` runs in segment `seg t` and leaves the segment `seg (t+1)`.
+
+The index is **the row's STATE time**, not its position in the permuted action list — which is what
+makes the premise permutation-safe (`exec_of_rows_seg` recovers the positional form with `lvlk`).
+An earlier version quantified over every natural `k` instead, which forced `RowSpecSeg` at segments
+that have nothing to do with the row and so could not be instantiated from a trace at all. -/
 def RowFactsSegMap (X : Ctx) (inS outS : List F) (cons prod : List Msg) (seg : Nat → Nat × Nat) :
     Prop :=
-  ∀ (k : Nat), RowFactsSeg X inS outS cons prod (seg (k + 1)) (seg (k + 2))
+  RowFactsSeg X inS outS cons prod (seg (lvl inS).toNat) (seg ((lvl inS).toNat + 1))
 
 /-- `RowFacts2` gives `RowFactsSeg` at any fixed segment. -/
 theorem RowFacts2.toSeg {X : Ctx} {inS outS : List F} {cons prod : List Msg} {sg : Nat × Nat}
     (h : RowFacts2 X inS outS cons prod) : RowFactsSeg X inS outS cons prod sg sg :=
   ⟨RowSpecSeg.ofSame h.spec, h.halt0, h.tsOut, h.gasOut, h.consT, h.prodT, h.prodNd⟩
+
+/-- **The segment-free half of a row's facts.**  Everything `RowFacts2` carries except the `spec`
+field, i.e. the timestamp, gas-delta and channel-shape facts.  The `spec` field is a `RowSpec2` at
+one *fixed* segment, which is exactly the thing a host row cannot satisfy (it restarts the segment),
+so the induction must not require it — the segment-aware `spec` comes from `RowFactsSegMap`
+instead.  `RowFacts2.toFlat` recovers it for base rows.  (The earlier `h2 : RowFacts2` premise made
+`exec_of_rows_seg` inapplicable to any host trace; it is gone, and every field it carried is a field
+of `RowFactsSeg`.) -/
+structure RowFactsFlat (X : Ctx) (inS outS : List F) (cons prod : List Msg) : Prop where
+  halt0 : inS.getD 3 0 = 0
+  tsOut : lvl outS = lvl inS + 1
+  gasOut : ∃ fee, fee ≤ X.maxFee ∧ gasF outS = gasF inS + (fee : F)
+  consT : ∀ x ∈ cons, ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧ ((x.tp + 1 + n : Nat) : F) = lvl inS
+  prodT : ∀ x ∈ prod, x.tp < ZkFormal.Algebra.P ∧ ((x.tp : Nat) : F) = lvl inS
+  prodNd : prod.Nodup
+
+/-- A `RowFacts2` is a `RowFactsFlat` plus its fixed-segment `spec`. -/
+theorem RowFacts2.toFlat {X : Ctx} {inS outS : List F} {cons prod : List Msg}
+    (h : RowFacts2 X inS outS cons prod) : RowFactsFlat X inS outS cons prod :=
+  ⟨h.halt0, h.tsOut, h.gasOut, h.consT, h.prodT, h.prodNd⟩
+
+/-- A `RowFactsSeg` is a `RowFactsFlat`. -/
+theorem RowFactsSeg.toFlat {X : Ctx} {inS outS : List F} {cons prod : List Msg} {sgin sgout : Nat × Nat}
+    (h : RowFactsSeg X inS outS cons prod sgin sgout) : RowFactsFlat X inS outS cons prod :=
+  ⟨h.halt0, h.tsOut, h.gasOut, h.consT, h.prodT, h.prodNd⟩
 
 
 /-! ## The segmented execution theorem
@@ -146,24 +175,28 @@ theorem RowFacts2.toSeg {X : Ctx} {inS outS : List F} {cons prod : List Msg} {sg
 
 * `segs : Nat → Nat × Nat` — the segment at each row, with `segs 0 = sg0` and
   `segs (k+1) = sgout` of row `k`;
-* `hstepgas k` — the row's fee fits in the budget its segment carries,
-  `R · (S_k + maxFee − (segs k).1) ≤ (segs k).2`, where `S_k` is the row's STATE gas field.
+* `hstepgas t S` — *given* that the row's gas so far fits its segment (`R · (S − (segs t).1) ≤
+  (segs t).2`, which is `RelW.gas` for any related state), the fee also fits:
+  `R · (S + maxFee − (segs t).1) ≤ (segs t).2`.
 
 The last of these is where the segmentation costs something real: `exec_of_rows` derives it from
-monotonicity of one global budget, which is false after a restart. -/
+monotonicity of one global budget, which is false after a restart.  The *unconditional* form
+`∀ t S, R · (S + maxFee − (segs t).1) ≤ (segs t).2` is **unsatisfiable** for `R ≥ 1` (take
+`S = (segs t).2 + (segs t).1 + maxFee + 1`), so it can only have been vacuous; the implication
+above is what `RelW.gas` actually supplies at each row. -/
 variable (X : Ctx) {ρ : Type} [DecidableEq ρ] (act : List ρ) (inS outS : ρ → List F)
   (cons prod : ρ → List Msg) (init fin : List Msg) (pcf N Sf : F)
 
 theorem exec_of_rows_seg (seg : Nat → Nat × Nat) (st : Nat) (hst12 : st = 1 ∨ st = 2)
     (hrows : ∀ r ∈ act, RowFactsSegMap X (inS r) (outS r) (cons r) (prod r) seg)
-    (h2 : ∀ r ∈ act, RowFacts2 X (inS r) (outS r) (cons r) (prod r))
     (sbf cidf : F)
     (hst : (stMsg 0 1 0 0 0 0 :: act.map outS).Perm ([pcf, N, Sf, (st : F), sbf, cidf] :: act.map inS))
     (hch : (init ++ act.flatMap prod).Perm (fin ++ act.flatMap cons))
     (hinit : init.Nodup) (hinitTp : ∀ x ∈ init, x.tp = 0)
     (hlen : act.length < 2 ^ 28)
     (hfee : (act.length + 1) * (X.maxFee + 1) < ZkFormal.Algebra.P)
-    (hstepgas : ∀ t S : Nat, X.R * (S + X.maxFee - (seg t).1) ≤ (seg t).2)
+    (hstepgas : ∀ t S g : Nat, X.R * (S - (seg t).1) + g = (seg t).2 →
+      X.R * (S + X.maxFee - (seg t).1) ≤ (seg t).2)
     (hg64 : X.g0 < 2 ^ 64)
     {E0 : Env} (hE0 : E0.sb = 0 ∧ E0.cid = 0 ∧ E0.k = 0)
     {s0 : St} {f0 : Frame}
@@ -183,24 +216,28 @@ theorem exec_of_rows_seg (seg : Nat → Nat × Nat) (st : Nat) (hst12 : st = 1 �
   have hstepE : ∀ e ∈ act.map g, lvl e.2 = lvl e.1 + 1 := by
     intro e he
     obtain ⟨r, hr, rfl⟩ := List.mem_map.mp he
-    exact (hrows r hr 0).tsOut
+    exact (hrows r hr).tsOut
   obtain ⟨es, hes, hpath⟩ := chain (act.map g) (stMsg 0 1 0 0 0 0) [pcf, N, Sf, (st : F), sbf, cidf] lvl
     (by rw [hE1, hE2]; exact hst) hstepE (by simp; omega)
   obtain ⟨rs, hrs, rfl⟩ := perm_map_lift g es act hes
   have hlenrs : rs.length = act.length := hrs.length_eq
   have hmem : ∀ k (hk : k < rs.length), rs[k] ∈ act := fun k hk => hrs.subset (List.getElem_mem hk)
-  have RF : ∀ k (hk : k < rs.length), RowFacts2 X (inS rs[k]) (outS rs[k]) (cons rs[k]) (prod rs[k]) :=
-    fun k hk => h2 _ (hmem k hk)
-  have RFS : ∀ k (hk : k < rs.length),
-      RowFactsSeg X (inS rs[k]) (outS rs[k]) (cons rs[k]) (prod rs[k])
-        (seg (k + 1)) (seg (k + 2)) :=
-    fun k hk => hrows _ (hmem k hk) k
   obtain ⟨lk, lfin⟩ := path_levels lvl (rs.map g) _ _ hpath (fun e he => hstepE e (hes.subset he))
   obtain ⟨link, ends, _⟩ := path_link (rs.map g) _ _ hpath
   simp only [List.length_map, List.getElem_map] at lk lfin link ends
   have l0 : lvl (stMsg 0 1 0 0 0 0) = 1 := rfl
   have lvlk : ∀ k (hk : k < rs.length), lvl (inS rs[k]) = ((k + 1 : Nat) : F) := by
     intro k hk; rw [lk k hk, l0, Lean.Grind.Semiring.natCast_add, cast_one]; grind
+  have RFS : ∀ k (hk : k < rs.length),
+      RowFactsSeg X (inS rs[k]) (outS rs[k]) (cons rs[k]) (prod rs[k])
+        (seg (k + 1)) (seg (k + 2)) :=
+    fun k hk => by
+      have e : lvl (inS rs[k]) = ((k + 1 : Nat) : F) := lvlk k hk
+      have h := hrows rs[k] (hmem k hk)
+      unfold RowFactsSegMap at h
+      rwa [e, Fp.toNat_cast_of_lt (by omega)] at h
+  have RF : ∀ k (hk : k < rs.length), RowFactsFlat X (inS rs[k]) (outS rs[k]) (cons rs[k]) (prod rs[k]) :=
+    fun k hk => (RFS k hk).toFlat
   have hpos : 0 < rs.length := by
     refine Nat.pos_of_ne_zero fun h0' => ?_
     have := (path_link (rs.map g) _ _ hpath).2.2 (by simp [h0'])
@@ -340,9 +377,11 @@ theorem exec_of_rows_seg (seg : Nat → Nat × Nat) (st : Nat) (hst12 : st = 1 �
         rw [hout']; simp only [gasF, stMsg, List.getD_cons_succ, List.getD_cons_zero]
         exact Fp.toNat_cast_of_lt (by simp only [gasF] at hS; omega)
       have hgas' : X.R * ((gasF (pos k)).toNat + fee - (seg (k + 1)).1) ≤ (seg (k + 1)).2 := by
-        have hm := hstepgas (k + 1) ((gasF (pos k)).toNat)
-        have hfk : fee ≤ X.maxFee := hfl
-        exact Nat.le_trans (Nat.mul_le_mul_left _ (by omega)) hm
+        have hm := hstepgas (k + 1) ((gasF (pos k)).toNat) s.gas.g R.gas
+        have hle : (gasF (pos k)).toNat + fee - (seg (k + 1)).1 ≤
+            (gasF (pos k)).toNat + X.maxFee - (seg (k + 1)).1 := by
+          have := hfl; omega
+        exact Nat.le_trans (Nat.mul_le_mul_left _ hle) hm
       have hb0 : hb = 0 := by
         have h3 : (pos (k + 1)).getD 3 0 = 0 := by rw [pos_in (k + 1) hk]; exact (RF (k + 1) hk).halt0
         rw [hout'] at h3
@@ -389,8 +428,11 @@ theorem exec_of_rows_seg (seg : Nat → Nat × Nat) (st : Nat) (hst12 : st = 1 �
     rw [← eS, Fp.toNat_cast_of_lt (by omega)]
   have hgas' : X.R * ((gasF (pos (rs.length - 1))).toNat + fee - (seg (rs.length - 1 + 1)).1) ≤
       (seg (rs.length - 1 + 1)).2 := by
-    have hm := hstepgas (rs.length - 1 + 1) ((gasF (pos (rs.length - 1))).toNat)
-    exact Nat.le_trans (Nat.mul_le_mul_left _ (by have : fee ≤ X.maxFee := hfl; omega)) hm
+    have hm := hstepgas (rs.length - 1 + 1) ((gasF (pos (rs.length - 1))).toNat) s.gas.g R.gas
+    have hle : (gasF (pos (rs.length - 1))).toNat + fee - (seg (rs.length - 1 + 1)).1 ≤
+        (gasF (pos (rs.length - 1))).toNat + X.maxFee - (seg (rs.length - 1 + 1)).1 := by
+      have := hfl; omega
+    exact Nat.le_trans (Nat.mul_le_mul_left _ hle) hm
   have hidx : seg (rs.length - 1 + 2) = seg (act.length + 1) := by
     rw [← hlenrs]
     congr 1; omega
@@ -428,9 +470,11 @@ and the rows are the *interleaved* list of instruction rows and active HOST rows
 The two statements differ in exactly the way the segmentation requires:
 
 * the final gas invariant is reported at the **last segment** (`segs`), not the global `(0, g0)`;
-* `hstepgas` is a hypothesis: at every row the fee fits in the budget its segment carries.  For an
-  instruction row this follows from the segment's own invariant; at a HOST row it is the statement
-  that the host left enough budget, which `HostOK` + `HostResp` supply per row.
+* `hstepgas` is the **machine fact** "the fee fits in the budget the segment has left": given the
+  invariant `R · (S − S_seg) + g = segb` at the row (which is `RelW.gas`), the fee is covered,
+  `R · (S + maxFee − S_seg) ≤ segb`, i.e. `R · maxFee ≤ g`.  That is not implied by the invariant
+  (it is where a host call that returned too little would fail), so it stays a premise; the
+  *unconditional* variant `∀ S, R · (S + maxFee − S_seg) ≤ segb` is unsatisfiable and is not used.
 
 The conclusion is `wasm_base_exec`'s plus the segment map.
 -/
@@ -476,8 +520,6 @@ theorem wasm_base_exec_host (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trac
     (seg : Nat → Nat × Nat) (init fin : List Msg) (st : Nat) (hst12 : st = 1 ∨ st = 2)
     (hrows : ∀ r ∈ actListHost tr pub,
       RowFactsSegMap X (rowInH tr pub r) (rowOutH tr pub r) (rowConsH tr pub r) (rowProdH tr pub r) seg)
-    (hrows2 : ∀ r ∈ actListHost tr pub,
-      RowFacts2 X (rowInH tr pub r) (rowOutH tr pub r) (rowConsH tr pub r) (rowProdH tr pub r))
     (sbf cidf : F)
     (hst : (stMsg 0 1 0 0 0 0 :: (actListHost tr pub).map (rowOutH tr pub)).Perm
       ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
@@ -487,7 +529,8 @@ theorem wasm_base_exec_host (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trac
     (hinit : init.Nodup) (hinitTp : ∀ x ∈ init, x.tp = 0)
     (hlen : (actListHost tr pub).length < 2 ^ 28)
     (hfee : ((actListHost tr pub).length + 1) * (X.maxFee + 1) < ZkFormal.Algebra.P)
-    (hstepgas : ∀ t S : Nat, X.R * (S + X.maxFee - (seg t).1) ≤ (seg t).2)
+    (hstepgas : ∀ t S g : Nat, X.R * (S - (seg t).1) + g = (seg t).2 →
+      X.R * (S + X.maxFee - (seg t).1) ≤ (seg t).2)
     (hg64 : X.g0 < 2 ^ 64)
     {E0 : Env} (hE0 : E0.sb = 0 ∧ E0.cid = 0 ∧ E0.k = 0)
     {s0 : St} {f0 : Frame}
@@ -504,7 +547,7 @@ theorem wasm_base_exec_host (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trac
   obtain ⟨hN, h1, h2⟩ := exec_of_rows_seg X (actListHost tr pub) (rowInH tr pub) (rowOutH tr pub)
     (rowConsH tr pub) (rowProdH tr pub) init fin
     (tr.cell 0 0 Boundary.pcf) (pub.getD Boundary.pubN 0) (pub.getD Boundary.pubS 0) seg st hst12
-    hrows hrows2 sbf cidf hst hch hinit hinitTp hlen hfee hstepgas hg64 hE0 h0
+    hrows sbf cidf hst hch hinit hinitTp hlen hfee hstepgas hg64 hE0 h0
   refine ⟨hN, ?_, ?_⟩
   · intro hs
     obtain ⟨sN, tps, tpl, locs, hrun, hfr, hgas, _G⟩ := h1 hs

@@ -51,6 +51,7 @@ import WasmBase.Main.SegExec
 import WasmBase.Main.HostRel
 import WasmBase.Main.SegHarness
 import WasmBase.Main.HostBus
+import WasmBase.Main.SoundHost
 import WasmBase.Main.HostChipBits
 import WasmBase.HostCtx
 import WasmBase.Main.RegFacts
