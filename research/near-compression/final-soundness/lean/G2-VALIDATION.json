@@ -2,30 +2,93 @@
   "date_utc": "2026-10-21",
   "lean_version": "4.33.1",
   "arklib_commit": "a5aa2677fee4e3a79d6bb05136631cce4a08587d",
-  "scope": "13 measured FINAL scalar folds, domain algebra and rational budget only; not full WHIR or QROM soundness",
+  "branch": "lane/pq-whir-transfer",
+  "base_commit": "84bf5c73e",
+  "scope": "13 measured FINAL scalar folds (unchanged), plus 27 O-2 sub-code transfers covering all four FINAL rounds and the PARENT O-2 rounds, an adaptive per-round union bound, and the deployed ordered-coset algebra. Fold moves only: OOD, shift queries, gamma, mu-batching, the Johnson rounds, other layers and the QROM compilation are NOT covered.",
+  "security_established": false,
+  "scalar_budget_numerator": "243070745342134118005592704",
+  "scalar_budget_denominator": "2013265921^12",
+  "exact_scalar_budget_lt": "2^-283",
+  "scalar_budget_scope": "Sum of 13 scalar fold budgets for one layer's folds over |Ext12|. NOT a security bound; it excludes the 14 other sub-codes now transferred (sum log2 ~ -280.11), OOD, queries, gamma, mu, Johnson rounds, other layers and the QROM loss.",
   "source_sha256": {
     "lean/DKTG2FoldCerts.lean": "d26e3818241d8ee01013867cd5419942af6b0ef0522175425d3161af176979eb",
     "lean/DKTWhirFold.lean": "23f603e27c181e9eca097124e27c64e131051671539eea89b806a7462f26161c",
     "lean/DKTG2FoldTransfer.lean": "b99130bfcdeb071f221a1d1512dd2499a69a41da22f9b60960b3f1a47ca8f6d5",
-    "calc/g2_fold_certificates.py": "1a402d9b720776add018149b51df6799da013091cefda1711af7024d9d206f20"
+    "lean/DKTAdaptive.lean": "fb900e67a0d80176011f65ddd49a33e5775d8fe7949908911540c03853fe1ebe",
+    "lean/DKTOrderedCoset.lean": "ece2367d5cff57023c4c7089093e536c534cf0e6a32fe0fbf4c102da51212338",
+    "lean/DKTG2FoldCoverageCerts.lean": "e12c20e579ff2e5a134f195e4e5e768ba4e58477c8c6cdd0310985c3520c71ba",
+    "lean/DKTG2FoldCoverage.lean": "a8a68fb2f8abdb2ee85a21814611074a6ee5cb05441618bf5551b4c4741d3a8a",
+    "lean/DKTRoundCompose.lean": "a90d47b783992db56d1ac1800a6a20f85e439358956d0a0f22144fd8754a275d",
+    "lean/check_g2_folds.sh": "6032a23c5cf0fef0a6fb257f486d0d4973d84266e0f234a9da7effd3e510a274",
+    "calc/g2_fold_certificates.py": "1a402d9b720776add018149b51df6799da013091cefda1711af7024d9d206f20",
+    "calc/g2_fold_coverage.py": "3a6fe7b4c1893d0b00e0cfacca4f666be245ef90031d9750ecccee7a3210e5b1"
   },
   "exit_codes": {
     "DKTG2FoldCerts": 0,
     "DKTWhirFold": 0,
-    "DKTG2FoldTransfer": 0
+    "DKTG2FoldTransfer": 0,
+    "DKTAdaptive": 0,
+    "DKTOrderedCoset": 0,
+    "DKTG2FoldCoverageCerts": 0,
+    "DKTG2FoldCoverage": 0,
+    "DKTRoundCompose": 0
   },
   "axiom_audit_counts": {
     "DKTG2FoldCerts": 13,
     "DKTWhirFold": 3,
-    "DKTG2FoldTransfer": 14
+    "DKTG2FoldTransfer": 14,
+    "DKTAdaptive": 5,
+    "DKTOrderedCoset": 7,
+    "DKTG2FoldCoverageCerts": 14,
+    "DKTG2FoldCoverage": 28,
+    "DKTRoundCompose": 5
   },
+  "axiom_audit_total": 89,
   "allowed_kernel_axioms": [
     "propext",
     "Classical.choice",
     "Quot.sound"
   ],
-  "scalar_budget_numerator": "243070745342134118005592704",
-  "scalar_budget_denominator": "2013265921^12",
-  "exact_scalar_budget_lt": "2^-283",
-  "security_established": false
+  "regeneration_byte_identical": {
+    "DKTG2FoldCerts": true,
+    "DKTG2FoldTransfer": true,
+    "DKTG2FoldCoverageCerts": true,
+    "DKTG2FoldCoverage": true
+  },
+  "forbidden_constructs_absent": ["sorry", "native_decide", "implemented_by", "axiom"],
+  "coverage": {
+    "final_rounds": [0, 1, 2, 3],
+    "final_subcodes": "s = 0..k_i for every O-2 round (all four FINAL rounds are O-2)",
+    "parent_rounds": [1, 2],
+    "parent_subcodes": "s = 0..4",
+    "not_covered": [
+      "PARENT r0 and r3 (Johnson regime, no O-2 certificate; needs DKTGlue)",
+      "the base/app layer",
+      "OOD, shift queries, gamma, mu-batching, query PoW",
+      "the Fiat-Shamir/QROM compilation",
+      "interleaving/list products on the O-2 sub-codes"
+    ],
+    "per_round_fold_budget_log2_over_ext12": {
+      "final_r0": "-286.138",
+      "final_r1": "-285.625",
+      "final_r2": "-284.173",
+      "final_r3": "-280.938",
+      "parent_r1": "-283.844",
+      "parent_r2": "-282.014",
+      "all_27": "-280.106"
+    }
+  },
+  "adaptive_composition": {
+    "proved": true,
+    "statement": "DKTAdaptive.badRuns_probability: for an arbitrary history-dependent family bad : List F -> Finset F with |bad hist| <= E hist.length, the probability that a uniform length-n challenge vector has some draw bad at its own history is <= budgetSum E hist.length n / |F|.",
+    "conditioning": "explicit: bad takes the whole preceding challenge history, so an adversary may choose each committed word as any function of the earlier challenges",
+    "model": "classical finite sampling; not Fiat-Shamir/QROM; assumes sample_ext is uniform on Ext12"
+  },
+  "ordered_coset": {
+    "ring_algebra_proved": true,
+    "concrete_generators_proved": "p = 2013265921, GENERATOR = 31 has order p-1; 31^((p-1)/15) = 1995471372 has order 15; omega^h = -1 for order-2h elements",
+    "index_arithmetic_proved": "index = a*h + u is i/h and i%h; roots are exactly cosetMajorSquareDomain's",
+    "rust_extraction_open": true,
+    "open_statement": "the compiled Rust evaluates these expressions on the same integer representatives with the same Fin layout and hash_coset leaf order; that is a program-refinement statement, not a ring identity"
+  }
 }
