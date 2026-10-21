@@ -51,7 +51,8 @@ permutation buses in the sense of `WasmBase.Bus.perm_exact`.
 
 ## Domain conditions (explicit, decidable, not polynomial)
 
-`rid, len < 2^16` from the R16 lookups, hence `pos < 2^16` (from `pos < len`), which is inside the
+`rid, len, pos < 2^16` from the R16 lookups (all three are needed: `pos`'s lookup is what makes
+`pos + gap + 1 = len` imply `pos < len` in the naturals rather than only mod `P`), which is inside the
 register model's key domain `pos, len < 2^24` (`Register.posOK`/`lenOK`).  The model's stricter
 `rid ≤ 99` (`maxNumberRegisters = 100`) is the stated register domain (`Register.regOK`); it is not
 a row constraint (a wider `rid` is harmless for the wire, and the state side already bounds it).
@@ -215,7 +216,12 @@ def inters : List Inter :=
    byteQ 0 (v bv) 0 0 (v act * isB),
    r16 (v gap) (v act * isB),
    r16 (v blen) (v act),
-   r16 (v rid) (v act)]
+   r16 (v rid) (v act),
+   -- `pos` must be 16-bit: without this, `cPosLtLen` (`pos + gap + 1 = len`) is satisfiable with
+   -- `pos + 1 + gap = len + P` (i.e. `pos = P − 1`, `len = 5`, `gap = 4`), so `pos < len` — the
+   -- walk's only bound — would be FALSE.  A machine-checked counterexample is
+   -- `reg_pos_lt_len_needs_r16` in `Main/RegWalk.lean`.
+   r16 (v pos) (v act)]
 
 def table : Table := ⟨"REG", cols, constraints, inters⟩
 end Reg

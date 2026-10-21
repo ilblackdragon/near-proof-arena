@@ -539,10 +539,12 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                     st.r16(blen - pos as u64 - 1);
                                     st.r16(blen);
                                     st.r16(rid);
+                                    st.r16(pos as u64);
                                 }
                                 reg_rows.push([1, 1, 0, rid, 0, blen, 0, hid, ts, 0, 0, 0, 0, 0, 0, 0]);
                                 st.r16(blen);
                                 st.r16(rid);
+                                st.r16(0);
                                 // the fill re-produces both messages at `ts`
                                 reg_bts.insert(rid, ts);
                                 reg_lts.insert(rid, ts);
@@ -565,12 +567,14 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                     st.r16(blen - pos as u64 - 1);
                                     st.r16(blen);
                                     st.r16(rid);
+                                    st.r16(pos as u64);
                                 }
                                 let lt = *reg_lts.get(&rid).unwrap();
                                 let hl = st.tchk(ts, lt);
                                 reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, hl, ptr, 0]);
                                 st.r16(blen);
                                 st.r16(rid);
+                                st.r16(0);
                                 // the read re-produces both messages at `ts`
                                 reg_bts.insert(rid, ts);
                                 reg_lts.insert(rid, ts);
@@ -588,6 +592,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, h, 0, 1]);
                                 st.r16(blen);
                                 st.r16(rid);
+                                st.r16(0);
                                 reg_lts.insert(rid, ts);
                             }
                         }
