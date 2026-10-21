@@ -18,10 +18,16 @@ if ((${#existing[@]})); then
   exit 2
 fi
 shopt -u nullglob dotglob
-python3 - "$OUT" "$AIR" "$CASE/claim.bin" "$B" "$C/statepublic" "$HERE/Cargo.lock" <<'PYMETA'
+# A long run must survive rebuilds/cleanup of external Cargo target directories.
+mkdir "$OUT/tools"
+cp --reflink=auto "$B" "$OUT/tools/prover"
+cp --reflink=auto "$C/statedump" "$C/statepublic" "$OUT/tools/"
+B=$OUT/tools/prover
+C=$OUT/tools
+python3 - "$OUT" "$ROOT" "$AIR" "$CASE/claim.bin" "$B" "$C/statepublic" "$HERE/Cargo.lock" <<'PYMETA'
 import hashlib,json,pathlib,subprocess,sys
-out,*inputs=sys.argv[1:]
-metadata={'git_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+out,root,*inputs=sys.argv[1:]
+metadata={'git_head':subprocess.check_output(['git','-C',root,'rev-parse','HEAD'],text=True).strip(),
           'inputs':{p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in inputs}}
 pathlib.Path(out,'RUN.json').write_text(json.dumps(metadata,indent=2)+'\n')
 PYMETA

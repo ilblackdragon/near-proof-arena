@@ -1,0 +1,4 @@
+FINAL_PHASE start
+FINAL_PHASE proved_and_verified seconds=521.748530
+NEGATIVE_CONTROLS_OK changed_tape_root changed_program
+FINAL_VERIFIED {"bundle_bytes":299967,"hint_bytes":16,"levels":6,"proof_bytes":299935,"scope":"D0a","security_established":false,"setup_sha256":"b373c618279055625c9124d7c3d80e303f5d0abad7f8b59928f5c251b8812623","trusted_setup_bytes":3711888,"under_300000":true,"zero_knowledge_established":false}

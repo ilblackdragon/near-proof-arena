@@ -12,11 +12,21 @@ edition = "2024"
 [features]
 default = ["chunk-recursion"]
 chunk-recursion = []
+perf-experiments = []
 [[bin]]
 name = "nearproof-chunk-e2e"
 path = ''' + q(here / 'src/main.rs') + '''
+[[bin]]
+name = "perf-hash-check"
+required-features = ["perf-experiments"]
+path = ''' + q(here / 'src/perf_hash_check.rs') + '''
+[[bin]]
+name = "perf-dft-check"
+required-features = ["perf-experiments"]
+path = ''' + q(here / 'src/perf_dft_check.rs') + '''
 [dependencies]
 p3-field = "=0.4.3"
+p3-dft = "=0.4.3"
 p3-matrix = "=0.4.3"
 p3-air = "=0.4.3"
 sha2 = "0.10.9"
@@ -36,7 +46,7 @@ for name in ['stark-backend','stark-sdk','cpu-backend','cuda-backend','cuda-buil
 text += '\n[patch.crates-io]\n'
 for name in ['p3-baby-bear','p3-monty-31']:
     text += f'{name} = {{ path = {q(deps / "plonky3-ext12" / name)} }}\n'
-text += '\n[profile.release]\ndebug = false\n'
+text += '\n[profile.release]\ndebug = "line-tables-only"\n'
 root = deps / 'chunk-driver'
 root.mkdir(exist_ok=True)
 (root / 'Cargo.toml').write_text(text)

@@ -971,6 +971,7 @@ dependencies = [
  "openvm-recursion-circuit",
  "openvm-stark-backend",
  "p3-air",
+ "p3-dft",
  "p3-field",
  "p3-matrix",
  "serde",

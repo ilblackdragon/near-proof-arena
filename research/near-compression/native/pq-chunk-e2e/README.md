@@ -90,3 +90,12 @@ some overhead, so performance comparisons must use the same profiling settings.
 
 For an existing run: `python3 profile.py attach PID NEW_PROFILE_DIRECTORY`.
 An attached profile covers only the period after attachment, not earlier stages.
+
+## Performance measurements
+
+The [2026-10-21 bounded pass](PERFORMANCE.md) measured 52m 24s of full D0a
+proving and 2.08s of independent verification on a shared host. The allocation,
+copy-removal, and DFT-padding candidates did not demonstrate a useful speedup;
+the default backend and eight-thread setting remain unchanged. The experimental
+patches are retained only for reproducibility. Runs now snapshot their tools
+before starting, and `replay_final.sh` supports cheaper matched-input experiments.

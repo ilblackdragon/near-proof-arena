@@ -1,5 +1,6 @@
 //! Real D0a base proof -> bound NV recursion -> separately verified final packet.
 //! Research protocol: cryptographic security and zero-knowledge masking are not established here.
+mod perf_check;
 mod profile;
 #[path = "../../pq-state-port/src/main.rs"]
 #[allow(dead_code)]
@@ -125,7 +126,15 @@ fn probe(out: &Path) {
         w.len().next_power_of_two().trailing_zeros()
     );
 }
-fn chain(air: &str, public: &str, out: &Path, certs: &str, exclusions: &str, resume: u32) {
+fn chain(
+    air: &str,
+    public: &str,
+    out: &Path,
+    certs: &str,
+    exclusions: &str,
+    resume: u32,
+    final_only: bool,
+) {
     let (mut vk, mut p) = load_base(out);
     state::chunk_bridge::check_base_key(air, public, &vk);
     let base_params = vk.inner.params.clone();
@@ -148,8 +157,12 @@ fn chain(air: &str, public: &str, out: &Path, certs: &str, exclusions: &str, res
     let mut words = vec![];
     let mut root = None;
     let mut floor: Option<Vec<usize>> = None;
-    let mut converged = false;
-    let mut levels = 0;
+    assert!(
+        !final_only || resume >= 2,
+        "final replay requires an NV checkpoint"
+    );
+    let mut converged = final_only;
+    let mut levels = if final_only { resume } else { 0 };
     // Checkpoints are local trusted prover state, never verifier inputs.
     if resume > 0 {
         assert!(resume < 10);
@@ -167,7 +180,15 @@ fn chain(air: &str, public: &str, out: &Path, certs: &str, exclusions: &str, res
         floor = checkpoint.2;
         root = Some(p.trace_vdata[0].as_ref().unwrap().cached_commitments[0]);
     }
-    for level in resume + 1..=10 {
+    if final_only {
+        // Trusted local replay of the converged checkpoint. The final program
+        // equality and independent verifier checks below remain mandatory.
+        circ.log_rows = 20;
+        circ.prog_log = 18;
+        circ.child_nv = true;
+        circ.bind = true;
+    }
+    for level in (resume + 1..=10).filter(|_| !final_only) {
         // Program binding requires the same ALU domain at every recursive layer.
         // Tight heights still compress unused common-main rows.
         circ.log_rows = 20;
@@ -227,7 +248,13 @@ fn chain(air: &str, public: &str, out: &Path, certs: &str, exclusions: &str, res
     let mut fc = circ.clone_shape();
     fc.program_part = false;
     fc.tight_floor = None;
+    let final_started = std::time::Instant::now();
+    println!("FINAL_PHASE start");
     let (fv, fp, b, _) = prove_level(&fc, &final_engine, &vk, &p);
+    println!(
+        "FINAL_PHASE proved_and_verified seconds={:.6}",
+        final_started.elapsed().as_secs_f64()
+    );
     let fw: Vec<_> = b.instrs.iter().map(|i| i.words()).collect();
     assert_eq!(fw, words, "FINAL program differs from child");
     let setup = Setup {
@@ -338,6 +365,7 @@ fn main() {
     init();
     let a: Vec<String> = std::env::args().collect();
     match a.get(1).map(String::as_str) {
+        Some("check-stream-parity") if a.len() == 2 => perf_check::run(),
         Some("base") if a.len() == 7 => base(&a[2], &a[3], Path::new(&a[4]), &a[5], &a[6]),
         Some("probe") if a.len() == 3 => probe(Path::new(&a[2])),
         Some("validate-base") if a.len() == 5 => {
@@ -352,10 +380,20 @@ fn main() {
             &a[5],
             &a[6],
             a.get(7).map(|s| s.parse().unwrap()).unwrap_or(0),
+            false,
+        ),
+        Some("replay-final") if a.len() == 8 => chain(
+            &a[2],
+            &a[3],
+            Path::new(&a[4]),
+            &a[5],
+            &a[6],
+            a[7].parse().unwrap(),
+            true,
         ),
         Some("verify") if a.len() == 8 => verify(&a[2], &a[3], &a[4], &a[5], &a[6], &a[7]),
         _ => panic!(
-            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE"
+            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE"
         ),
     }
 }

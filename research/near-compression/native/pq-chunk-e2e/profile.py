@@ -20,6 +20,7 @@ import threading
 
 def main():
     mode, target, *arguments = sys.argv[1:]
+    started = time.monotonic()
     if mode == 'run':
         out = pathlib.Path(target)
         assert arguments[0] == '--'
@@ -46,11 +47,19 @@ def main():
         out.mkdir(parents=True, exist_ok=False)
     else:
         raise SystemExit('profile.py run OUT -- COMMAND... | attach PID OUT')
-    started = time.monotonic()
     metadata = {'pid': pid, 'command': command, 'mode': mode, 'sample_hz': 19,
                 'started_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 'clock_ticks': os.sysconf('SC_CLK_TCK'),
-                'profile_covers_process_start': mode == 'run'}
+                'profile_covers_process_start': mode == 'run',
+                'environment': {k: v for k, v in os.environ.items()
+                                if k in ('RAYON_NUM_THREADS', 'CPUSET', 'HEAVY_MEM',
+                                         'NEARPROOF_PQ_DEPS', 'NEARPROOF_DFT_REUSE',
+                                         'NEARPROOF_LEAF_DIRECT', 'NEARPROOF_DFT_PAD',
+                                         'NEARPROOF_MEMPROF', 'NEARPROOF_CPU_FAST',
+                                         'NEARPROOF_DIGEST_BYTES', 'NEARPROOF_COSET_LEAF',
+                                         'NEARPROOF_TSTAR', 'NEARPROOF_STREAM_COMMIT',
+                                         'NEARPROOF_STREAM_DROP')},
+                'load_average_start': list(os.getloadavg())}
     try:
         metadata['cpu_affinity'] = sorted(os.sched_getaffinity(pid))
         shutil.copyfile(f'/proc/{pid}/exe', out / 'executable')
@@ -116,6 +125,7 @@ def main():
             else:
                 time.sleep(5)
     metadata['observed_process_wall_s'] = time.monotonic() - started
+    metadata['load_average_end'] = list(os.getloadavg())
     for process in profilers:
         if process.poll() is None:
             os.killpg(process.pid, signal.SIGINT)

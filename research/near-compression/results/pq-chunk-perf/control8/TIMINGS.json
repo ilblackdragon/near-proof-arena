@@ -1,0 +1,81 @@
+{
+  "run": "/data/illia/nearproof-deps/pq-chunk-perf/runs/off8-a",
+  "stages": {
+    "negatives": {
+      "wall_s": 4.105770118068904,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 0.013973236083984375,
+      "executable_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+      "environment": {
+        "NEARPROOF_DFT_REUSE": "0",
+        "RAYON_NUM_THREADS": "8",
+        "NEARPROOF_PQ_DEPS": "/data/illia/nearproof-deps/pq-chunk-perf",
+        "HEAVY_MEM": "32G",
+        "NEARPROOF_MEMPROF": "1",
+        "NEARPROOF_LEAF_DIRECT": "0"
+      },
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "prove": {
+      "wall_s": 526.1147183999419,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 12.611324310302734,
+      "executable_sha256": "b1c25c1178acf9d85dba614ef9dbe3908f3079b86a9a451070cd4ee3419f269a",
+      "environment": {
+        "NEARPROOF_DFT_REUSE": "0",
+        "RAYON_NUM_THREADS": "8",
+        "NEARPROOF_PQ_DEPS": "/data/illia/nearproof-deps/pq-chunk-perf",
+        "HEAVY_MEM": "32G",
+        "NEARPROOF_MEMPROF": "1",
+        "NEARPROOF_LEAF_DIRECT": "0"
+      },
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "verify": {
+      "wall_s": 2.110296791885048,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 0.15894699096679688,
+      "executable_sha256": "378602aa4036807ef731f77066768ed1f451b6c2ff64c6ee0ab351e4207e92b0",
+      "environment": {
+        "NEARPROOF_DFT_REUSE": "0",
+        "RAYON_NUM_THREADS": "8",
+        "NEARPROOF_PQ_DEPS": "/data/illia/nearproof-deps/pq-chunk-perf",
+        "HEAVY_MEM": "32G",
+        "NEARPROOF_MEMPROF": "1",
+        "NEARPROOF_LEAF_DIRECT": "0"
+      },
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    }
+  },
+  "failed_attempts": {},
+  "all_recorded_stages_succeeded": true,
+  "summed_stage_wall_s": 532.3307853098959,
+  "proving_wall_s": null,
+  "packet": {
+    "bundle_bytes": 299967,
+    "hint_bytes": 16,
+    "levels": 6,
+    "proof_bytes": 299935,
+    "scope": "D0a",
+    "security_established": false,
+    "setup_sha256": "b373c618279055625c9124d7c3d80e303f5d0abad7f8b59928f5c251b8812623",
+    "trusted_setup_bytes": 3711888,
+    "under_300000": true,
+    "zero_knowledge_established": false
+  }
+}
