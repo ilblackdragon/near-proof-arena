@@ -26,3 +26,7 @@ p3-monty-31 = { path = "/data/illia/nearproof-deps/pq-state-port/plonky3-ext12/p
 
 [profile.release]
 debug = false
+
+# This source is also included by the standalone chunk recursion driver.
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("chunk-recursion"))'] }
