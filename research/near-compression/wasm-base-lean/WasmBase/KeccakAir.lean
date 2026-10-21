@@ -176,7 +176,7 @@ def chiConstr (m k : Nat) : Expr :=
 `List.foldr`) so that its degree is one short induction. -/
 def rcSelAux (k : Nat) : Nat → Expr
   | 0 => e0
-  | n + 1 => v (selE n) * Expr.c (rcBit n k) + rcSelAux k n
+  | n + 1 => rcSelAux k n + v (selE n) * Expr.c (rcBit n k)
 
 def rcSel (k : Nat) : Expr := rcSelAux k ROUNDS
 
@@ -186,7 +186,7 @@ def iotaConstr (k : Nat) : Expr :=
 /-- `Σ_r sel_r`, the one-hot sum. -/
 def onehotAux : Nat → Expr
   | 0 => e0
-  | n + 1 => v (selE n) + onehotAux n
+  | n + 1 => onehotAux n + v (selE n)
 
 def onehotSum : Expr := onehotAux ROUNDS
 
