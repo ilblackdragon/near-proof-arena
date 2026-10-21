@@ -207,3 +207,19 @@ Ground rules for every track:
    track's files. Progress notes go to `docs/logs/`, one file per track.
 6. Report the *distinction between checked components and a closed theorem*
    in the deliverable, in the same style the audited draft now uses.
+
+## 7. Post-script (2026-10-21, after this re-check): the aggregation binding gate closed
+
+`lane/pq-agg-rebase` landed on main after this review and closes the one item
+this document treated as a separate, unwritten gate: per-child program binding at
+aggregation nodes. The overlay was rebased onto G2 and five defects were fixed,
+one of which was exactly that Node children were never program-bound. Measured:
+`agg_node_program_binding` accepts an honest node (85,584 rows) and rejects a
+child whose program is altered in the trace; `agg_chain` composes two real N1
+proofs into a real N2 proof with tampers rejected; `nv::` non-heavy 41/41.
+
+This does **not** change anything in sections 1–6 above: the leaves are still
+Fibonacci/segment fixtures, so it is tree machinery rather than a NEAR chunk, and
+it is measurement plus circuit testing rather than a refinement theorem. It moves
+the per-child binding item from "not built" to "built and exercised", which is
+what §7.3 item 2 still needs to convert into `NodeOK`.

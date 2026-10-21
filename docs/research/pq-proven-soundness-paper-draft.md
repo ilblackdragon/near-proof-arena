@@ -959,6 +959,18 @@ The fix is to check the final proof's program openings against a pinned program
 (and level). This is implemented and tested: a 776-row verify-nothing final is
 accepted without the check and rejected with it.
 
+**Per-child binding at the aggregation nodes is now measured.** Proposition 7.3
+concerns the final layer; an aggregation node needs the same property for *each
+child*, or it proves only that some child proof verifies. A rebased n-to-1 node
+now rejects a child whose program differs from the pinned one by a change
+confined to the trace (`agg_node_program_binding`: honest node accepted at
+85,584 rows, altered child program rejected by the circuit), and two real N1
+proofs compose into a real N2 proof with tampers rejected (`agg_chain`). Reaching
+that point required fixing five defects, one of which was precisely the missing
+per-child binding. This is measurement and circuit testing, not a refinement
+theorem: it establishes that a binding mechanism exists and is exercised, which
+is what §7.3 item 2 still needs to turn into `NodeOK`.
+
 ### 7.5 Peeling and the G-P1 cost boundary
 
 A conditional peeling theorem has the following correctly composed form:
