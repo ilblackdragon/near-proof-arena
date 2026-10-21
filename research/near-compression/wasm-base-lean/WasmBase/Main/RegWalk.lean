@@ -923,6 +923,32 @@ theorem regLenAgree_group {nloc ngl : Nat} {pub : List F} {tr : Trace}
     rw [reg_byte_row_msg hridi hposi hki hacti, hpi, hidsi.1, hidsi.2]
 
 
+/-! ## The stated `Register.RegLenAgree` is false for a length-only access
+
+`Register.RegLenAgree` (`RegisterSpace.lean`) counts byte messages **at the same producer time as the
+length message**.  A `register_len` call emits exactly one length row and no byte row, so at that
+producer time the register has a length message and zero byte messages — the stated equality
+`#bytes = len` then fails for `len ≠ 0`.  The generator really does emit this shape
+(`tracegen.rs`, host id 6: a single `kind = 1`, `f = 1` row) and `programs/gen.py`'s `regkat` really
+does call `register_len`.
+
+So the AIR's obligation must be the group-local one (`regLenAgree_group`), not the
+producer-time-counting one.  A reviewer should treat `Register.RegLenAgree` as a stale statement to
+be replaced, not a missing proof. -/
+theorem regLenAgree_lone_length {rid len tp : Nat} (hlen : len ≠ 0) :
+    ¬ Register.RegLenAgree [Register.lenMsg rid len tp] rid := by
+  intro h
+  have hm : Register.lenMsg rid len tp ∈ [Register.lenMsg rid len tp] := List.mem_cons_self ..
+  have hh := h len tp hm
+  have hcount : (List.countP (fun m : Msg => decide (m.space = Register.space ∧
+      m.tag = Register.byteTag ∧ m.slot / 2 ^ Register.posBits = rid ∧ m.tp = tp))
+      [Register.lenMsg rid len tp]) = 0 := by
+    simp only [List.countP_cons, List.countP_nil, Register.lenMsg, Register.space,
+      Register.byteTag, Register.lenTag, Register.posBits]
+    simp
+  rw [hcount] at hh
+  omega
+
 end WasmBase
 
 

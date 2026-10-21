@@ -641,6 +641,13 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
             cases.push((format!("HOSTB[row {r}].hid+1"), cell(thb, r, col(thb, "hid"), plus1())));
             // `gap` changed: pos + gap + 1 != len
             cases.push((format!("HOSTB[row {r}].gap+1"), cell(thb, r, col(thb, "gap"), plus1())));
+            // `pos` pushed to 2^16: outside the R16 range the new `r16 pos` lookup enforces, so the
+            // field equation `pos + gap + 1 = len` would otherwise be satisfiable mod P
+            cases.push((format!("HOSTB[row {r}].pos=2^16"), cell(thb, r, col(thb, "pos"),
+                Box::new(|_| F::from_u64(65536)))));
+            // `len` pushed to 2^16: the same hole on the length side
+            cases.push((format!("HOSTB[row {r}].len=2^16"), cell(thb, r, col(thb, "len"),
+                Box::new(|_| F::from_u64(65536)))));
         }
     }
     // the register wire (channel space 6)

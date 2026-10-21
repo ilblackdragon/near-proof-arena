@@ -449,7 +449,14 @@ def inters : List Inter :=
    ⟨busHostB, true, v act * v reg, msg⟩,
    -- a register-filling byte (`reg = 1`) is looked up by `REG`, which owns the register wire
    byteQ 0 (v bv) 0 0 (v act * (1 - v reg)),
-   r16 (v gap) (v act * (1 - v reg))]
+   r16 (v gap) (v act * (1 - v reg)),
+   -- `pos` and `len` must be 16-bit: without this, `cPosLtLen` (`pos + gap + 1 = len`) is
+   -- satisfiable with `pos + 1 + gap = len + P` (i.e. `pos = P − 1`, `len = 5`, `gap = 4`), so
+   -- `pos < len` — the only bound tying a byte's position to its group's length — would be FALSE.
+   -- The same hole forced `r16 pos` in `REG`; this is the predicted HOSTB counterpart
+   -- (`hostb_pos_lt_len_needs_r16`, `Main/HostChipFacts`).
+   r16 (v pos) (v act * (1 - v reg)),
+   r16 (v blen) (v act * (1 - v reg))]
 
 def table : Table := ⟨"HOSTB", cols, constraints, inters⟩
 end HostB

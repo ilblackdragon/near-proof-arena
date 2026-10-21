@@ -50,11 +50,13 @@ message (`lenMsg_not_ok`), the view (`view`, `mem_view`, `view_len_mem`, `view_b
 disjointness of two registers (`regMsgs_disjoint`) and the `Nodup`ness of one register's view
 (`regMsgs_nodup`), and the decidable domain predicates.
 
-Stated only (`Prop`, clearly labelled, **not** proved): `RegBusSound` (every live space-6 message in
-a trace is a message of the final register file) and `RegLenAgree` (a byte group's length equals its
-length message).  Both are join/row obligations, not arithmetic ones; `RegLenAgree` is enforced
-row-locally by `Chips.Reg.cEnd` + `cLenVal` on the AIR side (`Main/RegFacts.lean`), and
-`RegBusSound` is the state-side obligation.
+Stated only (`Prop`): `RegBusSound` (every live space-6 message in a trace is a message of the final
+register file), the state-side obligation.
+
+**`RegLenAgree` is proved, but not in the form stated here.**  The stated definition is false for a
+length-only access (`regLenAgree_lone_length`, `Main/RegWalk.lean`).  The AIR obligation is
+group-local and is proved as `regLenAgree_group` (`Main/RegWalk.lean`) from the group walk
+(`reg_group_walk`): a length row terminates a group whose byte rows are exactly `pos = 0 … len−1`.
 -/
 namespace WasmBase
 namespace Register
@@ -329,10 +331,17 @@ except through a register overwrite or a register read. -/
 def RegBusSound (live : Msg → Prop) (regs : Array (Nat × ByteArray)) (tp : Nat → Nat) : Prop :=
   ∀ x, x.space = space → (live x ↔ x ∈ view regs tp)
 
-/-- **Stated, not proved here.**  The length message of a register agrees with the number of byte
-messages of that register at the same producer time.  The AIR enforces the row-local half
-(`Chips.Reg.cEnd`: the last row of a byte group has `pos = len − 1`, and `cLenVal`: the length row's
-value is `len − 1`), so this is a consequence of walking a group; the walk is not written out here. -/
+/-- **Deprecated statement: this is false.**  Counting byte messages at the *same producer time* as
+the length message fails for a length-only access (`register_len`): that call emits one length row
+and no byte row, so the register has a length message and zero byte messages at that time
+(`regLenAgree_lone_length` in `Main/RegWalk.lean` is the machine-checked counterexample, and the
+trace generator really produces this shape).
+
+The AIR's real obligation is **group-local**: a length message is produced by the length row that
+terminates a group, and that group has exactly `len` byte rows at `pos = 0 … len−1`.  That is
+`regLenAgree_group` (`Main/RegWalk.lean`), proved from the group walk over `Chips.Reg`'s
+constraints.  This definition is kept only so the false statement and its refutation stay
+side by side; do not use it as a proof obligation. -/
 def RegLenAgree (msgs : List Msg) (rid : Nat) : Prop :=
   ∀ len tp, lenMsg rid len tp ∈ msgs →
     msgs.countP (fun m => m.space = space ∧ m.tag = byteTag ∧ m.slot / 2 ^ posBits = rid ∧

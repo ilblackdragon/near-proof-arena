@@ -536,6 +536,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                     hostb_rows.push([ts, 1, pos as u64, b, blen, hid,
                                         blen - pos as u64 - 1, 1, (pos == 0) as u64, 1]);
                                     st.byte(0, b, 0);
+                                    // HOSTB's `gap` query (`reg = 1` makes its count 0, so this
+                                    // answer is consumed by REG, which queries gap too)
                                     st.r16(blen - pos as u64 - 1);
                                     st.r16(blen);
                                     st.r16(rid);
@@ -564,6 +566,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                     reg_rows.push([1, 0, 1, rid, pos as u64, blen, b, hid, ts, 0,
                                         blen - pos as u64 - 1, 1, ft, h, ptr, (pos == 0) as u64]);
                                     st.byte(0, b, 0);
+                                    // HOSTB's `gap` query (`reg = 1` makes its count 0, so this
+                                    // answer is consumed by REG, which queries gap too)
                                     st.r16(blen - pos as u64 - 1);
                                     st.r16(blen);
                                     st.r16(rid);
@@ -619,6 +623,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                             (pos == 0) as u64, 0]);
                         st.byte(0, b, 0);
                         st.r16(blen - pos - 1);
+                        st.r16(pos);
+                        st.r16(blen);
                     }
                 }
                 // The placeholder byte stream belongs to the minimum slice.  With the REG table the
@@ -641,6 +647,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                             hostb_rows.push([ts, dir, pos, b, blen, hid, blen - pos - 1, 1, (pos == 0) as u64, is_reg]);
                             st.byte(0, b, 0);
                             st.r16(blen - pos - 1);
+                            st.r16(pos);
+                            st.r16(blen);
                         }
                     }
                 }
