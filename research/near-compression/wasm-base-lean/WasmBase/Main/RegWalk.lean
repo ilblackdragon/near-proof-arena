@@ -477,4 +477,56 @@ theorem reg_group_walk {nloc ngl : Nat} {pub : List F} {tr : Trace}
     have hp0 := hbyte (by omega)
     omega
 
+
+
+/-- **`cRidG`**: the group's `rid` is constant across the row boundary. -/
+theorem reg_rid_const {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 26)
+    (hf' : rowNat tr 26 ((r + 1) % tr.height 26) Reg.f = 0) :
+    rowNat tr 26 ((r + 1) % tr.height 26) Reg.rid = rowNat tr 26 r Reg.rid := by
+  have ht := (reg_walk_26 (nloc := nloc) (ngl := ngl)).1
+  have hT := (reg_walk_26 (nloc := nloc) (ngl := ngl)).2
+  have hcon := table_constr H ht hr
+  rw [hT] at hcon
+  have h := hcon Reg.cRidG (by simp [Reg.table, Reg.constraints])
+  simp only [Reg.cRidG, Chips.v, Chips.nv, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
+    Expr.eval_nxt, Expr.eval_ofNat', Reg.f, Reg.rid, natRow, Trace.row] at h
+  have e1 : tr.cell 26 ((r + 1) % tr.height 26) 15 =
+      ((rowNat tr 26 ((r + 1) % tr.height 26) Reg.f : Nat) : F) := (Fp.cast_toNat _).symm
+  have e2 : tr.cell 26 ((r + 1) % tr.height 26) 3 =
+      ((rowNat tr 26 ((r + 1) % tr.height 26) Reg.rid : Nat) : F) := (Fp.cast_toNat _).symm
+  rw [e1, e2] at h
+  rw [show (rowNat tr 26 ((r + 1) % tr.height 26) Reg.f : F) = 0 from by rw [hf']; rfl] at h
+  rw [show (3 : Nat) = Reg.rid from rfl] at h
+  have h1 := rowNat_lt tr 26 ((r + 1) % tr.height 26) Reg.rid
+  have h2 := rowNat_lt tr 26 r Reg.rid
+  have e : (rowNat tr 26 ((r + 1) % tr.height 26) Reg.rid : F) = (rowNat tr 26 r Reg.rid : F) := by
+    grind
+  exact natEq e h1 h2
+
+/-- **`cTsG`**: the group's `ts` is constant across the row boundary. -/
+theorem reg_ts_const {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 26)
+    (hf' : rowNat tr 26 ((r + 1) % tr.height 26) Reg.f = 0) :
+    rowNat tr 26 ((r + 1) % tr.height 26) Reg.ts = rowNat tr 26 r Reg.ts := by
+  have ht := (reg_walk_26 (nloc := nloc) (ngl := ngl)).1
+  have hT := (reg_walk_26 (nloc := nloc) (ngl := ngl)).2
+  have hcon := table_constr H ht hr
+  rw [hT] at hcon
+  have h := hcon Reg.cTsG (by simp [Reg.table, Reg.constraints])
+  simp only [Reg.cTsG, Chips.v, Chips.nv, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
+    Expr.eval_nxt, Expr.eval_ofNat', Reg.f, Reg.ts, natRow, Trace.row] at h
+  have e1 : tr.cell 26 ((r + 1) % tr.height 26) 15 =
+      ((rowNat tr 26 ((r + 1) % tr.height 26) Reg.f : Nat) : F) := (Fp.cast_toNat _).symm
+  have e2 : tr.cell 26 ((r + 1) % tr.height 26) 8 =
+      ((rowNat tr 26 ((r + 1) % tr.height 26) Reg.ts : Nat) : F) := (Fp.cast_toNat _).symm
+  rw [e1, e2] at h
+  rw [show (rowNat tr 26 ((r + 1) % tr.height 26) Reg.f : F) = 0 from by rw [hf']; rfl] at h
+  rw [show (8 : Nat) = Reg.ts from rfl] at h
+  have h1 := rowNat_lt tr 26 ((r + 1) % tr.height 26) Reg.ts
+  have h2 := rowNat_lt tr 26 r Reg.ts
+  have e : (rowNat tr 26 ((r + 1) % tr.height 26) Reg.ts : F) = (rowNat tr 26 r Reg.ts : F) := by
+    grind
+  exact natEq e h1 h2
+
 end WasmBase
