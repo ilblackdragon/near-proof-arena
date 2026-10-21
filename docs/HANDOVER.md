@@ -416,7 +416,8 @@ ContractData key needs a table parameterisation, which is a render/AIR change wi
   `nearAirV3D1` = 33 tables (walk every tx key: `walkU`, `nmemV3`, `uvalV3`, `nodeD1`, `uniqD1`; `ridV3`
   `l` range check); conformance 257 fixtures, AIR A7 = `unfoldBytesD1` incl. the R-5 counterexample.
   Phase 2: views, receipt/Merkle copies (generator `zk-formal/scripts/rcpt_d1_copy.py`), links 65/113
-  copies + walk copies; NOT yet: `A7D1Step`, `LinkD1CoreStmt`, F1/R1/R2/A1. Next steps:
+  copies + walk copies; F1 proved (`factorSoundD1_B0 : FactorSoundD1 B0`, `D1/F1/`, 2026-10-21);
+  NOT yet: `A7D1Step`, `LinkD1CoreStmt`, R1/R2/A1. Next steps:
   `docs/logs/v3-d1-a7b-2026-10.md`, `docs/logs/v3-d1-phase2-2026-10.md`, plan `docs/zk-formal/V3-D1-PHASE2.md`.
   Untested: no fixture exercises a stub / `nmemV3` query yet; real D1a proof on the 33-table AIR not re-run.
 * **D3a / 1 Pgas / PQ:** study `docs/zk-formal/V3-D3A-STUDY.md`; performance design + CPU spikes
