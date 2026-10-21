@@ -33,22 +33,20 @@ behaviour read off `Host.lean`.  The kernel checks (§`decide`) that the ids are
 and — the interesting one — that the counter policy is `Host.lean`'s, restated as
 `specAddR`/`specAddP`.
 
-## The wire, as it is *today* (two real discrepancies)
+## The wire
 
-`PQ/Join/Statement.lean` was written before the HOST chip was widened
-(`pq-host-promise` DESIGN §1.3).  Both of its HOSTB/HOSTQ shapes are **stale**:
+This module's `hostQ22` / `hostB5` / `hostR8` are now **the same functions** as
+`PQ/Join/Statement.lean`'s `hostQ` / `hostB` / `hostR`
+(`hostQ22_eq_join` / `hostB5_eq_join` / `hostR8_eq_join`, all `rfl`), which in turn are the HOST
+chip's `Host.qMsg` / `HostB.msg` / `HostR` shapes (22 / 5 / 8 fields).  There is one wire.
 
-| message | `Statement.lean` | HOST chip (`HostChip.lean`) | wide shape below |
-|---|---|---|---|
-| `HOSTQ` | 8 fields (`hostQ`) | 22 fields (`Host.qMsg`) | `hostQ22`, 22 |
-| `HOSTB` | 4 fields (`hostB`) | 5 fields (`HostB.msg`) | `hostB5`, 5 |
-| `HOSTR` | 8 fields (`hostR`) | 8 fields (`HostR`) | `hostR8`, 8 |
-
-`hostQ_stale`/`hostB_stale` prove the lengths, and `hostQ_no_bridge`/`hostB_no_bridge` prove
-that a message of the old width can never be a message of the new width — so a joined proof
-that kept the old shapes would *fail to balance* rather than silently merge two wires.  That is
-a correctness fact about the interface, not a design preference: `(ts, hid, S, np, args…)` and
-`(ts, hid, S, a0…a4)` are different multisets.
+The *pre-widening* shapes (`PQ/Join/Statement.lean` once declared `HOSTQ` as 8 fields
+`[ts, hid, S, a0 … a4]` and `HOSTB` as 4 `[ts, dir, pos, byte]`) are kept as `Join.hostQOld` /
+`Join.hostBOld`.  `hostQ_stale_len`/`hostB_stale_len` prove their widths and
+`hostQ_no_bridge`/`hostB_no_bridge` prove a message of the old width can never be a message of
+the current width — so a joined proof that kept the old shapes would *fail to balance* rather
+than silently merge two wires.  That is a correctness fact about the interface, not a design
+preference: `(ts, hid, S, np, args…)` and `(ts, hid, S, a0…a4)` are different multisets.
 -/
 
 namespace ZkFormal.PQ.Receipt
@@ -228,61 +226,88 @@ theorem promiseClasses_policy :
       (decide (p.dadd = 1) = specDadd1.contains p.hid) &&
       (decide (p.rtag = 0) = specI32.contains p.hid)) = true := by decide
 
-/-! ## The wide wire: what the state side must speak
+/-! ## The wire: one definition, two spellings
 
 `HOSTQ` (Wasm → state, `HostChip.qMsg`) is `[ts, hid, S, np]` then `(aLo j, aHi j)` for
 `j = 0..8`: 22 fields.  `HOSTB` (`HostChip` `HostB.msg`) is `[ts, hid, dir, pos, byte]`: 5.
-`HOSTR` (state → Wasm) is `[ts, st, rLo, rHi, gLo, gHi, ar, 0]`: 8. -/
+`HOSTR` (state → Wasm) is `[ts, st, rLo, rHi, gLo, gHi, ar, 0]`: 8.
 
-/-- `HOSTQ`, 22 fields: the request one `promise_*` call must consume. -/
+These are **`PQ/Join/Statement.lean`'s** definitions.  The names below are kept because the wire
+was first spelled here (before `Statement.lean` was migrated, this lane could not edit it); each
+one is now *proved equal* to the join's, so the two spellings can never fork again.  The
+`≠`-lemmas of `hostQ_no_bridge`/`hostB_no_bridge` are unaffected — they compare the *old* shapes
+(now `Join.hostQOld`/`Join.hostBOld`) against these. -/
+
+/-- `HOSTQ`, 22 fields: the request one `promise_*` call must consume.  Equal to
+`ZkFormal.PQ.Join.hostQ` (`hostQ22_eq_join`). -/
 def hostQ22 (ts hid s np : Nat) (a : Nat → Nat × Nat) : List Nat :=
   [ts, hid, s, np] ++ (List.range 9).flatMap fun j => [((a j).1), ((a j).2)]
 
-/-- `HOSTB`, 5 fields: one byte of a call's payload. -/
+/-- `HOSTB`, 5 fields: one byte of a call's payload.  Equal to `ZkFormal.PQ.Join.hostB`. -/
 def hostB5 (ts hid dir pos byte : Nat) : List Nat := [ts, hid, dir, pos, byte]
 
-/-- `HOSTR`, 8 fields: the response a state-side table must send. -/
+/-- `HOSTR`, 8 fields, in **limb form**: what a state-side table's columns carry (the row stores
+`rl, rh, gl, gh` separately, because `PBC` range-checks each of them through `PBR`).  The join's
+`hostR` takes the two words and splits them; `hostR8_split` is the equality. -/
 def hostR8 (ts st rLo rHi gLo gHi ar : Nat) : List Nat :=
   [ts, st, rLo, rHi, gLo, gHi, ar, 0]
 
-theorem hostQ22_len (ts hid s np : Nat) (a : Nat → Nat × Nat) :
-    (hostQ22 ts hid s np a).length = 22 := by
-  unfold hostQ22
-  rfl
+/-- **The wide `HOSTQ` here *is* the join's.**  `rfl`: `Join.nHostArgs = 9` and its `pairAt` is
+the two-element list below. -/
+theorem hostQ22_eq_join (ts hid s np : Nat) (a : Nat → Nat × Nat) :
+    hostQ22 ts hid s np a = ZkFormal.PQ.Join.hostQ ts hid s np a := rfl
 
-theorem hostB5_len (ts hid dir pos byte : Nat) : (hostB5 ts hid dir pos byte).length = 5 := rfl
+/-- **The wide `HOSTB` here *is* the join's.** -/
+theorem hostB5_eq_join (ts hid dir pos byte : Nat) :
+    hostB5 ts hid dir pos byte = ZkFormal.PQ.Join.hostB ts hid dir pos byte := rfl
+
+/-- **The join's `HOSTR` is this limb form at the split of its words.**  A state row's limbs split
+its result and budget words, so the two spellings agree exactly when the limbs are the split. -/
+theorem hostR8_split (ts st r gAfter ar : Nat) :
+    ZkFormal.PQ.Join.hostR ts st r gAfter ar =
+      hostR8 ts st (ZkFormal.PQ.Join.lo16 r) (ZkFormal.PQ.Join.hi16 r)
+        (ZkFormal.PQ.Join.lo16 gAfter) (ZkFormal.PQ.Join.hi16 gAfter) ar := rfl
+
+theorem hostQ22_len (ts hid s np : Nat) (a : Nat → Nat × Nat) :
+    (hostQ22 ts hid s np a).length = 22 :=
+  ZkFormal.PQ.Join.hostQ_width ts hid s np a
+
+theorem hostB5_len (ts hid dir pos byte : Nat) : (hostB5 ts hid dir pos byte).length = 5 :=
+  ZkFormal.PQ.Join.hostB_width ts hid dir pos byte
 
 theorem hostR8_len (ts st rLo rHi gLo gHi ar : Nat) :
     (hostR8 ts st rLo rHi gLo gHi ar).length = 8 := rfl
 
-/-! ## The stale `Statement.lean` shapes, and why they cannot be bridged by re-encoding -/
+/-! ## The stale (pre-widening) shapes, and why they cannot be bridged by re-encoding
+
+`PQ/Join/Statement.lean` declared, before this lane's migration, `HOSTQ` as 8 fields
+`[ts, hid, S, a0 … a4]` and `HOSTB` as 4 (`[ts, dir, pos, byte]`).  Those shapes are now kept as
+`Join.hostQOld`/`Join.hostBOld` **only** so the gap stays a named, proved fact: a message of the
+old width is never a message of the current width, so a joined proof that kept the old shapes
+would *fail to balance* rather than silently merge two different wires.  That was a correctness
+property of the interface, not a design preference — `(ts, hid, S, np, args…)` and
+`(ts, hid, S, a0…a4)` are different multisets. -/
 
 /-- The old `HOSTQ` is 8 fields wide (when at most five arguments are present). -/
 theorem hostQ_stale_len (ts hid gas : Nat) (args : List Nat) (h : args.length ≤ 5) :
-    (ZkFormal.PQ.Join.hostQ ts hid gas args).length = 8 := by
-  unfold ZkFormal.PQ.Join.hostQ
-  simp only [List.length_append, List.length_cons, List.length_nil, List.length_replicate]
-  omega
+    (ZkFormal.PQ.Join.hostQOld ts hid gas args).length = 8 :=
+  ZkFormal.PQ.Join.hostQOld_width ts hid gas args h
 
 /-- The old `HOSTB` is 4 fields wide. -/
 theorem hostB_stale_len (ts dir pos byte : Nat) :
-    (ZkFormal.PQ.Join.hostB ts dir pos byte).length = 4 := rfl
+    (ZkFormal.PQ.Join.hostBOld ts dir pos byte).length = 4 :=
+  ZkFormal.PQ.Join.hostBOld_width ts dir pos byte
 
-/-- **No old-width `HOSTQ` is a wide `HOSTQ`**: the two lane shapes cannot be silently merged. -/
+/-- **No old-width `HOSTQ` is a wide `HOSTQ`**: the stale lane shape cannot be silently merged with
+the current wire.  8 fields against 22. -/
 theorem hostQ_no_bridge (ts hid gas : Nat) (args : List Nat) (h : args.length ≤ 5)
     (ts' hid' s' np' : Nat) (a : Nat → Nat × Nat) :
-    ZkFormal.PQ.Join.hostQ ts hid gas args ≠ hostQ22 ts' hid' s' np' a := by
-  intro he
-  have h1 := congrArg List.length he
-  rw [hostQ_stale_len ts hid gas args h, hostQ22_len] at h1
-  exact absurd h1 (by decide)
+    ZkFormal.PQ.Join.hostQOld ts hid gas args ≠ hostQ22 ts' hid' s' np' a :=
+  ZkFormal.PQ.Join.hostQ_old_not_current ts hid gas args h ts' hid' s' np' a
 
-/-- **No old-width `HOSTB` is a wide `HOSTB`.** -/
+/-- **No old-width `HOSTB` is a wide `HOSTB`.**  4 fields against 5. -/
 theorem hostB_no_bridge (ts dir pos byte : Nat) (ts' hid' : Nat) (dir' pos' byte' : Nat) :
-    ZkFormal.PQ.Join.hostB ts dir pos byte ≠ hostB5 ts' hid' dir' pos' byte' := by
-  intro he
-  have h1 := congrArg List.length he
-  rw [hostB_stale_len, hostB5_len] at h1
-  exact absurd h1 (by decide)
+    ZkFormal.PQ.Join.hostBOld ts dir pos byte ≠ hostB5 ts' hid' dir' pos' byte' :=
+  ZkFormal.PQ.Join.hostB_old_not_current ts dir pos byte ts' hid' dir' pos' byte'
 
 end ZkFormal.PQ.Receipt

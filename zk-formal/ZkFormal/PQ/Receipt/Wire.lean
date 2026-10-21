@@ -149,10 +149,19 @@ the `HOSTB → MEMIO` binding `HostChip.lean` leaves open for *every* host famil
 one. -/
 def ActionBytesAreHostBytes (pbbCalls : List (List Nat)) : Prop := True
 
-/-- **Stated.**  The `dir = 1` bytes `PBB` sends for a call are the borsh `ActionR.encode` of the
-action that call appended, at the action's offset.  This is what a *receipt-contents* claim would
-need and what `PBC` deliberately does not claim: `PBC` constrains `knd`/`addA`/`addD`, never a
-byte.  `Cost.lean` computes the length that claim would have to render, byte by byte. -/
+/-- **Stated, not proved.**  The bytes `PBE` (`Encoder.lean`) emits for a call are the borsh
+`ActionR.encode` of the action that call appended, at the action's offset — i.e. the emitted list,
+in order, is the reference encoding for the call's class and its string/amount source.
+
+This is the *receipt-contents* claim `PBC` deliberately does not make.  The two halves are now
+separated, and one of them is a theorem:
+
+* the **shape** half — that the emitted bytes have the borsh framing (`u8` tag, `u32` lengths that
+  are the counts, `u128`/`u64` fixed width) — is `Encoder.pbe_len_framing_general` plus the
+  `encAction_*` equalities, proved for `TR`/`DA`/`create`;
+* this `Prop` is the remaining half: that the row set chosen for a call is *that* class's row set
+  with *that* source array.  It is a statement about the trace generator and the `PBC`
+  `HostCallTrace` log, not about the row constraints, so it stays a named `Prop`. -/
 def ActionEncodingIsBorsh (call : PCall) (actionBytes : List Nat) : Prop := True
 
 end ZkFormal.PQ.Receipt
