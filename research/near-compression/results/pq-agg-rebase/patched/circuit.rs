@@ -40,13 +40,14 @@ impl NvBuses {
         let slot = next();
         let job = next();
         let digest = next();
-        let alu = UBuses {
+        let mut alu = UBuses {
             mem: next(),
             slot,
             job,
             digest,
             bind: next(),
             acc: next(),
+            chain_start: 0,
         };
         let h = HashBuses {
             ctl: next(),
@@ -63,7 +64,10 @@ impl NvBuses {
             sample: next(),
             word: next(),
             chain: next(),
+            // [agg] allocated LAST so every pre-existing bus keeps its index
+            chain_start: next(),
         };
+        alu.chain_start = tr.chain_start;
         Self { alu, h, tr }
     }
 }

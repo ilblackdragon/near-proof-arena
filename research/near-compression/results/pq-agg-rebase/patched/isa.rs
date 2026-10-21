@@ -72,8 +72,10 @@ pub enum Op {
     /// Reserved (was `Data`, the app-table data row; removed with G2): no semantics beyond c = 0
     /// (like Nop); never emitted.
     Rsv26 = 26,
-    /// Reserved (was `Acc2`, the app-binding total; removed with G2): c = 0; never emitted.
-    Rsv27 = 27,
+    /// [agg] Declares that job P2 begins a new transcript chain.  c = 0; the row exists for its
+    /// interaction only: the ALU sends (P2, 1) on the chain-start bus and the hash row consumes
+    /// it as `is_first`, which makes chain starts program constants rather than free columns.
+    ChainStart = 27,
     /// c = free witness bit: c0 in {0, 1}, c1..c11 = 0 (one row instead of Load + Bit)
     LoadBit = 28,
     /// c = free base-field witness: c1..c11 = 0 (a plain `Load` leaves all 12 coefficients
@@ -121,7 +123,7 @@ impl Op {
         use Op::*;
         [
             Nop, Mul, Add, Sub, Const, ConstX, Load, Unit1, Anchor, UnitW, Smp1, Smp12, Unit12,
-            Horn, Job, Bit, Zero, Dig, NodeJob, Acc, DblAdd, MulAddA, Pv, UnitWS4, UnitWS2, PowChk, Rsv26, Rsv27, LoadBit, LoadF, UnitWT, PvD, SibWS4, SibWS2, DigWS4, DigWS2, HornS, HornR, HornE, Horn2,
+            Horn, Job, Bit, Zero, Dig, NodeJob, Acc, DblAdd, MulAddA, Pv, UnitWS4, UnitWS2, PowChk, Rsv26, ChainStart, LoadBit, LoadF, UnitWT, PvD, SibWS4, SibWS2, DigWS4, DigWS2, HornS, HornR, HornE, Horn2,
         ]
     }
     pub fn reads_a(self) -> bool {

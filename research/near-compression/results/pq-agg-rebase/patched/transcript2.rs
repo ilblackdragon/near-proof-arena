@@ -33,6 +33,8 @@ pub struct TrBuses {
     pub word: BusIndex,
     /// hash-chain link (job, input state limbs): the previous row provides the next row's state
     pub chain: BusIndex,
+    /// [agg] (job, 1) per transcript chain start; ALU sends, hash row consumes as `is_first`
+    pub chain_start: BusIndex,
 }
 
 pub const TJOB_STATIC_BASE: u32 = 1 << 24;
@@ -532,6 +534,13 @@ pub fn eval_hash<AB: AirBuilder + InteractionBuilder>(
             .collect::<Vec<AB::Expr>>(),
         g(one.clone() - l.is_first),
     );
+    // [agg] every chain start is declared by a `ChainStart` program row, so the receive is
+    // enabled by `is_first` alone (row 0's is declared too, keeping the two sides symmetric).
+    PermutationCheckBus::new(t.chain_start).receive(
+        builder,
+        [l.job.into(), AB::Expr::ONE],
+        g(l.is_first.into()),
+    );
     // flush / commit / PoW jobs are anchored by the ALU: (2, job, 0, 0, t_start, cnt, tag); the tag
     // binds the job's op to the program (otherwise a commit could be relabeled as a flush, audit B6)
     PermutationCheckBus::new(h.slot).receive(
@@ -543,10 +552,9 @@ pub fn eval_hash<AB: AirBuilder + InteractionBuilder>(
             AB::Expr::ZERO,
             l.t_start.into(),
             l.cnt.into(),
-            // [agg] the anchor's k2 carries the hash tag in its low bits (binds the job's op
-            // to the program, audit B6) and the chain-start flag at ANCHOR_FIRST_BIT, so one
-            // bus term declares both.  `is_first` is read below as bit ANCHOR_FIRST_BIT.
-            tag.clone() + l.is_first * c(1u64 << super::builder::ANCHOR_FIRST_BIT),
+            // [agg] k2 is the pure hash tag (binds the job's op to the program, audit B6); the
+            // chain-start flag travels on the chain_start bus instead (see above).
+            tag.clone(),
         ],
         g(l.op_f + l.op_c + l.op_p),
     );

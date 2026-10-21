@@ -162,6 +162,8 @@ pub struct Builder {
     tr_blocks: u32,
     /// [agg] the next allocated transcript job starts a chain
     start_pending: bool,
+    /// [agg] a chain opened by `restart_transcript` still needs its `ChainStart` row
+    chain_pending: bool,
     /// [agg] the static job that starts the current chain
     chain_first: Option<u32>,
     /// [agg] build_verifier leaves level / statement exposure to the caller
@@ -203,6 +205,7 @@ impl Builder {
             pow_wit: vec![],
             tr_blocks: 0,
             start_pending: true,
+            chain_pending: true,
             chain_first: None,
             agg: false,
         }
@@ -429,6 +432,10 @@ impl Builder {
         if self.start_pending {
             self.start_pending = false;
             self.chain_first = Some(job);
+            // declare the chain's first job; the initial chain included, so the ALU send and the
+            // hash receive have the same count by construction
+            self.chain_pending = false;
+            self.emit_chain_start(job);
         }
     }
     /// [agg] Value of the Anchor's `k2` field contributed by a chain start: 0 or
@@ -438,8 +445,13 @@ impl Builder {
     /// (TAG_FLUSH / TAG_POW / TAG_COMMIT, which binds the job's op to the program, audit B6) and
     /// bit `ANCHOR_FIRST_BIT` is the chain-start flag the hash-chain role reads as `is_first`.
     /// One field, so no extra bus term per anchor; the tag check reads `k2 mod 2^ANCHOR_FIRST_BIT`.
-    fn anchor_first(&self, job: u32) -> u32 {
-        if self.chain_first == Some(job) { 1 << ANCHOR_FIRST_BIT } else { 0 }
+    fn anchor_first(&self, _job: u32) -> u32 {
+        0
+    }
+    /// [agg] Emit the `ChainStart` row declaring static job `job` begins a transcript chain.
+    /// A program row (op `ChainStart`, job id in `k1`), not a bit in the anchor's `k2`.
+    fn emit_chain_start(&mut self, job: u32) {
+        self.push(Op::ChainStart, 0, 0, job, 0, EF::ZERO, F::ZERO);
     }
     /// [agg] Start an independent transcript (the next child's verifier): close the open
     /// flush, reset the sponge to the initial state.  tidx and job ids stay global; the
@@ -451,6 +463,7 @@ impl Builder {
         self.transcript.starts.push(t);
         self.tr_started = false;
         self.start_pending = true;
+        self.chain_pending = true;
         self.pow_wit.clear();
     }
     /// T*: blocks B_j (j >= 2) of a PoW run created by the last sample: push the PoW witness as

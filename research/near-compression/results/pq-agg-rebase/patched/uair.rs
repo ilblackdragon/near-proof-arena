@@ -68,6 +68,8 @@ pub struct UBuses {
     pub digest: BusIndex,
     pub bind: BusIndex,
     pub acc: BusIndex,
+    /// [agg] (job, 1) for each transcript chain start the program declares
+    pub chain_start: BusIndex,
 }
 
 #[repr(C)]
@@ -610,6 +612,9 @@ fn eval_alu<AB: AirBuilderWithPublicValues + InteractionBuilder>(
         let [v0, v1, v2] = v;
         slot.send(builder, [chan.clone(), key1, key2, kind, v0, v1, v2], send - recv);
     }
+    // [agg] transcript chain starts: one `ChainStart` row per chain declares (job P2, 1); the
+    // hash row consumes it with enable `is_first`, so chain starts are program constants.
+    PermutationCheckBus::new(buses.chain_start).send(builder, [p[2].into(), AB::Expr::ONE], s(Op::ChainStart));
     // job starts (leaf / node jobs): (job P2, tag P0).  A Merkle path level's node job is
     // started by its SibWS4 row (P0 = NODE_TAG in the program; SibWS4 reads no a operand), so the
     // level needs no separate NodeJob row.
