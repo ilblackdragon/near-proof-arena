@@ -60,3 +60,6 @@ import WasmBase.ShaSound
 import WasmBase.ShaVectors
 import WasmBase.ChiAir
 import WasmBase.ChiVectors
+import WasmBase.KeccakAir
+import WasmBase.KeccakSteps
+import WasmBase.KeccakVectors
