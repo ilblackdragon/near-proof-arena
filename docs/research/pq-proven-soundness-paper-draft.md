@@ -29,12 +29,26 @@
 > theorem and DKT-to-WHIR bridge were closed. Their precise remaining obligations
 > appear in §§6.1, 7 and Appendix C.
 >
+> **Track review, 2026-10-21.** A follow-up review of the four remaining blockers
+> (`docs/logs/pq-paper-blockers-recheck-2026-10-21.md`) moved three of them
+> substantially and degraded one. Folds now carry an adaptive composition theorem
+> (§6.1); the compressed-oracle entry bounds are inhabited by an explicit unitary
+> and a concrete family instance exists, though not the protocol's (§7.1); the
+> recursive hash question is decided in favour of a named inner-soundness
+> assumption (§7.3, §9). Circuit faithfulness is now a **declared TCB entry**, not
+> an in-progress obligation (§10 item 3). No numerical bound changed, and no
+> security theorem was established: the fold budgets remain 12–18 bits below the
+> binding query move, so the per-move figure `2^-268.01` is untouched.
+>
 > **Formal status.** Selected algebraic lemmas live in gated `zk-formal`.
 > DKT certificates and their RS-level composition use the ArkLib/Mathlib companion.
 > `research/qrom` proves conditional bound components, outside the admitted
-> package. Its capstone now derives a recurrence from operator premises and uses
-> the correct amplitude/probability relationship; it does not instantiate the
-> protocol's database, extraction, or transition constants.
+> package. Its capstone derives a recurrence from operator premises, uses the
+> correct amplitude/probability relationship, and now has a concrete instance
+> whose entry bounds are realised by an explicit unitary; it still does not
+> instantiate the protocol's database, extraction, or transition constants.
+> The reduction's *shape* is checked in the arena's own `RomSound` vocabulary in
+> `research/hash-bridge` (§7.3).
 >
 > **History.** `docs/logs/pq-paper-audit-2026-10-19.md` records the audit that
 > found thirteen factual mismatches in the first pass (scope, query schedules,
@@ -76,22 +90,33 @@ report six technical ingredients:
    first-order-beyond-Johnson agreement thresholds are bound into the verifier
    key, each backed by a Lean-kernel-checked certificate. This admits proven
    radii below `√ρ` and cuts query counts, while a round-0 fallback prevents the
-   squared list from breaking the batching term.
+   squared list from breaking the batching term. The fold step now carries an
+   *adaptive* union theorem — the exceptional set may depend on the entire
+   preceding challenge history — and 27 kernel-checked coverage transfers covering
+   the whole measured final layer.
 5. **Conditional QROM analysis for recursive layer families.** We develop a
    one-database extraction approach intended to avoid a depth-dependent loss.
-   Its operator-to-probability components are machine-checked, but the actual
-   transcript-family instantiation remains open after correcting an invalid
-   bad-event predicate. A separate program-pinning check is implemented; omitting
-   it admits a concrete forgery. No recursive security theorem is claimed yet.
+   Its operator-to-probability components are machine-checked, the compressed
+   oracle's entry bounds are realised by an explicit unitary, and one concrete
+   family instance is fully discharged — but the actual transcript-family
+   instantiation remains open after correcting an invalid bad-event predicate.
+   A separate program-pinning check is implemented; omitting it admits a concrete
+   forgery. For the recursive hash step we show that the literal
+   in-circuit-oracle identification fails as a matter of counting, not budgeting,
+   and we therefore state a conditional endpoint with a named inner-soundness
+   assumption. No recursive security theorem is claimed yet.
 6. **Systems realisation.** Streamed Reed–Solomon/WHIR commitments never
    materialise the codeword (an 853 GB virtual codeword committed in 480 s at a
    14.9 GB peak), proofs are byte-identical to the in-memory prover, and the
    measured final layer tracks the analytic size law within 0.2 %.
 
 Recursive security additionally needs a precise model relating in-circuit
-SHA-384 to the external oracle (A-IC), with any computational error charged in
-the bound. The present query-only obstruction is conditional and does not prove
-that this exact assumption is necessary for every hash-only recursion design.
+SHA-384 to the external oracle. The present query-only obstruction is
+conditional and does not prove that this exact identification is necessary for
+every hash-only recursion design; what it does show is that the identification
+cannot be recovered by bounding running time, because the failure probability is
+controlled by the number of fixed pairs an execution demands. We therefore do
+not assume it, and instead make the one assumption we do need explicit (§9.1).
 No trusted setup, algebraic-group, lattice, or PoW-hardness assumption is used.
 
 ---
@@ -101,11 +126,11 @@ No trusted setup, algebraic-group, lattice, or PoW-hardness assumption is used.
 ### 1.1 Context
 
 **Deployment scope (R5).** The D3 admission path remains capped and uses no
-composition, as decided in `D3_WASM_REQUIREMENTS.md` §2.5. A-IC(τ) therefore
-constrains the research recursion tail, not that deployed admission path. The
-293,077-byte FINAL is a recursion-tail measurement and is not a deployed D3
-security guarantee. This paper keeps SHA-384 throughout (U-7); no lattice or
-algebraic-hash wrapper is proposed.
+composition, as decided in `D3_WASM_REQUIREMENTS.md` §2.5. The recursive
+security question therefore constrains the research recursion tail, not that
+deployed admission path. The 293,077-byte FINAL is a recursion-tail measurement
+and is not a deployed D3 security guarantee. This paper keeps SHA-384 throughout
+(U-7); no lattice or algebraic-hash wrapper is proposed.
 
 A hash-based proof stack has two parts: a **base relation** (an execution or
 state claim proved by a STARK over an AIR set) and a **tail** that aggregates
@@ -189,10 +214,14 @@ commitments square the list. Section 6.
 
 **C5 (Recursion soundness, open instantiation).** We formulate a conditional
 one-database family argument and formalize operator, path, and probability
-lemmas. The numerical bound is not yet established for the implementation:
-the repaired potential needs its protocol-specific transition estimates and
-extraction proof. We demonstrate the consequence of omitting program pinning.
-Section 7.
+lemmas, including a concrete instance whose entry bounds are realised by an
+explicit unitary. The numerical bound is not yet established for the
+implementation: the repaired potential needs its protocol-specific transition
+estimates and extraction proof. For the recursive hash step we show that the
+literal in-circuit-oracle identification is false as an identification rather
+than merely unaffordable, and we state the resulting conditional endpoint with
+its reduction shape machine-checked in the arena's own vocabulary. We
+demonstrate the consequence of omitting program pinning. Section 7.
 
 **C6 (Systems).** We describe streamed RS/WHIR commitments that reproduce
 in-memory proofs byte for byte, a SHA-512 compression AIR at 7,353 main cells
@@ -212,8 +241,11 @@ anywhere in the soundness argument:
   weaker, sufficient property);
 * a trusted setup, an algebraic group, a pairing, or a lattice assumption.
 
-The assumptions that *are* used are listed in Section 9. The recursive hash-model bridge A-IC is additional and needs a precise game;
-the conditional obstruction applies to the concrete architecture considered.
+The assumptions that *are* used are listed in Section 9. The recursive hash step
+is the one place where a non-standard assumption enters, and Section 7.3 shows
+why: the literal in-circuit-oracle identification fails as a matter of counting
+rather than budgeting, so the paper states a named inner-soundness assumption
+instead of pretending to discharge it.
 
 ### 1.4 Related work
 
@@ -631,6 +663,26 @@ of its premise. `strong_from_mca` requires `2e < d` and returns `max E e`; that
 condition does not hold at the low-rate Johnson/beyond-Johnson error radii here.
 `fold_union` sums supplied integer bounds without proving adaptive conditioning.
 
+*Adaptive conditioning is now proved for folds, but not for the moves that bind
+the security level.* `final-soundness/lean/DKTAdaptive.lean` proves that an
+adaptive union over a sequence of uniform challenges costs `(Σ E_s)/|F|` with no
+independence assumption: the exceptional set is an arbitrary function of the
+whole preceding challenge history, so a prover may choose each committed word as
+any function of earlier draws (`badRuns_probability`), and
+`badOfWord_bound` discharges the per-step hypothesis from the certificate family
+the existing transfers already have. `DKTRoundCompose.lean` lifts this to round
+granularity in the backend's sampling order. This closes the "adaptive
+conditioning" clause for the fold step only. It is a **classical** union bound and
+does not supply the QROM block estimate `g` of §7.2.
+
+*The fold budgets are not the binding constraint.* With the widened coverage
+(full FINAL: all four rounds and every sub-code; PARENT rounds 1–2), the
+fold-only exceptional budgets over `|Ext12|` are `2^-286.14`, `2^-285.62`,
+`2^-284.17` and `2^-280.94` for the four FINAL rounds, and `2^-280.11` over all 27
+transfers. The binding per-move error remains the query phase's `2^-268.01`
+(236 query + 32 grinding bits). Proving more of the fold chain therefore does not
+move the numeric bound; it removes an obligation from the hypothesis list.
+
 The appropriate existing RS-level results are in the separate ArkLib companion
 `final-soundness/lean/DKTGlue.lean`: `johnson_lineExact`,
 `johnson_levelWitness` and `johnson_tensorFold` preserve full agreement sets
@@ -639,9 +691,14 @@ produce exceptional-set bounds and exact power agreement. The same ArkLib pin
 also contains `BinaryFoldAgreement.lean`, reconstructing parent polynomials on
 square-paired domains. The new `DKTWhirFold.lean` identifies the backend's local
 fold algebra with that operation and constructs such domains from primitive
-roots of even order. Remaining work includes the backend's ordered coset
-identification, interleaving, all rounds and the round-by-round state. The
-certified numeric inputs do not by themselves establish that protocol transfer.
+roots of even order; `DKTOrderedCoset.lean` additionally proves the index
+arithmetic and generator-constant facts for the deployed `c = 15` layout,
+including `fifteenRoot_isPrimitive`, `cosetIndex_decomp`, `roots_eq_cosetMajor`
+and `deployedSquareDomain`. Remaining work includes the correspondence between
+those generator constants and the compiled Rust index operations, interleaving
+and list products at the actual O-2 sub-codes, and the round-by-round state for
+the non-fold moves (`μ`, OOD, queries, `γ`). The certified numeric inputs do not
+by themselves establish that protocol transfer.
 
 **O-1 (Johnson).** DKT26 Thm 5.12 gives line MCA at `a = √ρ_(−) + η_0` with
 error `E/|F|` for arbitrary evaluation sets, plus Cor 7.7 (interleaving is
@@ -671,6 +728,17 @@ checked by the authors' engine and by `#eval!` but are **kernel-blocked by a
 on Johnson `m=64` (+1 query). The Thm 5.12 → Cor
 7.7/7.8 composition is itself proved in Lean.
 
+On top of those, the measured shapes now carry kernel-checked fold transfers in
+two modules: 13 for the originally selected FINAL subfolds
+(`DKTG2FoldTransfer`), and 27 in `DKTG2FoldCoverage` — 17 for the whole FINAL
+(all four rounds, including each round's `s = 0` sub-code, of which 13 re-derive
+the first set) and 10 for PARENT rounds 1–2. `check_g2_folds.sh` regenerates both
+families from `g2_fold_certificates.py`, byte-compares them against the committed
+sources, builds eight modules against the pinned ArkLib commit `a5aa2677fee4`, and
+audits the axiom set of all 89 resulting declarations. This is the coverage of
+the *fold* step. It is not a WHIR round-by-round theorem, and the Johnson-regime
+rounds and the base/app layer are still absent.
+
 The table is **bound into the verifier key**: for each round `i` the key stores
 `(A_i, regime)`. A round may use the first-order table only if every code and
 fold sub-code `RS[L_i^(2^s), m_i − s]`, `s ≤ k_i`, carries a kernel-checked
@@ -695,7 +763,9 @@ With 236 query bits and `z = 32`, the resulting schedules are:
 
 The worst per-move rbr error is `2^-268.01`; the final-layer byte count drops by
 `≈ 12 KB` relative to BCGM `m=3`, and the whole schedule remains inside the
-proven regime.
+proven regime. This figure is set by the query move, not by the fold chain: the
+fold budgets of §6.1 are 12–18 bits below it, so extending fold coverage cannot
+improve it.
 
 ### 6.5 The DKT26 caveat
 
@@ -719,17 +789,37 @@ next input as bad. That proof and its instantiated constants are withdrawn.
 
 The Mathlib companion `research/qrom` now proves:
 
-* entry/block estimates with the required off-diagonal and disjointness conditions;
+* entry/block estimates with the required off-diagonal and disjointness conditions,
+  and an explicit unitary that **realises** them (`Reflection.lean`): the
+  reflection in the single-coordinate subspace has squared entries `0`, `1/M`,
+  `1/M` and `1/M²`, so `EntryBounds` is inhabited by a genuine unitary
+  (`qopEntries`) rather than merely satisfiable in principle. This is what
+  `Audit.old_entry_model_not_unitary` shows the withdrawn model could not be;
 * a complex matrix Frobenius bridge and the zero-frequency identity case;
 * a mass recurrence derived from contractive operators and projector block bounds;
 * an amplitude path bound and its composition with the correct square-root
   replacement inequality;
+* a **concrete** `PotentialEvolution` whose every field is discharged, including
+  the level decomposition, so `concrete_qrom_bound` applies `qrom_binary_bound`
+  end to end and measured-event inclusion is no longer a hypothesis
+  (`ConcreteInstance.lean`);
+* canonical extraction as a function, with monotonicity under insertion, erasure
+  and reassignment of one database entry (`Extraction.lean`), which is the
+  content of item 2 of `PROOF.md` §6.4;
+* the long-output fanout count: state-output occurrences, within-output pair
+  counts, and the mixed-width sum, showing `Σ 1/M ≤ ℓ/2^336` and reducing the
+  per-message absorb count to the number of digests the message actually
+  contains rather than a blanket `3q` (`Fanout.lean`);
 * the deterministic fact that a safe accepting transcript yields a witness.
 
-It does **not** construct the protocol's global compressed-oracle operator,
-potential, canonical extraction or measured-event relation. Those are additional
-obligations, not consequences of having no custom Lean axioms. CFHL21 supplies
-external oracle facts, but cannot discharge an incorrectly instantiated model.
+It does **not** construct the protocol's global compressed-oracle operator over a
+`Fin q → DB M` state space with commuting database projectors, and the concrete
+instance above is a one-point model with a supplied level function, not the
+transcript potential. Canonical extraction is proved for that model, not against
+the Rust parser. `Replacement` remains a cited interface (CFHL21 Cor 4.2). These
+are additional obligations, not consequences of having no custom Lean axioms.
+CFHL21 supplies external oracle facts, but cannot discharge an incorrectly
+instantiated model.
 
 ### 7.2 Conditional probability bound
 
@@ -767,6 +857,15 @@ cap or a truncation reduction is required. `PROOF.md` §6.4 lists the
 missing local transition and extraction obligations. Use `ℓ_V` for openings;
 `g` is an amplitude bound, not an opening count.
 
+**The `10` in that expression was never a constant of the implementation.** It
+came from a bounded-entry model that no unitary satisfies
+(`Audit.old_entry_model_not_unitary`). The explicit unitary now in
+`Reflection.lean` gives a squared-entry block bound of `2·|Chg|/M` rather than
+`10·|Chg|/M` (`block_chg_sq`), i.e. about `2.3` bits more margin at fixed `Chg`.
+This does not rescue the withdrawn number — the formula's other premises remain
+open — but any future re-derivation must use the code's constant, not the old
+one.
+
 ### 7.3 Recursive composition remains conditional
 
 The desired theorem says the final verifier's acceptance implies the linked base
@@ -790,17 +889,59 @@ general probability-space inequality; a protocol application must establish
 the fixed-pair and acceptance premises. This is a model obstruction, not a
 demonstrated forgery against the concrete implementation.
 
-A possible alternative is an outer-layer QROM reduction to computational
-soundness of the concrete inner proof system. That inner assumption, the
-extractor's efficiency and the complete simulation cost must be explicit;
-this paper does not currently prove or quantify them. Merely assuming the
-desired inner security would not establish the headline guarantee.
+**The obstruction is arithmetic, not a matter of budgeting time.**
+`OracleBridgeSet.delta_ge_one_sub_agreement` generalises the single pair to the
+set `Q` of pairs an accepting execution actually demands: required agreement plus
+acceptance at `1-δ` forces `δ ≥ 1 - |Y|^{-|Q|}`. Here `|Q|` is a count of pairs,
+so more demands make the bound *worse*, and no cap on running time changes a
+count of pairs. This is why literal A-IC cannot be recovered by the time-bounded
+reading of U-12. `OracleBridgeSet` also proves the adaptive form: each demand may
+depend on every earlier answer (`failure_lower_bound_multi`).
+
+**Decision: the conditional endpoint (c).** Of the four routes this paper
+canvassed — a reduction to computational inner soundness, a new construction, a
+named inner-soundness assumption, or an idealised arithmetised-oracle model —
+only (c) needs no absent reduction and no new protocol, and every symbol it uses
+already exists in `formal-core`. `research/hash-bridge` checks its *shape* in the
+arena's own vocabulary:
+
+* `ArenaCore.Bridge.inner_computational_soundness` — `RomSound` at the concrete
+  NV AIR relation plus a named inner bound implies `RomSound` at base truth, with
+  the inner error summed into the outer numerator
+  (`numOuter + numInner`). Every premise is a hypothesis.
+* `inner_perfect_soundness` and `inner_bad_empty_of_pointwise` — the
+  `numInner = 0` shape and the pointwise inclusion that would discharge it.
+
+The named assumption is `INNER-SOUND(c)`, quantified in §9.1. The reduction
+consumes the family bound of Theorem 7.1 and composes with `Qrom.Peeling.bound`'s
+`(√(ε_inner + ε_outer_bad + δ_sim) + √(ℓ_V/2^336))²`. Neither file constructs
+the extractor or discharges the inner hypothesis.
+
+**Extraction is no longer free, and that matters.** `HashBridge/Cost.lean`
+counts the counter-mode simulation at the headline parameters: `J = 2^20` blocks
+per challenge gives `2^85` block evaluations at `t = 2^64`
+(`blockCount_at_headline`), which fits `2^128`. But charging it inside
+`totalCost ≤ 2^128` forces `T_extract ≤ 2^128 - 2^85 - 2^64`
+(`extraction_budget_at_headline_strict`). The reduction is therefore affordable,
+but the paper must stop describing efficient extraction as unnecessary.
 
 A single database can avoid a depth union only after the simultaneous extraction
 property is proved. It is not justified by the existence of separate per-layer
 bounds. The classical lossless-composition precedent is CGSY24; CDHZ establishes
 adaptive quantum straight-line extraction in its stated model. Our intended
 specialization still needs the above connections.
+
+### 7.3a The oracle game is not the arena's game
+
+`RomSound` **is** `RomSoundR roRange` with `roRange = 2^256`, and `LazyRO.answer`
+returns exactly 32 bytes. A 42-byte Merkle digest is therefore **outside the
+range of that oracle entirely** (`lazyAnswer_ne_of_length_42`), not merely
+unlikely; the gaps to the 42-byte and 384-bit spaces are exactly `2^80` and
+`2^48` (`roRange_gaps`). Every bound in this paper is stated over a 336- or
+384-bit oracle, so it is not a statement in `ArenaCore.AdmissionStatement`'s
+game as currently defined. This is a modelling decision, not a theorem: the paper
+must name `RomSoundR (2^336)` / `RomSoundR (2^384)` and re-derive its arithmetic
+at the deployed oracle size, or restrict itself to a game it can express.
 
 ### 7.4 Program pinning is necessary
 
@@ -829,10 +970,18 @@ p_false <= (sqrt(epsilon_inner + epsilon_outer_bad + delta_sim)
 
 `Qrom.Peeling.bound` proves the scalar implication, and a checked counterexample
 rejects the old expression that added `epsilon_outer_bad` outside the square.
+The reduction's *shape* in the arena's own vocabulary is checked in
+`research/hash-bridge` (`ArenaCore.Bridge.inner_computational_soundness`): the
+family bound at the concrete AIR relation plus a named inner-soundness bound
+yields a bound at base truth with the errors summed into one numerator. Neither
+file constructs the extractor or discharges the inner hypothesis.
 Instantiating this theorem requires an actual extractor, NV faithfulness and an
 inner-system security game with its setup, advice/preprocessing and resource
 model specified. The total reduction time includes initialization, simulation,
 measurement and decoding; it cannot be inferred from a query-count substitution.
+At the headline parameters the simulation alone costs `2^85` block evaluations,
+so `totalCost <= 2^128` forces `T_extract <= 2^128 - 2^85 - 2^64`
+(`HashBridge.extraction_budget_at_headline_strict`).
 
 G-P1 investigates only whether the compressed-oracle simulation cost can be
 quasi-linear. `aic-research/LEMMA.md` §6 gives a written lower bound, G-P1-C, for
@@ -943,11 +1092,14 @@ bytes; that is a base-envelope question, not a tail redesign.
 | assumption | statement | why it is acceptable |
 |---|---|---|
 | SHA-384 is a (quantum) random oracle | standard ROM/QROM idealisation of the deployed hash | U-6/U-7; no structural assumption on Merkle–Damgård |
-| A-IC | the SHA-384 evaluations certified in-circuit are modelled as oracle evaluations on that witness | additional proposed bridge; the architecture-specific obstruction is conditional. A precise time-bounded game and error budget are required |
+| **INNER-SOUND(c)** (assumed) | the concrete inner system is computationally sound: over the outer QROM tape, for the outer adversary and the deployed verifier run, "accepts a claim in the concrete NV AIR relation that is not base truth" has probability ≤ `numInner/den` (peeling form `ε_inner`) | **assumed, explicitly; not proved.** It is the conditional endpoint of §7.3 and the only one of the four routes reachable without a new reduction or a new protocol. Strictly weaker than the pointwise `SemSound` inclusion. Its *shape* is kernel-checked (`ArenaCore.Bridge.inner_computational_soundness`); the error term `numInner/den` is summed into the outer numerator by `PrLE` |
+| **conditional reduction shape** (proved) | `RomSound L_air` plus the INNER-SOUND(c) bound implies `RomSound L_rec`, numerator `numOuter + numInner` | kernel-checked, axioms ⊆ {propext, Classical.choice, Quot.sound}; composes with `Qrom.Peeling.bound`. It does not prove INNER-SOUND(c), recursion, or composition |
+| **oracle alphabet** (modelling decision) | statements about the random-oracle game are made at `RomSoundR (2^336)` (42-byte digests) or `RomSoundR (2^384)` (transcript), not at the arena core's `roRange = 2^256` | `RomSound` **is** `RomSoundR roRange`, and `LazyRO.answer` is exactly 32 bytes, so a 42-byte digest is outside its range entirely (§7.3a). Transporting a `2^256`-game bound to the PQ parameters is a choice of game, not a theorem; each numeric bound must be re-derived at the deployed `R` |
 | DKT26 Thm 5.12 / Prop 5.10 | proximity statements used for O-1/O-2 | Lean-proven, kernel-checked; paper unrefereed |
 | BCGM / BCHKS25 | Johnson-regime MCA/CA for arbitrary `D` | refereed / ECCC |
 | WHIR Thm 5.2 (Puš26 correction) | rbr soundness of the PCS | published, correction checked |
-| circuit faithfulness | the NV circuit arithmetises the verifier (workload-generic); layer-0 AIRs encode the base relation (workload-specific) | engineering obligation, specified as Lemma 7.1 / Lemma 7.2; in progress |
+| **circuit faithfulness (NV)** (declared TCB) | the NV circuit arithmetises the verifier (workload-generic) | **not proved, and not reachable in this development.** There is no Lean model of the NV AIR; the pinned Rust is ~11k lines. The obligation is now a *stated, decomposed* Lean `Prop` (`zk-formal/ZkFormal/PQ/NvFaithful.lean`) whose six-part composition and whose LogUp field→integer step are proved; the other five components are declared trust (§10 item 3) |
+| circuit faithfulness (base) | the layer-0 AIR set encodes the base relation (workload-specific) | stated as Lemma 7.2; for NEAR it is open (the join), and no host-call instance is proved (§10 item 7) |
 
 ### 9.2 Not used
 
@@ -959,7 +1111,10 @@ bytes; that is a base-envelope question, not a tail redesign.
 | PoW hardness | not used; grinding only *reduces* error and is charged in the rbr game |
 | collision resistance of 26–42 B digests | not used; replaced by the block-robust property (42 B default, 26–28 B optional) |
 | trusted setup, pairings, groups, lattices | not used; hash-only, transparent |
-| efficient extraction | not needed for a purely existential relation claim; required and not yet costed for the computational peeling reduction |
+| literal A-IC / concrete-SHA ≡ independent oracle | **false as an identification, in a quantified sense.** For one fixed pair, and for the adaptive pair set an execution uses, an independent oracle agrees on `ℓ` pairs with probability `≤ \|Y\|^{-ℓ}`; hence required agreement plus acceptance at `1−δ` forces `δ ≥ 1 − \|Y\|^{-\|Q\|}` (`OracleBridgeSet.delta_ge_one_sub_agreement`), with the arena-vocabulary version in `HashBridge.failure_lower_bound_multi` / `failure_single_pair`. More pairs make it worse, and no runtime cap changes a count of pairs |
+| time cap ⇒ A-IC(τ) | **not valid.** `\|Q\|` is a number of pairs, not a time; capping `τ` leaves the counting obstruction intact. Unchanged from the withdrawn Assumption 7.3 |
+| G-P1-C as a lower bound on every reduction | **not used in that form.** It applies to the universal online fixed-interface ordinary-gate circuit simulator; QRAM/QRAG, uncharged classical feedback, adversary-specific recompilation and computational simulation lie outside it (`LEMMA.md` §6). Only the finite cone count is kernel-checked |
+| efficient extraction | **required, and not discharged.** The peeling endpoint needs an explicit, efficiently computable reduction with its runtime charged (`HashBridge.totalCost_le`). The counter-mode simulation costs `2^85` block evaluations at `t = 2^64`, `J = 2^20` (`blockCount_at_headline`), which fits `2^128`, but `totalCost ≤ 2^128` forces `T_extract ≤ 2^128 − 2^85 − 2^64` (`extraction_budget_at_headline_strict`) |
 
 ### 9.3 The proximity-conjecture separation, explicitly
 
@@ -984,22 +1139,44 @@ capacity form) would not affect them either.
 
 1. **DKT-to-WHIR transfer and corrected WHIR theorem.** RS-level certificates and
    Johnson interleaving results exist in the companion development. The gated
-   unique-decoding wrappers do not close the list-regime transfer. Bind the
-   actual folded domains, full agreement sets, radii and per-move states, then
-   instantiate corrected WHIR Thm 5.2.
+   unique-decoding wrappers do not close the list-regime transfer. **Progress:**
+   adaptive conditioning over a round's folds is proved (`DKTAdaptive`), coverage
+   is full for FINAL folds and PARENT rounds 1–2 (27 coverage transfers), and the deployed
+   `c = 15` coset algebra is proved (`DKTOrderedCoset`). **Remaining:** the
+   generator-constant-to-compiled-Rust correspondence, interleaving and list
+   products at the actual O-2 sub-codes, the Johnson-regime rounds and the
+   base/app layer, and the round-by-round state for `μ`, OOD, queries and `γ`.
+   Bind the actual folded domains, full agreement sets, radii and per-move states,
+   then instantiate corrected WHIR Thm 5.2.
 2. **Family QROM instantiation, `T*` and Theorem R.** The corrected conditional
-   operator bound is checked in Mathlib. Protocol-specific database modelling,
-   transition counts, extraction-event inclusion and oracle replacement remain.
-   The former “only two cited inputs” description was incorrect. The optional
-   weak-binding route also needs H-outer and its implementation requirements.
-3. **Circuit faithfulness.** Two obligations, stated as precise lemmas and in
-   progress. *NV-faithful*: the NV circuit arithmetises the verifier exactly. It
-   is workload-generic. *Base-faithful*: the layer-0 AIR set encodes the base
-   relation — workload-specific by nature, and for NEAR still open (the join,
-   item 8).
-4. **A-IC.** Specify a coherent recursive hash model or a computational bridge.
-   The query-only obstruction does not justify assigning that bridge zero error,
-   and a runtime cap alone does not identify concrete SHA-384 with an independent RO.
+   operator bound is checked in Mathlib. **Progress:** the entry bounds now have an
+   explicit unitary realising them, a concrete `PotentialEvolution` is fully
+   discharged, measured-event inclusion is proved for that model, canonical
+   extraction exists as a function with insert/erase/reassign monotonicity, and
+   the long-output fanout counts are derived. **Remaining:** the protocol's global
+   compressed-oracle operator on `Fin q → DB M` with commuting projectors, a
+   uniform `g` over the whole family including the base layer, and the cited
+   `Replacement` step in the actual adaptive game. The former "only two cited
+   inputs" description was incorrect. The optional weak-binding route also needs
+   H-outer and its implementation requirements.
+3. **Circuit faithfulness — NV is now a declared trust boundary, not a work item.**
+   There is **no Lean model of the NV AIR** in this repository, and transcribing
+   it is not tractable here (74 columns × 49 interactions over ~11k lines of pinned
+   Rust). What exists is the *statement*: `zk-formal/ZkFormal/PQ/NvFaithful.lean`
+   defines the arbitrary-trace obligation, decomposes it into the six components
+   of `FAITHFUL.md`, **proves the composition** (the six imply the obligation), and
+   **proves the LogUp field-balance → integer-multiset step**. The other five
+   components — SHA/GLUE and limb ranges, transcript, program/public tape, verifier
+   arithmetic, and composition against the pinned Rust — are declared trust. The
+   paper must present this as a TCB entry, not as an obligation in progress;
+   "we are proving it" and "we trust the circuit" are different claims.
+   *Base-faithful* remains a separate, currently empty, obligation (§10 item 7).
+4. **A-IC.** Resolved as a *negative* result plus a decision, not as a proof.
+   Literal A-IC is false as an identification (§7.3, `OracleBridgeSet`), and a
+   runtime cap cannot rescue it. The paper therefore adopts the named assumption
+   `INNER-SOUND(c)` of §9.1, whose reduction shape is kernel-checked. A coherent
+   arithmetised-oracle model with a valid reduction would be a stronger endpoint;
+   it is not attempted here.
 5. **Tight-heights kernel.** The univariate-skip polynomial correction for aligned
    chunks is now derived in PROOF §3.7 and checked in `Qrom.Stacking`, including
    binary predecessor wraparound. Its Rust/NV execution correspondence remains
@@ -1010,16 +1187,31 @@ capacity form) would not affect them either.
    measured on a Wasm fixture. For any workload, closing the gap needs
    Base-faithful (item 3) and, for a joined Wasm/state system, the
    coverage/composition theorem. This is the paper's largest open item and the
-   reason it is scoped to the tail.
+   reason it is scoped to the tail. For NEAR specifically, the base-layer evidence
+   is weaker than the repository's lane notes imply: the host-call execution
+   theorem (`wasm_base_exec_host`) had no applicable instances until 2026-10-21
+   — its per-row gas premise was unsatisfiable and its row-facts premise excluded
+   every HOST row — so no host-call base proof has ever been produced. KAT tests
+   passed throughout, which is the clearest available illustration of why
+   Appendix C.2 refuses to treat tests as a faithfulness proof.
 8. **NEAR-specific join (instance only).** For the NEAR instantiation the
    remaining work is the Wasm/state join, contract-data storage tables, and the
    `Joint → RelD3` coverage theorem. None of it affects the tail's theorems.
 9. **Backends.** The `×15` and streaming patches must be ported to the CPU and
    CUDA backends; unpatched backends fail closed rather than producing unsound
    proofs.
+10. **The oracle game does not express the deployed oracle.** `ArenaCore`'s
+    `RomSound` is a `2^256` game whose answers are exactly 32 bytes, while the PQ
+    stack uses 42-byte digests and a 384-bit transcript (§7.3a). Until the bound
+    is re-derived at `RomSoundR (2^336)` / `(2^384)` — or the paper restricts to a
+    game it can express — the security statement is not one the arena's
+    admission predicate can consume.
 
-These include proof and implementation obligations **and** a model/assumption
-question for recursive in-circuit hashing. They cannot all be discharged by tests.
+These include proof and implementation obligations, **one declared trust
+boundary** (NV circuit faithfulness), and a model/assumption question for
+recursive in-circuit hashing. They cannot all be discharged by tests: the NEAR
+host-call theorem was structurally inapplicable for weeks while its test suite
+passed 88/88.
 
 ---
 
@@ -1028,11 +1220,22 @@ question for recursive in-circuit hashing. They cannot all be discharged by test
 We measure a 293,077-byte recursion-tail proof with program binding enabled,
 using SHA-384 and certificate-checked proximity parameters. The `×15` domain
 lever, agreement-table gating, and streamed commitments are concrete results.
-The full recursive security guarantee remains a target: a corrected family QROM
-instantiation, the DKT-to-WHIR transfer, NV faithfulness and a precise recursive
-hash model are still required. These include tail obligations, independently of
-any NEAR-specific join. Appendix C states the acceptance criteria for upgrading
-this prototype claim to a security theorem.
+The four remaining security blockers have been reviewed and have moved in
+different directions: fold conditioning is now an adaptive theorem and fold
+coverage is complete for the measured final layer (§6.1); the compressed-oracle
+entry bounds are inhabited and a concrete family instance is fully discharged,
+though not the protocol's (§7.1); the recursive hash question is settled as a
+named assumption whose reduction shape is kernel-checked, because literal A-IC
+is false as an identification rather than merely unaffordable (§7.3, §9); and
+NV circuit faithfulness is now declared trust rather than an in-progress proof
+(§10 item 3).
+
+The full recursive security guarantee remains a target. The binding numeric
+limit is unchanged at `2^-268.01` per move, set by the query phase; the fold
+budgets sit 12–18 bits below it. Extending fold coverage therefore removes
+obligations without moving the bound, and the paper says so rather than
+presenting progress as a strengthened guarantee. Appendix C states the
+acceptance criteria for upgrading this prototype claim to a security theorem.
 
 ---
 
@@ -1047,8 +1250,10 @@ this prototype claim to a security theorem.
 | per-round target | `2^-268` = 236 query + 32 PoW bits |
 | proximity | Johnson `m=64` / certified first order |
 | final queries | [38,35,29,25] (O-2, b8), [41,38,29,23] (measured chain) |
-| one-layer rbr | `2^-268.01` |
-| QROM end to end | not established; former formula evaluates to 134.688 bits before any new losses |
+| one-layer rbr | `2^-268.01` (set by the query move; fold budgets are 12–18 bits lower) |
+| QROM end to end | not established; former formula evaluates to 134.688 bits before any new losses. The formula's constant `10` is superseded by `2` from an explicit unitary; the remaining premises are still open |
+| recursive hash step | endpoint (c): named assumption `INNER-SOUND(c)`; reduction shape kernel-checked; literal A-IC false as an identification |
+| NV faithfulness | declared TCB: obligation stated and decomposed, composition and LogUp step proved, five components trusted |
 | measured final | **293,077 B** (G2 gate, binding on; security obligations open) |
 | prover peak | 17.15 GB (G2 gate); `≈25.6 GB` (unbound chain); `≈39 GB` (streamed b=7); `≈1 TB` virtual codeword avoided |
 | setup | transparent |
@@ -1151,8 +1356,10 @@ they must be proved or listed as assumptions of a conditional theorem.
 
 The query simulation `q -> 2q` does not by itself preserve a running-time bound.
 Producing/uncomputing J output blocks, maintaining the simulated database, and
-extracting a chain have costs. A time-bounded A-IC claim must specify the bound
-*after* those reductions; the old `τ = 2^128` number alone is insufficient.
+extracting a chain have costs. Any time-bounded claim must specify the bound
+*after* those reductions; the old `τ = 2^128` number alone is insufficient, and
+at the headline parameters the simulation alone consumes `2^85`, leaving
+`T_extract <= 2^128 - 2^85 - 2^64`.
 
 ### C.4 Recommended order
 
@@ -1160,12 +1367,17 @@ extracting a chain have costs. A time-bounded A-IC claim must specify the bound
    fixed G2 verifier. Repair the family-potential accounting and list-regime
    WHIR transfer before relying on the numerical calculator.
 2. Prove NV faithfulness against that exact verifier, including the stacking
-   kernel. Keep the proof-size measurement separate from the security theorem.
+   kernel — or state it as a TCB entry and stop describing it as in progress.
+   Keep the proof-size measurement separate from the security theorem.
 3. Resolve the recursive hash model, then prove simultaneous extraction and
    composition. A conditional theorem is meaningful if all assumptions are
    stated accurately; an unconditional concrete-SHA guarantee is not obtained
-   by proving more generic norm inequalities.
-4. Recalculate the security ledger and reproduce the measured artifact. Only
+   by proving more generic norm inequalities. Because the identification is
+   false in the required form, the realistic target is the conditional endpoint
+   of §7.3 with `INNER-SOUND(c)` named.
+4. Re-derive the numeric bound at the deployed oracle size (`RomSoundR (2^336)`
+   or `(2^384)`), not at the arena core's `2^256`.
+5. Recalculate the security ledger and reproduce the measured artifact. Only
    then restore a headline saying the specified recursion tail meets the target
    **under the named model and assumptions**.
 
@@ -1186,15 +1398,33 @@ repository pins, not the open protocol instantiations or an e2e security claim.
 
 ### C.6 Progress on the four security workstreams (2026-10-21)
 
-The requested work has produced additional checked components, but **has not
-established the headline security guarantee**:
+A follow-up review re-checked the four remaining blockers against the
+artifacts (`docs/logs/pq-paper-blockers-recheck-2026-10-21.md`) and then worked
+them on four independent branches. The result is **not** a security theorem. It
+is a redistribution of the gap, and in one case a downgrade of the claim:
 
 | Workstream | New evidence | Remaining gate |
 |---|---|---|
-| Family QROM and WHIR | Kernel-checked Merkle support/counting, accepted-residue counting and classical adaptive-union lemmas. Thirteen measured FINAL scalar DKT folds now compose with parent reconstruction and the backend fold formula; their scalar exceptional-count sum divided by the Ext12 field size is below `2^-283`. | Actual compressed-oracle family potential, all transition estimates and measured-event inclusion; full adaptive WHIR transfer, batching/list products and all other moves. The scalar figure is not a total security bound. |
-| NV faithfulness | The univariate-skip chunk correction and Boolean predecessor identity are checked in `Qrom.Stacking`; PROOF §3.7 maps them to the pinned source. Clean-build SHA/GLUE tests (7) and transcript tests (9) pass. `FAITHFUL.md` now states the exact accepted-trace obligations and distinguishes its audit evidence from a theorem. | Formal semantics of the pinned AIR and native verifier, integer bus equality, program/statement binding, and arithmetic-port composition for arbitrary satisfying traces. |
-| Recursive hash model | Checked fixed-output/independent-oracle marginal and acceptance inequalities expose the missing justification in literal A-IC. | A coherent model and a valid reduction. A time cap alone does not make a concrete SHA output equal an independent oracle output. An explicit inner-system security assumption would give a conditional endpoint, not prove that assumption. |
-| Ledger and measured artifact | Exact integer query-threshold/certificate-input audit; historical calculators cannot report established security. A clean dependency build reproduces the FINAL SHA-256 and 293,077-byte size. | Full error ledger, source-to-theorem/VK linkage and every family member. Full six-proof reproduction with negative controls is tracked separately in the G2 gate record. |
+| WHIR / proximity composition | Adaptive conditioning over a round's folds is **proved**: the exceptional set is an arbitrary function of the whole preceding challenge history, with no independence assumption (`DKTAdaptive.badRuns_probability`), lifted to round granularity in the backend's sampling order (`DKTRoundCompose`). Coverage is now 27 kernel-checked coverage transfers — full FINAL (all rounds, all sub-codes) and PARENT rounds 1–2 — plus the deployed `c = 15` coset algebra (`DKTOrderedCoset`). All fold-only budgets are `≤ 2^-280.11` over `\|Ext12\|`. | The fold budgets are **12–18 bits below** the binding query move, so `ε_rbr = 2^-268.01` is unchanged and these results cannot improve it. Still open: generator-constant-to-compiled-Rust correspondence, interleaving and list products at the real O-2 sub-codes, Johnson rounds and the base/app layer, and the round-by-round state for `μ`, OOD, queries, `γ` |
+| Family QROM | The CFHL21 entry bounds are now **inhabited by an explicit unitary** (`Reflection.qopEntries`), which the withdrawn model provably was not (`Audit.old_entry_model_not_unitary`); the real unitary gives `2·\|Chg\|/M`, not `10·\|Chg\|/M`. A concrete `PotentialEvolution` is fully discharged with measured-event inclusion *proved* (`concrete_qrom_bound`). Canonical extraction exists as a function with insert/erase/reassign monotonicity, and long-output fanout counts are derived. | The protocol's global compressed-oracle operator over `Fin q → DB M` with commuting projectors; a uniform `g` over the whole family including the base layer; the cited `Replacement` step in the actual adaptive game; extraction against the Rust parser rather than the model |
+| Circuit faithfulness | The obligation is now a stated, decomposed Lean `Prop` (`zk-formal/ZkFormal/PQ/NvFaithful.lean`), its six-part **composition is proved**, and the LogUp field-balance → integer-multiset step is **proved**. | **Downgraded to declared trust.** No Lean model of the NV AIR exists in this repository and one is not tractable here; five of the six components are a TCB entry. This is a weaker claim than "in progress", and the paper now says so |
+| Recursive hash bridge | The obstruction is arithmetic: required agreement with an adaptive pair set plus acceptance at `1−δ` forces `δ ≥ 1 − \|Y\|^{-\|Q\|}`, so `\|Q\|` — not time — controls it (`OracleBridgeSet.delta_ge_one_sub_agreement`). Literal A-IC is therefore not a time-bounded question. The paper adopts endpoint **(c)**, a named `INNER-SOUND(c)` assumption, whose reduction *shape* is kernel-checked in `formal-core`'s own `RomSound`/`PrLE` vocabulary (`inner_computational_soundness`). Extraction is no longer free: `T_extract ≤ 2^128 − 2^85 − 2^64` at the headline parameters. | `INNER-SOUND(c)` is assumed, not proved. Separately, `RomSound` is a `2^256` game with exactly 32-byte answers, so it does not express the deployed 42-byte-digest oracle at all (§7.3a); the bound must be re-derived at `RomSoundR (2^336)`/`(2^384)` before the arena's admission predicate can consume it |
+
+Two findings are worth carrying forward independent of this paper's claims.
+
+First, the approval evidence can be actively misleading. The NEAR host-call
+execution theorem `wasm_base_exec_host` had **no applicable instances** while
+its known-answer suite passed 88/88: its per-row gas premise was unsatisfiable
+for every real instance (`old_hstepgas_unsat`) and its row-facts premise
+excluded every HOST row. That is the concrete case for Appendix C.2's refusal
+to accept tests in place of a faithfulness theorem.
+
+Second, a proof component can be uninhabited without that being visible. The
+`10` in the withdrawn family formula came from an entry model that no unitary
+satisfies; the constant was quoted from an interface nobody had shown was
+satisfiable. Both episodes argue for the same discipline this appendix already
+requires: a checked lemma is only meaningful relative to a demonstrated
+instantiation.
 
 The native sampler has no enforced `J = 2^20` block cap. The previous simulation
 claim therefore cannot be applied as written. For a fixed independent prefix
