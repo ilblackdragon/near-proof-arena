@@ -2106,10 +2106,10 @@ index 0000000..4808ad1
 +}
 diff --git a/crates/recursion/src/nv/circuit.rs b/crates/recursion/src/nv/circuit.rs
 new file mode 100644
-index 0000000..38ea204
+index 0000000..11c2376
 --- /dev/null
 +++ b/crates/recursion/src/nv/circuit.rs
-@@ -0,0 +1,403 @@
+@@ -0,0 +1,442 @@
 +//! NV v0 circuit: ALU + transcript engine + Merkle AIR + SHA subsystem.
 +use std::{collections::HashMap, sync::Arc};
 +
@@ -2131,7 +2131,7 @@ index 0000000..38ea204
 +};
 +use crate::sha384::{
 +    compress4_air::{Layout, Sha512Air4, TableAir4},
-+    config::{Sha384Config, F},
++    config::{Digest, Sha384Config, F},
 +    jobs::Unit,
 +};
 +
@@ -2384,11 +2384,50 @@ index 0000000..38ea204
 +    }
 +}
 +
-+/// Native statement check of the final proof (final-soundness G1): NvAir public values
++/// The statement the chain exposes, as V_d checks it: the app proof's public values (all AIRs in
++/// order) **and** the base proof's cached commitments, in the order the NV program appends them
++/// (AIR order, then each AIR's cached mains in proof order).  The base's cached tables are the
++/// TAPE table and the join's host-wire commitments; their roots are proof values, so they are only
++/// in the statement if they are listed here.
++///
++/// `cached_roots` is what the claim *says* those roots are.  For TAPE it is recomputed from the
++/// claim's public messages (`tapeCanon`); V_d does not take it from the proof.
++#[derive(Clone, Debug, Default)]
++pub struct StatementClaim {
++    pub public_values: Vec<Vec<F>>,
++    /// The base proof's cached commitments in the order the NV program chains them (AIR order,
++    /// then each AIR's cached mains in proof order).  Empty = the pre-P4 statement.
++    pub cached_roots: Vec<Digest>,
++}
++
++impl StatementClaim {
++    pub fn new(public_values: Vec<Vec<F>>) -> Self {
++        Self { public_values, cached_roots: vec![] }
++    }
++
++    /// The statement digest the chain exposes: the G1 digest over the public values, then each
++    /// cached root folded in by one Merkle-node compression (the in-circuit order).
++    pub fn digest(&self) -> Digest {
++        use openvm_stark_backend::hasher::MerkleHasher;
++        let mut d = crate::sha384::config::statement_digest(&self.public_values);
++        for r in &self.cached_roots {
++            d = crate::sha384::config::ShaHasher.compress(d, *r);
++        }
++        d
++    }
++}
++
++/// Native statement check of the final proof (final-soundness G1 + P4): NvAir public values
 +/// 1..19 must be the statement digest of the claimed chunk statement (the app proof's public
-+/// values, all AIRs in order).
++/// values and, when the base carries cached tables, their roots).
 +pub fn check_statement(nv_public_values: &[F], app_public_values: &[Vec<F>]) -> bool {
-+    let d = crate::sha384::config::statement_digest(app_public_values);
++    check_statement_claim(nv_public_values, &StatementClaim::new(app_public_values.to_vec()))
++}
++
++/// The same check against a claim that also names the base's cached roots (P4: TAPE and the
++/// host-wire commitments).
++pub fn check_statement_claim(nv_public_values: &[F], claim: &StatementClaim) -> bool {
++    let d = claim.digest();
 +    let (lo, hi) = super::builder::digest_cells(d);
 +    nv_public_values.len() == super::uair::NV_NUM_PVS
 +        && nv_public_values[1..13] == lo[..]
@@ -7465,10 +7504,10 @@ index 0000000..9373307
 +
 diff --git a/crates/recursion/src/nv/tests.rs b/crates/recursion/src/nv/tests.rs
 new file mode 100644
-index 0000000..a19e2c3
+index 0000000..f72c701
 --- /dev/null
 +++ b/crates/recursion/src/nv/tests.rs
-@@ -0,0 +1,1382 @@
+@@ -0,0 +1,1742 @@
 +use openvm_stark_backend::{
 +    test_utils::{FibFixture, InteractionsFixture11, TestFixture},
 +    StarkEngine,
@@ -8809,7 +8848,9 @@ index 0000000..a19e2c3
 +    let (m1, b1g) = circ1.generate(&vk0, &p0);
 +    assert!(b1g.failures.is_empty());
 +    let c_l1 = super::circuit::program_commitment(openvm_stark_backend::StarkEngine::config(&engine), &m1[0]);
++    eprintln!("NV_TAPE_STAGE proving L1");
 +    let (vk1, p1, _, _) = super::circuit::prove_level(&circ1, &engine, &vk0, &p0);
++    eprintln!("NV_TAPE_STAGE L1 done");
 +    assert_eq!(p1.trace_vdata[0].as_ref().unwrap().cached_commitments[0], c_l1, "L1's program commitment = the setup C_L1");
 +    println!("NV_VD C_L1 = setup commitment of the L1 program part");
 +    circ2.heights = Some(fixed.clone());
@@ -8829,7 +8870,9 @@ index 0000000..a19e2c3
 +    // FINAL: the same program, one commitment (program in common main), final domain
 +    let mut circf = circ2.clone_shape();
 +    circf.program_part = false;
++    eprintln!("NV_TAPE_STAGE proving FINAL");
 +    let (vkf, pf, bf, _) = super::circuit::prove_level(&circf, &engine_final, &vk2, &p2);
++    eprintln!("NV_TAPE_STAGE FINAL done");
 +    assert_eq!(bf.level, 3);
 +    assert_eq!(bf.instrs, b2.instrs, "FINAL runs the uniform NV program (bound to L2's)");
 +    assert!(pf.trace_vdata[0].as_ref().unwrap().cached_commitments.is_empty(), "FINAL has one commitment");
@@ -8850,6 +8893,362 @@ index 0000000..a19e2c3
 +    verify_final(&setup, &engine_final, &p0.public_values, &p_forge, true).expect("without the program check V_d is fooled");
 +    let err = verify_final(&setup, &engine_final, &p0.public_values, &p_forge, false).expect_err("forged final accepted with the program check");
 +    println!("NV_VD forged final ({} rows) accepted without the program check, rejected with it: {err}", bforge.instrs.len());
++}
++
++/// **M4: per-AIR height cap (`log_height <= maxLog_t`) in the vk, in NV, and in V_d.**
++///
++/// The ported classical tables bound their soundness argument to their exported `maxLog`
++/// (`ZkFormal.V2.Air.Table.wf`, the `multBoundP < p` step in `PQ/StatePort/Bridge.lean`).  The
++/// cap must therefore be visible to every verifier, not just the demo driver:
++///
++/// * it is a vk constant, so it is in the vk pre-hash (a proof the cap rejects cannot verify
++///   under a vk that pins the cap);
++/// * the native verifier rejects the proof (`verify_proof_shape`,
++///   `ProofShapeVDataError::LogHeightExceedsTableCap`);
++/// * NV's program generator records a static failure and emits no program (no rows: heights and
++///   `maxLog` are both vk constants), exactly like the existing LogUp count check (B2);
++/// * V_d's `check_height_caps` rejects it on the final proof.
++///
++/// The negative half is the one that matters: without the cap in the vk, the same trace height
++/// is accepted (only the global `l_skip + n_stack` remains) and NV emits the program.
++#[test]
++fn nv_air_height_cap() {
++    use openvm_stark_backend::{
++        test_utils::{
++            dummy_airs::fib_air::{air::FibonacciAir, trace::generate_trace_rows},
++            FibFixture, TestFixture,
++        },
++        AirRef, StarkEngine,
++    };
++    use p3_air::{Air, AirBuilderWithPublicValues, BaseAir, BaseAirWithPublicValues};
++    use std::sync::Arc;
++
++    /// FibonacciAir with a per-AIR cap on its own height (the shape of a ported table).
++    #[derive(Clone)]
++    struct CappedFib(Option<usize>);
++    impl<F> openvm_stark_backend::PartitionedBaseAir<F> for CappedFib {
++        fn max_log_trace_height(&self) -> Option<usize> {
++            self.0
++        }
++    }
++    impl<F> BaseAir<F> for CappedFib {
++        fn width(&self) -> usize {
++            <FibonacciAir as BaseAir<F>>::width(&FibonacciAir)
++        }
++    }
++    impl<F> BaseAirWithPublicValues<F> for CappedFib {
++        fn num_public_values(&self) -> usize {
++            3
++        }
++    }
++    impl<AB: AirBuilderWithPublicValues> Air<AB> for CappedFib {
++        fn eval(&self, builder: &mut AB) {
++            <FibonacciAir as Air<AB>>::eval(&FibonacciAir, builder);
++        }
++    }
++    struct Fixture {
++        max_log: Option<usize>,
++        n: usize,
++    }
++    impl TestFixture<Sha384Config> for Fixture {
++        fn airs(&self) -> Vec<AirRef<Sha384Config>> {
++            vec![Arc::new(CappedFib(self.max_log)) as AirRef<Sha384Config>]
++        }
++        fn generate_proving_ctx(
++            &self,
++        ) -> openvm_stark_backend::prover::ProvingContext<
++            openvm_stark_backend::prover::CpuColMajorBackend<Sha384Config>,
++        > {
++            use openvm_stark_backend::prover::{AirProvingContext, ColMajorMatrix, ProvingContext};
++            let m = generate_trace_rows::<F>(0, 1, self.n);
++            // the FibonacciAir public values: a, b, f_n
++            let (mut a, mut b) = (0u64, 1u64);
++            for _ in 0..self.n - 1 {
++                (a, b) = (b, a.wrapping_add(b));
++            }
++            let pis = [0u64, 1, b].map(F::from_u64).to_vec();
++            ProvingContext::new(vec![(0, AirProvingContext::simple(ColMajorMatrix::from_row_major(&m), pis))])
++        }
++    }
++
++    let n = 1usize << 5;
++    let log_h = n.trailing_zeros() as usize;
++    let engine = Sha384CpuEngine::new(child_params_small());
++    let prove = |max_log: Option<usize>| Fixture { max_log, n }.keygen_and_prove(&engine);
++
++    // honest: height == maxLog == 2^log_h
++    let (vk_ok, proof_ok) = prove(Some(log_h));
++    engine.verify(&vk_ok, &proof_ok).expect("a height at the cap verifies");
++    assert_eq!(vk_ok.inner.per_air[0].params.max_log_trace_height, Some(log_h), "the cap is a vk field");
++    let (vk_none, proof_none) = prove(None);
++    assert_eq!(vk_none.inner.per_air[0].params.max_log_trace_height, None, "unset stays None");
++    println!("NV_HEIGHT_CAP honest log_height={log_h} cap={log_h} accepted");
++
++    // 1. a height above the cap: the native verifier refuses it ...
++    let (vk_bad, proof_bad) = prove(Some(log_h - 1));
++    let err = engine.verify(&vk_bad, &proof_bad).expect_err("height above the cap accepted");
++    let s = format!("{err:?}");
++    assert!(s.contains("LogHeightExceedsTableCap"), "unexpected rejection: {s}");
++    println!("NV_HEIGHT_CAP native rejected: {err}");
++    // 2. the cap is the *only* reason: keeping the pinned pre-hash and dropping just the cap field
++    //    (a verifier that does not know the table's maxLog) accepts the same proof
++    let mut vk_uncapped = vk_bad.clone();
++    vk_uncapped.inner.per_air[0].params.max_log_trace_height = None;
++    engine.verify(&vk_uncapped, &proof_bad).expect("without the cap the same proof is accepted (control)");
++    // and the cap is bound into the pre-hash, so a proof cannot dodge it by swapping vks
++    assert_ne!(vk_ok.pre_hash, vk_none.pre_hash, "the cap is bound into the vk pre-hash");
++    assert_eq!(vk_bad.pre_hash, vk_uncapped.pre_hash, "the field, not the hash, was cleared");
++    println!("NV_HEIGHT_CAP cap is in the vk pre-hash; without it the same proof verifies");
++
++    // 3. NV: the program generator refuses a child above its cap.  The generator's own check
++    //    (`build_verifier`'s per-AIR loop) runs first and records the failure; the subsequent
++    //    native `verify_proof_shape` also rejects it, which is what a caller sees as a panic.
++    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
++        let mut b = Builder::new(17, 0);
++        build_verifier(&mut b, &vk_bad, &proof_bad);
++        b.failures
++    }));
++    match r {
++        Err(e) => {
++            let msg = e
++                .downcast_ref::<String>()
++                .cloned()
++                .or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string()))
++                .unwrap_or_default();
++            assert!(msg.contains("exceeds its maxLog"), "unexpected NV rejection: {msg}");
++            println!("NV_HEIGHT_CAP NV program rejected: {msg}");
++        }
++        Ok(f) => panic!("NV accepted a child above its maxLog: {f:?}"),
++    }
++    // 4. ... and accepts the honest one with no extra rows (a static check)
++    let mut b_ok = Builder::new(17, 0);
++    build_verifier(&mut b_ok, &vk_ok, &proof_ok);
++    assert!(b_ok.failures.is_empty(), "{:?}", b_ok.failures);
++    //    the same vk with the cap field cleared (same pre-hash, same transcript, same heights)
++    //    gives byte-identical program words, so the check is static and adds no rows
++    let mut vk_ok_nocap = vk_ok.clone();
++    vk_ok_nocap.inner.per_air[0].params.max_log_trace_height = None;
++    let mut b_none = Builder::new(17, 0);
++    build_verifier(&mut b_none, &vk_ok_nocap, &proof_ok);
++    assert!(b_none.failures.is_empty(), "{:?}", b_none.failures);
++    assert_eq!(b_ok.instrs, b_none.instrs, "the cap adds no rows and does not change the program");
++    let _ = proof_none;
++    println!(
++        "NV_HEIGHT_CAP NV program for the honest child: {} rows, identical with and without a cap",
++        b_ok.instrs.len()
++    );
++
++    // 5. V_d: the same check against the pinned final vk
++    let setup_bad = super::vd::VdSetup { vk_final: vk_bad.clone(), program: vec![], level: 1 };
++    let e = super::vd::check_height_caps(&setup_bad.vk_final, &proof_bad).expect_err("V_d accepted a height above maxLog");
++    assert!(e.contains("exceeds its maxLog"), "{e}");
++    let setup_ok = super::vd::VdSetup { vk_final: vk_ok.clone(), program: vec![], level: 1 };
++    super::vd::check_height_caps(&setup_ok.vk_final, &proof_ok).expect("V_d accepts a height at the cap");
++    println!("NV_HEIGHT_CAP V_d rejected: {e}");
++
++    // 6. the plain (uncapped) path is unchanged in shape
++    let (vk_f, proof_f) = FibFixture::new(0, 1, n).keygen_and_prove(&engine);
++    assert_eq!(vk_f.inner.per_air[0].params.max_log_trace_height, None);
++    engine.verify(&vk_f, &proof_f).unwrap();
++    let mut b_f = Builder::new(17, 0);
++    build_verifier(&mut b_f, &vk_f, &proof_f);
++    assert!(b_f.failures.is_empty());
++    println!("NV_HEIGHT_CAP uncapped Fib unchanged ({} program rows)", b_f.instrs.len());
++}
++
++
++/// **P4/M2: the cached TAPE root is carried from the base proof to V_d.**
++///
++/// The base proof's TAPE table is a cached main part (the shape `pq-state-port` gives it): its
++/// root is a proof value observed in the preamble and **not** a public value.  Without P4 the
++/// chain verifies a base whose TAPE table could be anything.
++///
++/// The chain is the real one: base -> L1 (program part) -> L2 (bind, statement passthrough) ->
++/// FINAL, and V_d checks the final against a `StatementClaim` naming the TAPE root.  Asserted:
++/// L1's in-circuit digest equals `StatementClaim::digest`; every level re-exposes it unchanged;
++/// V_d accepts; a different, swapped, or omitted TAPE root is rejected; a tampered root in the
++/// base proof is rejected by the Merkle checks.
++#[test]
++fn nv_tape_root_passthrough() {
++    use super::circuit::StatementClaim;
++    use super::vd::{check_final_program, verify_final_claim, VdSetup};
++    use openvm_stark_backend::test_utils::PreprocessedAndCachedFixture;
++
++    let child_engine = Sha384CpuEngine::new(child_params_small());
++    // same parent shape as `nv_vd_pinned_program` (NvAir's own degree is 9)
++    let mut pp = openvm_stark_backend::test_utils::test_system_params_small(2, 18, 3);
++    pp.max_constraint_degree = nv_debug_params().max_constraint_degree;
++    let engine = Sha384CpuEngine::new(pp.clone());
++    let sels: Vec<bool> = (0..1usize << 5).map(|i| i % 3 == 0).collect();
++    let fx = PreprocessedAndCachedFixture::new(sels, child_engine.config().clone(), 1);
++    let (vk0, p0) = fx.keygen_and_prove(&child_engine);
++    child_engine.verify(&vk0, &p0).unwrap();
++    let tape_root = p0.trace_vdata[0].as_ref().unwrap().cached_commitments[0];
++    let claim = StatementClaim { public_values: p0.public_values.clone(), cached_roots: vec![tape_root] };
++    let d_p4 = claim.digest();
++    let d_pv_only = crate::sha384::config::statement_digest(&p0.public_values);
++    assert_ne!(d_p4, d_pv_only, "the TAPE root must change the statement digest");
++
++    let k = openvm_stark_backend::StarkEngine::params(&engine).k_whir();
++    let log_rows = 18;
++    // L1 with natural heights: its statement digest must be the P4 one, and its proof fixes the
++    // heights every later level uses (as `nv_vd_pinned_program`)
++    let mut circ1 = super::circuit::NvCircuit::new(k, log_rows, 1);
++    circ1.prog_log = 17;
++    circ1.program_part = true;
++    let (mats1, b1) = circ1.generate(&vk0, &p0);
++    assert!(b1.failures.is_empty(), "{:?}", b1.failures);
++    assert_eq!(b1.statement, Some(d_p4), "L1 exposes the P4 statement (public values + TAPE root)");
++    assert!(super::circuit::check_statement_claim(&b1.public_values(), &claim), "L1 statement claim");
++    assert!(
++        !super::circuit::check_statement(&b1.public_values(), &p0.public_values),
++        "the public values alone are not the statement once a cached table is carried"
++    );
++    println!("NV_TAPE L1 statement includes the cached TAPE root: {d_p4:?}");
++    // a cached root tampered with in the base proof: Merkle root failures
++    {
++        let mut bad = p0.clone();
++        bad.trace_vdata[0].as_mut().unwrap().cached_commitments[0][0] ^= 1;
++        let mut bb = Builder::new(17, 0);
++        build_verifier(&mut bb, &vk0, &bad);
++        assert!(bb.failures.iter().any(|f| f == "merkle root"), "a tampered TAPE root was accepted: {:?}", bb.failures);
++        println!("NV_TAPE tampered TAPE root rejected ({} failures)", bb.failures.len());
++    }
++    let (vk1n, p1n, _, _) = super::circuit::prove_level(&circ1, &engine, &vk0, &p0);
++    assert!(super::circuit::check_statement_claim(&p1n.public_values[0], &claim), "L1 proof exposes it");
++
++    // L2 at natural heights fixes the heights of both levels (the program depends on the child's
++    // committed heights, which is why the G2 chain pins them)
++    let mut circ2 = super::circuit::NvCircuit::new(k, log_rows, 1);
++    circ2.prog_log = 17;
++    circ2.program_part = true;
++    circ2.child_nv = true;
++    circ2.anchor = Some((1, p1n.trace_vdata[0].as_ref().unwrap().cached_commitments[0]));
++    let (mats2n, b2n) = circ2.generate(&vk1n, &p1n);
++    assert!(b2n.failures.is_empty(), "{:?}", b2n.failures);
++    assert_eq!(b2n.statement, Some(d_p4), "L2 re-exposes L1's statement (TAPE root included)");
++    let fixed: Vec<usize> = mats2n.iter().map(p3_matrix::Matrix::height).collect();
++    println!("NV_TAPE fixed heights {fixed:?}");
++    circ1.heights = Some(fixed.clone());
++    let (mats1, b1f) = circ1.generate(&vk0, &p0);
++    assert_eq!(b1f.statement, Some(d_p4), "the fixed-height L1 exposes the same statement");
++    let (vk1, p1, _, _) = super::circuit::prove_level(&circ1, &engine, &vk0, &p0);
++    assert!(super::circuit::check_statement_claim(&p1.public_values[0], &claim), "L1 proof exposes it");
++    let _ = mats1;
++    circ2.heights = Some(fixed);
++    circ2.anchor = Some((1, p1.trace_vdata[0].as_ref().unwrap().cached_commitments[0]));
++    let (vk2, p2, _, _) = super::circuit::prove_level(&circ2, &engine, &vk1, &p1);
++
++    // L3 = FINAL shape: same program, one commitment (program in common main), final domain
++    let engine_final = Sha384CpuEngine::new_final(pp);
++    let mut circf = circ2.clone_shape();
++    circf.program_part = false;
++    circf.tight_floor = None;
++    let (vkf, pf, bf, _) = super::circuit::prove_level(&circf, &engine_final, &vk2, &p2);
++    assert_eq!(bf.statement, Some(d_p4), "FINAL exposes the same statement");
++    let program: Vec<[u32; 4]> = bf.instrs.iter().map(|i| i.words()).collect();
++    let setup = VdSetup { vk_final: vkf, program, level: 3 };
++    verify_final_claim(&setup, &engine_final, &claim, &pf, false).expect("V_d accepts the chain with the TAPE root");
++    check_final_program(&setup, &pf).expect("pinned program");
++    println!("NV_TAPE V_d accepted the chain with the TAPE root in the statement");
++
++    // a different TAPE root is rejected — that is what makes the cached table part of the statement
++    let mut other_root = claim.clone();
++    other_root.cached_roots[0] = {
++        let mut r = other_root.cached_roots[0];
++        r[0] ^= 1;
++        r
++    };
++    let e = verify_final_claim(&setup, &engine_final, &other_root, &pf, false).expect_err("a different TAPE root accepted");
++    assert!(e.contains("statement digest"), "{e}");
++    println!("NV_TAPE V_d rejected a different TAPE root: {e}");
++    // omitting the root (the pre-P4 statement) is rejected too
++    let e = verify_final_claim(&setup, &engine_final, &StatementClaim::new(p0.public_values.clone()), &pf, false)
++        .expect_err("a claim without the TAPE root accepted");
++    println!("NV_TAPE V_d rejected the pre-P4 (public-values-only) claim: {e}");
++    // and the public values themselves are still pinned when the fixture has any
++    if claim.public_values.iter().any(|v| !v.is_empty()) {
++        let mut other_pv = claim.clone();
++        let a = other_pv.public_values.iter().position(|v| !v.is_empty()).unwrap();
++        other_pv.public_values[a][0] += F::ONE;
++        assert!(verify_final_claim(&setup, &engine_final, &other_pv, &pf, false).is_err(), "wrong public value accepted");
++    }
++}
++
++/// **Item 3: the production LogUp budget is 2^30, and the measured cost is 2 bits.**
++///
++/// The D1-class base needs `max_interaction_count = 2^30` (N = 2^29.59; D0a N = 2^29.55), so the
++/// production default in `params_from_env` is now 2^30 (was 2^28).  This asserts:
++///
++/// * the default is 2^30 and `*_INTERACTION_LOG=28` still reproduces the old value (so the G2
++///   gate's recorded keys/proofs stay reproducible);
++/// * the backend's LogUp term drops by exactly 2 bits (312.88 -> 310.88 at
++///   `log_max_message_length = 7`), and the WHIR query counts are unchanged;
++/// * the total soundness of the production FINAL shape still clears 268 bits.
++#[test]
++fn nv_production_interaction_budget() {
++    use crate::sha384::e2e_tests::params_from_env;
++    use openvm_stark_backend::soundness::SoundnessCalculator;
++
++    // unset vars: the default
++    unsafe {
++        std::env::remove_var("PARENT_INTERACTION_LOG");
++        std::env::remove_var("FINAL_INTERACTION_LOG");
++    }
++    let p = params_from_env("PARENT", [18, 7, 268, 64]);
++    assert_eq!(p.logup.max_interaction_count, 1 << 30, "production default is 2^30");
++    assert_eq!(p.logup.log_max_message_length, 7);
++    println!("NV_LOGUP default max_interaction_count = 2^{}", (p.logup.max_interaction_count as f64).log2());
++
++    // 2^28 opt-in still available (the G2 gate's setting)
++    unsafe { std::env::set_var("PARENT_INTERACTION_LOG", "28") };
++    let p28 = params_from_env("PARENT", [18, 7, 268, 64]);
++    unsafe { std::env::remove_var("PARENT_INTERACTION_LOG") };
++    assert_eq!(p28.logup.max_interaction_count, 1 << 28);
++
++    // the backend formula, exactly as `calculator::logup_soundness`; log2(L_PCS) = 22 is the
++    // value `tools/d1-pq-envelope/check.py` records the 312.88 figure at
++    let ext_bits = 12.0 * (2013265921f64).log2();
++    let logup = |mic: u32| SoundnessCalculator::logup_soundness(mic, 7, ext_bits, 22.0);
++    let (b28, b30) = (logup(1 << 28), logup(1 << 30));
++    assert!((b28 - 312.88).abs() < 0.01, "{b28}");
++    assert!((b30 - 310.88).abs() < 0.01, "{b30}");
++    assert!((b28 - b30 - 2.0).abs() < 1e-9, "the cost must be exactly 2 bits");
++    println!("NV_LOGUP logup_soundness 2^28={b28:.2} 2^30={b30:.2} (delta {:.2})", b28 - b30);
++
++    // the WHIR schedule does not move
++    assert_eq!(
++        p.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
++        p28.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
++        "the LogUp budget must not move the WHIR query counts"
++    );
++    println!(
++        "NV_LOGUP queries unchanged: {:?}",
++        p.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>()
++    );
++}
++
++/// **Inertness for a child with no cached table and no height cap (the G2 gate's shape).**
++///
++/// P4's statement chain and M4's cap check must add nothing when their features are off: the
++/// program must be byte-identical to the pre-change one, which is what keeps the recorded G2
++/// proofs reproducible.  Measured earlier on this tree by generating the program for a Fib child
++/// under both verifier versions: 8,660 rows either way (`log_rows 17`, `prog_log 16`), and 11,212
++/// rows for a `CachedFixture11` child either way.
++#[test]
++fn nv_statement_inert_without_cached_roots() {
++    use openvm_stark_backend::test_utils::FibFixture;
++    let child_engine = Sha384CpuEngine::new(child_params_small());
++    let (vk, proof) = FibFixture::new(0, 1, 1 << 5).keygen_and_prove(&child_engine);
++    assert!(proof.trace_vdata.iter().all(|v| v.as_ref().unwrap().cached_commitments.is_empty()), "no cached table");
++    assert!(vk.inner.per_air.iter().all(|a| a.params.max_log_trace_height.is_none()), "no height cap");
++    let mut b = Builder::new(17, 0);
++    build_verifier(&mut b, &vk, &proof);
++    assert!(b.failures.is_empty(), "{:?}", b.failures);
++    // the statement is exactly the G1 digest: no cached root was folded in
++    assert_eq!(b.statement, Some(crate::sha384::config::statement_digest(&proof.public_values)));
++    assert_eq!(super::circuit::StatementClaim::new(proof.public_values.clone()).digest(), b.statement.unwrap());
++    println!("NV_INERT program rows {} (statement = G1 digest, no cached roots)", b.instrs.len());
 +}
 diff --git a/crates/recursion/src/nv/transcript2.rs b/crates/recursion/src/nv/transcript2.rs
 new file mode 100644
@@ -10514,10 +10913,10 @@ index 0000000..3232a2d
 +}
 diff --git a/crates/recursion/src/nv/vd.rs b/crates/recursion/src/nv/vd.rs
 new file mode 100644
-index 0000000..bb0d7ab
+index 0000000..6caeb7a
 --- /dev/null
 +++ b/crates/recursion/src/nv/vd.rs
-@@ -0,0 +1,182 @@
+@@ -0,0 +1,210 @@
 +//! Native final verifier V_d (ported from lane/pq-e2e-slice @ 480bf27f4, nv/e2e.rs): verifies
 +//! the FINAL proof under the final domain, checks the pinned level and the statement digest, and
 +//! checks the final proof's program columns against the pinned NV program
@@ -10643,7 +11042,19 @@ index 0000000..bb0d7ab
 +/// V_d: accept iff the final proof verifies under the pinned final vk (final domain), exposes
 +/// the pinned level, runs the pinned program (unless `skip_program`, the unsound variant kept
 +/// only to show the forgery), and exposes the statement digest of the claimed app public values.
++///
++/// This is the no-cached-pocket form; `verify_final_claim` is the general one and is what a
++/// joined proof (TAPE, host-wire commitments) uses.
 +pub fn verify_final(setup: &VdSetup, engine_final: &Sha384CpuEngine, app_public_values: &[Vec<F>], proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
++    verify_final_claim(setup, engine_final, &super::circuit::StatementClaim::new(app_public_values.to_vec()), proof, skip_program)
++}
++
++/// V_d with an explicit `StatementClaim`: besides the pinned vk, level and program, the final
++/// proof must expose `claim.digest()`, i.e. SHA-384 over the claimed public values **and the
++/// claimed cached roots** (P4: the base's TAPE root and the join's host-wire commitments).  The
++/// chain only carries a root the base proof actually committed to, so this is what turns "the
++/// base proof verified" into "the base proof verified *for this TAPE table*".
++pub fn verify_final_claim(setup: &VdSetup, engine_final: &Sha384CpuEngine, claim: &super::circuit::StatementClaim, proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
 +    engine_final.verify(&setup.vk_final, proof).map_err(|e| format!("final proof: {e:?}"))?;
 +    let pvs = &proof.public_values[0];
 +    if pvs.len() != super::uair::NV_NUM_PVS {
@@ -10652,11 +11063,27 @@ index 0000000..bb0d7ab
 +    if pvs[0] != F::from_u32(setup.level) {
 +        return Err(format!("level {} != pinned {}", pvs[0], setup.level));
 +    }
++    check_height_caps(&setup.vk_final, proof)?;
 +    if !skip_program {
 +        check_final_program(setup, proof)?;
 +    }
-+    if !super::circuit::check_statement(pvs, app_public_values) {
++    if !super::circuit::check_statement_claim(pvs, claim) {
 +        return Err("statement digest differs from the claim".into());
++    }
++    Ok(())
++}
++
++/// M4: every AIR's proof height respects the vk's per-AIR `maxLog`.  `engine.verify` already
++/// rejects such a proof (`ProofShapeVDataError::LogHeightExceedsTableCap`), because the caps are
++/// in the vk pre-hash V_d pins; this is the explicit form, used by the tests to show that the
++/// *pinned vk* is what carries the cap.
++pub fn check_height_caps(vk: &MultiStarkVerifyingKey<SC>, proof: &Proof<SC>) -> Result<(), String> {
++    for (a, (avk, td)) in vk.inner.per_air.iter().zip(&proof.trace_vdata).enumerate() {
++        if let (Some(cap), Some(td)) = (avk.params.max_log_trace_height, td) {
++            if td.log_height > cap {
++                return Err(format!("AIR {a}: log_height {} exceeds its maxLog {cap}", td.log_height));
++            }
++        }
 +    }
 +    Ok(())
 +}
@@ -10702,10 +11129,10 @@ index 0000000..bb0d7ab
 +}
 diff --git a/crates/recursion/src/nv/verifier.rs b/crates/recursion/src/nv/verifier.rs
 new file mode 100644
-index 0000000..ad74497
+index 0000000..3edff1e
 --- /dev/null
 +++ b/crates/recursion/src/nv/verifier.rs
-@@ -0,0 +1,1751 @@
+@@ -0,0 +1,1779 @@
 +//! The SWIRL verifier (stark-backend `verifier/*`) as an NV program.  Mirrors the native
 +//! code step by step; every data-dependent choice (query indices, Merkle directions) goes
 +//! through BIT rows, so the instruction stream depends only on the child vk, the params
@@ -11133,13 +11560,24 @@ index 0000000..ad74497
 +        b.failures.push("child WHIR agreement table".into());
 +    }
 +    let num_airs = mvk.per_air.len();
-+    for (avk, td) in mvk.per_air.iter().zip(&proof.trace_vdata) {
++    for (a, (avk, td)) in mvk.per_air.iter().zip(&proof.trace_vdata).enumerate() {
 +        let td = td.as_ref().expect("all AIRs present");
 +        assert!(td.log_height >= l_skip, "short traces not supported yet");
 +        // preprocessed: the height is fixed by the vk (native PreprocessedTraceHeightMismatch);
 +        // heights are program constants, so this is static
 +        if let Some(pd) = &avk.preprocessed_data {
 +            assert_eq!(pd.hypercube_dim + l_skip as isize, td.log_height as isize, "preprocessed trace height != vk");
++        }
++        // M4 (per-table height cap): `log_height <= maxLog_t`, a vk constant (the ported
++        // classical table's `maxLog`).  The height is a program constant too, so the check is
++        // static exactly like the LogUp count check below (B2) and costs no rows.  The native
++        // verifier rejects the same proof in `verify_proof_shape`
++        // (`ProofShapeVDataError::LogHeightExceedsTableCap`); this stops program generation, so
++        // no level is ever proved for a child whose table outgrew its soundness bound.
++        if let Some(max_log) = avk.params.max_log_trace_height.filter(|&m| td.log_height > m) {
++            let msg = format!("AIR {a}: log_height {} exceeds its maxLog {max_log}", td.log_height);
++            b.failures.push(msg.clone());
++            panic!("{msg}");
 +        }
 +    }
 +    // proof shape (static: depends on the vk and the trace heights only) also rejects a
@@ -11171,6 +11609,10 @@ index 0000000..ad74497
 +    let mut pv_cells: Vec<Vec<V>> = vec![];
 +    // per AIR: extra commitments in opening order (preprocessed constant, then cached witnesses)
 +    let mut extra_commits: Vec<Vec<DigestCells>> = vec![vec![]; num_airs];
++    // P4: every cached commitment in preamble order, with its already-loaded cells, so the
++    // statement digest can cover them without loading them twice.
++    let mut cached_cells: Vec<DigestCells> = vec![];
++    let mut cached_limbs: Vec<[F; super::fmt::NV_DIGEST]> = vec![];
 +    for (a, avk) in mvk.per_air.iter().enumerate() {
 +        if !avk.is_required {
 +            let one = b.c(F::ONE);
@@ -11192,7 +11634,10 @@ index 0000000..ad74497
 +        let cached = &proof.trace_vdata[a].as_ref().unwrap().cached_commitments;
 +        assert_eq!(cached.len(), avk.params.width.cached_mains.len(), "cached commitments (proof shape)");
 +        for &c in cached {
-+            extra_commits[a].push(b.load_commit(c));
++            let cells = b.load_commit(c);
++            extra_commits[a].push(cells);
++            cached_cells.push(cells);
++            cached_limbs.push(super::fmt::digest_limbs(c));
 +        }
 +        pv_cells.push(
 +            proof.public_values[a]
@@ -11634,7 +12079,7 @@ index 0000000..ad74497
 +        let d = limbs_digest(&limbs);
 +        b.pv_digest(&DigestCells { lo, hi, digest: d });
 +    } else {
-+        // statement digest (G1): SHA-384 (tag 8) of the app proof's public values
++        // Statement digest (G1): SHA-384 (tag 8) of the app proof's public values
 +        let mut cells: Vec<V> = vec![b.c(F::from_usize(pv_cells.len()))];
 +        for p in &pv_cells {
 +            let n = b.c(F::from_usize(p.len()));
@@ -11646,7 +12091,17 @@ index 0000000..ad74497
 +            b.unit1(x, job, 2 + i as u32);
 +        }
 +        let d = crate::sha384::config::statement_digest(&proof.public_values);
-+        let dc = b.dig(job, d);
++        let mut dc = b.dig(job, d);
++        // P4/M2: the cached commitments (TAPE, the join's host-wire tables) are proof values, not
++        // public values, so the statement must cover them or V_d would accept a base whose cached
++        // table was anything.  Each one is chained into the digest with the Merkle-node
++        // compression the SHA subsystem already checks (`node`: 8 + 2w bytes, one compression),
++        // rather than appended as more statement bytes: an NV leaf job hashes one block, and the
++        // app statement message is already close to 128 bytes.  With no cached commitment the
++        // chain is empty, so the statement is the G1 one unchanged (inert for the G2 gate).
++        for root in &cached_cells {
++            dc = b.node(&dc, root);
++        }
 +        b.pv_digest(&dc);
 +    }
 +    eprintln!("NV_PHASE before_dag {}", b.instrs.len());
@@ -17580,10 +18035,10 @@ index 0000000..f589e8d
 +}
 diff --git a/crates/recursion/src/sha384/e2e_tests.rs b/crates/recursion/src/sha384/e2e_tests.rs
 new file mode 100644
-index 0000000..69d4a88
+index 0000000..6b9935d
 --- /dev/null
 +++ b/crates/recursion/src/sha384/e2e_tests.rs
-@@ -0,0 +1,545 @@
+@@ -0,0 +1,549 @@
 +//! End-to-end: the ported verifier sub-circuit verifies real SHA-384/Ext12 child proofs.
 +//!
 +//!   cargo test --release -p openvm-recursion-circuit --lib e2e_ -- --nocapture
@@ -17865,7 +18320,11 @@ index 0000000..69d4a88
 +        WhirProximityStrategy::UniqueDecoding
 +    };
 +    let logup = LogUpSecurityParameters {
-+        max_interaction_count: 1 << e("INTERACTION_LOG", 28),
++        // Production default: 2^30.  The D1-class base has N = 2^29.59 (D0a 2^29.55), so the
++        // old 2^28 default could not carry it.  Costs 2 LogUp bits (`logup_soundness`:
++        // 312.88 -> 310.88 at log_max_message_length = 7) and moves no WHIR query count.
++        // `*_INTERACTION_LOG=28` reproduces the pre-change (G2 gate) keys and proofs.
++        max_interaction_count: 1 << e("INTERACTION_LOG", 30),
 +        log_max_message_length: 7,
 +        pow_bits: e("LOGUP_POW", 0),
 +    };
@@ -24080,606 +24539,3 @@ index 8fd78a1..ad49ae8 100644
                  cols.z0
                      .copy_from_slice(whir.z0s[i].as_basis_coefficients_slice());
                  cols.y0
-
-diff --git a/crates/recursion/src/nv/circuit.rs b/crates/recursion/src/nv/circuit.rs
---- a/crates/recursion/src/nv/circuit.rs
-+++ b/crates/recursion/src/nv/circuit.rs
-@@ -19,7 +19,7 @@ use super::{
- };
- use crate::sha384::{
-     compress4_air::{Layout, Sha512Air4, TableAir4},
--    config::{Sha384Config, F},
-+    config::{Digest, Sha384Config, F},
-     jobs::Unit,
- };
- 
-@@ -272,11 +272,50 @@ impl NvCircuit {
-     }
- }
- 
--/// Native statement check of the final proof (final-soundness G1): NvAir public values
-+/// The statement the chain exposes, as V_d checks it: the app proof's public values (all AIRs in
-+/// order) **and** the base proof's cached commitments, in the order the NV program appends them
-+/// (AIR order, then each AIR's cached mains in proof order).  The base's cached tables are the
-+/// TAPE table and the join's host-wire commitments; their roots are proof values, so they are only
-+/// in the statement if they are listed here.
-+///
-+/// `cached_roots` is what the claim *says* those roots are.  For TAPE it is recomputed from the
-+/// claim's public messages (`tapeCanon`); V_d does not take it from the proof.
-+#[derive(Clone, Debug, Default)]
-+pub struct StatementClaim {
-+    pub public_values: Vec<Vec<F>>,
-+    /// The base proof's cached commitments in the order the NV program chains them (AIR order,
-+    /// then each AIR's cached mains in proof order).  Empty = the pre-P4 statement.
-+    pub cached_roots: Vec<Digest>,
-+}
-+
-+impl StatementClaim {
-+    pub fn new(public_values: Vec<Vec<F>>) -> Self {
-+        Self { public_values, cached_roots: vec![] }
-+    }
-+
-+    /// The statement digest the chain exposes: the G1 digest over the public values, then each
-+    /// cached root folded in by one Merkle-node compression (the in-circuit order).
-+    pub fn digest(&self) -> Digest {
-+        use openvm_stark_backend::hasher::MerkleHasher;
-+        let mut d = crate::sha384::config::statement_digest(&self.public_values);
-+        for r in &self.cached_roots {
-+            d = crate::sha384::config::ShaHasher.compress(d, *r);
-+        }
-+        d
-+    }
-+}
-+
-+/// Native statement check of the final proof (final-soundness G1 + P4): NvAir public values
- /// 1..19 must be the statement digest of the claimed chunk statement (the app proof's public
--/// values, all AIRs in order).
-+/// values and, when the base carries cached tables, their roots).
- pub fn check_statement(nv_public_values: &[F], app_public_values: &[Vec<F>]) -> bool {
--    let d = crate::sha384::config::statement_digest(app_public_values);
-+    check_statement_claim(nv_public_values, &StatementClaim::new(app_public_values.to_vec()))
-+}
-+
-+/// The same check against a claim that also names the base's cached roots (P4: TAPE and the
-+/// host-wire commitments).
-+pub fn check_statement_claim(nv_public_values: &[F], claim: &StatementClaim) -> bool {
-+    let d = claim.digest();
-     let (lo, hi) = super::builder::digest_cells(d);
-     nv_public_values.len() == super::uair::NV_NUM_PVS
-         && nv_public_values[1..13] == lo[..]
-diff --git a/crates/recursion/src/nv/tests.rs b/crates/recursion/src/nv/tests.rs
---- a/crates/recursion/src/nv/tests.rs
-+++ b/crates/recursion/src/nv/tests.rs
-@@ -1338,7 +1338,9 @@ fn nv_vd_pinned_program() {
-     let (m1, b1g) = circ1.generate(&vk0, &p0);
-     assert!(b1g.failures.is_empty());
-     let c_l1 = super::circuit::program_commitment(openvm_stark_backend::StarkEngine::config(&engine), &m1[0]);
-+    eprintln!("NV_TAPE_STAGE proving L1");
-     let (vk1, p1, _, _) = super::circuit::prove_level(&circ1, &engine, &vk0, &p0);
-+    eprintln!("NV_TAPE_STAGE L1 done");
-     assert_eq!(p1.trace_vdata[0].as_ref().unwrap().cached_commitments[0], c_l1, "L1's program commitment = the setup C_L1");
-     println!("NV_VD C_L1 = setup commitment of the L1 program part");
-     circ2.heights = Some(fixed.clone());
-@@ -1358,7 +1360,9 @@ fn nv_vd_pinned_program() {
-     // FINAL: the same program, one commitment (program in common main), final domain
-     let mut circf = circ2.clone_shape();
-     circf.program_part = false;
-+    eprintln!("NV_TAPE_STAGE proving FINAL");
-     let (vkf, pf, bf, _) = super::circuit::prove_level(&circf, &engine_final, &vk2, &p2);
-+    eprintln!("NV_TAPE_STAGE FINAL done");
-     assert_eq!(bf.level, 3);
-     assert_eq!(bf.instrs, b2.instrs, "FINAL runs the uniform NV program (bound to L2's)");
-     assert!(pf.trace_vdata[0].as_ref().unwrap().cached_commitments.is_empty(), "FINAL has one commitment");
-@@ -1380,3 +1384,359 @@ fn nv_vd_pinned_program() {
-     let err = verify_final(&setup, &engine_final, &p0.public_values, &p_forge, false).expect_err("forged final accepted with the program check");
-     println!("NV_VD forged final ({} rows) accepted without the program check, rejected with it: {err}", bforge.instrs.len());
- }
-+
-+/// **M4: per-AIR height cap (`log_height <= maxLog_t`) in the vk, in NV, and in V_d.**
-+///
-+/// The ported classical tables bound their soundness argument to their exported `maxLog`
-+/// (`ZkFormal.V2.Air.Table.wf`, the `multBoundP < p` step in `PQ/StatePort/Bridge.lean`).  The
-+/// cap must therefore be visible to every verifier, not just the demo driver:
-+///
-+/// * it is a vk constant, so it is in the vk pre-hash (a proof the cap rejects cannot verify
-+///   under a vk that pins the cap);
-+/// * the native verifier rejects the proof (`verify_proof_shape`,
-+///   `ProofShapeVDataError::LogHeightExceedsTableCap`);
-+/// * NV's program generator records a static failure and emits no program (no rows: heights and
-+///   `maxLog` are both vk constants), exactly like the existing LogUp count check (B2);
-+/// * V_d's `check_height_caps` rejects it on the final proof.
-+///
-+/// The negative half is the one that matters: without the cap in the vk, the same trace height
-+/// is accepted (only the global `l_skip + n_stack` remains) and NV emits the program.
-+#[test]
-+fn nv_air_height_cap() {
-+    use openvm_stark_backend::{
-+        test_utils::{
-+            dummy_airs::fib_air::{air::FibonacciAir, trace::generate_trace_rows},
-+            FibFixture, TestFixture,
-+        },
-+        AirRef, StarkEngine,
-+    };
-+    use p3_air::{Air, AirBuilderWithPublicValues, BaseAir, BaseAirWithPublicValues};
-+    use std::sync::Arc;
-+
-+    /// FibonacciAir with a per-AIR cap on its own height (the shape of a ported table).
-+    #[derive(Clone)]
-+    struct CappedFib(Option<usize>);
-+    impl<F> openvm_stark_backend::PartitionedBaseAir<F> for CappedFib {
-+        fn max_log_trace_height(&self) -> Option<usize> {
-+            self.0
-+        }
-+    }
-+    impl<F> BaseAir<F> for CappedFib {
-+        fn width(&self) -> usize {
-+            <FibonacciAir as BaseAir<F>>::width(&FibonacciAir)
-+        }
-+    }
-+    impl<F> BaseAirWithPublicValues<F> for CappedFib {
-+        fn num_public_values(&self) -> usize {
-+            3
-+        }
-+    }
-+    impl<AB: AirBuilderWithPublicValues> Air<AB> for CappedFib {
-+        fn eval(&self, builder: &mut AB) {
-+            <FibonacciAir as Air<AB>>::eval(&FibonacciAir, builder);
-+        }
-+    }
-+    struct Fixture {
-+        max_log: Option<usize>,
-+        n: usize,
-+    }
-+    impl TestFixture<Sha384Config> for Fixture {
-+        fn airs(&self) -> Vec<AirRef<Sha384Config>> {
-+            vec![Arc::new(CappedFib(self.max_log)) as AirRef<Sha384Config>]
-+        }
-+        fn generate_proving_ctx(
-+            &self,
-+        ) -> openvm_stark_backend::prover::ProvingContext<
-+            openvm_stark_backend::prover::CpuColMajorBackend<Sha384Config>,
-+        > {
-+            use openvm_stark_backend::prover::{AirProvingContext, ColMajorMatrix, ProvingContext};
-+            let m = generate_trace_rows::<F>(0, 1, self.n);
-+            // the FibonacciAir public values: a, b, f_n
-+            let (mut a, mut b) = (0u64, 1u64);
-+            for _ in 0..self.n - 1 {
-+                (a, b) = (b, a.wrapping_add(b));
-+            }
-+            let pis = [0u64, 1, b].map(F::from_u64).to_vec();
-+            ProvingContext::new(vec![(0, AirProvingContext::simple(ColMajorMatrix::from_row_major(&m), pis))])
-+        }
-+    }
-+
-+    let n = 1usize << 5;
-+    let log_h = n.trailing_zeros() as usize;
-+    let engine = Sha384CpuEngine::new(child_params_small());
-+    let prove = |max_log: Option<usize>| Fixture { max_log, n }.keygen_and_prove(&engine);
-+
-+    // honest: height == maxLog == 2^log_h
-+    let (vk_ok, proof_ok) = prove(Some(log_h));
-+    engine.verify(&vk_ok, &proof_ok).expect("a height at the cap verifies");
-+    assert_eq!(vk_ok.inner.per_air[0].params.max_log_trace_height, Some(log_h), "the cap is a vk field");
-+    let (vk_none, proof_none) = prove(None);
-+    assert_eq!(vk_none.inner.per_air[0].params.max_log_trace_height, None, "unset stays None");
-+    println!("NV_HEIGHT_CAP honest log_height={log_h} cap={log_h} accepted");
-+
-+    // 1. a height above the cap: the native verifier refuses it ...
-+    let (vk_bad, proof_bad) = prove(Some(log_h - 1));
-+    let err = engine.verify(&vk_bad, &proof_bad).expect_err("height above the cap accepted");
-+    let s = format!("{err:?}");
-+    assert!(s.contains("LogHeightExceedsTableCap"), "unexpected rejection: {s}");
-+    println!("NV_HEIGHT_CAP native rejected: {err}");
-+    // 2. the cap is the *only* reason: keeping the pinned pre-hash and dropping just the cap field
-+    //    (a verifier that does not know the table's maxLog) accepts the same proof
-+    let mut vk_uncapped = vk_bad.clone();
-+    vk_uncapped.inner.per_air[0].params.max_log_trace_height = None;
-+    engine.verify(&vk_uncapped, &proof_bad).expect("without the cap the same proof is accepted (control)");
-+    // and the cap is bound into the pre-hash, so a proof cannot dodge it by swapping vks
-+    assert_ne!(vk_ok.pre_hash, vk_none.pre_hash, "the cap is bound into the vk pre-hash");
-+    assert_eq!(vk_bad.pre_hash, vk_uncapped.pre_hash, "the field, not the hash, was cleared");
-+    println!("NV_HEIGHT_CAP cap is in the vk pre-hash; without it the same proof verifies");
-+
-+    // 3. NV: the program generator refuses a child above its cap.  The generator's own check
-+    //    (`build_verifier`'s per-AIR loop) runs first and records the failure; the subsequent
-+    //    native `verify_proof_shape` also rejects it, which is what a caller sees as a panic.
-+    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-+        let mut b = Builder::new(17, 0);
-+        build_verifier(&mut b, &vk_bad, &proof_bad);
-+        b.failures
-+    }));
-+    match r {
-+        Err(e) => {
-+            let msg = e
-+                .downcast_ref::<String>()
-+                .cloned()
-+                .or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string()))
-+                .unwrap_or_default();
-+            assert!(msg.contains("exceeds its maxLog"), "unexpected NV rejection: {msg}");
-+            println!("NV_HEIGHT_CAP NV program rejected: {msg}");
-+        }
-+        Ok(f) => panic!("NV accepted a child above its maxLog: {f:?}"),
-+    }
-+    // 4. ... and accepts the honest one with no extra rows (a static check)
-+    let mut b_ok = Builder::new(17, 0);
-+    build_verifier(&mut b_ok, &vk_ok, &proof_ok);
-+    assert!(b_ok.failures.is_empty(), "{:?}", b_ok.failures);
-+    //    the same vk with the cap field cleared (same pre-hash, same transcript, same heights)
-+    //    gives byte-identical program words, so the check is static and adds no rows
-+    let mut vk_ok_nocap = vk_ok.clone();
-+    vk_ok_nocap.inner.per_air[0].params.max_log_trace_height = None;
-+    let mut b_none = Builder::new(17, 0);
-+    build_verifier(&mut b_none, &vk_ok_nocap, &proof_ok);
-+    assert!(b_none.failures.is_empty(), "{:?}", b_none.failures);
-+    assert_eq!(b_ok.instrs, b_none.instrs, "the cap adds no rows and does not change the program");
-+    let _ = proof_none;
-+    println!(
-+        "NV_HEIGHT_CAP NV program for the honest child: {} rows, identical with and without a cap",
-+        b_ok.instrs.len()
-+    );
-+
-+    // 5. V_d: the same check against the pinned final vk
-+    let setup_bad = super::vd::VdSetup { vk_final: vk_bad.clone(), program: vec![], level: 1 };
-+    let e = super::vd::check_height_caps(&setup_bad.vk_final, &proof_bad).expect_err("V_d accepted a height above maxLog");
-+    assert!(e.contains("exceeds its maxLog"), "{e}");
-+    let setup_ok = super::vd::VdSetup { vk_final: vk_ok.clone(), program: vec![], level: 1 };
-+    super::vd::check_height_caps(&setup_ok.vk_final, &proof_ok).expect("V_d accepts a height at the cap");
-+    println!("NV_HEIGHT_CAP V_d rejected: {e}");
-+
-+    // 6. the plain (uncapped) path is unchanged in shape
-+    let (vk_f, proof_f) = FibFixture::new(0, 1, n).keygen_and_prove(&engine);
-+    assert_eq!(vk_f.inner.per_air[0].params.max_log_trace_height, None);
-+    engine.verify(&vk_f, &proof_f).unwrap();
-+    let mut b_f = Builder::new(17, 0);
-+    build_verifier(&mut b_f, &vk_f, &proof_f);
-+    assert!(b_f.failures.is_empty());
-+    println!("NV_HEIGHT_CAP uncapped Fib unchanged ({} program rows)", b_f.instrs.len());
-+}
-+
-+
-+/// **P4/M2: the cached TAPE root is carried from the base proof to V_d.**
-+///
-+/// The base proof's TAPE table is a cached main part (the shape `pq-state-port` gives it): its
-+/// root is a proof value observed in the preamble and **not** a public value.  Without P4 the
-+/// chain verifies a base whose TAPE table could be anything.
-+///
-+/// The chain is the real one: base -> L1 (program part) -> L2 (bind, statement passthrough) ->
-+/// FINAL, and V_d checks the final against a `StatementClaim` naming the TAPE root.  Asserted:
-+/// L1's in-circuit digest equals `StatementClaim::digest`; every level re-exposes it unchanged;
-+/// V_d accepts; a different, swapped, or omitted TAPE root is rejected; a tampered root in the
-+/// base proof is rejected by the Merkle checks.
-+#[test]
-+fn nv_tape_root_passthrough() {
-+    use super::circuit::StatementClaim;
-+    use super::vd::{check_final_program, verify_final_claim, VdSetup};
-+    use openvm_stark_backend::test_utils::PreprocessedAndCachedFixture;
-+
-+    let child_engine = Sha384CpuEngine::new(child_params_small());
-+    // same parent shape as `nv_vd_pinned_program` (NvAir's own degree is 9)
-+    let mut pp = openvm_stark_backend::test_utils::test_system_params_small(2, 18, 3);
-+    pp.max_constraint_degree = nv_debug_params().max_constraint_degree;
-+    let engine = Sha384CpuEngine::new(pp.clone());
-+    let sels: Vec<bool> = (0..1usize << 5).map(|i| i % 3 == 0).collect();
-+    let fx = PreprocessedAndCachedFixture::new(sels, child_engine.config().clone(), 1);
-+    let (vk0, p0) = fx.keygen_and_prove(&child_engine);
-+    child_engine.verify(&vk0, &p0).unwrap();
-+    let tape_root = p0.trace_vdata[0].as_ref().unwrap().cached_commitments[0];
-+    let claim = StatementClaim { public_values: p0.public_values.clone(), cached_roots: vec![tape_root] };
-+    let d_p4 = claim.digest();
-+    let d_pv_only = crate::sha384::config::statement_digest(&p0.public_values);
-+    assert_ne!(d_p4, d_pv_only, "the TAPE root must change the statement digest");
-+
-+    let k = openvm_stark_backend::StarkEngine::params(&engine).k_whir();
-+    let log_rows = 18;
-+    // L1 with natural heights: its statement digest must be the P4 one, and its proof fixes the
-+    // heights every later level uses (as `nv_vd_pinned_program`)
-+    let mut circ1 = super::circuit::NvCircuit::new(k, log_rows, 1);
-+    circ1.prog_log = 17;
-+    circ1.program_part = true;
-+    let (mats1, b1) = circ1.generate(&vk0, &p0);
-+    assert!(b1.failures.is_empty(), "{:?}", b1.failures);
-+    assert_eq!(b1.statement, Some(d_p4), "L1 exposes the P4 statement (public values + TAPE root)");
-+    assert!(super::circuit::check_statement_claim(&b1.public_values(), &claim), "L1 statement claim");
-+    assert!(
-+        !super::circuit::check_statement(&b1.public_values(), &p0.public_values),
-+        "the public values alone are not the statement once a cached table is carried"
-+    );
-+    println!("NV_TAPE L1 statement includes the cached TAPE root: {d_p4:?}");
-+    // a cached root tampered with in the base proof: Merkle root failures
-+    {
-+        let mut bad = p0.clone();
-+        bad.trace_vdata[0].as_mut().unwrap().cached_commitments[0][0] ^= 1;
-+        let mut bb = Builder::new(17, 0);
-+        build_verifier(&mut bb, &vk0, &bad);
-+        assert!(bb.failures.iter().any(|f| f == "merkle root"), "a tampered TAPE root was accepted: {:?}", bb.failures);
-+        println!("NV_TAPE tampered TAPE root rejected ({} failures)", bb.failures.len());
-+    }
-+    let (vk1n, p1n, _, _) = super::circuit::prove_level(&circ1, &engine, &vk0, &p0);
-+    assert!(super::circuit::check_statement_claim(&p1n.public_values[0], &claim), "L1 proof exposes it");
-+
-+    // L2 at natural heights fixes the heights of both levels (the program depends on the child's
-+    // committed heights, which is why the G2 chain pins them)
-+    let mut circ2 = super::circuit::NvCircuit::new(k, log_rows, 1);
-+    circ2.prog_log = 17;
-+    circ2.program_part = true;
-+    circ2.child_nv = true;
-+    circ2.anchor = Some((1, p1n.trace_vdata[0].as_ref().unwrap().cached_commitments[0]));
-+    let (mats2n, b2n) = circ2.generate(&vk1n, &p1n);
-+    assert!(b2n.failures.is_empty(), "{:?}", b2n.failures);
-+    assert_eq!(b2n.statement, Some(d_p4), "L2 re-exposes L1's statement (TAPE root included)");
-+    let fixed: Vec<usize> = mats2n.iter().map(p3_matrix::Matrix::height).collect();
-+    println!("NV_TAPE fixed heights {fixed:?}");
-+    circ1.heights = Some(fixed.clone());
-+    let (mats1, b1f) = circ1.generate(&vk0, &p0);
-+    assert_eq!(b1f.statement, Some(d_p4), "the fixed-height L1 exposes the same statement");
-+    let (vk1, p1, _, _) = super::circuit::prove_level(&circ1, &engine, &vk0, &p0);
-+    assert!(super::circuit::check_statement_claim(&p1.public_values[0], &claim), "L1 proof exposes it");
-+    let _ = mats1;
-+    circ2.heights = Some(fixed);
-+    circ2.anchor = Some((1, p1.trace_vdata[0].as_ref().unwrap().cached_commitments[0]));
-+    let (vk2, p2, _, _) = super::circuit::prove_level(&circ2, &engine, &vk1, &p1);
-+
-+    // L3 = FINAL shape: same program, one commitment (program in common main), final domain
-+    let engine_final = Sha384CpuEngine::new_final(pp);
-+    let mut circf = circ2.clone_shape();
-+    circf.program_part = false;
-+    circf.tight_floor = None;
-+    let (vkf, pf, bf, _) = super::circuit::prove_level(&circf, &engine_final, &vk2, &p2);
-+    assert_eq!(bf.statement, Some(d_p4), "FINAL exposes the same statement");
-+    let program: Vec<[u32; 4]> = bf.instrs.iter().map(|i| i.words()).collect();
-+    let setup = VdSetup { vk_final: vkf, program, level: 3 };
-+    verify_final_claim(&setup, &engine_final, &claim, &pf, false).expect("V_d accepts the chain with the TAPE root");
-+    check_final_program(&setup, &pf).expect("pinned program");
-+    println!("NV_TAPE V_d accepted the chain with the TAPE root in the statement");
-+
-+    // a different TAPE root is rejected — that is what makes the cached table part of the statement
-+    let mut other_root = claim.clone();
-+    other_root.cached_roots[0] = {
-+        let mut r = other_root.cached_roots[0];
-+        r[0] ^= 1;
-+        r
-+    };
-+    let e = verify_final_claim(&setup, &engine_final, &other_root, &pf, false).expect_err("a different TAPE root accepted");
-+    assert!(e.contains("statement digest"), "{e}");
-+    println!("NV_TAPE V_d rejected a different TAPE root: {e}");
-+    // omitting the root (the pre-P4 statement) is rejected too
-+    let e = verify_final_claim(&setup, &engine_final, &StatementClaim::new(p0.public_values.clone()), &pf, false)
-+        .expect_err("a claim without the TAPE root accepted");
-+    println!("NV_TAPE V_d rejected the pre-P4 (public-values-only) claim: {e}");
-+    // and the public values themselves are still pinned when the fixture has any
-+    if claim.public_values.iter().any(|v| !v.is_empty()) {
-+        let mut other_pv = claim.clone();
-+        let a = other_pv.public_values.iter().position(|v| !v.is_empty()).unwrap();
-+        other_pv.public_values[a][0] += F::ONE;
-+        assert!(verify_final_claim(&setup, &engine_final, &other_pv, &pf, false).is_err(), "wrong public value accepted");
-+    }
-+}
-+
-+/// **Item 3: the production LogUp budget is 2^30, and the measured cost is 2 bits.**
-+///
-+/// The D1-class base needs `max_interaction_count = 2^30` (N = 2^29.59; D0a N = 2^29.55), so the
-+/// production default in `params_from_env` is now 2^30 (was 2^28).  This asserts:
-+///
-+/// * the default is 2^30 and `*_INTERACTION_LOG=28` still reproduces the old value (so the G2
-+///   gate's recorded keys/proofs stay reproducible);
-+/// * the backend's LogUp term drops by exactly 2 bits (312.88 -> 310.88 at
-+///   `log_max_message_length = 7`), and the WHIR query counts are unchanged;
-+/// * the total soundness of the production FINAL shape still clears 268 bits.
-+#[test]
-+fn nv_production_interaction_budget() {
-+    use crate::sha384::e2e_tests::params_from_env;
-+    use openvm_stark_backend::soundness::SoundnessCalculator;
-+
-+    // unset vars: the default
-+    unsafe {
-+        std::env::remove_var("PARENT_INTERACTION_LOG");
-+        std::env::remove_var("FINAL_INTERACTION_LOG");
-+    }
-+    let p = params_from_env("PARENT", [18, 7, 268, 64]);
-+    assert_eq!(p.logup.max_interaction_count, 1 << 30, "production default is 2^30");
-+    assert_eq!(p.logup.log_max_message_length, 7);
-+    println!("NV_LOGUP default max_interaction_count = 2^{}", (p.logup.max_interaction_count as f64).log2());
-+
-+    // 2^28 opt-in still available (the G2 gate's setting)
-+    unsafe { std::env::set_var("PARENT_INTERACTION_LOG", "28") };
-+    let p28 = params_from_env("PARENT", [18, 7, 268, 64]);
-+    unsafe { std::env::remove_var("PARENT_INTERACTION_LOG") };
-+    assert_eq!(p28.logup.max_interaction_count, 1 << 28);
-+
-+    // the backend formula, exactly as `calculator::logup_soundness`; log2(L_PCS) = 22 is the
-+    // value `tools/d1-pq-envelope/check.py` records the 312.88 figure at
-+    let ext_bits = 12.0 * (2013265921f64).log2();
-+    let logup = |mic: u32| SoundnessCalculator::logup_soundness(mic, 7, ext_bits, 22.0);
-+    let (b28, b30) = (logup(1 << 28), logup(1 << 30));
-+    assert!((b28 - 312.88).abs() < 0.01, "{b28}");
-+    assert!((b30 - 310.88).abs() < 0.01, "{b30}");
-+    assert!((b28 - b30 - 2.0).abs() < 1e-9, "the cost must be exactly 2 bits");
-+    println!("NV_LOGUP logup_soundness 2^28={b28:.2} 2^30={b30:.2} (delta {:.2})", b28 - b30);
-+
-+    // the WHIR schedule does not move
-+    assert_eq!(
-+        p.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
-+        p28.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
-+        "the LogUp budget must not move the WHIR query counts"
-+    );
-+    println!(
-+        "NV_LOGUP queries unchanged: {:?}",
-+        p.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>()
-+    );
-+}
-+
-+/// **Inertness for a child with no cached table and no height cap (the G2 gate's shape).**
-+///
-+/// P4's statement chain and M4's cap check must add nothing when their features are off: the
-+/// program must be byte-identical to the pre-change one, which is what keeps the recorded G2
-+/// proofs reproducible.  Measured earlier on this tree by generating the program for a Fib child
-+/// under both verifier versions: 8,660 rows either way (`log_rows 17`, `prog_log 16`), and 11,212
-+/// rows for a `CachedFixture11` child either way.
-+#[test]
-+fn nv_statement_inert_without_cached_roots() {
-+    use openvm_stark_backend::test_utils::FibFixture;
-+    let child_engine = Sha384CpuEngine::new(child_params_small());
-+    let (vk, proof) = FibFixture::new(0, 1, 1 << 5).keygen_and_prove(&child_engine);
-+    assert!(proof.trace_vdata.iter().all(|v| v.as_ref().unwrap().cached_commitments.is_empty()), "no cached table");
-+    assert!(vk.inner.per_air.iter().all(|a| a.params.max_log_trace_height.is_none()), "no height cap");
-+    let mut b = Builder::new(17, 0);
-+    build_verifier(&mut b, &vk, &proof);
-+    assert!(b.failures.is_empty(), "{:?}", b.failures);
-+    // the statement is exactly the G1 digest: no cached root was folded in
-+    assert_eq!(b.statement, Some(crate::sha384::config::statement_digest(&proof.public_values)));
-+    assert_eq!(super::circuit::StatementClaim::new(proof.public_values.clone()).digest(), b.statement.unwrap());
-+    println!("NV_INERT program rows {} (statement = G1 digest, no cached roots)", b.instrs.len());
-+}
-diff --git a/crates/recursion/src/nv/vd.rs b/crates/recursion/src/nv/vd.rs
---- a/crates/recursion/src/nv/vd.rs
-+++ b/crates/recursion/src/nv/vd.rs
-@@ -123,7 +123,19 @@ pub fn check_final_program(setup: &VdSetup, proof: &Proof<SC>) -> Result<(), Str
- /// V_d: accept iff the final proof verifies under the pinned final vk (final domain), exposes
- /// the pinned level, runs the pinned program (unless `skip_program`, the unsound variant kept
- /// only to show the forgery), and exposes the statement digest of the claimed app public values.
-+///
-+/// This is the no-cached-pocket form; `verify_final_claim` is the general one and is what a
-+/// joined proof (TAPE, host-wire commitments) uses.
- pub fn verify_final(setup: &VdSetup, engine_final: &Sha384CpuEngine, app_public_values: &[Vec<F>], proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
-+    verify_final_claim(setup, engine_final, &super::circuit::StatementClaim::new(app_public_values.to_vec()), proof, skip_program)
-+}
-+
-+/// V_d with an explicit `StatementClaim`: besides the pinned vk, level and program, the final
-+/// proof must expose `claim.digest()`, i.e. SHA-384 over the claimed public values **and the
-+/// claimed cached roots** (P4: the base's TAPE root and the join's host-wire commitments).  The
-+/// chain only carries a root the base proof actually committed to, so this is what turns "the
-+/// base proof verified" into "the base proof verified *for this TAPE table*".
-+pub fn verify_final_claim(setup: &VdSetup, engine_final: &Sha384CpuEngine, claim: &super::circuit::StatementClaim, proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
-     engine_final.verify(&setup.vk_final, proof).map_err(|e| format!("final proof: {e:?}"))?;
-     let pvs = &proof.public_values[0];
-     if pvs.len() != super::uair::NV_NUM_PVS {
-@@ -132,15 +144,31 @@ pub fn verify_final(setup: &VdSetup, engine_final: &Sha384CpuEngine, app_public_
-     if pvs[0] != F::from_u32(setup.level) {
-         return Err(format!("level {} != pinned {}", pvs[0], setup.level));
-     }
-+    check_height_caps(&setup.vk_final, proof)?;
-     if !skip_program {
-         check_final_program(setup, proof)?;
-     }
--    if !super::circuit::check_statement(pvs, app_public_values) {
-+    if !super::circuit::check_statement_claim(pvs, claim) {
-         return Err("statement digest differs from the claim".into());
-     }
-     Ok(())
- }
- 
-+/// M4: every AIR's proof height respects the vk's per-AIR `maxLog`.  `engine.verify` already
-+/// rejects such a proof (`ProofShapeVDataError::LogHeightExceedsTableCap`), because the caps are
-+/// in the vk pre-hash V_d pins; this is the explicit form, used by the tests to show that the
-+/// *pinned vk* is what carries the cap.
-+pub fn check_height_caps(vk: &MultiStarkVerifyingKey<SC>, proof: &Proof<SC>) -> Result<(), String> {
-+    for (a, (avk, td)) in vk.inner.per_air.iter().zip(&proof.trace_vdata).enumerate() {
-+        if let (Some(cap), Some(td)) = (avk.params.max_log_trace_height, td) {
-+            if td.log_height > cap {
-+                return Err(format!("AIR {a}: log_height {} exceeds its maxLog {cap}", td.log_height));
-+            }
-+        }
-+    }
-+    Ok(())
-+}
-+
- /// The forger's program: verifies nothing, exposes `level` and the statement digest `d`.
- pub fn forge_statement_program(level: u32, d: Digest) -> impl FnOnce(&mut super::builder::Builder) {
-     move |b| {
-diff --git a/crates/recursion/src/nv/verifier.rs b/crates/recursion/src/nv/verifier.rs
---- a/crates/recursion/src/nv/verifier.rs
-+++ b/crates/recursion/src/nv/verifier.rs
-@@ -425,7 +425,7 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
-         b.failures.push("child WHIR agreement table".into());
-     }
-     let num_airs = mvk.per_air.len();
--    for (avk, td) in mvk.per_air.iter().zip(&proof.trace_vdata) {
-+    for (a, (avk, td)) in mvk.per_air.iter().zip(&proof.trace_vdata).enumerate() {
-         let td = td.as_ref().expect("all AIRs present");
-         assert!(td.log_height >= l_skip, "short traces not supported yet");
-         // preprocessed: the height is fixed by the vk (native PreprocessedTraceHeightMismatch);
-@@ -433,6 +433,17 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
-         if let Some(pd) = &avk.preprocessed_data {
-             assert_eq!(pd.hypercube_dim + l_skip as isize, td.log_height as isize, "preprocessed trace height != vk");
-         }
-+        // M4 (per-table height cap): `log_height <= maxLog_t`, a vk constant (the ported
-+        // classical table's `maxLog`).  The height is a program constant too, so the check is
-+        // static exactly like the LogUp count check below (B2) and costs no rows.  The native
-+        // verifier rejects the same proof in `verify_proof_shape`
-+        // (`ProofShapeVDataError::LogHeightExceedsTableCap`); this stops program generation, so
-+        // no level is ever proved for a child whose table outgrew its soundness bound.
-+        if let Some(max_log) = avk.params.max_log_trace_height.filter(|&m| td.log_height > m) {
-+            let msg = format!("AIR {a}: log_height {} exceeds its maxLog {max_log}", td.log_height);
-+            b.failures.push(msg.clone());
-+            panic!("{msg}");
-+        }
-     }
-     // proof shape (static: depends on the vk and the trace heights only) also rejects a
-     // first-order O-2 round 0 when there is more than one commitment
-@@ -463,6 +474,10 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
-     let mut pv_cells: Vec<Vec<V>> = vec![];
-     // per AIR: extra commitments in opening order (preprocessed constant, then cached witnesses)
-     let mut extra_commits: Vec<Vec<DigestCells>> = vec![vec![]; num_airs];
-+    // P4: every cached commitment in preamble order, with its already-loaded cells, so the
-+    // statement digest can cover them without loading them twice.
-+    let mut cached_cells: Vec<DigestCells> = vec![];
-+    let mut cached_limbs: Vec<[F; super::fmt::NV_DIGEST]> = vec![];
-     for (a, avk) in mvk.per_air.iter().enumerate() {
-         if !avk.is_required {
-             let one = b.c(F::ONE);
-@@ -484,7 +499,10 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
-         let cached = &proof.trace_vdata[a].as_ref().unwrap().cached_commitments;
-         assert_eq!(cached.len(), avk.params.width.cached_mains.len(), "cached commitments (proof shape)");
-         for &c in cached {
--            extra_commits[a].push(b.load_commit(c));
-+            let cells = b.load_commit(c);
-+            extra_commits[a].push(cells);
-+            cached_cells.push(cells);
-+            cached_limbs.push(super::fmt::digest_limbs(c));
-         }
-         pv_cells.push(
-             proof.public_values[a]
-@@ -926,7 +944,7 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
-         let d = limbs_digest(&limbs);
-         b.pv_digest(&DigestCells { lo, hi, digest: d });
-     } else {
--        // statement digest (G1): SHA-384 (tag 8) of the app proof's public values
-+        // Statement digest (G1): SHA-384 (tag 8) of the app proof's public values
-         let mut cells: Vec<V> = vec![b.c(F::from_usize(pv_cells.len()))];
-         for p in &pv_cells {
-             let n = b.c(F::from_usize(p.len()));
-@@ -938,7 +956,17 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
-             b.unit1(x, job, 2 + i as u32);
-         }
-         let d = crate::sha384::config::statement_digest(&proof.public_values);
--        let dc = b.dig(job, d);
-+        let mut dc = b.dig(job, d);
-+        // P4/M2: the cached commitments (TAPE, the join's host-wire tables) are proof values, not
-+        // public values, so the statement must cover them or V_d would accept a base whose cached
-+        // table was anything.  Each one is chained into the digest with the Merkle-node
-+        // compression the SHA subsystem already checks (`node`: 8 + 2w bytes, one compression),
-+        // rather than appended as more statement bytes: an NV leaf job hashes one block, and the
-+        // app statement message is already close to 128 bytes.  With no cached commitment the
-+        // chain is empty, so the statement is the G1 one unchanged (inert for the G2 gate).
-+        for root in &cached_cells {
-+            dc = b.node(&dc, root);
-+        }
-         b.pv_digest(&dc);
-     }
-     eprintln!("NV_PHASE before_dag {}", b.instrs.len());
-diff --git a/crates/recursion/src/sha384/e2e_tests.rs b/crates/recursion/src/sha384/e2e_tests.rs
---- a/crates/recursion/src/sha384/e2e_tests.rs
-+++ b/crates/recursion/src/sha384/e2e_tests.rs
-@@ -279,7 +279,11 @@ pub fn params_from_env(prefix: &str, d: [usize; 4]) -> SystemParams {
-         WhirProximityStrategy::UniqueDecoding
-     };
-     let logup = LogUpSecurityParameters {
--        max_interaction_count: 1 << e("INTERACTION_LOG", 28),
-+        // Production default: 2^30.  The D1-class base has N = 2^29.59 (D0a 2^29.55), so the
-+        // old 2^28 default could not carry it.  Costs 2 LogUp bits (`logup_soundness`:
-+        // 312.88 -> 310.88 at log_max_message_length = 7) and moves no WHIR query count.
-+        // `*_INTERACTION_LOG=28` reproduces the pre-change (G2 gate) keys and proofs.
-+        max_interaction_count: 1 << e("INTERACTION_LOG", 30),
-         log_max_message_length: 7,
-         pow_bits: e("LOGUP_POW", 0),
-     };
