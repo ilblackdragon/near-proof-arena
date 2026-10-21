@@ -5,3 +5,6 @@ import Qrom.FactA
 import Qrom.Operator
 import Qrom.Instantiate
 import Qrom.Main
+
+import Qrom.Transcript
+import Qrom.Audit

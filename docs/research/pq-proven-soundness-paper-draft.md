@@ -1,15 +1,15 @@
-# A proven-soundness post-quantum succinct proof for hash-based recursion tails under 300 KB
+# Toward a proven-soundness post-quantum recursion tail under 300 KB
 
 **The near-proof-arena contributors**
 
-*DRAFT, 2026-10-20 (paused). Not peer reviewed. Not for circulation.*
+*DRAFT, audited 2026-10-21. Not peer reviewed. Not for circulation.*
 
 > **Scope.** This paper is about the **recursion tail**: the layer that
 > aggregates base proofs into one short post-quantum proof. It is written for
 > any workload whose base proof fits a stated envelope (§2.6); NEAR chunk
 > validation is one instantiation, discussed in §1.1. What the tail proves is
-> generic in the statement type — the Lean development contains no workload
-> types (§1.2).
+> intended to be generic in the statement type; the checked abstract lemmas
+> alone do not establish this uniform composition theorem (§1.2).
 >
 > The proof size is governed by the final layer's fixed-point shape, not by the
 > workload or by the aggregation shape (§8.3). The measured `293,077 B` run is a
@@ -17,35 +17,44 @@
 > (§10). The earlier draft claimed NEAR chunk validation; that framing was wrong
 > and has been removed.
 >
-> **Status of the numbers.** `293,077 B` is the sound measured final (G2 gate,
+> **Status of the numbers.** `293,077 B` is the measured final with program binding enabled (G2 gate,
 > binding on at every level). The earlier `287,477 B` ran with `bind = false` and
 > is superseded. The `≈ 99 KB` `×15` saving is a model figure, not a measurement.
 >
-> **Formal status.** Sections 3–6 and the aggregation section rest on
-> **gated** Lean (`zk-formal`, `allowed_packages = [ArenaCore, NearSpec]`, no
-> Mathlib). Section 7's QROM core is machine-checked in a **Mathlib-based
-> companion development** (`research/qrom`) that is outside that package; two
-> inputs there are cited, not derived. See §7.1 and §10 item 2.
+> **Security status after review.** The headline security guarantee is a target,
+> not an established result. The 293,077-byte measurement has program binding
+> enabled. It does not establish protocol soundness. Findings 1–3 have corrected
+> Lean lemmas for off-diagonal transitions, replacement, and operator-to-probability
+> composition. Findings 4–5 invalidate the previous claim that the family QROM
+> theorem and DKT-to-WHIR bridge were closed. Their precise remaining obligations
+> appear in §§6.1, 7 and Appendix C.
+>
+> **Formal status.** Selected algebraic lemmas live in gated `zk-formal`.
+> DKT certificates and their RS-level composition use the ArkLib/Mathlib companion.
+> `research/qrom` proves conditional bound components, outside the admitted
+> package. Its capstone now derives a recurrence from operator premises and uses
+> the correct amplitude/probability relationship; it does not instantiate the
+> protocol's database, extraction, or transition constants.
 >
 > **History.** `docs/logs/pq-paper-audit-2026-10-19.md` records the audit that
 > found thirteen factual mismatches in the first pass (scope, query schedules,
 > certificate coverage, `T*` cost, the provisional run, the model-only 99 KB
-> figure). All thirteen are corrected in this text.
+> figure). Those corrections preceded the deeper proof review summarized in Appendix C.
 
 ---
 
 ## Abstract
 
-We describe a succinct, transparent-setup, hash-only proof system for the
+We describe a transparent-setup, hash-only recursive proof prototype for the
 **recursion tail** of a hash-based proof stack: the layer that aggregates an
 arbitrary collection of base proofs into a single short post-quantum proof. It
-is parameterised by the base relation, not by a particular application; the
-development contains no application types. Target: 128-bit security against
+is designed to be parameterised by the base relation. A uniform composition
+theorem for the implemented tail remains to be proved. Target: 128-bit security against
 quantum adversaries making up to `2^64` oracle queries, with the final proof
 under 300 KB.
 
-The design is unusual in that every parameter is derived from *proven*
-proximity and soundness bounds: we never invoke the "proximity conjecture", the
+The parameter design uses *proven proximity inputs* and a conditional
+soundness analysis whose remaining obligations are explicit: we never invoke the "proximity conjecture", the
 list-decoding-capacity regime, or the ethSTARK "random-words" heuristic. We
 report six technical ingredients:
 
@@ -68,24 +77,22 @@ report six technical ingredients:
    key, each backed by a Lean-kernel-checked certificate. This admits proven
    radii below `√ρ` and cuts query counts, while a round-0 fallback prevents the
    squared list from breaking the batching term.
-5. **QROM straight-line knowledge soundness for recursive layer families.**
-   A single database-measurement extractor handles all recursion layers at once
-   with truncated commitments, so the error does not grow with depth. A separate
-   program-pinning check is required, and its omission yields a concrete
-   forgery. We formalize the quantitative core of this argument (the
-   one-query transition bound, the path lemma, and the counting half of the
-   real-oracle-to-measured-database step) in a Mathlib-based companion
-   development; that development is outside the admitted `zk-formal` package and
-   two inputs remain cited.
+5. **Conditional QROM analysis for recursive layer families.** We develop a
+   one-database extraction approach intended to avoid a depth-dependent loss.
+   Its operator-to-probability components are machine-checked, but the actual
+   transcript-family instantiation remains open after correcting an invalid
+   bad-event predicate. A separate program-pinning check is implemented; omitting
+   it admits a concrete forgery. No recursive security theorem is claimed yet.
 6. **Systems realisation.** Streamed Reed–Solomon/WHIR commitments never
    materialise the codeword (an 853 GB virtual codeword committed in 480 s at a
    14.9 GB peak), proofs are byte-identical to the in-memory prover, and the
    measured final layer tracks the analytic size law within 0.2 %.
 
-The one non-standard assumption is that in-circuit SHA-384 behaves as a random
-oracle on the witness (A-IC). This is unavoidable for hash-only recursion in any
-query-only oracle model; we state it exactly rather than hide it. No trusted
-setup, algebraic-group, lattice, or PoW-hardness assumption is used.
+Recursive security additionally needs a precise model relating in-circuit
+SHA-384 to the external oracle (A-IC), with any computational error charged in
+the bound. The present query-only obstruction is conditional and does not prove
+that this exact assumption is necessary for every hash-only recursion design.
+No trusted setup, algebraic-group, lattice, or PoW-hardness assumption is used.
 
 ---
 
@@ -138,14 +145,13 @@ yields a sub-300 KB recursion tail.
 
 ### 1.2 Contributions
 
-**C0 (Genericity).** The tail is a function of the base relation, not of an
-application. This is structural, not rhetorical: the aggregation development
-(`zk-formal/ZkFormal/PQ/Aggregation/`) is defined over an arbitrary statement
-type `S`; the domain and sampler lemmas are stated over an abstract field; the
+**C0 (Generic interface, partial implementation).** The intended tail interface
+is parameterised by a base relation: the aggregation development
+(`zk-formal/ZkFormal/PQ/Aggregation/`) has statement-composition lemmas over a parameter type, alongside Wasm-specific
+execution lemmas; the domain and sampler lemmas are stated over an abstract field; the
 QROM core is stated over an abstract Hilbert space; and the base envelope in
-§2.6 is a list of numeric bounds on the base AIR set, not on its meaning. Any
-workload supplying a base proof inside that envelope gets the same tail, with
-the same size, at the same security.
+§2.6 is a list of numeric bounds on the base AIR set, not on its meaning. A uniform tail-size and security theorem over every permitted base shape
+remains to be established; numeric envelope membership alone is not that theorem.
 
 **C1 (Domain).** We prove that WHIR's smoothness hypothesis can be relaxed from
 "order a power of two" to "order `c·2^K`, `c` odd", with one definitional edit,
@@ -174,12 +180,12 @@ Prop 5.10 + Lemma 5.6). 129 certificates cover every real round and fold
 sub-code. A round-0 fallback to Johnson handles the case where multiple
 commitments square the list. Section 6.
 
-**C5 (Recursion soundness).** We give a QROM straight-line knowledge-soundness
-argument for families of recursive layers with truncated commitments, using a
-single database measurement, with error independent of depth. Its quantitative
-core is formalized in a Mathlib-based companion development (not the admitted
-package); two inputs are cited. We also show that a recursive final proof is
-forgeable unless the verifier pins the final program. Section 7.
+**C5 (Recursion soundness, open instantiation).** We formulate a conditional
+one-database family argument and formalize operator, path, and probability
+lemmas. The numerical bound is not yet established for the implementation:
+the repaired potential needs its protocol-specific transition estimates and
+extraction proof. We demonstrate the consequence of omitting program pinning.
+Section 7.
 
 **C6 (Systems).** We describe streamed RS/WHIR commitments that reproduce
 in-memory proofs byte for byte, a SHA-512 compression AIR at 7,353 main cells
@@ -199,8 +205,8 @@ anywhere in the soundness argument:
   weaker, sufficient property);
 * a trusted setup, an algebraic group, a pairing, or a lattice assumption.
 
-The assumptions that *are* used are listed in Section 9. The only non-standard
-one is A-IC, and we prove that no query-only oracle model can remove it.
+The assumptions that *are* used are listed in Section 9. The recursive hash-model bridge A-IC is additional and needs a precise game;
+the conditional obstruction applies to the concrete architecture considered.
 
 ### 1.4 Related work
 
@@ -317,9 +323,9 @@ Johnson and a *proven* first-order region slightly below `√ρ`, never capacity
 
 ### 2.6 The base-layer envelope
 
-The tail takes any base proof satisfying the bounds below. They are **numeric
-bounds on the base AIR set**, with no reference to what it proves; this is what
-makes the construction workload-agnostic.
+The proposed tail interface uses the bounds below. They are **numeric
+bounds on the base AIR set**; they do not alone prove compatibility or sound
+composition for every base proof within the envelope.
 
 | parameter | bound | why it is there |
 |---|---|---|
@@ -333,13 +339,14 @@ makes the construction workload-agnostic.
 | WHIR (base) | `c = 1`, `b = 1`, `m = 16`, `k₁ = 1`, `k = 4` | rate 1/2 base LDE |
 
 These are the same bounds the base-layer study pins (`DESIGN-BASE.md` §3) and
-`base_bound.py` checks: at them the base layer passes `2^-134.88`.
+`base_bound.py` evaluates: its historical calculation gives `2^-134.88`.
+That number inherits the open soundness obligations and is not a proved bound.
 
-**Scope of "any workload".** Any relation whose base proof fits this envelope
-reuses the tail unchanged. What is *not* claimed is that every plausible
-workload fits: an AIR set wider than `W = 24` or with more than 32 AIRs needs a
-different base shape, and the final size changes accordingly (§8.3). The
-envelope is the interface; a new workload is supported exactly when it meets it.
+**Scope of "any workload".** The intended interface permits reuse across
+relations within this envelope, subject to a base-relation theorem and the
+remaining uniform tail-composition proof. Numeric bounds are necessary design
+constraints, not sufficient evidence of support. A wider AIR set or more than
+32 AIRs may require a different base shape and final-size analysis (§8.3).
 
 ---
 
@@ -354,7 +361,7 @@ power-of-two order. The hypothesis is used in exactly four places:
 |---|---|---|---|
 | P1 | `x ∈ L ⇒ −x ∈ L` | Def 4.14, Claims 4.15/4.22 | `2 \| \|L\|` |
 | P2 | `\|L^(2^j)\| = \|L\|/2^j`, a coset | §2.1, Constr. 5.1, Thm 4.20 | `2^j \| \|L\|` |
-| P3 | `2^k`-fibres are disjoint of size `2^k` | Def 4.16, Claim 4.19 | `μ_(2^k) ⊆ H ⊆ L` |
+| P3 | `2^k`-fibres are disjoint of size `2^k` | Def 4.16, Claim 4.19 | `μ_(2^k) ⊆ H`, with `L = aH` |
 | P4 | degree `< 2^m` | Def 4.2 | degree condition, domain-free |
 
 None uses the odd part of `|L|`. The list-decoding, OOD, sumcheck, and batching
@@ -389,8 +396,8 @@ unchanged. The shift/final terms need exact uniformity of the sampled point. ∎
 
 Theorem 5.2's shift and final terms bound the probability that a uniform point
 falls in a bad set. If indices are drawn by reducing a uniform field element
-modulo `15·2^j`, residue 0 receives `1/p` extra mass, a statistical distance of
-`≈ 2^-60` per query — catastrophic at a `2^-258` budget. Because
+modulo `15·2^j`, residue 0 receives `1/p` extra mass, a total variation distance of
+`(N−1)/(Np) ≈ 2^-30.91` per query, for `N = 15·2^j` — catastrophic at a `2^-258` budget. Because
 `15·2^j | p − 1`, the following is exact:
 
 ```
@@ -515,8 +522,8 @@ interactions per row (70→73 columns, 52→55 interactions), i.e. `≈144 B` of
 openings in the ring proof.
 
 **Lemma 4.1 (grinding credit).** Under `T*`, the query move's rbr error is at
-most `2^-z · (1−δ)^t` plus negligible terms, and a single layer meets U-2/U-6
-outright.
+most `2^-z · (1−δ)^t` plus negligible terms, and a single layer meets the target only after its full rbr and QROM instantiations
+are established.
 
 ### 4.3 Multi-call challenge squeezing
 
@@ -532,8 +539,8 @@ which is absorbed by the 268-bit target.
 `T*` changes the native verifier, the prover, and the recursive verifier circuit
 together. The circuits are built to reject any transcript that does not follow
 it; the deployed production tree pins the unified backend that contains it.
-Without the fix, the same theorem gives only `2^-105`; with it, `2^-135` at the
-one-layer level and `2^-134.7` after the QROM `t²` compilation (Section 7).
+Without the fix, the same theorem gives only `2^-105`; with it, the historical calculation targets approximately 135 bits.
+The protocol-specific QROM bound remains unestablished (Section 7).
 
 ---
 
@@ -609,12 +616,21 @@ and the Fiat–Shamir chain stay at 384 bits.
 
 ### 6.1 Two proven proximity inputs
 
-**The lift (S-28).** `ZkFormal/Udr/McaToGap.lean` formalizes the step from an
-RS-level MCA count `E` to the `LineGap` that WHIR consumes (`mca_count_to_gap`),
-composes it with `Udr.strong_of_gap` to get the containment conclusion
-(`strong_from_mca`), and proves that the fold structure makes the error additive
-in the number of folds (`fold_union`). The DKT26 integer count is a *parameter*
-of these theorems, not re-derived: the lift is a composition, not a new bound.
+**The transfer boundary (S-28 remains open).** The gated
+`ZkFormal/Udr/McaToGap.lean` is a unique-decoding utility, not a proof of the
+DKT-to-WHIR list-decoding bridge. `mca_count_to_gap` is a definitional restatement
+of its premise. `strong_from_mca` requires `2e < d` and returns `max E e`; that
+condition does not hold at the low-rate Johnson/beyond-Johnson error radii here.
+`fold_union` sums supplied integer bounds without proving adaptive conditioning.
+
+The appropriate existing RS-level results are in the separate ArkLib companion
+`final-soundness/lean/DKTGlue.lean`: `johnson_lineExact`,
+`johnson_levelWitness` and `johnson_tensorFold` preserve full agreement sets
+without the unique-decoding restriction. The O-2 certificate files likewise
+produce exceptional-set bounds and exact power agreement. What still needs a
+proof is their instantiation into the actual WHIR fold, interleaved/block-distance
+notions, per-subcode radius conditions, and round-by-round state. The certified
+numeric inputs do not by themselves establish that protocol transfer.
 
 **O-1 (Johnson).** DKT26 Thm 5.12 gives line MCA at `a = √ρ_(−) + η_0` with
 error `E/|F|` for arbitrary evaluation sets, plus Cor 7.7 (interleaving is
@@ -682,52 +698,79 @@ the paper.
 
 ## 7. QROM straight-line knowledge soundness for recursive layers
 
-### 7.1 Model
+### 7.1 Model and formal boundary
 
-A recursion chain has layers `0, …, d`. Layer `i` proves that layer `i−1`'s
-verifier accepts. In the QROM game the adversary has one random oracle and one
-database.
+A finite recursion family has layers `0, …, d`. The intended argument uses one
+compressed-oracle database, canonically framed family indices and statements,
+and a single bad event covering failed extraction across the whole family.
+The original potential incorrectly marked an ordinary state output used by the
+next input as bad. That proof and its instantiated constants are withdrawn.
 
-**Formal status of this section.** The quantitative core of the argument —
-ANALYSIS Lemma 1 (the one-query transition bound, all three cases), Lemma 2 (the
-path/chain lemma), the entrywise-to-operator bridge, and the counting half of
-Fact A — is machine-checked in a **Mathlib-based companion development**,
-`research/qrom` in the repository, and the whole chain is assembled there as
-`qrom_bound`. That development is **not** part of the admitted `zk-formal`
-package: the challenge's `allowed_packages` forbids Mathlib (`DESIGN.md` F4), and
-the admitted certificate does **not** depend on it. Two inputs remain cited
-rather than derived (Section 10, item 2). Readers should treat Section 7 as a
-carefully checked analysis, not as formally admitted material.
+The Mathlib companion `research/qrom` now proves:
 
-### 7.2 Theorem 6.4
+* entry/block estimates with the required off-diagonal and disjointness conditions;
+* a complex matrix Frobenius bridge and the zero-frequency identity case;
+* a mass recurrence derived from contractive operators and projector block bounds;
+* an amplitude path bound and its composition with the correct square-root
+  replacement inequality;
+* the deterministic fact that a safe accepting transcript yields a witness.
 
-**Theorem 7.1 (sketch).** Let `ε_rbr` be the per-layer rbr knowledge error, `t`
-the query bound, `G` the number of Merkle openings, and `λ` the digest width.
-Under `T*`, the truncated-commitment BCS argument for a *family* of layers has
-straight-line knowledge soundness with error
+It does **not** construct the protocol's global compressed-oracle operator,
+potential, canonical extraction or measured-event relation. Those are additional
+obligations, not consequences of having no custom Lean axioms. CFHL21 supplies
+external oracle facts, but cannot discharge an incorrectly instantiated model.
+
+### 7.2 Conditional probability bound
+
+**Theorem 7.1 (operator-level conditional bound).** Let `q` count simulated
+oracle queries. Suppose the bad subspace is initially empty, each crossing from
+good to bad has operator norm at most `g`, the remaining evolution is contractive
+and preserves the level decomposition, and measured extraction failure is
+contained in that bad subspace. If CFHL21 replacement applies with slack
+`ℓ_V/2^336`, then
 
 ```
-(2t·G + 2^-160)².
+p_fail ≤ (q*g + sqrt(ℓ_V/2^336))².
 ```
 
-At `t = 2^64`, `G² = 10 · max(3·2t/2^336, ε_rbr + 2^20(4t+1)/2^384)`, and
-`ε_rbr = 2^-268.01`, this is `≤ 2^-134.7`.
+*Proof.* The bad amplitude is at most `q*g` by the path recurrence. The measured
+probability is at most its square. Apply
+`sqrt(p_fail) ≤ sqrt(p_measured) + sqrt(ℓ_V/2^336)` and square. The conditional
+composition is checked by `Qrom.qrom_binary_bound`. ∎
 
-*Proof idea.* Measure the compressed-oracle database once. A single extractor
-recovers witnesses for all layers from the same measured database, so no union
-over layers or per-layer forking is needed. The truncated commitments are
-handled by the block-robust property of Section 5 with `K = 0` at 42 bytes. ∎
+For this protocol, `q = 2t` is the proposed counter-mode query simulation. The
+previous substitution
 
-The same shape appears in CMS19 Thm 8.6, Fractal Thm 10.1, and CDHZ Thm 11.3;
-our contribution is the family version with truncated commitments and one
-database, which makes the error independent of `d`.
+```
+g² = 10 max(3q/2^336, ε_rbr + 2^20(2q+1)/2^384)
+```
 
-### 7.3 Recursive composition
+would numerically yield 134.688 bits at `t=2^64`, `ε_rbr=2^-268.01`, with the
+printed verifier slack. **This is a historical calculation, not an established
+security bound.** Multiple roots per absorb and multiple state outputs per
+long-output challenge require explicit accounting. `PROOF.md` §6.4 lists the
+missing local transition and extraction obligations. Use `ℓ_V` for openings;
+`g` is an amplitude bound, not an opening count.
 
-**Theorem 7.2 (sketch).** Under A-IC (Section 9) and the circuit-faithfulness
-conditions, the `d`-layer chain has error `≤ 2^-134.7` independent of `d`; with
-a union over 7 layers it is `≤ 2^-131.9`. The final verifier `V_d` accepts only
-proofs whose exposed statement matches the pinned program.
+### 7.3 Recursive composition remains conditional
+
+The desired theorem says the final verifier's acceptance implies the linked base
+relation except with probability at most `2^-128`, uniformly over the admitted
+finite family. It needs all of the following:
+
+1. A completed family instantiation of Theorem 7.1, uniform over keys/statements.
+2. NV-faithful: accepted traces encode the specified inner verifier, pinned
+   program, level and statement linkage, including stacking/LogUp constraints.
+3. A coherent oracle-to-circuit model or explicit computational bridge, with
+   a time bound and an error term if the bridge is computational.
+4. Base-faithful for the selected relation, or an explicitly stated conditional
+   base-relation interface for a tail-only theorem.
+
+A single database can avoid a depth union only after the simultaneous extraction
+property is proved. It is not justified by the existence of separate per-layer
+bounds. The classical lossless-composition precedent is CGSY24; CDHZ establishes
+adaptive quantum straight-line extraction in its stated model. Our intended
+specialization still needs the above connections.
 
 ### 7.4 Program pinning is necessary
 
@@ -779,7 +822,7 @@ Measured vs analytic size law:
 | O-2 chain final (unbound) | [41,38,29,23] | 287,477 *(bind = false)* | 287,037 | +0.15 % |
 
 The O-2 row is **provisional and not the sound configuration**: it ran with
-`bind = false`. The sound measured number is the G2 gate chain, with binding on at
+`bind = false`. The measured number with program binding enabled is the G2 gate chain, with binding on at
 every level: **293,077 B**, `V_d` accept, forgery reject.
 
 ### 8.2 SHA-512 compression AIR
@@ -818,10 +861,11 @@ Measured finals, same machinery, different shapes:
 | b=2 chain | 416,171 B | streamed == in-memory (sha256 identical) |
 | b=7, W=106, `m=3` | 339,747 B | model within +0.11 % |
 | b=7, W=106, `m=64` | 330,149 B | model within +0.20 % |
-| **G2 gate, binding at every level** | **293,077 B** | the sound headline number |
+| **G2 gate, binding at every level** | **293,077 B** | program binding enabled |
 
-So "under 300 KB" holds at the G2 fixed-point shape with binding, for any
-workload whose base proof fits §2.6. A wider base proof raises `W` and the
+The measured G2 proof is under 300 KB. Extending this to every workload inside
+§2.6 needs a uniform fixed-point capacity and serialization bound; the
+statement-level shape theorem does not prove it. A wider base proof raises `W` and the
 bytes; that is a base-envelope question, not a tail redesign.
 
 ---
@@ -833,7 +877,7 @@ bytes; that is a base-envelope question, not a tail redesign.
 | assumption | statement | why it is acceptable |
 |---|---|---|
 | SHA-384 is a (quantum) random oracle | standard ROM/QROM idealisation of the deployed hash | U-6/U-7; no structural assumption on Merkle–Damgård |
-| A-IC | the SHA-384 evaluations certified in-circuit are modelled as oracle evaluations on that witness | **unavoidable** for hash-only recursion: Theorem O proves no query-only oracle model can do better. Adopted as a time-bounded assumption `A-IC(τ)`, `τ = 2^128` |
+| A-IC | the SHA-384 evaluations certified in-circuit are modelled as oracle evaluations on that witness | additional proposed bridge; the architecture-specific obstruction is conditional. A precise time-bounded game and error budget are required |
 | DKT26 Thm 5.12 / Prop 5.10 | proximity statements used for O-1/O-2 | Lean-proven, kernel-checked; paper unrefereed |
 | BCGM / BCHKS25 | Johnson-regime MCA/CA for arbitrary `D` | refereed / ECCC |
 | WHIR Thm 5.2 (Puš26 correction) | rbr soundness of the PCS | published, correction checked |
@@ -872,33 +916,28 @@ capacity form) would not affect them either.
 
 ## 10. Limitations and open obligations
 
-1. **WHIR Thm 5.2 (Puš26 correction).** The lift *from an MCA count to the
-   `LineGap` that folding consumes* is now Lean-proved and parametric in the DKT26
-   constant (`zk-formal/ZkFormal/Udr/McaToGap.lean`: `mca_count_to_gap`,
-   `strong_from_mca`, `fold_union`). What is still not formalised is WHIR Thm 5.2
-   itself as corrected by Puš26, i.e. the step from RS-level gaps to WHIR's
-   per-round error terms.
-2. **Review/formalisation of `T*` and Theorem R.** Both are new proofs, complete
-   as written but not yet peer reviewed. For Theorem 6.4, ANALYSIS Lemmas 1 and 2
-   and the counting half of Fact A are Lean-proved in `research/qrom`, a
-   **Mathlib-based companion development that is outside the admitted
-   `zk-formal` package** (`allowed_packages` forbids Mathlib; the admitted
-   certificate does not depend on it). The chain is assembled there as
-   `qrom_bound`. Two inputs remain cited: the compressed oracle's matrix entries
-   (CFHL21 Lemma 4.3) and the replacement inequality (CFHL21 Cor 4.2). No claim
-   in this paper rests on those two beyond what Section 7 states.
+1. **DKT-to-WHIR transfer and corrected WHIR theorem.** RS-level certificates and
+   Johnson interleaving results exist in the companion development. The gated
+   unique-decoding wrappers do not close the list-regime transfer. Bind the
+   actual folded domains, full agreement sets, radii and per-move states, then
+   instantiate corrected WHIR Thm 5.2.
+2. **Family QROM instantiation, `T*` and Theorem R.** The corrected conditional
+   operator bound is checked in Mathlib. Protocol-specific database modelling,
+   transition counts, extraction-event inclusion and oracle replacement remain.
+   The former “only two cited inputs” description was incorrect. The optional
+   weak-binding route also needs H-outer and its implementation requirements.
 3. **Circuit faithfulness.** Two obligations, stated as precise lemmas and in
    progress. *NV-faithful*: the NV circuit arithmetises the verifier exactly. It
    is workload-generic. *Base-faithful*: the layer-0 AIR set encodes the base
    relation — workload-specific by nature, and for NEAR still open (the join,
    item 8).
-4. **A-IC.** Unprovable in a query-only oracle model by Theorem O; adopted with a
-   time bound. This is the one point on which "proven bounds only" is not fully
-   met, and by necessity rather than choice.
+4. **A-IC.** Specify a coherent recursive hash model or a computational bridge.
+   The query-only obstruction does not justify assigning that bridge zero error,
+   and a runtime cap alone does not identify concrete SHA-384 with an independent RO.
 5. **Tight-heights kernel.** The univariate-skip encoding of the stacking kernel
    is validated by code and 24 tamper tests but not yet derived line by line.
 6. **Program-binding rerun.** The 287,477 B O-2 chain ran with `bind = false` and
-   is superseded; 293,077 B (G2 gate) is the sound measured number.
+   is superseded; 293,077 B (G2 gate) is the measured number with program binding enabled.
 7. **No workload joined end to end.** The 293,077 B result is the recursion tail
    measured on a Wasm fixture. For any workload, closing the gap needs
    Base-faithful (item 3) and, for a joined Wasm/state system, the
@@ -911,42 +950,21 @@ capacity form) would not affect them either.
    CUDA backends; unpatched backends fail closed rather than producing unsound
    proofs.
 
-None of these is a new conjecture; each is a proof, review, or measurement
-obligation.
+These include proof and implementation obligations **and** a model/assumption
+question for recursive in-circuit hashing. They cannot all be discharged by tests.
 
 ---
 
 ## 11. Conclusion
 
-We have shown that a hash-only, transparent-setup, post-quantum succinct
-**recursion tail** can be built at **293,077 B measured** while using **only
-proven proximity and soundness bounds**. The tail is generic in the base
-relation: the aggregation, domain, sampler and QROM developments contain no
-application types, and any base proof meeting the envelope of §2.6 reuses it
-unchanged. NEAR chunk validation is the running instantiation, not a
-dependency. The key methodological move is to separate the
-two knobs that are often conflated: the evaluation domain (a rate lever) and the
-decoding radius (where the proximity conjecture lives). We change the domain,
-not the radius, and we buy `≈ 1.95` bits per query from BabyBear's `×15`
-multiplicative structure at no symbolic cost. On top of that we fix the
-transcript (`T*`), prove a block-robust weak-binding property (WHIR-Y),
-instantiate certificate-gated agreement tables, give a depth-independent QROM
-knowledge-soundness theorem for recursive layers, and realise the whole thing
-with streamed commitments that never materialise the codeword.
-
-The remaining work is not in the tail: it is the base-relation side — for any
-workload, Base-faithful; for the NEAR instance, additionally the Wasm/state join
-and its coverage theorem (§10 items 3, 7–8). Those are the reason this paper is
-scoped to the tail rather than to a joined system.
-
-The assumption ledger is short and explicit. The one unavoidable non-standard
-assumption, A-IC, is stated precisely, is proven necessary in the query-only
-model, and is the subject of ongoing work. The proximity conjecture — in
-particular its capacity-regime forms, which are known to be false — appears
-nowhere.
-
-*“×15 buys rate; the proximity conjecture would buy radius. We bought rate, and
-only rate, at a proven radius.”*
+We measure a 293,077-byte recursion-tail proof with program binding enabled,
+using SHA-384 and certificate-checked proximity parameters. The `×15` domain
+lever, agreement-table gating, and streamed commitments are concrete results.
+The full recursive security guarantee remains a target: a corrected family QROM
+instantiation, the DKT-to-WHIR transfer, NV faithfulness and a precise recursive
+hash model are still required. These include tail obligations, independently of
+any NEAR-specific join. Appendix C states the acceptance criteria for upgrading
+this prototype claim to a security theorem.
 
 ---
 
@@ -962,8 +980,8 @@ only rate, at a proven radius.”*
 | proximity | Johnson `m=64` / certified first order |
 | final queries | [38,35,29,25] (O-2, b8), [41,38,29,23] (measured chain) |
 | one-layer rbr | `2^-268.01` |
-| QROM end to end | `≤ 2^-134.69` (union `2^-131.89`) |
-| measured final | **293,077 B** (G2 gate, binding on; sound) |
+| QROM end to end | not established; former formula evaluates to 134.688 bits before any new losses |
+| measured final | **293,077 B** (G2 gate, binding on; security obligations open) |
 | prover peak | 17.15 GB (G2 gate); `≈25.6 GB` (unbound chain); `≈39 GB` (streamed b=7); `≈1 TB` virtual codeword avoided |
 | setup | transparent |
 
@@ -982,3 +1000,118 @@ Artifacts are organised by lane in the near-proof-arena repository:
 
 All numbers in this note are reproducible from the cited scripts; the measured
 rows are from logs kept with each lane.
+
+## Appendix C: What would support the headline security guarantee?
+
+This appendix supersedes earlier statements that the proof chain was closed
+except for two cited facts, or that all remaining work was application-side.
+
+### C.1 State the theorem before choosing its parameters
+
+The desired statement must name an immutable verifier `V`, serialization and VK
+format, a finite permitted layer/base family, a base relation `R`, and an oracle
+or computational model. For a quantum adversary bounded by `q ≤ 2^64` oracle
+queries and, if needed, running time `τ`, the target is
+
+```
+Pr[V(vk, x, π) = accept ∧ x ∉ R] ≤ 2^-128.
+```
+
+For knowledge soundness, also specify the extractor, its oracle access, output,
+runtime and failure game. Existential soundness and efficient knowledge
+extraction are different claims. Proving an abstract inequality does not provide
+an efficient extractor for the implemented protocol.
+
+Three claims must not be conflated:
+
+* **Outer-layer QROM theorem:** the native final proof establishes membership in
+  the concrete NV AIR relation. This need not idealise hashes computed *inside*
+  that relation, but it proves only the inner verifier's acceptance computation.
+* **Recursive semantic theorem:** that acceptance implies the base relation.
+  This additionally needs simultaneous extraction, descending levels, statement
+  linkage, and a justified relationship between inner hashing and the oracle.
+* **Concrete SHA-384 security:** instantiating the oracle is a cryptographic
+  assumption, not a theorem about the fixed SHA-384 function obtained from a
+  QROM proof. The headline must name its model/assumptions.
+
+A research paper may use Mathlib and cited external theorems. The arena's
+`allowed_packages` policy is an operational admission rule, not an additional
+mathematical requirement for publication.
+
+### C.2 Proof obligations and decisive completion evidence
+
+| Obligation | Completion evidence |
+|---|---|
+| Actual WHIR proximity transfer | A theorem instantiating DKT full agreement-set recovery for every real folded subcode, with degree/rate/characteristic guards, block distances, integer thresholds, list products and all corrected WHIR per-move terms. The existing unique-decoding wrapper is not used outside its range. |
+| `T*` specification | Exact framing, disjoint PoW/index bits, rejection/cap behavior, number of blocks and next-state rule; proof that the actual parser implements the long-output simulation with its declared query and runtime cost. |
+| Family QROM proof | A precise global database potential; narrow and wide collision/extension estimates under insertion, deletion and reassignment; correct root/fanout counts; canonical extraction; uniformity over keys and statements; measured-event inclusion and the cited replacement theorem in the actual adaptive game. This instantiates `qrom_binary_bound` rather than assuming its conclusion. |
+| NV faithfulness | An accepted-trace-to-verifier-execution theorem for NV, SHA/GLUE, transcript, public tape, program pinning, level decrement, LogUp integer semantics, per-AIR heights, and the univariate-skip/rotation/stacking kernel. Tamper tests support debugging but cannot discharge this implication. |
+| Recursive hash bridge | Either a coherent idealized arithmetized-oracle model with a valid reduction, or an explicit time-bounded computational assumption with a quantified loss. Show how it applies to the extracted candidates, not only to honest execution. Charge reduction runtime and nonuniform advice appropriately. |
+| Base interface | A theorem that the selected base AIR relation implies `R`, or an explicit assumed base theorem in a generic tail composition result. The standalone recursion-tail theorem need not prove full NEAR semantics. |
+| Concrete bound | Recompute using the exact measured VK, all rounds and all family members. Pin certificates, arithmetic rounding, counters and caps. Report every loss and distinguish assumptions from proven estimates. |
+| Size/implementation linkage | Pin sources, VK, parameters and verifier binary; reproduce the bound G2 chain from clean dependencies. For a universal `<300,000 B` claim prove fixed-point capacity and a serialization bound over permitted shapes and query paths. A single proof of 293,077 B establishes a measurement only. |
+
+For the default **42-byte, zero-tolerated-collision** track, the full optional
+26–28-byte robust-binding theorem is not needed. Defer it until the smaller
+headline is established. It should not enlarge the critical proof surface now.
+
+### C.3 Quantitative acceptance criteria
+
+The repaired operator theorem yields
+
+```
+ε_family ≤ (q_sim * g + sqrt(ℓ_V / 2^336))².
+```
+
+Its protocol-specific `g`, `q_sim` and `ℓ_V` must be derived, not imported from
+the withdrawn proof. The former formula evaluates to 134.688 bits; that is about
+6.688 bits of margin over the target, **not a certified margin**. Recompute it
+after correcting absorb-root counts and long-output fanout.
+
+If a computational recursive-hash bridge has failure/advantage `ε_IC`, the
+composition must exhibit a bound of the form
+
+```
+ε_total ≤ ε_family + ε_IC + ε_other ≤ 2^-128,
+```
+
+where `ε_other` includes only specifically identified probabilistic reductions
+not already charged in `ε_family`. If the bridge is instead an exact idealized
+model assumption, say so rather than assign it an unproved negligible error.
+Missing circuit or proximity proofs cannot be charged an invented small error:
+they must be proved or listed as assumptions of a conditional theorem.
+
+The query simulation `q -> 2q` does not by itself preserve a running-time bound.
+Producing/uncomputing J output blocks, maintaining the simulated database, and
+extracting a chain have costs. A time-bounded A-IC claim must specify the bound
+*after* those reductions; the old `τ = 2^128` number alone is insufficient.
+
+### C.4 Recommended order
+
+1. Finish and independently review the **outer-layer** QROM theorem for the
+   fixed G2 verifier. Repair the family-potential accounting and list-regime
+   WHIR transfer before relying on the numerical calculator.
+2. Prove NV faithfulness against that exact verifier, including the stacking
+   kernel. Keep the proof-size measurement separate from the security theorem.
+3. Resolve the recursive hash model, then prove simultaneous extraction and
+   composition. A conditional theorem is meaningful if all assumptions are
+   stated accurately; an unconditional concrete-SHA guarantee is not obtained
+   by proving more generic norm inequalities.
+4. Recalculate the security ledger and reproduce the measured artifact. Only
+   then restore a headline saying the specified recursion tail meets the target
+   **under the named model and assumptions**.
+
+Current repair status: findings 1–3 have corrected, checked mathematical
+interfaces and proofs; findings 4–5 have corrected definitions/attribution and
+explicitly open protocol instantiations. They are not marked complete by
+weakening the desired security conclusion.
+
+### C.5 Validation of the repairs (2026-10-21)
+
+The corrected `research/qrom` package passes `lake build`, including regression
+proofs for the replacement cross term, the invalid old unitary-entry model,
+and ordinary transcript edges. Its audited capstone and complex block estimate
+use only `propext`, `Classical.choice` and `Quot.sound`. The updated
+`McaToGap.lean` checks against the existing package dependencies; `make pin-check`
+and `git diff --check` pass. These checks validate the repaired components and
+repository pins, not the open protocol instantiations or an e2e security claim.

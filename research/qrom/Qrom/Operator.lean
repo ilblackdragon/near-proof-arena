@@ -2,26 +2,12 @@ import Mathlib
 import Qrom.Transition
 
 /-!
-# Qrom.Operator — the concrete `cO` operator and its block norms
+# Finite matrix block estimates
 
-This closes the last gap in the QROM line that is not the Zhandry/CFHL21 replacement inequality:
-it builds the compressed-oracle one-point operator as an actual linear map on the function space
-`ι → ℝ`, and derives its **block operator bounds** from `Qrom.Transition`'s entrywise bounds.
-
-## The chain
-
-1. `matL A` is the linear map `x ↦ (i ↦ Σ_j A i j · x j)`, i.e. the operator with matrix `A`.
-2. `block_sq_le` — the entrywise → operator bridge: if every entry of the block `S × T` is at most
-   `M` in absolute value, then `Σ_{i∈S} (Σ_{j∈T} A i j x j)² ≤ M·|S|·|T|·Σ_{j∈T} x j²`.
-   This is Cauchy–Schwarz applied row by row.
-3. `restr` is the coordinate projection onto a level set, with `restr_idem`.
-4. `block_norm_le` — the operator norm of a level block of `matL A` is at most
-   `sqrt(M·|T|)`, which is the `g` in `Qrom.Instantiate.mass_recurrence`.
-
-So `mass_recurrence`'s hypothesis `‖Π_j ∘ cO ∘ Π_{=i}‖ ≤ g i` is now **derivable** from
-`Qrom.Transition`'s `amp` bounds, given the matrix form of `cO`. What remains cited is only that
-the compressed oracle's one-point unitary has exactly these matrix entries (CFHL21 Lemma 4.3,
-ANALYSIS Fact B).
+The real matrix lemmas are generic Cauchy–Schwarz inequalities. The complex
+Frobenius lemma below connects an actual complex matrix to `EntryBounds`.
+This does not construct the compressed-oracle unitary or its global database
+lifting; those are still required for a protocol instantiation.
 -/
 
 namespace Qrom
@@ -95,5 +81,44 @@ theorem block_norm_le (A : ι → ι → ℝ) (S T : Finset ι) (M : ℝ) (hM0 :
       (fun j _ _ => sq_nonneg _)
   have hcoef : 0 ≤ M * (S.card : ℝ) * (T.card : ℝ) := by positivity
   exact mul_le_mul_of_nonneg_left hx hcoef
+
+/-- Frobenius bound for an actual complex block, including nonuniform entries. -/
+theorem complex_block_sq_le (A : ι → ι → ℂ) (S T : Finset ι) (x : ι → ℂ) :
+    ∑ i ∈ S, ‖∑ j ∈ T, A i j * x j‖ ^ 2 ≤
+      (∑ i ∈ S, ∑ j ∈ T, ‖A i j‖ ^ 2) * (∑ j ∈ T, ‖x j‖ ^ 2) := by
+  calc ∑ i ∈ S, ‖∑ j ∈ T, A i j * x j‖ ^ 2
+      ≤ ∑ i ∈ S, (∑ j ∈ T, ‖A i j‖ * ‖x j‖) ^ 2 := by
+        apply Finset.sum_le_sum
+        intro i _
+        have h : ‖∑ j ∈ T, A i j * x j‖ ≤ ∑ j ∈ T, ‖A i j‖ * ‖x j‖ := by
+          simpa only [norm_mul] using norm_sum_le T (fun j => A i j * x j)
+        have hn := norm_nonneg (∑ j ∈ T, A i j * x j)
+        nlinarith
+    _ ≤ ∑ i ∈ S, (∑ j ∈ T, ‖A i j‖ ^ 2) * (∑ j ∈ T, ‖x j‖ ^ 2) := by
+        exact Finset.sum_le_sum fun i _ => Finset.sum_mul_sq_le_sq_mul_sq T _ _
+    _ = _ := by rw [Finset.sum_mul]
+
+/-- Bridge to the repaired off-diagonal entry interface. The equality connects
+bounds to the actual matrix, rather than assuming all entries have one value. -/
+theorem complex_block_of_entries {M : ℕ} (A : DB M → DB M → ℂ)
+    (E : EntryBounds M) (hentry : ∀ u r, ‖A u r‖ ^ 2 = amp E u r)
+    (S T : Finset (DB M)) (x : DB M → ℂ) :
+    ∑ u ∈ S, ‖∑ r ∈ T, A u r * x r‖ ^ 2 ≤
+      blockSum E S T * (∑ r ∈ T, ‖x r‖ ^ 2) := by
+  simpa only [hentry, blockSum] using complex_block_sq_le A S T x
+
+/-- One useful end-to-end local bound: an off-diagonal finite block of a
+nonzero-frequency query, applied to an arbitrary complex vector. -/
+theorem complex_block_finite {M : ℕ} (hM : 0 < M)
+    (A : DB M → DB M → ℂ) (E : EntryBounds M)
+    (hentry : ∀ u r, ‖A u r‖ ^ 2 = amp E u r)
+    (S T : Finset (DB M)) (hST : Disjoint S T)
+    (hS : ∀ u ∈ S, u ≠ none) (hT : ∀ r ∈ T, r ≠ none) (x : DB M → ℂ) :
+    ∑ u ∈ S, ‖∑ r ∈ T, A u r * x r‖ ^ 2 ≤
+      (9 * (S.card : ℝ) * (T.card : ℝ) / ((M : ℝ) * M)) *
+        (∑ r ∈ T, ‖x r‖ ^ 2) :=
+  (complex_block_of_entries A E hentry S T x).trans
+    (mul_le_mul_of_nonneg_right (block_le_c hM E S T hST hS hT)
+      (Finset.sum_nonneg fun _ _ => sq_nonneg _))
 
 end Qrom

@@ -5,84 +5,98 @@ import Qrom.Operator
 import Qrom.Instantiate
 
 /-!
-# Qrom.Main — the QROM bound, assembled end to end
+# Conditional operator-to-probability bound
 
-This is the capstone: it chains every proved piece into a single theorem whose hypotheses are
-only the two genuinely cited facts.
+This theorem composes contraction/block bounds, the path lemma, a measured-event
+projection bound, and the *square-root* replacement inequality. `Ahat` bounds an
+amplitude, not a probability. The squared conclusion keeps that distinction.
 
-## The chain
-
-```
-  Qrom.Transition.block_le_*        entrywise bounds of cO (ANALYSIS Lemma 1)
-        │
-        ▼
-  Qrom.Operator.block_norm_le       entrywise ⇒ block operator norm
-        │
-        ▼
-  Qrom.Instantiate.mass_recurrence  block norms ⇒ per-level mass recurrence
-        │
-        ▼
-  Qrom.Path.path_bound              recurrence ⇒ ‖Π_{κ≥t+1} ψ_t‖ ≤ Â_t  (ANALYSIS Lemma 2)
-        │
-        ▼
-  Qrom.FactA.fact_a                 measured database ⇒ real oracle, √p ≤ √p' + √(ℓ/N)
-        │
-        ▼
-  qrom_bound                        Pr[bad] ≤ (√(Â) + √(ℓ/N))²
-```
-
-## The two cited facts
-
-Everything above is proved. The two inputs that are **not** derived are:
-
-1. **`OracleModel`** — that the compressed oracle's one-point transition really has the matrix
-   entries of ANALYSIS Fact B (CFHL21 Lemma 4.3). `block_le_*` proves the consequent bounds given
-   those entries; that the entries are correct is the modelling step.
-2. **`Replace`** — CFHL21 Cor 4.2, the real-oracle-to-measured-database inequality. Its counting
-   and square-root halves are proved in `Qrom.FactA`; the inequality itself is cited.
-
-## What the theorem says
-
-Given those two, a `t`-query adversary whose bad-transcript mass satisfies the per-level
-recurrence has success probability at most `(√Â_t + √(ℓ/N))²`, with `Â_t` the chain sum of
-ANALYSIS Lemma 2. That is the shape of `PROOF.md` Theorem 6.4's conclusion.
+This is not yet an instantiation for the paper's transcript family. The concrete
+database, potential, block estimates, measured-event inclusion and replacement
+must be supplied; they do not follow from the algebraic theorem alone.
 -/
-
 namespace Qrom
-
 open scoped BigOperators
-open Finset
+variable {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- **The QROM bound, end to end.**
+/-- Operator-level premises, rather than an assumed mass recurrence. A complex
+Hilbert space can be regarded as a real normed space for this argument.
+`step` includes the adversary's inter-query evolution; proving its block bounds
+requires showing that this evolution preserves database levels. -/
+structure PotentialEvolution (E : Type) [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (G : ℕ → ℕ → ℝ) where
+  tail : ℕ → E →L[ℝ] E
+  exactLevel : ℕ → E →L[ℝ] E
+  tail_contract : ∀ j, ‖tail j‖ ≤ 1
+  exact_idem : ∀ i, exactLevel i ∘L exactLevel i = exactLevel i
+  decompose : ∀ j ψ, ψ = tail j ψ + ∑ i ∈ Finset.range j, exactLevel i ψ
+  exact_le_tail : ∀ i ψ, ‖exactLevel i ψ‖ ≤ ‖tail i ψ‖
+  step : ℕ → E →L[ℝ] E
+  step_contract : ∀ s, ‖step s‖ ≤ 1
+  ψ : ℕ → E
+  evolves : ∀ s, ψ (s+1) = step s (ψ s)
+  init : ∀ j, ‖tail j (ψ 0)‖ ≤ Ahat G 0 j
+  block : ∀ s j i, i < j → ‖tail j ∘L step s ∘L exactLevel i‖ ≤ G i j
 
-`G` are the per-level transition weights (from Lemma 1's `block_le_*`), `a` the bad-transcript
-masses, `ℓ` the number of oracle points the verifier reads, `N` the output-alphabet size.
-`Replace` is CFHL21 Cor 4.2, the one cited probabilistic step.
+theorem PotentialEvolution.recurrence {G : ℕ → ℕ → ℝ}
+    (S : PotentialEvolution E G) (hG : ∀ i j, 0 ≤ G i j) (s j : ℕ) :
+    ‖S.tail j (S.ψ (s+1))‖ ≤ ‖S.tail j (S.ψ s)‖ +
+      ∑ i ∈ Finset.range j, G i j * ‖S.tail i (S.ψ s)‖ := by
+  rw [S.evolves]
+  have h := mass_recurrence (S.tail j) (S.tail_contract j) (S.step s)
+    (S.step_contract s) S.exactLevel S.exact_idem j (fun i => G i j)
+    (S.decompose j) (fun i hi => S.block s j i (Finset.mem_range.mp hi)) (S.ψ s)
+  refine h.trans (add_le_add le_rfl (Finset.sum_le_sum fun i _ => ?_))
+  exact mul_le_mul_of_nonneg_left (S.exact_le_tail i (S.ψ s)) (hG i j)
 
-The conclusion is the standard QROM form: the real-oracle success probability is bounded by the
-measured-database bound plus the `ℓ/N` slack, in the square-root metric. -/
+theorem PotentialEvolution.amplitude_bound {G : ℕ → ℕ → ℝ}
+    (S : PotentialEvolution E G) (hG : ∀ i j, 0 ≤ G i j) (t level : ℕ) :
+    ‖S.tail level (S.ψ t)‖ ≤ Ahat G t level :=
+  path_bound G hG (fun s j => ‖S.tail j (S.ψ s)‖) S.init (S.recurrence hG) t level
+
+/-- The measured bad event is contained in the projected bad subspace. The
+replacement premise is the cited square-root form. There is no assumed final
+probability bound; it is derived from the operators. -/
 theorem qrom_bound (G : ℕ → ℕ → ℝ) (hG : ∀ i j, 0 ≤ G i j)
-    (a : ℕ → ℕ → ℝ) (t : ℕ)
-    (ha0 : ∀ j, a 0 j ≤ Ahat G 0 j)
-    (hstep : ∀ s j, a (s+1) j ≤ a s j + ∑ i ∈ Finset.range j, G i j * a s i)
-    (level : ℕ) (hlevel : 0 < level)
-    (ℓ N : ℕ) (hN : 0 < N)
-    (p p' : ℝ) (hp : 0 ≤ p) (hp' : 0 ≤ p')
-    -- the measured-database bound: the mass bound is `Ahat`, used as `p'`
-    (hmeasured : p' ≤ Ahat G t level)
-    -- CFHL21 Cor 4.2
-    (Replace : p ≤ p' + (ℓ : ℝ) / (N : ℝ)) :
-    Real.sqrt p ≤ Real.sqrt (Ahat G t level) + Real.sqrt ((ℓ : ℝ) / (N : ℝ)) := by
-  have hmass : a t level ≤ Ahat G t level := path_bound G hG a ha0 hstep t level
-  have hslack : (0:ℝ) ≤ (ℓ:ℝ) / (N:ℝ) := by positivity
-  -- p ≤ p' + slack ≤ Ahat + slack, then take square roots
-  have hle : p ≤ Ahat G t level + (ℓ : ℝ) / (N : ℝ) := by linarith
-  calc Real.sqrt p ≤ Real.sqrt (Ahat G t level + (ℓ : ℝ) / (N : ℝ)) := Real.sqrt_le_sqrt hle
-    _ ≤ Real.sqrt (Ahat G t level) + Real.sqrt ((ℓ : ℝ) / (N : ℝ)) := by
-        apply sqrt_add_le
-        · -- Ahat ≥ 0: it is a sum of nonnegative terms
-          unfold Ahat
-          exact Finset.sum_nonneg fun m _ => mul_nonneg (by positivity) (W_nonneg hG m level)
-        · exact hslack
+    (S : PotentialEvolution E G) (t level : ℕ) (p p' slack : ℝ)
+    (hp : 0 ≤ p) (hp' : 0 ≤ p')
+    (hmeasured : p' ≤ ‖S.tail level (S.ψ t)‖ ^ 2)
+    (hreplace : Replacement p p' slack) :
+    p ≤ (Ahat G t level + Real.sqrt slack) ^ 2 := by
+  have hmass := S.amplitude_bound hG t level
+  have hroot : Real.sqrt p' ≤ ‖S.tail level (S.ψ t)‖ := by
+    have h := Real.sqrt_le_sqrt hmeasured
+    rwa [Real.sqrt_sq (norm_nonneg _)] at h
+  have hprob : Real.sqrt p ≤ Ahat G t level + Real.sqrt slack := by
+    exact hreplace.trans (add_le_add (hroot.trans hmass) le_rfl)
+  have ha := Ahat_nonneg hG t level
+  have hs := Real.sqrt_nonneg slack
+  have hpRoot := Real.sqrt_nonneg p
+  have hpSq := Real.sq_sqrt hp
+  nlinarith
+/-- The level-zero amplitude majorant is one. -/
+theorem Ahat_level_zero (G : ℕ → ℕ → ℝ) (t : ℕ) : Ahat G t 0 = 1 := by
+  induction t with
+  | zero => simp [Ahat, W]
+  | succ t ih => rw [Ahat_step]; simpa using ih
+
+/-- Boolean bad events have a single crossing: the amplitude bound is q·g. -/
+theorem Ahat_level_one (G : ℕ → ℕ → ℝ) (t : ℕ) :
+    Ahat G t 1 = (t : ℝ) * G 0 1 := by
+  induction t with
+  | zero => simp [Ahat, W]
+  | succ t ih =>
+    rw [Ahat_step, ih]
+    simp [Ahat_level_zero, Nat.cast_add, Nat.cast_one, add_mul]
+
+/-- The exact conditional numerical shape used by a zero-tolerance database
+argument. No protocol-specific estimate on G 0 1 is asserted here. -/
+theorem qrom_binary_bound (G : ℕ → ℕ → ℝ) (hG : ∀ i j, 0 ≤ G i j)
+    (S : PotentialEvolution E G) (t : ℕ) (p p' slack : ℝ)
+    (hp : 0 ≤ p) (hp' : 0 ≤ p')
+    (hmeasured : p' ≤ ‖S.tail 1 (S.ψ t)‖ ^ 2)
+    (hreplace : Replacement p p' slack) :
+    p ≤ ((t : ℝ) * G 0 1 + Real.sqrt slack) ^ 2 := by
+  simpa only [Ahat_level_one] using qrom_bound G hG S t 1 p p' slack hp hp' hmeasured hreplace
 
 end Qrom

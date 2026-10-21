@@ -23,22 +23,15 @@ projector of the analysis.
 
 ## The step
 
-`LevelStep` supplies, for an actual state sequence `ψ` and a level family `Π`, the three facts the
-compressed-oracle argument proves:
+`mass_recurrence` derives a norm recurrence from supplied contractions, projector
+idempotence, decomposition, and block bounds. `LevelStep` is an older abstract
+interface that assumes the recurrence. The capstone in `Main.lean` instead uses
+`PotentialEvolution` and derives it from operator premises.
 
-* the mass is a norm (`mass_nonneg`);
-* the adversary's unitaries preserve every level mass (`unitary`), because they act on the
-  database-content register only and the level projectors are diagonal there;
-* `cO` moves mass between adjacent levels only, giving the per-level transition bound (`step`).
-
-Given those, `instantiate` produces a `Step` and hence Lemma 2's conclusion for a real state.
-
-**Honest scope.** The three fields are exactly the physics. `mass_nonneg` and `unitary` are
-discharged here from the projection lemmas for the natural `proj`; `step` is the transition bound
-whose per-query content is `Qrom.Transition` (Lemma 1) — but the *assembly* of `step` from
-Lemma 1's block bounds is left as the `step` field, because it needs the concrete operator
-`cO`, which this file does not construct. So this closes the "state vs sequence" gap, not the
-"operator vs block bound" gap.
+No adversary unitary or compressed-oracle operator is constructed here.
+Adversary operations act on the workspace/query registers, not on the database;
+their commutation with database-level projectors must be established in an actual
+quantum instantiation. The real coordinate model here is illustrative.
 -/
 
 namespace Qrom

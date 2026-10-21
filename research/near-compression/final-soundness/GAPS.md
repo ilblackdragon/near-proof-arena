@@ -1,5 +1,15 @@
 # Gaps, ratings and code-vs-proof mismatches
 
+> **2026-10-21 correction (supersedes earlier ratings).** S-19 is OPEN: the
+> previous family proof's `wide-bad` predicate classified legitimate chain
+> edges as bad. S-20 is conditional on repairing and instantiating S-19 and a
+> coherent recursive hash model. S-28 is OPEN at the actual list-decoding
+> radii: `Udr/McaToGap.lean` does not supply that transfer. The Mathlib QROM
+> capstone now correctly composes operators, amplitudes and probabilities, but
+> has explicit protocol-specific premises; it is not closed except two citations.
+> See `docs/research/pq-proven-soundness-paper-draft.md` Appendix C.
+
+
 Companion to `PROOF.md` (lane `lane/pq-final-soundness`, 2026-10-18).
 
 Ratings:
@@ -30,19 +40,19 @@ Ratings:
 | S-13 | WHIR on 15·2^K domains | Lemma 4.1 | relies-on-unreviewed (x15 SOUNDNESS.md, re-checked here) | One definitional edit of WHIR's hypothesis. |
 | S-14 | MCA in the Johnson regime, explicit constant | Lemmas 4.2–4.3 | proven (BCGM, CCC 2026; Def 9.1 / Thm 9.2 of the ePrint full version) | **Re-pinned:** the local copy is ePrint 2025/2051 v5 (19 May 2026, last of 5 revisions); Def 9.1 / Thm 9.2 / Lemma 9.3 are unchanged from the Feb 2026 version (word diff: typos only). The CCC 2026 paper (LIPIcs.CCC.2026.24) states it only as "Theorem 5 (informal)" and defers to the ePrint, so cite ePrint v5 Def 9.1 / Thm 9.2. Proposed replacement (MCA-UPGRADE.md): DKT26 Thm 5.12 + Cor 7.7 (S-26). |
 | S-15 | Grinding inside one call | Lemma 5.1 | proven-with-new-lemma-here | **Holds only under T\*-2** (G-2). |
-| S-16 | One-layer rbr-KS error ε_rbr = 2⁻²⁶⁸·⁰¹ (U-13; was 2⁻²⁶⁸·⁵⁵ under BCGM m = 3) | Thm 5.2, bound.py | proven-with-new-lemma-here | Worst move: WHIR query, round 1, final layer (236.01 + 32). Worst non-query: OOD r1, 2⁻²⁷¹·⁹. |
+| S-16 | One-layer rbr-KS error ε_rbr = 2⁻²⁶⁸·⁰¹ (U-13; was 2⁻²⁶⁸·⁵⁵ under BCGM m = 3) | Thm 5.2, bound.py | **conditional on S-28 and exact transcript model** | Historical calculation. Worst move: WHIR query, round 1, final layer (236.01 + 32). Worst non-query: OOD r1, 2⁻²⁷¹·⁹. |
 | S-17 | Counter mode ≡ one long-output call (t → 2t) | Lemma 6.3 | proven-with-new-lemma-here (elementary) | Needs T\*. |
 | S-18 | Multiproof ⇒ per-leaf paths | Lemma 6.2 | proven-with-new-lemma-here | |
-| S-19 | QROM BCS straight-line KS for layer families (K = 0, two-level chain) | Thm 6.4 | **proven-with-new-lemma-here**, built on weak-binding Thm 4 / Lemmas 1–2 (relies-on-unreviewed: one adversarial review, REVIEW-1) | Same t²ε shape as CMS19 Thm 8.6, Fractal Thm 10.1 and CDHZ Thm 11.3 (cross-checks 2⁻¹³⁷·⁵ / — / 2⁻¹³⁰·⁴). The highest-value item to review or formalise. |
-| S-20 | Recursive composition, one database, straight-line | Thm 7.4 | proven-with-new-lemma-here, **given A-IC** | Error is independent of d. |
+| S-19 | Family QROM instantiation | PROOF §6.4 | **open** | Repaired conditional operator theorem; concrete potential/transition/extraction proof and constants remain. |
+| S-20 | Recursive composition | PROOF §7.4 | **conditional** | Needs completed S-19, NV faithfulness and a precisely modelled recursive hash bridge. |
 | S-21 | NV circuit arithmetises V′_{i−1} faithfully | Lemma 7.1 (F1–F6) | **relies-on-unreviewed** (circuit lane, in progress) | Exact required form stated. |
 | S-22 | Layer-0 AIRs encode chunk validation | Lemma 7.2 | **relies-on-unreviewed** | Out of scope here. |
-| S-23 | In-circuit SHA-384 ≡ random oracle (A-IC) | Assumption 7.3, §8 | **closed: unprovable in any query-only oracle model** (Thm O, `lane/pq-aic-research` LEMMA.md); adopted as A-IC(τ), U-11/U-12 | User decision 2026-10-18: the recursive claim is time-bounded (τ = 2¹²⁸) under A-IC(τ). U-2 not met on this point, by necessity. |
+| S-23 | Recursive in-circuit hashing (A-IC) | Assumption 7.3 | **model/assumption obligation** | Query-only obstruction is conditional; a runtime cap alone does not identify concrete SHA with an independent RO. |
 | S-24 | Base-layer parameters (W, degree, interactions, commitments) | bound.py | **open** (not pinned) | A stress shape (W = 601, 2 commitments) passes at 2⁻²⁶⁸·⁵⁵. Re-run with the real app vk. |
 | S-25 | Efficient extraction | §7.3 | proven (GS list decoding) / not needed | The theorem only uses existential extraction. |
 | S-26 | **U-13 (adopted 2026-10-18), O-1:** line MCA at the Johnson radius √ρ(1+1/128) (backend ListDecoding m = 64): DKT26 Thm 5.12 with the Lean constant `johnsonE0`; list = pairwise term of (67) only; interleaving/fold transfer Cor 7.7/7.8 | Lemmas 4.2–4.4 | **proven (Lean)**: github.com/quangvdao/ArkLib @ a5aa2677 (`johnson_lineMCA_probability`, `closePolynomialSet_finite_and_ncard_le_johnsonPairwise`, `fullSetLevelWitness_interleaved_of_exactAgreement`, `tensorFoldBad_card_le`); Thm 5.12 → Cor 7.7/7.8 glue proven in lane/pq-dkt-verify `lean/DKTGlue.lean`; axioms propext/Classical.choice/Quot.sound only (DKT-VERIFY.md). Paper unrefereed. | O-1's μ-batching uses three first-order curve certificates (S-27), so O-1 as configured is not purely Johnson-regime. Base layer uses O-1. |
 | S-27 | **U-13, O-2:** first-order (beyond-Johnson) list + line/curve MCA at a_i < √ρ_i: DKT26 Prop 5.10 + Lemma 5.6 (factorwise squarefree transfer), Lemma 5.11, Cor 7.3/7.5/7.7; 36 certificates (calc/dkt_certs.json; max B∂ = 52) | Lemmas 4.2–4.5 | **proven (Lean)**: `CurveCertificate.exists_exceptional_exact_powerAgreement_squarefree_sharp_optimized`, `finiteSquarefreeListBound_of_profile`; all 36 instances re-checked by the Lean kernel (lane/pq-dkt-verify `lean/DKTCerts.lean`, equal to the JSON rationals). Paper unrefereed. | Final [38, 35, 29, 24], inner [45, 41, 31, 24]; lists ≤ 2⁴³·⁴; per-round agreement table must be bound into the vk; regenerate for the final pinned shape. |
-| S-28 | **DKT26 → WHIR step** (RS-level MCA/list statements ⇒ WHIR rbr errors, Lemmas 4.2–4.7) | §4 | **lift proved (Lean, parametric)** in `zk-formal/ZkFormal/Udr/McaToGap.lean`: `mca_count_to_gap` (MCA count ⇒ `LineGap`), `strong_from_mca` (⇒ containment, via `strong_of_gap`), `fold_union` (error additive over folds). The DKT26 integer count stays a hypothesis. **Not formalised**: WHIR Thm 5.2 itself as corrected in Pus26 Thm 5.3, i.e. the step from RS-level gaps to WHIR's round moves | Pus26 hypotheses checked: char ≠ 2; lists for every C^(i,s), s = 0..k_i (certified); MCA radius B⋆ ≥ ρ (a_i > a₁(ρ_i) > ρ_i). Pus26's Thm 5.7 (smaller combination error) not adopted. |
+| S-28 | DKT-to-WHIR list-regime transfer | DKTGlue / paper §6.1 | **open** | RS-level Johnson/interleaving results exist; gated Udr utility requires unique decoding and does not close the actual WHIR transfer. |
 
 ## B. Code-vs-proof mismatches (tree U = stark-backend-unified, SHA = native_sha384_levers_config.rs)
 
@@ -64,15 +74,20 @@ Ratings:
 
 ## C. What would close the contract
 
-1. Implement T\* (G-1, G-2) in prover, native verifier and NV circuit. Re-measure: the size is
-   unchanged; the SHA count should change by under 1 %.
-2. Independent review, or Lean formalisation, of Theorem 6.4 and weak-binding Lemmas 1–2 (S-19).
-3. The circuit lane's NV-faithful proof, in the form of Lemma 7.1 (S-21), and Base-faithful (S-22).
-4. The univariate-skip derivation of the tight-heights kernel (S-10′).
-5. Pin the app-layer parameters and re-run `calc/bound.py` (S-24).
-7. ~~Formalise the DKT26 → WHIR lift (S-28)~~ **lift done** (`McaToGap.lean`). Remaining: formalise WHIR Thm 5.2 (Pus26 Thm 5.3) itself. Regenerate and Lean-check the
-   O-2 certificates (`calc/dkt_certs.py`, lane/pq-dkt-verify `calc/dkt_lean_certs.py`) for the final pinned shape;
-   implement the backend side of U-13 (ListDecoding m = 64; per-round agreement table in the vk).
-6. ~~A user decision on A-IC (S-23)~~ Decided 2026-10-18 (U-11, U-12: A-IC(τ), τ = 2¹²⁸, final-layer prefix). Original text:: accept it as the U-1/U-7 in-circuit-RO assumption, which
-   leaves U-2 unmet for the recursive step, or keep the final claim to non-recursive proofs. No
-   known technique removes it for hash-only recursion.
+1. Validate the implemented T* transcript against the exact long-output model,
+   including framing, PoW/index separation, caps, fanout and simulation cost.
+   G-1/G-2 describe the historical source snapshot, not the later G2 run.
+2. Complete the concrete family-QROM potential, transition counts and extraction
+   proof (S-19); instantiate the repaired conditional operator theorem.
+3. Complete the actual DKT-to-WHIR list-regime transfer (S-28). The RS-level
+   ArkLib results are useful inputs; `McaToGap.lean` is a unique-decoding utility,
+   not this transfer. Regenerate certificates for the pinned shape.
+4. Prove NV-faithfulness (S-21), including the univariate-skip/stacking kernel
+   (S-10′), and supply the base-relation theorem (S-22).
+5. Specify and justify the recursive hash bridge (S-23), including its reduction
+   loss and runtime. Adoption of A-IC(τ) does not prove its validity.
+6. Pin the actual VK, parameters, sources and measured artifact; recompute every
+   bound and reproduce the size measurement. For a universal size claim, prove
+   capacity and serialized-size bounds over the entire permitted family.
+
+The paper's Appendix C gives the target security game and completion evidence.

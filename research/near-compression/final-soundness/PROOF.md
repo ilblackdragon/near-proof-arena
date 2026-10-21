@@ -1,5 +1,15 @@
 # End-to-end soundness of the PQ recursive SWIRL stack
 
+> **2026-10-21 audit correction.** The previous family proof in §6.4 used an
+> invalid `wide-bad` predicate that included ordinary transcript edges. Its
+> advertised constants and unconditional family theorem are withdrawn. §6.4 now
+> states the valid conditional operator bound and enumerates the missing
+> instantiation. The numerical evaluations elsewhere are historical calculations,
+> not established security guarantees. The Mathlib companion proves components;
+> its corrected capstone does not close the protocol-specific premises. The
+> DKT-to-WHIR list-regime transfer remains open (see the paper §6.1).
+
+
 Lane `lane/pq-final-soundness`, 2026-10-18. Research and proof only; no backend change.
 Companion files: `calc/bound.py` (every number below; output in `calc/bound.out`) and
 `GAPS.md` (status of every step, and every code-vs-proof mismatch).
@@ -31,43 +41,30 @@ in the NV workspace). The levers-only and x15-only trees lack WHIR-Y and must no
 
 ---
 
-## 0. Result
+## 0. Target and current status
 
-**Main Theorem (as proven here).** Let d ≤ 7 be the recursion depth. Assume:
+The target is failure probability at most `2^-128` against at most `2^64`
+quantum oracle queries for the pinned recursive verifier and base relation.
+It is **not currently proved**, even for the non-recursive layer: the concrete
+family-QROM instantiation (§6.4) and DKT-to-WHIR transfer remain open.
 
-1. **T\*** — the transcript change of §6.2. Challenges, including the PoW bits, are derived
-   in counter mode from one post-absorb key per verifier move. The code as written derives
-   them through a sequential hash chain (§6.5, gaps G-1 and G-2).
-2. **NV-faithful(i)** for i = 1..d, in the exact form of Lemma 7.1. This is being proven
-   by the circuit lane.
-3. **Base-faithful**, Lemma 7.2: the layer-0 AIRs encode the chunk-validation statement.
-4. **A-IC** (Assumption 7.3): the SHA-384 evaluations that a valid NV witness certifies
-   *in-circuit* are treated as evaluations of the random oracle.
+The repaired Lean capstone proves the conditional bound
+`p ≤ (Ahat + sqrt(slack))²` from operator evolution, transition estimates,
+measured-event inclusion and a square-root replacement premise. For a Boolean
+potential this becomes `p ≤ (t*g + sqrt(slack))²`. Instantiating these premises
+for the actual protocol is substantive remaining work; the old family constants
+are withdrawn.
 
-Model SHA-384 (with the domain separation of §1.3) as a quantum random oracle. Then for every
-quantum adversary that makes at most t = 2⁶⁴ queries and outputs a final proof π_d, the
-probability that the native verifier V_d accepts π_d while the chunk-validation statement it
-names is false is at most
+Recursive semantic soundness additionally requires NV-faithfulness,
+Base-faithfulness, statement/level linkage and a coherent recursive hash model.
+Adopting an assumption is not proving it. In particular, a runtime cap alone
+does not identify in-circuit SHA-384 with an independent random oracle.
 
-  **ε_total ≤ (2t·G + 2⁻¹⁶⁰)² ≤ 2⁻¹³⁴·⁷**, where G² = 10·max(3·2t/2³³⁶, ε_rbr + 2²⁰(4t+1)/2³⁸⁴),
-
-and ε_rbr = 2⁻²⁶⁸·⁰¹ is the largest per-move round-by-round knowledge error over all layers
-(§5, U-13). The worst move is the round-1 WHIR query move of the final layer, with grinding.
-A union over 7 layers is not needed (Theorem 7.4 uses one database), but even with it the
-bound is 2⁻¹³¹·⁹.
-
-**What this does and does not meet.**
-* Without A-IC, nothing is proven about the recursive statement (§8). **U-2 is not met on
-  that one point.** A-IC is the precise form of the `random-oracle-in-circuit` assumption that
-  U-1 adopted (U-7 moved it to SHA-384). The literature (§8.2) has no proven bound for in-circuit
-  hashing, and there is an impossibility result for the general "relativized" version
-  (Barbara–Chiesa–Guan, TCC 2025, Thm 4.1/5.1).
-* A single layer, e.g. a non-recursive base proof, needs no A-IC. Under T\* it meets U-2/U-6
-  outright: Theorem 6.4 gives ≤ 2⁻¹³⁵·².
-* **For the transcript as coded, no bound is proven.** This is not an attack. The QROM proof
-  technique needs every verifier move's randomness, including the PoW bits, to come from one
-  oracle call. Without the T\* fix, the grinding credit is not provable either. With no credit,
-  the same theorem gives only 2⁻¹⁰⁵ (`bound.py`, last block), which fails U-6.
+The historical parameter calculation in §9 is retained for reproducibility,
+not as a security theorem. The later G2 implementation reports `T*` enabled;
+the older source snapshots discussed below do not establish its correspondence
+to the required long-output model. See the paper's Appendix C for completion
+criteria, model choices and the order of work.
 
 ---
 
@@ -613,89 +610,72 @@ transcript in D is a chain in D that starts at σ₀ = H(2) and alternates:
 Oracle strings are canonically extracted from D's narrow entries: unique preimage at each
 reached node, default for unreached nodes.
 
-**Theorem 6.4 [T; the K = 0 case of weak-binding Theorem 4 (ANALYSIS.md §4, reviewed once in
-REVIEW-1), extended here to rbr-KS, two-level chains and IOP families].** Let a quantum
-adversary make ≤ t queries to H and output (v, x, π). Let ℓ_V be the number of oracle points
-V_v evaluates on π. Then
+**Theorem 6.4 (conditional operator bound; repaired).** Let `q` be the number
+of queries in a specified simulated oracle model. Suppose a Boolean potential
+`κ(D)` is zero initially, adversary evolution preserves its level projectors,
+and every query, on the reachable support, satisfies
 
-  Pr[V_v^H accepts (x, π) ∧ for every prefix τ of π's extracted transcript with S_v(τ) flipping
-  at a prover move, E_v(x, τ) ∉ R_v(x)] ≤ (t′·G + √(ℓ_V/2³³⁶))²,
+```
+||Π_bad cO Π_good|| ≤ g.
+```
 
-where t′ = 2t (Lemma 6.3) and G² = max(10·3t′/2³³⁶, 10·(ε + J(2t′+1)/2³⁸⁴)).
+Suppose failed extraction of an accepting proof gives a measured bad event of
+probability `p' ≤ ||Π_bad ψ_q||²`, and the cited replacement step supplies
+`sqrt(p) ≤ sqrt(p') + sqrt(ℓ_V / 2^336)`. Then
 
-More strongly, with the same bound on probability, the measured database D contains **no**
-transcript (for any v and any x) that is accepting, or has a first flip at a verifier move.
+```
+p ≤ (q*g + sqrt(ℓ_V / 2^336))².
+```
 
-*Proof.*
-1. **Simulation.** Replace H on the squeeze and PoW domains by G, G₇ (Lemma 6.3). The
-   adversary becomes a t′-query algorithm against independent oracles: narrow (336-bit), wide
-   absorb (384-bit), and challenge (long output). Run it against the compressed oracle; ψ_s is
-   the joint state after s queries.
-2. **Potential.** Define κ(D) ∈ {0, 1}, with κ = 1 iff one of:
-   * (a) **narrow collision:** two narrow entries with equal outputs;
-   * (b) **wide-bad:** two wide state outputs are equal; some state output equals σ₀; or some
-     state output equals the state part of the input of another entry. Wide state outputs are
-     absorb outputs κ and the blocks B_j;
-   * (c) some transcript in D has its first S-flip at a verifier move.
-   κ(∅) = 0.
-3. **Narrow points.** Fix a narrow point x and D₋ₓ. Let Chg be the union of:
-   * the narrow outputs of D₋ₓ;
-   * both 42-byte halves of every node input in D₋ₓ;
-   * every digest inside an absorb input of D₋ₓ.
+*Proof.* Decompose each pre-query state into its good and bad projections.
+Contraction preserves the old bad norm and the crossing contributes at most
+`g` times the good norm, hence at most `g` for a normalized state. Iteration
+from zero gives `||Π_bad ψ_q|| ≤ q*g`. Apply measured-event inclusion and the
+square-root replacement inequality, then square nonnegative quantities. The
+operator/path/probability composition is checked as
+`Qrom.qrom_binary_bound`; a concrete database instantiation is not supplied. ∎
 
-   So |Chg| ≤ 3t′.
-   * If r ∉ Chg, then x is unreached, creates no collision and changes no canonical
-     extraction, so κ_r = κ_⊥.
-   * By ANALYSIS Lemma 1 (CFHL21 Lemma 4.3 entries; checked in REVIEW-1 item 1), its
-     "Chg consequence" gives ‖Π_{κ=1} cO_{xŷ} Π_{κ=0}‖² ≤ 10|Chg|/2³³⁶.
-4. **Absorb points** x = (σ, msg) ↦ κ.
-   * If κ ∈ Bad := (state outputs of D₋ₓ) ∪ (state parts of inputs of D₋ₓ) ∪ {σ₀}, anything
-     may happen. |Bad| ≤ 2t′ + 1.
-   * Otherwise, by ¬(b) at most one transcript prefix ends at σ, and the new entry extends it
-     by a prover message. G(κ) is undefined, because κ ∉ Bad, so no verifier move completes.
-     A prover move cannot create a first flip at a verifier move (Definition 2.1(K2) is about
-     prover moves).
-   * Adding the entry is monotone, so ANALYSIS Lemma 1(a) gives G² ≤ 10(2t′+1)/2³⁸⁴.
-5. **Challenge points** x = κ ↦ (B₁..B_J), and the PoW variant.
-   * If some B_j ∈ Bad, anything may happen: probability ≤ J(2t′+1)/2³⁸⁴.
-   * Otherwise at most one transcript prefix τ′ ends at κ: its preimage is unique by ¬(b), and
-     there is no prediction. If S(τ′) = 0, the new transcript τ′‖c has S = 1 with probability
-     ≤ ε over the fresh uniform c (K3 and Lemma 5.1). Nothing else changes. If S(τ′) = 1
-     already, any first flip lies earlier, so (c) is unchanged.
-   * Monotone, so Lemma 1(a) gives G² ≤ 10(ε + J(2t′+1)/2³⁸⁴).
-6. **Accumulation.** By the triangle inequality over the t′ queries (Lemma 2 of ANALYSIS
-   with K = 0: a single chain 0 → 1), ‖Π_{κ=1} ψ_{t′}‖ ≤ t′·G.
-7. **From the real oracle to D.** By Zhandry / CFHL21 Cor 4.2 (ANALYSIS Fact A), with the
-   ℓ_V verifier points pairwise distinct (Lemma 6.2; mixed widths give Σ 1/M ≤ ℓ_V/2³³⁶):
-   √Pr[accept ∧ bad] ≤ √Pr[D contains an accepting D-consistent proof ∧ bad] + √(ℓ_V/2³³⁶).
-8. **κ = 0 and a D-consistent accepting proof imply extraction.**
-   * With no narrow collision, every opened leaf equals the canonical extraction: the first
-     deviating node would be a collision.
-   * So the IOP transcript τ read from D is accepting, and S(τ) = 1 by (K4).
-   * Its first flip is not at a verifier move, because κ = 0. So it is at a prover move, and by
-     (K2) E succeeds on that prefix.
-   * The same argument applies to every transcript in D, whether or not the adversary output
-     it. That gives the stronger statement. ∎
+**Corrected candidate potential, not yet an established instantiation.** Use the
+union of (a) narrow collisions, (b) collisions between *distinct* wide output
+occurrences or an output equal to the initial state, and (c) a reachable parsed
+transcript whose first state flip is at a verifier move. Normal output-to-input
+edges are allowed. Never classify acceptance alone as bad: K1/K2/K4 imply a
+safe accepting transcript has an extraction at a prover flip. The latter logical
+step is checked in `Qrom.Transcript.first_flip_extract`.
 
-**Extractor.** E_BCS runs the adversary once against the compressed oracle, measures D,
-reads π's transcript from D, and applies E_v to the prefix where S flips. This is CMS19
-§8.5.2's extractor. It is **straight-line**: no rewinding, one run. For the Main Theorem only
-the probability statement about D is used (§7.4).
+The deleted proof incorrectly included every output-to-input equality in (b).
+An honest pair `(σ,msg) -> κ`, `κ -> G(κ)` immediately contradicted its proposed
+small probability. `Qrom.Transcript.honest_edge_not_bad` guards this distinction.
 
-**Corollary 6.5 (single layer).** For one layer under T\*, with ε = 2⁻²⁶⁸·⁰¹ and t = 2⁶⁴, the
-failure is ≤ 2⁻¹³⁴·⁷. This is fully proven (with Theorem 6.4 [T]) and needs no A-IC.
+**What must be proved before substituting a numerical g:**
 
-**Cross-checks** (`bound.py`; the theorem above is the one claimed):
-* CMS19 Thm 8.6's explicit 6(t²ε + 4t³/2^λ) evaluates to 2⁻¹³⁷·⁵. It does not apply verbatim:
-  it fixes one λ-bit challenge per round and its own chain (REVIEW-1 item 10).
-* Fractal (Chiesa–Ojha–Spooner, Eurocrypt 2020) Thm 10.1 gives *adaptive* QROM knowledge
-  O(t²κ_rbr + t³2^{−λ}), with 6t²κ_rbr explicit in §10.5.
-* Chiesa–Di–Hu–Zheng (ePrint 2025/2166, Mar 2026) Thm 11.3 with Thm 6.10 and Thm 8.3 gives an
-  adaptive straight-line QROM bound for BCS with Merkle trees, 4κ_sr + 4κ_ext + 8κ_off +
-  4κ_on with κ_sr ≤ 80(t+k+1)(w+k)ε_RBR + …. It evaluates to 2⁻¹³⁰·⁴. It also models one
-  function call per round.
+1. Bind the family index and public statement into canonical framing. Show each
+   reachable state has a unique parsed prefix outside genuine output collisions;
+   distinguish per-block outputs of a long-output challenge from logical moves.
+2. Define canonical Merkle extraction, including missing nodes, and show how it
+   changes when one database entry is inserted, removed, or reassigned. Count
+   every root in an absorb message: `|Chg| ≤ 3q` does not follow from counting
+   oracle entries when one message can contain multiple digests.
+3. For the narrow query, bound the crossing block using the **disjoint** entry
+   estimates. For absorb/challenge queries, treat matching an existing input as
+   a *local extension possibility*, not a globally bad ordinary edge. Account
+   for old downstream entries and changes to reachable transcript sets.
+4. Account for long-output fanout. With J blocks per challenge there can be up to
+   Jq state-output occurrences, and within-output collisions also need a count.
+   The old `J(2q+1)/2^384` formula is not certified by the withdrawn argument.
+5. Derive a uniform `g` for the entire family, including the base layer, prove
+   measured-event inclusion, and justify replacement for the exact verifier's
+   adaptive oracle accesses and mixed output widths.
 
-All three give the same t²ε shape. None covers a multi-call squeeze chain.
+The old substitution `g² = 10 max(3q/2^336, ε + J(2q+1)/2^384)` and the resulting
+`2^-134.7` are **not established** until these obligations are discharged.
+Counter-mode simulation by itself does not discharge them.
+
+A successful instantiation would imply that, except on the bounded bad event,
+**every reachable accepting transcript has a valid extraction**. It would not
+imply the absence of honest accepting transcripts. Recursive use additionally
+needs NV faithfulness and a coherent A-IC model; §7 is conditional on all of
+these premises.
 
 ### 6.5 Transcript order vs code (which messages are absorbed before which challenges)
 Audited against U, in execution order (file:line in `verifier/`):
@@ -806,7 +786,7 @@ it: membership of inner-proof hash evaluations in the adversary's oracle databas
 
 ### 7.3 The composition theorem
 
-**Theorem 7.4 [T, given 7.1–7.3 and T\*].** Under the hypotheses of the Main Theorem,
+**Theorem 7.4 (conditional composition, given a completed family instantiation of 6.4, 7.1–7.3 and T\*).** Under the hypotheses of the Main Theorem,
 Pr[V_d accepts π_d ∧ the chunk statement is false] ≤ (t′G + √(ℓ_V/2³³⁶))², with ε = the
 maximum rbr-KS error over the layer family {vk_0, …, vk_d}.
 
@@ -890,17 +870,15 @@ layer i says nothing about statements that mention the hash's code.
   kind as U-1's adopted R-a.
 
 ### 8.4 Contract status
-* **U-2 ("proven soundness bounds only") is not fully met** for the recursive statement. The
-  recursion step rests on A-IC.
-* U-1, amended by U-7, already adopted the in-circuit random-oracle assumption by name. A-IC
-  is its exact form.
-* The user should decide whether that adoption satisfies U-2 for the recursive layer. A fully
-  proven alternative is the non-recursive base proof (Corollary 6.5), but it is far above
-  300 KB.
+The proven-bound contract is not met. Besides the recursive hash-model
+obligation, the concrete family-QROM and DKT-to-WHIR instantiations remain
+open. The non-recursive theorem avoids the recursive hash bridge but still
+needs those protocol proofs. A user decision to adopt A-IC cannot discharge
+these mathematical obligations.
 
 ---
 
-## 9. Final numeric bound (every term)
+## 9. Historical numeric calculation (not an established bound)
 
 For t = 2⁶⁴, T\*, z = 32, U-13 proximity inputs, ×15, 42-B digests. Output of `calc/bound.py`:
 
@@ -912,18 +890,20 @@ For t = 2⁶⁴, T\*, z = 32, U-13 proximity inputs, ×15, 42-B digests. Output 
 | worst PIOP (LogUp, ℓ₀ = 2⁴⁰·⁰) | −279.16 | Lemma 3.1 |
 | worst fold MCA (DKT26) | −280.74 | Lemma 4.3 |
 | WHIR μ batching, W = 141 / 141 / 601 (first-order curve) | −282.1 / −283.0 / −287.5 | Lemma 4.2 |
-| narrow transition 10·3t′/2³³⁶ | −266.1 → below ε-term | Thm 6.4 step 3 |
-| wide transition 10·J(2t′+1)/2³⁸⁴ | −294.7 | Thm 6.4 steps 4–5 |
-| challenge transition 10(ε + …) | −264.69 | Thm 6.4 step 5 |
-| Fact A √(ℓ_V/2³³⁶), ℓ_V ≤ 2¹⁶ | −160 | Thm 6.4 step 7 |
+| narrow transition 10·3t′/2³³⁶ | −266.1 → below ε-term | withdrawn family estimate |
+| wide transition 10·J(2t′+1)/2³⁸⁴ | −294.7 | withdrawn family estimate |
+| challenge transition 10(ε + …) | −264.69 | withdrawn family estimate |
+| Fact A √(ℓ_V/2³³⁶), ℓ_V ≤ 2¹⁶ | −160 | replacement parameter to justify |
 | simulation factor t → 2t | +1 bit on t | Lemma 6.3 |
-| **total (one database, all layers)** | **−134.69** | Thm 7.4 |
+| **historical total (one database, all layers)** | **−134.69** | unestablished premises |
 | total, union over 7 layers | −131.89 | — |
 | contract | −128 | U-6 |
 | margin | 6.7 bits (3.9 with the union) | |
 
-**Conditional on:** T\* (G-1, G-2), NV-faithful, Base-faithful, A-IC(τ), review of
-Theorem 6.4 [T], and the paper-level DKT26 → WHIR step (Pus26 Thm 5.3; GAPS S-28). See GAPS.md.
+**Required before reusing these numbers:** completion of the concrete family
+instantiation and its constants, the DKT26 → WHIR transfer, validation of T*
+against the pinned implementation, NV/Base-faithfulness and a precise recursive
+hash model. These repairs may change the numbers. See GAPS.md.
 Under the superseded BCGM m = 3 inputs the same table gave −135.23 (−132.42 with the union).
 
 ---
