@@ -358,7 +358,35 @@ of action lengths), then `RIDS`/`SRC`/`RCL` + `newReceipts`, `HostCallTrace`, an
 * `ripemd160` AIR (≈2-3 weeks, same shape as SHA-256).
 * `RIDS`/`SRC`/`RCL` + `newReceipts` fold, and the `HostCallTrace`
   induction (Wasm side).
-* The `ActionR` encoder AIR (lane `pq-actionr` started it: `PQ/Receipt/Encoder.lean`).
+* **Keccak `M3`, the round lemma.** `KeccakAir` defines the round; `KeccakSteps` proves the
+  per-step lemmas; `KeccakVectors` differentially tests the whole constraint system against the spec.
+  What is *not* proved: that a satisfying row *implies* the spec's round function (the vectors are a
+  compiled test, not a theorem). Also absent: the absorb/squeeze boundary rows and the state bus
+  between them and the round table. `KeccakAir`'s own docstring states this honestly.
+* **The remaining 11 `promise_*` encodings** (see `results/pq-receipt-air/README.md`): 5 action kinds
+  (`deploy`, `stake`, `addKey`×2, `deleteKey`), `promise_batch_create`'s empty-vector class row, the
+  receipt `inputs`/`outputs` prefix (`promise_batch_then`, `promise_then`, `yield_create`), and
+  `promise_set_refund_to`. The last four also need `Cost.receipt_len` extended to cover inputs.
+
+## Batch of 2026-10-21 (evening): Keccak round, ActionR FC/create, the coverage fold
+
+Three lanes, all merged and re-verified on the merged tree.
+
+| lane | landed | honest gap |
+|---|---|---|
+| `lane/pq-keccak-perm` | `KeccakAir` (4,890 cols, round gated degree 4, 0 interactions), `KeccakSteps` (theta parity, iota one-hot selection, rho/pi index facts, `bBit_inj`), `KeccakVectors` (192 rounds / 9 permutations / 9 sponge vectors incl. `keccak512`). **The differential test found a real bug**: `dConstr`'s rotation source was `C[x+1][k+1]`, should be `C[x+1][(k+63) mod 64]`. | `M3` round lemma, absorb/squeeze rows, state bus. |
+| `lane/pq-actionr-fc` | `PBE` prefix key gains a **per-row** `fld` column (not a group constant — FC's two prefixes are rows of one action group); `pbe_shape`/`pbe_phase`/`pbe_body_pos`/`pbe_len_framing_*` restated; `pbe_group_len_is_row_count` unchanged. FC and `promise_create` row instances complete. | 11 `promise_*` encodings; `Cost.receipt_len` for inputs. |
+| `lane/pq-runcall-fold` | `Join/Fold.lean` + `Join/Coverage.lean`: the action-list fold at full chunk generality, `coverage`/`coverage_pv86` reducing to `D3.RelD3`. | `ArmAgrees` (H1), `StateSide` (H2), and the D1→D3 witness lift (H6) are stated, not proved. **`JoinFold.JoinStmt` is vacuous**: a `RelD1a` witness has no `FunctionCall` at all (`pTxD1:97`, `checkD1:63`), while `RelD3` runs on the D2 witness. So coverage is not a same-bytes lift. |
+
+### The root-import trap (cost me a false "verified" claim)
+
+`Join/Fold` and `Join/Coverage` merged but were never added to `zk-formal/ZkFormal.lean`, so
+`lake build` reported **3,058 jobs green while never compiling them** and `Fold.olean` did not exist.
+It surfaced only because the axiom audit failed on `Unknown constant`. Fixed in `0e7a34d2c`; the
+build is now 3,060 jobs. **A green job count does not prove your new module was in the build** —
+check that its `.olean` exists, or that it is reachable from the root. This is the same class of
+error as the stale-`wasmbase-tool` trap below, and it is the second time a build claim was green
+while the thing under test was not built.
 
 ## Parallel lanes to run next
 
