@@ -38,5 +38,5 @@
 +        println!("NV_VD forged final ({} rows) accepted without the program check, rejected with it: {err}", bforge.instrs.len());
 +    }
  }
- 
+
  /// Keygen only: per-AIR constraint degree, width and interactions.
