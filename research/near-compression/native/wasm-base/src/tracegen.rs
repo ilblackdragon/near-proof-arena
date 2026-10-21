@@ -401,7 +401,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     // (every access re-produces its own kind; a `register_len` does not touch the bytes)
     let mut reg_bts: HashMap<u64, u64> = HashMap::new();
     let mut reg_lts: HashMap<u64, u64> = HashMap::new();
-    let mut reg_rows: Vec<[u64; 15]> = vec![];
+    let mut reg_rows: Vec<[u64; 16]> = vec![];
     let mut func_calls: Vec<u64> = vec![0; prep.funcs.len()];
     // dead callee locals `(space, slot, entry)`, left over in the channel after their frame returned
     let mut dead: Vec<(u64, u64, Ent)> = vec![];
@@ -512,13 +512,15 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 for (i, v) in req.iter().enumerate() {
                     o.u(&format!("q{i}"), *v);                }
                 o.u("st", ev.st).limbs("r", rl).limbs("g", gl).u("ar", ar).u("mult", 1);
-                // The register wire.  `input` (host id 12) fills register 0 with the spec's
-                // `ctx.input`; `read_register` (13) reads one; `register_len` (6) reads only a
+                // The register wire.  `input` (host id 48) fills register 0 with the spec's
+                // `ctx.input`; `read_register` (49) reads one; `register_len` (6) reads only a
                 // length.  The bytes come from the spec's own post-call register file (`ev.regs`),
                 // so the trace is exactly what the spec did.
+                // The ids are `Chips.Host.hostLogFns`/`hostFnsBase`, NOT the pre-canonical 12/13:
+                // those arms never fired, so every REG row in every KAT was padding.
                 if has_reg && ev.st == 0 {
                     match hid {
-                        12 => {
+                        48 => {
                             // the register the call filled (the only one present in `ev.regs`)
                             if let Some((rid, bs)) = ev.regs.first() {
                                 let rid = *rid;
@@ -527,9 +529,9 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 // fill rows: one per byte, plus one length row
                                 for (pos, &b) in bs.iter().enumerate() {
                                     // [act, kind, rd, rid, pos, len, byte, hid, ts, dir, gap,
-                                    //  fresh, tp, hp, ptr]
+                                    //  fresh, tp, hp, ptr, f]; f marks the group's first row
                                     reg_rows.push([1, 0, 0, rid, pos as u64, blen, b, hid, ts, 1,
-                                        blen - pos as u64 - 1, 0, 0, 0, 0]);
+                                        blen - pos as u64 - 1, 0, 0, 0, 0, (pos == 0) as u64]);
                                     // the HOSTB byte of a fill is the state-side half, `reg = 1`
                                     hostb_rows.push([ts, 1, pos as u64, b, blen, hid,
                                         blen - pos as u64 - 1, 1, (pos == 0) as u64, 1]);
@@ -538,7 +540,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                     st.r16(blen);
                                     st.r16(rid);
                                 }
-                                reg_rows.push([1, 1, 0, rid, 0, blen, 0, hid, ts, 0, 0, 0, 0, 0, 0]);
+                                reg_rows.push([1, 1, 0, rid, 0, blen, 0, hid, ts, 0, 0, 0, 0, 0, 0, 0]);
                                 st.r16(blen);
                                 st.r16(rid);
                                 // the fill re-produces both messages at `ts`
@@ -546,7 +548,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 reg_lts.insert(rid, ts);
                             }
                         }
-                        13 => {
+                        49 => {
                             // `read_register(id, ptr)`: consumes byte `i` of register `id`
                             if let Some(bs) = regs.get(&args[0]).cloned() {
                                 let rid = args[0];
@@ -558,7 +560,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                     // the memory write at `ptr + pos` is the deferred MEMIO link;
                                     // this slice only records the address
                                     reg_rows.push([1, 0, 1, rid, pos as u64, blen, b, hid, ts, 0,
-                                        blen - pos as u64 - 1, 1, ft, h, ptr]);
+                                        blen - pos as u64 - 1, 1, ft, h, ptr, (pos == 0) as u64]);
                                     st.byte(0, b, 0);
                                     st.r16(blen - pos as u64 - 1);
                                     st.r16(blen);
@@ -566,7 +568,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 }
                                 let lt = *reg_lts.get(&rid).unwrap();
                                 let hl = st.tchk(ts, lt);
-                                reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, hl, ptr]);
+                                reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, hl, ptr, 0]);
                                 st.r16(blen);
                                 st.r16(rid);
                                 // the read re-produces both messages at `ts`
@@ -582,7 +584,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 let blen = bs.len() as u64;
                                 let lt = *reg_lts.get(&rid).unwrap();
                                 let h = st.tchk(ts, lt);
-                                reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, h, 0]);
+                                // a length-only access is a complete group: the row starts it
+                                reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, h, 0, 1]);
                                 st.r16(blen);
                                 st.r16(rid);
                                 reg_lts.insert(rid, ts);
@@ -1482,13 +1485,15 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
             for rec in reg_rows.iter() {
                 let mut r = rg.row();
                 for (k, name) in ["act", "kind", "rd", "rid", "pos", "len", "byte", "hid", "ts",
-                    "dir", "gap", "fresh", "tp", "hp", "ptr"].iter().enumerate() {
+                    "dir", "gap", "fresh", "tp", "hp", "ptr", "f"].iter().enumerate() {
                     r.u(name, rec[k]);
                 }
             }
+            // Padding: a closed empty group (`f = 1`, `kind = 1`, `pos = 0`, `len = 0`), which is
+            // what `cLast`/`cLenEnds`/`cStartPos` accept.  `act = 0` keeps every interaction count 0.
             let hgt = (rg.rows.len() + 1).max(4).next_power_of_two();
             while rg.rows.len() < hgt {
-                rg.row().u("act", 0);
+                rg.row().u("act", 0).u("f", 1).u("kind", 1).u("pos", 0).u("len", 0).u("gap", 0);
             }
             tabs.insert("REG".into(), rg);
         }

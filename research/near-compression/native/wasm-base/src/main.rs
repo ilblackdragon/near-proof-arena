@@ -690,6 +690,37 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
                 })));
             }
         }
+        // ---- the group walk (`cF`..`cOnlyLenEnds`) ----
+        let (fcol, len, ts) = (col(tr, "f"), col(tr, "len"), col(tr, "ts"));
+        // a mid-group byte row is marked a group start: it is then followed by a byte row, so
+        // `cLastByte`/`cPosStep` fire (a group cannot restart in the middle of its bytes)
+        if let Some(&r) = active.iter().find(|&&r| is_byte(r) && g.mats[tr].values[r * w + pos] != F::ZERO) {
+            cases.push((format!("REG[row {r}].f=1 mid-group"), cell(tr, r, fcol, Box::new(|_| F::ONE))));
+        }
+        // the group's first byte moved off pos = 0: `cStartPos` fires
+        if let Some(r) = (0..nrows).find(|&r| g.mats[tr].values[r * w + fcol] == F::ONE && is_byte(r)) {
+            cases.push((format!("REG[row {r}].pos+1 on group start"), cell(tr, r, pos, plus1())));
+        }
+        // a length row's `f` set: `cLenEnds` fires (a length row ends its group)
+        if let Some(&r) = active.iter().find(|&&r| !is_byte(r) && g.mats[tr].values[r * w + fcol] == F::ZERO) {
+            cases.push((format!("REG[row {r}].f=1 on length row"), cell(tr, r, fcol, Box::new(|_| F::ONE))));
+        }
+        // a byte row's position skipped: `pos` +2 inside a group breaks `cPosStep`
+        if let Some(&r) = active.iter().find(|&&r| is_byte(r) && g.mats[tr].values[r * w + fcol] == F::ZERO) {
+            cases.push((format!("REG[row {r}].pos+2 mid-group"), cell(tr, r, pos, Box::new(|v| v + F::TWO))));
+        }
+        // `len` changed on a mid-group byte row: `cLenG` fires (the group's length is constant)
+        if let Some(&r) = active.iter().find(|&&r| is_byte(r) && g.mats[tr].values[r * w + fcol] == F::ZERO) {
+            cases.push((format!("REG[row {r}].len+1 mid-group"), cell(tr, r, len, plus1())));
+        }
+        // `rid` changed on a mid-group byte row: `cRidG` fires
+        if let Some(&r) = active.iter().find(|&&r| is_byte(r) && g.mats[tr].values[r * w + fcol] == F::ZERO) {
+            cases.push((format!("REG[row {r}].rid+1 mid-group"), cell(tr, r, rid, plus1())));
+        }
+        // `ts` changed on a mid-group byte row: `cTsG` fires
+        if let Some(&r) = active.iter().find(|&&r| is_byte(r) && g.mats[tr].values[r * w + fcol] == F::ZERO) {
+            cases.push((format!("REG[row {r}].ts+1 mid-group"), cell(tr, r, ts, plus1())));
+        }
     }
     // swap two ADD rows' timestamps (reorders execution)
     let ta = tb("ADD");

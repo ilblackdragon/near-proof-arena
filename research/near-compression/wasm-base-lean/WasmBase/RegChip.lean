@@ -89,9 +89,17 @@ def fresh : Nat := 11
 def tp : Nat := 12
 def hp : Nat := 13
 def ptr : Nat := 14
+/-- Group-break flag: `f = 1` on the first row of a register-access group.
+
+A **group** is one host call's contribution to the register wire: `len` byte rows
+(`kind = 0`, `pos = 0 … len−1`) followed by exactly one length row (`kind = 1`,
+`pos = 0`).  A length-only access (`register_len`) is a group with no byte rows.
+`f` is the same shape `HOSTB` already uses for its `(ts, dir)` groups; the constraints
+below turn it into the group walk that pins `pos` to exactly `0 … len−1`. -/
+def f : Nat := 15
 
 def cols : List String := ["act", "kind", "rd", "rid", "pos", "len", "byte", "hid", "ts", "dir",
-  "gap", "fresh", "tp", "hp", "ptr"]
+  "gap", "fresh", "tp", "hp", "ptr", "f"]
 
 /-- `1 − kind`: the byte rows. -/
 def isB : Expr := 1 - v kind
@@ -115,8 +123,70 @@ def cFreshFill : Expr := v act * fill * v fresh
 /-- `pos + gap + 1 = len` on an active byte row. -/
 def cPosLtLen : Expr := v act * isB * (v blen - v pos - 1 - v gap)
 
+/-! ### The group walk
+
+A register access is emitted as one **group**: `len` byte rows (`kind = 0`) with
+`pos = 0 … len−1`, then exactly one length row (`kind = 1`, `pos = 0`).  A length-only
+access (`register_len`) is a group that is a single length row.  `f = 1` marks a group start.
+
+The constraints below turn `f` into a real walk, which is what makes `Register.RegLenAgree`
+provable (it was stated-but-unproved before these existed):
+
+| name | expression | meaning |
+|---|---|---|
+| `cF` | `f·(f−1)` | `f` is a bit |
+| `cFirst` | `first·(1−f)` | row 0 starts a group |
+| `cLast` | `last·(1−f)` | the last row starts a group (cyclic `next` is safe) |
+| `cRidG` | `(1−nxt.f)·(nxt.rid − rid)` | a group keeps its register id |
+| `cTsG` | `(1−nxt.f)·(nxt.ts − ts)` | a group keeps its time |
+| `cLenG` | `(1−nxt.f)·(nxt.len − len)` | a group keeps its length |
+| `cRdG` | `(1−nxt.f)·(nxt.rd − rd)` | a group keeps its direction (fill vs read) |
+| `cPosStep` | `(1−nxt.f)·(1−nxt.kind)·(nxt.pos − pos − 1)` | consecutive byte rows step `pos` by one |
+| `cStartPos` | `f·(1−kind)·pos` | a group's first byte is at `pos = 0` |
+| `cLastByte` | `(1−nxt.f)·nxt.kind·(len − pos − 1)` | the row before a length row is byte `len−1` |
+| `cLenPos` | `kind·pos` | a length row has `pos = 0` |
+| `cLenEnds` | `kind·(1−nxt.f)` | a length row ends its group |
+| `cOnlyLenEnds` | `act·(1−kind)·nxt.f` | an active byte row is never followed by a group start |
+| `cByteAct` | `(1−kind)·(1−act)` | every byte row is active |
+
+`cFirst`/`cLast` are the endpoint pins (the table begins and ends at a group break, exactly as
+`HOSTB`).  The generator pads with `act = 0, f = 1, kind = 1` rows (a closed empty group), which
+satisfies every one of these constraints.
+
+**Why these give the walk.**  Inside a group `rid`, `ts`, `len`, `rd` are constant (`cRidG`–`cRdG`).
+A group's first byte is at `pos = 0` (`cStartPos`).  An active byte row is never followed by a
+group start (`cOnlyLenEnds`), so it is followed either by another byte row — which steps `pos` by
+one (`cPosStep`) — or by the group's length row, which forces `pos = len − 1` (`cLastByte`).  A
+length row terminates its group (`cLenEnds`), so the only way out of a group is through its length
+row.  `cPosLtLen` (`pos + gap + 1 = len`, `gap` R16-checked) bounds `pos < len` along the way.
+Hence the byte rows of a group are exactly `pos = 0 … len − 1`, once each, and the length row
+carries the same `len` — which is `Register.RegLenAgree`.
+
+Together `cStartPos`, `cPosStep`, `cLastByte`, `cOnlyLenEnds` and `cLenEnds` also force every group
+to *contain* a length row: a group with only byte rows could never be exited. -/
+def cF : Expr := bool (v f)
+def cFirst : Expr := .first * (1 - v f)
+def cLast : Expr := .last * (1 - v f)
+def cRidG : Expr := (1 - nv f) * (nv rid - v rid)
+def cTsG : Expr := (1 - nv f) * (nv ts - v ts)
+def cLenG : Expr := (1 - nv f) * (nv blen - v blen)
+def cRdG : Expr := (1 - nv f) * (nv rd - v rd)
+def cPosStep : Expr := (1 - nv f) * (1 - nv kind) * (nv pos - v pos - 1)
+def cStartPos : Expr := v f * (1 - v kind) * v pos
+def cLastByte : Expr := (1 - nv f) * nv kind * (v blen - v pos - 1)
+def cLenPos : Expr := v kind * v pos
+def cLenEnds : Expr := v kind * (1 - nv f)
+def cOnlyLenEnds : Expr := v act * (1 - v kind) * nv f
+/-- A byte row emits a message, so it is always active.  This is what makes the group's byte
+*messages* number exactly `len` (without it, an inactive byte row would hold a position in the
+`pos` walk without contributing a byte message).  Padding rows are length rows, so they are
+unaffected. -/
+def cByteAct : Expr := (1 - v kind) * (1 - v act)
+
 def constraints : List Expr :=
-  [cAct, cKind, cRd, cFresh, cDir, cDirRd, cFreshFill, cPosLtLen]
+  [cAct, cKind, cRd, cFresh, cDir, cDirRd, cFreshFill, cPosLtLen,
+   cF, cFirst, cLast, cRidG, cTsG, cLenG, cRdG, cPosStep, cStartPos, cLastByte,
+   cLenPos, cLenEnds, cOnlyLenEnds, cByteAct]
 
 /-- The space-6 byte slot: `rid · 2^24 + pos + 1` (`Register.byteSlot rid pos`). -/
 def byteSlotE : Expr := v rid * Expr.c Register.cap + v pos + 1
