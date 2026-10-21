@@ -406,7 +406,10 @@ pub fn eval_hash<AB: AirBuilder + InteractionBuilder>(
     builder.assert_zero(g(l.is_first * sq.clone()));
     // squeeze and PoW-run job ids are pinned (unique, disjoint from leaf / node / static ids):
     // without this a prover could give two jobs one id and mix their units / words (audit B5)
-    builder.assert_zero(g(l.is_first * l.ns));
+    // The squeeze counter starts at 0.  It is a GLOBAL counter across transcript chains (job ids
+    // stay global under the agg multi-chain transcript), so it is pinned at the first row, not at
+    // every chain start: a chain that begins after k squeezes legitimately starts at ns = k.
+    builder.when_first_row().assert_zero(g(l.ns.into()));
     builder.assert_zero(g(sq.clone() * (l.job - c(TJOB_SQUEEZE_BASE as u64) - l.ns)));
     let init = state_limbs(&initial_state());
     for i in 0..NV_DIGEST {

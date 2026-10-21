@@ -847,6 +847,22 @@ pub fn nv_trace(
     for x in samp {
         put(core::mem::offset_of!(NvCommon<u8>, ks), x);
     }
+    if let Ok(row) = std::env::var("NV_ROW_ROLE") {
+        if let Ok(r) = row.parse::<usize>() {
+            let (na_, nb_) = (na, na / 2);
+            let role = if r < na_ { "ALU"
+                } else if r < na_ + nb_ { "BIND"
+                } else if r < na_ + nb_ + glue.len() { "glue"
+                } else if r < na_ + nb_ + glue.len() + hash.len() { "hash"
+                } else { "sample" };
+            let idx = if r < na_ { r } else if r < na_ + nb_ { r - na_ }
+                else if r < na_ + nb_ + glue.len() { r - na_ - nb_ }
+                else if r < na_ + nb_ + glue.len() + hash.len() { r - na_ - nb_ - glue.len() }
+                else { r - na_ - nb_ - glue.len() - hash.len() };
+            let ins = if role == "ALU" { format!("{:?}", instrs.get(idx)) } else { String::new() };
+            eprintln!("NV_ROW_ROLE row={r} role={role} idx={idx} na={na_} nb={nb_} glue={} hash={} samp={} {ins}", glue.len(), hash.len(), samp.len());
+        }
+    }
     for r in 0..used {
         t[r * w + core::mem::offset_of!(NvCommon<u8>, y)] = F::from_usize(r);
     }
