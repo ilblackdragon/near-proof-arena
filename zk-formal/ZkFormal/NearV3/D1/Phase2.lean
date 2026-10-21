@@ -49,6 +49,7 @@ import ZkFormal.NearV3.D1.Link.MemChain
 import ZkFormal.NearV3.D1.Link.RcptChain
 import ZkFormal.NearV3.D1.W.All
 import ZkFormal.NearV3.D1.L.All
+import ZkFormal.NearV3.D1.F1.FactorSound
 
 /-!
 # `ZkFormal.NearV3.D1.Phase2` — the D1a phase-2 proof modules (build root)
