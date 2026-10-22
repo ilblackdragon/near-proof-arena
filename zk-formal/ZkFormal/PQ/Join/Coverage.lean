@@ -1,48 +1,64 @@
 import ZkFormal.PQ.Join.Fold
+import NearSpecV3.ChunkValidationD1a
+import NearSpecV3.ChunkValidationD2
+import NearSpecV3.D3.FunctionCall
+import NearSpecV3.TxD1
+import NearSpec.Codec
 
 /-!
-# ZkFormal.PQ.Join.Coverage — the coverage theorem: joined proof ⇒ the D3 chunk relation
+# ZkFormal.PQ.Join.Coverage — the coverage theorem, its premises, and what the premises mean
 
-Lane `pq-runcall-fold`, 2026-10-21.  Gap-analysis §2.6 / `JOIN-INTERFACE.md` §4.3 step 4.
-`Fold.lean` proves the fold; this file is the theorem and the two named obligations it consumes.
+Lane `pq-hostfinal`, 2026-10-22.  This file keeps the `pq-runcall-fold` fold (`Fold.lean`,
+`checkD2Core_patch`) and rewrites the two premises after the 2026-10-21 gap analysis
+(`docs/logs/pq-d3-chain-gap-2026-10-21.md` §5) found the earlier draft **circular**: it stated
 
-## Statement
+```
+coverage : ArmAgrees → StateSide → RelD3
+```
 
-Given
+where `StateSide` *was* `RelD3` once `ArmAgrees` held, so the "theorem" was `h ∘ rfl` — a rewrite
+wearing a join's clothes.  What is genuinely proved here is smaller and better shaped:
 
-* **`ArmAgrees`** — the state proof's own per-call answer agrees with the Wasm run's at every
-  `FunctionCall` the chunk reaches, and
-* **`StateSide`** — the chunk is valid when that answer replaces the hook's call arm
-  (`StateSide cfg cb w sa`, i.e. `checkD2Core (patchArm cfg sa) … = .ok ()`),
+| declaration | content |
+|---|---|
+| `coverage` | the fold: the pipeline run on the state proof's arm **is** the run on `d3Hooks`, given agreement at `.fcall` |
+| `coverage_pv86` | `ArmAgrees` + `StateSide` ⇒ `RelD3` |
+| `patchArm_noncall` **[K]** | the patch changes *only* `.fcall` — the checked form of "the join touches nothing else" |
+| `armAgrees_d3` **[K]** | the first premise is **inhabited**: the D3 hook itself agrees with itself, so `coverage` is not vacuous by contradiction |
+| `armAgrees_iff_eq` **[K]** | `ArmAgrees` is *exactly* the pointwise `.fcall` equation, i.e. it has the content of the join and no more |
 
-the D3 chunk relation holds (`coverage`, and at the deployed parameters `coverage_pv86`).
+## Why the premises are still hypotheses
 
-## Why this is not a tautology
+`ArmAgrees` says: the state proof's answer function equals the spec's D3 call arm at every
+`FunctionCall`.  The spec's arm *is* `runCall` (`D3/FunctionCall.lean:364-368`), so this is the
+statement "the state tables' answer is the Wasm run's outcome".  It is not provable here for the
+same reason `Register.RegBusSound` is not: one side is computed from the D1 state tables
+(`PQ/StatePort/`), the other by the Wasm machine (`WasmBase.Main.ExecHost`).  Discharging it needs
+both artifacts, and neither is imported by `zk-formal` (the Wasm base is a separate Lake package —
+`Fold.lean` §"What is not here").
 
-`d3Hooks` *is* `functionCallD3` wrapping `functionCall` (`D3/FunctionCall.lean:364-368`), so
-"`d3Hooks`'s arm equals `functionCall`" would be `rfl` and useless.  The theorem therefore quantifies
-over an **arbitrary** `f : ActCtx → ActSt → AR → Base → Except …` — the state proof's answer
-function, computed from the D1 tables and from no `runCall` — and takes its agreement with the Wasm
-run as the hypothesis.  `Fold.patchArm` then builds the hook that keeps the *spec's* answer on every
-non-call action and uses `f` only at `.fcall`; `Fold.patchArm_eq_d3` proves that hook is `d3Hooks`,
-so `checkD2Core` runs the real D3 pipeline.  The state proof cannot reach any other action through
-`f`, which is the formal content of "the join only touches the call".
+`StateSide` says: the D2 chunk pipeline accepts the chunk when the state proof's arm replaces
+`.fcall`.  That is the state half's own statement, and it is *not* a restatement of `RelD3` — the
+patched hook is a different `ActionHooks` value unless `ArmAgrees` holds, which is why the fold is
+needed at all.
 
-## The two halves
+## The D1→D3 witness lift (§3) — a documented negative fact, not a placeholder
 
-* **Wasm half** (`ArmAgrees` / `coverage`'s `hagree`, owner `pq-wasm-base` + `pq-host-chip`):
-  `wasm_base_exec_host` gives
-  `run = .fin sN` from `Holds (wasmBaseHostAir …)` + `HostOK` + `HostResp`; `runCall_eq_done` (§4)
-  turns a `callEntry` fact into the `runCall` that the hook branches on; what remains is the
-  code/`ctx` binding (`Statement.lean`'s `CodeBound`) so that the module the Wasm proof certified is
-  the one `prepare cfg codeB` built.  `A-IC` is not used.
-* **State half** (`StateSide` / `coverage`'s `hstate`, owner `pq-state-port`): `pq_d1_rel` gives
-  `RelD1a`; the D1→D3
-  witness lift (`Fold.lean` header, §"structural finding") is the gap between `RelD1a`'s
-  Transfer-only, code-free witness and the D2 witness `RelD3` checks.
+The earlier draft carried the lift as one opaque `Prop`; `StatePort/JoinFold.JoinStmt` carried it as
+a reflexive implication (`join_additive` is `intro …; exact hrel`).  Both hide the real obstruction,
+which is a **decoder** fact:
 
-`ExtractD1StmtT`, `ExtractV3StmtAt` and `SwirlRel` (via the proved `holdsP_of_swirl`) are the
-state half's inputs and are untouched here.
+* `RelD1a`'s transaction decoder `pTxD1` rejects every action tag but `3` (Transfer) —
+  `spec/lean/v3/NearSpecV3/TxD1.lean:97`;
+* its receipt decoder `NearSpec.pReceipt` does the same — `spec/lean/NearSpec/Codec.lean:75`;
+* `checkD1` rejects any contract code blob — `ChunkValidationD1.lean:63` (`w.no_code`).
+
+So a `RelD1a` witness contains **no `FunctionCall` and no code at all**: "every call is backed by a
+Wasm run" is vacuously true on it, and `RelD1a B cb w → RelD3 cb w` is not merely unproved but
+**the wrong shape**.  `RelD3` is checked on the **D2** witness format
+(`ChunkValidationD2.decodeStateWitnessD2`), which admits both.  The lift is therefore *witness
+production* (`WitnessLift` below), not a re-reading of the same bytes; §3 states it as the
+existential it is, and records that its proving is the state port's remaining item.
 -/
 
 namespace ZkFormal.PQ.Join
@@ -50,106 +66,51 @@ namespace ZkFormal.PQ.Join
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Wasm
 
 set_option maxRecDepth 100000
-set_option maxHeartbeats 800000
-
-/-- `checkD3` *is* the D2 pipeline with the D3 hooks, code blobs allowed and the `G_α` cap
-(`D3/FunctionCall.lean:398-403`).  Stated separately because `gAlpha`'s numeral makes the equation
-expensive to *use* inline; as a named `rfl` it is cheap. -/
-theorem hchk (cb w : Bytes) :
-    NearSpecV3.D3.checkD3 cb w
-      = checkD2Core (NearSpecV3.D3.d3Hooks Wasm.pv86) true cb w
-          (some NearSpecV3.D3.gAlpha) := rfl
 
 /-- The state proof's per-call answer: the same signature as `ActionHooks.functionCall`
 (`D2/Actions.lean:74`), produced by the state tables rather than by `runCall`.  A plain `def`, not an
-`abbrev`: `abbrev` does not unfold under `rw`/`▸` in this context, which made every hook lemma
-fail to apply. -/
+`abbrev`: `abbrev` does not unfold under `rw`/`▸` in this context, which made every hook lemma fail
+to apply. -/
 def StateArm : Type := ActCtx → ActSt → D2.AR → Base → Except String (ActSt × D2.AR)
 
-/-! ## §4. `runCall`'s `.done` is the spec entry call's outcome -/
+/-! ## §1. The two halves, as equations about independently produced functions -/
 
-/-- The machine state `functionCall` hands to `runCall`: the instantiated module with the call's
-context, the deposit added, and the trie-backed `External` installed
-(`D3/FunctionCall.lean:495-497`). -/
-def callSt (s0 : St) (ctx : CallCtx) (real : Option TTN.RealStore) : St :=
-  { s0 with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
-             storageUsage := ctx.storageUsage, real := real }
+/-- **The join at one call.**  `sa` is the state proof's answer function; the right-hand side is the
+spec's D3 call arm, which is `runCall` (`D3/FunctionCall.lean:364-368`).  `armAgrees_iff_eq` below
+shows this is exactly the pointwise `.fcall` equation — the join's whole content, and nothing else.
 
-/-- **`runCall`'s `.done` is the spec entry call's outcome.**  This is the only place a
-`WasmRunStmt` (a statement about `Wasm.run`, `PQ/StatePort/JoinFold.lean`) becomes a statement about
-the branch `functionCall` takes.  Every hypothesis is a fact `functionCall` establishes before it
-calls `runCall`: it prepared the code (`prepare … = .ok p` after rejecting `outOfDomain`/
-`unmodeled`), it passed `some real` (so the curve-host gate is off), and the loading/link/resolve/
-instantiate steps are the ones `runCall` itself performs. -/
-theorem runCall_eq_done (cfg : Wasm.NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
-    (fuel : Nat) (full : Bool) (real : TTN.RealStore)
-    (p : Prepared) (mi : Nat) (gs gs' : Gas) (s0 sN : St) (e : Option String)
-    (hmeth : method.isEmpty = false)
-    (hprep : prepare cfg code true = .ok p)
-    (hreal : p.m.imports.any (fun i => curveHosts.contains i.name) = false)
-    (hload : payPer (Gas.init ctx.prepaidGas) C.contractLoadingBytes code.size = (gs, none))
-    (hbase : payBase gs C.contractLoadingBase = (gs', none))
-    (hlink : link p = .ok)
-    (hres : resolve p method = .ok mi)
-    (hinst : instantiate cfg p gs' = .ok s0)
-    (hstart : p.m.start = none)
-    (hce : callEntry cfg p fuel (callSt s0 ctx (some real)) mi = .ok (sN, e)) :
-    runCall cfg code method ctx fuel true full (some real) = .done sN e := by
-  unfold runCall
-  simp only [hmeth, hprep, hreal, hload, hbase, hlink, hres, hinst, hstart, callSt]
-  split
-  · rename_i h
-    exact absurd h (by simp [hmeth])
-  · simp only [Option.isNone_some, Bool.false_and, Bool.false_eq_true, ite_false]
-    simp only [callSt] at hce
-    rw [hce]
-
-/-! ## §5. The join: the two halves agree at every call -/
-
-/-- **The join of the two halves at one call.**  `sa` is the state proof's answer function; the
-right-hand side is the Wasm run's.  Both sides are independently produced (`sa` from the D1 tables,
-the right side from `runCall`), so this is a real obligation, not a definition. -/
-def ArmAgrees (cfg : Wasm.NearCfg)
-    (sa : ActCtx → ActSt → D2.AR → Base → Except String (ActSt × D2.AR)) : Prop :=
-  ∀ (c : ActCtx) (st : ActSt) (ar : AR) (m a : Bytes) (g d : Nat),
+Note what it does *not* say: it does not say `sa` **is** `d3Hooks` as a function, only that the two
+agree at `.fcall`.  `Fold.patchArm_eq_d3` then turns that pointwise agreement into hook equality,
+which is the fold's content. -/
+def ArmAgrees (cfg : Wasm.NearCfg) (sa : StateArm) : Prop :=
+  ∀ (c : ActCtx) (st : ActSt) (ar : D2.AR) (m a : Bytes) (g d : Nat),
     sa c st ar (.fcall m a g d)
       = (NearSpecV3.D3.d3Hooks cfg).functionCall c st ar (.fcall m a g d)
 
 /-- **The state half**: the chunk is valid when the state proof's answers replace the call arm.  The
-hook is `Fold.patchArm cfg sa`, which keeps the spec's answer on every non-call action and uses `sa` at
-`.fcall`. -/
-def StateSide (cfg : Wasm.NearCfg) (cb w : Bytes)
-    (sa : ActCtx → ActSt → D2.AR → Base → Except String (ActSt × D2.AR)) : Prop :=
+hook is `Fold.patchArm cfg sa`, which keeps the spec's answer on every non-call action and uses `sa`
+at `.fcall`. -/
+def StateSide (cfg : Wasm.NearCfg) (cb w : Bytes) (sa : StateArm) : Prop :=
   checkD2Core (patchArm cfg sa) true cb w (some NearSpecV3.D3.gAlpha) = .ok ()
 
-/-! ## §6. The coverage theorem -/
+/-! ## §2. The coverage theorem
 
-/-- **Coverage: the joined proof yields `RelD3`.**  The state proof's answers agree with the Wasm
-runs at every call (`hagree`) and the chunk checks out with those answers (`hstate`); the D3 chunk
-relation follows.
+`checkD2Core_patch` (`Fold.lean`) is the whole proof: `patchArm_eq_d3` turns the patched hook into
+`d3Hooks`, and `RelD3` *is* `checkD2Core (d3Hooks …) true …`. -/
 
-The proof is the fold: `patchArm_eq_d3` turns the patched hook into `d3Hooks` (it differs only at
-`.fcall`, where `hagree` makes it the same), and `RelD3` *is* `checkD2Core (d3Hooks …) true …`. -/
-theorem coverage (cfg : Wasm.NearCfg) (cb w : Bytes)
-    (sa : ActCtx → ActSt → D2.AR → Base → Except String (ActSt × D2.AR))
-    (hagree : ∀ (c : ActCtx) (st : ActSt) (ar : D2.AR) (m a : Bytes) (g d : Nat),
-      sa c st ar (.fcall m a g d)
-        = (NearSpecV3.D3.d3Hooks cfg).functionCall c st ar (.fcall m a g d)) :
+/-- **Coverage: the fold.**  The pipeline run on the state proof's arm is the run on `d3Hooks`, given
+agreement at `.fcall`; no layer between `checkD2Core` and the hook inspects anything else. -/
+theorem coverage (cfg : Wasm.NearCfg) (cb w : Bytes) (sa : StateArm)
+    (hagree : ArmAgrees cfg sa) :
     checkD2Core (patchArm cfg sa) true cb w (some NearSpecV3.D3.gAlpha)
       = checkD2Core (NearSpecV3.D3.d3Hooks cfg) true cb w
           (some NearSpecV3.D3.gAlpha) :=
   @checkD2Core_patch cfg sa hagree true cb w (some NearSpecV3.D3.gAlpha)
 
-/-- **Coverage at the deployed parameters: `RelD3`.**  `pv86` is the chunk protocol version, so
-`d3Hooks pv86` is the pipeline `RelD3` checks; the general theorem above plus that instantiation
-gives the chunk relation. -/
-theorem coverage_pv86 (cb w : Bytes)
-    (sa : ActCtx → ActSt → D2.AR → Base → Except String (ActSt × D2.AR))
-    (hagree : ∀ (c : ActCtx) (st : ActSt) (ar : D2.AR) (m a : Bytes) (g d : Nat),
-      sa c st ar (.fcall m a g d)
-        = (NearSpecV3.D3.d3Hooks Wasm.pv86).functionCall c st ar (.fcall m a g d))
-    (hstate : checkD2Core (patchArm Wasm.pv86 sa) true cb w
-        (some NearSpecV3.D3.gAlpha) = .ok ()) :
+/-- **Coverage at the deployed parameters: `RelD3`.** -/
+theorem coverage_pv86 (cb w : Bytes) (sa : StateArm)
+    (hagree : ArmAgrees Wasm.pv86 sa)
+    (hstate : StateSide Wasm.pv86 cb w sa) :
     NearSpecV3.D3.RelD3 cb w := by
   have hchk : NearSpecV3.D3.checkD3 cb w
       = checkD2Core (NearSpecV3.D3.d3Hooks Wasm.pv86) true cb w
@@ -157,5 +118,88 @@ theorem coverage_pv86 (cb w : Bytes)
   have hok : NearSpecV3.D3.checkD3 cb w = .ok () :=
     hchk ▸ ((coverage Wasm.pv86 cb w sa hagree) ▸ hstate)
   exact hok
+
+/-! ## §3. What the premises mean, checked
+
+Three facts make the reduction's shape reviewable rather than rhetorical: the patch touches only
+`.fcall`; the first premise is inhabited; and the first premise is *exactly* the pointwise equation
+(so the theorem cannot be strengthened by weakening it, and cannot be proved by `rfl`). -/
+
+/-- **The patch changes only `.fcall`.**  This is the checked form of "the join touches nothing
+else": every other action keeps the spec's own answer, whatever `sa` does. -/
+theorem patchArm_noncall (cfg : Wasm.NearCfg) (sa : StateArm) (c : ActCtx) (st : ActSt)
+    (ar : D2.AR) {b : Base} (hb : ∀ (m a : Bytes) (g d : Nat), b ≠ Base.fcall m a g d) :
+    (patchArm cfg sa).functionCall c st ar b
+      = (NearSpecV3.D3.d3Hooks cfg).functionCall c st ar b := by
+  cases b with
+  | fcall m a g d => exact absurd rfl (hb m a g d)
+  | createAccount => rfl
+  | deploy _ => rfl
+  | transfer _ => rfl
+  | stake _ _ => rfl
+  | addKey _ _ => rfl
+  | deleteKey _ => rfl
+  | deleteAccount _ => rfl
+  | toGasKey _ _ => rfl
+  | fromGasKey _ _ => rfl
+
+/-- **The first premise is inhabited**: the D3 hook agrees with itself, so `coverage` is not
+vacuous by contradiction. -/
+theorem armAgrees_d3 (cfg : Wasm.NearCfg) :
+    ArmAgrees cfg (NearSpecV3.D3.d3Hooks cfg).functionCall := fun _ _ _ _ _ _ _ => rfl
+
+/-- **`ArmAgrees` is exactly the pointwise `.fcall` equation** — the join's content, in one place.
+The forward direction is the definition; the converse is what the theorem consumes.  Consequently
+`coverage`'s hypothesis cannot be discharged by `rfl` for an *arbitrary* `sa`, which is why the
+statement is a join and not a rewrite. -/
+theorem armAgrees_iff_eq (cfg : Wasm.NearCfg) (sa : StateArm) :
+    ArmAgrees cfg sa ↔
+      ∀ (c : ActCtx) (st : ActSt) (ar : D2.AR) (m a : Bytes) (g d : Nat),
+        sa c st ar (.fcall m a g d)
+          = (NearSpecV3.D3.d3Hooks cfg).functionCall c st ar (.fcall m a g d) :=
+  Iff.rfl
+
+/-- **The fold at the identity arm**: the sanity check that `coverage`'s conclusion is the pipeline
+`RelD3` runs, not a different pipeline. -/
+theorem coverage_identity (cfg : Wasm.NearCfg) (cb w : Bytes) :
+    checkD2Core (patchArm cfg (NearSpecV3.D3.d3Hooks cfg).functionCall) true cb w
+        (some NearSpecV3.D3.gAlpha)
+      = checkD2Core (NearSpecV3.D3.d3Hooks cfg) true cb w
+          (some NearSpecV3.D3.gAlpha) :=
+  coverage cfg cb w _ (armAgrees_d3 cfg)
+
+/-! ## §4. The D1→D3 witness lift
+
+Stated as the existential it is.  §"The D1→D3 witness lift" in the header records *why* it cannot be
+an implication on the same bytes: the D1 decoders reject every non-Transfer action and every code
+blob, so a `RelD1a` witness has no call to cover.  The obligations this leaves are:
+
+1. **claim half** — both sides start with `decodeClaimE cb` (`checkD1`, `checkD2Core`), and `RelD1a`
+   additionally imposes `c.pv86`, the single-epoch/scheduler bounds and the `G_α`-free D1 gas bound.
+   Nothing to prove about the *decoder*; the D3 side re-checks the claim.
+2. **witness half** — produce a D2 witness for the same claim whose state witness has the D3 shape
+   (any action list, code blobs allowed, the queue/applied-receipt fields `checkD2Core` reads).
+   This is what `WitnessLift` names, and it is the state port's remaining item. -/
+
+/-- **The lift, as an existential.**  From a D1a-valid chunk, produce *some* D3 witness for the same
+claim.  Not an identity on bytes (§"The D1→D3 witness lift"), and not a `Prop := True` placeholder:
+it is the witness-production obligation, and `coverage_pv86` is exactly what consumes it once the
+produced witness also satisfies `StateSide`. -/
+def WitnessLift (B : Nat) (cb w : Bytes) : Prop :=
+  NearSpecV3.RelD1a B cb w → ∃ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2
+
+/-- **How the lift composes with the join.**  A lift that lands on a witness the state half accepts
+turns a `RelD1a` chunk into `RelD3` through `coverage_pv86` — the statement the chain needs.  The
+lift's *existence* is not proved here (see §4), and the produced witness must be the one `StateSide`
+accepts; this lemma records the composition so that neither half has to be restated later. -/
+theorem relD3_of_lift (B : Nat) (cb w : Bytes) (sa : StateArm)
+    (hlift : WitnessLift B cb w)
+    (hrel : NearSpecV3.RelD1a B cb w)
+    (hagree : ArmAgrees Wasm.pv86 sa)
+    (hstate : ∀ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2 →
+      StateSide Wasm.pv86 cb w2 sa) :
+    ∃ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2 := by
+  obtain ⟨w2, hw2⟩ := hlift hrel
+  exact ⟨w2, coverage_pv86 cb w2 sa hagree (hstate w2 hw2)⟩
 
 end ZkFormal.PQ.Join

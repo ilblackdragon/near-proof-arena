@@ -90,3 +90,205 @@ envelope theorem was blocked on `BField` having a verbatim case.
   `encReceipt_eq_encode` closes the rows → spec-encoder direction.
 * `RIDS`/`SRC`/`RCL` + the `newReceipts` fold — the SHA/multiset half, untouched by this lane
   (and per README §3.3 it is the 69 % of the cost, not the encoder).
+
+---
+
+## 2. RIPEMD-160 — the row is defined and differentially tested; the cost is 14× the README's estimate
+
+### 2.1 What landed
+
+`research/near-compression/wasm-base-lean/WasmBase/RipemdAir.lean` (735 lines, namespace
+`WasmBase.Chips.Ripemd`):
+
+| group | columns | meaning |
+|---|---:|---|
+| `L` | 160 | left working words `al bl cl dl el` (word `w`, bit `k` at `32w+k`) |
+| `R` | 160 | right working words `ar br cr dr er` |
+| `X` | 512 | the block's 16 message words |
+| `fL`/`fR` | 64 | the `f` value of each line |
+| `xL`/`xR` | 64 | the selected message word `x[rl[j]]` / `x[rr[j]]` |
+| `t` | 256 | four chained sums per line (`t1 = al+fL`, `t2 = t1+xL`, `t3 = t2+kL`, `tf = rot+el`) |
+| `rot` | 64 | `rotl32 t3 sl[j]` (left), `rotl32 t6 sr[j]` (right) |
+| `cy` | 248 | one carry per binary addition, 31 each (bit 31's carry dropped: mod 2^32) |
+| `sel` | 80 | one-hot step selector |
+
+`ncols = 1608`, `constraints.length = 2625`, `inters = []`, max degree **4**. Families and their
+lengths (`constraints_len` is a kernel `decide`):
+
+| family | len | degree |
+|---|---:|---|
+| `boolConstraints` | 1,608 | 2 |
+| `selConstraints` (one-hot) | 1 | 2 |
+| `fConstraints` (group-gated `f`, both lines) | 64 | 4 |
+| `xselConstraints` (selector-gated message word) | 64 | 2 |
+| `rotConstraints` (selector-gated rotation) | 64 | 2 |
+| `adderConstraints` (8 additions x 63) | 504 | 3 |
+| `shiftConstraints` (ungated `nxt` wiring) | 320 | 2 |
+
+Design choices, each a fork in the road:
+
+* **Both lines in one row.** The spec runs the left and right lines in lockstep
+  (`Crypto.lean:129-133`), so one row is step `j in [0,80)` of *both*. No second table, no cross-table
+  bus.
+* **Rotation as a selector-gated index map, not a barrel shifter.** Each step's offset `sl[j]`/`sr[j]`
+  is a constant from the spec's own array, so `rot_k = t3[(k + 32 - sl[j]) mod 32]` is a column index
+  under a selector gate. A barrel shifter would cost ~5x32 selector bits and degree-2 products per
+  bit; this costs 64 constraints total.
+* **The right line's group is `4 - g`.** `rf (79-j)` walks the five forms in reverse, so the same
+  `formBit` builder serves both lines with the group argument flipped — one definition, not two.
+* **`majE` needs the triple-product correction.** `a*b + a*c + b*c` is **3**, not 1, when all three
+  bits are set, so it is not a carry. `majE := a*b + a*c + b*c - 2*a*b*c` is; `majE_is_carry` proves
+  the eight-case identity and `majE_discriminates` shows the uncorrected form fails at `(1,1,1)`.
+  A real bug the differential test caught, not review.
+
+`WasmBase/RipemdVectors.lean` (333 lines) is the compiled differential test. `genRow` fills every
+column **from the step's own equations** (nothing copied from the constraint list); `nxtState` defines
+the next state **by the shift equations alone**, so the traced state is read out of the AIR's columns;
+`rowOk` evaluates all 2,625 constraints in `Fp`; `tampers` flips one constrained column and requires
+failure; `airDigest` runs 80 rows per block through `nxtState` plus the spec's feed-forward and compares
+against `NearSpecV3.Wasm.Crypto.ripemd160` and the published `RIPEMD-160("")` KAT.
+
+Build output — and a mismatch **fails the build**, it does not print:
+
+```
+RipemdVectors: 320 rows satisfy all 2625 constraints, 17 tampers rejected,
+  13 digests == spec, 2 message-columns confirmed free (named gap), RIPEMD-160 KATs ok
+```
+
+`#print axioms` on `constraints_le`, `constraints_len`, `shiftConstraints_le`, `formBit_le`,
+`formBit_is_spec`, `adderConstraints_le`: `[propext, Quot.sound]` only — no `sorryAx`, no
+`native_decide`, no `implemented_by`, and no `Classical.choice` on this side. Both files are reachable
+from the `WasmBase` root and both `.olean`s exist, so the 2026-10-21 root-import trap does not apply.
+
+### 2.2 The cost finding — this changes `pq-hash-air/README.md` §3.6's row
+
+The README estimated `ripemd160` at **≈9-11 k cells/block**, and "~2-3 weeks, same shape as SHA-256".
+That estimate assumed a *limb* layout like SHA-256's. The row as built is **bit-sliced, one step per
+row**, and costs
+
+```
+1,608 columns x 80 rows = 128,640 committed cells per block
+```
+
+i.e. **13.8x SHA-256's 9,333** and ~12-14x the README's own figure. The reason is structural, not a
+coding mistake: bit-slicing buys degree-4 polynomials and selector-gated index maps and pays in
+columns — 832 of the 1,608 are just the 26 words (10 state + 16 message) at 32 bits each. A limb layout
+would cut those to ~52 columns but reintroduce 16-bit limb additions with per-limb carries and a
+bit-extraction gadget for every rotation.
+
+So "≈9-11 k/B" is **not achievable by this design**, and the "2-3 weeks" sizing was written for the limb
+design. The honest position: the bit-sliced row is **done and tested**, it is **14x the assumed cost**,
+and whether that is acceptable depends on the `G_alpha` budget — a decision for the D3alpha cost review,
+not for this lane. Both numbers are now measured rather than estimated.
+
+### 2.3 What is stated, not proved (the gaps, named in the file)
+
+* **No round-agreement lemma (the `M3` analogue).** Nothing proves a satisfying row *implies* the
+  spec's step function; the vectors are a compiled test, not a theorem — the same gap `KeccakAir` and
+  `ShaAir` carry. Needs the `Holds`->`eval` bridge per family.
+* **The message-word binding.** `X` columns are free row inputs: the only link from the block to the
+  row is `xselConstr`, which reads just the selected word. So the AIR proves "the digest follows from
+  the message columns", not "the message columns are the padded block". That half is the
+  `HOSTB -> MEMIO` binding (`inters = []`), the obligation `Sha.HashInputLink` names. The test
+  *asserts* that two unselected columns stay free (`freeInputsStillOk`), so the gap is visible instead
+  of silently absent — a fake tamper there would have been a lie.
+* **No digest bus.** With `inters = []` the row cannot be consumed by a host call's proof yet. SHA-256
+  has `busHashCall`/`busHashDigest`; RIPEMD's absorb/pad/digest boundary rows and bus are not here.
+  This is row *arithmetic* only.
+* **The feed-forward lives in the vectors, not the AIR.** `feedForward` (`Crypto.lean:134-135`) is
+  applied by the generator between blocks; there is no feed-forward row family. A joined proof needs
+  that row.
+
+### 2.4 The bugs the test found (recorded because that is the point of the test)
+
+Multi-block chaining first restarted only the *left* line and zeroed the right line's five words, so
+every message of length >= 56 bytes — i.e. two or more blocks, since `len >= 56` forces a padding block —
+produced a wrong digest; 8 of 13 digests failed before the fix. The bit-sliced `majE` triple product was
+the second. Neither was visible in the constraint list: both surfaced only by running the digest against
+the spec's own `ripemd160`. That is the argument for keeping the compiled differential test as a build
+gate rather than a print.
+
+---
+
+## 3. The coverage side — premises rewritten so they are about separate artifacts
+
+### 3.1 Why the earlier draft had to go
+
+The 2026-10-21 gap analysis (`pq-d3-chain-gap-2026-10-21.md` §5) found `coverage : ArmAgrees ->
+StateSide -> RelD3` **circular**: `StateSide` was, once `ArmAgrees` held, just `RelD3` again, so the
+"theorem" was a rewrite wearing a join's clothes. That is fixed in
+`zk-formal/ZkFormal/PQ/Join/Coverage.lean` (205 lines, rewritten; `Fold.lean` untouched).
+
+### 3.2 What is actually proved now
+
+| declaration | content | axioms |
+|---|---|---|
+| `coverage` | the fold: the pipeline run on the state proof's arm **is** the run on `d3Hooks`, given agreement at `.fcall` | `[propext, Classical.choice, Quot.sound]` |
+| `coverage_pv86` | `ArmAgrees` + `StateSide` => `RelD3` at the deployed parameters | same |
+| `patchArm_noncall` | the patch changes *only* `.fcall` — the checked form of "the join touches nothing else" | same |
+| `armAgrees_d3` | the first premise is **inhabited**: the D3 hook agrees with itself, so `coverage` is not vacuous by contradiction | same |
+| `armAgrees_iff_eq` | `ArmAgrees` is *exactly* the pointwise `.fcall` equation — the join's content and no more | same |
+| `coverage_identity` | at the identity arm the patched pipeline *is* the `RelD3` pipeline | same |
+| `relD3_of_lift` | how the witness lift composes into the join | same |
+
+The two premises now name *different artifacts*:
+
+* **`ArmAgrees cfg sa`** — the state proof's answer function `sa : ActCtx -> ActSt -> AR -> Base ->
+  Except ...` agrees with the spec's D3 call arm at every `FunctionCall`. Since that arm *is* `runCall`
+  (`D3/FunctionCall.lean:364-368`), this says "the state tables' answer is the Wasm run's outcome". One
+  side is computed from the D1 state tables (`PQ/StatePort/`), the other by the Wasm machine
+  (`WasmBase.Main.ExecHost`); neither is imported by `zk-formal` (the Wasm base is a separate Lake
+  package). That is why it stays a hypothesis — the same reason `Register.RegBusSound` is one.
+* **`StateSide cfg cb w sa`** — the D2 chunk pipeline *accepts* the chunk when `sa` replaces `.fcall`.
+  This is the state half's own statement and is **not** a restatement of `RelD3`: the patched hook is a
+  different `ActionHooks` value unless `ArmAgrees` holds, which is exactly why the fold is needed.
+
+`armAgrees_iff_eq` matters for review: it shows the hypothesis cannot be strengthened or weakened, and
+`armAgrees_d3` shows it is satisfiable — so the reduction is neither vacuous nor a tautology.
+
+### 3.3 The D1->D3 witness lift — a documented negative fact, not a placeholder
+
+The lift is now stated as the existential it is (`WitnessLift B cb w := RelD1a B cb w -> exists w2,
+RelD3 cb w2`), and the header records *why* it cannot be an implication on the same bytes:
+
+* `RelD1a`'s transaction decoder `pTxD1` rejects every action tag but `3` (Transfer) —
+  `spec/lean/v3/NearSpecV3/TxD1.lean:97`;
+* its receipt decoder `NearSpec.pReceipt` does the same — `spec/lean/NearSpec/Codec.lean:75`;
+* `checkD1` rejects any contract code blob — `ChunkValidationD1.lean:63` (`w.no_code`).
+
+So a `RelD1a` witness contains **no `FunctionCall` and no code at all**: "every call is backed by a Wasm
+run" is *vacuously* true on it, and `RelD1a B cb w -> RelD3 cb w` is not merely unproved but the **wrong
+shape**. `RelD3` is checked on the **D2** witness format (`ChunkValidationD2.decodeStateWitnessD2`), which
+admits both. The lift is therefore *witness production*, not a re-reading of the same bytes, and it is
+the state port's remaining item. `relD3_of_lift` records the composition so neither half has to be
+restated later — and note its `hstate` premise: the produced witness must be one `StateSide` accepts.
+
+### 3.4 Verification
+
+`lake build ZkFormal.PQ.Join.Coverage` and the full `lake build` are green (764 jobs); the seven
+declarations above are in the axiom audit above. `Coverage.lean` is still **modified, not committed**
+(see §4), so the numbers in this section are from the working tree.
+
+---
+
+## 4. Lane state at handover
+
+Committed: `bdf80d018` — the eleven `promise_*` encodings (§1).
+
+Uncommitted in `/data/illia/nearproof-wt/pq-hostfinal`:
+
+| path | state |
+|---|---|
+| `research/near-compression/wasm-base-lean/WasmBase/RipemdAir.lean` | new, untracked, builds clean |
+| `research/near-compression/wasm-base-lean/WasmBase/RipemdVectors.lean` | new, untracked, builds clean, build-gate passes |
+| `research/near-compression/wasm-base-lean/WasmBase.lean` | modified: two root imports appended |
+| `zk-formal/ZkFormal/PQ/Join/Coverage.lean` | modified, builds clean |
+| `research/near-compression/native/wasm-base/target/release/**` | Rust build-artifact churn from the KAT run; not a source change |
+
+The KAT harness was rebuilt on both sides and re-run (`run_kat.sh`, 8 progs x 64): **97 passed, 0
+failed** (python ref = Lean spec = Rust trace + AIR pre-check). That is the "existing behaviour did not
+move" check for this lane, since none of §2/§3 touches the host-function tables.
+
+Next steps, in order: (1) commit §2 and §3; (2) the round-agreement lemma for the RIPEMD row (`M3`
+analogue); (3) the feed-forward row family and the digest bus, so the row can be consumed by a host
+call; (4) `ArmAgrees` and the witness lift remain the state port's items.

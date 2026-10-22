@@ -64,3 +64,5 @@ import WasmBase.ChiVectors
 import WasmBase.KeccakAir
 import WasmBase.KeccakSteps
 import WasmBase.KeccakVectors
+import WasmBase.RipemdAir
+import WasmBase.RipemdVectors
