@@ -16,6 +16,8 @@ pub const OP_JUMP: u64 = 0x102;
 pub const OP_JIF: u64 = 0x103;
 pub const OP_HALT: u64 = 0x104;
 pub const OP_HIF: u64 = 0x105;
+/// `Chips.IfC.opIf`: the `if` row (falls through on non-zero, jumps on zero).
+pub const OP_IF: u64 = 0x106;
 
 /// The HOST argument window (`Chips.Host.nArgs`): every D3α host function has `np ≤ 9`.
 pub const HOST_NARGS: u64 = 9;
@@ -388,6 +390,10 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut cnst = Tab::new(t("CONST"));
     let mut stk = Tab::new(t("STACK"));
     let mut ctrl = Tab::new(t("CTRL"));
+    // `IF` is only in the `if` AIRs (`wasmBaseIfAir` / `wasmBaseIfHostAir`), so the base and host
+    // paths are byte-identical to before.
+    let has_if = air.tables.iter().any(|x| x.name == "IF");
+    let mut ift = if has_if { Some(Tab::new(&air.tables[air.index("IF")])) } else { None };
     let mut loc = Tab::new(t("LOCAL"));
     let mut div = Tab::new(t("DIV"));
     let mut ld = Tab::new(t("LOAD"));
@@ -1094,6 +1100,24 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                     }
                 }
             }
+            OP_IF if has_if => {
+                // `if`: pop the condition, push the `end` label (the checker's business), and select
+                // the successor.  `tgt` is `elseOf + 1` — which equals `endOf + 1` when there is no
+                // `else`, so one column covers both shapes.
+                let tgt = rec[4];
+                let c = stack.pop().unwrap();
+                assert_eq!(c.tag, 0, "`if` condition is i32");
+                let mut r = ift.as_mut().unwrap().row();
+                hdr(&mut r);
+                let cl = limbs(c.val);
+                let cz = cl[0] + cl[1];
+                let hc = st.tchk(ts, c.tp);
+                r.u("f_if", 1).u("tgt", tgt);
+                r.u("c0", cl[0]).u("c1", cl[1]).u("tc", c.tp).u("hc", hc);
+                r.s("inv", if cz == 0 { F::ZERO } else { fe(cz).inverse() });
+                // the polarity: non-zero falls through, zero jumps
+                next = if c.val != 0 { pc + 1 } else { tgt };
+            }
             OP_NEXT | OP_JUMP | OP_JIF | OP_HALT | OP_HIF => {
                 let tgt = rec[4];
                 let mut r = ctrl.row();
@@ -1503,6 +1527,15 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     for tb in [bnd, add, bit, mul, shift, cmp, cnst, stk, ctrl, loc, div, ld, sto, call, ret, rng, byt, code, drn, mi,
         dat, fun] {
         tabs.insert(tb.spec.name.clone(), tb);
+    }
+    // `IF` only when the AIR has it; padded by inactive rows so `first`/`last` never land mid-row
+    // and the selector constraint `f_if · (f_if − 1) = 0` holds on the padding.
+    if let Some(mut ift) = ift {
+        let hgt = (ift.rows.len() + 1).max(4).next_power_of_two();
+        while ift.rows.len() < hgt {
+            ift.row().u("f_if", 0);
+        }
+        tabs.insert("IF".into(), ift);
     }
     if let (Some(h), Some(o), Some(ht), Some(hb)) = (host, hosto, hostt, hostb) {
         // HOSTT: the fixed host table as a cached trace, multiplicities = calls per host id

@@ -528,4 +528,18 @@ def wasmBaseHostAir (nloc ngl : Nat) : Air :=
       [Chips.Host.table, Chips.HostO.table, Chips.HostTab.table, Chips.HostB.table]
     numPub := (wasmBaseAir nloc ngl).numPub }
 
+/-- The base AIR **with `if`**: the 22 base tables plus the `IF` table (22).  A separate AIR rather
+than an extra table in `wasmBaseAir`, for the same reason `ChiAir`/`ShaAir` are exported separately:
+every existing proof, table index and cached export keeps its meaning, so nothing has to be re-proved.
+The host AIR keeps its own indices too. -/
+def wasmBaseIfAir (nloc ngl : Nat) : Air :=
+  { tables := (wasmBaseAir nloc ngl).tables ++ [Chips.IfC.table]
+    numPub := (wasmBaseAir nloc ngl).numPub }
+
+/-- The host AIR **with `if`**: `wasmBaseHostAir` plus `IF` at index 26.  Host proofs keep their
+table 22–25 indices unchanged. -/
+def wasmBaseIfHostAir (nloc ngl : Nat) : Air :=
+  { tables := (wasmBaseHostAir nloc ngl).tables ++ [Chips.IfC.table]
+    numPub := (wasmBaseHostAir nloc ngl).numPub }
+
 end WasmBase

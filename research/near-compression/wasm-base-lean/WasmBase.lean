@@ -8,6 +8,7 @@ import WasmBase.StepOps
 import WasmBase.StepOps2
 import WasmBase.StepCtrl
 import WasmBase.StepIf
+import WasmBase.IfCheck
 import WasmBase.Bus
 import WasmBase.Chain
 import WasmBase.Channel

@@ -2,6 +2,7 @@ import WasmBase.Check
 import WasmBase.HostChip
 import WasmBase.RegChip
 import WasmBase.HostCheck
+import WasmBase.IfCheck
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 /-!
@@ -224,6 +225,56 @@ def prep (path exportName : String) (g0 : Nat) (inputHex : String := "") : IO Un
   | .outOfDomain w => IO.println s!"\{\"eligible\":false,\"prepare\":{jStr w}}"
   | .unmodeled w => IO.println s!"\{\"eligible\":false,\"prepare\":{jStr w}}"
 
+/-- `if`-aware eligibility **and run**: identical to `prep` except the checker is `checkModuleIfH`,
+so a module whose only blocker is `if`/`else` is accepted.  The emitted JSON has the same fields as
+`prep`, so the Rust trace generator consumes it unchanged. -/
+def prepIf (path exportName : String) (g0 : Nat) (inputHex : String := "") : IO Unit := do
+  let code ← IO.FS.readBinFile path
+  let cfg := pv86
+  match prepare cfg code with
+  | .ok p =>
+    let nImp := p.m.imports.size
+    let some (_, _, fi) := p.m.exports.find? (fun (n, k, _) => n = exportName && k = 0)
+      | throw (IO.userError "export not found")
+    let fn := fi - nImp
+    match checkModuleIfH cfg p fn with
+    | none => IO.println "{\"eligible\":false}"
+    | some MH =>
+      let M := MH.mod
+      let ck := M.cks.getD 0 default
+      let nif := ((List.range M.records.size).filter fun j =>
+        ((M.records[j]?.getD [])).getD 1 0 = Chips.IfC.opIf).length
+      let gas : Gas := { Gas.init g0 with g := g0 }
+      let some inb := hexBytes inputHex | throw (IO.userError "bad input hex")
+      match instantiate cfg p gas with
+      | .error e => throw (IO.userError s!"instantiate: {e}")
+      | .ok s =>
+        let inBytes : ByteArray := ⟨inb.toArray.map UInt8.ofNat⟩
+        let emptyStack : Array Val := #[]
+        let emptyFrames : List Frame := []
+        let newCtx : CallCtx := { s.ctx with input := inBytes }
+        let s : St := { s with gas := gas, stack := emptyStack, frames := emptyFrames, ctx := newCtx }
+        match enter p s fi with
+        | .cont s1 =>
+          let g1 := s1.gas.g
+          let (n, r, hevs) := runStepsH cfg p 100000000 s1 0 []
+          let (status, stack, gf) := match r with
+            | .fin s => ("fin", s.stack.toList, s.gas.g)
+            | .abort s e => (s!"abort {e}", s.stack.toList, s.gas.g)
+            | .unmodeled w => (s!"unmodeled {w}", [], 0)
+            | .cont _ => ("cont", [], 0)
+          let vals := stack.map valLimbs
+          let recs := M.records.toList.map natList
+          let de := dataEnd s1
+          let img := (List.range de).map fun a => (readByte s1 a).toNat
+          let gls := s1.globals.toList.map valLimbs
+          IO.println s!"\{\"eligible\":true,\"fn\":{fn},\"ncode\":{M.records.size},\"nfns\":{M.fns.length},\"nif\":{nif},\"localTags\":{natList ck.localTags},\"arity\":{ck.arity},\"resTag\":{ck.resTag},\"maxFee\":{M.maxFee},\"regularOpCost\":{cfg.regularOpCost},\"g0\":{g1},\"steps\":{n},\"status\":{jStr status},\"gFinal\":{gf},\"stack\":{jList (vals.map fun (t, l) => s!"\{\"tag\":{t},\"limbs\":{natList l}}")},\"heights\":{natList ck.heights.toList},\"records\":{jList recs},\"mem\":{memBytes s1},\"dataEnd\":{de},\"data\":{natList img},\"stackRem\":{s1.stackRem},\"funcs\":{jList (M.funcs.map natList)},\"hosts\":{jList (hevs.map hostEvJson)},\"hostTab\":{jList (MH.hostRows.map natList)},\"ngl\":{gls.length},\"globals\":{jList (gls.map fun (t, l) => s!"\{\"tag\":{t},\"limbs\":{natList l}}")}}"
+        | _ => throw (IO.userError "enter failed")
+  | .prepErr v w => IO.println s!"\{\"eligible\":false,\"prepare\":{jStr v},\"why\":{jStr w}}"
+  | .compileErr _ _ => IO.println "{\"eligible\":false,\"prepare\":\"compile\"}"
+  | .outOfDomain w => IO.println s!"\{\"eligible\":false,\"prepare\":{jStr w}}"
+  | .unmodeled w => IO.println s!"\{\"eligible\":false,\"prepare\":{jStr w}}"
+
 /-- `points` file: one point per line, `t sf sl st cur... | nxt... | pub...` as decimals. -/
 def evalPoints (nloc ncode : Nat) (path : String) (which : Nat := 0) : IO Unit := do
   let A := match which with
@@ -258,6 +309,10 @@ def main (args : List String) : IO Unit := do
   | ["airX", l, n] => IO.println (airJson (Chips.wasmBaseHashAir l.toNat! n.toNat!))
   | ["prep", path, exportName, g0] => prep path exportName g0.toNat!
   | ["prep", path, exportName, g0, inp] => prep path exportName g0.toNat! inp
+  | ["prepIf", path, exportName, g0] => prepIf path exportName g0.toNat!
+  | ["prepIf", path, exportName, g0, inp] => prepIf path exportName g0.toNat! inp
+  | ["airIf", l, n] => IO.println (airJson (wasmBaseIfAir l.toNat! n.toNat!))
+  | ["airIfH", l, n] => IO.println (airJson (wasmBaseIfHostAir l.toNat! n.toNat!))
   | ["eval", l, n, path] => evalPoints l.toNat! n.toNat! path
   | ["evalH", l, n, path] => evalPoints l.toNat! n.toNat! path 1
   | ["evalR", l, n, path] => evalPoints l.toNat! n.toNat! path 2
