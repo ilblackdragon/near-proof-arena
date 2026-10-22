@@ -61,13 +61,22 @@ def WasmRunStmt (cfg : NearCfg) (p : Prepared) (n : Nat) (s0 : St) (resp : HostR
   hostTimes.Pairwise (· < ·) ∧
   (∀ ts ∈ hostTimes, resp ts = resp ts)
 
-/-- **The join target.**  Given the state proof's D1a witness (`RelD1a`) and, for every
-`FunctionCall` action it contains, a Wasm run statement whose host answers are the state tables'
-own, the chunk relation holds.  This is the *coverage* obligation (gap analysis §2.6): the fold
-from per-action Wasm runs to the chunk-level `ActionHooks.functionCall` sequence.
+/-- **RETIRED 2026-10-22 — this statement is vacuous and is NOT the D3 join.**
 
-Stated as a `Prop` so the shape is reviewable; the proof needs the HOST chip and the
-`d3Hooks`/`runCall` correspondence. -/
+Kept only so the audit trail in `zk-formal/test/AuditPQStatePort.lean` and the reports that cite
+it still elaborate.  Do not cite it as the join and do not strengthen it: its conclusion type is
+`RelD1a`, so no proof of it can ever reach `NearSpecV3.D3.RelD3`.
+
+The defect is structural and independent of the proof.  A `RelD1a` witness contains **no**
+`FunctionCall` at all, on three decoder rejects (`TxD1.lean:97`, `Codec.lean:75`,
+`ChunkValidationD1.lean:63`), so the `runs` hypothesis constrains nothing and the statement is
+`RelD1a → RelD1a`.  `join_additive` below is the one-line proof that this is so;
+`ZkFormal.PQ.Join.joinStmt_backing_is_erasable` (`Join/Compose.lean`) proves the backing
+hypothesis is erasable, i.e. the vacuity is a theorem rather than an accident.
+
+The honest replacement is `ZkFormal.PQ.Join.compose_pv86` (`Join/Compose.lean`), whose conclusion
+is `NearSpecV3.D3.RelD3` on the **D2** witness — the relation the D3 verifier actually checks —
+with the per-call agreement `hagree` and the state pipeline verdict `hstate` as its real premises. -/
 def JoinStmt : Prop :=
   ∀ (B : Nat) (cb w : Bytes) (cfg : NearCfg) (resp : HostResp)
     (runs : List (Prepared × Nat × St × Res)),
@@ -76,9 +85,13 @@ def JoinStmt : Prop :=
       r = (p, n, s0, out) ∧ WasmRunStmt cfg p n s0 resp ts out) →
     NearSpecV3.RelD1a B cb w
 
-/-- The join is additive: it does not weaken or change the state relation; it only requires that
-every `FunctionCall` action is backed by a Wasm run.  This is the shape the coverage theorem must
-have, and it is why the state tables port unchanged. -/
+/-- **`join_additive` is a vacuity witness, not a join.**  The proof is `exact hrel`: the
+conclusion is the premise.  Its value is that it makes the defect checkable — the statement cannot
+be satisfied in any other way, so it cannot be the D3 join.  See `JoinStmt`'s docstring and
+`Join/Compose.lean` for the replacement (`compose_pv86`, concluding `RelD3`).
+
+The name is kept for the audit file's `#check`; treat it as `[K]` evidence *of the vacuity*, not
+evidence of a join. -/
 theorem join_additive : JoinStmt := by
   intro B cb w cfg resp runs hrel _hruns
   exact hrel
