@@ -414,25 +414,35 @@ ContractData key needs a table parameterisation, which is a render/AIR change wi
 
 The chain "D3 fixture → joint proof → recursion" had **no link** in place
 (`docs/logs/pq-d3-chain-gap-2026-10-21.md`). Link 1 — getting a real D3 contract into the Wasm base
-domain — is now two landed pieces on `lane/pq-d3-air` (`ce968bfc3`) and `lane/pq-if2` (`55fab1e0f`),
-neither merged to main. Detail: `docs/logs/pq-d3-air-2026-10-22.md`.
+domain — **is now closed for the simple contracts** (`4b76945a6`, plus `ce968bfc3` and
+`55fab1e0f` before it). Detail: `docs/logs/pq-if-air-2026-10-22.md`.
 
+**Measured: `d3tiny`, unmodified, is `eligible:true` with `nif:1`, and its run replays through the
+AIR — `CHECK OK`, every bus balanced.** `d3hostx` (`run`, `mlkey`) is also eligible. Exports that
+*call* an excluded or promise host stay rejected, correctly.
+
+* **`if` AIR + checker + tracegen: DONE.** `Chips.IfC` (14 cols, 2 constraints, 6 interactions),
+  `WasmBase/IfCheck.lean` (`analyzeIf`/`verifyAtIf`/`recordAtIf`/`checkIf`, plus the `…IfH` variants
+  that compose with the host checker), and `OP_IF = 0x106` in tracegen. `wasmBaseAir` (22) and
+  `wasmBaseHostAir` (26) stay **byte-identical**; the new `wasmBaseIfAir` (23) / `wasmBaseIfHostAir`
+  (27) are separate values, so HOST indices 22–25 are untouched. KAT **98/98** unchanged;
+  `d3tiny` tamper 86/87 (the one is `pub.result+1` at arity 0, structurally unconstrained by
+  `Boundary`, pre-existing).
+* **Two design points, both worth keeping.** (a) `if` has two successor *shapes* but one AIR target:
+  `matchBlocks` sets `elseOf = endOf` when there is no `else`, so both send `elseOf+1` and the label
+  difference is checker-side only. (b) **P3**: `checkModuleH` demands every *import* be a host, which
+  rejects `d3hostx` (imports `ecrecover`, never calls it). Per spec §10.0a P3 an excluded host is out
+  of domain when *called*; `checkModuleIfH` uses `calledImportsOk` instead. Not a loosening.
 * **Storage hosts: DONE.** The four Dα storage hosts are in `hostFns` at **fresh ids 57..60** —
   `canonical.txt`'s 53..59 collide with the hash block (53..56), so do **not** adopt its numbering.
   `hostFns_ids_nodup`, `hostStorage_sigs`, `hostStorage_names`, `hostHash_ids_stable` are all
   kernel-checked with **no axioms**. New KAT `storkat` round-trips write/has_key/read/remove →
   **98/98**, tamper **90/90 rejected**. Proved non-vacuous: reverting `hostFns` yields
   `FAIL storkat (unexpectedly ineligible)` and breaks the kernel theorems.
-* **`if`/`else`: spec steps done, AIR/checker open.** `StepIf.lean` (`step_if`, `step_else`,
-  `popN_snd`) is proved on `lane/pq-if2`. Still open: the `if` AIR selector and row lemma (its own
-  table — `CTRL` must stay byte-identical, and `if` falls *through* on non-zero, the opposite
-  polarity to `fJif`), the checker extension (`analyzeIf`/`verifyAtIf`/`recordAtIf`/`checkModuleIf`
-  producing exactly `step_if`'s hypotheses), and tracegen + opcode map.
-
-Measured: `d3tiny` with its `if` clamp replaced by `select` — a contract that really calls
-`storage_write` — is `eligible:true`, `hosts = [48,6,49,58,45,50]`. Unmodified `d3tiny` is still
-`eligible:false` because of `if`, so **both halves are needed**; storage alone does not unblock a
-real contract.
+* **Still open for link 1:** the `IF` `RowFacts` lemma (`Main/RowIf.lean` — the soundness leg;
+  `if_sound` is its local half, proved std3), `step_if_noelse` (the false-arm spec lemma),
+  result-carrying `if` (blocked by `ifShapeOk`), and `d3rich`'s `loop`/`memory.grow`/`call_indirect`
+  (different AIR work, not `if`).
 
 Fourth instance of the stale-artifact trap this batch: a fresh worktree's tracked
 `nearproof-wasm-base` is the **pre-REG** build and gives 74/97 (mtime newer than sources, content
