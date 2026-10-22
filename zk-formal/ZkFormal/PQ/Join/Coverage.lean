@@ -191,15 +191,23 @@ def WitnessLift (B : Nat) (cb w : Bytes) : Prop :=
 /-- **How the lift composes with the join.**  A lift that lands on a witness the state half accepts
 turns a `RelD1a` chunk into `RelD3` through `coverage_pv86` — the statement the chain needs.  The
 lift's *existence* is not proved here (see §4), and the produced witness must be the one `StateSide`
-accepts; this lemma records the composition so that neither half has to be restated later. -/
+accepts; this lemma records the composition so that neither half has to be restated later.
+
+The conclusion is deliberately **not** `∃ w2, RelD3 cb w2`.  That is exactly `hlift hrel`, so stating
+it would leave `sa`, `hagree` and `hstate` unused and the "composition" would be the lift wearing a
+join's clothes — the same defect §"The D1→D3 witness lift" documents for the earlier draft.  The
+conclusion below adds the state-side conjunct, which no hypothesis supplies on its own: `hlift` gives
+the `RelD3` witness but says nothing about `sa`, and `hstate` needs an `RelD3` witness to say anything
+at all.  Only the fold ties them together. -/
 theorem relD3_of_lift (B : Nat) (cb w : Bytes) (sa : StateArm)
     (hlift : WitnessLift B cb w)
     (hrel : NearSpecV3.RelD1a B cb w)
     (hagree : ArmAgrees Wasm.pv86 sa)
     (hstate : ∀ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2 →
       StateSide Wasm.pv86 cb w2 sa) :
-    ∃ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2 := by
+    ∃ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2 ∧ StateSide Wasm.pv86 cb w2 sa := by
   obtain ⟨w2, hw2⟩ := hlift hrel
-  exact ⟨w2, coverage_pv86 cb w2 sa hagree (hstate w2 hw2)⟩
+  have hside : StateSide Wasm.pv86 cb w2 sa := hstate w2 hw2
+  exact ⟨w2, coverage_pv86 cb w2 sa hagree hside, hside⟩
 
 end ZkFormal.PQ.Join
