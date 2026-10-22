@@ -139,25 +139,56 @@ theorem borshBytes_map (b : NearSpec.Bytes) :
 
 
 
+/-- One field of a borsh action body, in the three shapes borsh's `Action` arms use:
+
+* `str` — a `Vec<u8>`/`String`: a `u32` length prefix **equal to the byte count**, then the bytes.
+* `raw` — a byte run with **no** prefix and no fixed width.  This is what a serialised
+  `PublicKey` (`u8 tag ‖ data`, `Primitives.lean:73`), a `u8` permission tag, and any other
+  already-encoded sub-value are: the bytes are laid out verbatim.
+* `uN` — a fixed-width little-endian integer, `N / 8` bytes.
+
+The `raw` case is what the four remaining `ActionR` arms need (`stake`, both `addKey` shapes,
+`deleteKey` all carry a serialised key verbatim); without it those bodies cannot be expressed as a
+`BField` list at all, which is why the earlier lane stopped at the arms whose bodies happen to be
+`str`/`u64`/`u128` only. -/
 inductive BField where
   | str (bs : List Nat)
+  /-- a verbatim byte run: no length prefix, no fixed width -/
+  | raw (bs : List Nat)
+  | u8 (v : Nat)
+  | u16 (v : Nat)
+  | u32 (v : Nat)
   | u64 (v : Nat)
   | u128 (v : Nat)
   deriving DecidableEq, Repr
 
+/-- Byte count of a field.  `str` is `4 + |bs|` (the `u32` prefix is part of it); `raw` is the run
+itself; `uN` is `N / 8`. -/
 def BField.len : BField → Nat
   | .str bs => 4 + bs.length
+  | .raw bs => bs.length
+  | .u8 _ => 1
+  | .u16 _ => 2
+  | .u32 _ => 4
   | .u64 _ => 8
   | .u128 _ => 16
 
 def BField.bytes : BField → List Nat
   | .str bs => prefixBytes bs.length ++ bs
+  | .raw bs => bs
+  | .u8 v => (NearSpec.u8 v).map UInt8.toNat
+  | .u16 v => (NearSpec.u16 v).map UInt8.toNat
+  | .u32 v => (NearSpec.u32 v).map UInt8.toNat
   | .u64 v => (NearSpec.u64 v).map UInt8.toNat
   | .u128 v => (NearSpec.u128 v).map UInt8.toNat
 
 theorem BField.bytes_length (f : BField) : f.bytes.length = BField.len f := by
   cases f with
   | str bs => simp [BField.bytes, BField.len, prefixBytes_length]
+  | raw bs => rfl
+  | u8 v => simp [BField.bytes, BField.len, NearSpec.u8, leN_len_enc]
+  | u16 v => simp [BField.bytes, BField.len, NearSpec.u16, leN_len_enc]
+  | u32 v => simp [BField.bytes, BField.len, NearSpec.u32, leN_len_enc]
   | u64 v => simp [BField.bytes, BField.len, NearSpec.u64, leN_len_enc]
   | u128 v => simp [BField.bytes, BField.len, NearSpec.u128, leN_len_enc]
 
@@ -249,6 +280,175 @@ def decodesAs (raw : NearSpec.Bytes) (b : NearSpecV3.D2.Base) : Bool :=
   match NearSpecV3.D2.pBaseAct raw with
   | .ok (x, []) => decide (x.b = b) && decide (x.raw = raw)
   | _ => false
+
+/-! ### The five action kinds `promise_*` can still append
+
+`ActionR.encode` lays an action out as `tag ‖ body`, and `D2.pBase`'s arms (`Types.lean:283-330`)
+fix each body.  The five below are every arm a `promise_batch_action_*` function can reach that
+`trRaw`/`daRaw`/`caRaw`/`fcRaw` do not already cover:
+
+| promise function | tag | body |
+|---|---:|---|
+| `promise_batch_action_deploy_contract` | 1 | `borshBytes code` |
+| `promise_batch_action_stake` | 4 | `u128 amount ‖ PublicKey.encode` |
+| `promise_batch_action_add_key_with_full_access` | 5 | `PublicKey.encode ‖ u64 nonce ‖ u8 1` |
+| `promise_batch_action_add_key_with_function_call` | 5 | `PublicKey.encode ‖ u64 nonce ‖ u8 0 ‖ FcPerm.encode` |
+| `promise_batch_action_delete_key` | 6 | `PublicKey.encode` |
+
+The two `addKey` shapes share tag `5`; they differ only in the permission body, which is why the
+encoder models a permission as a `BField list` rather than as a fixed shape (`permFull` /
+`permFc`). -/
+
+/-- The reference bytes of a deploy-contract action (`pBase` tag 1: one `borshBytes`). -/
+def deployRaw (code : NearSpec.Bytes) : NearSpec.Bytes := [1] ++ NearSpec.borshBytes code
+
+/-- The reference bytes of a stake action (`pBase` tag 4: `u128 ‖ PublicKey`). -/
+def stakeRaw (amount : Nat) (pk : NearSpec.PublicKey) : NearSpec.Bytes :=
+  [4] ++ NearSpec.u128 amount ++ pk.encode
+
+/-- The reference bytes of a full-access add-key action (`pBase` tag 5 with `Perm::Full`:
+`PublicKey ‖ u64 nonce ‖ [1]`). -/
+def addKeyFullRaw (pk : NearSpec.PublicKey) (nonce : Nat) : NearSpec.Bytes :=
+  [5] ++ pk.encode ++ NearSpec.u64 nonce ++ [1]
+
+/-- The reference bytes of a function-call add-key action (`pBase` tag 5 with `Perm::FunctionCall`:
+`PublicKey ‖ u64 nonce ‖ [0] ‖ FcPerm.encode`). -/
+def addKeyFcRaw (pk : NearSpec.PublicKey) (nonce : Nat) (p : NearSpecV3.D2.FcPerm) :
+    NearSpec.Bytes :=
+  [5] ++ pk.encode ++ NearSpec.u64 nonce ++ [0] ++ p.encode
+
+/-- The reference bytes of a delete-key action (`pBase` tag 6: `PublicKey`). -/
+def deleteKeyRaw (pk : NearSpec.PublicKey) : NearSpec.Bytes := [6] ++ pk.encode
+
+/-- **Byte-exactness, deploy-contract.**  Empty and non-empty code. -/
+theorem decodes_deploy_empty : decodesAs (deployRaw []) (.deploy []) = true := by decide
+theorem decodes_deploy_nonempty :
+    decodesAs (deployRaw [0, 97, 115, 109, 1, 0, 0, 0]) (.deploy [0, 97, 115, 109, 1, 0, 0, 0]) =
+      true := by decide
+
+/-- **Byte-exactness, stake.**  An ED25519 key (`tag 0 ‖ 32`), and a zero amount. -/
+theorem decodes_stake_zero :
+    decodesAs (stakeRaw 0 ⟨0, List.replicate 32 0⟩) (.stake 0 ⟨0, List.replicate 32 0⟩) =
+      true := by decide
+theorem decodes_stake_amount :
+    decodesAs (stakeRaw 1234567890 ⟨0, List.replicate 32 7⟩)
+      (.stake 1234567890 ⟨0, List.replicate 32 7⟩) = true := by decide
+/-- A SECP256K1 key is `tag 1 ‖ 64`, and the length difference must survive decoding. -/
+theorem decodes_stake_secp :
+    decodesAs (stakeRaw 5 ⟨1, List.replicate 64 3⟩) (.stake 5 ⟨1, List.replicate 64 3⟩) = true :=
+  by decide
+
+/-- **Byte-exactness, add-key with full access.**  The permission tag `1` is what `pPerm` reads. -/
+theorem decodes_addkey_full :
+    decodesAs (addKeyFullRaw ⟨0, List.replicate 32 9⟩ 42)
+      (.addKey ⟨0, List.replicate 32 9⟩ ⟨42, .full⟩) = true := by decide
+
+/-- **Byte-exactness, add-key with a function-call permission.**  `allowance = none` and
+`allowance = some a` are both covered, as are a non-empty method list and none. -/
+theorem decodes_addkey_fc_none :
+    decodesAs (addKeyFcRaw ⟨0, List.replicate 32 9⟩ 42
+        ⟨none, [97, 99, 99, 116], []⟩)
+      (.addKey ⟨0, List.replicate 32 9⟩
+        ⟨42, .fc ⟨none, [97, 99, 99, 116], []⟩⟩) = true := by decide
+theorem decodes_addkey_fc_some :
+    decodesAs (addKeyFcRaw ⟨0, List.replicate 32 9⟩ 0
+        ⟨some 1000000, [97, 99, 99, 116], [[109, 49], [109, 50]]⟩)
+      (.addKey ⟨0, List.replicate 32 9⟩
+        ⟨0, .fc ⟨some 1000000, [97, 99, 99, 116], [[109, 49], [109, 50]]⟩⟩) = true := by decide
+
+/-- **Byte-exactness, delete-key.** -/
+theorem decodes_deletekey :
+    decodesAs (deleteKeyRaw ⟨0, List.replicate 32 5⟩)
+      (.deleteKey ⟨0, List.replicate 32 5⟩) = true := by decide
+
+/-- The check discriminates on the five new shapes too: a stake's bytes are not an add-key's. -/
+theorem decodes_stake_not_addkey :
+    decodesAs (stakeRaw 7 ⟨0, List.replicate 32 1⟩)
+      (.addKey ⟨0, List.replicate 32 1⟩ ⟨7, .full⟩) = false := by decide
+
+/-! ### The new actions' row encodings
+
+`encAction` at the concrete field list is the reference encoding, position for position.  The two
+`addKey` shapes share `encAction 5`; they differ only in the permission field list. -/
+
+/-- **`deploy` is `tag 1` then one `str`.** -/
+theorem encAction_deploy (code : NearSpec.Bytes) :
+    encAction 1 [.str (code.map UInt8.toNat)] = (deployRaw code).map UInt8.toNat := by
+  unfold encAction deployRaw BField.bytes
+  simp only [List.flatMap_cons, List.flatMap_nil, List.append_nil, List.length_map,
+    List.map_append, List.map_cons, List.map_nil]
+  rw [borshBytes_map code]
+  rfl
+
+/-- **`stake` is `tag 4`, a `u128` and a verbatim key.** -/
+theorem encAction_stake (amount : Nat) (pk : NearSpec.PublicKey) :
+    encAction 4 [.u128 amount, .raw (pk.encode.map UInt8.toNat)] =
+      (stakeRaw amount pk).map UInt8.toNat := by
+  unfold encAction stakeRaw NearSpec.u128 BField.bytes
+  simp only [List.flatMap_cons, List.flatMap_nil, List.append_nil, List.length_map,
+    List.map_append, List.map_cons, List.map_nil, List.cons_append]
+  rfl
+
+/-- `u8` of `0`/`1` as bytes: the two permission tags borsh writes. -/
+theorem u8_zero_bytes : (NearSpec.u8 0).map UInt8.toNat = [0] := by
+  simp only [NearSpec.u8]
+  decide
+theorem u8_one_bytes : (NearSpec.u8 1).map UInt8.toNat = [1] := by
+  simp only [NearSpec.u8]
+  decide
+
+/-- **`addKey` with full access is `tag 5`, a key, a `u64` and the permission tag `1`.** -/
+theorem encAction_addKeyFull (pk : NearSpec.PublicKey) (nonce : Nat) :
+    encAction 5 [.raw (pk.encode.map UInt8.toNat), .u64 nonce, .u8 1] =
+      (addKeyFullRaw pk nonce).map UInt8.toNat := by
+  unfold encAction addKeyFullRaw NearSpec.u64 BField.bytes
+  simp only [List.flatMap_cons, List.flatMap_nil, List.append_nil, List.length_map,
+    List.map_append, List.map_cons, List.map_nil, List.cons_append, List.map_map]
+  rw [u8_one_bytes]
+  simp only [NearSpec.u64, List.nil_append, List.append_assoc]
+  rfl
+
+/-- **`addKey` with a function-call permission is `tag 5`, a key, a `u64`, the tag `0`, then
+`FcPerm.encode` verbatim.** -/
+theorem encAction_addKeyFc (pk : NearSpec.PublicKey) (nonce : Nat)
+    (p : NearSpecV3.D2.FcPerm) :
+    encAction 5 [.raw (pk.encode.map UInt8.toNat), .u64 nonce, .u8 0,
+      .raw (p.encode.map UInt8.toNat)] = (addKeyFcRaw pk nonce p).map UInt8.toNat := by
+  unfold encAction addKeyFcRaw NearSpec.u64 BField.bytes
+  simp only [List.flatMap_cons, List.flatMap_nil, List.append_nil, List.length_map,
+    List.map_append, List.map_cons, List.map_nil, List.cons_append, List.map_map]
+  rw [u8_zero_bytes]
+  simp only [NearSpec.u64, List.nil_append, List.append_assoc]
+  rfl
+
+/-- **`deleteKey` is `tag 6` then a verbatim key.** -/
+theorem encAction_deleteKey (pk : NearSpec.PublicKey) :
+    encAction 6 [.raw (pk.encode.map UInt8.toNat)] = (deleteKeyRaw pk).map UInt8.toNat := by
+  unfold encAction deleteKeyRaw BField.bytes
+  simp only [List.flatMap_cons, List.flatMap_nil, List.append_nil, List.map_cons, List.map_nil]
+  rfl
+
+/-- **The length identity at the five new actions.** -/
+theorem encAction_deploy_len (code : List Nat) :
+    (encAction 1 [.str code]).length = 5 + code.length := by
+  rw [encAction_length]; simp [BField.len]; omega
+
+theorem encAction_stake_len (amount : Nat) (k : List Nat) :
+    (encAction 4 [.u128 amount, .raw k]).length = 17 + k.length := by
+  rw [encAction_length]; simp [BField.len]; omega
+
+theorem encAction_addKeyFull_len (k : List Nat) (nonce : Nat) :
+    (encAction 5 [.raw k, .u64 nonce, .u8 1]).length = 10 + k.length := by
+  rw [encAction_length]; simp [BField.len]; omega
+
+theorem encAction_addKeyFc_len (k : List Nat) (nonce : Nat) (perm : List Nat) :
+    (encAction 5 [.raw k, .u64 nonce, .u8 0, .raw perm]).length = 10 + k.length + perm.length :=
+  by
+  rw [encAction_length]; simp [BField.len]; omega
+
+theorem encAction_deleteKey_len (k : List Nat) :
+    (encAction 6 [.raw k]).length = 1 + k.length := by
+  rw [encAction_length]; simp [BField.len]
 
 /-- **Byte-exactness, transfer.** -/
 theorem decodes_transfer_zero : decodesAs (trRaw 0) (.transfer 0) = true := by decide
