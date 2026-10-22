@@ -648,13 +648,24 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 // stream (dir 1) for the first host call.  The bytes are the low four bytes of the
                 // first argument and of the result word; a `(ptr, len)` memory range is not
                 // modelled in this slice.
-                // The byte payload of the log/return functions (`log_utf8` 8, `log_utf16` 9,
-                // `panic_utf8` 10, `value_return` 15): a `dir = 0` request group (Wasm -> state)
-                // carrying the memory bytes at `(ptr, len)`, taken from the trace's own memory at
-                // the time of the call.  `(ts, hid)` is the host call's, so the group cannot be
-                // spliced onto another call.  `len` is capped at 40 bytes (the KAT's payloads).
-                if has_host && [8u64, 9, 10, 15].contains(&hid) {
-                    let (ptr, blen) = (args[0], args[1]);
+                // The byte payload of the log/return functions: a `dir = 0` request group
+                // (Wasm -> state) carrying the memory bytes at `(len, ptr)`, taken from the
+                // trace's own memory at the time of the call.  `(ts, hid)` is the host call's, so
+                // the group cannot be spliced onto another call.  `len` is capped at 40 bytes (the
+                // KAT's payloads).
+                //
+                // The ids are `Chips.hostByteIds` (`HostChip.lean:174`): `log_utf8 = 45`,
+                // `log_utf16 = 46`, `panic_utf8 = 47`, `value_return = 50`.  This arm used to test
+                // `[8, 9, 10, 15]`, which are `promise_create`/`promise_then`/`promise_and`/
+                // `promise_batch_action_deploy_contract`, so it never fired for a real log call and
+                // every such call fell through to the 4-byte placeholder instead of carrying the
+                // actual payload.  The KAT could not see it: an absent HOSTB group still balances.
+                //
+                // The spec's signature is `log_utf8(len, ptr)` (`Host.lean:658-662`:
+                // `utf8H a[0] a[1]` then `readMemH ptr len`), so `args[0]` is the **length** and
+                // `args[1]` the pointer — the reverse of what this arm used to assume.
+                if has_host && [45u64, 46, 47, 50].contains(&hid) {
+                    let (blen, ptr) = (args[0], args[1]);
                     let blen = blen.min(40);
                     for pos in 0..blen {
                         let (b, _) = mem.get(ptr + pos);
@@ -670,7 +681,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 // byte payload is driven by the register wire instead (`hid = 12/13/6`), so the
                 // placeholder must not add unrelated bytes; and a log/return call has its own
                 // payload group above.
-                if !hostb_done && !has_reg && ![8u64, 9, 10, 15].contains(&hid) {
+                if !hostb_done && !has_reg && ![45u64, 46, 47, 50].contains(&hid) {
                     hostb_done = true;
                     let qb = bytes(args[0]);
                     let sb_ = bytes(ev.word);
