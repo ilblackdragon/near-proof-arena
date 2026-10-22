@@ -395,3 +395,4 @@ import ZkFormal.PQ.Receipt.Wire
 import ZkFormal.PQ.Receipt.Encoder
 import ZkFormal.PQ.Receipt.Cost
 import ZkFormal.PQ.Receipt.Statement
+import ZkFormal.PQ.Receipt.Receipt
