@@ -122,7 +122,7 @@ the `coverage` proof. The lane's "all files have 0 `sorry`" is true but the file
 
 | link | state |
 |---|---|
-| a real D3 contract in the Wasm domain | **half done**: storage hosts landed (`ce968bfc3`), `if` spec steps landed (`55fab1e0f`), `if` AIR/checker **unclaimed** |
+| a real D3 contract in the Wasm domain | **done for simple contracts** (`4b76945a6`): `d3tiny` and `d3hostx` are eligible and replay through the AIR. `d3rich` still blocked on `loop`/`memory.grow`, a different AIR |
 | a D2/D3 AIR for the chunk's non-call traffic | **missing** |
 | a D3 render for contract-data state | **missing** (render + `upsert` parameterisation) |
 | the join Wasm ⇄ state | **real conditional, proved** (`f8c4ceb91`); premises `hagree`/`hstate` open |
