@@ -273,22 +273,53 @@ declarations above are in the axiom audit above. `Coverage.lean` is still **modi
 
 ## 4. Lane state at handover
 
-Committed: `bdf80d018` — the eleven `promise_*` encodings (§1).
+Committed on `lane/pq-hostfinal` (newest first).  The `§` references are to this log.
 
-Uncommitted in `/data/illia/nearproof-wt/pq-hostfinal`:
-
-| path | state |
+| commit | content |
 |---|---|
-| `research/near-compression/wasm-base-lean/WasmBase/RipemdAir.lean` | new, untracked, builds clean |
-| `research/near-compression/wasm-base-lean/WasmBase/RipemdVectors.lean` | new, untracked, builds clean, build-gate passes |
-| `research/near-compression/wasm-base-lean/WasmBase.lean` | modified: two root imports appended |
-| `zk-formal/ZkFormal/PQ/Join/Coverage.lean` | modified, builds clean |
-| `research/near-compression/native/wasm-base/target/release/**` | Rust build-artifact churn from the KAT run; not a source change |
+| `2e90a315f` | `RipemdRound`'s header corrected to match the file (§5) |
+| `3fb84f5f1` | RIPEMD stage 4, part 2: bit-to-word readout, eight shift-wired next words (§5) |
+| `e13129b84` | RIPEMD stage 4, part 1b: `bitOf_ofBitsN`, `ofBitsN_congr` (§5) |
+| `7cddf9289` | RIPEMD stage 4, part 1: the five gated sums in general form (§5) |
+| `ceee23052` | RIPEMD stage 4 scaffolding: `gsumAux`/`csumAux` collapse |
+| `45af882a9` | RIPEMD stages 1–3: plumbing, selector collapses, adder chain (§2) |
+| `14af4935e` | coverage: `relD3_of_lift` was a tautology; add the `StateSide` conjunct (§3) |
+| `f7b1a6e0c` | RIPEMD row defined and differentially tested; coverage premises de-circularised (§2) |
+| `598d85bd2` | docs: the ripemd160 cost corrected; the `promise_*` encodings marked closed (§1) |
+| `bdf80d018` | the eleven `promise_*` encodings (§1) |
+
+Nothing is left uncommitted except the Rust `target/release/**` churn from the KAT run, which is
+build output, not a source change.
 
 The KAT harness was rebuilt on both sides and re-run (`run_kat.sh`, 8 progs x 64): **97 passed, 0
 failed** (python ref = Lean spec = Rust trace + AIR pre-check). That is the "existing behaviour did not
-move" check for this lane, since none of §2/§3 touches the host-function tables.
+move" check for this lane, since none of §1/§2/§3/§5 touches the host-function tables.
 
-Next steps, in order: (1) commit §2 and §3; (2) the round-agreement lemma for the RIPEMD row (`M3`
-analogue); (3) the feed-forward row family and the digest bus, so the row can be consumed by a host
-call; (4) `ArmAgrees` and the witness lift remain the state port's items.
+### 4.1 The RIPEMD round lemma is *partly* done — say which part
+
+`RipemdRound.lean` (488 lines) now holds:
+
+| section | content |
+|---|---|
+| §A/§B | `gsumG` + `gsumG_zero` + `gsumG_at`, and the five instances (`xselAux`, `rotAux`, `gselAux`, `fSumAux`, `kSelAux`), plus `xsel_eq`, `rot_eq`, `f_eq`, `gsel_profile` |
+| §C | `bitOf_eq_testBit`, `testBit_ofBitsN`, `bitOf_ofBitsN`, `ofBitsN_congr`, `ofBitsN_foldl` |
+| §D | `curWord`/`nxtWord`, `nxt_bit_of_shift`, `nxtWord_eq_cur` — a shift constraint lifts to a word |
+
+What is **not** there, and should not be claimed:
+
+* `round_agrees` itself.  The eight wiring-only next words are immediate from §D, but `bl'` and `br'`
+  need the four-addition chain composed with the `f` column, the selected message word and the rotated
+  `t3`, matched against `rot32 (…) sl[j] + el`.  `adder_chain` gives each addition separately; the
+  composition is unwritten.
+* Any *general* rotation bridge.  `rotl32n_is_rot` is a `decide` over 80 offsets × 8 values, not a
+  proof for arbitrary arguments.  Rotation claims should be read as concrete checks.
+* The feed-forward row family and the digest bus, so the row still cannot be consumed by a host call.
+
+### 4.2 Next steps, in order
+
+1. `bl'`/`br'`: compose `adder_chain` over the four additions per line with `f_eq`, `xsel_eq`,
+   `rot_eq`, `kSelAux_at`, and state the result as the spec's `t`/`t'`.  This is the last piece of
+   `round_agrees`.
+2. The feed-forward row family and the digest bus (so the row is consumable by a host call).
+3. `ArmAgrees` and the D1→D3 witness lift remain the state port's items (§3.3).
+
