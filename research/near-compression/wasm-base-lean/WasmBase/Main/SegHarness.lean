@@ -504,6 +504,123 @@ def rowConsH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
 def rowProdH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
   rowProd (chipTHost ρ.1) tr pub ρ.1 ρ.2
 
+/-! ## The `HOSTB` bytes of a host call
+
+`HOSTB` rows are **not** action rows: they carry the `ts` of their call and never advance time, so
+`tsOut` (`lvl outS = lvl inS + 1`) cannot hold for them.  They belong to the host call they carry, and
+`(ts, hid)` is the group key on both tables (`HostB.cTs`, `HostB.cHidConst`, `HOSTQ`).  So the table's
+CH block is folded into the host rows' channel messages: `prodCH ρ = rowProdH ρ ++ hostbProdH ρ` and
+likewise on the consumed side, with `hostbProdH` empty off table 22.  `Main/MemIOBus.hostb_partition`
+proves the fold is a partition of the table's active `HOSTB` rows (given `HostBLinked`).
+-/
+/-- The `HOSTB` rows whose group key `(ts, hid)` is the host row `r`'s. -/
+def hostbOf (tr : Trace) (pub : List F) (r : Nat) : List Nat :=
+  ((List.range (tr.height 25)).filter fun r' =>
+    decide (rowNat tr 25 r' HostB.ts = rowNat tr 22 r cTs ∧
+      rowNat tr 25 r' HostB.hid = rowNat tr 22 r Host.hid))
+
+/-- The CH messages the `HOSTB` rows of host call `r` consume. -/
+def hostbConsOf (tr : Trace) (pub : List F) (r : Nat) : List Msg :=
+  (hostbOf tr pub r).flatMap fun r' => rowCons HostB.table tr pub 25 r'
+
+/-- The CH messages the `HOSTB` rows of host call `r` produce. -/
+def hostbProdOf (tr : Trace) (pub : List F) (r : Nat) : List Msg :=
+  (hostbOf tr pub r).flatMap fun r' => rowProd HostB.table tr pub 25 r'
+
+/-- The `HOSTB` block of an action row: the call's bytes for a HOST row, nothing for an instruction
+row. -/
+def hostbProdH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  if ρ.1 = 22 then hostbProdOf tr pub ρ.2 else []
+
+/-- The consumed `HOSTB` block of an action row. -/
+def hostbConsH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  if ρ.1 = 22 then hostbConsOf tr pub ρ.2 else []
+
+/-- The CH messages an action row of the host AIR produces, **including** its `HOSTB` bytes. -/
+def prodCH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  rowProdH tr pub ρ ++ hostbProdH tr pub ρ
+
+/-- The CH messages an action row of the host AIR consumes, **including** its `HOSTB` bytes. -/
+def consCH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  rowConsH tr pub ρ ++ hostbConsH tr pub ρ
+
+/-- **The fold is a partition on the produced side.**  `actListHost` supplies every active HOST row,
+so the flatMap of the calls' `HOSTB` blocks is the table's whole active block (as a `Perm`, since the
+fold groups rows by call).  The instruction rows contribute `[]`. -/
+theorem actListHost_hostb_prod {tr : Trace} {pub : List F} :
+    (actListHost tr pub).flatMap (hostbProdH tr pub) =
+      (hostActRows tr pub).flatMap (fun ρ => hostbProdOf tr pub ρ.2) := by
+  unfold actListHost
+  rw [List.flatMap_append]
+  have hnil : (actList tr pub).flatMap (hostbProdH tr pub) = [] := by
+    refine List.flatMap_eq_nil_iff.mpr (fun ρ hρ => ?_)
+    have h14 := (mem_actList hρ).2.1
+    have hne : ρ.1 ≠ 22 := by omega
+    simp only [hostbProdH, hne, if_false]
+  rw [hnil, List.nil_append]
+  refine flatMap_congr_on _ _ _ ?_
+  intro ρ hρ
+  obtain ⟨t, r⟩ := ρ
+  simp only [hostActRows, List.mem_map] at hρ
+  obtain ⟨r', _, htr⟩ := hρ
+  simp only [Prod.mk.injEq] at htr
+  rw [← htr.1, ← htr.2]
+  rfl
+
+/-- **The fold is a partition on the consumed side.** -/
+theorem actListHost_hostb_cons {tr : Trace} {pub : List F} :
+    (actListHost tr pub).flatMap (hostbConsH tr pub) =
+      (hostActRows tr pub).flatMap (fun ρ => hostbConsOf tr pub ρ.2) := by
+  unfold actListHost
+  rw [List.flatMap_append]
+  have hnil : (actList tr pub).flatMap (hostbConsH tr pub) = [] := by
+    refine List.flatMap_eq_nil_iff.mpr (fun ρ hρ => ?_)
+    have h14 := (mem_actList hρ).2.1
+    have hne : ρ.1 ≠ 22 := by omega
+    simp only [hostbConsH, hne, if_false]
+  rw [hnil, List.nil_append]
+  refine flatMap_congr_on _ _ _ ?_
+  intro ρ hρ
+  obtain ⟨t, r⟩ := ρ
+  simp only [hostActRows, List.mem_map] at hρ
+  obtain ⟨r', _, htr⟩ := hρ
+  simp only [Prod.mk.injEq] at htr
+  rw [← htr.1, ← htr.2]
+  rfl
+
+/-! ## The `HOSTB` grouping premise
+
+`HostBLinked` is the trace-level `HOSTB → HOSTQ` grouping: every active `HOSTB` row's `(ts, hid)` is
+the key of exactly one active HOST row.  `cTs`/`cHidConst` make each group's pair constant and `HOSTQ`
+carries the same pair, so a trace generated from a real run satisfies this; it is *not* implied by
+`Holds` (the bus balance does not link the two tables), exactly like `HostOK`.  It is what turns "the
+bytes of a call" into a well-defined block. -/
+structure HostBLinked (tr : Trace) (pub : List F) : Prop where
+  /-- every active `HOSTB` row belongs to an active HOST row with its key -/
+  linked : ∀ r', r' < tr.height 25 → rowAct HostB.table tr pub 25 r' →
+    ∃ r, r < tr.height 22 ∧ rowAct Host.table tr pub 22 r ∧
+      rowNat tr 25 r' HostB.ts = rowNat tr 22 r cTs ∧
+      rowNat tr 25 r' HostB.hid = rowNat tr 22 r Host.hid
+  /-- conversely, a `HOSTB` row whose key is an active HOST row's key is itself active (so the
+  block of a call is *exactly* the rows keyed to it; an inactive row's zeroed key cannot collide) -/
+  linked_inv : ∀ r', r' < tr.height 25 →
+    (∃ r, r < tr.height 22 ∧ rowAct Host.table tr pub 22 r ∧
+      rowNat tr 25 r' HostB.ts = rowNat tr 22 r cTs ∧
+      rowNat tr 25 r' HostB.hid = rowNat tr 22 r Host.hid) →
+    rowAct HostB.table tr pub 25 r'
+  /-- two active HOST rows have different keys (a `ts` is one call) -/
+  unique : ∀ r r', r < tr.height 22 → rowAct Host.table tr pub 22 r →
+    r' < tr.height 22 → rowAct Host.table tr pub 22 r' →
+    rowNat tr 22 r cTs = rowNat tr 22 r' cTs → rowNat tr 22 r Host.hid = rowNat tr 22 r' Host.hid →
+    r = r'
+
+/-- Membership in `hostbOf`, unpacked. -/
+theorem mem_hostbOf {tr : Trace} {pub : List F} {r r' : Nat} :
+    r' ∈ hostbOf tr pub r ↔
+      r' < tr.height 25 ∧ rowNat tr 25 r' HostB.ts = rowNat tr 22 r cTs ∧
+        rowNat tr 25 r' HostB.hid = rowNat tr 22 r Host.hid := by
+  simp only [hostbOf, List.mem_filter, List.mem_range, decide_eq_true_eq]
+
 /-! ## `wasm_base_exec_host`
 
 `exec_of_rows_seg` instantiated against `wasmBaseHostAir`: the action list is `actListHost` (base
@@ -519,13 +636,13 @@ which is the whole reason for the segmentation. -/
 theorem wasm_base_exec_host (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (seg : Nat → Nat × Nat) (init fin : List Msg) (st : Nat) (hst12 : st = 1 ∨ st = 2)
     (hrows : ∀ r ∈ actListHost tr pub,
-      RowFactsSegMap X (rowInH tr pub r) (rowOutH tr pub r) (rowConsH tr pub r) (rowProdH tr pub r) seg)
+      RowFactsSegMap X (rowInH tr pub r) (rowOutH tr pub r) (consCH tr pub r) (prodCH tr pub r) seg)
     (sbf cidf : F)
     (hst : (stMsg 0 1 0 0 0 0 :: (actListHost tr pub).map (rowOutH tr pub)).Perm
       ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
         (st : F), sbf, cidf] :: (actListHost tr pub).map (rowInH tr pub)))
-    (hch : (init ++ (actListHost tr pub).flatMap (fun r => rowProdH tr pub r)).Perm
-      (fin ++ (actListHost tr pub).flatMap (fun r => rowConsH tr pub r)))
+    (hch : (init ++ (actListHost tr pub).flatMap (prodCH tr pub)).Perm
+      (fin ++ (actListHost tr pub).flatMap (consCH tr pub)))
     (hinit : init.Nodup) (hinitTp : ∀ x ∈ init, x.tp = 0)
     (hlen : (actListHost tr pub).length < 2 ^ 28)
     (hfee : ((actListHost tr pub).length + 1) * (X.maxFee + 1) < ZkFormal.Algebra.P)
@@ -545,7 +662,7 @@ theorem wasm_base_exec_host (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trac
       X.R * ((pub.getD Boundary.pubS 0).toNat - (seg ((actListHost tr pub).length + 1)).1) +
         sN.gas.g = (seg ((actListHost tr pub).length + 1)).2) := by
   obtain ⟨hN, h1, h2⟩ := exec_of_rows_seg X (actListHost tr pub) (rowInH tr pub) (rowOutH tr pub)
-    (rowConsH tr pub) (rowProdH tr pub) init fin
+    (consCH tr pub) (prodCH tr pub) init fin
     (tr.cell 0 0 Boundary.pcf) (pub.getD Boundary.pubN 0) (pub.getD Boundary.pubS 0) seg st hst12
     hrows sbf cidf hst hch hinit hinitTp hlen hfee hstepgas hg64 hE0 h0
   refine ⟨hN, ?_, ?_⟩

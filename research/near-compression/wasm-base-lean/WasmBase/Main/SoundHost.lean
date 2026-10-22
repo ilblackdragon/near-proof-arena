@@ -101,7 +101,7 @@ restatement of the conclusion.  It is exactly what a `RowSpecSeg.ofHost` would p
 def HoldRow (X : Ctx) (tr : Trace) (pub : List F) (seg : Nat → Nat × Nat) : Prop :=
   ∀ r, r < tr.height 22 → rowAct Host.table tr pub 22 r →
     RowFactsSeg X (rowInH tr pub (22, r)) (rowOutH tr pub (22, r))
-      (rowConsH tr pub (22, r)) (rowProdH tr pub (22, r))
+      (consCH tr pub (22, r)) (prodCH tr pub (22, r))
       (seg (rowNat tr 22 r 1)) (seg (rowNat tr 22 r 1 + 1))
 
 /-- **The thread is constant at instruction rows** — true of any `seg` that only host rows move. -/
@@ -117,7 +117,7 @@ theorem rowFactsSegMap_of {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
     {seg : Nat → Nat × Nat} (hkeep : SegKeep tr pub seg) (hhold : HoldRow X tr pub seg) :
     ∀ r ∈ actListHost tr pub,
-      RowFactsSegMap X (rowInH tr pub r) (rowOutH tr pub r) (rowConsH tr pub r) (rowProdH tr pub r) seg := by
+      RowFactsSegMap X (rowInH tr pub r) (rowOutH tr pub r) (consCH tr pub r) (prodCH tr pub r) seg := by
   intro ρ hρ
   unfold RowFactsSegMap
   rcases List.mem_append.mp hρ with hinstr | hhost
@@ -134,7 +134,15 @@ theorem rowFactsSegMap_of {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
         rowProdH tr pub ρ = rowProd (chipT ρ.1) tr pub ρ.1 ρ.2 := by
       refine ⟨?_, ?_, ?_, ?_⟩ <;> simp [rowInH, rowOutH, rowConsH, rowProdH, chipTHost, hne]
     obtain ⟨e1, e2, e3, e4⟩ := hIH
-    rw [e1, e2, e3, e4]
+    have hpc : hostbProdH tr pub ρ = [] := by simp only [hostbProdH, hne, if_false]
+    have hcc : hostbConsH tr pub ρ = [] := by simp only [hostbConsH, hne, if_false]
+    have hP : prodCH tr pub ρ = rowProd (chipT ρ.1) tr pub ρ.1 ρ.2 := by
+      simp only [prodCH, hpc, List.append_nil]; rw [e4, show chipT ρ.1 = chipTHost ρ.1 from by
+        simp [chipTHost, hne]]
+    have hC : consCH tr pub ρ = rowCons (chipT ρ.1) tr pub ρ.1 ρ.2 := by
+      simp only [consCH, hcc, List.append_nil]; rw [e3, show chipT ρ.1 = chipTHost ρ.1 from by
+        simp [chipTHost, hne]]
+    rw [e1, e2, hC, hP]
     have hs := hkeep ρ (List.mem_append_left _ hinstr) hne
     rw [e1] at hs
     rw [← hs]
