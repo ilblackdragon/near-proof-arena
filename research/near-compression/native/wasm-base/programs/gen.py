@@ -402,6 +402,45 @@ def logkat():
             'data': data, 'memory': True}
 
 
+def storkat():
+    """The four storage hosts (`storage_write`, `storage_read`, `storage_has_key`, `storage_remove`)
+    against the mock `External` of the spec (`Host.lean`): a key and a value live in a data segment.
+
+    The first `storage_write` of a fresh key returns 0 (no old value); `storage_read` then finds the
+    value (`has_key` = 1) and writes it into a register, so `register_len` of that register is the
+    value's length.  `storage_remove` returns the removed value and empties the slot, so the second
+    `has_key` returns 0.  The returned word mixes the four results:
+    `write_ret*1000 + has1*100 + value_len*10 + has2`.
+
+    This is the KAT whose absence let the storage ids be added to `hostFns` with nothing exercising
+    them: the HOST chip is generic, so a missing table entry is only visible as `eligible:false`."""
+    imps = [('env', 'storage_write', ['i64'] * 5, 'i64'),
+            ('env', 'storage_read', ['i64', 'i64', 'i64'], 'i64'),
+            ('env', 'storage_has_key', ['i64', 'i64'], 'i64'),
+            ('env', 'storage_remove', ['i64', 'i64', 'i64'], 'i64'),
+            ('env', 'register_len', ['i64'], 'i64')]
+    # data: key "k" at 0, value "vvv" at 8; the read writes into register 3.
+    b = [
+        # storage_write(key_len=1, key_ptr=0, val_len=3, val_ptr=8, reg=0) -> 0 (fresh key)
+        ('i64.const', 1), ('i64.const', 0), ('i64.const', 3), ('i64.const', 8), ('i64.const', 0),
+        ('call', 0), ('i64.const', 1000), 'i64.mul', ('local.set', 0),
+        # storage_has_key(key_len=1, key_ptr=0) -> 1
+        ('i64.const', 1), ('i64.const', 0), ('call', 2), ('i64.const', 100), 'i64.mul',
+        ('local.get', 0), 'i64.add', ('local.set', 0),
+        # storage_read(key_len=1, key_ptr=0, reg=3) -> 1, value into register 3
+        ('i64.const', 1), ('i64.const', 0), ('i64.const', 3), ('call', 1), ('drop',),
+        ('i64.const', 3), ('call', 4), ('i64.const', 10), 'i64.mul',
+        ('local.get', 0), 'i64.add', ('local.set', 0),
+        # storage_remove(key_len=1, key_ptr=0, reg=4) -> 1 (the old value)
+        ('i64.const', 1), ('i64.const', 0), ('i64.const', 4), ('call', 3), ('drop',),
+        # storage_has_key again -> 0
+        ('i64.const', 1), ('i64.const', 0), ('call', 2),
+        ('local.get', 0), 'i64.add',
+    ]
+    return {'name': 'storkat', 'result': 'i64', 'locals': ['i64'], 'body': b, 'imports': imps,
+            'data': [(0, b'k'), (8, b'vvv')], 'memory': True}
+
+
 def logtrap():
     """An imported `panic` after a `log_utf8` (the log is emitted, then the guest panics)."""
     imps = [('env', 'log_utf8', ['i64', 'i64'], None), ('env', 'panic', [], None)]
@@ -524,6 +563,7 @@ def main():
     progs += [hostctxword(), hostctxmem(), hostctxreg(), hostctxcode()]
     progs += [hostctxgas()]
     progs += [regkat(), logkat(), logtrap()] + [regloop(n) for n in iters[:1]]
+    progs += [storkat()]
     progs += [shakat(k) for k in (0, 1, 55, 56, 63, 64, 65, 100)] + [sharegkat()]
     for p in progs:
         with open(os.path.join(out, p['name'] + '.wasm'), 'wb') as f:
