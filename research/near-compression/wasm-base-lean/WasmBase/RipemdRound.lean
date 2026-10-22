@@ -410,6 +410,56 @@ theorem ofBitsN_congr {f g : Nat → Nat} (H : ∀ k, k < 32 → f k = g k) (N :
   | succ n ih =>
     rw [ofBitsN_succ, ofBitsN_succ, ih (by omega), H n (by omega)]
 
+/-! ## D. The row's words, and the eight shift-wired next words
+
+`RipemdVectors.stateOf` reads a word out of a column function by a `List.range 32` `foldl`.  The
+first lemma below says that foldl *is* `ofBitsN`, so every word in this file can be written as
+`ofBitsN (fun k => bit k) 32` and every word equation can be discharged by `ofBitsN_congr`.
+
+The rest of this section is the half of `round_agrees` that needs **no** arithmetic at all:  the
+shift constraints say `al' = el`, `cl' = bl`, `el' = dl`, `dl' = rotl32 cl 10` (and the mirrored
+three), so eight of the ten next words are pinned by wiring alone.  Only `bl'` and `br'` — the two
+words the step actually computes — need the adder chain, the `f` form, the message word and the
+rotation.  Those are §E. -/
+
+/-- `ofBitsN` is the little-endian `foldl` that `stateOf` uses. -/
+theorem ofBitsN_foldl (f : Nat → Nat) :
+    ∀ N, ofBitsN f N = (List.range N).foldl (fun a k => a + f k * 2 ^ k) 0 := by
+  intro N
+  induction N with
+  | zero => rfl
+  | succ n ih =>
+    rw [ofBitsN_succ, ih, List.range_succ, List.foldl_append]
+    simp only [List.foldl_cons, List.foldl_nil]
+    rw [Nat.mul_comm]
+
+/-- The word a row's `cur` columns hold, given the column of its bit `k`. -/
+def curWord (rw : Row) (c : Nat → Nat) : Nat := ofBitsN (fun k => (rw.cur (c k)).toNat) 32
+
+/-- The word a row's `nxt` columns hold. -/
+def nxtWord (rw : Row) (c : Nat → Nat) : Nat := ofBitsN (fun k => (rw.nxt (c k)).toNat) 32
+
+/-- The row's `cur` columns are bits, so each bit of a word is `0` or `1`. -/
+theorem curWord_bit_le (rw : Row) (c : Nat → Nat)
+    (hb : ∀ k, k < 32 → rw.cur (c k) = 0 ∨ rw.cur (c k) = 1) :
+    ∀ k, k < 32 → (rw.cur (c k)).toNat ≤ 1 :=
+  fun k hk => by have := bit_toNat_val (hb k hk); omega
+
+/-- **A shift constraint is a word-level identity on bits.** -/
+theorem nxt_bit_of_shift (rw : Row) (cn xt : Nat → Nat) (k : Nat)
+    (hc : (nv (cn k) - v (xt k)).eval rw = 0) :
+    rw.nxt (cn k) = rw.cur (xt k) := by
+  have h : rw.nxt (cn k) - rw.cur (xt k) = 0 := hc
+  exact sub_eq_zero' h
+
+/-- **`nxt` word = `cur` word, from a per-bit shift identity.**  No bit bound is needed: the words are
+compared bit by bit, so booleanity is irrelevant here. -/
+theorem nxtWord_eq_cur {rw : Row} {cn xt : Nat → Nat}
+    (hbit : ∀ k, k < 32 → rw.nxt (cn k) = rw.cur (xt k)) :
+    nxtWord rw cn = curWord rw xt := by
+  refine ofBitsN_congr (fun k hk => ?_) 32 (by omega)
+  rw [hbit k hk]
+
 end Ripemd
 end Chips
 end WasmBase
