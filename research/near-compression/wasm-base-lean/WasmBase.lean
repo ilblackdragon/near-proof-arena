@@ -68,3 +68,6 @@ import WasmBase.KeccakSteps
 import WasmBase.KeccakVectors
 import WasmBase.RipemdAir
 import WasmBase.RipemdVectors
+import WasmBase.RipemdForms
+import WasmBase.RipemdSound
+import WasmBase.RipemdRound
