@@ -315,11 +315,34 @@ What is **not** there, and should not be claimed:
   proof for arbitrary arguments.  Rotation claims should be read as concrete checks.
 * The feed-forward row family and the digest bus, so the row still cannot be consumed by a host call.
 
-### 4.2 Next steps, in order
+### 4.2 Axiom audit of the stage-4 declarations (measured, not asserted)
+
+`lake env lean` on a probe file importing `WasmBase.RipemdRound`:
+
+```
+gsumG_at          [propext, Classical.choice, Quot.sound]
+xsel_eq           [propext, Classical.choice, Quot.sound]
+rot_eq            [propext, Classical.choice, Quot.sound]
+f_eq              [propext, Classical.choice, Quot.sound]
+gsel_profile      [propext, Classical.choice, Quot.sound]
+bitOf_ofBitsN     [propext, Quot.sound]
+testBit_ofBitsN   [propext, Quot.sound]
+ofBitsN_congr     [propext, Quot.sound]
+ofBitsN_foldl     [propext, Quot.sound]
+nxtWord_eq_cur    [propext, Quot.sound]
+```
+
+`Classical.choice` appears exactly where the `Fp` field instance is used (the collapse lemmas go
+through `sub_eq_zero'`/`Fp.ext`); the pure `Nat` lemmas do not.  No `sorryAx`, no `native_decide`, no
+`implemented_by`.  The first two lines matter for the same reason as §3.2: they are the honest
+statement, not the shorter one.
+
+### 4.3 Next steps, in order
 
 1. `bl'`/`br'`: compose `adder_chain` over the four additions per line with `f_eq`, `xsel_eq`,
    `rot_eq`, `kSelAux_at`, and state the result as the spec's `t`/`t'`.  This is the last piece of
    `round_agrees`.
 2. The feed-forward row family and the digest bus (so the row is consumable by a host call).
 3. `ArmAgrees` and the D1→D3 witness lift remain the state port's items (§3.3).
+
 
