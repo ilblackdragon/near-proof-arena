@@ -435,14 +435,14 @@ theorem ofBits_add32_top (x y t c : Nat → Nat) (ctop : Nat)
     ofBitsN t 32 = (ofBitsN x 32 + ofBitsN y 32) % 2 ^ 32 := by
   refine ofBits_add32 x y t (fun n => if n = 32 then ctop else c n) ht ?_ ?_
   · show (if 0 = 32 then ctop else c 0) = 0
-    rw [if_neg (by omega)]; exact hc0
+    rw [ite_eq_right (by omega)]; exact hc0
   · intro k hk
     by_cases h32 : k + 1 = 32
     · have hk31 : k = 31 := by omega
       subst hk31
-      rw [if_neg (by omega : ¬ (31 : Nat) = 32), if_pos rfl]
+      rw [ite_eq_right (by omega : ¬ (31 : Nat) = 32), ite_eq_left rfl]
       exact hlast
-    · rw [if_neg (by omega : ¬ k = 32), if_neg h32]
+    · rw [ite_eq_right (by omega : ¬ k = 32), ite_eq_right h32]
       exact hstep k (by omega)
 
 /-! ### From the row's constraints to the full-adder identity -/
@@ -455,8 +455,6 @@ theorem fa_step (rw : Row) (n k : Nat) (xe ye : Expr)
     (hxb : (xe.eval rw) = 0 ∨ (xe.eval rw) = 1)
     (hyb : (ye.eval rw) = 0 ∨ (ye.eval rw) = 1)
     (hcb : (cyIn n k).eval rw = 0 ∨ (cyIn n k).eval rw = 1)
-    (htb : rw.cur (tBit n k) = 0 ∨ rw.cur (tBit n k) = 1)
-    (hcyb : rw.cur (cyBit n k) = 0 ∨ rw.cur (cyBit n k) = 1)
     (hsum : (addSum n k xe ye).eval rw = 0)
     (hcar : (addCarry n k xe ye).eval rw = 0) :
     (xe.eval rw).toNat + (ye.eval rw).toNat + ((cyIn n k).eval rw).toNat
@@ -495,8 +493,8 @@ theorem cyIn_bit (rw : Row) (n k : Nat) (hk : k < 32)
     (cyIn n k).eval rw = 0 ∨ (cyIn n k).eval rw = 1 := by
   unfold cyIn
   by_cases h : k = 0
-  · subst h; rw [if_pos rfl]; exact Or.inl (e0_eval rw)
-  · rw [if_neg h]
+  · subst h; rw [ite_eq_left rfl]; exact Or.inl (e0_eval rw)
+  · rw [ite_eq_right h]
     exact hcyb (k - 1) (by omega)
 
 /-- **One addition's correctness.**  The row's sum constraints at all 32 bits and the carry
@@ -524,8 +522,7 @@ theorem adder_chain (rw : Row) (n : Nat) (xe ye : Nat → Expr)
   · -- the full-adder step, for every constrained bit
     intro k hk
     exact fa_step rw n k (xe k) (ye k) (hxb k (by omega)) (hyb k (by omega))
-      (cyIn_bit rw n k (by omega) hcyb) (htb k (by omega)) (hcyb k hk)
-      (hsum k (by omega)) (hcar k hk)
+      (cyIn_bit rw n k (by omega) hcyb) (hsum k (by omega)) (hcar k hk)
   · -- bit 31's carry is the dropped top carry
     have hsum31 := hsum 31 (by omega)
     have h1 : (xor3 (xe 31) (ye 31) (cyIn n 31)).eval rw = rw.cur (tBit n 31) := by
