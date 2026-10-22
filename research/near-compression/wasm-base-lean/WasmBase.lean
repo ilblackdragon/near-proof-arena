@@ -31,6 +31,8 @@ import WasmBase.Main.RowConst
 import WasmBase.Local.Div
 import WasmBase.Main.RowDiv
 import WasmBase.Main.Final
+import WasmBase.Main.RowIf
+import WasmBase.Main.RowIfSound
 import WasmBase.Mem
 import WasmBase.StepMem
 import WasmBase.Local.Mem
