@@ -268,7 +268,7 @@ bytes and digest. Tamper 11/11 rejected. KAT contributed 9 new hash programs (88
 | function | cells/call | feasible on PQ? |
 |---|---:|---|
 | `sha256` | 9,333 · blocks | **built** |
-| `ripemd160` | ≈9-11k · blocks | yes, ~2-3 weeks |
+| `ripemd160` | **128,640 · blocks** (bit-sliced row; ≈9-11k was a limb-layout estimate) | **row arithmetic built + difftested 2026-10-22**; cost is 13.8× SHA-256, a `G_α` decision |
 | `keccak256` / `keccak512` | ≈118,582 cells/permutation (bit-sliced) | **feasible at degree 3**; the chi step is built and proved (see below). **The earlier "needs a 64-bit-multiply gadget" claim was wrong** |
 
 Envelope: 27 AIRs total (≤32), degree 4 (≤8), widest message 12 fields incl. bus (≤128). The
@@ -355,7 +355,13 @@ of action lengths), then `RIDS`/`SRC`/`RCL` + `newReceipts`, `HostCallTrace`, an
 
 ### Still open
 
-* `ripemd160` AIR (≈2-3 weeks, same shape as SHA-256).
+* **`ripemd160` row arithmetic — DONE 2026-10-22** (`lane/pq-hostfinal`, commit `f7b1a6e0c`):
+  `WasmBase/RipemdAir.lean` (1,608 cols, 2,625 constraints, 0 interactions, degree 4) +
+  `RipemdVectors.lean` (compiled differential test, build-gated: 13 digests == spec, 320 rows,
+  17 tampers rejected, `RIPEMD-160("")` KAT). **Cost correction: 128,640 cells/block, 13.8× SHA-256**,
+  not the ≈9–11 k in `results/pq-hash-air/README.md` §3.6 — the estimate assumed a limb layout, the
+  row as built is bit-sliced. Still open on this row: the round-agreement lemma (`M3` analogue), the
+  feed-forward row family + digest bus, and the `X`-column binding (`HOSTB → MEMIO`).
 * `RIDS`/`SRC`/`RCL` + `newReceipts` fold, and the `HostCallTrace`
   induction (Wasm side).
 * **Keccak `M3`, the round lemma.** `KeccakAir` defines the round; `KeccakSteps` proves the
@@ -363,10 +369,11 @@ of action lengths), then `RIDS`/`SRC`/`RCL` + `newReceipts`, `HostCallTrace`, an
   What is *not* proved: that a satisfying row *implies* the spec's round function (the vectors are a
   compiled test, not a theorem). Also absent: the absorb/squeeze boundary rows and the state bus
   between them and the round table. `KeccakAir`'s own docstring states this honestly.
-* **The remaining 11 `promise_*` encodings** (see `results/pq-receipt-air/README.md`): 5 action kinds
-  (`deploy`, `stake`, `addKey`×2, `deleteKey`), `promise_batch_create`'s empty-vector class row, the
-  receipt `inputs`/`outputs` prefix (`promise_batch_then`, `promise_then`, `yield_create`), and
-  `promise_set_refund_to`. The last four also need `Cost.receipt_len` extended to cover inputs.
+* ~~**The remaining 11 `promise_*` encodings**~~ **DONE 2026-10-22** (`bdf80d018`): all eleven closed,
+  `promise_encodings_cover` axioms **none**, plus a discriminating negative control. The unlock was
+  `BField` gaining a verbatim `raw` case (five action bodies contain a serialised `PublicKey`/`FcPerm`
+  with no length prefix) and the observation that the *whole* receipt is one `BField` list, so one
+  envelope theorem covers every shape and the `PBE` table needed no change.
 
 ## Batch of 2026-10-21 (evening): Keccak round, ActionR FC/create, the coverage fold
 
@@ -377,6 +384,17 @@ Three lanes, all merged and re-verified on the merged tree.
 | `lane/pq-keccak-perm` | `KeccakAir` (4,890 cols, round gated degree 4, 0 interactions), `KeccakSteps` (theta parity, iota one-hot selection, rho/pi index facts, `bBit_inj`), `KeccakVectors` (192 rounds / 9 permutations / 9 sponge vectors incl. `keccak512`). **The differential test found a real bug**: `dConstr`'s rotation source was `C[x+1][k+1]`, should be `C[x+1][(k+63) mod 64]`. | `M3` round lemma, absorb/squeeze rows, state bus. |
 | `lane/pq-actionr-fc` | `PBE` prefix key gains a **per-row** `fld` column (not a group constant — FC's two prefixes are rows of one action group); `pbe_shape`/`pbe_phase`/`pbe_body_pos`/`pbe_len_framing_*` restated; `pbe_group_len_is_row_count` unchanged. FC and `promise_create` row instances complete. | 11 `promise_*` encodings; `Cost.receipt_len` for inputs. |
 | `lane/pq-runcall-fold` | `Join/Fold.lean` + `Join/Coverage.lean`: the action-list fold at full chunk generality, `coverage`/`coverage_pv86` reducing to `D3.RelD3`. | `ArmAgrees` (H1), `StateSide` (H2), and the D1→D3 witness lift (H6) are stated, not proved. **`JoinFold.JoinStmt` is vacuous**: a `RelD1a` witness has no `FunctionCall` at all (`pTxD1:97`, `checkD1:63`), while `RelD3` runs on the D2 witness. So coverage is not a same-bytes lift. |
+
+**Coverage update 2026-10-22** (`lane/pq-hostfinal`, `f7b1a6e0c`): `Coverage.lean` was rewritten
+because the above gap analysis showed its original `coverage : ArmAgrees → StateSide → RelD3` was
+**circular** — `StateSide` was `RelD3` again once `ArmAgrees` held. The premises now name separate
+artifacts and four lemmas make the shape reviewable: `patchArm_noncall` (the patch changes only
+`.fcall`), `armAgrees_d3` (the premise is inhabited, so the reduction is not vacuous by contradiction),
+`armAgrees_iff_eq` (it is exactly the pointwise `.fcall` equation, so it cannot be strengthened or
+weakened), `coverage_identity`. The D1→D3 lift is stated as the existential it is (`WitnessLift`) with
+the decoder facts that force it — `pTxD1:97`, `Codec.lean:75`, `checkD1:63` reject every non-Transfer
+action and every code blob — and `relD3_of_lift` records the composition. `ArmAgrees` and the lift
+remain the state port's items; axioms `⊆ {propext, Classical.choice, Quot.sound}`.
 
 ### The root-import trap (cost me a false "verified" claim)
 

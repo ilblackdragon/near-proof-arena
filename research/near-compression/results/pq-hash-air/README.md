@@ -263,12 +263,27 @@ the second bus exists.
 | function | blocks (n bytes) | rows/call | cells/call | degree | interactions/row | status |
 |---|---|---:|---:|---:|---:|---|
 | `sha256` | `⌈(n+9)/64⌉` | `17B + 2` | `9,333·B` | 4 | 5 | **built, proved, difftested** |
-| `ripemd160` | `⌈(n+9)/64⌉` | ≈ `17B + 2` | ≈ `9–11 k·B` | 4 | ≈ 5 | not built: separate schedule + 5-word feed-forward, ~2–3 weeks |
+| `ripemd160` | `⌈(n+9)/64⌉` | `80B` (+ digest row) | **`128,640·B`** | 4 | 0 | **row arithmetic built, difftested** (2026-10-22); see the correction below |
 | `keccak256` | `1 + ⌊n/136⌋` permutations | `24·perm` | **≈ 3–5 k per round** (72–120 k/perm) | ≥ 9 with 16-bit limbs | many | **not feasible here**: needs a 64-bit-multiply gadget |
 | `keccak512` | `1 + ⌊n/72⌋` permutations | `24·perm` | same per round | ≥ 9 | many | same |
 
 All four are already in the fixed host table (ids 53..56), so all four are **executable and provable
 as host calls** today; only SHA-256's *arithmetic* is proved.
+
+**Correction to the `ripemd160` row (2026-10-22).** The `≈9–11 k·B` figure above was an estimate for
+a *limb* layout shaped like SHA-256's. The row as actually built (`wasm-base-lean/WasmBase/RipemdAir.lean`,
+735 lines; vectors in `RipemdVectors.lean`) is **bit-sliced, one compression step per row**: 1,608
+columns × 80 rows = **128,640 committed cells per block**, i.e. **13.8× SHA-256's 9,333** and ~12–14×
+the estimate. The reason is structural, not a coding artefact — 832 of the 1,608 columns are simply the
+26 words (10 state + 16 message) at 32 bits each; bit-slicing is what buys degree-4 polynomials and
+selector-gated index maps (rotation costs 64 constraints total instead of a barrel shifter, and the
+right line reuses the left's `f` builder with the group argument flipped to `4 − g`). A limb layout would
+cut the columns to ~52 but reintroduce per-limb carries and a bit-extraction gadget per rotation. So
+"≈9–11 k·B" is **not reachable by this design**, and the "~2–3 weeks" sizing was written for the limb
+design. The row is done and differentially tested against `NearSpecV3.Wasm.Crypto.ripemd160` (13
+digests, 320 rows, 2,625 constraints, 17 tampers rejected, build-gated); the cost number is measured and
+goes to the `G_α` review as a decision, not as a fit. Named gaps: no round-agreement lemma (`M3`
+analogue), the `X` columns are free row inputs (`HOSTB → MEMIO`), and no digest bus yet.
 
 ---
 
