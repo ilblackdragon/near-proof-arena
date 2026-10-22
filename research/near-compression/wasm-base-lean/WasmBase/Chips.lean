@@ -1077,6 +1077,53 @@ def table : Table := ⟨"FUNC", ["entry", "shape", "charge", "pro", "m0", "m1", 
   [⟨busFunc, false, v mult, (List.range 8).map v⟩]⟩
 end Func
 
+/-! ## IF: `if` (the condition pop and the two-way successor)
+
+`if` **falls through on non-zero** (`pc + 1`) and jumps on zero (`tgt = elseOf + 1`, or
+`endOf + 1` when there is no `else`).  That is the opposite polarity to `Ctrl.fJif` (`br_if`,
+which *jumps* on non-zero), so the row cannot reuse `fJif`; it is a separate table for the same
+reason `ChiAir`/`ShaAir` are separate.  `CTRL` stays byte-identical.
+
+The row is the `if` only.  The `else` body's unconditional jump to `end + 1` is the existing
+`Ctrl.fJump` (`step_else`), so no new selector is needed for it.
+
+Columns: the header, the selector, the false target, the popped condition's two limbs, its
+producer time and the two time witnesses, and the frame columns.
+
+`s.tgt` is `elseOf[pc] + 1` in **both** shapes: `matchBlocks` sets `elseOf[i] = endOf[i]` when the
+`if` has no `else`, so "no else" is exactly `elseOf = endOf`.  The AIR therefore does not need to
+distinguish the two shapes; only the checker's label bookkeeping does. -/
+namespace IfC
+def kSb : Nat := 12
+def kCid : Nat := 13
+def fIf : Nat := 5
+def tgt : Nat := 6
+def c : Nat := 7      -- 7, 8 (the popped condition, 4 x 16-bit limbs with 2 used)
+def tc : Nat := 9
+def hc : Nat := 10
+def inv : Nat := 11
+def cols : List String := headerCols ++ ["f_if", "tgt", "c0", "c1", "tc", "hc", "inv"] ++ frameCols
+/-- The `if` opcode, after the CTRL block `0x101..0x105`. -/
+def opIf : Nat := 0x106
+def act : Expr := v fIf
+/-- Non-zero test: `z · inv` with `z · (1 − nz) = 0`, exactly `Ctrl.nz`. -/
+def nz : Expr := (v c + v (c + 1)) * v inv
+def pc1 : Expr := v cPc + 1
+/-- **The polarity.**  `if` continues at `pc + 1` when the condition is non-zero and jumps to
+`tgt` when it is zero. -/
+def pcNext : Expr := nz * pc1 + (1 - nz) * v tgt
+def constraints : List Expr :=
+  [bool (v fIf),
+   (v c + v (c + 1)) * (1 - nz)]
+def inters : List Inter :=
+  [stateIn (v cPc) (v cTs) (v cS) (v kSb) (v kCid) act,
+   stateOut pcNext (v cTs + 1) (v cS + v cFee) 0 (v kSb) (v kCid) act,
+   fetch (v cPc) (Expr.c opIf) (v cH) (v cFee) [v tgt, 0, 0, 0] act,
+   stkRecv (v kSb + v cH - 1) 0 [v c, v (c + 1), 0, 0] (v tc) act] ++
+  timeChk (v cTs) (v tc) (v hc) act
+def table : Table := ⟨"IF", cols, constraints, inters⟩
+end IfC
+
 end Chips
 
 open Chips in

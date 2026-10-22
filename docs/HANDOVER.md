@@ -383,7 +383,7 @@ Three lanes, all merged and re-verified on the merged tree.
 |---|---|---|
 | `lane/pq-keccak-perm` | `KeccakAir` (4,890 cols, round gated degree 4, 0 interactions), `KeccakSteps` (theta parity, iota one-hot selection, rho/pi index facts, `bBit_inj`), `KeccakVectors` (192 rounds / 9 permutations / 9 sponge vectors incl. `keccak512`). **The differential test found a real bug**: `dConstr`'s rotation source was `C[x+1][k+1]`, should be `C[x+1][(k+63) mod 64]`. | `M3` round lemma, absorb/squeeze rows, state bus. |
 | `lane/pq-actionr-fc` | `PBE` prefix key gains a **per-row** `fld` column (not a group constant — FC's two prefixes are rows of one action group); `pbe_shape`/`pbe_phase`/`pbe_body_pos`/`pbe_len_framing_*` restated; `pbe_group_len_is_row_count` unchanged. FC and `promise_create` row instances complete. | 11 `promise_*` encodings; `Cost.receipt_len` for inputs. |
-| `lane/pq-runcall-fold` | `Join/Fold.lean` + `Join/Coverage.lean`: the action-list fold at full chunk generality, `coverage`/`coverage_pv86` reducing to `D3.RelD3`. | `ArmAgrees` (H1), `StateSide` (H2), and the D1→D3 witness lift (H6) are stated, not proved. **`JoinFold.JoinStmt` is vacuous**: a `RelD1a` witness has no `FunctionCall` at all (`pTxD1:97`, `checkD1:63`), while `RelD3` runs on the D2 witness. So coverage is not a same-bytes lift. |
+| `lane/pq-runcall-fold` | `Join/Fold.lean` + `Join/Coverage.lean`: the action-list fold at full chunk generality, `coverage`/`coverage_pv86` reducing to `D3.RelD3`. | `ArmAgrees` (H1), `StateSide` (H2), and the D1→D3 witness lift (H6) are stated, not proved. **`JoinFold.JoinStmt` is vacuous** (a different theorem, in `StatePort/JoinFold.lean`): a `RelD1a` witness has no `FunctionCall` at all (`pTxD1:97`, `checkD1:63`), while `RelD3` runs on the D2 witness. **`Join/Coverage.coverage` itself is NOT vacuous** — verified 2026-10-22: it quantifies over an arbitrary state-side answer function and `patchArm_eq_d3` does the real fold; axioms std3. The two are easy to confuse; the vacuous one is `join_additive`. |
 
 **Coverage update 2026-10-22** (`lane/pq-hostfinal`, `f7b1a6e0c`): `Coverage.lean` was rewritten
 because the above gap analysis showed its original `coverage : ArmAgrees → StateSide → RelD3` was
@@ -427,6 +427,44 @@ independent and cheap.
 
 **7 is not a proof lane.** Read the `UpsV3AppliesLog` note above before dispatching it: `upsert` at a
 ContractData key needs a table parameterisation, which is a render/AIR change with a size/model cost.
+
+### Link 1 (Wasm domain): what landed 2026-10-22, and what still blocks a real D3 contract
+
+The chain "D3 fixture → joint proof → recursion" had **no link** in place
+(`docs/logs/pq-d3-chain-gap-2026-10-21.md`). Link 1 — getting a real D3 contract into the Wasm base
+domain — **is now closed for the simple contracts** (`4b76945a6`, plus `ce968bfc3` and
+`55fab1e0f` before it). Detail: `docs/logs/pq-if-air-2026-10-22.md`.
+
+**Measured: `d3tiny`, unmodified, is `eligible:true` with `nif:1`, and its run replays through the
+AIR — `CHECK OK`, every bus balanced.** `d3hostx` (`run`, `mlkey`) is also eligible. Exports that
+*call* an excluded or promise host stay rejected, correctly.
+
+* **`if` AIR + checker + tracegen: DONE.** `Chips.IfC` (14 cols, 2 constraints, 6 interactions),
+  `WasmBase/IfCheck.lean` (`analyzeIf`/`verifyAtIf`/`recordAtIf`/`checkIf`, plus the `…IfH` variants
+  that compose with the host checker), and `OP_IF = 0x106` in tracegen. `wasmBaseAir` (22) and
+  `wasmBaseHostAir` (26) stay **byte-identical**; the new `wasmBaseIfAir` (23) / `wasmBaseIfHostAir`
+  (27) are separate values, so HOST indices 22–25 are untouched. KAT **98/98** unchanged;
+  `d3tiny` tamper 86/87 (the one is `pub.result+1` at arity 0, structurally unconstrained by
+  `Boundary`, pre-existing).
+* **Two design points, both worth keeping.** (a) `if` has two successor *shapes* but one AIR target:
+  `matchBlocks` sets `elseOf = endOf` when there is no `else`, so both send `elseOf+1` and the label
+  difference is checker-side only. (b) **P3**: `checkModuleH` demands every *import* be a host, which
+  rejects `d3hostx` (imports `ecrecover`, never calls it). Per spec §10.0a P3 an excluded host is out
+  of domain when *called*; `checkModuleIfH` uses `calledImportsOk` instead. Not a loosening.
+* **Storage hosts: DONE.** The four Dα storage hosts are in `hostFns` at **fresh ids 57..60** —
+  `canonical.txt`'s 53..59 collide with the hash block (53..56), so do **not** adopt its numbering.
+  `hostFns_ids_nodup`, `hostStorage_sigs`, `hostStorage_names`, `hostHash_ids_stable` are all
+  kernel-checked with **no axioms**. New KAT `storkat` round-trips write/has_key/read/remove →
+  **98/98**, tamper **90/90 rejected**. Proved non-vacuous: reverting `hostFns` yields
+  `FAIL storkat (unexpectedly ineligible)` and breaks the kernel theorems.
+* **Still open for link 1:** the `IF` `RowFacts` lemma (`Main/RowIf.lean` — the soundness leg;
+  `if_sound` is its local half, proved std3), `step_if_noelse` (the false-arm spec lemma),
+  result-carrying `if` (blocked by `ifShapeOk`), and `d3rich`'s `loop`/`memory.grow`/`call_indirect`
+  (different AIR work, not `if`).
+
+Fourth instance of the stale-artifact trap this batch: a fresh worktree's tracked
+`nearproof-wasm-base` is the **pre-REG** build and gives 74/97 (mtime newer than sources, content
+older — the age guard cannot see it). Rebuild both artifacts before believing a KAT count.
 
 ### Merge discipline that worked (learned three times now)
 

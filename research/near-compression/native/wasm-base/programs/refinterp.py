@@ -64,6 +64,7 @@ def run(prog, fuel=10 ** 8, input_bytes=()):
     `input_bytes` is the `CallCtx.input` the imported `input` copies into a register."""
     INPUT = list(input_bytes)
     regs = {}
+    store = {}
     imports = prog.get('imports', [])
     nimp = len(imports)
     funcs = [prog] + prog.get('funcs', [])
@@ -158,6 +159,38 @@ def run(prog, fuel=10 ** 8, input_bytes=()):
                 raise RuntimeError('hash host not modelled: ' + name)
             if name == 'panic':
                 raise Trap('GuestPanic')
+            if name in ('storage_write', 'storage_read', 'storage_has_key', 'storage_remove'):
+                # The mock `External` of the spec (`Host.lean:692-800`): a key/value map with no
+                # trie-node charges.  `memOrRegH ptr len` reads memory unless `len = 2^64-1`, in
+                # which case `ptr` is a register id.
+                def buf(ln, ptr):
+                    if ln == (1 << 64) - 1:
+                        return list(regs.get(ptr, []))
+                    return [mem.get(ptr + k, 0) for k in range(ln)]
+                if name == 'storage_write':
+                    k = buf(args[0], args[1])
+                    v = buf(args[2], args[3])
+                    old = store.get(bytes(k))
+                    store[bytes(k)] = bytes(v)
+                    if old is not None:
+                        regs[args[4]] = list(old)
+                        return 1
+                    return 0
+                if name == 'storage_read':
+                    v = store.get(bytes(buf(args[0], args[1])))
+                    if v is None:
+                        return 0
+                    regs[args[2]] = list(v)
+                    return 1
+                if name == 'storage_has_key':
+                    return 1 if bytes(buf(args[0], args[1])) in store else 0
+                if name == 'storage_remove':
+                    k = bytes(buf(args[0], args[1]))
+                    old = store.pop(k, None)
+                    if old is None:
+                        return 0
+                    regs[args[2]] = list(old)
+                    return 1
             if name.startswith('promise_'):
                 # the promise family is not modelled: an aborting call is what these KAT programs
                 # expect (they exist to exercise the HOST row's argument window)

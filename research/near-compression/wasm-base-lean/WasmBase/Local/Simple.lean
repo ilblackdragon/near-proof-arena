@@ -130,4 +130,26 @@ theorem local_sound (c : Nat → Nat) (rw : Row) (hP : ∀ i, c i < P)
     rw [e1, hz] at hInv
     exact absurd (show ((1 : Nat) : F) = ((0 : Nat) : F) by grind) (by decide)
 
+/-! ## IF — the `if` selector
+
+Two constraints only: the selector is a bit, and the non-zero witness `nz` is forced from the
+condition's two limbs by `z · (1 − nz) = 0`.  Polarity lives in `IfC.pcNext`, not in a constraint, so
+there is nothing else for a row to satisfy. -/
+theorem if_sound (c : Nat → Nat) (rw : Row) (hP : ∀ i, c i < P)
+    (hc : ∀ e ∈ IfC.constraints, e.eval (natRow c rw) = 0)
+    (hcnd : c IfC.c < 65536 ∧ c (IfC.c + 1) < 65536) :
+    (c IfC.fIf = 0 ∨ c IfC.fIf = 1) ∧
+    IfC.nz.eval (natRow c rw) = ((if c IfC.c + c (IfC.c + 1) = 0 then 0 else 1 : Nat) : F) := by
+  simp only [IfC.constraints, List.mem_cons, List.mem_nil_iff, or_false, forall_eq_or_imp, forall_eq,
+    Chips.bool, v, IfC.fIf, IfC.nz, Expr.eval_add', Expr.eval_sub', Expr.eval_mul', Expr.eval_ofNat',
+    Expr.eval_col, natRow] at hc
+  obtain ⟨bF, hnz⟩ := hc
+  have hz : c IfC.c + c (IfC.c + 1) < P := by
+    have := hcnd.1; have := hcnd.2; have := P_val; omega
+  have hn := nz_val (inv := c IfC.inv) hz (by simpa only [Lean.Grind.Semiring.natCast_add] using hnz)
+  refine ⟨bool_nat (hP _) bF, ?_⟩
+  simp only [IfC.nz, v, Expr.eval_add', Expr.eval_mul', Expr.eval_col, natRow]
+  rw [show ((c IfC.c : F) + (c (IfC.c + 1) : F)) = ((c IfC.c + c (IfC.c + 1) : Nat) : F) by
+    simp only [Lean.Grind.Semiring.natCast_add], hn]
+
 end WasmBase.Local

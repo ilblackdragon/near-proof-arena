@@ -138,11 +138,26 @@ id stays stable. -/
 def hostHashFns : List (Nat × String × Nat × Nat) :=
   [(53, "sha256", 3, 0), (54, "keccak256", 3, 0), (55, "keccak512", 3, 0), (56, "ripemd160", 3, 0)]
 
+/-- The four D3α storage host functions.  Ids 57..60 are **fresh**, after the hash block, so every
+previously assigned id stays stable and no cached `HOSTT` moves.  (This deliberately does not adopt
+`tools/host-fns/canonical.txt`, which numbers storage 53..59 and therefore collides with the hash
+ids 53..56 — see `docs/logs/pq-d3-chain-gap-2026-10-21.md` §2.)
+
+`storage_iter_prefix` / `_range` / `_next` are omitted on purpose: they are **out of domain** in
+D3α (they always abort, `Host.lean`), so no run of them can move storage and `pq-host-storage`
+proved that.  The four here are the ones that read and write trie values. -/
+def hostStorageFns : List (Nat × String × Nat × Nat) :=
+  [(57, "storage_read", 3, 1), (58, "storage_write", 5, 1),
+   (59, "storage_has_key", 2, 1), (60, "storage_remove", 3, 1)]
+
 def hostFns : List (Nat × String × Nat × Nat) :=
-  hostFnsBase ++ promiseFns ++ hostCtxFns ++ hostLogFns ++ hostHashFns
+  hostFnsBase ++ promiseFns ++ hostCtxFns ++ hostLogFns ++ hostHashFns ++ hostStorageFns
 
 /-- The hash ids in the fixed table. -/
 def hostHashIds : List Nat := [53, 54, 55, 56]
+
+/-- The storage ids in the fixed table. -/
+def hostStorageIds : List Nat := [57, 58, 59, 60]
 
 /-- The HOST row accepts up to 9 arguments and at most one result. -/
 def hostShapeOk (np ar : Nat) : Bool := np ≤ 9 && ar ≤ 1
@@ -480,6 +495,29 @@ def inters : List Inter :=
 def table : Table := ⟨"HOSTB", cols, constraints, inters⟩
 end HostB
 
+/-- **Every host id is distinct.**  This is the invariant that the `canonical.txt` table broke: it
+numbers `storage_write` 59, colliding with the hash block's 53..56 range when read literally.  The
+table here allocates storage at fresh ids 57..60 and this theorem states, once, that no two entries
+share an id — so a future insertion cannot silently collide. -/
+theorem hostFns_ids_nodup : (hostFns.map (·.1)).Nodup := by decide +kernel
+
+/-- The storage ids and signatures, pinned (the four D3α functions that read/write trie values). -/
+theorem hostStorage_sigs :
+    hostSig 57 = some (3, 1) ∧ hostSig 58 = some (5, 1) ∧
+    hostSig 59 = some (2, 1) ∧ hostSig 60 = some (3, 1) := by
+  refine ⟨?_, ?_, ?_, ?_⟩ <;> decide +kernel
+
+/-- The four storage functions are reachable by name at exactly those ids. -/
+theorem hostStorage_names :
+    (hostFns.find? (·.2.1 = "storage_read")).map (·.1) = some 57 ∧
+    (hostFns.find? (·.2.1 = "storage_write")).map (·.1) = some 58 ∧
+    (hostFns.find? (·.2.1 = "storage_has_key")).map (·.1) = some 59 ∧
+    (hostFns.find? (·.2.1 = "storage_remove")).map (·.1) = some 60 := by
+  refine ⟨?_, ?_, ?_, ?_⟩ <;> decide +kernel
+
+/-- The hash block keeps its ids, so every cached `HOSTT` that names a hash function still resolves. -/
+theorem hostHash_ids_stable : hostHashIds = [53, 54, 55, 56] := by decide +kernel
+
 end Chips
 
 /-- The direct-Wasm base AIR **with host calls**: the proved F1/memory/globals/calls tables plus
@@ -489,5 +527,19 @@ def wasmBaseHostAir (nloc ngl : Nat) : Air :=
   { tables := (wasmBaseAir nloc ngl).tables ++
       [Chips.Host.table, Chips.HostO.table, Chips.HostTab.table, Chips.HostB.table]
     numPub := (wasmBaseAir nloc ngl).numPub }
+
+/-- The base AIR **with `if`**: the 22 base tables plus the `IF` table (22).  A separate AIR rather
+than an extra table in `wasmBaseAir`, for the same reason `ChiAir`/`ShaAir` are exported separately:
+every existing proof, table index and cached export keeps its meaning, so nothing has to be re-proved.
+The host AIR keeps its own indices too. -/
+def wasmBaseIfAir (nloc ngl : Nat) : Air :=
+  { tables := (wasmBaseAir nloc ngl).tables ++ [Chips.IfC.table]
+    numPub := (wasmBaseAir nloc ngl).numPub }
+
+/-- The host AIR **with `if`**: `wasmBaseHostAir` plus `IF` at index 26.  Host proofs keep their
+table 22–25 indices unchanged. -/
+def wasmBaseIfHostAir (nloc ngl : Nat) : Air :=
+  { tables := (wasmBaseHostAir nloc ngl).tables ++ [Chips.IfC.table]
+    numPub := (wasmBaseHostAir nloc ngl).numPub }
 
 end WasmBase
