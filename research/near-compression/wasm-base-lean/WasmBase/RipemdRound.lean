@@ -342,6 +342,74 @@ theorem gsel_profile (rw : Row) (g0 n0 : Nat) (_hg0 : g0 < GROUPS) (hn : n0 < 16
   intro g _ hne
   exact gselAux_zero rw g 16 (fun n hnn => h0 _ (by omega) (by omega))
 
+/-! ## C. Reading a word back out of its bits
+
+The constraints are stated per bit; the spec's step is stated per word.  These two lemmas are the
+bridge, and they are the reason the assembly below can be written as a word equation rather than as
+32 bit equations per word.
+
+`ofBitsN f 32` is the little-endian word whose bit `k` is `f k`.  The first lemma says a bit of that
+word reads back as `f k`; the second carries a function equation across the 32 bits, which is what
+turns "the row's bit `k` equals the spec's bit `k` for every `k`" into "the row's word equals the
+spec's word". -/
+
+/-- **`bitOf` is `Nat.testBit` as a natural.**  `bitOf x k = (x >>> k) % 2`, and `Nat.testBit` is
+`1 &&& x >>> k != 0`; on a bit the two agree. -/
+theorem bitOf_eq_testBit (x k : Nat) : bitOf x k = if x.testBit k then 1 else 0 := by
+  induction k generalizing x with
+  | zero =>
+    rw [bitOf, Nat.testBit_zero]
+    rcases Nat.mod_two_eq_zero_or_one x with h | h <;> simp [h]
+  | succ i ih =>
+    rw [bitOf, Nat.testBit_succ]
+    rw [show x >>> (i + 1) = (x / 2) >>> i from by
+      rw [Nat.shiftRight_eq_div_pow, Nat.shiftRight_eq_div_pow, Nat.div_div_eq_div_mul]
+      rw [show 2 ^ (i + 1) = 2 ^ i * 2 from by rw [Nat.pow_succ]]
+      rw [Nat.mul_comm]]
+    exact ih (x / 2)
+
+/-- A natural that is at most one has `testBit 0` true exactly when it is `1`. -/
+theorem testBit_zero_of_le_one {a : Nat} (ha : a ≤ 1) : a.testBit 0 = decide (a = 1) := by
+  rw [Nat.testBit_zero]
+  rcases Nat.mod_two_eq_zero_or_one a with h | h <;> simp [h] <;> omega
+
+/-- **The top bit of a little-endian bit sum is the top summand.**  Stated through `testBit`, because
+that is the form the readout needs. -/
+theorem testBit_ofBitsN {f : Nat → Nat} (hf : ∀ b, b < 32 → f b ≤ 1) :
+    ∀ (N k : Nat), k < N → N ≤ 32 → (ofBitsN f N).testBit k = decide (f k = 1) := by
+  intro N
+  induction N with
+  | zero => intro k hk _; omega
+  | succ n ih =>
+    intro k hk hn
+    have hn' : n ≤ 32 := by omega
+    have hlt : ofBitsN f n < 2 ^ n := ofBitsN_lt (f := f) n (fun b hb => hf b (by omega))
+    have hsum : ofBitsN f (n + 1) = 2 ^ n * f n + ofBitsN f n := by
+      rw [ofBitsN_succ]; omega
+    rw [hsum, Nat.testBit_two_pow_mul_add (f n) hlt k]
+    rcases Nat.lt_or_eq_of_le (show k ≤ n from by omega) with h' | h'
+    · rw [ite_eq_left h']; exact ih k h' hn'
+    · have hkn : k = n := by omega
+      subst hkn
+      rw [ite_eq_right (by omega), Nat.sub_self]
+      exact testBit_zero_of_le_one (hf k (by omega))
+
+/-- **A word's bit reads back as the bit that built it.** -/
+theorem bitOf_ofBitsN {f : Nat → Nat} (hf : ∀ b, b < 32 → f b ≤ 1) :
+    ∀ (N k : Nat), k < N → N ≤ 32 → bitOf (ofBitsN f N) k = f k := by
+  intro N k hk hn
+  rw [bitOf_eq_testBit, testBit_ofBitsN hf N k hk hn]
+  have := hf k (by omega)
+  rcases (show f k = 0 ∨ f k = 1 from by omega) with h | h <;> simp [h]
+
+/-- **Two words with the same 32 bits are the same word.** -/
+theorem ofBitsN_congr {f g : Nat → Nat} (H : ∀ k, k < 32 → f k = g k) (N : Nat) (hN : N ≤ 32) :
+    ofBitsN f N = ofBitsN g N := by
+  induction N with
+  | zero => rfl
+  | succ n ih =>
+    rw [ofBitsN_succ, ofBitsN_succ, ih (by omega), H n (by omega)]
+
 end Ripemd
 end Chips
 end WasmBase
