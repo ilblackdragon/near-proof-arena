@@ -53,16 +53,13 @@ theorem ret_count_cases : ∀ i ∈ Ret.inters, i.count = Ret.act ∨ i.count = 
   exact of_decide_eq_true this
 
 /-- RET counts as naturals. -/
-theorem ret_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
+theorem ret_count_vals_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Ret.table.constraints, e.eval (natRow (rowNat tr 14 r) (tr.row pub 14 r)) = 0) :
     rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif ≤ 1 ∧
     (Ret.act.eval (tr.row pub 14 r)).toNat = rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif ∧
     ((v Ret.fRif).eval (tr.row pub 14 r)).toNat = rowNat tr 14 r Ret.fRif ∧
     (Ret.tk.eval (tr.row pub 14 r)).toNat ≤ rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif := by
   have hP' := P_val
-  have ht : 14 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Ret.table.constraints, e.eval (natRow (rowNat tr 14 r) (tr.row pub 14 r)) = 0 :=
-    table_constr H ht hr
   obtain ⟨r1, r2, hs, -, -, -, hnzb⟩ := ret_sound (rowNat tr 14 r) (tr.row pub 14 r) (rowNat_lt tr 14 r) hcon
   rw [← row_eq_natRow] at hnzb
   have hcP := rowNat_lt tr 14 r
@@ -80,12 +77,25 @@ theorem ret_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
           rw [Lean.Grind.Semiring.natCast_add]; grind, Fp.toNat_cast_of_lt (by have := P_val; omega)]
       exact Nat.le_refl _
 
-theorem ret_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
+theorem ret_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Ret.table.constraints, e.eval (natRow (rowNat tr 14 r) (tr.row pub 14 r)) = 0) :
     ∀ i ∈ Ret.inters, (i.count.eval (tr.row pub 14 r)).toNat ≤ 1 := by
-  obtain ⟨hs, ha, hf, ht⟩ := ret_count_vals H hr
+  obtain ⟨hs, ha, hf, ht⟩ := ret_count_vals_of hcon
   intro i hi
   rcases ret_count_cases i hi with h | h | h <;> rw [h] <;> omega
+
+theorem ret_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
+    rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif ≤ 1 ∧
+    (Ret.act.eval (tr.row pub 14 r)).toNat = rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif ∧
+    ((v Ret.fRif).eval (tr.row pub 14 r)).toNat = rowNat tr 14 r Ret.fRif ∧
+    (Ret.tk.eval (tr.row pub 14 r)).toNat ≤ rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif :=
+  ret_count_vals_of (table_constr H (by simp [air_len]) hr)
+
+theorem ret_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
+    ∀ i ∈ Ret.inters, (i.count.eval (tr.row pub 14 r)).toNat ≤ 1 :=
+  ret_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem ret_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14)

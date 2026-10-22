@@ -38,18 +38,24 @@ theorem call_count_cases : ∀ i ∈ Call.inters, i.count = v Call.act ∨ (∃ 
   · exact Or.inr (Or.inr ⟨j, hj, h⟩)
 
 /-- The CALL row's flags as naturals. -/
+theorem call_flags_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Call.table.constraints, e.eval (natRow (rowNat tr 13 r) (tr.row pub 13 r)) = 0) :
+    rowNat tr 13 r Call.act ≤ 1 ∧ rowNat tr 13 r (Call.af 0) ≤ rowNat tr 13 r Call.act ∧
+    (∀ j, j < 8 → rowNat tr 13 r (Call.pf j) ≤ 1 ∧ rowNat tr 13 r (Call.pf j) ≤ rowNat tr 13 r (Call.af j)) ∧
+    (∀ j, j + 1 < 8 → rowNat tr 13 r (Call.pf (j + 1)) ≤ rowNat tr 13 r (Call.pf j)) ∧
+    (∀ j, j < 64 → rowNat tr 13 r (Call.af j) ≤ 1 ∧ rowNat tr 13 r (Call.tg j) ≤ 1) ∧
+    (∀ j, j + 1 < 64 → rowNat tr 13 r (Call.af (j + 1)) ≤ rowNat tr 13 r (Call.af j)) := by
+  obtain ⟨a1, a2, a3, a4, a5, a6, -⟩ := call_sound (rowNat tr 13 r) (tr.row pub 13 r) (rowNat_lt tr 13 r) hcon
+  exact ⟨a1, a2, a3, a4, a5, a6⟩
+
 theorem call_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
     rowNat tr 13 r Call.act ≤ 1 ∧ rowNat tr 13 r (Call.af 0) ≤ rowNat tr 13 r Call.act ∧
     (∀ j, j < 8 → rowNat tr 13 r (Call.pf j) ≤ 1 ∧ rowNat tr 13 r (Call.pf j) ≤ rowNat tr 13 r (Call.af j)) ∧
     (∀ j, j + 1 < 8 → rowNat tr 13 r (Call.pf (j + 1)) ≤ rowNat tr 13 r (Call.pf j)) ∧
     (∀ j, j < 64 → rowNat tr 13 r (Call.af j) ≤ 1 ∧ rowNat tr 13 r (Call.tg j) ≤ 1) ∧
-    (∀ j, j + 1 < 64 → rowNat tr 13 r (Call.af (j + 1)) ≤ rowNat tr 13 r (Call.af j)) := by
-  have ht : 13 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Call.table.constraints, e.eval (natRow (rowNat tr 13 r) (tr.row pub 13 r)) = 0 :=
-    table_constr H ht hr
-  obtain ⟨a1, a2, a3, a4, a5, a6, -⟩ := call_sound (rowNat tr 13 r) (tr.row pub 13 r) (rowNat_lt tr 13 r) hcon
-  exact ⟨a1, a2, a3, a4, a5, a6⟩
+    (∀ j, j + 1 < 64 → rowNat tr 13 r (Call.af (j + 1)) ≤ rowNat tr 13 r (Call.af j)) :=
+  call_flags_of (table_constr H (by simp [air_len]) hr)
 
 theorem call_count_val {pub : List F} {tr : Trace} {r : Nat}
     (hf : ∀ j, j < 8 → rowNat tr 13 r (Call.pf j) ≤ rowNat tr 13 r (Call.af j)) :
@@ -70,10 +76,10 @@ theorem call_count_val {pub : List F} {tr : Trace} {r : Nat}
       rw [cell_cast, cell_cast, toNat_cast_sub (hf j hj8) (rowNat_lt _ _ _ _)]
     · simp only [v, Expr.eval_col, Trace.row]; rfl
 
-theorem call_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
+theorem call_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Call.table.constraints, e.eval (natRow (rowNat tr 13 r) (tr.row pub 13 r)) = 0) :
     ∀ i ∈ Call.inters, (i.count.eval (tr.row pub 13 r)).toNat ≤ 1 := by
-  obtain ⟨a1, a2, a3, a4, a5, a6⟩ := call_flags H hr
+  obtain ⟨a1, a2, a3, a4, a5, a6⟩ := call_flags_of hcon
   intro i hi
   rcases call_count_val (pub := pub) (fun j hj => (a3 j hj).2) i hi with h | ⟨j, hj, h⟩ | ⟨j, hj, h⟩ <;> rw [h]
   · exact a1
@@ -81,6 +87,11 @@ theorem call_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
   · split
     · have := (a5 j hj).1; omega
     · exact (a5 j hj).1
+
+theorem call_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
+    ∀ i ∈ Call.inters, (i.count.eval (tr.row pub 13 r)).toNat ≤ 1 :=
+  call_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem call_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13)

@@ -58,6 +58,7 @@ import WasmBase.Main.HostChipBits
 import WasmBase.HostCtx
 import WasmBase.Main.RegFacts
 import WasmBase.Main.RegWalk
+import WasmBase.Main.RegSend
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors

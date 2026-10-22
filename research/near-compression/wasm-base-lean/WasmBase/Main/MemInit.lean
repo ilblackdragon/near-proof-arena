@@ -20,21 +20,19 @@ def part (T : Table) (tr : Trace) (pub : List F) (t b : Nat) (s : Bool) : List (
 /-- The initial memory messages (MEMINIT sends). -/
 def memRaw (tr : Trace) (pub : List F) : List (List F) := part MemInit.table tr pub 19 busStk true
 
-theorem meminit_bits {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 19) :
+theorem meminit_bits_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ MemInit.table.constraints, e.eval (natRow (rowNat tr 19 r) (tr.row pub 19 r)) = 0) :
     (rowNat tr 19 r 0 = 0 ∨ rowNat tr 19 r 0 = 1) ∧ (rowNat tr 19 r 3 = 0 ∨ rowNat tr 19 r 3 = 1) := by
-  have hcon : ∀ e ∈ MemInit.table.constraints, e.eval (natRow (rowNat tr 19 r) (tr.row pub 19 r)) = 0 :=
-    table_constr H (by simp [air_len]) hr
   simp only [MemInit.table, MemInit.constraints, List.forall_mem_cons, List.forall_mem_nil, and_true] at hcon
   obtain ⟨bA, bZ, -⟩ := hcon
   simp only [Chips.bool, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow,
     MemInit.act, MemInit.zd] at bA bZ
   exact ⟨bool_nat (rowNat_lt _ _ _ _) bA, bool_nat (rowNat_lt _ _ _ _) bZ⟩
 
-theorem meminit_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 19) :
+theorem meminit_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ MemInit.table.constraints, e.eval (natRow (rowNat tr 19 r) (tr.row pub 19 r)) = 0) :
     ∀ i ∈ MemInit.inters, (i.count.eval (tr.row pub 19 r)).toNat ≤ 1 := by
-  obtain ⟨hA, hZ⟩ := meminit_bits H hr
+  obtain ⟨hA, hZ⟩ := meminit_bits_of hcon
   have hc : ∀ i ∈ MemInit.inters, i.count = v MemInit.act ∨ i.count = v MemInit.act * v MemInit.zd ∨
       i.count = v MemInit.act * (1 - v MemInit.zd) := by
     intro i hi
@@ -57,6 +55,16 @@ theorem meminit_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
     rcases hA with e | e <;> rcases hZ with e' | e' <;> rw [e, e'] <;> decide
   · rw [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', ea, ez]
     rcases hA with e | e <;> rcases hZ with e' | e' <;> rw [e, e'] <;> decide
+
+theorem meminit_bits {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 19) :
+    (rowNat tr 19 r 0 = 0 ∨ rowNat tr 19 r 0 = 1) ∧ (rowNat tr 19 r 3 = 0 ∨ rowNat tr 19 r 3 = 1) :=
+  meminit_bits_of (table_constr H (by simp [air_len]) hr)
+
+theorem meminit_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 19) :
+    ∀ i ∈ MemInit.inters, (i.count.eval (tr.row pub 19 r)).toNat ≤ 1 :=
+  meminit_counts_of (table_constr H (by simp [air_len]) hr)
 
 /-- **Statement binding of the cached DATA table.**  V_d recomputes `data_root` from the contract
 code as the commitment to the canonical DATA matrix (`(a, image[a])` for `a < dataEnd`, padded by
