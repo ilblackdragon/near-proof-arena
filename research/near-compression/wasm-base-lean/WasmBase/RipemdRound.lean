@@ -20,12 +20,35 @@ reads:
 
 ## What is proved here, and what is not
 
-Proved: the gated-sum collapses in general form (`gsumAux_zero`, `gsumAux_at`), the group selector
-sum `gselAux g 16` (already in `RipemdSound`), the `f`-form bridge on bits, and the rotation bridge.
+Proved, in four sections:
 
-Not proved: the digest's relationship to the spec's `ripemd160` over a whole message.  That needs
-the feed-forward row family and the block-boundary rows, which `RipemdAir` does not define (the
-README's §3.6 names both as separate obligations).  This file supplies the per-step half.
+* **§A/§B** — the gated-sum collapse in general form (`gsumG_zero`, `gsumG_at`), the five concrete
+  instances (`xselAux`, `rotAux`, `gselAux`, `fSumAux`, `kSelAux`), and the row-level consequences
+  `xsel_eq`, `rot_eq`, `f_eq` plus the `gsel_profile` that `f_eq` consumes.
+* **§C** — the bit-to-word readout: `bitOf_ofBitsN` (a word's bit reads back as the bit that built
+  it), `ofBitsN_congr` (32 agreeing bits make equal words), and `ofBitsN_foldl` (the `foldl` in
+  `RipemdVectors.stateOf` *is* `ofBitsN`).
+* **§D** — `curWord`/`nxtWord` and `nxtWord_eq_cur`, which lift a per-bit shift constraint to a word
+  identity.  This is what makes the eight wiring-only next words `al'`, `cl'`, `el'`, `dl'`, `ar'`,
+  `cr'`, `er'`, `dr'` immediate.
+
+Not proved here — and this is the honest boundary of the file:
+
+* **The two computed next words, `bl'` and `br'`.**  They need the four-addition chain per line
+  (`t1 = al+fL`, `t2 = t1+xL`, `t3 = t2+kL`, `tf = rot+el`) composed with the `f` column, the selected
+  message word and the rotated `t3`, and then matched against the spec's
+  `rot32 (al + rf j bl cl dl + x[rl[j]] + kl[j/16]) sl[j] + el`.  `adder_chain` (`RipemdSound`) gives
+  each individual addition; the composition is not written here.
+* **The rotation bridge in general.**  `RipemdVectors.rotl32n_is_rot` checks
+  `rotl32n v n = (rot32 (ofNat v) (ofNat n)).toNat` by `decide` on 80 offsets × 8 values — a concrete
+  check, not a proof for arbitrary `v`.  A general bridge needs `UInt32` shift/`toNat` lemmas this
+  file does not have.
+* **The digest's relationship to the spec's `ripemd160` over a whole message.**  That needs the
+  feed-forward row family and the block-boundary rows, which `RipemdAir` does not define (the
+  README's §3.6 names both as separate obligations).
+
+So `round_agrees` — the statement the file is named for — is **not** in this file yet.  What is here is
+the machinery it is built from, plus the eight of the ten next words that need no arithmetic at all.
 -/
 set_option linter.unusedSimpArgs false
 set_option maxHeartbeats 1000000
@@ -420,7 +443,7 @@ The rest of this section is the half of `round_agrees` that needs **no** arithme
 shift constraints say `al' = el`, `cl' = bl`, `el' = dl`, `dl' = rotl32 cl 10` (and the mirrored
 three), so eight of the ten next words are pinned by wiring alone.  Only `bl'` and `br'` — the two
 words the step actually computes — need the adder chain, the `f` form, the message word and the
-rotation.  Those are §E. -/
+rotation; those are **not** in this file (see the header). -/
 
 /-- `ofBitsN` is the little-endian `foldl` that `stateOf` uses. -/
 theorem ofBitsN_foldl (f : Nat → Nat) :
