@@ -410,6 +410,34 @@ independent and cheap.
 **7 is not a proof lane.** Read the `UpsV3AppliesLog` note above before dispatching it: `upsert` at a
 ContractData key needs a table parameterisation, which is a render/AIR change with a size/model cost.
 
+### Link 1 (Wasm domain): what landed 2026-10-22, and what still blocks a real D3 contract
+
+The chain "D3 fixture → joint proof → recursion" had **no link** in place
+(`docs/logs/pq-d3-chain-gap-2026-10-21.md`). Link 1 — getting a real D3 contract into the Wasm base
+domain — is now two landed pieces on `lane/pq-d3-air` (`ce968bfc3`) and `lane/pq-if2` (`55fab1e0f`),
+neither merged to main. Detail: `docs/logs/pq-d3-air-2026-10-22.md`.
+
+* **Storage hosts: DONE.** The four Dα storage hosts are in `hostFns` at **fresh ids 57..60** —
+  `canonical.txt`'s 53..59 collide with the hash block (53..56), so do **not** adopt its numbering.
+  `hostFns_ids_nodup`, `hostStorage_sigs`, `hostStorage_names`, `hostHash_ids_stable` are all
+  kernel-checked with **no axioms**. New KAT `storkat` round-trips write/has_key/read/remove →
+  **98/98**, tamper **90/90 rejected**. Proved non-vacuous: reverting `hostFns` yields
+  `FAIL storkat (unexpectedly ineligible)` and breaks the kernel theorems.
+* **`if`/`else`: spec steps done, AIR/checker open.** `StepIf.lean` (`step_if`, `step_else`,
+  `popN_snd`) is proved on `lane/pq-if2`. Still open: the `if` AIR selector and row lemma (its own
+  table — `CTRL` must stay byte-identical, and `if` falls *through* on non-zero, the opposite
+  polarity to `fJif`), the checker extension (`analyzeIf`/`verifyAtIf`/`recordAtIf`/`checkModuleIf`
+  producing exactly `step_if`'s hypotheses), and tracegen + opcode map.
+
+Measured: `d3tiny` with its `if` clamp replaced by `select` — a contract that really calls
+`storage_write` — is `eligible:true`, `hosts = [48,6,49,58,45,50]`. Unmodified `d3tiny` is still
+`eligible:false` because of `if`, so **both halves are needed**; storage alone does not unblock a
+real contract.
+
+Fourth instance of the stale-artifact trap this batch: a fresh worktree's tracked
+`nearproof-wasm-base` is the **pre-REG** build and gives 74/97 (mtime newer than sources, content
+older — the age guard cannot see it). Rebuild both artifacts before believing a KAT count.
+
 ### Merge discipline that worked (learned three times now)
 
 1. Merge the **frontier** lane (the one containing the others' commits), not every lane.
