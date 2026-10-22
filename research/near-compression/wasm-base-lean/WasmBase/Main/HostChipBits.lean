@@ -83,9 +83,65 @@ theorem hosto_avoids_state_ch : ¬ touchesStateOrCh HostO.table := by
 theorem hosttab_avoids_state_ch : ¬ touchesStateOrCh HostTab.table := by
   unfold touchesStateOrCh; decide
 
-/-- **`HOSTB` touches neither STATE nor CH.** -/
-theorem hostb_avoids_state_ch : ¬ touchesStateOrCh HostB.table := by
+/-- **`HOSTB` touches CH (space 3) since the MEMIO link.**  Its two space-3 interactions are counted
+by `memCnt = act·(1−dir)·(1−reg)`, which is a bit once `act`, `dir`, `reg` are (`hostb_memCnt_bit`),
+and it touches nothing on STATE. -/
+theorem hostb_touches_ch : touchesStateOrCh HostB.table := by
   unfold touchesStateOrCh; decide
+
+/-- **`HOSTB` touches no STATE interaction.** -/
+theorem hostb_avoids_state : (HostB.table.inters.filter (fun i => i.bus = busState)) = [] := by
+  decide
+
+/-- **`HOSTB`'s space-3 count is a bit.**  `memCnt = act·(1−dir)·(1−reg)` and `act`, `dir`, `reg` are
+bits by `cAct`/`cDir`/`cReg`, so the product lands in `{0,1}`.  This is what keeps `msgs_perm` sound
+now that `HOSTB` is an emitter on the CH bus: a count of `2` (or more) would let one row balance
+several messages. -/
+theorem hostb_memCnt_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 25) :
+    (HostB.memCnt.eval (tr.row pub 25 r)).toNat ≤ 1 := by
+  have ht : 25 < (wasmBaseHostAir nloc ngl).tables.length := by simp [wasmBaseHostAir, air_len]
+  have hcon : ∀ e ∈ HostB.table.constraints, e.eval (natRow (rowNat tr 25 r) (tr.row pub 25 r)) = 0 :=
+    table_constr H ht hr
+  have hc0 := hcon HostB.cAct (by simp [HostB.table, HostB.constraints])
+  have hd0 := hcon HostB.cDir (by simp [HostB.table, HostB.constraints])
+  have hr0 := hcon HostB.cReg (by simp [HostB.table, HostB.constraints])
+  simp only [HostB.cAct, HostB.cDir, HostB.cReg, Chips.bool, Chips.v, Expr.eval_mul',
+    Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow] at hc0 hd0 hr0
+  have bitA : rowNat tr 25 r HostB.act = 0 ∨ rowNat tr 25 r HostB.act = 1 :=
+    bool_nat (rowNat_lt tr 25 r HostB.act) hc0
+  have bitD : rowNat tr 25 r HostB.dir = 0 ∨ rowNat tr 25 r HostB.dir = 1 :=
+    bool_nat (rowNat_lt tr 25 r HostB.dir) hd0
+  have bitR : rowNat tr 25 r HostB.reg = 0 ∨ rowNat tr 25 r HostB.reg = 1 :=
+    bool_nat (rowNat_lt tr 25 r HostB.reg) hr0
+  have e : (HostB.memCnt.eval (tr.row pub 25 r)) =
+      ((rowNat tr 25 r HostB.act : Nat) : F) * (1 - ((rowNat tr 25 r HostB.dir : Nat) : F)) *
+        (1 - ((rowNat tr 25 r HostB.reg : Nat) : F)) := by
+    simp only [HostB.memCnt, Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat',
+      Expr.eval_col, Trace.row, cell_cast, HostB.act, HostB.dir, HostB.reg, cast_one]
+  rw [e]
+  rcases bitA with h | h <;> rcases bitD with h' | h' <;> rcases bitR with h'' | h'' <;>
+    rw [h, h', h''] <;> decide
+
+/-- **`HOSTB`'s two CH counts are `memCnt`.** -/
+theorem hostb_ch_count_list :
+    ((HostB.table.inters.filter (fun i => i.bus = busState ∨ i.bus = busStk)).map (·.count)) =
+      [HostB.memCnt, HostB.memCnt] := by
+  decide
+
+/-- Each of `HOSTB`'s CH interactions has count ≤ 1 on any `Holds` row. -/
+theorem hostb_inter_bound {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 25) :
+    ∀ i ∈ HostB.table.inters, (i.bus = busState ∨ i.bus = busStk) →
+      (i.count.eval (tr.row pub 25 r)).toNat ≤ 1 := by
+  intro i hi hb
+  have hmem : i ∈ HostB.table.inters.filter (fun j => j.bus = busState ∨ j.bus = busStk) :=
+    List.mem_filter.mpr ⟨hi, by simpa using hb⟩
+  have hcount : i.count ∈ [HostB.memCnt, HostB.memCnt] := by
+    have := List.mem_map_of_mem (f := (·.count)) hmem
+    rwa [hostb_ch_count_list] at this
+  simp only [List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false] at hcount
+  rcases hcount with h | h <;> rw [h] <;> exact hostb_memCnt_bit H hr
 
 /-- **Only `HOST` touches them**, and there its counts are `act`, `pf j` and `nres` — bits, the
 latter two by `edae7a53d`'s gating constraints. -/
@@ -144,38 +200,32 @@ theorem host_state_ch_inters :
     Host.sendIdx, List.range_succ, List.map_cons, List.map_nil, List.append_nil]
   decide
 
-/-- **HOSTO/HOSTT/HOSTB have no STATE/CH interaction at all**, so their (unconstrained) counts on
-their own buses never enter the induction. -/
+/-- **HOSTO and HOSTT have no STATE/CH interaction at all**, so their (unconstrained) counts on
+their own buses never enter the induction.  `HOSTB` is *not* in this list any more: the MEMIO link
+made it a CH emitter (`hostb_touches_ch`), and its counts are the bits `hostb_memCnt_bit`. -/
 theorem env_inters_nil :
     (HostO.table.inters.filter (fun i => i.bus = busState ∨ i.bus = busStk)) = [] ∧
-    (HostTab.table.inters.filter (fun i => i.bus = busState ∨ i.bus = busStk)) = [] ∧
-    (HostB.table.inters.filter (fun i => i.bus = busState ∨ i.bus = busStk)) = [] := by
-  refine ⟨?_, ?_, ?_⟩ <;> decide
+    (HostTab.table.inters.filter (fun i => i.bus = busState ∨ i.bus = busStk)) = [] := by
+  refine ⟨?_, ?_⟩ <;> decide
 
 
 /-! ## `st`, `ar`, `nres` are bits on any HOST row -/
 
 /-- **`st` is a bit on any `Holds` HOST row.**  Directly from `Host.cSt` (`bool (v st)`). -/
-theorem host_st_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 22) :
+theorem host_st_bit_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Host.table.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0) :
     rowNat tr 22 r Host.st = 0 ∨ rowNat tr 22 r Host.st = 1 := by
   show rowNat tr 22 r 9 = 0 ∨ rowNat tr 22 r 9 = 1
-  have ht : 22 < (wasmBaseHostAir nloc ngl).tables.length := by simp [wasmBaseHostAir, air_len]
-  have hcon : ∀ e ∈ Host.table.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0 :=
-    table_constr H ht hr
   have hs := hcon Host.cSt host_cSt_mem
   simp only [Host.cSt, Chips.bool, Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
     Expr.eval_ofNat', Host.st, natRow] at hs
   exact bool_nat (rowNat_lt tr 22 r 9) hs
 
 /-- **`ar` is a bit on any `Holds` HOST row.**  Directly from `Host.cAr`. -/
-theorem host_ar_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 22) :
+theorem host_ar_bit_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Host.table.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0) :
     rowNat tr 22 r Host.ar = 0 ∨ rowNat tr 22 r Host.ar = 1 := by
   show rowNat tr 22 r 8 = 0 ∨ rowNat tr 22 r 8 = 1
-  have ht : 22 < (wasmBaseHostAir nloc ngl).tables.length := by simp [wasmBaseHostAir, air_len]
-  have hcon : ∀ e ∈ Host.table.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0 :=
-    table_constr H ht hr
   have ha := hcon Host.cAr host_cAr_mem
   simp only [Host.cAr, Chips.bool, Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
     Expr.eval_ofNat', Host.ar, natRow] at ha
@@ -184,15 +234,12 @@ theorem host_ar_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
 /-- **`nres` is a bit on any `Holds` HOST row.**  `Host.cNres` gives `nres = (1 − st)·ar` in the
 field, and `st`, `ar` are boolean, so `nres ∈ {0, 1}`.  No `act` gating is involved: the product is
 a bit whatever `act` is, which is why `Host.cActNres` is only about the *inactive* case. -/
-theorem host_nres_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 22) :
+theorem host_nres_bit_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Host.table.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0) :
     rowNat tr 22 r Host.nres = 0 ∨ rowNat tr 22 r Host.nres = 1 := by
   show rowNat tr 22 r 10 = 0 ∨ rowNat tr 22 r 10 = 1
-  obtain hst := host_st_bit H hr
-  obtain har := host_ar_bit H hr
-  have ht : 22 < (wasmBaseHostAir nloc ngl).tables.length := by simp [wasmBaseHostAir, air_len]
-  have hcon : ∀ e ∈ Host.table.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0 :=
-    table_constr H ht hr
+  obtain hst := host_st_bit_of hcon
+  obtain har := host_ar_bit_of hcon
   have hn := hcon Host.cNres host_cNres_mem
   simp only [Host.cNres, Chips.v, Expr.eval_add', Expr.eval_sub', Expr.eval_mul', Expr.eval_col,
     Expr.eval_ofNat', Host.nres, Host.st, Host.ar, natRow] at hn
@@ -221,6 +268,21 @@ theorem host_nres_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
       rw [h1] at hn2
       grind
     exact Or.inl ((cast_inj_iff (rowNat_lt tr 22 r 10) (by decide : (0 : Nat) < P)).mp e)
+
+theorem host_st_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 22) :
+    rowNat tr 22 r Host.st = 0 ∨ rowNat tr 22 r Host.st = 1 :=
+  host_st_bit_of (table_constr H (by simp [wasmBaseHostAir, air_len]) hr)
+
+theorem host_ar_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 22) :
+    rowNat tr 22 r Host.ar = 0 ∨ rowNat tr 22 r Host.ar = 1 :=
+  host_ar_bit_of (table_constr H (by simp [wasmBaseHostAir, air_len]) hr)
+
+theorem host_nres_bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 22) :
+    rowNat tr 22 r Host.nres = 0 ∨ rowNat tr 22 r Host.nres = 1 :=
+  host_nres_bit_of (table_constr H (by simp [wasmBaseHostAir, air_len]) hr)
 
 /-! ## The five STATE/CH counts of a HOST row, as bounds -/
 
@@ -301,8 +363,8 @@ theorem host_inter_bound {nloc ngl : Nat} {pub : List F} {tr : Trace}
 
 /-- **Every STATE/CH occurrence of `wasmBaseHostAir` has count ≤ 1.**  Tables 0-21 come from the
 base AIR's `occ_bits` via `occs_mono_host`; `HOST`'s interactions on these buses are bounded by
-`host_inter_bound`; `HOSTO`/`HOSTT`/`HOSTB` have none (`env_inters_nil`), which is why their
-multiplicities never enter. -/
+`host_inter_bound`; `HOSTB`'s two space-3 counts by `hostb_inter_bound` (the MEMIO link); and
+`HOSTO`/`HOSTT` have none (`env_inters_nil`). -/
 theorem occ_bits_host {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
     (H0 : Holds (wasmBaseAir nloc ngl) pub tr)
@@ -327,19 +389,13 @@ theorem occ_bits_host {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
       · exact Or.inl (by simpa using h)
       · exact Or.inr (by simpa using h)
     exact absurd (List.mem_filter.mpr ⟨hi, by rcases hb' with h | h <;> simp [h]⟩) (this i)
-  · have := env_inters_nil.2.1
+  · have := env_inters_nil.2
     rw [List.eq_nil_iff_forall_not_mem] at this
     have hb' : i.bus = busState ∨ i.bus = busStk := by
       rcases hk with h | h
       · exact Or.inl (by simpa using h)
       · exact Or.inr (by simpa using h)
     exact absurd (List.mem_filter.mpr ⟨hi, by rcases hb' with h | h <;> simp [h]⟩) (this i)
-  · have := env_inters_nil.2.2
-    rw [List.eq_nil_iff_forall_not_mem] at this
-    have hb' : i.bus = busState ∨ i.bus = busStk := by
-      rcases hk with h | h
-      · exact Or.inl (by simpa using h)
-      · exact Or.inr (by simpa using h)
-    exact absurd (List.mem_filter.mpr ⟨hi, by rcases hb' with h | h <;> simp [h]⟩) (this i)
+  · exact hostb_inter_bound H hr i hi (by simpa using hk)
 
 end WasmBase
