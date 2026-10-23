@@ -131,4 +131,45 @@ theorem Val.encode_injective {a b : Val} (ha : a.wf) (hb : b.wf) (h : a.encode =
             leN_inj hp (by rw [hpow]; exact ha) (by rw [hpow]; exact hb)
           rw [hnm]
 
+-- Round trip (added): a decoder for the tag-dispatching encoding, carrying the remainder.
+-- This is the form `Frame` needs, since `Val.encode` elements are concatenated in an array.
+
+/-- Decode one operand, returning the remainder. -/
+def Val.decode : Bytes → Option (Val × Bytes)
+  | 0 :: rest => (NearSpec.readLE 4 rest).map (fun p => (Val.i32 (UInt32.ofNat p.1), p.2))
+  | 1 :: rest => (NearSpec.readLE 8 rest).map (fun p => (Val.i64 (UInt64.ofNat p.1), p.2))
+  | 2 :: rest => some (Val.ref none, rest)
+  | 3 :: rest => (NearSpec.readLE 8 rest).map (fun p => (Val.ref (some p.1), p.2))
+  | _ => none
+
+/-- Decoding an encoded well-formed operand returns it unchanged, with the remainder. -/
+theorem Val.decode_encode (v : Val) (h : v.wf) (rest : Bytes) :
+    Val.decode (v.encode ++ rest) = some (v, rest) := by
+  cases v with
+  | i32 x =>
+    have hx : x.toNat < 256^4 := by
+      have hp : (256 : Nat)^4 = 2^32 := by decide
+      rw [hp]; exact x.toNat_lt
+    simp only [Val.encode, Val.decode, List.cons_append, List.nil_append]
+    rw [NearSpec.readLE_append 4 x.toNat rest hx]
+    simp [UInt32.ofNat_toNat]
+  | i64 x =>
+    have hx : x.toNat < 256^8 := by
+      have hp : (256 : Nat)^8 = 2^64 := by decide
+      rw [hp]; exact x.toNat_lt
+    simp only [Val.encode, Val.decode, List.cons_append, List.nil_append]
+    rw [NearSpec.readLE_append 8 x.toNat rest hx]
+    simp [UInt64.ofNat_toNat]
+  | ref r =>
+    cases r with
+    | none => simp [Val.encode, Val.decode]
+    | some n =>
+      simp only [Val.wf] at h
+      have hn : n < 256^8 := by
+        have hp : (256 : Nat)^8 = 2^64 := by decide
+        rw [hp]; exact h
+      simp only [Val.encode, Val.decode, List.cons_append, List.nil_append]
+      rw [NearSpec.readLE_append 8 n rest hn]
+      simp
+
 end NearSpecV3.Wasm
