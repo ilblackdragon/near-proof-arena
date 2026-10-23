@@ -1,0 +1,14 @@
+LIVE RE-VERIFICATION 2026-10-23 (pq-agg session)
+binary: /data/illia/nearproof-deps/pq-chunk-e2e/target/release/nearproof-chunk-e2e
+718def333d7313fc81152f9a5471ae2f4d951f497d664b096b3fb32656a4e4a6  /data/illia/nearproof-deps/pq-chunk-e2e/target/release/nearproof-chunk-e2e
+bundle: runs/opt-baseline-8/FINAL.bundle
+a1a2cce82ecc7adcb5319aa59af8e35234fe6150011306eb3ab98e6ab95bb248  /data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8/FINAL.bundle
+
+--- honest verify ---
+PUBLIC_PREPARATION_OK
+INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true
+exit=0
+
+--- 1-bit tamper at byte 149983 of 299967 ---
+final verifier: "final proof: WhirError(MerkleVerify)"
+exit=101 (panic, forgery rejected)
