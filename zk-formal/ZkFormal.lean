@@ -378,6 +378,7 @@ import ZkFormal.PQ.Join.Fold
 import ZkFormal.PQ.Join.Coverage
 -- lane pq-join-compose: the retired vacuous join, and `compose_pv86 : hagree → hstate → RelD3`
 import ZkFormal.PQ.Join.Compose
+import ZkFormal.PQ.Join.PrepareLink
 -- lane pq-d3-recursion: the range-statement algebra instantiated at `RelD3`
 import ZkFormal.PQ.Aggregation.D3Recursion
 -- lane pq-cd-storage: the state half of `storage_write` (ContractData read + `upsV3` write)

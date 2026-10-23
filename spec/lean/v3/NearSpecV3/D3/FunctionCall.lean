@@ -402,4 +402,26 @@ def checkD3 (claimBytes witnessBytes : NearSpec.Bytes) : Except String Unit :=
 
 def RelD3 (claimBytes witnessBytes : NearSpec.Bytes) : Prop := checkD3 claimBytes witnessBytes = .ok ()
 
+/-- **The D3 relation as a decidable boolean.**  A `Bool` mirror of the `Except` checker, so the
+kernel can evaluate the relation on concrete bytes, plus a `Decidable` instance.
+
+Note the polarity differs from `RelD0`/`RelD1`/`RelD2` on purpose: those are *Bool-primary*
+(`RelDk c w := acceptsDk c w = true`), while `RelD3` keeps the `Except` equation as its definition,
+because the D3 proofs in `zk-formal` (`Join/Fold.lean`, `Join/Coverage.lean`) consume that
+definitional form.  `relD3_iff_acceptsD3` proves the two agree, so this is a bridge, not a
+redefinition. -/
+def acceptsD3 (claimBytes witnessBytes : NearSpec.Bytes) : Bool :=
+  match checkD3 claimBytes witnessBytes with
+  | .ok () => true
+  | .error _ => false
+
+theorem relD3_iff_acceptsD3 (c w : NearSpec.Bytes) : RelD3 c w ↔ acceptsD3 c w = true := by
+  unfold RelD3 acceptsD3
+  cases h : checkD3 c w with
+  | ok u => cases u; simp
+  | error e => simp
+
+instance (c w : NearSpec.Bytes) : Decidable (RelD3 c w) :=
+  decidable_of_iff (acceptsD3 c w = true) (relD3_iff_acceptsD3 c w).symm
+
 end NearSpecV3.D3
