@@ -145,15 +145,18 @@ def floatStoreWidth (op : Nat) : Option Nat :=
 /-- Execute one float operator (`NearSpecV3.Wasm.evalFloatOp`, the kernel in `Wasm/Float.lean`).
 `none` from the kernel is the `IllegalArithmetic` trap of a non-saturating truncation. The stack is
 the typed value stack, so a float operand's bit pattern is its `Val` payload verbatim. -/
-def execFloat (s : St) (op : Nat) : Except String St := do
-  let (ps, rt) := (floatOperands op, floatResultType op)
-  let (b, s) := popN s
-  let (a, s) := if ps.size = 2 then popN s else (0, s)
-  -- `popN` yields the bottom-most of the two operands as `a` (it pops the top first)
-  let (a, b) := if ps.size = 2 then (a, b) else (b, 0)
-  match evalFloatOp op a b with
-  | some r => return pushT s rt r
-  | none => throw (trapStr "IllegalArithmetic")
+def execFloat (s : St) (op : Nat) : Except String St :=
+  if (floatOperands op).size = 2 then
+    let (b, s1) := popN s
+    let (a, s2) := popN s1
+    match evalFloatOp op a b with
+    | some r => .ok (pushT s2 (floatResultType op) r)
+    | none => .error (trapStr "IllegalArithmetic")
+  else
+    let (a, s1) := popN s
+    match evalFloatOp op a 0 with
+    | some r => .ok (pushT s1 (floatResultType op) r)
+    | none => .error (trapStr "IllegalArithmetic")
 
 def execNum (s : St) (op : Nat) : Except String St := do
   let un (w : Nat) (f : Nat → Nat) : St :=

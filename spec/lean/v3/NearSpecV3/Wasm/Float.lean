@@ -35,9 +35,12 @@ pinned source:
   (`wasmtime_runner/mod.rs:393`, `wasmtime_runner/trap_classification.rs:18`). `trunc_sat` never
   traps: NaN→0, ±∞ and out-of-range saturate.
 * **Gas.** finite-wasm 0.6.1 classifies every float operator as *pure* except the eight trapping
-  truncations, which are `cvtop_partial` (`finite-wasm-0.6.1/src/instruction_categories.rs:167-180`
-  and `src/gas/mod.rs:419-420`). Each operator costs one `regular_op_cost` (PV86 `82.yaml`,
-  822,756 gas), whichever class it is in.
+  truncations, which are `cvtop_partial` (`finite-wasm-0.6.1/src/instruction_categories.rs:168-178`
+  and `src/gas/mod.rs:419-420`). Each operator costs one `regular_op_cost`, whichever class it is
+  in; at PV86 that is 822,756
+  (`core/parameters/res/runtime_configs/parameters.snap:110`, `wasm_regular_op_cost 822_756`, last
+  changed by `49.yaml:1`). Note the class is not what sets the price: `pure` means the operator
+  merges into the surrounding instrumentation point, `cvtop_partial` that it opens its own.
 
 ## Representation
 
