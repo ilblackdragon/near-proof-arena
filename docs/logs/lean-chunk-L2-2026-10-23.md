@@ -1,14 +1,15 @@
 # L2 — floating-point Wasm: lane log
 
 Date: 2026-10-23. Owner: L2 lane. Status: **the float domain is implemented, proved where a proof
-exists, and measured against the pinned engine; L2 is not complete** (see §7).
+exists, and measured against the pinned engine; the full 115,284-case D3α regression replay is
+clean; L2 is not complete** (see §7).
 
 | | |
 |---|---|
 | Worktree | `/data/illia/nearproof-wt/lean-chunk-L2` |
 | Branch | `lane/lean-chunk-L2` |
 | Base commit named in the task | `a5ef42e0c` (L1 tip: `checkD3Proto` + protocol gas bound) |
-| Branch tip at the end of this session | `aa2a0a7a3` |
+| Branch tip at the end of this session | `c80296368` |
 | Merged to `main`? | No. Not pushed. |
 | Toolchain | `leanprover/lean4:v4.34.1`; nearcore `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86 |
 
@@ -186,6 +187,9 @@ var/l2/evidence/float_regression.log     both experiments DISCRIMINATE
 var/l2/evidence/chunk_float.log          20 lifted, 80/80 tamper mutants rejected
 ```
 
+The full D3α replay is kept outside the repo at `/tmp/opencode/d3replay-full/`
+(`report.json`, `d3.jsonl`, `d3f.jsonl`); its summary is reproduced in §6.1.
+
 ### 3.5 Whole chunks
 
 `chunk_float.py`, over the recorded corpus (26 cases naming `d3float`, `e.float`, nearcore `ok`):
@@ -305,12 +309,30 @@ prints the closure of each new theorem).
 * each verdict *change* against `meta.json`: the only admissible change is
   `out_of_domain → accept|reject` on a case with `e.float`, landing on nearcore's own verdict.
 
-Report: `/tmp/opencode/d3replay-full/report.json`. **Status at hand-off: the run was still in
-progress** (it was restarted once after a mid-run library rebuild briefly unlinked the checker
-binary; see §7). The subsample results below are complete runs of the same script; the full run's
-report must be read when it finishes. This is the one open verification item — see §7.
+Report: `/tmp/opencode/d3replay-full/report.json`. **Status: the full run completed** (it was
+restarted once after a mid-run library rebuild briefly unlinked the checker binary; the restart
+finished cleanly). Final report:
 
-Subsample results (complete runs, same script):
+```json
+{
+  "cases": 115284,
+  "verdicts_d3alpha": {"accept": 41131, "reject": 71605, "out_of_domain": 2548},
+  "verdicts_d3f":     {"accept": 41256, "reject": 71605, "out_of_domain": 2423},
+  "d3alpha_regressions": 0,
+  "d3alpha_regression_samples": [],
+  "verdict_changes": 125,
+  "float_domain_moves": 125,
+  "unexpected_moves": 0,
+  "unexpected_move_samples": []
+}
+```
+
+Both raw per-case streams are kept: `d3.jsonl` and `d3f.jsonl`, 115,284 lines each. The 125
+verdict changes are exactly the 125 cases carrying `e.float`; all 125 are
+`out_of_domain → accept`, and each lands on nearcore's own `ok`. The D3α out-of-domain count drops
+by exactly 125 while `reject` and `accept`-without-float are unchanged.
+
+Subsample results (complete runs, same script, kept as the historical record):
 
 ```
 --limit 40, all 4 corpora: 480 cases, 112 D3alpha ood, 4 float moves, 0 D3alpha regressions,
@@ -321,37 +343,43 @@ Subsample results (complete runs, same script):
 
 Every observed move was a `d3float` chunk going `out_of_domain → accept` with nearcore `ok`.
 
-**Verified against the recorded baseline, not just internally:** 200 D3α cases of `d3c7/d3` were
-re-run through the new checker and compared with the recorded per-case JSONL
-(`var/d3-runs/full-d3c7/lean.jsonl` in the plan worktree, the 115,284-case run behind
-`report-d3-full.json`): **0 mismatches, comparing both the verdict and the exact reason string**.
-So `checkD3` is unchanged on that sample, not merely self-consistent — which is the property that
+**Verified against the recorded baseline, not just internally:** every one of the 115,284 D3α cases
+was compared with the recorded per-case JSONL in the plan worktree
+(`var/d3-runs/full-d3c{7,8,9,10}/lean.jsonl`, the run behind `report-d3-full.json`):
+
+| corpus | cases |
+|---|---|
+| d3c7 | 33,248 |
+| d3c8 | 49,490 |
+| d3c9 | 15,995 |
+| d3c10 | 16,551 |
+| **total** | **115,284** |
+
+**0 mismatches**, comparing both the verdict and the exact reason string; the case sets coincide
+exactly (no missing or extra cases), and the verdict histogram is identical
+(`accept 41,131 / reject 71,605 / out_of_domain 2,548` on both sides). So `checkD3` is byte-for-byte
+unchanged on the whole recorded corpus, not merely self-consistent — which is the property that
 matters, because this lane rebuilt the library the old baseline binary came from.
 
 ## 7. What is not done — the honest list
 
-1. **The full 115,284-case D3α replay did not finish within the session.** Nothing in the part
-   that ran had regressed, and the 1,080-case subsample is clean, but the complete run must be
-   finished before L2 claims "no D3α regression on the recorded corpus". Command in §6 (about
-   75 minutes at `--jobs 16` on this host); the report lands in
-   `/tmp/opencode/d3replay-full/report.json` and must show `d3alpha_regressions: 0` plus
-   `unexpected_moves: 0`.
-
-   *Operational note:* rebuilding the Lean library or the checker exes while the replay is running
-   unlinks the binary under it and the worker fails with `FileNotFoundError`. Finish builds first,
-   then start the replay.
-2. **Chunk-level additivity is not proved** (§2.2). Guard-level additivity is.
-3. **Kernel = nearcore is measured, not proved**, and only on the operator and single-chunk level:
+1. **Chunk-level additivity is not proved** (§2.2). Guard-level additivity is.
+2. **Kernel = nearcore is measured, not proved**, and only on the operator and single-chunk level:
    1,260 directed operator cases + 210 gas modules + 20 whole chunks. No refinement theorem.
-4. **No generated float workload.** Whole-chunk coverage is the 26 recorded `d3float` chunks (one
+3. **No generated float workload.** Whole-chunk coverage is the 26 recorded `d3float` chunks (one
    contract). A generator that emits float contracts with varied operators would be the real fix;
    `oracle/v3-d3/contracts/d3float.wat` is the only float contract in the corpus.
-5. **`pow`/`fma` are absent by design** — not in the Wasm MVP, and `Decode.lean` rejects them.
-6. **Performance is irrelevant but worth knowing**: `sqrt` is a 64-step binary search, `div` a
+4. **`pow`/`fma` are absent by design** — not in the Wasm MVP, and `Decode.lean` rejects them.
+5. **Performance is irrelevant but worth knowing**: `sqrt` is a 64-step binary search, `div` a
    scaled integer division. Both are kernel-reducible; neither is fast. `bitLen`'s 4096 fuel
    bounds every operand formed here; an operand beyond that would silently truncate the bit length.
-7. **`--floats` is a test-only switch on the driver's `prepare` path.** `checkD3F` uses it through
+6. **`--floats` is a test-only switch on the driver's `prepare` path.** `checkD3F` uses it through
    `floatPv86`; no signed artifact reads it.
+
+*Operational note for the next agent:* rebuilding the Lean library or the checker exes while the
+replay is running unlinks the binary under it and the worker fails with `FileNotFoundError`. Finish
+builds first, then start the replay. The replay takes ~7 hours wall-clock on 8+8 pinned cores at
+`--jobs 20`; it is CPU-bound in the Lean checker.
 
 ## 8. Files safe for the next agent to edit
 
@@ -371,13 +399,13 @@ plumbing, `spec/tools/build_challenge_draft_v3_chunk.py`, or `challenges/drafts/
 
 ## 9. Next executable step
 
-1. Finish the replay: `python3 tools/d3/replay_d3_float.py --jobs 20` and require
-   `d3alpha_regressions: 0, unexpected_moves: 0` (§6.1). This is the only outstanding *verification*
-   item.
-2. Add a float contract to the oracle workload that exercises operators the single `d3float`
+1. Add a float contract to the oracle workload that exercises operators the single `d3float`
    contract does not (comparisons, `min`/`max`, `copysign`, the saturating truncations), then
    regenerate a small float corpus and re-run `chunk_float.py` — that is what turns "20 chunks, one
-   contract" into real whole-chunk coverage.
-3. If chunk-level additivity is wanted as a theorem, prove it as an induction over `prepare` plus
+   contract" into real whole-chunk coverage. This is the highest-value remaining item.
+2. If chunk-level additivity is wanted as a theorem, prove it as an induction over `prepare` plus
    the chunk pipeline with a hypothesis "no site other than the three guards reads
    `NearCfg.floats`"; the guard lemmas in `ChallengeChunkV3Float.lean` are the base case.
+3. If a proof-grade link to nearcore is wanted, prove a refinement from `evalFloatOp` to the pinned
+   Winch/Cranelift semantics; today the agreement is measured on 1,260 directed cases, 210 gas
+   modules and 20 whole chunks.
