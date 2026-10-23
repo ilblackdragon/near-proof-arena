@@ -622,7 +622,10 @@ With those relaxed, a full d=41 base+chain run was launched. **Its base proof ve
 | `whir_bytes_overhead` | 64,108 | 61,347 printed / **64,106 actual** | −2 |
 
 So the drop is **not** just `(42−41)·D`. Only 2,759 B of it is the per-digest saving; 1,218 B is
-**29 fewer digests at 42 B each**; 2 B is overhead. Narrower digest rows (`init_lens` 833 → 821,
+**29 fewer digests at 42 B each** (init 1,666 → 1,642 = −24, exactly 2 commits × −12; later
+[633,489] → [627,490] = −5); 2 B is overhead — those three sum to the −3,979 WHIR delta, and the
+remaining −2 B is non-WHIR (`trace_vdata` −1, plus 1 B elsewhere). Narrower digest rows
+(`init_lens` 833 → 821,
 i.e. −12 B per commit) make the Merkle trees shallower and sample fewer leaves. One trap: the
 printer computed `whir_bytes_overhead` as `whir − 42·D` with **42 hardcoded**
 (`native/pq-chunk-e2e/src/main.rs:182`), so at d=41 it printed 61,347 when the true figure is
