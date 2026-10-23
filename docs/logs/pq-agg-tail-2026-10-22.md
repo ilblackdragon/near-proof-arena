@@ -709,6 +709,19 @@ Still open, and each one is a real blocker rather than a formality:
 3. **Widen the 300 KB margin by ≥1 KB** before treating the bound as a bound. 33 B is less
    than one 42-byte digest of variance; a configuration change already moved it 798 B.
 
+   **Closed channel: "wrap a smaller child proof".** All five chain levels have
+   byte-identical vks (`sha256` equal), so vk identity does not restrict the choice — but
+   **program binding does**, and it has already been tested. Wrapping `L2`/`L3` fails with
+   `verifier program failures: ["program binding"]`, so the admissible set for this base chunk
+   is exactly **{L4, L5}**, and both have been measured: L5 → 299,935 B (the deliverable),
+   L4 → 300,733 B. The base run already wrapped the smaller of the two, so there is nothing
+   left to win here.
+   One tempting mistake to pre-empt: `D_final` is **not** a function of the child's digest
+   count. L4 has fewer child digests than L5 (3,771 vs 3,803) yet produces *more* final
+   digests (2,888 vs 2,869), because the multiproof's sibling dedup is data-dependent. So
+   "pick the child with the smallest proof" is not a valid strategy even in principle, and no
+   prediction is made for a hypothetical L3 child — it is excluded by binding, not by size.
+
    **Resolved on paper (2026-10-23): the margin is a function of digest width, and a
    already-proven narrower width clears it by ~43 KB.** The size law `proof_bytes = 42·D + C`
    makes the digest width the dominant lever: at the delivered `D = 2,869` and `C = 179,437`,
