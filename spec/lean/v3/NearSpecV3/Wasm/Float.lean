@@ -548,7 +548,7 @@ theorem qnan_f64_bits : Fmt.qnan f64 = 0x7FF8000000000000 := by decide
 
 /-- A bit-preserving operator keeps the payload: `abs` clears exactly the sign bit. -/
 theorem abs_f32_payload (a : Nat) : Fmt.abs f32 a = a &&& 0x7FFFFFFF := by
-  simp [Fmt.abs, f32, Fmt.w, Fmt.fracBits]
+  simp [Fmt.abs, f32]
 
 /-- `neg` flips exactly the sign bit, so a NaN keeps its payload and gets the other sign. -/
 theorem neg_f32_payload (a : Nat) (h : a < 2 ^ 32) :
@@ -563,17 +563,15 @@ theorem copysign_f32_body (a b : Nat) :
     Fmt.copysign f32 a b % 2 ^ 31 = a % 2 ^ 31 := by
   have := Nat.mod_lt (a % 2 ^ 31) (show 0 < 2 ^ 31 by decide)
   have hb : b / 2 ^ 31 % 2 = 0 ∨ b / 2 ^ 31 % 2 = 1 := by omega
-  simp only [Fmt.copysign, Fmt.abs, Fmt.signNat, f32, Fmt.w,
-             Nat.and_two_pow_sub_one_eq_mod]
-  rcases hb with h | h <;> simp [h, Nat.add_mod, this]
+  simp only [Fmt.copysign, Fmt.abs, Fmt.signNat, f32, Nat.and_two_pow_sub_one_eq_mod]
+  rcases hb with h | h <;> simp [h]
 
 /-- `copysign` takes exactly the second operand's sign bit. -/
 theorem copysign_f32_sign (a b : Nat) :
     Fmt.signNat f32 (Fmt.copysign f32 a b) = b / 2 ^ 31 % 2 := by
   have ha := Nat.mod_lt (a % 2 ^ 31) (show 0 < 2 ^ 31 by decide)
   have hb : b / 2 ^ 31 % 2 = 0 ∨ b / 2 ^ 31 % 2 = 1 := by omega
-  simp only [Fmt.copysign, Fmt.abs, Fmt.signNat, f32, Fmt.w,
-             Nat.and_two_pow_sub_one_eq_mod]
-  rcases hb with h | h <;> simp [h, Nat.add_mul_div_right _ _ (by decide : 0 < 2^31)]
+  simp only [Fmt.copysign, Fmt.abs, Fmt.signNat, f32, Nat.and_two_pow_sub_one_eq_mod]
+  rcases hb with h | h <;> simp [h]
 
 end NearSpecV3.Wasm
