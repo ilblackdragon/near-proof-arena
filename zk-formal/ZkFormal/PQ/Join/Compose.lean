@@ -95,8 +95,13 @@ plus the state pipeline's acceptance on the chunk's witness gives `RelD3` for th
 It is `Coverage.coverage_pv86` with its arguments named in the join's vocabulary.
 
 Unlike `JoinStmt`, the conclusion is `RelD3` on the **D2** witness — the relation the D3 verifier
-actually checks — and the premise `hstate` is a genuine statement about the chunk's bytes, not a
-`RelD1a` restatement. -/
+actually checks — and the premise `hstate` is a statement about the chunk's bytes rather than a
+`RelD1a` restatement.
+
+**This is not yet a soundness transfer.**  §4 proves that under `hagree` this premise is *equivalent*
+to the conclusion (`compose_pv86_premise_iff_conclusion`), so the theorem is the identity on `RelD3`
+modulo the `patchArm_eq_d3` rewrite.  What §2 genuinely delivers is the fold (§1).  Do not read this
+theorem as closing the join. -/
 theorem compose_pv86 (cb w : Bytes)
     (sa : ActCtx → ActSt → AR → Base → Except String (ActSt × AR))
     (hagree : ∀ (c : ActCtx) (st : ActSt) (ar : AR) (m a : Bytes) (g d : Nat),
@@ -153,5 +158,46 @@ theorem joinStmt_backing_is_erasable :
     ∀ (B : Nat) (cb w : Bytes) (cfg : NearCfg),
       NearSpecV3.RelD1a B cb w → NearSpecV3.RelD1a B cb w :=
   fun _ _ _ _ hrel => hrel
+
+/-! ## §4. The honest limit of `compose_pv86`: its premise *is* its conclusion
+
+A soundness transfer earns its name by consuming a premise that is **weaker** than, or
+independent of, its conclusion.  `compose_pv86`'s premise is neither.  Under `hagree`,
+`patchArm_eq_d3` rewrites `StateSide`'s checker to `d3Hooks`, and `RelD3` *is* the `d3Hooks` run —
+so the premise and the conclusion are the same proposition, and `compose_pv86` is the identity on
+`RelD3` up to that rewrite.
+
+This is the same defect as `join_additive`, moved one layer: there the conclusion was the premise by
+`exact hrel`; here it is the premise by a `rw`.  Proved, not asserted, because a future pass reading
+§2's claim that `hstate` is "a genuine statement about the chunk's bytes" would otherwise believe the
+join is closed.  It is not: see `docs/logs/pq-prepare-link-2026-10-23.md`.
+
+What survives, and is worth keeping, is §1: the *fold*.  `checkD2Core_patch` shows the chunk
+pipeline reads its hook at exactly one place, so agreement at `.fcall` determines the whole pipeline
+verdict.  That is a real structural theorem about `checkD2Core`.  It is not a soundness transfer,
+because both sides of the equation it proves are the same run. -/
+
+/-- **`compose_pv86`'s premise is equivalent to its conclusion.**  Given `.fcall` agreement,
+`StateSide` and `RelD3` are the same proposition: the premise can be neither weaker nor stronger
+than what is being concluded, so the theorem transfers no soundness. -/
+theorem compose_pv86_premise_iff_conclusion (cb w : Bytes) (sa : StateArm)
+    (hagree : ArmAgrees Wasm.pv86 sa) :
+    StateSide Wasm.pv86 cb w sa ↔ NearSpecV3.D3.RelD3 cb w := by
+  have h : StateSide Wasm.pv86 cb w sa
+      = (checkD2Core (NearSpecV3.D3.d3Hooks Wasm.pv86) true cb w
+          (some NearSpecV3.D3.gAlpha) = .ok ()) := by
+    unfold StateSide
+    exact congrArg (· = .ok ()) (coverage Wasm.pv86 cb w sa hagree)
+  rw [h]
+  exact Iff.rfl
+
+/-- **The join reduces to the identity on `RelD3`.**  Stated separately from the `iff` so the
+reduction is visible as a term: once `.fcall` agreement holds, nothing about the state pipeline's
+verdict is needed that `RelD3` did not already supply. -/
+theorem compose_pv86_reduces_to_refl (cb w : Bytes) (sa : StateArm)
+    (hagree : ArmAgrees Wasm.pv86 sa) :
+    NearSpecV3.D3.RelD3 cb w → NearSpecV3.D3.RelD3 cb w :=
+  fun hrel => (compose_pv86_premise_iff_conclusion cb w sa hagree).mp
+    ((compose_pv86_premise_iff_conclusion cb w sa hagree).mpr hrel)
 
 end ZkFormal.PQ.Join

@@ -1,4 +1,5 @@
 import ZkFormal.PQ.Join.PrepareLink
+import ZkFormal.PQ.Join.Compose
 
 /-!
 # Axiom audit: `ZkFormal.PQ.Join.PrepareLink`
@@ -34,3 +35,13 @@ open NearSpecV3.D3
 
 #check @run_done_ne_line
 #print axioms NearSpecV3.D3.run_done_ne_line
+
+/-! ## The honest limit of `compose_pv86` (Compose.lean §4) -/
+
+open ZkFormal.PQ.Join in
+#check @compose_pv86_premise_iff_conclusion
+#print axioms ZkFormal.PQ.Join.compose_pv86_premise_iff_conclusion
+
+open ZkFormal.PQ.Join in
+#check @compose_pv86_reduces_to_refl
+#print axioms ZkFormal.PQ.Join.compose_pv86_reduces_to_refl

@@ -50,6 +50,21 @@ answer function agreeing with `d3Hooks` at `.fcall` determines the whole pipelin
 real structural theorem about the fold.  It is not a soundness transfer, because both sides of it are
 the same checker.
 
+### The correction is now shipped as a theorem, not just a note
+
+That finding was initially only a scratch probe.  It is now committed next to the theorem it
+indicts, in `ZkFormal/PQ/Join/Compose.lean` §4, so a reader of `compose_pv86` cannot miss it:
+
+| declaration | statement | class |
+|---|---|---|
+| `compose_pv86_premise_iff_conclusion` | `ArmAgrees pv86 sa → (StateSide pv86 cb w sa ↔ RelD3 cb w)` | **[K]** |
+| `compose_pv86_reduces_to_refl` | the join, read as a term, is `RelD3 → RelD3` | **[K]** |
+
+`compose_pv86`'s docstring now says explicitly that it is **not yet** a soundness transfer, and that
+what §2 delivers is the fold (§1).  `join_additive`'s defect was `exact hrel` with the conclusion
+equal to the premise; `compose_pv86`'s is a `rw` away from the same thing.  Naming that in the file
+is the honest alternative to deleting the theorem, which would lose the fold.
+
 ## Second finding: the honest link is one-way, and the other way is false
 
 `NearSpecV3.Wasm.runCall` (`Wasm/Exec.lean:447-455`) opens with
