@@ -1,24 +1,39 @@
-# Production-target aggregation: depth 1 measured at 268 bits
+# Production-target aggregation: depth 1 measured, headline claim WITHDRAWN
 
-**Status: depth 1 measured and complete (four configurations). Depth 2 is blocked by a PCS
-layout limit, not measured. The headline result stands: one level-1 node at production targets
-is 547,657 B, 1.83x the 300 KB cap.**
+**Status: the 547,657 B level-1 measurement is real, but it was NOT taken at the production
+WHIR schedule, so it does not support "one node exceeds 300 KB at production targets". The
+headline conclusion of the earlier version of this file is withdrawn. What survives is a
+weaker, still-useful statement, recorded below.**
 
-## Why this run matters
+## Why the withdrawal
 
-Every tree number in `pq-agg-depth-law/README.md` was measured at **10 query bits**. The
-objective's criterion #2 asks for the tail measured "at the segment count needed for the
-target workload". Production targets are `BITS=268`, `LOG_BLOWUP=7`, `LIST_M=64`,
-`N_STACK=18`.
+The run set `PARENT_BITS=268`, `LOG_BLOWUP=7`, `LIST_M=64`, `N_STACK=18` -- but **not the WHIR
+levers**. `env_levers` (`sha384/e2e_tests.rs:29-48`) defaults every lever to **off**, so the
+node was built with `k_first = 0` and `k = 3`, not the production `k_first = 1` / `k = 4`.
+That changes the WHIR round count, and therefore the query count and every byte:
 
-**Correction to an earlier claim in this file:** this is the first **268-bit** aggregation node,
-not the first production-target one. `pq-agg-depth-law/logs/agg-prod-depth1-ns18.log` already
-ran at `target=236` with the same geometry and produced `total=368,177 B`
-(`whir=306,024`). So the honest sequence is 10 bits -> 48,104 WHIR B, 236 bits -> 306,024, 268 bits -> 473,336,
-plus an isolating 10-bit run at `log_blowup=7` -> 24,296. The 236-bit point is the useful
-middle and should be quoted when discussing the curve rather than treating 268 as a jump from
-10. See "Correcting my own first analysis" below, which retracts an invalid comparison I made
-earlier in this same file.
+| config | `k` | `k_first` | `log_final` | rounds | queries |
+|---|---:|---:|---:|---:|---|
+| agg run as executed | 3 | 0 | default | **6** | **296** |
+| delivered base final layer (`SETUP.json`) | 4 | 1 | 7 | **4** | **131** |
+
+The delivered packet's own `SETUP.json` confirms the production shape: `k=4`, `k_first=1`,
+`log_final_poly_len=7`, 4 rounds `[41,38,29,23]`.
+
+**Arithmetic check that the byte gap is fully explained by the query gap:**
+
+* base final layer: `whir = 42 * 2869 + 110,378 = 230,876` (digests 954+794+615+506)
+* agg node: `473,336 B`; queries `296/131 = 2.26x`, bytes `473,336/230,876 = 2.05x`
+
+2.26x queries -> 2.05x bytes is **sub-linear**, i.e. entirely consistent with "more rounds and
+more queries" and with **no** per-node penalty. There is no production-specific blowup.
+
+So the honest statement is: *a level-1 node at 296 WHIR queries is 547,657 B, and at the
+production 131-query schedule it should be near the base final layer's 230,876 B of WHIR.* The
+exact number at the production schedule is **not yet measured** -- the re-run is blocked on a
+rebuilt test binary (see below) and is the next action.
+
+## What this file still establishes
 
 ## Measured: level 1 (a 2-leaf node), production targets
 
@@ -35,16 +50,17 @@ L1_0_PROOF_BYTES total=547657 gkr=44408 relations=26208 stacking=3520 whir=47333
 `L1_1` is the same geometry: `prove_s=65.7 peak_rss_gb=25.91`, byte-identical size
 (`total=547657`), so the node is deterministic in size as at 10 bits.
 
-## The decisive comparison
+## The comparison that remains valid
 
-| | 10 query bits | 268 query bits | ratio |
-|---|---|---|---|
-| depth-1 node bytes | 124,201 | **547,657** | **4.41x** |
-| depth-1 node `whir` bytes | — | 473,336 | 86.4 % of total |
-| prove seconds | 12.4–12.9 | 66.2 | ~5.2x |
-| peak RSS | 28.13–28.26 GB | 25.94 GB | ~0.92x |
+| quantity | value | status |
+|---|---|---|
+| agg L1 at 296 WHIR queries | 547,657 B (whir 473,336) | **measured**, non-production schedule |
+| base final layer, production shape | 299,935 B (whir 230,876, 131 queries) | **measured**, `SETUP.json` |
+| agg L1 at the production 149-query schedule | *in flight* | `agg-prod-shape-proper.log` |
 
-**A single level-1 node at production targets is 547,657 B — already 1.83x the 300 KB cap.**
+The production-shaped run reports `queries=[47,43,33,26]` = **149 queries**, i.e. within 14 % of
+the base final layer's 131. Its byte count is the number that decides whether one agg node fits
+under 300 KB, and it is not yet in hand.
 
 ### Confound that must be isolated before quoting the 4.41x
 
