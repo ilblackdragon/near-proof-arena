@@ -291,7 +291,7 @@ R("L0-W-009","wasm-exec",W+"Exec.lean:446-471","runtime/near-vm-runner/src/wasmt
   ["Exec.lean:468-470 `payPerC.contractLoadingBytes`/`contractLoadingBase`"],tests=["directed loading-gas exhaustion"],work="none")
 R("L0-W-010","wasm-exec",W+"Exec.lean:60-78","runtime/near-vm-runner/src/imports.rs (host dispatch)",
   "validated","called vs imported host gate",
-  ["Exec.lean:72 `if s.real.isSome && realOodHosts.contains name`","Exec.lean:462-464 `if real.isNone && curve imports` (harness only)","hostCall covers 75 names; the 14 curve names are intentionally absent"],tests=["import-only 192 cases; called cases OOD"],work="none (trap resolved: exclusion is call-triggered under RuntimeD3)")
+  ["Exec.lean:72 `if s.real.isSome && realOodHosts.contains name`","Exec.lean:462-464 `if real.isNone && curve imports` (harness only)","hostCall covers 75 names; the 14 curve names are intentionally absent"],tests=["192 import-only cases: 167 accept, 25 OOD for an unrelated guard, 0 reject"],work="none (trap resolved: exclusion is call-triggered under RuntimeD3)")
 R("L0-W-011","wasm-exec",W+"Exec.lean:14-352","Wasm/Machine.lean (invariants)",
   "implemented","unmodeled WASM invariants",
   ["Exec.lean:14,18,39,51,75,82,169,186,190,210,324,338,341,344,352"],tests=["never hit in 115,284 cases"],work="none; internal invariants")
@@ -579,7 +579,7 @@ if __name__ == "__main__":
         "nearcore":"An import is linked at instantiation (`wasmtime_runner/mod.rs:1127-1155`); only a called host function runs `External` code.",
         "evidence":["d3c7/d3/00-h10027-s2 imports an excluded family, calls nothing: Lean accept, nearcore ok",
                     "d3c9/ood/00-h10006-s2 calls ecrecover: Lean out_of_domain (e.wasm-α), oracle e.g_alpha+ood_host",
-                    "192 import-only cases in the four corpora are all accepted"]
+                    "192 import-only cases in the four corpora: 167 accept, 25 out_of_domain for an unrelated guard (g_alpha/w.shape), 0 reject — no case is excluded for importing"]
       }
     }
     out={"_meta":meta,"rows":ROWS,

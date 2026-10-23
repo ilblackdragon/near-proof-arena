@@ -34,10 +34,11 @@ nearcore but the corresponding corpus branch is not exercised (or is exercised o
 * The whole D3 corpus agrees: **115,284 cases, 0 disagreements**; verdicts accept 41,131 / reject 71,605 /
   out of domain 2,548 (33,248 + 49,490 + 15,995 + 16,551 per corpus). D2 67,384/67,384 and D1 53,048.
 * Checker binary sha256 `b4154b212fc482af99fafd4a1c4d5cf6b1157f4e26c154fc1a66e907312ce5d8`.
-* The 64 `D2` core rejection checks (hash chain, receipt proofs, roots, gas/congestion, headers) are
-  exercised with 940–3,108 discriminating mutants each and no disagreement.
+* The D2 core rejection checks (hash chain, receipt proofs, roots, gas/congestion, headers) are
+  exercised with 85–14,246 discriminating rejects each and no disagreement.
 * The **called-vs-imported host trap is resolved correctly**: exclusion is call-triggered, not import-triggered.
-  192 import-only contracts in the corpus are in domain and accepted by both checkers.
+  Of the 192 import-only cases in the corpus, 167 accept, 25 leave the domain for an unrelated guard
+  (`e.g_alpha`/`w.shape`), and none is excluded for the import.
 
 ### What is not
 
@@ -116,8 +117,9 @@ and nothing references it. The live gate is `callHost`. nearcore links imports a
 (`wasmtime_runner/mod.rs:1127-1155`) and only a call executes `External` code, so call-triggering is right.
 
 Evidence: `d3c7/d3/00-h10027-s2` imports an excluded family and calls nothing → Lean accept, nearcore ok;
-`d3c9/ood/00-h10006-s2` calls `ecrecover` → `out of domain (e.wasm-α)`. 192 import-only contracts across the
-four corpora are all accepted.
+`d3c9/ood/00-h10006-s2` calls `ecrecover` → `out of domain (e.wasm-α)`. Of the 192 import-only cases in the
+four corpora, 167 accept, 25 leave the domain for an unrelated guard (`e.g_alpha`/`w.shape`), and none is
+excluded for the import.
 
 ## 4. Oracle marks
 

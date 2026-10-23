@@ -314,7 +314,7 @@
    "evidence": [
     "d3c7/d3/00-h10027-s2 imports an excluded family, calls nothing: Lean accept, nearcore ok",
     "d3c9/ood/00-h10006-s2 calls ecrecover: Lean out_of_domain (e.wasm-\u03b1), oracle e.g_alpha+ood_host",
-    "192 import-only cases in the four corpora are all accepted"
+    "192 import-only cases in the four corpora: 167 accept, 25 out_of_domain for an unrelated guard (g_alpha/w.shape), 0 reject \u2014 no case is excluded for importing"
    ]
   }
  },
@@ -1947,7 +1947,7 @@
    "owner": "L0",
    "dependencies": [],
    "acceptance_tests": [
-    "import-only 192 cases; called cases OOD"
+    "192 import-only cases: 167 accept, 25 OOD for an unrelated guard, 0 reject"
    ],
    "remaining_work": "none (trap resolved: exclusion is call-triggered under RuntimeD3)"
   },
