@@ -19,3 +19,4 @@ import NearSpecV3.Ed25519
 -- Recursion track: segment fold semantics (Wasm/Segment.lean). Was orphaned until
 -- 2026-10-23; imported here so the result is in the default build and cannot rot.
 import NearSpecV3.Wasm.Segment
+import NearSpecV3.Wasm.StEncode
