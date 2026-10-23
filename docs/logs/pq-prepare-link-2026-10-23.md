@@ -258,5 +258,45 @@ here.**  The honest state of the requirement is:
   prepared module or failed with a preparation error recorded as an action failure", and closing
   *that* needs the string-parse step above plus the pipeline projection.
 
-Separately, and untouched by this lane: `compose_pv86`'s `hagree`/`hstate` remain the join's open
-obligations, and the D3 AIR does not exist.  Neither is addressed here.
+## The genuinely non-vacuous join: artifact acceptance is strictly stronger than `RelD3`
+
+`compose_pv86` fails as a soundness transfer because its premise *is* its conclusion.  The premise
+that is not is the artifact's own acceptance predicate.  `ReexecV3D3.Read.check` accepts only when the
+logged check succeeds **and** the witness is a fixed point of its own read-set encoding:
+
+```lean
+def check (cb w : Bytes) : Bool :=
+  let (result, keys) := Logged.checkD3Reads cb w
+  match result with
+  | .error _ => false
+  | .ok () => encodeReads cb w keys == w
+```
+
+`check_iff` (`examples/reexec-v3-d3/formal/ReexecV3D3/ReadCanonSplit.lean`, **[K]**) decomposes that
+into its two conjuncts explicitly:
+
+| declaration | statement | class |
+|---|---|---|
+| `check_iff` | `check cb w = true ↔ RelD3 cb w ∧ encodeReads cb w (d3Reads cb w) = w` | **[K]** |
+| `relD3_of_check` | `check cb w = true → RelD3 cb w` | **[K]** |
+| `relD3_of_check_via_check_sound` | same conclusion, reached through the pre-existing `check_sound` | **[K]** |
+
+The second conjunct is *about how the witness is spelled* and mentions `encodeReads`, which `RelD3`
+never does; `d3Reads` is computed from the run's read set, so no rewrite discharges it from the first
+conjunct.  So this join consumes strictly more than it concludes — the opposite of `compose_pv86`.
+The third row records that the new path and the pre-existing `check_sound` agree, so neither is a
+shadow of the other.
+
+Honest limit, stated in the file: "strictly stronger" is established **structurally** (a conjunction
+with a conjunct absent from `RelD3`'s statement), not by a separating witness.  Exhibiting a chunk
+that satisfies `RelD3` and fails canonicality needs a fixture whose read set does not re-encode to
+itself — candidates are under `adversarial/`, and that search is **[O]**.
+
+## Still open after this lane
+
+* `compose_pv86`'s `hagree`/`hstate` — now shown to be the *same* obligation (`check_iff` §4 in
+  `ZkFormal/PQ/Join/Compose.lean`), so neither is a join premise.
+* The D3 AIR does not exist.  `phase-d3-air`'s `t6` was closed by scope substitution, not by building
+  `nearAirV3D3`; the soundness objective was met without it, but the AIR remains unbuilt.
+* `WasmRunStmt`'s host correspondence — the tautological conjunct is gone, and the honest replacement
+  needs the HOST message tape in `WasmBase.HostChip`.
