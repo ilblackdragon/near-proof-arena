@@ -292,6 +292,28 @@ with a conjunct absent from `RelD3`'s statement), not by a separating witness.  
 that satisfies `RelD3` and fails canonicality needs a fixture whose read set does not re-encode to
 itself — candidates are under `adversarial/`, and that search is **[O]**.
 
+## A third placeholder: `Statement.Compose` is a `def`, never a theorem
+
+`ZkFormal/PQ/Join/Statement.lean:641` defines
+
+```lean
+def Compose (chunkClaim chunkWitness : Bytes) (j : JointStmt) : Prop :=
+  Joint j → NearSpecV3.D3.RelD3 chunkClaim chunkWitness
+```
+
+This is the join's *shape*, not a proof of it.  `Joint` is likewise `def ... : Prop`, assembled from
+`WasmHalf` and `StateHalf`, both of which are themselves `def ... : Prop` reading "Wasm half
+(stated)" and "State half (stated)".  Grep finds **no** theorem anywhere whose conclusion is `Compose`
+or whose proof inhabits `Joint`.  So the file that names the join obligation most precisely also
+leaves every part of it stated rather than proved — and the names (`Compose`, `Joint`, `WasmHalf`,
+`StateHalf`) collide with the module and namespace `ZkFormal.PQ.Join.Compose`, which makes the
+landed-vs-stated boundary easy to misread.  The docstrings do say "stated, not proved"; the risk is a
+reader who greps for `Compose` and finds a `def` that looks like a theorem.
+
+This lane's contribution to that is negative and precise: `Joint → RelD3` is *not* where the
+non-vacuity lives, because under `hagree` that implication's premise collapses to its conclusion.
+The premise with real extra content is artifact acceptance (`check_iff`).
+
 ## Still open after this lane
 
 * `compose_pv86`'s `hagree`/`hstate` — now shown to be the *same* obligation (`check_iff` §4 in

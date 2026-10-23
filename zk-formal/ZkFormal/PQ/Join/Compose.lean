@@ -2,9 +2,19 @@ import ZkFormal.PQ.Join.Fold
 import ZkFormal.PQ.Join.Coverage
 
 /-!
-# `ZkFormal.PQ.Join.Compose` — the non-vacuous join: `Joint → RelD3`
+# `ZkFormal.PQ.Join.Compose` — the join's fold, and why it is not yet non-vacuous
 
-Lane `pq-join-compose`, 2026-10-22.  This file replaces the vacuous join.
+Lane `pq-join-compose`, 2026-10-22; title corrected 2026-10-23 after §4.
+
+**Read §4 before citing anything here as "the non-vacuous join."**  This file was committed under the
+claim that it replaces the vacuous join.  §4 proves that it does not: under `hagree`, the premise
+`hstate` is *equivalent* to the conclusion `RelD3`, so the join is the identity on `RelD3` modulo the
+`patchArm_eq_d3` rewrite — the same defect as `join_additive`, one layer down.  What the file does
+deliver is real and worth keeping: the **fold**, i.e. that the chunk pipeline reads its hook at
+exactly one place, so agreement at `.fcall` determines the whole pipeline verdict.
+
+The genuinely non-vacuous join lives elsewhere: the artifact's own acceptance predicate is strictly
+stronger than `RelD3` (`examples/reexec-v3-d3/formal/ReexecV3D3/ReadCanonSplit.lean`, `check_iff`).
 
 ## What was wrong with `JoinStmt`
 

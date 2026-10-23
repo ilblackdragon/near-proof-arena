@@ -43,7 +43,8 @@ Machine-readable source hashes, axiom output and validation scope:
 | `novelty-prior-art` | Main already contains the reviewed, deliberately redacted prior-art document. Aborted a tentative integration on finding the restriction; did not import the older restricted text or its branch history. Restricted note already exists outside the repo. |
 | `air-polynomial-lowering`, `generic-air-reference`, `sumcheck-round-bound` | Most files byte-identical to main; differing existing proof files are older versions missing main's later results. Recovered the validated additions above. Unique experimental models/tests/capture results remain in the recovery archive. |
 | `direct-wasm-whir` | Branch integrated; leftover long1025 fixture/generated proof data archived. |
-| `pq-cpu-prover`, `pq-chunk-e2e` | Useful changes recovered as above; checkpoint worktrees retired after integration. |
+| `pq-cpu-prover` | Useful benchmark additions recovered; old worktree retired. |
+| `pq-chunk-e2e` | Checkpoint integrated. Retained because a new uncommitted segment-count correction appeared during cleanup (03:02 UTC); that concurrent edit is not included in this merge. |
 | `v3-d1-tables` | 48 generated untracked modules fail as a set. `LinkSched` has dependent-decision/rewrite errors; `RecModel` has stale interface/type errors; `A7Bound` times out at 200,000 heartbeats. All 48 depend on these failures. Archive preserves the source and build log; no default-build imports added. |
 | `v3-domain-bounds` | Only a formatting-only sample edit and generated Lake manifest; superseded. |
 | `v3-prover`, `v3-prover-walk` | Old scheduler dumper replaced by `Conformance/SchedJson.lean` and the current `SchedEntriesV3.lean`; documented in `v3-prover-schedqv-2026-10.md`. |
@@ -65,7 +66,10 @@ and validation logs record the decisions. Git branches remain locally recoverabl
 removes expensive working copies/caches, not branch history. No restricted material was added to
 this log or to the integrated source.
 
-Retained: active `pq-host-memio`; the eight new `lean-chunk-*` worktrees; the Claude agent checkout;
+**32 original worktrees removed**, with approximately 42 GiB reclaimed before removal of the
+temporary integration cache.
+
+Retained: active `pq-host-memio` and newly changing `pq-chunk-e2e`; the eight new `lean-chunk-*` worktrees; the Claude agent checkout;
 and the integration worktree until its merge is complete. The MEMIO lane has live uncommitted work
 and build processes, so this old-worktree cleanup does not merge or erase it. Its "merged" note
 alone is not evidence of integration. Non-Git challenge/benchmark scratch directories are outside
