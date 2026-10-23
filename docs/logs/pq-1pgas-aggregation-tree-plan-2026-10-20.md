@@ -361,6 +361,17 @@ Cost, however, is linear in node count and a depth-2 node is ~8.4× a depth-1 no
 (106 s vs 12.6 s; 18 GB vs 3.5 GB). At test targets a binary tree over 1,880 leaves is
 ~31 h serial and over 3,760 leaves ~62 h; production targets are far worse.
 
+> **Correction (2026-10-23): the leaf counts in the last paragraph are ~13× too large.**
+> 1,880–3,760 divides a *width-equivalent* cell total by a *main*-cell segment size
+> (`0.6e12 / 2^28.25`). The structural count is `1.22e9 ops / 2^23 ops-per-segment = `
+> **146** (or 291 at the older 2^22). The ratio between the two is exactly the
+> W-eq→main-cell exchange rate, `494/38 = 13.0` and `995/38 = 26.2`, which reproduces the
+> published range from 146. Recomputed at the measured per-node costs, a binary tree over
+> 146 leaves (padded to 256) is **~4.3 h serial** at test targets — 128 L1 nodes at 12.6 s
+> plus 127 nodes at 107.8 s — and ~8.5 h for 291 leaves. The *shape* of every conclusion
+> holds (cost is linear in node count, production is far worse); only the magnitude moves.
+> Derivation and the self-consistency check: `docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5.
+
 ### 8.3 The P5 gate is live here (contradicts §7.3)
 
 `agg_node_program_binding` passes with a **live positive control**: the honest node is

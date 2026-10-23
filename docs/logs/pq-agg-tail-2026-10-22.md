@@ -508,6 +508,48 @@ Still open, and each one is a real blocker rather than a formality:
    patch.** Today the measurements live in a mutated deps checkout; that is a
    reproducibility debt, not a blocker.
 2. **Measure one depth-2 node at production targets** (268-bit, z=32, 42 B, pinned `m`).
+
+   **Partial measurement landed 2026-10-23: a production-target depth-1 agg node is
+   368,177 B — 68,177 B (22.7 %) over the 300 KB cap — and depth 2 panics.** The cold
+   `target-agg` rebuild took 41.3 s (sccache), so the build was not the blocker it looked
+   like. Two runs produced the numbers below; both were killed by server restarts after
+   their depth-1 level finished, so treat "depth-2 bytes" as still unmeasured.
+
+   | quantity | `agg-prod-depth2-ns18.log` | `agg-prod-depth2-exact.log` |
+   |---|---|---|
+   | domain `n` in O-2 table | `134217728` (`X15=1`, certs missed) | `2013265920` (`X15=15`, 2/5 rounds first-order) |
+   | WHIR queries/round | `[68, 43, 32, 25, 21]` | `[44, 35, 27, 23]` |
+   | `L1_0` total bytes | **368,177** (gkr 34,952, relations 24,292, stacking 2,704, whir 306,024) | not reached |
+   | `L1_1` total bytes | **366,929** (whir 304,776) | not reached |
+   | `L1_0` prove_s / peak RSS | 401.2 s / 28.13 GB | — |
+   | depth-2 outcome | `program exceeds 2^18 rows` (`builder.rs:303`) | killed at restart |
+
+   Logs are sha256-pinned in `research/near-compression/results/pq-agg-depth-law/logs/`:
+   `agg-prod-depth1-ns18.log` = `684bbdba…ed1837` (the 368,177 B run),
+   `agg-prod-depth2-exact-killed.log` = `27e3c6ad…ab60` (correct params, killed).
+   Both are raw `/tmp`-style captures from `target-agg`, not reproductions of the base packet.
+
+   Three findings, in order of consequence:
+
+   * **A production depth-1 node is 22.7 % over the cap, and 98 % of the excess is WHIR.**
+     368,177 B at 42 B/digest implies `D ≈ (368,177 − C)/42`. The WHIR section alone is
+     306,024 B, i.e. ~7,286 digests; gkr + relations + stacking together are only 61,948 B.
+     The delivered chain's L5 proof is 374,521 B, so **aggregation at production targets does
+     not currently shrink a level at all** — the "depth is free in bytes" law measured at 10
+     query bits does **not** survive the move to 268-bit. This is the single most important
+     correction this session produced, and it inverts the working assumption behind Route A.
+   * **`X15=15` is mandatory and was silently wrong in the first run.** The odd factor is the
+     6th positional argument of `WhirConfig::new_full`; `X15` defaults to 1, which changes the
+     domain to `2^27` and makes every DKT certificate miss (`first_order=false` on all rounds).
+     With `X15=15` the domain is `2^27·15 = 2,013,265,920` and rounds 1–2 hit their
+     first-order thresholds. The 68-vs-44 query gap between the two runs is exactly this bug,
+     so **the 368,177 B figure is a 68-query upper bound, not the production number**; the
+     corrected query count should be materially smaller and is what run 3 measures.
+   * **`n_stack=20` is impossible at production blowup.** `l_skip + n_stack + log_blowup = 29`
+     exceeds BabyBear's 2-adicity of 27 (`monty_31.rs:654`), which is why `profile.rs` asserts
+     `n_stack <= 18`. The test-target value 20 does not transfer. Depth 2 at `n_stack=18` then
+     fails for a different reason — the agg program needs more than 2^18 rows — so
+     `NV_PROG_LOG=19` is required; that run was also interrupted.
    This is the only remaining unmeasured quantity on the size axis and the one thing that
    can break §4's "does not degrade with S" claim.
    *Reachability checked (2026-10-23): no code change is needed, but it is not "four env
@@ -535,6 +577,17 @@ Still open, and each one is a real blocker rather than a formality:
        Neither log's ending should be read as the other's.
      So a production-target agg node's minimum `n_stack` is unmeasured; 20 is the only value known
      to work and is the safe default, and 18/19 are not excluded.
+   * **Resolved (2026-10-23): at production blowup, `n_stack = 20` is impossible and 18 is the
+     ceiling.** Launching the node at the full production shape (`BITS=268 LOG_BLOWUP=7 LIST_M=64
+     K=4 N_STACK=20`, all levers on, real DKT certs) panics before proving anything:
+     `assertion failed: bits <= Self::TWO_ADICITY` (`p3-monty-31/src/monty_31.rs:654`). BabyBear's
+     2-adicity is 27 and `l_skip + n_stack + log_blowup = 2 + 20 + 7 = 29`. This is not a harness
+     limit — it is the field's multiplicative-group structure, and `profile.rs` already encodes it
+     as `assert!(n_stack <= 18, "chunk shape exceeds the supported BabyBear extended domain")`.
+     So the test-target depth-2 value 20 **does not transfer** to production; 18 is the only
+     production-legal choice, and it is the value the delivered chain uses. Whether an agg node's
+     program still fits 2^18 rows (rather than the 2^20 the test used) is the open sub-question,
+     and it is now the thing the production run has to answer.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was
    reclaimed by a disk-cleanup job during this session (disk is 96 % full, 40 GB free). A
    rebuilt binary is not required to *re-verify* any existing result — only to run this node.
@@ -542,7 +595,28 @@ Still open, and each one is a real blocker rather than a formality:
    than one 42-byte digest of variance; a configuration change already moved it 798 B.
 4. **Do not buy larger-S runs.** More S buys the same 132,301 B root at linear cost; it
    cannot move the size question.
-5. Only after (2): decide between discharging `NodeOK` and raising every target ~8 bits for
+5. **The two segment-sizings are reconciled: one is a unit error, not a disagreement.**
+   `docs/logs/pq-gap-analysis-2026-10-19.md` and the plan say **S ≈ 1,880–3,760**;
+   `results/pq-base-aggregation/model.out` says **S = 146**. Both start from the same
+   workload (1.22e9 adversarial WASM ops) and the same segment size, so the gap is purely
+   the units of "cells":
+   * `model.out` divides by **main** cells: `seg_ops = 2^23`, `seg_cells = 2^23 · 38 =
+     2^28.25`, `S = 1.22e9 / 2^23 = 145.4` → **146**.
+   * The plan divides a **width-equivalent** total by a **main**-cell segment:
+     `0.6e12 / 2^28.25 = 1,880`, `1.2e12 / 2^28.25 = 3,759`.
+   The factor between them is exactly the exchange rate, `494/38 = 13.0` and
+   `995/38 = 26.2`: `146 · 13.0 = 1,898` and `146 · 26.2 = 3,823`, which reproduces the
+   plan's range. W-eq is a *cost* unit (committed widths × height, used for proving time),
+   not a count of trace rows, so it cannot be divided by a main-cell segment. The
+   self-consistency check is the plan's own neighbouring column: its single-proof width
+   `0.6e12 / 2^24 = 35,763` matches the recorded `W ≈ 35,000–71,000`, i.e. the same
+   numerator divided by a **main**-cell denominator gives the right answer there.
+   **Conclusion: 146 segments is the correct structural count at 2^23 ops/segment; the
+   1,880–3,760 range is the same count mis-divided by the W-eq→main-cell ratio and should
+   be read as S ≈ 146 (or S ≈ 291 at the older 2^22 ops/segment).** No measured result
+   changes: the proof is flat in S either way, and the union-bound failure at S ≈ 103–118
+   is reached by *both* counts.
+6. Only after (2): decide between discharging `NodeOK` and raising every target ~8 bits for
    S ≥ 103.
 
 ## 8. The one-paragraph version

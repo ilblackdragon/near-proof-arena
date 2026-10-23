@@ -14,13 +14,23 @@ Both are called "the target". They differ by 290× in workload and need differen
 | gas | `2^22 · 822,756` = 3.451e12 (2^41.65) | 1e15 = **289.8×** A |
 | status | the signed challenge's cap (`e.g_alpha`) | research definition only (`Scope.checkD3Peta`) |
 | base cells [E] | 2.1–4.2 G (494–995/op × 4.19 M ops) | 0.6–1.2 **T** (D3A study §3) |
-| segments at 2^28.25 cells | ~13 | **~1,880–3,760** |
+| segments at 2^28.25 main cells | ~13 | **~1,880–3,760** *(corrected 2026-10-23: **~146**, see note)* |
 | one proof? | no (W would be ~200) | no (W would be **35,000–71,000**; pin is 24) |
 | needs | the join (G3) | the join **plus** segmentation/recursion beyond `G_α` |
 
 The 300 KB proof size does **not** grow with workload — only the stacking height does. So B is not
 "harder to keep small"; it is harder because it needs a 1,880–3,760-segment aggregation tree that has
 never been built or measured, and because the sealed challenge excludes it (`e.g_alpha`).
+
+> **Correction (2026-10-23) on the segment count.** The **1,880–3,760** figure in the table and
+> in the paragraph above mixes units: it divides a width-equivalent (W-eq) cell total by a
+> **main**-cell segment size (`0.6e12 / 2^28.25`). W-eq is a cost unit, not a row count. The
+> structural count is `1.22e9 ops / 2^23 ops-per-segment = ` **146** (291 at the older
+> 2^22 ops/segment), and `146 × 494/38 = 1,898`, `146 × 995/38 = 3,823` reproduces the
+> published range exactly. Every conclusion that follows is unaffected — the tree is still
+> never built, the challenge still excludes B, and the per-proof union still fails from
+> S ≈ 103–118, which **146 already exceeds**. Derivation: `docs/logs/pq-agg-tail-2026-10-22.md`
+> §7 item 5.
 
 **Recommendation:** finish A first. B is a second project, not a scale-up of A.
 
@@ -120,7 +130,8 @@ The proof needs the HOST chip and the `d3Hooks`/`runCall` correspondence.
 
 ## 3. What is missing for B (1 Pgas) beyond A
 
-1. **Segmentation + recursion over segments.** ~1,880–3,760 segments at `2^28.25` cells each; the
+1. **Segmentation + recursion over segments.** ~1,880–3,760 segments at `2^28.25` cells each
+   (*corrected 2026-10-23: **~146** at 2^23 ops/segment — see the note in §0*); the
    aggregation tree (`build_l1_linked` k-to-1, design G) has been designed and partly prototyped
    (N1 proofs, 2-proof node debug) but never at that many leaves.
 2. **The per-segment statement.** Each segment needs its own boundary state commitment and a
