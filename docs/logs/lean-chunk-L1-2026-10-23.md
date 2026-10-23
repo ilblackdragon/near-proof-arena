@@ -60,8 +60,64 @@ leave a `sorry` or an overclaim. The module doc records why.
    addresses that. Raising the cap 290× means executions that previously never ran now do, and the
    spec's evaluator must terminate on them — untested.
 
-Items 2 and 3 are proofs over the existing checker. Item 1 needs real chunk data. Item 4 is the one
-that could invalidate the whole approach and is not started.
+Items 2 and 3 are proofs over the existing checker. Item 4 is the one that could invalidate the whole
+approach and is not started.
+
+## Item 1 closed: the band chunk is real, and the widening is exhibited [M]
+
+Item 1 was listed as "needs real chunk data". The corpus already had it — the recorded run's own
+`e.g_alpha` rows are protocol-valid chunks that nearcore accepted and `checkD3` refused. No new
+fixture was needed; the evidence was in `var/d3-runs/full-d3c*/lean.jsonl` all along.
+
+**Case `d3c7/ood/00-h10007-s1`** (`meta.json`: `expected_rel: true`, `expected_rel_d3: false`,
+`d3_violations: ["e.g_alpha"]` — the gas cap is the *only* reason it was excluded):
+
+| binary | relation | verdict |
+|---|---|---|
+| `nearspec-v3-check-d3` | `checkD3` (`G_α` = 3,450,888,781,824) | `out_of_domain` — "chunk function-call gas 3846700800082 > G_α 3450888781824" |
+| `nearspec-v3-check-d3proto` | `checkD3Proto` (`max_gas_burnt` = 1e15) | **`accept`** |
+
+So `RelD3` rejects and `RelD3Proto` accepts the same claim+witness bytes, and nearcore's own oracle
+recorded `expected_rel: true` for it. The widening is no longer structural — it is exhibited.
+
+Scale of the band, counted from the recorded per-case verdicts (not re-run here):
+
+| corpus | `e.g_alpha` cases | total cases |
+|---|---|---|
+| d3c7 | 251 | 33,248 |
+| d3c8 | 361 | 49,490 |
+| d3c9 | 122 | 15,995 |
+| d3c10 | 112 | 16,551 |
+| **total** | **846** | **115,284** |
+
+846 protocol-valid chunks sit in the band, all refused by the signed relation. A 25-case sample of the
+d3c7 band run through `checkD3Proto` gave **25/25 accept**; all 25 have `expected_rel: true` in their
+`meta.json`, i.e. nearcore accepted every one. This is measured agreement on real data, not a proof.
+
+**Overlap agreement, measured.** 12 non-band d3c7 cases spanning all three verdicts (4 accept, 4
+reject, 4 out-of-domain) give **12/12 identical verdicts** between `checkD3` and `checkD3Proto` — no
+disagreement outside the band, as the "only the cap differs" argument predicts. Still measured, not
+proved; item 3 asks for the proof.
+
+Artifacts added by this work:
+
+* `spec/lean/v3/MainD3Proto.lean` — the `nearspec-v3-check-d3proto` driver (same JSON-line format as
+  the `check-d3` driver), plus its `[[lean_exe]]` entry in `spec/lean/v3/lakefile.toml`.
+* Build: `lake build nearspec-v3-check-d3proto`, 158 jobs, exit 0.
+
+Reproduce:
+
+```sh
+cd spec/lean/v3 && lake build nearspec-v3-check-d3proto
+C=/data/illia/nearproof-deps/corpora/d3c7/ood/00-h10007-s1
+oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3 $C   # out_of_domain (e.g_alpha)
+spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3proto $C      # accept
+```
+
+**What this does NOT establish.** 25/25 and 12/12 are samples, not the full 115,284 replay. Nothing
+here proves `RelD3Proto` is correct against nearcore, nor that its execution of band chunks agrees
+with the validator's — that is the L2–L7 differential obligation. And it does not touch item 4:
+termination/fuel for executions that only now become reachable.
 
 ## Verification run
 
