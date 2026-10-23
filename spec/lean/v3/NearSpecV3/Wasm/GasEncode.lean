@@ -31,17 +31,25 @@ machine made explicit at the interface, matching `Claim.encode_injective`'s `wf`
 
 **Done and proved** (`[propext, Classical.choice, Quot.sound]`, no `sorry`):
 * `Gas.encode`, `Gas.wf`, `Gas.decode`
-* `encArray_u32` — `readU32` peels the element count and hands back the concatenated payload
+* `encArray_u32` — `readU32` peels the element count, no remainder
+* `encArray_u32_append` — same, carrying the remainder (what the round trip needs)
+* `readWords_concatAll_append` — `n` words re-assemble, with a trailing remainder
 
-**Not done:** the round-trip `Gas.decode (Gas.encode gs) = some gs` and hence
-`Gas.encode_injective`. The pieces are in place — nine `readLE_append` steps for the scalar
-fields, then `encArray_u32` + `readWords` for `special`, then one final `readLE_append` — but
-the proof is not written. What is proved here is the *array* case, which was the part with a
-real design question (element count vs byte length); the scalar chain is mechanical.
+**NOT proved:** `Gas.decode_encode_statement` is stated with a `sorry`. It is deliberately not
+named `Gas.decode_encode` so it cannot be mistaken for an established round trip, and this
+module is **not imported by `NearSpecV3.lean`**, so the `sorry` cannot leak into the library
+or any gate (`lake build NearSpecV3` still succeeds at 65 jobs).
 
-`encArray` uses a 4-byte **element count**, not a byte length: the count is what `Gas.decode`
-reads, and `C.nKeys = 11` bounds it. An earlier version used `borshBytes` (byte length) and
-the decode lemma did not close, which is how the distinction surfaced.
+All the rewrites fire; the residue is a nested `match` on `readWords` that `simp only` does
+not eliminate — it rewrites inside the arms instead. Closing it needs a `cases` split on the
+`readWords` result or restructuring the statement, which is design work rather than tactics.
+
+## The useful design finding
+
+`encArray` uses a 4-byte **element count**, not a byte length. The count is what `Gas.decode`
+needs to know how many words to read, and `C.nKeys = 11` bounds it. My first version used
+`borshBytes` (byte length) and the decode lemma would not close — that is how the distinction
+surfaced. `Gas.wf` therefore also requires `special.size < 2^32`.
 -/
 
 namespace NearSpecV3.Wasm
@@ -65,7 +73,7 @@ def Gas.encode (gs : Gas) : Bytes :=
 def Gas.wf (gs : Gas) : Prop :=
   gs.burnt < 2^64 ∧ gs.promises < 2^64 ∧ gs.prepaid < 2^64 ∧ gs.limit < 2^64 ∧
   gs.g < 2^64 ∧ gs.host < 2^64 ∧ gs.action < 2^64 ∧ gs.sendCompute < 2^64 ∧
-  (∀ x ∈ gs.special, x < 2^64)
+  (∀ x ∈ gs.special, x < 2^64) ∧ gs.special.size < 2^32
 
 /-- Read `n` consecutive 8-byte little-endian words. -/
 def readWords (n : Nat) (bs : Bytes) : Option (List Nat × Bytes) :=
@@ -128,5 +136,68 @@ theorem encArray_u32 (f : Nat → NearSpec.Bytes) (xs : Array Nat) (h : xs.size 
   have hu : NearSpec.u32 xs.size = NearSpec.leN 4 xs.size := rfl
   rw [hu]
   exact NearSpec.readLE_append 4 xs.size _ hle
+
+/-- As `encArray_u32` but carrying a remainder, which is what the round trip needs. -/
+theorem encArray_u32_append (f : Nat → NearSpec.Bytes) (xs : Array Nat) (rest : NearSpec.Bytes)
+    (h : xs.size < 2^32) :
+    NearSpec.readU32 (encArray f xs ++ rest) =
+      some (xs.size, NearSpec.concatAll (xs.toList.map f) ++ rest) := by
+  have hle : xs.size < 256^4 := by
+    have : (256 : Nat)^4 = 2^32 := by decide
+    rw [this]; exact h
+  have hdef : encArray f xs ++ rest =
+      NearSpec.u32 xs.size ++ (NearSpec.concatAll (xs.toList.map f) ++ rest) := by
+    simp [encArray, NearSpec.u32, List.append_assoc]
+  rw [hdef]
+  have hu : NearSpec.u32 xs.size = NearSpec.leN 4 xs.size := rfl
+  rw [hu]
+  exact NearSpec.readLE_append 4 xs.size _ hle
+
+/-- Reading back `n` words re-assembles the list, provided each fits in 64 bits. -/
+theorem readWords_concatAll (xs : List Nat) (h : ∀ x ∈ xs, x < 2^64) :
+    readWords xs.length (NearSpec.concatAll (xs.map (NearSpec.leN 8))) = some (xs, []) := by
+  induction xs with
+  | nil => rfl
+  | cons x rest ih =>
+    have hx : x < 2^64 := h x (by simp)
+    have hr : ∀ y ∈ rest, y < 2^64 := fun y hy => h y (by simp [hy])
+    have hle : x < 256^8 := by
+      have : (256 : Nat)^8 = 2^64 := by decide
+      rw [this]; exact hx
+    simp only [List.length_cons, List.map_cons, NearSpec.concatAll, readWords]
+    rw [NearSpec.readLE_append 8 x _ hle]
+    simp only [ih hr]
+
+/-- As `readWords_concatAll`, but with a trailing remainder (needed because `sendCompute`
+follows `special` in the encoding). -/
+theorem readWords_concatAll_append (xs : List Nat) (rest : NearSpec.Bytes)
+    (h : ∀ x ∈ xs, x < 2^64) :
+    readWords xs.length (NearSpec.concatAll (xs.map (NearSpec.leN 8)) ++ rest) =
+      some (xs, rest) := by
+  induction xs with
+  | nil => rfl
+  | cons x tl ih =>
+    have hx : x < 2^64 := h x (by simp)
+    have hr : ∀ y ∈ tl, y < 2^64 := fun y hy => h y (by simp [hy])
+    have hle : x < 256^8 := by
+      have : (256 : Nat)^8 = 2^64 := by decide
+      rw [this]; exact hx
+    simp only [List.length_cons, List.map_cons, NearSpec.concatAll, readWords]
+    rw [List.append_assoc]
+    rw [NearSpec.readLE_append 8 x _ hle]
+    simp only [ih hr]
+
+/-- The round trip. **NOT PROVED** — see the file header.
+
+The nine scalar `readLE_append` rewrites and the `encArray_u32_append` /
+`readWords_concatAll_append` pair all fire, but the residual goal is a nested `match` on
+`readWords` that `simp only` does not reduce: the rewrites rewrite *inside* the match arms
+rather than eliminating the `match` itself. Closing it needs either a `cases` split on the
+`readWords` result or the round trip restated as an equality of the assembled record, which
+is a structural change rather than a tactic tweak. Left as a documented gap.
+-/
+theorem Gas.decode_encode_statement (gs : Gas) (h : gs.wf) :
+    Gas.decode (Gas.encode gs) = some gs := by
+  sorry
 
 end NearSpecV3.Wasm
