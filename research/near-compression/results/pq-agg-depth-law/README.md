@@ -265,3 +265,31 @@ What still has to be decided (and is not decided anywhere in the tree):
 Item 1 is the real blocker, and it is a *specification* gap: `near-air-v3.json` gives the
 tape layout for bus range-checks but nothing in the tree maps tape positions to the
 "segment index / incoming state / outgoing state" triple that `RangeStmt` requires.
+
+## A flat 146-to-1 node is infeasible; only the binary tree is (checked 2026-10-23)
+
+`agg_s13_flat` takes `AGG_S` from the environment, so S=146 is directly runnable in
+principle — but the measured slope says it cannot run on this host, and the reason is
+instructive.
+
+Measured flat-node points (`logs/agg_depth4.log`, `logs/agg_s13_lr19.log`):
+
+| S | program_rows | `nvair_h` | prove | peak RSS |
+|---:|---:|---:|---:|---:|
+| 2 | 16,598 | 2^17 | 12.8 s | 2.52 GB |
+| 13 | 104,614 | 2^19 | 75.5 s | 12.16 GB |
+
+Slope = (104,614 − 16,598) / 11 ≈ **8,001 program rows per added child**. Extrapolating to
+S=146 gives ≈ **1,168,807 program rows**, which needs `nvair_h ≥ 2^21`, and cells ≈ 5.7 G.
+Scaling the measured S=13 node (127,206,528 cells, 75.5 s, 12.16 GB) linearly gives
+**≈ 3,374 s and ≈ 543 GB peak RSS** — over four times this host's 125 GB.
+
+The binary tree has none of that problem, because every node has exactly **2** children
+whatever the leaf count: `program_rows = 16,598` and `nvair_h = 2^17` at every depth (both
+measured), with ~17.5 GB peak at depth ≥ 2. So S=146 is reachable as a **tree of 255 nodes**
+(4.19 h serial at test targets) and not as one flat 146-to-1 node.
+
+Consequence for the flat shape's role: `agg_s13_flat` is a device for stating an **exact
+segment count without padding** (it avoids the non-existent single-child passthrough), not a
+template for the 1 Pgas node. Any "one big k-ary node" design at S=146 is ruled out by
+memory, and that should be said before anyone tries it.
