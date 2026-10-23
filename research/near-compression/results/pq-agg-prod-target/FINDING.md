@@ -1,4 +1,19 @@
-# Production-target aggregation: MEASURED at 303,053 B and 276,269 B
+# Production-target aggregation: MEASURED at 303,053 B and 276,269 B; depth 2 IMPOSSIBLE
+
+> **DEPTH-2 RESULT 2026-10-23: measured, and NEGATIVE — a field limit, not a resource limit.**
+> The two App-child L1 nodes prove at production targets (**276,789 B** and **275,933 B**, both
+> ~24 KB under the cap, 1,175 s and 791 s at 8.8–8.9 GB). The L2 **Node-child** node panics:
+> `StackedPcs(LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 })`
+> (`circuit.rs:458`). The offending column is the **SHA compression AIR** (L2's NvAir is only
+> 2^18; its `rows_so_far` was 171,873). `log_stacked_height = l_skip + n_stack ≤ 27 − log_blowup`,
+> which at production `log_blowup = 7` is **20**, while two NV children need **22**. Raising
+> `n_stack` is illegal (19 → 28, panics at `monty_31.rs:654`), so **a production aggregation node
+> with two NV children cannot be proved in this configuration at all.** The base final layer
+> verifies only 1 NV child and its SHA AIR sits at exactly 2^20 — the ceiling, with no headroom.
+> Consequence: the "bytes flat in depth" result (132,301 B at depths 2–4) is a `log_blowup = 3`
+> result and does **not** transfer to production. Log `agg-d2-streaming-qpow32.log`.
+
+# Production-target aggregation: MEASURED at 303,053 B
 
 > **UPDATE 2026-10-23 (query-PoW schedule): the same 2-child node at the base final layer's
 > own schedule measures 276,269 B.** With `PARENT_QUERY_POW=32` the WHIR query list becomes

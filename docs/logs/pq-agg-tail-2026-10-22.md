@@ -1052,10 +1052,12 @@ Still open, and each one is a real blocker rather than a formality:
 
      **The precise production constraint, measured:** an aggregation node with **2 NV children**
      cannot be proved at `log_blowup = 7`; an aggregation node with **2 App children** can. The
-     base final layer verifies **1** NV child and fits 2^20 exactly. Going to 2 NV children takes
-     the SHA compression height to 2^22, and 2^22 needs `log_stacked_height ≥ 22`, i.e.
-     `log_blowup ≤ 5`. So the blocker is specific: **the second NV child**, not aggregation in
-     general. That is why depth 1 measured fine and depth 2 died,
+     base final layer verifies **1** NV child and its SHA AIR is **2^20 — exactly at the
+     `log_stacked_height = 20` ceiling, with zero headroom** (reconstructed from its own
+     `shapes`: `2^20·76 + 2^20·83 + 128·9 + 2^16·5`). Going to 2 NV children takes that column to
+     2^22 — 4× — and 2^22 needs `log_stacked_height ≥ 22`, i.e. `log_blowup ≤ 5`. So the blocker
+     is specific: **the second NV child**, not aggregation in general. The base final layer is
+     already sitting on the ceiling; there is no geometry headroom to absorb one more NV child. That is why depth 1 measured fine and depth 2 died,
      and why the depth-4 "flat in depth" result cannot be assumed to hold at production.
 
      Two ways out, neither taken: **lower `log_blowup` to ≤ 5** at the aggregation levels (which
