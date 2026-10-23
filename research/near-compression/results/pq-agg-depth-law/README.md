@@ -226,3 +226,39 @@ What the adapter would have to do, none of which is implemented:
    proof carries one (`cached_roots` length 1), while the fixture has none;
 3. state and prove that the flattened tuple really is the chunk relation's boundary, which
    is the `G_α` coverage obligation, not a plumbing task.
+
+## The leaf adapter is smaller than it first looked (checked 2026-10-23)
+
+The correction above says a real base proof's statement is `Vec<Vec<F>>` (per AIR) while
+`RangeStmt` wants one flat slice. That sounds like a merge problem. It is not: every AIR
+reads a **prefix of the same public tape**.
+
+* `near-air-v3.json` declares `numPub = 202` and `maxPub = 2^26` — a fixed 202-element
+  prefix plus a variable-length tail the `pubSegs` buses range over.
+* `pv_of(t, pubs)` (`pq-state-port/src/main.rs:413-417`) returns `pubs[0..t.num_pub]`,
+  i.e. a prefix of that one tape, for every AIR.
+* The four pv-bearing AIRs are therefore nested prefixes, not disjoint records:
+
+  | AIR | table | `num_pub` | reads |
+  |---:|---|---:|---|
+  | 16 | `rcpt` | 198 | `tape[0..198]` |
+  | 21 | `size` | 202 | `tape[0..202]` |
+  | 22 | `qv` | 30 | `tape[0..30]` |
+  | 23 | `mrk` | 178 | `tape[0..178]` |
+
+So the adapter reads **one 202-element tape** and projects it — it never has to reconcile
+four independent records. That removes the hardest-looking part of the job.
+
+What still has to be decided (and is not decided anywhere in the tree):
+1. **Which tape elements are the segment boundary state?** `pubSegs` feeds buses
+   0/10/14/28/51/52/56 with widths 34/3/1/7/11/5/5/33/33 starting at tape offset 206 —
+   i.e. the boundary/context data plausibly lives in the *variable tail*, not the fixed 202.
+   Mapping that onto `(ctx, a, s_a, s_e)` is a spec question, not a code question.
+2. **What plays `cached_roots`?** The base proof carries one cached root; the fixture has
+   none. Whether a segment's range statement should pin that root is unstated.
+3. **The coverage obligation.** Even with (1) and (2), stating that the projected tuple is
+   the chunk relation's boundary is the `G_α` coverage theorem, which is separate work.
+
+Item 1 is the real blocker, and it is a *specification* gap: `near-air-v3.json` gives the
+tape layout for bus range-checks but nothing in the tree maps tape positions to the
+"segment index / incoming state / outgoing state" triple that `RangeStmt` requires.
