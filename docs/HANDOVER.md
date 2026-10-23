@@ -86,12 +86,25 @@ Read `docs/logs/pq-gap-analysis-2026-10-19.md`. Summary:
 * **Two goals are conflated.** The signed challenge caps at `G_α` = 2^22·822,756 = 3.451e12 gas
   (2^41.65). 1 Pgas is **289.8x** that and exists only as `Scope.checkD3Peta` (a research
   definition). At 1 Pgas one proof is impossible at any width (W would be 35k-71k; the pin is 24),
-  so it needs segmentation. **Segment count corrected 2026-10-23: ~146 segments at 2^23
-  ops/segment, not 1,880–3,760** — that range divided a width-equivalent cell total by a
-  main-cell segment size; the two are related by exactly the W-eq→main-cell ratio (494/38 and
-  995/38). Derivation in `docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5. Either count exceeds
-  the per-proof union bound's failure point (S ≈ 103–118), so this correction changes the
-  labour estimate but not the soundness verdict.
+  so it needs segmentation. **Segment count RECONCILED and CLOSED 2026-10-23: S = 146 at
+  2^23 ops/segment is the correct structural count; the plan's 1,880–3,760 is the same count
+  mis-divided and is withdrawn.** The arithmetic, all from the same 1.22e9-adversarial-op
+  workload:
+  * `results/pq-base-aggregation/model.out` divides by **main** cells:
+    `seg_cells = 2^23 · 38 = 2^28.25`, so `S = 1.22e9 / 2^23 = 145.4` → **146**.
+  * the plan divides a **width-equivalent** cell total by a **main**-cell segment size:
+    `0.6e12 / 2^28.25 = 1,880`, `1.2e12 / 2^28.25 = 3,759`.
+  * the bridge is exactly the W-eq→main-cell exchange rate, `494/38 = 13.0` and
+    `995/38 = 26.2`: `146 · 13.0 = 1,898`, `146 · 26.2 = 3,823`, which reproduces the plan's
+    range. W-eq is a **cost** unit (committed width × height, for prove time), not a row
+    count, so it cannot be divided by a main-cell segment.
+  * the plan's own neighbouring column validates the main-cell denominator: its single-proof
+    width `0.6e12 / 2^24 = 35,763` matches the recorded `W ≈ 35,000–71,000`.
+  **Consequence: S ≈ 146 (or ≈291 at the older 2^22 ops/segment), not 1,880–3,760.** This
+  changes the labour estimate by ~13–26× but not the soundness verdict — either count exceeds
+  the per-proof union bound's failure point of **S ≈ 103–118** (117.8 z-split, 102.5 uniform
+  z=32), so the single-database `NodeOK` theorem is needed either way. Full derivation in
+  `docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5.
 * **The 293,077 B is the recursion tail only.** It does not cover a NEAR chunk.
 * **Remaining blockers for a `G_α` chunk:** (a) the HOST chip's gas-invariant generalisation
   (`g := remaining` breaks `R·S + g = g0`; ~112 sites), (b) `HOSTB` byte movement + register
@@ -106,6 +119,42 @@ Read `docs/logs/pq-gap-analysis-2026-10-19.md`. Summary:
 
 Realistic: **~2-3 months to a `G_α` chunk under 300 KB**, minus whatever (e)/(f) were carrying.
 1 Pgas is a separate project on top.
+
+### Production-target status, margin requirement, `NodeOK` gap (2026-10-23, decision-ready)
+
+Three sentences the reader can act on, each with its evidence and its limit:
+
+1. **Production target: MEASURED and under the cap at the node shape measured.**
+   A 2-child agg node at the base final layer's own schedule (`[41,38,29,23]`,
+   `QUERY_POW=32`, `COMMITS=1`, 268.2 bits) is **276,269 B**, 23,731 B under 300 KB, proving
+   in 2,160.8 s at 9.46 GB peak under streaming. **Limit:** it is an App-child node at
+   `nvair_h=2^18`; the 1 Pgas tree's root aggregates Node children at `2^20`, whose program is
+   larger. Depth 2 is the run that closes that gap, not this measurement.
+2. **Margin requirement: ≥1 KB, and it is NOT met by the delivered packet.** Base sits at
+   33 B of margin against an observed 798 B transcript spread. At 42 B digests, with
+   `C = 179,437`:
+   * **Route A — shrink `C`.** For 1,024 B (1 KiB) of margin: `C` −**991 B** at `D = 2,869`,
+     or −**1,789 B** at the worst observed `D = 2,888`. To merely *fit* at `D = 2,888` needs
+     −765 B. `C = 179,437` is already a 1-commit final layer and the chain's extra 35,068 B
+     comes from a second commit the final layer does not have, so no identified source of
+     ~1 KB exists. (A separate reading quotes −1,765 B as "1 KB"; that is 1,000 B decimal,
+     which lands exactly at 1,000 B of margin.)
+   * **Route B — accept more digests.** `D ≤ 3,095` needs `C` −**9,459 B** (exactly 0 B margin);
+     `D ≤ 3,619` needs −**31,467 B**. Both are larger asks than Route A.
+   * **Route C — the only identified lever that clears 1 KB is digest width.** At `D = 2,869`,
+     41 B digests give **297,066 B (+2,934 B margin)**, 3.5× the observed spread and 89× the
+     current margin. That needs `sha_levers()` relaxed (it hard-asserts 48 or 42,
+     `sha384/config.rs:131`) plus one final-layer run at `d = 41` to confirm `C` is
+     width-invariant. **Neither is done**, so this is arithmetic on the measured law, not a
+     result. It is also the cheapest of the three: one ~500 s run.
+3. **`NodeOK` gap: the soundness of a 1 Pgas tree is an OPEN obligation.** The per-proof union
+   bound fails from **S ≈ 103–118** and every 1 Pgas shape exceeds that (S ≈ 146 at 2^23
+   ops/segment). The repair is to apply the extraction theorem **once** to the vk family
+   (`NodeOK`, DESIGN §9.1), not `n` times — but that theorem is **unproved**: the Lean
+   induction is done, the QROM application is paper-level (S-19/S-28).
+   `RESULT.json`'s `security_established: false` is a hardcoded literal, not a derived verdict.
+   **Until `NodeOK` lands, no byte count makes a 1 Pgas proof sound**, so size work is
+   necessary but not sufficient.
 
 ## Aggregation tail: what is now measured (2026-10-23)
 

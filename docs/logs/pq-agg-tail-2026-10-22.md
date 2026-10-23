@@ -963,6 +963,41 @@ Still open, and each one is a real blocker rather than a formality:
      production-legal choice, and it is the value the delivered chain uses. Whether an agg node's
      program still fits 2^18 rows (rather than the 2^20 the test used) is the open sub-question,
      and it is now the thing the production run has to answer.
+
+     **The planned `n_stack` 18/19/20 sweep is VOID — do not run it.** The binding constraint is
+     `l_skip + n_stack + log_blowup <= 27` (BabyBear 2-adicity) at production `log_blowup = 7`,
+     `l_skip = 2`:
+
+     | `n_stack` | `l_skip+n_stack+log_blowup` | verdict |
+     |---:|---:|---|
+     | 18 | 27 | **legal — the only legal value** |
+     | 19 | 28 | impossible, `assert!(bits <= TWO_ADICITY)` |
+     | 20 | 29 | impossible |
+
+     So 19 and 20 cannot be launched at all: they panic in the field constructor before any
+     proving. The sweep collapses to a single point. Any text proposing to "sweep 18/19/20"
+     should be read as "18, with the other two excluded arithmetically".
+
+     **Depth 2's real blocker is the stacked-layout height, not the program row count.**
+     `NV_PROG_LOG=22` (the value tried in `agg-prod-d2-r2.log`) forces `log_height = 22` against
+     `log_stacked_height = l_skip + n_stack = 20`, so the PCS rejects it:
+     `LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 }` (`circuit.rs:458`).
+     `NV_PROG_LOG=20` (the earlier attempt) instead trips the builder's own guard,
+     `program exceeds 2^18 rows` (`builder.rs:303`) — because `AGG_LOG_ROWS2=20` defaults
+     `prog_log = log_rows - 2 = 18`, and the Node-child program needs more than 2^18.
+     The height arithmetic (`nv_trace`: `used = na + na/2 + glue + hash + samp`,
+     `na ≈ 2^prog_log`) pins the legal pairing:
+
+     | `prog_log` | `used ≈ 1.5·2^prog_log` | minimum `log_rows` | resulting `nvair_h` |
+     |---:|---:|---:|---:|
+     | 18 | 393k | 19 | 2^19 |
+     | **19** | **786k** | **20** | **2^20** |
+     | 20 | 1.57M | 21 | 2^21 (exceeds `log_stacked_height = 20`) |
+
+     So the legal production pairing is **`NV_PROG_LOG = 19` with `AGG_LOG_ROWS2 = 20`**, which
+     lands `nvair_h = 2^20` — **exactly the base final layer's geometry**, making the byte
+     comparison apples-to-apples for the first time. That is the configuration launched, under
+     `NEARPROOF_STREAM_COMMIT=1` to stay inside the memory budget.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was
    reclaimed by a disk-cleanup job during this session (disk is 96 % full, 40 GB free). A
    rebuilt binary is not required to *re-verify* any existing result — only to run this node.
