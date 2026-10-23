@@ -108,9 +108,12 @@ while its real limitation — one contract — is accurate.
 Families with **no** generated comparison at ≥1,000×4 seeds:
 
 * crypto hosts — directed vectors only;
-* actions/receipts/hosts in D2 — the corpora have 8/12/4/4 recorded chains but these are generator
-  seeds for *corpora*, not "generated comparisons per family" in the plan's sense, and the seeds are
-  not re-runnable here (`oracle/vendor` unlinked).
+* actions/receipts/hosts in D2 — the corpora have distinct chain seeds per corpus: D1 **12**, D2 **14**,
+  D3c7 **8**, D3c8 **12**, D3c9 **4**, D3c10 **4** (measured from each `summary.json`'s `seed:` fields),
+  so the "at least four recorded seeds" *count* is met several times over for every corpus. But these
+  are seeds of a whole-corpus generator, not "generated comparisons per family" in the plan's sense, and
+  they are not re-runnable here (`oracle/vendor/nearcore` unlinked) — so the seeds exist as recorded
+  provenance, not as a reproducible generation recipe.
 * storage accounting — L5 added zero tests (see §"lane-claim audit").
 
 ## 4. Chunk integration — partial
