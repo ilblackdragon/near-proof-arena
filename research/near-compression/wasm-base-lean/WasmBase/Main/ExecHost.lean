@@ -40,7 +40,7 @@ failed the KAT on 4 host programs before being corrected).
 Consequently the CH decomposition is available in the active-rows form the induction needs:
 `host_trace_ok` (`Main/HostChipFacts.lean`) derives `HostTraceOK` from `Holds`, and
 `host_part_ch_recv_active` / `host_part_ch_send_active` below use it.  `msgs_ch_host` itself stays
-unconditional, which is sound and is what `Main/HostBus.host_hch` starts from.
+unconditional, which is sound and is what `Main/MemIOBus.host_hch` starts from.
 
 ## The remaining statement (the induction)
 
@@ -63,7 +63,7 @@ theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr 
 ```
 
 It lives in `WasmBase/Main/SoundHost.lean`.  The bus premises `hst`/`hch` are **discharged** from
-`Holds` + `H0` (`host_hst`/`host_hch`), and the instruction rows' row facts from
+`Holds` + `H0` + `HostBLinked` (`host_hst`/`host_hch`), and the instruction rows' row facts from
 `Main.Final.chipFacts`; `HostOK`/`HostResp` are not parameters (their content is inside
 `HoldRow`'s `RowSpecSeg`).  What is still assumed is stated there: `H0` (which the host trace's
 `Holds` does not give, because the joined bus balance does not split), `HoldRow` (the active HOST
@@ -156,24 +156,31 @@ theorem host_part_state_F (tr : Trace) (pub : List F) :
   funext r
   rw [(rowMsgs_host_state tr pub r).2]
 
-/-! ## The oracle and the cached host table carry no STATE or CH interaction -/
+/-! ## The oracle and the cached host table carry no STATE or CH interaction
+
+`HOSTB` *does* carry CH interactions since the MEMIO link (`Chips.HostB.memCnt`): a request byte
+receives and re-sends the space-3 message of `ptr + pos`.  Its block is therefore part of
+`msgs_ch_host` below, and `Main/MemIOBus` proves it is exactly the active `HOSTB` rows' messages. -/
 
 theorem host_part_nil_env {nloc ngl : Nat} (tr : Trace) (pub : List F) (b : Nat) (s : Bool)
     (hb : b = busState ∨ b = busStk) :
-    part HostO.table tr pub 23 b s = [] ∧ part HostTab.table tr pub 24 b s = [] ∧
-      part HostB.table tr pub 25 b s = [] := by
-  refine ⟨?_, ?_, ?_⟩ <;> (unfold part; rw [List.flatMap_eq_nil_iff]; intro r _)
+    part HostO.table tr pub 23 b s = [] ∧ part HostTab.table tr pub 24 b s = [] := by
+  refine ⟨?_, ?_⟩ <;> (unfold part; rw [List.flatMap_eq_nil_iff]; intro r _)
   · rw [rowMsgs_eq]
     rcases hb with rfl | rfl <;> cases s <;>
       simp [HostO.table, busState, busStk, busR16, busHostQ, busHostR]
   · rw [rowMsgs_eq]
     rcases hb with rfl | rfl <;> cases s <;>
       simp [HostTab.table, busState, busStk, busR16, busHostT, busHostQ, busHostR, busHostB]
-  · rw [rowMsgs_eq]
-    rcases hb with rfl | rfl <;> cases s <;>
-      simp only [HostB.table, HostB.inters, List.filter_cons, List.filter_nil,
-        List.flatMap_cons, List.flatMap_nil] <;>
-      (first | rfl | (rw [if_neg (by decide)]; rfl) | (rw [if_pos (by decide)]; intro h; exact absurd h (by decide)))
+
+/-- `HOSTB` carries no STATE interaction, so it contributes nothing to the STATE bus. -/
+theorem hostb_part_nil_state (tr : Trace) (pub : List F) (s : Bool) :
+    part HostB.table tr pub 25 busState s = [] := by
+  unfold part; rw [List.flatMap_eq_nil_iff]; intro r _
+  rw [rowMsgs_eq]
+  rw [show (HostB.table.inters.filter (fun i => i.bus = busState ∧ i.send = s)) = [] by
+    cases s <;> decide]
+  rfl
 
 /-! ## The STATE and CH messages of a host trace -/
 
@@ -189,30 +196,30 @@ theorem msgs_state_host {nloc ngl : Nat} (tr : Trace) (pub : List F) :
           if rowAct Host.table tr pub 22 r then [rowIn Host.table tr pub 22 r] else []) := by
   have h := host_part_nil_env (nloc := nloc) (ngl := ngl) tr pub
   constructor
-  · obtain ⟨e1, e2, e3⟩ := h busState true (Or.inl rfl)
-    rw [host_msgs_air, e1, e2, e3, host_part_state_T]
+  · obtain ⟨e1, e2⟩ := h busState true (Or.inl rfl)
+    rw [host_msgs_air, e1, e2, hostb_part_nil_state, host_part_state_T]
     simp
-  · obtain ⟨e1, e2, e3⟩ := h busState false (Or.inl rfl)
-    rw [host_msgs_air, e1, e2, e3, host_part_state_F]
+  · obtain ⟨e1, e2⟩ := h busState false (Or.inl rfl)
+    rw [host_msgs_air, e1, e2, hostb_part_nil_state, host_part_state_F]
     simp
 
 /-- The CH bus of a host trace: base boundary + base instruction rows, then the HOST rows' messages
-(`rowMsgs … busStk`), on each side. -/
+(`rowMsgs … busStk`) **and the HOSTB rows'** (the MEMIO link's space-3 messages), on each side. -/
 theorem msgs_ch_host {nloc ngl : Nat} (tr : Trace) (pub : List F) :
     msgs (wasmBaseHostAir nloc ngl) tr pub busStk true =
       msgs (wasmBaseAir nloc ngl) tr pub busStk true ++
-        part Host.table tr pub 22 busStk true ∧
+        (part Host.table tr pub 22 busStk true ++ part HostB.table tr pub 25 busStk true) ∧
     msgs (wasmBaseHostAir nloc ngl) tr pub busStk false =
       msgs (wasmBaseAir nloc ngl) tr pub busStk false ++
-        part Host.table tr pub 22 busStk false := by
+        (part Host.table tr pub 22 busStk false ++ part HostB.table tr pub 25 busStk false) := by
   have h := host_part_nil_env (nloc := nloc) (ngl := ngl) tr pub
   constructor
-  · obtain ⟨e1, e2, e3⟩ := h busStk true (Or.inr rfl)
-    rw [host_msgs_air, e1, e2, e3]
-    simp
-  · obtain ⟨e1, e2, e3⟩ := h busStk false (Or.inr rfl)
-    rw [host_msgs_air, e1, e2, e3]
-    simp
+  · obtain ⟨e1, e2⟩ := h busStk true (Or.inr rfl)
+    rw [host_msgs_air, e1, e2]
+    rfl
+  · obtain ⟨e1, e2⟩ := h busStk false (Or.inr rfl)
+    rw [host_msgs_air, e1, e2]
+    rfl
 
 /-! ## The HOST rows' CH messages, decoded -/
 

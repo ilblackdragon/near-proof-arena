@@ -411,9 +411,28 @@ consecutive positions).
 
 All constraints have degree ≤ 2.
 
-Not modelled here: the memory pointer, the byte length, the register space (space 6), and the
-content of the byte strings (a byte value inside `0..255` is a free witness: it is not yet tied to
-memory or to the state side). -/
+## The MEMIO link (`(ptr, len)` → linear memory)
+
+The columns `ptrLo, ptrHi` commit the buffer base `ptr = ptrLo + 2^16·ptrHi` (group-constant,
+`ptr < 2^27`).  A **request** byte (`dir = 0`, `reg = 0`) is read out of linear memory, so the row
+carries the memory message in both directions (count `memCnt = act·(1−dir)·(1−reg)`):
+
+```
+chRecv 3 (ptr + pos) 0 [byte,0,0,0] mtp     -- the live memory byte, at its producer time
+chSend 3 (ptr + pos) 0 [byte,0,0,0] ts      -- the same byte, re-timed to this call
+timeChk ts mtp hp                           -- mtp < ts
+```
+
+`mtp` is the byte's producer time, so the two messages **differ** and the pair is not a same-time
+self-cancellation: the `recv` can only balance against a memory message some other table produced, so
+it genuinely asserts "memory[ptr + pos] = byte at `mtp`", and the `send` re-times it to `ts` — exactly
+the LOAD shape of `Chips.Load`.  `mtp < ts` is what makes the assertion non-vacuous (a same-time pair
+cancels for every count, `Main/MemIO.ch_pair_vacuous`).
+
+What is still *not* constrained: the byte values of response payloads (`dir = 1`) and the
+register-fill half (`reg = 1`) are state-side data, not memory reads; and `ptr + len ≤ memBytes` is a
+statement-level bound (`MemIO.BufOK`), not a polynomial constraint, since `ptr, len < 2^27/2^16` only
+bound each of them separately. -/
 namespace HostB
 def ts : Nat := 0
 def dir : Nat := 1
@@ -429,12 +448,25 @@ the message; the Wasm-side half (receiving it into channel space 6) is `REG` (`W
 Such a byte is always a *response* byte (`dir = 1`, state → Wasm) — `cRegDir` below.  With
 `reg = 0` the byte is a plain host payload and `HOSTB` keeps both halves (a self-permutation). -/
 def reg : Nat := 9
+/-- The buffer base, as two 16-bit limbs (`ptrLo + 2^16 · ptrHi`).  Group-constant.  This is the
+`ptr` of the host call's `(ptr, len)` memory range: the MEMIO link sends and receives the memory
+byte at `ptr + pos` on channel space 3, so the bytes on `HOSTB` *are* the linear-memory bytes. -/
+def ptrLo : Nat := 10
+def ptrHi : Nat := 11
+/-- The producer time of the memory byte this row touches (`mtp < ts`, checked by `timeChk`).  A
+request byte consumes the live memory message at `mtp` and re-produces it, unchanged, at `ts` —
+the same LOAD shape every memory access uses, which is what makes the link non-vacuous. -/
+def mtp : Nat := 12
+/-- The high limb of `ts − mtp − 1` (the `timeChk` witness). -/
+def hp : Nat := 13
 /-- `len` is the group's byte count, committed on every row of the group (so it is a function of
 `ts` rather than a free witness per row), and `hid` ties the group to the host call it belongs to.
 Together they are the HOSTB <-> HOSTQ link: the same `(ts, hid)` pair appears on HOSTQ, so a byte
-group cannot be spliced onto a different call.  The `(ptr, len)` memory range is still not modelled
-(the bytes are not yet tied to linear memory). -/
-def cols : List String := ["ts", "dir", "pos", "byte", "len", "hid", "gap", "act", "f", "reg"]
+group cannot be spliced onto a different call.  The `(ptr, len)` range is the buffer
+`[ptr, ptr + len)`: `ptr` is committed as two limbs (group-constant, `ptr < 2^27`) and every
+request byte carries the space-3 message of `ptr + pos` (see `memCnt`/`memAddr` below). -/
+def cols : List String := ["ts", "dir", "pos", "byte", "len", "hid", "gap", "act", "f", "reg",
+  "ptrLo", "ptrHi", "mtp", "hp"]
 
 def cAct : Expr := bool (v act)
 def cF : Expr := bool (v f)
@@ -462,11 +494,26 @@ def cPosLtLen : Expr := v act * (v blen - v pos - 1 - v gap)
 def cLenConst : Expr := (1 - nv f) * (nv blen - v blen)
 /-- `hid` is the same on every row of a group. -/
 def cHidConst : Expr := (1 - nv f) * (nv hid - v hid)
+/-- `ptr` is the same on every row of a group (both limbs), so the buffer address is a function of
+the group rather than a free witness per byte. -/
+def cPtrLoConst : Expr := (1 - nv f) * (nv ptrLo - v ptrLo)
+def cPtrHiConst : Expr := (1 - nv f) * (nv ptrHi - v ptrHi)
 
 def constraints : List Expr :=
-  [cAct, cF, cDir, cReg, cRegDir, cFirst, cLast, cTs, cDirG, cPos, cPosLtLen, cLenConst, cHidConst]
+  [cAct, cF, cDir, cReg, cRegDir, cFirst, cLast, cTs, cDirG, cPos, cPosLtLen, cLenConst, cHidConst,
+   cPtrLoConst, cPtrHiConst]
 
 def msg : List Expr := [v ts, v hid, v dir, v pos, v bv]
+/-- The space-3 address of this row's byte: `ptr + pos`.  Exact in the naturals: `ptr < 2^27` and
+`pos < 2^16` (both R16-checked) keep the sum below the field modulus. -/
+def memAddr : Expr := v ptrLo + 65536 * v ptrHi + v pos
+/-- A **request** byte (`dir = 0`, `reg = 0`) is read from linear memory, so it carries the memory
+message in both directions: it consumes the live message at the producer time `mtp` and produces it
+again at `ts`.  This is the LOAD shape of `Chips.Load` — crucially `mtp < ts`, so the pair is not a
+same-time self-cancellation (`ch_raw_host`'s memory block then absorbs the re-timing). -/
+def memCnt : Expr := v act * (1 - v dir) * (1 - v reg)
+/-- The memory message of this row: byte `bv` at `memAddr`, tag 0 (a plain byte, as `encB`). -/
+def memMsg : List Expr := [Expr.c 3, memAddr, 0, v bv, 0, 0, 0]
 /-- **The register link.**  When `reg = 1` the byte fills a register and the Wasm-side half of
 the wire lives in `REG` (`WasmBase.RegChip`): the fill (`dir = 1`) is *sent* here and *received* by
 `REG` (whose `cDirRd` makes a fill byte a response byte).  One
@@ -481,7 +528,13 @@ def inters : List Inter :=
    ⟨busHostB, false, v act * v dir * (1 - v reg), msg⟩,
    -- the state-side half of a register-filling byte (`cRegDir` forces `dir = 1`)
    ⟨busHostB, true, v act * v reg, msg⟩,
-   -- a register-filling byte (`reg = 1`) is looked up by `REG`, which owns the register wire
+   -- the MEMIO link: a request byte consumes the live memory byte at `ptr + pos` (producer time
+   -- `mtp`) and re-produces it at `ts`.  `mtp < ts`, so the two messages differ and the pair is
+   -- NOT the vacuous same-time recv/send that cancels identically (see `Main/MemIO.lean`).
+   chRecv 3 memAddr 0 [v bv, 0, 0, 0] (v mtp) memCnt,
+   chSend 3 memAddr 0 [v bv, 0, 0, 0] (v ts) memCnt] ++
+  timeChk (v ts) (v mtp) (v hp) memCnt ++
+  [-- a register-filling byte (`reg = 1`) is looked up by `REG`, which owns the register wire
    byteQ 0 (v bv) 0 0 (v act * (1 - v reg)),
    r16 (v gap) (v act * (1 - v reg)),
    -- `pos` and `len` must be 16-bit: without this, `cPosLtLen` (`pos + gap + 1 = len`) is
@@ -490,7 +543,11 @@ def inters : List Inter :=
    -- The same hole forced `r16 pos` in `REG`; this is the predicted HOSTB counterpart
    -- (`hostb_pos_lt_len_needs_r16`, `Main/HostChipFacts`).
    r16 (v pos) (v act * (1 - v reg)),
-   r16 (v blen) (v act * (1 - v reg))]
+   r16 (v blen) (v act * (1 - v reg)),
+   -- `ptr` is a 27-bit address: `ptrLo < 2^16` and `32·ptrHi < 2^16` (so `ptrHi < 2^11`).  Without
+   -- these, `memAddr = ptr + pos` would be a free field element and could alias any address.
+   r16 (v ptrLo) (v act * (1 - v reg)),
+   r16 (32 * v ptrHi) (v act * (1 - v reg))]
 
 def table : Table := ⟨"HOSTB", cols, constraints, inters⟩
 end HostB

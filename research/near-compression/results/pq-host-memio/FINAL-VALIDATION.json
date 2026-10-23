@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-23",
+  "main_baseline": "65f7e3d3e",
+  "lane_checkpoint": "c87be91ee",
+  "lean_build": {
+    "target": "WasmBase wasmbase-tool",
+    "jobs": 246,
+    "result": "PASS"
+  },
+  "rust_build": {
+    "command": "cargo build --release --locked --offline -j 8",
+    "result": "PASS"
+  },
+  "axiom_audit": {
+    "declarations": 40,
+    "allowed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "result": "PASS"
+  },
+  "kat": {
+    "passed": 98,
+    "failed": 0
+  },
+  "tamper": {
+    "logkat": {
+      "rejected": 86,
+      "total": 86,
+      "honest_proof_verified": true,
+      "memio_controls": [
+        "TAMPER MEMIO[row 0].ptrLo+1         REJECTED (constraint: HOSTB row 0 constraint 13 = 2013265920)",
+        "TAMPER MEMIO[row 0].ptrHi+1         REJECTED (constraint: HOSTB row 0 constraint 14 = 2013265920)",
+        "TAMPER MEMIO[row 0].mtp+1           REJECTED (bus: unbalanced: [((3, [1]), 1), ((2, [3, 0, 0, 104, 0, 0, 0, 1]), -1), ((3, [2]), -1)",
+        "TAMPER MEMIO[row 0].hp+1            REJECTED (bus: unbalanced: [((3, [2013200387]), 1), ((3, [4]), 1), ((3, [0]), -1), ((3, [2]), -)",
+        "TAMPER MEMIO[row 0].mtp=ts          REJECTED (bus: unbalanced: [((3, [2]), -1), ((2, [3, 0, 0, 104, 0, 0, 0, 0]), 1), ((2, [3, 0, 0)",
+        "TAMPER MEMIO[row 0].ptrHi=2^11      REJECTED (constraint: HOSTB row 0 constraint 14 = 2013263873)"
+      ]
+    },
+    "regkat": {
+      "rejected": 101,
+      "total": 101,
+      "honest_proof_verified": true,
+      "memio_controls": []
+    }
+  },
+  "if_storage_regression": {
+    "fixture": "d3tiny",
+    "eligible": true,
+    "check": "PASS",
+    "hostb_width": 14
+  },
+  "base_air_regression": [
+    {
+      "nloc": 0,
+      "ngl": 0,
+      "sha256": "ae20db136dd093ab3f2e377897e95cb58bce4af854f3c96dcd1a9b31d62afd09"
+    },
+    {
+      "nloc": 1,
+      "ngl": 0,
+      "sha256": "f5e4dd90144f5224bc4c404b1785339bad5aac98fb1f0e5aee75a2aa7ff39650"
+    },
+    {
+      "nloc": 2,
+      "ngl": 1,
+      "sha256": "a92516e8eaccad7d8008701d0785f89ae4995c41c794e95cd7e168d91c0096b2"
+    }
+  ],
+  "pin_check": "PASS",
+  "integration_correction": "Removed HostBLinked.linked_inv; inactive HOSTB memory traffic is derived empty from Holds in hostb_partition.",
+  "remaining_premises": [
+    "HostBLinked.linked and unique",
+    "consumed memory message liveness",
+    "BufOK",
+    "H0, HoldRow and existing whole-host boundary/segment premises"
+  ],
+  "source_sha256": {
+    "research/near-compression/native/wasm-base/src/main.rs": "49d7f7527388f2906c3fcd40f97851146bde5909c6393346abf3efe4b1ca1a60",
+    "research/near-compression/native/wasm-base/src/tracegen.rs": "c7d8450e20d6a00762faf6faa2eec5109a1cc30c4da26e194ee5abee581e1f4f",
+    "research/near-compression/wasm-base-lean/AxiomsMemio.lean": "32c52c5c26e1088933ebc59136e1e73dab81ae7f0f26d03f3c49fae6f88d6076",
+    "research/near-compression/wasm-base-lean/WasmBase.lean": "f4597f9fb6b31cdb8116e12afae24a77d8373a4ae7ff22e9e509460d01d4e819",
+    "research/near-compression/wasm-base-lean/WasmBase/HostChip.lean": "81e993c94abc3b559a81eeef73643a3da2eac9a6ccd0897abde5c7f4732b07b2",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/ExecHost.lean": "57effa2bcd72bd02e03452cf02db0898c961a25bfc03b86b0feb4094700e98f3",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/HostBus.lean": "f7ef16d7f0c0e6f390a9d14d0e49b92acff8ae0e7d3235c39c773dc8e890ede9",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/HostChipBits.lean": "dc6e6ab3573c9811163f6f2d17e10195df9c000e9229748c270d8347c2a3178c",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/MemIOBus.lean": "e3ff579f3b5e3d41a424f4b1b253aec94d90cc309cd6eb2de2b95ef7201ca877",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/MemIOLink.lean": "cd05dec61f6bd8af8e51d9da598c405d7da34bdd8ce65bb030c1b7046a5ae426",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/RegSend.lean": "e4395f55332e6c06c945d53c742d1c382e2c31328c3b57e1bb1453bc596a7d20",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/SegHarness.lean": "c4f31db5a7afdefcae8f8a78f22a8cc95f0881f4801f6228b50798e2c97aca40",
+    "research/near-compression/wasm-base-lean/WasmBase/Main/SoundHost.lean": "f00b2fe48cfd2814e5954ab4528594ccba5bb68860b5b3c2b011b7c390146135",
+    "research/near-compression/wasm-base-lean/WasmBase/MemIO.lean": "22fb5ac9f314da690d4f013e48857ea88753e2fdee2ded5beed79f8720ccec81"
+  },
+  "evidence_sha256": {
+    "lean-integrated.log": "c9d7c5f2c14bd0d85cf833e27f1dda91373324ad653efb6efb3965ba6331a107",
+    "rust-final.log": "cb60548a909b6bdff67c2ee2ddcfd9a202cad52a74cf5139905f4c411eb2bc99",
+    "axioms-integrated.log": "53be19253450b3948ff290bf2fdf088e1d19306df866f110fa917f8683ba06c9",
+    "kat.log": "1a25335bcb6539b879fa2aa195d7496ed0074582a3d7b4456a55d0eab555cbad",
+    "tamper-logkat.log": "d812aef05c4bc47dcbfddd18ddc6a3431e93cdecd1771db46144cdcfff0b799a",
+    "tamper-regkat.log": "ca8c5fcf066f55cace1da2d138a09ef8ec46bac1ba52285485a70686f106d365",
+    "if-regression/check.log": "cf5a7d8caee56018f1eb4917ff7ffece1ca7eaf2a865af24ae16e4ffd3585ce0",
+    "pin-check.log": "f2e32893d89b4d14b8f17ee9b5fb54156d144ec15ec470c58364b956496c128a"
+  },
+  "evidence_directory": "/data/illia/memio-finalize-20261023"
+}

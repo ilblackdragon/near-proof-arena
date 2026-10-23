@@ -35,7 +35,8 @@ which is exactly `lookup_sound`'s `hsend` at bus 3 (`reg_hsend_r16`).
   because tables 0–21 of the REG AIR are literally `wasmBaseAir`'s.
 * **HOST (22)**: every R16 query is counted `act` or some `pf j`; both are bits.
 * **HOSTO (23), HOSTT (24)**: no R16 interaction at all.
-* **HOSTB (25)**: R16 queries are counted `act·(1−reg)`; `act`, `reg` are its bits.
+* **HOSTB (25)**: R16 queries are counted `memCnt = act·(1−dir)·(1−reg)`, or its un-folded form
+  `act·(1−reg)`; `act`, `dir`, `reg` are its bits.
 * **REG (26)**: six R16 queries, counted `act·fresh`, `act·fresh`, `act·(1−kind)`, `act`, `act`, `act`.
 -/
 namespace WasmBase
@@ -201,6 +202,25 @@ theorem reg_host_pf_le {nloc ngl : Nat} {pub : List F} {tr : Trace}
     Expr.eval_ofNat', Host.pf, natRow] at hb
   rcases bool_nat (rowNat_lt tr 22 r (Host.pf j)) hb with h | h <;> omega
 
+/-- **`memCnt` is a bit on a REG trace's HOSTB row.** -/
+theorem reg_hostb_memCnt_le {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 25) :
+    (HostB.memCnt.eval (tr.row pub 25 r)).toNat ≤ 1 := by
+  have hact := reg_hostb_bit (H := H) hr (c := HostB.act) (by simp [HostB.table, HostB.constraints, HostB.cAct])
+  have hdir := reg_hostb_bit (H := H) hr (c := HostB.dir) (by simp [HostB.table, HostB.constraints, HostB.cDir])
+  have hreg := reg_hostb_bit (H := H) hr (c := HostB.reg) (by simp [HostB.table, HostB.constraints, HostB.cReg])
+  have e : (HostB.memCnt.eval (tr.row pub 25 r)).toNat =
+      (rowNat tr 25 r HostB.act * (1 - rowNat tr 25 r HostB.dir) *
+        (1 - rowNat tr 25 r HostB.reg)) := by
+    simp only [HostB.memCnt, Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat',
+      Expr.eval_col, Trace.row]
+    rw [cell_cast tr 25 r HostB.act, cell_cast tr 25 r HostB.dir, cell_cast tr 25 r HostB.reg]
+    rcases hact with h | h <;> rcases hdir with h' | h' <;> rcases hreg with h'' | h'' <;>
+      rw [h, h', h''] <;> decide
+  rw [e]
+  rcases hact with h | h <;> rcases hdir with h' | h' <;> rcases hreg with h'' | h'' <;>
+    rw [h, h', h''] <;> decide
+
 /-- Same, in the un-folded shape `act · (1 − reg)` that `HOSTB`'s `r16`/`byteQ` queries use. -/
 theorem reg_hostb_act_one_minus_reg_le {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseRegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 25) :
@@ -227,11 +247,11 @@ theorem host_r16_cases {i : Inter} (hi : i ∈ Host.table.inters) (hb : i.bus = 
     decide
   exact of_decide_eq_true (List.all_eq_true.mp hall i hi) hb
 
-/-- **Every `HOSTB` R16 count is `act·(1−reg)`.** -/
+/-- **`HOSTB`'s R16 counts are `memCnt` or its un-folded `act·(1−reg)` form.** -/
 theorem hostb_r16_cases {i : Inter} (hi : i ∈ HostB.table.inters) (hb : i.bus = busR16) :
-    i.count = v HostB.act * (1 - v HostB.reg) := by
+    i.count = HostB.memCnt ∨ i.count = v HostB.act * (1 - v HostB.reg) := by
   have hall : HostB.table.inters.all (fun j => decide (j.bus = busR16 →
-      j.count = v HostB.act * (1 - v HostB.reg))) = true := by
+      j.count = HostB.memCnt ∨ j.count = v HostB.act * (1 - v HostB.reg))) = true := by
     decide
   exact of_decide_eq_true (List.all_eq_true.mp hall i hi) hb
 
@@ -340,8 +360,9 @@ theorem reg_send_host {nloc ngl : Nat} {pub : List F} {tr : Trace}
     exact absurd (no_r16_send hostT_no_r16 hi hb hs) not_false
   · -- HOSTB (25)
     rw [host_air_25 nloc ngl] at hi
-    rw [hostb_r16_cases hi hb]
-    exact reg_hostb_act_one_minus_reg_le H hr
+    rcases hostb_r16_cases hi hb with h | h
+    · rw [h]; exact reg_hostb_memCnt_le H hr
+    · rw [h]; exact reg_hostb_act_one_minus_reg_le H hr
 
 /-! ## REG's own R16 sends -/
 

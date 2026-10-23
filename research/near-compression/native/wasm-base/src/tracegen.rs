@@ -418,11 +418,12 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut host_calls: Vec<u64> =
         vec![0; prep.host_tab.iter().map(|r| r[0] as usize + 1).max().unwrap_or(0)];
     let mut host_ix = 0usize;
-    // HOSTB rows `(ts, dir, pos, byte, act, f)`, grouped by `(ts, dir)`: the request (`dir = 0`)
-    // and the response (`dir = 1`) of the first host call.  The 4 request bytes are the low four
-    // bytes of the first argument, the 4 response bytes those of the result word; the bytes are a
-    // placeholder for the `(ptr, len)` memory range, which this slice does not model.
-    let mut hostb_rows: Vec<[u64; 10]> = vec![];
+    // HOSTB rows `(ts, dir, pos, byte, len, hid, gap, act, f, reg, ptrLo, ptrHi, mtp, hp)`,
+    // grouped by `(ts, dir)`: the request (`dir = 0`) and the response (`dir = 1`) of a host call.
+    // A request byte is a **memory read**: it consumes the live space-3 message of `ptr + pos` at
+    // its producer time `mtp` and re-produces it at `ts` (`Chips.HostB.memCnt`, `timeChk ts mtp hp`),
+    // so the row carries the real memory byte and the trace's `mem.cur` is re-timed to `ts`.
+    let mut hostb_rows: Vec<[u64; 14]> = vec![];
     let mut hostb_done = false;
     // The register file as the trace sees it (`space 6`): content, fill time, and whether the
     // register's message is still live (filled and not yet read).  `filled_seen` makes the fill
@@ -577,9 +578,13 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                     //  fresh, tp, hp, ptr, f]; f marks the group's first row
                                     reg_rows.push([1, 0, 0, rid, pos as u64, blen, b, hid, ts, 1,
                                         blen - pos as u64 - 1, 0, 0, 0, 0, (pos == 0) as u64]);
-                                    // the HOSTB byte of a fill is the state-side half, `reg = 1`
+                                    // the HOSTB byte of a fill is the state-side half, `reg = 1`:
+                                    // `memCnt = act*(1-dir)*(1-reg) = 0`, so this row has no space-3
+                                    // message and its byteQ/r16 queries all have count 0; only the
+                                    // bus-210 send `act*reg` remains (REG receives it).  The memory
+                                    // columns are therefore inert and stay zero.
                                     hostb_rows.push([ts, 1, pos as u64, b, blen, hid,
-                                        blen - pos as u64 - 1, 1, (pos == 0) as u64, 1]);
+                                        blen - pos as u64 - 1, 1, (pos == 0) as u64, 1, 0, 0, 0, 0]);
                                     st.byte(0, b, 0);
                                     // HOSTB's `gap` query (`reg = 1` makes its count 0, so this
                                     // answer is consumed by REG, which queries gap too)
@@ -655,57 +660,92 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 // first argument and of the result word; a `(ptr, len)` memory range is not
                 // modelled in this slice.
                 // The byte payload of the log/return functions: a `dir = 0` request group
-                // (Wasm -> state) carrying the memory bytes at `(len, ptr)`, taken from the
-                // trace's own memory at the time of the call.  `(ts, hid)` is the host call's, so
-                // the group cannot be spliced onto another call.  `len` is capped at 40 bytes (the
-                // KAT's payloads).
+                // (Wasm -> state) carrying the memory bytes at `(len, ptr)`, taken from the trace's
+                // own memory at the time of the call.  `(ts, hid)` is the host call's, so the group
+                // cannot be spliced onto another call.  `len` is capped at 40 bytes (the KAT's
+                // payloads).
                 //
-                // The ids are `Chips.hostByteIds` (`HostChip.lean:174`): `log_utf8 = 45`,
+                // The ids are `Chips.hostByteIds` (`HostChip.lean`): `log_utf8 = 45`,
                 // `log_utf16 = 46`, `panic_utf8 = 47`, `value_return = 50`.  This arm used to test
                 // `[8, 9, 10, 15]`, which are `promise_create`/`promise_then`/`promise_and`/
-                // `promise_batch_action_deploy_contract`, so it never fired for a real log call and
-                // every such call fell through to the 4-byte placeholder instead of carrying the
-                // actual payload.  The KAT could not see it: an absent HOSTB group still balances.
+                // `promise_batch_action_deploy_contract`, so it never fired for a real log call.
                 //
-                // The spec's signature is `log_utf8(len, ptr)` (`Host.lean:658-662`:
-                // `utf8H a[0] a[1]` then `readMemH ptr len`), so `args[0]` is the **length** and
-                // `args[1]` the pointer — the reverse of what this arm used to assume.
+                // The spec's signature is `log_utf8(len, ptr)` (`Host.lean`: `utf8H a[0] a[1]` then
+                // `readMemH ptr len`), so `args[0]` is the **length** and `args[1]` the pointer.
+                //
+                // Each request byte is the MEMIO link of `Chips.HostB`: it consumes the live space-3
+                // byte of `ptr + pos` at its producer time `mtp`, checks `mtp < ts` (`timeChk`) and
+                // re-produces the same byte at `ts`, so the trace's `mem.cur` is re-timed exactly as
+                // a LOAD row would re-time it.  The row therefore needs, per byte: `byteQ`, `r16`
+                // gap/pos/len, `r16` ptrLo and `r16 (32*ptrHi)` (the AIR's five), plus the two
+                // `timeChk` limbs.
                 if has_host && [45u64, 46, 47, 50].contains(&hid) {
                     let (blen, ptr) = (args[0], args[1]);
                     let blen = blen.min(40);
-                    for pos in 0..blen {
-                        let (b, _) = mem.get(ptr + pos);
-                        hostb_rows.push([ts, 0, pos, b, blen, hid, blen - pos - 1, 1,
-                            (pos == 0) as u64, 0]);
-                        st.byte(0, b, 0);
-                        st.r16(blen - pos - 1);
-                        st.r16(pos);
-                        st.r16(blen);
+                    if blen > 0 {
+                        assert!(ptr < (1u64 << 27), "buffer base {ptr} beyond 2^27");
+                        let (ptr_lo, ptr_hi) = (ptr & 0xffff, ptr >> 16);
+                        assert!(ptr_hi < 2048, "buffer base {ptr} beyond 2^27");
+                        for pos in 0..blen {
+                            let (b, mtp) = mem.get(ptr + pos);
+                            let hp = st.tchk(ts, mtp);
+                            mem.cur.insert(ptr + pos, (b, ts));
+                            hostb_rows.push([ts, 0, pos, b, blen, hid, blen - pos - 1, 1,
+                                (pos == 0) as u64, 0, ptr_lo, ptr_hi, mtp, hp]);
+                            st.byte(0, b, 0);
+                            st.r16(blen - pos - 1);
+                            st.r16(pos);
+                            st.r16(blen);
+                            st.r16(ptr_lo);
+                            st.r16(32 * ptr_hi);
+                        }
                     }
                 }
                 // The placeholder byte stream belongs to the minimum slice.  With the REG table the
                 // byte payload is driven by the register wire instead (`hid = 12/13/6`), so the
                 // placeholder must not add unrelated bytes; and a log/return call has its own
                 // payload group above.
+                //
+                // A request byte (`dir = 0`) is a real memory read at the buffer base 0, so it needs
+                // the same MEMIO link as the payload arm: consume the live byte at `mtp`, `timeChk`,
+                // re-produce at `ts`.  A program without memory (or with fewer than four bytes) has
+                // no in-bounds buffer, so only the response half (`dir = 1`, state-side data that
+                // never touches memory) is emitted there.
                 if !hostb_done && !has_reg && ![45u64, 46, 47, 50].contains(&hid) {
                     hostb_done = true;
-                    let qb = bytes(args[0]);
                     let sb_ = bytes(ev.word);
-                    for dir in 0..2u64 {
-                        let src = if dir == 0 { qb } else { sb_ };
-                        let blen = 4u64;
+                    let blen = 4u64;
+                    if prep.mem >= blen {
                         for pos in 0..blen {
-                            let b = src[pos as usize];
-                            // [ts, dir, pos, byte, len, hid, gap, act, f, reg]; gap = len - pos - 1.
-                            // A `dir = 1` byte that fills a register (`input`) has `reg = 1`:
-                            // HOSTB then carries only the state-side half, REG the Wasm side.
-                            let is_reg = 0;
-                            hostb_rows.push([ts, dir, pos, b, blen, hid, blen - pos - 1, 1, (pos == 0) as u64, is_reg]);
+                            let (b, mtp) = mem.get(pos);
+                            let hp = st.tchk(ts, mtp);
+                            mem.cur.insert(pos, (b, ts));
+                            // [ts, dir, pos, byte, len, hid, gap, act, f, reg, ptrLo, ptrHi, mtp, hp]
+                            hostb_rows.push([ts, 0, pos, b, blen, hid, blen - pos - 1, 1,
+                                (pos == 0) as u64, 0, 0, 0, mtp, hp]);
                             st.byte(0, b, 0);
                             st.r16(blen - pos - 1);
                             st.r16(pos);
                             st.r16(blen);
+                            st.r16(0);
+                            st.r16(0);
                         }
+                    }
+                    for pos in 0..blen {
+                        let b = sb_[pos as usize];
+                        // A `dir = 1` byte that fills a register (`input`) has `reg = 1`: HOSTB
+                        // then carries only the state-side half and REG the Wasm side.  Here the
+                        // byte is a plain payload byte (`reg = 0`), so HOSTB carries both halves
+                        // and queries byteQ, gap, pos, len, ptrLo and 32*ptrHi itself.  It never
+                        // touches memory (`memCnt = act*(1-dir)*(1-reg) = 0`).
+                        hostb_rows.push([ts, 1, pos, b, blen, hid, blen - pos - 1, 1,
+                            (pos == 0) as u64, 0, 0, 0, 0, 0]);
+                        st.byte(0, b, 0);
+                        st.r16(blen - pos - 1);
+                        st.r16(pos);
+                        st.r16(blen);
+                        st.r16(0);
+                        st.r16(0);
                     }
                 }
                 if ev.st == 0 && ar == 1 {
@@ -1567,7 +1607,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         let mut hb = hb;
         for rec in hostb_rows.iter() {
             let mut r = hb.row();
-            for (k, name) in ["ts", "dir", "pos", "byte", "len", "hid", "gap", "act", "f", "reg"].iter().enumerate() {
+            for (k, name) in ["ts", "dir", "pos", "byte", "len", "hid", "gap", "act", "f", "reg",
+                              "ptrLo", "ptrHi", "mtp", "hp"].iter().enumerate() {
                 r.u(name, rec[k]);
             }
         }

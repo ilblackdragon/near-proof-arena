@@ -1,8 +1,25 @@
-# NEAR Proof Arena — handover (updated 2026-10-21)
+# NEAR Proof Arena — handover (updated 2026-10-23)
 
 This is for the next lead agent. Read it first. The raw working log for 2026-10-07 to 2026-10-09 (≈6,500 lines) now lives in `docs/logs/v3-progress-log-2026-10.md`. Use it only for evidence lookup.
 
 **Rule for this file:** keep it short and current. Append progress to `docs/logs/`, not here.
+
+## MEMIO finalized — 2026-10-23
+
+`lane/pq-host-memio` is integrated. HOSTB request bytes now consume and re-produce space-3
+memory messages using a 14-column table; Rust generates the pointer/time witnesses and updates
+memory producer times. `hostb_mem_distinct`, `hostb_mem_consumed`, `heap_retime`,
+`host_step_rely_buf` and `host_rel_restart_buf` supply the conditional byte-read/heap-restart link.
+The HOSTB partition and REG R16 proofs build with main's IF, storage and RIPEMD changes.
+
+Integration removed the invalid `HostBLinked.linked_inv` premise: response/register rows may
+share a host-call key while contributing no memory traffic. Their empty contribution now follows
+from the AIR. `HostBLinked.linked`/`unique`, consumed-byte liveness, `BufOK`, and the existing
+`H0`/`HoldRow` host execution premises remain explicit. This closes the lane's MEMIO implementation
+and interface lemmas, **not** unconditional Wasm host soundness or the full D3 join.
+
+Fresh validation and limitations are recorded in `docs/logs/pq-memio-finalized-2026-10-23.md` and
+`research/near-compression/results/pq-host-memio/FINAL-VALIDATION.json`.
 
 ## Worktree reconciliation — 2026-10-23
 
@@ -28,8 +45,8 @@ Historical "in progress" labels below do not imply a live lane.
   saved outside the repo rather than added to the default build. The already-merged D1 modules stay.
 * **L4 reference-prover draft is not usable as an oracle:** it compiles, but all four honest toy
   tests fail against the current verifier. Do not revive it as a passing conformance target.
-* **Preserved live/new work:** `pq-host-memio`, `pq-chunk-e2e` (new edits appeared during
-  cleanup), the `lean-chunk-*` plan/worktrees, and the Claude agent checkout. The MEMIO worktree's local "merged" note was not accepted as integration proof.
+* **Preserved live/new work at cleanup:** `pq-host-memio` (subsequently finalized above),
+  `pq-chunk-e2e` (new edits appeared during cleanup), the `lean-chunk-*` plan/worktrees, and the Claude agent checkout. The MEMIO worktree's local "merged" note was not accepted as integration proof.
   Existing standalone benchmark/challenge scratch directories were not treated as Git worktrees.
 
 Unique discarded drafts, raw evidence and validation logs are recoverable at
@@ -562,7 +579,7 @@ then the join. Lanes 5-7 and 9-10 are independent; 8 depends on 5 and 7.
 | # | lane | scope | blocks | est. |
 |---|---|---|---|---|
 | 5 | ~~`lane/pq-host-rowfacts`~~ **DONE 2026-10-21** | `exec_of_rows_seg`, `wasm_base_exec_host`, `host_rel_restart`, `host_hst`, `occ_bits_host` all proved (see the section above). `hch` followed in ~~`lane/pq-hch`~~ **DONE 2026-10-21** (`host_hch`, `host_buses`). The bus side is closed. | — | done |
-| 6 | ~~`lane/pq-host-memio`~~ **PART 1 DONE, PART 2(a) DONE 2026-10-21; Step 1.1 CLOSED 2026-10-22** | REG group walk proved (`reg_group_walk`, `regLenAgree_group`). **Step 1.1 (`hsend`) is now closed:** `reg_hsend_r16` (`Main/RegSend.lean`) proves the R16 send bound from `Holds` alone and `regLenAgree_group_of_holds` is the hypothesis-free group theorem; axioms ⊆ `[propext, Classical.choice, Quot.sound]`. The bound had to be narrowed to the bus-restricted R16 form, because `HOSTO`'s free `mult` column makes the global form false. **The stated `Register.RegLenAgree` was FALSE** (`register_len` has no byte rows) — refuted by `regLenAgree_lone_length`, replaced by the group-local theorem. HOSTB's predicted soundness hole (free `pos`/`len`) closed with `r16 pos` + `r16 blen`. **Remaining:** the `(ptr,len)` -> linear-memory *link* needs the MEMIO view extension (`memRaw`/`HeapOK`/`RelW`), since HOSTB space-3 messages break `ch_raw_host`. See `results/pq-host-memio/RESULTS.md` §3. | any real byte-moving host call | MEMIO link: 4-6 d |
+| 6 | `lane/pq-host-memio` **INTEGRATED 2026-10-23** | REG group/range checks and the conditional HOSTB→linear-memory link are on main: 14-column trace generation, CH partition, timestamp distinctness, heap retiming and host restart. The invalid inverse-grouping premise was removed during integration. `HostBLinked.linked`/`unique`, consumed-byte liveness, buffer bounds and whole-host execution premises remain explicit; this is not full D3 soundness. See `docs/logs/pq-memio-finalized-2026-10-23.md`. | host request-byte reads | lane checkpoint complete; broader host proof remains open |
 | 7 | `lane/pq-cd-props` (**not a pure proof lane** — see the note) | `WalkKeyIsContractData` has been **proved for the HOSTB route** (`PQ/Join/CdWalkView.lean`, residual `CdKeynibFromHostB`); `UpsertPreservesWf` was **false as stated** and its corrected form `UpsertPreservesWfWithBounds` is **proved**. Remaining: `RealStoreMatchesTables` (render + overlay replay, engineering E1/E3) and `UpsV3AppliesLog`, which needs a **table parameterisation** because `upsert` is hard-coded at `[0,15]` as a constraint polynomial. | the state half being a theorem, not a check | 6-10 d, and the `upsert` rework is the long pole |
 | 8 | `lane/pq-runCall-fold` ~~+ `pq-join-compose`~~ **reduction PROVED 2026-10-22, two hypotheses remain** | `join_additive`/`JoinStmt` are **retired**: their conclusion type is `RelD1a`, so no proof of them can reach `RelD3` (`joinStmt_conclusion_is_premise`, `joinStmt_backing_is_erasable`). The honest join is proved: `compose_pv86 : hagree → hstate → RelD3 cb w` (`Join/Compose.lean`), whose premises are the per-call `.fcall` agreement and the state pipeline's verdict on the chunk's own D2 witness bytes. `compose_is_pv86_only` records that `checkD3` is fixed at `pv86`, so there is no `cfg`-general form. **Remaining: discharge `hagree` (HOST chip + `runCall`/`d3Hooks` correspondence) and `hstate` (the chunk's D2 witness is the one the state pipeline accepts).** | the end-to-end claim | 2 hypotheses, not a rewrite |
 | 9 | `lane/pq-sig-layer` | The separate Ed25519 proof layer: ZK-friendly curve arithmetic + a SHA-512 witness over the preimage, proving `Ed25519.verify` at 128 bits. Census done (`results/pq-ed25519-air/CENSUS.md`). | signed transactions | 16-26 d |

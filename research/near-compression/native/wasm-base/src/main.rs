@@ -684,6 +684,25 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
                 Box::new(|_| F::from_u64(65536)))));
         }
     }
+    // MEMIO request rows must consume the prior memory byte and re-time it to this call.
+    if let Ok(thb) = std::panic::catch_unwind(|| tb("HOSTB")) {
+        let (w, act, dir, reg) = (g.mats[thb].width, col(thb, "act"), col(thb, "dir"), col(thb, "reg"));
+        if let Some(r) = (0..g.rows_per_table[thb].1).find(|&r| {
+            let row = &g.mats[thb].values[r * w..(r + 1) * w];
+            row[act] == F::ONE && row[dir] == F::ZERO && row[reg] == F::ZERO
+        }) {
+            for c in ["ptrLo", "ptrHi", "mtp", "hp"] {
+                cases.push((format!("MEMIO[row {r}].{c}+1"), cell(thb, r, col(thb, c), plus1())));
+            }
+            let (mtp, ts) = (col(thb, "mtp"), col(thb, "ts"));
+            cases.push((format!("MEMIO[row {r}].mtp=ts"), Box::new(move |g: &mut Gen| {
+                let w = g.mats[thb].width;
+                g.mats[thb].values[r * w + mtp] = g.mats[thb].values[r * w + ts];
+            })));
+            cases.push((format!("MEMIO[row {r}].ptrHi=2^11"), cell(thb, r, col(thb, "ptrHi"),
+                Box::new(|_| F::from_u64(2048)))));
+        }
+    }
     // SHA-256: a digest bit, the digest multiplicity, a schedule word, a data flag, and the
     // message-level columns (the call summary and the register key)
     if let Ok(ts) = std::panic::catch_unwind(|| tb("SHA256")) {

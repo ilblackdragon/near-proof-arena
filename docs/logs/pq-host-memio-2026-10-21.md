@@ -159,3 +159,102 @@ The MEMIO `(ptr, len)` → linear-memory link (§3 of RESULTS.md) stays deferred
 space-3 `chRecv`/`chSend` pair and `memCnt` column are WIP that does not build and would have
 dragged `MemIOBus`'s `sorry` into `main`. That work belongs in its own lane, starting from the memory
 step (`hostb_mem_step`) rather than from the columns.
+
+
+## Lane follow-up (historical; integrated by the 2026-10-23 finalization)
+
+## 2026-10-22 — Step 1.1 closed: `hsend` for REG traces
+
+`Main/RegSend.lean` (new) proves the R16 send-side bound for `wasmBaseRegAir` from `Holds` alone:
+
+* `reg_chip_counts` — the 14 instruction tables' count bits, by applying each chip's
+  constraint-only `*_counts_of` lemma at the REG AIR's own table index.  No `ChipFacts` assumption.
+* `reg_hsend_r16` — `∀ o ∈ occs (wasmBaseRegAir …), o.1 = busR16 → o.2.1 = true → count ≤ 1`:
+  tables 0–21 via `occ_bits_of` + `reg_base_constr`; HOST/HOSTB via their R16 count shapes;
+  HOSTO/HOSTT have no R16 send; REG via `reg_r16_cases`.
+* `regLenAgree_group_of_holds` — the group theorem with no `hsend` hypothesis.
+
+The stated global `hsend` (`o.2.1 = true → count ≤ 1`, all buses) is **false**: `HOSTO`'s two
+interactions are counted with the free column `mult`.  `Bus.lookup_sound` already takes the
+bus-restricted form, and the walk only ever applies it at `busR16`, so the hypotheses of
+`reg_r16_query_16bit`, `reg_gap_lt` and `regLenAgree_group` were narrowed to that instance.
+
+Axiom audit: `[propext, Classical.choice, Quot.sound]` for all three.  No `sorry`/`axiom`/`native_decide`.
+
+Note: `WasmBase` as a whole still fails at `Main/SoundHost` (`Unknown identifier host_buses`) — that is
+the separate, in-progress HOSTB space-3/MEMIO work (`HostBus`/`SegHarness`/`SoundHost`/`MemIOBus`),
+untouched by this change.  `RegSend`, `RegWalk` and `RegFacts` build green individually.
+
+## 2026-10-22 — MEMIO landed: the `(ptr, len)` link is built and verified
+
+The deferred MEMIO work (RESULTS §3) is in. Five commits on top of `c6761629d`, HEAD `16a1abad0`:
+
+| commit | what |
+|---|---|
+| `728fabae7` | `WasmBase/MemIO.lean` — `BufOK`, `heap_retime_readByte`, `heap_retime`, `ch_pair_vacuous` |
+| `df81c7436` | `HostB` 14 columns (`ptrLo`, `ptrHi`, `mtp`, `hp`), `cPtrLoConst`/`cPtrHiConst`, the space-3 `chRecv`/`chSend` pair and `timeChk` |
+| `ebd1298e0` | HOSTB joins the CH bus decomposition (`msgs_ch_host`, `flatMap_prodCH_perm`, `flatMap_consCH_perm`) |
+| `30352dc58` | HOSTB is a CH emitter; its space-3 count is a bit (`hostb_memCnt_bit`, `hostb_touches_ch`, `hostb_avoids_state`) |
+| `16a1abad0` | fold HOSTB's space-3 block onto its host call (`hostb_partition`, `hostb_partition_prod`/`_cons`) |
+
+The link is the **LOAD shape**, not a same-time pair: a request byte (`dir = 0`, `reg = 0`) consumes
+`encB (ptr+pos) byte mtp` and re-produces it at `ts`, with `timeChk ts mtp hp` forcing `mtp < ts`. The
+same-time variant is vacuous (`ch_pair_vacuous`: `busNat` keys on `(bus, direction, message)`, so an
+identical recv/send cancels for every count) and was rejected.
+
+### The generator was the blocker, and it had three defects
+
+KAT was red at first: **21 of 97 programs failed** with `buses: unbalanced` on bus 2 (space 3) and
+bus 3 (`RANGE16`). The Lean AIR declared 14 `HOSTB` columns and the space-3 pair, but
+`native/wasm-base/src/tracegen.rs` still wrote 10 columns and never re-timed memory. Fixed:
+
+1. **Row width** — `hostb_rows` was `[u64; 10]`; now `[u64; 14]`, and the emission loop writes
+   `ptrLo, ptrHi, mtp, hp`.
+2. **The payload arm never fired** — it tested host ids `[8, 9, 10, 15]`, which are
+   `promise_create`/`promise_then`/`promise_and`/`promise_batch_action_deploy_contract`, not the
+   log/return ids. The real ids are `Chips.hostLogFns`: `log_utf8 = 45`, `log_utf16 = 46`,
+   `panic_utf8 = 47`, `value_return = 50`. (An absent `HOSTB` group still balances its bus, so the
+   KAT could not see the miss — this is exactly the "absent group" blind spot main's version warns
+   about.)
+3. **The argument order was reversed** — the spec's signature is `log_utf8(len, ptr)`
+   (`utf8H a[0] a[1]` then `readMemH ptr len`), so `args[0]` is the **length** and `args[1]` the
+   pointer. The arm had `(ptr, blen) = (args[0], args[1])`, so `log_utf8(5, 0)` produced `blen = 0`
+   and zero rows.
+
+Each request byte now does `mem.get(ptr+pos) → (b, mtp)`, `st.tchk(ts, mtp)` (asserts `mtp < ts` and
+records the two `timeChk` R16 lookups), `mem.cur.insert(ptr+pos, (b, ts))` to re-time the byte, and
+answers the row's five lookups (`byteQ`, `r16 gap`, `r16 pos`, `r16 blen`, `r16 ptrLo`,
+`r16 32·ptrHi`). A `reg = 1` fill row leaves all four memory columns zero (`memCnt = 0` there, so its
+byteQ/r16 queries have count 0 and only the bus-210 send `act·reg` remains, which `REG` receives).
+The placeholder arm (non-REG AIRs) emits its request half as a real memory read at base 0 when the
+program has ≥ 4 bytes of memory, and otherwise only the response half (`dir = 1`, state-side data
+that never touches memory).
+
+### Verification (final)
+
+* `lake build` (`wasm-base-lean`): **229 jobs, "Build completed successfully"** — this closes the
+  `Main/SoundHost` `Unknown identifier host_buses` failure noted above. Log `/tmp/build-final-memio.log`.
+* `cargo build --release`: clean (9 pre-existing warnings).
+* KAT: **`KAT: 97 passed, 0 failed`** (`./run_kat.sh /tmp/kat-memio`) — reconciles with both the
+  lane's `88 passed, 0 failed` and main's `97 passed, 0 failed` (the extra 9 are main's SHA programs).
+  Was **21 failed** before the generator fix.
+* Tamper: **`TAMPER summary 101/101 rejected`** — no regression. Includes the §2 range-check cases
+  (`pos = 2^16`, `len = 2^16`) and the HOSTB column cases (`byte`, `dir = 2`, duplicate `pos`, `len`,
+  `hid`, `gap`), plus the REG group cases.
+* Axiom audit (`AxiomsMemio.lean`, `lake env lean`): **every headline theorem ⊆
+  `[propext, Classical.choice, Quot.sound]`** — `heap_retime`, `heap_retime_readByte`,
+  `BufOK.addr_lt`, `hostb_partition`, `hostb_partition_prod`/`_cons`, `flatMap_prodCH_perm`/
+  `flatMap_consCH_perm`, `host_hch`, `host_buses`, `hostb_memCnt_bit`, `hostb_inactive_nil`,
+  `regLenAgree_group_of_holds`, `reg_group_walk`, `reg_gap_lt`, `reg_pos_lt_len`,
+  `reg_gap_wraparound`, `wasm_base_exec_host_holds`. Three structural lemmas
+  (`hostb_inters_stk`, `hostb_touches_ch`, `hostb_avoids_state`) need no axioms at all.
+* `grep -rn "sorry\|admit\b\|native_decide"` over the nine MEMIO/HOSTB/REG files: **empty**. No
+  `axiom` declarations.
+
+### The one open step
+
+**`hostb_mem_distinct` (`mtp < ts`) is not proved as a derived fact about the trace.** It is enforced
+on *generated* traces by `st.tchk`'s assertion and by the AIR's `timeChk` lookups — which is what
+makes the pair non-vacuous — but there is no theorem taking `Holds` to `mtp ≠ ts` for an arbitrary
+trace. Together with wiring `heap_retime` into `host_rel_restart`'s `HostStepRely.heap` field, that is
+what remains. Nothing merged to `main`.

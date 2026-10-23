@@ -7,8 +7,10 @@ import WasmBase.Main.Lookups
 # WasmBase.Main.HostBus — the STATE/CH bus decompositions of `wasmBaseHostAir`
 
 `wasm_base_exec_host` (`Main/SegHarness.lean`) takes the STATE- and CH-bus `Perm`s (`hst`, `hch`) as
-hypotheses.  **Both are discharged here from `Holds`** (`host_hst`, `host_hch`, and their pair
-`host_buses`), so nothing but the AIR relation is left to assume on the bus side.
+hypotheses. This file supplies the raw decompositions and `host_hst`.
+`Main/MemIOBus.lean` folds HOSTB request-byte traffic into host calls and supplies `host_hch`
+and `host_buses`, using the explicit `HostBLinked` premise as well as the existing base/host
+AIR and chip/public hypotheses. The grouping premise is not derived from bus balance.
 
 ## Shape
 
@@ -304,14 +306,14 @@ false:  (((R ++ F) ++ A_false) ++ D)              -- result, final, act rows, dr
 ```
 
 where `I`/`G`/`B`/`M`/`R`/`F`/`D` are the raw boundary blocks and `A_*` the instruction rows'
-messages.  `msgs_ch_host` appends the HOST table's.  `host_part_ch_recv_active` /
+messages.  `msgs_ch_host` appends the HOST and HOSTB tables'.  `host_part_ch_recv_active` /
 `host_part_ch_send_active` (via `HostTraceOK`, discharged by `host_trace_ok`) rewrite the HOST block
 to the **active** rows' `rowProdH`/`rowConsH`; `actListHost_flatMap_prod`/`_cons` then split the
 `actListHost` block back into instruction rows and HOST rows.
 
-`ch_raw_host` states the result in the fully right-associated shape; `host_hch` is then two
-`perm_mid` swaps (the HOST block crosses the memory / drain block) between it and the
-`actListHost` form `wasm_base_exec_host` asks for. -/
+`ch_raw_host` states the result in the fully right-associated shape, with the `HOSTB` block after the
+HOST block on both sides; `host_hch` is then two `perm_mid` swaps (the HOST blocks cross the memory /
+drain block) between it and the `actListHost` form `wasm_base_exec_host` asks for. -/
 
 /-- The host AIR's CH bus, decoded, right-associated over `I G B A M H` / `R F A D H`:
 `I` = `initRaw`, `G` = `globRaw`, `B` = `budRaw(== budget)`, `A` = instruction rows, `M` = `memRaw`,
@@ -327,7 +329,8 @@ theorem ch_raw_host {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
             ((actList tr pub).flatMap
                 (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk true).map decMsg) ++
               ((memRaw tr pub).map decMsg ++
-                (hostActRows tr pub).flatMap (rowProdH tr pub))))) ∧
+                ((hostActRows tr pub).flatMap (rowProdH tr pub) ++
+                  (part HostB.table tr pub 25 busStk true).map decMsg))))) ∧
     (msgs (wasmBaseHostAir nloc ngl) tr pub busStk false).map decMsg =
       ((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
           [resRaw pub tr] else []).map decMsg ++
@@ -335,7 +338,8 @@ theorem ch_raw_host {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
           ((actList tr pub).flatMap
               (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk false).map decMsg) ++
             ((drainRaw tr pub).map decMsg ++
-              (hostActRows tr pub).flatMap (rowConsH tr pub))))) := by
+              ((hostActRows tr pub).flatMap (rowConsH tr pub) ++
+                (part HostB.table tr pub 25 busStk false).map decMsg))))) := by
   obtain ⟨mc1, mc2⟩ := msgs_ch H0 hpub CF
   obtain ⟨mh1, mh2⟩ := msgs_ch_host (nloc := nloc) (ngl := ngl) tr pub
   have hTS := host_trace_ok H
@@ -357,7 +361,11 @@ theorem ch_raw_host {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
 
 /-- **The association step from the raw CH order to the `actListHost` order.**  The raw form has the
 HOST block `Hh` after the memory block `M` (and `Hc` after the drain block `D`); the induction's form
-has both blocks adjacent to the instruction rows.  Each side is one `perm_mid` swap. -/
+has both blocks adjacent to the instruction rows.  Each side is one `perm_mid` swap.
+
+`Hh`/`Hc` are the host rows' own messages **fused with** the `HOSTB` block of the same call
+(`Hh = Hhost ++ Hb`, `Hc = Hhost' ++ Hb'`), which is exactly how the fold `prodCH`/`consCH` presents
+them: the fusion is by construction, so this lemma is stated over the fused lists. -/
 theorem perm_ch_host {α : Type} (I G B A M Hh R F Ac D Hc : List α) :
     (I ++ (G ++ (B ++ (A ++ (M ++ Hh))))).Perm (R ++ (F ++ (Ac ++ (D ++ Hc)))) →
     ((I ++ (G ++ (B ++ M))) ++ (A ++ Hh)).Perm (((R ++ F) ++ D) ++ (Ac ++ Hc)) := by
@@ -374,46 +382,5 @@ theorem perm_ch_host {α : Type} (I G B A M Hh R F Ac D Hc : List α) :
       (R ++ (F ++ (D ++ (Ac ++ Hc)))) := by simp [List.append_assoc]
   rw [e1', e2']
   exact s1.symm.trans (h.trans s3)
-
-/-- **`hch` for `wasm_base_exec_host`, discharged from `Holds`.**  The free initial/final blocks are
-the boundary's: `init = I G B M` and `fin = (R F) D`.  `perm_ch_host` moves the active HOST rows next
-to the instruction rows on both sides. -/
-theorem host_hch {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
-    (H0 : Holds (wasmBaseAir nloc ngl) pub tr)
-    (hpub : PubOK X nloc ngl pub) (CF : ChipFacts X nloc ngl pub tr) :
-    (((initRaw nloc pub).map decMsg ++
-        ((globRaw nloc ngl pub).map decMsg ++
-          ((budRaw nloc ngl pub).map decMsg ++ (memRaw tr pub).map decMsg))) ++
-        (actListHost tr pub).flatMap (rowProdH tr pub)).Perm
-      (((((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
-              [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg) ++
-          (drainRaw tr pub).map decMsg)) ++
-        (actListHost tr pub).flatMap (rowConsH tr pub)) := by
-  obtain ⟨e1, e2⟩ := ch_raw_host H H0 hpub CF
-  have hc := (host_msgs_ch_perm H H0 hpub CF).map decMsg
-  rw [e1, e2] at hc
-  rw [actListHost_flatMap_prod, actListHost_flatMap_cons]
-  exact perm_ch_host _ _ _ _ _ _ _ _ _ _ _ hc
-
-/-- **Both bus premises of `wasm_base_exec_host`, from `Holds` alone.**  The free `init`/`fin` blocks
-are the boundary's (`I G B M` / `(R F) D`); this is the pair the composition step instantiates. -/
-theorem host_buses {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
-    (H0 : Holds (wasmBaseAir nloc ngl) pub tr)
-    (hpub : PubOK X nloc ngl pub) (CF : ChipFacts X nloc ngl pub tr) :
-    (stMsg 0 1 0 0 0 0 :: (actListHost tr pub).map (rowOutH tr pub)).Perm
-        ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
-          pub.getD Boundary.pubStatus 0, tr.cell 0 0 Boundary.sbf, tr.cell 0 0 Boundary.cidf] ::
-          (actListHost tr pub).map (rowInH tr pub)) ∧
-      ((((initRaw nloc pub).map decMsg ++
-          ((globRaw nloc ngl pub).map decMsg ++
-            ((budRaw nloc ngl pub).map decMsg ++ (memRaw tr pub).map decMsg))) ++
-          (actListHost tr pub).flatMap (rowProdH tr pub))).Perm
-        ((((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
-                [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg) ++
-            (drainRaw tr pub).map decMsg) ++
-          (actListHost tr pub).flatMap (rowConsH tr pub)) :=
-  ⟨host_hst H H0 hpub CF, host_hch H H0 hpub CF⟩
 
 end WasmBase
