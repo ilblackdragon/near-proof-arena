@@ -165,7 +165,8 @@ boundary questions explicitly; Gate B cannot pass with one unresolved.
 **Progress at `b2f83fe76`:**
 
 - [x] Merged the additive protocol-gas successor and axiom-free cap comparison facts (`a5ef42e0c`); signed `RelD3`/`gAlpha` remain unchanged.
-- [ ] Demonstrate an accepted chunk above the old cap; prove tier nesting and overlap agreement; audit termination, fuel, stack safety and protocol-scale resources.
+- [x] **Demonstrated an accepted chunk above the old cap.** `d3c7/ood/00-h10007-s1` (`meta.json` `expected_rel: true`, sole violation `e.g_alpha`) is `out_of_domain` under `checkD3` and **`accept`** under the new `checkD3Proto` (`nearspec-v3-check-d3proto`, merged `c73f92347`). 846 protocol-valid chunks sit in the band across the four corpora. Overlap agreement sampled 12/12 across accept/reject/out-of-domain; band acceptance sampled 25/25. All measured, not proved.
+- [ ] Prove tier nesting and old-to-new agreement as theorems (only sampled so far); audit termination, fuel, stack safety and protocol-scale resources. **The termination/fuel audit is the item that could invalidate the approach and is not started** — raising the cap 290× makes executions reachable that previously never ran.
 
 Evidence: [L1 log](../logs/lean-chunk-L1-2026-10-23.md). The larger bound alone does not close this lane.
 
@@ -260,8 +261,8 @@ Record maximum supported fixture runtime/memory for judge budgeting; resource fa
 
 **Progress at `b2f83fe76`:**
 
-- [ ] **Held back from main:** the genesis-checker/resharding-analysis checkpoint `df9112f88` is not ready. The lane's uncommitted correction documents **307 header mutants wrongly accepted** by the committed checker. Commit and validate the correction before integration.
-- [ ] Deliver actual resharding/split transitions and validator-generated boundary fixtures; the boundary analysis alone does not implement them.
+- [x] **The genesis-checker soundness correction is merged and validated.** The draft checker re-implemented the non-genesis tail and dropped ten endorsed-header comparisons, wrongly accepting 307 header mutants; `checkD2CoreG` now delegates to `checkD2Core` for `!B2.isGenesis`. Measured over the full replay: **exactly 137 verdicts change, all `out_of_domain → accept`, all genesis; zero non-genesis changes across 115,147 cases.** 137/137 genesis cases accept and 16 directed negatives fire their intended checks. The genesis branch is additive: signed `checkD2Core`/`checkD3` are unchanged.
+- [ ] Deliver actual resharding/split transitions and validator-generated boundary fixtures; the boundary analysis alone does not implement them. The two guards are stated and their exclusion argument proved (`sameLayout_forbids_resharding`, `noSplitGate_iff` + `splitGate_excludes_nonempty`), but `ImplicitTransitionParams::Resharding` itself remains unimplemented and the split gate **is** reachable at PV86 on mainnet.
 
 Evidence: [integration holdback record](../logs/lean-chunk-integration-2026-10-23.md). Uncommitted lane work is preserved, not certified here.
 
@@ -279,7 +280,9 @@ negatives. Compare all intermediate roots and final outputs. No blanket same-lay
 
 - [x] Merged corpus manifests, verification tooling, measured regression evidence and readiness assessment (`0cf6f3491`); integration verified all 18 manifest families and reran 28 harness self-tests.
 - [x] Recorded validation gaps, including the UQ-014 engine `LoadingError` divergence, rather than treating them as passed coverage.
-- [ ] Complete per-family generated whole-chunk coverage, observable comparisons, all unresolved disagreements and the 1,000-consecutive-block/all-shard validator-witness replay. Later uncommitted audit/harness updates remain in the lane.
+- [x] Audit and harness updates committed and merged: UQ-014 answered per branch, readiness assessment, two new oracle test scripts.
+- [x] **Wired two gates into CI** (`difftest-gates` job): the 28 harness self-tests and the 18-family corpus manifest drift gate — neither needs corpora or nearcore. Before this nothing ran them. `spec/lean/v3` itself was also absent from the CI Lean matrix and `make lean`; both now build it.
+- [ ] Complete per-family generated whole-chunk coverage, observable comparisons, all unresolved disagreements and the 1,000-consecutive-block/all-shard validator-witness replay. The full 115,284-case differential sweep still needs the pinned corpora and remains a local/integration step.
 
 Evidence: [L7 log](../logs/lean-chunk-L7-2026-10-23.md), [readiness assessment](../evidence/lean-chunk-L7/readiness-assessment.md).
 
