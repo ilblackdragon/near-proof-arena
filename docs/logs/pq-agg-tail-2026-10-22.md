@@ -173,10 +173,26 @@ digest-width change documented in §7 item 3. Note the two goals ("minimise prov
 Dropping L5 saves one level. A **much** larger saving is available one level up, and it comes
 from *why* `M` reaches 3 at all.
 
-`tight_floor` is a **prover-side** setting (`prove_mats` passes it to
-`stacked_pcs::set_tight_floor`, `circuit.rs:453-457`), and the verifier *program* depends on
-it: the child's committed heights are part of what the program hashes. The driver discovers
-the floor **empirically, one level at a time** (`main.rs:320-331`):
+`tight_floor` is a **prover-side** setting: `prove_mats` passes it to
+`stacked_pcs::set_tight_floor` (`circuit.rs:453-457`) and it never reaches the builder or the
+verifier. What the *program* depends on is one step downstream — the child proof's
+**`tight_height`** field, which the verifier observes:
+
+```rust
+// verifier.rs:493-501
+let lh = proof.trace_vdata[a]...log_height;
+b.obs1(b.cu(lh as u64));
+if let Some(h) = proof.trace_vdata[a]...tight_height {
+    b.obs1(b.cu(h as u64));          // <-- this is what moves the program
+}
+```
+
+So the causal chain is: the floor sets the heights this level commits → the committed
+`tight_height` lands in this level's proof → **the next level's program observes that value**.
+A component that the floor does *not* bind is left to the natural height, which is why
+`log_height` alone is unchanged across L2–L5 (`vd_per_air=[50,8,8,8]` at every level) while
+the program still differs. The driver discovers the floor **empirically, one level at a time**
+(`main.rs:320-331`):
 
 1. generate the level's traces,
 2. read their *natural* tight heights,
@@ -196,18 +212,29 @@ Measured floors:
 
 The floor reaches its fixpoint at **L3** and never moves again. Note the L2→L3 step moves
 AIR 1 *down* (1,047,412 → 1,047,280) while AIR 0 moves up (274,384 → 281,016), which is only
-possible because the update replaces the vector rather than taking a maximum. `M` is therefore counting
-*discovery steps*, not mathematical structure: each level whose program differs from the
-converged one anchors at its own child, incrementing `M`.
-Consequence: `M = 3`, so the chain needs `M + 2 = 5` levels (`L1..L5`).
+possible because the update replaces the vector rather than taking a maximum.
 
-**A fixpoint pre-pass would collapse that.** Generate L2's traces, read the natural heights,
-then iterate the "generate with this floor" step until the floor stops changing. With the
-converged floor pinned from L2 onward, **L2's program equals L3's**, so
-`select_anchor` matches at `M = 1` and `by_bind` fires at L3 (`M=1 != level-1=2`). The chain
-becomes `L1, L2, L3 + final` — **saving L4 and L5 = 459.38 + 582.17 = 1,041.55 s**, taking the
-chain from 2,538.55 s to ≈1,497 s (**−41 %**). Stacked with the digest-width change it would
-also keep the packet under the cap.
+**The mechanism is confirmed: the floor determines the committed height, which determines the
+program.** `tight_height` is the last non-zero row (`stacked_pcs.rs:517-527`), and with a floor
+set a trace commits `max(tight_height, floor_i)` rows (`stacked_pcs.rs:545-560`). The source
+states the consequence outright: *"it lets a recursive verifier pin its child's committed
+heights (NV G2: the program depends on them)"* (`stacked_pcs.rs:542-544`). The measured floors
+differ at exactly the AIRs that matter — AIR 0 goes 274,384 → 281,016 and AIR 1 goes
+1,047,412 → 1,047,280 from L2 to L3 — so the committed heights differ there, so the programs
+differ there, so `M` increments. Once the floor stops moving at L3 the committed heights stop
+moving, L3's program equals L4's, and `M` stops at 3. **That is a mechanism, not an
+observation about this fixture.**
+
+**A fixpoint pre-pass would collapse it.** Generating with the converged floor pinned from L2
+would make L2 commit the L3 heights, so L2's program would equal L3's; `select_anchor` would
+then match at `M = 1` and `by_bind` would fire at L3 (`M=1 != level-1=2`), giving
+`L1, L2, L3 + final` and **saving L4 + L5 = 459.38 + 582.17 = 1,041.55 s** (2,538.55 s →
+≈1,497 s, **−41 %**).
+
+**What remains genuinely open** is convergence in one step: the pre-pass assumed above is
+"generate L2 with floor = the L3 fixpoint", which presumes that vector is already the fixpoint
+rather than one iteration short. The driver iterates because the authors did not assume that.
+That specific claim is untested.
 
 **This is a design proposal, not a result.** Nothing in this session implemented or measured
 the pre-pass; the 1,041.55 s figure is arithmetic on measured level times under the stated
@@ -229,11 +256,17 @@ orders of magnitude below the 1,041.55 s it is meant to save. (The `probe` numbe
 the program execution, which is the repeated part; they do not include one-off trace
 materialisation.)
 
-Two things still must be checked before trusting the 1,041.55 s: (a) confirm the floor reaches
-a fixpoint in one extra generate on *other* inputs, not just this fixture — the driver's
-current loop exists precisely because the authors did not assume that; and (b) confirm that
-pinning a floor the prover later cannot meet is safe, which the existing assertion at
-`circuit.rs:461-462` ("committed `h` below the floor") already guards. It is ranked first in
+**The fixpoint argument is now the weak link, and it is not yet demonstrated.** The measured
+evidence is *consistent* with a floor fixpoint (L3 = L4 = L5), but it does **not** show that
+the loop converges in one extra generate: the heights that the program actually observes are
+`tight_height`, and I did not extract a per-level `tight_height` series. What is established is
+narrower — the floor stops changing after L3, therefore `M = 3`, therefore the chain needs
+`M + 2 = 5` levels. Whether a pre-pass would drive `M` to 1 depends on the `tight_height`
+sequence, which is **unmeasured**. Two things must be checked before trusting the 1,041.55 s:
+(a) confirm generate-with-pinned-floor converges in one step on *other* inputs, not just this
+fixture — the driver's current loop exists precisely because the authors did not assume it; and
+(b) confirm that pinning a floor the prover later cannot meet is safe, which the existing
+assertion at `circuit.rs:461-462` ("committed `h` below the floor") already guards. It is ranked first in
 §7 because it attacks the dominant cost, not the tail.
 
 **Caveat, and what checking it actually showed.** Dropping L5 removes the level where
