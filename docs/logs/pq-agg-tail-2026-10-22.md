@@ -199,9 +199,8 @@ converged one anchors at its own child, incrementing `M`.
 Consequence: `M = 3`, so the chain needs `M + 2 = 5` levels (`L1..L5`).
 
 **A fixpoint pre-pass would collapse that.** Generate L2's traces, read the natural heights,
-then iterate the "generate with this floor" step until the floor stops changing; because the
-heights depend only on the circuit and the child's shape, that loop is cheap relative to a
-full prove. With the converged floor pinned from L2 onward, **L2's program equals L3's**, so
+then iterate the "generate with this floor" step until the floor stops changing. With the
+converged floor pinned from L2 onward, **L2's program equals L3's**, so
 `select_anchor` matches at `M = 1` and `by_bind` fires at L3 (`M=1 != level-1=2`). The chain
 becomes `L1, L2, L3 + final` — **saving L4 and L5 = 459.38 + 582.17 = 1,041.55 s**, taking the
 chain from 2,538.55 s to ≈1,497 s (**−41 %**). Stacked with the digest-width change it would
@@ -209,11 +208,18 @@ also keep the packet under the cap.
 
 **This is a design proposal, not a result.** Nothing in this session implemented or measured
 the pre-pass; the 1,041.55 s figure is arithmetic on measured level times under the stated
-mechanism. Two things must be checked before trusting it: (a) that the floor really does
-reach a fixpoint in one extra generate on *other* inputs, not just this fixture — the driver's
-current loop exists precisely because the authors did not assume that; and (b) that pinning a
-floor the prover later cannot meet is safe, which the existing assertion at
-`circuit.rs:461-462` ("committed `h` below the floor") already guards. It is ranked first in
+mechanism. **The cost of the pre-pass itself is also unmeasured.** `generate` does build
+traces without LDE/commit/prove (`circuit.rs:170-174` returns matrices plus the builder), and
+the driver already calls it once per level before proving (`main.rs:318`), so an extra
+iterate-to-fixpoint is *plausibly* a small fraction of a prove — but no phase timing split
+exists in any log (the `NV_PHASE` lines print instruction counts, not seconds), so the "cheap"
+claim is **not** evidenced and must not be relied on until timed. Three things must be
+checked before trusting the 1,041.55 s: (a) **time the pre-pass**, so "cheap" becomes a
+number instead of an assumption; (b) confirm the floor reaches a fixpoint in one extra generate
+on *other* inputs, not just this fixture — the driver's current loop exists precisely because
+the authors did not assume that; and (c) confirm that pinning a floor the prover later cannot
+meet is safe, which the existing assertion at `circuit.rs:461-462` ("committed `h` below the
+floor") already guards. It is ranked first in
 §7 because it attacks the dominant cost, not the tail.
 
 **Caveat, and what checking it actually showed.** Dropping L5 removes the level where
