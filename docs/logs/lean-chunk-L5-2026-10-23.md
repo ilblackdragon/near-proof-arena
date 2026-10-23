@@ -1,7 +1,8 @@
 # L5 — storage accounting and protocol resource boundaries
 
 Owner: L5 lane. Worktree `/data/illia/nearproof-wt/lean-chunk-L5`, branch `lane/lean-chunk-L5`,
-base commit `a5ef42e0c`, exact committed tip **`c96ea1822`**. Not merged, not pushed.
+base commit `a5ef42e0c`, code commit **`4a3616216`**. The branch tip is the commit that carries
+this log (`git log -1`), one or more log-only commits above the code commit. Not merged, not pushed.
 Status: **partial, with two precise blockers named below.** One inventory row is owned; its central
 question is answered, its *guard* is shown to be the wrong boundary, and the replacement is scoped
 to L1's successor relation.
@@ -185,7 +186,7 @@ scheduling differs, i.e. a wrong state root rather than a rejection.
 | `lake build NearSpecV3.StorageBound` | 20 jobs, exit 0 |
 | `lake build` in `spec/lean/v3` (whole package) | **164 jobs**, exit 0 |
 | `lake build NearSpecV3` after deleting the `.olean` | 81 jobs, exit 0 — rebuilds the module, not cached |
-| `.lake/build/lib/lean/NearSpecV3/StorageBound.olean` | present, **222 664 bytes**, mtime 2026-10-23T15:52 |
+| `.lake/build/lib/lean/NearSpecV3/StorageBound.olean` | present, **224 240 bytes**, mtime 2026-10-23T16:00, after deleting it and rebuilding |
 | `#print axioms`, 10 declarations | 6 theorems → `[propext, Quot.sound]`; 4 → no axioms. **No `sorryAx`, no `Classical.choice` beyond that, no new axiom, no `native_decide`** |
 | `grep -n "sorry\|admit\|axiom \|native_decide"` in the module | no match (exit 1) |
 
@@ -282,8 +283,9 @@ build; the change belongs in L1's successor relation.
 
 ## Commit
 
-Branch `lane/lean-chunk-L5`, tip `c96ea1822` (`L5: the storage-proof bound is sound but is not a
-protocol boundary`), parent `a5ef42e0c`. Not merged to `main`, not pushed, per lane rules.
+Branch `lane/lean-chunk-L5`: code commit `4a3616216` (`L5: the storage-proof bound is sound but is
+not a protocol boundary`), parent `a5ef42e0c`; commits above it touch only this log. Not merged to
+`main`, not pushed, per lane rules.
 
 Files in the commit (4, all listed above): the new module, the root import, the D3 spec §10 marker
 fix, and this log.
