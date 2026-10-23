@@ -54,10 +54,10 @@ R("L0-D2-010","d2-core",D2+"137","spec/claim-v3.md §2.2",
 R("L0-D2-011","d2-core",D2+"139","core/primitives-core/src/version.rs:540-576; per-epoch runtime config",
   "implemented","c.pv86 for every epoch",
   ["D2:139 `c.epochs.all (·.protocolVersion == 86)`", "never triggered in the corpus (all epochs pv=86)"],deps=["L9"],tests=["directed segment spanning a PV85->86 activation"],work="genuine cross-PV segment gap (UQ-009)")
-R("L0-D2-012","d2-core",D2+"140","chunk_validation.rs:258-308 (get_resharding_transition); core/primitives/src/epoch_manager.rs:22-96 (DynamicReshardingConfig)",
-  "missing","c.same_layout (resharding)",
-  ["D2:140 `c.epochs.all (·.shardLayout == ep.shardLayout)`", "claim scan of all 115,284 claims: 0 have two different shard layouts and 0 carry a split gate, so `c.same_layout`/`c.no_split_gate` never fire", "the 1,127 `c.no_resharding` oracle marks cannot mean a layout change: 274 have one epoch, 850 have two epochs with byte-identical layouts, 3 have 3-4 identical layouts; 700 are accepted by Lean, Python and nearcore. The resharding path therefore has zero corpus coverage."],
-  owner="L6",deps=["L6","L7"],tests=["regenerate a resharding corpus (split gate + implicit Resharding transition) and compare"],work="implement resharding transitions; the corpus contains no genuine resharding case")
+R("L0-D2-012","d2-core",D2+"140","chunk_validation.rs:258-305 (get_resharding_transition); core/primitives/src/epoch_manager.rs:22-96 (DynamicReshardingConfig)",
+  "implemented","c.same_layout (resharding)",
+  ["D2:140 `c.epochs.all (·.shardLayout == ep.shardLayout)`", "claim scan of all 115,284 claims: 0 have two different shard layouts and 0 carry a split gate, so `c.same_layout`/`c.no_split_gate` never fire", "the 1,127 `c.no_resharding` oracle marks cannot mean a layout change: 274 have one epoch, 850 have two epochs with byte-identical layouts, 3 have 3-4 identical layouts; 700 are accepted by Lean, Python and nearcore. The resharding path therefore has zero corpus coverage.", "exclusion argument now stated: `ReshardingD3.sameLayout_forbids_resharding` (guard true => consecutive-epoch layouts equal => get_resharding_transition's `shard_layout != prev_shard_layout` conjunct at chunk_validation.rs:273-274 cannot hold)"],
+  owner="L6",deps=["L6","L7"],tests=["var/l6/mut/same_layout_broken fires `out of domain (c.same_layout): resharding`"],work="the guard is now *argued* against the pinned validator rather than left as a bare exclusion; an actual shard-layout transition remains L0-resharding's work")
 R("L0-D2-013","d2-core",D2+"142","core/primitives/src/shard_layout (V2/V3); Layout.lean:65",
   "implemented","c.layout (1..64 shards, V2/V3)",
   ["D2:142 `1 ≤ L.numShards && L.numShards ≤ 64`", "Layout.lean:65 rejects non-V2/V3 encodings", "never triggered: corpus uses 4-6 shard V2 layouts"],deps=["L1"],tests=["directed V1/V0 single-shard layout"],work="V1 layout codec out of scope; pinned mainnet target is V2/V3")
@@ -77,10 +77,10 @@ R("L0-D2-017","d2-core",D2+"146","spec/claim-v3.md §2.2",
 R("L0-D2-018","d2-core",D2+"149-155","epoch-manager/src/adapter.rs:170-179 (get_epoch_id_from_prev_block)",
   "validated","epoch_start_after vs headers",
   ["D2:149-155", "940 verdicts `invalid: epoch_start_after inconsistent with the headers`"],tests=["mutant `c.epoch_start_flip.reject` (131)"],work="none")
-R("L0-D2-019","d2-core",D2+"156","chain/chain/src/runtime/mod.rs:583-622 (can_reshard / split gate)",
-  "missing","c.no_split_gate",
-  ["D2:156 `applyFacts.all (fun f => f.splitGate.isNone)`", "0 corpus claims carry a split gate (mainnet genesis has dynamic_resharding=true, so gate-open blocks are reachable)"],
-  owner="L6",deps=["L6"],tests=["corpus with dynamic_resharding_config and a gate-open block"],work="split-gate search is D-infty; needs L6")
+R("L0-D2-019","d2-core",D2+"156","chain/chain/src/runtime/mod.rs:1731-1769 (check_dynamic_resharding); core/primitives/res/epoch_configs/mainnet/85.json (dynamic_resharding_config)",
+  "implemented","c.no_split_gate",
+  ["D2:156 `applyFacts.all (fun f => f.splitGate.isNone)`", "0 corpus claims carry a split gate (mainnet genesis has dynamic_resharding=true, so gate-open blocks are reachable)", "`ReshardingD3.noSplitGate_iff` + `noResharding_iff_guards` + `splitGate_excludes_nonempty`, plus 8 kernel-decided directed tests", "reachability recorded honestly: version.rs:564 enables DynamicResharding at PV85 and mainnet/85.json sets dynamic_resharding_config, so the gate IS reachable at PV86"],
+  owner="L6",deps=["L6"],tests=["var/l6/mut/split_gate_present fires `out of domain (c.no_split_gate)`"],work="exclusion only, not a proven impossibility: D3 declines to decide gate-carrying claims; the split-gate search itself is still D-infty")
 R("L0-D2-020","d2-core",D2+"158","chunk_validation.rs:321-337 (check_valid_for_config on new_transactions)",
   "implemented","new transaction size",
   ["D2:158 `w.newTxs.all TxD2.sizeOk`"],tests=["mutant `w.new_tx.reject` 112"],work="none")
@@ -102,10 +102,10 @@ R("L0-D2-025","d2-core",D2+"169-171","sharding.rs:460-494 (is_new_chunk; block_c
 R("L0-D2-026","d2-core",D2+"173-174","chunk_validation.rs:144-253",
   "implemented","segment has a new chunk",
   ["D2:173-174"],tests=["directed no-new-chunk segment"],work="none")
-R("L0-D2-027","d2-core",D2+"176","chunk_validation.rs:403-441 (MainTransition::Genesis)",
-  "missing","c.not_genesis",
-  ["D2:176 `!B2.isGenesis`", "137 corpus cases (39/60/19/19) have a genesis B2 and nearcore accepts them; Lean returns out of domain"],
-  owner="L9",deps=["L9"],tests=["replay the 137 genesis cases with a MainTransition::Genesis model"],work="genesis ChunkExtra path (claim-v3 T14) unimplemented")
+R("L0-D2-027","d2-core",D2+"176","chunk_validation.rs:403-413 (MainTransition::Genesis); genesis.rs:218-257 (genesis_chunk_extra)",
+  "validated","c.not_genesis",
+  ["D2:176 `!B2.isGenesis`", "137 corpus cases (39/60/19/19) have a genesis B2 and nearcore accepts them; baseline Lean returned out of domain", "successor checker `NearSpecV3.checkD3G` (GenesisD3.lean) models MainTransition::Genesis: 137/137 accept, matching meta.json expected_rel; non-genesis verdicts byte-identical to baseline over all 115,147 cases", "16 directed negatives each fire their intended error"],
+  owner="L6",deps=["L6","L9"],tests=["var/l6/genesis-cases.txt replayed through nearspec-v3-check-d3g; var/l6/mut-results2.jsonl"],work="non-genesis delegation argued by construction and measured over 115,284 cases but not proved as a rewrite theorem; txValid.all untested (no genesis corpus case carries a transaction)")
 R("L0-D2-028","d2-core",D2+"177","claim-v3 T14 (genesis_chunk_extra Some iff B2 genesis)",
   "implemented","genesis_chunk_extra for non-genesis",
   ["D2:177 `c.genesisChunkExtra.isNone`"],tests=["directed Some on non-genesis B2"],work="none")

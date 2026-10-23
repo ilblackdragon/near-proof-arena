@@ -11,11 +11,11 @@
     "nearcore": "imports link at instantiation (wasmtime_runner/mod.rs:1127-1155); only a call runs External code"
   },
   "counts": {
-    "implemented": 145,
+    "implemented": 147,
     "impossible-at-boundary": 11,
-    "missing": 22,
+    "missing": 19,
     "partial": 9,
-    "validated": 35
+    "validated": 36
   },
   "evidence": "static reconciliation of pinned nearcore git objects against Lean dispatch tables; no execution, differential testing or proof",
   "exclusion_classification": [
@@ -2369,18 +2369,18 @@
       "status": "implemented"
     },
     {
-      "acceptance_tests": "regenerate a resharding corpus (split gate + implicit Resharding transition) and compare",
+      "acceptance_tests": "var/l6/mut/same_layout_broken fires `out of domain (c.same_layout): resharding`",
       "dependencies": "L6 | L7",
       "domain_guard": "c.same_layout (resharding)",
-      "evidence": "D2:140 `c.epochs.all (\u00b7.shardLayout == ep.shardLayout)` | claim scan of all 115,284 claims: 0 have two different shard layouts and 0 carry a split gate, so `c.same_layout`/`c.no_split_gate` never fire | the 1,127 `c.no_resharding` oracle marks cannot mean a layout change: 274 have one epoch, 850 have two epochs with byte-identical layouts, 3 have 3-4 identical layouts; 700 are accepted by Lean, Python and nearcore. The resharding path therefore has zero corpus coverage.",
+      "evidence": "D2:140 `c.epochs.all (\u00b7.shardLayout == ep.shardLayout)` | claim scan of all 115,284 claims: 0 have two different shard layouts and 0 carry a split gate, so `c.same_layout`/`c.no_split_gate` never fire | the 1,127 `c.no_resharding` oracle marks cannot mean a layout change: 274 have one epoch, 850 have two epochs with byte-identical layouts, 3 have 3-4 identical layouts; 700 are accepted by Lean, Python and nearcore. The resharding path therefore has zero corpus coverage. | exclusion argument now stated: `ReshardingD3.sameLayout_forbids_resharding` (guard true => consecutive-epoch layouts equal => get_resharding_transition's `shard_layout != prev_shard_layout` conjunct at chunk_validation.rs:273-274 cannot hold)",
       "family": "d2-core",
       "id": "L0-D2-012",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:140",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "chunk_validation.rs:258-308 (get_resharding_transition); core/primitives/src/epoch_manager.rs:22-96 (DynamicReshardingConfig)",
+      "nearcore_path_symbol": "chunk_validation.rs:258-305 (get_resharding_transition); core/primitives/src/epoch_manager.rs:22-96 (DynamicReshardingConfig)",
       "owner": "L6",
-      "remaining_work": "implement resharding transitions; the corpus contains no genuine resharding case",
-      "status": "missing"
+      "remaining_work": "the guard is now *argued* against the pinned validator rather than left as a bare exclusion; an actual shard-layout transition remains L0-resharding's work",
+      "status": "implemented"
     },
     {
       "acceptance_tests": "directed V1/V0 single-shard layout",
@@ -2467,18 +2467,18 @@
       "status": "validated"
     },
     {
-      "acceptance_tests": "corpus with dynamic_resharding_config and a gate-open block",
+      "acceptance_tests": "var/l6/mut/split_gate_present fires `out of domain (c.no_split_gate)`",
       "dependencies": "L6",
       "domain_guard": "c.no_split_gate",
-      "evidence": "D2:156 `applyFacts.all (fun f => f.splitGate.isNone)` | 0 corpus claims carry a split gate (mainnet genesis has dynamic_resharding=true, so gate-open blocks are reachable)",
+      "evidence": "D2:156 `applyFacts.all (fun f => f.splitGate.isNone)` | 0 corpus claims carry a split gate (mainnet genesis has dynamic_resharding=true, so gate-open blocks are reachable) | `ReshardingD3.noSplitGate_iff` + `noResharding_iff_guards` + `splitGate_excludes_nonempty`, plus 8 kernel-decided directed tests | reachability recorded honestly: version.rs:564 enables DynamicResharding at PV85 and mainnet/85.json sets dynamic_resharding_config, so the gate IS reachable at PV86",
       "family": "d2-core",
       "id": "L0-D2-019",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:156",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "chain/chain/src/runtime/mod.rs:583-622 (can_reshard / split gate)",
+      "nearcore_path_symbol": "chain/chain/src/runtime/mod.rs:1731-1769 (check_dynamic_resharding); core/primitives/res/epoch_configs/mainnet/85.json (dynamic_resharding_config)",
       "owner": "L6",
-      "remaining_work": "split-gate search is D-infty; needs L6",
-      "status": "missing"
+      "remaining_work": "exclusion only, not a proven impossibility: D3 declines to decide gate-carrying claims; the split-gate search itself is still D-infty",
+      "status": "implemented"
     },
     {
       "acceptance_tests": "mutant `w.new_tx.reject` 112",
@@ -2579,18 +2579,18 @@
       "status": "implemented"
     },
     {
-      "acceptance_tests": "replay the 137 genesis cases with a MainTransition::Genesis model",
-      "dependencies": "L9",
+      "acceptance_tests": "var/l6/genesis-cases.txt replayed through nearspec-v3-check-d3g; var/l6/mut-results2.jsonl",
+      "dependencies": "L6 | L9",
       "domain_guard": "c.not_genesis",
-      "evidence": "D2:176 `!B2.isGenesis` | 137 corpus cases (39/60/19/19) have a genesis B2 and nearcore accepts them; Lean returns out of domain",
+      "evidence": "D2:176 `!B2.isGenesis` | 137 corpus cases (39/60/19/19) have a genesis B2 and nearcore accepts them; baseline Lean returned out of domain | successor checker `NearSpecV3.checkD3G` (GenesisD3.lean) models MainTransition::Genesis: 137/137 accept, matching meta.json expected_rel; non-genesis verdicts byte-identical to baseline over all 115,147 cases | 16 directed negatives each fire their intended error",
       "family": "d2-core",
       "id": "L0-D2-027",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:176",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "chunk_validation.rs:403-441 (MainTransition::Genesis)",
-      "owner": "L9",
-      "remaining_work": "genesis ChunkExtra path (claim-v3 T14) unimplemented",
-      "status": "missing"
+      "nearcore_path_symbol": "chunk_validation.rs:403-413 (MainTransition::Genesis); genesis.rs:218-257 (genesis_chunk_extra)",
+      "owner": "L6",
+      "remaining_work": "non-genesis delegation argued by construction and measured over 115,284 cases but not proved as a rewrite theorem; txValid.all untested (no genesis corpus case carries a transaction)",
+      "status": "validated"
     },
     {
       "acceptance_tests": "directed Some on non-genesis B2",

@@ -55,10 +55,10 @@ it is not evidence about behaviour.
 | | count |
 |---|---|
 | inventory rows | 222 |
-| implemented | 145 |
-| validated | 35 |
+| implemented | 147 |
+| validated | 36 |
 | partial | 9 |
-| missing | 22 |
+| missing | 19 |
 | impossible-at-boundary | 11 |
 | nearcore `env` imports | 92 |
 | Lean host dispatch arms | 75 |
@@ -102,20 +102,21 @@ because the saved verdicts contain 85–14,246 discriminating rejects per guard.
 | L3 | 13 | 2 | 0 | 0 | 0 |
 | L4 | 5 | 0 | 87 | 0 | 3 |
 | L5 | 0 | 1 | 0 | 0 | 0 |
-| L6 | 3 | 1 | 2 | 0 | 0 |
+| L6 | 1 | 1 | 4 | 1 | 0 |
 | L7 | 0 | 0 | 0 | 0 | 0 |
 | L8 | 0 | 0 | 0 | 0 | 8 |
 | L9 | 1 | 0 | 0 | 0 | 0 |
 
-Counts regenerated from the JSON; L6's three new rows are the genesis main transition (`partial`),
-`c.same_layout` and `c.no_split_gate` (`implemented`), with the actual shard-layout transition still
-`missing`. L4's large `implemented` count is the additive codec/host surface; only five rows remain
+Counts regenerated from the JSON. L6's seven rows: the genesis main transition (`partial`),
+`c.same_layout` and `c.no_split_gate` (`implemented`), plus the three D2-core guard rows they lift —
+`L0-D2-012`/`L0-D2-019` now `implemented`, `L0-D2-027` now `validated` — with the actual shard-layout
+transition (`L0-resharding`) still `missing`. L4's large `implemented` count is the additive codec/host surface; only five rows remain
 missing and none is enabled in the signed chunk dispatch.
 
-The semantic gap is concentrated, not diffuse. Of the 22 `missing` rows: **12 curve hosts**
+The semantic gap is concentrated, not diffuse. Of the 19 `missing` rows: **12 curve hosts**
 (`alt_bn128_*` 3, `bls12381_*` 9), **3 action tags** (9/10/11, codec present but not dispatched),
-**2 `d3-hook`** and **1 `wasm-exec`** rows on L4/L3, **2 `d2-core`** guard rows on L6, **1 `d2-core`**
-row on L9, and **1 resharding transition** on L6. Float/prepare is no longer in this list: all five
+**2 `d3-hook`** and **1 `wasm-exec`** rows on L4/L3, **1 resharding transition** on L6. (The two L6 `d2-core` guard rows and the L9 genesis row are no
+longer missing: L6's additive modules moved them to `implemented`/`validated`.) Float/prepare is no longer in this list: all five
 `wasm-prepare` rows and both `instruction` rows are implemented, so the earlier "5 float/prepare"
 figure is obsolete. The two capacity caps (`G_α`, `n_blocks ≤ 32`) are separate from these rows.
 
