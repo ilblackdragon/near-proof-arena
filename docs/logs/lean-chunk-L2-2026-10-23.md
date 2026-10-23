@@ -166,6 +166,7 @@ Wasmtime/Winch, real instrumentation).
 |---|---|
 | values and trap kinds, directed edge pairs | 1,260 cases, **0 disagreements** (3,220 with `--limit 40`) |
 | gas: full outcome line (`status burnt used`) for 1/2/3 copies of each operator | 210 modules, **0 disagreements** |
+| **instrumented-module length** (nearcore `prepare` output vs `NearSpecV3.Wasm.Size`) | 140 modules, **0 disagreements** |
 
 The gas check compares **totals**, not deltas: an earlier version compared one copy against two and
 expected zero delta for pure operators, which was wrong because each repetition also re-emits its
@@ -179,6 +180,7 @@ session with its output kept under `var/l2/evidence/` (git-ignored, like the res
 ```
 var/l2/evidence/difftest_float_s1.log    family=float cases=79742 opcodes=70 disagreements=0
 var/l2/evidence/float_nearcore.log       values cases=1260 disagreements=0 ; gas modules=210 disagreements=0
+                                         size modules=140 disagreements=0
 var/l2/evidence/float_prepare.log        family=float-prepare cases=6 disagreements=0
 var/l2/evidence/float_regression.log     both experiments DISCRIMINATE
 var/l2/evidence/chunk_float.log          20 lifted, 80/80 tamper mutants rejected

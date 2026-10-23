@@ -25,6 +25,8 @@ also justified *in the Lean module* from the pinned finite-wasm source
 
   float_nearcore.py [--limit N] [--seed S] [--no-gas]
 
+`--no-gas` also skips the instrumented-size comparison, which uses the same modules.
+
 Exit 1 on any disagreement.
 """
 import argparse
@@ -204,8 +206,9 @@ def _operand_types(op):
     return ["f32"] if op <= 0xFC05 else ["f64"]
 
 
-def run_harness(lines):
-    p = subprocess.run([HARNESS], input="\n".join(lines) + "\n", capture_output=True, text=True)
+def run_harness(lines, mode=None):
+    args = [HARNESS] + ([mode] if mode else [])
+    p = subprocess.run(args, input="\n".join(lines) + "\n", capture_output=True, text=True)
     if p.returncode != 0:
         raise SystemExit(f"harness failed: {p.returncode}\n{p.stderr[-2000:]}")
     return p.stdout.splitlines()
@@ -286,6 +289,36 @@ def compare(lines, labels, sample=400, seed=1):
     return len(bad)
 
 
+def compare_size():
+    """The instrumented-module length (`prepare` mode vs the Lean size model).
+
+    This is the sharpest instrumentation check available: the instrumented module is what nearcore
+    actually compiles and runs, its length is an exact integer, and the Lean model
+    (`NearSpecV3.Wasm.Size`) has to reproduce the whole encoder — the added imports, globals,
+    exports, the two extra locals and every gas point — modulo the operators it copies verbatim.
+    A float operator's encoded length and its gas point both feed into it.
+    """
+    nbad = 0
+    n = 0
+    for op in sorted(float_ref.W):
+        w = float_ref.W[op][0]
+        x = 0x3F800000 if w == 32 else 0x3FF0000000000000
+        for reps in (1, 2):
+            hx = build_module(op, x, x, reps).hex()
+            line = f"1000000000000000 {hx}"
+            near = run_harness([line], mode="prepare")[0]
+            lean = subprocess.run([LEAN_SPEC, "--floats", "--prepared-size"], input=line + "\n",
+                                  capture_output=True, text=True).stdout.strip()
+            n += 1
+            expect = str(len(near) // 2) if not near.startswith("prepare-error") else near
+            if expect != lean:
+                nbad += 1
+                if nbad <= 15:
+                    print(f"SIZE DISAGREE op=0x{op:x} reps={reps}: nearcore {expect} lean {lean}")
+    print(f"family=float-size modules={n} disagreements={nbad}")
+    return nbad
+
+
 def _parse(line):
     op, a, b = line.split()
     return int(op), int(a, 16), int(b, 16)
@@ -306,6 +339,7 @@ def main():
     nbad = len(bad)
     if a.gas:
         nbad += compare_gas()
+        nbad += compare_size()
     sys.exit(1 if nbad else 0)
 
 
