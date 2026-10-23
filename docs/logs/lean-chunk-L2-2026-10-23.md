@@ -321,6 +321,13 @@ Subsample results (complete runs, same script):
 
 Every observed move was a `d3float` chunk going `out_of_domain → accept` with nearcore `ok`.
 
+**Verified against the recorded baseline, not just internally:** 200 D3α cases of `d3c7/d3` were
+re-run through the new checker and compared with the recorded per-case JSONL
+(`var/d3-runs/full-d3c7/lean.jsonl` in the plan worktree, the 115,284-case run behind
+`report-d3-full.json`): **0 mismatches, comparing both the verdict and the exact reason string**.
+So `checkD3` is unchanged on that sample, not merely self-consistent — which is the property that
+matters, because this lane rebuilt the library the old baseline binary came from.
+
 ## 7. What is not done — the honest list
 
 1. **The full 115,284-case D3α replay did not finish within the session.** Nothing in the part
