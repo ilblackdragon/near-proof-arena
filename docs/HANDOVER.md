@@ -31,6 +31,8 @@ unchanged and broader coverage requires a versioned successor.
 
 ## Remaining work
 
+- **PQ tail architecture** (`lane/pq-tail-architecture`): 258,788 B prepared-D0a packet independently replayed; setup reuse, live execution cost, recursive accumulation and composed PQ bound remain open. [Audit/next steps](logs/pq-tail-architecture-2026-10-23.md).
+
 - **D3 succinct proof:** build the D2/D3 chunk AIR, state render/overlay replay and real Wasm/state/recursion connection. The shipped D3 artifact proves witness re-execution, not succinctness. [Latest preparation/join analysis](logs/pq-prepare-link-2026-10-23.md).
   - **Scoped in two design docs (2026-10-23), with open PROPOSALS P-D2-1…6 / P-D3-1…5 awaiting a user decision:** [D2 design](zk-formal/V3-D2-DESIGN.md), [D3 design](zk-formal/V3-D3-DESIGN.md). Read them before starting AIR work; the headline findings are that **no D2 AIR exists and has never existed** (`grep nearAirV3D2` = 0), **D3 is strictly gated on D2** (`checkD3` *is* `checkD2Core (d3Hooks pv86)`), and **`RelTier .d2`/`.d3a` are unbounded** so no completeness claim holds at their current statements. Order is L0 (corpus maxima) → `D2a` spec → native/AIR split → tables → assembly → budget measurement; D3 work other than its own tier restatement is speculative until D2's AIR lands.
   - **Judge-budget wall (design-level, not scheduling):** D0a is 2.43 h of the 4 h elaboration budget, D1a projects 2.8–3.5 h, and D2 lands at **3.4–4.7 h** on the same per-table architecture — already over. `V3-D2-DESIGN.md` §5.3 gives three options (split the certificate / coarsen tables / native-extract more) and recommends native-extraction first because it adds no new admitted statement.
