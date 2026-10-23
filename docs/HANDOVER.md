@@ -4,6 +4,13 @@ This is for the next lead agent. Read it first. The raw working log for 2026-10-
 
 **Rule for this file:** keep it short and current. Append progress to `docs/logs/`, not here.
 
+**2026-10-23 priority:** complete the proof-system-independent Lean chunk transition and arena
+before treating any particular succinct-proof implementation as a prerequisite. Agent workstreams,
+dependencies and acceptance gates are in
+[`requirements/LEAN_CHUNK_TRANSITION_PLAN.md`](requirements/LEAN_CHUNK_TRANSITION_PLAN.md).
+The full PV86 semantic target is broader than today's D3α domain; existing signed challenges remain
+unchanged and broader coverage requires a versioned successor.
+
 ## 0. Goal and standing user directives
 
 **Goal.** A self-hostable arena where candidates submit NEAR state-transition provers. Each submission comes with a machine-checked Lean certificate. The judge independently builds the submission, checks it formally (fixed trusted root), tests it, and benchmarks it.
