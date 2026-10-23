@@ -14,17 +14,19 @@ Date: 2026-10-23. Plan lane: `docs/requirements/LEAN_CHUNK_TRANSITION_PLAN.md` �
 
 ## 1. Result summary
 
-**Real implementation landed: `ecrecover`**, both the arithmetic and the host-function semantics
-with nearcore's exact charge order. It is validated against nearcore's own 161-vector suite (byte
+**Two real implementations landed: `ecrecover` and `p256_verify`**, each with both the arithmetic
+and the host-function semantics in nearcore's exact charge order. `ecrecover` is validated against nearcore's own 161-vector suite (byte
 equality of the recovered public key, not a validity bit) plus 20 directed edge cases and 23
-host-level cases that check burnt/used gas per branch, the register contents, and the error text.
+host-level cases that check burnt/used gas per branch, the register contents, and the error text;
+`p256_verify` against the 8 Wycheproof vectors in nearcore's test file, 9 directed gates and 13
+host-level gas/return/error cases.
 
-**Honest status: `partial`, not `implemented`/`validated`.** The plan's L3 acceptance requires
+Both are `partial`, not `implemented`/`validated`. The plan's L3 acceptance requires
 "at least one valid and invalid whole-chunk case per supported entry path". No chunk in any corpus
-executes `ecrecover` inside a domain that the current checker accepts: the 83 corpus cases that
-call it are all `out of domain (e.wasm-α)` by construction, and enabling the host inside
-`Wasm.runCall` is not additive (see §6). The arithmetic and the host layer are real; the
-whole-chunk rung is missing, so the row says so.
+executes either host inside a domain that the current checker accepts (`p256_verify` is not called
+by any corpus contract at all; the 83 `ecrecover` cases are all `out of domain (e.wasm-α)` by
+construction), and enabling a host inside `Wasm.runCall` is not additive (see §6). The arithmetic and the host layer are real for both hosts; the
+whole-chunk rung is missing for both, so both rows say so.
 
 `ed25519_verify` (L4's row, asked to be verified) **is** real and is exercised through whole
 chunks; the evidence is recorded in §4. The remaining 12 curve hosts stay `missing`.
@@ -32,7 +34,7 @@ chunks; the evidence is recorded in §4. The remaining 12 curve hosts stay `miss
 | inventory id | final status | one-line basis |
 |---|---|---|
 | `L0-host-ecrecover` | **partial** | `Secp256k1.recover` + `CryptoHost.hostEcrecover`; 161/161 vectors, 20 edge, 23 host cases; no whole-chunk |
-| `L0-host-p256_verify` | missing | not implemented (pure verification, feasible; out of budget) |
+| `L0-host-p256_verify` | **partial** | `P256.verify` + `CryptoHost.hostP256Verify`; 8 Wycheproof + 9 gates + 13 host cases; no whole-chunk |
 | `L0-host-alt_bn128_g1_multiexp` | missing | needs Fq/Fr + G1 arithmetic |
 | `L0-host-alt_bn128_g1_sum` | missing | same |
 | `L0-host-alt_bn128_pairing_check` | missing | needs Fq2 + Miller loop + final exponentiation |
@@ -48,8 +50,9 @@ chunks; the evidence is recorded in §4. The remaining 12 curve hosts stay `miss
 | `L0-W-015` (guard) | missing (guard is as designed) | kernel-checked `hostCall_no_arm` for all 14; 411-case OOD replay, 0 diffs |
 
 `tools/d3/lean_chunk_coverage.py --check` **passes** after teaching it about the successor table
-(§5). Inventory totals: `implemented 91, impossible-at-boundary 3, missing 19, partial 1`
-(114 rows). The only changed row versus the L0 baseline is `L0-host-ecrecover: missing → partial`.
+(§5). Inventory totals: `implemented 91, impossible-at-boundary 3, missing 18, partial 2`
+(114 rows). The changed rows versus the L0 baseline are `L0-host-ecrecover: missing → partial` and
+`L0-host-p256_verify: missing → partial`.
 
 ## 2. Implemented behaviour
 
@@ -104,7 +107,31 @@ the correctness argument, not by any statement above).
   else `none` (so the successor call loop would still report those as out of domain rather than
   guess).
 
-### 2.3 `NearSpecV3/D3/CryptoDomain.lean` (new)
+### 2.3 `NearSpecV3/P256.lean` (new, 233 lines)
+
+* `p`, `n`, `b`, `Gx`, `Gy`; `F`/`N` (add/sub/mul/neg/pow/inv, `sqrt` via `p ≡ 3 mod 4`).
+* `J` Jacobian for `a = −3` (`dbl-2001-b`: `M = 3(X−Z²)(X+Z²)`), `J.add`, `J.smul`, `J.affineX`.
+* `onCurve` (`y² = x³ − 3x + b`), `decompress` (SEC1 `0x02`/`0x03 ‖ X`).
+* `bits2field` (`ecdsa-0.16.9/src/hazmat.rs:185-206`): `< 16` bytes is an error; `≤ 32` is
+  left-padded; longer is truncated to 32 bytes; then reduced mod `n`.
+* `sigOk` (`Signature::from_scalars`, `lib.rs:250-259`): `0 < r < n ∧ 0 < s < n`.
+* `verify sig msg pk : Bool` — `x(u1·G + u2·Q) mod n = r` with `u1 = z·s⁻¹`, `u2 = r·s⁻¹`
+  (`hazmat.rs:270-292`). No low-s rule, matching nearcore.
+
+Theorem statements (proved, no `sorry`):
+
+```lean
+theorem p_eq : p = 115792089210356248762697446949407573530086143415290314195533631308867097853951
+theorem n_eq : n = 115792089210356248762697446949407573529996955224135760342422259061068512044369  -- rfl
+theorem p_mod_four : p % 4 = 3
+theorem G_on_curve : onCurve Gx Gy = true
+theorem verify_false_of_sig_length {sig msg pk} (h : sig.length ≠ 64) : verify sig msg pk = false
+theorem verify_false_of_pk_length  {sig msg pk} (h : pk.length ≠ 33)  : verify sig msg pk = false
+theorem bits2field_none {msg} (h : msg.length < 16) : bits2field msg = none
+theorem verify_false_of_sig_not_ok {sig msg pk} (h : sigOk sig = false) : verify sig msg pk = false
+```
+
+### 2.4 `NearSpecV3/D3/CryptoDomain.lean` (new)
 
 The guard facts, kernel-checked, plus the statement of what a successor relation must discharge:
 
@@ -159,6 +186,29 @@ read 31); `v = 4` (error, gas = base + read 64 — the `v` gate is before the ha
 (error, gas = base + both reads); out-of-bounds `sig_len` (`MemoryAccessViolation` after base +
 read base + len·byte).
 
+### 3.3b `p256_verify` vectors and host cases
+
+Mode `p256`: the 8 vectors of `logic/tests/p256_verify_wycheproof.rs` — nearcore's helper hashes
+the message with SHA-256 and passes the digest as the prehash (NEP-635), so the Lean check does
+the same — plus 9 directed gates (sig lengths 63/65, SEC1 tags `0x04`/`0x05`, 32-byte key,
+`x = p` uncompressed-as-compressed, 15-byte message, the valid vector, a 16-byte message).
+
+```
+p256 vectors: 17 total, 0 failures
+```
+
+Mode `p256host`: 13 cases over `hostP256Verify` with expected gas computed from the parameter
+table (`p256VerifyBase + read 64 + read 32 + 13_000_000·32 + read 33` on the valid path):
+
+```
+p256 host cases: 13 total, 0 failures
+```
+
+Covered: valid (ret 1, exact burnt/used); `r = s = 0` (ret 0, gas stops after the signature read —
+`Signature::from_slice` fails before the message is read); `sig_len = 63` and `pk_len = 32`
+(errors, with the message read and per-byte charged in between for the pk case); a `0x05` tag
+(ret 0); an empty message (ret 0, no per-byte charge); `bits2field` padding.
+
 ### 3.4 Whole chunk
 
 * `ed25519_verify` (L4 row, verified): 21 `d3/` cases of d3c9 execute `d3ed`, which writes the
@@ -169,7 +219,7 @@ read base + len·byte).
   bytes, `d3gen.rs:580-585`). A *valid* signature is not in the corpus; that path is covered by
   `nearspec-v3-test-ed25519` over `oracle/fixtures/v3/ed25519`, not by a chunk. This is exactly why
   the row stays `implemented` and is not claimed as `validated` here.
-* `ecrecover`: **no** whole-chunk case. The corpus has 83 cases that call it (36 to `ecrecover`
+* `ecrecover`, `p256_verify`: **no** whole-chunk case. The corpus has 83 cases that call it (36 to `ecrecover`
   itself via `d3curve`/`d3hostx.curve`), all `out_of_domain` by design. They are recorded in the
   replay below and would be the natural positive whole-chunk suite once the host is wired into
   `runCall` (each is nearcore-`ok`, so acceptance is a real differential signal).
@@ -201,10 +251,12 @@ cd /data/illia/nearproof-wt/lean-chunk-L3/spec/lean/v3 && lake build
 
 # checker + crypto test drivers (separate package, so the pinned lakefile is untouched)
 cd .../oracle/wasm-d3/lean && lake build nearspec-v3-check-d3 nearspec-v3-test-crypto
-  -> Build completed successfully (124 jobs)
+  -> Build completed successfully (126 jobs)
 ./.lake/build/bin/nearspec-v3-test-crypto          # vectors
 ./.lake/build/bin/nearspec-v3-test-crypto edge     # directed edges
-./.lake/build/bin/nearspec-v3-test-crypto host     # gas/return/error
+./.lake/build/bin/nearspec-v3-test-crypto host
+./.lake/build/bin/nearspec-v3-test-crypto p256
+./.lake/build/bin/nearspec-v3-test-crypto p256host     # gas/return/error
 
 # drift gate for the inventory (must pass)
 cd /data/illia/nearproof-wt/lean-chunk-L3
@@ -261,11 +313,11 @@ The row's `remaining_work` says both.
    shape) and thread `cfg.crypto = false` through `E_callFunc`/`E_exec`/`E_step`/`E_run` for
    `pv86`, then define `checkD3γ := checkD2Core (d3HooksCrypto …) …` and run the 83 OOD
    ecrecover cases as positives.
-2. **`p256_verify`.** Same shape as `ecrecover`: SEC1 decompression on `y² = x³ − 3x + b` plus
-   `x(u1G + u2Q) mod n = r`, with `bits2field` truncation and no low-s enforcement. Nothing
-   infeasible; it did not fit the remaining budget after `ecrecover` + the guard work. Its vectors
-   exist in-tree (12 Wycheproof vectors in `logic/tests/p256_verify_wycheproof.rs` plus 15 cases in
-   `logic/tests/p256_verify.rs`, including register inputs, empty/long messages and a bad SEC1 tag).
+2. **`p256_verify` whole-chunk rung** — same blocker as (1): the host is implemented and tested at
+   the host level but not reachable from `runCall`. Its 15 unit cases in
+   `logic/tests/p256_verify.rs` additionally cover register inputs and a 256-byte prehash; those
+   are gates of the host arm, not of the arithmetic, so the 8 Wycheproof vectors carry the
+   semantics check.
 3. **alt_bn128 and BLS12-381.** All 12 need curve arithmetic; the three alt_bn128 hosts and the
    `sum`/`multiexp`/`decompress` BLS hosts are a day's work in the `Secp256k1.lean` style, but
    `alt_bn128_pairing_check` and `bls12381_pairing_check` need a Miller loop and final
@@ -282,6 +334,7 @@ The row's `remaining_work` says both.
 ## 7. Files safe to edit / not to edit
 
 * New, owned by this lane: `spec/lean/v3/NearSpecV3/Secp256k1.lean`,
+  `spec/lean/v3/NearSpecV3/P256.lean`,
   `spec/lean/v3/NearSpecV3/Wasm/CryptoHost.lean`,
   `spec/lean/v3/NearSpecV3/D3/CryptoDomain.lean`,
   `oracle/wasm-d3/lean/CryptoTest.lean`, `docs/research/lean-chunk-crypto-L3.md`, this log.
@@ -301,6 +354,8 @@ cd ../../../oracle/wasm-d3/lean && lake build nearspec-v3-check-d3 nearspec-v3-t
 ./.lake/build/bin/nearspec-v3-test-crypto
 ./.lake/build/bin/nearspec-v3-test-crypto edge
 ./.lake/build/bin/nearspec-v3-test-crypto host
+./.lake/build/bin/nearspec-v3-test-crypto p256
+./.lake/build/bin/nearspec-v3-test-crypto p256host
 cd /data/illia/nearproof-deps/corpora/d3c9 && \
   /data/illia/nearproof-wt/lean-chunk-L3/oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3 ood/*
 cd /data/illia/nearproof-wt/lean-chunk-L3 && \

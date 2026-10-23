@@ -39,7 +39,7 @@ Common source facts:
 |---|---|---|
 | `ecrecover` | `partial` | full secp256k1 recovery + host arm with exact charge order, 161 nearcore vectors + 23 host cases; no whole-chunk case |
 | `ed25519_verify` (L4 row) | `implemented` (unchanged) | host arm `Host.lean:1024-1033` over `Ed25519.verify`; whole-chunk cases exist (see §3) |
-| `p256_verify` | `missing` | nothing |
+| `p256_verify` | `partial` | full P-256 verification + host arm with exact charge order, 8 Wycheproof vectors + 9 gates + 13 host cases; no whole-chunk case |
 | 12 alt_bn128 / BLS12-381 hosts | `missing` | nothing |
 | `L0-W-015` (guard) | `missing` (guard is as designed) | kernel-checked `hostCall_no_arm` for all 14 names + 411-case OOD replay |
 
@@ -74,7 +74,7 @@ Common source facts:
   (`ecrecoverBase`, `hostEcrecover`, `cryptoHostCall`). Tests: `oracle/wasm-d3/lean/CryptoTest.lean`
   (`nearspec-v3-test-crypto`, modes `vectors`/`edge`/`host`).
 
-### 1.2 `p256_verify` — missing
+### 1.2 `p256_verify` — implemented (host level)
 
 * Signature: `p256_verify<[sig_len, sig_ptr, msg_len, msg_ptr, pk_len, pk_ptr] -> [u64]>`
   (`imports.rs:152`); Rust `logic.rs:1884-1930`.
@@ -92,9 +92,10 @@ Common source facts:
   (`logic/tests/p256_verify_wycheproof.rs:15-20`: high-s is accepted, deliberately).
 * Gas: `p256_verify_base = 1_300_000_000_000`, `p256_verify_byte = 13_000_000`
   (`parameters.snap:140-141`), plus the three input reads.
-* Not implemented in Lean. It is a pure verification function over a 256-bit prime field with
-  `a = -3` (SEC1 decompression + two scalar multiplications), so it is the same order of work as
-  §1.1; nothing about it is infeasible, it simply did not fit this lane's budget (see §5).
+* Lean: `NearSpecV3/P256.lean` (`bits2field`, `sigOk`, `decompress`, `verify`),
+  `Wasm/CryptoHost.lean` (`p256VerifyBase`, `p256VerifyByte`, `hostP256Verify`,
+  `cryptoHostCall`). Tests in `CryptoTest.lean` modes `p256` (8 Wycheproof vectors + 9 directed
+  gates) and `p256host` (13 gas/return/error cases).
 
 ### 1.3 `ed25519_verify` — implemented (L4's row, verified here)
 
