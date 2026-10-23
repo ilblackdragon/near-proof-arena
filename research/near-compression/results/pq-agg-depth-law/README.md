@@ -81,8 +81,8 @@ depth-1 node costs ~12.6 s and ~3.5 GB. So for a tree over S leaves:
 | | nodes | serial prove time (test targets) | peak RSS |
 |---|---:|---:|---:|
 | binary tree over 16 leaves (depth 4) | 15 | **890.47 s measured** (`finished in 890.47s`); estimate 8×12.6 + 4×108 + 2×117 + 1×119 ≈ 885 s | 19 GB |
-| binary tree over 1,880 leaves (depth 11) | 1,879 | 940×12.6 + 939×106 ≈ 30.9 h | 19 GB |
-| binary tree over 3,760 leaves (depth 12) | 3,759 | 1,880×12.6 + 1,879×106 ≈ 61.9 h | 19 GB |
+| binary tree over 256 leaves (depth 8, S=146) | 255 | 128×12.6 + 127×106 ≈ 4.2 h | 19 GB |
+| binary tree over 512 leaves (depth 9, S=291) | 511 | 256×12.6 + 255×106 ≈ 8.4 h | 19 GB |
 
 Those are **test-target** times. At production query targets a node is ~1.5–2 orders of
 magnitude more expensive (the model's `[L]` numbers put one real segment child at
@@ -113,7 +113,10 @@ proposition at best, and that is the honest reading of the model, not a measurem
 * **A real leaf.** The leaves are `SegAir` Fibonacci fixtures, not `seg-v1`. P9/P10/P11
   are untouched. A tree over fixture leaves says nothing about a NEAR chunk's leaves.
 * **Any 1 Pgas run.** Per the plan §0, `G_α` (3.451e12 gas) needs no tree at all under
-  design G; 1 Pgas is ~1,880–3,760 segments and remains a research build.
+  design G; 1 Pgas is **~146 segments** at 2^23 ops/segment (291 at 2^22) and remains a
+  research build. The 1,880–3,760 figure that appeared here was a units error (a
+  width-equivalent total divided by a main-cell segment size); see
+  `docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5.
 * **Ragged / repeated-child trees.** Only perfect binary and flat k-ary shapes were proved.
   The statement layer rejects ragged chains (`Stmt.compose_rejects`), but no *proof* was
   built for a ragged shape, and single-child passthrough does not exist.
