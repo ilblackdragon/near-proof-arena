@@ -15,7 +15,7 @@ the repository, not a certification: nothing here closes Gate A, B or C.
 | 2 directed tests | **partial** | per-family directed suites exist and execute (L2 float, L3 crypto, D1/D2/D3 corpora); only L2 demonstrates a removal/breakage regression | `oracle/wasm-d3/tests/*`, `oracle/wasm-d3/lean/CryptoTest.lean` |
 | 3 generated ≥1000/family × 4 seeds | **partial** | L2 float: measured 149,462 cases × 4 seeds, 0 diffs; D3 corpora: 8/12/4/4 chains; no generated suite for crypto/actions/hosts | `oracle/wasm-d3/tests/difftest_float.py` |
 | 4 chunk integration | **partial** | whole-chunk verdict + ~10 header fields compared (state root, outcome root, gas, burnt, receipts root, congestion, bandwidth); emitted receipts/logs/return data NOT compared against nearcore per case | `spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:238-271` |
-| 5 regression corpora | **satisfied with caveat** | D1 53,048 / D2 67,384 / D3 115,284 all replayed, 0 disagreements, content hashes recorded; *not* byte-identical to the original runs (regenerated recipes, see caveat) | `docs/evidence/lean-chunk-L7/corpus-manifest.json`, results in the lane log |
+| 5 regression corpora | **satisfied with caveat** | D1 53,048 / D2 67,384 / D3 115,284 all replayed, **0 disagreements on all three legs** (Lean, Python, nearcore), content hashes recorded; *not* proven byte-identical to the original generation (recipes not re-runnable here) | `docs/evidence/lean-chunk-L7/corpus-manifest.json`, results in the lane log |
 | 6 replay ≥1000 consecutive blocks | **absent** | a 1,378-height metadata census (not execution); 4 real mainnet fixtures for an *older* statement (`receipt-transfer-batch/v0`), not chunk-transition v3 | `docs/e2e-results/mainnet-replay-2026-10/samples.jsonl`, `oracle/fixtures/historical/cases/` |
 | 7 formal checks | **partial** | `lake build` 162 jobs exit 0; axiom audits within allowed set; no `sorry`/`native_decide`/new axioms in the v3 tree; no clean-checkout rebuild, no runtime-path restriction audit | `spec/lean/v3`, this document §7 |
 
@@ -238,20 +238,22 @@ CI workflow does not build `spec/lean/v3` at all (see the lane log's gating find
 | L5: `record_code_len` has no caller; bound is sound but not a protocol limit | **yes** | `record_code_len` (`core/store/src/trie/trie_recording.rs:148`) has zero call sites; `codes_to_record.insert` appears nowhere |
 | L5: axiom claims | **yes, exactly** | reproduced all four |
 | L5: "boundary cases below/at/above every limit" | **no evidence** | L5's diff added **no tests**; its 4 changed files are one `.lean` module, the root import, a spec doc and the log |
-| D3 corpora "zero disagreements in the three-way comparison" | **yes for the Lean↔nearcore leg; Python leg not re-run here** | I ran the Lean leg on all six corpora (0 diffs); the D1/D2 runs did include the Python leg (0 diffs). D3's `--python` leg was not run in this session, so "three-way" is not verified for D3 — only "two-way". |
+| D3 corpora "zero disagreements in the three-way comparison" | **yes, all three legs** | Lean↔nearcore 0, Python↔nearcore 0, Lean↔Python 0 on each of d3c7/d3c8/d3c9/d3c10 (115,284 cases). D1/D2 also ran the Python leg (0 diffs). |
 
 ## What this lane did NOT verify
 
 Stated so nobody over-reads the table above:
 
-* The **Python third leg on D3**. `difftest_d3.py --python` was not run (it is the slowest leg and the
-  Lean↔nearcore leg already disagreed nowhere). So the historical "three-way comparison" claim for D3
-  remains exactly that: historical.
+* ~~The Python third leg on D3.~~ **Done after the first draft**: `difftest_d3.py --python` was run on
+  all four D3 corpora against the saved Lean verdicts — Lean↔nearcore 0, Python↔nearcore 0, Lean↔Python
+  0 on each (115,284 cases total). See the lane log §4.1b.
 * The **generator provenance** of the corpora. They exist and their counts match the plan; the oracle
   crates that generated them cannot be rebuilt in this worktree (`oracle/vendor/nearcore` unlinked), so
   I replayed a surviving copy rather than regenerating from the pinned recipe.
 * The **`--python` leg's own non-vacuity**. I demonstrated it for the Lean leg (wrong checker → 38
-  disagreements), not for the Python checker.
+  disagreements), not for the Python checker. The Python leg's 0/115,284 agreement is therefore
+  evidence that two independent implementations agree, but I did not prove the Python harness would
+  catch a wrong Python checker.
 * **Runtime-path restrictions** in item 7's sense: I read axioms for a handful of headline theorems, not
   for every new theorem with its path hypothesis.
 * Anything about **succinct proof bytes, verification cost or proving resources** — outside this lane.

@@ -241,6 +241,24 @@ both **0 disagreements** against Lean and nearcore. Lean wall times under load: 
   behaviour, not a relaxed comparison; it is called out here so nobody mistakes "0 disagreements" for
   "0 cases where Lean accepts what the oracle calls out-of-domain".
 
+### 4.1b Three-way verification (the third leg, now measured)
+
+The historical claim is a *three-way* comparison. The first pass of this lane ran only the
+Lean↔nearcore leg. I went back and ran the Python leg as well, reusing the saved Lean verdicts:
+
+| corpus | Lean ↔ nearcore | Python ↔ nearcore | Lean ↔ Python |
+|---|---|---|---|
+| `d3c7` | 0 / 33,248 | 0 / 33,248 | 0 / 33,248 |
+| `d3c8` | 0 / 49,490 | 0 / 49,490 | 0 / 49,490 |
+| `d3c9` | 0 / 15,995 | 0 / 15,995 | 0 / 15,995 |
+| `d3c10` | 0 / 16,551 | 0 / 16,551 | 0 / 16,551 |
+
+Command: `python3 oracle/v3-d3/tools/difftest_d3.py <corpus> --shards 8 --python --lean-from <saved
+lean.jsonl> --save <out>`, exit 0 on all four. For `d3c9` the Lean↔Python verdict pairs are
+`accept/accept` 5,715, `reject/reject` 9,938, `out_of_domain/out_of_domain` 342 — i.e. the two
+independent implementations agree on the verdict for **every** case, not just on the aggregate. So
+"zero disagreements in the three-way comparison" is now a measured statement for all 115,284 D3 cases.
+
 ### 4.2 Content hashes (item 5's "record content hashes, not just counts")
 
 `tools/d3/corpus_manifest.py` walks each family in sorted case order and hashes
@@ -318,7 +336,7 @@ executed."
 | L5: `record_code_len` has no caller | **confirmed** | `core/store/src/trie/trie_recording.rs:148` — one definition, **zero** call sites in the pinned tree; `codes_to_record.insert` appears nowhere |
 | L5: axiom claims | **reproduced exactly** | `Rec.guard_sufficient` → `[propext, Quot.sound]`; `Rec.size_le_recorded` → same; `removal_charge_can_exceed_limit` and `per_receipt_limit_does_not_bound_chunk` → no axioms |
 | L5: "boundary cases below/at/above every applicable limit" | **no evidence** | L5's diff vs base touches 4 files (one `.lean` module, the root import, a spec doc, the log) and **adds no test file and no test case** |
-| "D3 115,284 cases, zero disagreements in the recorded three-way comparison" | **two-way reproduced; third leg not re-run for D3** | I ran Lean↔nearcore on all four D3 corpora (0 diffs). The Python leg ran for D1/D2 only. Calling the historical number "three-way" is not something this session verified for D3. |
+| "D3 115,284 cases, zero disagreements in the recorded three-way comparison" | **reproduced three-way, all four corpora** | `difftest_d3.py --python --lean-from <saved lean.jsonl>` on d3c7/d3c8/d3c9/d3c10: **Lean↔nearcore 0, Python↔nearcore 0, Lean↔Python 0** on each. Totals 33,248 + 49,490 + 15,995 + 16,551 = 115,284. The three-way claim now has this session's measurement behind it. |
 
 ## 7. Harness non-vacuity — demonstrated, not asserted
 
