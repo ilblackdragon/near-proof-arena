@@ -174,6 +174,43 @@ change. **Depth 2 at production targets is therefore unmeasured, and honestly re
 such** — the level-1 measurement is sufficient to establish the 300 KB impossibility, but the
 per-depth byte curve at production targets remains open.
 
+## Environment blocker, and the workaround that unblocks it
+
+**The cap.** The harness wraps every agent command in a `run-*.scope` with
+`MemoryMax = 17,179,869,184` (16 GiB):
+
+```
+$ cat /sys/fs/cgroup$(cat /proc/self/cgroup | sed 's/^0:://')/memory.max
+17179869184
+$ systemctl --user show 'run-*.scope' -p MemoryMax
+MemoryMax=17179869184     # every scope
+```
+
+An inner `export HEAVY_MEM=32G` cannot lift an outer cgroup limit -- tried, and the scope still
+showed `max: 16.0G`.
+
+**Why that blocked the measurement.** A production 2-child node materialising its LDE measured
+`peak_rss_gb=25.94`, so it is OOM-killed at 16 GiB every time, silently (the wrapper sets
+`oom_score_adj=1000` deliberately).
+
+**The workaround, measured live this session.** `NEARPROOF_STREAM_COMMIT=1`
+(`stark-backend-unified/.../prover/stream_pcs.rs:17-60`) commits codewords without ever holding
+them, and the stream lane records it as byte-identical:
+
+| config | live peak RSS | outcome |
+|---|---|---|
+| default (materialised) | **25.94 GB** | OOM-killed at 16 GiB |
+| `NEARPROOF_STREAM_COMMIT=1` | **5.7 -> 7.9 GB**, climbing slowly | **runs inside 16 GiB** |
+
+So the blocker was a *default configuration*, not a hard limit. The production-schedule run
+(`agg-stream2.log`) is executing under streaming and its byte count is the number this file has
+been waiting for.
+
+**Also worth recording:** `target-agg` was reclaimed by the disk-cleanup job a third time
+mid-session. Several apparent launches produced no output for that reason alone --
+`nohup: failed to run command ...: No such file or directory`. The rebuild takes 34 s; check the
+binary exists before launching rather than trusting a previous build.
+
 ## Reproduce
 
 ```
