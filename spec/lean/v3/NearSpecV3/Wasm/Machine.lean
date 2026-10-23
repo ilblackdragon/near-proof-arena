@@ -98,16 +98,31 @@ end C
 def pageSize : Nat := 65536
 def maxTableElementsStore : Nat := 10000
 
+/-- A stack/local/global value. Floats are their **bit pattern** (`NearSpecV3.Wasm.Fmt`): the
+interpreter never converts through a native float, so every operation is the kernel function in
+`Wasm/Float.lean` and no host rounding mode can leak in. -/
 inductive Val where
   | i32 (v : UInt32)
   | i64 (v : UInt64)
+  | f32 (bits : UInt32)
+  | f64 (bits : UInt64)
   | ref (r : Option Nat)
   deriving Repr, Inhabited
 
 def Val.default : VT → Val
   | .i64 => .i64 0
+  | .f32 => .f32 0
+  | .f64 => .f64 0
   | .funcref | .externref => .ref none
   | _ => .i32 0
+
+/-- The raw bit pattern of a numeric value (`0` for a reference). -/
+def Val.bits : Val → Nat
+  | .i32 v => v.toNat
+  | .i64 v => v.toNat
+  | .f32 v => v.toNat
+  | .f64 v => v.toNat
+  | .ref _ => 0
 
 /-- `GasCounter` (`logic/gas_counter.rs:64-108`) plus the wasm-side `remaining_gas` global `g`. -/
 structure Gas where
@@ -357,6 +372,8 @@ def popN (s : St) : Nat × St :=
   match popV s with
   | (.i32 v, s') => (v.toNat, s')
   | (.i64 v, s') => (v.toNat, s')
+  | (.f32 v, s') => (v.toNat, s')
+  | (.f64 v, s') => (v.toNat, s')
   | (.ref _, s') => (0, s')
 
 def popRef (s : St) : Option Nat × St :=
@@ -367,6 +384,14 @@ def popRef (s : St) : Option Nat × St :=
 def pushV (s : St) (v : Val) : St := { s with stack := s.stack.push v }
 def pushI32 (s : St) (v : Nat) : St := pushV s (.i32 (UInt32.ofNat v))
 def pushI64 (s : St) (v : Nat) : St := pushV s (.i64 (UInt64.ofNat v))
+/-- Push by destination type: a float result is stored as its bit pattern. -/
+def pushT (s : St) (t : VT) (v : Nat) : St :=
+  match t with
+  | .i32 => pushI32 s v
+  | .i64 => pushI64 s v
+  | .f32 => pushV s (.f32 (UInt32.ofNat v))
+  | .f64 => pushV s (.f64 (UInt64.ofNat v))
+  | _ => pushV s (.ref none)
 
 def setFrame (s : St) (f : Frame) : St :=
   match s.frames with

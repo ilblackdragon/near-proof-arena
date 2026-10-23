@@ -50,7 +50,8 @@ def constE : ConstE → Nat
   | .refNull _ => 2 + 1
   | .refFunc f => 1 + uleb (f + 3) + 1
   | .globalGet g => 1 + uleb g + 1
-  | .float b => 1 + b + 1
+  | .f32 _ => 1 + 4 + 1
+  | .f64 _ => 1 + 8 + 1
 
 /-- `checked_{add,sub,mul}_i64`: wide op (2) + eqz + if + else + call f + unreachable + end -/
 def checkedOp (f : Nat) : Nat := 2 + 1 + 2 + 1 + (1 + uleb f) + 1 + 1

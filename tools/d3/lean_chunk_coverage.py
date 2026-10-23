@@ -47,6 +47,12 @@ LEAN_FILES = [
     "Wasm/Prepare.lean",
     "D2/Types.lean",
     "D2/Actions.lean",
+    # L2 (float domain): the kernel, its opcode dispatch, its guard switch and its successor
+    # relation. Adding these makes the drift gate fail if the float surface moves without the
+    # inventory being regenerated.
+    "Wasm/Float.lean",
+    "Wasm/FloatTests.lean",
+    "ChallengeChunkV3Float.lean",
 ]
 
 # Host families whose absence is a real semantic gap rather than a boundary exclusion.
@@ -164,15 +170,69 @@ def lean_instr_ops(repo):
     return sorted(ops)
 
 
+def float_coverage(repo):
+    """L2's surface, read from the Lean source (not asserted): which float opcodes the kernel
+    decides, whether the preparation switch and the successor relation exist, and how many decided
+    directed cases the build checks.
+
+    The *status* is derived, not stored by hand: a float row is `implemented` only when the kernel
+    decides all 70 opcodes the decoder admits, the four guard sites are switchable, and the
+    successor relation exists. Anything less is `partial` with the missing count recorded."""
+    root = repo / LEAN_ROOT
+    fl = (root / "Wasm/Float.lean").read_text()
+    prep = (root / "Wasm/Prepare.lean").read_text()
+    tests = (root / "Wasm/FloatTests.lean").read_text()
+    osucc = (root / "ChallengeChunkV3Float.lean").read_text()
+    # the opcode arms of `evalFloatOp`
+    ev = fl.split("def evalFloatOp", 1)[1].split("/--", 1)[0] if "def evalFloatOp" in fl else ""
+    arms = set(int(m.group(1), 16) for m in re.finditer(r"\|\s*0x([0-9A-Fa-f]{2,4})\s*=>", ev))
+    # the opcodes the kernel classifies as decided (no immediates)
+    imm = fl.split("def isFloatOpNoImm", 1)[1].split("\n/--", 1)[0] if "def isFloatOpNoImm" in fl else ""
+    decided = 0
+    for m in re.finditer(r"\(0x([0-9A-Fa-f]{2,4}) ≤ op && op ≤ 0x([0-9A-Fa-f]{2,4})\)", imm):
+        lo, hi = int(m.group(1), 16), int(m.group(2), 16)
+        decided += hi - lo + 1
+    guard_sites = sum(prep.count(f'"{msg}"') for msg in
+                      ("float in an imported function type", "float global",
+                       "float type or operator in a function body"))
+    switchable = ("floats : Bool := false" in prep and
+                  "def floatPv86 : NearCfg := { pv86 with floats := true }" in prep)
+    directed = len(re.findall(r"^theorem ", tests, re.MULTILINE))
+    successor = "def checkD3F " in osucc and "theorem checkD3F_characterization" in osucc
+    return {
+        "eval_arms": len(arms),
+        "decided_opcodes": decided,
+        "guard_sites": guard_sites,
+        "switchable": switchable,
+        "directed_tests": directed,
+        "successor_relation": successor,
+        "complete": len(arms) >= 70 and decided == 70 and switchable and guard_sites == 3
+                    and successor,
+    }
+
+
 def domain_guards(repo):
     """Named domain guards the plan asks L0 to enumerate."""
     dom = (repo / LEAN_ROOT / "Wasm/DomainD3.lean").read_text()
     syn = (repo / LEAN_ROOT / "Wasm/Syntax.lean").read_text()
+    prep = (repo / LEAN_ROOT / "Wasm/Prepare.lean").read_text()
     return {
         "noResharding": "def noResharding" in dom,
         "contractInD3alpha": "contractInD3" in dom,
         "curveHosts": "def curveHosts" in (repo / LEAN_ROOT / "Wasm/Exec.lean").read_text(),
-        "floatOutOfDomain": "float (out of domain)" in syn or "float (out of domain)" in dom,
+        # L2 keeps the guard *and* adds a switch that turns it off, so the presence test is that
+        # the three preparation messages, the switch and its default all exist. (The execution-side
+        # sentinel was `float (out of domain)` before L2; it is now a decided operator, so the
+        # preparation guards are what the row means.)
+        # `>= 1`, not `== 1`: L2 names each guard as a predicate (`floatGuardImport` etc.) whose
+        # doc comment repeats the message the `throw` site uses, so the literal appears twice. The
+        # row is about the guard existing and being switchable, not about how often the message is
+        # mentioned in a comment.
+        "floatOutOfDomain": (
+            "float in an imported function type" in prep
+            and "float global" in prep
+            and "float type or operator in a function body" in prep
+            and "floats : Bool := false" in prep),
     }
 
 
@@ -284,11 +344,60 @@ def inventory(repo, nearcore):
     ))
     rows.append(row(
         "L0-instr-float", "instruction", "wasmparser float opcode set",
-        "NearSpecV3.Wasm.Instr.float", "missing", "out-of-domain (float)",
-        "Decode.lean parses float opcodes only to reject them; Exec.lean returns "
-        "unmodeled 'float (out of domain)'",
-        "L2", "L0", "every f32/f64 opcode with signed zero, subnormal, NaN payload cases",
-        "no float semantics exist; this is L2's whole deliverable",
+        "NearSpecV3.Wasm.evalFloatOp", "implemented", "none under NearCfg.floats (default false)",
+        "Wasm/Float.lean decides all 70 float opcodes with no immediates (comparisons, abs/neg/"
+        "ceil/floor/trunc/nearest/sqrt, add/sub/mul/div/min/max/copysign, the 8 trapping and 8 "
+        "saturating truncations, 10 converts, demote/promote, 4 reinterprets) plus loads/stores/"
+        "consts in Exec.lean; D3α keeps them out of domain via NearCfg.floats = false",
+        "L2", "L0",
+        "signed zero, subnormal, infinity, NaN payload and rounding-tie cases per opcode",
+        "operator semantics anchored to pinned nearcore: 1,260 directed triples through its own "
+        "engine plus 210 gas modules (oracle/wasm-d3/tests/float_nearcore.py), and 79,742 "
+        "directed + 1,120 generated cases x 4 seeds against the Python IEEE reference; NOT proved "
+        "equivalent, and whole-chunk coverage is 26 recorded float chunks",
+    ))
+
+    # --- L2 float preparation and execution rows (plan §4 L2) --------------
+    fc = float_coverage(repo)
+    rows.append(row(
+        "L0-W-001", "wasm-prepare", "prepare_v3.rs:303-333 (transform_import_section)",
+        "NearSpecV3.Wasm.Prepare (NearCfg.floats)", "implemented",
+        "switchable: floatPv86 lifts it",
+        "the import-type guard is gated on `!cfg.floats`; floatPv86 lifts it, and the signature "
+        "is then checked by Validate.lean's float operand/result types",
+        "L2", "L0", "contract importing a float-signature function, never calling it",
+        "implemented and directed-tested (oracle/wasm-d3/tests/float_prepare.py: an import-only "
+        "f32 and f64 signature, exact gas against nearcore); D3alpha is unchanged because "
+        "NearCfg.floats defaults to false",
+    ))
+    rows.append(row(
+        "L0-W-002", "wasm-prepare", "prepare_v3.rs (global section)",
+        "NearSpecV3.Wasm.Prepare (NearCfg.floats)", "implemented",
+        "switchable: floatPv86 lifts it",
+        "the global-section guard is gated on `!cfg.floats`; a float global's initialiser is its "
+        "bit pattern (Syntax.ConstE.f32/f64, Exec.evalConst), so the value is byte-exact",
+        "L2", "L0", "contract with an f64 global",
+        "implemented and directed-tested (float_prepare.py: immutable, mutable and read-then-"
+        "dropped f64 globals, exact gas against nearcore); the initialiser is a bit pattern",
+    ))
+    rows.append(row(
+        "L0-W-003", "wasm-prepare", "prepare_v3.rs:397-470 (validate_contract); finite-wasm",
+        "NearSpecV3.Wasm.Prepare (NearCfg.floats)", "implemented",
+        "switchable: floatPv86 lifts it",
+        "the body guard is gated on `!cfg.floats`; the finite-wasm max-stack and gas analyses "
+        "handle float operators (FiniteWasm.lean; floatPartial is cvtop_partial)",
+        "L2", "L0", "d3float run/cb",
+        "implemented for the whole operator set; 160 recorded e.float chunks replay through the "
+        "whole-chunk checker (oracle/wasm-d3/tests/chunk_float.py)",
+    ))
+    rows.append(row(
+        "L0-W-012", "wasm-exec", "Exec.lean; Validate.lean; FiniteWasm.lean",
+        "NearSpecV3.Wasm.execFloat", "implemented", "decided under NearCfg.floats",
+        "Exec.lean's `.float` arm calls evalFloatOp, the only float entry point; Validate.lean "
+        "gives the signatures; FiniteWasm.lean the stack and gas classification",
+        "L2", "L0", "after L2 lifts prepare, exercise each site",
+        "all four sites implemented and exercised through full chunks; the D3alpha relation is "
+        "unchanged (checkD3F is a separate entry point)",
     ))
 
     # --- Domain guards -----------------------------------------------------
@@ -315,7 +424,8 @@ def inventory(repo, nearcore):
     # L0 execution/boundary analysis (docs/research/lean-chunk-coverage-gen.py logic,
     # lifted into tools/d3/lean_chunk_coverage_l0.py so this drift gate covers it too).
     extra = _l0_supplement()
-    rows.extend(extra["rows"])
+    existing_ids = {r["id"] for r in rows}
+    rows.extend(r for r in extra["rows"] if r["id"] not in existing_ids)
     ids = [r["id"] for r in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("duplicate coverage row id")

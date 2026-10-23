@@ -39,7 +39,7 @@ elab "se_gen" : tactic => do
   let g ← getMainGoal
   let tgt ← instantiateMVars (← g.getType)
   let heads : List Name := [``sync, ``charge, ``memCopy, ``memFill, ``memInit, ``tableInit, ``execNum,
-    ``enter, ``doReturn, ``doBr, ``callHost, ``callFunc, ``exec, ``step]
+    ``execFloat, ``enter, ``doReturn, ``doBr, ``callHost, ``callFunc, ``exec, ``step]
   let ok (x : Expr) : Bool :=
     !x.hasLooseBVars && heads.any (fun n => x.isAppOf n)
   let some e := tgt.find? (fun e => (e.isAppOfArity ``mapRes 2 || e.isAppOfArity ``Except.map 5) && ok e.appArg!)
@@ -109,7 +109,28 @@ theorem E_sync : sync (E σ s) = (sync s).map (E σ) := by
 theorem E_charge (fee : Fee) (c : Nat) : charge (E σ s) fee c = mapRes (E σ) (charge s fee c) := by
   unfold charge; simp only [E_sync]; se
 
-macro_rules | `(tactic| se_step) => `(tactic| simp only [E_setFrame, E_pushV, E_pushI32, E_pushI64, E_popV, E_popRef, E_sync, E_charge])
+/-- `pushT` only rebuilds the stack, so it commutes with `E` for every destination type. -/
+theorem E_pushT (t : VT) (v : Nat) : pushT (E σ s) t v = E σ (pushT s t v) := by
+  unfold pushT; split <;> rfl
+/-- `execFloat` reads and writes only the value stack and traps by name, so it commutes with `E`. -/
+theorem E_execFloat (op : Nat) :
+    execFloat (E σ s) op = (execFloat s op).map (E σ) := by
+  unfold execFloat
+  by_cases h : (floatOperands op).size = 2
+  · rw [if_pos h, if_pos h]
+    cases hp : popN s with
+    | mk b s1 =>
+      cases hq : popN s1 with
+      | mk a s2 =>
+        simp only [hp, hq, E_popN, E_pushT]
+        cases evalFloatOp op a b <;> rfl
+  · rw [if_neg h, if_neg h]
+    cases hp : popN s with
+    | mk a s1 =>
+      simp only [hp, E_popN, E_pushT]
+      cases evalFloatOp op a 0 <;> rfl
+
+macro_rules | `(tactic| se_step) => `(tactic| simp only [E_setFrame, E_pushV, E_pushI32, E_pushI64, E_pushT, E_execFloat, E_popV, E_popRef, E_sync, E_charge])
 
 theorem forIn_E {σ} : ∀ (l : List Nat) (f : Nat → St → St) (t : St)
     (_hf : ∀ x t, f x (E σ t) = E σ (f x t)),

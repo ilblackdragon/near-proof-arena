@@ -129,7 +129,16 @@ def msInstr (c : Ctx) (locals : Array VT) : Instr → MSM Unit
     if ps.size = 1 ∧ rs = ps then pure ()
     else if ps.size = 2 ∧ rs.size = 1 ∧ rs[0]? = ps[0]? then msPop
     else do msPopMany ps.size; for r in rs do msPush r
-  | .float _ => throw "float (out of domain)"
+  | .float op =>
+    -- finite-wasm `unop`/`binop_complete`/`relop`/`cvtop_complete`: pop all operands, push the
+    -- result. The trapping truncations are `cvtop_partial`, which is a *gas* distinction only:
+    -- their operand/result arity is the same.
+    let ps := floatOperands op
+    do msPopMany ps.size; msPush (floatResultType op)
+  | .floatLoad op _ _ => do msPop; msPush (loadResult op)
+  | .floatStore _ _ _ => msPopMany 2
+  | .f32Const _ => msPush .f32
+  | .f64Const _ => msPush .f64
 
 /-- finite-wasm's `function_operand_stack_sizes` entry for one body. -/
 def maxStack (c : Ctx) (locals : Array VT) (code : Array Instr) : Except String Nat := do
@@ -247,6 +256,8 @@ def gInstr (g : GasCfg) : Instr → StateM GS Unit
   | .load .. | .store .. | .call _ | .callIndirect .. | .tableGet _ | .tableSet _ =>
     gSide (.const g.regular)
   | .num op => if partialNum op then gSide (.const g.regular) else gPure (.const g.regular)
+  | .float op => if floatPartial op then gSide (.const g.regular) else gPure (.const g.regular)
+  | .floatLoad .. | .floatStore .. => gSide (.const g.regular)
   | _ => gPure (.const g.regular)
 
 def mergeSame : IK → IK → Option IK

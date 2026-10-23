@@ -1,4 +1,5 @@
 import NearSpecV3.Wasm.Syntax
+import NearSpecV3.Wasm.Float
 /-!
 # NEAR WASM (D3α): validation
 
@@ -96,16 +97,20 @@ def btOk : BT → Bool
   | some t => !t.isFloat || true
   | none => true
 
-/-- Natural alignment (log2 of the access width) of integer loads/stores. -/
+/-- Natural alignment (log2 of the access width) of a load/store, integers and floats alike. -/
 def memWidth (op : Nat) : Nat :=
   match op with
-  | 0x28 | 0x36 | 0x34 | 0x35 | 0x3E => 4
-  | 0x29 | 0x37 => 8
+  | 0x28 | 0x36 | 0x34 | 0x35 | 0x3E | 0x2A | 0x38 => 4
+  | 0x29 | 0x37 | 0x2B | 0x39 => 8
   | 0x2C | 0x2D | 0x30 | 0x31 | 0x3A | 0x3C => 1
   | _ => 2   -- 0x2E 0x2F 0x32 0x33 0x3B 0x3D
 
-def loadResult (op : Nat) : VT := if op = 0x28 ∨ (0x2C ≤ op ∧ op ≤ 0x2F) then .i32 else .i64
-def storeArg (op : Nat) : VT := if op = 0x36 ∨ op = 0x3A ∨ op = 0x3B then .i32 else .i64
+def loadResult (op : Nat) : VT :=
+  if op = 0x2A then .f32 else if op = 0x2B then .f64
+  else if op = 0x28 ∨ (0x2C ≤ op ∧ op ≤ 0x2F) then .i32 else .i64
+def storeArg (op : Nat) : VT :=
+  if op = 0x38 then .f32 else if op = 0x39 then .f64
+  else if op = 0x36 ∨ op = 0x3A ∨ op = 0x3B then .i32 else .i64
 
 /-- `(params, results)` of an integer `num` opcode. -/
 def numSig (op : Nat) : Array VT × Array VT :=
@@ -267,7 +272,19 @@ def checkInstr (c : Ctx) (locals : Array VT) (fnResults : Array VT) : Instr → 
   | .num op => do
     let (ps, rs) := numSig op
     vPopVals ps; vPushVals rs
-  | .float _ => throw "float operator (out of domain in D3α; validation not modelled)"
+  | .float op => do
+    if !isFloatOpNoImm op then throw "float operator without an immediate expected"
+    vPopVals (floatOperands op); vPushVals #[floatResultType op]
+  | .floatLoad op a _ => do
+    needMem c
+    if 2 ^ a > memWidth op then throw "alignment must not be larger than natural"
+    vPopT .i32; vPush (some (loadResult op))
+  | .floatStore op a _ => do
+    needMem c
+    if 2 ^ a > memWidth op then throw "alignment must not be larger than natural"
+    vPopT (storeArg op); vPopT .i32
+  | .f32Const _ => vPush (some .f32)
+  | .f64Const _ => vPush (some .f64)
 
 /-- Validate one function body (operators, ending with the function's `end`). -/
 def validateBody (c : Ctx) (ft : FuncType) (locals : Array VT) (code : Array Instr) :
@@ -290,6 +307,7 @@ def constType (c : Ctx) : ConstE → Except String VT
   | .refNull t => .ok t
   | .refFunc f => if f < c.funcs.size then .ok .funcref else .error "unknown function"
   | .globalGet _ => .error "constant expression required (no imported globals)"
-  | .float _ => .error "float (out of domain)"
+  | .f32 _ => .ok .f32
+  | .f64 _ => .ok .f64
 
 end NearSpecV3.Wasm

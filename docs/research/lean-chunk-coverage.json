@@ -11,9 +11,9 @@
     "nearcore": "imports link at instantiation (wasmtime_runner/mod.rs:1127-1155); only a call runs External code"
   },
   "counts": {
-    "implemented": 137,
+    "implemented": 143,
     "impossible-at-boundary": 11,
-    "missing": 30,
+    "missing": 24,
     "partial": 6,
     "validated": 35
   },
@@ -227,18 +227,18 @@
     },
     "Wasm/Exec.lean": {
       "check": 0,
-      "decision_sites": 13,
-      "error": 9,
-      "ood": 1,
+      "decision_sites": 16,
+      "error": 12,
+      "ood": 0,
       "throw": 4,
-      "unmodeled": 31
+      "unmodeled": 33
     },
     "Wasm/FiniteWasm.lean": {
       "check": 0,
-      "decision_sites": 10,
+      "decision_sites": 9,
       "error": 0,
-      "ood": 1,
-      "throw": 10,
+      "ood": 0,
+      "throw": 9,
       "unmodeled": 0
     },
     "Wasm/Host.lean": {
@@ -307,10 +307,10 @@
     },
     "Wasm/Validate.lean": {
       "check": 0,
-      "decision_sites": 43,
-      "error": 3,
-      "ood": 2,
-      "throw": 40,
+      "decision_sites": 44,
+      "error": 2,
+      "ood": 0,
+      "throw": 42,
       "unmodeled": 0
     },
     "Wire.lean": {
@@ -2033,18 +2033,74 @@
       "status": "implemented"
     },
     {
-      "acceptance_tests": "every f32/f64 opcode with signed zero, subnormal, NaN payload cases",
+      "acceptance_tests": "signed zero, subnormal, infinity, NaN payload and rounding-tie cases per opcode",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (float)",
-      "evidence": "Decode.lean parses float opcodes only to reject them; Exec.lean returns unmodeled 'float (out of domain)'",
+      "domain_guard": "none under NearCfg.floats (default false)",
+      "evidence": "Wasm/Float.lean decides all 70 float opcodes with no immediates (comparisons, abs/neg/ceil/floor/trunc/nearest/sqrt, add/sub/mul/div/min/max/copysign, the 8 trapping and 8 saturating truncations, 10 converts, demote/promote, 4 reinterprets) plus loads/stores/consts in Exec.lean; D3\u03b1 keeps them out of domain via NearCfg.floats = false",
       "family": "instruction",
       "id": "L0-instr-float",
-      "lean_path_symbol": "NearSpecV3.Wasm.Instr.float",
+      "lean_path_symbol": "NearSpecV3.Wasm.evalFloatOp",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "wasmparser float opcode set",
       "owner": "L2",
-      "remaining_work": "no float semantics exist; this is L2's whole deliverable",
-      "status": "missing"
+      "remaining_work": "operator semantics anchored to pinned nearcore: 1,260 directed triples through its own engine plus 210 gas modules (oracle/wasm-d3/tests/float_nearcore.py), and 79,742 directed + 1,120 generated cases x 4 seeds against the Python IEEE reference; NOT proved equivalent, and whole-chunk coverage is 26 recorded float chunks",
+      "status": "implemented"
+    },
+    {
+      "acceptance_tests": "contract importing a float-signature function, never calling it",
+      "dependencies": "L0",
+      "domain_guard": "switchable: floatPv86 lifts it",
+      "evidence": "the import-type guard is gated on `!cfg.floats`; floatPv86 lifts it, and the signature is then checked by Validate.lean's float operand/result types",
+      "family": "wasm-prepare",
+      "id": "L0-W-001",
+      "lean_path_symbol": "NearSpecV3.Wasm.Prepare (NearCfg.floats)",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "prepare_v3.rs:303-333 (transform_import_section)",
+      "owner": "L2",
+      "remaining_work": "implemented and directed-tested (oracle/wasm-d3/tests/float_prepare.py: an import-only f32 and f64 signature, exact gas against nearcore); D3alpha is unchanged because NearCfg.floats defaults to false",
+      "status": "implemented"
+    },
+    {
+      "acceptance_tests": "contract with an f64 global",
+      "dependencies": "L0",
+      "domain_guard": "switchable: floatPv86 lifts it",
+      "evidence": "the global-section guard is gated on `!cfg.floats`; a float global's initialiser is its bit pattern (Syntax.ConstE.f32/f64, Exec.evalConst), so the value is byte-exact",
+      "family": "wasm-prepare",
+      "id": "L0-W-002",
+      "lean_path_symbol": "NearSpecV3.Wasm.Prepare (NearCfg.floats)",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "prepare_v3.rs (global section)",
+      "owner": "L2",
+      "remaining_work": "implemented and directed-tested (float_prepare.py: immutable, mutable and read-then-dropped f64 globals, exact gas against nearcore); the initialiser is a bit pattern",
+      "status": "implemented"
+    },
+    {
+      "acceptance_tests": "d3float run/cb",
+      "dependencies": "L0",
+      "domain_guard": "switchable: floatPv86 lifts it",
+      "evidence": "the body guard is gated on `!cfg.floats`; the finite-wasm max-stack and gas analyses handle float operators (FiniteWasm.lean; floatPartial is cvtop_partial)",
+      "family": "wasm-prepare",
+      "id": "L0-W-003",
+      "lean_path_symbol": "NearSpecV3.Wasm.Prepare (NearCfg.floats)",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "prepare_v3.rs:397-470 (validate_contract); finite-wasm",
+      "owner": "L2",
+      "remaining_work": "implemented for the whole operator set; 160 recorded e.float chunks replay through the whole-chunk checker (oracle/wasm-d3/tests/chunk_float.py)",
+      "status": "implemented"
+    },
+    {
+      "acceptance_tests": "after L2 lifts prepare, exercise each site",
+      "dependencies": "L0",
+      "domain_guard": "decided under NearCfg.floats",
+      "evidence": "Exec.lean's `.float` arm calls evalFloatOp, the only float entry point; Validate.lean gives the signatures; FiniteWasm.lean the stack and gas classification",
+      "family": "wasm-exec",
+      "id": "L0-W-012",
+      "lean_path_symbol": "NearSpecV3.Wasm.execFloat",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "Exec.lean; Validate.lean; FiniteWasm.lean",
+      "owner": "L2",
+      "remaining_work": "all four sites implemented and exercised through full chunks; the D3alpha relation is unchanged (checkD3F is a separate entry point)",
+      "status": "implemented"
     },
     {
       "acceptance_tests": "witness that the guard rejects exactly the excluded set and nothing else",
@@ -2077,16 +2133,16 @@
     {
       "acceptance_tests": "witness that the guard rejects exactly the excluded set and nothing else",
       "dependencies": "L0",
-      "domain_guard": "none",
+      "domain_guard": "this guard *is* the exclusion",
       "evidence": "tools/d3/lean_chunk_coverage.py domain_guards",
       "family": "domain_guard",
       "id": "L0-guard-floatOutOfDomain",
-      "lean_path_symbol": "none",
+      "lean_path_symbol": "NearSpecV3.Wasm.DomainD3.floatOutOfDomain",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation: floatOutOfDomain",
       "owner": "L0",
       "remaining_work": "guard presence only; rejection completeness not re-derived here",
-      "status": "missing"
+      "status": "implemented"
     },
     {
       "acceptance_tests": "witness that the guard rejects exactly the excluded set and nothing else",
@@ -3167,48 +3223,6 @@
       "status": "validated"
     },
     {
-      "acceptance_tests": "contract importing a float-signature function, never calling it",
-      "dependencies": "L2",
-      "domain_guard": "float in an imported function type",
-      "evidence": "Prepare.lean:205 `.ood \"float in an imported function type\"` | PV86 wasmparser features include floats and saturating_float_to_int (features.rs:47-59)",
-      "family": "wasm-prepare",
-      "id": "L0-W-001",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/Wasm/Prepare.lean:205",
-      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "runtime/near-vm-runner/src/prepare/prepare_v3.rs:303-333 (transform_import_section)",
-      "owner": "L2",
-      "remaining_work": "implement floats or prove the import-only case harmless",
-      "status": "missing"
-    },
-    {
-      "acceptance_tests": "contract with an f64 global",
-      "dependencies": "L2",
-      "domain_guard": "float global",
-      "evidence": "Prepare.lean:234 `.ood \"float global\"`",
-      "family": "wasm-prepare",
-      "id": "L0-W-002",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/Wasm/Prepare.lean:234",
-      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "runtime/near-vm-runner/src/prepare/prepare_v3.rs (global section)",
-      "owner": "L2",
-      "remaining_work": "L2",
-      "status": "missing"
-    },
-    {
-      "acceptance_tests": "d3float run/cb",
-      "dependencies": "L2",
-      "domain_guard": "float type or operator in a function body",
-      "evidence": "Prepare.lean:315 | 150 exact float OOD verdicts (d3float contract)",
-      "family": "wasm-prepare",
-      "id": "L0-W-003",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/Wasm/Prepare.lean:315",
-      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "prepare_v3.rs:397-470 (validate_contract); finite-wasm",
-      "owner": "L2",
-      "remaining_work": "float semantics incl. NaN determinism (H3)",
-      "status": "missing"
-    },
-    {
       "acceptance_tests": "cleanroom prepare vectors (oracle/wasm-d3)",
       "dependencies": "",
       "domain_guard": "prepare result dispatch",
@@ -3319,20 +3333,6 @@
       "owner": "L0",
       "remaining_work": "none; internal invariants",
       "status": "implemented"
-    },
-    {
-      "acceptance_tests": "after L2 lifts prepare, exercise each site",
-      "dependencies": "L2",
-      "domain_guard": "float operator (interpreter/validator/analyzer)",
-      "evidence": "four float sites; unreachable once Prepare rejects floats",
-      "family": "wasm-exec",
-      "id": "L0-W-012",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/Wasm/Exec.lean:325; Validate.lean:270,293; FiniteWasm.lean:132",
-      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "runtime/near-vm-runner/src/prepare/prepare_v3.rs (float checks)",
-      "owner": "L2",
-      "remaining_work": "L2",
-      "status": "missing"
     },
     {
       "acceptance_tests": "internal invariants",
@@ -3589,6 +3589,7 @@
   ],
   "schema": "near-lean-chunk-coverage-v2",
   "source_sha256": {
+    "ChallengeChunkV3Float.lean": "c4732c25fe30d47bfa63d54087c7a6863b2064044d0a3f934ed44e8b55c3aefb",
     "ChunkValidationD1.lean": "772af672219bbb289e2768d82130cc8d80abbf511c7ce84704ce66f9586d6b05",
     "ChunkValidationD1a.lean": "5c3ee8da7e308d42fd91c47dc28f62d3de69e41cd9ec753abe30561936cd38ec",
     "ChunkValidationD2.lean": "c58af4b97f334b49fdcf6fdc002dbdae66fab1ba3856fb26454b599c67844f9e",
@@ -3600,12 +3601,14 @@
     "D2/Types.lean": "bc432dd9390e604e66d23135dab6f2640e2efd205b25fc094af3183d7d5feacb",
     "D3/FunctionCall.lean": "683b94a59551c5e980b8d9c85133c9578b5c754c88fafd5570ae3298f80cb8b7",
     "Layout.lean": "0931ff561a8bc00b32cab315c99e090185be188e705dae407785c1d8889c0fda",
-    "Wasm/Decode.lean": "58ff3a379dc79ed459ae37b957cf8952a2e30453ed0d108ae364394a26bfd86d",
+    "Wasm/Decode.lean": "a5e7c1715c7bd88b78798c869f92dec166970fd8c16d68542caf9c6ab2143e73",
     "Wasm/DomainD3.lean": "bfa5fecf313275e486e0d5c549e3b53403453c560c4e9c5c4b43c65c8fe40714",
-    "Wasm/Exec.lean": "93eade05286e1472be114fba87c12d80a330fb3da55ac0864473b0739ba78436",
+    "Wasm/Exec.lean": "2bb4f6bddfa4f05b99f789d5578b39abd67772d541004e19e17e7fa442a07929",
+    "Wasm/Float.lean": "8c50747c442ba4e67c5e1ae98c24cc31f9eded50a89adf17e89ebd27861fe820",
+    "Wasm/FloatTests.lean": "a7735325dade0120d4909033747c516727655e0e01853c11be183d5c0334287a",
     "Wasm/Host.lean": "1f22bb39c6dbfa442da4e2359888ad3d8624d31c2c5eabb49a05d9f4cfcf90c7",
-    "Wasm/Prepare.lean": "b29bcb25a32860090413ce6f35f826a15c3268314b493e569ca048bb8c031be5",
-    "Wasm/Syntax.lean": "2a78757ec93da651e9da29a8f80d0d19b60922885b5d2a95cbd3b911c3a24a79",
+    "Wasm/Prepare.lean": "11efdae5445ade42a4b3073896aea047c96439a9e694ca9742810bff6bbecf8a",
+    "Wasm/Syntax.lean": "0dabce5421836280a88ab68f5f22d888e3d75b3e988f0990eefe15d87c002095",
     "Wasm/TrieStore.lean": "d01f638e45b546ce50c8f157dd36934ad820b36147f546c119603d6506665257",
     "Wire.lean": "c5a197a50b8ddd332b05d2826ad01e8b56e3f35ffcd90a688851ef2d09406302"
   },

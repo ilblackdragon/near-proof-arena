@@ -24,3 +24,11 @@ root = "MainLogged"
 
 [[lean_lib]]
 name = "LoggedHarness"
+
+[[lean_exe]]
+name = "nearspec-v3-test-float"
+root = "TestFloat"
+
+[[lean_exe]]
+name = "nearspec-v3-check-d3f"
+root = "MainD3F"
