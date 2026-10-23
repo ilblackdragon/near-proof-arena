@@ -179,9 +179,10 @@ it: the child's committed heights are part of what the program hashes. The drive
 the floor **empirically, one level at a time** (`main.rs:320-331`):
 
 1. generate the level's traces,
-2. read their natural tight heights,
-3. keep the componentwise maximum as the floor,
-4. and only then prove (which commits to that floor).
+2. read their *natural* tight heights,
+3. and if **any** component exceeds the current floor, **replace the whole floor** with the
+   new vector (it is not a componentwise maximum — components can and do decrease),
+4. then prove, committing to that floor.
 
 So a level's program cannot match its child's until the floor has stopped moving.
 Measured floors:
@@ -193,7 +194,9 @@ Measured floors:
 | L4 | `[281016, 1047280, 128, 65536]` (unchanged) |
 | L5 | unchanged |
 
-The floor reaches its fixpoint at **L3** and never moves again. `M` is therefore counting
+The floor reaches its fixpoint at **L3** and never moves again. Note the L2→L3 step moves
+AIR 1 *down* (1,047,412 → 1,047,280) while AIR 0 moves up (274,384 → 281,016), which is only
+possible because the update replaces the vector rather than taking a maximum. `M` is therefore counting
 *discovery steps*, not mathematical structure: each level whose program differs from the
 converged one anchors at its own child, incrementing `M`.
 Consequence: `M = 3`, so the chain needs `M + 2 = 5` levels (`L1..L5`).
