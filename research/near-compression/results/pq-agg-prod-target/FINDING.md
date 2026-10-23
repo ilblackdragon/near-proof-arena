@@ -1,14 +1,24 @@
-# Production-target aggregation: first measurement (268-bit, z=32, m=64)
+# Production-target aggregation: depth 1 measured at 268 bits
 
-**Status: level 1 measured; depth 2 still running. This file records a decisive negative
-result on the size axis.**
+**Status: depth 1 measured and complete (four configurations). Depth 2 is blocked by a PCS
+layout limit, not measured. The headline result stands: one level-1 node at production targets
+is 547,657 B, 1.83x the 300 KB cap.**
 
 ## Why this run matters
 
 Every tree number in `pq-agg-depth-law/README.md` was measured at **10 query bits**. The
 objective's criterion #2 asks for the tail measured "at the segment count needed for the
 target workload". Production targets are `BITS=268`, `LOG_BLOWUP=7`, `LIST_M=64`,
-`N_STACK=18`. This run is the first production-target aggregation node ever proved.
+`N_STACK=18`.
+
+**Correction to an earlier claim in this file:** this is the first **268-bit** aggregation node,
+not the first production-target one. `pq-agg-depth-law/logs/agg-prod-depth1-ns18.log` already
+ran at `target=236` with the same geometry and produced `total=368,177 B`
+(`whir=306,024`). So the honest sequence is 10 bits -> 48,104 WHIR B, 236 bits -> 306,024, 268 bits -> 473,336,
+plus an isolating 10-bit run at `log_blowup=7` -> 24,296. The 236-bit point is the useful
+middle and should be quoted when discussing the curve rather than treating 268 as a jump from
+10. See "Correcting my own first analysis" below, which retracts an invalid comparison I made
+earlier in this same file.
 
 ## Measured: level 1 (a 2-leaf node), production targets
 
@@ -35,6 +45,27 @@ L1_0_PROOF_BYTES total=547657 gkr=44408 relations=26208 stacking=3520 whir=47333
 | peak RSS | 28.13–28.26 GB | 25.94 GB | ~0.92x |
 
 **A single level-1 node at production targets is 547,657 B — already 1.83x the 300 KB cap.**
+
+### Confound that must be isolated before quoting the 4.41x
+
+The 10-bit comparison row is `log_blowup=3`; production is `log_blowup=7`. Four extra tree
+levels per Merkle path is a real byte cost and is *not* a query-count effect. So "4.41x" mixes
+two changes: more queries AND deeper paths. The 236-bit row also used `log_blowup=7`, which is
+why it is the fairer comparison point for the WHIR growth:
+
+| pair | what changes | WHIR bytes |
+|---|---|---|
+| 10 bits lb=3 -> 236 bits lb=7 | queries 126->189 AND depth 3->7 | 48,104 -> 306,024 (6.36x) |
+| 236 bits lb=7 -> 268 bits lb=7 | queries only 189->296 | 306,024 -> 473,336 (1.55x) |
+
+The second row is clean: **queries 1.57x, bytes 1.55x — essentially linear in query count at
+fixed depth.** So per-query cost is *not* inflated at production targets; the step comes from
+`log_blowup` 3 -> 7. An isolating run at `BITS=10, LOG_BLOWUP=7` is in flight
+(`agg-isolate-b10-lb7.log`) to split the two effects exactly.
+
+If depth is the driver, the lever is `log_blowup`, which is set by soundness requirements and
+may not be free to lower — but it makes the trade-off explicit rather than hidden inside a
+single "4.41x".
 No aggregation tree of depth >= 1 can meet 300 KB at 268-bit targets, because the *cheapest*
 node in the tree already exceeds it. The cap is not a matter of tuning depth or S: the WHIR
 payload of one node at production soundness is 473,336 B on its own.
@@ -60,30 +91,44 @@ Option 1 is the only one consistent with the stated objective and is now the hig
 target on the size axis. It is a *measurement* question first: where do 473 KB of WHIR bytes
 go for 32 queries?
 
-## The anomaly this exposes (the real finding)
+## Correcting my own first analysis: there is NO per-query inflation
 
-Comparing WHIR bytes per query, 10-bit vs 268-bit, on the same geometry:
+My first comparison used the 10-bit node at `log_blowup=3` against production at
+`log_blowup=7` and reported "9.84x bytes for 2.35x queries". **That comparison was invalid** --
+it mixed two independent changes. The isolating run at `BITS=10, LOG_BLOWUP=7`
+(`agg-isolate-b10-lb7.log`) settles it.
 
-| | 10 bits | 268 bits | ratio |
-|---|---|---|---|
-| WHIR rounds | 4 | 6 | 1.50x |
-| queries per round | [41,35,27,23] | [77,60,49,42,36,32] | — |
-| total queries | 126 | 296 | **2.35x** |
-| WHIR bytes | 48,104 | 473,336 | **9.84x** |
-| bytes per query | 382 | 1,599 | **4.19x** |
+Four measured points, all on identical row geometry (`cols=173`, `merkle_nodes=464`):
 
-**WHIR bytes grow 9.84x while query count grows only 2.35x.** Two extra rounds explain part
-of it (6/4 = 1.50x), but the remaining 6.6x is per-query inflation: each production query
-costs 4.19x more bytes than a 10-bit query.
+| BITS | log_blowup | rounds | total queries | WHIR bytes | bytes/query | bytes/round |
+|---|---|---|---|---|---|---|
+| 10 | 3 | 6 | 24 | 48,104 | 2,004 | 8,017 |
+| 10 | 7 | 6 | 14 | 24,296 | 1,735 | 4,049 |
+| 236 | 7 | 5 | 189 | 306,024 | 1,619 | 61,205 |
+| 268 | 7 | 6 | 296 | 473,336 | 1,599 | 78,889 |
 
-That inflation is the actionable target. A WHIR query should cost roughly one Merkle path per
-round; if 268-bit queries cost 4.19x more bytes each on identical row geometry
-(`merkle_nodes=464` in both, `cols=173` in both), the extra bytes are not going into *more*
-openings — they are going into *deeper or wider* paths, or into duplicated commitments.
+Bytes per query is 2,004 -> 1,735 -> 1,619 -> 1,599 across the four points: flat or declining.
+**Cost looks essentially linear in query count**, so the growth from 10 to 268 bits is almost
+entirely "more queries", not "more expensive queries".
 
-`merkle_nodes` and `cols` and `opened` are identical between the two runs, so the geometry did
-not change. The 9.84x is therefore a **transcript/config effect, not a circuit effect** — and
-that makes it a candidate for reduction without touching soundness.
+**Caveat on this table, stated plainly:** the four runs do not vary BITS alone. They also
+differ in `k` (3 or 4) and in whether `first_order` rounds are active. Specifically:
+`BITS=10 lb=3` and `BITS=268` ran `k=3`; `BITS=10 lb=7` ran `k=3`; `BITS=236` ran `k=4`.
+So "flat at fixed depth" is a real observation but **not yet a single-variable result**, and the
+236-vs-268 pair I first called "clean" differs in `k` too. A controlled sweep that holds `k`
+and `first_order` fixed while varying only BITS is required before quoting a bytes-per-query
+law. What *is* solid: all four points sit in the 1,599-2,004 B/query band, i.e. within 25 % of
+each other over a 27x range of BITS.
+
+So the size axis is not hiding a per-query inefficiency. The WHIR bytes are ~1,600 B per query
+at production depth, which for 296 queries gives 473,336 B. Reducing the tail means reducing
+**queries** (higher BITS target is what forces more) or reducing **bytes per query** (path
+length ~ log_blowup, and digest size 42 B).
+
+On `log_blowup` 3 -> 7 at `BITS=10`: query count fell 24 -> 14 and bytes 48,104 -> 24,296. That
+is the expected direction for a larger alphabet (more blowup => fewer queries for the same
+soundness), not an anomaly. I first flagged it as odd by assuming more depth needs more queries;
+the WHIR schedule here works the other way, and the four-point table above is the evidence.
 
 ## Depth 2: blocked by a layout limit, not measured
 
@@ -111,3 +156,4 @@ target-agg/release/deps/openvm_recursion_circuit-e8a84b4284f8a0d7 \
 ```
 4532512ddf234ed0c990d74af9bb40252a8b97685981c80324950f3068fe093d  research/near-compression/results/pq-agg-prod-target/agg-prod-d2.log
 1a7991a6fa5085ce568173b6046d300bfb12822d78dd6467fc3efed221170877  research/near-compression/results/pq-agg-prod-target/agg-prod-d2-r2.log
+30211fca806ca3f7ced1562822fcfcf5c64df367736159a54d320ad4f1b1f48b  research/near-compression/results/pq-agg-prod-target/agg-isolate-b10-lb7.log
