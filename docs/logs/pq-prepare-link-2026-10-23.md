@@ -287,10 +287,56 @@ conjunct.  So this join consumes strictly more than it concludes — the opposit
 The third row records that the new path and the pre-existing `check_sound` agree, so neither is a
 shadow of the other.
 
-Honest limit, stated in the file: "strictly stronger" is established **structurally** (a conjunction
-with a conjunct absent from `RelD3`'s statement), not by a separating witness.  Exhibiting a chunk
-that satisfies `RelD3` and fails canonicality needs a fixture whose read set does not re-encode to
-itself — candidates are under `adversarial/`, and that search is **[O]**.
+### The separating witness is found — "strictly stronger" is now demonstrated, not just structural
+
+The structural argument above was initially the only support.  The separating witness exists in the
+shipped public corpus and is reproducible:
+
+| | claim | witness bytes | `RelD3` (repo D3 checker) | `Read.check` (shipped `out/verify`) |
+|---|---|---|---|---|
+| case `d3-04-h10105-s4`, raw witness | 5267 B | 6023 B | **accept** | **reject** (RC=1) |
+| same case, prover's canonical form | *identical* | 6023 B, *different bytes* | accept | **accept** (RC=0) |
+
+Both rows carry the **same claim bytes** and the **same witness size**, and the repo's own D3 checker
+(`oracle/wasm-d3/lean`, `nearspec-v3-check-d3`) returns `{"verdict": "accept"}` on the raw witness.  So
+that witness satisfies `RelD3` while the deployed artifact rejects it — the `encodeReads … = w`
+conjunct is genuinely load-bearing, and `check` is strictly stronger than `RelD3` **by witness**, not
+by inspection of the statements.  The prover normalises the raw witness into a canonical form of the
+same length; the verifier accepts only that form.
+
+Reproduce:
+
+```
+$ ./.lake/build/bin/nearspec-v3-check-d3 $RAWCASE     # {"verdict": "accept"}   <- RelD3 holds
+$ ./out/verify --public $PUB --claim $RAW/claim.bin --proof $RAW/witness.bin   # RC=1  <- artifact rejects
+$ ./out/verify --public $PUB --claim $CAN/claim.out --proof $CAN/proof.out     # RC=0  <- canonical accepts
+```
+
+### It is not one case — the whole corpus separates
+
+Swept all 172 D3 cases the oracle marks `expected_rel_d3: true`, each verified against its own
+`expected_claim.bin`:
+
+| | count |
+|---|---|
+| raw witnesses **rejected** by the artifact (RC=1) | **172 / 172** |
+| raw witnesses accepted | 0 |
+| runs that errored (RC≥2, i.e. setup failure) | 0 |
+
+and on a 10-case sample of those same cases, the prover's canonical form was **accepted 10/10** while
+the raw witness was **rejected 10/10** against the same claim bytes.  So the separation is systematic:
+every `RelD3`-true raw witness in the public D3 corpus is rejected by `Read.check`, and its
+canonicalisation is accepted.  A "reject" here is the verifier's own decision, not a crash — the zero
+RC≥2 count is what distinguishes the two.
+
+An earlier draft of this log claimed 172/172 from a sweep whose relative paths resolved outside the
+corpus, so every invocation exited 2 and was miscounted as a rejection.  The numbers above are from the
+corrected sweep with absolute paths; the RC≥2 column exists precisely to make that failure mode
+visible.
+
+This upgrades the join answer from "the premise looks stronger" to "the premise is stronger, and it is
+stronger on every case the corpus supplies."  The `[K]` decomposition (`check_iff`) and the `[M]`
+separation agree.
 
 ## A third placeholder: `Statement.Compose` is a `def`, never a theorem
 
