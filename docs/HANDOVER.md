@@ -108,10 +108,22 @@ Full detail, with the scope attached to every number, is in
 * **Node bytes are flat in depth** (measured, test targets, Fibonacci leaves): depths 2, 3, 4
   are byte-identical at **132,301 B**; an exact **S=13** flat node is **133,357 B** / 104,614
   program rows / 75.5 s / 12.16 GB. Depth is free in bytes and linear in time.
-* **No production-target aggregation node has ever been proved.** Every tree number above is at
-  10 query bits; production is 268-bit / z=32 / 42 B / `m=64`. This is the single remaining
-  unmeasured quantity on the size axis, and it needs a cold rebuild (the warm `target-agg` was
-  reclaimed; `/data` is 96 % full).
+* **A production-target aggregation node HAS now been proved, but only at 2 WHIR commits and
+  only as an upper bound.** At the full production shape (268-bit / z=32 / 42 B / `m=64`,
+  all levers on, real DKT certificates) a 2-child node proves at **368,177 B**
+  (`L1_0`) and 366,929 B (`L1_1`), 401.2 s and 28.1 GB peak RSS. Caveat: that run's odd-factor
+  lever was wrong (`X15=1` instead of 15), so it used 68 queries instead of 44 and the byte
+  total is an **upper bound**. Its AIR geometry matches the base final layer exactly
+  (`cols = 173`, `nvair_h = 2^20`), so it is the same circuit, differing only in child count
+  (2 vs 1) and WHIR commits (2 vs 1).
+  **Still unmeasured: the 1-commit 2-child production node's size**, which is the number that
+  decides the 300 KB question. Four attempts were killed by server restarts (no cgroup memory
+  limit, so not OOM); the launch recipe is now documented and only needs a single serialized
+  run. Two defensible projections disagree — 302,119 B (over the cap) vs 294,935 B (under) —
+  and the 7,184 B gap equals the measured non-WHIR difference between the agg node and chain
+  L4, so neither may be quoted as the answer.
+  The cold `target-agg` rebuild is cheap: **41.3 s** with sccache warm, so the build is not
+  the obstacle. `/data` has ~80 GB free after cleanup.
 * **Leaves are `SegAir` Fibonacci fixtures, not seg-v1.** The same ~2-3 month gap as §"Gap to
   e2e" blocks a real segment leaf, so no measured root here covers a NEAR chunk.
 * **"Under 300 KB" is a transcript-sampled property, not a structural bound.** Measured law:
