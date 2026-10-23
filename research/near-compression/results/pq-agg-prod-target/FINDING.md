@@ -1,4 +1,47 @@
-# Production-target aggregation: depth 1 measured, headline claim WITHDRAWN
+# Production-target aggregation: MEASURED at 303,053 B
+
+**Status: measured.** A 2-child aggregation node at the production WHIR schedule
+(`BITS=268`, `LOG_BLOWUP=7`, `LIST_M=64`, `K=4`, `K1=1`, `LOG_FINAL=7`, all levers on,
+`X15=15`, `COMMITS=1`) is **303,053 B** -- only **3,053 B (1.0 %) over** the 300 KB cap, not
+the 547,657 B (83 %) that a mis-configured run suggested.
+
+```
+L1_0_PARAMS l_skip=2 n_stack=18 k=4 log_blowup=7 queries=[47, 43, 33, 26]
+L1_0_O2 target=268 m=64 rounds(n,k,q,first_order)=[(2013265920,1048576,47,true),
+              (2013265920,524288,43,true),(2013265920,32768,33,true),(2013265920,2048,26,true)]
+L1_0_SUMMARY children=2 cols=173 opened=291 program_rows=16662 nvair_h=262144
+              prove_s=1794.6 peak_rss_gb=9.54
+L1_0_PROOF_BYTES total=303053 gkr=29960 relations=23332 stacking=2704 whir=246852
+AGG_DEPTH1_OK leaves=2 final statement = segments [0, 2)
+```
+
+Log `agg-stream2.log`, sha256 `7c42f132…15cdc3`. Run under
+`NEARPROOF_STREAM_COMMIT=1` because the default (materialised-LDE) configuration needs
+25.94 GB and the session caps at 16 GiB; streaming peaks at **9.54 GB** and costs prove time
+(1,794.6 s vs ~66 s materialised).
+
+## What this settles
+
+* **The 300 KB cap is nearly reachable at production targets.** 3,053 B is *not* a structural
+  wall -- it is 72 digests' worth (3,053 / 42 = 72.7) on top of a 299,935 B deliverable.
+* **The earlier "1.83x over, cap and 268-bit soundness are mutually exclusive" claim was
+  wrong**, and wrong for a mundane reason: that run omitted the WHIR levers, so `env_levers`
+  defaulted `k_first=0, k=3`, giving 6 rounds / 296 queries instead of 4 rounds / 149.
+* **Bytes track query count linearly**, exactly as the four-point table predicted: 149 queries
+  -> 246,852 B of WHIR, against 131 queries -> 230,876 B for the base final layer.
+
+## Where the remaining 3,053 B could come from (each needs a run)
+
+| lever | expected saving | basis |
+|---|---|---|
+| drop `program_part` (1 commit) | **~37,884 B** | measured 2c->1c delta on the chain (35,068 B overhead + 902 digests) |
+| 41-byte digests | **~3,000 B** | `D≈2,900` at 1 B/digest, already-proven width |
+| `K1=1` already applied | — | this run uses the final-layer `k_first` |
+
+The first row alone would put a 1-commit production agg node near **265,169 B**, comfortably
+under. That is a projection from a measured delta, not a measurement.
+
+
 
 **Status (final for this session):**
 1. The 547,657 B level-1 measurement is real but was **not** taken at the production WHIR

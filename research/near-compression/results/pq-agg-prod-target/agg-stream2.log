@@ -19,3 +19,11 @@ NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
 NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
 NV_PHASE end 16638
 test nv::agg_tests::agg_chain_depth_n has been running for over 60 seconds
+L1_0_SUMMARY children=2 cols=173 opened=291 interactions=15139072 cells=31130752 program_rows=16662 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=262144 prove_s=1794.6 peak_rss_gb=9.54
+L1_0_SOUNDNESS total=268.7 logup=321.4 proximity=281.6 query=268.7
+L1_0_PROOF_BYTES total=303053 gkr=29960 relations=23332 stacking=2704 whir=246852
+AGG_DEPTH1_OK leaves=2 final statement = segments [0, 2)
+test nv::agg_tests::agg_chain_depth_n ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 106 filtered out; finished in 1794.68s
+
