@@ -129,6 +129,51 @@ Two facts that matter:
 * Each level is a fixpoint: identical geometry every time (137,196 rows,
   shapes `(2^20,76) (2^20,83) (2^7,9) (2^16,5)`). Depth costs time, not bytes.
 
+### 2.1 Five levels is one more than necessary — and the extra one costs 582 s
+
+The loop's exit condition is `by_bind` (`main.rs:357`), which is true when
+`select_anchor` returns an anchor with `M != level - 1` (`circuit.rs:233-240`) — i.e. when the
+child's program already equals a program this circuit produced at an earlier level. The
+measured anchors are:
+
+| level | `M` returned | `by_bind` |
+|---|---:|---|
+| L2 | 1 | false |
+| L3 | 2 | false |
+| L4 | 3 | false |
+| L5 | 3 | **true** |
+
+So the anchor had already stabilised at `M = 3` by L4; **L5 exists only to detect that fact.**
+It is not part of the proof's logical content — it is the termination test, and it costs
+**582.17 s**, the single most expensive level in the chain (23 % of the 2,538.55 s chain).
+
+That gives a measured, ready alternative:
+
+| option | chain levels | chain prove | proof B | digest | margin vs 300,000 |
+|---|---|---|---:|---:|---|
+| A: wrap L5 (delivered) | 5 | 2,538.55 s | 299,935 | 42 B | **+33 B** |
+| B: wrap L4 (measured, `replay-l4`) | 4 | **1,956.38 s** | 300,733 | 42 B | −765 B |
+| C: wrap L4 + 41 B digests | 4 | **1,956.38 s** | 297,845 *(projected)* | 41 B | **+2,123 B** |
+
+**Option B is already fully measured and is a valid proof**, not a hypothetical:
+`runs/replay-l4` records `FINAL_PHASE proved_and_verified=425.96 s`,
+`NEGATIVE_CONTROLS_OK changed_tape_root changed_program`, and a clean
+`INDEPENDENT_VERIFY_OK bundle_bytes=300765 under_300000=false` on an independent re-run this
+session. It simply misses the cap by 765 B at 42 B digests.
+
+**Option C is the promising one and it is arithmetic, not a measurement.** It combines two
+measured facts — 4-level `D_final = 2,888` (from replay-l4) and the 41 B digest saving — and
+would deliver **−582 s prove time *and* +2,123 B margin simultaneously**, at the cost of the
+digest-width change documented in §7 item 3. Note the two goals ("minimise prove time",
+"stay under 300 KB") currently pull in opposite directions at 42 B digests: the faster chain is
+765 B over. The digest width is what removes that conflict.
+
+**Caveat that must not be dropped:** dropping L5 does not change the *logical* obligation —
+`by_bind` at L5 is what certifies that `M = 3` is stable, and a 4-level chain asserts that
+stability without the confirming level. Making B/C sound requires either keeping one
+confirmation level or proving that `select_anchor`'s fixpoint test is sound without it. That is
+a proof obligation, not a runtime check, and it is **not discharged here**.
+
 Total: 3,065.68 s chain wall (`TIMINGS.json` → `stages.chain.wall_s` = 3065.6827; L1–L5 sum
 2,538.55 s, final layer **522.075 s** measured as L5_VERIFIED 15:21:48.118868 → FINAL_VERIFIED
 15:30:30.193696), plus **77.87 s** base prove = **3,143.55 s prove** (`TIMINGS.json` →
