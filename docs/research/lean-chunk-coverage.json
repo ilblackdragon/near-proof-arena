@@ -1545,7 +1545,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "prepare_v3.rs:303-333 (transform_import_section)",
       "owner": "L2",
-      "remaining_work": "implemented; the D3alpha path is byte-identical because NearCfg.floats defaults to false",
+      "remaining_work": "implemented and directed-tested (oracle/wasm-d3/tests/float_prepare.py: an import-only f32 and f64 signature, exact gas against nearcore); D3alpha is unchanged because NearCfg.floats defaults to false",
       "status": "implemented"
     },
     {
@@ -1559,7 +1559,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "prepare_v3.rs (global section)",
       "owner": "L2",
-      "remaining_work": "implemented; float globals are bit patterns, never host floats",
+      "remaining_work": "implemented and directed-tested (float_prepare.py: immutable, mutable and read-then-dropped f64 globals, exact gas against nearcore); the initialiser is a bit pattern",
       "status": "implemented"
     },
     {

@@ -30,16 +30,19 @@ list; the two that this branch's generator actually emits are marked.
 | Row | Subject | Status after this increment | Evidence / remaining |
 |---|---|---|---|
 | `L0-instr-float` *(present in this branch's inventory)* | float opcode semantics | **implemented** (operator semantics), **partial** (whole-domain) | §3, §5 |
-| `L0-W-001` | float in an imported function type | **guard lifted under `floats = true`**; not separately tested at the import-only boundary | `Wasm/Prepare.lean:215` |
-| `L0-W-002` | float global | **guard lifted**; no directed case | `Wasm/Prepare.lean:245` |
+| `L0-W-001` | float in an imported function type | **implemented and directed-tested** | `float_prepare.py`: import-only f32 + f64 signatures | 
+| `L0-W-002` | float global | **implemented and directed-tested** | `float_prepare.py`: immutable, mutable, read-then-dropped f64 globals |
 | `L0-W-003` | float type/operator in a function body + NaN determinism (H3) | **lifted and exercised end-to-end**; NaN determinism answered (§6) | §5 |
 | `L0-W-012` | float operator in interpreter/validator/analyzer | **implemented** in all four sites | §2 |
 | `UQ-003` | NaN payload/sign semantics of the pinned engine | **resolved from pinned source** (§6) | §6 |
 
-`L0-W-001` and `L0-W-002` are the weakest entries: the guards are lifted (a float import type and a
-float global are no longer rejected when `floats = true`), but **no test constructs a module that has
-only an unused float import, or only a float global**, so "the import-only case is harmless" is not
-yet evidenced. It should not be recorded as validated.
+`L0-W-001` / `L0-W-002` are covered by `oracle/wasm-d3/tests/float_prepare.py` (6 directed cases, 0
+disagreements), which checks D3α excludes, `floatPv86` matches nearcore's outcome line *and gas*, and
+that a wrong-arity call to an imported float signature is still a `LinkError` on both sides. Note the
+import-only modules **abort** in nearcore (gas 88,821,418) rather than returning `ok` — the float
+import carries no code, so the guard lift is evidenced by the *reason* changing from
+`out-of-domain` to the same abort nearcore produces, not by an `accept`. That distinction is why the
+row is `implemented` rather than `validated`.
 
 ## 2. What is implemented
 
@@ -94,6 +97,7 @@ Harness: `oracle/wasm-d3` against pinned nearcore `44f7ae6cd` / 2.13.4, PV86, Wa
 | Same, sampled through `difftest_float.py` | `--nearcore` | 400-case subsample, **0 disagreements** |
 | Whole-chunk float gas (1/2/3 copies per operator, full outcome lines) | part of `float_nearcore.py` | **210** modules, **0 disagreements** (e.g. `f64.add`×2: both sides 3,055,847,162) |
 | Whole-chunk lift on real corpus witnesses | `chunk_float.py` | 26 candidate cases; **20/20** cases whose D3α verdict was a *float* exclusion are `accept` under `floatPv86` |
+| Preparation-only rows `L0-W-001`/`L0-W-002` | `float_prepare.py` | 6 directed cases, **0 disagreements** (import-only f32/f64 signatures, immutable/mutable/read-dropped f64 globals, wrong-arity link error) |
 | Whole-chunk tamper cases | `chunk_float.py` | **80/80** mutants rejected (20 each of claim, witness, code-blob, post-state-root byte-flips) |
 | Directed kernel tests (build-gated) | `lake build` | **142** theorems in `Wasm/FloatTests.lean`, all kernel-`decide`d |
 
@@ -246,6 +250,7 @@ python3 tools/d3/lean_chunk_coverage.py --repo . --nearcore <pinned> \
 cd oracle/wasm-d3/tests && python3 difftest_float.py --cases 6 --seed 1   # 0 disagreements
 cd oracle/wasm-d3/tests && python3 float_nearcore.py --limit 0 --seed 1   # 0 disagreements + 0 gas
 cd oracle/wasm-d3/tests && python3 chunk_float.py                          # 20 lifted, 80/80 tamper
+cd oracle/wasm-d3/tests && python3 float_prepare.py                        # 6 cases, 0 disagreements
 ```
 
 No `sorry`, `admit`, `native_decide` or new `axiom` in any L2 file (grep-checked). The signed
@@ -255,10 +260,7 @@ challenge surface (`D3/FunctionCall.lean` `gAlpha`, `spec/tools/build_challenge_
 ## 9. Next executable step
 
 1. Commit §7.
-2. Add the two missing directed cases: a module whose only float use is an **uncalled imported
-   function signature** (`L0-W-001`) and a module with **only an f64 global** (`L0-W-002`). Both
-   should be prepared-and-accepted under `floatPv86` and `out_of_domain` under D3α. Until they exist,
-   those two rows are inspection-only.
+2. *(done in this branch: `oracle/wasm-d3/tests/float_prepare.py`.)*
 3. Prove additivity honestly or drop the idea: the missing `checkD3F_eq_checkD3_of_noFloat` needs a
    statement that `checkD3` never reaches a float guard on a float-free chunk — that is a real
    induction over `Prepare`, not a one-line `rfl`.

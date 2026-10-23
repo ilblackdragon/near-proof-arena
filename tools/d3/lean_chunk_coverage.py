@@ -349,7 +349,9 @@ def inventory(repo, nearcore):
         "the import-type guard is gated on `!cfg.floats`; floatPv86 lifts it, and the signature "
         "is then checked by Validate.lean's float operand/result types",
         "L2", "L0", "contract importing a float-signature function, never calling it",
-        "implemented; the D3alpha path is byte-identical because NearCfg.floats defaults to false",
+        "implemented and directed-tested (oracle/wasm-d3/tests/float_prepare.py: an import-only "
+        "f32 and f64 signature, exact gas against nearcore); D3alpha is unchanged because "
+        "NearCfg.floats defaults to false",
     ))
     rows.append(row(
         "L0-W-002", "wasm-prepare", "prepare_v3.rs (global section)",
@@ -358,7 +360,8 @@ def inventory(repo, nearcore):
         "the global-section guard is gated on `!cfg.floats`; a float global's initialiser is its "
         "bit pattern (Syntax.ConstE.f32/f64, Exec.evalConst), so the value is byte-exact",
         "L2", "L0", "contract with an f64 global",
-        "implemented; float globals are bit patterns, never host floats",
+        "implemented and directed-tested (float_prepare.py: immutable, mutable and read-then-"
+        "dropped f64 globals, exact gas against nearcore); the initialiser is a bit pattern",
     ))
     rows.append(row(
         "L0-W-003", "wasm-prepare", "prepare_v3.rs:397-470 (validate_contract); finite-wasm",
