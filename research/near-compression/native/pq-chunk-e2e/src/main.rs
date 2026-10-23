@@ -179,7 +179,10 @@ fn proof_sections(p: &Proof<SC>) -> String {
         init_q,
         later_q,
         init_digests + later_digests.iter().sum::<usize>(),
-        size(&p.whir_proof) - 42 * (init_digests + later_digests.iter().sum::<usize>()),
+        // Width-aware: 42 was hardcoded here and silently overstated the overhead at d != 42.
+        size(&p.whir_proof)
+            - openvm_recursion_circuit::sha384::config::sha_levers().digest_bytes
+                * (init_digests + later_digests.iter().sum::<usize>()),
         init_all_digests,
         init_shape,
         init_lens,

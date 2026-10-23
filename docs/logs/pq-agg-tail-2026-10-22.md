@@ -619,11 +619,17 @@ With those relaxed, a full d=41 base+chain run was launched. **Its base proof ve
 | `whir` | 181,204 | 177,225 | −3,979 |
 | **total** | **459,984** | **456,003** | **−3,981** |
 | `whir_digest_count` | 2,788 | 2,759 | **−29** |
-| `whir_bytes_overhead` | 64,108 | 61,347 | −2,761 |
+| `whir_bytes_overhead` | 64,108 | 61,347 printed / **64,106 actual** | −2 |
 
-So the drop is **not** just `(42−41)·D`. Only 2,759 B of it is the per-digest saving; 1,221 B is
-**29 fewer digests** plus 4 B of `C`. Narrower digest rows (`init_lens` 833 → 821, i.e. −12 B per
-commit) make the Merkle trees shallower and sample fewer leaves. `C` therefore moved by 4 B, not 0:
+So the drop is **not** just `(42−41)·D`. Only 2,759 B of it is the per-digest saving; 1,218 B is
+**29 fewer digests at 42 B each**; 2 B is overhead. Narrower digest rows (`init_lens` 833 → 821,
+i.e. −12 B per commit) make the Merkle trees shallower and sample fewer leaves. One trap: the
+printer computed `whir_bytes_overhead` as `whir − 42·D` with **42 hardcoded**
+(`native/pq-chunk-e2e/src/main.rs:182`), so at d=41 it printed 61,347 when the true figure is
+`177,225 − 41·2,759 = 64,106`. The printer is now width-aware and re-measures 64,106 at d=41 and
+64,108 at d=42 — i.e. the overhead is **width-invariant to 2 B**, which is the clean statement:
+**the width lever changes digest count and per-digest bytes, not the WHIR framing.** `C` therefore
+moved by 4 B, not 0:
 
 ```
 d=42:  C = 459,984 − 42·2,788 = 342,888
