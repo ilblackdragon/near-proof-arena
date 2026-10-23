@@ -188,7 +188,15 @@ than the tree itself.
 2. **D3 join**: `storage_write` needs `TrieKey::ContractData`, which D1 does not cover — a D3-join, not
    a D1-join (`pq-gap-analysis` §4, verified).
 3. **Segment split correctness** for arbitrary `S` at receipt boundaries (`Segment.lean` fold lifted to
-   the PQ stack).
+   the PQ stack). **Sharpened 2026-10-23:** the AIR itself has *no* segment concept — `near-air-v3.json`
+   declares only `format/numBuses/numPub/tables/pubSegs/maxPub`, with no segment count, no range and no
+   per-segment boundary declaration, and one base proof covers the whole chunk (25 tables, 3,391 used
+   rows, `dump/heights.json`). The per-segment boundary state rides **bus 15**, which is a row-to-row
+   chain inside `bnd`/`rcpt` and is **absent from `pubSegs`** — so it is not a public value today.
+   Exposing it needs either a new public segment (which changes the vk, every stored proof and the
+   trusted setup, invalidating the 299,967 B packet) or a boundary-commitment statement (item 4's
+   territory). Evidence: `research/near-compression/results/pq-agg-depth-law/README.md`,
+   "The boundary state is internal, not public".
 4. **Base-faithful for seg-v1** (B4/BF1).
 
 **Acceptance.** One real segment proof (ctx, j, pre, post) whose relation is `segRel`, with the
