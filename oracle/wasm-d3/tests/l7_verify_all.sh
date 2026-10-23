@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # L7's whole differential-verification sweep, as one reproducible command.
 #
-#   oracle/wasm-d3/tests/l7_verify_all.sh [--quick] [--out DIR]
+#   oracle/wasm-d3/tests/l7_verify_all.sh [--quick] [--out DIR] [--python-leg]
 #
 # Runs, in order, and stops at the first failure:
 #   1. harness self-tests                      (python unittest, 28 tests)
 #   2. UQ-014 LoadingError reproducer           (3 legs; exits 0 only when the divergence reproduces)
+#   2b. UQ-014 wasmtime branch table             (resource LinkError reachable; both legs agree)
 #   3. corpus content manifest + drift gate     (18 families, content hashes)
 #   4. D1 regression  53,048 cases
 #   5. D2 regression  67,384 cases
@@ -22,6 +23,10 @@
 #
 # `--quick` samples each corpus instead of running it whole, for a smoke test only. It is NOT a
 # substitute for the full sweep and prints a banner saying so.
+#
+# `--python-leg` additionally runs the independent Python checker as a third leg in the D3 step, so
+# the Lean-vs-Python comparison is reproduced too. It is opt-in because it costs a second full Python
+# run per corpus; without it the D3 step compares Lean against nearcore's recorded verdicts only.
 set -u -o pipefail
 
 # Resolve the repository root from this script's own location, but fall back to $PWD when the script
@@ -34,11 +39,13 @@ fi
 CORPORA="${CORPORA:-/data/illia/nearproof-deps/corpora}"
 OUT=""
 QUICK=0
+PYLEG=0
 JOBS="${JOBS:-12}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --quick) QUICK=1; shift ;;
+    --python-leg) PYLEG=1; shift ;;
     --out) OUT="$2"; shift 2 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -70,6 +77,10 @@ step "2. UQ-014 LoadingError reproducer"
 python3 "$REPO/oracle/wasm-d3/tests/uq014_instance_size.py" 2>&1 | tail -8
 [ "${PIPESTATUS[0]}" -eq 0 ] || fail "UQ-014 reproducer (the divergence no longer reproduces as documented)"
 
+step "2b. UQ-014 wasmtime branch table (resource LinkError reachable, both legs agree)"
+python3 "$REPO/oracle/wasm-d3/tests/uq014_wasmtime_branches.py" 2>&1 | tail -8
+[ "${PIPESTATUS[0]}" -eq 0 ] || fail "UQ-014 branch table (a reachable LinkError branch changed behaviour)"
+
 step "3. corpus content manifest"
 python3 "$REPO/tools/d3/corpus_manifest.py" --corpora "$CORPORA" \
         --out "$OUT/corpus-manifest.json" 2>&1 | tail -10
@@ -92,9 +103,13 @@ python3 "$REPO/oracle/tools/difftest_v3_d2.py" --cases "$CORPORA/d2corpus.v2" \
 [ "${PIPESTATUS[0]}" -eq 0 ] || fail "D2 regression"
 
 step "6. D3 regression (four corpora, 115,284 cases)"
+# The three-way comparison needs --python; without it this step only checks Lean against nearcore's
+# recorded verdicts. Pass --python to reproduce the Lean-vs-Python leg as well (costs a second full
+# Python run per corpus, so it is opt-in via --python-leg).
 for c in d3c7 d3c8 d3c9 d3c10; do
   args=(--shards "$JOBS" --save "$OUT/$c")
   [ "$QUICK" -eq 1 ] && args+=(--sample 300)
+  [ "$PYLEG" -eq 1 ] && args+=(--python)
   python3 "$REPO/oracle/v3-d3/tools/difftest_d3.py" "$CORPORA/$c" "${args[@]}" \
           2>&1 | tail -4
   [ "${PIPESTATUS[0]}" -eq 0 ] || fail "D3 regression on $c"
