@@ -420,8 +420,8 @@ theorem local_count_cases : ∀ i ∈ Local.inters,
   exact of_decide_eq_true this
 
 /-- The three count values of a LOCAL row, as naturals. -/
-theorem local_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 9) :
+theorem local_count_vals_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Local.table.constraints, e.eval (natRow (rowNat tr 9 r) (tr.row pub 9 r)) = 0) :
     rowNat tr 9 r 5 + rowNat tr 9 r 6 + rowNat tr 9 r 7 + rowNat tr 9 r 26 + rowNat tr 9 r 27 ≤ 1 ∧
     (Local.act.eval (tr.row pub 9 r)).toNat =
       rowNat tr 9 r 5 + rowNat tr 9 r 6 + rowNat tr 9 r 7 + rowNat tr 9 r 26 + rowNat tr 9 r 27 ∧
@@ -429,10 +429,7 @@ theorem local_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
     ((v Local.fGet + v Local.fTee + v Local.fGGet).eval (tr.row pub 9 r)).toNat =
       rowNat tr 9 r 5 + rowNat tr 9 r 7 + rowNat tr 9 r 26 := by
   have hP' := P_val
-  have ht : 9 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 9 r i < P := rowNat_lt tr 9 r
-  have hcon : ∀ e ∈ Local.table.constraints, e.eval (natRow (rowNat tr 9 r) (tr.row pub 9 r)) = 0 :=
-    table_constr H ht hr
   obtain ⟨-, -, -, -, -, hsum, -⟩ := local_sound (rowNat tr 9 r) (tr.row pub 9 r) hcP hcon
   replace hsum : rowNat tr 9 r 5 + rowNat tr 9 r 6 + rowNat tr 9 r 7 + rowNat tr 9 r 26 + rowNat tr 9 r 27 ≤ 1 := hsum
   refine ⟨hsum, ?_, ?_, ?_⟩
@@ -443,12 +440,27 @@ theorem local_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
   · show (tr.cell 9 r 5 + tr.cell 9 r 7 + tr.cell 9 r 26).toNat = _
     simp only [cell_cast, ← Lean.Grind.Semiring.natCast_add]; exact Fp.toNat_cast_of_lt (by omega)
 
-theorem local_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 9) :
+theorem local_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Local.table.constraints, e.eval (natRow (rowNat tr 9 r) (tr.row pub 9 r)) = 0) :
     ∀ i ∈ Local.inters, (i.count.eval (tr.row pub 9 r)).toNat ≤ 1 := by
-  obtain ⟨hs, ha, hw, hg⟩ := local_count_vals H hr
+  obtain ⟨hs, ha, hw, hg⟩ := local_count_vals_of hcon
   intro i hi
   rcases local_count_cases i hi with h | h | h <;> rw [h] <;> omega
+
+theorem local_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 9) :
+    rowNat tr 9 r 5 + rowNat tr 9 r 6 + rowNat tr 9 r 7 + rowNat tr 9 r 26 + rowNat tr 9 r 27 ≤ 1 ∧
+    (Local.act.eval (tr.row pub 9 r)).toNat =
+      rowNat tr 9 r 5 + rowNat tr 9 r 6 + rowNat tr 9 r 7 + rowNat tr 9 r 26 + rowNat tr 9 r 27 ∧
+    (Local.wr.eval (tr.row pub 9 r)).toNat = rowNat tr 9 r 6 + rowNat tr 9 r 7 + rowNat tr 9 r 27 ∧
+    ((v Local.fGet + v Local.fTee + v Local.fGGet).eval (tr.row pub 9 r)).toNat =
+      rowNat tr 9 r 5 + rowNat tr 9 r 7 + rowNat tr 9 r 26 :=
+  local_count_vals_of (table_constr H (by simp [air_len]) hr)
+
+theorem local_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 9) :
+    ∀ i ∈ Local.inters, (i.count.eval (tr.row pub 9 r)).toNat ≤ 1 :=
+  local_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem local_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 9)

@@ -319,12 +319,9 @@ theorem mul_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
       rcases w64 with g | g <;> rw [g] at hmul ⊢ <;> simpa [opW, opK] using hmul
 
 
-theorem mul_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 3) :
+theorem mul_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Mul.table.constraints, e.eval (natRow (rowNat tr 3 r) (tr.row pub 3 r)) = 0) :
     ∀ i ∈ Mul.inters, (i.count.eval (tr.row pub 3 r)).toNat ≤ 1 := by
-  have ht : 3 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Mul.table.constraints, e.eval (natRow (rowNat tr 3 r) (tr.row pub 3 r)) = 0 :=
-    table_constr H ht hr
   have bAct := hcon (Chips.bool (v Mul.act)) (by simp [Mul.table, Mul.constraints])
   simp only [Chips.bool, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow] at bAct
   have hb := bool_nat (rowNat_lt _ _ _ _) bAct
@@ -336,6 +333,11 @@ theorem mul_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
   simp only [v, Expr.eval_col, Trace.row]
   show rowNat tr 3 r Mul.act ≤ 1
   omega
+
+theorem mul_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 3) :
+    ∀ i ∈ Mul.inters, (i.count.eval (tr.row pub 3 r)).toNat ≤ 1 :=
+  mul_counts_of (table_constr H (by simp [air_len]) hr)
 
 /-- (No `H`/`hr` needed: every MUL count is the activity column itself.) -/
 theorem mul_inactive {pub : List F} {tr : Trace} {r : Nat}

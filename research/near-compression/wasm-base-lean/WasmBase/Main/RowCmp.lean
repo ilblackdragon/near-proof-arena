@@ -87,28 +87,37 @@ theorem cmp_act_eval (pub : List F) (tr : Trace) (r : Nat) :
     Cmp.fGtS, Cmp.fGtU, Cmp.fLeS, Cmp.fLeU, Cmp.fGeS, Cmp.fGeU, Lean.Grind.Semiring.natCast_add]
   rw [show ((0 : Nat) : F) = 0 from rfl]; grind
 
+theorem cmp_flags_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Cmp.table.constraints, e.eval (natRow (rowNat tr 5 r) (tr.row pub 5 r)) = 0) :
+    rowNat tr 5 r 5 + rowNat tr 5 r 6 + rowNat tr 5 r 7 + rowNat tr 5 r 8 + rowNat tr 5 r 9 + rowNat tr 5 r 10 +
+      rowNat tr 5 r 11 + rowNat tr 5 r 12 + rowNat tr 5 r 13 + rowNat tr 5 r 14 + rowNat tr 5 r 15 ≤ 1 ∧
+    rowNat tr 5 r 5 ≤ 1 := by
+  have := cmp_facts (rowNat tr 5 r) (tr.row pub 5 r) (rowNat_lt tr 5 r) hcon
+  omega
+
 theorem cmp_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5) :
     rowNat tr 5 r 5 + rowNat tr 5 r 6 + rowNat tr 5 r 7 + rowNat tr 5 r 8 + rowNat tr 5 r 9 + rowNat tr 5 r 10 +
       rowNat tr 5 r 11 + rowNat tr 5 r 12 + rowNat tr 5 r 13 + rowNat tr 5 r 14 + rowNat tr 5 r 15 ≤ 1 ∧
-    rowNat tr 5 r 5 ≤ 1 := by
-  have ht : 5 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Cmp.table.constraints, e.eval (natRow (rowNat tr 5 r) (tr.row pub 5 r)) = 0 :=
-    table_constr H ht hr
-  have := cmp_facts (rowNat tr 5 r) (tr.row pub 5 r) (rowNat_lt tr 5 r) hcon
-  omega
+    rowNat tr 5 r 5 ≤ 1 :=
+  cmp_flags_of (table_constr H (by simp [air_len]) hr)
 
-theorem cmp_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5) :
+theorem cmp_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Cmp.table.constraints, e.eval (natRow (rowNat tr 5 r) (tr.row pub 5 r)) = 0) :
     ∀ i ∈ Cmp.inters, (i.count.eval (tr.row pub 5 r)).toNat ≤ 1 := by
   have hP' := P_val
-  obtain ⟨hf, h5⟩ := cmp_flags H hr
+  obtain ⟨hf, h5⟩ := cmp_flags_of hcon
   intro i hi
   rcases cmp_count_cases i hi with hc | hc <;> rw [hc]
   · rw [cmp_act_eval, Fp.toNat_cast_of_lt (by omega)]; exact hf
   · rw [Expr.eval_sub', cmp_act_eval]
     simp only [v, Expr.eval_col, Trace.row, cell_cast, Cmp.fEqz]
     rw [toNat_cast_sub (by omega) (by omega)]; omega
+
+theorem cmp_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5) :
+    ∀ i ∈ Cmp.inters, (i.count.eval (tr.row pub 5 r)).toNat ≤ 1 :=
+  cmp_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem cmp_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5)

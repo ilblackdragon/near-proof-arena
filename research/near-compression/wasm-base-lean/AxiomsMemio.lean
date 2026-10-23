@@ -2,6 +2,7 @@ import WasmBase.Main.SoundHost
 import WasmBase.Main.MemIOBus
 import WasmBase.Main.RegSend
 import WasmBase.Main.RegWalk
+import WasmBase.Main.MemIOLink
 import WasmBase.MemIO
 /-! Axiom audit for the `pq-host-memio` lane's headline theorems. -/
 
@@ -43,3 +44,18 @@ open WasmBase
 
 -- the headline join statement
 #print axioms WasmBase.wasm_base_exec_host_holds
+
+-- the memory-content half and the heap wiring (`WasmBase/Main/MemIOLink.lean`)
+#print axioms WasmBase.host_base_constr
+#print axioms WasmBase.hostb_bit
+#print axioms WasmBase.hostb_act_one_minus_reg_le
+#print axioms WasmBase.host_hsend_r16
+#print axioms WasmBase.host_r16_recv
+#print axioms WasmBase.host_r16_sound_at
+#print axioms WasmBase.host_time_chk
+#print axioms WasmBase.hostb_mem_distinct
+#print axioms WasmBase.hostb_mem_consumed
+#print axioms WasmBase.hostb_addr_lt
+#print axioms WasmBase.stepLive_space
+#print axioms WasmBase.host_step_rely_buf
+#print axioms WasmBase.host_rel_restart_buf

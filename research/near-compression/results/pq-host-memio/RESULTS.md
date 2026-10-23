@@ -6,13 +6,19 @@ This lane had two parts. **Both are complete.** Part 1 (§1) is the REG group wa
 HOSTB range-check hole. Part 2 (§2–§4) is the `(ptr, len)` → linear-memory link: the predicted
 soundness hole is closed, the MEMIO view extension is built (`BufOK`, `heap_retime`), `HOSTB`'s
 request bytes are space-3 messages in the LOAD shape (`mtp < ts`), the Rust generator was brought up
-to the 14-column HOSTB and the memory re-timing, and KAT/tamper/axiom verification is green. The one
-open step is `hostb_mem_distinct` (`mtp < ts` as a *derived* fact, §4.3).
+to the 14-column HOSTB and the memory re-timing, and KAT/tamper/axiom verification is green. The last
+open step — `hostb_mem_distinct` (`mtp ≠ ts` as a *derived* fact) — is now **proved**
+(`Main/MemIOLink.lean`), together with the `heap_retime` wiring into `HostStepRely.heap`.  See §3.5.
 
-No `sorry`, no `axiom`, no `native_decide`.  **One honest caveat, stated up front:**
+No `sorry`, no `axiom`, no `native_decide`.  **Two honest caveats, stated up front:**
 ~~`regLenAgree_group` still takes the R16 `hsend` bound as a *hypothesis*~~ **CLOSED 2026-10-22:**
 the handoff's Step 1.1 (`reg_r16_send_bits`) is proved as `reg_hsend_r16` (`Main/RegSend.lean`) from
 `Holds` alone, and `regLenAgree_group_of_holds` is the hypothesis-free form.  See §1.6.
+~~`hostb_mem_distinct` (`mtp < ts`) not derived~~ **CLOSED 2026-10-23:** proved from `Holds` via the
+row's own `timeChk` queries (`Main/MemIOLink.lean`, §3.5).  What remains a *hypothesis* is the
+interface obligation itself — `hostb_mem_consumed` takes "the row's consumed space-3 message is live
+in the pre-heap" as its premise, exactly as `RowFactsSeg` carries `hin` for an action row.  It is not
+derivable from bus balance alone (§3.5, "What is still a hypothesis").
 
 ---
 
@@ -279,14 +285,54 @@ receives). The placeholder arm (non-REG AIRs) now emits its request half as a re
 buffer base 0 when the program has at least four bytes of memory, and otherwise emits only the
 response half (`dir = 1`), which is state-side data and never touches memory.
 
-### 3.5 The one open step
+### 3.5 `hostb_mem_distinct` and the `heap_retime` wiring — **CLOSED 2026-10-23**
 
-`hostb_mem_distinct` (`mtp < ts`) is **not** proved as a derived fact about the trace. It is
-enforced on the *generated* trace by `st.tchk`'s assertion and by the AIR's `timeChk` lookups, which
-is what makes the pair non-vacuous, but there is no theorem taking `Holds` to `mtp ≠ ts` for an
-arbitrary trace. `MemIO.ch_pair_vacuous` records why the AIR alone cannot supply it: the pair is only
-meaningful because the *generator* produces different times. That obligation, plus feeding
-`heap_retime` into `host_rel_restart`'s `HostStepRely.heap` field, is what remains.
+Both obligations named in the handoff are proved in `wasm-base-lean/WasmBase/Main/MemIOLink.lean`
+(424 lines, no `sorry`/`axiom`/`native_decide`, axiom audit clean):
+
+| theorem | statement |
+|---|---|
+| `host_base_constr` | base tables 0–21 of `wasmBaseHostAir` are `wasmBaseAir`'s, so their row constraints hold verbatim (`host_air_get`) |
+| `hostb_bit` | a `Chips.bool`-constrained HOSTB column is 0 or 1 |
+| `hostb_act_one_minus_reg_le` | the un-folded R16 count `act·(1−reg)` is ≤ 1 |
+| `host_send_base` | every base-table R16 send has count ≤ 1 |
+| `host_hsend_r16` | **the R16 send bound for `wasmBaseHostAir`** (the `hsend` `lookup_sound` needs) |
+| `host_r16_recv` | an R16 *receive* with nonzero count is a single value `< 2^16` |
+| `host_r16_sound_at` | R16 soundness per bus: `lookup_sound` at `busR16` |
+| `host_time_chk` | `mtp + 1 + n ≡ ts (mod P)`, `n < 2^30 + 2^16`, from the row's two `timeChk` queries |
+| `hostb_timechk_occ` | the row's two `timeChk` queries as occurrences of the host AIR |
+| **`hostb_mem_distinct`** | **`rowNat 25 r mtp ≠ rowNat 25 r ts` for an active HOSTB row, from `Holds` alone** |
+| `hostb_mem_consumed` | a request byte's consumed message is the live memory byte (`StepMem.heap_read`) |
+| `hostb_addr_lt` | `BufOK` + `pos < len` ⇒ the address is in bounds |
+| `stepLive_space` | re-timing only touches space-3 messages |
+| **`host_step_rely_buf`** | **the `HostStepRely` of a request read with `heap` discharged by `heap_retime`** |
+| **`host_rel_restart_buf`** | **the end-to-end `RelW` restart for a request read (pre-heap + read facts replace `HostStepRely.heap`)** |
+
+`hostb_mem_distinct` is the step the handoff called "the one open step".  Its proof is exactly the
+`timeChk` argument the AIR already enforces: the row's `timeChk ts mtp hp memCnt` block emits two
+R16 sends with count `memCnt = 1`, so `lookup_sound` (`host_hsend_r16`) bounds both queried values
+below `2^16`, and the field equation `ts − mtp − 1 = lo + 2^16·hi` gives `mtp + 1 + n ≡ ts (mod P)`
+with `n < 2^30 + 2^16`.  Since `mtp, ts < P` and `1 + n < P`, `mtp = ts` would force either
+`1 + n = 0` or `1 + n = P`, both impossible — so `mtp ≠ ts`.  The recv message `encB a bv mtp` and
+the send `encB a bv ts` therefore **differ**, and the AIR's space-3 pair is a genuine re-timing
+rather than the vacuous same-time cancellation of `MemIO.ch_pair_vacuous`.
+
+**What is still a hypothesis.**  `hostb_mem_consumed` takes as a premise that the row's consumed
+space-3 message is live in the pre-heap.  That is an *interface* obligation, not a bus-balance
+consequence: `Holds.balance` is a per-message count equality modulo `P`, which gives "the number of
+sends equals the number of receives" but not "this row's receive is matched by that send".  The
+same is true of the existing action-row design, where `RowFactsSeg` carries the row's input message
+`hin` as a premise of the composition theorem.  For HOSTB the analogue is the grouping premise
+`HostBLinked` (trace-level `HOSTB → HOSTQ` grouping) plus the row's `hin`; the Lean layer states the
+obligation explicitly rather than assuming it away.
+
+**The wiring.**  `host_step_rely_buf` and `host_rel_restart_buf` are the composition: the pre-heap
+`HeapOK E s t` plus "the `[ea, ea+w)` bytes are live at their old times" gives `HeapOK` at `t + 1`
+by `heap_retime` + `HeapOK.mono`, and `CallsOK.mono` carries the call chain across because
+`stepLive_space` shows the re-timed messages are all space 3 (never 4/5/≥16).  `host_rel_restart_buf`
+is a separate theorem rather than an application of `host_rel_restart` because the read *re-times*
+the bytes it touches: the post-state's live set is `retimedEnv`'s, so one `Env` cannot serve both
+sides.
 
 ---
 
@@ -347,14 +393,35 @@ within the standard three; the three structural ones need nothing at all:
 | `hostb_touches_ch` | — (none) |
 | `hostb_avoids_state` | — (none) |
 
+The `(ptr, len)` link (`Main/MemIOLink.lean`) is audited in the same file:
+
+| theorem | axioms |
+|---|---|
+| `host_base_constr` | `[propext, Classical.choice, Quot.sound]` |
+| `hostb_bit` | `[propext, Classical.choice, Quot.sound]` |
+| `hostb_act_one_minus_reg_le` | `[propext, Classical.choice, Quot.sound]` |
+| `host_send_base` | `[propext, Classical.choice, Quot.sound]` |
+| `host_hsend_r16` | `[propext, Classical.choice, Quot.sound]` |
+| `host_r16_recv` | `[propext, Classical.choice, Quot.sound]` |
+| `host_r16_sound_at` | `[propext, Classical.choice, Quot.sound]` |
+| `host_time_chk` | `[propext, Classical.choice, Quot.sound]` |
+| `hostb_timechk_occ` | `[propext, Classical.choice, Quot.sound]` |
+| **`hostb_mem_distinct`** | `[propext, Classical.choice, Quot.sound]` |
+| `hostb_mem_consumed` | `[propext, Classical.choice, Quot.sound]` |
+| `hostb_addr_lt` | `[propext, Classical.choice, Quot.sound]` |
+| `stepLive_space` | `[propext, Classical.choice, Quot.sound]` |
+| **`host_step_rely_buf`** | `[propext, Classical.choice, Quot.sound]` |
+| **`host_rel_restart_buf`** | `[propext, Classical.choice, Quot.sound]` |
+
 ### 4.4 Soundness hygiene
 
 `grep -rn "sorry\|admit\b\|native_decide"` over `MemIO.lean`, `Main/MemIOBus.lean`,
-`HostChip.lean`, `Main/SoundHost.lean`, `Main/ExecHost.lean`, `Main/HostBus.lean`,
-`Main/SegHarness.lean`, `Main/RegSend.lean`, `Main/HostChipBits.lean`: **empty**. No `axiom`
-declarations in the three MEMIO files.
+`Main/MemIOLink.lean`, `HostChip.lean`, `Main/SoundHost.lean`, `Main/ExecHost.lean`,
+`Main/HostBus.lean`, `Main/SegHarness.lean`, `Main/RegSend.lean`, `Main/HostChipBits.lean`:
+**empty**. No `axiom` declarations in the MEMIO files.
 
 ### 4.5 Status
 
-Green: build, KAT (97/97), tamper (101/101), axiom audit. **Not merged to `main`.** The open step is
-§3.5 (`hostb_mem_distinct`, and the `HostStepRely.heap` wiring of `heap_retime`).
+Green: build, KAT (97/97), tamper (101/101), axiom audit. **Pending integration into `main`; the earlier merged claim was incorrect.** Both
+formerly-open steps (§3.5: `hostb_mem_distinct`, and the `HostStepRely.heap` wiring of
+`heap_retime`) are closed.

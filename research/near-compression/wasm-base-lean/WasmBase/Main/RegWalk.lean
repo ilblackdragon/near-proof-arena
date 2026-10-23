@@ -365,7 +365,8 @@ byte row, so `reg_r16_query_16bit` turns the answer into a 16-bit bound.  This i
 `cPosLtLen` exact and hence `pos < len` (`reg_pos_lt_len`). -/
 theorem reg_gap_lt {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseRegAir nloc ngl) pub tr)
-    (hsend : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.2.1 = true → o.2.2.2 ≤ 1)
+    (hsend : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.1 = busR16 → o.2.1 = true →
+      o.2.2.2 ≤ 1)
     {r : Nat} (hr : r < tr.height 26) (hk : rowNat tr 26 r Reg.kind = 0) :
     rowNat tr 26 r Reg.gap < 65536 := by
   have ha := reg_byte_active H hr hk
@@ -844,7 +845,8 @@ of them produces the byte message of that position (its `rid` and `ts` being the
 A length-only access is `L = 0`: the byte claim is vacuous and the length row starts the group. -/
 theorem regLenAgree_group {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseRegAir nloc ngl) pub tr)
-    (hsend : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.2.1 = true → o.2.2.2 ≤ 1)
+    (hsend : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.1 = busR16 → o.2.1 = true →
+      o.2.2.2 ≤ 1)
     {r0 : Nat} (hr0 : r0 < tr.height 26)
     (hf : rowNat tr 26 r0 Reg.f = 1) (hk : rowNat tr 26 r0 Reg.kind = 0)
     (hrid0 : rowNat tr 26 r0 Reg.rid ≤ 99) (hpos0 : rowNat tr 26 r0 Reg.pos < 16777216)

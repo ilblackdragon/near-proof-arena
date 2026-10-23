@@ -1,6 +1,7 @@
 import WasmBase.Main.SegHarness
 import WasmBase.Main.HostRel
 import WasmBase.Main.HostBus
+import WasmBase.Main.MemIOBus
 import WasmBase.Main.Final
 import WasmBase.StepHost
 
@@ -196,6 +197,7 @@ theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr 
     {resp : Nat → HostAnswer} {s0 : St} {f0 : Frame}
     (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
     (H0 : Holds (wasmBaseAir nloc ngl) pub tr)
+    (hb : HostBLinked tr pub)
     (hpub : PubOK X nloc ngl pub) (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
     (seg : Nat → Nat × Nat) (hkeep : SegKeep tr pub seg) (hhold : HoldRow X tr pub seg)
     (st : Nat) (hst12 : st = 1 ∨ st = 2)
@@ -228,8 +230,8 @@ theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr 
       X.R * ((pub.getD Boundary.pubS 0).toNat - (seg ((actListHost tr pub).length + 1)).1) +
         sN.gas.g = (seg ((actListHost tr pub).length + 1)).2) := by
   have hrows := rowFactsSegMap_of H0 hpub hcode hfunc hkeep hhold
-  have hbuses := host_buses H H0 hpub (chipFacts X H0)
-  have hb : (stMsg 0 1 0 0 0 0 :: (actListHost tr pub).map (rowOutH tr pub)).Perm
+  have hbuses := host_buses H H0 hpub (chipFacts X H0) hb
+  have hstPerm : (stMsg 0 1 0 0 0 0 :: (actListHost tr pub).map (rowOutH tr pub)).Perm
       ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
         (st : F), tr.cell 0 0 Boundary.sbf, tr.cell 0 0 Boundary.cidf] ::
         (actListHost tr pub).map (rowInH tr pub)) := by
@@ -241,7 +243,7 @@ theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr 
       chain_len (actListHost tr pub) (rowInH tr pub) (rowOutH tr pub)
         (tr.cell 0 0 Boundary.pcf) (pub.getD Boundary.pubN 0) (pub.getD Boundary.pubS 0)
         (st : F) (tr.cell 0 0 Boundary.sbf) (tr.cell 0 0 Boundary.cidf)
-        (fun r _ => (hrows r ‹_›).tsOut) hb hlen
+        (fun r _ => (hrows r ‹_›).tsOut) hstPerm hlen
     rw [hN]; exact hfeeN
   obtain ⟨hN, h1, h2⟩ := wasm_base_exec_host (nloc := nloc) (ngl := ngl) X seg
     ((initRaw nloc pub).map decMsg ++
@@ -251,7 +253,7 @@ theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr 
         [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg) ++
       (drainRaw tr pub).map decMsg)
     st hst12 hrows (tr.cell 0 0 Boundary.sbf) (tr.cell 0 0 Boundary.cidf)
-    hb hbuses.2 hinitNd hinitTp hlen hfee hstepgas hg64
+    hstPerm hbuses.2 hinitNd hinitTp hlen hfee hstepgas hg64
     ⟨rfl, rfl, rfl⟩ h0
   refine ⟨hN, fun hs => ?_, fun hs => ?_⟩
   · obtain ⟨sN, _, _, _, hrun, hfr, hgas⟩ := h1 hs

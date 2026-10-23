@@ -278,4 +278,178 @@ theorem hostb_partition {tr : Trace} {pub : List F} (hb : HostBLinked tr pub) (s
   intro r' hr'
   exact key r' hr'
 
+/-! ## The partition, decoded, on each side
+
+`hostb_partition` is stated over raw `rowMsgs` lists (`List (List F)`); the CH bus and the row
+accessors are stated over decoded `Msg`s.  These two lemmas push `decMsg` through the partition so
+the fused fold can be compared with the table's block directly. -/
+
+/-- **The partition, decoded, on the produced side.** -/
+theorem hostb_partition_prod {nloc ngl : Nat} {tr : Trace} {pub : List F}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) (hb : HostBLinked tr pub) :
+    List.Perm ((hostActRows tr pub).flatMap (fun ρ => hostbProdOf tr pub ρ.2))
+      ((part HostB.table tr pub 25 busStk true).map decMsg) := by
+  have h := (hostb_partition (tr := tr) (pub := pub) hb true).map decMsg
+  -- both sides of `h`, re-expressed over `rowProd` (definitionally `(rowMsgs …).map decMsg`)
+  have e1 : ((hostActRows tr pub).flatMap (fun ρ => (hostbOf tr pub ρ.2).flatMap
+      fun r' => rowMsgs HostB.table tr pub 25 r' busStk true)).map decMsg
+      = (hostActRows tr pub).flatMap (fun ρ => hostbProdOf tr pub ρ.2) := by
+    rw [List.map_flatMap]
+    refine flatMap_congr_on _ _ _ ?_
+    intro ρ _
+    rw [List.map_flatMap]
+    rfl
+  have e2 : (((List.range (tr.height 25)).flatMap (fun r' =>
+      if rowAct HostB.table tr pub 25 r' then rowMsgs HostB.table tr pub 25 r' busStk true
+      else [])).map decMsg)
+      = (part HostB.table tr pub 25 busStk true).map decMsg := by
+    have e2a : (List.range (tr.height 25)).flatMap (fun r' =>
+        if rowAct HostB.table tr pub 25 r' then rowMsgs HostB.table tr pub 25 r' busStk true
+        else [])
+        = (List.range (tr.height 25)).flatMap (fun r' =>
+          rowMsgs HostB.table tr pub 25 r' busStk true) := by
+      refine flatMap_congr_on _ _ _ ?_
+      intro r hr
+      rw [List.mem_range] at hr
+      by_cases hact : rowAct HostB.table tr pub 25 r
+      · rw [if_pos hact]
+      · rw [if_neg hact, (hostb_inactive_nil H hr hact).1]
+    rw [e2a, hostb_part_ch_send, List.map_flatMap]
+    refine flatMap_congr_on _ _ _ ?_
+    intro r _
+    rfl
+  rw [← e1, ← e2]
+  exact h
+
+/-- **The partition, decoded, on the consumed side.** -/
+theorem hostb_partition_cons {nloc ngl : Nat} {tr : Trace} {pub : List F}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) (hb : HostBLinked tr pub) :
+    List.Perm ((hostActRows tr pub).flatMap (fun ρ => hostbConsOf tr pub ρ.2))
+      ((part HostB.table tr pub 25 busStk false).map decMsg) := by
+  have h := (hostb_partition (tr := tr) (pub := pub) hb false).map decMsg
+  have e1 : ((hostActRows tr pub).flatMap (fun ρ => (hostbOf tr pub ρ.2).flatMap
+      fun r' => rowMsgs HostB.table tr pub 25 r' busStk false)).map decMsg
+      = (hostActRows tr pub).flatMap (fun ρ => hostbConsOf tr pub ρ.2) := by
+    rw [List.map_flatMap]
+    refine flatMap_congr_on _ _ _ ?_
+    intro ρ _
+    rw [List.map_flatMap]
+    rfl
+  have e2 : (((List.range (tr.height 25)).flatMap (fun r' =>
+      if rowAct HostB.table tr pub 25 r' then rowMsgs HostB.table tr pub 25 r' busStk false
+      else [])).map decMsg)
+      = (part HostB.table tr pub 25 busStk false).map decMsg := by
+    have e2a : (List.range (tr.height 25)).flatMap (fun r' =>
+        if rowAct HostB.table tr pub 25 r' then rowMsgs HostB.table tr pub 25 r' busStk false
+        else [])
+        = (List.range (tr.height 25)).flatMap (fun r' =>
+          rowMsgs HostB.table tr pub 25 r' busStk false) := by
+      refine flatMap_congr_on _ _ _ ?_
+      intro r hr
+      rw [List.mem_range] at hr
+      by_cases hact : rowAct HostB.table tr pub 25 r
+      · rw [if_pos hact]
+      · rw [if_neg hact, (hostb_inactive_nil H hr hact).2]
+    rw [e2a, hostb_part_ch_recv, List.map_flatMap]
+    refine flatMap_congr_on _ _ _ ?_
+    intro r _
+    rfl
+  rw [← e1, ← e2]
+  exact h
+
+/-! ## The fused fold, as the raw block order
+
+`ch_raw_host` (`Main/HostBus`) presents the CH bus with the HOST block **fused with** its `HOSTB`
+block: `Hh ++ Hb` on the produced side, `Hc ++ Hc'` on the consumed side.  These two lemmas say the
+fold `prodCH`/`consCH` over `actListHost` is exactly that fused block, so `perm_ch_host` applies
+without further bookkeeping. -/
+
+/-- **The produced fold is the raw fused block.** -/
+theorem flatMap_prodCH_perm {nloc ngl : Nat} {tr : Trace} {pub : List F}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) (hb : HostBLinked tr pub) :
+    List.Perm ((actListHost tr pub).flatMap (prodCH tr pub))
+      ((actList tr pub).flatMap
+          (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk true).map decMsg) ++
+        ((hostActRows tr pub).flatMap (rowProdH tr pub) ++
+          (part HostB.table tr pub 25 busStk true).map decMsg)) := by
+  have h1 : List.Perm ((actListHost tr pub).flatMap (prodCH tr pub))
+      ((actListHost tr pub).flatMap (rowProdH tr pub) ++
+        (actListHost tr pub).flatMap (hostbProdH tr pub)) :=
+    perm_flatMap_append _ _ _
+  rw [actListHost_flatMap_prod, actListHost_hostb_prod] at h1
+  refine List.Perm.trans h1 ?_
+  refine List.Perm.trans (List.Perm.append_left _ (hostb_partition_prod H hb)) ?_
+  exact List.Perm.of_eq (List.append_assoc _ _ _)
+
+/-- **The consumed fold is the raw fused block.** -/
+theorem flatMap_consCH_perm {nloc ngl : Nat} {tr : Trace} {pub : List F}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr) (hb : HostBLinked tr pub) :
+    List.Perm ((actListHost tr pub).flatMap (consCH tr pub))
+      ((actList tr pub).flatMap
+          (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk false).map decMsg) ++
+        ((hostActRows tr pub).flatMap (rowConsH tr pub) ++
+          (part HostB.table tr pub 25 busStk false).map decMsg)) := by
+  have h1 : List.Perm ((actListHost tr pub).flatMap (consCH tr pub))
+      ((actListHost tr pub).flatMap (rowConsH tr pub) ++
+        (actListHost tr pub).flatMap (hostbConsH tr pub)) :=
+    perm_flatMap_append _ _ _
+  rw [actListHost_flatMap_cons, actListHost_hostb_cons] at h1
+  refine List.Perm.trans h1 ?_
+  refine List.Perm.trans (List.Perm.append_left _ (hostb_partition_cons H hb)) ?_
+  exact List.Perm.of_eq (List.append_assoc _ _ _)
+
+/-! ## The `hch`/`hst` premises of `wasm_base_exec_host`, fused
+
+These are the replacements for the lemmas the fold commit deleted from `Main/HostBus`: the only
+change is the fused `prodCH`/`consCH` in place of `rowProdH`/`rowConsH`, and the extra premise
+`HostBLinked` that makes the fusion a partition. -/
+
+/-- **`hch` for `wasm_base_exec_host`, discharged from `Holds` plus `HostBLinked`.**  The free
+initial/final blocks are the boundary's: `init = I G B M` and `fin = (R F) D`.  `perm_ch_host` moves
+the active HOST rows next to the instruction rows on both sides; `flatMap_prodCH_perm` /
+`flatMap_consCH_perm` supply the fused block order. -/
+theorem host_hch {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
+    (H0 : Holds (wasmBaseAir nloc ngl) pub tr)
+    (hpub : PubOK X nloc ngl pub) (CF : ChipFacts X nloc ngl pub tr)
+    (hb : HostBLinked tr pub) :
+    (((initRaw nloc pub).map decMsg ++
+        ((globRaw nloc ngl pub).map decMsg ++
+          ((budRaw nloc ngl pub).map decMsg ++ (memRaw tr pub).map decMsg))) ++
+        (actListHost tr pub).flatMap (prodCH tr pub)).Perm
+      (((((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
+              [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg) ++
+          (drainRaw tr pub).map decMsg)) ++
+        (actListHost tr pub).flatMap (consCH tr pub)) := by
+  obtain ⟨e1, e2⟩ := ch_raw_host H H0 hpub CF
+  have hc := (host_msgs_ch_perm H H0 hpub CF).map decMsg
+  rw [e1, e2] at hc
+  refine List.Perm.trans (List.Perm.append_left _
+    (flatMap_prodCH_perm (nloc := nloc) (ngl := ngl) H hb)) ?_
+  refine List.Perm.trans ?_ (List.Perm.append_left _
+    (flatMap_consCH_perm (nloc := nloc) (ngl := ngl) H hb).symm)
+  exact perm_ch_host _ _ _ _ _ _ _ _ _ _ _ hc
+
+/-- **Both bus premises of `wasm_base_exec_host`, from `Holds` and `HostBLinked`.**  The free
+`init`/`fin` blocks are the boundary's (`I G B M` / `(R F) D`); this is the pair the composition
+step instantiates. -/
+theorem host_buses {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
+    (H0 : Holds (wasmBaseAir nloc ngl) pub tr)
+    (hpub : PubOK X nloc ngl pub) (CF : ChipFacts X nloc ngl pub tr)
+    (hb : HostBLinked tr pub) :
+    (stMsg 0 1 0 0 0 0 :: (actListHost tr pub).map (rowOutH tr pub)).Perm
+        ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
+          pub.getD Boundary.pubStatus 0, tr.cell 0 0 Boundary.sbf, tr.cell 0 0 Boundary.cidf] ::
+          (actListHost tr pub).map (rowInH tr pub)) ∧
+      ((((initRaw nloc pub).map decMsg ++
+          ((globRaw nloc ngl pub).map decMsg ++
+            ((budRaw nloc ngl pub).map decMsg ++ (memRaw tr pub).map decMsg))) ++
+          (actListHost tr pub).flatMap (prodCH tr pub))).Perm
+        ((((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
+                [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg) ++
+            (drainRaw tr pub).map decMsg) ++
+          (actListHost tr pub).flatMap (consCH tr pub)) :=
+  ⟨host_hst H H0 hpub CF, host_hch H H0 hpub CF hb⟩
+
 end WasmBase

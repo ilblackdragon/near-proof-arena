@@ -173,8 +173,8 @@ theorem div_cons {nloc ncode : Nat} {pub : List F} {tr : Trace}
   exact table_constr H ht hr
 
 /-- Flags and trap columns of a DIV row. -/
-theorem div_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+theorem div_flags_of {pub : List F} {tr : Trace} {r : Nat}
+    (hc : ∀ e ∈ Div.constraints, e.eval (natRow (rowNat tr 10 r) (tr.row pub 10 r)) = 0) :
     rowNat tr 10 r 5 ≤ 1 ∧ rowNat tr 10 r 6 ≤ 1 ∧ rowNat tr 10 r 7 ≤ 1 ∧ rowNat tr 10 r 8 ≤ 1 ∧
     rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 ≤ 1 ∧
     (rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 = 0 →
@@ -183,7 +183,6 @@ theorem div_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
       rowNat tr 10 r 82 + rowNat tr 10 r 86 ≤ 1) := by
   have hP' := P_val
   have hcP : ∀ i, rowNat tr 10 r i < P := rowNat_lt tr 10 r
-  have hc := div_cons (pub := pub) H hr
   simp only [Div.constraints, List.forall_mem_append, List.forall_mem_flatMap, List.forall_mem_map,
     List.mem_range, List.mem_cons, List.mem_nil_iff, or_false, forall_eq_or_imp, forall_eq, List.forall_mem_cons,
     List.forall_mem_nil, and_true] at hc
@@ -246,11 +245,11 @@ theorem div_cnt2 {tr : Trace} {pub : List F} {r : Nat} {a t : Nat} (ha : a ≤ 1
     · rw [show ((1 : Nat) : F) * (((1 : Nat) : F) - ((0 : Nat) : F)) = ((1 : Nat) : F) by grind]; rfl
     · rw [show ((1 : Nat) : F) * (((1 : Nat) : F) - ((1 : Nat) : F)) = ((0 : Nat) : F) by grind]; rfl
 
-theorem div_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+theorem div_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hc : ∀ e ∈ Div.constraints, e.eval (natRow (rowNat tr 10 r) (tr.row pub 10 r)) = 0) :
     ∀ i ∈ Div.inters, (i.count.eval (tr.row pub 10 r)).toNat ≤ 1 := by
   have hP' := P_val
-  obtain ⟨-, -, -, -, hs, h0, h1⟩ := div_flags H hr
+  obtain ⟨-, -, -, -, hs, h0, h1⟩ := div_flags_of hc
   intro i hi
   rcases div_count_eq hi with hc | hc <;> rw [hc]
   · rw [div_act_eval, Fp.toNat_cast_of_lt (by omega)]; exact hs
@@ -258,6 +257,21 @@ theorem div_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
     have : rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 = 0 ∨
       rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 = 1 := by omega
     rcases this with h | h <;> rw [h] <;> omega
+
+theorem div_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    ∀ i ∈ Div.inters, (i.count.eval (tr.row pub 10 r)).toNat ≤ 1 :=
+  div_counts_of (div_cons (pub := pub) H hr)
+
+theorem div_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    rowNat tr 10 r 5 ≤ 1 ∧ rowNat tr 10 r 6 ≤ 1 ∧ rowNat tr 10 r 7 ≤ 1 ∧ rowNat tr 10 r 8 ≤ 1 ∧
+    rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 ≤ 1 ∧
+    (rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 = 0 →
+      rowNat tr 10 r 82 = 0 ∧ rowNat tr 10 r 86 = 0) ∧
+    (rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 = 1 →
+      rowNat tr 10 r 82 + rowNat tr 10 r 86 ≤ 1) :=
+  div_flags_of (div_cons (pub := pub) H hr)
 
 theorem div_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10)

@@ -23,6 +23,18 @@ theorem table_constr {A : Air} {pub : List F} {tr : Trace} (H : Holds A pub tr) 
   rw [← row_eq_natRow]
   exact H.constr t ht r hr e he
 
+/-- **Row constraints against a named table.**  If `A`'s table `t` *is* `T`, then `Holds A` gives
+`T.constraints` at every row of `t`.  This is the form the per-chip row lemmas actually consume: they
+never use anything else from `Holds`, so stating them this way lets one proof serve `wasmBaseAir`,
+`wasmBaseHostAir` and `wasmBaseRegAir` at once (those AIRs share tables `0..21` verbatim). -/
+theorem table_constr_eq {A : Air} {pub : List F} {tr : Trace} (H : Holds A pub tr) {t : Nat}
+    (ht : t < A.tables.length) (T : Table) (hT : A.tables[t]'ht = T) {r : Nat}
+    (hr : r < tr.height t) :
+    ∀ e ∈ T.constraints, e.eval (natRow (rowNat tr t r) (tr.row pub t r)) = 0 := by
+  intro e he
+  rw [← hT] at he
+  exact table_constr H ht hr e he
+
 section
 variable (nloc ncode : Nat)
 theorem air_len : (wasmBaseAir nloc ncode).tables.length = 22 := rfl
