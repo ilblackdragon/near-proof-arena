@@ -22,15 +22,19 @@ an AIR (`nearAirV3D1`, 33 tables) and `pq_d1_rel`; D2 has the *relation* (proved
 52 249-case difftest agreement) and **no AIR at all**. Every claim below about D2 therefore starts
 from a real relation but zero arithmetization.
 
-**Finding 2: `RelTier .d2 = RelD2` is unbounded — D2 cannot be made complete as it stands.**
-`ChallengeChunkV3.lean:60` maps tier `.d2` to `RelD2` with no amendments. `RelD2` carries none of
-D0a's amendments (`a1` gas-limit, `a2` routing, `canon0f` scheduler canonicality, `a7` unfolded
-bytes, `a8` bandwidth duplicates, `a9` ChaCha words, `a10` path depth, `a12` layout) and no bound
-on the receipt count: delayed receipts are popped in a loop with no cap, and a failed action burns
-0 gas, so an 8 MiB witness can carry an unbounded action list. This is the identical defect
-Finding 1 of `V3-D1-DESIGN.md` records for D1, and it has the identical cure: a **bounded tier
-`D2a`** (§3, PROPOSAL P-D2-1). Note D1a exists and D2 does not; the ladder is `D1a ⊂ D1`, and
-`D2 ⊇ D1` with no `D2a`.
+**Finding 2: `RelTier .d2 = RelD2` has no *amendment* tier — D2 cannot be made complete at its
+current statement.** `ChallengeChunkV3.lean:60` maps tier `.d2` to bare `RelD2`, which carries none
+of D0a's amendments (`a1` gas-limit, `a2` routing, `canon0f` scheduler canonicality, `a7` unfolded
+bytes, `a8` bandwidth duplicates, `a9` ChaCha words, `a10` path depth, `a12` layout). The absence
+of `a7` is the one that blocks completeness: without an unfolded-byte bound the trie-reveal table
+has no height. D1a exists and D2a does not.
+
+*Sharpened after L0 (§4.1):* receipt count is **not** unbounded — it is bounded transitively by
+`w.size ≤ 8 MiB` at about `2^17`. That bound is real but 256× the measured maximum, so it fixes
+the receipt tables at an uneconomical height rather than making completeness impossible. The one
+genuinely un-gas-bounded path is `.data false` receipts, which add zero `compute`
+(`D2/Receipts.lean:223-247`). So `D2a` needs a **tight** receipt bound in addition to the
+amendment restatements, and P-D2-3/P-D2-4 are tightening proposals, not enabling ones.
 
 **Finding 3: much of D2 is class H, not W, and that is what makes it tractable.** Reusing the
 C/H/W split: the *queue arithmetic* (congestion limits, receipt-group push/pop, bandwidth-request
@@ -191,9 +195,43 @@ coverage needed to size the tables:
 | contract-data removals | 71 | G15 squash |
 | implicit transitions | 960 | G13 |
 
-**The corpus does not currently report the maxima** this design needs (`max receipts in one chunk`,
-`max delayed pops`, `max groups per shard`). That is P-D2-5, and it is the cheapest way to avoid
-choosing `NT2` by guess.
+**L0 executed (2026-10-23).** The checked-in D2 fixture set is 186 cases with `meta.json`
+(the summary's 1 637 honest witnesses are not all checked in). Per-case maxima, computed from
+`features`/`receipt_classes` — note these are **per case**, not per-field maxima across different
+cases, which would overstate a single chunk:
+
+| quantity | max over 186 cases | proposed bound | headroom |
+|---|---|---|---|
+| `executed_receipts` | **502** | `NT2 = 8 192` | 16× |
+| `n_receipts` | **693** | `NT2 = 8 192` | 12× |
+| `delayed_popped` | **45** | `DR2 = 8 192` | 182× |
+| `delayed_pushed` | 655 | (bounded by `NT2`) | — |
+| `buffered_forwarded` | 1 020 | (bounded by `NT2`) | — |
+| `outgoing` receipts | 1 435 | — | not a state row |
+| `local` receipts | 4 | — | — |
+| `n_blocks` | 7 | (D0a `≤ 32`) | — |
+| `witness_bytes` | 363 325 | (`≤` 8 MiB) | 23× |
+
+`executed_receipts` distribution: median 5, p90 39, max 502 — heavily skewed, so a bound chosen
+from the mean would be badly wrong. The distribution is what justifies a *round* bound rather
+than a tight one: the honest corpus does not approach any plausible table height.
+
+**Correction to this design's earlier reasoning (kept because it is a real trap).** §0/§3 said
+`RelD2` has "no bound on the receipt count". That is *wrong as stated*: receipt count is bounded
+**transitively** by `w.size` (`checkD2Core` line 120: `lenT swBytes ≤ 8 388 608`), since every
+processed receipt is a witness or state value and the delayed-queue `fuel` is
+`dq.next - dq.first + 1`, a function of bounded state. At a ~96-byte floor for a minimal action
+receipt, 8 MiB admits ~87 k receipts, i.e. `2^17`.
+
+The real defect is **not unboundedness but looseness**: `2^17` is 256× the measured maximum and
+would fix every receipt table at a height that makes the proof uneconomical. Additionally one
+path is genuinely un-gas-bounded: `.data false` receipts (`D2/Receipts.lean:223-247`) return
+`none` from `processReceipt`, so they add **zero** `compute` and the
+`rs.compute ≥ gasLimit` guard never stops them — they are bounded only by the witness size.
+
+So `NT2`/`DR2` are **tightening bounds, not enabling bounds**, and the honest statement of
+P-D2-3/P-D2-4 is "tighten the transitive witness bound to a table height", not "add a missing
+bound".
 
 ### 4.2 Rows at the proposed bounds (**estimated**)
 
@@ -268,6 +306,38 @@ The D1 design (§6.4) already discusses this. D2 inherits the answer: one combin
 tables are appended. This keeps one certificate and one admission statement.
 
 ---
+
+## 5.5 L0 and L2 status (2026-10-23)
+
+**L0 done.** Measurements in §4.1.  Two claims in the first draft of this document were wrong and
+are corrected there: receipt count is bounded transitively by `w.size` (not unbounded), and
+`NT2`/`DR2` are *tightening* bounds rather than enabling ones.  The one genuinely un-gas-bounded
+path is `.data false` receipts, which add zero `compute`.
+
+**L2 partly done.**  Landed in `zk-formal`:
+
+| file | content | class |
+|---|---|---|
+| `ZkFormal/NearV3/D2/PrepD2.lean` | `HintD2` (the hint: trip counts, per-op verdicts, receipt-ledger bytes, main + implicit roots), `HintD2.encode`, `decodeHintD2` | **[K]** definitions |
+| `ZkFormal/NearV3/D2/SplitD2.lean` | `ClaimOnly`, `ClaimHint`, `WitnessObligation`; `split_shape`, `claimOnly_witness_free` | **[K]** |
+| `SplitD2.lean` | `prepD2_sound`, `verdictBinding` | **[O]** — named `Prop`s, no inhabitant |
+
+`split_shape`'s axioms are `{propext}`.  Both modules are root-imported from `ZkFormal.lean`, so
+they are build-enforced.
+
+**What L2 has *not* done**, stated so it is not mistaken for progress (the failure mode that made
+`Statement.Compose` a placeholder for three passes):
+
+* **No `prepD2` function.** The hint and the split predicates exist; the function that consumes
+  them does not. That is L2's main remaining deliverable.
+* **No decode round trip.** `decodeHintD2 ∘ encode = ok` is not proved, and is not proved for
+  `PrepD0` or `prepD1` either: `readU32`/`readBytesT` have no lemmas relating them to
+  `u32`/`borshBytes`.  Soundness does not depend on it (the transcript absorbs the hint bytes, so
+  native and AIR see the same string), but the decoded form's uniqueness is unproved.  Closing it
+  is a `Wire`-layer task benefiting D0a and D1 equally.
+* **No AIR.** No `nearAirV3D2`, no table, no binding theorem.
+* **`prepD2_sound` is a `Prop`, not a theorem.**  Naming it is L2's stated goal; proving it needs
+  the AIR.
 
 ## 6. Plan
 
