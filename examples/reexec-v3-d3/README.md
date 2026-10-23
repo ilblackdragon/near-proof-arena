@@ -36,6 +36,7 @@ the governed compiler. The implementation connection remains the challenge's
 |---|---|
 | Logged execution equals the frozen D3 checker | `Logged.API.checkD3Reads_eq` |
 | Acceptance implies the frozen relation and literal normality | `ReadCanon.check_sound`, `check_normal` |
+| Acceptance decomposes into the relation **and** canonicality (strictly stronger than `RelD3`) | `ReadCanonSplit.check_iff`, `relD3_of_check` |
 | Filtering pools is exact tagged-store restriction | `ReadPools.poolStore_restrict` |
 | Serialized bytes implement that restricted store | `ReadStores.storesOf_encodeReads` |
 | Re-encoding preserves checker control flow and successful reads | `ReadReencode.checkD2CoreL_reencode`, `canonW_refines` |
