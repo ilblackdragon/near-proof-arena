@@ -60,11 +60,44 @@ Option 1 is the only one consistent with the stated objective and is now the hig
 target on the size axis. It is a *measurement* question first: where do 473 KB of WHIR bytes
 go for 32 queries?
 
-## Depth 2
+## The anomaly this exposes (the real finding)
 
-The first attempt panicked at `builder.rs:303` (`program exceeds 2^18 rows`) because
-`AGG_LOG_ROWS2=20` yields `prog_log = 19`. Re-run with `NV_PROG_LOG=22`, `AGG_LOG_ROWS2=21`
-logged to `agg-prod-d2-r2.log`. Outcome appended when it completes.
+Comparing WHIR bytes per query, 10-bit vs 268-bit, on the same geometry:
+
+| | 10 bits | 268 bits | ratio |
+|---|---|---|---|
+| WHIR rounds | 4 | 6 | 1.50x |
+| queries per round | [41,35,27,23] | [77,60,49,42,36,32] | — |
+| total queries | 126 | 296 | **2.35x** |
+| WHIR bytes | 48,104 | 473,336 | **9.84x** |
+| bytes per query | 382 | 1,599 | **4.19x** |
+
+**WHIR bytes grow 9.84x while query count grows only 2.35x.** Two extra rounds explain part
+of it (6/4 = 1.50x), but the remaining 6.6x is per-query inflation: each production query
+costs 4.19x more bytes than a 10-bit query.
+
+That inflation is the actionable target. A WHIR query should cost roughly one Merkle path per
+round; if 268-bit queries cost 4.19x more bytes each on identical row geometry
+(`merkle_nodes=464` in both, `cols=173` in both), the extra bytes are not going into *more*
+openings — they are going into *deeper or wider* paths, or into duplicated commitments.
+
+`merkle_nodes` and `cols` and `opened` are identical between the two runs, so the geometry did
+not change. The 9.84x is therefore a **transcript/config effect, not a circuit effect** — and
+that makes it a candidate for reduction without touching soundness.
+
+## Depth 2: blocked by a layout limit, not measured
+
+Two attempts, both fail before producing a proof:
+
+* `AGG_LOG_ROWS2=20` -> `prog_log = 19` -> `builder.rs:303: program exceeds 2^18 rows`
+* `NV_PROG_LOG=22, AGG_LOG_ROWS2=21` -> `circuit.rs:458:
+  StackedPcs(LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 })`
+
+So a depth-2 node at production targets needs `log_stacked_height >= 22`, i.e. the stacked
+layout budget must be raised too. That is a config change in the PCS, not a test-parameter
+change. **Depth 2 at production targets is therefore unmeasured, and honestly reported as
+such** — the level-1 measurement is sufficient to establish the 300 KB impossibility, but the
+per-depth byte curve at production targets remains open.
 
 ## Reproduce
 
@@ -77,3 +110,4 @@ target-agg/release/deps/openvm_recursion_circuit-e8a84b4284f8a0d7 \
   agg_chain_depth_n --ignored --nocapture
 ```
 4532512ddf234ed0c990d74af9bb40252a8b97685981c80324950f3068fe093d  research/near-compression/results/pq-agg-prod-target/agg-prod-d2.log
+1a7991a6fa5085ce568173b6046d300bfb12822d78dd6467fc3efed221170877  research/near-compression/results/pq-agg-prod-target/agg-prod-d2-r2.log
