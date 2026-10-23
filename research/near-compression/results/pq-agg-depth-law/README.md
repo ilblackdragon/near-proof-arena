@@ -373,3 +373,33 @@ bus, exposing it requires one of:
 
 Neither is a plumbing task, and (1) invalidates the existing 299,967 B packet. This is why the
 leaf adapter is not a small piece of glue — the data it needs is not currently public.
+
+### Cross-check: the decoded public tape agrees with the trace, and one proof = one chunk
+
+The bus-28 descriptor decodes to `count = 65`, and `dump/heights.json` records
+`bnd.used_rows = 65`. That exact agreement across an independent file is what makes the tape
+decode trustworthy rather than a plausible reading.
+
+Measured base-proof trace sizes (`dump/heights.json`, used rows):
+
+| table | rows | | table | rows |
+|---|---:|---|---|---:|
+| `ups` | 628 | | `bnd` | 65 |
+| `sha_t` | 526 | | `cmp` | 49 |
+| `srcp` | 483 | | `rcpt` | 36 |
+| `codec` | 453 | | `head` | 32 |
+| `val` | 422 | | `scandist` | 28 |
+| `sha_r` | 280 | | `mem` | 24 |
+| `node` | 204 | | `proc` | 17 |
+| `uniq` | 126 | | 7 tables | 0–12 |
+| | | | **total** | **3,391** |
+
+**One base proof covers the entire chunk** — all 25 tables, 3,391 used rows, and a tape whose
+bus-10 count is 1. There is no notion of a "segment" inside it. A 1 Pgas chunk therefore needs
+~146 such proofs *first*, each carrying its own statement, before any tree can exist. The leaf
+adapter question is downstream of that: today there is one proof per chunk, not one per
+segment, so there is nothing to aggregate at the leaf level yet.
+
+This also bounds what the aggregation work delivered: the tree was measured over `SegAir`
+*fibonacci* leaves precisely because segment proofs of this shape (25 AIRs, 3,391 rows) did
+not exist to use instead.
