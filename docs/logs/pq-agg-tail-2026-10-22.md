@@ -260,6 +260,14 @@ something reached by wrapping a stored L4. Whether it converges in one extra gen
 untested: the pre-pass presumes the L3 vector is already the fixpoint, which the driver's
 iterating loop does not assume.
 
+**These two savings are the same 582 s, not two of them.** Worth stating because it is easy to
+double-count: dropping L5 (wrapping a stored `L4`) and the floor pre-pass both terminate at a
+**4-level chain** costing **1,956.38 s**. They differ only in how the chain is obtained —
+option A wraps an already-proved `L4` (so the 582 s was already spent, once), while option B
+makes the driver converge at L4 in the first place (so the 582 s is never spent). For a cold
+production run B is strictly better; for an already-existing artifact A is free because
+`runs/replay-l4` is on disk. Neither stacks with the other, and neither stacks with itself.
+
 **This is a design proposal, not a result.** Nothing in this session implemented or measured
 the pre-pass; the 582.17 s figure is arithmetic on measured level times under the stated
 mechanism. **The cost of the pre-pass is now measured, and it is not the objection.** The driver already
