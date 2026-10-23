@@ -170,9 +170,14 @@ Three sentences the reader can act on, each with its evidence and its limit:
    (32× growth, recovered exactly from L1's `cells = 2^18·76 + 2^17·83 + 128·9 + 2^16·5`).
    Consequently **the "bytes flat in depth" result (132,301 B at depths 2–4) is a
    `log_blowup = 3` result** (those runs used `n_stack=20, log_blowup=3`, giving stacked height
-   22) and **does not transfer to production**. Exits: lower `log_blowup` to ≤5 at the aggregation
-   levels (costs query count for the same soundness and breaks the byte comparison to the base
-   final layer), or reduce SHA compressions per child. Neither done.
+   22) and **does not transfer to production**. Two exits were named; **the first is now measured
+   and refuted**. Lowering `log_blowup` to 5 does buy the 2 bits of stacked height, but the query
+   schedule goes `[41,38,29,23]` (131) → `[95,60,43,34,28]` (260) — 1.98× — because proximity
+   soundness per query falls; the same L1 node measures **615,457 B** vs 276,269 B (**+339,188 B,
+   2.23×**, 315 KB over cap), and the depth-2 node *still* panics at `log_height: 23` vs
+   `log_stacked_height: 22`, since 2× queries needs ~1 more bit than the 2 bits bought. Depth 2 fits
+   only at `log_blowup = 3` — i.e. only where the soundness is insufficient. **The sole surviving
+   exit is reducing SHA compressions per child**, a circuit change. Not done.
 4. **`NodeOK` gap: the soundness of a 1 Pgas tree is an OPEN obligation.** The per-proof union
    bound fails from **S ≈ 103–118** and every 1 Pgas shape exceeds that (S ≈ 146 at 2^23
    ops/segment). The repair is to apply the extraction theorem **once** to the vk family

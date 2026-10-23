@@ -35,6 +35,7 @@ as closing that gap.
 | 17 | A 2-child agg node at the base final layer's *exact* production schedule (`[41,38,29,23]`, `QUERY_POW=32`, `COMMITS=1`) measures **276,269 B** | **measured** 2026-10-23, streaming, 2,160.8 s, 9.46 GB |
 | 18 | **Depth 2 is arithmetically impossible at production blowup**: the 2-NV-child SHA AIR needs 2^22 rows but `log_stacked_height = l_skip+n_stack ≤ 27−log_blowup = 20` | **measured** panic + field 2-adicity, `circuit.rs:458`, `monty_31.rs:654` |
 | 19 | The "bytes are flat in depth" result (132,301 B at depths 2–4) is a **`log_blowup=3`** result and does not transfer to production | **measured** params `n_stack=20, log_blowup=3` in `agg_depth4.log` |
+| 20 | The documented escape "lower `log_blowup` to ≤5" is **refuted twice**: it costs **2.23×** in bytes (same L1 node 276,269 → **615,457 B**, 315 KB over cap) *and* it still cannot fit depth 2 — measured panic `log_height: 23` vs `log_stacked_height: 22`, because 2× queries needs ~1 more bit than the 2 bits bought | **measured** 2026-10-23, `agg-d2-lb5-wwide.log`, 3,366.7 s |
 
 Two reconciliations this log owes its reader, both done in full below and both correcting an
 earlier reading:
@@ -1162,12 +1163,27 @@ Still open, and each one is a real blocker rather than a formality:
      already sitting on the ceiling; there is no geometry headroom to absorb one more NV child. That is why depth 1 measured fine and depth 2 died,
      and why the depth-4 "flat in depth" result cannot be assumed to hold at production.
 
-     Two ways out, neither taken: **lower `log_blowup` to ≤ 5** at the aggregation levels (which
-     frees the 2 bits needed, but changes the WHIR schedule and every query count, so the byte
-     comparison to the base final layer's `log_blowup = 7` is lost and the query count rises for
-     the same soundness), or **reduce the SHA compression count per child** so the AIR stays at
-     2^20 (a circuit change: the L2 node's SHA work is ~16× an L1 node's because it verifies two
-     full NV proofs). Until one is done, **the production aggregation tree is measured only to
+     Two candidate ways out were listed. **The first — lower `log_blowup` to ≤ 5 — is now
+     MEASURED, and it fails twice over: once on size and once on geometry.** It does buy the
+     stacked height (lb=5 gives `l_skip + n_stack = 22`), but it *pays* for it in queries:
+
+     * **It costs 2.23× in bytes.** At `log_blowup = 5` the proximity soundness per query falls,
+       so the agreement table needs more queries for the same 236-bit target: `[41,38,29,23]`
+       (131 queries, 4 rounds) → **`[95,60,43,34,28]` (260 queries, 5 rounds)**, 1.98× the queries.
+       The same L1 node (2 APP children) then measures **615,457 B** against 276,269 B at lb=7 —
+       **+339,188 B**, and **315,457 B over the cap**; its WHIR section alone is 532,920 B, 1.8×
+       the entire 300 KB budget. So it cannot be a route under 300 KB.
+     * **It is self-defeating on geometry.** Measured panic: `LayoutHeightExceeded { log_height:
+       23, log_stacked_height: 22 }` (`agg-d2-lb5-wwide.log`, 3,366.7 s). Buying 2 bits of stacked
+       height costs ~2× queries, which grows the SHA AIR by ~1 bit — so the deficit only closes
+       from 2 bits to 1 and **depth 2 still cannot be proved**. The progression is
+       `lb=7 → needs 22, has 20 (short 2)`; `lb=5 → needs 23, has 22 (short 1)`;
+       `lb=3 → needs 2^20, has 22 (surplus 2, works — but lb=3 is the test-target soundness)`.
+       **Depth 2 fits only where the soundness is insufficient**, which is the wrong way round.
+
+     The only surviving way out is **reduce the SHA compression count per child** so the AIR stays
+     at 2^20 (a circuit change: the L2 node's SHA work is ~16× an L1 node's because it verifies two
+     full NV proofs). Until that is done, **the production aggregation tree is measured only to
      depth 1**, and the flat-in-depth claim must be quoted with its `log_blowup = 3` condition
      attached.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was
