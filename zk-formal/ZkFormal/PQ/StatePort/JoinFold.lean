@@ -51,15 +51,43 @@ structure HostAnswer where
 abbrev HostResp := Nat → HostAnswer
 
 /-- **The Wasm-side obligation**, as a proposition over the existing spec `run`.
-`wasm_base_sound_host` (to be built in the Wasm lane) must produce `WasmRunStmt X p n s0 resp` from
-the AIR relation.  The two extra fields beyond `run = …` are the ones the HOST chip is responsible
-for: every host call happened (its `ts` values are exactly `hostTimes`), and every response was
-`resp` at that time. -/
+
+**RETIRED CLAUSE (2026-10-23).**  This definition previously ended with the conjunct
+`∀ ts ∈ hostTimes, resp ts = resp ts` — a tautology by `rfl`.  It was documented as "every response
+was `resp` at that time", i.e. the HOST-chip correspondence, so it *looked* like the place where the
+host half of the join was stated.  It stated nothing: `wasmRunStmt_iff` below proves the whole
+relation is `run cfg p n s0 = outcome ∧ hostTimes.Pairwise (· < ·)`, with `resp` **unconstrained and
+unmentioned**.  A join could therefore consume `WasmRunStmt` and learn nothing about the host.
+
+The honest host correspondence is *not* expressible as an equation about `resp` alone: it must relate
+`resp` to the host calls the abstract machine actually made, which needs the HOST message tape that
+`WasmBase.HostChip` owns.  That is the `[O]` half named in
+`docs/logs/pq-prepare-link-2026-10-23.md`; it is not reconstructed here, because inventing a second
+vague predicate would just relocate the problem the way `compose_pv86` relocated `join_additive`'s.
+
+What this definition now says, explicitly and nothing more: the spec run's outcome is `outcome`, and
+the host-call times are strictly increasing.  Both are real and checkable; neither is the host
+correspondence. -/
 def WasmRunStmt (cfg : NearCfg) (p : Prepared) (n : Nat) (s0 : St) (resp : HostResp)
     (hostTimes : List Nat) (outcome : Res) : Prop :=
   run cfg p n s0 = outcome ∧
-  hostTimes.Pairwise (· < ·) ∧
-  (∀ ts ∈ hostTimes, resp ts = resp ts)
+  hostTimes.Pairwise (· < ·)
+
+/-- **`WasmRunStmt` carries no host content.**  The `resp` argument is inert: any `resp` satisfies
+the relation as soon as the run and the time-order do.  This is the theorem that stops a future pass
+from citing `WasmRunStmt` as the Wasm/host half of the join. -/
+theorem wasmRunStmt_iff (cfg : NearCfg) (p : Prepared) (n : Nat) (s0 : St) (resp : HostResp)
+    (ts : List Nat) (out : Res) :
+    WasmRunStmt cfg p n s0 resp ts out ↔ run cfg p n s0 = out ∧ ts.Pairwise (· < ·) :=
+  Iff.rfl
+
+/-- **The host response is not constrained by `WasmRunStmt`.**  Two different host behaviours that
+agree on nothing still both satisfy the obligation for the same run.  Stated as an explicit witness
+so the inertness is visible without reading the `iff`. -/
+theorem wasmRunStmt_resp_inert (cfg : NearCfg) (p : Prepared) (n : Nat) (s0 : St)
+    (resp resp' : HostResp) (ts : List Nat) (out : Res) :
+    WasmRunStmt cfg p n s0 resp ts out ↔ WasmRunStmt cfg p n s0 resp' ts out :=
+  Iff.rfl
 
 /-- **RETIRED 2026-10-22 — this statement is vacuous and is NOT the D3 join.**
 

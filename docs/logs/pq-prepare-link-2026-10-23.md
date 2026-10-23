@@ -129,7 +129,38 @@ so `lineOutcome "abort 0 0 …" = .ok (0, 0)` has no `Decidable` instance that r
 logged/differential check.  It is **`[O]`** and is not claimed.  What *is* `[K]` is the boundary the
 argument rests on: `Run.done` iff prepared, for all four failure verdicts.
 
-## Third finding: the hook-level lift is mechanical but not done
+## Third finding: `WasmRunStmt`'s "host correspondence" was a tautology
+
+While looking for a premise that is genuinely *weaker* than `RelD3` — the thing a non-vacuous join
+needs — I checked the one relation in the tree that advertises itself as the Wasm/host half of the
+join.  `ZkFormal/PQ/StatePort/JoinFold.lean:58` defined
+
+```
+def WasmRunStmt … (resp : HostResp) (hostTimes : List Nat) (outcome : Res) : Prop :=
+  run cfg p n s0 = outcome ∧
+  hostTimes.Pairwise (· < ·) ∧
+  (∀ ts ∈ hostTimes, resp ts = resp ts)      -- ← tautology
+```
+
+documented as *"every host call happened … and every response was `resp` at that time"*.  The third
+conjunct is `rfl`-true for any `resp`, so the definition never mentions the host answer at all.
+Proved, and the relation is now stated in its honest two-conjunct form:
+
+| declaration | statement | class |
+|---|---|---|
+| `wasmRunStmt_iff` | `WasmRunStmt … resp ts out ↔ run … = out ∧ ts.Pairwise (· < ·)` | **[K]** |
+| `wasmRunStmt_resp_inert` | `WasmRunStmt … resp … ↔ WasmRunStmt … resp' …` (any two hosts) | **[K]** |
+
+`resp` is now an unconstrained parameter, and the `resp`-unused linter warning on the definition is
+itself the evidence: a `Prop` that does not mention its host argument cannot carry host
+correspondence.  The honest host half needs the HOST message tape that `WasmBase.HostChip` owns, and
+is **`[O]`**.  I did *not* invent a replacement predicate — that is exactly how `compose_pv86`
+relocated `join_additive`'s defect, and a second vague relation would repeat it.
+
+This is the concrete reason `RelD1a`-shaped and `WasmRunStmt`-shaped joins both came out vacuous:
+in each case the premise that was supposed to carry the cross-stage content carried none.
+
+## Fourth finding: the hook-level lift is mechanical but not done
 
 `functionCall` computes the code blob (`codeB`) inside its `do` block from `st.o` and `c.env`, so the
 theorems above are stated on `runCall`, whose `code` argument is explicit.  Lifting to
@@ -173,7 +204,7 @@ cd zk-formal && lake env lean test/AuditPQJoinPrepareLink.lean
   run_done_ne_line                 depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-## Fourth finding: a kernel-checked concrete `RelD3` positive is **not** reachable this way
+## Fifth finding: a kernel-checked concrete `RelD3` positive is **not** reachable this way
 
 The natural way to show the D3 relation is inhabited — and so that the recursive-step foundation
 composes over something non-empty — is a closed `RelD3` instance on a real fixture.  Attempted, and
