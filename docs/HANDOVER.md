@@ -132,6 +132,19 @@ Full detail, with the scope attached to every number, is in
   (`replay-l4`, wrapping `L4` instead of `L5`) is `D = 2,888`, i.e. **765 B over**. Same
   configuration, same geometry: only the wrapped child differs. Margin must be widened by
   ≥1 KB before the bound is treated as a bound.
+* **The margin is a digest-width question, and 41 B already clears it on paper.** Because the
+  law is linear in the digest byte, at `D = 2,869` / `C = 179,437`: 42 B → 299,935 (+33 B);
+  **41 B → 297,066 (+2,934 B)**; 32 B → 271,245; 27 B → 256,900; 26 B → 254,031. The 41 B
+  width is **proven now** (CMS19 constants + Thm 4 with K = 0) and needs no new cryptography,
+  so a 1-byte reduction buys 3.5× the observed 798 B spread and 89× the current margin. The
+  same lever rescues the 2-child agg node at `D = 2,921`: 42 B is 2,119 B over, 41 B is
+  971 B under, 32 B is 27,091 B under.
+  **Two mechanical blockers before this is a fix:** `sha_levers()`
+  (`sha384/config.rs:131`) hard-asserts `digest_bytes == 48 || 42`, so
+  `NEARPROOF_DIGEST_BYTES=41` panics today (one-line relaxation, not done); and `C` is
+  calibrated only at 42 B, so it needs **one final-layer run at `d = 41`** (~500 s) to confirm
+  the non-digest term is width-invariant. Until that run exists this is arithmetic on the
+  measured law, not a result.
 * **Soundness: the per-proof union bound fails from S ≈ 103–118**, not at S = 295 as previously
   recorded. A 1 Pgas root therefore needs the single-database `NodeOK` theorem, which is
   **unproved** (paper-level, S-19/S-28). `security_established` in the driver is a hardcoded
