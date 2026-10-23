@@ -280,14 +280,36 @@ Measured flat-node points (`logs/agg_depth4.log`, `logs/agg_s13_lr19.log`):
 | 13 | 104,614 | 2^19 | 75.5 s | 12.16 GB |
 
 Slope = (104,614 − 16,598) / 11 ≈ **8,001 program rows per added child**. Extrapolating to
-S=146 gives ≈ **1,168,807 program rows**, which needs `nvair_h ≥ 2^21`, and cells ≈ 5.7 G.
-Scaling the measured S=13 node (127,206,528 cells, 75.5 s, 12.16 GB) linearly gives
-**≈ 3,374 s and ≈ 543 GB peak RSS** — over four times this host's 125 GB.
+S=146 gives ≈ **1,168,807 program rows**, which needs `nvair_h = 2^21`.
 
-The binary tree has none of that problem, because every node has exactly **2** children
-whatever the leaf count: `program_rows = 16,598` and `nvair_h = 2^17` at every depth (both
-measured), with ~17.5 GB peak at depth ≥ 2. So S=146 is reachable as a **tree of 255 nodes**
+The time/RAM projection depends on which measured node is used as the anchor, so both are
+given rather than one:
+
+| anchor | cells ratio | projected prove | projected RSS |
+|---|---:|---:|---:|
+| S=13 flat node (127.2 G cells, 75.5 s, 12.16 GB) | 44.7× | 3,374 s | **543 GB** |
+| depth-4 `Node` child (100.6 G cells, 105.5 s, 17.65 GB) | 24.4× | 2,570 s | **430 GB** |
+
+Either way it is **3.4–4.3× this host's 125 GB**, so the conclusion does not depend on the
+choice of anchor — but the honest number is the range **430–543 GB**, not a single figure.
+
+The binary tree has none of that problem, but the reason is subtler than "every node has 2
+children". A 2-child node's size depends on **what kind** of children it has, and the depth-4
+sweep separates the two classes cleanly (`logs/agg_depth4.log`):
+
+| node class | children | `program_rows` | `nvair_h` | prove | peak RSS |
+|---|---|---:|---:|---:|---:|
+| level 1 (`App` = fixture segment proofs) | 2 | **16,598** | 2^17 | 12.4–12.9 s | 2.5–3.7 GB |
+| level ≥ 2 (`Node` = NV child proofs) | 2 | **89,564–95,974** | 2^20 | 105.5–118.7 s | 17.5–19.4 GB |
+
+and both are **flat in depth** (8 level-1 nodes all 16,598; level-2/3/4 nodes all 89,564 or
+95,974). So a tree node never grows with the leaf count — it grows with the *child class*,
+once, at the first NV-child level. S=146 is therefore reachable as a **255-node tree**
 (4.19 h serial at test targets) and not as one flat 146-to-1 node.
+
+The earlier sentence in this section said every node is 16,598 rows at 2^17 — **wrong**: that
+is only the level-1 (`App`-child) class. The 2^20 / ~90k-row class is what most of the tree
+actually runs.
 
 Consequence for the flat shape's role: `agg_s13_flat` is a device for stating an **exact
 segment count without padding** (it avoids the non-existent single-child passthrough), not a
