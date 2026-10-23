@@ -141,12 +141,19 @@ Three sentences the reader can act on, each with its evidence and its limit:
      which lands exactly at 1,000 B of margin.)
    * **Route B — accept more digests.** `D ≤ 3,095` needs `C` −**9,459 B** (exactly 0 B margin);
      `D ≤ 3,619` needs −**31,467 B**. Both are larger asks than Route A.
-   * **Route C — the only identified lever that clears 1 KB is digest width.** At `D = 2,869`,
-     41 B digests give **297,066 B (+2,934 B margin)**, 3.5× the observed spread and 89× the
-     current margin. That needs `sha_levers()` relaxed (it hard-asserts 48 or 42,
-     `sha384/config.rs:131`) plus one final-layer run at `d = 41` to confirm `C` is
-     width-invariant. **Neither is done**, so this is arithmetic on the measured law, not a
-     result. It is also the cheapest of the three: one ~500 s run.
+   * **Route C — digest width — is REFUTED for the NV tree (measured 2026-10-23).** At `D = 2,869`,
+     41 B digests *would* give **297,066 B (+2,934 B margin)** by the size law, and the base proof
+     at d=41 really does measure **456,003 B** (vs 459,984 B) and really does verify. **But the
+     recursion chain cannot encode a 41-byte digest:** `U2` units are 8 B (`Word`) or 2 B (`Half`),
+     so a digest's length must be `8a + 2b` — 48 = 6·8 and 42 = 5·8+2 are representable,
+     **41 = 5·8+1 is not**. `hash.rs:262` asserts `8 + 2·digest_bytes` and panics `104 != 90`
+     (3,568 times) in the NV levels; the base layer escapes only because it is not the NV circuit.
+     Two secondary corrections to the earlier arithmetic: the base drop is 3,981 B, of which only
+     2,759 B is the per-digest term — **29 digests vanish** because narrower rows make shallower
+     Merkle trees — and `C` moves by 4 B, so it is *not* exactly width-invariant. **The only
+     representable alternative is d=40 (5 words), which changes digest unit count 12 → 10 and so
+     needs its own geometry recalibration.** **None of this is done**, so Route C is an
+     unavailable lever for the delivered configuration, not a cheap one.
 3. **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
    The 2-NV-child aggregation node needs a 2^22-row SHA compression AIR (measured panic
    `LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 }`, `circuit.rs:458`), but the

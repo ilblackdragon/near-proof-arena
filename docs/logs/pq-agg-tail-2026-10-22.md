@@ -561,7 +561,89 @@ bundle_bytes = proof_bytes + 32   (8 B magic + 8 B length + 16 B hint)
 ```
 
 `C` is constant because every non-WHIR section is constant at fixed geometry; `D` is the only
-variable. The final layer's `C` is 35,358 B below a chain level's. That gap is **not** a single
+variable. **`C` is now fully decomposed** by re-running `proof-sections` on the saved base proof
+this session (it reproduces every figure in the table above byte for byte):
+
+```
+C = 179,437 = 110,378  WHIR non-digest overhead
+            +  68,948  named non-WHIR sections (48+40+37,592+24,292+6,976)
+            +      76  19 public values x 4 B (BabyBear)
+            +      35  proof framing / length prefixes
+```
+
+so nothing in `C` is unexplained, and the only sub-term large enough to matter for a 1 KB
+margin cut is the **110,378 B WHIR overhead** — which is *not* digest bytes and therefore not
+addressable by digest width. The final layer's `C` is 35,358 B below a chain level's.
+
+**What the 110,378 B actually is, from the proof struct** (`proof.rs:176-201`): the WHIR proof's
+non-digest payload is dominated by `initial_round_opened_rows`, laid out as
+`num_commits × num_queries × 2^k × stacking_width` **field elements** (4 B each), plus
+`codeword_opened_values`, `ood_values`, sumcheck polys and the 128-coefficient `final_poly`.
+That makes the overhead a function of **queries × width × 2^k**, not of digest width. At 131
+queries the overhead is 843 B/query against 920 B/query of digests — the two are comparable, so
+a margin cut cannot come from digest width alone if the goal is Route A. The levers that touch
+it are `k` (2^k rows opened per query), the stacking width, or the query count — each of which
+changes the schedule and therefore the soundness/byte trade rather than being free.
+
+**Two margin levers were checked and eliminated this session, which narrows Route A to nothing:**
+* **`margin_milli` (O-2 agreement slack) does not move query counts.** Reducing 50 → 0 changes
+  each round's `agree` threshold (37,140,791 → 34,843,478 in round 0) but `ceil(target/per_query_bits)`
+  lands on the same query count in all four rounds. So the 50 ‰ margin is not costing bytes.
+* **`C` is width-invariant, so the digest-width lever does not touch the 110,378 B overhead.**
+  `WhirProof::encode` (`proof.rs:373-420`) writes `initial_round_opened_rows` as **base-field**
+  elements and only the Merkle proofs as digests, so shrinking the digest only shrinks the `42·D`
+  term. At `d = 41` the estimate `41·D + 179,437` gives **297,066 B at D=2,869** and **297,845 B at
+  D=2,888** — i.e. 2,902 B and 2,123 B of margin. Both clear 1 KB comfortably.
+* **The d=41 calibration needs a full re-prove, not a replay.** The base proof on disk is 42 B, and
+  `replay-final` starts from `load_base(out)`, so a 41 B final layer requires a 41 B base+chain
+  first: ~78 s base + ~3,066 s chain + ~522 s final ≈ **1.02 h** of proving.
+
+**MEASURED 2026-10-23: `C` IS width-invariant, and the d=41 lever is real.** Two hard assertions
+blocked the path and both were relaxed this session: `sha_levers()` (`sha384/config.rs:110`) now
+accepts 41 as well as 48/42, and the driver's `init()` (`src/main.rs:187`) no longer overrides an
+explicit `NEARPROOF_DIGEST_BYTES` from the environment. A third, in `chunk_bridge.rs:17`, also
+hard-asserted `digest_bytes == 42`; it now allows 42/41 while keeping `coset_leaf`/`tstar` strict.
+With those relaxed, a full d=41 base+chain run was launched. **Its base proof verified at
+456,003 B against 459,984 B at 42 B — a 3,981 B reduction — but the recursion chain then died**
+(`hash.rs:262`, `104 != 90`). Two separate findings, and the second one kills the lever:
+
+**(a) The base proof's d=41 split, measured by `proof-sections` on both widths:**
+
+| section | d=42 | d=41 | delta |
+|---|---:|---:|---:|
+| `common_main_commit` | 48 | 48 | 0 |
+| `trace_vdata` | 280 | 279 | −1 |
+| `gkr` | 15,512 | 15,512 | 0 |
+| `relations` | 257,944 | 257,944 | 0 |
+| `stacking` | 2,372 | 2,372 | 0 |
+| `whir` | 181,204 | 177,225 | −3,979 |
+| **total** | **459,984** | **456,003** | **−3,981** |
+| `whir_digest_count` | 2,788 | 2,759 | **−29** |
+| `whir_bytes_overhead` | 64,108 | 61,347 | −2,761 |
+
+So the drop is **not** just `(42−41)·D`. Only 2,759 B of it is the per-digest saving; 1,221 B is
+**29 fewer digests** plus 4 B of `C`. Narrower digest rows (`init_lens` 833 → 821, i.e. −12 B per
+commit) make the Merkle trees shallower and sample fewer leaves. `C` therefore moved by 4 B, not 0:
+
+```
+d=42:  C = 459,984 − 42·2,788 = 342,888
+d=41:  C = 456,003 − 41·2,759 = 342,884      (delta −4)
+```
+
+**(b) The chain cannot encode a 41-byte digest at all — this is a structural wall.** `U2` units are
+`Word` (8 B) or `Half` (2 B), so a digest's byte length must be `8a + 2b`: 48 = 6·8 and 42 = 5·8+2
+are representable, **41 = 5·8+1 is not**. The node message asserts
+`m.len() == 8 + 2·digest_bytes` (`hash.rs:262`), which asks for 8+2·41 = 90 B while the 6-word
+encoder emits 8+2·48 = 104 B — hence `104 != 90`, panicking **3,568** times in the NV levels. The
+base layer never hit this because it is not the NV circuit. `digest_units` also only branches on
+`== 42` (`hash.rs:238`), so it never truncates to 41.
+
+**Consequence: the digest-width margin lever is unavailable for the NV tree.** The only even widths
+representable are 48 (6 words), 42 (5W+1H) and 40 (5 words); 41 needs a 1-byte tail. And 40 B is
+*not* a drop-in: it changes unit count from 12 to 10 per digest, so it changes geometry and needs
+its own recalibration. The margin arithmetic for d=41 therefore does **not** stand as a usable
+lever, and this paragraph replaces the earlier "C width-invariant across d=42→41" claim, which was
+wrong on two counts (`C` moved 4 B; and the chain cannot encode the width). That gap is **not** a single
 `program_part` section — measured against `L5` it decomposes as **−35,068 B of WHIR non-digest
 overhead** (the final layer carries **one** WHIR commit where a chain level carries **two**) plus
 −290 B across the non-WHIR sections (`trace_vdata` −42, `stacking` −244, `relations` −4). So the
@@ -936,6 +1018,17 @@ Still open, and each one is a real blocker rather than a formality:
      lever set (`MULTIPROOF KEEP_DOMAIN GRUEN_GKR GKR_DERIVE NEXT_MASK GRUEN_ZC WIDE_POW
      TIGHT WHIR_Y`, all default **off**), so a production node must set the levers explicitly
      to match `profile.rs`'s `WhirLevers`;
+   * **Prefix semantics settled (2026-10-23): each level's prefix is independent — there is NO
+     inheritance.** `params_from_env` reads only `{prefix}_{NAME}`, falling back to the literal
+     default array the *caller* passes (`e2e_tests.rs:269`, `env_usize(format!("{prefix}_{n}"),
+     dflt)`). The depth-n driver calls `params_from_env("PARENT", [16,3,20,3])` for L1 and
+     `params_from_env(&format!("PARENT{d}"), [16,3,20,3])` for each level `d ≥ 2`
+     (`agg_tests.rs:471/485`). So L1 reads `PARENT_*` and L2 reads `PARENT2_*`, and setting only
+     `PARENT_*` leaves L2 on the literal defaults `[16,3,20,3]` — the *test* targets, not
+     production. Both prefixes must be set explicitly. A second prefix-scoped default bites
+     harder: `COMMITS` defaults to **2 for prefix `PARENT` and 1 for everything else**
+     (`e2e_tests.rs:317`), so L2 defaults to 1 commit while L1 defaults to 2 — the opposite of
+     what a naive "set both to production" would assume, and it changes section geometry;
    * **A DKT cert set.** With `LIST_M>0` the O-2 first-order table is certificate-gated
      (`O2=1` by default) and reads `{prefix}_DKT_CERTS` or `NEARPROOF_DKT_CERTS`. A matching
      file exists at `research/near-compression/final-soundness/calc/dkt_certs_o2.json` (the
@@ -1095,7 +1188,7 @@ Still open, and each one is a real blocker rather than a formality:
    | digest `d` | final-layer bytes | margin vs 300,000 | status of that width |
    |---:|---:|---:|---|
    | 42 B | 299,935 | **+33 B** | current PQ setting (U-10) |
-   | 41 B | 297,066 | +2,934 B | **proven now** (CMS19 constants + Thm 4 with K = 0) |
+   | 41 B | 297,066 | +2,934 B | **REFUTED — base proof works (456,003 B) but the NV chain cannot encode it**: `U2` units are 8 B/2 B, so 41 = 5·8+1 has no representation; `hash.rs:262` asserts 8+2·d and panics `104 != 90`, 3,568 times. See §5's d=41 paragraph. |
    | 32 B | 271,245 | +28,755 B | not analysed in the note |
    | 27 B | 256,900 | +43,100 B | proven *in the note*, conditional on H-rob |
    | 26 B | 254,031 | +45,969 B | proven *in the note*, conditional on H-rob |
