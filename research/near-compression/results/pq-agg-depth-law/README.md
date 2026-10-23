@@ -194,3 +194,35 @@ deliberate change.
    statement indices stay exact.
 4. Do **not** invest in larger-S runs before (2): a wider tree cannot change the root's
    byte count, so more S only buys more of the same 132,301 B at a linear time cost.
+
+## Leaf-adapter gap (verified 2026-10-23)
+
+The aggregation code cannot consume a real chunk base proof, and this is a type mismatch
+rather than an unfinished feature. Two shapes:
+
+| | `SegAir` fixture (what works) | real chunk base proof |
+|---|---|---|
+| AIR width | 2 columns (`l`, `r`) | 26 AIRs, widths 263/57/52/60 on the four with pvs |
+| public values | one flat slice `[ctx…, j, pre, post]` | per-AIR `Vec<Vec<F>>` (`StatementClaim`) |
+| where pvs live | AIR 0 | AIRs 16/21/22/23 (198/202/30/178); **none on AIR 0** |
+| consumer | `ChildKind::App` reads `pv[0]`, asserts `len == n_ctx + 1 + 2·n_state` | — |
+
+Evidence:
+* `SegFixture::rows` / `of_segment` — `nv/agg.rs:355-362`, `:53-63`
+* `ChildKind::App` assertion — `nv/agg.rs:169-172`
+* `StatementClaim.public_values: Vec<Vec<F>>` — `nv/circuit.rs:299-304`, filled at
+  `pq-state-port/src/chunk_bridge.rs:164-167`
+* `BASE.vk.json` / `BASE.proof` in `runs/opt-baseline-8/` as above
+
+**"No adapter exists" is checked, not assumed:** a tree-wide search for `RangeStmt` /
+`of_segment` finds them only in `nv/agg.rs` and `nv/agg_tests.rs` (plus the same files in
+`pq-agg`). Nothing in `pq-chunk-e2e`, `public-tape-protocol`, or the tracked repo constructs
+a `RangeStmt` from a real base proof.
+
+What the adapter would have to do, none of which is implemented:
+1. flatten the four pv-bearing AIRs into one `(ctx, segment index, incoming state,
+   outgoing state)` tuple;
+2. decide which commitment plays the role of the segment's `cached_roots` entry — the base
+   proof carries one (`cached_roots` length 1), while the fixture has none;
+3. state and prove that the flattened tuple really is the chunk relation's boundary, which
+   is the `G_α` coverage obligation, not a plumbing task.
