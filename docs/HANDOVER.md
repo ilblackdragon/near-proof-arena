@@ -9,6 +9,8 @@ Merged since the last checkpoint:
 * **L6** — **the genesis checker's soundness correction.** The committed draft re-implemented the non-genesis tail and dropped ten endorsed-header comparisons, wrongly accepting 307 header mutants. `checkD2CoreG` now delegates to `checkD2Core` for `!B2.isGenesis`. Verified over the full replay: **exactly 137 verdicts change, all `out_of_domain → accept`, all genesis; zero non-genesis changes across 115,147 cases.** 137/137 genesis cases accept. Adds inventory rows for the genesis transition and the two resharding guards.
 * **L7** — differential-harness audit, UQ-014 answered per branch, readiness assessment, plus two new oracle test scripts.
 
+Remaining Lean transition work, success criteria and parallel execution dependencies: [completion workplan](requirements/LEAN_CHUNK_COMPLETION_WORKPLAN.md). The plan's gates remain open; W00–W16 are work packages, not completed milestones.
+
 Only unfinished work and shared rules belong here. Evidence/history: [logs](logs/).
 Remove completed items; update their logs instead. Old lane labels are not proof of live activity.
 

@@ -14,18 +14,24 @@ and arena so different succinct proof approaches can be researched against the s
 > are corroborated by `docs/logs/v3-progress-log-2026-10.md`, `spec/near-chunk-validation-d3.md` and
 > `docs/e2e-results/` — they are carried forward as cited evidence, not re-measured here.
 
-### Progress snapshot — main at `b2f83fe76` (2026-10-23)
+### Progress snapshot — main at `e34852568` (2026-10-23)
 
-L0, L2, L3, L4, L5 and L7 checkpoints are merged and pushed; L1 was already merged.
-L6 is held back for a soundness correction; L8 has no additional committed work. Lane worktrees
-remain active for continued development and later reconciliation. **No lane is certified complete.**
-The checked items in §4 record completed sub-deliverables, not satisfaction of a lane's full acceptance.
+L0–L7 now have merged checkpoints. L1's above-cap example, L4's directed tests and exclusion replay,
+L6's corrected genesis checker, and L7's deeper audit/CI wiring have landed since `b2f83fe76`.
+L8 has no additional committed implementation checkpoint. Lane worktrees remain available for
+continued development and reconciliation. **No lane is certified complete.** Checked items in §4
+record sub-deliverables, not satisfaction of the full acceptance criteria.
 
-The [integration record](../logs/lean-chunk-integration-2026-10-23.md) identifies exact lane tips
-and evidence. On the combined tree, the root and oracle-driver builds, changed logged-execution
-closure, 201-theorem axiom audit, 28 harness unit tests, focused float/crypto tests, coverage drift
-check and `make pin-check` passed. The corpus manifest verified 18 families; historical full replay
-results are carried forward from lane logs, not claimed as a fresh full integration replay.
+The [completion workplan](LEAN_CHUNK_COMPLETION_WORKPLAN.md) gives the remaining deliverables,
+success criteria, shared interfaces and dependency graph for parallel implementation. It separates
+work that can start now from acceptance dependencies and the final combined validation/release gates.
+
+The [first integration record](../logs/lean-chunk-integration-2026-10-23.md) identifies the exact
+`b2f83fe76` lane tips and checks; its L6 holdback is superseded by the corrected merge. Subsequent
+progress is recorded below. Historical full replay results remain carried-forward lane evidence,
+not a fresh full replay of one combined successor. The v3 CI build and harness tests are wired;
+the new corpus-manifest job still needs corpus provisioning, and not every successor target is in
+the default build. These remaining CI obligations are W01 in the completion workplan.
 
 ## 1. Objective and target
 
@@ -139,9 +145,9 @@ or a successful test that never exercises the new semantic path.
 
 ### L0 — boundary and coverage inventory
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
-- [x] Merged the inventory, readable boundary analysis and drift-gated generator; the combined inventory has **219 unique rows** (`1d242e6c2`).
+- [x] Merged the inventory, readable boundary analysis and drift-gated generator; the initial combined inventory had **219 unique rows** (`1d242e6c2`); it now has **222** after the L6 additions.
 - [ ] Resolve outstanding boundary questions and exclusions; inventory existence does not establish exhaustive validated coverage.
 
 Evidence: [L0 log](../logs/lean-chunk-L0-2026-10-23.md), [current inventory](../research/lean-chunk-coverage.json).
@@ -162,7 +168,7 @@ boundary questions explicitly; Gate B cannot pass with one unresolved.
 
 ### L1 — canonical relation and prover-independent capacity
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [x] Merged the additive protocol-gas successor and axiom-free cap comparison facts (`a5ef42e0c`); signed `RelD3`/`gAlpha` remain unchanged.
 - [x] **Demonstrated an accepted chunk above the old cap.** `d3c7/ood/00-h10007-s1` (`meta.json` `expected_rel: true`, sole violation `e.g_alpha`) is `out_of_domain` under `checkD3` and **`accept`** under the new `checkD3Proto` (`nearspec-v3-check-d3proto`, merged `c73f92347`). 846 protocol-valid chunks sit in the band across the four corpora. Overlap agreement sampled 12/12 across accept/reject/out-of-domain; band acceptance sampled 25/25. All measured, not proved.
@@ -186,7 +192,7 @@ No prover-specific AIR, commitment or recursion implementation may be required b
 
 ### L2 — floating-point Wasm
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [x] Merged pure Lean bit-pattern semantics for all **70 no-immediate float opcodes**, plus constants, loads/stores, preparation, validation and gas analysis; additive `checkD3F` and protocol-gas composition (`2816a0882`).
 - [x] Added **141 kernel-checked tests**. Recorded nearcore checks cover 1,260 operator cases, 210 gas modules and 140 prepared-module sizes with zero disagreements.
@@ -205,7 +211,7 @@ No native floating-point shortcut may bypass the certified executable semantics.
 
 ### L3 — cryptographic and key coverage
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [x] Merged `ecrecover` and `p256_verify` arithmetic and additive host implementations, source inventory and directed tests (`51ddfaff1`). Integration reran 161 ecrecover vectors, 20 edge and 23 host cases, plus 17 p256 vector/gate and 13 host cases, with zero failures.
 - [ ] Wire these hosts into a successor accepted chunk path and validate valid/invalid whole chunks; implement remaining crypto/key families and their required generated/boundary tests. Both implemented host families remain **partial** in the inventory.
@@ -223,9 +229,10 @@ entry path. No verifier-result oracle or “signature valid” hypothesis substi
 
 ### L4 — missing actions, hosts and contract resolution
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [x] Merged additive global-contract/state-init codecs, identifier resolution, fees and action bodies for tags 9/10/11 (`41b98f2bd`); modules now compile in the root build.
+- [x] Added **134 kernel-evaluated directed tests** to the root build and replayed **388 existing excluded cases** to identify the current hook guards. This replay does not enable the new actions; tags 9 and 11 still need generated whole-chunk fixtures.
 - [ ] Integrate successor chunk dispatch and validate fees, receipts, rollback, resolution and cache behaviour through whole chunks; complete the remaining reachable host/action paths. Existing chunk dispatch still excludes the new actions.
 
 Evidence: [integration record](../logs/lean-chunk-integration-2026-10-23.md), [action module](../../spec/lean/v3/NearSpecV3/D3/GlobalContractExec.lean).
@@ -241,7 +248,7 @@ Test same-chunk deploy/call, rolled-back deploy, postponed calls and missing cod
 
 ### L5 — storage accounting and protocol resource boundaries
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [x] Merged storage-bound analysis and kernel-checked facts distinguishing the conservative witness bound from protocol per-receipt limits (`a98bd9965`).
 - [ ] Implement actual accounting/exhaustion semantics and validate below/at/above-limit cases, rollback, exact gas/roots and resource use. The existing exclusion has not been removed.
@@ -259,12 +266,12 @@ Record maximum supported fixture runtime/memory for judge budgeting; resource fa
 
 ### L6 — resharding and remaining validator boundary cases
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [x] **The genesis-checker soundness correction is merged and validated.** The draft checker re-implemented the non-genesis tail and dropped ten endorsed-header comparisons, wrongly accepting 307 header mutants; `checkD2CoreG` now delegates to `checkD2Core` for `!B2.isGenesis`. Measured over the full replay: **exactly 137 verdicts change, all `out_of_domain → accept`, all genesis; zero non-genesis changes across 115,147 cases.** 137/137 genesis cases accept and 16 directed negatives fire their intended checks. The genesis branch is additive: signed `checkD2Core`/`checkD3` are unchanged.
 - [ ] Deliver actual resharding/split transitions and validator-generated boundary fixtures; the boundary analysis alone does not implement them. The two guards are stated and their exclusion argument proved (`sameLayout_forbids_resharding`, `noSplitGate_iff` + `splitGate_excludes_nonempty`), but `ImplicitTransitionParams::Resharding` itself remains unimplemented and the split gate **is** reachable at PV86 on mainnet.
 
-Evidence: [integration holdback record](../logs/lean-chunk-integration-2026-10-23.md). Uncommitted lane work is preserved, not certified here.
+Evidence: corrected [genesis checker](../../spec/lean/v3/NearSpecV3/GenesisD3.lean), [resharding analysis](../../spec/lean/v3/NearSpecV3/ReshardingD3.lean) and current [inventory](../research/lean-chunk-coverage.json). The earlier [holdback record](../logs/lean-chunk-integration-2026-10-23.md) is historical; `bcbfd97f1` was merged through `4d4fd40c3`.
 
 Deliver shard-layout transitions, split gates, resharding witness processing and any genesis/segment
 paths L0 establishes as reachable. Extend the successor claim format only when required, documenting
@@ -276,12 +283,13 @@ negatives. Compare all intermediate roots and final outputs. No blanket same-lay
 
 ### L7 — differential validation and integration
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [x] Merged corpus manifests, verification tooling, measured regression evidence and readiness assessment (`0cf6f3491`); integration verified all 18 manifest families and reran 28 harness self-tests.
 - [x] Recorded validation gaps, including the UQ-014 engine `LoadingError` divergence, rather than treating them as passed coverage.
 - [x] Audit and harness updates committed and merged: UQ-014 answered per branch, readiness assessment, two new oracle test scripts.
-- [x] **Wired two gates into CI** (`difftest-gates` job): the 28 harness self-tests and the 18-family corpus manifest drift gate — neither needs corpora or nearcore. Before this nothing ran them. `spec/lean/v3` itself was also absent from the CI Lean matrix and `make lean`; both now build it.
+- [x] **Added CI wiring** (`difftest-gates` job) for 28 harness self-tests and the corpus-manifest check. `spec/lean/v3` is also now in the CI Lean matrix and `make lean`.
+- [ ] Make the manifest CI job executable on its runner: `corpus_manifest.py --verify` requires the pinned corpora, which the current hosted job does not provision. Add explicit build coverage for successor modules/drivers outside the default root; see completion-workplan W01.
 - [ ] Complete per-family generated whole-chunk coverage, observable comparisons, all unresolved disagreements and the 1,000-consecutive-block/all-shard validator-witness replay. The full 115,284-case differential sweep still needs the pinned corpora and remains a local/integration step.
 
 Evidence: [L7 log](../logs/lean-chunk-L7-2026-10-23.md), [readiness assessment](../evidence/lean-chunk-L7/readiness-assessment.md).
@@ -296,7 +304,7 @@ validated. A percentage of module coverage is not a substitute for semantic-path
 
 ### L8 — reference admission and arena release
 
-**Progress at `b2f83fe76`:**
+**Progress through `e34852568`:**
 
 - [ ] No additional committed L8 checkpoint was available at integration. Verify artifact-bound live admission evidence for Gate A; successor packaging and Gate C remain open.
 
@@ -375,10 +383,10 @@ uncommitted work. Keep logs in `docs/logs/` and link the current plan from the h
 
 ### Completion record
 
-| Gate | Status after progress integration (`b2f83fe76`) | Required evidence owner |
+| Gate | Status through `e34852568` | Required evidence owner |
 |---|---|---|
 | A restricted research arena | Open / not newly certified; prior evidence still requires exact-package live admission verification | L8 |
-| B full executable PV86 transition | Open; merged partial progress above, semantic exclusions and validation obligations remain; L6 held back | L0 plus L1–L7 |
+| B full executable PV86 transition | Open; merged partial progress above, semantic exclusions and validation obligations remain; corrected genesis merged, actual resharding still missing | L0 plus L1–L7 |
 | C full transition arena release | Blocked on B and successor admission | L8/integration owner |
 
 Closing a gate requires links to the exact evidence above and a recorded release/commit identity.
