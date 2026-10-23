@@ -168,6 +168,54 @@ digest-width change documented in §7 item 3. Note the two goals ("minimise prov
 "stay under 300 KB") currently pull in opposite directions at 42 B digests: the faster chain is
 765 B over. The digest width is what removes that conflict.
 
+### 2.2 The real prove-time lever: `M = 3` is an artefact of discovering the tight-height floor
+
+Dropping L5 saves one level. A **much** larger saving is available one level up, and it comes
+from *why* `M` reaches 3 at all.
+
+`tight_floor` is a **prover-side** setting (`prove_mats` passes it to
+`stacked_pcs::set_tight_floor`, `circuit.rs:453-457`), and the verifier *program* depends on
+it: the child's committed heights are part of what the program hashes. The driver discovers
+the floor **empirically, one level at a time** (`main.rs:320-331`):
+
+1. generate the level's traces,
+2. read their natural tight heights,
+3. keep the componentwise maximum as the floor,
+4. and only then prove (which commits to that floor).
+
+So a level's program cannot match its child's until the floor has stopped moving.
+Measured floors:
+
+| level | floor |
+|---|---|
+| L2 | `[274384, 1047412, 128, 65536]` |
+| L3 | `[281016, 1047280, 128, 65536]` |
+| L4 | `[281016, 1047280, 128, 65536]` (unchanged) |
+| L5 | unchanged |
+
+The floor reaches its fixpoint at **L3** and never moves again. `M` is therefore counting
+*discovery steps*, not mathematical structure: each level whose program differs from the
+converged one anchors at its own child, incrementing `M`.
+Consequence: `M = 3`, so the chain needs `M + 2 = 5` levels (`L1..L5`).
+
+**A fixpoint pre-pass would collapse that.** Generate L2's traces, read the natural heights,
+then iterate the "generate with this floor" step until the floor stops changing; because the
+heights depend only on the circuit and the child's shape, that loop is cheap relative to a
+full prove. With the converged floor pinned from L2 onward, **L2's program equals L3's**, so
+`select_anchor` matches at `M = 1` and `by_bind` fires at L3 (`M=1 != level-1=2`). The chain
+becomes `L1, L2, L3 + final` — **saving L4 and L5 = 459.38 + 582.17 = 1,041.55 s**, taking the
+chain from 2,538.55 s to ≈1,497 s (**−41 %**). Stacked with the digest-width change it would
+also keep the packet under the cap.
+
+**This is a design proposal, not a result.** Nothing in this session implemented or measured
+the pre-pass; the 1,041.55 s figure is arithmetic on measured level times under the stated
+mechanism. Two things must be checked before trusting it: (a) that the floor really does
+reach a fixpoint in one extra generate on *other* inputs, not just this fixture — the driver's
+current loop exists precisely because the authors did not assume that; and (b) that pinning a
+floor the prover later cannot meet is safe, which the existing assertion at
+`circuit.rs:461-462` ("committed `h` below the floor") already guards. It is ranked first in
+§7 because it attacks the dominant cost, not the tail.
+
 **Caveat, and what checking it actually showed.** Dropping L5 removes the level where
 `by_bind` first returns true, so the question is whether a 4-level chain leaves the
 `M = 3` stability assertion unconfirmed. The measured evidence says **no, it does not**, and
