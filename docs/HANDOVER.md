@@ -134,18 +134,23 @@ Full detail, with the scope attached to every number, is in
   L4, so neither may be quoted as the answer.
   The cold `target-agg` rebuild is cheap: **41.3 s** with sccache warm, so the build is not
   the obstacle. `/data` has ~80 GB free after cleanup.
-* **Leaves are `SegAir` Fibonacci fixtures, not seg-v1 — and the reason is now pinned to a
-  concrete interface mismatch, not just "not implemented".** `SegAir` is a **2-column**
-  Fibonacci AIR (`l, r` per row; `SegFixture::rows`, `nv/agg.rs:355-362`) whose public values
-  are `[ctx…, j, pre, post]`. `ChildKind::App { n_ctx, n_state }` reads **`pv[0]`** of the
-  child and asserts `len == n_ctx + 1 + 2·n_state` (`agg.rs:169-172`). A real chunk base proof
-  does not satisfy that shape: `BASE.vk.json` puts **no public values on AIR 0** and instead
-  carries 198/202/30/178 on AIRs 16/21/22/23 (`runs/opt-baseline-8/BASE.proof` reports
-  `pv_entries=[0×16, 198, 0,0,0,0, 202, 30, 178, …]`). So a real base proof cannot be dropped
-  in as an `App` child without an adapter that composes the four AIRs' public values into one
-  range statement. That adapter, not the aggregation node, is what stands between the measured
-  tree and a real segment leaf — and the wider `G_α` blockers in §"Gap to e2e 1 Pgas" are what
-  still block the base proof itself from covering a NEAR chunk.
+* **Leaves are `SegAir` Fibonacci fixtures, not seg-v1 — and the reason is a concrete
+  interface mismatch, not just a TODO.** The two shapes are structurally different:
+  * `SegAir` is a **2-column** Fibonacci AIR (`l, r`; `SegFixture::rows`, `nv/agg.rs:355-362`)
+    whose public values are one flat slice `[ctx…, j, pre, post]`. `ChildKind::App` reads
+    `pv[0]` and asserts `len == n_ctx + 1 + 2·n_state` (`agg.rs:169-172`), matching
+    `RangeStmt::of_segment` (`agg.rs:53-63`).
+  * A real chunk base proof has a **per-AIR** statement: `StatementClaim.public_values` is
+    `Vec<Vec<F>>` with one entry per AIR (`nv/circuit.rs:299-304`, filled at
+    `state-port/src/chunk_bridge.rs:164-167`). `BASE.vk.json` carries 26 AIRs with public
+    values only on **16/21/22/23** (198/202/30/178) and none on AIR 0 —
+    `BASE.proof` reports `pv_entries=[0×16, 198, 0,0,0,0, 202, 30, 178, …]`.
+  So a real base proof cannot be dropped in as an `App` child without an **adapter that
+  flattens four AIRs' public values into one range statement** (ctx, segment index, incoming
+  and outgoing state), plus a decision about which commitment plays the role of the segment's
+  `cached_roots` entry. That adapter — not the aggregation node — is the missing piece, and
+  no such adapter exists in the tree today. The wider `G_α` blockers in §"Gap to e2e 1 Pgas"
+  are what still block the base proof from covering a NEAR chunk in the first place.
 * **"Under 300 KB" is a transcript-sampled property, not a structural bound.** Measured law:
   `proof_bytes = 42·D + C` (7/7 proofs), so the cap needs `D ≤ 2,869`. The base packet sits
   **exactly at `D = 2,869` — 33 B of margin, 0.79 of one digest** — and a second valid proof
