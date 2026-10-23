@@ -1,0 +1,149 @@
+{
+ "corpora_root": "/data/illia/nearproof-deps/corpora",
+ "digest_definition": "per case dir (sorted): for f in claim.bin,witness.bin,meta.json: sha256(f || u64le(len) || bytes)",
+ "expected_counts": {
+  "d1run": 53048,
+  "d2corpus.v2": 67384,
+  "d3c10": 16551,
+  "d3c7": 33248,
+  "d3c8": 49490,
+  "d3c9": 15995
+ },
+ "families": {
+  "d1run/d1": {
+   "bytes": 47247300,
+   "cases": 3394,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "9cad846a26b346cb6941d3eaaf445814c0e1d87b5053a9d555ec06be941b2e89"
+  },
+  "d1run/mutants": {
+   "bytes": 622537527,
+   "cases": 46009,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "d550c33cc8534b3780cd7d13d7290f20a11dc23ada1c8f56262c0465b7805242"
+  },
+  "d1run/ood": {
+   "bytes": 180116706,
+   "cases": 3645,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "fac6242ec7b077f37f9c66bdeb32f4dac58fcf9b70184f1e274fd83b5fe3cd40"
+  },
+  "d2corpus.v2/d2": {
+   "bytes": 291946434,
+   "cases": 10537,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "23b5e4398fa6938eeb231f276a4935f23cf1fc430ba3a96488d0ca9d1c6fa94b"
+  },
+  "d2corpus.v2/mutants": {
+   "bytes": 1561837489,
+   "cases": 56457,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "397ec645cba0678c84ba32ec977bda641be3e9b2ab337cdd90dcb819257a7b59"
+  },
+  "d2corpus.v2/ood": {
+   "bytes": 10095608,
+   "cases": 390,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "edd831add6654f640bf5fd64020a8985d331fab12c8834bb36416c716f2b1830"
+  },
+  "d3c10/d3": {
+   "bytes": 83014642,
+   "cases": 2778,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "7f9ab784f6a844b07c991743148e048f29d39e1f19c45ca20e74418709698996"
+  },
+  "d3c10/mutants": {
+   "bytes": 361829020,
+   "cases": 13353,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "8f79105dcf282e444a324868de7d58fc228c86370ef516237f91d46c495f6eaa"
+  },
+  "d3c10/ood": {
+   "bytes": 13953661,
+   "cases": 420,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "4b507e80a59471694b110756d66eb61689985b48cf321537483d0d85b1195dcd"
+  },
+  "d3c7/d3": {
+   "bytes": 173883998,
+   "cases": 5381,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "bec186ea3dc3cfb2afd3ecd445de23e4901e7092400524273069c38c0c6eef8b"
+  },
+  "d3c7/mutants": {
+   "bytes": 805077940,
+   "cases": 27030,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "097297a9fcb8f9df3f7eda53978dd5c8acd8e0fe3fe3045b9d9aee0639f89706"
+  },
+  "d3c7/ood": {
+   "bytes": 31545448,
+   "cases": 837,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "6857acf5a2f2fc5d8e7f6a5b3ec3b6a1839580c30626983842caad062785dc1d"
+  },
+  "d3c8/d3": {
+   "bytes": 289341930,
+   "cases": 8192,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "e181b3df0cbfd7f315c82d21ee524a0a51082412309e3235828682299b68dbd3"
+  },
+  "d3c8/mutants": {
+   "bytes": 1206179735,
+   "cases": 39997,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "9b527840a31760b25b6bb523b59864d6480582f363c85eeac22bce43d902bb52"
+  },
+  "d3c8/ood": {
+   "bytes": 50152704,
+   "cases": 1301,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "94840a035ec660e4a77f6f34ba291d07ddd04c350b8833b08ae9b87a18bfaa4c"
+  },
+  "d3c9/d3": {
+   "bytes": 94081363,
+   "cases": 2656,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "b08968203f0c1449d1bf00ea809c9e2e1242d66796ffa69474a184c71333248e"
+  },
+  "d3c9/mutants": {
+   "bytes": 379204767,
+   "cases": 12928,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "65395a93d7547d5d8bd1029d6d3a183ab420e80c5a6021b2a39b78dc89b8cbca"
+  },
+  "d3c9/ood": {
+   "bytes": 15675738,
+   "cases": 411,
+   "missing_count": 0,
+   "missing_files": [],
+   "sha256": "6fc1443db89809d785e7867aa39770461c60d29013f3c5b6a24b20221679ff57"
+  }
+ },
+ "measured_counts": {
+  "d1run": 53048,
+  "d2corpus.v2": 67384,
+  "d3c10": 16551,
+  "d3c7": 33248,
+  "d3c8": 49490,
+  "d3c9": 15995
+ },
+ "schema": "near-l7-corpus-manifest-v1"
+}
