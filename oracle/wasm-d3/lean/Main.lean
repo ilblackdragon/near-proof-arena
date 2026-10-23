@@ -6,7 +6,9 @@ import NearSpecV3.Wasm.Segment
 /-! `nearspec-v3-wasm`: stdin `<prepaid_gas> <wasm_hex> [<receiver>,…]` per line → one outcome line per case in the
 format of the nearcore harness (`oracle/wasm-d3/src/main.rs`). Method name: `main`.
 Flag `--instruction-level-metering`: the finite-wasm merging ablation. Flag `--prepared-size`: print
-the exact instrumented-module size (compare with the harness `prepare` mode). -/
+the exact instrumented-module size (compare with the harness `prepare` mode).
+Flag `--floats`: prepare and run with `Wasm.floatPv86` (the L2 float domain) instead of `Wasm.pv86`.
+Flag `--prepare-hex`: print the instrumented module bytes, to compare with the harness `prepare` mode. -/
 open NearSpecV3.Wasm
 
 def hexVal (c : Char) : Option Nat :=
@@ -95,11 +97,11 @@ partial def chunkLoop (logged : Bool) (code : ByteArray) (ablate : String) (delt
     stdout.flush
   chunkLoop logged code ablate deltas stdin stdout
 
-partial def loop (logged bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
+partial def loop (logged bl sizeMode full cpMode floats : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let line := line.trimAscii.toString
-  if line.isEmpty then loop logged bl sizeMode full cpMode stdin stdout else
+  if line.isEmpty then loop logged bl sizeMode full cpMode floats stdin stdout else
   let parts := line.splitOn " "
   match parts with
   | g :: h :: rest =>
@@ -108,15 +110,16 @@ partial def loop (logged bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.S
       match parseCtx gas rest.head? with
       | none => stdout.putStrLn "unmodeled bad options"
       | some ctx =>
-        let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
-        stdout.putStrLn (if sizeMode then preparedSizeLine pv86 code
-          else if cpMode then chargePointsLine pv86 code
-          else if logged then LoggedHarness.mockOutcome pv86 code "main" ctx fuel bl full
-          else outcome pv86 code "main" ctx fuel bl full)
+        let cfg := if floats then floatPv86 else pv86
+        let fuel := (gas / cfg.regularOpCost + 2) * 64 + 1000000
+        stdout.putStrLn (if sizeMode then preparedSizeLine cfg code
+          else if cpMode then chargePointsLine cfg code
+          else if logged then LoggedHarness.mockOutcome cfg code "main" ctx fuel bl full
+          else outcome cfg code "main" ctx fuel bl full)
     | _, _ => stdout.putStrLn "unmodeled bad input"
   | _ => stdout.putStrLn "unmodeled bad input"
   stdout.flush
-  loop logged bl sizeMode full cpMode stdin stdout
+  loop logged bl sizeMode full cpMode floats stdin stdout
 
 def main (args : List String) : IO Unit := do
   if let some code := (match args with
@@ -128,4 +131,5 @@ def main (args : List String) : IO Unit := do
     chunkLoop (args.contains "--logged") c ablate (args.contains "--deltas") (← IO.getStdin) (← IO.getStdout)
     return
   loop (args.contains "--logged") (!args.contains "--instruction-level-metering") (args.contains "--prepared-size")
-    (args.contains "--full") (args.contains "--charge-points") (← IO.getStdin) (← IO.getStdout)
+    (args.contains "--full") (args.contains "--charge-points") (args.contains "--floats")
+    (← IO.getStdin) (← IO.getStdout)
