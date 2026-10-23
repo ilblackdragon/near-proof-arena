@@ -148,6 +148,32 @@ def idxPM {α} (a : Array α) (i : Nat) (what : String) : PM α :=
 
 def anyFloatVT (ts : Array VT) : Bool := ts.any VT.isFloat
 
+/-! ### The three float guards, as named predicates
+
+`sectionBody` consults these. Naming them lets `ChallengeChunkV3Float` prove that the *only*
+difference between D3α and the float domain is the `NearCfg.floats` conjunct: on a module with no
+float at all the two predicates agree, which is the mechanism behind "the extension is additive". -/
+
+/-- `prepare_v3.rs:303-333` (`transform_import_section`): a float in an imported function type. -/
+def floatGuardImport (cfg : NearCfg) (ft : FuncType) : Bool :=
+  !cfg.floats && (anyFloatVT ft.params || anyFloatVT ft.results)
+
+/-- The global section: a float global. -/
+def floatGuardGlobal (cfg : NearCfg) (gs : Array Global) : Bool :=
+  !cfg.floats && gs.any (fun g => g.type.isFloat)
+
+/-- A float local group, parameter/result type, or operator in a function body. -/
+def floatInBody (groups : Array (Nat × VT)) (ft : FuncType) (code : Array Instr) : Bool :=
+  groups.any (·.2.isFloat) || anyFloatVT ft.params || anyFloatVT ft.results ||
+    code.any (fun i => match i with
+      | .float _ | .floatLoad _ _ _ | .floatStore _ _ _ | .f32Const _ | .f64Const _ => true
+      | .select (some t) => t.isFloat
+      | .block (some t) | .loop (some t) | .if_ (some t) => t.isFloat
+      | _ => false)
+
+def floatGuardBody (cfg : NearCfg) (groups : Array (Nat × VT)) (ft : FuncType)
+    (code : Array Instr) : Bool := !cfg.floats && floatInBody groups ft code
+
 /-- Section ordering rank (wasmparser `Order`): data count sits between element and code. -/
 def sectionRank (id : Nat) : Option Nat :=
   match id with
@@ -212,7 +238,7 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
       | _ => deser "tag import"
     for i in is do
       match m.types[i.idx]? with
-      | some ft => if !cfg.floats ∧ (anyFloatVT ft.params ∨ anyFloatVT ft.results) then
+      | some ft => if floatGuardImport cfg ft then
           throw (.ood "float in an imported function type")
       | none => pure ()
     modify fun s => { s with m := { s.m with imports := is }, funcBudget := fb }
@@ -242,7 +268,7 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
     modify fun s => { s with m := { s.m with memories := ms } }
   | 6 => do
     let gs ← liftP (vecOf global_)
-    for g in gs do if !cfg.floats ∧ g.type.isFloat then throw (.ood "float global")
+    if floatGuardGlobal cfg gs then throw (.ood "float global")
     let c := mkCtx m
     for g in gs do constOk c g.type g.init
     modify fun s => { s with m := { s.m with globals := gs } }
@@ -317,12 +343,7 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
       let (code, lens) ← liftP (operators bEnd)
       let f : Func := { type := ti, localGroups := groups, code := code, bodySize := sz,
                         opLens := lens }
-      if !cfg.floats ∧ (groups.any (·.2.isFloat) ∨ anyFloatVT ft.params ∨ anyFloatVT ft.results ∨
-          code.any (fun i => match i with
-            | .float _ | .floatLoad _ _ _ | .floatStore _ _ _ | .f32Const _ | .f64Const _ => true
-            | .select (some t) => t.isFloat
-            | .block (some t) | .loop (some t) | .if_ (some t) => t.isFloat
-            | _ => false)) then
+      if floatGuardBody cfg groups ft code then
         throw (.ood "float type or operator in a function body")
       match validateBody c ft f.locals code with
       | .ok () => pure ()

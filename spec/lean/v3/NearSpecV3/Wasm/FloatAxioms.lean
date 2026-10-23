@@ -34,6 +34,10 @@ needed.
 #print axioms NearSpecV3.checkD3F_eq_checkD3_of_cfg
 #print axioms NearSpecV3.floatPv86_eq_pv86_iff
 #print axioms NearSpecV3.floatPv86_fields
+#print axioms NearSpecV3.floatGuardImport_eq_of_noFloat
+#print axioms NearSpecV3.floatGuardGlobal_eq_of_noFloat
+#print axioms NearSpecV3.floatGuardBody_eq_of_noFloat
+#print axioms NearSpecV3.floatGuard_lifted
 
 /-! ## The logged-step equivariance the new arms required -/
 

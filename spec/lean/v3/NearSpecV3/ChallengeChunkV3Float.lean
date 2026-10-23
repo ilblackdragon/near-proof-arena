@@ -35,28 +35,31 @@ Proved:
 * `floatPv86_eq_pv86_iff`, `floatPv86_fields`: `floatPv86` differs from `pv86` in exactly the
   `floats` field.
 
-**An additivity theorem is *not* proved here, and was previously claimed in this docstring without
-existing.** Earlier revisions of this header listed
+**Additivity, at the granularity that is provable.** The three preparation guards are named
+predicates in `Wasm/Prepare.lean` (`floatGuardImport`, `floatGuardGlobal`, `floatGuardBody`), each
+literally of the form `!cfg.floats && <property of the module>`. Therefore:
 
-* `checkD3F_eq_checkD3_of_noFloat` — "on a chunk with no float at all, `RelD3F` and `RelD3` agree";
-* `d3F_extends_d3_on_floatContracts` — "a concrete contract that D3α rejects and `RelD3F` admits".
+* `floatGuard_eq_of_noFloat`: on a module with no float anywhere, `floatGuardImport pv86 ft =
+  floatGuardImport floatPv86 ft`, and likewise for the global and body guards — the guards fire
+  under neither configuration, so preparation takes the same path.
+* `floatGuard_lifted`: under `floatPv86` all three guards are `false` for *every* module, which is
+  what lets a float module through.
 
-Neither declaration ever existed in this file; both were prose only. They are removed from this
-header. The additivity statement is plausible — the guards are `!cfg.floats ∧ …` and on a
-float-free module that is the same proposition — but it is *not* established here, and a reader
-must not cite this module for it. What is established about the difference between the two
-checkers is only the syntactic fact above (one field), not that the two relations coincide on any
-sub-domain.
+What is **not** proved: `checkD3F = checkD3` on float-free *chunks*. That needs an induction over
+`prepare` and the whole chunk pipeline showing no other site reads `NearCfg.floats`; the guard
+equalities above are the only step that is about floats, and the rest is a (large) syntactic
+argument not carried out here. A reader must not cite this module for chunk-level additivity.
+`ChallengeChunkV3Float.checkD3F_eq_checkD3_of_cfg` records the weaker syntactic fact that the two
+checkers differ only in the configuration argument.
 
 **Not proved, and not claimed:** that `RelD3F` agrees with nearcore on all float chunks. That is a
-differential obligation. As of this revision it is discharged *by measurement only*, and only on
-the operator level: `oracle/wasm-d3/tests/difftest_float.py` compares `evalFloatOp` with an
-independent Python IEEE reference (about 79.8k cases per seed, 5 seeds, 0 disagreements), and
-`float_nearcore.py` re-executes 1,260 of those on pinned nearcore's own engine (0 disagreements).
-Whole-chunk float execution is **not** covered by either: the corpus case `d3float` was a
-*rejection* case under D3α and no whole-chunk accept case through `checkD3F` has been generated.
-So the end-to-end claim is open. `RelD3F`'s float semantics are the Lean kernel's, whose agreement
-with the pinned engine is measured per operator, not proved and not yet measured per chunk.
+differential obligation, discharged **by measurement**: `oracle/wasm-d3/tests/difftest_float.py`
+(79,742 directed + generated cases per seed, seeds 1–4, 0 disagreements against an independent
+Python IEEE reference), `float_nearcore.py` (1,260 directed cases through pinned nearcore's own
+engine plus 210 gas modules, 0 disagreements), `float_prepare.py` (the import-only and
+global-only guards, exact gas), and `chunk_float.py` (20 whole recorded `d3float` chunks accepted
+through `checkD3F` where D3α reported a float exclusion, with 80/80 claim/witness/code/root tamper
+mutants rejected). Those are tests, not a refinement theorem.
 
 Also not claimed: that the exclusion was ever necessary. nearcore at PV86 accepts floats
 (`features.rs:47-59`: `floats: true`, `saturating_float_to_int: true`); D3α's exclusion is a
@@ -121,6 +124,40 @@ float anywhere, the guards never fire (`!cfg.floats ∧ …` is `true ∧ …` w
 preparation returns the same result — hence the same chunk verdict. The statement below is on the
 configuration field: the only way the two checkers can differ is through `NearCfg.floats`, and that
 field is read at exactly the three guards plus the interpreter's float arms. -/
+
+/-! ## The guards, and what additivity can be proved at the guard level
+
+Each guard is `!cfg.floats && <a property of the module>`, so on a float-free module the two
+configurations agree: the guard is `false` under both. That is the whole of the float-specific
+reasoning; it is stated here for each of the three sites, and it is what makes the extension
+*additive at preparation*.
+
+The chunk-level statement (`checkD3F = checkD3` on float-free chunks) additionally needs an
+induction showing no other site reads `NearCfg.floats`. It is **not** proved here and must not be
+cited; see the module docstring. -/
+
+theorem floatGuardImport_eq_of_noFloat (ft : FuncType) (h : anyFloatVT ft.params = false)
+    (h2 : anyFloatVT ft.results = false) :
+    floatGuardImport pv86 ft = floatGuardImport floatPv86 ft := by
+  simp [floatGuardImport, h, h2, pv86, floatPv86]
+
+theorem floatGuardGlobal_eq_of_noFloat (gs : Array Global)
+    (h : gs.any (fun g => g.type.isFloat) = false) :
+    floatGuardGlobal pv86 gs = floatGuardGlobal floatPv86 gs := by
+  simp [floatGuardGlobal, h, pv86, floatPv86]
+
+theorem floatGuardBody_eq_of_noFloat (groups : Array (Nat × VT)) (ft : FuncType)
+    (code : Array Instr) (h : floatInBody groups ft code = false) :
+    floatGuardBody pv86 groups ft code = floatGuardBody floatPv86 groups ft code := by
+  simp [floatGuardBody, h, pv86, floatPv86]
+
+/-- Under the float domain the guards are `false` for *every* module: this is the mechanism that
+admits float contracts (`Prepare.lean` consults `cfg.floats` and nothing else). -/
+theorem floatGuard_lifted (ft : FuncType) (gs : Array Global) (groups : Array (Nat × VT))
+    (code : Array Instr) :
+    floatGuardImport floatPv86 ft = false ∧ floatGuardGlobal floatPv86 gs = false ∧
+      floatGuardBody floatPv86 groups ft code = false := by
+  simp [floatGuardImport, floatGuardGlobal, floatGuardBody, floatPv86, pv86]
 
 /-- The configuration difference is exactly the field `floats`. -/
 theorem floatPv86_eq_pv86_iff (b : Bool) (h : { Wasm.pv86 with floats := b } = Wasm.pv86) :
