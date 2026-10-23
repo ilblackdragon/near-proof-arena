@@ -1,3 +1,23 @@
+# Production-target aggregation: MEASURED at 303,053 B and 276,269 B
+
+> **UPDATE 2026-10-23 (query-PoW schedule): the same 2-child node at the base final layer's
+> own schedule measures 276,269 B.** With `PARENT_QUERY_POW=32` the WHIR query list becomes
+> `[41, 38, 29, 23]` — *identical to `SETUP.json`'s final layer* — and the proof drops to
+> **276,269 B**, 23,731 B under the 300 KB cap. Sections:
+> `gkr=29960 relations=23332 stacking=2704 whir=220068`; `prove_s=2160.8`, `peak_rss_gb=9.46`,
+> `program_rows=16662`, `nvair_h=262144`, `soundness total=268.2`, `AGG_DEPTH1_OK`.
+> Log `agg-prod-qpow32.log`. **The 26,784 B saving vs 303,053 B is exactly the 18 fewer queries
+> × 1,488 B/query** — i.e. moving 32 bits of soundness from query sampling into query-phase
+> PoW is a pure size win at constant total soundness (268.7 → 268.2).
+>
+> **Read this with its confound attached:** this node is `nvair_h=2^18` with **App** children,
+> while the delivered final layer is `2^20`. Its WHIR is 10,808 B *smaller* than the base
+> final layer's 230,876 B, and that gap is the height effect (131 queries × 2 extra Merkle
+> path digests × 42 B ≈ 11,004 B), not a child-count effect. So 276,269 B does **not** show
+> that aggregation is cheaper than the final layer at equal geometry; it shows that a 2^18
+> App-child node at the final layer's query schedule is cheaper. The 2^20 Node-child node — the
+> actual tree-root shape — is measured by the depth-2 run below.
+
 # Production-target aggregation: MEASURED at 303,053 B
 
 **Status: measured.** A 2-child aggregation node at the production WHIR schedule

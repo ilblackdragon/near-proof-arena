@@ -126,14 +126,32 @@ Full detail, with the scope attached to every number, is in
   total is an **upper bound**. Its AIR geometry matches the base final layer exactly
   (`cols = 173`, `nvair_h = 2^20`), so it is the same circuit, differing only in child count
   (2 vs 1) and WHIR commits (2 vs 1).
-  **Still unmeasured: the 1-commit 2-child production node's size**, which is the number that
-  decides the 300 KB question. Four attempts were killed by server restarts (no cgroup memory
-  limit, so not OOM); the launch recipe is now documented and only needs a single serialized
-  run. Two defensible projections disagree — 302,119 B (over the cap) vs 294,935 B (under) —
-  and the 7,184 B gap equals the measured non-WHIR difference between the agg node and chain
-  L4, so neither may be quoted as the answer.
-  The cold `target-agg` rebuild is cheap: **41.3 s** with sccache warm, so the build is not
-  the obstacle. `/data` has ~80 GB free after cleanup.
+  **MEASURED 2026-10-23: the 1-commit 2-child production node is 276,269 B**, 23,731 B under
+  the 300 KB cap. Schedule `queries=[41, 38, 29, 23]`, `pow(query)=32`, `target=236` (= 268.2
+  bits total) — **exactly the delivered base final layer's own schedule** (`SETUP.json`
+  `final_vk.inner.params.whir`). Sections `gkr=29960 relations=23332 stacking=2704
+  whir=220068`; `prove_s=2160.8`, `peak_rss_gb=9.46`, `program_rows=16662`, `nvair_h=262144`,
+  `soundness total=268.2`, `AGG_DEPTH1_OK`. Log
+  `results/pq-agg-prod-target/agg-prod-qpow32.log`.
+  The 300 KB question is therefore **answered at this node shape: it fits.** Three caveats
+  keep it short of a finished result:
+  * It is an **App-child** node (`nvair_h=2^18`); a 1 Pgas tree's root aggregates **Node**
+    children at `2^20`, which is a bigger program. Depth 2 is the measurement that closes this.
+  * It ran under `NEARPROOF_STREAM_COMMIT=1` (9.46 GB peak). The size is streaming-invariant;
+    the 2,160.8 s prove time is not — the same node materialised proved in ~66 s at 25.9 GB.
+  * The 26,784 B saving vs the earlier 303,053 B run is exactly 18 fewer queries at
+    ~1,488 B/query: moving 32 bits from query sampling into query-phase PoW is a **pure size
+    win at equal total soundness** (268.7 → 268.2).
+  Two earlier projections that disagreed by 7,184 B (302,119 over vs 294,935 under) are now
+  **both withdrawn as superseded** — the measurement replaces them. The cold `target-agg`
+  rebuild is cheap: **41.3 s** with sccache warm. `/data` has ~77 GB free after cleanup.
+  **Correction to the earlier "killed by server restarts, not OOM" claim: they WERE OOM kills.**
+  `zkbuild.slice` has `memory.max = 48 GiB`, `memory.peak` reached 40–42.9 GB and
+  `memory.events.oom_kill` rose 4 → 5 across two launches; a `mem-watchdog`
+  (`/data/illia/nearproof-deps/bin/mem-watchdog`) additionally `kill -9`s the largest process
+  in the slice when host `MemAvailable` stays under 10 GiB. Page cache occupies ~16.5 GB of
+  the slice, so a ~26 GB materialised run has under 29 GB of headroom and dies mid-WHIR.
+  Streaming is the reliable path at 9.46 GB.
 * **Leaves are `SegAir` Fibonacci fixtures, not seg-v1 — and the reason is a concrete
   interface mismatch, not just a TODO.** The two shapes are structurally different:
   * `SegAir` is a **2-column** Fibonacci AIR (`l, r`; `SegFixture::rows`, `nv/agg.rs:355-362`)

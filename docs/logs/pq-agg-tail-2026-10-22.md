@@ -31,6 +31,8 @@ as closing that gap.
 | 13 | The 798 B base-vs-replay gap is **19 WHIR digests** in the WHIR section; every other section is byte-identical | **measured** via the new `proof-sections` subcommand |
 | 14 | The 300 KB cap requires `D ≤ 2,869`; base sits **exactly at 2,869** (33 B margin) and a second valid proof at `D = 2,888` is 765 B over | **measured** |
 | 15 | Therefore "under 300 KB" is a **transcript-sampled property**, not a structural bound | **measured** — two valid proofs straddle the cap |
+| 16 | The agg tests **do verify their proofs** — `prove_mats` calls `engine.verify(&vk, &proof).unwrap()` unconditionally, per level | **code check**, `nv/circuit.rs:466` |
+| 17 | A 2-child agg node at the base final layer's *exact* production schedule (`[41,38,29,23]`, `QUERY_POW=32`, `COMMITS=1`) measures **276,269 B** | **measured** 2026-10-23, streaming, 2,160.8 s, 9.46 GB |
 
 Two reconciliations this log owes its reader, both done in full below and both correcting an
 earlier reading:
@@ -575,6 +577,43 @@ Three consequences that matter for the goal:
 * The 798 B is **not** a wobble to be averaged away; it is 19 discrete digests. Sizes here move in
   42-byte units, and the cap sits 0.79 digest above base, so the margin is sub-digest.
 
+### 4.4 Do the aggregation tests actually verify? Yes — checked in the source
+
+The question was raised that `level()` in `agg_tests.rs` "calls `prove_mats` and only checks
+the statement", so `AGG_*_OK` might be statement-level only. **That is not the case.**
+`prove_mats` (`nv/circuit.rs:430-468`) ends with
+
+```rust
+engine.verify(&vk, &proof).unwrap();
+(vk, proof, shapes)
+```
+
+— an unconditional native verification of the proof it just produced, on **every** level,
+before returning. So each `L*_PROOF_BYTES` line in these logs describes a proof that has
+already passed `engine.verify` against its own freshly keygen'd vk. `level()` then additionally
+checks the statement (`check_range_statement`), and `soundness(tag, &vk)` computes the bit
+count from the vk. Three separate checks, in that order.
+
+Two honest limits on what this establishes, neither of which the tests claim to cover:
+
+* **The vk is regenerated in-memory, not read from a pinned artifact.** `prove_mats` does
+  `engine.keygen(&airs)` and verifies against that. It proves prover/verifier agreement on the
+  same circuit, not agreement with a *committed* vk. The delivered packet's independent check
+  (`INDEPENDENT_VERIFY_OK`) is the one that uses a pinned vk and a pinned setup hash; the agg
+  tests do not reproduce that.
+* **`b.failures.is_empty()` is asserted but program binding is not emitted for NV children**
+  (`agg.rs:21-23`: "program binding of NV children is not emitted by this node"). The
+  `ChildKind::Node` path does set `b.bind_child = true` (`agg.rs:159`), so binding is on for
+  the depth-2+ node path, but the *App*-child path does not bind. This is the same prototype
+  limit recorded in `results/pq-base-aggregation/README.md`, not a new finding — but it means
+  an `AGG_*_OK` line is "proof verifies + statement matches", **not** "full packet-grade
+  verification".
+
+**Consequence for labelling:** `AGG_DEPTH1_OK`, `AGG_CHAIN_OK`, `AGG_DEPTH3_OK`, `AGG_S13_OK`
+are all backed by a real `engine.verify` pass. They are *not* backed by an independent
+pinned-vk verification, and the App-child path lacks program binding. Any sentence in this
+repo that treats `AGG_*_OK` as packet-grade evidence should say which of the two it means.
+
 ## 5. Soundness: why this cannot be a per-proof union (and a correction)
 
 Measured per-proof: **2^−134.88** (z split, `bound-base.out`) or **2^−134.68**
@@ -736,8 +775,20 @@ Still open, and each one is a real blocker rather than a formality:
    That run needed `COMMITS=1` **and** `X15=15` together; `COMMITS` defaults to 2 for the
    `PARENT` prefix (`params_from_env`, `e("COMMITS", if prefix == "PARENT" { 2 } else { 1 })`),
    so a `COMMITS=1` override is mandatory for a final-layer-shaped node. That run's log
-   (`agg-prod-d1-c1.log`) confirms the params but was killed before its byte total, so
-   **the 1-commit production agg node's size remains unmeasured.**
+   (`agg-prod-d1-c1.log`) confirms the params but was killed before its byte total.
+
+   **CORRECTED 2026-10-23: the 1-commit production agg node is now MEASURED at 276,269 B.**
+   `L1_0_PARAMS ... queries=[41, 38, 29, 23] pow(...,query,...)=(0,0,32,0)`, i.e. the base
+   final layer's own schedule, `COMMITS=1`, `target=236 + 32 pow = 268.2` bits total. Section
+   split `total=276269 gkr=29960 relations=23332 stacking=2704 whir=220068`, prove 2,160.8 s,
+   peak RSS 9.46 GB, `program_rows=16662`, `nvair_h=262144`, `AGG_DEPTH1_OK`, and
+   `L1_0_SOUNDNESS total=268.2`. Log
+   `results/pq-agg-prod-target/agg-prod-qpow32.log`. **This is 23,666 B *below* the delivered
+   base final layer's 299,935 B at the same schedule**, and 23,731 B under the cap.
+   Two caveats that matter for reading it: (i) it is an **APP-child** node (`nvair_h=2^18`),
+   not the Node-child node a 1 Pgas tree root would be; (ii) it ran under
+   `NEARPROOF_STREAM_COMMIT=1`, whose 27× prove-time penalty accounts for essentially all of
+   the 2,160.8 s. The size is unaffected by streaming; the time is not.
 
    Logs are sha256-pinned in `research/near-compression/results/pq-agg-depth-law/logs/`:
    `agg-prod-depth1-ns18.log` = `684bbdba…ed1837` (the 368,177 B run),
@@ -747,14 +798,28 @@ Still open, and each one is a real blocker rather than a formality:
    the base final layer's params, killed before its bytes). All are raw captures from
    `target-agg`, not reproductions of the base packet.
 
-   **Why the runs kept dying, and what to change.** No cgroup memory limit exists
-   (`/sys/fs/cgroup/memory.max` absent), so these were not OOM kills — each run was cut off
-   when the server restarted. The launcher was the real defect: it backgrounded the binary
-   from the same shell session without a new process group in the first attempt, and the
-   cleanup pattern matched its own command string. A relaunch should use `setsid` and kill by
-   explicit PID. Separately, a 2-child production node measured **28.1 GB peak RSS** at 5
-   rounds and ~400 s per level, so only one such run should ever be in flight on a 125 GB
-   host.
+   **Why the runs kept dying — CORRECTED 2026-10-23. The earlier "not OOM kills, the server
+   restarted" attribution in this paragraph was WRONG and is withdrawn.** The real cause is
+   memory: these runs are killed by the cgroup OOM killer in `zkbuild.slice`, whose
+   `memory.peak` reached 40.0–42.9 GB against a 48 GiB `memory.max`
+   (`memory.events: oom_kill` rising 4 → 5 across two launches). Two mechanisms compound it:
+   * **Page cache fills the slice.** At kill time `memory.stat` showed `anon ≈ 0`,
+     `file = 16.5 GB`, `current = 18.8 GB` — so a ~26 GB materialised-LDE run has under
+     ~29 GB of headroom and dies mid-WHIR-commit. Every materialised depth-2 launch this
+     session died at the same point: the log stops right after `NV_PHASE end <n>`, i.e. at the
+     first `engine.prove` call, with no panic and no error line.
+   * **A `mem-watchdog` also kills.** `/data/illia/nearproof-deps/bin/mem-watchdog` polls
+     `MemAvailable` each second and, when it stays under `CRIT=10` GiB while the slice is
+     frozen, `kill -9`s the largest process in `zkbuild.slice`. A long prove is the largest
+     process by construction, so host-wide pressure can end a run without an OOM event in
+     `memory.events`.
+   The "server restart" story is therefore unsupported; what looked like restarts were OOM
+   kills plus watchdog kills. The launcher defects noted earlier (no `setsid`, a cleanup
+   pattern matching its own command string) were real but secondary.
+   **What works:** `NEARPROOF_STREAM_COMMIT=1` at 9.46 GB peak ran to completion (2,160.8 s).
+   A 2-child production node measured **28.1 GB peak RSS** materialised at 5 rounds and
+   ~400 s/level, so only one such run should ever be in flight, and materialised depth 2 needs
+   the page cache dropped or a larger slice first.
 
    Three findings, in order of consequence:
 
