@@ -54,11 +54,11 @@ it is not evidence about behaviour.
 
 | | count |
 |---|---|
-| inventory rows | 219 |
-| implemented | 137 |
+| inventory rows | 222 |
+| implemented | 145 |
 | validated | 35 |
-| partial | 6 |
-| missing | 30 |
+| partial | 9 |
+| missing | 22 |
 | impossible-at-boundary | 11 |
 | nearcore `env` imports | 92 |
 | Lean host dispatch arms | 75 |
@@ -73,39 +73,51 @@ it is not evidence about behaviour.
 | family | implemented | validated | partial | missing | impossible-at-boundary |
 |---|---|---|---|---|---|
 | action | 12 | 0 | 0 | 3 | 0 |
-| host | 75 | 0 | 0 | 14 | 3 |
-| instruction | 1 | 0 | 0 | 1 | 0 |
-| domain_guard | 3 | 0 | 0 | 1 | 0 |
-| boundary | 0 | 0 | 0 | 1 | 0 |
+| host | 75 | 0 | 2 | 12 | 3 |
+| instruction | 2 | 0 | 0 | 0 | 0 |
+| domain_guard | 6 | 0 | 0 | 0 | 0 |
+| boundary | 0 | 0 | 1 | 1 | 0 |
 | d2-core | 29 | 23 | 3 | 3 | 0 |
 | d3-hook | 10 | 4 | 1 | 2 | 0 |
-| wasm-prepare | 2 | 3 | 0 | 3 | 0 |
-| wasm-exec | 4 | 1 | 0 | 2 | 0 |
+| wasm-prepare | 5 | 3 | 0 | 0 | 0 |
+| wasm-exec | 5 | 1 | 0 | 1 | 0 |
 | wasm-domain | 1 | 0 | 2 | 0 | 0 |
 | claim-fact | 0 | 0 | 0 | 0 | 8 |
 | evidence | 0 | 4 | 0 | 0 | 0 |
+
+Counts here are regenerated from the JSON in this commit; the previous table was a hand-maintained
+snapshot and had drifted from its own generator (it read 137 implemented against a JSON holding 143).
+Treat the JSON as authoritative and regenerate both together.
 
 `validated` rows are the D2/D3 guards with an exercised corpus path; `d2-core` carries most of them
 because the saved verdicts contain 85–14,246 discriminating rejects per guard.
 
 ## Missing / partial by lane
 
-| lane | missing | partial |
-|---|---|---|
-| L0 | 1 | 1 |
-| L1 | 0 | 4 |
-| L2 | 5 | 0 |
-| L3 | 15 | 0 |
-| L4 | 5 | 0 |
-| L5 | 0 | 1 |
-| L6 | 3 | 0 |
-| L7 | 0 | 0 |
-| L8 | 0 | 0 |
-| L9 | 1 | 0 |
+| lane | missing | partial | implemented | validated | impossible-at-boundary |
+|---|---|---|---|---|---|
+| L0 | 0 | 1 | 49 | 35 | 0 |
+| L1 | 0 | 4 | 0 | 0 | 0 |
+| L2 | 0 | 0 | 7 | 0 | 0 |
+| L3 | 13 | 2 | 0 | 0 | 0 |
+| L4 | 5 | 0 | 87 | 0 | 3 |
+| L5 | 0 | 1 | 0 | 0 | 0 |
+| L6 | 3 | 1 | 2 | 0 | 0 |
+| L7 | 0 | 0 | 0 | 0 | 0 |
+| L8 | 0 | 0 | 0 | 0 | 8 |
+| L9 | 1 | 0 | 0 | 0 | 0 |
 
-The semantic gap is concentrated, not diffuse: **14 curve hosts + 5 float/prepare + 3 action tags**
-account for all protocol-reachable WASM/action gaps; the rest are the genesis and resharding branches
-and the two capacity caps.
+Counts regenerated from the JSON; L6's three new rows are the genesis main transition (`partial`),
+`c.same_layout` and `c.no_split_gate` (`implemented`), with the actual shard-layout transition still
+`missing`. L4's large `implemented` count is the additive codec/host surface; only five rows remain
+missing and none is enabled in the signed chunk dispatch.
+
+The semantic gap is concentrated, not diffuse. Of the 22 `missing` rows: **12 curve hosts**
+(`alt_bn128_*` 3, `bls12381_*` 9), **3 action tags** (9/10/11, codec present but not dispatched),
+**2 `d3-hook`** and **1 `wasm-exec`** rows on L4/L3, **2 `d2-core`** guard rows on L6, **1 `d2-core`**
+row on L9, and **1 resharding transition** on L6. Float/prepare is no longer in this list: all five
+`wasm-prepare` rows and both `instruction` rows are implemented, so the earlier "5 float/prepare"
+figure is obsolete. The two capacity caps (`G_α`, `n_blocks ≤ 32`) are separate from these rows.
 
 ## Guards per module
 
@@ -229,8 +241,8 @@ every one is a live PV86 path that nearcore accepts today.
 | `e.mldsa_key` | **unimplemented** | ML-DSA-65 is enabled at PV85 (`core/primitives-core/src/version.rs:414,567`; `85.yaml` adds `ml_dsa_65_verification_cost`). Lean treats ML-DSA keys/signatures as `w.shape` (`D2/Types.lean:34-35,46`); 118 protocol-valid cases excluded. | L3 |
 | `w.shape` | **unimplemented** | Global contracts, deterministic state init and gas keys are live at PV83/85 (`Action` tags 9-11, `core/primitives/src/action/mod.rs:349-370`; `version.rs:553-562`; `GlobalContractDistributionNonce`, `GasKeys`). Lean rejects them at `D2/Types.lean:36-39,300-302` and `D3/FunctionCall.lean:248`; 317 protocol-valid cases excluded. | L4 |
 | `e.eth_implicit_local` | **unimplemented** | Legacy ETH-wallet resolution is deterministic given `chain_id` (`runtime/runtime/src/contract_code.rs:56-76`, `eth_wallet_global_contract_hash`), not random. Lean conservatively excludes it (`D3/FunctionCall.lean:236-239`); 223 protocol-valid cases excluded. | L4 |
-| `c.no_resharding` | **unimplemented (oracle mark defective)** | Dynamic resharding is enabled at PV85 (`version.rs:342,564`); the validator has a resharding transition path (`chain_validation.rs:258-308`, `ImplicitTransitionParams::Resharding`, `reassign_outgoing_receipts_for_resharding` at :638) and mainnet genesis sets `dynamic_resharding: true` (`utils/mainnet-res/res/mainnet_genesis.json`). Lean excludes any layout change (`ChunkValidationD2.lean:140`) and any split gate (:156). The 1,127 oracle marks are a stale multi-epoch classifier: all have one layout and 700 are accepted. No genuine resharding case is in the corpus. | L6 |
-| `c.not_genesis` | **unimplemented** | The genesis main transition is a first-class validator branch (`chain_validation.rs:403-411`, `MainTransition::Genesis`, `Chain::genesis_chunk_extra`) and claim-v3 T14 carries `genesis_chunk_extra`. Lean excludes it (`ChunkValidationD2.lean:176`); 137 protocol-valid cases excluded. | L9 |
+| `c.no_resharding` | **guards implemented; the transition itself unimplemented** | Dynamic resharding is enabled at PV85 (`version.rs:342,564`); the validator has a resharding transition path (`chain_validation.rs:258-308`, `ImplicitTransitionParams::Resharding` at :702-733, `reassign_outgoing_receipts_for_resharding`) and mainnet genesis sets `dynamic_resharding: true` (`utils/mainnet-res/res/mainnet_genesis.json`). L6 states both guards against the validator and proves the exclusion argument: `c.same_layout` (`ChunkValidationD2.lean:140`) ⇒ consecutive-epoch layouts equal ⇒ `get_resharding_transition`'s layout-difference conjunct false (`sameLayout_forbids_resharding`); `c.no_split_gate` (:156) as `noSplitGate_iff` plus `splitGate_excludes_nonempty`. But **an actual layout transition remains unimplemented**, and the split gate is genuinely reachable at PV86 (mainnet PV85 has `dynamic_resharding_config`), so D3 declining such claims is an exclusion, not a proven impossibility. The 1,127 oracle marks are a stale multi-epoch classifier: all have one layout and 700 are accepted. No genuine resharding case is in the corpus. | L6 |
+| `c.not_genesis` | **implemented additively by L6** | The genesis main transition is a first-class validator branch (`chain_validation.rs:403-413`, `MainTransition::Genesis`, `Chain::genesis_chunk_extra`) and claim-v3 T14 carries `genesis_chunk_extra`. The signed `checkD2Core` still excludes it (`ChunkValidationD2.lean:176`); L6's additive `checkD3G` (`NearSpecV3/GenesisD3.lean`) decides all 137 recorded genesis-`B2` cases instead. The remaining L9 obligation is wiring the genesis path into the signed successor's chunk dispatch and closing UQ-017's header comparison set. | L6 + L9 |
 | `e.g_alpha` | **capacity choice, not a boundary condition** | `G_α` is a prover table-size cap (`D3/FunctionCall.lean:389`, `D3_WASM_REQUIREMENTS.md` §2.4), not a nearcore condition; nearcore accepts all 1,010 tagged chunks. A chunk above `G_α` is protocol-valid. | L1 |
 | `e.code_cache` | **partly impossible-at-boundary, partly unimplemented** | nearcore's verdict depends on the compiled-contract cache (`oracle/v3-d3/src/d3judge.rs` ColdCache; `function_call.rs:355-393` records the access, `pipelining.rs:323-374` may reuse a preparation). For a *rolled-back* in-chunk deploy the verdict is genuinely cache-dependent, so no cache-independent relation can decide it. For a *committed* deploy the deploy tracker serves the code deterministically (`contract.rs:42-131`), so those 169 cold-accepted cases are decidable; Lean's blanket rule (`D3/FunctionCall.lean:268-275`) excludes them anyway. | L1 + L7 |
 | `c.segment` | **arena-format bound, not a validator condition** | The 32-block bound is a claim-size budget (`spec/claim-v3.md` §5 `max_claim_bytes`), not a nearcore rule; the validator's backward walk (`chain_validation.rs:144-253`) has no such limit. Three protocol-valid claims have 41/41/43 blocks and are excluded by `ChunkValidationD2.lean:144`. | L1 |
@@ -247,7 +259,9 @@ Reading:
 * **ETH-implicit legacy wallet is not impossible**: resolution is deterministic from `chain_id`
   (`contract_code.rs:56-76`), so it is a finite enumeration.
 * **Resharding and genesis are not impossible**: both have first-class validator branches
-  (`chunk_validation.rs:258-308`, `:403-411`), and mainnet genesis sets `dynamic_resharding: true`.
+  (`chunk_validation.rs:258-308`, `:403-413`), and mainnet genesis sets `dynamic_resharding: true`.
+  Genesis is now *decided* by L6's additive `checkD3G` rather than refused; resharding transitions
+  are still refused, with only the guard-level exclusion argument in place.
 * **`e.code_cache` is the one genuinely boundary-dependent item, and only partly**: for a
   *rolled-back* in-chunk deploy the verdict depends on the compiled-contract cache, so no
   cache-independent relation can decide it; for a *committed* deploy the tracker serves the code
@@ -256,7 +270,11 @@ Reading:
   exceed `G_α` and 3 claims exceed 32 blocks, all accepted by nearcore.
 
 Honest headline for Gate B: **11 semantic families and 2 capacity caps** stand between D3α and the
-full PV86 transition. D3α is sound (never accepts what nearcore rejects) but not complete.
+full PV86 transition. D3α is sound (never accepts what nearcore rejects) but not complete. L6's
+genesis branch removes one of those families from the exclusion list (`c.not_genesis`) without
+touching the signed `checkD2Core`; its non-genesis tail is delegated to `checkD2Core` itself, so the
+extension cannot drift the existing relation. The first draft did not delegate and wrongly accepted
+307 header mutants — measured over the corpus, not inferred.
 
 ## Unresolved boundary questions
 

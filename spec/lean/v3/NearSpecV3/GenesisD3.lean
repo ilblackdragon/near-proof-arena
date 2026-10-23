@@ -7,7 +7,7 @@ import NearSpecV3.ClaimV3Props
 `checkD3` (`D3/FunctionCall.lean:400`) refuses every claim whose last new chunk `B2` is the genesis
 block: `checkD2Core` throws `out of domain (c.not_genesis)` (`ChunkValidationD2.lean:176`). That
 branch is a first-class validator path in the pinned validator — `MainTransition::Genesis`
-(`chain/chain/src/stateless_validation/chunk_validation.rs:402-414`) — and 137 recorded corpus cases
+(`chain/chain/src/stateless_validation/chunk_validation.rs:403-413`) — and 137 recorded corpus cases
 (`d3c7` 39, `d3c8` 60, `d3c9` 19, `d3c10` 19) are genesis-B2 claims that nearcore accepts. The plan's
 L6 row `L0-D2-027` owns closing that gap.
 
@@ -20,7 +20,7 @@ the non-genesis relation.
 ## The genesis main transition, pinned
 
 `pre_validate_chunk_state_witness` chooses the main transition
-(`chunk_validation.rs:402-414`):
+(`chunk_validation.rs:403-413`):
 
 ```rust
 let main_transition_params = if last_chunk_block.header().is_genesis() {
@@ -52,23 +52,28 @@ So the genesis branch:
 * has **no outgoing receipts** (`vec![]`) — `merklize` over the per-shard hashes of the empty
   receipt lists is *not* the zero hash, so the header comparison is still informative;
 * still checks `chunk_extra.state_root() == witness.main_state_transition().post_state_root`
-  (`chunk_validation.rs:606-616`), then applies the implicit transitions on top of that root;
+  (`chunk_validation.rs:622-631`), then applies the implicit transitions on top of that root;
 * still compares the whole header against the resulting chunk extra
-  (`validate_chunk_with_chunk_extra_and_receipts_root`, `chain/chain/src/validate.rs:133-187`):
+  (`validate_chunk_with_chunk_extra_and_receipts_root`, `chain/chain/src/validate.rs:133-188`):
   `prev_state_root`, `prev_outcome_root`, `prev_validator_proposals`, `gas_limit`,
   `prev_gas_used`, `prev_balance_burnt`, `prev_outgoing_receipts_root`, congestion info,
   bandwidth requests and `proposed_split`.
 
 `tx_valid`: for a genesis last chunk nearcore *derives* all-1 and never consults the store
-(`chunk_validation.rs:382-386`: `if last_chunk_block.header().is_genesis() {
+(`chunk_validation.rs:382-401`: `if last_chunk_block.header().is_genesis() {
 vec![true; transactions.len()] }`), so a truthful claim carries all-1 flags
 (`spec/claim-v3.md` T13) and this checker requires exactly that.
 
 `genesis_chunk_extra`: `Some` iff `B2` is the genesis block (claim-v3 T14); the bytes are trusted
 (`Chain::build_genesis_chunk_extra`, `genesis.rs:237-257`). Its borsh is the tagged
-`ChunkExtra` enum (`core/primitives/src/types.rs:815-821`): V1 = 0 … V5 = 4. V5 is what a
-non-production genesis stores (`create_genesis_chunk_extra`, `genesis.rs:189-206`);
-V2 is what a production genesis stores (`create_prod_genesis_chunk_extra`, `genesis.rs:207-216`).
+`ChunkExtra` enum (`core/primitives/src/types.rs:812-821`, `#[borsh(use_discriminant = true)]`):
+V1 = 0 … V5 = 4. **Both** genesis constructors produce a V5, not a V2: `create_genesis_chunk_extra`
+(`genesis.rs:189-206`) calls `ChunkExtra::new` (`types.rs:922-944`), whose body is `Self::V5(…)`;
+and `create_prod_genesis_chunk_extra` (`genesis.rs:207-216`) constructs `ChunkExtra::V2` but is only
+reached when `genesis.header().latest_protocol_version() == PROD_GENESIS_PROTOCOL_VERSION`
+(= 29, `core/primitives-core/src/version.rs:597`), i.e. never for a PV86 claim
+(`save_genesis_chunk_extras`, `genesis.rs:260-290`). All 137 recorded cases carry tag 4 = V5,
+matching this. V1/V2 remain decodable for completeness but are not reachable on this chain.
 
 ## What is checked and what is not
 
@@ -76,9 +81,19 @@ V2 is what a production genesis stores (`create_prod_genesis_chunk_extra`, `gene
 determine. It cannot check the trusted facts (`genesis_chunk_extra` bytes, `apply_facts`,
 `epoch_start_after`, `tx_valid`) against the verifier's own store; like `checkD2Core` it checks them
 only for internal consistency. The genesis path is *not* covered by the differential oracle: the
-Python reference (`oracle/tools/spec_check_v3_d3.py:1269-1271`) also throws out of domain. The
-evidence for this branch is therefore the 137 recorded cases' `meta.json` `expected_rel` plus the
-directed tests in `TestGenesisD3.lean`.
+Python reference (`oracle/tools/spec_check_v3_d3.py:1268-1271`) also throws out of domain
+(`raise OOD("c.not_genesis")` at line 1271). The evidence for this branch is therefore the 137
+recorded cases' `meta.json` `expected_rel` plus the directed negatives in `var/l6/mutate_genesis.py`
+run through the `nearspec-v3-check-d3g` binary.
+
+## Non-genesis delegation (soundness)
+
+The first draft of `checkD2CoreG` re-implemented the non-genesis tail of `checkD2Core` and, in doing
+so, dropped all ten endorsed-header comparisons. Replaying the corpus through the `d3g` binary showed
+307 header mutants wrongly *accepted* that baseline `checkD3` rejects — a soundness regression on the
+*existing* domain, which the "strict domain extension" claim forbids. `checkD2CoreG` now returns
+`checkD2Core`'s own result as soon as it sees `!B2.isGenesis`, so the non-genesis relation cannot
+drift. The cost is a second decode on non-genesis claims; correctness beats the decode.
 -/
 
 namespace NearSpecV3
@@ -109,7 +124,7 @@ def pBwRequestsCI : P (List BwRequest) := fun bs => do
       pure (⟨s, m⟩, bs)) bs
 
 /-- A decoded `ChunkExtra` — the fields `validate_chunk_with_chunk_extra_and_receipts_root`
-reads (`validate.rs:133-187`). `tag` 0…4 is the borsh discriminant; fields absent in older
+reads (`validate.rs:133-188`). `tag` 0…4 is the borsh discriminant; fields absent in older
 variants keep the validator's accessor defaults (`types.rs:948-1075`):
 `outcome_root`/`proposals`/`gas_used`/`gas_limit`/`balance_burnt` exist in all variants,
 `congestion` only from V3 (accessor: `Default` for V1/V2), `bandwidthRequests` only from V4
@@ -170,10 +185,19 @@ def emptyOutgoingReceiptsRootD2 (l : Layout) : Bytes :=
 
 /-- The genesis-branch checker: `checkD2Core`'s checks with `MainTransition::Genesis` modelled.
 
-`genesisExtra` is the claim's decoded `genesis_chunk_extra` when `B2` is the genesis block and
-`none` otherwise. For a non-genesis `B2` this function's behaviour coincides with `checkD2Core`'s
-(the genesis branch is unreachable), which `checkD2Core_eq_of_not_genesis` records as a rewrite
-theorem; for a genesis `B2` it checks the genesis main transition instead of applying a chunk. -/
+`gen?` is the claim's decoded `genesis_chunk_extra` when `B2` is the genesis block and `none`
+otherwise. For a non-genesis `B2` this function *returns `checkD2Core`'s own result* — the
+`if !B2.isGenesis then return (← checkD2Core …)` line below, not a re-implementation — so the
+non-genesis relation cannot drift; for a genesis `B2` it checks the genesis main transition instead
+of applying a chunk.
+
+**Open obligation.** That the delegation makes `checkD2CoreG` agree with `checkD2Core` on *every*
+non-genesis input is argued by construction (the delegate's result is returned verbatim once the
+shared prefix succeeds, and the prefix's checks are identical and idempotent), but it is **not** a
+proved theorem: reifying the prefix so the equation becomes `rfl` is real work and is not done here.
+What *is* established is empirical and total over the corpus: over all 115 284 recorded cases the
+`d3g` binary's verdict on every non-genesis claim equals the recorded `checkD3` baseline's, and in
+particular the 307 header mutants the first draft wrongly accepted are now rejected. -/
 def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
     (gasCap : Option Nat := none) : Except String Unit := do
   -- 3.1 decoding, actor checks
@@ -233,7 +257,16 @@ def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBy
     | some i => pure i
     | none => throw "invalid: segment has no new chunk"
   let B2 ← match blks[b2i]? with | some b => pure b | none => throw "invalid: walk"
-  -- genesis branch (`chunk_validation.rs:402-414`): B2 genesis ⇒ the main transition is the stored
+  -- **The non-genesis domain is delegated, not re-implemented.** For a non-genesis `B2` this
+  -- function must decide *exactly* what `checkD2Core` decides — the genesis module's whole claim is
+  -- that it extends the domain without touching the non-genesis relation. Rather than duplicating
+  -- ~60 downstream checks (the first draft did, and silently dropped all ten endorsed-header
+  -- comparisons, wrongly accepting 307 header mutants), we return `checkD2Core`'s own result. The
+  -- prefix checks above are identical to `checkD2Core`'s and idempotent, so the delegate's outcome
+  -- is the outcome this function would reach anyway; the re-decode is the price of the guarantee.
+  if !B2.isGenesis then
+    return (← checkD2Core hooks allowCodes claimBytes witnessBytes gasCap)
+  -- genesis branch (`chunk_validation.rs:403-413`): B2 genesis ⇒ the main transition is the stored
   -- genesis chunk extra, and `genesis_chunk_extra` must be present (claim-v3 T14).
   let gen? : Option ChunkExtra ← if B2.isGenesis then
       match c.genesisChunkExtra with
@@ -254,7 +287,7 @@ def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBy
     | some j => pure (b2i + 1 + j)
     | none =>
       -- For a genesis B2 there is no last-but-one new chunk: the validator's walk stops at genesis
-      -- (`chunk_validation.rs:236-240`), so B2 is the last block of the segment and the source
+      -- (`chunk_validation.rs:225-227`), so B2 is the last block of the segment and the source
       -- blocks are exactly `[B2]`.
       if B2.isGenesis then pure b2i
       else throw "invalid: segment does not reach the last-but-one new chunk"
@@ -262,7 +295,7 @@ def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBy
   let implicitIdx := (List.range b2i).reverse            -- oldest first
   let sourceBlks := (blks.drop b2i).take (stop - b2i)
   -- applied blocks: main block B2 first (non-genesis only), then implicit blocks
-  -- (`pre_validate…` pushes B2 only when it is not genesis; `chunk_validation.rs:402-430`).
+  -- (`pre_validate…` pushes B2 only when it is not genesis; `chunk_validation.rs:403-440`).
   let appliedIdx := (if B2.isGenesis then [] else [b2i]) ++ implicitIdx
   check (c.applyFacts.length == appliedIdx.length) "invalid: apply_facts length"
   check ((appliedIdx.zip c.applyFacts).all fun (i, f) =>
@@ -270,7 +303,7 @@ def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBy
     "invalid: validator_update does not match the epoch start"
   let slotB2 ← match B2.slots[idx]? with | some p => pure p.2 | none => throw "invalid: slot"
   -- 3.3 / 3.4 source receipts. Genesis source blocks carry no receipt proofs and contribute no
-  -- receipts (`chunk_validation.rs:462-475`: genesis ⇒ `source_receipt_proofs` empty, `vec![]`).
+  -- receipts (`chunk_validation.rs:456-469`: genesis ⇒ `source_receipt_proofs` empty, `vec![]`).
   let mut receipts : List Rcpt := []
   let mut used : Nat := 0
   for S in sourceBlks do
@@ -340,7 +373,7 @@ def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBy
         check (out.wasmGas ≤ cap) s!"out of domain (e.g_alpha): chunk function-call gas {out.wasmGas} > G_α {cap}"
       check (out.root == w.main.postStateRoot) "invalid: main transition post state root"
       pure out.root
-  -- 3.6 implicit transitions (`chunk_validation.rs:648-756`): applied to the main transition's
+  -- 3.6 implicit transitions (`chunk_validation.rs:662-750`): applied to the main transition's
   -- chunk extra. For genesis these are the *only* applied transitions and they run on the stored
   -- genesis chunk extra's root.
   check (w.implicit.length == implicitIdx.length) "invalid: implicit transitions count"
@@ -360,7 +393,7 @@ def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBy
     let tM := revealTrie T.values root
     root ← applyMissingChunkD2 prims envM tM f.validatorUpdate mainProps
     check (root == T.postStateRoot) "invalid: implicit transition post state root"
-  -- 3.7 comparison with the endorsed header (`validate.rs:133-187`)
+  -- 3.7 comparison with the endorsed header (`validate.rs:133-188`)
   check (H.prevStateRoot == root) "invalid: InvalidStateRoot"
   match gen? with
   | some ce =>
@@ -413,13 +446,18 @@ instance (c w : Bytes) : Decidable (RelD3G c w) :=
 
 The genesis path is only reachable for a claim whose `B2` is the genesis block; the successor
 checker's added behaviour must therefore be *exactly* "B2 genesis ⇒ genesis main transition".
-The theorems below are the claim-level facts the branch turns on. They are deliberately small:
-each states one condition the branch adds, so a later edit that removes the condition breaks a
-named theorem instead of passing quietly. -/
 
-/-- A claim without `genesis_chunk_extra` cannot enter the genesis branch: the branch's decode
-step produces `none` only from `some g`, so `genesisChunkExtra = none` means the genesis main
-transition has no chunk extra and the claim is rejected, not refused as out of domain. -/
+**These lemmas are shape lemmas, not equivalence theorems.** Each is `rfl`/`simp`: it pins the
+*form* of one condition the branch turns on, so a later edit that changes that form breaks a named
+lemma instead of passing quietly. None of them proves that the Lean branch agrees with the Rust
+branch — that claim rests on the 137-case run and the 16 directed negatives, not on these lemmas.
+A reader who wants the real assurance should read the corpus evidence, not this section. -/
+
+/-- Shape lemma: the branch's decode expression is `none` whenever `genesisChunkExtra` is `none`.
+This records that the genesis branch's *only* source of a `ChunkExtra` is the claim's
+`genesis_chunk_extra` field — there is no fallback and no recomputation — so a genesis claim without
+that field reaches the branch's `throw "invalid: genesis_chunk_extra missing …"` and is *rejected*,
+not refused as out of domain. -/
 theorem genesis_branch_needs_extra (c : Claim) (h : c.genesisChunkExtra = none) :
     (match c.genesisChunkExtra with
      | some g => (match decodeChunkExtra g with | .ok x => some x | .error _ => none)
@@ -441,7 +479,7 @@ theorem emptyOutgoingReceiptsRootD2_single (s : Nat) :
 
 
 /-- The genesis `tx_valid` condition is satisfied by an empty flag vector: a genesis chunk with no
-transactions needs no flags (`chunk_validation.rs:382-386` derives `vec![true; 0] = []`). -/
+transactions needs no flags (`chunk_validation.rs:382-401` derives `vec![true; 0] = []`). -/
 theorem txValid_all_one_nil : ([].all (fun (b : UInt8) => b.toNat == 1)) = true := rfl
 
 end NearSpecV3

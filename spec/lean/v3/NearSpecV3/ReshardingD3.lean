@@ -4,15 +4,18 @@ import NearSpecV3.Wasm.DomainD3
 /-!
 # `NearSpecV3.ReshardingD3` — resharding, split gate and same-layout: what D3 excludes and why
 
-The plan's L6 rows `L0-resharding`, `L0-D2-012` (`c.same_layout`) and `L0-D2-019` (`c.no_split_gate`)
-ask for the shard-layout-transition machinery. This module states, precisely and against the pinned
-validator, what a D3 claim can and cannot contain on that axis, and what the two guards in the
-checker (`ChunkValidationD2.lean:202,217`) actually buy.
+The inventory row `L0-resharding` (family `boundary`, owner L6, `docs/research/lean-chunk-coverage.json`)
+and the guard row `L0-guard-noResharding` ask for the shard-layout-transition machinery. This module
+states, precisely and against the pinned validator, what a D3 claim can and cannot contain on that
+axis, and what the two guards in the checker actually buy. The guards are
+`c.same_layout` (`ChunkValidationD2.lean:140`, mirrored in the genesis successor at
+`GenesisD3.lean:202`) and `c.no_split_gate` (`ChunkValidationD2.lean:156`, mirrored at
+`GenesisD3.lean:217`).
 
 ## What a resharding transition is, in the validator
 
 A shard-layout change is materialised as an **implicit** transition of the witness
-(`ImplicitTransitionParams::Resharding`, `chain/chain/src/stateless_validation/chunk_validation.rs:233-262`):
+(`ImplicitTransitionParams::Resharding`, `chain/chain/src/stateless_validation/chunk_validation.rs:702-733`):
 
 ```rust
 ImplicitTransitionParams::Resharding(boundary_account, retain_mode, child_shard_uid) => {
@@ -27,7 +30,7 @@ ImplicitTransitionParams::Resharding(boundary_account, retain_mode, child_shard_
 }
 ```
 
-It is produced by `get_resharding_transition` (`chunk_validation.rs:258-308`) only when
+It is produced by `get_resharding_transition` (`chunk_validation.rs:258-305`) only when
 
 ```rust
 let shard_layout = epoch_manager.get_shard_layout_from_prev_block(prev_header.hash())?;
@@ -48,8 +51,8 @@ children. So: no layout difference between consecutive epochs ⇒ `get_reshardin
 `checkD2Core` (and its genesis successor `checkD2CoreG`) require
 
 * `c.same_layout`: every epoch row's `shardLayout` equals the endorsed epoch's
-  (`ChunkValidationD2.lean:202`), and
-* `c.no_split_gate`: no `ApplyFacts` row carries a `splitGate` (`ChunkValidationD2.lean:217`).
+  (`ChunkValidationD2.lean:140`), and
+* `c.no_split_gate`: no `ApplyFacts` row carries a `splitGate` (`ChunkValidationD2.lean:156`).
 
 `same_layout_forbids_resharding` below turns the first guard into the validator's own precondition:
 when the guard holds, the "layouts differ" conjunct of `block_has_new_shard_layout` is false for
@@ -87,7 +90,7 @@ theorem noSplitGate_iff (c : Claim) :
 byte-identical shard layouts; so for a previous block whose epoch and previous epoch are both in the
 claim's epoch table, `shard_layout != prev_shard_layout` is false — the first conjunct of
 `get_resharding_transition`'s `block_has_new_shard_layout`
-(`chunk_validation.rs:277-279`) cannot hold. No `ImplicitTransitionParams::Resharding` can be in the
+(`chunk_validation.rs:273-274`) cannot hold. No `ImplicitTransitionParams::Resharding` can be in the
 witness. -/
 theorem sameLayout_forbids_resharding (c : Claim) (ep : EpochRec) (h : sameLayout c ep = true)
     {e e' : EpochRec} (he : e ∈ c.epochs) (he' : e' ∈ c.epochs) :
@@ -164,31 +167,77 @@ let split_gate = match cfg.dynamic_resharding_config() {
 };
 ```
 
-`ProtocolFeature::DynamicResharding` is enabled at PV85 (`core/primitives-core/src/version.rs:565`),
+`ProtocolFeature::DynamicResharding` is enabled at PV85 (`core/primitives-core/src/version.rs:564`),
 and mainnet's epoch config for PV85 is `ShardLayoutConfig::Dynamic`
 (`core/primitives/res/epoch_configs/mainnet/85.json`: `dynamic_resharding_config`, no
 `shard_layout`; `max_number_of_shards = 10`, `memory_usage_threshold = 40000000000`,
 `min_child_memory_usage = 10000000000`, `min_epochs_between_resharding = 2`). So at PV86 on mainnet
 `dynamic_resharding_config()` is `Some` and the gate is reachable — subject only to
-`is_next_block_possibly_last_in_epoch` and `can_reshard` (`chain/epoch-manager/src/lib.rs:777-800`,
+`is_next_block_possibly_last_in_epoch` and `can_reshard` (`chain/epoch-manager/src/lib.rs:777-793`,
 whose condition is "no resharding in the last `min_epochs_between_resharding` epochs"), and then to
-`check_dynamic_resharding` (`chain/chain/src/runtime/mod.rs:1731-1770`) deciding to split. -/
+`check_dynamic_resharding` (`chain/chain/src/runtime/mod.rs:1731-1769`) deciding to split. -/
 
-/-- A split gate's fields are exactly the validator's `DynamicReshardingConfig` numbers that the
-oracle copies into the claim (`oracle/v3/src/claim.rs:185-190`), so "the claim carries a gate" is
-checkable against the pinned epoch config without any hidden field. -/
-theorem splitGate_is_dynamic_config_projection (g : SplitGate) :
-    g.memoryUsageThreshold = g.memoryUsageThreshold ∧
-      g.maxNumberOfShards = g.maxNumberOfShards := ⟨rfl, rfl⟩
+/-- The five fields a `SplitGate` carries are exactly the five `DynamicReshardingConfig` fields the
+oracle copies (`oracle/v3/src/claim.rs:184-190`), so "the claim carries a gate" is checkable against
+the pinned epoch config without any hidden field. This is a statement about the *structure* (there
+is no sixth, unrecorded field), which is what makes the guard decidable from the claim bytes alone. -/
+theorem splitGate_fields_are_config_fields (g : SplitGate) :
+    g = ⟨g.memoryUsageThreshold, g.minChildMemoryUsage, g.maxNumberOfShards,
+         g.forceSplitShards, g.blockSplitShards⟩ := rfl
+
+/-- **The mainnet PV85 gate values are exactly the `SplitGate` the oracle would copy.** Pinned at
+`core/primitives/res/epoch_configs/mainnet/85.json` (`dynamic_resharding_config`): thresholds
+40 000 000 000 / 10 000 000 000, `max_number_of_shards` 10, and both split lists empty. So a claim
+carrying this gate is carrying a *reachable* mainnet value, not a value the config cannot produce. -/
+def mainnetPv85Gate : SplitGate :=
+  ⟨40000000000, 10000000000, 10, [], []⟩
+
+theorem mainnetPv85Gate_is_config_value :
+    mainnetPv85Gate = ⟨40000000000, 10000000000, 10, [], []⟩ := rfl
 
 /-- **The split gate is not vacuous at PV86.** `noResharding` is *false* on a claim with a split
 gate, so the guard `c.no_split_gate` genuinely removes claims from the relation rather than being a
 no-op on the corpora: the corpora just happen not to contain any (0 of 115 284 claims carry one).
-`L0-D2-019` is therefore an *exclusion*, not a proven impossibility — and this theorem is the honest
+The split-gate half of `L0-resharding` is therefore an *exclusion*, not a proven impossibility — and this theorem is the honest
 record of the difference. -/
 theorem splitGate_excludes_nonempty (c : Claim)
     (h : c.applyFacts = [{ validatorUpdate := none, minimumStake := 0, splitGate := some ⟨0, 0, 0, [], []⟩ }]) :
     noSplitGate c = false := by
   simp [noSplitGate, h]
+
+/-! ## Directed tests on the guards
+
+These are the "directed negative tests" the exclusion argument needs: each `example` is decided by
+the kernel (`by decide`) on a concrete claim, so a future edit that weakens a guard — or that makes
+`noResharding` stop being the conjunction of the two checker guards — breaks a named test. They are
+*not* whole-witness tests; the whole-witness negatives for the genesis branch live in
+`var/l6/mutate_genesis.py`, and the resharding axis has no whole-witness negative because no corpus
+case carries a split gate or a layout change (0 of 115 284). -/
+
+private def gate : SplitGate := mainnetPv85Gate
+private def ep : EpochRec :=
+  { epochId := [], protocolVersion := 86, epochHeight := 1, shardLayout := [], validators := [] }
+private def base : Claim :=
+  { protocolVersion := 86, chainId := [], epochId := [], chunkInner := [], blocks := [],
+    rsDataParts := 0, rsTotalParts := 0, epochs := [ep], epochStartAfter := [0, 0],
+    applyFacts := [{ validatorUpdate := none, minimumStake := 0, splitGate := none }],
+    txValid := [], genesisChunkExtra := none }
+
+/-- An honest base claim satisfies both guards. -/
+example : noSplitGate base = true ∧ sameLayout base ep = true := by decide
+/-- A mainnet-PV85-shaped split gate makes the split-gate guard false. -/
+example : noSplitGate { base with applyFacts :=
+    [{ validatorUpdate := none, minimumStake := 0, splitGate := some gate }] } = false := by decide
+/-- A layout change between two epochs makes the same-layout guard false. -/
+example : sameLayout { base with epochs := [ep, { ep with shardLayout := [1] }] } ep = false := by decide
+/-- Several epochs sharing one layout keep the same-layout guard true (D2 ⊄ D3 was fixed here). -/
+example : sameLayout { base with epochs := [ep, ep] } ep = true := by decide
+/-- The two guards together *are* `noResharding`, on the split-gate axis. -/
+example : Wasm.noResharding { base with applyFacts :=
+    [{ validatorUpdate := none, minimumStake := 0, splitGate := some gate }] } = false := by decide
+/-- ... and on the layout axis. -/
+example : Wasm.noResharding { base with epochs := [ep, { ep with shardLayout := [1] }] } = false := by decide
+/-- ... and true when neither axis is violated. -/
+example : Wasm.noResharding base = true := by decide
 
 end NearSpecV3
