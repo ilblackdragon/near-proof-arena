@@ -162,6 +162,26 @@ jobs:
             echo "::error::sorryAx in zk-formal admission certificates"; exit 1
           fi
 
+  # Differential-harness gates that need neither a nearcore checkout nor the
+  # corpora: the python harness self-tests and the L7 corpus manifest. Before
+  # this job nothing ran them in CI. The full differential sweep (115,284 D3
+  # cases etc.) needs the pinned corpora and stays a local/integration step;
+  # see docs/logs/lean-chunk-L7-2026-10-23.md §9b for that command.
+  difftest-gates:
+    name: differential harness gates
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Harness self-tests
+        run: python3 -m unittest discover -s oracle/tools -p 'test_*.py'
+      - name: Corpus manifest drift gate
+        run: python3 tools/d3/corpus_manifest.py --verify docs/evidence/lean-chunk-L7/corpus-manifest.json
+
   # Environment-gated tests (CI convention). Tests whose prerequisites are
   # opt-in (ARENA_DEV_UNSAFE, FC_NEAR_SPEC, FC_FORMAL_CORE_DIR, ARENA_FC_TESTS,
   # ARENA_FORMAL_TESTS, ARENA_NEAR_TESTS, installed tools, ...) never pass
