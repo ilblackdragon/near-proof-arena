@@ -211,18 +211,29 @@ also keep the packet under the cap.
 
 **This is a design proposal, not a result.** Nothing in this session implemented or measured
 the pre-pass; the 1,041.55 s figure is arithmetic on measured level times under the stated
-mechanism. **The cost of the pre-pass itself is also unmeasured.** `generate` does build
-traces without LDE/commit/prove (`circuit.rs:170-174` returns matrices plus the builder), and
-the driver already calls it once per level before proving (`main.rs:318`), so an extra
-iterate-to-fixpoint is *plausibly* a small fraction of a prove — but no phase timing split
-exists in any log (the `NV_PHASE` lines print instruction counts, not seconds), so the "cheap"
-claim is **not** evidenced and must not be relied on until timed. Three things must be
-checked before trusting the 1,041.55 s: (a) **time the pre-pass**, so "cheap" becomes a
-number instead of an assumption; (b) confirm the floor reaches a fixpoint in one extra generate
-on *other* inputs, not just this fixture — the driver's current loop exists precisely because
-the authors did not assume that; and (c) confirm that pinning a floor the prover later cannot
-meet is safe, which the existing assertion at `circuit.rs:461-462` ("committed `h` below the
-floor") already guards. It is ranked first in
+mechanism. **The cost of the pre-pass is now measured, and it is not the objection.** The driver already
+has a generate-only command on a real production proof: `probe` calls `program_words`
+(`main.rs:232-243`), which executes the verifier program and builds its matrices without
+LDE, commit or prove. Timed live on `runs/opt-baseline-8` this session:
+
+| run | wall | peak RSS |
+|---|---:|---:|
+| 1 | 0.08 s | 32,292 KB |
+| 2 | 0.06 s | 32,544 KB |
+| 3 | 0.06 s | 31,828 KB |
+
+against a **measured ~460 s** to prove a production level. That is a **~6,000×** ratio, so an
+iterate-to-fixpoint pre-pass of a handful of generates would cost under a second — three
+orders of magnitude below the 1,041.55 s it is meant to save. (The `probe` numbers come from
+`program_words` rather than a full `generate` with a *pinned* floor, so they bound the cost of
+the program execution, which is the repeated part; they do not include one-off trace
+materialisation.)
+
+Two things still must be checked before trusting the 1,041.55 s: (a) confirm the floor reaches
+a fixpoint in one extra generate on *other* inputs, not just this fixture — the driver's
+current loop exists precisely because the authors did not assume that; and (b) confirm that
+pinning a floor the prover later cannot meet is safe, which the existing assertion at
+`circuit.rs:461-462` ("committed `h` below the floor") already guards. It is ranked first in
 §7 because it attacks the dominant cost, not the tail.
 
 **Caveat, and what checking it actually showed.** Dropping L5 removes the level where
