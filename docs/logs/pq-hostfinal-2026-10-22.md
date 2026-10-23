@@ -266,34 +266,52 @@ restated later — and note its `hstate` premise: the produced witness must be o
 ### 3.4 Verification
 
 `lake build ZkFormal.PQ.Join.Coverage` and the full `lake build` are green (764 jobs); the seven
-declarations above are in the axiom audit above. `Coverage.lean` is still **modified, not committed**
-(see §4), so the numbers in this section are from the working tree.
+declarations above are in the axiom audit above. `Coverage.lean` is **committed** as `14af4935e`
+(the earlier draft of this paragraph said "modified, not committed"; that was true when it was
+written and is not true now).
+
+Note the merged state: `main` also landed a *second*, independent treatment of the same defect
+(`Join/Compose.lean`, `c3be7b06e`) — `joinStmt_conclusion_is_premise` and
+`joinStmt_backing_is_erasable` prove the vacuity of `StatePort/JoinFold.JoinStmt`, and
+`compose_pv86` proves `hagree → hstate → RelD3` directly. The two files are compatible: `Coverage`
+keeps the generic fold at an arbitrary `cfg`, `Compose` specialises it to `pv86` where `checkD3`
+lives. `compose_pv86` is literally `coverage_pv86` with the arguments renamed, so there is one
+theorem in two vocabularies, not two competing proofs. See §4.4.
 
 ---
 
 ## 4. Lane state at handover
 
-Committed on `lane/pq-hostfinal` (newest first).  The `§` references are to this log.
+Committed on `lane/pq-hostfinal` (newest first).  The `§` references are to this log.  The lane
+branched from `origin/main` `dba4b0cc`; as of this handover its HEAD is `78436ac9f`, **12 ahead /
+1 behind `origin/main`**, and the branch has **no remote counterpart** (`git branch -r` lists only
+`origin/lane/pq-host-{ctx,logreg,memio,promise,storage2}` for this family).  Nothing in this lane is
+pushed.
 
 | commit | content |
 |---|---|
-| `2e90a315f` | `RipemdRound`'s header corrected to match the file (§5) |
-| `3fb84f5f1` | RIPEMD stage 4, part 2: bit-to-word readout, eight shift-wired next words (§5) |
-| `e13129b84` | RIPEMD stage 4, part 1b: `bitOf_ofBitsN`, `ofBitsN_congr` (§5) |
-| `7cddf9289` | RIPEMD stage 4, part 1: the five gated sums in general form (§5) |
+| `78436ac9f` | log: the measured axiom audit of the stage-4 declarations (§4.2) |
+| `87d53f22c` | log: the real lane state, and exactly how far RIPEMD got |
+| `2e90a315f` | `RipemdRound`'s header corrected to match the file (§4.1) |
+| `3fb84f5f1` | RIPEMD stage 4, part 2: bit-to-word readout, eight shift-wired next words (§4.1) |
+| `e13129b84` | RIPEMD stage 4, part 1b: `bitOf_ofBitsN`, `ofBitsN_congr` (§4.1) |
+| `7cddf9289` | RIPEMD stage 4, part 1: the five gated sums in general form (§4.1) |
 | `ceee23052` | RIPEMD stage 4 scaffolding: `gsumAux`/`csumAux` collapse |
 | `45af882a9` | RIPEMD stages 1–3: plumbing, selector collapses, adder chain (§2) |
 | `14af4935e` | coverage: `relD3_of_lift` was a tautology; add the `StateSide` conjunct (§3) |
-| `f7b1a6e0c` | RIPEMD row defined and differentially tested; coverage premises de-circularised (§2) |
+| `6a347a89a` | merge `origin/main` into the lane (the previous reconciliation) |
 | `598d85bd2` | docs: the ripemd160 cost corrected; the `promise_*` encodings marked closed (§1) |
-| `bdf80d018` | the eleven `promise_*` encodings (§1) |
+| `f7b1a6e0c` | RIPEMD row defined and differentially tested; coverage premises de-circularised (§2) |
 
 Nothing is left uncommitted except the Rust `target/release/**` churn from the KAT run, which is
-build output, not a source change.
+build output, not a source change.  (The churn is 812 tracked deletions of stale build artifacts —
+it must never be committed; see §4.5.)
 
-The KAT harness was rebuilt on both sides and re-run (`run_kat.sh`, 8 progs x 64): **97 passed, 0
-failed** (python ref = Lean spec = Rust trace + AIR pre-check). That is the "existing behaviour did not
-move" check for this lane, since none of §1/§2/§3/§5 touches the host-function tables.
+The KAT harness was rebuilt on both sides and re-run twice: once before the merge (8 progs × 64,
+**97 passed, 0 failed**) and once on the merged tree (8 progs × 64, **98 passed, 0 failed** — the
+extra program is `main`'s `storkat` storage round-trip). Both runs are python ref = Lean spec = Rust
+trace + AIR pre-check. That is the "existing behaviour did not move" check for this lane, since none of
+§1/§2/§3/§4.1 touches the host-function tables.
 
 ### 4.1 The RIPEMD round lemma is *partly* done — say which part
 
@@ -344,5 +362,83 @@ statement, not the shorter one.
    `round_agrees`.
 2. The feed-forward row family and the digest bus (so the row is consumable by a host call).
 3. `ArmAgrees` and the D1→D3 witness lift remain the state port's items (§3.3).
+
+### 4.4 Merging `origin/main` in — what conflicted and what did not
+
+The lane was **1 behind** `origin/main`: `229518416` ("the R16 send bound for REG —
+`regLenAgree_group` is unconditional").  The merge was mechanical on 2 files and additive on the
+rest; there were **no conflict hunks**:
+
+| file | resolution |
+|---|---|
+| `research/.../WasmBase.lean` | additive both ways: `main` appended 3 imports mid-file (`Main.RowIf`, `Main.RowIfSound`, `Main.RegSend`), the lane appended 5 at the tail (`Ripemd{Air,Vectors,Forms,Sound,Round}`).  Both kept. |
+| `docs/HANDOVER.md` | additive: `main`'s edit is the lane-6 row in "Parallel lanes to run next"; the lane's edits are the `ripemd160` cost row and the "Still open" bullets.  Both kept. |
+
+Two things the merge surfaced that are worth recording, because both are *claims about this lane's
+own documents* rather than about the code:
+
+1. **The merged `main` carries two more Lean modules that the umbrella root does not import.**
+   `zk-formal/ZkFormal/PQ/Join/Compose.lean` and
+   `zk-formal/ZkFormal/PQ/Aggregation/D3Recursion.lean` both landed on `main` (`c3be7b06e`,
+   `05aee4479`) and neither is imported by `zk-formal/ZkFormal.lean`.  A full `lake build` reported
+   **3,062 jobs green** with neither `.olean` in existence — the root-import trap again, third
+   occurrence.  Fixed here by adding both imports to the root; the build is now **3,065 jobs** and
+   both `.olean`s exist.  Anyone citing "the join is proved" from a bare job count on `main` before
+   this fix was citing an unbuilt module.
+2. **`main`'s `Join/Compose.lean` and this lane's `Join/Coverage.lean` prove the same reduction, in
+   two vocabularies.**  `compose_pv86` (`Compose.lean:100`) is `coverage_pv86`
+   (`Coverage.lean:111`) with the arguments renamed, so it is one theorem reached two ways, not two
+   competing proofs.  They are compatible and both stay: `Coverage` states the fold at an arbitrary
+   `cfg`, `Compose` specialises it to `pv86` where `checkD3` is fixed.  The lane's contribution to
+   this pair is `relD3_of_lift`'s non-tautological form (`14af4935e`); `main`'s is the vacuity
+   theorems and `compose_is_pv86_only`.
+
+Measured on the merged tree (this worktree, HEAD after the merge commit):
+
+```
+wasm-base-lean  lake build  243 jobs, exit 0
+zk-formal       lake build  3,065 jobs, exit 0   (was 3,062 without the two root imports)
+```
+
+Axioms, re-measured on the merged tree with a `lake env lean` probe (not carried over from the
+commit messages):
+
+```
+join_obligation_is_call_arm      [propext, Classical.choice, Quot.sound]
+join_pipeline_eq                 [propext, Classical.choice, Quot.sound]
+compose_pv86                     [propext, Classical.choice, Quot.sound]
+compose_is_pv86_only             [propext, Classical.choice, Quot.sound]
+joinStmt_conclusion_is_premise   [propext, Classical.choice, Quot.sound]
+joinStmt_backing_is_erasable     [propext, Quot.sound]
+d3Stmt_merge_accepted            [propext, Classical.choice, Quot.sound]
+d3Stmt_compose₂_accepted         [propext, Classical.choice, Quot.sound]
+d3Stmt_composeFrom_accepted      [propext, Classical.choice, Quot.sound]
+d3Stmt_compose_accepted          [propext, Classical.choice, Quot.sound]
+d3Stmt_tree_sound                [propext, Quot.sound]
+d3Stmt_root_boundary             [propext]
+```
+
+`c3be7b06e`'s message says "All six theorems [K], axioms {propext, Classical.choice, Quot.sound}".
+That is *nearly* right: `joinStmt_backing_is_erasable` is `[propext, Quot.sound]` without
+`Classical.choice`, so the stated set is a superset rather than an error — but the two are not
+identical sets, and the message's uniform wording hides that.  `05aee4479`'s "all six axiom-clean"
+is accurate: the two odd ones (`tree_sound`, `root_boundary`) are *below* std3, not above.
+
+### 4.5 What a "green build" does and does not establish here
+
+Both of the lane's headline verification numbers were re-derived rather than copied:
+
+* **The builds.**  A green `lake build` proves the modules the root *reaches* compile.  It does not
+  prove the module you care about is reached — this lane found two more instances of exactly that
+  (§4.4 item 1).  The check that actually works: `ls` the `.olean` for each module named in the
+  claim.
+* **The KAT count.**  The log's "97 passed" was measured before the merge.  Reproducing it on the
+  merged tree required rebuilding **both** artifacts first: `lake build wasmbase-tool` (172 jobs) and
+  `cargo build --release` (12.3 s).  The tracked `nearproof-wasm-base` binary is absent from this
+  worktree — `target/release/` is **812 tracked deletions**, stale build output that should never have
+  been committed and that `bin.sh`'s age guard cannot see.  After the rebuild: **98 passed, 0 failed**.
+  The pre-merge run was 97/97; the +1 is `main`'s `storkat`.  Both numbers are measured, neither is
+  copied from another document.  The 812 deleted files are left as deletions in the worktree and are
+  **excluded from the merge commit** — they are build output, not a source change.
 
 

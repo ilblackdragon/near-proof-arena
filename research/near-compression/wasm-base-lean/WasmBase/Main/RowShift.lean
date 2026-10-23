@@ -230,12 +230,9 @@ theorem shift_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
         ⟨g5, g6, g7, g8, g9⟩ <;> rw [g, g6, g7, g8, g9] at hbin ⊢ <;> simpa [opW, opK] using hbin
 
 
-theorem shift_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 4) :
+theorem shift_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Shift.table.constraints, e.eval (natRow (rowNat tr 4 r) (tr.row pub 4 r)) = 0) :
     ∀ i ∈ Shift.inters, (i.count.eval (tr.row pub 4 r)).toNat ≤ 1 := by
-  have ht : 4 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Shift.table.constraints, e.eval (natRow (rowNat tr 4 r) (tr.row pub 4 r)) = 0 :=
-    table_constr H ht hr
   have bAct := hcon (Chips.bool Shift.act) (by simp [Shift.table, Shift.constraints])
   rw [← row_eq_natRow] at bAct
   simp only [Chips.bool, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat'] at bAct
@@ -247,6 +244,11 @@ theorem shift_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
   rcases bool_cases bAct with h | h <;> rw [h]
   · exact Nat.zero_le _
   · exact Nat.le_of_eq (toNat_of_eq_one rfl)
+
+theorem shift_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 4) :
+    ∀ i ∈ Shift.inters, (i.count.eval (tr.row pub 4 r)).toNat ≤ 1 :=
+  shift_counts_of (table_constr H (by simp [air_len]) hr)
 
 /-- (No `H`/`hr` needed: every SHIFT count is the activity expression itself.) -/
 theorem shift_inactive {pub : List F} {tr : Trace} {r : Nat}

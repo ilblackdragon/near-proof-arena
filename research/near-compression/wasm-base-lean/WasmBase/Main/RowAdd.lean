@@ -10,14 +10,15 @@ open ZkFormal.Algebra Chips Local
 open NearSpecV3.Wasm hiding P
 set_option linter.unusedSimpArgs false
 
-/-- Flags of an ADD row: bits, mutually exclusive. -/
-theorem add_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
+/-- Flags of an ADD row: bits, mutually exclusive.
+
+Stated against the row's own constraint vanishing (`hcon`) rather than `Holds` of a fixed AIR: that is
+all the proof uses, and it lets the same lemma serve `wasmBaseAir`, `wasmBaseHostAir` and
+`wasmBaseRegAir`, whose table 1 is the same `Add.table`.  `add_flags` below is the `Holds` wrapper. -/
+theorem add_flags_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Add.table.constraints, e.eval (natRow (rowNat tr 1 r) (tr.row pub 1 r)) = 0) :
     (rowNat tr 1 r 5 = 0 ∨ rowNat tr 1 r 5 = 1) ∧ (rowNat tr 1 r 6 = 0 ∨ rowNat tr 1 r 6 = 1) ∧
       rowNat tr 1 r 5 + rowNat tr 1 r 6 ≤ 1 ∧ (rowNat tr 1 r 7 = 0 ∨ rowNat tr 1 r 7 = 1) := by
-  have ht : 1 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Add.table.constraints, e.eval (natRow (rowNat tr 1 r) (tr.row pub 1 r)) = 0 :=
-    table_constr H ht hr
   simp only [Add.table, Add.constraints, List.forall_mem_cons, List.forall_mem_nil, and_true] at hcon
   obtain ⟨bA, bS, b64, hAS, -⟩ := hcon
   simp only [Chips.bool, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow,
@@ -26,6 +27,12 @@ theorem add_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have h6 := bool_nat (rowNat_lt _ _ _ _) bS
   have := zero_of_mul_nat (rowNat_lt _ _ _ _) (rowNat_lt _ _ _ _) hAS
   exact ⟨h5, h6, by omega, bool_nat (rowNat_lt _ _ _ _) b64⟩
+
+theorem add_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
+    (rowNat tr 1 r 5 = 0 ∨ rowNat tr 1 r 5 = 1) ∧ (rowNat tr 1 r 6 = 0 ∨ rowNat tr 1 r 6 = 1) ∧
+      rowNat tr 1 r 5 + rowNat tr 1 r 6 ≤ 1 ∧ (rowNat tr 1 r 7 = 0 ∨ rowNat tr 1 r 7 = 1) :=
+  add_flags_of (table_constr H (by simp [air_len]) hr)
 
 theorem add_count_eq {i : Inter} (hi : i ∈ Add.inters) : i.count = Add.act :=
   of_decide_eq_true (List.all_eq_true.mp
@@ -36,13 +43,18 @@ theorem add_act_eval (tr : Trace) (pub : List F) (r : Nat) :
   simp only [Add.act, v, Expr.eval_add', Expr.eval_col, Trace.row, Add.fAdd, Add.fSub]
   rw [cell_cast, cell_cast, ← Lean.Grind.Semiring.natCast_add, Fp.toNat_cast]
 
-theorem add_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
+theorem add_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Add.table.constraints, e.eval (natRow (rowNat tr 1 r) (tr.row pub 1 r)) = 0) :
     ∀ i ∈ Add.inters, (i.count.eval (tr.row pub 1 r)).toNat ≤ 1 := by
   have hP' := P_val
-  obtain ⟨-, -, hs, -⟩ := add_flags H hr
+  obtain ⟨-, -, hs, -⟩ := add_flags_of hcon
   intro i hi
   rw [add_count_eq hi, add_act_eval, Nat.mod_eq_of_lt (by omega)]; exact hs
+
+theorem add_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
+    ∀ i ∈ Add.inters, (i.count.eval (tr.row pub 1 r)).toNat ≤ 1 :=
+  add_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem add_inactive {pub : List F} {tr : Trace} {r : Nat}
     (hna : ¬ rowAct Add.table tr pub 1 r) :

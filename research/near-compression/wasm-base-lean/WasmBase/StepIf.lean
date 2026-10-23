@@ -178,4 +178,122 @@ theorem step_if (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Nat}
         or_false, false_and, exists_false, popK_size, List.mem_nil_iff, iff_false]
       rintro ⟨d, hd, _⟩; omega
 
+/-! ## `if`, false arm with an `else`
+
+Same `popN_snd` recipe, but the successor is `el + 1` and the pushed label is the one the checker's
+`labels[el + 1]` holds.  The condition is **zero**, so the `if c ≠ 0` guard takes its `else` branch
+and the `el ≠ e` test picks `el + 1` rather than the `end`. -/
+
+theorem step_if_else (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Nat} {t pc S : Nat}
+    {live : Msg → Prop} (R : RelW X E s f tps tpl t pc S live S_seg segb)
+    {bt : BT} {e el : Nat} {fee : Nat}
+    (hins : (X.pfOf E.k).code[pc]? = some (.if_ bt))
+    (he : (X.pfOf E.k).endOf[pc]? = some e) (hel : (X.pfOf E.k).elseOf[pc]? = some el)
+    (hne : el ≠ e)
+    (hfee : feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee)
+    (hg : X.R * (S + fee - S_seg) ≤ segb) (hg64 : X.g0 < 2 ^ 64)
+    (mc : Msg) (hmc : live mc) (sc : mc.space = 0 ∧ mc.slot = s.stack.size - 1)
+    (hsz : 0 < s.stack.size) (hsb1 : E.sb ≤ s.stack.size - 1) (hz : mc.val = 0)
+    {ls0 : List Label} (hflT : f.labels = shiftLabels E.sb ls0)
+    {lsF : List Label} (hnext : el + 1 < (X.pfOf E.k).code.size)
+    (hL1 : (X.ckOf E.k).labels[el + 1]? = some lsF)
+    (hH1 : (X.ckOf E.k).heights[el + 1]? = some (s.stack.size - 1 - E.sb))
+    (hpush : lsF = mkIfLabel bt e (s.stack.size - 1 - E.sb) :: ls0) :
+    ∃ s', step X.cfg X.p s = .cont s' ∧
+      Rel X s' (t + 1) E.k (el + 1) (S + fee) E.sb E.cid (stepLive live [mc] []) S_seg segb := by
+  obtain ⟨ec, okc, vc, -⟩ := R.stack_dec hmc sc.1 sc.2 (by omega)
+  have hb' : vNum (s.stack.back?.getD (.i32 0)) = mc.val := by rw [back_getD _ (by omega), vc]
+  let s1 : St := { s with gas := { s.gas with g := s.gas.g - X.R * fee }, stack := popK s.stack 1 }
+  let s2 : St := setFrame s1 { f with pc := el + 1, labels := shiftLabels E.sb lsF }
+  have hs2 : s2.frames = { f with pc := el + 1, labels := shiftLabels E.sb lsF } :: E.rest := by
+    simp only [s2, s1, setFrame, R.frames]
+  have hs2stk : s2.stack = popK s.stack 1 := by simp only [s2, s1, setFrame, R.frames]
+  have hs2g : s2.gas.g = s.gas.g - X.R * fee := by simp only [s2, s1, setFrame, R.frames]
+  have hs2pg : s2.pages = s.pages := by simp only [s2, s1, setFrame, R.frames]
+  have hs2gl : s2.globals = s.globals := by simp only [s2, s1, setFrame, R.frames]
+  have hs2rem : s2.stackRem = s.stackRem := by simp only [s2, s1, setFrame, R.frames]
+  refine ⟨s2, ?_, ?_⟩
+  · rw [step_eq_exec X R hins hfee hg hg64]
+    simp only [exec, R.pcEq, popN_eq, hb', popN_snd]
+    simp only [he, hel, reduceCtorEq, Option.some.injEq, exists_eq_left]
+    rw [if_neg (by omega), if_pos (by omega)]
+    simp only [setFrame, R.frames, hpush, hflT, shiftLabels_cons, mkIfLabel,
+      Array.size_pop, Nat.sub_add_cancel hsb1, popK_one, s2, s1]
+  · refine Rel_of_RelW_congr
+      (ctrl_rel (X := X) (R := R) (k := 1) (fee := fee) (by omega) (el + 1) lsF hnext hL1
+        hsb1 hH1 hg s2 hs2stk hs2 hs2g hs2pg hs2gl hs2rem)
+      (stepLive_congr ?_ ?_)
+    · intro x
+      simp only [List.mem_append, List.mem_map, List.mem_range, Option.toList_none, List.not_mem_nil,
+        or_false, List.mem_cons, List.mem_nil_iff, false_and, exists_false]
+      constructor
+      · rintro ⟨d, hd, rfl⟩
+        have : d = 0 := by omega
+        subst this; rw [ec, Nat.add_zero]
+      · rintro rfl; exact ⟨0, by omega, by rw [ec, Nat.add_zero]⟩
+    · intro x
+      simp only [List.mem_append, List.mem_map, List.mem_range, Option.toList_none, List.not_mem_nil,
+        or_false, false_and, exists_false, popK_size, List.mem_nil_iff, iff_false]
+      rintro ⟨d, hd, _⟩; omega
+
+/-! ## `if`, false arm without an `else`
+
+The structurally different shape: `elseOf = endOf`, so the spec pushes **no** label and jumps to
+`e + 1` (`Exec.lean:186`).  `ifStep_noelse_ls` (`IfCheck`) is the checker-side counterpart: it proves
+the checker's static label list for that successor is the *unpushed* `ls0`, which is exactly what
+`hflT` gives here. -/
+
+theorem step_if_noelse (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Nat} {t pc S : Nat}
+    {live : Msg → Prop} (R : RelW X E s f tps tpl t pc S live S_seg segb)
+    {bt : BT} {e : Nat} {fee : Nat}
+    (hins : (X.pfOf E.k).code[pc]? = some (.if_ bt))
+    (he : (X.pfOf E.k).endOf[pc]? = some e) (hel : (X.pfOf E.k).elseOf[pc]? = some e)
+    (hfee : feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee)
+    (hg : X.R * (S + fee - S_seg) ≤ segb) (hg64 : X.g0 < 2 ^ 64)
+    (mc : Msg) (hmc : live mc) (sc : mc.space = 0 ∧ mc.slot = s.stack.size - 1)
+    (hsz : 0 < s.stack.size) (hsb1 : E.sb ≤ s.stack.size - 1) (hz : mc.val = 0)
+    {ls0 : List Label} (hflT : f.labels = shiftLabels E.sb ls0)
+    {lsF : List Label} (hnext : e + 1 < (X.pfOf E.k).code.size)
+    (hL1 : (X.ckOf E.k).labels[e + 1]? = some lsF)
+    (hH1 : (X.ckOf E.k).heights[e + 1]? = some (s.stack.size - 1 - E.sb))
+    (hkeep : lsF = ls0) :
+    ∃ s', step X.cfg X.p s = .cont s' ∧
+      Rel X s' (t + 1) E.k (e + 1) (S + fee) E.sb E.cid (stepLive live [mc] []) S_seg segb := by
+  obtain ⟨ec, okc, vc, -⟩ := R.stack_dec hmc sc.1 sc.2 (by omega)
+  have hb' : vNum (s.stack.back?.getD (.i32 0)) = mc.val := by rw [back_getD _ (by omega), vc]
+  let s1 : St := { s with gas := { s.gas with g := s.gas.g - X.R * fee }, stack := popK s.stack 1 }
+  let s2 : St := setFrame s1 { f with pc := e + 1, labels := shiftLabels E.sb lsF }
+  have hs2 : s2.frames = { f with pc := e + 1, labels := shiftLabels E.sb lsF } :: E.rest := by
+    simp only [s2, s1, setFrame, R.frames]
+  have hs2stk : s2.stack = popK s.stack 1 := by simp only [s2, s1, setFrame, R.frames]
+  have hs2g : s2.gas.g = s.gas.g - X.R * fee := by simp only [s2, s1, setFrame, R.frames]
+  have hs2pg : s2.pages = s.pages := by simp only [s2, s1, setFrame, R.frames]
+  have hs2gl : s2.globals = s.globals := by simp only [s2, s1, setFrame, R.frames]
+  have hs2rem : s2.stackRem = s.stackRem := by simp only [s2, s1, setFrame, R.frames]
+  refine ⟨s2, ?_, ?_⟩
+  · rw [step_eq_exec X R hins hfee hg hg64]
+    -- the spec: no label pushed, jump to `e + 1`.  `popN_snd` rewrites the popped state to
+    -- `{ s with stack := s.stack.pop }`, which is `s1` with `popK … 1` (`popK_one`).
+    simp only [exec, R.pcEq, popN_eq, hb', popN_snd]
+    simp only [he, hel, reduceCtorEq, Option.some.injEq]
+    rw [if_neg (by omega)]
+    rw [if_neg (by simp)]
+    simp only [popK_one, setFrame, R.frames, hkeep, hflT, Array.size_pop, s2, s1]
+  · refine Rel_of_RelW_congr
+      (ctrl_rel (X := X) (R := R) (k := 1) (fee := fee) (by omega) (e + 1) lsF hnext hL1
+        hsb1 hH1 hg s2 hs2stk hs2 hs2g hs2pg hs2gl hs2rem)
+      (stepLive_congr ?_ ?_)
+    · intro x
+      simp only [List.mem_append, List.mem_map, List.mem_range, Option.toList_none, List.not_mem_nil,
+        or_false, List.mem_cons, List.mem_nil_iff, false_and, exists_false]
+      constructor
+      · rintro ⟨d, hd, rfl⟩
+        have : d = 0 := by omega
+        subst this; rw [ec, Nat.add_zero]
+      · rintro rfl; exact ⟨0, by omega, by rw [ec, Nat.add_zero]⟩
+    · intro x
+      simp only [List.mem_append, List.mem_map, List.mem_range, Option.toList_none, List.not_mem_nil,
+        or_false, false_and, exists_false, popK_size, List.mem_nil_iff, iff_false]
+      rintro ⟨d, hd, _⟩; omega
+
 end WasmBase

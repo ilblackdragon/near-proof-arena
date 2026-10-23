@@ -31,6 +31,8 @@ import WasmBase.Main.RowConst
 import WasmBase.Local.Div
 import WasmBase.Main.RowDiv
 import WasmBase.Main.Final
+import WasmBase.Main.RowIf
+import WasmBase.Main.RowIfSound
 import WasmBase.Mem
 import WasmBase.StepMem
 import WasmBase.Local.Mem
@@ -58,6 +60,7 @@ import WasmBase.Main.HostChipBits
 import WasmBase.HostCtx
 import WasmBase.Main.RegFacts
 import WasmBase.Main.RegWalk
+import WasmBase.Main.RegSend
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors

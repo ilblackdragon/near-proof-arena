@@ -98,3 +98,64 @@ Post-merge verification (all in the worktree, before touching main):
 A dedicated MEMIO lane for the `(ptr, len)` link, with `memRaw`/`HeapOK`/`RelW` extended to the host
 buffer. `HOSTB.inters` has the `memAddr` expression ready (commented) and `cStartPos` gives the group
 structure.
+
+## Step 1.1 closed — the R16 send bound for REG (2026-10-22)
+
+Landed on `main` from a clean branch off `main` (`lane/pq-reg-hsend`), *without* the branch's
+unfinished MEMIO WIP: the three MEMIO commits (`df81c7436`, `ebd1298e0`, `30352dc58`) are not on
+`main`, they break `HostBus`, and `Main/MemIOBus.lean` still ends in a `sorry`. So the `hsend` work
+was re-applied on top of `main`'s `HostChip.lean`/`HostChipBits.lean` instead of the lane's HOSTB
+columns.
+
+### What was actually open, and what was wrong with the statement
+
+`regLenAgree_group` took
+
+```
+hsend : ∀ o ∈ occs (wasmBaseRegAir …) tr pub, o.2.1 = true → o.2.2.2 ≤ 1
+```
+
+and reached it via `reg_gap_lt → reg_r16_query_16bit → lookup_sound`. Two corrections:
+
+* **The global form is false.** `HOSTO`'s two interactions are counted with a free column `mult`
+  and `HostO.table.constraints = []`, so "every send of the trace has count ≤ 1" fails for any host
+  trace. `Bus.lookup_sound` already takes the bus-restricted form, and the walk uses `b = busR16`.
+  The hypothesis in `reg_r16_query_16bit`, `reg_gap_lt` and `regLenAgree_group` is therefore narrowed
+  to `o.1 = busR16 → o.2.1 = true → o.2.2.2 ≤ 1` — the true and sufficient statement.
+* **`Holds (wasmBaseAir)` cannot be reused.** REG traces add space-6 CH traffic, so they do not
+  satisfy the base AIR; base `occ_bits` was unavailable. Split `occ_bits_of` out of `occ_bits`
+  (`Main/Exec.lean`): constraint-only, no bus balance.
+
+### The proof (`Main/RegSend.lean`, 408 lines, new)
+
+* `reg_base_constr`: tables 0–21 of `wasmBaseRegAir` are literally `wasmBaseAir`'s, so `Holds` gives
+  their row constraints; `occ_bits_of` then yields their count bits.
+* `reg_chip_counts`: each chip's constraint-only `*_counts_of` lemma applied at the REG AIR's table
+  index — no `ChipFacts` hypothesis needed, the bits are *derived*.
+* Host tables: HOST (22) counts are `act` or `pf j`; HOSTO (23)/HOSTT (24) have no R16 interaction;
+  HOSTB (25) counts are `act·(1−reg)`; REG (26) counts are `act·fresh`, `act·(1−kind)`, `act`.
+* `reg_hsend_r16`: the bus-restricted bound, from `Holds` alone.
+* `regLenAgree_group_of_holds`: hypothesis-free form of the group theorem.
+
+### Refactor (additive only)
+
+`table_constr_eq` (`Extract/Row.lean`); `occ_bits_of` (`Main/Exec.lean`); `meminit_bits_of` /
+`meminit_counts_of` (`Main/MemInit.lean`); `*_flags_of` / `*_counts_of` in the 13 `Main/Row*.lean`
+chips. Every old `Holds (wasmBaseAir)` statement is kept as a one-line wrapper, so no call site
+changed and no statement was weakened. The group-walk proofs are untouched; only `hsend`'s
+provenance changed. `WasmBase.lean` imports `Main.RegSend` so the module is in the build graph
+(root-import trap).
+
+### Verification (on `main`, clean branch)
+
+* `lake build` — **236 jobs**, green.
+* `#print axioms` — `reg_hsend_r16`, `reg_chip_counts`, `regLenAgree_group_of_holds`,
+  `regLenAgree_group` all ⊆ `[propext, Classical.choice, Quot.sound]`.
+* `grep` for `sorry` / `admit` / `native_decide` / `axiom` across all 20 touched files: none.
+
+### Deliberately not included
+
+The MEMIO `(ptr, len)` → linear-memory link (§3 of RESULTS.md) stays deferred. The lane's HOSTB
+space-3 `chRecv`/`chSend` pair and `memCnt` column are WIP that does not build and would have
+dragged `MemIOBus`'s `sorry` into `main`. That work belongs in its own lane, starting from the memory
+step (`hostb_mem_step`) rather than from the columns.

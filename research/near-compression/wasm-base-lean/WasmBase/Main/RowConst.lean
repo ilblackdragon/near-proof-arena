@@ -165,12 +165,9 @@ namespace WasmBase
 open ZkFormal.Algebra Chips Local
 set_option linter.unusedSimpArgs false
 
-theorem const_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 6) :
+theorem const_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Const.table.constraints, e.eval (natRow (rowNat tr 6 r) (tr.row pub 6 r)) = 0) :
     ∀ i ∈ Const.inters, (i.count.eval (tr.row pub 6 r)).toNat ≤ 1 := by
-  have ht : 6 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Const.table.constraints, e.eval (natRow (rowNat tr 6 r) (tr.row pub 6 r)) = 0 :=
-    table_constr H ht hr
   simp only [Const.table, Const.constraints, List.forall_mem_cons, List.forall_mem_nil, and_true] at hcon
   obtain ⟨bAct, -, -, -⟩ := hcon
   simp only [Chips.bool, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow,
@@ -184,6 +181,11 @@ theorem const_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
   simp only [v, Expr.eval_col, Trace.row, Const.act]
   show rowNat tr 6 r 5 ≤ 1
   omega
+
+theorem const_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 6) :
+    ∀ i ∈ Const.inters, (i.count.eval (tr.row pub 6 r)).toNat ≤ 1 :=
+  const_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem const_inactive {pub : List F} {tr : Trace} {r : Nat}
     (hna : ¬ rowAct Const.table tr pub 6 r) :

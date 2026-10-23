@@ -50,9 +50,19 @@ theorem first_le (tr : Trace) (pub : List F) (t r : Nat) : (Expr.first.eval (tr.
   simp only [Expr.eval, Trace.row]
   by_cases h : (r == 0) = true <;> simp only [h, ite_true, ite_false, Bool.false_eq_true] <;> decide
 
-theorem occ_bits {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr)
-    (hpub : PubOK X nloc ncode pub) (CF : ChipFacts X nloc ncode pub tr) :
+/-- **Count bits of the base AIR, from the row constraints alone.**
+
+The per-table content is entirely local: each case reads one row's constraints and one public-input
+fact.  Stating it against `hcon` (the constraints vanish on every row) rather than `Holds` of the base
+AIR is what lets the REG AIR reuse it — a REG trace satisfies the constraints of tables 0–21 but not
+the base AIR's bus balance. -/
+theorem occ_bits_of {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (hpub : PubOK X nloc ncode pub)
+    (hcounts : ∀ t, 1 ≤ t → t ≤ 14 → ∀ r, r < tr.height t → ∀ i ∈ (chipT t).inters,
+      (i.count.eval (tr.row pub t r)).toNat ≤ 1)
+    (hcon : ∀ t (ht : t < (wasmBaseAir nloc ncode).tables.length) r, r < tr.height t →
+      ∀ e ∈ ((wasmBaseAir nloc ncode).tables[t]'ht).constraints,
+        e.eval (natRow (rowNat tr t r) (tr.row pub t r)) = 0) :
     ∀ o ∈ occs (wasmBaseAir nloc ncode) tr pub, (o.2.1 = true ∨ o.1 = busState ∨ o.1 = busStk) → o.2.2.2 ≤ 1 := by
   intro o ho hk
   obtain ⟨t, ht, r, hr, i, hi, rfl⟩ := occ_table ho
@@ -97,9 +107,10 @@ theorem occ_bits {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     rw [hT] at hi
     simp only [Drain.table, List.mem_cons, List.mem_nil_iff, or_false] at hi
     subst hi
-    have hcon : ∀ e ∈ Drain.table.constraints, e.eval (natRow (rowNat tr 18 r) (tr.row pub 18 r)) = 0 :=
-      table_constr H (by simp [air_len]) hr
-    have hb := hcon (Chips.bool (v Drain.act)) (by simp [Drain.table])
+    have hd := hcon 18 (by simp [air_len]) r hr
+    have hmem : Chips.bool (v Drain.act) ∈ Drain.table.constraints := by simp [Drain.table]
+    rw [← hT] at hmem
+    have hb := hd (Chips.bool (v Drain.act)) hmem
     simp only [Chips.bool, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow,
       Drain.act] at hb
     have hb' := bool_nat (rowNat_lt _ _ _ _) hb
@@ -113,7 +124,10 @@ theorem occ_bits {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     rcases hi with rfl | rfl | rfl | rfl <;> simp [busByte, busState, busStk] at hk
   · -- MEMINIT: counts `act`, `act · zd`, `act · (1 − zd)` with `act`, `zd` bits
     rw [hT] at hi
-    exact meminit_counts H hr i hi
+    have hc19 : ∀ e ∈ MemInit.table.constraints,
+        e.eval (natRow (rowNat tr 19 r) (tr.row pub 19 r)) = 0 := by
+      rw [← hT]; exact hcon 19 (by simp [air_len]) r hr
+    exact meminit_counts_of hc19 i hi
   · rw [hT] at hi
     simp only [Data.table, List.mem_cons, List.mem_nil_iff, or_false] at hi
     subst hi; simp [busData, busState, busStk] at hk
@@ -122,7 +136,13 @@ theorem occ_bits {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     subst hi; simp [busFunc, busState, busStk] at hk
   · have := chipT_eq nloc ncode t h1 h9
     rw [this] at hi
-    exact CF.counts t h1 h9 r hr i hi
+    exact hcounts t h1 h9 r hr i hi
+
+theorem occ_bits {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr)
+    (hpub : PubOK X nloc ncode pub) (CF : ChipFacts X nloc ncode pub tr) :
+    ∀ o ∈ occs (wasmBaseAir nloc ncode) tr pub, (o.2.1 = true ∨ o.1 = busState ∨ o.1 = busStk) → o.2.2.2 ≤ 1 :=
+  occ_bits_of hpub CF.counts (fun t ht r hr => table_constr H ht hr)
 
 /-! ## Bus messages of the trace, by row -/
 

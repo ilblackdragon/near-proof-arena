@@ -1,5 +1,6 @@
 import ArenaExpectedInst
 import ReexecV3D3.Obligations
+import ReexecV3D3.ArtifactSound
 import ReexecV3D3.PublicBin
 
 /-!

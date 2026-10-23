@@ -154,13 +154,14 @@ This is the row-local statement `lookup_sound` produces; the hypothesis `Q` char
 RANGE16 answers (every RANGE16 row's message is its index `< 2^16`). -/
 theorem reg_r16_query_16bit {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseRegAir nloc ngl) pub tr)
-    (hsend : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.2.1 = true → o.2.2.2 ≤ 1)
+    (hsend : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.1 = busR16 → o.2.1 = true →
+      o.2.2.2 ≤ 1)
     (hrecv : ∀ o ∈ occs (wasmBaseRegAir nloc ngl) tr pub, o.1 = busR16 → o.2.1 = false →
       o.2.2.2 ≠ 0 → ∃ x : F, o.2.2.1 = [x] ∧ x.toNat < 65536)
     {o : Occ} (ho : o ∈ occs (wasmBaseRegAir nloc ngl) tr pub) (hb : o.1 = busR16)
     (hs : o.2.1 = true) (hc : o.2.2.2 = 1) :
     ∃ x : F, o.2.2.1 = [x] ∧ x.toNat < 65536 :=
   lookup_sound H busR16 (fun m => ∃ x : F, m = [x] ∧ x.toNat < 65536) hrecv
-    (fun o' ho' _ hs' => hsend o' ho' hs') ho hb hs hc
+    (fun o' ho' hb' hs' => hsend o' ho' hb' hs') ho hb hs hc
 
 end WasmBase

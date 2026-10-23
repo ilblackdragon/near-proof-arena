@@ -7,9 +7,9 @@ hole is closed and generated/KAT-verified; the `(ptr, len)` → linear-memory *l
 scoped but not built, for the reason recorded in §3.
 
 No `sorry`, no `axiom`, no `native_decide`.  **One honest caveat, stated up front:**
-`regLenAgree_group` still takes the R16 `hsend` bound as a *hypothesis* — that is the handoff's
-Step 1.1 (`reg_r16_send_bits`), and it is not closed.  §1.6 explains exactly why it is load-bearing
-and why it is not derivable from `Holds (wasmBaseRegAir)` alone.
+~~`regLenAgree_group` still takes the R16 `hsend` bound as a *hypothesis*~~ **CLOSED 2026-10-22:**
+the handoff's Step 1.1 (`reg_r16_send_bits`) is proved as `reg_hsend_r16` (`Main/RegSend.lean`) from
+`Holds` alone, and `regLenAgree_group_of_holds` is the hypothesis-free form.  See §1.6.
 
 ---
 
@@ -101,9 +101,9 @@ The R16 lookups that *are* load-bearing for `reg_pos_lt_len` are the existing on
 not the difference between true and false. The lane log records this so the next reader does not
 re-derive the wrong justification.
 
-### 1.6 The one hypothesis left open: `hsend` (Step 1.1)
+### 1.6 Step 1.1 — the R16 send bound, **closed**
 
-`regLenAgree_group` takes
+`regLenAgree_group` used to take
 
 ```
 hsend : ∀ o ∈ occs (wasmBaseRegAir …) tr pub, o.2.1 = true → o.2.2.2 ≤ 1
@@ -112,18 +112,37 @@ hsend : ∀ o ∈ occs (wasmBaseRegAir …) tr pub, o.2.1 = true → o.2.2.2 ≤
 **It is load-bearing, not cosmetic.** Termination needs `gap < 2^16`: at offset `L` the constraint
 `cPosLtLen` reads `L − L − 1 − gap = 0`, and `gap = P − 1` satisfies that for *every* `L` — proved as
 `reg_gap_wraparound`. Only the R16 bound on `gap` excludes a byte row at offset `len`, and that bound
-comes from `reg_r16_query_16bit`, i.e. from `lookup_sound`, which needs `hsend`.
+comes from `reg_r16_query_16bit`, i.e. from `lookup_sound`, which needs the send bound.
 
-**It is not derivable from `Holds (wasmBaseRegAir …)` alone.** REG adds space-6 traffic on the CH bus,
-so a REG trace does *not* satisfy `Holds (wasmBaseAir …)`; the base AIR's `occ_bits`
-(`Main/Exec.lean`), which is how `hsend` is obtained for the base AIR, therefore does not apply. For
-the base AIR `hsend` itself is a hypothesis too (`occ_bits H hpub CF` with `CF : ChipFacts`), so the
-REG version needs the same thing: per-chip count bounds re-stated against `wasmBaseRegAir`.
+**The stated global form was too strong.** `HOSTO`'s two interactions are counted with a free column
+`mult` (`HostO.table.constraints = []`), so "every send of the trace has count ≤ 1" is *false* for any
+host trace. `Bus.lookup_sound` already takes the bus-restricted form `o.1 = b → o.2.1 = true →
+count ≤ 1`, and the walk applies it at `b = busR16`. So the hypothesis in `reg_r16_query_16bit`,
+`reg_gap_lt` and `regLenAgree_group` was narrowed to the R16 instance — the true and sufficient one.
 
-That is mechanical but non-trivial (13 chip tables × their `*_flags` lemmas, all of which currently
-take `Holds (wasmBaseAir)`), and it **does not touch the group-walk argument** — only where `hsend`
-comes from. So this is a clean follow-up, and the walk/`RegLenAgree` mathematics below is complete
-and independent of it.
+**`reg_hsend_r16` (`Main/RegSend.lean`) proves it from `Holds` alone:**
+
+```
+∀ o ∈ occs (wasmBaseRegAir …) tr pub, o.1 = busR16 → o.2.1 = true → o.2.2.2 ≤ 1
+```
+
+* tables 0–21: `occ_bits_of` was split out of the base `occ_bits` (`Main/Exec.lean`) so it needs only
+  *row constraints*, never the base AIR's bus balance.  `reg_base_constr` supplies them from
+  `Holds (wasmBaseRegAir …)`, since tables 0–21 of the REG AIR are literally `wasmBaseAir`'s.
+* HOST (22): R16 counts are `act` or `pf j` (`host_r16_cases`), both bits by HOST's own constraints.
+* HOSTO (23), HOSTT (24): no R16 interaction (`hosto_no_r16`, `hostT_no_r16`).
+* HOSTB (25): every R16 count is `act·(1−reg)` (`hostb_r16_cases`); `act`, `reg` are bits.
+* REG (26): six R16 queries counted `act·fresh`, `act·(1−kind)`, `act` (`reg_r16_cases`).
+
+The per-chip count bits are *derived*, not assumed: `reg_chip_counts` applies each chip's
+constraint-only `*_counts_of` lemma (`Main/Row*`) at the REG AIR's own table index — so no `ChipFacts`
+hypothesis is needed.  `regLenAgree_group_of_holds` is the resulting hypothesis-free group theorem.
+Axiom audit: `reg_hsend_r16`, `reg_chip_counts` and `regLenAgree_group_of_holds` depend only on
+`[propext, Classical.choice, Quot.sound]`.
+
+The `*_of` split that made this possible (constraint-only forms for the chip `*_flags`/`*_counts`
+lemmas, with the `Holds`-against-`wasmBaseAir` versions kept as one-line wrappers, so no call site
+changed) touches no proof of the group walk itself.
 
 ---
 
@@ -202,7 +221,12 @@ bounded and has a template: a row lemma `hostb_mem_step` shaped exactly like `St
 `host_rel_restart`'s `HostStepRely.heap` field. What must **not** be done is the same-time pair
 above, which proves nothing.
 
-**What is ready for that lane.** `HOSTB`'s `inters` has a commented, working `memAddr` expression
-(`ptrLo + 65536·ptrHi + pos`) and the two `chRecv`/`chSend` space-3 interactions, plus a
-`cStartPos`/group structure that makes `pos = 0 … len−1` a group property. The generator already
-knows `(ptr, len)` at every payload site (`args[0]`, `args[1]`).
+**What is ready for that lane.** On `main`, `HOSTB.inters` carries the four `busHostB` register-file
+interactions plus `byteQ` and the three `r16` queries (`gap`, `pos`, `blen`); the memory address
+`ptrLo + 65536·ptrHi + pos` is expressible from columns already present (`ptrLo`, `ptrHi`, `pos`),
+and `cStartPos`/group structure makes `pos = 0 … len−1` a group property. The generator already
+knows `(ptr, len)` at every payload site (`args[0]`, `args[1]`). The space-3 `chRecv`/`chSend` pair
+and the `memCnt` column that a MEMIO link needs are **not** on `main` — they existed only as
+unfinished WIP on the `lane/pq-host-memio` branch, which does not build and was deliberately left
+out of this landing. That lane's next step is to re-add those columns and prove the memory step
+(`hostb_mem_step`), not to merge the WIP as it stands.

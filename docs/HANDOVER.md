@@ -406,6 +406,90 @@ check that its `.olean` exists, or that it is reachable from the root. This is t
 error as the stale-`wasmbase-tool` trap below, and it is the second time a build claim was green
 while the thing under test was not built.
 
+## Lane `pq-hostfinal`: promise encodings done, RIPEMD row done, round lemma partly done (2026-10-22/23)
+
+Lane `lane/pq-hostfinal`, branched from `origin/main` `dba4b0cc`, HEAD `78436ac9f` before the merge
+below.  Full detail in `docs/logs/pq-hostfinal-2026-10-22.md`.  Three items from the 2026-10-21 gap
+list were in scope; the honest split is **two done, one half-done**.
+
+| item | state |
+|---|---|
+| the 11 `promise_*` encodings | **DONE** (`bdf80d018`) |
+| RIPEMD-160 AIR row | **DONE and differentially tested** (`f7b1a6e0c`), at **13.8×** the assumed cost |
+| the coverage premises (`ArmAgrees`, `StateSide`, D1→D3 lift) | **rewritten and de-circularised** (`14af4935e`); the lift is still unproved |
+| the RIPEMD round-agreement lemma (`M3` analogue) | **stages 1–3 done, the statement itself NOT proved** |
+
+**The 11 `promise_*` encodings.** All closed, `promise_encodings_cover` with **no axioms** plus a
+discriminating negative control.  Two facts made it a one-day job instead of 2–3 weeks: `BField` gained
+a verbatim `raw` case (five action bodies embed a serialised `PublicKey`/`FcPerm` with no length
+prefix), and the *whole* receipt is one `BField` list, so one envelope theorem covers every shape and
+the `PBE` table needed no change.  "Empty class row" is a new *instance* of the existing `eFrameCons`
+shape, not a new class kind.
+
+**RIPEMD-160 row.** `WasmBase/RipemdAir.lean`: 1,608 columns, 2,625 constraints, 0 interactions,
+degree 4.  `RipemdVectors.lean` is a build-gated differential test: 320 rows satisfy all 2,625
+constraints, 17 tampers rejected, 13 digests equal the spec's `ripemd160`, and `RIPEMD-160("")` KAT.
+Two real bugs surfaced only by running the digest against the spec (multi-block chaining restarted
+only the left line; `majE`'s triple product is not a carry without `−2abc`).  **Cost is 128,640
+committed cells per block — 13.8× SHA-256's 9,333**, not the ≈9–11 k in `results/pq-hash-air/README.md`
+§3.6; that figure assumed a limb layout and the row as built is bit-sliced.  Whether 13.8× is
+acceptable is a `G_α` budget decision, not a lane decision.
+
+**What is NOT proved on the RIPEMD row — read this before citing the row as "verified":**
+* `round_agrees` — the theorem `RipemdRound` is named for — **does not exist**.  What exists is the
+  machinery: the five gated sums in general form (`gsumG` + instances, `xsel_eq`/`rot_eq`/`f_eq`/
+  `gsel_profile`), the bit↔word bridge (`bitOf_ofBitsN`, `ofBitsN_foldl`, `curWord`/`nxtWord`), and 8 of
+  the 10 next words.  `bl'`/`br'` need the four-addition chain composed with the `f` column, the
+  selected message word and the rotated `t3`; that composition is unwritten.  The AIR therefore
+  proves "the digest follows from the message columns", not "a satisfying row is the spec's step".
+* **No general rotation bridge.**  `rotl32n_is_rot` is a `decide` over 80 offsets × 8 values, not a
+  proof for arbitrary arguments.
+* **No feed-forward row family and no digest bus** (`inters = []`), so the row cannot be consumed by a
+  host call's proof yet.  This is row *arithmetic*, not a usable hash table.
+* The two free message columns are a *named gap* kept visible in the test (`freeInputsStillOk`), not a
+  bug and not "fixed".
+
+**Coverage premises.**  The earlier draft's `coverage : ArmAgrees → StateSide → RelD3` was circular
+(`StateSide` collapsed to `RelD3` once `ArmAgrees` held).  The rewrite makes the premises name separate
+artifacts and adds four reviewable lemmas: `patchArm_noncall` (the patch changes only `.fcall`),
+`armAgrees_d3` (the premise is inhabited), `armAgrees_iff_eq` (it is exactly the pointwise `.fcall`
+equation), `coverage_identity`.  `relD3_of_lift` was a tautology and now carries the `StateSide`
+conjunct.  The D1→D3 lift stays **unproved and is the wrong shape as an implication**: a `RelD1a`
+witness has no `FunctionCall` and no code at all (`TxD1.lean:97`, `Codec.lean:75`,
+`ChunkValidationD1.lean:63`), while `RelD3` runs on the D2 witness.  It is witness *production*
+(`∃ w2, RelD3 cb w2 ∧ StateSide …`), not a re-reading of the same bytes.
+
+**Merged state.**  `origin/main` had moved one commit ahead (`229518416`, the REG R16 send bound); the
+merge was additive on 2 files and conflicted on none.  Two things it surfaced:
+
+1. **`main` carried two Lean modules the umbrella root never imported.**  `Join/Compose.lean`
+   (`c3be7b06e`) and `Aggregation/D3Recursion.lean` (`05aee4479`) were absent from
+   `zk-formal/ZkFormal.lean`, so a full `lake build` reported **3,062 jobs green with neither
+   `.olean` existing**.  Fixed here by importing both; the build is now **3,065 jobs** and both
+   `.olean`s exist.  **This is the third occurrence of the root-import trap** — see the section above.
+   Any "the join is proved" claim taken from a bare job count on `main` before this fix cited an
+   unbuilt module.
+2. **`main`'s `Join/Compose.lean` and this lane's `Join/Coverage.lean` are the same reduction in two
+   vocabularies.**  `compose_pv86` is `coverage_pv86` with renamed arguments.  They are compatible and
+   both stay: `Coverage` states the fold at an arbitrary `cfg`; `Compose` specialises it to `pv86`,
+   where `checkD3` is fixed.  The lane's unique contribution to the pair is `relD3_of_lift`'s
+   non-tautological form; `main`'s is the vacuity theorems and `compose_is_pv86_only`.
+
+Verified on the merged tree: `wasm-base-lean` `lake build` 243 jobs, `zk-formal` `lake build` 3,065
+jobs, both exit 0.  Axioms re-measured by `lake env lean` probe rather than copied from commit
+messages — the twelve join/recursion theorems are all within
+`{propext, Classical.choice, Quot.sound}`; two are below std3 (`joinStmt_backing_is_erasable`
+`[propext, Quot.sound]`, `d3Stmt_root_boundary` `[propext]`).  `c3be7b06e`'s message claims the uniform
+set for all six; that is a superset, not an error, but the two sets are not identical.  The stage-4
+RIPEMD declarations likewise audited: the five collapse lemmas carry `Classical.choice` (through
+`Fp.ext`), the pure `Nat` readouts do not; no `sorryAx`, no `native_decide`, no `implemented_by`
+anywhere.
+
+**Still open on this lane:** `round_agrees` (`bl'`/`br'` composition), the feed-forward row family +
+digest bus, the `X`-column binding, and — unchanged — `ArmAgrees` and the D1→D3 lift.  The promise
+family's known coarseness is also unfixed: `promise_yield_resume*` pushes an i32 result tag 0 while the
+chip fixes tag 1 (`results/pq-host-promise/DESIGN.md` §3).
+
 ## Parallel lanes to run next
 
 Lanes 1-4 are done (see above). The remaining critical path is the **tightening** of what landed,
@@ -414,9 +498,9 @@ then the join. Lanes 5-7 and 9-10 are independent; 8 depends on 5 and 7.
 | # | lane | scope | blocks | est. |
 |---|---|---|---|---|
 | 5 | ~~`lane/pq-host-rowfacts`~~ **DONE 2026-10-21** | `exec_of_rows_seg`, `wasm_base_exec_host`, `host_rel_restart`, `host_hst`, `occ_bits_host` all proved (see the section above). `hch` followed in ~~`lane/pq-hch`~~ **DONE 2026-10-21** (`host_hch`, `host_buses`). The bus side is closed. | — | done |
-| 6 | ~~`lane/pq-host-memio`~~ **PART 1 DONE, PART 2(a) DONE 2026-10-21** | REG group walk proved (`reg_group_walk`, `regLenAgree_group`). **The stated `Register.RegLenAgree` was FALSE** (`register_len` has no byte rows) — refuted by `regLenAgree_lone_length`, replaced by the group-local theorem. HOSTB's predicted soundness hole (free `pos`/`len`) closed with `r16 pos` + `r16 blen`. **Remaining:** the `(ptr,len)` -> linear-memory *link* needs the MEMIO view extension (`memRaw`/`HeapOK`/`RelW`), since HOSTB space-3 messages break `ch_raw_host`. See `results/pq-host-memio/RESULTS.md` §3. | any real byte-moving host call | MEMIO link: 4-6 d |
+| 6 | ~~`lane/pq-host-memio`~~ **PART 1 DONE, PART 2(a) DONE 2026-10-21; Step 1.1 CLOSED 2026-10-22** | REG group walk proved (`reg_group_walk`, `regLenAgree_group`). **Step 1.1 (`hsend`) is now closed:** `reg_hsend_r16` (`Main/RegSend.lean`) proves the R16 send bound from `Holds` alone and `regLenAgree_group_of_holds` is the hypothesis-free group theorem; axioms ⊆ `[propext, Classical.choice, Quot.sound]`. The bound had to be narrowed to the bus-restricted R16 form, because `HOSTO`'s free `mult` column makes the global form false. **The stated `Register.RegLenAgree` was FALSE** (`register_len` has no byte rows) — refuted by `regLenAgree_lone_length`, replaced by the group-local theorem. HOSTB's predicted soundness hole (free `pos`/`len`) closed with `r16 pos` + `r16 blen`. **Remaining:** the `(ptr,len)` -> linear-memory *link* needs the MEMIO view extension (`memRaw`/`HeapOK`/`RelW`), since HOSTB space-3 messages break `ch_raw_host`. See `results/pq-host-memio/RESULTS.md` §3. | any real byte-moving host call | MEMIO link: 4-6 d |
 | 7 | `lane/pq-cd-props` (**not a pure proof lane** — see the note) | `WalkKeyIsContractData` has been **proved for the HOSTB route** (`PQ/Join/CdWalkView.lean`, residual `CdKeynibFromHostB`); `UpsertPreservesWf` was **false as stated** and its corrected form `UpsertPreservesWfWithBounds` is **proved**. Remaining: `RealStoreMatchesTables` (render + overlay replay, engineering E1/E3) and `UpsV3AppliesLog`, which needs a **table parameterisation** because `upsert` is hard-coded at `[0,15]` as a constraint polynomial. | the state half being a theorem, not a check | 6-10 d, and the `upsert` rework is the long pole |
-| 8 | `lane/pq-runCall-fold` | The coverage theorem: `join_additive` + `d3Hooks`/`runCall` correspondence, so a joined proof implies the D3 chunk relation. Shape stated in `JoinFold.JoinStmt`. | the end-to-end claim | 10-15 d |
+| 8 | `lane/pq-runCall-fold` ~~+ `pq-join-compose`~~ **reduction PROVED 2026-10-22, two hypotheses remain** | `join_additive`/`JoinStmt` are **retired**: their conclusion type is `RelD1a`, so no proof of them can reach `RelD3` (`joinStmt_conclusion_is_premise`, `joinStmt_backing_is_erasable`). The honest join is proved: `compose_pv86 : hagree → hstate → RelD3 cb w` (`Join/Compose.lean`), whose premises are the per-call `.fcall` agreement and the state pipeline's verdict on the chunk's own D2 witness bytes. `compose_is_pv86_only` records that `checkD3` is fixed at `pv86`, so there is no `cfg`-general form. **Remaining: discharge `hagree` (HOST chip + `runCall`/`d3Hooks` correspondence) and `hstate` (the chunk's D2 witness is the one the state pipeline accepts).** | the end-to-end claim | 2 hypotheses, not a rewrite |
 | 9 | `lane/pq-sig-layer` | The separate Ed25519 proof layer: ZK-friendly curve arithmetic + a SHA-512 witness over the preimage, proving `Ed25519.verify` at 128 bits. Census done (`results/pq-ed25519-air/CENSUS.md`). | signed transactions | 16-26 d |
 | 10 | `lane/pq-1pgas-scale` | Research only: measure one 2^28.25-cell segment at real settings, then extrapolate the aggregation tree. No 1 Pgas claim. | goal B | research |
 

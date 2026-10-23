@@ -10,15 +10,12 @@ open ZkFormal.Algebra Chips Local
 open NearSpecV3.Wasm hiding P
 set_option linter.unusedSimpArgs false
 
-/-- Flags of a BIT row: bits, mutually exclusive. -/
-theorem bit_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
+/-- Flags of a BIT row: bits, mutually exclusive.  (Constraint-only form; `bit_flags` is the wrapper.) -/
+theorem bit_flags_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Bit.table.constraints, e.eval (natRow (rowNat tr 2 r) (tr.row pub 2 r)) = 0) :
     (rowNat tr 2 r 5 = 0 ∨ rowNat tr 2 r 5 = 1) ∧ (rowNat tr 2 r 6 = 0 ∨ rowNat tr 2 r 6 = 1) ∧
       (rowNat tr 2 r 7 = 0 ∨ rowNat tr 2 r 7 = 1) ∧ (rowNat tr 2 r 8 = 0 ∨ rowNat tr 2 r 8 = 1) ∧
       rowNat tr 2 r 5 + rowNat tr 2 r 6 + rowNat tr 2 r 7 ≤ 1 := by
-  have ht : 2 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Bit.table.constraints, e.eval (natRow (rowNat tr 2 r) (tr.row pub 2 r)) = 0 :=
-    table_constr H ht hr
   simp only [Bit.table, Bit.constraints, List.forall_mem_append, List.forall_mem_cons, List.forall_mem_nil,
     and_true] at hcon
   obtain ⟨⟨bA, bO, bX, b64, hAO, hAX, hOX, -⟩, -⟩ := hcon
@@ -32,6 +29,13 @@ theorem bit_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have := zero_of_mul_nat (rowNat_lt _ _ _ _) (rowNat_lt _ _ _ _) hOX
   exact ⟨h5, h6, h7, bool_nat (rowNat_lt _ _ _ _) b64, by omega⟩
 
+theorem bit_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
+    (rowNat tr 2 r 5 = 0 ∨ rowNat tr 2 r 5 = 1) ∧ (rowNat tr 2 r 6 = 0 ∨ rowNat tr 2 r 6 = 1) ∧
+      (rowNat tr 2 r 7 = 0 ∨ rowNat tr 2 r 7 = 1) ∧ (rowNat tr 2 r 8 = 0 ∨ rowNat tr 2 r 8 = 1) ∧
+      rowNat tr 2 r 5 + rowNat tr 2 r 6 + rowNat tr 2 r 7 ≤ 1 :=
+  bit_flags_of (table_constr H (by simp [air_len]) hr)
+
 theorem bit_count_eq {i : Inter} (hi : i ∈ Bit.inters) : i.count = Bit.act :=
   of_decide_eq_true (List.all_eq_true.mp
     (show Bit.inters.all (fun i => decide (i.count = Bit.act)) = true by decide) i hi)
@@ -42,13 +46,18 @@ theorem bit_act_eval (tr : Trace) (pub : List F) (r : Nat) :
   rw [cell_cast, cell_cast, cell_cast, ← Lean.Grind.Semiring.natCast_add, ← Lean.Grind.Semiring.natCast_add,
     Fp.toNat_cast]
 
-theorem bit_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
+theorem bit_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Bit.table.constraints, e.eval (natRow (rowNat tr 2 r) (tr.row pub 2 r)) = 0) :
     ∀ i ∈ Bit.inters, (i.count.eval (tr.row pub 2 r)).toNat ≤ 1 := by
   have hP' := P_val
-  obtain ⟨-, -, -, -, hs⟩ := bit_flags H hr
+  obtain ⟨-, -, -, -, hs⟩ := bit_flags_of hcon
   intro i hi
   rw [bit_count_eq hi, bit_act_eval, Nat.mod_eq_of_lt (by omega)]; exact hs
+
+theorem bit_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
+    ∀ i ∈ Bit.inters, (i.count.eval (tr.row pub 2 r)).toNat ≤ 1 :=
+  bit_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem bit_inactive {pub : List F} {tr : Trace} {r : Nat}
     (hna : ¬ rowAct Bit.table tr pub 2 r) :

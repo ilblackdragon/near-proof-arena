@@ -321,12 +321,9 @@ theorem stack_count_cases (i : Inter) (hi : i ∈ Stack.inters) : i.count = Stac
     (show Stack.inters.all (fun i => decide (i.count = Stack.act) || decide (i.count = v Stack.fSel)) = true by decide) i hi
   simpa using this
 
-theorem stack_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
+theorem stack_flags_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Stack.table.constraints, e.eval (natRow (rowNat tr 7 r) (tr.row pub 7 r)) = 0) :
     rowNat tr 7 r 5 + rowNat tr 7 r 6 ≤ 1 := by
-  have ht : 7 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  have hcon : ∀ e ∈ Stack.table.constraints, e.eval (natRow (rowNat tr 7 r) (tr.row pub 7 r)) = 0 :=
-    table_constr H ht hr
   simp only [Stack.table, Stack.constraints, List.forall_mem_cons, List.forall_mem_nil, and_true] at hcon
   obtain ⟨bD, bS, hDS, -⟩ := hcon
   simp only [Chips.bool, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow,
@@ -336,20 +333,30 @@ theorem stack_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have := zero_of_mul_nat (rowNat_lt _ _ _ _) (rowNat_lt _ _ _ _) hDS
   omega
 
+theorem stack_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
+    rowNat tr 7 r 5 + rowNat tr 7 r 6 ≤ 1 :=
+  stack_flags_of (table_constr H (by simp [air_len]) hr)
+
 theorem stack_act_eval (pub : List F) (tr : Trace) (r : Nat) (h : rowNat tr 7 r 5 + rowNat tr 7 r 6 ≤ 1) :
     (Stack.act.eval (tr.row pub 7 r)).toNat = rowNat tr 7 r 5 + rowNat tr 7 r 6 := by
   have hP' := P_val
   simp only [Stack.act, v, Expr.eval_add', Expr.eval_col, Trace.row, cell_cast, Stack.fDrop, Stack.fSel]
   rw [← Lean.Grind.Semiring.natCast_add, Fp.toNat_cast_of_lt (by omega)]
 
-theorem stack_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
+theorem stack_counts_of {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ Stack.table.constraints, e.eval (natRow (rowNat tr 7 r) (tr.row pub 7 r)) = 0) :
     ∀ i ∈ Stack.inters, (i.count.eval (tr.row pub 7 r)).toNat ≤ 1 := by
-  have hf := stack_flags H hr
+  have hf := stack_flags_of hcon
   intro i hi
   rcases stack_count_cases i hi with hc | hc <;> rw [hc]
   · rw [stack_act_eval pub tr r hf]; exact hf
   · show rowNat tr 7 r 6 ≤ 1; omega
+
+theorem stack_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
+    ∀ i ∈ Stack.inters, (i.count.eval (tr.row pub 7 r)).toNat ≤ 1 :=
+  stack_counts_of (table_constr H (by simp [air_len]) hr)
 
 theorem stack_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7)

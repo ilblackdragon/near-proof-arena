@@ -58,7 +58,7 @@ def ifStep (p : Prepared) (pf : PFunc) (ls : List Label) (h pc : Nat) (bt : BT) 
     | _, _ => none
   else none
 
-/-- Static analysis, `if`-aware.  Identical to `analyze` except at `.if_`. -/
+/-- Static analysis, `if`-aware.  Identical to `analyze` except at `.if_` and `.else_`. -/
 def analyzeIf (p : Prepared) (pf : PFunc) : Option (Array (List Label) × Array Nat) := Id.run do
   let n := pf.code.size
   let mut ls : List Label := [rootLabel pf]
@@ -75,7 +75,12 @@ def analyzeIf (p : Prepared) (pf : PFunc) : Option (Array (List Label) × Array 
         ls := rest; h := lab.height + lab.arity; dead := false
       | .end_, [lab] =>
         L := L.push ls; H := H.push (lab.height + lab.arity); dead := false
-      | _, _ => return none
+      -- A dead `.else_` means the true arm ended in an unconditional transfer.  The else body is
+      -- still reachable through the `if`'s false branch, but this linear pass no longer knows the
+      -- label stack or height it needs, so this shape is **out of the domain** (an explicit,
+      -- decidable restriction; `d3rich` does not need it).  Accepting it silently would be the
+      -- "test passes, meaning is missing" failure.
+      | .else_, _ | _, _ => return none
     else
       L := L.push ls
       H := H.push h
@@ -92,6 +97,11 @@ def analyzeIf (p : Prepared) (pf : PFunc) : Option (Array (List Label) × Array 
         match ifStep p pf ls h pc bt with
         | some (lsT, hT, _, _, _) => ls := lsT; h := hT
         | none => return none
+      -- `.else_` is the true arm's **jump over the else body** to the label's target.  For this
+      -- linear pass it is transparent: the else body that follows is reached by the `if`'s false
+      -- branch with the *same* label stack (`lab :: ls`) and height (`h`), so the scan continues
+      -- unchanged.  `verifyAtIf` checks the real jump.
+      | .else_ => ()
       | .end_ =>
         match ls with
         | _ :: rest@(_ :: _) => ls := rest
@@ -112,8 +122,8 @@ def analyzeIf (p : Prepared) (pf : PFunc) : Option (Array (List Label) × Array 
         | _ => return none
   return some (L, H)
 
-/-- Successor obligations, `if`-aware: both arms must agree with the static data, and the
-`else`-less shape must **not** push a label. -/
+/-- Successor obligations, `if`-aware: both arms must agree with the static data, the `else`-less
+shape must **not** push a label, and `.else_` must jump to the head label's target. -/
 def verifyAtIf (p : Prepared) (pf : PFunc) (L : Array (List Label)) (H : Array Nat) (pc : Nat) : Bool :=
   match pf.code[pc]?, L[pc]?, H[pc]? with
   | some ins, some ls, some h =>
@@ -123,6 +133,9 @@ def verifyAtIf (p : Prepared) (pf : PFunc) (L : Array (List Label)) (H : Array N
     | .if_ bt => match ifStep p pf ls h pc bt with
       | some (lsT, hT, ftgt, lsF, hF) => atQ (pc + 1) lsT hT && atQ ftgt lsF hF
       | none => false
+    | .else_ => match ls with
+      | lab :: rest => atQ lab.target rest h
+      | [] => false
     | i => verifyAt p pf L H pc
   | _, _, _ => false
 
@@ -144,6 +157,12 @@ def recordAtIf (cfg : NearCfg) (p : Prepared) (pf : PFunc) (L : Array (List Labe
       match pf.endOf[pc]?, pf.elseOf[pc]? with
       | some _e, some el => some [off + pc, Chips.IfC.opIf, H[pc]?.getD 0, fee, el + 1 + off, 0, 0, 0]
       | _, _ => none
+    -- `.else_` is the existing `Ctrl.fJump` to the label it pops (`step_else` proves exactly that),
+    -- so it needs no new opcode: the AIR row is CTRL's `f_jump` with `tgt = lab.target`.
+    | .else_ =>
+      match L[pc]? with
+      | some (lab :: _) => some [off + pc, Chips.Ctrl.opJump, H[pc]?.getD 0, fee, lab.target + off, 0, 0, 0]
+      | _ => none
     | _ => recordOf off cinfo (L[pc]?.getD []) (H[pc]?.getD 0) fee (off + pc) ins
   | _, _ => none
 
@@ -220,7 +239,7 @@ def analyzeIfH (p : Prepared) (pf : PFunc) : Option (Array (List Label) × Array
         ls := rest; h := lab.height + lab.arity; dead := false
       | .end_, [lab] =>
         L := L.push ls; H := H.push (lab.height + lab.arity); dead := false
-      | _, _ => return none
+      | .else_, _ | _, _ => return none
     else
       L := L.push ls
       H := H.push h
@@ -236,6 +255,7 @@ def analyzeIfH (p : Prepared) (pf : PFunc) : Option (Array (List Label) × Array
         match ifStep p pf ls h pc bt with
         | some (lsT, hT, _, _, _) => ls := lsT; h := hT
         | none => return none
+      | .else_ => ()
       | .end_ =>
         match ls with
         | _ :: rest@(_ :: _) => ls := rest
@@ -266,6 +286,9 @@ def verifyAtIfH (p : Prepared) (pf : PFunc) (L : Array (List Label)) (H : Array 
     | .if_ bt => match ifStep p pf ls h pc bt with
       | some (lsT, hT, ftgt, lsF, hF) => atQ (pc + 1) lsT hT && atQ ftgt lsF hF
       | none => false
+    | .else_ => match ls with
+      | lab :: rest => atQ lab.target rest h
+      | [] => false
     | .call fi => match sigOfH p fi with
       | some (np, ar) => decide (np ≤ h) && atQ (pc + 1) ls (h - np + ar)
       | none => false
@@ -288,6 +311,10 @@ def recordAtIfH (cfg : NearCfg) (p : Prepared) (pf : PFunc) (L : Array (List Lab
       match pf.endOf[pc]?, pf.elseOf[pc]? with
       | some _e, some el => some [off + pc, Chips.IfC.opIf, H[pc]?.getD 0, fee, el + 1 + off, 0, 0, 0]
       | _, _ => none
+    | .else_ =>
+      match L[pc]? with
+      | some (lab :: _) => some [off + pc, Chips.Ctrl.opJump, H[pc]?.getD 0, fee, lab.target + off, 0, 0, 0]
+      | _ => none
     | .call fi =>
       if fi < p.m.imports.size then
         match hostOf p fi with
