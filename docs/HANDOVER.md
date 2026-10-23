@@ -86,16 +86,26 @@ Read `docs/logs/pq-gap-analysis-2026-10-19.md`. Summary:
 * **Two goals are conflated.** The signed challenge caps at `G_α` = 2^22·822,756 = 3.451e12 gas
   (2^41.65). 1 Pgas is **289.8x** that and exists only as `Scope.checkD3Peta` (a research
   definition). At 1 Pgas one proof is impossible at any width (W would be 35k-71k; the pin is 24),
-  so it needs ~1,880-3,760 segments and a recursion tree never built at that scale.
+  so it needs segmentation. **Segment count corrected 2026-10-23: ~146 segments at 2^23
+  ops/segment, not 1,880–3,760** — that range divided a width-equivalent cell total by a
+  main-cell segment size; the two are related by exactly the W-eq→main-cell ratio (494/38 and
+  995/38). Derivation in `docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5. Either count exceeds
+  the per-proof union bound's failure point (S ≈ 103–118), so this correction changes the
+  labour estimate but not the soundness verdict.
 * **The 293,077 B is the recursion tail only.** It does not cover a NEAR chunk.
 * **Remaining blockers for a `G_α` chunk:** (a) the HOST chip's gas-invariant generalisation
   (`g := remaining` breaks `R·S + g = g0`; ~112 sites), (b) `HOSTB` byte movement + register
   space, (c) contract-data storage tables (D1 is transfer-only; `ContractData` is D3 work),
-  (d) the `runCall` fold / coverage theorem, (e) TAPE root passthrough through NV to V_d,
-  (f) `max_interaction_count` 2^28 -> 2^30 in the production shape.
+  (d) the `runCall` fold / coverage theorem.
+  **(e) and (f) are DONE** and were verified in the delivered packet, not just in code:
+  the TAPE root reaches V_d and is bound (driver asserts it through every level at
+  `main.rs:258-266`, and the chain records `NEGATIVE_CONTROLS_OK changed_tape_root`), and
+  `max_interaction_count` is already 2^30 in both `base_params.logup` and
+  `final_vk.inner.params.logup` in `runs/opt-baseline-8/SETUP.json`.
 * **Ed25519 is decided:** a separate signature proof layer (16-26 days), not in-AIR per chunk.
 
-Realistic: **~2-3 months to a `G_α` chunk under 300 KB**. 1 Pgas is a separate project on top.
+Realistic: **~2-3 months to a `G_α` chunk under 300 KB**, minus whatever (e)/(f) were carrying.
+1 Pgas is a separate project on top.
 
 ## Aggregation tail: what is now measured (2026-10-23)
 
