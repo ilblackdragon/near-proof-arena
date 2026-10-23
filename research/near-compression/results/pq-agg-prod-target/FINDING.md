@@ -56,11 +56,19 @@ L1_0_PROOF_BYTES total=547657 gkr=44408 relations=26208 stacking=3520 whir=47333
 |---|---|---|
 | agg L1 at 296 WHIR queries | 547,657 B (whir 473,336) | **measured**, non-production schedule |
 | base final layer, production shape | 299,935 B (whir 230,876, 131 queries) | **measured**, `SETUP.json` |
-| agg L1 at the production 149-query schedule | *in flight* | `agg-prod-shape-proper.log` |
+| agg L1 at the production 149-query schedule | **not obtained** | `agg-prod-shape-proper.log` (killed) |
 
 The production-shaped run reports `queries=[47,43,33,26]` = **149 queries**, i.e. within 14 % of
 the base final layer's 131. Its byte count is the number that decides whether one agg node fits
-under 300 KB, and it is not yet in hand.
+under 300 KB, and **it was not obtained**: the process was killed after both leaves proved
+(`NV_PHASE end 18558`, `running for over 60 seconds`) with no `SUMMARY` line. Two attempts died
+the same way. No OOM is recorded (125 GB total, 117 GB available at the time), so the cause is
+the 300 s launcher limit plus session restarts, not memory.
+
+So the decisive number remains unmeasured. What is established is only the *schedule*: with the
+production levers set, a 2-child node asks for 149 queries rather than 296, and 149 is close to
+the base final layer's 131 -- which is the configuration whose WHIR payload is 230,876 B, i.e.
+comfortably inside 300 KB.
 
 ### Confound that must be isolated before quoting the 4.41x
 
