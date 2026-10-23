@@ -152,8 +152,13 @@ Three sentences the reader can act on, each with its evidence and its limit:
      2,759 B is the per-digest term — **29 digests vanish** because narrower rows make shallower
      Merkle trees — and `C` moves by 4 B, so it is *not* exactly width-invariant. **The only
      representable alternative is d=40 (5 words), which changes digest unit count 12 → 10 and so
-     needs its own geometry recalibration.** **None of this is done**, so Route C is an
-     unavailable lever for the delivered configuration, not a cheap one.
+     needs its own geometry recalibration — projecting the measured base deltas onto the final
+     layer (≈half the digest-count drop, 1 commit) gives **≈293,077 B, i.e. ~6.9 KB of margin**.
+     It also needs a `digest_units` branch (`hash.rs:238` currently only special-cases `== 42`,
+     so d=40 would emit a 48 B message and trip the same assert). **None of this is done**, so
+     Route C is an unavailable lever for the delivered configuration, not a cheap one. Note it does
+     **not** rescue depth 2: unit count 12 → 10 is only a 16.7% cut in SHA compressions, while the
+     2^22 wall needs ~4×.
 3. **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
    The 2-NV-child aggregation node needs a 2^22-row SHA compression AIR (measured panic
    `LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 }`, `circuit.rs:458`), but the
