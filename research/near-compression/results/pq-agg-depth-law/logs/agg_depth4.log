@@ -1,0 +1,754 @@
+   Compiling openvm-recursion-circuit v2.1.0 (/data/illia/nearproof-deps/pq-agg/openvm-sha384/crates/recursion)
+warning: unused import: `Matrix`
+  --> /data/illia/nearproof-deps/pq-agg/stark-backend-unified/crates/stark-backend/src/prover/stream_pcs.rs:32:69
+   |
+32 | use p3_matrix::{bitrev::BitReversibleMatrix, dense::RowMajorMatrix, Matrix};
+   |                                                                     ^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `openvm-stark-backend` (lib) generated 1 warning
+warning: unused import: `stacked_reduction::StackedReductionCpuNew`
+  --> /data/illia/nearproof-deps/pq-agg/stark-backend-unified/crates/cpu-backend/src/device.rs:29:5
+   |
+29 |     stacked_reduction::StackedReductionCpuNew,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `openvm-cpu-backend` (lib) generated 1 warning (run `cargo fix --lib -p openvm-cpu-backend` to apply 1 suggestion)
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:344:17
+    |
+344 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:353:17
+    |
+353 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:383:17
+    |
+383 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:399:17
+    |
+399 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:409:17
+    |
+409 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `collections::HashMap`
+ --> crates/recursion/src/nv/circuit.rs:2:11
+  |
+2 | use std::{collections::HashMap, sync::Arc};
+  |           ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `PrimeField32`
+ --> crates/recursion/src/nv/circuit.rs:8:41
+  |
+8 | use p3_field::{PrimeCharacteristicRing, PrimeField32};
+  |                                         ^^^^^^^^^^^^
+
+warning: unused imports: `U2` and `isa::Op`
+  --> crates/recursion/src/nv/circuit.rs:15:73
+   |
+15 |         hash::{byte_table2, generate2, ByteAir, HashBuses, Job2, Work2, U2},
+   |                                                                         ^^
+16 |     isa::Op,
+   |     ^^^^^^^
+
+warning: unused import: `jobs::Unit`
+  --> crates/recursion/src/nv/circuit.rs:23:5
+   |
+23 |     jobs::Unit,
+   |     ^^^^^^^^^^
+
+warning: unused import: `LookupBus`
+  --> crates/recursion/src/nv/glue.rs:25:39
+   |
+25 |     interaction::{InteractionBuilder, LookupBus, PermutationCheckBus},
+   |                                       ^^^^^^^^^
+
+warning: unused imports: `BorrowMut` and `Borrow`
+ --> crates/recursion/src/nv/hash.rs:7:20
+  |
+7 | use core::borrow::{Borrow, BorrowMut};
+  |                    ^^^^^^  ^^^^^^^^^
+
+warning: unused import: `openvm_recursion_circuit_derive::AlignedBorrow`
+ --> crates/recursion/src/nv/hash.rs:9:5
+  |
+9 | use openvm_recursion_circuit_derive::AlignedBorrow;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `NV_DIGEST`, `limbs_from_bytes`, and `split_bits`
+  --> crates/recursion/src/nv/hash.rs:19:18
+   |
+19 | use super::fmt::{limbs_from_bytes, split_bits, wl, NV_DIGEST};
+   |                  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^      ^^^^^^^^^
+
+warning: unused import: `ROWS`
+  --> crates/recursion/src/nv/hash.rs:21:29
+   |
+21 |     compress4_air::{Layout, ROWS},
+   |                             ^^^^
+
+warning: unused import: `Borrow`
+  --> crates/recursion/src/nv/transcript2.rs:10:20
+   |
+10 | use core::borrow::{Borrow, BorrowMut};
+   |                    ^^^^^^
+
+warning: unused imports: `BaseAirWithPublicValues` and `PartitionedBaseAir`
+  --> crates/recursion/src/nv/transcript2.rs:15:5
+   |
+15 |     BaseAirWithPublicValues, PartitionedBaseAir,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Air`
+  --> crates/recursion/src/nv/transcript2.rs:17:14
+   |
+17 | use p3_air::{Air, AirBuilder, BaseAir};
+   |              ^^^
+
+warning: unused import: `digest_bytes`
+  --> crates/recursion/src/nv/transcript2.rs:26:5
+   |
+26 |     digest_bytes, digest_words, hash_parts, initial_state, ShaTranscriptLog, F, KIND_COMMIT,
+   |     ^^^^^^^^^^^^
+
+warning: unused import: `p3_field::BasedVectorSpace`
+  --> crates/recursion/src/system/mod.rs:18:5
+   |
+18 | use p3_field::BasedVectorSpace;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `BaseAir`
+  --> crates/recursion/src/nv/transcript2.rs:17:31
+   |
+17 | use p3_air::{Air, AirBuilder, BaseAir};
+   |                               ^^^^^^^
+
+warning: variable does not need to be mutable
+   --> crates/recursion/src/nv/agg.rs:183:21
+    |
+183 |                 let mut ld = |b: &mut Builder, xs: &[F]| -> Vec<V> { xs.iter().map(|&x| b.load_f(x)).collect() };
+    |                     ----^^
+    |                     |
+    |                     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `src` is never read
+   --> crates/recursion/src/nv/transcript2.rs:198:13
+    |
+198 |             src = SqueezeSrc::Key(state);
+    |             ^^^
+...
+221 |             flush!();
+    |             -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `ctr` is never read
+   --> crates/recursion/src/nv/transcript2.rs:199:13
+    |
+199 |             ctr = 0;
+    |             ^^^
+...
+221 |             flush!();
+    |             -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `nw` is never read
+   --> crates/recursion/src/nv/transcript2.rs:200:13
+    |
+200 |             nw = 12;
+    |             ^^
+...
+221 |             flush!();
+    |             -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `src` is never read
+   --> crates/recursion/src/nv/transcript2.rs:198:13
+    |
+198 |             src = SqueezeSrc::Key(state);
+    |             ^^^
+...
+239 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `ctr` is never read
+   --> crates/recursion/src/nv/transcript2.rs:199:13
+    |
+199 |             ctr = 0;
+    |             ^^^
+...
+239 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `nw` is never read
+   --> crates/recursion/src/nv/transcript2.rs:200:13
+    |
+200 |             nw = 12;
+    |             ^^
+...
+239 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `src` is never read
+   --> crates/recursion/src/nv/transcript2.rs:198:13
+    |
+198 |             src = SqueezeSrc::Key(state);
+    |             ^^^
+...
+295 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `ctr` is never read
+   --> crates/recursion/src/nv/transcript2.rs:199:13
+    |
+199 |             ctr = 0;
+    |             ^^^
+...
+295 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `nw` is never read
+   --> crates/recursion/src/nv/transcript2.rs:200:13
+    |
+200 |             nw = 12;
+    |             ^^
+...
+295 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused variable: `airs`
+   --> crates/recursion/src/nv/agg_tests.rs:448:13
+    |
+448 |         let airs = circ.airs::<Sha384Config>();
+    |             ^^^^ help: if this is intentional, prefix it with an underscore: `_airs`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `mats1`
+    --> crates/recursion/src/nv/tests.rs:1621:10
+     |
+1621 |     let (mats1, b1) = circ1.generate(&vk0, &p0);
+     |          ^^^^^ help: if this is intentional, prefix it with an underscore: `_mats1`
+
+warning: unused variable: `s_k`
+   --> crates/recursion/src/sha384/config.rs:541:17
+    |
+541 |             let s_k = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+    |                 ^^^
+    |
+help: if this is intentional, prefix it with an underscore
+    |
+541 |             let _s_k = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+    |                 +
+help: you might have meant to pattern match on the similarly named constant `IV384`
+    |
+541 -             let s_k = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+541 +             let sha384::mb::IV384 = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+    |
+
+warning: variable does not need to be mutable
+   --> crates/recursion/src/sha384/e2e_tests.rs:291:9
+    |
+291 |     let mut p = SystemParams::new(
+    |         ----^
+    |         |
+    |         help: remove this `mut`
+
+warning: field `tr_blocks` is never read
+   --> crates/recursion/src/nv/builder.rs:162:5
+    |
+112 | pub struct Builder {
+    |            ------- field in this struct
+...
+162 |     tr_blocks: u32,
+    |     ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `tamper_active` is never used
+  --> crates/recursion/src/nv/verifier.rs:78:15
+   |
+78 | pub(crate) fn tamper_active(t: Tamper) -> bool {
+   |               ^^^^^^^^^^^^^
+
+warning: `openvm-recursion-circuit` (lib test) generated 36 warnings (run `cargo fix --lib -p openvm-recursion-circuit --tests` to apply 17 suggestions)
+    Finished `release` profile [optimized + debuginfo] target(s) in 22.05s
+     Running unittests src/lib.rs (/data/illia/nearproof-deps/pq-agg/target-agg/release/deps/openvm_recursion_circuit-e8a84b4284f8a0d7)
+
+running 1 test
+L1_0_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_0_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+L1_0_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.8 peak_rss_gb=2.52
+L1_0_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_0_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L1_1_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_1_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+L1_1_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.6 peak_rss_gb=3.30
+L1_1_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_1_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L1_2_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_2_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+L1_2_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.5 peak_rss_gb=3.51
+L1_2_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_2_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L1_3_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_3_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+L1_3_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.8 peak_rss_gb=3.56
+L1_3_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_3_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L1_4_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_4_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+test nv::agg_tests::agg_chain_depth_n has been running for over 60 seconds
+L1_4_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.5 peak_rss_gb=3.59
+L1_4_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_4_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L1_5_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_5_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+L1_5_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.9 peak_rss_gb=3.59
+L1_5_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_5_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L1_6_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_6_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+L1_6_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.5 peak_rss_gb=3.64
+L1_6_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_6_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L1_7_PARAMS l_skip=2 n_stack=16 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_7_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(2097152, 262144, 865032, 8, false), (1048576, 32768, 216258, 5, false), (524288, 4096, 54065, 4, false), (262144, 512, 13517, 3, false), (131072, 64, 3380, 2, false), (65536, 8, 845, 2, false)]
+NV_PHASE before_dag 1221
+NV_DAG air=0 nodes=24 rows_so_far=1276
+NV_PHASE after_dag 1289
+NV_PHASE after_stacking 1597
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8598
+NV_PHASE before_dag 9208
+NV_DAG air=0 nodes=24 rows_so_far=9263
+NV_PHASE after_dag 9276
+NV_PHASE after_stacking 9583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16574
+L1_7_SUMMARY children=2 cols=173 opened=346 interactions=8716544 cells=21169280 program_rows=16598 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=131072 prove_s=12.4 peak_rss_gb=3.74
+L1_7_SOUNDNESS total=10.2 logup=329.6 proximity=327.9 query=10.2
+L1_7_PROOF_BYTES total=124201 gkr=44408 relations=25728 stacking=5776 whir=48104
+L2_0_PARAMS l_skip=2 n_stack=20 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L2_0_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(33554432, 4194304, 13840498, 8, false), (16777216, 524288, 3460125, 5, false), (8388608, 65536, 865032, 4, false), (4194304, 8192, 216258, 3, false), (2097152, 1024, 54065, 2, false), (1048576, 128, 13517, 2, false), (524288, 16, 3380, 2, false)]
+NV_PHASE before_dag 14494
+NV_DAG air=0 nodes=4518 rows_so_far=20567
+NV_DAG air=1 nodes=5848 rows_so_far=28027
+NV_DAG air=3 nodes=32 rows_so_far=28572
+NV_DAG air=2 nodes=1234 rows_so_far=29886
+NV_PHASE after_dag 29968
+NV_PHASE after_stacking 32782
+NV_QCOST round=0 queries=8 rows=5293 per_query=662 nbits=18 k=3 merkle_nodes=200
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=320
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=412
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=478
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=520
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=560
+NV_PHASE end 45381
+NV_PHASE before_dag 59110
+NV_DAG air=0 nodes=4518 rows_so_far=65074
+NV_DAG air=1 nodes=5848 rows_so_far=72505
+NV_DAG air=3 nodes=32 rows_so_far=73049
+NV_DAG air=2 nodes=1234 rows_so_far=74003
+NV_PHASE after_dag 74085
+NV_PHASE after_stacking 76899
+NV_QCOST round=0 queries=8 rows=5273 per_query=659 nbits=18 k=3 merkle_nodes=760
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=880
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=972
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=1038
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=1080
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=1120
+NV_PHASE end 89478
+L2_0_SUMMARY children=2 cols=173 opened=346 interactions=69271808 cells=167052416 program_rows=89564 merkle_nodes=1120 leaf_blocks=643 chain_starts=2 nvair_h=1048576 prove_s=105.5 peak_rss_gb=17.51
+L2_0_SOUNDNESS total=10.2 logup=329.6 proximity=321.9 query=10.2
+L2_0_PROOF_BYTES total=132301 gkr=55784 relations=27168 stacking=4192 whir=44972
+L2_1_PARAMS l_skip=2 n_stack=20 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L2_1_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(33554432, 4194304, 13840498, 8, false), (16777216, 524288, 3460125, 5, false), (8388608, 65536, 865032, 4, false), (4194304, 8192, 216258, 3, false), (2097152, 1024, 54065, 2, false), (1048576, 128, 13517, 2, false), (524288, 16, 3380, 2, false)]
+NV_PHASE before_dag 14494
+NV_DAG air=0 nodes=4518 rows_so_far=20567
+NV_DAG air=1 nodes=5848 rows_so_far=28027
+NV_DAG air=3 nodes=32 rows_so_far=28572
+NV_DAG air=2 nodes=1234 rows_so_far=29886
+NV_PHASE after_dag 29968
+NV_PHASE after_stacking 32782
+NV_QCOST round=0 queries=8 rows=5293 per_query=662 nbits=18 k=3 merkle_nodes=200
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=320
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=412
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=478
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=520
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=560
+NV_PHASE end 45381
+NV_PHASE before_dag 59110
+NV_DAG air=0 nodes=4518 rows_so_far=65074
+NV_DAG air=1 nodes=5848 rows_so_far=72505
+NV_DAG air=3 nodes=32 rows_so_far=73049
+NV_DAG air=2 nodes=1234 rows_so_far=74003
+NV_PHASE after_dag 74085
+NV_PHASE after_stacking 76899
+NV_QCOST round=0 queries=8 rows=5273 per_query=659 nbits=18 k=3 merkle_nodes=760
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=880
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=972
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=1038
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=1080
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=1120
+NV_PHASE end 89478
+L2_1_SUMMARY children=2 cols=173 opened=346 interactions=69271808 cells=167052416 program_rows=89564 merkle_nodes=1120 leaf_blocks=643 chain_starts=2 nvair_h=1048576 prove_s=107.4 peak_rss_gb=19.42
+L2_1_SOUNDNESS total=10.2 logup=329.6 proximity=321.9 query=10.2
+L2_1_PROOF_BYTES total=132301 gkr=55784 relations=27168 stacking=4192 whir=44972
+L2_2_PARAMS l_skip=2 n_stack=20 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L2_2_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(33554432, 4194304, 13840498, 8, false), (16777216, 524288, 3460125, 5, false), (8388608, 65536, 865032, 4, false), (4194304, 8192, 216258, 3, false), (2097152, 1024, 54065, 2, false), (1048576, 128, 13517, 2, false), (524288, 16, 3380, 2, false)]
+NV_PHASE before_dag 14494
+NV_DAG air=0 nodes=4518 rows_so_far=20567
+NV_DAG air=1 nodes=5848 rows_so_far=28027
+NV_DAG air=3 nodes=32 rows_so_far=28572
+NV_DAG air=2 nodes=1234 rows_so_far=29886
+NV_PHASE after_dag 29968
+NV_PHASE after_stacking 32782
+NV_QCOST round=0 queries=8 rows=5293 per_query=662 nbits=18 k=3 merkle_nodes=200
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=320
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=412
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=478
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=520
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=560
+NV_PHASE end 45381
+NV_PHASE before_dag 59110
+NV_DAG air=0 nodes=4518 rows_so_far=65074
+NV_DAG air=1 nodes=5848 rows_so_far=72505
+NV_DAG air=3 nodes=32 rows_so_far=73049
+NV_DAG air=2 nodes=1234 rows_so_far=74003
+NV_PHASE after_dag 74085
+NV_PHASE after_stacking 76899
+NV_QCOST round=0 queries=8 rows=5273 per_query=659 nbits=18 k=3 merkle_nodes=760
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=880
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=972
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=1038
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=1080
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=1120
+NV_PHASE end 89478
+L2_2_SUMMARY children=2 cols=173 opened=346 interactions=69271808 cells=167052416 program_rows=89564 merkle_nodes=1120 leaf_blocks=643 chain_starts=2 nvair_h=1048576 prove_s=108.3 peak_rss_gb=17.65
+L2_2_SOUNDNESS total=10.2 logup=329.6 proximity=321.9 query=10.2
+L2_2_PROOF_BYTES total=132301 gkr=55784 relations=27168 stacking=4192 whir=44972
+L2_3_PARAMS l_skip=2 n_stack=20 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L2_3_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(33554432, 4194304, 13840498, 8, false), (16777216, 524288, 3460125, 5, false), (8388608, 65536, 865032, 4, false), (4194304, 8192, 216258, 3, false), (2097152, 1024, 54065, 2, false), (1048576, 128, 13517, 2, false), (524288, 16, 3380, 2, false)]
+NV_PHASE before_dag 14494
+NV_DAG air=0 nodes=4518 rows_so_far=20567
+NV_DAG air=1 nodes=5848 rows_so_far=28027
+NV_DAG air=3 nodes=32 rows_so_far=28572
+NV_DAG air=2 nodes=1234 rows_so_far=29886
+NV_PHASE after_dag 29968
+NV_PHASE after_stacking 32782
+NV_QCOST round=0 queries=8 rows=5293 per_query=662 nbits=18 k=3 merkle_nodes=200
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=320
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=412
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=478
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=520
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=560
+NV_PHASE end 45381
+NV_PHASE before_dag 59110
+NV_DAG air=0 nodes=4518 rows_so_far=65074
+NV_DAG air=1 nodes=5848 rows_so_far=72505
+NV_DAG air=3 nodes=32 rows_so_far=73049
+NV_DAG air=2 nodes=1234 rows_so_far=74003
+NV_PHASE after_dag 74085
+NV_PHASE after_stacking 76899
+NV_QCOST round=0 queries=8 rows=5273 per_query=659 nbits=18 k=3 merkle_nodes=760
+NV_QCOST round=1 queries=5 rows=1706 per_query=341 nbits=17 k=3 merkle_nodes=880
+NV_QCOST round=2 queries=4 rows=1341 per_query=335 nbits=16 k=3 merkle_nodes=972
+NV_QCOST round=3 queries=3 rows=988 per_query=329 nbits=15 k=3 merkle_nodes=1038
+NV_QCOST round=4 queries=2 rows=647 per_query=324 nbits=14 k=3 merkle_nodes=1080
+NV_QCOST round=5 queries=2 rows=635 per_query=318 nbits=13 k=3 merkle_nodes=1120
+NV_PHASE end 89478
+L2_3_SUMMARY children=2 cols=173 opened=346 interactions=69271808 cells=167052416 program_rows=89564 merkle_nodes=1120 leaf_blocks=643 chain_starts=2 nvair_h=1048576 prove_s=116.3 peak_rss_gb=17.65
+L2_3_SOUNDNESS total=10.2 logup=329.6 proximity=321.9 query=10.2
+L2_3_PROOF_BYTES total=132301 gkr=55784 relations=27168 stacking=4192 whir=44972
+L3_0_PARAMS l_skip=2 n_stack=20 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L3_0_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(33554432, 4194304, 13840498, 8, false), (16777216, 524288, 3460125, 5, false), (8388608, 65536, 865032, 4, false), (4194304, 8192, 216258, 3, false), (2097152, 1024, 54065, 2, false), (1048576, 128, 13517, 2, false), (524288, 16, 3380, 2, false)]
+NV_PHASE before_dag 17422
+NV_DAG air=0 nodes=4518 rows_so_far=23504
+NV_DAG air=1 nodes=5848 rows_so_far=30973
+NV_DAG air=3 nodes=32 rows_so_far=31518
+NV_DAG air=2 nodes=1234 rows_so_far=32832
+NV_PHASE after_dag 32914
+NV_PHASE after_stacking 35698
+NV_QCOST round=0 queries=8 rows=4145 per_query=518 nbits=22 k=3 merkle_nodes=232
+NV_QCOST round=1 queries=5 rows=1826 per_query=365 nbits=21 k=3 merkle_nodes=372
+NV_QCOST round=2 queries=4 rows=1437 per_query=359 nbits=20 k=3 merkle_nodes=480
+NV_QCOST round=3 queries=3 rows=1060 per_query=353 nbits=19 k=3 merkle_nodes=558
+NV_QCOST round=4 queries=2 rows=695 per_query=348 nbits=18 k=3 merkle_nodes=608
+NV_QCOST round=5 queries=2 rows=683 per_query=342 nbits=17 k=3 merkle_nodes=656
+NV_QCOST round=6 queries=2 rows=671 per_query=336 nbits=16 k=3 merkle_nodes=702
+NV_PHASE end 48588
+NV_PHASE before_dag 65245
+NV_DAG air=0 nodes=4518 rows_so_far=71218
+NV_DAG air=1 nodes=5848 rows_so_far=78658
+NV_DAG air=3 nodes=32 rows_so_far=79202
+NV_DAG air=2 nodes=1234 rows_so_far=80156
+NV_PHASE after_dag 80238
+NV_PHASE after_stacking 83022
+NV_QCOST round=0 queries=8 rows=4121 per_query=515 nbits=22 k=3 merkle_nodes=934
+NV_QCOST round=1 queries=5 rows=1826 per_query=365 nbits=21 k=3 merkle_nodes=1074
+NV_QCOST round=2 queries=4 rows=1437 per_query=359 nbits=20 k=3 merkle_nodes=1182
+NV_QCOST round=3 queries=3 rows=1060 per_query=353 nbits=19 k=3 merkle_nodes=1260
+NV_QCOST round=4 queries=2 rows=695 per_query=348 nbits=18 k=3 merkle_nodes=1310
+NV_QCOST round=5 queries=2 rows=683 per_query=342 nbits=17 k=3 merkle_nodes=1358
+NV_QCOST round=6 queries=2 rows=671 per_query=336 nbits=16 k=3 merkle_nodes=1404
+NV_PHASE end 95888
+L3_0_SUMMARY children=2 cols=173 opened=346 interactions=69271808 cells=167052416 program_rows=95974 merkle_nodes=1404 leaf_blocks=547 chain_starts=2 nvair_h=1048576 prove_s=115.9 peak_rss_gb=18.06
+L3_0_SOUNDNESS total=10.2 logup=329.6 proximity=321.9 query=10.2
+L3_0_PROOF_BYTES total=132301 gkr=55784 relations=27168 stacking=4192 whir=44972
+L3_1_PARAMS l_skip=2 n_stack=20 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L3_1_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(33554432, 4194304, 13840498, 8, false), (16777216, 524288, 3460125, 5, false), (8388608, 65536, 865032, 4, false), (4194304, 8192, 216258, 3, false), (2097152, 1024, 54065, 2, false), (1048576, 128, 13517, 2, false), (524288, 16, 3380, 2, false)]
+NV_PHASE before_dag 17422
+NV_DAG air=0 nodes=4518 rows_so_far=23504
+NV_DAG air=1 nodes=5848 rows_so_far=30973
+NV_DAG air=3 nodes=32 rows_so_far=31518
+NV_DAG air=2 nodes=1234 rows_so_far=32832
+NV_PHASE after_dag 32914
+NV_PHASE after_stacking 35698
+NV_QCOST round=0 queries=8 rows=4145 per_query=518 nbits=22 k=3 merkle_nodes=232
+NV_QCOST round=1 queries=5 rows=1826 per_query=365 nbits=21 k=3 merkle_nodes=372
+NV_QCOST round=2 queries=4 rows=1437 per_query=359 nbits=20 k=3 merkle_nodes=480
+NV_QCOST round=3 queries=3 rows=1060 per_query=353 nbits=19 k=3 merkle_nodes=558
+NV_QCOST round=4 queries=2 rows=695 per_query=348 nbits=18 k=3 merkle_nodes=608
+NV_QCOST round=5 queries=2 rows=683 per_query=342 nbits=17 k=3 merkle_nodes=656
+NV_QCOST round=6 queries=2 rows=671 per_query=336 nbits=16 k=3 merkle_nodes=702
+NV_PHASE end 48588
+NV_PHASE before_dag 65245
+NV_DAG air=0 nodes=4518 rows_so_far=71218
+NV_DAG air=1 nodes=5848 rows_so_far=78658
+NV_DAG air=3 nodes=32 rows_so_far=79202
+NV_DAG air=2 nodes=1234 rows_so_far=80156
+NV_PHASE after_dag 80238
+NV_PHASE after_stacking 83022
+NV_QCOST round=0 queries=8 rows=4121 per_query=515 nbits=22 k=3 merkle_nodes=934
+NV_QCOST round=1 queries=5 rows=1826 per_query=365 nbits=21 k=3 merkle_nodes=1074
+NV_QCOST round=2 queries=4 rows=1437 per_query=359 nbits=20 k=3 merkle_nodes=1182
+NV_QCOST round=3 queries=3 rows=1060 per_query=353 nbits=19 k=3 merkle_nodes=1260
+NV_QCOST round=4 queries=2 rows=695 per_query=348 nbits=18 k=3 merkle_nodes=1310
+NV_QCOST round=5 queries=2 rows=683 per_query=342 nbits=17 k=3 merkle_nodes=1358
+NV_QCOST round=6 queries=2 rows=671 per_query=336 nbits=16 k=3 merkle_nodes=1404
+NV_PHASE end 95888
+L3_1_SUMMARY children=2 cols=173 opened=346 interactions=69271808 cells=167052416 program_rows=95974 merkle_nodes=1404 leaf_blocks=547 chain_starts=2 nvair_h=1048576 prove_s=117.3 peak_rss_gb=18.24
+L3_1_SOUNDNESS total=10.2 logup=329.6 proximity=321.9 query=10.2
+L3_1_PROOF_BYTES total=132301 gkr=55784 relations=27168 stacking=4192 whir=44972
+L4_0_PARAMS l_skip=2 n_stack=20 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+L4_0_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(33554432, 4194304, 13840498, 8, false), (16777216, 524288, 3460125, 5, false), (8388608, 65536, 865032, 4, false), (4194304, 8192, 216258, 3, false), (2097152, 1024, 54065, 2, false), (1048576, 128, 13517, 2, false), (524288, 16, 3380, 2, false)]
+NV_PHASE before_dag 17422
+NV_DAG air=0 nodes=4518 rows_so_far=23504
+NV_DAG air=1 nodes=5848 rows_so_far=30973
+NV_DAG air=3 nodes=32 rows_so_far=31518
+NV_DAG air=2 nodes=1234 rows_so_far=32832
+NV_PHASE after_dag 32914
+NV_PHASE after_stacking 35698
+NV_QCOST round=0 queries=8 rows=4145 per_query=518 nbits=22 k=3 merkle_nodes=232
+NV_QCOST round=1 queries=5 rows=1826 per_query=365 nbits=21 k=3 merkle_nodes=372
+NV_QCOST round=2 queries=4 rows=1437 per_query=359 nbits=20 k=3 merkle_nodes=480
+NV_QCOST round=3 queries=3 rows=1060 per_query=353 nbits=19 k=3 merkle_nodes=558
+NV_QCOST round=4 queries=2 rows=695 per_query=348 nbits=18 k=3 merkle_nodes=608
+NV_QCOST round=5 queries=2 rows=683 per_query=342 nbits=17 k=3 merkle_nodes=656
+NV_QCOST round=6 queries=2 rows=671 per_query=336 nbits=16 k=3 merkle_nodes=702
+NV_PHASE end 48588
+NV_PHASE before_dag 65245
+NV_DAG air=0 nodes=4518 rows_so_far=71218
+NV_DAG air=1 nodes=5848 rows_so_far=78658
+NV_DAG air=3 nodes=32 rows_so_far=79202
+NV_DAG air=2 nodes=1234 rows_so_far=80156
+NV_PHASE after_dag 80238
+NV_PHASE after_stacking 83022
+NV_QCOST round=0 queries=8 rows=4121 per_query=515 nbits=22 k=3 merkle_nodes=934
+NV_QCOST round=1 queries=5 rows=1826 per_query=365 nbits=21 k=3 merkle_nodes=1074
+NV_QCOST round=2 queries=4 rows=1437 per_query=359 nbits=20 k=3 merkle_nodes=1182
+NV_QCOST round=3 queries=3 rows=1060 per_query=353 nbits=19 k=3 merkle_nodes=1260
+NV_QCOST round=4 queries=2 rows=695 per_query=348 nbits=18 k=3 merkle_nodes=1310
+NV_QCOST round=5 queries=2 rows=683 per_query=342 nbits=17 k=3 merkle_nodes=1358
+NV_QCOST round=6 queries=2 rows=671 per_query=336 nbits=16 k=3 merkle_nodes=1404
+NV_PHASE end 95888
+L4_0_SUMMARY children=2 cols=173 opened=346 interactions=69271808 cells=167052416 program_rows=95974 merkle_nodes=1404 leaf_blocks=547 chain_starts=2 nvair_h=1048576 prove_s=118.7 peak_rss_gb=17.77
+L4_0_SOUNDNESS total=10.2 logup=329.6 proximity=321.9 query=10.2
+L4_0_PROOF_BYTES total=132301 gkr=55784 relations=27168 stacking=4192 whir=44972
+AGG_DEPTH4_OK leaves=16 final statement = segments [0, 16)
+test nv::agg_tests::agg_chain_depth_n ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 105 filtered out; finished in 890.47s
+

@@ -71,6 +71,121 @@ fn decode_proof(b: &[u8]) -> Proof<SC> {
     assert_eq!(c.position() as usize, b.len(), "trailing proof bytes");
     p
 }
+/// Encoded size of each top-level section of a proof, plus the per-AIR split of the
+/// `trace_vdata`/`public_values` vectors. Read-only: decodes an existing proof file, proves
+/// nothing. Exists so proof-size deltas between two runs can be attributed to a section
+/// instead of inferred from "same shape, different bytes".
+fn proof_sections(p: &Proof<SC>) -> String {
+    use openvm_stark_backend::codec::Encode;
+    fn size<T: Encode>(x: &T) -> usize {
+        let mut b = Vec::new();
+        x.encode(&mut b).unwrap();
+        b.len()
+    }
+    let lv = &p.whir_proof.levers;
+    let (gkr, rel) = if lv.is_default() {
+        (size(&p.gkr_proof), size(&p.batch_constraint_proof))
+    } else {
+        let (mut g, mut r) = (Vec::new(), Vec::new());
+        p.gkr_proof.encode_levers(lv, &mut g).unwrap();
+        p.batch_constraint_proof.encode_levers(&mut r).unwrap();
+        (g.len(), r.len())
+    };
+    // trace_vdata carries per-AIR optional trace metadata; when heights differ between two
+    // runs this is where the bytes move. Split "present" vs "absent" entries so an empty
+    // AIR cannot masquerade as a size change.
+    let vd_present = p.trace_vdata.iter().filter(|x| x.is_some()).count();
+    let vd_bytes: Vec<usize> = p
+        .trace_vdata
+        .iter()
+        .map(|x| match x {
+            Some(v) => size(v),
+            None => 0,
+        })
+        .collect();
+    let pv_entries: Vec<usize> = p.public_values.iter().map(Vec::len).collect();
+    // WHIR sub-split. Under `multiproof`, each round's Merkle openings are one canonical
+    // batched multiproof whose digest count depends on which siblings the verifier can
+    // recompute from other opened leaves — so this count is data-dependent even when the
+    // query schedule and row counts are identical. That is the only place a byte delta can
+    // hide once geometry is fixed, so it is printed explicitly.
+    let w = &p.whir_proof;
+    let init_digests: usize = w
+        .initial_round_merkle_proofs
+        .iter()
+        .map(|g| g.iter().map(|mp| mp.len()).sum::<usize>())
+        .sum();
+    let later_digests: Vec<usize> = w
+        .codeword_merkle_proofs
+        .iter()
+        .map(|r| r.iter().map(|mp| mp.len()).sum())
+        .collect();
+    let init_rows: usize = w
+        .initial_round_opened_rows
+        .iter()
+        .map(|c| c.iter().map(|q| q.len()).sum::<usize>())
+        .sum();
+    // Per-round digest accounting. Under the `multiproof` lever each round holds exactly ONE
+    // canonical batched multiproof, so a proof's digest arrays are lengths, not Merkle paths:
+    // their values must NOT be multiplied by the query count. The count of digests actually
+    // sent is what matters for bytes, and it is printed directly.
+    let init_commits = w.initial_round_opened_rows.len();
+    let init_q: Vec<usize> = w.initial_round_opened_rows.iter().map(|c| c.len()).collect();
+    let later_q: Vec<usize> = w.codeword_opened_values.iter().map(|r| r.len()).collect();
+    let init_shape: Vec<usize> = w.initial_round_merkle_proofs.iter().map(Vec::len).collect();
+    let init_lens: Vec<Vec<usize>> = w
+        .initial_round_merkle_proofs
+        .iter()
+        .map(|g| g.iter().map(|mp| mp.len()).collect())
+        .collect();
+    let later_lens: Vec<Vec<usize>> = w
+        .codeword_merkle_proofs
+        .iter()
+        .map(|r| r.iter().map(|mp| mp.len()).collect())
+        .collect();
+    let init_all_digests: usize = init_lens.iter().flatten().sum();
+    // The WHIR Merkle depth is NOT recoverable from these arrays under `multiproof` (they hold
+    // one batched proof per round, not one path per query). It is printed by the prover as
+    // `NV_QCOST ... nbits=` and used there as `depth = nbits + ceil_log2(domain_odd_factor)`.
+    // Without it no structural upper bound on the digest count can be derived here, so none is
+    // claimed: the earlier `worst_digests` field multiplied query counts by batched-proof
+    // LENGTHS and over-estimated by ~32x. Removed rather than left to mislead.
+    let codeword_vals: Vec<usize> = w.codeword_opened_values.iter().map(|r| r.len()).collect();
+    format!(
+        "total={} common_main_commit={} trace_vdata={} gkr={} relations={} stacking={} whir={} \
+         vd_present={} vd_per_air={:?} pv_entries={:?} \
+         whir_commits={} whir_init_rows={} whir_init_digests={} whir_later_queries={:?} \
+         whir_later_digests={:?} whir_final_poly={} \
+         whir_init_commits={} whir_init_queries={:?} whir_later_queries_n={:?} \
+         whir_digest_count={} whir_bytes_overhead={} whir_init_all_digests={} \
+         whir_init_shape={:?} whir_init_lens={:?} whir_later_lens={:?}",
+        size(p),
+        std::mem::size_of_val(&p.common_main_commit),
+        size(&p.trace_vdata),
+        gkr,
+        rel,
+        size(&p.stacking_proof),
+        size(&p.whir_proof),
+        vd_present,
+        vd_bytes,
+        pv_entries,
+        w.initial_round_opened_rows.len(),
+        init_rows,
+        init_digests,
+        codeword_vals,
+        later_digests,
+        w.final_poly.len(),
+        init_commits,
+        init_q,
+        later_q,
+        init_digests + later_digests.iter().sum::<usize>(),
+        size(&p.whir_proof) - 42 * (init_digests + later_digests.iter().sum::<usize>()),
+        init_all_digests,
+        init_shape,
+        init_lens,
+        later_lens
+    )
+}
 fn init() {
     // Must happen before any engine/codec is constructed, in this single-threaded main.
     unsafe {
@@ -392,8 +507,12 @@ fn main() {
             true,
         ),
         Some("verify") if a.len() == 8 => verify(&a[2], &a[3], &a[4], &a[5], &a[6], &a[7]),
+        Some("proof-sections") if a.len() == 3 => {
+            let p = read_proof(Path::new(&a[2]));
+            println!("PROOF_SECTIONS {}", proof_sections(&p));
+        }
         _ => panic!(
-            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE"
+            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE | proof-sections PROOF"
         ),
     }
 }
