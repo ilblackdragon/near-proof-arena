@@ -335,7 +335,16 @@ tape carries both the count and the start of that bus's public run. For
 
 The candidate that *looked* like a boundary pair — bus 10's 1×33 send and 1×33 receive — is
 **not** the segment boundary: bus 10 is `head`'s output into `ups`
-(`tables[3].interactions`, one send of message length 33), carrying a 33-word block header.
+(`tables[3].interactions`, one send of message length 33). Decoding those 33 words shows a
+human-readable tag rather than state:
+
+```
+[45,112,114,101,112,45,100,48,97,45,118,48,0,…]  =  "-prep-d0a-v0"
+```
+
+i.e. a domain/version string, padded, followed by a few small integers. (An earlier draft of
+this note called it a "33-word block header"; that interpretation was unsupported and is
+withdrawn — the bytes say what they say.)
 
 The actual boundary state rides **bus 15**, message length 5, and bus 15 **does not appear in
 `pubSegs` at all**:
