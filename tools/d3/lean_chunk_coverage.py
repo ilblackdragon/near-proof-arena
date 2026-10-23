@@ -442,12 +442,62 @@ def inventory(repo, nearcore):
         ))
 
     # --- Resharding / storage boundaries -----------------------------------
+    # Three separate axes, because they are separate conditions in the validator and separate
+    # rows in the plan: (a) genesis as the main transition, (b) same-layout, (c) split gate.
+    # `L0-resharding` stays as the umbrella row for actual shard-layout *transitions*.
+    genesis_mod = repo / LEAN_ROOT / "GenesisD3.lean"
+    genesis_src = genesis_mod.read_text() if genesis_mod.exists() else ""
+    genesis_done = "def checkD3G" in genesis_src and "MainTransition::Genesis" in genesis_src
+    reshard_mod = repo / LEAN_ROOT / "ReshardingD3.lean"
+    reshard_src = reshard_mod.read_text() if reshard_mod.exists() else ""
+    same_layout_done = "theorem sameLayout_forbids_resharding" in reshard_src
+    split_gate_done = "theorem splitGate_excludes_nonempty" in reshard_src
+
+    rows.append(row(
+        "L0-genesis-main-transition", "boundary",
+        "chunk_validation.rs:403-413 MainTransition::Genesis",
+        "NearSpecV3.checkD3G" if genesis_done else "none",
+        "partial" if genesis_done else "missing",
+        "domain extended: genesis B2 is decided, not refused",
+        "GenesisD3.lean models the genesis main transition; 137/137 recorded genesis-B2 cases "
+        "accept, matching meta.json expected_rel; 16 directed negatives fire their intended checks",
+        "L6", "L0", "genesis B2 with a nonempty witness plus a genesis header negative",
+        "non-genesis delegation is argued by construction and measured over 115284 cases but not "
+        "proved as a rewrite theorem; txValid.all is untested (no genesis case has transactions)",
+    ))
+    rows.append(row(
+        "L0-same-layout", "domain_guard",
+        "chunk_validation: c.same_layout (ChunkValidationD2.lean:140)",
+        "NearSpecV3.sameLayout" if same_layout_done else "none",
+        "implemented" if same_layout_done else "missing",
+        "this guard *is* the exclusion",
+        "ReshardingD3.sameLayout_forbids_resharding: guard true => consecutive-epoch layouts equal "
+        "=> get_resharding_transition's layout-difference conjunct false",
+        "L6", "L0", "a claim whose epochs differ in layout (var/l6/mut/same_layout_broken)",
+        "an argument, not an implementation: the epoch table is taken as the layout source of truth "
+        "(spec/claim-v3.md T6); no whole-witness positive crossing a real boundary exists",
+    ))
+    rows.append(row(
+        "L0-split-gate", "domain_guard",
+        "chunk_validation: c.no_split_gate (ChunkValidationD2.lean:156)",
+        "NearSpecV3.noSplitGate" if split_gate_done else "none",
+        "implemented" if split_gate_done else "missing",
+        "this guard *is* the exclusion",
+        "ReshardingD3.noSplitGate_iff + splitGate_excludes_nonempty; splitGate_reachable_at_pv86 "
+        "records that mainnet PV85 has dynamic_resharding_config (0 corpus claims carry a gate)",
+        "L6", "L0", "a claim carrying a mainnet-PV85-shaped split gate (var/l6/mut/split_gate_present)",
+        "exclusion only: the gate IS reachable at PV86 on mainnet (version.rs:564 enables "
+        "DynamicResharding at PV85, mainnet/85.json sets dynamic_resharding_config), so this is "
+        "not a proven impossibility and D3 declines to decide such claims",
+    ))
     rows.append(row(
         "L0-resharding", "boundary", "validate_chunk_state_witness: layout transitions",
         "NearSpecV3.Wasm.DomainD3.noResharding", "missing", "out-of-domain (noResharding)",
         "D2 excludes every layout change and split gate; L6 owns removal",
         "L6", "L0", "validator fixture crossing a real layout boundary",
-        "shard-layout transitions, split gates and resharding witness processing unimplemented",
+        "an actual shard-layout *transition* (split shard retained left/right, ImplicitTransitionParams::"
+        "Resharding at chunk_validation.rs:702-733) is still unimplemented; only the exclusion "
+        "arguments for same-layout and split-gate are in place",
     ))
 
     # L0 execution/boundary analysis (docs/research/lean-chunk-coverage-gen.py logic,

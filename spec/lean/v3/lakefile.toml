@@ -53,3 +53,7 @@ root = "TestTrieD2"
 [[lean_exe]]
 name = "nearspec-v3-check-d3proto"
 root = "MainD3Proto"
+
+[[lean_exe]]
+name = "nearspec-v3-check-d3g"
+root = "MainD3G"
