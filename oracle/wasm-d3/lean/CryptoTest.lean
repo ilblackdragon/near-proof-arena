@@ -1,4 +1,5 @@
 import NearSpecV3.Secp256k1
+import NearSpecV3.Wasm.CryptoHost
 /-!
 `nearspec-v3-test-crypto` — vector tests for the L3 crypto leaves.
 
@@ -259,7 +260,103 @@ def runEdge : IO UInt32 := do
   IO.println s!"ecrecover edge cases: {checks.length} total, {bad} failures"
   return if bad = 0 then 0 else 1
 
+/-! ## Host-level tests: exact charges, return value, register contents, error text -/
+
+open NearSpecV3.Wasm
+
+/-- A machine state with one 64 KiB page. -/
+def st1 (prepaid : Nat) : St :=
+  { pages := #[⟨Array.replicate pageSize 0⟩], globals := #[], table := #[],
+    tableMax := 0, elems := #[], datas := #[], stackRem := 0, gas := Gas.init prepaid }
+
+structure EcOut where
+  ret : Option Nat
+  reg3 : Option Bytes
+  burnt : Nat
+  used : Nat
+  err : Option String
+  deriving Repr
+
+/-- Run `hostEcrecover` with `hash` at 64 and `sig` at 128. -/
+def readCost (n : Nat) : Nat := C.readMemoryBase.gas + n * C.readMemoryByte.gas
+
+def runEc (hash sig : Bytes) (v flag : Nat) (hashLen : Nat := 32) (sigLen : Nat := 64)
+    (prepaid : Nat := 10 ^ 15) : EcOut :=
+  let hb : ByteArray := ⟨hash.toArray⟩
+  let sb : ByteArray := ⟨sig.toArray⟩
+  let s := writeBytes (st1 prepaid) 64 hb |> fun s => writeBytes s 128 sb
+  let args : Vector Nat 7 := ⟨#[hashLen, 64, sigLen, 128, v, flag, 3], by simp⟩
+  match (hostEcrecover args).run s with
+  | .ok _ s' =>
+    { ret := s'.stack.back?.map (fun v => match v with
+        | .i64 x => x.toNat | .i32 x => x.toNat | _ => 0)
+      reg3 := (s'.registers.find? (·.1 = 3)).map (fun p => p.2.toList)
+      burnt := s'.gas.burnt, used := s'.gas.used, err := none }
+  | .error e s' =>
+    { ret := none, reg3 := (s'.registers.find? (·.1 = 3)).map (fun p => p.2.toList),
+      burnt := s'.gas.burnt, used := s'.gas.used, err := some e }
+
+/-- `base + read_memory_base × 2 + read_memory_byte × 96`, plus `write_register_*` × 64 when a
+key is written (`logic.rs:1667` cost comment). -/
+def gasOf (withWrite : Bool) : Nat :=
+  ecrecoverBase.gas + 2 * C.readMemoryBase.gas + 96 * C.readMemoryByte.gas +
+    (if withWrite then C.writeRegisterBase.gas + 64 * C.writeRegisterByte.gas else 0)
+
+def isEcErr (r : EcOut) : Bool :=
+  match r.err with
+  | some e => e.startsWith "HostError(ECRecoverError"
+  | none => false
+
+def runHost : IO UInt32 := do
+  let h32 := unhex "ce0677bb30baa8cf067c88db9811f4333d131bf8bcf12fe7065d211dce971008"
+  let s64 := unhex "90f27b8b488db00b00606796d2987f6a5f59ae62ea05effe84fef5b8b0e549984a691139ad57a3f0b906637673aa2f63d1f55cb1a69199d4009eea23ceaddc93"
+  let want := unhex "e32df42865e97135acfb65f3bae71bdc86f4d49150ad6a440b6f15878109880a0a2b2667f7e725ceea70c673093bf67663e0312623c8e091b13cf2c0f11ef652"
+  let highsig := s64.take 32 ++ Bytes.beN 32 (n - Bytes.beToNat (s64.drop 32))
+  let okr := runEc h32 s64 1 1
+  let checks : List (String × Bool) := [
+    ("valid: ret 1", okr.ret = some 1),
+    ("valid: register 3 = key", okr.reg3 = some want),
+    ("valid: burnt gas", okr.burnt = gasOf true),
+    ("valid: used gas", okr.used = gasOf true),
+    ("valid: no error", okr.err = none),
+    ("r = n: ret 0", (runEc h32 (Bytes.beN 32 n ++ s64.drop 32) 1 0).ret = some 0),
+    ("r = n: no write gas", (runEc h32 (Bytes.beN 32 n ++ s64.drop 32) 1 0).burnt = gasOf false),
+    ("high-s flag 1: ret 0", (runEc h32 highsig 1 1).ret = some 0),
+    ("high-s flag 1: no write gas", (runEc h32 highsig 1 1).burnt = gasOf false),
+    ("high-s flag 0: recovers", (runEc h32 highsig 1 0).ret = some 1),
+    ("r = 0: ret 0", (runEc h32 (List.replicate 32 0 ++ s64.drop 32) 0 0).ret = some 0),
+    ("r = 0: no write gas", (runEc h32 (List.replicate 32 0 ++ s64.drop 32) 0 0).burnt = gasOf false),
+    -- malformed inputs are host errors; the burned gas is the charges up to the failing read
+    ("sig len 63: error", isEcErr (runEc h32 s64 1 0 (sigLen := 63))),
+    ("sig len 63: gas",
+      (runEc h32 s64 1 0 (sigLen := 63)).burnt = ecrecoverBase.gas + readCost 63),
+    ("hash len 31: error", isEcErr (runEc h32 s64 1 0 (hashLen := 31))),
+    ("hash len 31: gas",
+      (runEc h32 s64 1 0 (hashLen := 31)).burnt =
+        ecrecoverBase.gas + readCost 64 + readCost 31),
+    -- `v` is checked before the hash is read (`logic.rs:1698-1705`)
+    ("v = 4: error", isEcErr (runEc h32 s64 4 0)),
+    ("v = 4: gas", (runEc h32 s64 4 0).burnt = ecrecoverBase.gas + readCost 64),
+    ("v = 4: no register", (runEc h32 s64 4 0).reg3 = none),
+    -- the malleability flag is checked after both inputs are read (`logic.rs:1737-1745`)
+    ("flag = 2: error", isEcErr (runEc h32 s64 1 2)),
+    ("flag = 2: gas", (runEc h32 s64 1 2).burnt = ecrecoverBase.gas + readCost 64 + readCost 32),
+    -- an out-of-bounds pointer is MemoryAccessViolation after base + the read base
+    ("oob: memory violation",
+      (runEc h32 s64 1 0 (sigLen := 70000)).err = some "HostError(MemoryAccessViolation)"),
+    ("oob: gas", (runEc h32 s64 1 0 (sigLen := 70000)).burnt =
+      ecrecoverBase.gas + C.readMemoryBase.gas + 70000 * C.readMemoryByte.gas)
+  ]
+  let mut bad := 0
+  for (name, ok) in checks do
+    if !ok then
+      bad := bad + 1
+      IO.println s!"HOST FAIL: {name}"
+  IO.println s!"ecrecover host cases: {checks.length} total, {bad} failures"
+  return if bad = 0 then 0 else 1
+
 def main (args : List String) : IO UInt32 :=
   match args with
   | ["edge"] => runEdge
+  | ["host"] => runHost
   | _ => runVectors
