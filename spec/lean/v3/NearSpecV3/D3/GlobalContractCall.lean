@@ -172,4 +172,65 @@ theorem resolveAccount_wallet_changed (o : Ovl) (chainId acct h : Bytes) (a : Ac
       .ok ({ a with contract := .local (ethWalletHash chainId) }, true) := by
   simp [resolveAccount, resolvedContract, hEth, hW, hNe]
 
+/-! ## 5. The guard's premise versus nearcore's redirect condition
+
+This is the precise reason `L0-D3-006` cannot be closed by the delegate alone.
+
+`D3/FunctionCall.lean:236-239` refuses **every** ETH-implicit account whose contract is `local _`:
+
+```
+if AccountId.isEthImplicit c.r.recv then
+  match acct.contract with
+  | .local _ => throw (oodE "ETH-implicit account with a local contract (legacy wallet resolution)")
+  | _ => pure ()
+```
+
+nearcore only redirects to the built-in wallet when the local hash **is** a wallet magic hash
+(`contract_code.rs:56-76`; `check_magic_bytes` in `near-wallet-contract/src/lib.rs:107-124`). So the
+guard's premise is strictly larger than the condition under which a redirect happens, and the
+difference is exactly "ETH-implicit, local contract, not a wallet magic hash" — the case where the
+account's own local code is what nearcore runs. The two theorems below make that gap explicit. -/
+
+/-- The guard's premise: an ETH-implicit receiver whose account contract is `local _`. -/
+def guardPremise (acctId : Bytes) (c : Contract) : Bool :=
+  AccountId.isEthImplicit acctId && (match c with | .local _ => true | _ => false)
+
+/-- The condition under which nearcore actually redirects (`contract_code.rs:56-76`). -/
+def redirects (chainId acctId : Bytes) (c : Contract) : Bool :=
+  match c with
+  | .local h => AccountId.isEthImplicit acctId && matchesWallet chainId h
+  | _ => false
+
+/-- The redirect condition implies the guard's premise: wherever nearcore redirects, the guard
+fires, so lifting the guard for those accounts is *necessary* and the delegate's redirect is the
+right answer there. -/
+theorem redirects_imp_guardPremise (chainId acctId : Bytes) (c : Contract) :
+    redirects chainId acctId c = true → guardPremise acctId c = true := by
+  intro h
+  cases c with
+  | «none» => simp [redirects] at h
+  | «local» hh =>
+    simp only [redirects, guardPremise, Bool.and_eq_true, and_true] at h ⊢
+    exact h.1
+  | «global» _ => simp [redirects] at h
+  | «byAccount» _ => simp [redirects] at h
+
+/-- The guard's premise does **not** imply the redirect condition: an ETH-implicit account whose
+local hash is not a wallet magic hash satisfies the guard's premise but nearcore runs its own local
+code. This is the gap that makes `L0-D3-006` need a narrower guard, not just a delegate. -/
+theorem guardPremise_not_imp_redirects (chainId acctId h : Bytes)
+    (hEth : AccountId.isEthImplicit acctId = true)
+    (hNo : matchesWallet chainId h = false) :
+    guardPremise acctId (.local h) = true ∧ redirects chainId acctId (.local h) = false := by
+  simp [guardPremise, redirects, hEth, hNo]
+
+/-- On that gap the delegate is the identity: the resolution leaves the account's own local hash in
+place, because there is no wallet to redirect to. So a successor that lifted the guard would run
+exactly the code D3α would have run — the guard alone was the obstruction. -/
+theorem resolvedContract_local_of_guard_gap (o : Ovl) (chainId acct h : Bytes)
+    (hNo : matchesWallet chainId h = false) :
+    resolvedContract o chainId acct (.local h) = .ok (.local h) := by
+  simp only [resolvedContract]
+  split <;> simp_all
+
 end NearSpecV3.D3.L4

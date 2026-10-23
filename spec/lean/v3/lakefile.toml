@@ -53,3 +53,7 @@ root = "TestTrieD2"
 [[lean_exe]]
 name = "probe-l4"
 root = "ProbeL4"
+
+[[lean_exe]]
+name = "nearspec-v3-check-l4"
+root = "MainL4"
