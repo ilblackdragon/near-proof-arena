@@ -1,9 +1,15 @@
 # Production-target aggregation: depth 1 measured, headline claim WITHDRAWN
 
-**Status: the 547,657 B level-1 measurement is real, but it was NOT taken at the production
-WHIR schedule, so it does not support "one node exceeds 300 KB at production targets". The
-headline conclusion of the earlier version of this file is withdrawn. What survives is a
-weaker, still-useful statement, recorded below.**
+**Status (final for this session):**
+1. The 547,657 B level-1 measurement is real but was **not** taken at the production WHIR
+   schedule (296 queries, not 131-149). **The conclusion "one node exceeds 300 KB at production
+   targets" is WITHDRAWN.**
+2. The run that *would* settle it (production levers, 149 queries) **cannot execute in this
+   session**: the harness caps every agent command at 16 GiB and the node needs ~26 GB. See
+   "Environment blocker" below.
+3. What stands: the byte cost is **linear in WHIR query count** at fixed depth, so a node at the
+   production 149-query schedule should land near the base final layer's measured 230,876 B of
+   WHIR. That is a projection, clearly labelled, not a measurement.
 
 ## Why the withdrawal
 
