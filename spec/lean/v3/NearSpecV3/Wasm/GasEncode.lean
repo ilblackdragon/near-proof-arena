@@ -27,26 +27,35 @@ extra assumption: `maxGasBurnt = 10^15` (`Machine.lean:29`), `prepaid` comes fro
 attachment, and the `special` slots are per-cost gas values. The bound is a fact about the
 machine made explicit at the interface, matching `Claim.encode_injective`'s `wf` hypothesis.
 
-## Status
+## Status: COMPLETE
 
-**Done and proved** (`[propext, Classical.choice, Quot.sound]`, no `sorry`):
+All proved, axioms `[propext, Classical.choice, Quot.sound]`, no `sorry`:
 * `Gas.encode`, `Gas.wf`, `Gas.decode`
-* `encArray_u32` — `readU32` peels the element count, no remainder
-* `encArray_u32_append` — same, carrying the remainder (what the round trip needs)
-* `readWords_concatAll_append` — `n` words re-assemble, with a trailing remainder
+* `encArray_u32`, `encArray_u32_append` — element-count prefix, with and without remainder
+* `readWords_concatAll`, `readWords_concatAll_append` — re-assembling a word list
+* **`Gas.decode_encode`** — the round trip
+* **`Gas.encode_injective`** — follows by `Option.some.inj`
 
-**NOT proved:** `Gas.decode_encode_statement` is stated with a `sorry`. It is deliberately not
-named `Gas.decode_encode` so it cannot be mistaken for an established round trip, and this
-module is **not imported by `NearSpecV3.lean`**, so the `sorry` cannot leak into the library
-or any gate (`lake build NearSpecV3` still succeeds at 65 jobs).
+### The obstruction, and what fixed it
 
-All the rewrites fire; the residue is a nested `match` on `readWords` that `simp only` does
-not eliminate — it rewrites inside the arms instead. Closing it needs a `cases` split on the
-`readWords` result or restructuring the statement, which is design work rather than tactics.
+Two attempts stalled on the same thing: after the nine `readLE_append` rewrites fired, the
+residual goal was a nested `match` on `readWords`, and `simp only` rewrites *inside* match
+arms rather than eliminating the `match`.
+
+The fix is one line of strategy: **establish the `readWords` result first**
+(`hw : readWords ... = some (special.toList, leN 8 sendCompute)`), then `rw [hw]` after the
+rewrites have fired. With the result already a `some (...)` value, the match reduces
+definitionally and the record comparison closes. Same for the final `readLE` word.
+
+This is why the earlier documentation called it "design work, not tactics" — and that was
+right, but the design change turned out to be small. Generalising: for the remaining
+encoders, prove the *inner readers* as standalone `... = some (...)` facts and rewrite them
+in, rather than hoping `simp` will thread through a `match`.
 
 ## The useful design finding
 
-`encArray` uses a 4-byte **element count**, not a byte length. The count is what `Gas.decode`
+
+`encArrayB` uses a 4-byte **element count**, not a byte length. The count is what `Gas.decode`
 needs to know how many words to read, and `C.nKeys = 11` bounds it. My first version used
 `borshBytes` (byte length) and the decode lemma would not close — that is how the distinction
 surfaced. `Gas.wf` therefore also requires `special.size < 2^32`.
@@ -56,17 +65,17 @@ namespace NearSpecV3.Wasm
 
 open NearSpec
 
-/-- `encArray`: 4-byte **element count**, then each element's encoding. The count (not the
+/-- `encArrayB`: 4-byte **element count**, then each element's encoding. The count (not the
 byte length) is what `Gas.decode` reads, and `C.nKeys = 11` bounds it, so a `u32` is ample.
 Decoding is therefore `readU32` for the count, then that many `leN 8` reads. -/
-def encArray {α} (f : α → Bytes) (xs : Array α) : Bytes :=
+def encArrayB {α} (f : α → Bytes) (xs : Array α) : Bytes :=
   NearSpec.u32 xs.size ++ NearSpec.concatAll (xs.toList.map f)
 
 /-- Tag-free flat encoding: eleven scalar payloads, then the length-prefixed `special`. -/
 def Gas.encode (gs : Gas) : Bytes :=
   leN 8 gs.burnt ++ leN 8 gs.promises ++ leN 8 gs.prepaid ++ leN 8 gs.limit ++
   leN 8 gs.g ++ leN 8 gs.host ++ leN 8 gs.action ++
-  encArray (leN 8) gs.special ++
+  encArrayB (leN 8) gs.special ++
   leN 8 gs.sendCompute
 
 /-- Well-formed gas counter: every scalar fits in 64 bits, and each `special` slot does too. -/
@@ -125,12 +134,12 @@ def Gas.decode (bs : Bytes) : Option Gas :=
 
 /-- `u32` is `leN 4`, so `readU32` peels an element count. -/
 theorem encArray_u32 (f : Nat → NearSpec.Bytes) (xs : Array Nat) (h : xs.size < 2^32) :
-    NearSpec.readU32 (encArray f xs) =
+    NearSpec.readU32 (encArrayB f xs) =
       some (xs.size, NearSpec.concatAll (xs.toList.map f)) := by
   have hle : xs.size < 256^4 := by
     have : (256 : Nat)^4 = 2^32 := by decide
     rw [this]; exact h
-  have hdef : encArray f xs =
+  have hdef : encArrayB f xs =
       NearSpec.u32 xs.size ++ NearSpec.concatAll (xs.toList.map f) := rfl
   rw [hdef]
   have hu : NearSpec.u32 xs.size = NearSpec.leN 4 xs.size := rfl
@@ -140,14 +149,14 @@ theorem encArray_u32 (f : Nat → NearSpec.Bytes) (xs : Array Nat) (h : xs.size 
 /-- As `encArray_u32` but carrying a remainder, which is what the round trip needs. -/
 theorem encArray_u32_append (f : Nat → NearSpec.Bytes) (xs : Array Nat) (rest : NearSpec.Bytes)
     (h : xs.size < 2^32) :
-    NearSpec.readU32 (encArray f xs ++ rest) =
+    NearSpec.readU32 (encArrayB f xs ++ rest) =
       some (xs.size, NearSpec.concatAll (xs.toList.map f) ++ rest) := by
   have hle : xs.size < 256^4 := by
     have : (256 : Nat)^4 = 2^32 := by decide
     rw [this]; exact h
-  have hdef : encArray f xs ++ rest =
+  have hdef : encArrayB f xs ++ rest =
       NearSpec.u32 xs.size ++ (NearSpec.concatAll (xs.toList.map f) ++ rest) := by
-    simp [encArray, NearSpec.u32, List.append_assoc]
+    simp [encArrayB, NearSpec.u32, List.append_assoc]
   rw [hdef]
   have hu : NearSpec.u32 xs.size = NearSpec.leN 4 xs.size := rfl
   rw [hu]
@@ -187,17 +196,45 @@ theorem readWords_concatAll_append (xs : List Nat) (rest : NearSpec.Bytes)
     rw [NearSpec.readLE_append 8 x _ hle]
     simp only [ih hr]
 
-/-- The round trip. **NOT PROVED** — see the file header.
+/-- The round trip: decoding an encoded well-formed gas counter returns it unchanged.
 
-The nine scalar `readLE_append` rewrites and the `encArray_u32_append` /
-`readWords_concatAll_append` pair all fire, but the residual goal is a nested `match` on
-`readWords` that `simp only` does not reduce: the rewrites rewrite *inside* the match arms
-rather than eliminating the `match` itself. Closing it needs either a `cases` split on the
-`readWords` result or the round trip restated as an equality of the assembled record, which
-is a structural change rather than a tactic tweak. Left as a documented gap.
--/
-theorem Gas.decode_encode_statement (gs : Gas) (h : gs.wf) :
-    Gas.decode (Gas.encode gs) = some gs := by
-  sorry
+The key step is `rw [hw]` — establishing the `readWords` result *before* unfolding, so the
+rewriting happens on a `some (...)` value instead of getting stuck inside a `match` arm. -/
+theorem Gas.decode_encode (gs : Gas) (h : gs.wf) : Gas.decode (Gas.encode gs) = some gs := by
+  obtain ⟨hb, hp, hpr, hl, hg, hh, ha, hsc, hspec, hsize⟩ := h
+  have hpow : (256:Nat)^8 = 2^64 := by decide
+  have h8 : ∀ n, n < 2^64 → n < 256^8 := fun n hn => by rw [hpow]; exact hn
+  have hs : ∀ x ∈ gs.special.toList, x < 2^64 := fun x hx =>
+    hspec x (Array.mem_toList_iff.mp hx)
+  -- establish the readWords result BEFORE unfolding, then rewrite it inside the match
+  have hw : readWords gs.special.size
+      (NearSpec.concatAll (gs.special.toList.map (NearSpec.leN 8)) ++ NearSpec.leN 8 gs.sendCompute)
+      = some (gs.special.toList, NearSpec.leN 8 gs.sendCompute) := by
+    have := readWords_concatAll_append gs.special.toList (NearSpec.leN 8 gs.sendCompute) hs
+    simpa [Array.length_toList] using this
+  simp only [Gas.encode, Gas.decode, List.append_assoc,
+    NearSpec.readLE_append 8 gs.burnt _ (h8 _ hb),
+    NearSpec.readLE_append 8 gs.promises _ (h8 _ hp),
+    NearSpec.readLE_append 8 gs.prepaid _ (h8 _ hpr),
+    NearSpec.readLE_append 8 gs.limit _ (h8 _ hl),
+    NearSpec.readLE_append 8 gs.g _ (h8 _ hg),
+    NearSpec.readLE_append 8 gs.host _ (h8 _ hh),
+    NearSpec.readLE_append 8 gs.action _ (h8 _ ha),
+    encArray_u32_append (NearSpec.leN 8) gs.special _ hsize]
+  rw [hw]
+  simp only [Array.toArray_toList]
+  have hs8 : NearSpec.readLE 8 (NearSpec.leN 8 gs.sendCompute) = some (gs.sendCompute, []) := by
+    have := NearSpec.readLE_append 8 gs.sendCompute [] (h8 _ hsc)
+    simpa using this
+  rw [hs8]
+
+/-- `Gas` encodings are injective on well-formed values: decode is a left inverse. -/
+theorem Gas.encode_injective {a b : Gas} (ha : a.wf) (hb : b.wf)
+    (h : a.encode = b.encode) : a = b := by
+  have h1 := Gas.decode_encode a ha
+  have h2 := Gas.decode_encode b hb
+  rw [h] at h1
+  rw [h1] at h2
+  exact Option.some.inj h2
 
 end NearSpecV3.Wasm
