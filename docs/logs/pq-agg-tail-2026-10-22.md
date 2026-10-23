@@ -225,19 +225,41 @@ differ there, so `M` increments. Once the floor stops moving at L3 the committed
 moving, L3's program equals L4's, and `M` stops at 3. **That is a mechanism, not an
 observation about this fixture.**
 
-**A fixpoint pre-pass would collapse it.** Generating with the converged floor pinned from L2
-would make L2 commit the L3 heights, so L2's program would equal L3's; `select_anchor` would
-then match at `M = 1` and `by_bind` would fire at L3 (`M=1 != level-1=2`), giving
-`L1, L2, L3 + final` and **saving L4 + L5 = 459.38 + 582.17 = 1,041.55 s** (2,538.55 s →
-≈1,497 s, **−41 %**).
+**A correction here, forced by measuring the program words.** I first claimed the pre-pass
+would give `L1, L2, L3 + final` and save 1,041.55 s. **That was wrong**, and the stored
+`state.json` files say so directly. `state[0]` holds the executed program words, so program
+identity can be read off without any new run:
 
-**What remains genuinely open** is convergence in one step: the pre-pass assumed above is
-"generate L2 with floor = the L3 fixpoint", which presumes that vector is already the fixpoint
-rather than one iteration short. The driver iterates because the authors did not assume that.
-That specific claim is untested.
+| pair | program words | verdict |
+|---|---|---|
+| L3 vs L4 | 138,610 vs 137,196 | **differ** |
+| L4 vs L5 | 137,196 vs 137,196 | **identical** |
+
+So convergence is `L4 == L5`, **not** `L3 == L4`. There is **one level of lag** between the
+floor fixpoint and the program fixpoint, and it is structural: program `P(k)` is
+`build_verifier(proof_{k-1})` and observes `proof_{k-1}`'s committed heights, which are set by
+`floor(k-1)`. Hence
+
+```
+P(k) == P(k-1)  <=>  heights(p_{k-1}) == heights(p_{k-2})  <=>  floor(k-1) == floor(k-2)
+```
+
+`floor` first satisfies `floor(k-1) == floor(k-2)` at `k = 4`, which gives `P(4) == P(5)` — one
+level later than the naive reading, and exactly what the data shows.
+
+**Corrected saving: pinning the converged floor from L2 gives `L1, L2, L3, L4 + final`, i.e.
+it saves L5 alone = 582.17 s** (2,538.55 s → 1,956.38 s, **−23 %**), not 1,041.55 s. Going
+further would require seeding the floor at L1, but L1's heights come from the base proof, not
+from a floor the prover chooses, so that step is not available.
+
+Note this lands on the *same* 4-level chain that `replay-l4` already measures — so the
+pre-pass would make the 4-level chain the natural one produced by the driver, rather than
+something reached by wrapping a stored L4. Whether it converges in one extra generate is still
+untested: the pre-pass presumes the L3 vector is already the fixpoint, which the driver's
+iterating loop does not assume.
 
 **This is a design proposal, not a result.** Nothing in this session implemented or measured
-the pre-pass; the 1,041.55 s figure is arithmetic on measured level times under the stated
+the pre-pass; the 582.17 s figure is arithmetic on measured level times under the stated
 mechanism. **The cost of the pre-pass is now measured, and it is not the objection.** The driver already
 has a generate-only command on a real production proof: `probe` calls `program_words`
 (`main.rs:232-243`), which executes the verifier program and builds its matrices without
@@ -251,23 +273,21 @@ LDE, commit or prove. Timed live on `runs/opt-baseline-8` this session:
 
 against a **measured ~460 s** to prove a production level. That is a **~6,000×** ratio, so an
 iterate-to-fixpoint pre-pass of a handful of generates would cost under a second — three
-orders of magnitude below the 1,041.55 s it is meant to save. (The `probe` numbers come from
+orders of magnitude below the 582.17 s it is meant to save. (The `probe` numbers come from
 `program_words` rather than a full `generate` with a *pinned* floor, so they bound the cost of
 the program execution, which is the repeated part; they do not include one-off trace
 materialisation.)
 
-**The fixpoint argument is now the weak link, and it is not yet demonstrated.** The measured
-evidence is *consistent* with a floor fixpoint (L3 = L4 = L5), but it does **not** show that
-the loop converges in one extra generate: the heights that the program actually observes are
-`tight_height`, and I did not extract a per-level `tight_height` series. What is established is
-narrower — the floor stops changing after L3, therefore `M = 3`, therefore the chain needs
-`M + 2 = 5` levels. Whether a pre-pass would drive `M` to 1 depends on the `tight_height`
-sequence, which is **unmeasured**. Two things must be checked before trusting the 1,041.55 s:
-(a) confirm generate-with-pinned-floor converges in one step on *other* inputs, not just this
-fixture — the driver's current loop exists precisely because the authors did not assume it; and
-(b) confirm that pinning a floor the prover later cannot meet is safe, which the existing
-assertion at `circuit.rs:461-462` ("committed `h` below the floor") already guards. It is ranked first in
-§7 because it attacks the dominant cost, not the tail.
+**The lag model is measured; the one-step convergence is not.** The program-word equality above
+fixes the *relationship* (`P(k) == P(k-1)` iff `floor(k-1) == floor(k-2)`), and the floor
+series is known (changes at L2→L3, fixed from L3). Together those give the 4-level chain with
+no free parameters. What is still untested is whether the pre-pass reaches the L3 floor vector
+in **one** extra generate rather than needing a fixed-point iteration — the driver iterates
+precisely because the authors did not assume one step. So two checks remain before trusting the
+582.17 s: (a) confirm generate-with-pinned-floor converges in one step on *other* inputs, not
+just this fixture; and (b) confirm that pinning a floor the prover later cannot meet is safe,
+which the existing assertion at `circuit.rs:461-462` ("committed `h` below the floor") already
+guards. It is ranked first in §7 because it attacks the dominant cost, not the tail.
 
 **Caveat, and what checking it actually showed.** Dropping L5 removes the level where
 `by_bind` first returns true, so the question is whether a 4-level chain leaves the
