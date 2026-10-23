@@ -678,6 +678,19 @@ Still open, and each one is a real blocker rather than a formality:
    position-indexed nodes and a U-7 decision — see `pq-final-layer-model-2026-10-17.md:523–535`.
    The same lever also rescues the 2-child agg node: at `D = 2,921` (Route A) the 42 B config is
    2,119 B over, while 41 B is +971 B under and 32 B is +27,091 B under.
+   **A bigger documented lever does *not* apply here — checked and excluded.**
+   `research/near-compression/results/pq384-sha-air2/README.md` models a final layer at
+   **283,692 B** (from a 336,453 B baseline, −52.8 KB) by slimming the SHA-512 compression AIR
+   to 171 columns / 7,524 cells. That saving is **not available to the delivered packet**,
+   because the two proofs contain different circuits. The delivered final layer's four AIRs are
+   `NvAir` (76 common-main cols) + `Sha512Air4` (83) + `TableAir4` (9) + `ByteAir` (5) —
+   `NvCircuit::airs()` at `nv/circuit.rs:146-163` — i.e. the *recursion verifier* circuit. The
+   slim-AIR lane optimises the near-AIR SHA table (442 → 171 cols), which is a different AIR
+   than `Sha512Air4`, and its own baseline (336,453 B at `n_stack=20, log_blowup=3`) is 36,518 B
+   away from the delivered 299,935 B at `n_stack=18, log_blowup=7`, so the two are not the same
+   configuration and the delta cannot be transplanted. Anyone tempted to subtract ~52 KB from
+   the 299,935 B packet should stop at this paragraph.
+
    **Two blockers before this counts as a fix, both mechanical.**
    (a) *The code refuses 41 B today.* `sha_levers()` (`sha384/config.rs:131`) asserts
    `digest_bytes == 48 || digest_bytes == 42`, so `NEARPROOF_DIGEST_BYTES=41` panics. The
