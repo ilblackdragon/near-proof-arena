@@ -278,6 +278,12 @@ Artifact hashes:
 | baseline checker (plan worktree, for comparison) | `b4154b212fc482af99fafd4a1c4d5cf6b1157f4e26c154fc1a66e907312ce5d8` |
 | `docs/research/lean-chunk-coverage.json` | regenerate with the command above (drift-gated) |
 
+Axiom audit (`lake env lean` over `#print axioms` on the new theorems):
+`checkSigValues_mono`, `recover_none_of_v`, `verify_false_of_sig_not_ok`,
+`cryptoHosts_iff_curveHosts` → `[propext]`; `hostCall_no_arm` →
+`[propext, Classical.choice, Quot.sound]`; `G_on_curve` (both curves) → none.
+No `sorryAx`, no new axioms, no `native_decide`, no `partial def` in the four new modules.
+
 The checker digest differs from the recorded baseline only because `Secp256k1.lean`,
 `CryptoHost.lean` and `CryptoDomain.lean` are now in the package; on the corpora the verdicts are
 identical (§3.5). `checkD3`'s definition and the `near-chunk-v3` statement were not edited.
