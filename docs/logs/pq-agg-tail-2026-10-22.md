@@ -987,6 +987,45 @@ Still open, and each one is a real blocker rather than a formality:
 6. Only after (2): decide between discharging `NodeOK` and raising every target ~8 bits for
    S ≥ 103.
 
+## 7.1 The segment-fold semantics are proved — the blocker is the state encoding
+
+Worth recording because it moves the 1 Pgas blocker from "unstarted" to "one specific design
+problem", and because the file in question was invisible to the build until this session.
+
+`spec/lean/v3/NearSpecV3/Wasm/Segment.lean` contains the recursion track's §3.1 result and it
+is **complete**:
+
+| theorem | statement |
+|---|---|
+| `seg_add` | `seg (a+b) = seg a` then `seg b` |
+| `run_seg` | `run (a+n) = seg a` then `run n` |
+| `foldSegments_eq_seg` | segments in sequence = one `seg (Σ ks)` |
+| `run_foldSegments` | `run (Σ ks + n) s = foldSegments ks s >>= run n`, **for every split** |
+| `foldSegments_stop` | an early-ending segment makes later ones irrelevant |
+
+Verified this session: `lake build NearSpecV3.Wasm.Segment` succeeds (24 jobs) and every
+theorem's axiom set is exactly `[propext, Classical.choice, Quot.sound]` — no `sorry`, no
+custom axioms. The boundary rule is also **maximally permissive**: "a segment boundary may
+fall between any two steps", with host calls, gas charge points and traps each a single
+`step`, so no step is ever split (`Segment.lean:15-18`). There is no receipt-boundary
+restriction left to prove.
+
+**But the file was orphaned** — `grep -r "import NearSpecV3.Wasm.Segment"` found nothing, so
+it sat in no default build target and no `.olean` for it existed anywhere. Fixed by adding the
+import to `NearSpecV3.lean`; `lake build NearSpecV3` now succeeds (62 jobs), `Segment.olean`
+exists, and `pin-check` still passes. The other two orphans (`ChunkStorage.lean`,
+`DomainD3.lean`) were deliberately left alone — their headers describe them as forward-looking
+D3 scaffolding, not finished results.
+
+**So what is actually missing?** `Segment.lean`'s boundary state is the *whole* machine state
+`St` (`Machine.lean:278-303`): operand stack, frames, linear-memory pages, globals, tables,
+element and data segments, gas, registers, logs, promises, mock storage, action log, data-id
+counter. `RangeStmt` carries `n_state` field elements — **2** in every measured test. The gap
+is therefore an **injective encoding of a variable-length, `ByteArray`-containing state into a
+fixed field-vector width**, plus a proof that it commutes with the segment fold. That is a
+hash/commitment design problem, which is why it is the expensive part; it is not a
+transcription of the Lean.
+
 ## 8. The one-paragraph version
 
 The delivered packet is a real, independently verified 299,967 B D0a chunk proof whose tail
