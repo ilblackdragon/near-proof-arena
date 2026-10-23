@@ -97,6 +97,38 @@ Read `docs/logs/pq-gap-analysis-2026-10-19.md`. Summary:
 
 Realistic: **~2-3 months to a `G_α` chunk under 300 KB**. 1 Pgas is a separate project on top.
 
+## Aggregation tail: what is now measured (2026-10-23)
+
+Full detail, with the scope attached to every number, is in
+`docs/logs/pq-agg-tail-2026-10-22.md` and `research/near-compression/results/pq-agg-depth-law/`.
+
+* **The delivered packet is 299,967 B and its tail is a 5-level linear chain, not a tree.**
+  `main.rs` folds `L1..L5` one child at a time; the final layer is 299,935 B because it drops
+  `program_part` and carries 1 WHIR commit instead of 2.
+* **Node bytes are flat in depth** (measured, test targets, Fibonacci leaves): depths 2, 3, 4
+  are byte-identical at **132,301 B**; an exact **S=13** flat node is **133,357 B** / 104,614
+  program rows / 75.5 s / 12.16 GB. Depth is free in bytes and linear in time.
+* **No production-target aggregation node has ever been proved.** Every tree number above is at
+  10 query bits; production is 268-bit / z=32 / 42 B / `m=64`. This is the single remaining
+  unmeasured quantity on the size axis, and it needs a cold rebuild (the warm `target-agg` was
+  reclaimed; `/data` is 96 % full).
+* **Leaves are `SegAir` Fibonacci fixtures, not seg-v1.** The same ~2-3 month gap as §"Gap to
+  e2e" blocks a real segment leaf, so no measured root here covers a NEAR chunk.
+* **"Under 300 KB" is a transcript-sampled property, not a structural bound.** Measured law:
+  `proof_bytes = 42·D + C` (7/7 proofs), so the cap needs `D ≤ 2,869`. The base packet sits
+  **exactly at `D = 2,869` — 33 B of margin, 0.79 of one digest** — and a second valid proof
+  (`replay-l4`, wrapping `L4` instead of `L5`) is `D = 2,888`, i.e. **765 B over**. Same
+  configuration, same geometry: only the wrapped child differs. Margin must be widened by
+  ≥1 KB before the bound is treated as a bound.
+* **Soundness: the per-proof union bound fails from S ≈ 103–118**, not at S = 295 as previously
+  recorded. A 1 Pgas root therefore needs the single-database `NodeOK` theorem, which is
+  **unproved** (paper-level, S-19/S-28). `security_established` in the driver is a hardcoded
+  `false` literal, not a derived verdict.
+* **Prover rebuild is real:** `cargo build --release --offline -j 8` in `chunk-driver` finishes in
+  7–14 s incrementally and the rebuilt binary verifies the packet in 2.74 s
+  (`INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true`). It is **not** bit-identical to
+  the base run's binary.
+
 ## Lanes 1-4 landed (2026-10-20, merged + pushed)
 
 All four ran in parallel and are on main (`aba464c0a`):
