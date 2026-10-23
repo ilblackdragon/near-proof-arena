@@ -576,9 +576,18 @@ Not guest-visible (post-processing from a structured log suffices):
   H1–H14 of `docs/research/near-wasm-boundary.md` §8; H9 `LoadingError`/`WasmUnknownError`, H2/H10
   resource `LinkError`s assumed absent).
 * `w.size` (D2 §12) keeps the per-receipt `RecordedStorageExceeded` unreachable: the recorded-size
-  delta of a receipt is at most the chunk's recorded size, which `w.size` bounds by 4 000 000
-  **[unverified that `recorded_storage_size_upper_bound` ≤ Σ values + 2000·R in the presence of
-  contract-storage removals; D2's argument covers it for D2 operations]**.
+  delta of a receipt is at most the chunk's recorded size, which `w.size` bounds by 4 000 000.
+  **L5 (2026-10-23): the inequality `recorded_storage_size_upper_bound ≤ Σ values + 2000·R` does
+  hold at the pinned commit** — the recorder adds only `Σ` distinct first-insertion sizes, `2000`
+  per `TrieUpdate::remove` of a `ContractData` key, and a code-length term that has no caller at
+  `44f7ae6` — and `NearSpecV3/StorageBound.lean` kernel-checks the arithmetic step
+  (`Rec.guard_sufficient`), with "every recorded item is a base-state value" as an explicit
+  hypothesis. Two limits of the guard are **not** covered by that result and are recorded there:
+  it bounds only the *main* transition (each implicit transition has its own recorder and its own
+  4 MB limit, and D2 applies no size bound to `w.implicit`), and the 4 MB chunk limit is *soft* —
+  exceeding it defers receipts rather than invalidating the chunk
+  (`docs/misc/state_witness_size_limits.md`), so `w.size` excludes protocol-valid chunks. See
+  `docs/logs/lean-chunk-L5-2026-10-23.md`.
 * The `PromiseYieldIndices` read of every successful call (§4.2.1) and the yield trie reads
   (§5.3) enter the read set; the D2 single-node-drop mutants are the evidence pattern.
 

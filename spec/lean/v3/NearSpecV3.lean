@@ -21,3 +21,4 @@ import NearSpecV3.ChallengeChunkV3Float
 -- built on demand, so that `lake build` checks them: a wrong bit pattern in `Wasm/Float.lean`
 -- then breaks the build instead of only a downstream corpus run.
 import NearSpecV3.Wasm.FloatTests
+import NearSpecV3.StorageBound
