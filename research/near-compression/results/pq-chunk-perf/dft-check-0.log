@@ -1,0 +1,10 @@
+DFT_PACKING_WIDTH 16
+DFT_REFERENCE_OK log=8 width=3 groups=1 reused_buffers=true
+DFT_REFERENCE_OK log=12 width=1 groups=1 reused_buffers=true
+DFT_REFERENCE_OK log=12 width=3 groups=2 reused_buffers=true
+DFT_REFERENCE_OK log=12 width=12 groups=4 reused_buffers=true
+DFT_REFERENCE_OK log=12 width=76 groups=1 reused_buffers=true
+DFT_REFERENCE_OK log=12 width=83 groups=1 reused_buffers=true
+DFT_REFERENCE_OK log=16 width=102 groups=1 reused_buffers=true
+DFT_REFERENCE_OK log=20 width=102 groups=1 reused_buffers=true
+DFT_PARITY_OK cases=16

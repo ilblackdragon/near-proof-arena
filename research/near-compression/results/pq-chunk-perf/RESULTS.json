@@ -1,0 +1,28 @@
+{
+  "runtime_optimization_promoted": false,
+  "default_rayon_threads": 8,
+  "scope": "D0a research fixture, not D3 or established ZK/security",
+  "baseline_proving_wall_s": 3143.5515608708374,
+  "baseline_verification_wall_s": 2.0826927172020078,
+  "packet_bytes": 299967,
+  "setup_bytes_excluded": 3711888,
+  "final_phase_control_s": 521.74853,
+  "final_phase_candidate_s": 524.520655,
+  "sixteen_thread_trial": "excluded: interrupted due external contention",
+  "dft_control_medians_s": [
+    0.079967,
+    0.076508
+  ],
+  "dft_padded_medians_s": [
+    0.083029,
+    0.082483
+  ],
+  "dft_benchmark_affinity": "0-7,16-23",
+  "proof_benchmark_affinity": "8-15,24-31",
+  "leaf_parity_cases": 720,
+  "stream_proof_configurations": 8,
+  "dft_reference_cases_per_setting": 16,
+  "reference_packet_sha256": "a1a2cce82ecc7adcb5319aa59af8e35234fe6150011306eb3ab98e6ab95bb248",
+  "raw_baseline": "/data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8",
+  "raw_experiments": "/data/illia/nearproof-deps/pq-chunk-perf"
+}

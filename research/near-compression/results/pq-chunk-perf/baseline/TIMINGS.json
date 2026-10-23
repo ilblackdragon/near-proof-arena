@@ -1,0 +1,123 @@
+{
+  "run": "/data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8",
+  "stages": {
+    "base": {
+      "wall_s": 77.86885421583429,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 0.9520950317382812,
+      "executable_sha256": "378602aa4036807ef731f77066768ed1f451b6c2ff64c6ee0ab351e4207e92b0",
+      "environment": {},
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "chain": {
+      "wall_s": 3065.682706655003,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 13.333538055419922,
+      "executable_sha256": "378602aa4036807ef731f77066768ed1f451b6c2ff64c6ee0ab351e4207e92b0",
+      "environment": {},
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "dump": {
+      "wall_s": 10.95383821008727,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 1.3779373168945312,
+      "executable_sha256": "35511d36e393ff32b0a5d4c30dabcc86a64d59a7c0a15443b843a1d2e037a962",
+      "environment": {},
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "negatives": {
+      "wall_s": 4.059955546166748,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 0.014118194580078125,
+      "executable_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+      "environment": {
+        "RAYON_NUM_THREADS": "8",
+        "HEAVY_MEM": "32G"
+      },
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "probe": {
+      "wall_s": 0.08669201610609889,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": null,
+      "executable_sha256": "378602aa4036807ef731f77066768ed1f451b6c2ff64c6ee0ab351e4207e92b0",
+      "environment": {},
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "public": {
+      "wall_s": 0.07598296506330371,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": null,
+      "executable_sha256": "70d4bca0c0092ab17f05654ba500bd0fba0f5548c7880e80abd8af96bd23cd72",
+      "environment": {},
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    },
+    "verify": {
+      "wall_s": 2.0826927172020078,
+      "exit_code": 0,
+      "covers_process_start": true,
+      "sampled_peak_rss_gib": 0.1955413818359375,
+      "executable_sha256": "378602aa4036807ef731f77066768ed1f451b6c2ff64c6ee0ab351e4207e92b0",
+      "environment": {
+        "RAYON_NUM_THREADS": "8",
+        "HEAVY_MEM": "32G"
+      },
+      "perf_command": [
+        "sudo",
+        "-n",
+        "perf"
+      ]
+    }
+  },
+  "failed_attempts": {
+    "verify-helper-missing": {
+      "exit_code": 101,
+      "wall_s": 0.05222057597711682
+    }
+  },
+  "all_recorded_stages_succeeded": true,
+  "summed_stage_wall_s": 3160.810722325463,
+  "proving_wall_s": 3143.5515608708374,
+  "packet": {
+    "bundle_bytes": 299967,
+    "hint_bytes": 16,
+    "levels": 6,
+    "proof_bytes": 299935,
+    "scope": "D0a",
+    "security_established": false,
+    "setup_sha256": "b373c618279055625c9124d7c3d80e303f5d0abad7f8b59928f5c251b8812623",
+    "trusted_setup_bytes": 3711888,
+    "under_300000": true,
+    "zero_knowledge_established": false
+  }
+}

@@ -1,0 +1,57 @@
+--- a/crates/recursion/src/sha384/config.rs
++++ b/crates/recursion/src/sha384/config.rs
+@@ -309,6 +309,54 @@
+             let vals = &data[mi * (part_len / 4)..(mi + 1) * (part_len / 4)];
+             for (o, v) in m[41..].chunks_exact_mut(4).zip(vals) {
+                 o.copy_from_slice(&v.as_canonical_u32().to_le_bytes());
++            }
++        }
++        let refs: Vec<&[u8]> = arena.chunks_exact(mlen).collect();
++        let mut level: Vec<Digest> = crate::sha384::mb::sha384_many(&refs)
++            .into_iter()
++            .map(|h| digest_from_bytes(truncate_digest(h)))
++            .collect();
++        if parts_per_leaf > 1 {
++            assert!(rows_per_leaf.is_power_of_two());
++            let mut w = rows_per_leaf;
++            while w > 1 {
++                level = self.compress_pairs(&level);
++                w /= 2;
++            }
++        }
++        level
++    }
++    /// Same message encoding as the flat path, without a temporary field buffer.
++    fn hash_leaves_rows<'a, R>(&self, n: usize, row_len: usize, rows_per_leaf: usize, row: R) -> Vec<Digest>
++    where R: Fn(usize, usize) -> &'a [F] {
++        let per = row_len * rows_per_leaf;
++        if !crate::sha384::mb::mb_enabled() || per == 0 {
++            let leaves: Vec<Vec<Vec<F>>> = (0..n)
++                .map(|leaf| (0..rows_per_leaf).map(|r| row(leaf, r).to_vec()).collect()).collect();
++            return self.hash_coset_batch(&leaves);
++        }
++        // message = prefix(32) || tag || le64(len) || parts; one part per message
++        let (tag, part_len, parts_per_leaf) = if sha_levers().coset_leaf {
++            (TAG_COSET_LEAF, 4 * per, 1)
++        } else {
++            (TAG_LEAF, 4 * row_len, rows_per_leaf)
++        };
++        let prefix = sha_levers().prefix();
++        let mlen = 32 + 1 + 8 + part_len;
++        let nmsg = n * parts_per_leaf;
++        let mut arena = vec![0u8; nmsg * mlen];
++        for (mi, m) in arena.chunks_exact_mut(mlen).enumerate() {
++            m[..32].copy_from_slice(&prefix);
++            m[32] = tag;
++            m[33..41].copy_from_slice(&(part_len as u64).to_le_bytes());
++            let leaf = mi / parts_per_leaf;
++            let first_row = mi % parts_per_leaf;
++            for (r, bytes) in m[41..].chunks_exact_mut(4 * row_len).enumerate() {
++                let vals = row(leaf, first_row + r);
++                assert_eq!(vals.len(), row_len);
++                for (o, v) in bytes.chunks_exact_mut(4).zip(vals) {
++                    o.copy_from_slice(&v.as_canonical_u32().to_le_bytes());
++                }
+             }
+         }
+         let refs: Vec<&[u8]> = arena.chunks_exact(mlen).collect();

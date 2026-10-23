@@ -23,8 +23,11 @@
 //! Bus-id offset for the later direct-Wasm join: `BUS_OFFSET` is applied to every classical bus
 //! id, leaving buses below it free for the Wasm family (`pq-wasm-base` uses 0-4).
 mod air;
+#[cfg(not(feature = "chunk-recursion"))]
 #[allow(dead_code, clippy::all)]
 mod config;
+#[cfg(feature = "chunk-recursion")]
+use openvm_recursion_circuit::sha384::config;
 
 use air::{ClassicalAir, E, JsonAir, TableSpec};
 use config::{F, Sha384Config, Sha384RefEngine};
@@ -1000,3 +1003,7 @@ fn main() {
         a[0]
     );
 }
+
+#[cfg(feature = "chunk-recursion")]
+#[path = "chunk_bridge.rs"]
+pub mod chunk_bridge;

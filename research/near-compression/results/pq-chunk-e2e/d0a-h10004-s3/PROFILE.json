@@ -1,0 +1,20 @@
+{
+  "profiled_wall_s": 1915.270479889121,
+  "samples": 383,
+  "peak_process_rss_gib": 14.340892791748047,
+  "sampled_cpu_s": 22077.18,
+  "coverage": "attached during L2; remaining L2, L3-L5 and FINAL; excludes base/L1 and early L2",
+  "profilers_exit_codes": [
+    0,
+    0
+  ],
+  "corrected_perf_data": "profile-chain/perf-symbols.data",
+  "sampled_cycle_percent": {
+    "fast_dft_dif_rows": 28.31,
+    "memmove": 20.08,
+    "sha384_x16_blocks_from": 16.0,
+    "sha384_x16": 6.76
+  },
+  "lost_samples": 0,
+  "cpu_cycle_samples_approx": 346000
+}

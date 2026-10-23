@@ -1,0 +1,10 @@
+{
+  "git_head": "6186282c97cb1a0389f870520ed998a4710f9d3e",
+  "inputs": {
+    "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json": "fa599b3b0c2dc786c295959ce92cfbbe73d74c4414b77979b436512a8ae3b452",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin": "af6a3ae6b675b74f6fbfa2f6e6acfb93cc3a9e318815cfc27ea29fbbe497b875",
+    "/data/illia/nearproof-deps/pq-chunk-e2e/target/release/nearproof-chunk-e2e": "378602aa4036807ef731f77066768ed1f451b6c2ff64c6ee0ab351e4207e92b0",
+    "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic": "70d4bca0c0092ab17f05654ba500bd0fba0f5548c7880e80abd8af96bd23cd72",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/Cargo.lock": "a32879eba85ffdec1683f85d727e026661e0dbfe70dd4cc191e64726c5703151"
+  }
+}

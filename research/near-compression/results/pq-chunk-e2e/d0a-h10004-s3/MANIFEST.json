@@ -1,0 +1,33 @@
+{
+  "fixture": "oracle/fixtures/v3/public-d0a/d0/00-h10004-s3",
+  "air": "examples/np-udr-stark-v2/source/near-air-v3.json",
+  "air_sha256": "fa599b3b0c2dc786c295959ce92cfbbe73d74c4414b77979b436512a8ae3b452",
+  "trusted_setup_sha256": "b373c618279055625c9124d7c3d80e303f5d0abad7f8b59928f5c251b8812623",
+  "local_full_run": "/data/illia/nearproof-deps/pq-chunk-e2e/runs/d0a-compact",
+  "files": {
+    "FINAL.bundle": {
+      "bytes": 299967,
+      "sha256": "a1a2cce82ecc7adcb5319aa59af8e35234fe6150011306eb3ab98e6ab95bb248"
+    },
+    "PROFILE.json": {
+      "bytes": 546,
+      "sha256": "dfeb752e38a4e22bf34f63d19f0304aaa790e3d2dfb2ffb6faa50ba96108b9fa"
+    },
+    "RESULT.json": {
+      "bytes": 322,
+      "sha256": "40e5528ec91b98305e617da918017d545a4190fd30a8603d895df25c5f808136"
+    },
+    "SETUP.json.gz": {
+      "bytes": 659734,
+      "sha256": "9dd66b016e95a8ef2aa26da1a7b1767a64382a449b3945b165d4787c4acc9232"
+    },
+    "negative-packet.log": {
+      "bytes": 96,
+      "sha256": "31d46d1b72bd86833c2ad31241adb8ffe978e234d8f3ed7f8cd3467cbd8c06df"
+    },
+    "verify.log": {
+      "bytes": 82,
+      "sha256": "e91431e45a3fe5be4237a7c8dba6abe197c6505fc9b9dafa561f45058923f681"
+    }
+  }
+}

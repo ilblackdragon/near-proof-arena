@@ -1,0 +1,461 @@
+warning: unused import: `Matrix`
+  --> /data/illia/nearproof-deps/pq-agg/stark-backend-unified/crates/stark-backend/src/prover/stream_pcs.rs:32:69
+   |
+32 | use p3_matrix::{bitrev::BitReversibleMatrix, dense::RowMajorMatrix, Matrix};
+   |                                                                     ^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `openvm-stark-backend` (lib) generated 1 warning
+warning: unused import: `stacked_reduction::StackedReductionCpuNew`
+  --> /data/illia/nearproof-deps/pq-agg/stark-backend-unified/crates/cpu-backend/src/device.rs:29:5
+   |
+29 |     stacked_reduction::StackedReductionCpuNew,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `openvm-cpu-backend` (lib) generated 1 warning (run `cargo fix --lib -p openvm-cpu-backend` to apply 1 suggestion)
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:344:17
+    |
+344 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:353:17
+    |
+353 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:383:17
+    |
+383 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:399:17
+    |
+399 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `test-utils`
+   --> crates/recursion/src/nv/agg.rs:409:17
+    |
+409 | #[cfg(any(test, feature = "test-utils"))]
+    |                 ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `cuda`, `default`, `parallel`, and `touchemall`
+    = help: consider adding `test-utils` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `collections::HashMap`
+ --> crates/recursion/src/nv/circuit.rs:2:11
+  |
+2 | use std::{collections::HashMap, sync::Arc};
+  |           ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `PrimeField32`
+ --> crates/recursion/src/nv/circuit.rs:8:41
+  |
+8 | use p3_field::{PrimeCharacteristicRing, PrimeField32};
+  |                                         ^^^^^^^^^^^^
+
+warning: unused imports: `U2` and `isa::Op`
+  --> crates/recursion/src/nv/circuit.rs:15:73
+   |
+15 |         hash::{byte_table2, generate2, ByteAir, HashBuses, Job2, Work2, U2},
+   |                                                                         ^^
+16 |     isa::Op,
+   |     ^^^^^^^
+
+warning: unused import: `jobs::Unit`
+  --> crates/recursion/src/nv/circuit.rs:23:5
+   |
+23 |     jobs::Unit,
+   |     ^^^^^^^^^^
+
+warning: unused import: `LookupBus`
+  --> crates/recursion/src/nv/glue.rs:25:39
+   |
+25 |     interaction::{InteractionBuilder, LookupBus, PermutationCheckBus},
+   |                                       ^^^^^^^^^
+
+warning: unused imports: `BorrowMut` and `Borrow`
+ --> crates/recursion/src/nv/hash.rs:7:20
+  |
+7 | use core::borrow::{Borrow, BorrowMut};
+  |                    ^^^^^^  ^^^^^^^^^
+
+warning: unused import: `openvm_recursion_circuit_derive::AlignedBorrow`
+ --> crates/recursion/src/nv/hash.rs:9:5
+  |
+9 | use openvm_recursion_circuit_derive::AlignedBorrow;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `NV_DIGEST`, `limbs_from_bytes`, and `split_bits`
+  --> crates/recursion/src/nv/hash.rs:19:18
+   |
+19 | use super::fmt::{limbs_from_bytes, split_bits, wl, NV_DIGEST};
+   |                  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^      ^^^^^^^^^
+
+warning: unused import: `ROWS`
+  --> crates/recursion/src/nv/hash.rs:21:29
+   |
+21 |     compress4_air::{Layout, ROWS},
+   |                             ^^^^
+
+warning: unused import: `Borrow`
+  --> crates/recursion/src/nv/transcript2.rs:10:20
+   |
+10 | use core::borrow::{Borrow, BorrowMut};
+   |                    ^^^^^^
+
+warning: unused imports: `BaseAirWithPublicValues` and `PartitionedBaseAir`
+  --> crates/recursion/src/nv/transcript2.rs:15:5
+   |
+15 |     BaseAirWithPublicValues, PartitionedBaseAir,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Air`
+  --> crates/recursion/src/nv/transcript2.rs:17:14
+   |
+17 | use p3_air::{Air, AirBuilder, BaseAir};
+   |              ^^^
+
+warning: unused import: `digest_bytes`
+  --> crates/recursion/src/nv/transcript2.rs:26:5
+   |
+26 |     digest_bytes, digest_words, hash_parts, initial_state, ShaTranscriptLog, F, KIND_COMMIT,
+   |     ^^^^^^^^^^^^
+
+warning: unused import: `p3_field::BasedVectorSpace`
+  --> crates/recursion/src/system/mod.rs:18:5
+   |
+18 | use p3_field::BasedVectorSpace;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `BaseAir`
+  --> crates/recursion/src/nv/transcript2.rs:17:31
+   |
+17 | use p3_air::{Air, AirBuilder, BaseAir};
+   |                               ^^^^^^^
+
+warning: variable does not need to be mutable
+   --> crates/recursion/src/nv/agg.rs:183:21
+    |
+183 |                 let mut ld = |b: &mut Builder, xs: &[F]| -> Vec<V> { xs.iter().map(|&x| b.load_f(x)).collect() };
+    |                     ----^^
+    |                     |
+    |                     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `src` is never read
+   --> crates/recursion/src/nv/transcript2.rs:198:13
+    |
+198 |             src = SqueezeSrc::Key(state);
+    |             ^^^
+...
+221 |             flush!();
+    |             -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `ctr` is never read
+   --> crates/recursion/src/nv/transcript2.rs:199:13
+    |
+199 |             ctr = 0;
+    |             ^^^
+...
+221 |             flush!();
+    |             -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `nw` is never read
+   --> crates/recursion/src/nv/transcript2.rs:200:13
+    |
+200 |             nw = 12;
+    |             ^^
+...
+221 |             flush!();
+    |             -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `src` is never read
+   --> crates/recursion/src/nv/transcript2.rs:198:13
+    |
+198 |             src = SqueezeSrc::Key(state);
+    |             ^^^
+...
+239 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `ctr` is never read
+   --> crates/recursion/src/nv/transcript2.rs:199:13
+    |
+199 |             ctr = 0;
+    |             ^^^
+...
+239 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `nw` is never read
+   --> crates/recursion/src/nv/transcript2.rs:200:13
+    |
+200 |             nw = 12;
+    |             ^^
+...
+239 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `src` is never read
+   --> crates/recursion/src/nv/transcript2.rs:198:13
+    |
+198 |             src = SqueezeSrc::Key(state);
+    |             ^^^
+...
+295 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `ctr` is never read
+   --> crates/recursion/src/nv/transcript2.rs:199:13
+    |
+199 |             ctr = 0;
+    |             ^^^
+...
+295 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: value assigned to `nw` is never read
+   --> crates/recursion/src/nv/transcript2.rs:200:13
+    |
+200 |             nw = 12;
+    |             ^^
+...
+295 |                 flush!();
+    |                 -------- in this macro invocation
+    |
+    = help: maybe it is overwritten before being read?
+    = note: this warning originates in the macro `absorbed` which comes from the expansion of the macro `flush` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused variable: `airs`
+   --> crates/recursion/src/nv/agg_tests.rs:448:13
+    |
+448 |         let airs = circ.airs::<Sha384Config>();
+    |             ^^^^ help: if this is intentional, prefix it with an underscore: `_airs`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `mats1`
+    --> crates/recursion/src/nv/tests.rs:1621:10
+     |
+1621 |     let (mats1, b1) = circ1.generate(&vk0, &p0);
+     |          ^^^^^ help: if this is intentional, prefix it with an underscore: `_mats1`
+
+warning: unused variable: `s_k`
+   --> crates/recursion/src/sha384/config.rs:541:17
+    |
+541 |             let s_k = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+    |                 ^^^
+    |
+help: if this is intentional, prefix it with an underscore
+    |
+541 |             let _s_k = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+    |                 +
+help: you might have meant to pattern match on the similarly named constant `IV384`
+    |
+541 -             let s_k = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+541 +             let sha384::mb::IV384 = crate::sha384::mb::state_after_rounds(&blk0, k_shared);
+    |
+
+warning: variable does not need to be mutable
+   --> crates/recursion/src/sha384/e2e_tests.rs:291:9
+    |
+291 |     let mut p = SystemParams::new(
+    |         ----^
+    |         |
+    |         help: remove this `mut`
+
+warning: field `tr_blocks` is never read
+   --> crates/recursion/src/nv/builder.rs:162:5
+    |
+112 | pub struct Builder {
+    |            ------- field in this struct
+...
+162 |     tr_blocks: u32,
+    |     ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `tamper_active` is never used
+  --> crates/recursion/src/nv/verifier.rs:78:15
+   |
+78 | pub(crate) fn tamper_active(t: Tamper) -> bool {
+   |               ^^^^^^^^^^^^^
+
+warning: `openvm-recursion-circuit` (lib test) generated 36 warnings (run `cargo fix --lib -p openvm-recursion-circuit --tests` to apply 17 suggestions)
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.11s
+     Running unittests src/lib.rs (/data/illia/nearproof-deps/pq-agg/target-agg/release/deps/openvm_recursion_circuit-e8a84b4284f8a0d7)
+
+running 1 test
+S13_PARAMS l_skip=2 n_stack=19 k=3 log_blowup=3 queries=[8, 5, 4, 3, 2, 2, 2] pow(mu,fold,query,logup)=(0,0,0,0)
+S13_O2 target=10 margin_milli=50 m=3 rounds(n,k,A,q,first_order)=[(16777216, 2097152, 6920249, 8, false), (8388608, 262144, 1730063, 5, false), (4194304, 32768, 432516, 4, false), (2097152, 4096, 108129, 3, false), (1048576, 512, 27033, 2, false), (524288, 64, 6759, 2, false), (262144, 8, 1690, 2, false)]
+NV_PHASE before_dag 1413
+NV_DAG air=0 nodes=24 rows_so_far=1468
+NV_PHASE after_dag 1481
+NV_PHASE after_stacking 1789
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8790
+NV_PHASE before_dag 9400
+NV_DAG air=0 nodes=24 rows_so_far=9455
+NV_PHASE after_dag 9468
+NV_PHASE after_stacking 9775
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16766
+NV_PHASE before_dag 17376
+NV_DAG air=0 nodes=24 rows_so_far=17431
+NV_PHASE after_dag 17444
+NV_PHASE after_stacking 17751
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=614
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=670
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=696
+NV_PHASE end 24742
+NV_PHASE before_dag 25352
+NV_DAG air=0 nodes=24 rows_so_far=25407
+NV_PHASE after_dag 25420
+NV_PHASE after_stacking 25727
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=846
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=902
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=928
+NV_PHASE end 32718
+NV_PHASE before_dag 33328
+NV_DAG air=0 nodes=24 rows_so_far=33383
+NV_PHASE after_dag 33396
+NV_PHASE after_stacking 33703
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=1078
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=1134
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=1160
+NV_PHASE end 40694
+NV_PHASE before_dag 41304
+NV_DAG air=0 nodes=24 rows_so_far=41359
+NV_PHASE after_dag 41372
+NV_PHASE after_stacking 41679
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=1310
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=1366
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=1392
+NV_PHASE end 48670
+NV_PHASE before_dag 49280
+NV_DAG air=0 nodes=24 rows_so_far=49335
+NV_PHASE after_dag 49348
+NV_PHASE after_stacking 49655
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=1542
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=1598
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=1624
+NV_PHASE end 56646
+NV_PHASE before_dag 57256
+NV_DAG air=0 nodes=24 rows_so_far=57311
+NV_PHASE after_dag 57324
+NV_PHASE after_stacking 57631
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=1774
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=1830
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=1856
+NV_PHASE end 64622
+NV_PHASE before_dag 65232
+NV_DAG air=0 nodes=24 rows_so_far=65287
+NV_PHASE after_dag 65300
+NV_PHASE after_stacking 65607
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=2006
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=2062
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=2088
+NV_PHASE end 72598
+NV_PHASE before_dag 73208
+NV_DAG air=0 nodes=24 rows_so_far=73263
+NV_PHASE after_dag 73276
+NV_PHASE after_stacking 73583
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=2238
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=2294
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=2320
+NV_PHASE end 80574
+NV_PHASE before_dag 81184
+NV_DAG air=0 nodes=24 rows_so_far=81239
+NV_PHASE after_dag 81252
+NV_PHASE after_stacking 81559
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=2470
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=2526
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=2552
+NV_PHASE end 88550
+NV_PHASE before_dag 89160
+NV_DAG air=0 nodes=24 rows_so_far=89215
+NV_PHASE after_dag 89228
+NV_PHASE after_stacking 89535
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=2702
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=2758
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=2784
+NV_PHASE end 96526
+NV_PHASE before_dag 97136
+NV_DAG air=0 nodes=24 rows_so_far=97191
+NV_PHASE after_dag 97204
+NV_PHASE after_stacking 97511
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=2934
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=2990
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=3016
+NV_PHASE end 104502
+test nv::agg_tests::agg_s13_flat has been running for over 60 seconds
+S13_AIR NvAir h=524288 w=76 int/row=49 deg=9
+S13_AIR Sha512Air4 h=1048576 w=83 int/row=17 deg=9
+S13_AIR TableAir4 h=128 w=9 int/row=2 deg=8
+S13_AIR ByteAir h=65536 w=5 int/row=1 deg=3
+S13_SUMMARY children=13 cols=173 opened=346 interactions=43581696 cells=127206528 program_rows=104614 merkle_nodes=3016 leaf_blocks=1665 chain_starts=13 nvair_h=524288 prove_s=75.5 peak_rss_gb=12.16
+S13_SOUNDNESS total=10.2 logup=329.6 proximity=322.9 query=10.2
+S13_PROOF_BYTES total=133357 gkr=51848 relations=27168 stacking=5104 whir=49052
+AGG_S13_OK flat 13-to-1 node, statement = segments [0, 13)
+test nv::agg_tests::agg_s13_flat ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 106 filtered out; finished in 75.54s
+

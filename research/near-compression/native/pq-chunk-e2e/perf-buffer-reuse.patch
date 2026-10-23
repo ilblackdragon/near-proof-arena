@@ -1,0 +1,37 @@
+--- a/crates/stark-backend/src/prover/stream_pcs.rs
++++ b/crates/stark-backend/src/prover/stream_pcs.rs
+@@ -521,6 +521,11 @@
+             .collect();
+         res.into_iter().flatten().collect()
+     };
++    // Reuse across cosets as well as sub-cosets. Both DFT passes overwrite
++    // every element, so no previous coset values enter the next commitment.
++    // The switch retains the original allocation schedule for controlled A/B runs.
++    let reuse_dft = std::env::var("NEARPROOF_DFT_REUSE").map(|v| v != "0").unwrap_or(true);
++    let (mut dft_scratch, mut dft_out): (Vec<F>, Vec<F>) = (vec![], vec![]);
+     for a in 0..c {
+         let za = zeta.exp_u64(a as u64);
+         let mut buf: Vec<H::Digest> = vec![filler; qs];
+@@ -542,7 +547,6 @@
+             1
+         };
+         let mut grouped: Vec<Vec<F>> = vec![];
+-        let (mut dft_scratch, mut dft_out): (Vec<F>, Vec<F>) = (vec![], vec![]);
+         for r in 0..nsub_in {
+             let shift = za * omega.exp_u64(r as u64);
+             let td = std::time::Instant::now();
+@@ -615,7 +619,13 @@
+             buf = crate::prover::stacked_pcs::compress_layer(hasher, &buf);
+         }
+         joined.extend_from_slice(&buf);
+-    }
++        if !reuse_dft {
++            dft_scratch = vec![];
++            dft_out = vec![];
++        }
++    }
++    drop(dft_scratch);
++    drop(dft_out);
+     drop(base);
+     let mut digest_layers = vec![joined];
+     while digest_layers.last().unwrap().len() > 1 {

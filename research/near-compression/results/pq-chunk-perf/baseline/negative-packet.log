@@ -1,0 +1,4 @@
+REJECTED changed_proof
+REJECTED trailing_bytes
+REJECTED truncated_hint
+REJECTED untrusted_setup

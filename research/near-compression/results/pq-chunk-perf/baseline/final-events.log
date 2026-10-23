@@ -1,0 +1,7 @@
+L1_VERIFIED rows=191778 shapes=[(1048576, 76), (1048576, 83), (128, 9), (65536, 5)] bytes=374105 seconds=462.30
+L2_VERIFIED rows=134254 shapes=[(1048576, 76), (1048576, 83), (128, 9), (65536, 5)] bytes=374563 seconds=481.78
+L3_VERIFIED rows=138610 shapes=[(1048576, 76), (1048576, 83), (128, 9), (65536, 5)] bytes=372001 seconds=552.92
+L4_VERIFIED rows=137196 shapes=[(1048576, 76), (1048576, 83), (128, 9), (65536, 5)] bytes=373177 seconds=459.38
+L5_VERIFIED rows=137196 shapes=[(1048576, 76), (1048576, 83), (128, 9), (65536, 5)] bytes=374521 seconds=582.17
+NEGATIVE_CONTROLS_OK changed_tape_root changed_program
+FINAL_VERIFIED {"bundle_bytes":299967,"hint_bytes":16,"levels":6,"proof_bytes":299935,"scope":"D0a","security_established":false,"setup_sha256":"b373c618279055625c9124d7c3d80e303f5d0abad7f8b59928f5c251b8812623","trusted_setup_bytes":3711888,"under_300000":true,"zero_knowledge_established":false}

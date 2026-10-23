@@ -1,0 +1,84 @@
+--- a/crates/stark-backend/src/prover/fast_dft.rs
++++ b/crates/stark-backend/src/prover/fast_dft.rs
+@@ -158,6 +158,17 @@
+         }
+         return;
+     }
++    // SIMD operates on complete packed rows. Padding is internal workspace only;
++    // the gather reads and final scatter writes exactly the original columns.
++    // Do not inflate narrow matrices: cap added columns at 25 percent.
++    let padded = width.next_multiple_of(F::Packing::WIDTH);
++    let stride = if std::env::var("NEARPROOF_DFT_PAD").as_deref() == Ok("1")
++        && padded - width <= width / 4
++    {
++        padded
++    } else {
++        width
++    };
+     let l1 = log_n / 2;
+     let l2 = log_n - l1;
+     let (n1, n2) = (1usize << l1, 1usize << l2);
+@@ -166,38 +177,38 @@
+     let w_n = F::two_adic_generator(log_n);
+     let s_n1: Vec<F> = shifts.iter().map(|s| s.exp_u64(n1 as u64)).collect();
+     // y[k2 * n1 + j1] (rows), the transposed intermediate
+-    if scratch.len() != n * width {
+-        *scratch = huge_zero_vec(n * width);
++    if scratch.len() != n * stride {
++        *scratch = huge_zero_vec(n * stride);
+     }
+     let y = scratch;
+     let yp = SyncPtr(y.as_mut_ptr());
+     (0..n1).into_par_iter().for_each_init(
+-        || F::zero_vec(n2 * width),
++        || F::zero_vec(n2 * stride),
+         |buf, j1| {
+             // gather rows j1 + n1 j2, twisted per shift group by s^(j1 + n1 j2) = s^j1 (s^n1)^j2
+             let mut tw: Vec<F> = shifts.iter().map(|s| s.exp_u64(j1 as u64)).collect();
+             for j2 in 0..n2 {
+                 let src = &coeffs[(j1 + n1 * j2) * bw..(j1 + n1 * j2 + 1) * bw];
+                 for k in 0..g {
+-                    let dst = &mut buf[j2 * width + k * bw..j2 * width + (k + 1) * bw];
++                    let dst = &mut buf[j2 * stride + k * bw..j2 * stride + (k + 1) * bw];
+                     dst.copy_from_slice(src);
+                     scale_row(dst, tw[k]);
+                     tw[k] *= s_n1[k];
+                 }
+             }
+-            dif_rows(buf, width, l2, &tw2);
++            dif_rows(buf, stride, l2, &tw2);
+             // position p holds k2 = bitrev(p): twiddle w^(j1 k2), store transposed
+             let wj = w_n.exp_u64(j1 as u64);
+             let pw: Vec<F> = wj.powers().take(n2).collect();
+             for p in 0..n2 {
+                 let k2 = reverse_bits_len(p, l2);
+-                let row = &mut buf[p * width..(p + 1) * width];
++                let row = &mut buf[p * stride..(p + 1) * stride];
+                 if k2 > 0 && j1 > 0 {
+                     scale_row(row, pw[k2]);
+                 }
+                 // SAFETY: (k2, j1) cells are written by exactly one task (j1)
+                 unsafe {
+-                    std::ptr::copy_nonoverlapping(row.as_ptr(), yp.get().add((k2 * n1 + j1) * width), width);
++                    std::ptr::copy_nonoverlapping(row.as_ptr(), yp.get().add((k2 * n1 + j1) * stride), stride);
+                 }
+             }
+         },
+@@ -210,14 +221,14 @@
+     (0..n2).into_par_iter().for_each(|k2| {
+         {
+             // SAFETY: block k2 of y is owned by this task alone; the DIF runs in place
+-            let buf = unsafe { std::slice::from_raw_parts_mut(yp2.get().add(k2 * n1 * width), n1 * width) };
+-            dif_rows(buf, width, l1, &tw1);
++            let buf = unsafe { std::slice::from_raw_parts_mut(yp2.get().add(k2 * n1 * stride), n1 * stride) };
++            dif_rows(buf, stride, l1, &tw1);
+             for p in 0..n1 {
+                 let k1 = reverse_bits_len(p, l1);
+                 // SAFETY: output row k2 + n2 k1 is written by exactly one task (k2)
+                 unsafe {
+                     std::ptr::copy_nonoverlapping(
+-                        buf[p * width..(p + 1) * width].as_ptr(),
++                        buf[p * stride..p * stride + width].as_ptr(),
+                         xp.get().add((k2 + n2 * k1) * width),
+                         width,
+                     );

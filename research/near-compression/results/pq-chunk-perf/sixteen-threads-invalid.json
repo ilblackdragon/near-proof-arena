@@ -1,0 +1,10 @@
+{
+  "exclude_from_latency_comparison": true,
+  "reason": "Unrelated heavy recursion test began midway through the replay; CPU utilization collapsed under contention. Trial stopped, not a proof failure.",
+  "detected_utc": "2026-10-21T16:02:19.887588+00:00",
+  "external_pid": 1491873,
+  "external_affinity": [
+    "Cpus_allowed_list:\t8-15,24-31"
+  ],
+  "partial_commit_seconds": 266.6
+}

@@ -316,6 +316,7 @@ The gate (Step 4, program binding) is unaffected by the above and still unstarte
 `seg-v1` leaf) is untouched. The honest sizing in §5 stands, with Step 1 reduced by the deps fix
 and increased by the `ChainStart` row.
 
+
 ## 8. Outcome (2026-10-21): steps 1-4 done, including the binding gate
 
 The agg overlay is rebased onto G2 and **program binding works**. Five distinct defects were
@@ -363,3 +364,104 @@ are still Fibonacci/segment fixtures, not NEAR state transitions.
 Sizing limits recorded while doing this, since they bite at every scale: level-2 traces are 2^20
 NvAir rows (`n_stack >= 20` for the parent), N1 children need `n_stack >= 17`, and the NvAir height
 cap is the same one that constrains the real chain.
+
+
+## 9. Depth law measured (2026-10-22): P4 closed, bytes flat in depth, S=13 proved flat
+
+Evidence: `research/near-compression/results/pq-agg-depth-law/` (README + `logs/`, hashes).
+Tree: the rebased overlay in `/data/illia/nearproof-deps/pq-agg/openvm-sha384`,
+**test query targets** (10 bits), CPU.
+
+### 9.1 P4 is no longer missing
+
+§2 recorded "P4 | Level-2 node proof at real settings | MISSING" and the README recorded N2
+as never proved (stacked-height error at `n_stack` 16, OOM at 17). With
+`PARENT2_N_STACK=20` the level-2 node proves on this host:
+
+| depth | nodes at this depth | proof bytes | program rows | NvAir h | prove s | peak RSS |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 (App children) | 8 | 124,201 | 16,598 | 2^17 | 12.4–12.9 | 2.5–3.7 GB |
+| 2 | 4 | **132,301** | 89,564 | 2^20 | 105.5–116.3 | 17.5–19.4 GB |
+| 3 | 2 | **132,301** | 95,974 | 2^20 | 115.9–117.3 | 18.1–18.2 GB |
+| 4 (root, 16 leaves) | 1 | **132,301** | 95,974 | 2^20 | 118.7 | 17.8 GB |
+
+Counts are from the 16-leaf run (`agg_depth4.log`, 8+4+2+1 = 15 = 2^4 − 1 nodes, total
+**890.47 s**); the separate 8-leaf run (`agg_depth3.log`, 4+2+1 = 7 = 2^3 − 1) reproduces the
+same per-node numbers.
+
+`AGG_CHAIN_OK` (segments `[0,4)`) and `AGG_DEPTH4_OK` (segments `[0,16)`) both verify the
+composed statement natively. So **Step 2 of §3 is done**, at test targets.
+
+### 9.2 The size law: flat in depth, linear in node count
+
+Every node at depth ≥ 2 is byte-identical, including all four components
+(`gkr=55,784 relations=27,168 stacking=4,192 whir=44,972`). The one-time step is
+depth 1 → 2 (+6.5 %), i.e. verifying a *segment* proof versus verifying a *recursion*
+proof. After that the node is a fixpoint — the same fixpoint the delivered chunk chain
+shows (`L2`–`L5`: 137,196 rows, 372–375 KB each in `runs/opt-baseline-8`).
+
+**Consequence for §3 Step 6's acceptance ("Verify the FINAL stays ≤ 300 KB"):** a wider or
+deeper tree cannot push the root over the cap by itself. The root (132,301 B at test
+targets) is *smaller* than the chunk chain's per-level proofs (~373 KB) because those set
+`program_part = true` and the root does not (`main.rs:249` vs `:121`). The remaining size
+risk is entirely the final layer's **shape** (query schedule, unwind factor, digest
+width), which is exactly what the 299,967 B D0a packet already sits 33 B under.
+
+Cost, however, is linear in node count and a depth-2 node is ~8.4× a depth-1 node
+(106 s vs 12.6 s; 18 GB vs 3.5 GB). At test targets a binary tree over 1,880 leaves is
+~31 h serial and over 3,760 leaves ~62 h; production targets are far worse.
+
+### 9.3 The P5 gate is live here (contradicts §7.3)
+
+`agg_node_program_binding` passes with a **live positive control**: the honest node is
+accepted (89,000 program rows) and mutating a child program word in the trace is rejected
+at the constraint layer (`air_builders/debug/mod.rs:75`). The full non-ignored suite is
+**6/6 green**, not the 4/6 + `unbalanced_messages=14` recorded in §7.2 — the `ChainStart`
+row from §7.2 is implemented (`isa.rs:78`, `uair.rs:615–617`, `transcript2.rs:540`) and the
+bus balances. §7.3's "the gate is unstarted" is stale for this tree.
+
+### 9.4 S=13 measured exactly, by a flat node (no padding, no new node kind)
+
+A perfect binary tree needs `2^d` leaves and `run_node_single` does not exist, so the
+binary route cannot hit 13. It is not needed: `build_agg` already accepts any arity, and
+Lean's `arity_split` proves a k-ary node is the same statement as nested binary nodes. So
+the exact S=13 point is **one flat 13-to-1 level-1 node** (`AGG_S=13`, `AGG_LOG_ROWS1=19`,
+`PARENT_N_STACK=19`, `logs/agg_s13_lr19.log`):
+
+| children | chain starts | proof bytes | program rows | NvAir h | prove s | peak RSS |
+|---:|---:|---:|---:|---:|---:|---:|
+| 13 | 13 | **133,357** | 104,614 | 2^19 | 75.5 | 12.2 GB |
+
+`AGG_S13_OK`, statement = segments `[0, 13)` verified natively.
+`gkr=51,848 relations=27,168 stacking=5,104 whir=49,052`. That is within 0.8 % of the
+depth-2 binary root (132,301 B) and **cheaper in time** than the 16-leaf tree (75.5 s vs
+890 s) because it is one trace instead of 15.
+
+**Step 6's acceptance is therefore met on the size question at test targets**: an S=13
+aggregation node is 133,357 B, so it fits under 300 KB with 2.25× headroom, and depth does
+not erode it (§9.2).
+
+Two negative results to keep, both `program exceeds 2^15 rows` (`builder.rs:303`):
+`AGG_LOG_ROWS1=17` panics for a flat 13-to-1 node (level-1 is only "small" for k = 2–4),
+and `AGG_LOG_ROWS=17` panics for any depth ≥ 2 node.
+
+Still unchanged and still blocking: the leaves are `SegAir` Fibonacci fixtures, not
+`seg-v1` (P9/P10/P11), and every number here is at 10 query bits, so byte counts are not
+comparable to the 300 KB production target. **No production-target node has been proved.**
+
+### 9.5 Order I would now use
+
+1. Promote the three probes (`agg_chain_depth3`, `agg_chain_depth_n`, `agg_s13_flat`) into
+   the overlay patch so the law reproduces from a pristine tree — today they are
+   deps-tree-only edits to `/data/illia/nearproof-deps/pq-agg`, not in the patch.
+2. **Measure one depth-2 node at production targets** (268-bit, z=32, 42 B, `m` per the
+   pinned shape). This is the last unmeasured quantity on the size axis and the only one
+   that can invalidate §9.2's "does not degrade" claim for a real root. Note the delivered
+   chain already runs NvAir 2^20 (`shapes=[(1048576, 76), …]` in `runs/opt-baseline-8/chain.log`),
+   so the tree adds no new height requirement. The "2^18 headroom" warning in `HANDOVER.md:69`
+   is about `nv_chain` (262,572 rows) at a pinned 2^18, not about this tree.
+3. Implement `run_node_single` for **ragged** trees only. It is not needed for S=13: the
+   flat 13-to-1 node is exact (§9.4).
+4. Do not buy larger-S runs before (2): wider trees cannot change the root's byte count,
+   so more S only buys the same 132,301 B at linear cost.
+

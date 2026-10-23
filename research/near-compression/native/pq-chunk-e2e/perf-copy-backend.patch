@@ -1,0 +1,60 @@
+--- a/crates/stark-backend/src/hasher.rs
++++ b/crates/stark-backend/src/hasher.rs
+@@ -64,4 +64,19 @@
+             .map(|leaf| leaf.chunks_exact(row_len.max(1)).map(|r| r.to_vec()).collect())
+             .collect();
+         self.hash_coset_batch(&leaves)
++    }
++
++    /// Hash leaves directly from borrowed rows, in the same leaf/row order as
++    /// `hash_leaves_flat`. The default preserves compatibility with other hashers.
++    fn hash_leaves_rows<'a, R>(&self, n: usize, row_len: usize, rows_per_leaf: usize, row: R) -> Vec<Self::Digest>
++    where R: Fn(usize, usize) -> &'a [Self::F] {
++        let mut flat = Vec::with_capacity(n * row_len * rows_per_leaf);
++        for leaf in 0..n {
++            for r in 0..rows_per_leaf {
++                let values = row(leaf, r);
++                assert_eq!(values.len(), row_len);
++                flat.extend_from_slice(values);
++            }
++        }
++        self.hash_leaves_flat(&flat, row_len, rows_per_leaf)
+     }
+--- a/crates/stark-backend/src/prover/stream_pcs.rs
++++ b/crates/stark-backend/src/prover/stream_pcs.rs
+@@ -435,6 +435,7 @@
+     H: MerkleHasher<F = F>,
+ {
+     let t0 = std::time::Instant::now();
++    let direct_leaves = std::env::var("NEARPROOF_LEAF_DIRECT").map(|v| v != "0").unwrap_or(true);
+     let width = coeffs.len();
+     assert!(width > 0);
+     let d_ext = V::DIMENSION;
+@@ -505,6 +506,13 @@
+                     .map(|k| {
+                         (0..nv.div_ceil(hb))
+                             .flat_map(|cb| {
++                                if direct_leaves {
++                                    let start = cb * hb;
++                                    return hasher.hash_leaves_rows((nv - start).min(hb), bw, rows_per_query, |v, t| {
++                                        let i = start + v + t * nv;
++                                        &evals.values[i * gw + k * bw..i * gw + (k + 1) * bw]
++                                    });
++                                }
+                                 flat.clear();
+                                 for v in cb * hb..((cb + 1) * hb).min(nv) {
+                                     for t in 0..rows_per_query {
+@@ -592,6 +600,13 @@
+                 (0..nv.div_ceil(b))
+                     .into_par_iter()
+                     .flat_map_iter(|c| {
++                        if direct_leaves {
++                            let start = c * b;
++                            return hasher.hash_leaves_rows((nv - start).min(b), bw, rows_per_query, |v, t| {
++                                let i = idx(start + v + t * nv);
++                                &evals.values[i * bw..(i + 1) * bw]
++                            });
++                        }
+                         let mut flat: Vec<F> = Vec::with_capacity(b * rows_per_query * bw);
+                         for v in c * b..((c + 1) * b).min(nv) {
+                             for t in 0..rows_per_query {

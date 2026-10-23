@@ -1,0 +1,5 @@
+PUBLIC_PREPARATION_OK
+MEMPROF commit.stacked_matrix rss_gb=0.05 hwm_gb=0.05 cpu_s=0.0 wall_s=0.0
+STREAM_COMMIT width=1 ext=1 c=15 log_domain=23 k=2 n=16 sub=2^16 subcosets=1920 dropped=4 stored_digests=3932161 secs=2.0 dft=1.1 leafhash=0.0
+MEMPROF commit.tree rss_gb=0.33 hwm_gb=0.42 cpu_s=9.4 wall_s=2.0
+INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true

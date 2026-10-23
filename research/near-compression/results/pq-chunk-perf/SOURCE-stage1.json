@@ -1,0 +1,17 @@
+{
+  "git_head": "6186282c97cb1a0389f870520ed998a4710f9d3e",
+  "inputs": {
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/src/perf_hash_check.rs": "080191c0f103e9a7a2c959c74fc7df4f6587d4dec6c09bdacdbe24118380a760",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/src/profile.rs": "95df56b1cc7ff71e81d5182c70c58099202b02dd434369720b7b9f6a5b903bad",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/src/perf_check.rs": "44d46370d7c7f0ff0115b859e9b0a0808be8c670ac4ae82fc38494633e0f4579",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/src/main.rs": "e7c83c890de832fc9597232674dd906212836152ab95569bd733374458283007",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/perf-copy-backend.patch": "647c51a963fd2ef65b0b7349de4e98bc440f939e4d3adb86e2c5b52cb5016797",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/perf-buffer-reuse.patch": "7fb9f6dee38efc77c073469fcd8ef2652702a03b403a52be42dc025e22bbd686",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/perf-copy-sha.patch": "1b132858b1596444676ea06de364eca1c8d5dae2b978b0e588aa23a079868f2d",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/Cargo.lock": "a32879eba85ffdec1683f85d727e026661e0dbfe70dd4cc191e64726c5703151",
+    "/data/illia/nearproof-deps/pq-chunk-perf/chunk-driver/Cargo.toml": "db00ca607ece8ef6eeb67b9dcb165b0591b30637349117a561a2cd1105904c8d",
+    "/data/illia/nearproof-deps/pq-chunk-perf/stark-backend-unified/crates/stark-backend/src/hasher.rs": "5c4ced9881dcf371b57469d704a519738218a05482012f987a17d65122157755",
+    "/data/illia/nearproof-deps/pq-chunk-perf/stark-backend-unified/crates/stark-backend/src/prover/stream_pcs.rs": "fbed1eb5ebc7fa058f1ade43f78dcb72ab16dd5c49fd44225263e908fecacc48",
+    "/data/illia/nearproof-deps/pq-chunk-perf/openvm-sha384/crates/recursion/src/sha384/config.rs": "c3b3fcd92822e5d5d11ca89e1808320f7f17718ba93b0f1dee500d8c864beb8c"
+  }
+}
