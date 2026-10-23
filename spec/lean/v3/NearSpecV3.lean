@@ -23,3 +23,4 @@ import NearSpecV3.Wasm.StEncode
 import NearSpecV3.Wasm.EncodeRT
 import NearSpecV3.Wasm.ValEncode
 import NearSpecV3.Wasm.GasEncode
+import NearSpecV3.Wasm.LabelEncode
