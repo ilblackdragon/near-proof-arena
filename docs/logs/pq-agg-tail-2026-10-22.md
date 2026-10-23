@@ -33,6 +33,8 @@ as closing that gap.
 | 15 | Therefore "under 300 KB" is a **transcript-sampled property**, not a structural bound | **measured** — two valid proofs straddle the cap |
 | 16 | The agg tests **do verify their proofs** — `prove_mats` calls `engine.verify(&vk, &proof).unwrap()` unconditionally, per level | **code check**, `nv/circuit.rs:466` |
 | 17 | A 2-child agg node at the base final layer's *exact* production schedule (`[41,38,29,23]`, `QUERY_POW=32`, `COMMITS=1`) measures **276,269 B** | **measured** 2026-10-23, streaming, 2,160.8 s, 9.46 GB |
+| 18 | **Depth 2 is arithmetically impossible at production blowup**: the 2-NV-child SHA AIR needs 2^22 rows but `log_stacked_height = l_skip+n_stack ≤ 27−log_blowup = 20` | **measured** panic + field 2-adicity, `circuit.rs:458`, `monty_31.rs:654` |
+| 19 | The "bytes are flat in depth" result (132,301 B at depths 2–4) is a **`log_blowup=3`** result and does not transfer to production | **measured** params `n_stack=20, log_blowup=3` in `agg_depth4.log` |
 
 Two reconciliations this log owes its reader, both done in full below and both correcting an
 earlier reading:
@@ -998,6 +1000,72 @@ Still open, and each one is a real blocker rather than a formality:
      lands `nvair_h = 2^20` — **exactly the base final layer's geometry**, making the byte
      comparison apples-to-apples for the first time. That is the configuration launched, under
      `NEARPROOF_STREAM_COMMIT=1` to stay inside the memory budget.
+
+     **MEASURED RESULT of that launch (2026-10-23): the two App-child L1 nodes prove; the L2
+     Node-child node does NOT, and the blocker is a 2^22 column height, not the program log.**
+     Run `results/pq-agg-prod-target/agg-d2-streaming-qpow32.log`:
+
+     ```
+     L1_0_SUMMARY ... program_rows=17558 nvair_h=262144 prove_s=1175.1 peak_rss_gb=8.80
+     L1_0_PROOF_BYTES total=276789 gkr=29960 relations=23332 stacking=2752 whir=220540
+     L1_1_SUMMARY ... program_rows=17558 nvair_h=262144 prove_s=791.3  peak_rss_gb=8.90
+     L1_1_PROOF_BYTES total=275933 gkr=29960 relations=23332 stacking=2704 whir=219732
+     L2_0_PARAMS ... queries=[41,38,29,23]
+     panicked at circuit.rs:458: StackedPcs(LayoutHeightExceeded
+                { log_height: 22, log_stacked_height: 20 })
+     ```
+
+     So `NV_PROG_LOG=19` fixed the *program* guard but not the *layout* guard. The 2^22 is the
+     **SHA compression AIR's natural height**, computed as `main_height(comps.len())` in
+     `hash.rs:319` where `comps` = leaf jobs + transcript replay jobs. An L2 node verifies **two
+     NV child proofs**, and each NV child's WHIR proof carries 131 queries' worth of Merkle
+     paths and transcript blocks — far more SHA work than the two small App proofs an L1 node
+     verifies. The production L1 geometry is recoverable exactly from its own `cells` figure:
+     `31,130,752 = 2^18·76 + 2^17·83 + 128·9 + 2^16·5`, i.e. **NvAir 2^18 but SHA AIR only
+     2^17**. The L2 node demands **2^22** on that same column — **32× growth** from one extra NV
+     child. At test targets the same comparison was 8× (L1 SHA 2^17 → L2 SHA 2^20), because the
+     test schedule runs ~24 queries against production's 131. The 2^22 exceeds
+     `log_stacked_height = l_skip + n_stack = 20` by 4 bits. Note the offending column is the
+     **SHA AIR**, not the NvAir: L2's own `rows_so_far` was 171,873, i.e. NvAir 2^18.
+
+     **Why this is a real production wall, and its exact arithmetic.** The stacked height is
+     `log_stacked_height = l_skip + n_stack`, and the field caps
+     `l_skip + n_stack + log_blowup ≤ 27` (BabyBear 2-adicity; `monty_31.rs:654`). So the
+     achievable stacked height is **`27 − log_blowup`**, and nothing more:
+
+     | `log_blowup` | max legal `n_stack` | max `log_stacked_height` | covers 2^22 SHA? |
+     |---:|---:|---:|---|
+     | 3 | 22 | 24 | yes |
+     | 4 | 21 | 23 | yes |
+     | 5 | 20 | 22 | yes, exactly |
+     | 6 | 19 | 21 | no |
+     | **7 (production)** | **18** | **20** | **no — 4 bits short** |
+
+     **This explains the whole depth-2 anomaly.** The test-target depth-4 runs used
+     `log_blowup = 3` with `n_stack = 20`, giving `log_stacked_height = 22` — exactly the SHA
+     AIR's demand — so depths 2–4 proved. At production `log_blowup = 7` there is no 2-adicity
+     left to raise `n_stack`, so the stacked height stops at 20 and the 2^22 SHA column cannot be
+     placed. **Depth 2 is arithmetically impossible at production blowup**, and that is not a
+     memory or time problem — it is the field's multiplicative-group structure. The earlier
+     depth-2 "flat in depth" result (132,301 B at depths 2/3/4) is therefore a **log_blowup = 3
+     result** and does not transfer to production targets.
+
+     **The precise production constraint, measured:** an aggregation node with **2 NV children**
+     cannot be proved at `log_blowup = 7`; an aggregation node with **2 App children** can. The
+     base final layer verifies **1** NV child and fits 2^20 exactly. Going to 2 NV children takes
+     the SHA compression height to 2^22, and 2^22 needs `log_stacked_height ≥ 22`, i.e.
+     `log_blowup ≤ 5`. So the blocker is specific: **the second NV child**, not aggregation in
+     general. That is why depth 1 measured fine and depth 2 died,
+     and why the depth-4 "flat in depth" result cannot be assumed to hold at production.
+
+     Two ways out, neither taken: **lower `log_blowup` to ≤ 5** at the aggregation levels (which
+     frees the 2 bits needed, but changes the WHIR schedule and every query count, so the byte
+     comparison to the base final layer's `log_blowup = 7` is lost and the query count rises for
+     the same soundness), or **reduce the SHA compression count per child** so the AIR stays at
+     2^20 (a circuit change: the L2 node's SHA work is ~16× an L1 node's because it verifies two
+     full NV proofs). Until one is done, **the production aggregation tree is measured only to
+     depth 1**, and the flat-in-depth claim must be quoted with its `log_blowup = 3` condition
+     attached.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was
    reclaimed by a disk-cleanup job during this session (disk is 96 % full, 40 GB free). A
    rebuilt binary is not required to *re-verify* any existing result — only to run this node.

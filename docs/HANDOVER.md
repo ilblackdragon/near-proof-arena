@@ -147,7 +147,21 @@ Three sentences the reader can act on, each with its evidence and its limit:
      `sha384/config.rs:131`) plus one final-layer run at `d = 41` to confirm `C` is
      width-invariant. **Neither is done**, so this is arithmetic on the measured law, not a
      result. It is also the cheapest of the three: one ~500 s run.
-3. **`NodeOK` gap: the soundness of a 1 Pgas tree is an OPEN obligation.** The per-proof union
+3. **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
+   The 2-NV-child aggregation node needs a 2^22-row SHA compression AIR (measured panic
+   `LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 }`, `circuit.rs:458`), but the
+   stacked height is `l_skip + n_stack ≤ 27 − log_blowup`, which at production `log_blowup = 7`
+   caps at **20**. The field's 2-adicity (27) leaves nothing to raise `n_stack`: 19 gives 28 and
+   panics at `monty_31.rs:654`. **So a production aggregation node with two NV children cannot be
+   proved in this configuration at all** — not a memory or time limit, a domain limit. Depth 1
+   works because its children are App proofs (SHA 2^17); the second NV child takes SHA to 2^22
+   (32× growth, recovered exactly from L1's `cells = 2^18·76 + 2^17·83 + 128·9 + 2^16·5`).
+   Consequently **the "bytes flat in depth" result (132,301 B at depths 2–4) is a
+   `log_blowup = 3` result** (those runs used `n_stack=20, log_blowup=3`, giving stacked height
+   22) and **does not transfer to production**. Exits: lower `log_blowup` to ≤5 at the aggregation
+   levels (costs query count for the same soundness and breaks the byte comparison to the base
+   final layer), or reduce SHA compressions per child. Neither done.
+4. **`NodeOK` gap: the soundness of a 1 Pgas tree is an OPEN obligation.** The per-proof union
    bound fails from **S ≈ 103–118** and every 1 Pgas shape exceeds that (S ≈ 146 at 2^23
    ops/segment). The repair is to apply the extraction theorem **once** to the vk family
    (`NodeOK`, DESIGN §9.1), not `n` times — but that theorem is **unproved**: the Lean
