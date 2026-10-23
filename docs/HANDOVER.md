@@ -28,8 +28,8 @@ Historical "in progress" labels below do not imply a live lane.
   saved outside the repo rather than added to the default build. The already-merged D1 modules stay.
 * **L4 reference-prover draft is not usable as an oracle:** it compiles, but all four honest toy
   tests fail against the current verifier. Do not revive it as a passing conformance target.
-* **Preserved live/new work:** `pq-host-memio`, the `lean-chunk-*` plan/worktrees, and the Claude
-  agent checkout. The MEMIO worktree's local "merged" note was not accepted as integration proof.
+* **Preserved live/new work:** `pq-host-memio`, `pq-chunk-e2e` (new edits appeared during
+  cleanup), the `lean-chunk-*` plan/worktrees, and the Claude agent checkout. The MEMIO worktree's local "merged" note was not accepted as integration proof.
   Existing standalone benchmark/challenge scratch directories were not treated as Git worktrees.
 
 Unique discarded drafts, raw evidence and validation logs are recoverable at
