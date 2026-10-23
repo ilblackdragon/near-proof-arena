@@ -139,7 +139,7 @@ Every case is `decide`d by the kernel. Coverage by branch:
 * **rounding ties**: 1.5→2, 2.5→2, 3.5→4, −1.5→−2; `trunc`/`floor`/`ceil` on ±1.5; the `2^24`
   significand ties (`2^24+1 → 2^24`, `2^24+3 → 2^24+4`); integer→float ties at `2^53`;
 * **inexact `sqrt`**: `sqrt(0.5)` and `sqrt(2)` in both formats against independently computed
-  IEEE values, plus a neighbour-inequality test (an on-ulp error fails the build);
+  IEEE values, plus a neighbour-inequality test (a one-ulp error fails the build);
 * **conversion boundaries and traps**: `2^31−128` / `2^31` / `2^31+256`, `2^32−256` / `2^32`,
   `2^64−2048` / `2^64`, negative-for-`_u`, NaN, ±inf; the saturating forms (NaN→0, clamp both
   ways, 64-bit);
@@ -244,7 +244,7 @@ the replay in §6 compares verdicts against the recorded per-case JSONL rather t
 ## 6. Verification commands and results
 
 ```sh
-cd spec/lean/v3 && lake build                       # exit 0, 83 jobs; FloatTests is in the closure
+cd spec/lean/v3 && lake build                       # exit 0, 168 jobs; FloatTests is in the closure
 cd spec/lean/v3 && lake env lean NearSpecV3/Wasm/FloatAxioms.lean
                                                     # 33 #print axioms, all ⊆ {propext,
                                                     # Classical.choice, Quot.sound}; no sorryAx
