@@ -153,7 +153,7 @@ Three sentences the reader can act on, each with its evidence and its limit:
      Merkle trees — and `C` moves by 4 B, so it is *not* exactly width-invariant. **The only
      representable alternative is d=40 (5 words), which changes digest unit count 12 → 10 and so
      needs its own geometry recalibration — projecting the measured base deltas onto the final
-     layer (≈half the digest-count drop, 1 commit) gives **≈293,077 B, i.e. ~6.9 KB of margin**.
+     layer (≈half the digest-count drop, 1 commit) gives **≈293,077 B**, i.e. **~6.9 KB of margin**.
      It also needs a `digest_units` branch (`hash.rs:238` currently only special-cases `== 42`,
      so d=40 would emit a 48 B message and trip the same assert). **None of this is done**, so
      Route C is an unavailable lever for the delivered configuration, not a cheap one. Note it does

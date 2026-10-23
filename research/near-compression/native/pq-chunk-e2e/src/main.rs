@@ -188,6 +188,9 @@ fn proof_sections(p: &Proof<SC>) -> String {
 }
 fn init() {
     // Must happen before any engine/codec is constructed, in this single-threaded main.
+    // Every default here is a *fallback*: an explicit value already in the environment wins, so
+    // the digest-width margin lever (`NEARPROOF_DIGEST_BYTES=41`) and the streaming switch stay
+    // reachable from a shell. Before this, the hardcoded "42" silently overrode the caller.
     unsafe {
         for (k, v) in [
             ("PQD1_POW", "24"),
@@ -197,7 +200,9 @@ fn init() {
             ("NEARPROOF_CPU_FAST", "1"),
             ("NEARPROOF_STREAM_COMMIT", "1"),
         ] {
-            std::env::set_var(k, v);
+            if std::env::var_os(k).is_none() {
+                std::env::set_var(k, v);
+            }
         }
     }
 }
