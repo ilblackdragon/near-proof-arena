@@ -1,0 +1,59 @@
+# PREPARED CHANGE — not applied. Requires an explicit security decision.
+
+## What this does
+Allows `NEARPROOF_DIGEST_BYTES=41`, so the final layer can be re-proved at a 41-byte
+digest width. Nothing else changes: the wire path is already width-generic.
+
+## Why it would help
+Measured size law `proof_bytes = 42·D + C`. At the delivered `D = 2,869`, `C = 179,437`:
+
+| digest | final-layer bytes | margin vs 300,000 |
+|---:|---:|---:|
+| 42 B (current) | 299,935 | +33 B |
+| **41 B** | **297,066** | **+2,934 B** |
+
+That is 3.5× the observed 798 B base-vs-replay spread and 89× the current margin, for a
+one-byte wire change. The same lever makes the 2-child aggregation node fit at `D = 2,921`
+(41 B → 971 B under, versus 2,119 B over at 42 B).
+
+## Why it is NOT applied
+1. **It is a security-parameter change, not a refactor.** Digest width is decided by U-10
+   (`SHA-384 truncated to 42 B`) and the narrower widths are tied to a separate undecided
+   amendment. The `assert!` below exists to block unanalysed widths deliberately.
+2. **`C` is calibrated only at 42 B.** The law was validated on 7/7 proofs, all at 42 B.
+   Nothing measured shows the non-digest term is width-invariant, so the +2,934 B is
+   arithmetic on a law, not a result.
+3. **The supporting soundness claim is another lane's.** `docs/logs/pq-final-layer-model-2026-10-17.md`
+   records "41 B proven now (CMS19 constants and new Thm 4 with K = 0; −3 KB)". That claim
+   has not been re-verified in this lane.
+
+## The change
+```diff
+--- a/crates/recursion/src/sha384/config.rs
++++ b/crates/recursion/src/sha384/config.rs
+@@ -128,7 +128,9 @@
+             coset_leaf: get("NEARPROOF_COSET_LEAF", 0) == 1,
+             tstar: get("NEARPROOF_TSTAR", 1) == 1,
+         };
+-        assert!(l.digest_bytes == 48 || l.digest_bytes == 42, "digest width must be 48 or 42 bytes");
++        // 41 B: see research/near-compression/results/pq-agg-depth-law/PREPARED-digest41.patch
++        // for the size analysis. Only the widths analysed in the final-layer model are allowed.
++        assert!(matches!(l.digest_bytes, 48 | 42 | 41), "digest width must be 48, 42 or 41 bytes");
+         l
+     })
+ }
+```
+
+## If it is approved, the sequence is
+1. Apply the diff above to the `pq-agg` deps tree **and** to a tracked patch, so it is not
+   deps-tree-only debt.
+2. `NEARPROOF_DIGEST_BYTES=41` + re-prove **one final layer** (~500 s, the cheap path) and
+   record bytes. Confirm `C = 179,437` still holds; if it moved, the margin table is wrong by
+   that amount.
+3. Re-run the independent verifier on the new packet (2–3 s) and the 1-bit tamper control.
+4. Only then quote the realised margin, and update the `42·D + C` law to `d·D + C`.
+
+## What this change does NOT do
+It does not reduce prove time (the prover does the same work; only the wire shrinks), does
+not touch WHIR query counts, and does not make the aggregation tree sound — `NodeOK` remains
+unproved, so S = 146 still fails the per-proof union.
