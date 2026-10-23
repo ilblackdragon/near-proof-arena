@@ -66,7 +66,13 @@ namespace NearSpecV3.Wasm
 def encNat (n : Nat) : ByteArray :=
   ByteArray.mk (Array.ofFn (fun i : Fin 8 => UInt8.ofNat (n >>> (8 * i.val))))
 
-/-- Length prefix (as `encNat`) followed by the concatenated encodings. -/
+/-- Length prefix (as `encNat`) followed by the concatenated encodings.
+
+**Not the same as `NearSpecV3.encList`** (`ClaimV3.lean:84`), which is the claim wire format
+and uses a **4-byte** `u32` length. This one uses an **8-byte** length on purpose: a machine
+state's arrays (`pages`, `actions`, `trie`) can in principle exceed `2^32` entries, and the
+injectivity proof must not silently truncate a length. The two live in different namespaces
+(`NearSpecV3.Wasm` vs `NearSpecV3`) so neither shadows the other. -/
 def encList {α} (f : α → ByteArray) (xs : List α) : ByteArray :=
   encNat xs.length ++ ByteArray.mk (xs.toArray.flatMap (fun x => (f x).data))
 
