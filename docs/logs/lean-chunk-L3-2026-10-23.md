@@ -8,7 +8,7 @@ Date: 2026-10-23. Plan lane: `docs/requirements/LEAN_CHUNK_TRANSITION_PLAN.md` Â
 | worktree | `/data/illia/nearproof-wt/lean-chunk-L3` |
 | branch | `lane/lean-chunk-L3` |
 | base commit | `a5ef42e0c` (L1's protocol-derived gas bound; L0 inventory `d261f1f07` merged below it) |
-| committed tip | see `git log --oneline -1` (last commit of this lane; the SHA is also recorded in the reply) |
+| committed tip | recorded in the reply (lane commits: `2d323b334`, `b41ae3897`, `d68a6c113`, `fcf6a9a41`, `6fee516a4`, `e6f895540`, `32311d125`, plus the drift-gate regeneration) |
 | target | nearcore `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV 86 |
 | scope | the 15 `owner == "L3"` rows of `docs/research/lean-chunk-coverage.json` (14 curve hosts + `L0-W-015`) |
 
@@ -252,6 +252,8 @@ cd /data/illia/nearproof-wt/lean-chunk-L3/spec/lean/v3 && lake build
 # checker + crypto test drivers (separate package, so the pinned lakefile is untouched)
 cd .../oracle/wasm-d3/lean && lake build nearspec-v3-check-d3 nearspec-v3-test-crypto
   -> Build completed successfully (126 jobs)
+  (the spec package builds 162 jobs, including the `Logged` layer and the signed
+   `ChallengeChunkV3`/`ChallengeChunkV3Gas` modules, unchanged by this lane)
 ./.lake/build/bin/nearspec-v3-test-crypto          # vectors
 ./.lake/build/bin/nearspec-v3-test-crypto edge     # directed edges
 ./.lake/build/bin/nearspec-v3-test-crypto host
