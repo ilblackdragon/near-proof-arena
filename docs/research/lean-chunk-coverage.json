@@ -1,0 +1,33 @@
+{
+ "_meta": {
+  "generated_by": "docs/research/lean-chunk-coverage-gen.py (skeleton pass)",
+  "generation_command": "python3 docs/research/lean-chunk-coverage-gen.py > docs/research/lean-chunk-coverage.json",
+  "base_commit": "833f3311c26baa3144a1aece84f0c9d0f25d4f08",
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "protocol_version": 86,
+  "status": "skeleton"
+ },
+ "rows": [
+  {
+   "id": "L0-DOM-001",
+   "family": "domain-guard",
+   "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+   "lean_path_symbol": "NearSpecV3.checkD2Core (NearSpecV3/ChunkValidationD2.lean:119)",
+   "nearcore_path_symbol": "ChainStore::create_state_witness / decode_witness (chain/chain/src/stateless_validation/state_witness.rs:45)",
+   "status": "implemented",
+   "domain_guard": "w.no_code",
+   "evidence": [
+    "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:119 \u2014 `if !allowCodes then check codes.isEmpty \"out of domain (w.no_code): contract code\"`",
+    "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:109-117 \u2014 allowCodes=true appends witness code blobs to the main recorded storage (pwt.rs:693-696)"
+   ],
+   "owner": "L0",
+   "dependencies": [
+    "L1"
+   ],
+   "acceptance_tests": [
+    "D2 corpus regression: 67,384/67,384; D3 corpus: 115,284 cases 0 disagreements"
+   ],
+   "remaining_work": "none; lifted only for D3 (allowCodes=true)"
+  }
+ ]
+}
