@@ -1,0 +1,14 @@
+{
+  "generated_by": "nearspec-v3-check-d3 (D3a, unchanged)",
+  "cases": 388,
+  "by_row": {
+    "w.shape": {
+      "out of domain (w.shape): non-ED25519 transaction key": 60,
+      "out of domain (w.shape): ML-DSA-65 public key": 112,
+      "out of domain (w.shape): UseGlobalContract action": 55
+    },
+    "eth": {
+      "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)": 161
+    }
+  }
+}

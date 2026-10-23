@@ -25,3 +25,8 @@ import NearSpecV3.StorageBound
 import NearSpecV3.D3.CryptoDomain
 import NearSpecV3.Wasm.CryptoHost
 import NearSpecV3.D3.GlobalContractExec
+-- L4's directed global-contract / state-init tests (134 kernel-evaluated cases). Imported here so
+-- that the default `lake build` checks them: a wrong fee literal, trie-key byte or wallet hash
+-- then breaks the build instead of only a downstream replay. Additive only -- nothing below this
+-- import is reachable from `checkD2Core`/`checkD3`/`RelD3`, so the signed D3 statement is unchanged.
+import NearSpecV3.D3.GlobalContractTests
