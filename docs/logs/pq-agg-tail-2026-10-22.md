@@ -1026,6 +1026,63 @@ fixed field-vector width**, plus a proof that it commutes with the segment fold.
 hash/commitment design problem, which is why it is the expensive part; it is not a
 transcription of the Lean.
 
+## 7.2 The state-encoding gap has a concrete design, and it is smaller than "design work"
+
+§7.1 ended at "the missing piece is an injective encoding of `St` into a fixed field width".
+Working that out against the actual code, it is more tractable than that phrasing suggests.
+
+**The encoding layer already exists.** `hash_range` (`nv/agg.rs:101-119`) builds the range
+message
+
+```
+[n_ctx, n_state, ctx…, a, e, s_a…, s_e…]
+```
+
+and hashes it with **in-circuit SHA-384** (`TAG_RANGE`). `felt_bytes`
+(`sha384/config.rs:214-219`) serialises field elements as `as_canonical_u32().to_le_bytes()`.
+So the aggregate layer never needs a *decodable* boundary state — only a **commitment** to it.
+The design is therefore:
+
+```
+s_a := SHA384(domain_sep ‖ serialise(St))   truncated to 42 B
+s_e := same, for the outgoing state
+n_state := 11 field elements
+```
+
+**The 11 is not arbitrary, and the round-trip checks out.** A 42-byte digest is 10.5 `u32`
+words, so it occupies exactly **11** canonical field elements (the last holding 2 bytes,
+value < 2¹⁶ < BabyBear's P). Verified numerically this session:
+
+```
+42 B digest  ->  11 little-endian u32 words
+             ->  felt_bytes  (44 B)
+             ->  truncate to 42 B   ==  the original digest   (identity)
+```
+
+So `felt_bytes`/`digest_wire` already implement the exact inverse pair; nothing new is needed
+at the serialisation layer.
+
+**And `n_state` is a free parameter, not a fixed 2.** The aggregate code takes `n_state:
+usize` and asserts only internal consistency (`pv.len() == n_ctx + 1 + 2·n_state`,
+`agg.rs:54/165/182`); the value 2 appears solely in the test fixtures
+(`agg_tests.rs:22/307/389/…`). So moving to `n_state = 11` is a parameter change on the
+aggregate side, not a redesign.
+
+**What is genuinely left**, in dependency order:
+1. **`serialise : St → ByteArray`** in Lean, with an **injectivity theorem**. No such function
+   exists today (`grep` for a `St →` hash or serialiser finds only `run`/`seg`/`foldSegments`).
+   `St` holds `Array ByteArray`, `List Frame`, `Array (ByteArray × ByteArray)` and similar, so
+   this is real work — but it is a serialisation proof, not a cryptographic one.
+2. **A theorem that the encoding commutes with the fold**: if `foldSegments` reaches `.cont s`,
+   then `serialise s` equals the `s_e` the aggregate layer asserts against the next segment's
+   `s_a`. This is where `run_foldSegments` gets used.
+3. **Expose `s_a`/`s_e` as public values** — still the boundary-public-interface question from
+   the previous turn (a new `pubSeg`, or a boundary-commitment statement).
+
+Item 1 is the new, precise statement of the blocker. It is a bounded piece of Lean
+engineering, and — importantly — it is **not** the same as "prove the WASM semantics", which
+is already done.
+
 ## 8. The one-paragraph version
 
 The delivered packet is a real, independently verified 299,967 B D0a chunk proof whose tail
