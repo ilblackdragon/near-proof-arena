@@ -38,7 +38,7 @@ sys.path.insert(0, HERE)
 import float_ref  # noqa: E402
 
 HARNESS = os.environ.get("D3_HARNESS",
-                         "/tmp/opencode/target-wasm-d3/release/near-wasm-d3-harness")
+                         "/data/illia/nearproof-deps/target-wasm-d3/release/near-wasm-d3-harness")
 LEAN = os.environ.get("D3_FLOAT_SPEC",
                       os.path.join(HERE, "../lean/.lake/build/bin/nearspec-v3-test-float"))
 LEAN_SPEC = os.environ.get("D3_SPEC",
