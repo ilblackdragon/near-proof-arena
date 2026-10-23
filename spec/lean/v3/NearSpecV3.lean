@@ -21,3 +21,4 @@ import NearSpecV3.Ed25519
 import NearSpecV3.Wasm.Segment
 import NearSpecV3.Wasm.StEncode
 import NearSpecV3.Wasm.EncodeRT
+import NearSpecV3.Wasm.ValEncode

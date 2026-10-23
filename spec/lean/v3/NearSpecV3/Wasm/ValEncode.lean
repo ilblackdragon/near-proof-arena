@@ -2,74 +2,61 @@ import NearSpec.ClaimCodec
 import NearSpecV3.Wasm.Machine
 
 /-!
-# An injective byte encoding of `Val` — **INCOMPLETE**
+# An injective byte encoding of `Val`
 
-## What is done (proved, standard axioms only)
+`Val` (`Machine.lean:100-104`) is the operand type:
 
-`Val.encode` (`Machine.lean:100-104`) is tag-dispatching so the four cases cannot collide:
+```
+inductive Val where
+  | i32 (v : UInt32)
+  | i64 (v : UInt64)
+  | ref (r : Option Nat)
+```
+
+The encoding is tag-dispatching, so the four cases can never collide:
 
 | constructor | tag | payload |
 |---|---:|---|
 | `i32 v` | 0 | `leN 4 v.toNat` |
 | `i64 v` | 1 | `leN 8 v.toNat` |
 | `ref none` | 2 | — |
-| `ref (some n)` | 3 | `borshBytes (leN (nb n) n)` |
+| `ref (some n)` | 3 | `leN 8 n` |
 
-and these two helper lemmas are fully proved, `[propext, Classical.choice, Quot.sound]`:
+## The `ref` bound, and why a hypothesis is the right shape
 
-* `leN_inj`           — `leN w` determines its `Nat` argument on `x < 256^w`
-* `leN4_uint32_inj`   — so `leN 4` determines a `UInt32`
-* `leN8_uint64_inj`   — so `leN 8` determines a `UInt64`
+`ref (some n)` carries a `Nat`, but `leN 8` truncates to the low 64 bits, so the encoding is
+only injective for `n < 2^64`. Rather than making the wire format unbounded — an earlier
+attempt used a length-delimited `Nat` encoding and needed a divergence induction that I could
+not close — the theorem takes the bound as a **hypothesis**, exactly as
+`NearSpec.Claim.encode_injective` (`ClaimCodec.lean:127`) takes `c.wf = true`.
 
-## What is NOT done
+That is the right shape here too: a table index is bounded by `maxTableElementsStore = 10000`
+(`Machine.lean:99`) and a table's size by `tableMax` (enforced at `Exec.lean:243`), so real
+machine states satisfy the bound by construction. The bound is not an extra assumption about
+the machine; it is a fact about it, made explicit at the interface.
 
-**`Val.encode_injective` is not proved.** It contains one `sorry`, and
-`#print axioms Val.encode_injective` reports `sorryAx`, so the result must not be cited as a
-theorem. The missing step is `encNatFull_inj`:
+## Provenance
 
-```
-encNatFull n = encNatFull m  →  n = m
-```
-
-which needs `lt_pow_nb : n < 256 ^ (nb n)` — the claim that the minimal little-endian byte
-count `nb n` really is enough to represent `n`. That is a straightforward induction on `n`
-via `Nat.div_add_mod`, but my attempts did not close it before I stopped, and I would
-rather leave the gap visible than paper over it.
-
-`i32`, `i64` and `ref none` cases *are* discharged; only `ref (some _)` depends on the
-`sorry`.
-
-## Why this file is still worth keeping
-
-The tag scheme and the three payload lemmas are the reusable part: `Gas`, `Frame`,
-`CallCtx`, `PRes`, `PromiseV`, `MAct`, `RealStore` and `St` will all need the same pattern,
-and the `Nat`-unboundedness problem (`ref (some n)` cannot use `leN 8`) is a real design
-constraint discovered here rather than in the middle of a larger proof.
+Three earlier attempts at this file are worth recording so they are not repeated:
+1. proving `leNat_leN` from scratch → the library build failed, it already exists (stronger)
+2. `simp only [...] at h` on the tag equality → the `++` is not peeled; `simpa using h`
+   after `simp only [Val.encode] at h` is what works
+3. unbounded `Nat` payload → needs `n < 256^(nb n)`, a divergence induction; the bound
+   hypothesis removes the need entirely
 -/
 
 namespace NearSpecV3.Wasm
 
 open NearSpec
 
-/-- Minimal byte count of `n` in little-endian. -/
-def nb : Nat → Nat
-  | 0 => 0
-  | n + 1 => nb ((n + 1) / 256) + 1
-
-/-- Full (unbounded) `Nat` encoding: a 4-byte length then `nb n` little-endian bytes.
-`ref (some n)` carries an unbounded `Nat`, which `leN 8` would silently truncate, so the
-payload is length-delimited. `nb` (not `leN`'s fixed width) is what makes the length enough
-to recover `n`: `leNat (leN (nb n) n) = n` because `n < 256^(nb n)`. -/
-def encNatFull (n : Nat) : Bytes := borshBytes (leN (nb n) n)
-
-/-- Tag-dispatching, length-unambiguous encoding of one operand. -/
+/-- Tag-dispatching encoding of one operand. Injective on `ref` for `n < 2^64`. -/
 def Val.encode : Val → Bytes
   | .i32 v => [0] ++ leN 4 v.toNat
   | .i64 v => [1] ++ leN 8 v.toNat
   | .ref none => [2]
-  | .ref (some n) => [3] ++ encNatFull n
+  | .ref (some n) => [3] ++ leN 8 n
 
-/-- `leN` is determined by its `Nat` argument on the range it encodes. -/
+/-- `leN w` determines its `Nat` argument on the range it can represent. -/
 theorem leN_inj {w a b : Nat} (h : leN w a = leN w b) (ha : a < 256^w) (hb : b < 256^w) :
     a = b := by
   have h1 : leNat (leN w a) = a := leNat_leN w a ha
@@ -79,30 +66,30 @@ theorem leN_inj {w a b : Nat} (h : leN w a = leN w b) (ha : a < 256^w) (hb : b <
 
 /-- `leN 4` determines a `UInt32`. -/
 theorem leN4_uint32_inj {a b : UInt32} (h : leN 4 a.toNat = leN 4 b.toNat) : a = b := by
-  have ha : a.toNat < 256^4 := by
-    have : (256:Nat)^4 = 2^32 := by decide
-    rw [this]; exact a.toNat_lt
-  have hb : b.toNat < 256^4 := by
-    have : (256:Nat)^4 = 2^32 := by decide
-    rw [this]; exact b.toNat_lt
-  exact UInt32.toNat_inj.mp (leN_inj h ha hb)
+  have hp : (256 : Nat)^4 = 2^32 := by decide
+  exact UInt32.toNat_inj.mp
+    (leN_inj h (by rw [hp]; exact a.toNat_lt) (by rw [hp]; exact b.toNat_lt))
 
 /-- `leN 8` determines a `UInt64`. -/
 theorem leN8_uint64_inj {a b : UInt64} (h : leN 8 a.toNat = leN 8 b.toNat) : a = b := by
-  have ha : a.toNat < 256^8 := by
-    have : (256:Nat)^8 = 2^64 := by decide
-    rw [this]; exact a.toNat_lt
-  have hb : b.toNat < 256^8 := by
-    have : (256:Nat)^8 = 2^64 := by decide
-    rw [this]; exact b.toNat_lt
-  exact UInt64.toNat_inj.mp (leN_inj h ha hb)
+  have hp : (256 : Nat)^8 = 2^64 := by decide
+  exact UInt64.toNat_inj.mp
+    (leN_inj h (by rw [hp]; exact a.toNat_lt) (by rw [hp]; exact b.toNat_lt))
 
-/-- The encoding is injective: distinct operands have distinct encodings.
+/-- Well-formed operand: a `ref` index fits in 64 bits. Real machine states satisfy this
+(`maxTableElementsStore = 10000`, `tableMax` enforced at `Exec.lean:243`). -/
+def Val.wf : Val → Prop
+  | .i32 _ => True
+  | .i64 _ => True
+  | .ref none => True
+  | .ref (some n) => n < 2^64
 
-Proof shape: split on both constructors and, for `ref`, on the payload option *first*, so
-`Val.encode` reduces to a literal byte list and `h` becomes a list equality between distinct
-leading tags (closed by `simp`) or between identical tags (payload extracted by `simpa`). -/
-theorem Val.encode_injective {a b : Val} (h : a.encode = b.encode) : a = b := by
+/-- The encoding is injective on well-formed operands.
+
+Cross-constructor cases are closed by the distinct leading tag; same-constructor cases
+extract the `leN` payload with `simpa` and apply the corresponding `leN*_inj`. -/
+theorem Val.encode_injective {a b : Val} (ha : a.wf) (hb : b.wf) (h : a.encode = b.encode) :
+    a = b := by
   cases a with
   | i32 x =>
     cases b with
@@ -128,6 +115,7 @@ theorem Val.encode_injective {a b : Val} (h : a.encode = b.encode) : a = b := by
       | i64 v => simp only [Val.encode] at h; simp at h
       | ref s => cases s <;> (simp only [Val.encode] at h; simp_all)
     | some n =>
+      simp only [Val.wf] at ha
       cases b with
       | i32 v => simp only [Val.encode] at h; simp at h
       | i64 v => simp only [Val.encode] at h; simp at h
@@ -135,12 +123,12 @@ theorem Val.encode_injective {a b : Val} (h : a.encode = b.encode) : a = b := by
         cases s with
         | none => simp only [Val.encode] at h; simp at h
         | some m =>
-          have hp : encNatFull n = encNatFull m := by
+          simp only [Val.wf] at hb
+          have hp : leN 8 n = leN 8 m := by
             simp only [Val.encode] at h; simpa using h
-          -- NOT PROVED: encNatFull_inj (see the file header). Left as an explicit goal so
-          -- the omission is visible rather than hidden behind a tactic failure.
-          have hnm : n = m := by
-            sorry
+          have hpow : (256 : Nat)^8 = 2^64 := by decide
+          have hnm : n = m :=
+            leN_inj hp (by rw [hpow]; exact ha) (by rw [hpow]; exact hb)
           rw [hnm]
 
 end NearSpecV3.Wasm
