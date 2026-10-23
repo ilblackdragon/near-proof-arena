@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-23",
+  "baseline": "f49deaf7c",
+  "validated_modules": [
+    "RecursiveSourceCompiler",
+    "RecursiveSharedBranches",
+    "RecursiveSharedQueries"
+  ],
+  "axiom_audit": "'NearCompression.recursive_source_size_positive' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_source_compile_length' depends on axioms: [propext]\n'NearCompression.recursive_source_compile_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_source_compile_route' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_source_compile_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_source_output_compiled' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_source_duplicate_target' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_add_pair_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_add_pair_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_branch_length' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_shared_branch_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_branch_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_branches_length' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_shared_branches_index_bound' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_shared_branches_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_branches_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_output_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_output_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_query_length' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_shared_query_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_query_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_queries_length' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_shared_queries_output_count' depends on axioms: [propext, Quot.sound]\n'NearCompression.recursive_shared_queries_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_queries_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_source_acyclic' depends on axioms: [propext, Classical.choice, Quot.sound]\n'NearCompression.recursive_shared_source_value' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "memory_service": "PASS: empty + two ordered overwrites; eight chronology/root/request forgeries rejected",
+  "chunk_packet": {
+    "bytes": 299967,
+    "independent_verification": "PASS",
+    "negative_controls": [
+      "changed_proof",
+      "trailing_bytes",
+      "truncated_hint",
+      "untrusted_setup"
+    ]
+  },
+  "benchmark_smoke": [
+    "dftshare 2 4 8 4: PASS (2 threads)",
+    "streamext 1 8 2 1 3: PASS (2 threads)"
+  ],
+  "not_integrated": {
+    "D1_generated_drafts": "48 modules blocked by LinkSched, RecModel, A7Bound failures",
+    "L4_reference_prover": "compiled; four honest acceptance tests FAIL; old toy query domain below current minQueryLog=8",
+    "memory_stack_proofs": "PreparedMemorySenderTransition exceeds its 4,000,000-heartbeat limit; two dependent modules not validated"
+  },
+  "source_sha256": {
+    "research/near-compression/NearCompression/RecursiveSourceCompiler.lean": "ca3d16024aca95a1fd800352f09e79f49b2fed1430ad384b0cd3393ccf189ebf",
+    "research/near-compression/NearCompression/RecursiveSharedBranches.lean": "9656940689be0e9607ad2648e3587ad1ae6f70d0165e7d837e1f0458048e4ebb",
+    "research/near-compression/NearCompression/RecursiveSharedQueries.lean": "bd6dc5069150f8768a32db11e52b17b36e59ce0b04cb43326bec05ac996db5e9",
+    "research/near-compression/PreparedMemoryServiceSmoke.lean": "cc0e87bf927a7a694e4352644aff724f34c539a79a0275b277da4ef92efc3fd5",
+    "research/near-compression/results/pq-cpu-prover/bench/latency_bench.rs": "78620b36c703ac3fadcfc1edaf9721a9eb55afcea71c2d0c7dd59db7926a9f84"
+  }
+}

@@ -228,6 +228,34 @@ fn stream(w: usize, n: usize, b: usize, k: usize, c: usize) {
     );
 }
 
+/// lane/pq-cpu-prover: streamed commitment of `w` Ext12 polynomials (the WHIR round codeword
+/// shape: d_ext = 12, so the base matrix is 12*w wide). `w=1` reproduces the round-0 commit.
+fn stream_ext(w: usize, n: usize, b: usize, k: usize, c: usize) {
+    use openvm_stark_backend::prover::stream_pcs::stream_commit;
+    let coeffs: Vec<Vec<EF>> = (0..w)
+        .map(|j| {
+            (0..(1u32 << n))
+                .map(|i| {
+                    EF::from_basis_coefficients_fn(|q| {
+                        F::from_u32((i.wrapping_mul(2654435761) ^ (j as u32 * 7919) ^ (q as u32 * 131)) % 2013265921)
+                    })
+                })
+                .collect()
+        })
+        .collect();
+    let t = Instant::now();
+    let tree = stream_commit::<F, EF, _>(&ShaHasher, coeffs, n + b, c, 1 << k);
+    let s = t.elapsed().as_secs_f64();
+    let cells = (w << (n + b)) * c;
+    println!(
+        "STREAM_EXT W={w} n={n} b={b} k={k} c={c} threads={} cells={cells:.3e} base_cells={:.3e} secs={s:.2} ({:.2} ns/ext-cell) root0={}",
+        threads(),
+        cells as f64 * 12.0,
+        1e9 * s / cells as f64,
+        tree.root().unwrap()[0]
+    );
+}
+
 /// lane/pq-cpu-prover: coset DFT of a 2^n x w row-major matrix: p3 Radix2DitParallel (as the
 /// streamed commit used), p3 Radix2Dit, and the four-step `fast_dft::coset_dft_rows`.
 fn dft_bench(w: usize, n: usize) {
@@ -257,6 +285,27 @@ fn dft_bench(w: usize, n: usize) {
     );
 }
 
+/// lane/pq-cpu-prover: hang hunt - one p3 `Radix2Dit` (spin::RwLock twiddle cache) shared by many
+/// rayon tasks, as the early streamed-commit outer path did; a fresh instance per round.
+fn dft_share(rounds: usize, tasks: usize, log_n: usize, w: usize) {
+    use openvm_stark_backend::p3_dft::{Radix2Dit, TwoAdicSubgroupDft};
+    use p3_matrix::dense::RowMajorMatrix;
+    use p3_maybe_rayon::prelude::*;
+    let base: Vec<F> = (0..(w << log_n) as u32).map(|i| F::from_u32(i % 2013265921)).collect();
+    for r in 0..rounds {
+        let seq = Radix2Dit::<F>::default();
+        let t = Instant::now();
+        let s: u64 = (0..tasks)
+            .into_par_iter()
+            .map(|k| {
+                let ev = seq.coset_dft_batch(RowMajorMatrix::new(base.clone(), w), F::from_u32(k as u32 + 3));
+                { use p3_field::PrimeField32; ev.values[k % ev.values.len()].as_canonical_u32() as u64 }
+            })
+            .sum();
+        println!("DFT_SHARE round={r} secs={:.2} ({s})", t.elapsed().as_secs_f64());
+    }
+}
+
 fn main() {
     let a: Vec<String> = std::env::args().collect();
     let what = a.get(1).map(|s| s.as_str()).unwrap_or("all");
@@ -266,6 +315,10 @@ fn main() {
         "grind" => grind(nt),
         "ext" => ext(),
         "ntt" => ntt(),
+        "dftshare" => {
+            let p = |i: usize, d: usize| a.get(i).and_then(|s| s.parse().ok()).unwrap_or(d);
+            dft_share(p(2, 50), p(3, 64), p(4, 12), p(5, 48))
+        }
         "dft" => {
             let p = |i: usize, d: usize| a.get(i).and_then(|s| s.parse().ok()).unwrap_or(d);
             dft_bench(p(2, 82), p(3, 20))
@@ -273,6 +326,10 @@ fn main() {
         "stream" => {
             let p = |i: usize, d: usize| a.get(i).and_then(|s| s.parse().ok()).unwrap_or(d);
             stream(p(2, 82), p(3, 20), p(4, 2), p(5, 1), p(6, 15))
+        }
+        "streamext" => {
+            let p = |i: usize, d: usize| a.get(i).and_then(|s| s.parse().ok()).unwrap_or(d);
+            stream_ext(p(2, 1), p(3, 19), p(4, 8), p(5, 4), p(6, 15))
         }
         "commit" => {
             let p = |i: usize, d: usize| a.get(i).and_then(|s| s.parse().ok()).unwrap_or(d);

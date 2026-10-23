@@ -4,6 +4,38 @@ This is for the next lead agent. Read it first. The raw working log for 2026-10-
 
 **Rule for this file:** keep it short and current. Append progress to `docs/logs/`, not here.
 
+## Worktree reconciliation — 2026-10-23
+
+The older worktrees were compared with main, including uncommitted source and ignored evidence.
+See `docs/logs/worktree-reconciliation-2026-10-23.md` for dispositions and fresh validation.
+Historical "in progress" labels below do not imply a live lane.
+
+* **Chunk recursion/performance (`pq-chunk-perf`) is now integrated:** the real D0a fixture driver,
+  independent packet verifier, profiling/replay tools, and aggregation-depth measurements are on
+  main. Fresh verification accepts the 299,967-byte packet and rejects four packet mutations.
+  This closes the missing integration of that checkpoint, **not** D3 coverage, production-target
+  tree aggregation, a uniform sub-300 KB bound, or the cryptographic soundness gaps. See the
+  aggregation-tail section below for the 33-byte margin and an over-budget replay.
+* **Older source/compiler and memory research:** recovered modules and checks are listed in the
+  reconciliation log. Their conditional research lemmas do not close the D3 join or full Wasm AIR.
+* **Already integrated; old worktrees retired:** storage hosts (`pq-d3-air`), IF steps/conditional
+  row facts (`pq-if2`, `pq-rowif`), REG send bounds, HOST bus decomposition, receipt encoding and
+  RIPEMD partial round proofs, CD render, aggregation rebase, and the QROM/hash/WHIR/NV checkpoints.
+  IF checker soundness, RIPEMD completion, D3 state/AIR, NV faithfulness and cryptographic
+  obligations remain open; removing a worktree does not complete them.
+* **D1 phase-2 drafts are not a completed lane:** 48 untracked generated modules were checked;
+  `LinkSched`, `RecModel` and `A7Bound` fail, and all 48 are in their dependent closure. They are
+  saved outside the repo rather than added to the default build. The already-merged D1 modules stay.
+* **L4 reference-prover draft is not usable as an oracle:** it compiles, but all four honest toy
+  tests fail against the current verifier. Do not revive it as a passing conformance target.
+* **Preserved live/new work:** `pq-host-memio`, the `lean-chunk-*` plan/worktrees, and the Claude
+  agent checkout. The MEMIO worktree's local "merged" note was not accepted as integration proof.
+  Existing standalone benchmark/challenge scratch directories were not treated as Git worktrees.
+
+Unique discarded drafts, raw evidence and validation logs are recoverable at
+`/data/illia/worktree-audit-20261023/`; Git branch history is retained locally. The prior-art review
+was already imported with deliberate redactions, so its older restricted variant was not merged.
+
 ## 0. Goal and standing user directives
 
 **Goal.** A self-hostable arena where candidates submit NEAR state-transition provers. Each submission comes with a machine-checked Lean certificate. The judge independently builds the submission, checks it formally (fixed trusted root), tests it, and benchmarks it.

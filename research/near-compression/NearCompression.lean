@@ -1783,3 +1783,8 @@ import NearCompression.SwirlKnownInputSplit
 import NearCompression.SwirlGkrVerifierArithmetic
 
 import NearCompression.SwirlDecisionGraph
+
+-- Recovered from the older worktrees; checked on 2026-10-23.
+import NearCompression.RecursiveSourceCompiler
+import NearCompression.RecursiveSharedBranches
+import NearCompression.RecursiveSharedQueries
