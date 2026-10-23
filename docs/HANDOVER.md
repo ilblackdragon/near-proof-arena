@@ -1,13 +1,20 @@
 # Handover — 2026-10-23
 
-Lean chunk lanes L0/L2/L3/L4/L5/L7 now have a combined progress checkpoint; L1 was already integrated. L6 is held for its soundness correction; L8 has no new committed work. See [integration status](logs/lean-chunk-integration-2026-10-23.md) for exact lane tips, validation and remaining gaps. Lane worktrees remain active; these merges certify no completion gate.
+All nine Lean chunk lanes are now rebased onto main and pushed to origin (`lane/lean-chunk-L0…L8`); six were pure ancestors and carry no unique commits. L1, L4, L6 and L7 carry merged work. See [integration status](logs/lean-chunk-integration-2026-10-23.md) for the older checkpoint and each lane's log for its current state. Lane worktrees remain active; **these merges certify no completion gate.**
+
+Merged since the last checkpoint:
+
+* **L1** — exhibited the band chunk on real data. `d3c7/ood/00-h10007-s1` (`expected_rel: true`, its only violation `e.g_alpha`) is refused by `checkD3` and accepted by the new `checkD3Proto`; 846 protocol-valid chunks sit in the band across the four corpora. Added the `nearspec-v3-check-d3proto` driver. Overlap agreement sampled 12/12; band acceptance sampled 25/25. Still open: the monotonicity proof, and termination/fuel for newly reachable executions.
+* **L4** — measured D3-hook replay over 388 corpus cases (`w.shape` 227, `e.eth_implicit_local` 161) confirming which single guard fires per group; no corpus case carries action tags 9 or 11.
+* **L6** — **the genesis checker's soundness correction.** The committed draft re-implemented the non-genesis tail and dropped ten endorsed-header comparisons, wrongly accepting 307 header mutants. `checkD2CoreG` now delegates to `checkD2Core` for `!B2.isGenesis`. Verified over the full replay: **exactly 137 verdicts change, all `out_of_domain → accept`, all genesis; zero non-genesis changes across 115,147 cases.** 137/137 genesis cases accept. Adds inventory rows for the genesis transition and the two resharding guards.
+* **L7** — differential-harness audit, UQ-014 answered per branch, readiness assessment, plus two new oracle test scripts.
 
 Only unfinished work and shared rules belong here. Evidence/history: [logs](logs/).
 Remove completed items; update their logs instead. Old lane labels are not proof of live activity.
 
 ## Pending integration
 
-- `plan/lean-chunk-transition` / `lean-chunk-L{0,1,2,3,5,7,8}`: all at `833f3311c`, clean at this audit; **plan only**, not implementation. Review the branch's `docs/requirements/LEAN_CHUNK_TRANSITION_PLAN.md`: full PV86 Lean semantics and arena admission are separate from succinct/PQ completion. Plan is now merged onto main (document + its handover pointer only); **none of its milestones is newly certified** by this merge and all gates A/B/C remain open as tabulated in the plan's completion record.
+- `plan/lean-chunk-transition` / `lean-chunk-L{0,1,2,3,5,8}`: now rebased to main tip and pushed; the branches carry no unique commits beyond main. The plan document itself is on main (`docs/requirements/LEAN_CHUNK_TRANSITION_PLAN.md`, merged via `34e5cddf4`, extended by `6bf80d533`). Review it there: full PV86 Lean semantics and arena admission are separate from succinct/PQ completion; **none of its milestones is certified** by the merges and all gates A/B/C remain open as its completion record tabulates.
 - `pq-chunk-e2e` (`lane/pq-chunk-perf`): committed checkpoint already integrated; three local log edits remain (aggregation plan/tail/gap analysis). Reconcile before retirement.
 - Check fresh Git/process state before touching any worktree, including the Claude checkout. MEMIO is merged; its remaining proof obligations are below. Recovery inventory: [worktree audit](logs/worktree-reconciliation-2026-10-23.md).
 
