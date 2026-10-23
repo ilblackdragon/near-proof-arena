@@ -510,6 +510,34 @@ Still open, and each one is a real blocker rather than a formality:
 2. **Measure one depth-2 node at production targets** (268-bit, z=32, 42 B, pinned `m`).
    This is the only remaining unmeasured quantity on the size axis and the one thing that
    can break §4's "does not degrade with S" claim.
+   *Reachability checked (2026-10-23): no code change is needed, but it is not "four env
+   vars" either.* Two inputs are needed, and both exist:
+   * **Params.** `params_from_env(prefix, d)` (`nv/agg_tests.rs:291/304`) reads
+     `N_STACK / LOG_BLOWUP / BITS / LIST_M / K / L_SKIP / W_STACK / INTERACTION_LOG` plus a
+     lever set (`MULTIPROOF KEEP_DOMAIN GRUEN_GKR GKR_DERIVE NEXT_MASK GRUEN_ZC WIDE_POW
+     TIGHT WHIR_Y`, all default **off**), so a production node must set the levers explicitly
+     to match `profile.rs`'s `WhirLevers`;
+   * **A DKT cert set.** With `LIST_M>0` the O-2 first-order table is certificate-gated
+     (`O2=1` by default) and reads `{prefix}_DKT_CERTS` or `NEARPROOF_DKT_CERTS`. A matching
+     file exists at `research/near-compression/final-soundness/calc/dkt_certs_o2.json` (the
+     one the base run used), with `DKTCertsO2_big.keys` as the exclusion list.
+   * **`N_STACK` is the open question, not a settled setting.** The delivered production chain
+     proves its 2^20-bucket NV levels at **`n_stack=18`** (`L1.vk.json`/`L5.vk.json`:
+     `n_stack=18, l_skip=2, log_blowup=7, w_stack=4096`), so 18 carries a 2^20 trace in the
+     1-child case. But the agg depth-2 test needed **20** to run at all at test targets
+     (`N2_PARAMS n_stack=20` in `agg_chain.log:387`), and both lower attempts produced no N2
+     proof — though they fail differently and the difference matters:
+     * `agg-chain-T10-attempt1.log` (`N2_PARAMS n_stack=16`, line 302) ends cleanly with
+       `test result: FAILED ... finished in 1769.20s` and `error: test failed` (line 344).
+     * `agg-chain-T10.log` (`N2_PARAMS n_stack=17`, line 302) ends **silently** at
+       `NV_PHASE end 118916` with no error line and no `N2_SUMMARY`/`N2_PROOF_BYTES`
+       — consistent with being killed (OOM/signal) rather than a clean assertion failure.
+       Neither log's ending should be read as the other's.
+     So a production-target agg node's minimum `n_stack` is unmeasured; 20 is the only value known
+     to work and is the safe default, and 18/19 are not excluded.
+   So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was
+   reclaimed by a disk-cleanup job during this session (disk is 96 % full, 40 GB free). A
+   rebuilt binary is not required to *re-verify* any existing result — only to run this node.
 3. **Widen the 300 KB margin by ≥1 KB** before treating the bound as a bound. 33 B is less
    than one 42-byte digest of variance; a configuration change already moved it 798 B.
 4. **Do not buy larger-S runs.** More S buys the same 132,301 B root at linear cost; it
