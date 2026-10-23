@@ -657,6 +657,30 @@ Still open, and each one is a real blocker rather than a formality:
    rebuilt binary is not required to *re-verify* any existing result — only to run this node.
 3. **Widen the 300 KB margin by ≥1 KB** before treating the bound as a bound. 33 B is less
    than one 42-byte digest of variance; a configuration change already moved it 798 B.
+
+   **Resolved on paper (2026-10-23): the margin is a function of digest width, and a
+   already-proven narrower width clears it by ~43 KB.** The size law `proof_bytes = 42·D + C`
+   makes the digest width the dominant lever: at the delivered `D = 2,869` and `C = 179,437`,
+   shrinking the digest byte `d` gives
+
+   | digest `d` | final-layer bytes | margin vs 300,000 | status of that width |
+   |---:|---:|---:|---|
+   | 42 B | 299,935 | **+33 B** | current PQ setting (U-10) |
+   | 41 B | 297,066 | +2,934 B | **proven now** (CMS19 constants + Thm 4 with K = 0) |
+   | 32 B | 271,245 | +28,755 B | not analysed in the note |
+   | 27 B | 256,900 | +43,100 B | proven *in the note*, conditional on H-rob |
+   | 26 B | 254,031 | +45,969 B | proven *in the note*, conditional on H-rob |
+
+   So a **1-byte reduction to 41 B — which needs no new cryptography, only the already-proven
+   Thm 4 at K = 0 — buys +2,934 B**, i.e. 3.5× the 798 B observed spread and 89× the current
+   margin. That is the cheapest available fix and it is a *pure* parameter change to the digest
+   wire width. The 26–27 B widths would add ~43–46 KB of margin but need H-rob, WHIR-Y,
+   position-indexed nodes and a U-7 decision — see `pq-final-layer-model-2026-10-17.md:523–535`.
+   The same lever also rescues the 2-child agg node: at `D = 2,921` (Route A) the 42 B config is
+   2,119 B over, while 41 B is +971 B under and 32 B is +27,091 B under.
+   **Not yet measured**: no proof has been produced at 41 B, so the `C` term may move slightly
+   (its 42 B/digest assumption is what the law encodes). The next step is a single final-layer
+   run at `d = 41` to confirm `C` is unchanged, which is far cheaper than any tree run.
 4. **Do not buy larger-S runs.** More S buys the same 132,301 B root at linear cost; it
    cannot move the size question.
 5. **The two segment-sizings are reconciled: one is a unit error, not a disagreement.**
