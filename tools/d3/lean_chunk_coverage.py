@@ -23,7 +23,13 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
+
+sys_path = Path(__file__).resolve().parent
+import sys
+if str(sys_path) not in sys.path:
+    sys.path.insert(0, str(sys_path))
 
 PIN = "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
 PV = 86
@@ -46,6 +52,13 @@ LEAN_FILES = [
 # Host families whose absence is a real semantic gap rather than a boundary exclusion.
 CURVE_PREFIXES = ("alt_bn128_", "bls12381_", "ecrecover", "p256_verify")
 TEST_FEATURES = ("sandbox_debug_log", "sleep_nanos", "burn_gas")
+
+
+def _l0_supplement():
+    """Execution/boundary rows and the oracle/exclusion/UQ sections (research analysis)."""
+    import lean_chunk_coverage_l0 as l0
+
+    return {"rows": l0.extra_rows(), "sections": l0.sections(), "lean_files": l0.lean_files()}
 
 
 def git_show(repo, path):
@@ -299,12 +312,23 @@ def inventory(repo, nearcore):
         "shard-layout transitions, split gates and resharding witness processing unimplemented",
     ))
 
+    # L0 execution/boundary analysis (docs/research/lean-chunk-coverage-gen.py logic,
+    # lifted into tools/d3/lean_chunk_coverage_l0.py so this drift gate covers it too).
+    extra = _l0_supplement()
+    rows.extend(extra["rows"])
+    ids = [r["id"] for r in rows]
+    if len(ids) != len(set(ids)):
+        raise ValueError("duplicate coverage row id")
+
     counts = {}
     for r in rows:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
+    families = {}
+    for r in rows:
+        families[r["family"]] = families.get(r["family"], 0) + 1
 
-    return {
-        "schema": "near-lean-chunk-coverage-v1",
+    out = {
+        "schema": "near-lean-chunk-coverage-v2",
         "nearcore_commit": PIN,
         "protocol_version": PV,
         "evidence": (
@@ -322,10 +346,13 @@ def inventory(repo, nearcore):
         },
         "source_sha256": {
             p: hashlib.sha256((Path(repo) / LEAN_ROOT / p).read_bytes()).hexdigest()
-            for p in LEAN_FILES
+            for p in LEAN_FILES + extra["lean_files"]
         },
+        "row_families": dict(sorted(families.items())),
         "rows": rows,
     }
+    out.update(extra["sections"])
+    return out
 
 
 def main():
