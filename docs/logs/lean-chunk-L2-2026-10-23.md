@@ -246,7 +246,7 @@ the replay in §6 compares verdicts against the recorded per-case JSONL rather t
 ```sh
 cd spec/lean/v3 && lake build                       # exit 0, 83 jobs; FloatTests is in the closure
 cd spec/lean/v3 && lake env lean NearSpecV3/Wasm/FloatAxioms.lean
-                                                    # 34 #print axioms, all ⊆ {propext,
+                                                    # 33 #print axioms, all ⊆ {propext,
                                                     # Classical.choice, Quot.sound}; no sorryAx
 make pin-check                                      # exit 0
 python3 tools/d3/lean_chunk_coverage.py --repo . \
