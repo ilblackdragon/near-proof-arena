@@ -15,3 +15,4 @@ import NearSpecV3.ChallengeV3
 import NearSpecV3.ClaimV3Props
 import NearSpecV3.SHA512
 import NearSpecV3.Ed25519
+import NearSpecV3.ChallengeChunkV3Gas
