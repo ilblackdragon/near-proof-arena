@@ -5,9 +5,18 @@ Remove completed items; update their logs instead. Old lane labels are not proof
 
 ## Pending integration
 
-- `plan/lean-chunk-transition` / `lean-chunk-L{0,1,2,3,5,7,8}`: all at `833f3311c`, clean at this audit; **plan only**, not implementation. Review the branch's `docs/requirements/LEAN_CHUNK_TRANSITION_PLAN.md`: full PV86 Lean semantics and arena admission are separate from succinct/PQ completion. Plan is not on main.
+- `plan/lean-chunk-transition` / `lean-chunk-L{0,1,2,3,5,7,8}`: all at `833f3311c`, clean at this audit; **plan only**, not implementation. Review the branch's `docs/requirements/LEAN_CHUNK_TRANSITION_PLAN.md`: full PV86 Lean semantics and arena admission are separate from succinct/PQ completion. Plan is now merged onto main (document + its handover pointer only); **none of its milestones is newly certified** by this merge and all gates A/B/C remain open as tabulated in the plan's completion record.
 - `pq-chunk-e2e` (`lane/pq-chunk-perf`): committed checkpoint already integrated; three local log edits remain (aggregation plan/tail/gap analysis). Reconcile before retirement.
 - Check fresh Git/process state before touching any worktree, including the Claude checkout. MEMIO is merged; its remaining proof obligations are below. Recovery inventory: [worktree audit](logs/worktree-reconciliation-2026-10-23.md).
+
+## 0. Goal and standing user directives
+
+**2026-10-23 priority:** complete the proof-system-independent Lean chunk transition and arena
+before treating any particular succinct-proof implementation as a prerequisite. Agent workstreams,
+dependencies and acceptance gates are in
+[`requirements/LEAN_CHUNK_TRANSITION_PLAN.md`](requirements/LEAN_CHUNK_TRANSITION_PLAN.md).
+The full PV86 semantic target is broader than today's D3α domain; existing signed challenges remain
+unchanged and broader coverage requires a versioned successor.
 
 ## Remaining work
 
