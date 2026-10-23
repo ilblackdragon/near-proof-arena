@@ -50,7 +50,7 @@ main's action/host/domain rows already cover that ground at finer granularity.
 * Missing by lane: L3 15, L4 5, L2 5, L6 3, L0 1, L9 1. Partial: L1 4, L5 1, L0 1.
 * 11 distinct oracle `d3_violations` strings (10 in d3c9); 1 mismapped (`c.no_resharding`).
 * 17 unresolved boundary questions (UQ-001…UQ-017), each with an owning lane.
-* Guard census: 30 modules, 1,014 decision sites, 148 `out of domain` string sites, 96 `unmodeled`.
+* Guard census: 30 modules, 600 decision sites, 115 `out of domain` string sites, 74 `unmodeled`.
 * Corpus evidence (carried forward, **not re-run**): 115,284 D3 cases / 0 disagreements
   (33,248 / 49,490 / 15,995 / 16,551); 41,131 accept / 71,605 reject / 2,548 out of domain;
   D2 67,384/67,384; D1 53,048. Checker sha256 `b4154b2…2ce5d8`.
