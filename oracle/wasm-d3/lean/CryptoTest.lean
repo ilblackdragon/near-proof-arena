@@ -1,4 +1,5 @@
 import NearSpecV3.Secp256k1
+import NearSpecV3.P256
 import NearSpecV3.Wasm.CryptoHost
 /-!
 `nearspec-v3-test-crypto` — vector tests for the L3 crypto leaves.
@@ -355,8 +356,132 @@ def runHost : IO UInt32 := do
   IO.println s!"ecrecover host cases: {checks.length} total, {bad} failures"
   return if bad = 0 then 0 else 1
 
+/-! ## `p256_verify`: nearcore's own Wycheproof + unit vectors -/
+
+/-- `(pk, msg, sig, expected)` — the 8 vectors of
+`logic/tests/p256_verify_wycheproof.rs` (nearcore runs `SHA-256(msg)` as the prehash, so the
+`msg` entries below are those digests; see `p256Vectors` construction). -/
+def p256Raw : List (String × String × String × Nat) := [
+  ("022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838",
+   "3639383139",
+   "64a1aab5000d0e804f3e2fc02bdee9be8ff312334e2ba16d11547c97711c898e6af015971cc30be6d1a206d4e013e0997772a2f91d73286ffd683b9bb2cf4f1b", 1),
+  ("022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838",
+   "313233343030",
+   "2ba3a8be6b94d5ec80a6d9d1190a436effe50d85a1eee859b8cc6af9bd5c2e184cd60b855d442f5b3c7b11eb6c4e0ae7525fe710fab9aa7c77a67f79e6fadd76", 1),
+  ("0268ec6e298eafe16539156ce57a14b04a7047c221bafc3a582eaeb0d857c4d946",
+   "313233343030",
+   "7fffffff800000007fffffffffffffffde737d56d38bcf4279dce5617e3192a97fffffff800000007fffffffffffffffde737d56d38bcf4279dce5617e3192a9", 1),
+  ("022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838",
+   "313233343030",
+   "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", 0),
+  ("022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838",
+   "313233343030",
+   "00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000", 0),
+  ("022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838",
+   "313233343030",
+   "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc6325510000000000000000000000000000000000000000000000000000000000000000", 0),
+  ("022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838",
+   "313233343030",
+   "d45c5740946b2a147f59262ee6f5bc90bd01ed280528b62b3aed5fc93f06f739b329f479a2bbd0a5c384ee1493b1f5186a87139cac5df4087c134b49156847db", 0),
+  ("052927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838",
+   "313233343030",
+   "2ba3a8be6b94d5ec80a6d9d1190a436effe50d85a1eee859b8cc6af9bd5c2e184cd60b855d442f5b3c7b11eb6c4e0ae7525fe710fab9aa7c77a67f79e6fadd76", 0)
+]
+
+def runP256 : IO UInt32 := do
+  let mut bad := 0
+  for (pk, msg, sig, exp) in p256Raw do
+    -- nearcore's test helper hashes `msg` with SHA-256 before calling the host
+    let pre := Crypto.sha256 ⟨(unhex msg).toArray⟩
+    let got := if P256.verify (unhex sig) pre.toList (unhex pk) then 1 else 0
+    if got ≠ exp then
+      bad := bad + 1
+      IO.println s!"P256 MISMATCH pk={pk} msg={msg} got={got} want={exp}"
+  -- directed gates: length 63/65 signatures, tag 0x04/0x05, x ≥ p, msg shorter than 16 bytes
+  let s := unhex "2ba3a8be6b94d5ec80a6d9d1190a436effe50d85a1eee859b8cc6af9bd5c2e184cd60b855d442f5b3c7b11eb6c4e0ae7525fe710fab9aa7c77a67f79e6fadd76"
+  let pk := unhex "022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838"
+  let m := unhex "313233343030"
+  let pp := (Crypto.sha256 ⟨m.toArray⟩).toList
+  let gates : List (String × Bool) := [
+    ("sig len 63", P256.verify (s.take 63) pp pk = false),
+    ("sig len 65", P256.verify (s ++ [0]) pp pk = false),
+    ("pk tag 0x04", P256.verify s pp (4 :: pk.drop 1) = false),
+    ("pk tag 0x05", P256.verify s pp (5 :: pk.drop 1) = false),
+    ("pk len 32", P256.verify s pp (pk.take 32) = false),
+    ("pk x ≥ p", P256.verify s pp (2 :: Bytes.beN 32 P256.p) = false),
+    ("msg 15 bytes", P256.verify s (pp.take 15) pk = false),
+    ("valid (hash of msg)", P256.verify s pp pk = true),
+    ("16-byte msg left-padded",
+      -- a 16-byte message is the shortest accepted; it must not crash and must fail this sig
+      P256.verify s (List.replicate 16 7) pk = false)
+  ]
+  for (name, ok) in gates do
+    if !ok then
+      bad := bad + 1
+      IO.println s!"P256 GATE FAIL: {name}"
+  IO.println s!"p256 vectors: {p256Raw.length + gates.length} total, {bad} failures"
+  return if bad = 0 then 0 else 1
+
+/-- Host-level `p256_verify` cases: exact gas per branch, return value, error text. -/
+def runP256Host : IO UInt32 := do
+  let pk := unhex "022927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838"
+  let m := unhex "313233343030"
+  let pp := (Crypto.sha256 ⟨m.toArray⟩).toList
+  let s := unhex "2ba3a8be6b94d5ec80a6d9d1190a436effe50d85a1eee859b8cc6af9bd5c2e184cd60b855d442f5b3c7b11eb6c4e0ae7525fe710fab9aa7c77a67f79e6fadd76"
+  -- layout: sig at 64, msg at 256, pk at 512
+  let base : Nat := 10 ^ 15
+  let runIt (sig msg pk : Bytes) (sigLen msgLen pkLen : Nat) : EcOut :=
+    let st := st1 base
+    let st := writeBytes st 64 ⟨sig.toArray⟩
+    let st := writeBytes st 256 ⟨msg.toArray⟩
+    let st := writeBytes st 512 ⟨pk.toArray⟩
+    let args : Vector Nat 6 := ⟨#[sigLen, 64, msgLen, 256, pkLen, 512], by simp⟩
+    match (hostP256Verify args).run st with
+    | .ok _ s' =>
+      { ret := s'.stack.back?.map (fun v => match v with
+          | .i64 x => x.toNat | .i32 x => x.toNat | _ => 0)
+        reg3 := none, burnt := s'.gas.burnt, used := s'.gas.used, err := none }
+    | .error e s' =>
+      { ret := none, reg3 := none, burnt := s'.gas.burnt, used := s'.gas.used, err := some e }
+  let okGas := p256VerifyBase.gas + readCost 64 + readCost 32 + p256VerifyByte.gas * 32 + readCost 33
+  let p256Err (r : EcOut) : Bool :=
+    match r.err with
+    | some e => e.startsWith "HostError(P256VerifyInvalidInput"
+    | none => false
+  let checks : List (String × Bool) := [
+    ("valid: ret 1", (runIt s pp pk 64 32 33).ret = some 1),
+    ("valid: gas", (runIt s pp pk 64 32 33).burnt = okGas),
+    ("valid: used", (runIt s pp pk 64 32 33).used = okGas),
+    ("valid: no error", (runIt s pp pk 64 32 33).err = none),
+    -- r = s = 0 parses as a Signature error → 0, and the message/key are still read and charged
+    ("zero sig: ret 0", (runIt (List.replicate 64 0) pp pk 64 32 33).ret = some 0),
+    ("zero sig: gas", (runIt (List.replicate 64 0) pp pk 64 32 33).burnt =
+      p256VerifyBase.gas + readCost 64),
+    -- wrong length gates are host errors (sig first, then pk; the message sits between them)
+    ("sig len 63: error", p256Err (runIt s pp pk 63 32 33)),
+    ("sig len 63: gas", (runIt s pp pk 63 32 33).burnt = p256VerifyBase.gas + readCost 63),
+    ("pk len 32: error", p256Err (runIt s pp pk 64 32 32)),
+    ("pk len 32: gas", (runIt s pp pk 64 32 32).burnt =
+      p256VerifyBase.gas + readCost 64 + readCost 32 + 13_000_000 * 32 + readCost 32),
+    -- a bad SEC1 tag parses as a key failure → 0 (not an error)
+    ("bad tag: ret 0", (runIt s pp (5 :: pk.drop 1) 64 32 33).ret = some 0),
+    -- a 0-byte message: `bits2field` fails (< 16) → 0, with no per-byte charge
+    ("empty msg: ret 0", (runIt s [] pk 64 0 33).ret = some 0),
+    ("empty msg: gas", (runIt s [] pk 64 0 33).burnt =
+      p256VerifyBase.gas + readCost 64 + readCost 0 + readCost 33)
+  ]
+  let mut bad := 0
+  for (name, ok) in checks do
+    if !ok then
+      bad := bad + 1
+      IO.println s!"P256 HOST FAIL: {name}"
+  IO.println s!"p256 host cases: {checks.length} total, {bad} failures"
+  return if bad = 0 then 0 else 1
+
 def main (args : List String) : IO UInt32 :=
   match args with
   | ["edge"] => runEdge
   | ["host"] => runHost
+  | ["p256"] => runP256
+  | ["p256host"] => runP256Host
   | _ => runVectors
