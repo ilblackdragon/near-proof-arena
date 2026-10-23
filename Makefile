@@ -29,7 +29,7 @@ DEV_PROFILES     ?=
 DEV_DOWN_VOLUMES ?= 0
 E2E_SCRIPT         ?= tests/e2e/run.sh
 E2E_HOSTILE_SCRIPT ?= adversarial/e2e/run.sh
-LEAN_PROJECTS      ?= formal-core spec/lean
+LEAN_PROJECTS      ?= formal-core spec/lean spec/lean/v3
 SHELL_SCRIPTS := deploy/scripts/arena-guard deploy/scripts/test-arena-guard.sh \
                  deploy/local/gen-dev-secrets.sh deploy/local/postgres-init/10-roles.sh \
                  deploy/hardened/bin/arena-backup deploy/hardened/bin/check-hardened
