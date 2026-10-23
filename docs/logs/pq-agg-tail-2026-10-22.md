@@ -216,9 +216,9 @@ possible because the update replaces the vector rather than taking a maximum.
 
 **The mechanism is confirmed: the floor determines the committed height, which determines the
 program.** `tight_height` is the last non-zero row (`stacked_pcs.rs:517-527`), and with a floor
-set a trace commits `max(tight_height, floor_i)` rows (`stacked_pcs.rs:545-560`). The source
+set a trace commits `max(tight_height, floor_i)` rows (`stacked_pcs.rs:532-534`). The source
 states the consequence outright: *"it lets a recursive verifier pin its child's committed
-heights (NV G2: the program depends on them)"* (`stacked_pcs.rs:542-544`). The measured floors
+heights (NV G2: the program depends on them)"* (`stacked_pcs.rs:536-537`). The measured floors
 differ at exactly the AIRs that matter — AIR 0 goes 274,384 → 281,016 and AIR 1 goes
 1,047,412 → 1,047,280 from L2 to L3 — so the committed heights differ there, so the programs
 differ there, so `M` increments. Once the floor stops moving at L3 the committed heights stop
