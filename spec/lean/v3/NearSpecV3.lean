@@ -15,3 +15,7 @@ import NearSpecV3.ChallengeV3
 import NearSpecV3.ClaimV3Props
 import NearSpecV3.SHA512
 import NearSpecV3.Ed25519
+
+-- Recursion track: segment fold semantics (Wasm/Segment.lean). Was orphaned until
+-- 2026-10-23; imported here so the result is in the default build and cannot rot.
+import NearSpecV3.Wasm.Segment
