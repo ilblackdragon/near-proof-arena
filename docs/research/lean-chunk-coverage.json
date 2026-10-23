@@ -1663,7 +1663,7 @@
   ],
   "schema": "near-lean-chunk-coverage-v1",
   "source_sha256": {
-    "ChallengeChunkV3Float.lean": "7965c3700f1d8502eba31014de0eff8e2f8c1682750d3ae1cf18623197dd752e",
+    "ChallengeChunkV3Float.lean": "c4732c25fe30d47bfa63d54087c7a6863b2064044d0a3f934ed44e8b55c3aefb",
     "D2/Actions.lean": "e8df76f116abec9eb0d08cc3da4928d6b5ae52c686070415f6b5708d5aa49dca",
     "D2/Types.lean": "bc432dd9390e604e66d23135dab6f2640e2efd205b25fc094af3183d7d5feacb",
     "Wasm/Decode.lean": "a5e7c1715c7bd88b78798c869f92dec166970fd8c16d68542caf9c6ab2143e73",
@@ -1672,7 +1672,7 @@
     "Wasm/Float.lean": "8c50747c442ba4e67c5e1ae98c24cc31f9eded50a89adf17e89ebd27861fe820",
     "Wasm/FloatTests.lean": "a7735325dade0120d4909033747c516727655e0e01853c11be183d5c0334287a",
     "Wasm/Host.lean": "1f22bb39c6dbfa442da4e2359888ad3d8624d31c2c5eabb49a05d9f4cfcf90c7",
-    "Wasm/Prepare.lean": "481ca2b548f721627edf6f07bf233645e1c25fa9c4d7d85a5d63a10a334a0258",
+    "Wasm/Prepare.lean": "11efdae5445ade42a4b3073896aea047c96439a9e694ca9742810bff6bbecf8a",
     "Wasm/Syntax.lean": "0dabce5421836280a88ab68f5f22d888e3d75b3e988f0990eefe15d87c002095"
   },
   "totals": {

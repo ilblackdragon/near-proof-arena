@@ -211,10 +211,14 @@ def domain_guards(repo):
         # the three preparation messages, the switch and its default all exist. (The execution-side
         # sentinel was `float (out of domain)` before L2; it is now a decided operator, so the
         # preparation guards are what the row means.)
+        # `>= 1`, not `== 1`: L2 names each guard as a predicate (`floatGuardImport` etc.) whose
+        # doc comment repeats the message the `throw` site uses, so the literal appears twice. The
+        # row is about the guard existing and being switchable, not about how often the message is
+        # mentioned in a comment.
         "floatOutOfDomain": (
-            prep.count("float in an imported function type") == 1
-            and prep.count("float global") == 1
-            and prep.count("float type or operator in a function body") == 1
+            "float in an imported function type" in prep
+            and "float global" in prep
+            and "float type or operator in a function body" in prep
             and "floats : Bool := false" in prep),
     }
 
