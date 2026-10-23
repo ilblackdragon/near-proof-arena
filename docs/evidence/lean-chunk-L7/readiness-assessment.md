@@ -99,6 +99,12 @@ directed edge pairs. With `--cases 1000` that is 1,000 generated pairs × 70 opc
 generated comparisons per seed**, i.e. the ≥1,000 bar is exceeded ~70× per seed, and four distinct
 seeds were run. Note the total 149,462 includes directed pairs; the generated-only count is 70,000.
 
+For whole-chunk float coverage I measured the corpora rather than trusting the lane's figure: counting
+`executed_contracts[*].float == true` over all 115,284 D3 cases gives **160** entries, all on the single
+contract `d3float`. (A grep for "float" in `meta.json` returns 15,663 hits, but those are the
+`'float': False` flag on non-float contracts.) So L2's "26 recorded chunks" understates the count by ~6×
+while its real limitation — one contract — is accurate.
+
 Families with **no** generated comparison at ≥1,000×4 seeds:
 
 * crypto hosts — directed vectors only;
@@ -315,6 +321,21 @@ validated"; "Impossible cases have an explicit pinned-source justification"):
    reachable (measured), `WasmUnknownError`/resource `LinkError` still not demonstrated reachable —
    but "not demonstrated" is weaker than "absent", and the honest status for those two is
    *unresolved, with no reachable construction found*.
+
+## Gate B mapping (§3), for the record
+
+The plan's Gate B bullets, each against what this lane actually measured. None is closed by this work;
+this only says which bullets now have measured evidence behind them and which are still assertion-only.
+
+| Gate B bullet | this lane's evidence |
+|---|---|
+| inventory accounts for every branch/variant/instruction family/host/resource boundary/guard | not verified here; the 219-row inventory is L0's. This lane only audited one row (UQ-014). |
+| every reachable row implemented and validated; zero unresolved exclusions | **UQ-014 contradicts the assumption** for `LoadingError`: a reachable, consensus-visible branch with no Lean model. |
+| impossible cases have pinned-source justification + checked predicate | **UQ-014's "absent" framing is not justified**; `LoadingError` is measured reachable. `WasmUnknownError`/resource `LinkError`: no construction found, so "impossible" is still unproven rather than justified. |
+| no prover-derived bound on the canonical relation | not this lane's; L1's `gAlpha` question is UQ-012. |
+| protocol resource limits implemented, failure/rollback behaviour real | **partially**: L5's storage bound is proved sound but explicitly not a protocol limit (L5's own log), and the instance-size limit is unimplemented (UQ-014). |
+| per-lane tests + combined regression/replay gates pass with zero unexplained disagreements | **regressions yes** (115,284 + 53,048 + 67,384, 0 disagreements, measured); **replay no** (§5 item 6 absent); per-lane tests partially audited (§6). |
+| all trusted assumptions enumerated, incl. runtime environment assumptions | **no**: the Wasmtime pooling-allocator limit and its 1 MiB constant are a runtime environment assumption that is neither modelled nor enumerated. |
 
 ## Gating findings
 

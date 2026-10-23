@@ -309,7 +309,7 @@ executed."
 |---|---|---|
 | L2 floats: 1,260 values + 210 gas + 140 size against nearcore, 0 diffs | **reproduced** | `float_nearcore.py --limit 12` → `values 1260 / gas 210 / size 140, 0 disagreements` |
 | L2: generated tests over ≥4 seeds | **reproduced, stronger than claimed** | `difftest_float.py --cases 1000 --seed {1,2,3,4}` → 149,462 cases each, 0 diffs; the generator emits 1,000 random pairs × 70 opcodes = **70,000 generated per seed** |
-| L2: whole-chunk float coverage = 26 recorded chunks, one contract | **confirmed as a gap by L2 itself** | `oracle/v3-d3/contracts/d3float.wat` is the only float contract |
+| L2: whole-chunk float coverage = 26 recorded chunks, one contract | **understated; measured 160, still one contract** | counting `executed_contracts[*].float == true` across all 115,284 D3 cases gives **160** entries, all contract `d3float`. So the *count* is better than L2 claimed, but the "one contract" limitation is exactly right — `oracle/v3-d3/contracts/d3float.wat` is the only float contract in the oracle workload. (A naive grep for "float" in `meta.json` gives 15,663 hits; those are the `'float': False` flag on other contracts, not float executions — worth knowing before anyone re-derives this.) |
 | L3 crypto: 161 ecrecover vectors, 0 mismatches | **reproduced** | `nearspec-v3-test-crypto` → 161 total, 35 recovered, 126 rejected, 0 mismatches |
 | L3: the 161-row table faithfully transcribes nearcore's JSON | **audited independently** | I re-read all 161 rows from `logic/tests/ecrecover-tests.json` and matched `(msg, v, sig, mc, res)` field-by-field: **161/161 present, 0 mismatched** |
 | L3: edge 20 / host 23 / p256 17 / p256host 13, 0 failures | **reproduced** | all four modes ran clean |
@@ -377,8 +377,14 @@ Executable digests:
 | artifact | sha256 |
 |---|---|
 | `oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3` | `528992988e0c72769fe909494b3e99a2dd3d4c78ad47ecf7acf7524603ecb42f` |
-| `oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-wasm` | `(see the .hash file beside the binary; rebuilt this session)` |
-| `/data/illia/nearproof-deps/target-wasm-d3/release/near-wasm-d3-harness` | `08b9c36e67a8ad03d4c129…` (23,738,808 bytes) |
+| `oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-wasm` | `4ce100d191a4400da605b626192ecd9aadc820dcbb359fc91c62234d33cc3f12` |
+| `spec/lean/v3/.lake/build/bin/nearspec-v3-check-d2` | `8df208c55a74a87349e671ea22a5b403c4367e05a76a0f9331dae8e434a49c34` |
+| `/data/illia/nearproof-deps/target-wasm-d3/release/near-wasm-d3-harness` | `2e8184320ccb05cc524b16415c10e20f473edb157a08b9c36e67a8ad03d4c129` (23,738,808 bytes) |
+
+The two Lean binaries were rebuilt this session from the tree at `a5ef42e0c`, so these digests identify
+the exact code that produced the numbers in §4. Note `nearspec-v3-check-d3`'s digest equals the one L3
+recorded (`528992988…`), which is the consistency check that the checker binary is the same one L3's
+guard replay used.
 
 ## 9. Files added / changed by this lane
 
