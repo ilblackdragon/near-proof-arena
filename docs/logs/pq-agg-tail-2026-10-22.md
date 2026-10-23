@@ -570,15 +570,28 @@ Still open, and each one is a real blocker rather than a formality:
      the section by 35,068 B of non-digest overhead (`C = 214,795` at 2 commits vs
      `179,437` at 1; measured on L4 vs FINAL). The 368,177 B node ran with `COMMITS=2` — the
      `PARENT` default — so it is an **intermediate** node and may be ~374 KB.
-     The arithmetic that matters, using only measured constants: a 2-commit agg node costs
-     **+52 digests** over a 2-commit chain level (`D = 3823` vs `3771`, overhead agreeing to
-     12 B), so a 1-commit 2-child node should sit near `D ≈ 2869 + 52 = 2921`, i.e.
-     `42·2921 + 179,437 = 302,119 B` — **≈ 2.1 KB over the cap**. That is a projection, not a
-     measurement, and it needs a run to confirm; but it says the aggregation tree does *not*
-     currently fit, because the base final layer already spends all 33 B of its margin and any
-     second child costs ~800 B. So "depth is free in bytes" holds at 10 query bits and does
-     not carry to 268 bits: there the WHIR section is ~3× larger and the commit count, not the
-     depth, decides the cap.
+     **Whether a 1-commit 2-child node fits under 300 KB is NOT resolved, and two defensible
+     projections disagree — one says under, one says over.** Both start from measured section
+     splits and use the measured 2-commit→1-commit deltas (Δoverhead = 35,358 B from L4 vs
+     FINAL; Δdigests = 902). They differ only in which layer's 2-commit overhead to start
+     from:
+     * **Route A (over):** use the FINAL layer's own 1-commit constant `C = 179,437` and add
+       the agg node's extra digests. Its WHIR section is 306,024 B at 2 commits, and the
+       chain's 2-commit overhead is 145,446 B, implying `D_agg(2c) ≈ 3,823` — i.e. **+52
+       digests** over L4's 3,771. Then `D ≈ 2,869 + 52 = 2,921` →
+       `42·2,921 + 179,437 = 302,119 B`, **≈ 2.1 KB over**.
+     * **Route B (under):** use the agg layer's own measured-implied constant
+       `C_agg(2c) = 368,177 − 42·3,823 = 207,611`; subtract 35,358 for the 1-commit drop to get
+       `C_agg(1c) = 172,253`, and `D = 3,823 − 902 = 2,921` →
+       `42·2,921 + 172,253 = 294,935 B`, **≈ 5.1 KB under**.
+     The 7,184 B gap between the routes is exactly the amount by which the agg layer's non-WHIR
+     sections are cheaper than the chain's (measured: agg non-WHIR 62,153 B vs L4 69,349 B, a
+     7,196 B difference that agrees to 12 B). So the answer hinges on whether the agg layer's
+     cheaper gkr/relations/stacking survives the commit-count change — a question only a run
+     settles. **Do not quote either number as the production size.** The one robust statement:
+     the margin is now measured in single-digit KB either way, so the 33 B slack in the base
+     packet is real and insufficient, and "depth is free in bytes" does not carry to 268-bit
+     targets, where the WHIR section is ~3× larger and the commit count decides the cap.
    * **`X15=15` is mandatory and was silently wrong in the first run.** The odd factor is the
      6th positional argument of `WhirConfig::new_full`; `X15` defaults to 1, which changes the
      domain to `2^27` and makes every DKT certificate miss (`first_order=false` on all rounds).
