@@ -1,0 +1,14 @@
+{
+  "rustflags": "-C target-cpu=native -C link-arg=-fuse-ld=mold",
+  "cargo_target_dir": "/data/illia/pq-tail-architecture-20261023/target-native",
+  "files_sha256": {
+    "/data/illia/pq-tail-architecture-20261023/Cargo.toml": "40669e949f297209e69686aaf2dea3b25694fa7964c3a9b18c4921231d457494",
+    "/data/illia/pq-tail-architecture-20261023/Cargo.lock": "25edf82c12736012c42a5db8f260e4e6f80d48460b9ca76e6b8f6ce52ed1b435",
+    "/data/illia/pq-tail-architecture-20261023/src/COMPACT_PROFILE_V1.json": "d88d0d8dddc466bf5dc38ac28876cefc7208e0eba52e5479b21a153ec1db27f7",
+    "/data/illia/pq-tail-architecture-20261023/build-native.log": "2878c6868a2339251ee831bf6b89278e274daecf62bf4690d77805392161a498"
+  },
+  "historical_fingerprint_rustflags": [
+    "-Ctarget-cpu=native"
+  ],
+  "concurrent_load_observed": "Unrelated agg_chain_depth_n process PID 471947 used ~2000% CPU during live replay; timings are loaded-host observations, not controlled performance comparisons."
+}

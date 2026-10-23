@@ -47,3 +47,32 @@ this audit supplied fresh packets, while its setup/security limitations remain.
    SHA384-only baseline remains; lattice assumptions require an explicit choice.
 
 Do not resume blind parameter sweeps or promote this diagnostic to admission.
+
+## Live witness and locally derived-key follow-up
+
+User clarified deadline: **final proof within 1–2 seconds of chunk**.
+Rebuilt newer `declared-profile-prover` and `local-key-packet-verifier` from the
+isolated source snapshot, with `-C target-cpu=native`; original fingerprint
+also used native CPU compilation. This is not a clean speed comparison:
+an unrelated aggregation process consumed ~20 logical CPUs during this run.
+
+| Fixture | Trace cells | Packet B | Trace + prove s | Verify s |
+|---|---:|---:|---:|---:|
+| 00-h10004-s3 | 1,262,608 | 258,792 | 17.26 | 1.17 |
+| 00-h10006-s3 | 2,107,452 | 274,763 | 20.10 | 1.28 |
+| 00-h10013-s2 | 2,669,472 | 279,454 | 20.86 | 1.28 |
+| 00-h10035-s3 | 156,624,112 | none | profile rejects | — |
+
+Selection: prior two fixtures, median and maximum witness-byte fixtures among
+64 `expected_rel_d0a=true` cases in public-d0a/d0. All three produced packets
+verify without a supplied key and match prover-generated key hashes. Width
+0/129/width+1 rejected for each. Largest fixture passes full trace constraint
+and bus precheck, then fails the n_stack=14 height bound (65,536 rows). No
+inference of relation invalidity or proof-system impossibility follows.
+
+The 3 MB sidecar concern is addressed for these three cases by local derivation;
+security for the profile family and full NEAR support remain open. Receipt and
+receipt-SHA tables consume 89.5% of the largest trace. This changes priority:
+measure representation/commitment acceleration, not further small-fixture tuning.
+Runner and captured reports/logs are in tail-architecture/evidence/live-native.
+Scratch contains full trace dumps; committed evidence excludes these large files.

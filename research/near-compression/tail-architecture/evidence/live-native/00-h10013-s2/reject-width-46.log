@@ -1,0 +1,7 @@
+PUBLIC_TAPE_DIGEST d3c7af08a76da9c342ed0b438bd45debefc6323e6fdc8093fb4732853e8a4404da3eb829361efe9351a0
+PUBLIC_TAPE_DIGEST d3c7af08a76da9c342ed0b438bd45debefc6323e6fdc8093fb4732853e8a4404da3eb829361efe9351a0
+PUBLIC_TAPE_DIGEST d3c7af08a76da9c342ed0b438bd45debefc6323e6fdc8093fb4732853e8a4404da3eb829361efe9351a0
+
+thread 'main' (496645) panicked at src/frontend_bounded_live.rs:372:174:
+called `Result::unwrap()` on an `Err` value: BatchConstraintError(GkrNumeratorMismatch { claim: BinomialExtensionField { value: [1632445383, 546549422, 1074418838, 858068896, 284903491, 456268881, 1372117098, 1627933509, 805141404, 375628327, 1919537285, 1337270823], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

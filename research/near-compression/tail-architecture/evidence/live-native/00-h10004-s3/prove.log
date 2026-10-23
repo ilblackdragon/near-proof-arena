@@ -1,0 +1,42 @@
+TABLE sha_t    width 544 height 2^10 cells    557056 constraints 1028 interactions  17 deg 4 pubs 0
+TABLE sha_r    width 544 height 2^9  cells    278528 constraints 1028 interactions  17 deg 4 pubs 0
+TABLE node     width 188 height 2^8  cells     48128 constraints  480 interactions  23 deg 4 pubs 0
+TABLE head     width  73 height 2^6  cells      4672 constraints   88 interactions   8 deg 3 pubs 0
+TABLE val      width  17 height 2^9  cells      8704 constraints   56 interactions   9 deg 4 pubs 0
+TABLE walk     width  56 height 2^4  cells       896 constraints   82 interactions   6 deg 4 pubs 0
+TABLE uniq     width  53 height 2^7  cells      6784 constraints   78 interactions   2 deg 4 pubs 0
+TABLE ups      width 202 height 2^10 cells    206848 constraints  638 interactions  19 deg 4 pubs 0
+TABLE chacha   width 272 height 2^2  cells      1088 constraints  381 interactions   4 deg 4 pubs 0
+TABLE rng      width 158 height 2^2  cells       632 constraints  200 interactions   2 deg 3 pubs 0
+TABLE shuf     width  77 height 2^2  cells       308 constraints   93 interactions   8 deg 3 pubs 0
+TABLE codec    width  91 height 2^9  cells     46592 constraints  255 interactions  16 deg 4 pubs 0
+TABLE scandist width 119 height 2^5  cells      3808 constraints  261 interactions  10 deg 4 pubs 0
+TABLE proc     width  64 height 2^5  cells      2048 constraints  119 interactions  11 deg 4 pubs 0
+TABLE mem      width  18 height 2^5  cells       576 constraints   45 interactions   4 deg 4 pubs 0
+TABLE cmp      width  33 height 2^6  cells      2112 constraints   33 interactions   1 deg 2 pubs 0
+TABLE rcpt     width 263 height 2^6  cells     16832 constraints  900 interactions  18 deg 4 pubs 198
+TABLE acct     width  16 height 2^2  cells        64 constraints   40 interactions  13 deg 4 pubs 0
+TABLE akey     width   7 height 2^2  cells        28 constraints   19 interactions   3 deg 3 pubs 0
+TABLE bnd      width   6 height 2^7  cells       768 constraints    5 interactions   3 deg 3 pubs 0
+TABLE srcp     width  63 height 2^9  cells     32256 constraints  134 interactions   5 deg 4 pubs 0
+TABLE size     width  57 height 2^2  cells       228 constraints   74 interactions   2 deg 4 pubs 202
+TABLE qv       width  52 height 2^2  cells       208 constraints  195 interactions  13 deg 6 pubs 30
+TABLE mrk      width  60 height 2^2  cells       240 constraints  144 interactions   5 deg 5 pubs 178
+TABLE sort     width  49 height 2^2  cells       196 constraints   66 interactions   1 deg 4 pubs 0
+TABLE TAPE     width  42 height 2^10 cells     43008 constraints    0 interactions   6 deg 0 pubs 0 (cached)
+CELLS 1262608; all 25 classical tables + TAPE; tape keys 671
+PRECHECK OK: every constraint on every row; every bus balances (4245 distinct messages)
+ADAPTIVE_COLUMNS_COMMIT coordinates=62868 seconds=2.535993
+PUBLIC_TAPE_DIGEST 5952f8778f570757e307fdbd6be7f5324f14325cafcaf4af986fe0f3f98aa4101b219382a9308cb38e45
+PUBLIC_TAPE_DIGEST 5952f8778f570757e307fdbd6be7f5324f14325cafcaf4af986fe0f3f98aa4101b219382a9308cb38e45
+LIVE_STACKING_VERIFIED bytes=2320 core_s=0.042493 altered_polynomial_opening_round_shape_rejected=true
+GKR_LINEAR_PHASE layer=9 seconds=0.007792
+GKR_LAYER_PHASE layer=8 seconds=0.135868
+GKR_LINEAR_PHASE layer=7 seconds=0.007122
+GKR_LAYER_PHASE layer=6 seconds=0.152796
+GKR_LINEAR_PHASE layer=5 seconds=0.007526
+GKR_LAYER_PHASE layer=4 seconds=0.155866
+GKR_LINEAR_PHASE layer=3 seconds=0.008228
+GKR_LAYER_PHASE layer=2 seconds=0.134226
+GKR_LINEAR_PHASE layer=1 seconds=0.005265
+{"capture_files_read":false,"commitments_reused":true,"compile_s":0.291403149,"context_s":0.393644673,"endpoint":{"circuit_evaluation_s":0.015017091,"circuit_sha384":"fe1be8ec5b18a758ea6a262988e4c7d5c1c2cfe0ff836319c76d9d8c3d0754974c759797b2a48632495d72ab5939af74","codec_preserves_original_messages":true,"compact_wire_bytes":21216,"decode_s":0.006245213,"decoded_proof_verified":true,"layers":9,"limitations":["Caller must derive public circuit from verified frontend context.","Explicit input oracle, no hiding or input commitment authentication.","Diagnostic SHA384 transcript; no concrete Fiat-Shamir/QROM bound.","Single-thread component timings exclude circuit compilation and JSON parsing, and are not chunk end-to-end latency."],"proving_s":0.622232878,"status":"SPARSE_ENDPOINT_GKR_WITH_EXPLICIT_ORACLE_NOT_ZK_OR_PCS","sumcheck_rounds":187,"tampered_round_input_linear_endpoint_and_line_rejected":true,"verification_s":0.043683721},"endpoint_including_checks_s":0.839214067,"frontend_and_stacking_proving_s":7.741323412,"generated_key_json_bytes":3045746,"generated_key_sha384":"57b18e9ebc47ab4f3a74264542db520a0564b3ec36b711e7fcd28fffa8083c2705669b0f88e1654249fb34c38d9f95ef","limitations":["No original base WHIR or transitional explicit-vector verification; separate packet verification is required.","Input is prepared trace dump, not execution from original chunk witness.","D0a only; no ZK or complete PQ bound; verifier derives key from trusted AIR, claim and declared profile."],"packet_bytes":258792,"shared":{"commitments_recomputed":false,"preparation_s":0.183439505,"shared_bytes":2208,"shared_proving_s":0.058348219,"shared_verification_s":0.003939584,"status":"SHARED_OPENING_FROM_RETAINED_PCS","total_s":5.4898036040000004,"whir_bytes":200758,"whir_proving_s":5.230218095,"whir_verification_s":0.00144513},"status":"SINGLE_PASS_DECLARED_PROFILE_PACKET_FROM_PREPARED_TRACE","total_s":14.8298783}

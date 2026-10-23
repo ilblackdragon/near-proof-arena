@@ -1,9 +1,33 @@
 # PQ tail architecture experiment
 
 Branch `lane/pq-tail-architecture`, base `8ac3de9f6`. Target: a recursively composable,
-post-quantum proof below **300,000 bytes**, with proving throughput matching chunk
-arrival and bounded finalization latency. Neither recursion nor PQ security is
+post-quantum proof below **300,000 bytes**, with the final proof ready **within 1–2 seconds of the chunk**
+(user clarification), as well as sustained throughput matching chunk arrival. Neither recursion nor PQ security is
 established by the current diagnostic packet.
+
+## Latest live screen
+
+The newer declared-profile packet derives its key locally from trusted AIR,
+expected claim and a four-byte width selector. Independently rebuilt/replayed
+three original-witness cases: **258,792 / 274,763 / 279,454 B**; no supplied key,
+prover/verifier key hashes agree, all nine width mutations rejected. Thus a
+3 MB key sidecar is not inherently required.
+
+Proof-ready wall times were **17.26 / 20.10 / 20.86 s** on a loaded host.
+Native CPU compilation accelerates the build relative to generic settings,
+but concurrent aggregation prevents a clean performance comparison.
+The largest honest D0a witness tested creates **156,624,112 cells** and passes
+constraint/bus precheck, then fails the fixed profile's 65,536-row capacity.
+No proof exists for that case in this screen. **None meets the 2 s deadline.**
+Evidence: `evidence/live-native/audit.json`; runner: `audit_live.py`.
+
+The next architectural bottleneck is the work representation: receipt and
+receipt-SHA tables account for 140,247,040 cells (89.5%) in that large case.
+Study direct byte/word constraints and specialized hash proving, coupled with
+a GPU commitment/opening path. Do not merely enlarge the profile and call
+small-fixture timing representative of NEAR. Existing Binius component trials
+in `results/swirl-security-review` use diagnostic security settings and are
+not a complete replacement; keep the terminal compression/security gates.
 
 ## Start from the authenticated endpoint
 

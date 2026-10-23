@@ -1,0 +1,26 @@
+statedump: table  0 sha_t     classical log 13 used rows     2950 -> log 12 width 544: classical constraints ok
+statedump: table  1 sha_r     classical log 19 used rows   102335 -> log 17 width 544: classical constraints ok
+statedump: table  2 node      classical log 13 used rows     2689 -> log 12 width 188: classical constraints ok
+statedump: table  3 head      classical log  7 used rows       32 -> log  6 width  73: classical constraints ok
+statedump: table  4 val       classical log 13 used rows     1309 -> log 11 width  17: classical constraints ok
+statedump: table  5 walk      classical log 19 used rows    77028 -> log 17 width  56: classical constraints ok
+statedump: table  6 uniq      classical log 13 used rows     1760 -> log 11 width  53: classical constraints ok
+statedump: table  7 ups       classical log 10 used rows      689 -> log 10 width 202: classical constraints ok
+statedump: table  8 chacha    classical log  1 used rows        0 -> log  2 width 272: classical constraints ok
+statedump: table  9 rng       classical log  1 used rows        0 -> log  2 width 158: classical constraints ok
+statedump: table 10 shuf      classical log  1 used rows        0 -> log  2 width  77: classical constraints ok
+statedump: table 11 codec     classical log 22 used rows      453 -> log  9 width  91: classical constraints ok
+statedump: table 12 scandist  classical log 22 used rows       28 -> log  5 width 119: classical constraints ok
+statedump: table 13 proc      classical log 22 used rows       17 -> log  5 width  64: classical constraints ok
+statedump: table 14 mem       classical log 22 used rows       24 -> log  5 width  18: classical constraints ok
+statedump: table 15 cmp       classical log 22 used rows       49 -> log  6 width  33: classical constraints ok
+statedump: table 16 rcpt      classical log 22 used rows   156410 -> log 18 width 263: classical constraints ok
+statedump: table 17 acct      classical log 10 used rows      160 -> log  8 width  16: classical constraints ok
+statedump: table 18 akey      classical log  7 used rows       90 -> log  7 width   7: classical constraints ok
+statedump: table 19 bnd       classical log  7 used rows       65 -> log  7 width   6: classical constraints ok
+statedump: table 20 srcp      classical log 10 used rows      483 -> log  9 width  63: classical constraints ok
+statedump: table 21 size      classical log  4 used rows        3 -> log  2 width  57: classical constraints ok
+statedump: table 22 qv        classical log  7 used rows       89 -> log  7 width  52: classical constraints ok
+statedump: table 23 mrk       classical log 19 used rows    52037 -> log 16 width  60: classical constraints ok
+statedump: table 24 sort      classical log 16 used rows    26080 -> log 15 width  49: classical constraints ok
+statedump: d0a tape 4059 B, hint 155 B, 810 public messages, 4059 public inputs
