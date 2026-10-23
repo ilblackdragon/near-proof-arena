@@ -188,7 +188,35 @@ than the tree itself.
 2. **D3 join**: `storage_write` needs `TrieKey::ContractData`, which D1 does not cover — a D3-join, not
    a D1-join (`pq-gap-analysis` §4, verified).
 3. **Segment split correctness** for arbitrary `S` at receipt boundaries (`Segment.lean` fold lifted to
-   the PQ stack). **Sharpened 2026-10-23:** the AIR itself has *no* segment concept — `near-air-v3.json`
+   the PQ stack). **Status corrected 2026-10-23 — the Lean half of this is DONE, and it is stronger
+   than "receipt boundaries".** `spec/lean/v3/NearSpecV3/Wasm/Segment.lean` (111 lines) builds
+   (`lake build NearSpecV3.Wasm.Segment`, exit 0, 24 jobs) and its four theorems depend only on
+   `[propext, Classical.choice, Quot.sound]` — no `sorry`, no custom axioms:
+   * `seg_add`: `seg (a+b) = seg a` then `seg b`
+   * `run_seg`: `run (a+n) = seg a` then `run n`
+   * `foldSegments_eq_seg`: the segments run in sequence equal one `seg (Σ ks)`
+   * `run_foldSegments` (§3.1): `run (Σ ks + n) s = foldSegments ks s >>= run n` **for every split**
+   * `foldSegments_stop`: a segment that ends early makes later segments irrelevant
+
+   Two things follow. First, **the boundary rule is maximally permissive** — "a segment boundary may
+   fall between any two steps", with host calls, gas charge points and traps each being a single
+   `step`, so no step is ever split (`Segment.lean:15-18`). There is no receipt-boundary restriction
+   to prove. Second, `Segment.lean` is **orphaned**: nothing imports it (`grep -r "import
+   NearSpecV3.Wasm.Segment"` finds no file), so it is not in any default build target and had no
+   `.olean` until this session built it explicitly. Wiring it into `NearSpecV3.lean` is one line and
+   should be done so the result cannot silently rot.
+
+   **What is still missing is the PQ-stack lift, and the gap is now quantified.** `Segment.lean`'s
+   boundary state is the *whole* machine state `St` (`Machine.lean:278-303`): operand stack, frames,
+   linear-memory pages, globals, tables, element/data segments, gas, registers, logs, promises,
+   mock storage, action log, data-id counter. The aggregation layer's `RangeStmt` carries `ctx`,
+   segment index `a`, and two boundary states of `n_state` field elements — 2 in every test. So the
+   missing piece is an **injective encoding of `St` (a variable-length structure containing
+   `ByteArray`s) into a fixed field-vector width**, and a proof that it commutes with the segment
+   fold. That is a hash/commitment design, not a transcription exercise, which is why this is the
+   expensive step.
+
+   **Sharpened further:** the AIR itself has *no* segment concept — `near-air-v3.json`
    declares only `format/numBuses/numPub/tables/pubSegs/maxPub`, with no segment count, no range and no
    per-segment boundary declaration, and one base proof covers the whole chunk (25 tables, 3,391 used
    rows, `dump/heights.json`). The per-segment boundary state rides **bus 15**, which is a row-to-row
