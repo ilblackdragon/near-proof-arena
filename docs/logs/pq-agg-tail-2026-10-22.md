@@ -4,6 +4,14 @@ Session: `lane/pq-chunk-perf`, goal phase `p2-tail` → `p3-report`.
 Supersedes the "aggregation tree never measured above 4 leaves" note in
 `docs/logs/pq-1pgas-aggregation-tree-plan-2026-10-20.md`.
 
+**What the 299,967 B packet does and does not satisfy.** It is a **D0a-scope chunk** proof
+(`RESULT.json` `"scope": "D0a"`), 33 B under 300,000 B, independently verified and
+forgery-rejected. It is **not** a 1 Pgas proof: 1 Pgas needs ≈146 segments at 2^23
+ops/segment (see §7 item 5), and no real segment leaf exists (the tree leaves are `SegAir`
+Fibonacci fixtures). So the goal's "under 300 KB with independent verification" criterion is
+met *at D0a scope*, and is **not** met for the 1 Pgas objective. Nothing below should be read
+as closing that gap.
+
 ## 0. Headline, with the scope attached to each sentence
 
 | # | statement | basis |
