@@ -592,6 +592,16 @@ Still open, and each one is a real blocker rather than a formality:
      the margin is now measured in single-digit KB either way, so the 33 B slack in the base
      packet is real and insufficient, and "depth is free in bytes" does not carry to 268-bit
      targets, where the WHIR section is ~3× larger and the commit count decides the cap.
+
+     **The geometry does transfer, which is what makes the projection worth taking seriously.**
+     The measured agg node and the base packet's final layer have the *same* AIR shape:
+     `cols = 173` in both (`SETUP.json` `final_vk.inner.per_air[*].params.width.common_main` =
+     76 + 83 + 9 + 5), and `nvair_h = 2^20` in both (`L5_VERIFIED shapes=[(1048576,76),
+     (1048576,83), (128,9), (65536,5)]`). So the 368,177 B figure is not measuring a different
+     circuit — it is the same 173-column, 2^20-row node with 2 children instead of 1 and 2 WHIR
+     commits instead of 1. Those two differences are exactly the knobs the projection varies,
+     and both are individually measured. The remaining uncertainty is only whether the two
+     effects compose additively, which is what a single `COMMITS=1` run would settle.
    * **`X15=15` is mandatory and was silently wrong in the first run.** The odd factor is the
      6th positional argument of `WhirConfig::new_full`; `X15` defaults to 1, which changes the
      domain to `2^27` and makes every DKT certificate miss (`first_order=false` on all rounds).
