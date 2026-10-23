@@ -678,9 +678,17 @@ Still open, and each one is a real blocker rather than a formality:
    position-indexed nodes and a U-7 decision — see `pq-final-layer-model-2026-10-17.md:523–535`.
    The same lever also rescues the 2-child agg node: at `D = 2,921` (Route A) the 42 B config is
    2,119 B over, while 41 B is +971 B under and 32 B is +27,091 B under.
-   **Not yet measured**: no proof has been produced at 41 B, so the `C` term may move slightly
-   (its 42 B/digest assumption is what the law encodes). The next step is a single final-layer
-   run at `d = 41` to confirm `C` is unchanged, which is far cheaper than any tree run.
+   **Two blockers before this counts as a fix, both mechanical.**
+   (a) *The code refuses 41 B today.* `sha_levers()` (`sha384/config.rs:131`) asserts
+   `digest_bytes == 48 || digest_bytes == 42`, so `NEARPROOF_DIGEST_BYTES=41` panics. The
+   env lever exists and the wire path is width-generic (`digest_wire`, `truncate_digest` both
+   slice by `digest_bytes`), so this is a one-line relaxation plus a re-run — but it has not
+   been done, and the assertion exists to stop unanalysed widths, not by accident.
+   (b) *`C` is calibrated at 42 B.* The law `proof_bytes = 42·D + C` was validated on 7/7
+   proofs, all at 42 B; nothing here shows `C` is digest-width-invariant in its non-digit part.
+   The next step is therefore **one final-layer run at `d = 41`** to confirm `C` — costing a
+   single 500 s proving pass, not a tree run — before quoting the +2,934 B as realised margin.
+   Until that run exists, treat the table as arithmetic on the measured law, not as a result.
 4. **Do not buy larger-S runs.** More S buys the same 132,301 B root at linear cost; it
    cannot move the size question.
 5. **The two segment-sizings are reconciled: one is a unit error, not a disagreement.**
