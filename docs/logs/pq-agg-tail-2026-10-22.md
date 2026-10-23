@@ -601,15 +601,27 @@ Still open, and each one is a real blocker rather than a formality:
      packet is real and insufficient, and "depth is free in bytes" does not carry to 268-bit
      targets, where the WHIR section is ~3× larger and the commit count decides the cap.
 
-     **The geometry does transfer, which is what makes the projection worth taking seriously.**
-     The measured agg node and the base packet's final layer have the *same* AIR shape:
+     **The AIR geometry does transfer, but the query schedule does not — and the schedule
+     dominates WHIR bytes.** The agg node and the base final layer do share an AIR shape:
      `cols = 173` in both (`SETUP.json` `final_vk.inner.per_air[*].params.width.common_main` =
      76 + 83 + 9 + 5), and `nvair_h = 2^20` in both (`L5_VERIFIED shapes=[(1048576,76),
-     (1048576,83), (128,9), (65536,5)]`). So the 368,177 B figure is not measuring a different
-     circuit — it is the same 173-column, 2^20-row node with 2 children instead of 1 and 2 WHIR
-     commits instead of 1. Those two differences are exactly the knobs the projection varies,
-     and both are individually measured. The remaining uncertainty is only whether the two
-     effects compose additively, which is what a single `COMMITS=1` run would settle.
+     (1048576,83), (128,9), (65536,5)]`). But they do **not** share a WHIR schedule, and the
+     difference is larger than either child count or commit count:
+
+     | config | `k_first` | `log_final` | rounds | queries | WHIR bytes |
+     |---|---:|---:|---:|---|---:|
+     | base FINAL (`profile.rs`, `final_layer=true`) | 1 | 7 | 4 | `[41,38,29,23]` | 230,876 |
+     | agg as measured (`X15=1`) | 2 | 0 | 5 | `[68,43,32,25,21]` | 306,024 |
+
+     Round 0 carries the most weight, and 68/41 = 1.66×, which alone accounts for most of the
+     75 KB difference. So the earlier sentence in this log — that the two differ "only in child
+     count and WHIR commits" — is **wrong and is withdrawn**: `k_first = 1, log_final = 7` is what
+     `profile.rs` uses for a final layer, and **no completed agg run used it**. The 368,177 B
+     figure therefore measures a 2-child node at a *test-shaped* schedule, not at the production
+     final-layer schedule. What it does establish stands: 2 children prove, verify, and stay in
+     the same 173-column / 2^20-row geometry. What it does **not** establish is the production
+     byte total, and the projection below remains arithmetic on the size law rather than a
+     measurement of that node.
    * **`X15=15` is mandatory and was silently wrong in the first run.** The odd factor is the
      6th positional argument of `WhirConfig::new_full`; `X15` defaults to 1, which changes the
      domain to `2^27` and makes every DKT certificate miss (`first_order=false` on all rounds).
