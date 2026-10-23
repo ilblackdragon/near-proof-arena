@@ -17,8 +17,11 @@ import NearSpecV3.SHA512
 import NearSpecV3.Ed25519
 import NearSpecV3.ChallengeChunkV3Gas
 import NearSpecV3.ChallengeChunkV3Float
--- The L2 float kernel's directed test suite (137 kernel-decided cases). Imported here, not just
+-- The L2 float kernel's directed test suite (141 kernel-decided cases). Imported here, not just
 -- built on demand, so that `lake build` checks them: a wrong bit pattern in `Wasm/Float.lean`
 -- then breaks the build instead of only a downstream corpus run.
 import NearSpecV3.Wasm.FloatTests
 import NearSpecV3.StorageBound
+import NearSpecV3.D3.CryptoDomain
+import NearSpecV3.Wasm.CryptoHost
+import NearSpecV3.D3.GlobalContractExec

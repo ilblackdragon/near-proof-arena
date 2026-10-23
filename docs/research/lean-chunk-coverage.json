@@ -2043,7 +2043,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "wasmparser float opcode set",
       "owner": "L2",
-      "remaining_work": "operator semantics anchored to pinned nearcore: 1,260 directed triples through its own engine plus 210 gas modules (oracle/wasm-d3/tests/float_nearcore.py), and 79,742 directed + 1,120 generated cases x 4 seeds against the Python IEEE reference; NOT proved equivalent, and whole-chunk coverage is 26 recorded float chunks",
+      "remaining_work": "operator semantics anchored to pinned nearcore: 1,260 directed triples through its own engine plus 210 gas modules (oracle/wasm-d3/tests/float_nearcore.py), and 79,742 directed cases/seed + 1,120 generated cases total over 4 seeds against the Python IEEE reference; NOT proved equivalent, and whole-chunk coverage is 26 recorded float chunks",
       "status": "implemented"
     },
     {
@@ -2085,7 +2085,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "prepare_v3.rs:397-470 (validate_contract); finite-wasm",
       "owner": "L2",
-      "remaining_work": "implemented for the whole operator set; 160 recorded e.float chunks replay through the whole-chunk checker (oracle/wasm-d3/tests/chunk_float.py)",
+      "remaining_work": "implemented for the whole operator set; 20 float-blocked chunks lifted in the d3c9 whole-chunk test (oracle/wasm-d3/tests/chunk_float.py); 125 float domain moves in the full replay",
       "status": "implemented"
     },
     {
@@ -2099,7 +2099,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "Exec.lean; Validate.lean; FiniteWasm.lean",
       "owner": "L2",
-      "remaining_work": "all four sites implemented and exercised through full chunks; the D3alpha relation is unchanged (checkD3F is a separate entry point)",
+      "remaining_work": "all four sites implemented; whole-chunk coverage still uses one float contract; the D3alpha relation is unchanged (checkD3F is a separate entry point)",
       "status": "implemented"
     },
     {

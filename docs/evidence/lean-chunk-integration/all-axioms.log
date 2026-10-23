@@ -1,0 +1,228 @@
+'NearSpecV3.relD3F_iff_acceptsD3F' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.checkD3F_characterization' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.checkD3F_eq_checkD3_of_cfg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.floatGuardImport_eq_of_noFloat' depends on axioms: [propext]
+'NearSpecV3.floatGuardGlobal_eq_of_noFloat' depends on axioms: [propext]
+'NearSpecV3.floatGuardBody_eq_of_noFloat' depends on axioms: [propext]
+'NearSpecV3.floatGuard_lifted' depends on axioms: [propext]
+'NearSpecV3.floatPv86_eq_pv86_iff' does not depend on any axioms
+'NearSpecV3.floatPv86_fields' does not depend on any axioms
+'NearSpecV3.Wasm.cryptoHosts_iff_curveHosts' depends on axioms: [propext]
+'NearSpecV3.Wasm.hostCall_no_arm' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Wasm.ed25519_not_excluded' does not depend on any axioms
+'NearSpecV3.Wasm.ed25519_has_arm' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.D3.L4.gci_encode_codeHash_eq' does not depend on any axioms
+'NearSpecV3.D3.L4.gci_encode_accountId_eq' does not depend on any axioms
+'NearSpecV3.D3.L4.legacyWallet_unreachable_pv86' depends on axioms: [propext]
+'NearSpecV3.D3.L4.ethImplicit_resolves_global' depends on axioms: [propext]
+'NearSpecV3.Logged.W.mapRes_cont' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Logged.W.mapRes_fin' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Logged.W.mapRes_abort' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Logged.W.mapRes_unmodeled' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Logged.W.exmap_ok' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Logged.W.exmap_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+/tmp/lean-chunk-integration-axioms.lean:26:14: error(lean.unknownIdentifier): Unknown constant `E_mk`
+/tmp/lean-chunk-integration-axioms.lean:27:14: error(lean.unknownIdentifier): Unknown constant `E_setFrame`
+/tmp/lean-chunk-integration-axioms.lean:28:14: error(lean.unknownIdentifier): Unknown constant `E_pushV`
+/tmp/lean-chunk-integration-axioms.lean:29:14: error(lean.unknownIdentifier): Unknown constant `E_pushI32`
+/tmp/lean-chunk-integration-axioms.lean:30:14: error(lean.unknownIdentifier): Unknown constant `E_pushI64`
+/tmp/lean-chunk-integration-axioms.lean:31:14: error(lean.unknownIdentifier): Unknown constant `E_popV`
+/tmp/lean-chunk-integration-axioms.lean:32:14: error(lean.unknownIdentifier): Unknown constant `E_popRef`
+/tmp/lean-chunk-integration-axioms.lean:33:14: error(lean.unknownIdentifier): Unknown constant `E_sync`
+/tmp/lean-chunk-integration-axioms.lean:34:14: error(lean.unknownIdentifier): Unknown constant `E_charge`
+/tmp/lean-chunk-integration-axioms.lean:35:14: error(lean.unknownIdentifier): Unknown constant `E_pushT`
+/tmp/lean-chunk-integration-axioms.lean:36:14: error(lean.unknownIdentifier): Unknown constant `E_execFloat`
+/tmp/lean-chunk-integration-axioms.lean:37:14: error(lean.unknownIdentifier): Unknown constant `forIn_E`
+/tmp/lean-chunk-integration-axioms.lean:38:14: error(lean.unknownIdentifier): Unknown constant `E_writeLE`
+/tmp/lean-chunk-integration-axioms.lean:39:14: error(lean.unknownIdentifier): Unknown constant `E_memFill`
+/tmp/lean-chunk-integration-axioms.lean:40:14: error(lean.unknownIdentifier): Unknown constant `E_memCopy`
+/tmp/lean-chunk-integration-axioms.lean:41:14: error(lean.unknownIdentifier): Unknown constant `E_memInit`
+/tmp/lean-chunk-integration-axioms.lean:42:14: error(lean.unknownIdentifier): Unknown constant `E_tableInit`
+/tmp/lean-chunk-integration-axioms.lean:43:14: error(lean.unknownIdentifier): Unknown constant `E_doReturn`
+/tmp/lean-chunk-integration-axioms.lean:44:14: error(lean.unknownIdentifier): Unknown constant `E_doBr`
+/tmp/lean-chunk-integration-axioms.lean:45:14: error(lean.unknownIdentifier): Unknown constant `E_enter`
+/tmp/lean-chunk-integration-axioms.lean:46:14: error(lean.unknownIdentifier): Unknown constant `E_execNum`
+/tmp/lean-chunk-integration-axioms.lean:47:14: error(lean.unknownIdentifier): Unknown constant `mapSt_E_run`
+/tmp/lean-chunk-integration-axioms.lean:48:14: error(lean.unknownIdentifier): Unknown constant `E_callHost`
+/tmp/lean-chunk-integration-axioms.lean:49:14: error(lean.unknownIdentifier): Unknown constant `E_callFunc`
+/tmp/lean-chunk-integration-axioms.lean:50:14: error(lean.unknownIdentifier): Unknown constant `E_exec`
+/tmp/lean-chunk-integration-axioms.lean:51:14: error(lean.unknownIdentifier): Unknown constant `E_topCount`
+/tmp/lean-chunk-integration-axioms.lean:52:14: error(lean.unknownIdentifier): Unknown constant `E_step`
+'NearSpecV3.P256.p_eq' does not depend on any axioms
+'NearSpecV3.P256.n_eq' does not depend on any axioms
+'NearSpecV3.P256.p_mod_four' does not depend on any axioms
+'NearSpecV3.P256.G_on_curve' does not depend on any axioms
+'NearSpecV3.P256.verify_false_of_sig_length' depends on axioms: [propext]
+'NearSpecV3.P256.verify_false_of_pk_length' depends on axioms: [propext]
+'NearSpecV3.P256.bits2field_none' depends on axioms: [propext]
+'NearSpecV3.P256.verify_false_of_sig_not_ok' depends on axioms: [propext]
+'NearSpecV3.Secp256k1.p_eq' does not depend on any axioms
+'NearSpecV3.Secp256k1.n_eq' does not depend on any axioms
+'NearSpecV3.Secp256k1.nHalfOne_eq' does not depend on any axioms
+'NearSpecV3.Secp256k1.p_mod_four' does not depend on any axioms
+'NearSpecV3.Secp256k1.G_on_curve' does not depend on any axioms
+'NearSpecV3.Secp256k1.G_not_inf' does not depend on any axioms
+'NearSpecV3.Secp256k1.recover_none_of_sig_length' depends on axioms: [propext]
+'NearSpecV3.Secp256k1.recover_none_of_hash_length' depends on axioms: [propext]
+'NearSpecV3.Secp256k1.recover_none_of_v' depends on axioms: [propext]
+'NearSpecV3.Secp256k1.checkSigValues_false_of_length' depends on axioms: [propext]
+'NearSpecV3.Secp256k1.checkSigValues_mono' depends on axioms: [propext]
+'NearSpecV3.StorageBound.limits_eq' does not depend on any axioms
+'NearSpecV3.StorageBound.perReceiptLimit_eq_lean' does not depend on any axioms
+'NearSpecV3.StorageBound.sumN_append' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.StorageBound.sumN_le_of_sublist' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.StorageBound.Rec.size_record_ge' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.StorageBound.Rec.size_removal_ge' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.StorageBound.Rec.size_le_recorded' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.StorageBound.Rec.guard_sufficient' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.StorageBound.removal_charge_can_exceed_limit' does not depend on any axioms
+'NearSpecV3.StorageBound.per_receipt_limit_does_not_bound_chunk' does not depend on any axioms
+'NearSpecV3.Wasm.add_nan_canonical_f32' depends on axioms: [propext]
+'NearSpecV3.Wasm.add_nan_canonical_f64' depends on axioms: [propext]
+'NearSpecV3.Wasm.qnan_f32_bits' depends on axioms: [propext]
+'NearSpecV3.Wasm.qnan_f64_bits' depends on axioms: [propext]
+'NearSpecV3.Wasm.abs_f32_payload' depends on axioms: [propext]
+'NearSpecV3.Wasm.neg_f32_payload' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.Wasm.copysign_f32_body' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Wasm.copysign_f32_sign' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Wasm.FloatTests.add_zeros' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.add_neg_zeros' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_self' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_zero' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.mul_zero_sign' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.mul_zero_neg' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.min_zeros' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.max_zeros' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_neg_zero' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.ceil_half_neg' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.floor_half' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nearest_neg_small' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_neg' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.minSub_abs' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_add_exact' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_underflow_tie' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_underflow_up' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_times_three' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_to_normal' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.normal_to_sub' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.maxSub_half' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.inf_from_sub' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.promote_minSub' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.demote_promote_minSub' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.f64_minSub_is_pow' does not depend on any axioms
+'NearSpecV3.Wasm.FloatTests.overflow_add' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.overflow_neg' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.inf_sub_inf' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.inf_mul_zero' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.zero_div_zero' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.inf_div_inf' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.one_div_zero' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.neg_one_div_zero' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.overflow_mul' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_inf' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_negative' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_half_f32' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_half_f64' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_two_f32' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_two_f64' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_half_f32_neighbour' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.ceil_inf' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nearest_neg_inf' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.f64_maxFin_exp' does not depend on any axioms
+'NearSpecV3.Wasm.FloatTests.f64_maxFin_frac' does not depend on any axioms
+'NearSpecV3.Wasm.FloatTests.roundPack_overflow' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.roundPack_maxFin' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.add_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.mul_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sub_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.div_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.min_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.max_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sqrt_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.ceil_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nearest_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.add_negative_nan' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.add_snan' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.promote_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.demote_payload_dropped' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.abs_payload_kept' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.neg_payload_kept' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.copysign_payload_kept' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.copysign_payload_kept2' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.reinterpret_f32_i32' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.reinterpret_i32_f32' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nan_ne' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nan_eq' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nan_lt' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nan_le' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.zeros_eq' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.zeros_lt' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nearest_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nearest_2_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nearest_3_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.nearest_neg_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.floor_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.ceil_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_neg_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.floor_neg_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.ceil_neg_1_5' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.add_tie_to_even' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.add_tie_up' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.convert_2_24_plus_1' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.convert_2_24_plus_3' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_s_max' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_s_min' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_s_over' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_u_max' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_u_over' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_u_neg' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_u_negative' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_nan_traps' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc_inf_traps' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc64_neg_traps' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc64_max' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.trunc64_over' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sat_nan' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sat_pos_over' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sat_neg_over' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sat_u_neg' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sat_u_pos' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sat64_nan' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.sat64_pos' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.convert_2_53_plus_1' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.convert_2_53_plus_3' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.convert_u64_max' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.convert_i32_s_exact' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_add' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_sub' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_mul' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_div' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_min' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_max' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_copysign' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_abs' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_neg' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_ceil' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_floor' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_trunc' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_nearest' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_eq' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_ne' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_lt' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_gt' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_le' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_ge' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_f64_add' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_f64_min' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_f64_sqrt' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_f64_copysign' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_promote' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.opcode_f64_convert_u' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.saturating_opcodes' does not depend on any axioms
+'NearSpecV3.Wasm.FloatTests.partial_opcodes' does not depend on any axioms
+'NearSpecV3.Wasm.FloatTests.min_neg_values' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.max_neg_values' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.min_nan_pair' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.min_inf' depends on axioms: [propext]
+'NearSpecV3.Wasm.FloatTests.max_inf' depends on axioms: [propext]

@@ -1,5 +1,7 @@
 # Handover — 2026-10-23
 
+Lean chunk lanes L0/L2/L3/L4/L5/L7 now have a combined progress checkpoint; L1 was already integrated. L6 is held for its soundness correction; L8 has no new committed work. See [integration status](logs/lean-chunk-integration-2026-10-23.md) for exact lane tips, validation and remaining gaps. Lane worktrees remain active; these merges certify no completion gate.
+
 Only unfinished work and shared rules belong here. Evidence/history: [logs](logs/).
 Remove completed items; update their logs instead. Old lane labels are not proof of live activity.
 

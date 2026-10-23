@@ -1,5 +1,7 @@
 # Lean chunk-transition coverage inventory (L0)
 
+Integration note (2026-10-23): the counts and lane descriptions below are the L0 analysis snapshot. The regenerated JSON now includes L2 float implementation and L3 partial crypto progress; see [combined checkpoint](../logs/lean-chunk-integration-2026-10-23.md). Remaining exclusions are not closed by merging additive modules.
+
 Readable summary of [`lean-chunk-coverage.json`](lean-chunk-coverage.json), the L0 deliverable in
 [`../requirements/LEAN_CHUNK_TRANSITION_PLAN.md`](../requirements/LEAN_CHUNK_TRANSITION_PLAN.md) §4.
 Owner **L0**; worktree `/data/illia/nearproof-wt/lean-chunk-L0`, branch `lane/lean-chunk-L0`, base

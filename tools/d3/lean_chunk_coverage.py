@@ -382,7 +382,7 @@ def inventory(repo, nearcore):
         "signed zero, subnormal, infinity, NaN payload and rounding-tie cases per opcode",
         "operator semantics anchored to pinned nearcore: 1,260 directed triples through its own "
         "engine plus 210 gas modules (oracle/wasm-d3/tests/float_nearcore.py), and 79,742 "
-        "directed + 1,120 generated cases x 4 seeds against the Python IEEE reference; NOT proved "
+        "directed cases/seed + 1,120 generated cases total over 4 seeds against the Python IEEE reference; NOT proved "
         "equivalent, and whole-chunk coverage is 26 recorded float chunks",
     ))
 
@@ -416,8 +416,8 @@ def inventory(repo, nearcore):
         "the body guard is gated on `!cfg.floats`; the finite-wasm max-stack and gas analyses "
         "handle float operators (FiniteWasm.lean; floatPartial is cvtop_partial)",
         "L2", "L0", "d3float run/cb",
-        "implemented for the whole operator set; 160 recorded e.float chunks replay through the "
-        "whole-chunk checker (oracle/wasm-d3/tests/chunk_float.py)",
+        "implemented for the whole operator set; 20 float-blocked chunks lifted in the d3c9 "
+        "whole-chunk test (oracle/wasm-d3/tests/chunk_float.py); 125 float domain moves in the full replay",
     ))
     rows.append(row(
         "L0-W-012", "wasm-exec", "Exec.lean; Validate.lean; FiniteWasm.lean",
@@ -425,7 +425,7 @@ def inventory(repo, nearcore):
         "Exec.lean's `.float` arm calls evalFloatOp, the only float entry point; Validate.lean "
         "gives the signatures; FiniteWasm.lean the stack and gas classification",
         "L2", "L0", "after L2 lifts prepare, exercise each site",
-        "all four sites implemented and exercised through full chunks; the D3alpha relation is "
+        "all four sites implemented; whole-chunk coverage still uses one float contract; the D3alpha relation is "
         "unchanged (checkD3F is a separate entry point)",
     ))
 
