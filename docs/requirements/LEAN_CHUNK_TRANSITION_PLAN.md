@@ -1,10 +1,10 @@
 # Full NEAR chunk transition in Lean and arena completion
 
-Date: 2026-10-23. Status: execution plan; no milestone below is newly certified by this document.
+Date: 2026-10-23. Status: in progress; merged checkpoints recorded below, no completion gate certified.
 Baseline: `05aee4479`. Sponsor direction: finish a proof-system-independent Lean chunk transition
 and arena so different succinct proof approaches can be researched against the same specification.
 
-> **Merged onto `main` 2026-10-23 as a plan only.** This document and its `docs/HANDOVER.md` pointer
+> **Initially merged onto `main` 2026-10-23 as a plan only.** This document and its `docs/HANDOVER.md` pointer
 > were merged; **no gate, milestone or workstream here is thereby certified**, and gates A/B/C remain
 > open exactly as the completion record at the end of this file states. Two things a reader on `main`
 > should know: (1) the `05aee4479` baseline is the *plan's* baseline, not `main`'s tip — `main` has
@@ -13,6 +13,19 @@ and arena so different succinct proof approaches can be researched against the s
 > checked to exist at merge time, and the figures in §2 (115,284 D3 cases; 407 public / 208 held-out)
 > are corroborated by `docs/logs/v3-progress-log-2026-10.md`, `spec/near-chunk-validation-d3.md` and
 > `docs/e2e-results/` — they are carried forward as cited evidence, not re-measured here.
+
+### Progress snapshot — main at `b2f83fe76` (2026-10-23)
+
+L0, L2, L3, L4, L5 and L7 checkpoints are merged and pushed; L1 was already merged.
+L6 is held back for a soundness correction; L8 has no additional committed work. Lane worktrees
+remain active for continued development and later reconciliation. **No lane is certified complete.**
+The checked items in §4 record completed sub-deliverables, not satisfaction of a lane's full acceptance.
+
+The [integration record](../logs/lean-chunk-integration-2026-10-23.md) identifies exact lane tips
+and evidence. On the combined tree, the root and oracle-driver builds, changed logged-execution
+closure, 201-theorem axiom audit, 28 harness unit tests, focused float/crypto tests, coverage drift
+check and `make pin-check` passed. The corpus manifest verified 18 families; historical full replay
+results are carried forward from lane logs, not claimed as a fresh full integration replay.
 
 ## 1. Objective and target
 
@@ -120,11 +133,18 @@ All of the following must hold. This gate can close before full semantic coverag
 
 ## 4. Workstreams and ownership boundaries
 
-All workstreams are initially **unassigned**. Claim ownership in a lane log before editing shared
-modules. No lane may report completion using only a README, an axiom-clean conditional theorem,
+Workstreams were initially unassigned; the lane logs and integration record now identify the
+active checkpoints. Claim or reconcile ownership in a lane log before editing shared modules. No lane may report completion using only a README, an axiom-clean conditional theorem,
 or a successful test that never exercises the new semantic path.
 
 ### L0 — boundary and coverage inventory
+
+**Progress at `b2f83fe76`:**
+
+- [x] Merged the inventory, readable boundary analysis and drift-gated generator; the combined inventory has **219 unique rows** (`1d242e6c2`).
+- [ ] Resolve outstanding boundary questions and exclusions; inventory existence does not establish exhaustive validated coverage.
+
+Evidence: [L0 log](../logs/lean-chunk-L0-2026-10-23.md), [current inventory](../research/lean-chunk-coverage.json).
 
 Start: `spec/lean/v3/NearSpecV3/{ChunkValidationD2,D3/FunctionCall,Wasm/Exec}.lean`, the domain
 specifications, pinned nearcore `validate_chunk_state_witness`, claim codec and trusted-fact schema.
@@ -142,6 +162,13 @@ boundary questions explicitly; Gate B cannot pass with one unresolved.
 
 ### L1 — canonical relation and prover-independent capacity
 
+**Progress at `b2f83fe76`:**
+
+- [x] Merged the additive protocol-gas successor and axiom-free cap comparison facts (`a5ef42e0c`); signed `RelD3`/`gAlpha` remain unchanged.
+- [ ] Demonstrate an accepted chunk above the old cap; prove tier nesting and overlap agreement; audit termination, fuel, stack safety and protocol-scale resources.
+
+Evidence: [L1 log](../logs/lean-chunk-L1-2026-10-23.md). The larger bound alone does not close this lane.
+
 Start: `NearSpecV3/ChallengeChunkV3.lean`, `D3/FunctionCall.lean`, `Scope` research definitions,
 `formal-core/ArenaCore/Admission.lean` and candidate model/certificate patterns.
 
@@ -158,6 +185,15 @@ No prover-specific AIR, commitment or recursion implementation may be required b
 
 ### L2 — floating-point Wasm
 
+**Progress at `b2f83fe76`:**
+
+- [x] Merged pure Lean bit-pattern semantics for all **70 no-immediate float opcodes**, plus constants, loads/stores, preparation, validation and gas analysis; additive `checkD3F` and protocol-gas composition (`2816a0882`).
+- [x] Added **141 kernel-checked tests**. Recorded nearcore checks cover 1,260 operator cases, 210 gas modules and 140 prepared-module sizes with zero disagreements.
+- [x] Completed the recorded **115,284-case D3 replay**: zero baseline regressions, 125 expected float-domain moves, zero unexpected moves. Focused whole-chunk tests lifted 20 cases and rejected 80/80 tampered inputs.
+- [ ] Expand generated whole-chunk coverage beyond the single `d3float` contract; prove chunk-level overlap agreement (currently tested, with guard-level agreement proved).
+
+Evidence: [L2 log](../logs/lean-chunk-L2-2026-10-23.md). Lean-to-nearcore agreement is testing, not a refinement theorem.
+
 Deliver all target-accepted f32/f64 operations, conversions, comparisons, reinterpretations and
 preparation rules with exact pinned NaN, rounding and trap behaviour.
 
@@ -167,6 +203,13 @@ bit-preserving operations. Test gas and outcomes through full chunks, not just i
 No native floating-point shortcut may bypass the certified executable semantics.
 
 ### L3 — cryptographic and key coverage
+
+**Progress at `b2f83fe76`:**
+
+- [x] Merged `ecrecover` and `p256_verify` arithmetic and additive host implementations, source inventory and directed tests (`51ddfaff1`). Integration reran 161 ecrecover vectors, 20 edge and 23 host cases, plus 17 p256 vector/gate and 13 host cases, with zero failures.
+- [ ] Wire these hosts into a successor accepted chunk path and validate valid/invalid whole chunks; implement remaining crypto/key families and their required generated/boundary tests. Both implemented host families remain **partial** in the inventory.
+
+Evidence: [L3 log](../logs/lean-chunk-L3-2026-10-23.md).
 
 Inventory actual missing paths before implementation: curve hosts (`ecrecover`, `ed25519_verify`,
 `p256_verify`, `alt_bn128_*`, `bls12381_*`), secp256k1 transactions/delegates and ML-DSA key/signature
@@ -179,6 +222,13 @@ entry path. No verifier-result oracle or “signature valid” hypothesis substi
 
 ### L4 — missing actions, hosts and contract resolution
 
+**Progress at `b2f83fe76`:**
+
+- [x] Merged additive global-contract/state-init codecs, identifier resolution, fees and action bodies for tags 9/10/11 (`41b98f2bd`); modules now compile in the root build.
+- [ ] Integrate successor chunk dispatch and validate fees, receipts, rollback, resolution and cache behaviour through whole chunks; complete the remaining reachable host/action paths. Existing chunk dispatch still excludes the new actions.
+
+Evidence: [integration record](../logs/lean-chunk-integration-2026-10-23.md), [action module](../../spec/lean/v3/NearSpecV3/D3/GlobalContractExec.lean).
+
 Cover global-contract deployment/use/distribution, deterministic state-init actions, excluded gas-key
 and related host paths, ETH-implicit wallet execution, and code deployment/cache/preparation cases.
 L0 determines the exact reachable list; host imports alone do not establish executed coverage.
@@ -189,6 +239,13 @@ environment or a justified deterministic boundary, not an undocumented cold-cach
 Test same-chunk deploy/call, rolled-back deploy, postponed calls and missing code blobs.
 
 ### L5 — storage accounting and protocol resource boundaries
+
+**Progress at `b2f83fe76`:**
+
+- [x] Merged storage-bound analysis and kernel-checked facts distinguishing the conservative witness bound from protocol per-receipt limits (`a98bd9965`).
+- [ ] Implement actual accounting/exhaustion semantics and validate below/at/above-limit cases, rollback, exact gas/roots and resource use. The existing exclusion has not been removed.
+
+Evidence: [L5 log](../logs/lean-chunk-L5-2026-10-23.md).
 
 Replace conservative witness restrictions that avoid storage-proof exhaustion with actual accounting
 and failure semantics. Audit trie read caching, writes/removals, rollback, code reads and implicit
@@ -201,6 +258,13 @@ Record maximum supported fixture runtime/memory for judge budgeting; resource fa
 
 ### L6 — resharding and remaining validator boundary cases
 
+**Progress at `b2f83fe76`:**
+
+- [ ] **Held back from main:** the genesis-checker/resharding-analysis checkpoint `df9112f88` is not ready. The lane's uncommitted correction documents **307 header mutants wrongly accepted** by the committed checker. Commit and validate the correction before integration.
+- [ ] Deliver actual resharding/split transitions and validator-generated boundary fixtures; the boundary analysis alone does not implement them.
+
+Evidence: [integration holdback record](../logs/lean-chunk-integration-2026-10-23.md). Uncommitted lane work is preserved, not certified here.
+
 Deliver shard-layout transitions, split gates, resharding witness processing and any genesis/segment
 paths L0 establishes as reachable. Extend the successor claim format only when required, documenting
 how each added fact is authenticated and why the existing format cannot express it.
@@ -211,6 +275,14 @@ negatives. Compare all intermediate roots and final outputs. No blanket same-lay
 
 ### L7 — differential validation and integration
 
+**Progress at `b2f83fe76`:**
+
+- [x] Merged corpus manifests, verification tooling, measured regression evidence and readiness assessment (`0cf6f3491`); integration verified all 18 manifest families and reran 28 harness self-tests.
+- [x] Recorded validation gaps, including the UQ-014 engine `LoadingError` divergence, rather than treating them as passed coverage.
+- [ ] Complete per-family generated whole-chunk coverage, observable comparisons, all unresolved disagreements and the 1,000-consecutive-block/all-shard validator-witness replay. Later uncommitted audit/harness updates remain in the lane.
+
+Evidence: [L7 log](../logs/lean-chunk-L7-2026-10-23.md), [readiness assessment](../evidence/lean-chunk-L7/readiness-assessment.md).
+
 Own the common harness, fixtures, coverage reports and combined regressions in §5. Help each lane
 obtain independently generated nearcore outcomes. Do not repair disagreements by relaxing comparisons
 or allowing formerly valid cases to become unsupported.
@@ -220,6 +292,12 @@ provenance, zero unexplained differences, and explicit reachability of every inv
 validated. A percentage of module coverage is not a substitute for semantic-path coverage.
 
 ### L8 — reference admission and arena release
+
+**Progress at `b2f83fe76`:**
+
+- [ ] No additional committed L8 checkpoint was available at integration. Verify artifact-bound live admission evidence for Gate A; successor packaging and Gate C remain open.
+
+Evidence: [integration record](../logs/lean-chunk-integration-2026-10-23.md). Historical admission/deployment evidence in §2 is not a new certification.
 
 Can start Gate A now. Inspect existing reports before repeating completed expensive checks.
 After semantic integration, package the successor reference and complete Gate C.
@@ -294,10 +372,10 @@ uncommitted work. Keep logs in `docs/logs/` and link the current plan from the h
 
 ### Completion record
 
-| Gate | Status at plan creation | Required evidence owner |
+| Gate | Status after progress integration (`b2f83fe76`) | Required evidence owner |
 |---|---|---|
-| A restricted research arena | Not certified by this audit; substantial prior evidence exists | L8 |
-| B full executable PV86 transition | Open; known semantic exclusions remain | L0 plus L1–L7 |
+| A restricted research arena | Open / not newly certified; prior evidence still requires exact-package live admission verification | L8 |
+| B full executable PV86 transition | Open; merged partial progress above, semantic exclusions and validation obligations remain; L6 held back | L0 plus L1–L7 |
 | C full transition arena release | Blocked on B and successor admission | L8/integration owner |
 
 Closing a gate requires links to the exact evidence above and a recorded release/commit identity.
