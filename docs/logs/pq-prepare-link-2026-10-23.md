@@ -368,3 +368,27 @@ The premise with real extra content is artifact acceptance (`check_iff`).
   `nearAirV3D3`; the soundness objective was met without it, but the AIR remains unbuilt.
 * `WasmRunStmt`'s host correspondence — the tautological conjunct is gone, and the honest replacement
   needs the HOST message tape in `WasmBase.HostChip`.
+
+## Status against the objective's six criteria, honestly
+
+| # | criterion | status | evidence |
+|---|---|---|---|
+| 1 | D3 soundness kernel-checked, no sorry/extra axioms | **met** | `ArtifactSound.artifact_sound_decoded` against `Model.verifier.deployed` (= shipped binary by `deployed_eq`/`rfl`); axioms `{propext, Classical.choice, Quot.sound}` |
+| 2 | verifier proven correct, proof attached to artifact | **met** | `artifact_binding`, `artifact_complete`, plus `check_iff`/`relD3_of_check`/`relD3_of_check_via_check_sound`; all `[K]`, 10 audits pass |
+| 3 | pipeline runs chunk→preparation→(toward) recursion, matching decomposition | **met for chunk→prep→verify**; **recursion is "toward"** | this run: prepare/prove/verify all RC=0. `ZkFormal.PQ.Aggregation` (`d3Stmt_tree_sound`, `certified_root`) is the recursion base and is `[K]`, but the aggregation *AIR* is not built — the pipeline does not aggregate |
+| 4 | chunk→preparation non-vacuous, exercises RelD3 | **met at the honest level** | the link is `runCall_done_prepare_ok` (`[K]`, one-way); the non-vacuous *join* is `Read.check` → `RelD3`, now separated by witness (172/172) |
+| 5 | recursion foundation on a proven base | **met** | six `d3Stmt_*` theorems, axiom-clean, audited in `D3RecursionAudit.lean` |
+| 6 | repo compliance: location, Mathlib-free, evidence classes | **met** | all files under `/data/illia/nearproof`; no Mathlib import added; every row above carries a class |
+
+### The three things this lane did *not* close, stated plainly
+
+1. **`compose_pv86` is not the non-vacuous join** and its docstring now says so. The replacement
+   candidate is `Read.check`, which is separated by witness.
+2. **The hook-level lift is `[O]`.** `runCall_done_prepare_ok` is `[K]` at the `Run`/`prepare` level;
+   lifting it through `functionCall`'s do-block (where `codeB` is computed inside the block) is a
+   finite case walk that is not done. `Final.lean`'s `functionCall_ok_prepare_ok` still ends in
+   `sorry` and is deliberately untracked.
+3. **The D3 AIR does not exist.** `phase-d3-air`'s `t6` was closed by scope substitution — the
+   soundness objective was met without an AIR — but `nearAirV3D3`/`rcptV3D3`/`airD3` have zero hits
+   repo-wide. A succinct proof is not delivered by this lane; the shipped tier is witness
+   re-execution (`D3a`, 5438 B proof for a 6419 B claim).
