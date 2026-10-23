@@ -11,10 +11,16 @@ Families (each with directed edge values plus generated cases):
     infinities, canonical and non-canonical NaNs (both signs), rounding ties in the last bit,
     conversion boundaries (2^31, 2^32-1, 2^63, 2^64-1 and one step past each), trap boundaries.
 
-With `--nearcore`, an equally sized subsample is additionally executed by pinned nearcore's own
-engine through `oracle/wasm-d3` (a real Wasm module per opcode, real instrumented gas): see
+With `--nearcore`, a subsample is additionally executed by pinned nearcore's own engine through
+`oracle/wasm-d3` (a real Wasm module per opcode; values, trap kinds and burnt/used gas):
 `float_nearcore.py`. Without it, the reference is the Python statement of IEEE plus the two rules
-nearcore's engine configuration fixes (canonical NaNs; bit-preserving abs/neg/copysign/reinterpret).
+nearcore's engine configuration fixes (canonical NaNs; bit-preserving
+abs/neg/copysign/reinterpret).
+
+Test budget. The plan's §5 item 3 asks for ≥ 1,000 generated comparisons per new semantic family
+over ≥ 4 seeds. The float family is one family of 70 opcodes, so `--cases 4` generates
+70 × 4 = 280 cases per seed and 1,120 over seeds 1–4; the directed block (every ordered pair of the
+23 f32 / 17 f64 edge values for every opcode) adds 79,462 cases on top and is run once per seed.
 
 Exit 1 on any disagreement.
 """

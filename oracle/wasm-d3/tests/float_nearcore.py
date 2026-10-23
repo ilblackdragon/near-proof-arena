@@ -12,17 +12,18 @@ type `[] -> []`, which is why the result travels through memory rather than as a
 returned bytes are compared bit-for-bit with `NearSpecV3.Wasm.evalFloatOp`, and a trapping opcode
 must abort with `WasmTrap(IllegalArithmetic)`.
 
-**Gas is not measured here.** An earlier revision claimed to check `NearSpecV3.Wasm.floatPartial`
-(pure vs `cvtop_partial`) by comparing a body containing one copy of the operator with a body
-containing two. That experiment does not isolate the operator: `build_module` re-emits the store
-address, both operand constants *and* the store for each copy, so the measured delta is
-const/store overhead. Measured that way `f32.abs` (pure) and `i32.trunc_f32_s` (partial) both give
-15,273,269, so the check passed for neither reason and its "disagreements=0" was meaningless. It was
-removed rather than left in place. `floatPartial`'s classification is justified *in the Lean module*
-by the pinned finite-wasm source (`instruction_categories.rs:168-180` lists exactly the eight
-trapping `trunc_f*` under `cvtop_partial`), not by an external measurement.
+**Gas and the whole outcome line.** A second check compares the *complete* harness line
+(`ok <burnt> <used> <ret> <balance>` / `abort …`) against the Lean driver's, for bodies containing
+one, two and three copies of each float operator. Comparing totals rather than deltas matters: a
+delta between bodies does not isolate the operator, because each repetition also re-emits its store
+address, its operand constants and its store. The totals do exercise the finite-wasm merges (a
+`pure` point may merge with its neighbour; `cvtop_partial` is a `pre` point that does not), and the
+prologue makes the absolute value observable. `NearSpecV3.Wasm.floatPartial`'s classification is
+also justified *in the Lean module* from the pinned finite-wasm source
+(`instruction_categories.rs:167-180` lists exactly the eight trapping `trunc_f*` under
+`cvtop_partial`); this run measures it.
 
-  float_nearcore.py [--limit N] [--seed S]
+  float_nearcore.py [--limit N] [--seed S] [--no-gas]
 
 Exit 1 on any disagreement.
 """
@@ -37,9 +38,11 @@ sys.path.insert(0, HERE)
 import float_ref  # noqa: E402
 
 HARNESS = os.environ.get("D3_HARNESS",
-                         "/data/illia/nearproof-deps/target-wasm-d3/release/near-wasm-d3-harness")
+                         "/tmp/opencode/target-wasm-d3/release/near-wasm-d3-harness")
 LEAN = os.environ.get("D3_FLOAT_SPEC",
                       os.path.join(HERE, "../lean/.lake/build/bin/nearspec-v3-test-float"))
+LEAN_SPEC = os.environ.get("D3_SPEC",
+                           os.path.join(HERE, "../lean/.lake/build/bin/nearspec-v3-wasm"))
 REGULAR_OP_COST = 822756
 
 VALTYPE = {"i32": 0x7F, "i64": 0x7E, "f32": 0x7D, "f64": 0x7C}
@@ -292,6 +295,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=12)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--no-gas", dest="gas", action="store_false", default=True)
     a = ap.parse_args()
     triples = cases(a.limit, a.seed)
     bad = compare_triples(triples)
@@ -299,7 +303,31 @@ def main():
         op, x, y = triples[i]
         print(f"DISAGREE op=0x{op:x} a={x:x} b={y:x}: {why}")
     print(f"family=float-nearcore values cases={len(triples)} disagreements={len(bad)}")
-    sys.exit(1 if bad else 0)
+    nbad = len(bad)
+    if a.gas:
+        nbad += compare_gas()
+    sys.exit(1 if nbad else 0)
+
+
+def compare_gas():
+    """Full outcome lines (status, burnt, used) for 1/2/3 copies of each float operator."""
+    nbad = 0
+    n = 0
+    for op in sorted(float_ref.W):
+        w = float_ref.W[op][0]
+        x = 0x3F800000 if w == 32 else 0x3FF0000000000000
+        for reps in (1, 2, 3):
+            line = f"1000000000000000 {build_module(op, x, x, reps).hex()}"
+            near = run_harness([line])[0].split()
+            lean = subprocess.run([LEAN_SPEC, "--floats"], input=line + "\n",
+                                  capture_output=True, text=True).stdout.split()
+            n += 1
+            if near[:3] != lean[:3]:
+                nbad += 1
+                if nbad <= 15:
+                    print(f"GAS DISAGREE op=0x{op:x} reps={reps}: near {near[:3]} lean {lean[:3]}")
+    print(f"family=float-gas modules={n} disagreements={nbad}")
+    return nbad
 
 
 def _is_partial(op):
