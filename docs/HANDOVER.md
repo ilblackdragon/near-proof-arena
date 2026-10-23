@@ -178,6 +178,29 @@ Full detail, with the scope attached to every number, is in
   7–14 s incrementally and the rebuilt binary verifies the packet in 2.74 s
   (`INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true`). It is **not** bit-identical to
   the base run's binary.
+* **Verify time is ~1.5 s and is not the bottleneck.** Measured directly on the rebuilt binary:
+  **1.46–1.58 s at 32 threads**, 1.78 s at 8, **7.65–7.72 s pinned to one core**; peak RSS
+  365 MB → 496 MB as threads rise. Scaling is 4.3× from 1→8 threads but only 1.2× from 8→32, so
+  the verifier is latency-bound past ~8 cores. Profile in
+  `research/near-compression/results/pq-agg-depth-law/VERIFY-PROFILE.md`. Against a ~522 s final
+  prove, verify is ~340× cheaper, so any change trading prove time for verify time is the wrong
+  direction.
+* **The 5-level chain buys 582 s of prove time for a termination check — and a 4-level variant
+  is already measured.** The loop exits on `by_bind` (`main.rs:357`), which fires only when
+  `select_anchor` returns an anchor with `M != level-1`. Measured anchors are L2→1, L3→2, L4→3,
+  L5→3, so the program had already converged at L4 and **L5 exists only to observe that**. L5 is
+  the most expensive level (582.17 s of 2,538.55 s, 23 %).
+  `runs/replay-l4` is the 4-level proof, fully measured: `FINAL_PHASE proved_and_verified =
+  425.96 s`, `NEGATIVE_CONTROLS_OK changed_tape_root changed_program`, and an independent
+  re-verify this session returned `INDEPENDENT_VERIFY_OK bundle_bytes=300765
+  under_300000=false`. It is a valid proof that misses the cap by **765 B** at 42 B digests.
+  Dropping L5 is **not** a soundness shortcut: the two runs' `SETUP.json` differ only in `level`
+  (6 vs 5), `final_vk` and `program` are byte-identical, the anchor `(M, C_M)` is identical, and
+  the *verifier* pins the converged program (`verifier.rs:903-921`) independently of how many
+  levels were proved.
+  **The promising combination is 4 levels + 41 B digests:** −582 s prove time *and* **+2,123 B**
+  of margin at once (projected; needs the 41 B run). At 42 B the two objectives conflict — the
+  faster chain is over the cap — and the digest width is what removes the conflict.
 
 ## Lanes 1-4 landed (2026-10-20, merged + pushed)
 
