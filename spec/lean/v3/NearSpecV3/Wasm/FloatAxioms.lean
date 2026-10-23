@@ -51,3 +51,11 @@ needed.
 #print axioms NearSpecV3.Wasm.FloatTests.trunc_s_over
 #print axioms NearSpecV3.Wasm.FloatTests.sat_nan
 #print axioms NearSpecV3.Wasm.FloatTests.roundPack_overflow
+
+/-! ## The inexact-sqrt rounding tests -/
+
+#print axioms NearSpecV3.Wasm.FloatTests.sqrt_half_f32
+#print axioms NearSpecV3.Wasm.FloatTests.sqrt_half_f64
+#print axioms NearSpecV3.Wasm.FloatTests.sqrt_two_f32
+#print axioms NearSpecV3.Wasm.FloatTests.sqrt_two_f64
+#print axioms NearSpecV3.Wasm.FloatTests.sqrt_half_f32_neighbour

@@ -25,7 +25,10 @@ Tamper cases (each must be `reject`, i.e. necessary conditions, not decorative o
                longer matches the claim;
   `-witness`   one byte inside the witness's chunk header flipped → same condition, other side;
   `-code`      one byte inside the *appended contract-code blob list* flipped → the executed
-               contract's code no longer hashes to the deployed hash.
+               contract's code no longer hashes to the deployed hash;
+  `-root`      one byte inside the witness's declared main post-state root flipped → the chunk's
+               computed state root no longer equals the witness's, which is the condition a float
+               contract's storage writes have to satisfy.
 
   chunk_float.py [--corpus DIR] [--sample N] [--tamper-dir DIR]
 
@@ -83,7 +86,7 @@ def candidates(corpus):
 # Byte offsets verified against the recorded d3float cases: a flip there produces a *semantic*
 # rejection (a mismatched chunk header / a missing code blob), never a decode error, which is what
 # makes the mutant discriminating rather than trivially invalid.
-OFFSETS = {"claim": 100, "witness": 100, "code": -9}
+OFFSETS = {"claim": 100, "witness": 100, "code": -9, "root": 300}
 
 
 def tamper(src, dst, kind):
@@ -91,7 +94,8 @@ def tamper(src, dst, kind):
     claim = bytearray(open(os.path.join(src, "claim.bin"), "rb").read())
     wit = bytearray(open(os.path.join(src, "witness.bin"), "rb").read())
     buf, off = (claim, OFFSETS["claim"]) if kind == "claim" else \
-               (wit, OFFSETS["witness"]) if kind == "witness" else (wit, OFFSETS["code"])
+               (wit, OFFSETS["witness"]) if kind == "witness" else (wit, OFFSETS["code"]) \
+               if kind == "code" else (wit, OFFSETS["root"])
     if len(buf) + off < 0 or off >= len(buf):
         return None
     buf[off] ^= 0x01
@@ -163,7 +167,7 @@ def main():
     shutil.rmtree(a.tamper_dir, ignore_errors=True)
     os.makedirs(a.tamper_dir, exist_ok=True)
     muts = []
-    for kind in ("claim", "witness", "code"):
+    for kind in ("claim", "witness", "code", "root"):
         for case_dir, m in cases:
             # a case excluded for a second reason would report that reason, not the tamper
             if d3f[os.path.normpath(case_dir)]["verdict"] != "accept":

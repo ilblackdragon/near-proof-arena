@@ -123,6 +123,28 @@ theorem overflow_mul : Fmt.mul f32 maxFin two = pInf := by decide
 /-- `sqrt(+inf) = +inf`, `sqrt(-1) = NaN`. -/
 theorem sqrt_inf : Fmt.sqrt f32 pInf = pInf := by decide
 theorem sqrt_negative : Fmt.sqrt f32 none_ = qnan := by decide
+
+/-! ### `sqrt` of an irrational root: the rounding, not just the special cases
+
+Every other `sqrt` case in this file is *exact* (`sqrt(0)`, `sqrt(±inf)`, `sqrt(-1)`, and the
+f64 case whose operand is a perfect square), so none of them pins the last bit of an inexact root.
+An implementation that rounded a non-square root down — or dropped the sticky bit — passes all of
+them. These two do pin it: `sqrt(0.5)` and `sqrt(2)` in both formats, each asserted against the
+underlying IEEE value rather than against `Fmt.sqrt` itself.
+
+`sqrt(0.5)` = 0.7071067811865476...:
+  f32 0x3F3504F3, f64 0x3FE6A09E667F3BCD.
+`sqrt(2)` = 1.4142135623730951...:
+  f32 0x3FB504F3, f64 0x3FF6A09E667F3BCD.
+
+Both are the `d3float` contract's own arithmetic (`f64.sqrt` is opcode 0x9F). -/
+theorem sqrt_half_f32 : Fmt.sqrt f32 0x3F000000 = 0x3F3504F3 := by decide
+theorem sqrt_half_f64 : Fmt.sqrt f64 0x3FE0000000000000 = 0x3FE6A09E667F3BCD := by decide
+theorem sqrt_two_f32 : Fmt.sqrt f32 0x40000000 = 0x3FB504F3 := by decide
+theorem sqrt_two_f64 : Fmt.sqrt f64 0x4000000000000000 = 0x3FF6A09E667F3BCD := by decide
+/-- The nearest f32 below the correctly-rounded `sqrt(0.5)` is a different bit pattern, so the
+assertion above is discriminating and not satisfied by a neighbour. -/
+theorem sqrt_half_f32_neighbour : Fmt.sqrt f32 0x3F000000 ≠ 0x3F3504F2 := by decide
 /-- `ceil`/`floor`/`trunc`/`nearest` of an infinity is the infinity. -/
 theorem ceil_inf : Fmt.ceil f32 pInf = pInf := by decide
 theorem nearest_neg_inf : Fmt.nearest f32 nInf = nInf := by decide
