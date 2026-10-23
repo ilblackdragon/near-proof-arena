@@ -168,11 +168,30 @@ digest-width change documented in §7 item 3. Note the two goals ("minimise prov
 "stay under 300 KB") currently pull in opposite directions at 42 B digests: the faster chain is
 765 B over. The digest width is what removes that conflict.
 
-**Caveat that must not be dropped:** dropping L5 does not change the *logical* obligation —
-`by_bind` at L5 is what certifies that `M = 3` is stable, and a 4-level chain asserts that
-stability without the confirming level. Making B/C sound requires either keeping one
-confirmation level or proving that `select_anchor`'s fixpoint test is sound without it. That is
-a proof obligation, not a runtime check, and it is **not discharged here**.
+**Caveat, and what checking it actually showed.** Dropping L5 removes the level where
+`by_bind` first returns true, so the question is whether a 4-level chain leaves the
+`M = 3` stability assertion unconfirmed. The measured evidence says **no, it does not**, and
+this is worth stating precisely because it changes option C from "needs a proof argument" to
+"already sound at the same standard as the delivered packet":
+
+* `main.rs:373` asserts `fw == words` — the final layer's executed program must equal the
+  wrapped child's program. That check is on the **final program**, and it is the same check in
+  both runs.
+* The two runs' `SETUP.json` files differ **only** in the `level` field (6 vs 5):
+  `final_vk`, `program`, `base_params`, `air_sha256`, `domain_odd_factor` and `version` are
+  byte-identical, verified field by field this session.
+* The anchor `(M, C_M)` is identical at L4 and L5 — both record
+  `[3, [15539961368661287768, …, 19248]]` in their `state.json`.
+* The verifier enforces the anchor, not the prover: an anchor-level child's program root must
+  equal the constant `C_M` (`verifier.rs:903-921`), and any other child is bound by BIND
+  (`bind_child_program`, `verifier.rs:1335-1402`). So the *verifier* pins the converged program
+  whether or not a fifth level was ever proved.
+
+So L5's cost buys a **prover-side convergence observation** (`select_anchor` comparing program
+words, `circuit.rs:225-241`), and nothing the verifier depends on. Option B is therefore
+already-verified as a valid proof on its own terms — it fails only the size cap. What is still
+**not** established is whether some other chunk needs a higher `M` and so a longer chain; that
+is a per-input property, and `replay-l4`'s result only covers this fixture.
 
 Total: 3,065.68 s chain wall (`TIMINGS.json` → `stages.chain.wall_s` = 3065.6827; L1–L5 sum
 2,538.55 s, final layer **522.075 s** measured as L5_VERIFIED 15:21:48.118868 → FINAL_VERIFIED
