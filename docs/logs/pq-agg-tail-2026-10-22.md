@@ -622,6 +622,32 @@ Still open, and each one is a real blocker rather than a formality:
      the same 173-column / 2^20-row geometry. What it does **not** establish is the production
      byte total, and the projection below remains arithmetic on the size law rather than a
      measurement of that node.
+
+     **The two 4-round configs are close but not identical, and the difference is in `kdim`
+     only.** Working `WhirConfig::num_rounds` / `round_codes` for `l_skip=2, n_stack=18,
+     log_blowup=7, k=4, odd=15`:
+
+     | config | `k_first` | `log_final` | `kdim` per round | queries |
+     |---|---:|---:|---|---|
+     | base FINAL | 1 | 7 | `[1048576, 524288, 32768, 2048]` | `[41,38,29,23]` |
+     | agg `COMMITS=1` run | 2 | 6 | `[1048576, 262144, 16384, 1024]` | `[41,35,27,23]` |
+
+     Both give 4 rounds and the same `n`, but the agg `kdim` halves after round 0, which is why
+     its queries are `35/27/23` instead of `38/29/23` — a *shorter* schedule, so it would land
+     slightly **below** 299,935 B, not above. Setting `K1=1` and `LOG_FINAL=7` on the agg node
+     would reproduce the base final layer's schedule exactly; that specific run has not been
+     done.
+
+     **One more mechanism worth recording, because it invalidates a natural assumption:**
+     `COMMITS` does *not* create a WHIR commitment. It is only the `max_commits` argument to
+     `with_first_order`, where it gates whether round 0 may use the first-order threshold
+     (`config.rs:301`: `let allowed = i > 0 || max_commits <= 1`). The actual commitment count
+     comes from `StackingBlob::new`, which sets `num_commits = 1` and then adds one per
+     `preprocessed`/`cached_mains` part (`stacking/mod.rs:421-466`). The base final layer has
+     `preprocessed: None` and `cached_mains: []` on all four AIRs, hence exactly 1 commit; the
+     chain levels carry a second commit because `program_part = true` gives them a program part.
+     So "child count" never affects the commit count either — the earlier framing was wrong on
+     both counts.
    * **`X15=15` is mandatory and was silently wrong in the first run.** The odd factor is the
      6th positional argument of `WhirConfig::new_full`; `X15` defaults to 1, which changes the
      domain to `2^27` and makes every DKT certificate miss (`first_order=false` on all rounds).
