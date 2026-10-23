@@ -245,7 +245,9 @@ P(k) == P(k-1)  <=>  heights(p_{k-1}) == heights(p_{k-2})  <=>  floor(k-1) == fl
 ```
 
 `floor` first satisfies `floor(k-1) == floor(k-2)` at `k = 4`, which gives `P(4) == P(5)` — one
-level later than the naive reading, and exactly what the data shows.
+level later than the naive reading, and exactly what the data shows. The model applies from
+`k = 2` onward: `floor` is only set for `level >= 2` (`main.rs:314`), and `L1.state.json`
+correspondingly records `floor = None`, so L1 is deliberately outside the floor story.
 
 **Corrected saving: pinning the converged floor from L2 gives `L1, L2, L3, L4 + final`, i.e.
 it saves L5 alone = 582.17 s** (2,538.55 s → 1,956.38 s, **−23 %**), not 1,041.55 s. Going
