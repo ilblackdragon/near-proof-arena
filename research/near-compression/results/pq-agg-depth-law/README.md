@@ -253,10 +253,9 @@ So the adapter reads **one 202-element tape** and projects it — it never has t
 four independent records. That removes the hardest-looking part of the job.
 
 What still has to be decided (and is not decided anywhere in the tree):
-1. **Which tape elements are the segment boundary state?** `pubSegs` feeds buses
-   0/10/14/28/51/52/56 with widths 34/3/1/7/11/5/5/33/33 starting at tape offset 206 —
-   i.e. the boundary/context data plausibly lives in the *variable tail*, not the fixed 202.
-   Mapping that onto `(ctx, a, s_a, s_e)` is a spec question, not a code question.
+1. **Which tape elements are the segment boundary state?** Now investigated directly, and the
+   answer is that **they are not on the tape at all** (see below). This is a specification
+   gap, and a sharper one than "we have not looked".
 2. **What plays `cached_roots`?** The base proof carries one cached root; the fixture has
    none. Whether a segment's range statement should pin that root is unstated.
 3. **The coverage obligation.** Even with (1) and (2), stating that the projected tuple is
@@ -315,3 +314,53 @@ Consequence for the flat shape's role: `agg_s13_flat` is a device for stating an
 segment count without padding** (it avoids the non-existent single-child passthrough), not a
 template for the 1 Pgas node. Any "one big k-ary node" design at S=146 is ruled out by
 memory, and that should be said before anyone tries it.
+
+### The boundary state is internal, not public (checked 2026-10-23)
+
+Decoding `dump/pubs.bin` against `near-air-v3.json`'s `pubSegs` descriptors shows the tape is
+**self-describing**: each descriptor names a `countAt` index and a `startAt` index, and the
+tape carries both the count and the start of that bus's public run. For
+`runs/opt-baseline-8/dump/pubs.bin` (3,920 elements, `numPub = 202`):
+
+| bus | dir | width | count | start | span |
+|---:|---|---:|---:|---:|---|
+| 14 | send | 34 | 3 | 18 | [18,120) |
+| 28 | send | 3 | 65 | 120 | [120,315) |
+| 0 | recv | 1 | 0 | 59 | empty |
+| 51 | send | 7 | 64 | 59 | [59,507) |
+| 52 | send | 11 | 25 | 251 | [251,526) |
+| 56 | send/recv | 5 | 0 | 14 | empty |
+| 10 | send | 33 | 1 | 14 | [14,47) |
+| 10 | recv | 33 | 1 | 47 | [47,80) |
+
+The candidate that *looked* like a boundary pair — bus 10's 1×33 send and 1×33 receive — is
+**not** the segment boundary: bus 10 is `head`'s output into `ups`
+(`tables[3].interactions`, one send of message length 33), carrying a 33-word block header.
+
+The actual boundary state rides **bus 15**, message length 5, and bus 15 **does not appear in
+`pubSegs` at all**:
+
+```
+bus 15: rcpt send=False len=5   rcpt send=True len=5
+        bnd  send=True  len=5   bnd  send=False len=5
+```
+
+Both endpoints are *tables*, and each both sends and receives on it. That is a **row-to-row
+chain inside `bnd`/`rcpt`**, not a value the verifier supplies per segment. So a segment's
+boundary is expressed only implicitly, by the `bnd` table's own continuity constraint.
+
+**Consequence for the leaf adapter.** `RangeStmt` needs `(ctx, a, s_a, s_e)` as *public*
+values, because an aggregation node reads them from the child's public values and asserts
+`stmts[i].a == stmts[i-1].e` and `s_a[i] == s_e[i-1]`. Since the boundary state is an internal
+bus, exposing it requires one of:
+
+1. a change to the AIR's public interface so each segment's boundary state is a declared
+   public segment (i.e. a new `pubSeg` for bus 15), which changes the vk and therefore every
+   stored proof and the trusted setup; or
+
+2. a derived statement: prove inside the base proof that the internal bus-15 endpoints equal
+   committed public values (a "boundary commitment" AIR), which is the `G_α` coverage
+   obligation and is not implemented.
+
+Neither is a plumbing task, and (1) invalidates the existing 299,967 B packet. This is why the
+leaf adapter is not a small piece of glue — the data it needs is not currently public.
