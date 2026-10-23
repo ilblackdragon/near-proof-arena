@@ -509,11 +509,13 @@ Still open, and each one is a real blocker rather than a formality:
    reproducibility debt, not a blocker.
 2. **Measure one depth-2 node at production targets** (268-bit, z=32, 42 B, pinned `m`).
 
-   **Partial measurement landed 2026-10-23: a production-target depth-1 agg node is
-   368,177 B — 68,177 B (22.7 %) over the 300 KB cap — and depth 2 panics.** The cold
-   `target-agg` rebuild took 41.3 s (sccache), so the build was not the blocker it looked
-   like. Two runs produced the numbers below; both were killed by server restarts after
-   their depth-1 level finished, so treat "depth-2 bytes" as still unmeasured.
+   **Partial measurement landed 2026-10-23: a 2-child agg node at 268-bit targets measures
+   368,177 B, and a depth-2 node at `n_stack=18` panics on program size.** The cold
+   `target-agg` rebuild took 41.3 s (sccache), so the build was never the blocker it looked
+   like. Four runs were attempted; **every one was killed by a server restart**, and none of
+   the production-parameter runs reached its byte total. The two byte figures below come from
+   the run whose odd-factor lever was wrong (`X15=1`), so they are **upper bounds**: the
+   production query list is shorter. Read the "over cap" framing accordingly.
 
    | quantity | `agg-prod-depth2-ns18.log` | `agg-prod-depth2-exact.log` |
    |---|---|---|
@@ -523,21 +525,60 @@ Still open, and each one is a real blocker rather than a formality:
    | `L1_1` total bytes | **366,929** (whir 304,776) | not reached |
    | `L1_0` prove_s / peak RSS | 401.2 s / 28.13 GB | — |
    | depth-2 outcome | `program exceeds 2^18 rows` (`builder.rs:303`) | killed at restart |
+   | final-layer params reached? | 5 rounds, not 4 | **4 rounds `[41,35,27,23]`, 3/4 first-order** |
+
+   The 4-round config is the one that matches the base final layer exactly
+   (`queries=[41, 35, 27, 23]` vs the base's `[41, 38, 29, 23]` — same 4 rounds, same
+   `k=4`, same `X15=15` domain, 3/4 rounds certified where the base certifies 4/4).
+   That run needed `COMMITS=1` **and** `X15=15` together; `COMMITS` defaults to 2 for the
+   `PARENT` prefix (`params_from_env`, `e("COMMITS", if prefix == "PARENT" { 2 } else { 1 })`),
+   so a `COMMITS=1` override is mandatory for a final-layer-shaped node. That run's log
+   (`agg-prod-d1-c1.log`) confirms the params but was killed before its byte total, so
+   **the 1-commit production agg node's size remains unmeasured.**
 
    Logs are sha256-pinned in `research/near-compression/results/pq-agg-depth-law/logs/`:
    `agg-prod-depth1-ns18.log` = `684bbdba…ed1837` (the 368,177 B run),
-   `agg-prod-depth2-exact-killed.log` = `27e3c6ad…ab60` (correct params, killed).
-   Both are raw `/tmp`-style captures from `target-agg`, not reproductions of the base packet.
+   `agg-prod-depth2-exact-killed.log` = `27e3c6ad…ab60` (4-round params, killed) and its
+   byte-identical retry `agg-prod-d2-run3-killed.log` (same sha256), plus
+   `agg-prod-d1-commits1-killed.log` = `92f46bcb…da507` (the `COMMITS=1` config that matches
+   the base final layer's params, killed before its bytes). All are raw captures from
+   `target-agg`, not reproductions of the base packet.
+
+   **Why the runs kept dying, and what to change.** No cgroup memory limit exists
+   (`/sys/fs/cgroup/memory.max` absent), so these were not OOM kills — each run was cut off
+   when the server restarted. The launcher was the real defect: it backgrounded the binary
+   from the same shell session without a new process group in the first attempt, and the
+   cleanup pattern matched its own command string. A relaunch should use `setsid` and kill by
+   explicit PID. Separately, a 2-child production node measured **28.1 GB peak RSS** at 5
+   rounds and ~400 s per level, so only one such run should ever be in flight on a 125 GB
+   host.
 
    Three findings, in order of consequence:
 
-   * **A production depth-1 node is 22.7 % over the cap, and 98 % of the excess is WHIR.**
-     368,177 B at 42 B/digest implies `D ≈ (368,177 − C)/42`. The WHIR section alone is
-     306,024 B, i.e. ~7,286 digests; gkr + relations + stacking together are only 61,948 B.
-     The delivered chain's L5 proof is 374,521 B, so **aggregation at production targets does
-     not currently shrink a level at all** — the "depth is free in bytes" law measured at 10
-     query bits does **not** survive the move to 268-bit. This is the single most important
-     correction this session produced, and it inverts the working assumption behind Route A.
+   * **A 2-child agg node at production targets measures 368,177 B, which is the same order
+     as the chain levels it would replace — not smaller.** Section split: whir 306,024,
+     gkr 34,952, relations 24,292, stacking 2,704. Compare the delivered chain's own levels
+     (`proof-sections` on the base packet): L1 374,105 B (whir 304,804), L4 373,177 B
+     (whir 303,828), L5 374,521 B (whir 305,172). The agg node's WHIR section sits **inside**
+     the chain's 303.8–305.2 KB band, so aggregating two children buys ≈ 1 KB, not a layer
+     collapse. That measurement is an upper bound (68 queries, `X15=1`), and the corrected
+     44-query config would land lower — but not by 68 KB, since the WHIR section is ~83 % of
+     the proof.
+     **The 300 KB cap binds the final artifact only, so this does not yet put the agg tree
+     over it.** The base packet's final layer is 299,935 B precisely because it sets
+     `program_part = false` (`main.rs:364`), dropping from 2 WHIR commits to 1 and cutting
+     the section by 35,068 B of non-digest overhead (`C = 214,795` at 2 commits vs
+     `179,437` at 1; measured on L4 vs FINAL). The 368,177 B node ran with `COMMITS=2` — the
+     `PARENT` default — so it is an **intermediate** node and may be ~374 KB.
+     The arithmetic that matters, using only measured constants: a 2-commit agg node costs
+     **+52 digests** over a 2-commit chain level (`D = 3823` vs `3771`, overhead agreeing to
+     12 B), so a 1-commit 2-child node should sit near `D ≈ 2869 + 52 = 2921`, i.e.
+     `42·2921 + 179,437 = 302,119 B` — **≈ 2.1 KB over the cap**. That is a projection, not a
+     measurement, and it needs a run to confirm; but it says the aggregation tree does *not*
+     currently fit, because the base final layer already spends all 33 B of its margin and any
+     second child costs ~800 B. So "depth is free in bytes" holds at 10 query bits and does
+     not carry to 268 bits: there the WHIR section is ~3× larger and the commit count, not the
+     depth, decides the cap.
    * **`X15=15` is mandatory and was silently wrong in the first run.** The odd factor is the
      6th positional argument of `WhirConfig::new_full`; `X15` defaults to 1, which changes the
      domain to `2^27` and makes every DKT certificate miss (`first_order=false` on all rounds).
