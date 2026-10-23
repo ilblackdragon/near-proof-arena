@@ -64,8 +64,17 @@ inductive Instr where
   /-- every integer numeric operator without immediates, by opcode byte:
   0x45‥0x5A (test/rel), 0x67‥0x8A (un/bin), 0xA7 (wrap), 0xAC/0xAD (extend), 0xC0‥0xC4 (sign-ext) -/
   | num (op : Nat)
-  /-- any float operator (opcode byte, or `0xFC00 + k` for `trunc_sat`): out of domain in D3α -/
+  /-- a float numeric operator without immediates: opcode byte, or `0xFC00 + k` for the
+  saturating truncations (out of domain in D3α, decided by `Wasm/Float.lean`) -/
   | float (op : Nat)
+  /-- `f32.load` (0x2A) / `f64.load` (0x2B): `op` is the opcode, then alignment and offset -/
+  | floatLoad (op : Nat) (align off : Nat)
+  /-- `f32.store` (0x38) / `f64.store` (0x39) -/
+  | floatStore (op : Nat) (align off : Nat)
+  /-- `f32.const`: the bit pattern, not a host float -/
+  | f32Const (bits : UInt32)
+  /-- `f64.const` -/
+  | f64Const (bits : UInt64)
   deriving Repr, Inhabited
 
 structure Import where
@@ -86,10 +95,11 @@ structure TableType where
   lim : Limits
   deriving Repr, Inhabited
 
-/-- Constant expressions allowed at PV86 (no extended-const, no imported globals). -/
+/-- Constant expressions allowed at PV86 (no extended-const, no imported globals). A float
+constant is its **bit pattern**: the initial value of a float global is byte-exact. -/
 inductive ConstE where
   | i32 (v : UInt32) | i64 (v : UInt64) | refNull (t : VT) | refFunc (f : Nat) | globalGet (g : Nat)
-  | float (bits : Nat)
+  | f32 (bits : UInt32) | f64 (bits : UInt64)
   deriving Repr, Inhabited
 
 structure Global where

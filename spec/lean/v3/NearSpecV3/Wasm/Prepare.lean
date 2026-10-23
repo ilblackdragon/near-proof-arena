@@ -40,8 +40,19 @@ structure NearCfg where
   maxInstrumentedCodeSize : Nat := 16777216
   /-- wasmparser 0.228 `MAX_WASM_FUNCTION_LOCALS` (params + locals per function) -/
   wpMaxFunctionLocals : Nat := 50000
+  /-- Decide float contracts instead of rejecting them as out of domain.
+
+  `false` is D3α's behaviour and the signed statement's surface: the three guards below report
+  `.outOfDomain` exactly as before, byte-identically. `true` is the L2 extension (`floatPv86`):
+  the guards are skipped and floats are validated, instrumented, metered and executed by
+  `Wasm/Float.lean`. nearcore itself has no such switch — PV86 accepts floats (wasmparser
+  `floats: true`, `saturating_float_to_int: true`, `features.rs:47-59`) — the switch exists only
+  to keep the signed D3α statement unchanged. -/
+  floats : Bool := false
 
 def pv86 : NearCfg := {}
+/-- The PV86 configuration **with floats in domain**: the L2 extension. -/
+def floatPv86 : NearCfg := { pv86 with floats := true }
 
 def NearCfg.gas (c : NearCfg) : GasCfg := ⟨c.regularOpCost, c.linearOpBaseCost, c.linearOpUnitCost⟩
 
@@ -201,7 +212,7 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
       | _ => deser "tag import"
     for i in is do
       match m.types[i.idx]? with
-      | some ft => if anyFloatVT ft.params ∨ anyFloatVT ft.results then
+      | some ft => if !cfg.floats ∧ (anyFloatVT ft.params ∨ anyFloatVT ft.results) then
           throw (.ood "float in an imported function type")
       | none => pure ()
     modify fun s => { s with m := { s.m with imports := is }, funcBudget := fb }
@@ -231,7 +242,7 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
     modify fun s => { s with m := { s.m with memories := ms } }
   | 6 => do
     let gs ← liftP (vecOf global_)
-    for g in gs do if g.type.isFloat then throw (.ood "float global")
+    for g in gs do if !cfg.floats ∧ g.type.isFloat then throw (.ood "float global")
     let c := mkCtx m
     for g in gs do constOk c g.type g.init
     modify fun s => { s with m := { s.m with globals := gs } }
@@ -306,12 +317,12 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
       let (code, lens) ← liftP (operators bEnd)
       let f : Func := { type := ti, localGroups := groups, code := code, bodySize := sz,
                         opLens := lens }
-      if groups.any (·.2.isFloat) ∨ anyFloatVT ft.params ∨ anyFloatVT ft.results ∨
+      if !cfg.floats ∧ (groups.any (·.2.isFloat) ∨ anyFloatVT ft.params ∨ anyFloatVT ft.results ∨
           code.any (fun i => match i with
-            | .float _ => true
+            | .float _ | .floatLoad _ _ _ | .floatStore _ _ _ | .f32Const _ | .f64Const _ => true
             | .select (some t) => t.isFloat
             | .block (some t) | .loop (some t) | .if_ (some t) => t.isFloat
-            | _ => false) then
+            | _ => false)) then
         throw (.ood "float type or operator in a function body")
       match validateBody c ft f.locals code with
       | .ok () => pure ()

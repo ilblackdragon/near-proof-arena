@@ -1,8 +1,11 @@
 import NearSpecV3.Wasm.Host
+import NearSpecV3.Wasm.Float
 /-!
-# NEAR WASM (D3α): instruction execution, instantiation, and the observable outcome
+# NEAR WASM (D3α + L2 floats): instruction execution, instantiation, and the observable outcome
 
 See `Machine` for the execution model (gas hooks, stack budget, memory) and `Host` for host functions.
+`Wasm/Float.lean` is the float kernel; `execFloat` below is its only entry point, so no native float
+operation can enter the evaluation.
 -/
 namespace NearSpecV3.Wasm
 
@@ -123,7 +126,34 @@ def loadSpec (op : Nat) : Nat × Bool × Bool :=   -- (bytes, signed, is64)
 
 def storeWidth (op : Nat) : Nat :=
   match op with
-  | 0x36 => 4 | 0x37 => 8 | 0x3A => 1 | 0x3B => 2 | 0x3C => 1 | 0x3D => 2 | _ => 4
+  | 0x36 => 4 | 0x37 => 8 | 0x38 => 4 | 0x39 => 8 | 0x3A => 1 | 0x3B => 2 | 0x3C => 1 | 0x3D => 2
+  | _ => 4
+
+/-- Float loads/stores: `(bytes, result type)`. Alignment is checked by the validator. -/
+def floatLoadType (op : Nat) : Option (Nat × VT) :=
+  match op with
+  | 0x2A => some (4, .f32)
+  | 0x2B => some (8, .f64)
+  | _ => none
+
+def floatStoreWidth (op : Nat) : Option Nat :=
+  match op with
+  | 0x38 => some 4
+  | 0x39 => some 8
+  | _ => none
+
+/-- Execute one float operator (`NearSpecV3.Wasm.evalFloatOp`, the kernel in `Wasm/Float.lean`).
+`none` from the kernel is the `IllegalArithmetic` trap of a non-saturating truncation. The stack is
+the typed value stack, so a float operand's bit pattern is its `Val` payload verbatim. -/
+def execFloat (s : St) (op : Nat) : Except String St := do
+  let (ps, rt) := (floatOperands op, floatResultType op)
+  let (b, s) := popN s
+  let (a, s) := if ps.size = 2 then popN s else (0, s)
+  -- `popN` yields the bottom-most of the two operands as `a` (it pops the top first)
+  let (a, b) := if ps.size = 2 then (a, b) else (b, 0)
+  match evalFloatOp op a b with
+  | some r => return pushT s rt r
+  | none => throw (trapStr "IllegalArithmetic")
 
 def execNum (s : St) (op : Nat) : Except String St := do
   let un (w : Nat) (f : Nat → Nat) : St :=
@@ -322,13 +352,35 @@ def exec (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (pf : PFunc) (i : I
     match execNum s op with
     | .ok s => next s
     | .error e => if e.startsWith "WasmTrap" then .abort s e else .unmodeled e
-  | .float _ => .unmodeled "float (out of domain)"
+  | .float op =>
+    match execFloat s op with
+    | .ok s => next s
+    | .error e => if e.startsWith "WasmTrap" then .abort s e else .unmodeled e
+  | .f32Const b => next (pushV s (.f32 b))
+  | .f64Const b => next (pushV s (.f64 b))
+  | .floatLoad op _ off =>
+    match floatLoadType op with
+    | some (w, t) =>
+      let (a, s) := popN s
+      let ea := a + off
+      if ea + w > memBytes s then .abort s trapMem
+      else next (pushT s t (readLE s ea w))
+    | none => .unmodeled "invariant: floatLoad of a non-load opcode"
+  | .floatStore op _ off =>
+    match floatStoreWidth op with
+    | some w =>
+      let (v, s) := popN s
+      let (a, s) := popN s
+      let ea := a + off
+      if ea + w > memBytes s then .abort s trapMem
+      else next (writeLE s ea w v)
+    | none => .unmodeled "invariant: floatStore of a non-store opcode"
 
 def topCount (s : St) : Nat :=
   match s.stack.back? with
   | some (.i32 v) => v.toNat
   | some (.i64 v) => v.toNat
-  | _ => 0
+  | _ => 0   -- a float top operand never reaches a linear-fee point (only bulk ops are linear)
 
 def step (cfg : NearCfg) (p : Prepared) (s : St) : Res :=
   match s.frames with
@@ -363,13 +415,10 @@ def evalConst (gs : Array Val) : ConstE → Val
   | .refNull _ => .ref none
   | .refFunc f => .ref (some f)
   | .globalGet g => gs[g]?.getD (.i32 0)
-  | .float _ => .i32 0
+  | .f32 b => .f32 b
+  | .f64 b => .f64 b
 
-def constNat (gs : Array Val) (e : ConstE) : Nat :=
-  match evalConst gs e with
-  | .i32 v => v.toNat
-  | .i64 v => v.toNat
-  | .ref _ => 0
+def constNat (gs : Array Val) (e : ConstE) : Nat := (evalConst gs e).bits
 
 def constRef (gs : Array Val) (e : ConstE) : Option Nat :=
   match evalConst gs e with

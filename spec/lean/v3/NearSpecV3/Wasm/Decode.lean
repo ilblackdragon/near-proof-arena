@@ -67,6 +67,19 @@ def bytesN (n : Nat) : P ByteArray := do
   set (p + n)
   pure (b.extract p (p + n))
 
+/-- A little-endian float immediate, as a bit pattern (`0x43`/`0x44`, `f32.const`/`f64.const`).
+`bytesN` returns the bytes in file order, so the first byte is the least significant. -/
+def floatLe (n : Nat) : P Nat := do
+  let b ← bytesN n
+  let mut v := 0
+  for i in [0:n] do
+    v := v + (b.get! i).toNat * 256 ^ i
+  pure v
+
+def i32Le : P Nat := floatLe 4
+def i64Le : P Nat := floatLe 8
+
+
 /-- Names: `MAX_WASM_STRING_SIZE` = 100,000 (wasmparser 0.228 `binary_reader.rs:757-770`), UTF-8. -/
 def name : P String := do
   let n ← u32
@@ -221,8 +234,8 @@ def instr : P Instr := do
   | 0x40 => do zeroByte; pure .memGrow
   | 0x41 => pure (.i32Const (UInt32.ofNat (← sleb 32)))
   | 0x42 => pure (.i64Const (UInt64.ofNat (← sleb 64)))
-  | 0x43 => do let _ ← bytesN 4; pure (.float op)
-  | 0x44 => do let _ ← bytesN 8; pure (.float op)
+  | 0x43 => pure (.f32Const (UInt32.ofNat (← i32Le)))
+  | 0x44 => pure (.f64Const (UInt64.ofNat (← i64Le)))
   | 0xD0 => pure (.refNull (← refType))
   | 0xD1 => pure .refIsNull
   | 0xD2 => pure (.refFunc (← u32))
@@ -245,8 +258,10 @@ def instr : P Instr := do
       let (a, o) ← memarg; pure (.load op a o)
     else if 0x36 ≤ op ∧ op ≤ 0x3E ∧ op ≠ 0x38 ∧ op ≠ 0x39 then do
       let (a, o) ← memarg; pure (.store op a o)
-    else if op = 0x2A ∨ op = 0x2B ∨ op = 0x38 ∨ op = 0x39 then do
-      let _ ← memarg; pure (.float op)
+    else if op = 0x2A ∨ op = 0x2B then do
+      let (al, o) ← memarg; pure (.floatLoad op al o)
+    else if op = 0x38 ∨ op = 0x39 then do
+      let (al, o) ← memarg; pure (.floatStore op al o)
     else if isIntNumOp op then pure (.num op)
     else if isFloatOp op then pure (.float op)
     else fail s!"illegal opcode {op}"
@@ -256,8 +271,8 @@ def constExpr : P ConstE := do
   let e ← match ← byte with
     | 0x41 => pure (ConstE.i32 (UInt32.ofNat (← sleb 32)))
     | 0x42 => pure (ConstE.i64 (UInt64.ofNat (← sleb 64)))
-    | 0x43 => do let b ← bytesN 4; pure (ConstE.float b.size)
-    | 0x44 => do let b ← bytesN 8; pure (ConstE.float b.size)
+    | 0x43 => pure (ConstE.f32 (UInt32.ofNat (← i32Le)))
+    | 0x44 => pure (ConstE.f64 (UInt64.ofNat (← i64Le)))
     | 0xD0 => pure (ConstE.refNull (← refType))
     | 0xD2 => pure (ConstE.refFunc (← u32))
     | 0x23 => pure (ConstE.globalGet (← u32))

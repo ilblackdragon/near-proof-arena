@@ -387,27 +387,49 @@ Opcodes are the Wasm 1.0 numbers that `NearSpecV3.Wasm.Decode.isFloatOp` recogni
 the interpreter; everything in this section is a register/memory-stack operator with no immediate.
 -/
 
-/-- `(operands, result)` of a float opcode without immediates. -/
-def floatOpSig (op : Nat) : Array VT × Array VT :=
-  if op ≤ 0x60 then (#[.f32, .f32], #[.i32])            -- f32.eq‥f32.ge
-  else if op ≤ 0x66 then (#[.f64, .f64], #[.i32])       -- f64.eq‥f64.ge
-  else if op ≤ 0x91 then (#[.f32], #[.f32])             -- 0x8B‥0x91
-  else if op ≤ 0x98 then (#[.f32, .f32], #[.f32])       -- 0x92‥0x98
-  else if op ≤ 0x9F then (#[.f64], #[.f64])             -- 0x99‥0x9F
-  else if op ≤ 0xA6 then (#[.f64, .f64], #[.f64])       -- 0xA0‥0xA6
-  else if op ≤ 0xAB then (if op ≤ 0xA9 then #[.f32] else #[.f64], #[.i32])
-  else if op ≤ 0xAD then (#[.i32], #[.i64])             -- integer ops, not float
-  else if op ≤ 0xB1 then (if op ≤ 0xAF then #[.f32] else #[.f64], #[.i64])
+/-- `true` for every float opcode this module decides (no immediates; loads, stores and `const`
+are handled by the interpreter). -/
+def isFloatOpNoImm (op : Nat) : Bool :=
+  (0x5B ≤ op && op ≤ 0x66) || (0x8B ≤ op && op ≤ 0xA6) ||
+  (0xA8 ≤ op && op ≤ 0xAB) || (0xAE ≤ op && op ≤ 0xB1) ||
+  (0xB2 ≤ op && op ≤ 0xBF) || (0xFC00 ≤ op && op ≤ 0xFC07)
+
+/-- Result value type of a float opcode (`i32`/`i64`/`f32`/`f64`). -/
+def floatResultType (op : Nat) : VT :=
+  if (0x5B ≤ op && op ≤ 0x66) then .i32
+  else if (0x8B ≤ op && op ≤ 0x98) then .f32
+  else if (0x99 ≤ op && op ≤ 0xA6) then .f64
+  else if op ≤ 0xAB then .i32
+  else if op ≤ 0xB1 then .i64
+  else if op ≤ 0xB6 then .f32
+  else if op ≤ 0xBB then .f64
+  else if op = 0xBC then .i32
+  else if op = 0xBD then .i64
+  else if op = 0xBE then .f32
+  else if op = 0xBF then .f64
+  else if op ≤ 0xFC03 then .i32
+  else .i64
+
+/-- Operand types (0, 1 or 2) of a float opcode. -/
+def floatOperands (op : Nat) : Array VT :=
+  if (0x5B ≤ op && op ≤ 0x60) then #[.f32, .f32]
+  else if (0x61 ≤ op && op ≤ 0x66) then #[.f64, .f64]
+  else if (0x8B ≤ op && op ≤ 0x91) then #[.f32]
+  else if (0x92 ≤ op && op ≤ 0x98) then #[.f32, .f32]
+  else if (0x99 ≤ op && op ≤ 0x9F) then #[.f64]
+  else if (0xA0 ≤ op && op ≤ 0xA6) then #[.f64, .f64]
+  else if op ≤ 0xAB then (if op ≤ 0xA9 then #[.f32] else #[.f64])
+  else if op ≤ 0xB1 then (if op ≤ 0xAF then #[.f32] else #[.f64])
   else if op ≤ 0xB6 then
-    (if op ≤ 0xB3 then #[.i32] else if op ≤ 0xB5 then #[.i64] else #[.f64], #[.f32])
+    (if op ≤ 0xB3 then #[.i32] else if op ≤ 0xB5 then #[.i64] else #[.f64])
   else if op ≤ 0xBB then
-    (if op ≤ 0xB8 then #[.i32] else if op ≤ 0xBA then #[.i64] else #[.f32], #[.f64])
-  else if op = 0xBC then (#[.f32], #[.i32])
-  else if op = 0xBD then (#[.f64], #[.i64])
-  else if op = 0xBE then (#[.i32], #[.f32])
-  else if op = 0xBF then (#[.i64], #[.f64])
-  else if op ≤ 0xFC03 then (if op ≤ 0xFC01 then #[.f32] else #[.f64], #[.i32])
-  else (if op ≤ 0xFC05 then #[.f32] else #[.f64], #[.i64])
+    (if op ≤ 0xB8 then #[.i32] else if op ≤ 0xBA then #[.i64] else #[.f32])
+  else if op = 0xBC then #[.f32]
+  else if op = 0xBD then #[.f64]
+  else if op = 0xBE then #[.i32]
+  else if op = 0xBF then #[.i64]
+  else if op ≤ 0xFC03 then (if op ≤ 0xFC01 then #[.f32] else #[.f64])
+  else (if op ≤ 0xFC05 then #[.f32] else #[.f64])
 
 /-- `true` for the eight trapping `trunc_f*` conversions (finite-wasm `cvtop_partial`: a gas `pre`
 point rather than a `pure` point). -/
@@ -419,7 +441,7 @@ def intBounds (w : Nat) (signed : Bool) : Int × Int :=
   else (0, (2 ^ w : Int) - 1)
 
 /-- One float operator on bit patterns. `a` is the first operand, `b` the second (unused by
-unary operators); both are the raw bit patterns of the operand type `floatOpSig` names. `none` is
+unary operators); both are the raw bit patterns of the type `floatOperands` names. `none` is
 a trap (`IllegalArithmetic`). -/
 def evalFloatOp (op : Nat) : Nat → Nat → Option Nat :=
   fun a b =>
@@ -501,9 +523,6 @@ def evalFloatOp (op : Nat) : Nat → Nat → Option Nat :=
   | 0xFC06 => some (Fmt.truncSat f64 a (intBounds 64 true).1 (intBounds 64 true).2 64)
   | 0xFC07 => some (Fmt.truncSat f64 a (intBounds 64 false).1 (intBounds 64 false).2 64)
   | _ => none
-
-/-- `true` for a float operator whose result lanes are 64 bits (used by the size model). -/
-def floatIsF64 (op : Nat) : Bool := (floatOpSig op).2 = #[.f64]
 
 /-! ## The canonical-NaN boundary, stated exactly
 
