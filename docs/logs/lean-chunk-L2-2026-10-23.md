@@ -171,7 +171,20 @@ The gas check compares **totals**, not deltas: an earlier version compared one c
 expected zero delta for pure operators, which was wrong because each repetition also re-emits its
 store address, its constants and its store. That version was deleted, not left green.
 
-### 3.4 Whole chunks
+### 3.4 Evidence paths
+
+Every result in §3 is reproducible from `oracle/wasm-d3/tests/` and was re-run at the end of the
+session with its output kept under `var/l2/evidence/` (git-ignored, like the rest of `var/`):
+
+```
+var/l2/evidence/difftest_float_s1.log    family=float cases=79742 opcodes=70 disagreements=0
+var/l2/evidence/float_nearcore.log       values cases=1260 disagreements=0 ; gas modules=210 disagreements=0
+var/l2/evidence/float_prepare.log        family=float-prepare cases=6 disagreements=0
+var/l2/evidence/float_regression.log     both experiments DISCRIMINATE
+var/l2/evidence/chunk_float.log          20 lifted, 80/80 tamper mutants rejected
+```
+
+### 3.5 Whole chunks
 
 `chunk_float.py`, over the recorded corpus (26 cases naming `d3float`, `e.float`, nearcore `ok`):
 
@@ -187,7 +200,7 @@ that remain excluded carry another lane's condition (`gAlpha` gas ×3, ETH-impli
 ×1); two more were already excluded by D3α *before* reaching the float guard. `chunk_float.py`
 counts those separately rather than as passes.
 
-### 3.5 Preparation-only guards (`float_prepare.py`)
+### 3.6 Preparation-only guards (`float_prepare.py`)
 
 | module | D3α | floatPv86 |
 |---|---|---|
@@ -198,7 +211,7 @@ counts those separately rather than as passes.
 | mutable f64 global | same | `ok`, gas 95,403,466 = nearcore |
 | float signature called with the wrong type | — | `LinkError` on **both** sides (negative) |
 
-### 3.6 Regression experiment (plan §5 item 2)
+### 3.7 Regression experiment (plan §5 item 2)
 
 `float_regression.py` removes each mechanism and shows the targeted test fails:
 
@@ -290,10 +303,10 @@ prints the closure of each new theorem).
 * each verdict *change* against `meta.json`: the only admissible change is
   `out_of_domain → accept|reject` on a case with `e.float`, landing on nearcore's own verdict.
 
-Report: `/tmp/opencode/d3replay-full/report.json` (path recorded for reproduction; the run takes
-about 6 hours at `--jobs 20` on this host). **Status at hand-off: the run was still in progress at
-63,000/115,284**; the partial result and the subsample results are what is recorded below. This is
-the one open verification item — see §7.
+Report: `/tmp/opencode/d3replay-full/report.json`. **Status at hand-off: the run was still in
+progress** (it was restarted once after a mid-run library rebuild briefly unlinked the checker
+binary; see §7). The subsample results below are complete runs of the same script; the full run's
+report must be read when it finishes. This is the one open verification item — see §7.
 
 Subsample results (complete runs, same script):
 
@@ -308,10 +321,16 @@ Every observed move was a `d3float` chunk going `out_of_domain → accept` with 
 
 ## 7. What is not done — the honest list
 
-1. **The full 115,284-case D3α replay did not finish** (63,000/115,284 at hand-off). Nothing in it
-   had regressed at that point, and the 1,080-case subsample is clean, but the complete run must be
-   finished before L2 can claim "no D3α regression on the recorded corpus". Command in §6; the
-   report lands in `/tmp/opencode/d3replay-full/report.json`.
+1. **The full 115,284-case D3α replay did not finish within the session.** Nothing in the part
+   that ran had regressed, and the 1,080-case subsample is clean, but the complete run must be
+   finished before L2 claims "no D3α regression on the recorded corpus". Command in §6 (about
+   75 minutes at `--jobs 16` on this host); the report lands in
+   `/tmp/opencode/d3replay-full/report.json` and must show `d3alpha_regressions: 0` plus
+   `unexpected_moves: 0`.
+
+   *Operational note:* rebuilding the Lean library or the checker exes while the replay is running
+   unlinks the binary under it and the worker fails with `FileNotFoundError`. Finish builds first,
+   then start the replay.
 2. **Chunk-level additivity is not proved** (§2.2). Guard-level additivity is.
 3. **Kernel = nearcore is measured, not proved**, and only on the operator and single-chunk level:
    1,260 directed operator cases + 210 gas modules + 20 whole chunks. No refinement theorem.
