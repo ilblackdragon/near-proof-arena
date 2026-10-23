@@ -149,8 +149,26 @@ Full detail, with the scope attached to every number, is in
   flattens four AIRs' public values into one range statement** (ctx, segment index, incoming
   and outgoing state), plus a decision about which commitment plays the role of the segment's
   `cached_roots` entry. That adapter — not the aggregation node — is the missing piece, and
-  no such adapter exists in the tree today. The wider `G_α` blockers in §"Gap to e2e 1 Pgas"
-  are what still block the base proof from covering a NEAR chunk in the first place.
+  no such adapter exists in the tree today.
+
+  **And the data that adapter needs is not public (checked 2026-10-23).** Decoding
+  `dump/pubs.bin` against `near-air-v3.json`'s `pubSegs` descriptors: the tape is
+  self-describing (each descriptor names a `countAt`/`startAt` index, and the decode is
+  cross-validated — bus 28 gives `count = 65` and `heights.json` gives `bnd.used_rows = 65`).
+  The segment boundary state rides **bus 15** (message length 5), and bus 15 **does not appear
+  in `pubSegs` at all** — both its endpoints are *tables* (`rcpt` and `bnd`, each sending and
+  receiving), i.e. a row-to-row chain, not a verifier-supplied per-segment value. So exposing a
+  segment's `(in, out)` boundary requires either a **new public segment** (which changes the
+  vk, every stored proof and the trusted setup — invalidating the 299,967 B packet) or a
+  **boundary-commitment statement** (the `G_α` coverage obligation).
+  Also: `near-air-v3.json` has no segment concept at all (`format/numBuses/numPub/tables/
+  pubSegs/maxPub` only), and one base proof covers the **whole** chunk — 25 tables, 3,391 used
+  rows. So there is one proof per chunk, not one per segment; a 1 Pgas chunk needs ~146 segment
+  proofs *first*, and only then is there anything to aggregate. Details:
+  `research/near-compression/results/pq-agg-depth-law/README.md`.
+
+  The wider `G_α` blockers in §"Gap to e2e 1 Pgas" are what still block the base proof from
+  covering a NEAR chunk in the first place.
 * **"Under 300 KB" is a transcript-sampled property, not a structural bound.** Measured law:
   `proof_bytes = 42·D + C` (7/7 proofs), so the cap needs `D ≤ 2,869`. The base packet sits
   **exactly at `D = 2,869` — 33 B of margin, 0.79 of one digest** — and a second valid proof
