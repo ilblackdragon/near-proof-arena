@@ -41,6 +41,7 @@ LEAN_ROOT = "spec/lean/v3/NearSpecV3"
 LEAN_FILES = [
     "Wasm/Host.lean",
     "Wasm/Exec.lean",
+    "Wasm/CryptoHost.lean",
     "Wasm/Decode.lean",
     "Wasm/Syntax.lean",
     "Wasm/DomainD3.lean",
@@ -130,6 +131,18 @@ def env_imports(repo):
 def lean_host_arms(repo):
     src = (repo / LEAN_ROOT / "Wasm/Host.lean").read_text()
     return sorted(set(re.findall(r'^\s*\| "([a-z0-9_]+)"', src, re.MULTILINE)))
+
+
+def lean_crypto_host_arms(repo):
+    """Curve hosts with a transcribed host semantics in the successor table (`Wasm/CryptoHost.lean`).
+
+    These are still out of domain in D3α (`Host.hostCall` has no arm for them, and
+    `D3/CryptoDomain.hostCall_no_arm` checks that), so having an arm here is `partial`: the host
+    semantics exists, but the whole-chunk path is unchanged and no whole-chunk case exercises it.
+    """
+    src = (repo / LEAN_ROOT / "Wasm/CryptoHost.lean").read_text()
+    block = src.split("def cryptoHostCall", 1)[1]
+    return sorted(set(re.findall(r'^\s*\| "([a-z0-9_]+)" => some', block, re.MULTILINE)))
 
 
 def lean_base_tags(repo):
@@ -260,6 +273,7 @@ def inventory(repo, nearcore):
     tags = action_tags(nearcore)
     imports = env_imports(nearcore)
     arms = set(lean_host_arms(repo))
+    crypto_arms = set(lean_crypto_host_arms(repo))
     ok_tags, ood_tags = lean_base_tags(repo)
     ops = lean_instr_ops(repo)
     guards = domain_guards(repo)
@@ -309,6 +323,14 @@ def inventory(repo, nearcore):
             status = "implemented"
             remaining = "host gas/return behaviour not differentially tested in this lane"
             guard = "none"
+        elif name in crypto_arms:
+            status = "partial"
+            remaining = (
+                "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3α still "
+                "reports it out of domain (Host.hostCall has no arm), and no whole-chunk case "
+                "runs it — see docs/research/lean-chunk-crypto-L3.md"
+            )
+            guard = "out-of-domain (curveHosts) in D3α; modelled in the D3γ table"
         elif name.startswith(CURVE_PREFIXES):
             status = "missing"
             remaining = (
@@ -324,11 +346,18 @@ def inventory(repo, nearcore):
             status = "missing"
             remaining = "no Lean dispatch arm"
             guard = "none"
+        if name in crypto_arms:
+            lean_sym = f"NearSpecV3.Wasm.CryptoHost.{name} (successor table); D3α: none"
+        elif name in arms:
+            lean_sym = "NearSpecV3.Wasm.Host.dispatch"
+        else:
+            lean_sym = "none"
         rows.append(row(
             f"L0-host-{name}", "host", f"{VM}imports.rs:env::{name}",
-            "NearSpecV3.Wasm.Host.dispatch" if name in arms else "none",
+            lean_sym,
             status, guard,
-            "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean arms",
+            "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and "
+            "Wasm/CryptoHost.lean arms",
             "L3" if name.startswith(CURVE_PREFIXES) else "L4", "L0",
             "positive/negative host vector plus exact gas through a real chunk",
             remaining,
@@ -450,6 +479,7 @@ def inventory(repo, nearcore):
             "rows": len(rows),
             "nearcore_env_imports": len(env_names),
             "lean_host_arms": len(arms),
+            "lean_crypto_host_arms": len(crypto_arms),
             "nearcore_action_tags": len(tags),
             "lean_decoded_action_tags": len(ok_tags),
             "lean_numeric_opcodes": len(ops),

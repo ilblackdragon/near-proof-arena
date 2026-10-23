@@ -22,6 +22,10 @@ root = "MainD3"
 name = "nearspec-v3-check-logged"
 root = "MainLogged"
 
+[[lean_exe]]
+name = "nearspec-v3-test-crypto"
+root = "CryptoTest"
+
 [[lean_lib]]
 name = "LoggedHarness"
 
