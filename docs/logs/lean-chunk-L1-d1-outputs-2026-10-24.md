@@ -6,7 +6,7 @@
 | worktree | `/data/illia/nearproof-wt/lean-d1-outputs` |
 | branch | `work/d1-output-agreement` |
 | base commit | `5491f7f03d2c1521e62c6407d8df52afad4471df` (`5491f7f03`, "docs: record the output-agreement evidence (result, method, limits)") |
-| tip | see §12 (recorded on commit; base + this lane's commit) |
+| tip | `8693002f99aa6f717e07026a59aeab09e926d37d` (`8693002f9`, "D1: emit computed outputs from checkD1CoreObs; signed checkD1 is its projection") |
 | inventory IDs | none claimed. This closes the D1 row of the output-evidence gap in `docs/evidence/lean-chunk-final-outputs/RESULT.md`, not an inventory item |
 | evidence | `docs/evidence/lean-chunk-final-outputs/d1-outputs.md`, `D1Axioms.lean`, `full-run2.log` results in §6 |
 
@@ -258,5 +258,10 @@ Do **not** hard-link or copy `.lake` caches into this worktree; the builds here 
 
 ## 12. Tip commit
 
-Recorded on the commit that carries this log and the evidence document. Run `git log --oneline -2` in
-the worktree; the lane commit's parent is `5491f7f03`.
+`8693002f99aa6f717e07026a59aeab09e926d37d` — "D1: emit computed outputs from checkD1CoreObs; signed
+checkD1 is its projection". Parent `5491f7f03`. 12 files, +1,101/−22.
+
+Note on `git status`: this worktree also shows ~812 deletions under
+`research/near-compression/native/wasm-base/target/` (pre-existing tracked Rust build artifacts removed
+by an external cleanup, present before this lane's work). They are **not** part of this commit and not
+caused by it; the commit stages only the 12 files above.
