@@ -1,0 +1,112 @@
+--- a/labrador.c
++++ b/labrador.c
+@@ -13,6 +13,7 @@
+ #include "data.h"
+ #include "poly.h"
+ #include "polx.h"
++#include "np_pairs.h"
+ #include "polz.h"
+ #include "sparsemat.h"
+ #include "jlproj.h"
+@@ -1043,7 +1044,7 @@
+     return;
+   }
+ 
+-  size_t i,j,k,l;
++  size_t i;
+   poly *vh = (poly*)&owt->s[cpp->f][h];
+   polx (*phi)[n] = (polx(*)[n])ost->cnst->phi;
+   polx *hx = (polx*)_aligned_alloc(64,(m-h)*sizeof(polx));
+@@ -1052,19 +1053,7 @@
+   /* linear garbage */
+   /* hx[k+t] = <phi[i], sx[i+t]> + <phi[i+t], sx[i]>, blocked over the rank like the
+    * quadratic garbage so both rows of a block stay cached across the pairs. */
+-  polxvec_setzero(hx,(r*r+r)/2);
+-  for(l=0;l<n;l+=GARBAGEBLOCK) {
+-    const size_t bl = MIN(GARBAGEBLOCK,n-l);
+-    k = 0;
+-    for(i=0;i<r;i++) {
+-      polxvec_sprod_add(&hx[k],&phi[i][l],&sx[i][l],bl,SPROD_WALK);
+-      for(j=1;j<r-i;j++) {
+-        polxvec_sprod_add(&hx[k+j],&phi[i][l],&sx[i+j][l],bl,SPROD_WALK);
+-        polxvec_sprod_add(&hx[k+j],&sx[i][l],&phi[i+j][l],bl,SPROD_WALK);
+-      }
+-      k += r-i;
+-    }
+-  }
++  np_pairs(hx,*phi,*sx,r,n,r*n>=32768 ? np_pair_threads() : 1);
+   np_profile_mark("amortize_detail","pair_products",r,n,0,&np_amort);
+   decompose_checked(vh,hx,(r*r+r)/2,cpp->fu,cpp->bu,"amortize linear garbage");
+   polxvec_frompolyvec(hx,vh,m-h);
+--- a/Makefile
++++ b/Makefile
+@@ -100,3 +100,5 @@
+ 
+ # Local opt-in phase instrumentation dependency.
+ libobj/chihuahua.o libobj/labrador.o libobj/dachshund.o: np_profile.h
++
++libobj/labrador.o: np_pairs.h
+--- /dev/null
++++ b/np_pairs.h
+@@ -0,0 +1,61 @@
++#ifndef NP_PAIRS_H
++#define NP_PAIRS_H
++#include <pthread.h>
++#include <stdlib.h>
++#include "polx.h"
++/* Internal workers only: caller holds the existing whole-prover lock. */
++typedef struct {
++  polx *out;
++  const polx *phi, *sx;
++  size_t r,n,begin,end;
++} np_pair_job;
++static void *np_pair_worker(void *arg) {
++  const np_pair_job *a=arg;
++  for(size_t l=0;l<a->n;l+=16) {
++    const size_t bl=a->n-l<16?a->n-l:16;
++    size_t k=0;
++    for(size_t i=0;i<a->r;i++) {
++      for(size_t j=i;j<a->r;j++,k++) {
++        if(k<a->begin || k>=a->end) continue;
++        polxvec_sprod_add(&a->out[k],&a->phi[i*a->n+l],&a->sx[j*a->n+l],bl,SPROD_WALK);
++        if(i!=j)
++          polxvec_sprod_add(&a->out[k],&a->sx[i*a->n+l],&a->phi[j*a->n+l],bl,SPROD_WALK);
++      }
++    }
++  }
++  return NULL;
++}
++static void np_pairs(polx *out,const polx *phi,const polx *sx,size_t r,size_t n,size_t workers) {
++  const size_t count=r*(r+1)/2;
++  polxvec_setzero(out,count);
++  if(!count || !n) return;
++  if(workers<1) workers=1;
++  if(workers>16) workers=16;
++  if(workers>count) workers=count;
++  /* Initialize all SPROD_WALK cache entries before any worker can read them. */
++  polx warm;
++  polxvec_setzero(&warm,1);
++  polxvec_sprod_add(&warm,phi,sx,1,SPROD_WALK);
++  np_pair_job jobs[16];
++  pthread_t threads[16];
++  int started[16]={0};
++  for(size_t t=0;t<workers;t++) {
++    jobs[t]=(np_pair_job){out,phi,sx,r,n,count*t/workers,count*(t+1)/workers};
++    if(t+1<workers) {
++      started[t]=pthread_create(&threads[t],NULL,np_pair_worker,&jobs[t])==0;
++      if(!started[t]) np_pair_worker(&jobs[t]);
++    } else np_pair_worker(&jobs[t]);
++  }
++  for(size_t t=0;t+1<workers;t++) if(started[t]) {
++    /* Continuing with live workers would invalidate transcript and lifetimes. */
++    if(pthread_join(threads[t],NULL)!=0) abort();
++  }
++}
++static size_t np_pair_threads(void) {
++  const char *s=getenv("LABRADOR_PAIR_THREADS");
++  if(!s) return 1;
++  char *end;
++  const unsigned long n=strtoul(s,&end,10);
++  return end!=s && *end=='\0' && n>=1 && n<=16 ? (size_t)n : 1;
++}
++#endif

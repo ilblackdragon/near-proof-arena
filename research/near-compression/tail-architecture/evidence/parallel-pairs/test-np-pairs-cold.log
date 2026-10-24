@@ -1,0 +1,5 @@
+COLD_CACHE_PARITY passed
+EXACT_PARITY cases=540
+LARGE_PARITY repeat=0 serial_ms=159.374 parallel_ms=62.914
+LARGE_PARITY repeat=1 serial_ms=165.021 parallel_ms=69.306
+LARGE_PARITY repeat=2 serial_ms=164.225 parallel_ms=60.438

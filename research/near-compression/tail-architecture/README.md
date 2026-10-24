@@ -16,8 +16,9 @@ takes 4.20–4.35 s; it does not solve the deadline. [Bitmask selection](SELECTI
 rejected. Four-core execution of the existing relation gives 244,814 B /
 3.72–3.77 s; fresh single-core verification passes. [Parallel commitment](PARALLEL_COMMIT.md) now gives 244,814 B / 3.13–3.30 s
 on four cores; exact parity and older-verifier checks pass. [Backend profiling](LABRADOR_PHASES.md) attributes the remaining cost to initial
-constraint lifting, commitment, projection and amortization. Next measure exact
-parallelism over independent amortization outputs; source inclusion/state/runtime
+constraint lifting, commitment, projection and amortization. [Parallel pair products](PARALLEL_PAIRS.md) now cut the initial kernel from
+153–156 ms to 44–57 ms, with 244,814 B / 3.15–3.34 s warm readiness.
+Next investigate independent JL/lifting outputs; source inclusion/state/runtime
 and PQ history still remain.
 
 The earlier [receipt-only batch](RECEIPT_BATCH.md) measured 215,398 B / 1.52–1.54 s

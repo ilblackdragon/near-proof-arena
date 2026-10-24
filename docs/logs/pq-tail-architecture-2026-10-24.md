@@ -321,3 +321,17 @@ optimization yet. Instrumented packet 244,814 B / 3.652 s warm; independent
 public-byte audit and unchanged old verifier pass (1.529 s, four negatives).
 See `research/near-compression/tail-architecture/LABRADOR_PHASES.md` and
 `evidence/amortize-detail/`. Full NEAR/PQ history and deadline remain open.
+
+### Parallel pair-product kernel
+
+Implemented opt-in disjoint triangular output workers preserving each output's
+block/product order; warm shared scalar-product cache before workers, join
+before transcript changes. Exact raw parity: 540 cases, first-use cache case,
+three large r31/n9567 cases. Initial harness LOGQ mismatch crashed; corrected
+to backend LOGQ48 and retained failed log. Full original 804-receipt relation:
+244,814 B / 3.344 and 3.147 s warm, vs same-build serial pairs 3.558/3.515 s.
+Initial pair kernel 44–57 vs 153–156 ms. Unchanged old verifier accepts in
+1.513 s with four negatives; independent public bytes match fixture. No
+new best latency guarantee, full NEAR or composed PQ/history claim.
+Next: independent JL/lifting outputs. See `PARALLEL_PAIRS.md` and
+`evidence/parallel-pairs` under `research/near-compression/tail-architecture`.
