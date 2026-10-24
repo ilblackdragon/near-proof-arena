@@ -1,6 +1,7 @@
 import NearSpecV3.Successor.StorageExecution
 import NearSpecV3.Successor.WitnessCodec
 import NearSpecV3.GenesisD3
+import NearSpecV3.Resharding
 
 /-! Parameterized validation shell. The legacy driver reduces definitionally to the original
 checkers (proved below); the recorder driver changes only main execution and its size guard. -/
@@ -10,6 +11,25 @@ set_option maxHeartbeats 2000000
 namespace NearSpecV3.Successor
 open NearSpec NearSpecV3 NearSpecV3.D2
 
+/-- An implicit transition's kind, as `ImplicitTransitionParams` distinguishes it
+(`chunk_validation.rs:103-110`). -/
+inductive ImplicitKind where
+  /-- `ImplicitTransitionParams::ApplyOldChunk`: apply the block's transactions/receipts. -/
+  | applyOldChunk
+  /-- `ImplicitTransitionParams::Resharding`: split the parent trie at a boundary account and keep
+  one child's half. The payload is the validator's `(boundary_account, retain_mode)`. -/
+  | resharding (boundaryAccount : Bytes) (mode : RetainMode)
+  deriving DecidableEq, Repr
+
+/-- How an implicit transition is applied. The signed and D2 drivers have exactly one kind —
+`applyOldChunk` — so their split handling is definitionally absent. A resharding-enabled driver adds
+the `resharding` kind. -/
+def implicitKindOf (l : Layout) (shardId : Nat) (numNewChunksSeen : Nat) :
+    Except String ImplicitKind := do
+  match ← reshardingTransitionOf l shardId numNewChunksSeen with
+  | some (bd, mode) => pure (.resharding bd mode)
+  | none => pure .applyOldChunk
+
 structure ExecutionDriver where
   apply : ActionHooks → Prims → Env → PTrie → Option ValidatorUpdateFacts →
     List (Bytes × Nat) → List Rcpt → List (TxD2 × Bool) → Congestion → Except String MainOutD2
@@ -18,6 +38,18 @@ structure ExecutionDriver where
   receiptShard : Layout → Rcpt → Nat := fun l r => l.shardOf r.recv
   validateRouting : Layout → List Rcpt → Except String Unit := fun _ _ => pure ()
   outgoingRoot : Layout → List Rcpt → Bytes := outgoingReceiptsRootD2
+  /-- Decide resharding implicit transitions instead of excluding a claim whose epochs differ in
+  shard layout or whose facts carry a split gate. `false` is the signed and D2 behaviour: both
+  guards stay in force and no implicit transition can be a resharding. -/
+  resharding : Bool := false
+  /-- How each implicit transition is applied. The default is the signed behaviour: every implicit
+  transition is an old-chunk application. A resharding-enabled driver consults the layout's split
+  map instead. -/
+  implicitKind : Layout → Nat → Nat → Except String ImplicitKind := fun _ _ _ => .ok .applyOldChunk
+  /-- Apply a resharding implicit transition to a parent trie and return the child's new root. Only
+  reached when `implicitKind` returns `.resharding`, so the signed path never calls it. -/
+  splitApply : PTrie → Bytes → RetainMode → Except String Bytes :=
+    fun _ _ _ => .error "unmodeled: resharding transition"
 
 def legacyDriver : ExecutionDriver :=
   { apply := applyNewChunkD2, sizeOk := fun base removals => base + 2000 * removals ≤ 4000000 }
@@ -39,6 +71,17 @@ def recorderDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
     merklizeBorsh (l.shardIds.map fun shard =>
       sha256 (u64 shard ++ encodeRcpts (rs.filter fun r => r.targetShard l == shard)))
     else outgoingReceiptsRootD2 }
+
+/-- The driver that decides resharding implicit transitions. It is `recorderDriver` plus the split
+policy: `implicitKind` consults the layout's split map and `splitApply` runs the split's retention.
+Kept as a separate definition so `recorderDriver` stays byte-identical to what the signed tiers use. -/
+def reshardingDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
+    (codePolicy : CodeWitnessPolicy := .coldPartial) : ExecutionDriver :=
+  { recorderDriver cfg globals codePolicy with
+    resharding := true
+    implicitKind := implicitKindOf
+    splitApply := fun t bd mode => .ok (splitRoot t bd mode) }
+
 
 def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
     (gasCap : Option Nat := none) : Except String Unit := do
@@ -66,7 +109,13 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
   check (ep.protocolVersion == c.protocolVersion)
     "invalid: epoch table does not match epoch_id / protocol_version"
   check (c.epochs.all (·.protocolVersion == 86)) "out of domain (c.pv86): epoch protocol version"
-  check (c.epochs.all (·.shardLayout == ep.shardLayout)) "out of domain (c.same_layout): resharding"
+  -- The resharding guards are lifted when the driver decides resharding transitions. When it does
+  -- not (the signed and D2 drivers), they remain exactly as they were: one shard layout and no split
+  -- gate. When it does, the split's own semantics take over below (the implicit-transition loop
+  -- applies the split and checks the child's post-state root), so a differing layout is no longer a
+  -- reason to exclude the claim.
+  if !driver.resharding then
+    check (c.epochs.all (·.shardLayout == ep.shardLayout)) "out of domain (c.same_layout): resharding"
   let L ← decodeLayout ep.shardLayout
   check (1 ≤ L.numShards && L.numShards ≤ 64) "out of domain (c.layout)"
   check (rsGenesisParamsOk c.rsDataParts c.rsTotalParts) "invalid: Reed-Solomon parameters"
@@ -82,7 +131,8 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
         (!b.isGenesis || f.toNat == 1)
       | _, _, _ => false)
     "invalid: epoch_start_after inconsistent with the headers"
-  check (c.applyFacts.all fun f => f.splitGate.isNone) "out of domain (c.no_split_gate)"
+  if !driver.resharding then
+    check (c.applyFacts.all fun f => f.splitGate.isNone) "out of domain (c.no_split_gate)"
   -- step 6: check_valid_for_config on new_transactions (size gate; no signature check)
   check (w.newTxs.all TxD2.sizeOk) "invalid: new transaction exceeds max_transaction_size"
   let hashes := blks.map (·.hdr.hash)
@@ -173,12 +223,26 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
   -- 3.6 implicit transitions
   check (w.implicit.length == implicitIdx.length) "invalid: implicit transitions count"
   let mainProps := out.proposals.map fun p => (p.acct, p.stake)
+  -- Each implicit transition is either an old-chunk application (`ImplicitTransitionParams::
+  -- ApplyOldChunk`) or, when the driver decides resharding, a split (`ImplicitTransitionParams::
+  -- Resharding`). The validator derives the split from the *next* layout's split map and this
+  -- shard's position in it (`get_resharding_transition`, `chunk_validation.rs:258-308`); the kind is
+  -- therefore a property of the layout and the shard, not of the witness's transition list. The
+  -- count and the post-state-root comparison are the same for both kinds, so a wrongly classified
+  -- split fails the same `post_state_root` check an old-chunk mis-application does.
   for ((i, f), T) in (implicitIdx.zip (c.applyFacts.drop 1)).zip w.implicit do
     let M ← match blks[i]? with | some b => pure b | none => throw "invalid: walk"
     let ctxM := blockCtx L H.shardId slotB2.gasLimit M M.hdr.nextGasPrice
     let envM : Env := envOf c ctxM M f.minimumStake sched
     let tM := revealTrie T.values root
-    root ← applyMissingChunkD2 prims envM tM f.validatorUpdate mainProps
+    match ← driver.implicitKind L H.shardId i with
+    | .applyOldChunk =>
+      root ← applyMissingChunkD2 prims envM tM f.validatorUpdate mainProps
+    | .resharding bd mode =>
+      -- The split's trie is the parent trie the witness reveals for this transition; the child's
+      -- root is its retained half's hash. Congestion bookkeeping is checked by the header
+      -- comparison below (`H.congestion`), which the split's finalization must match.
+      root ← driver.splitApply tM bd mode
     check (root == T.postStateRoot) "invalid: implicit transition post state root"
   -- 3.7 comparison with the endorsed header
   check (H.prevStateRoot == root) "invalid: InvalidStateRoot"

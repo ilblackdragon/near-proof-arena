@@ -474,7 +474,7 @@ theorem merkleRoot_singleton (x : Bytes) : merkleRoot [x] = x := rfl
 it pins the endorsed header's field to that leaf, which no chunk with outgoing receipts would
 satisfy. -/
 theorem emptyOutgoingReceiptsRootD2_single (s : Nat) :
-    emptyOutgoingReceiptsRootD2 ⟨[], [s], []⟩ = sha256 (sha256 (u64 s ++ encodeRcpts [])) := by
+    emptyOutgoingReceiptsRootD2 { boundaries := [], shardIds := [s], idToIndex := [] } = sha256 (sha256 (u64 s ++ encodeRcpts [])) := by
   simp [emptyOutgoingReceiptsRootD2, merklizeBorsh, merkleRoot_singleton]
 
 

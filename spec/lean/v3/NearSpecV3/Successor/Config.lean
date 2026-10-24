@@ -92,6 +92,11 @@ structure ProtocolCfg where
   one. The signed configuration keeps this `false`, so the signed statement's surface is unchanged
   (`checkSuccessor_signed` stays `rfl`). -/
   curveHosts : Bool := false
+  /-- Opt-in resharding: decide a claim whose epochs differ in shard layout, or whose facts carry a
+  split gate, by applying the split's trie retention and checking the child's post-state root. The
+  signed configuration keeps this `false`, so both `c.same_layout` and `c.no_split_gate` stay in
+  force there and `checkSuccessor_signed` remains `rfl`. -/
+  resharding : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
@@ -101,6 +106,9 @@ def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
 
 /-- The signed configuration: exactly `checkD3`'s arguments. -/
 def signedCfg : ProtocolCfg := {}
+
+/-- The signed configuration with resharding decided. -/
+def reshardingCfg : ProtocolCfg := { signedCfg with resharding := true }
 
 /-- The protocol gas bound as a configuration (`L1`'s successor bound). -/
 def protocolGasCfg : ProtocolCfg := { signedCfg with gasCap := some maxGasBurnt }
@@ -166,13 +174,16 @@ tier's checker is this function at that tier's configuration; there is no second
 def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Except String Unit :=
   match cfg.protocolVersion with
   | 86 =>
-    if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness then
+    let mkDriver : ExecutionDriver :=
+      if cfg.resharding then reshardingDriver cfg.wasm cfg.globalActions
+        (if cfg.completeCodeWitness then .complete else .coldPartial)
+      else recorderDriver cfg.wasm cfg.globalActions
+        (if cfg.completeCodeWitness then .complete else .coldPartial)
+    if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness || cfg.resharding then
       if cfg.genesisMainTransition then
-        checkD2CoreGWith (recorderDriver cfg.wasm cfg.globalActions
-          (if cfg.completeCodeWitness then .complete else .coldPartial)) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+        checkD2CoreGWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
       else
-        checkD2CoreWith (recorderDriver cfg.wasm cfg.globalActions
-          (if cfg.completeCodeWitness then .complete else .coldPartial)) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+        checkD2CoreWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else if cfg.genesisMainTransition then
       checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else
@@ -238,6 +249,10 @@ inductive Tier where
   storage resolution and the `D3γ` curve-host table. This is the widest tier: it decides a chunk
   that imports or calls a curve host instead of excluding it. -/
   | curveHosts
+  /-- Every decision the `curveHosts` tier makes, plus resharding: a claim whose epochs differ in
+  shard layout or whose facts carry a split gate is decided by the split's retention instead of
+  excluded. This is the widest tier. -/
+  | resharding
   deriving DecidableEq, Repr
 
 /-- The tier's configuration. -/
@@ -267,6 +282,10 @@ def Tier.cfg : Tier → ProtocolCfg
   | .curveHosts =>
     { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, curveHosts := true }
+  | .resharding =>
+    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+                     loadingLimits := true, storageResolution := true, curveHosts := true,
+                     resharding := true }
 
 /-- The tier's checker: the root at the tier's configuration. -/
 def Tier.checker (t : Tier) : Bytes → Bytes → Except String Unit := checkSuccessor t.cfg
@@ -289,7 +308,7 @@ theorems below plus the still-missing semantic families. -/
 def Tier.rank : Tier → Nat
   | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
   | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7
-  | .globalActions => 8 | .completeCodeGlobal => 9 | .curveHosts => 10
+  | .globalActions => 8 | .completeCodeGlobal => 9 | .curveHosts => 10 | .resharding => 11
 
 /-! ## The adapters, at their tiers
 

@@ -21,6 +21,9 @@ TIERS = {
     # W05 curve hosts: the widest tier. A curve-host case is in domain here, so the tier declares
     # no curve exclusion; it still carries the genesis/float/gas ones the narrower tiers carry.
     "curveHosts": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
+    # The widest tier: curve hosts plus resharding. The resharding guards (`c.same_layout`,
+    # `c.no_split_gate`) are lifted, so those labels are no longer exclusion labels here.
+    "resharding": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
     "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
     "signed": (),

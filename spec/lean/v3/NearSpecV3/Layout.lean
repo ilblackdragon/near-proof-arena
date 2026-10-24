@@ -28,6 +28,14 @@ structure Layout where
   boundaries : List Bytes
   shardIds : List Nat
   idToIndex : List (Nat × Nat)
+  /-- V3 only: parent shard → the shards it split into. Empty for V2 (which carries no split map).
+  This is the split's own record in the layout bytes; the validator reads it to decide whether a
+  block crosses a layout boundary and which child shard a resharding transition produces. -/
+  splitMap : List (Nat × List Nat) := []
+  /-- V3 only: the most recent split's parent shard id. -/
+  lastSplit : Option Nat := none
+  /-- V3 only: child shard → its ancestor shards. -/
+  ancestorMap : List (Nat × List Nat) := []
   deriving Repr
 
 def pPairU64 : P (Nat × Nat) := fun bs => do
@@ -35,10 +43,10 @@ def pPairU64 : P (Nat × Nat) := fun bs => do
   let (b, bs) ← pU64 "map value" bs
   pure ((a, b), bs)
 
-def pKeyVecU64 : P Unit := fun bs => do
-  let (_, bs) ← pU64 "map key" bs
-  let (_, bs) ← pVec "map value" (pU64 "shard") bs
-  pure ((), bs)
+def pKeyVecU64 : P (Nat × List Nat) := fun bs => do
+  let (k, bs) ← pU64 "map key" bs
+  let (vs, bs) ← pVec "map value" (pU64 "shard") bs
+  pure ((k, vs), bs)
 
 def decodeLayout (b : Bytes) : Except String Layout := do
   let (tag, bs) ← pU8 "ShardLayout tag" b
@@ -52,16 +60,19 @@ def decodeLayout (b : Bytes) : Except String Layout := do
     let (_, bs) ← pOption "shards_parent_map" (pVec "parent map" pPairU64) bs
     let (_, bs) ← pU32 "version" bs
     if !bs.isEmpty then throw "decode: trailing bytes in ShardLayout"
-    pure ⟨bd, ids, i2x⟩
+    -- V2 has no V3 split map: its split information lives in the optional maps just skipped, whose
+    -- shape differs (parent map is shard -> shard). V2 resharding is not modelled; the fields stay
+    -- empty so a V2 layout can never claim a V3 split.
+    pure { boundaries := bd, shardIds := ids, idToIndex := i2x }
   | 3 => do
     let (bd, bs) ← pVec "boundary_accounts" (pAccountId "boundary") bs
     let (ids, bs) ← pVec "shard_ids" (pU64 "shard id") bs
     let (i2x, bs) ← pVec "id_to_index_map" pPairU64 bs
-    let (_, bs) ← pVec "shards_split_map" pKeyVecU64 bs
-    let (_, bs) ← pU64 "last_split" bs
-    let (_, bs) ← pVec "shards_ancestor_map" pKeyVecU64 bs
+    let (splitMap, bs) ← pVec "shards_split_map" pKeyVecU64 bs
+    let (lastSplit, bs) ← pU64 "last_split" bs
+    let (ancestorMap, bs) ← pVec "shards_ancestor_map" pKeyVecU64 bs
     if !bs.isEmpty then throw "decode: trailing bytes in ShardLayout"
-    pure ⟨bd, ids, i2x⟩
+    pure { boundaries := bd, shardIds := ids, idToIndex := i2x, splitMap, lastSplit := some lastSplit, ancestorMap }
   | _ => throw "out of domain (c.layout): shard layout is not V2/V3"
 
 /-- Byte-lexicographic `a ≤ b` (Rust `str` ordering). -/
