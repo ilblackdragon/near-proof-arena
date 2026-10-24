@@ -4,9 +4,9 @@ import NearSpecV3.BLS12381
 # The BLS12-381 optimal ate pairing, as `bls12381_pairing_check` consumes it
 
 Second BLS12-381 leaf module (after `BLS12381.lean`), for the one host that needs the target group:
-`bls12381_pairing_check` (`runtime/near-vm-runner/src/logic/bls12381.rs:330-410`), which returns `0`
+`bls12381_pairing_check` (`runtime/near-vm-runner/src/logic/bls12381.rs:329-384`), which returns `0`
 when `∏ e(g1ᵢ, g2ᵢ) = 1`, `1` when a point fails to decode or is not in G1/G2, and `2` when the
-product is something else (`logic.rs:1329-1338`).
+product is something else (`wasmtime_runner/logic.rs:1332-1340`).
 
 ## The tower
 
@@ -457,7 +457,7 @@ def finalExp (f : Fp12) : Fp12 :=
 
 /-- **The host's decision**: `∏ e(g1ᵢ, g2ᵢ) = 1`. The Miller loop product is multiplied term by term
 (`pairings.rs:563-596`) and the final exponentiation applied once at the end, exactly as
-`logic/bls12381.rs:400-408` does. -/
+`logic/bls12381.rs:375-383` does. -/
 def productIsOne (pairs : List (G1 × G2)) : Bool :=
   let f := pairs.foldl (fun acc (p1, p2) =>
       match p1.affine? with
@@ -465,7 +465,7 @@ def productIsOne (pairs : List (G1 × G2)) : Bool :=
       | none => acc) Fp12.one
   finalExp f = Fp12.one
 
-/-- The empty product: `bls12381.rs:400-408` multiplies no Miller loops, so the accumulator is
+/-- The empty product: `bls12381.rs:375-383` multiplies no Miller loops, so the accumulator is
 `blst_fp12::default()` = one and `final_exp(1) = 1`, hence the host returns `0`. Stated as the
 *definitional* equation it is (`productIsOne []` reduces to `finalExp one = one`); the numeric
 witness `finalExp one = one` is checked in the vector suite rather than in the kernel, because
@@ -476,12 +476,12 @@ end Pairing
 
 /-! ## The host payload of `bls12381_pairing_check`
 
-`logic/bls12381.rs:317-415`. Unlike the eight register writers this has no register: it returns the
+`logic/bls12381.rs:329-384`. Unlike the eight register writers this has no register: it returns the
 `0`/`1`/`2` verdict directly. Decoding uses the *uncompressed* reader with the top bit clear and
 requires both subgroup checks to pass; any failure is the `1` return. -/
 
 /-- Decode a `pairing_check` input's 288-byte chunks into its `(g1, g2)` pairs, or `none` when a
-chunk is malformed or outside `G1`/`G2` (`logic/bls12381.rs:317-415`; the subgroup checks there are
+chunk is malformed or outside `G1`/`G2` (`logic/bls12381.rs:329-384`; the subgroup checks there are
 the *hard* requirement, unlike in `p1_sum`). Structural recursion over `chunksExact 288`, so the
 kernel evaluates it; the host rejects a non-multiple length before reaching here. -/
 def decodePairsAux : List ArenaCore.Bytes → Option (List (G1 × G2))

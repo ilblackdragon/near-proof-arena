@@ -7,8 +7,8 @@ import NearSpecV3.BLS12381Pairing
 /-!
 # Host semantics of the crypto host functions (successor domain `D3γ`)
 
-`ecrecover` (`runtime/near-vm-runner/src/wasmtime_runner/logic.rs:1668-1770`) and `p256_verify`
-(`logic.rs:1884-1930`) as host computations in `HM`, with nearcore's **order of charges and
+`ecrecover` (`runtime/near-vm-runner/src/wasmtime_runner/logic.rs:1668-1757`) and `p256_verify`
+(`wasmtime_runner/logic.rs:1884-1950`) as host computations in `HM`, with nearcore's **order of charges and
 checks**: gas is paid before bounds checks, each input is charged when read, `write_register` is
 charged only when a value is actually written, and a malformed length is a host error while a
 failed verification is a `0` return.
@@ -55,7 +55,7 @@ def cryptoHosts : List String :=
    "bls12381_pairing_check", "bls12381_p1_decompress", "bls12381_p2_decompress",
    "ecrecover", "p256_verify"]
 
-/-- `ecrecover` (`logic.rs:1668-1770`). Arguments are the wasm operands in declaration order:
+/-- `ecrecover` (`wasmtime_runner/logic.rs:1668-1757`). Arguments are the wasm operands in declaration order:
 `hash_len, hash_ptr, sig_len, sig_ptr, v, malleability_flag, register_id`. -/
 def hostEcrecover (a : Vector Nat 7) : HM Unit := do
   payBaseH ecrecoverBase
@@ -82,7 +82,7 @@ def hostEcrecover (a : Vector Nat 7) : HM Unit := do
   | some pk => regSetH reg (ByteArray.mk pk.toArray); pushRet 1
   | none => pushRet 0
 
-/-- `p256_verify` (`logic.rs:1884-1930`). Arguments in declaration order:
+/-- `p256_verify` (`wasmtime_runner/logic.rs:1884-1950`). Arguments in declaration order:
 `sig_len, sig_ptr, msg_len, msg_ptr, pk_len, pk_ptr`. Note the order of charges and checks differs
 from `ecrecover`: the message is read (and charged per byte) **before** the public key, and every
 parse failure is a `0` return, not a host error. -/
@@ -105,13 +105,14 @@ def hostP256Verify (a : Vector Nat 6) : HM Unit := do
 
 /-! ## BLS12-381 (`bls12381_*`, 9 hosts)
 
-All nine hosts share the `bls12381_impl!` shape (`logic.rs:33-105`) except `pairing_check`, which has
-its own body (`logic.rs:1340-1370`). The difference matters for gas and for the error/return split:
+All nine hosts share the `bls12381_impl!` shape (`wasmtime_runner/logic.rs:33-83`) except
+`pairing_check`, which has its own body (`wasmtime_runner/logic.rs:1352-1376`). The difference
+matters for gas and for the error/return split:
 
 * `bls12381_impl!` — `pay_base`, `pay_per(element, len / ITEM_SIZE)`, **then** read the input, then
   decode. A length that is not a multiple of `ITEM_SIZE` still pays base and `len / ITEM_SIZE`
   elements, then raises `BLS12381InvalidInput` from `check_input_size`
-  (`logic/bls12381.rs:438-450`).
+  (`logic/bls12381.rs:438-452`).
 * `bls12381_pairing_check` — `pay_base`, **then read**, then `pay_per(pairing_element, len / 288)`,
   then decode. So an out-of-bounds read burns base + the read cost but no per-element charge.
 
@@ -122,7 +123,7 @@ so only gas is modelled. Each call additionally pays the generic read/write char
 Return split: success returns `0` and writes the payload to `register_id`; a decode/curve/subgroup
 failure returns `1` and writes nothing. `pairing_check` writes nothing at all and returns
 `0` (product `= 1`), `1` (malformed / not in G1 or G2) or `2` (product `≠ 1`)
-(`logic.rs:1329-1338`).
+(`wasmtime_runner/logic.rs:1333-1340`).
 
 `bls12381_not_in_group_fix` is **false** at PV86 (`parameters.snap:289`), so every decode runs at
 `version = 0` and rejects the `(0, ±2)` subgroup corner case in `sum` and `decompress`
@@ -182,27 +183,27 @@ def blsWriter (base element : Cost) (itemSize : Nat) (fnName : String)
   | some out => regSetH reg (ByteArray.mk out.toArray); pushRet 0
   | none => pushRet 1
 
-/-- `bls12381_p1_sum` (`logic.rs:1056-1110`): `[(sign: u8, p1: 96 B)]`, sign ∈ {0,1}, output the
+/-- `bls12381_p1_sum` (`wasmtime_runner/logic.rs:1056-1099`): `[(sign: u8, p1: 96 B)]`, sign ∈ {0,1}, output the
 96-byte sum. Decoding runs at `version = 0`, so `(0, ±2)` is rejected (`parse_p1`). -/
 def hostP1Sum (a : Vector Nat 3) : HM Unit :=
   blsWriter p1SumBase p1SumElement 97 "bls12381_p1_sum" (fun d => BLS12381.p1Sum bls12381Version d) a
 
-/-- `bls12381_p2_sum` (`logic.rs:1111-1170`): `[(sign: u8, p2: 192 B)]`. -/
+/-- `bls12381_p2_sum` (`wasmtime_runner/logic.rs:1101-1145`): `[(sign: u8, p2: 192 B)]`. -/
 def hostP2Sum (a : Vector Nat 3) : HM Unit :=
   blsWriter p2SumBase p2SumElement 193 "bls12381_p2_sum" (fun d => BLS12381.p2Sum bls12381Version d) a
 
-/-- `bls12381_g1_multiexp` (`logic.rs:1171-1235`): `[(p1: 96 B, scalar: 32 B LE)]`, with the extra
-`blst_p1_in_g1` subgroup gate on every point (`logic/bls12381.rs:189-195`). -/
+/-- `bls12381_g1_multiexp` (`wasmtime_runner/logic.rs:1147-1190`): `[(p1: 96 B, scalar: 32 B LE)]`, with the extra
+`blst_p1_in_g1` subgroup gate on every point (`logic/bls12381.rs:185-187`). -/
 def hostG1Multiexp (a : Vector Nat 3) : HM Unit :=
   blsWriter g1MultiexpBase g1MultiexpElement 128 "bls12381_p1_multiexp"
     (fun d => BLS12381.g1Multiexp bls12381Version d) a
 
-/-- `bls12381_g2_multiexp` (`logic.rs:1236-1300`): `[(p2: 192 B, scalar: 32 B LE)]`. -/
+/-- `bls12381_g2_multiexp` (`wasmtime_runner/logic.rs:1192-1236`): `[(p2: 192 B, scalar: 32 B LE)]`. -/
 def hostG2Multiexp (a : Vector Nat 3) : HM Unit :=
   blsWriter g2MultiexpBase g2MultiexpElement 224 "bls12381_p2_multiexp"
     (fun d => BLS12381.g2Multiexp bls12381Version d) a
 
-/-- `bls12381_p1_decompress` (`logic.rs:1421-1480`): `[compressed p1: 48 B]`, output 96 B. At
+/-- `bls12381_p1_decompress` (`wasmtime_runner/logic.rs:1378-1420`): `[compressed p1: 48 B]`, output 96 B. At
 `version = 0` this goes through `blst::min_pk::PublicKey::uncompress`
 (`logic/bls12381.rs:214-224`), which rejects the `(0, ±2)` subgroup case. -/
 def hostP1Decompress (a : Vector Nat 3) : HM Unit :=
@@ -214,22 +215,22 @@ def hostP2Decompress (a : Vector Nat 3) : HM Unit :=
   blsWriter p2DecompressBase p2DecompressElement 96 "bls12381_p2_decompress"
     (fun d => BLS12381.p2Decompress bls12381Version d) a
 
-/-- `bls12381_map_fp_to_g1` (`logic.rs:1238-1275`): `[fp: 48 B]` per element, output 96 B per element.
+/-- `bls12381_map_fp_to_g1` (`wasmtime_runner/logic.rs:1238-1274`): `[fp: 48 B]` per element, output 96 B per element.
 A non-canonical `Fp` (`>= p`) is a `1` return, not an error. -/
 def hostMapFpToG1 (a : Vector Nat 3) : HM Unit :=
   blsWriter mapFpToG1Base mapFpToG1Element 48 "bls12381_map_fp_to_g1"
     (fun d => BLS12381.mapFpToG1 d) a
 
-/-- `bls12381_map_fp2_to_g2` (`logic.rs:1276-1315`): `[fp2: 96 B]` per element, output 192 B per
+/-- `bls12381_map_fp2_to_g2` (`wasmtime_runner/logic.rs:1276-1312`): `[fp2: 96 B]` per element, output 192 B per
 element. -/
 def hostMapFp2ToG2 (a : Vector Nat 3) : HM Unit :=
   blsWriter mapFp2ToG2Base mapFp2ToG2Element 96 "bls12381_map_fp2_to_g2"
     (fun d => BLS12381.mapFp2ToG2 d) a
 
-/-- `bls12381_pairing_check` (`logic.rs:1352-1376`): `[(p1: 96 B, p2: 192 B)]`, no register,
+/-- `bls12381_pairing_check` (`wasmtime_runner/logic.rs:1352-1376`): `[(p1: 96 B, p2: 192 B)]`, no register,
 returns `0`/`1`/`2`. Note the charge order: base, **read**, per-element, decode. Unlike the eight
 `bls12381_impl!` writers — which divide the *operand* `value_len` — this body computes
-`elements_count = data.len() / ITEM_SIZE` from the **read data** (`logic.rs:1368`), so a
+`elements_count = data.len() / ITEM_SIZE` from the **read data** (`wasmtime_runner/logic.rs:1371`), so a
 register-sourced input (`value_len = u64::MAX`) is charged for the register's own length. -/
 def hostPairingCheck (a : Vector Nat 2) : HM Unit := do
   payBaseH pairingBase
