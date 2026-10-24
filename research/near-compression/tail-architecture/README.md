@@ -16,6 +16,9 @@ a decoded 97,998 B proof; scale 20 is 99,490 B / 7.46 s prover for just 277 hash
 actual batches with one circuit/setup: **1.67–1.74 s warm**, ~116 KB analytical,
 four honest proofs / 24 mutants / 44 gadget checks. Construction/setup adds
 12.84 s cold; receipt binding, wire codec, PQ audit and recursion remain open.
+[Actual export](EXPORT_CODEC.md) is now **165,950 B** including public root and
+framing; independent structural parsing passes. Native decoding/fresh-process
+verification is still missing, so this is not yet a verified wire proof.
 
 ## Binary/lattice candidate
 

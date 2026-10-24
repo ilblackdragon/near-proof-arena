@@ -1,0 +1,9 @@
+{
+  "labinius_revision": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "binary_sha256": "97c4e21453138ebe4939ced64cf9b17a9a91b38207815018e8ef34726c18db41",
+  "codec": "export only; fixed-width LE scalar fields, upstream polz bit packing, raw RNS outer images",
+  "build": "RUSTFLAGS=-C target-cpu=native cargo build --release --locked -j 4 -p labinius-binius --bin near-hash-template",
+  "export_environment": "NEAR_EXPORT_DIR=/data/illia/pq-tail-architecture-20261024/exported-proofs",
+  "decoder_implemented": false,
+  "native_verify_from_bytes": false
+}

@@ -30,3 +30,10 @@ Next: canonical LaBinius wire codec and authenticated receipt/hash connection;
 measure complete capacity-class pipeline. Keep full NEAR semantics, composed PQ
 security and recursive history linkage as completion gates. Current CPU Jolt
 whole-VM path is too slow even for a small hash workload; preserve it as a baseline.
+
+Export follow-up: complete hash-component exports are 165,950 bytes each, versus
+~116 KB analytical. Fixed-width terminal coefficients suffice without entropy
+coding. Independent structural reader consumes all fields and rejects six
+malformed-framing cases. Native decoding and verification from bytes remain
+unimplemented; do not promote the export to a verified proof claim. See
+[codec evidence/gates](../../research/near-compression/tail-architecture/EXPORT_CODEC.md).
