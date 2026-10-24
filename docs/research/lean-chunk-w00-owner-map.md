@@ -1,0 +1,367 @@
+# W00 owner map — 28 missing/partial rows and 17 UQs
+
+Owner: **L0** (integration owner for the successor API). Worktree
+`/data/illia/nearproof-wt/lean-chunk-L0`, branch `lane/lean-chunk-L0`, base tip
+`46ddb874692225cbafdd7bc5cac9baa3834ae2b6` (unchanged by this work — all new files are untracked).
+Nearcore `44f7ae6cd7ef08bab604e20a473bf77e35d4c993` (2.13.4), protocol version 86.
+
+Companions: [`lean-chunk-coverage.json`](lean-chunk-coverage.json) (generated inventory, 222 rows),
+[`lean-chunk-coverage.md`](lean-chunk-coverage.md) (readable summary), the successor API at
+`spec/lean/v3/NearSpecV3/Successor/`, and the lane log
+[`../logs/lean-chunk-L0-2026-10-24.md`](../logs/lean-chunk-L0-2026-10-24.md).
+
+**What this document is.** The reconciliation W00 owes the workplan: for every inventory row that is
+`missing` or `partial`, and for every recorded unresolved boundary question, one row naming the owner,
+the disposition, the source justification and the test obligation. It also states, per interface, which
+Lean module publishes the contract and where the row's obligation now lives.
+
+**What this document is not.** It is not new evidence. Every "source" column here points at an
+existing generator row or an existing Lean declaration; nothing is re-derived. Status words
+(`missing`/`partial`) are copied from the generated inventory, not re-judged. **No row changes status
+because this document names an owner**: naming an owner is not implementing a row, and the workplan is
+explicit that "unresolved implementation work cannot disappear by relabelling an exclusion."
+
+## 0. How to read the disposition column
+
+| disposition | meaning |
+|---|---|
+| **open — implementation** | The behaviour is not modelled in Lean and no successor module models it. An owner must implement it. |
+| **open — proof** | The behaviour *is* modelled but a theorem or premise is unproved. An owner must prove or discharge it. |
+| **open — decision** | A modelling or policy choice is unmade. An owner must decide and record it. |
+| **modelled, unvalidated** | A successor module now provides a signature/semantics; no differential evidence exists yet. W13/W14 must validate. |
+| **boundary — stays excluded** | The row is an arena-format bound or a validator condition, not a modelling gap. It stays an exclusion in every tier. |
+| **successor-only** | The signed checker excludes it by design; the successor admits it. The row's status in the *signed* inventory is correct and stays. |
+
+Interface owner of record for all seven published interfaces: **L0**. The module that publishes each
+interface is named in §1. Every row's *semantic* owner stays as the generated inventory records it.
+
+## 1. Interfaces published by W00 and where each row's obligation lives
+
+| # | Interface | Module | Signed statement untouched? | Row families it carries |
+|---|---|---|---|---|
+| 1 | Canonical checker and tiers | `Successor/Config.lean` | yes — `checkSuccessor_signed` is `rfl` | `boundary` genesis rows, all tier predicates |
+| 2 | Wasm host dispatch | `Successor/HostDispatch.lean` | yes — `signedTable` is `hostCall` | all 14 missing/partial `host` rows, plus the implemented ones it names |
+| 3 | Actions and receipts | `Successor/ActionsReceipts.lean` | yes — `ActV.d2` delegates to `D2.pAct` | `action-09/10/11`, distribution receipts, key forms |
+| 4 | Contract resolution | `Successor/Resolution.lean` | yes — resolution is not in `checkD3` | `L0-D3-006`, `L0-D3-008`, `L0-D3-009`, UQ-002/UQ-007 |
+| 5 | Trie recorder | `Successor/TrieRecorder.lean` | yes — recorder is witness-side | `L0-D2-040`, `L0-D2-041`, soft-limit state |
+| 6 | Boundary facts | `Successor/BoundaryFacts.lean` | yes — facts are witness-side | genesis/epoch/layout/split rows, UQ-008/UQ-013/UQ-017 |
+| 7 | Differential result | `Successor/Differential.lean` | yes — no checker change | every test lane's comparison vocabulary |
+
+Aggregator: `NearSpecV3/Successor.lean` (module name `NearSpecV3.Successor`), which imports all seven
+and states the cross-interface facts (`signedChecker_eq_checkD3`, the exclusion owner list).
+
+## 2. Missing/partial rows — 28 rows, one disposition each
+
+Generated inventory status is quoted verbatim in *status*. *Lean symbol now* records what this work
+added; `none` means the row still has no Lean representation.
+
+### 2.1 Action rows (3) — family `action`
+
+| Row | Status | Owner | Lean symbol now | Disposition | Source justification | Test obligation |
+|---|---|---|---|---|---|---|
+| `L0-action-09` | missing | L4 | `ActV.deployGlobal`, `pActV` tag 9, `ActionTag.deployGlobalContract` | successor-only | `core/primitives/src/action/mod.rs:DeployGlobalContract = 9`; `D2/Types.lean` rejects tag 9 as `w.shape` | 1 valid + 1 invalid whole-chunk case (tag 9) |
+| `L0-action-10` | missing | L4 | `ActV.useGlobal`, `pActV` tag 10, `ActionTag.useGlobalContract` | successor-only | same, `UseGlobalContract = 10` | 1 valid + 1 invalid whole-chunk case (tag 10) |
+| `L0-action-11` | missing | L4 | `ActV.stateInit`, `pActV` tag 11, `ActionTag.deterministicStateInit` | successor-only | same, `DeterministicStateInit = 11` | 1 valid + 1 invalid whole-chunk case (tag 11) |
+
+**What changed and what did not.** The three actions now have a *decoder* (`pActV`) whose tag 9/10/11
+branches are proved to reach the `L4` decoders (`pActV_tag9/10/11`), and an `ActionHandler` dispatch
+(`ActionTag.handler`). They do **not** have whole-chunk *execution* semantics in Lean: `L4`'s
+`DeployGlobal`/`UseGlobal`/`Dsi` records and their costs are in `D3/GlobalContract.lean`, but no
+chunk-level execution path consumes them. The row stays `missing` for execution; the decoder half is
+done. **L4 owns closing it.**
+
+### 2.2 Host rows (14) — family `host`
+
+Fourteen `host` rows are missing/partial: twelve `missing` curve hosts and two `partial`
+(`ecrecover`, `p256_verify`). The successor host table names every one with an explicit store
+requirement, gas order and error class, and declares the implemented subset.
+
+| Row | Status | Owner | Lean symbol now | Disposition |
+|---|---|---|---|---|
+| `L0-host-alt_bn128_g1_multiexp` | missing | L3 | `implementedContracts`? no — `unimplementedHosts` entry | open — implementation |
+| `L0-host-alt_bn128_g1_sum` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-alt_bn128_pairing_check` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_g1_multiexp` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_g2_multiexp` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_map_fp2_to_g2` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_map_fp_to_g1` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_p1_decompress` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_p1_sum` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_p2_decompress` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_p2_sum` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_pairing_check` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-ecrecover` | partial | L3 | `implementedContracts` entry (`.ecrecover`); `successorTable` dispatch via `cryptoHostCall` | modelled, unvalidated |
+| `L0-host-p256_verify` | partial | L3 | `implementedContracts` entry (`.p256Verify`); `successorTable` dispatch | modelled, unvalidated |
+
+Source justification for all 14: `runtime/near-vm-runner/src/imports.rs:354-368` (curve host table);
+`signedTable` reports them out of domain (`Wasm/Exec.lean:462-464` import gate), `successorTable` admits
+the two implemented ones and leaves the rest unimplemented. Test obligation for each: positive/negative
+host vector plus exact gas through a real chunk. **L3 owns all 14.**
+
+The generated inventory's host family has 14 missing/partial rows: the twelve `missing` curve hosts
+above plus the two `partial` ones (`ecrecover`, `p256_verify`). `L0-W-015` — also a curve-host row — is
+filed under family `wasm-exec`, not `host`, and is counted in §2.5.
+
+### 2.3 Boundary rows (2) — family `boundary`
+
+| Row | Status | Owner | Lean symbol now | Disposition | Source justification | Test obligation |
+|---|---|---|---|---|---|---|
+| `L0-genesis-main-transition` | partial | L6 | `checkD3G` (existing), `ProtocolCfg.genesisMainTransition`, `Tier.genesis`, `BoundaryInputs.genesis` | open — proof | `chunk_validation.rs:403-413 MainTransition::Genesis`; non-genesis delegation argued by construction over 115,284 cases but not proved as a rewrite theorem | genesis B2 with nonempty witness + genesis header negative |
+| `L0-resharding` | missing | L6 | `ShapeExclusion.resharding`, `EpochInputs.layouts`, `SplitInputs` | open — implementation | `validate_chunk_state_witness: layout transitions`; `Wasm.DomainD3.noResharding` is the stated exclusion | validator fixture crossing a real layout boundary |
+
+**What changed.** The genesis row now has an *explicit configuration flag* (`genesisMainTransition`) and a
+boundary-inputs record (`GenesisInputs.genesisChunkExtra`, `EpochInputs.layoutsOf`, `splitGatesOf`), so a
+lane can state which genesis facts it consumed. It still has **no** rewrite theorem from the genesis
+branch to the non-genesis branch — that stays L6's proof obligation. The resharding row now has typed
+layout/split-gate inputs and an owner-list entry; **no** layout-transition semantics exists.
+
+### 2.4 d2-core partials (3)
+
+| Row | Status | Owner | Lean symbol now | Disposition | Source justification | Test obligation |
+|---|---|---|---|---|---|---|
+| `L0-D2-015` | partial | L1 | `ChunkAccounting` (soft/per-receipt limits) — *not* the `c.segment` bound | boundary — stays excluded | `ChunkValidationD2.lean:144` `c.segment` (n_blocks ≤ 32) vs `chunk_validation.rs:144-253` backward walk with no 32-block limit | extend the claim-size budget and replay the 41/43-block cases |
+| `L0-D2-040` | partial | L5 | `ChunkAccounting.receiptExceeded`, `trieRecorderContract` | open — proof | `runtime/src/lib.rs:838-845`; `recorded_storage_counter.rs:27`; per-receipt limit 4,000,000 | construct a chunk where a receipt's recorded-size delta exceeds Σ values + 2000R but stays under 4e6 |
+| `L0-D2-041` | partial | L0 | `ProtocolCfg.gasCap`, `ChunkAccounting.softLimitReached` | open — decision | `G_α` is a prover cap (`D3/FunctionCall.lean:389`), not a nearcore condition; 1,010 corpus chunks exceed it and nearcore accepts them | raise the cap and replay; compare with nearcore |
+
+Family totals for the 28: `host` 14, `action` 3, `d2-core` 3, `d3-hook` 3, `boundary` 2,
+`wasm-domain` 2, `wasm-exec` 1. §2.6 lists the exact IDs.
+
+### 2.5 d3-hook (3), wasm-exec (1) and wasm-domain (2) rows — 6 total
+
+| Row | Status | Owner | Lean symbol now | Disposition | Source justification | Test obligation |
+|---|---|---|---|---|---|---|
+| `L0-D3-006` | missing | L4 | `ContractIdentifier` (`Rci`), `IdentifierKind.ethWallet`, `ethWallet_kind_unreachable` | open — implementation | `contract_code.rs:56-76`; with `eth_implicit_global_contract` on, the legacy path becomes `Global{eth_wallet_global_contract_hash(chain_id)}` | replay `d3.call_eth_implicit_local` with the wallet hash enumerated |
+| `L0-D3-008` | missing | L4 | `ResolutionEnv.resolveCodeHash`, `ResolutionEnv.codeOf`, `deployedCode?` | modelled, unvalidated | `contract_code.rs:39-95 RuntimeContractIdentifier::resolve` | replay `UseGlobalContract` / `GlobalByAccount` cases |
+| `L0-D3-009` | partial | L1 | `CacheMode`, `CacheEnv`, `committedCache`, `validatorCache_not_admitted` | open — proof | `contract.rs:104-131`; `contract.rs:42-69 ContractsTracker`; `function_call.rs:355-393`; 169/279 code-cache cases are cold-validator accepts | split 279 cases by committed vs rolled-back deploy; replay cold validator |
+| `L0-W-015` | missing | L3 | `unimplementedHosts` (curve host table) | open — implementation | `imports.rs:354-368` | replay `d3curve` run/cb |
+| `L0-W-016` | partial | L1 | `Tier.domainPredicate` (verdict-form predicate) | open — proof | `DomainD3.lean:23-39`; `noResharding` not referenced by `checkD3` | prove `checkD3 ⇒ noResharding` or delete the duplicate |
+| `L0-W-017` | partial | L1 | `Tier.domainPredicate` | open — proof | `DomainD3.lean:57-62 contractInD3α` rejects curve *imports* while the checker accepts them | import-only curve case: `contractInD3α = false` but `checkD3` accepts |
+
+### 2.6 The exact 28 rows
+
+Generated, not hand-typed. Reproduce with:
+
+```
+python3 - <<'PY'
+import json
+d = json.load(open('docs/research/lean-chunk-coverage.json'))
+print([r['id'] for r in d['rows'] if r['status'] in ('missing','partial')])
+PY
+```
+
+The set is: `L0-action-09`, `L0-action-10`, `L0-action-11`, `L0-host-alt_bn128_g1_multiexp`,
+`L0-host-alt_bn128_g1_sum`, `L0-host-alt_bn128_pairing_check`, `L0-host-bls12381_g1_multiexp`,
+`L0-host-bls12381_g2_multiexp`, `L0-host-bls12381_map_fp2_to_g2`, `L0-host-bls12381_map_fp_to_g1`,
+`L0-host-bls12381_p1_decompress`, `L0-host-bls12381_p1_sum`, `L0-host-bls12381_p2_decompress`,
+`L0-host-bls12381_p2_sum`, `L0-host-bls12381_pairing_check`, `L0-host-ecrecover`,
+`L0-host-p256_verify`, `L0-genesis-main-transition`, `L0-resharding`, `L0-D2-015`, `L0-D2-040`,
+`L0-D2-041`, `L0-D3-006`, `L0-D3-008`, `L0-D3-009`, `L0-W-015`, `L0-W-016`, `L0-W-017`.
+
+Counts by `owner` field in the generated JSON: L3 = 15 (14 host + `L0-W-015`), L4 = 5 (3 actions +
+`L0-D3-006` + `L0-D3-008`), L1 = 4 (`L0-D3-009`, `L0-W-016`, `L0-W-017`, `L0-D2-015`), L6 = 2,
+L5 = 1 (`L0-D2-040`), L0 = 1 (`L0-D2-041`). Total 28. **The authoritative per-row owner is the
+generated JSON's `owner` field; §2.1–2.5 quote it.**
+
+## 3. Unresolved boundary questions — 17, one disposition each
+
+All 17 remain **open**. None is closed by this work: this work publishes *contracts and vocabulary*,
+not decisions. The column "where it now surfaces in Lean" is the interface at which a lane meets the
+question.
+
+| UQ | Owner | Question (abridged) | Disposition | Where it now surfaces in Lean | Blocking |
+|---|---|---|---|---|---|
+| `UQ-001` | L1 | Must `Rel_D3` be cache-independent; is cold-cache the admitted statement? | open — decision | `Resolution.CacheMode`, `CacheEnv.determinedByClaim`, `coldCache_independent`, `validatorCache_not_independent` | Gate B |
+| `UQ-002` | L1 + L7 | Can `e.code_cache` narrow to rolled-back deploys only? | open — proof | `Resolution.CacheEnv`, `committedCache`, `validatorCache_not_admitted` | Gate B |
+| `UQ-003` | L2 | Which NaN payload/sign semantics does pinned Wasmtime produce; stable across architectures? | open — decision | `Config.ProtocolCfg.floats` (L2's float kernel) | Gate B |
+| `UQ-004` | L3 | Are curve host gas schedules fully pinned at PV86 (no `86.yaml`)? | open — decision | `HostDispatch.GasOrder`, `HostContract.gasOrder` | Gate B |
+| `UQ-005` | L3 | Is the ML-DSA-65 trie key handle part of the pinned claim/trie model? | open — decision | `ActionsReceipts.KeyForm.mlDsa65Handle`, `KeyForm.expectedLength` | Gate B |
+| `UQ-006` | L4 | Which global-contract/state-init receipts appear in `source_receipt_proofs` at PV86; are distribution receipts in a chunk witness? | open — decision | `ActionsReceipts.GcdBody`, `DistReceipt`, `ShapeExclusion.globalContractDistribution` | Gate B |
+| `UQ-007` | L4 | Is `LegacyEthWallet` still reachable at PV86 after `EthImplicitGlobalContract` (83)? | open — proof | `Resolution.ethWallet_kind_unreachable`, `IdentifierKind` | Gate B |
+| `UQ-008` | L6 | Which witness carries a resharding transition; per-child-shard congestion info? | open — implementation | `BoundaryFacts.EpochInputs.layouts`, `SplitInputs`, `ShapeExclusion.resharding` | Gate B |
+| `UQ-009` | L9 + L6 | May a valid segment reference a PV85 epoch; both PV85/PV86 configs required? | open — decision | `Config.ProtocolCfg.protocolVersion`, `checkSuccessor_unsupported_pv` | Gate B |
+| `UQ-010` | L1 | Which predicate is the statement of record: `checkD3` or `Wasm.DomainD3`? | open — decision; **W00 states `checkD3`/`RelD3` as the record, see §3.1** (L1 still owns reconciling `DomainD3`) | `Config.Tier.domainPredicate` (verdict-form, on the statement of record) | Gate B |
+| `UQ-011` | L1 + L8 | Must Gate B remove the arena claim-size bounds, or is a larger versioned claim format acceptable? | open — decision | `BoundaryFacts.ShapeExclusion.claimSize/witnessSize`, `permanentExclusions` | Gate B |
+| `UQ-012` | L1 | Unbounded chunk function-call gas or a stated `G_α` capacity contract? | open — decision | `Config.ProtocolCfg.gasCap`, `ChunkAccounting.softLimitReached` | Gate B |
+| `UQ-013` | L8 | What admission contract binds the trusted facts to the verifier's chain state? | open — decision | `BoundaryFacts.FactAuthentication`, `BoundaryFact.obligation`, `genesisChunkExtra_requires_auth` | Gate B |
+| `UQ-014` | L7 | Are Wasmtime `LoadingError`/`WasmUnknownError`/`LinkError` branches absent at PV86 or must they be modelled? | open — proof | `HostDispatch.HostErrorClass`, `HostContract.errorClass` | Gate B |
+| `UQ-015` | L5 | Is `Σ|values| + 2000·R ≤ 4 000 000` sound when contract-storage removals are present? | open — proof | `TrieRecorder.ChunkAccounting.receiptExceeded`, `recorder_size_record_ge` | Gate B |
+| `UQ-016` | L4 | Is the mock action log equivalent to `ReceiptManager` for every reachable shape? | open — proof | `ActionsReceipts.ActV.raw`, `pActV_fallsThrough` | Gate B |
+| `UQ-017` | L9 | For genesis main transition, which header comparisons apply; is `tx_valid` all-1? | open — decision | `Config.ProtocolCfg.genesisMainTransition`, `BoundaryFacts.GenesisInputs` | Gate B |
+
+Every UQ's full text and "why" are in the generated JSON (`unresolved_boundary_questions`); this table
+abridges the question and adds the disposition and Lean surface. **No UQ's disposition changed.**
+
+### 3.1 UQ-010 — which predicate is the statement of record
+
+The workplan asks W00 to "resolve which checker/predicate is the statement of record: `Wasm.DomainD3`
+contains predicates disconnected from or stricter than actual dispatch." The inventory records the
+question (`UQ-010`, owner L1). W00 makes the *API-level* call below and leaves L1's semantic
+reconciliation open; this is a stated decision with sources, not a silent pick.
+
+**Statement of record: `D3.checkD3` / `D3.RelD3`.** The executable definition is the statement, not the
+`Wasm.DomainD3` predicates. Reasons, each with a source:
+
+1. **It is the term the signed statement names and the proofs consume.**
+   `checkD3` is defined at `spec/lean/v3/NearSpecV3/D3/FunctionCall.lean:400-401` as
+   `checkD2Core (d3Hooks Wasm.pv86) true … (some gAlpha)`, and `RelD3 c w := checkD3 c w = .ok ()`
+   (same file, line 403). The `Decidable` instance and the D3 proofs (`zk-formal` `Join/Fold.lean`,
+   `Join/Coverage.lean`) consume *that* definitional form (`relD3_iff_acceptsD3`, same file).
+2. **`Wasm.DomainD3` is not in `checkD3`'s import closure at all.**
+   `D3/FunctionCall.lean:1-3` imports `D2.Receipts`, `ChunkValidationD2`, `Wasm.Exec` — never
+   `Wasm.DomainD3`. `grep -rln "import NearSpecV3.Wasm.DomainD3"` over the tree returns only
+   `NearSpecV3/ReshardingD3.lean`. So the `DomainD3` predicates cannot constrain the checker by
+   construction; they are a parallel, unconnected statement.
+3. **The actual domain guards are inline in `checkD2Core`.** The resharding exclusion the checker
+   really applies is `c.same_layout` (`ChunkValidationD2.lean:140`) and `c.no_split_gate`
+   (`ChunkValidationD2.lean:156`) — these are dispatch-time guards, not `noResharding`.
+4. **`noResharding` is redundant, not contradictory.** `noResharding_iff_guards`
+   (`ReshardingD3.lean:150-152`) proves `Wasm.DomainD3.noResharding c = true ↔ (sameLayout c ep ∧
+   noSplitGate c)` whenever `ep ∈ c.epochs`; `checkD2Core` *requires* that membership via
+   `c.epochs.find? (·.epochId == c.epochId)` (`ChunkValidationD2.lean:134`). So on in-domain claims
+   the two agree; `checkD3 ⇒ noResharding` is a provable obligation (`L0-W-016`), not a conflict.
+5. **`contractInD3α` *is* genuinely stricter — and the checker's reading wins.**
+   `contractInD3α` (`DomainD3.lean:57-62`) rejects a contract that merely *imports* a curve host.
+   Actual dispatch rejects curve hosts only when *called*: `contractOOD` decides floats at
+   preparation and defers curve hosts to the run (`D3/FunctionCall.lean:63-69`), and `Wasm.runCall`
+   states "under the trie-backed `External` (RuntimeD3) only *calling* one is" (`Wasm/Exec.lean:514-516`).
+   So an import-only curve contract is accepted by `checkD3` and rejected by `contractInD3α`. The
+   witness obligation is the import-only curve case (`L0-W-017`), and the fix direction is to
+   *narrow* `contractInD3α` to "called", **not** to widen `checkD3` — widening would change the
+   signed statement, which this work may not do.
+
+**Consequence for the API.** `Config.Tier.domainPredicate` is stated on the *verdict* of the tier's
+checker (`Successor/Config.lean:227-228`), i.e. on the statement of record, and its docstring records
+that it is not proved equal to the `DomainD3` predicates. The two `DomainD3`-derived rows
+(`L0-W-016`, `L0-W-017`) keep their `open — proof` disposition and L1 ownership; this subsection
+supplies the direction each must be discharged in. It does **not** change either row's status, and it
+does **not** edit `Wasm.DomainD3`, `checkD3`, `RelD3`, `gAlpha` or the oracle pins.
+
+## 4. The schema decision W00 owes
+
+The workplan asks for "a schema decision states which existing claim fields suffice, which need a
+versioned extension, and how external facts are authenticated."
+
+### 4.1 Existing `Claim` fields that suffice
+
+`Claim` (`ClaimV3.lean:67`) already carries: `protocolVersion`, `chainId`, `epochId`, `chunkInner`,
+`blocks`, `rsDataParts`, `rsTotalParts`, `epochs`, `epochStartAfter`, `applyFacts`, `txValid`,
+`genesisChunkExtra`. Of these, the successor API reads — without extension:
+
+| Fact | Claim field | Boundary-fact name |
+|---|---|---|
+| chain id | `chainId` | `BoundaryFact.chainId` |
+| epoch validators | `epochs[].validators` | `BoundaryFact.epochValidators` |
+| minimum stake | `applyFacts[].minimumStake` | `BoundaryFact.minimumStake` |
+| tx validity flags | `txValid` | `BoundaryFact.txValid` |
+| RS parameters | `rsDataParts`, `rsTotalParts` | `BoundaryFact.rsParams` |
+| validator updates | `applyFacts[].validatorUpdate` | `BoundaryFact.validatorUpdate` |
+| split gate | `applyFacts[].splitGate` | `BoundaryFact.splitGate` |
+| genesis chunk extra | `genesisChunkExtra` | `BoundaryFact.genesisChunkExtra` |
+
+`BoundaryInputs.ofClaim` (`BoundaryFacts.lean:185`) projects exactly these and is proved to preserve the
+chain id, the epoch table and the *absence* of a lifted genesis extra (`ofClaim_chainId`,
+`ofClaim_epochs`, `ofClaim_genesis_extra_absent`).
+
+### 4.2 Fields needing a versioned extension
+
+| Extension | Why | Owner |
+|---|---|---|
+| Global-contract identifier on action tags 9/10/11 | `Claim.applyFacts` has no global-contract field; the identifier lives in the *action*, decoded by `pActV` | L4 |
+| Global-contract distribution body | `GcdBody` is not in the claim; UQ-006 leaves its witness representation open | L4 |
+| ML-DSA-65 public-key handle | `D2/Types.lean:18` says the handle is not formalized; `KeyForm.mlDsa65Handle` types it but no claim field carries it | L3 / L5 |
+| Resharding layout transition | no claim field carries a *transition*; `epochs[].shardLayout` carries per-epoch layouts only | L6 |
+| Epoch protocol version ≠ 86 | `epochs[].protocolVersion` exists but `ChunkValidationD2.lean:125,139` require 86 for every epoch (UQ-009) | L9 |
+
+**None of these extensions is added by this work.** They are named so a lane knows which claim field or
+versioned extension it must add. Adding one is a claim-schema change and needs its own review.
+
+### 4.3 How external facts are authenticated
+
+`BoundaryFact` (`BoundaryFacts.lean:51`) splits facts into `external` and `computed`.
+`BoundaryFact.obligation` gives each external fact a claim-v3 authentication obligation id, and
+`obligation_nonempty` proves no obligation string is empty. `FactAuthentication` pairs a fact with its
+obligation and `genesisChunkExtra_requires_auth` proves the genesis extra is external, i.e. it must be
+authenticated rather than computed.
+
+**No computed transition output is admitted as a fact**: `BoundaryFact.kind` marks `stateRoot`,
+`outcomeRoot`, `gasUsed`, `balanceBurnt`, `outgoingReceiptsRoot`, `congestionInfo`, `bandwidthRequests`
+and `validatorProposals` as `computed`, and `stateRoot_computed` proves it for the state root. The
+authentication contract *ids* are typed; the admission contract itself is UQ-013 (L8) and stays open.
+
+## 5. Success criteria — status against the workplan's four W00 criteria
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| 1 | Every inventory row and UQ has an owner, disposition, source justification and test obligation; unknown answers explicitly open and blocking Gate B | **partial — owner and disposition done for all 28+17; test obligations copied from the generated inventory; "blocks Gate B" stated per row** | §2, §3; generated JSON |
+| 2 | The API contracts are written and compile with existing float/gas/genesis adapters | **met for signatures; NOT met for the default build target** | `lake build NearSpecV3.Successor` → 96 jobs green; but `lake build` (defaultTargets) does **not** reach the modules — see §6 |
+| 3 | A schema decision states which claim fields suffice, which need an extension, how external facts authenticate; no computed result admitted as a fact | **met as a decision document; no schema change made** | §4 |
+| 4 | The inventory generator's drift check passes and IDs are unique; static status and evidence distinguished; no relabelling | **met** | `--check` exit 0; no row status edited; no JSON written |
+
+## 6. Verification-integrity finding: the default build does not cover these modules
+
+This is a discrepancy W00 must report rather than hide. The workplan's verification step is
+`cd spec/lean/v3 && lake build` and "must be green". It **is** green — but it is green *without compiling
+the new modules*.
+
+Measured facts (all reproducible):
+
+1. `lakefile.toml` sets `defaultTargets = ["NearSpecV3", "nearspec-v3-check", "nearspec-v3-leaftest"]`.
+   The first entry resolves to the *module* `NearSpecV3.lean`, not to the library's module glob.
+2. `NearSpecV3.lean` imports 25 modules; its transitive closure is 74 modules. It does not import
+   `NearSpecV3.Successor`.
+3. `lake build` reports 184 jobs both before and after the eight modules were added.
+4. **Injected-error test**: appending `#check thisDoesNotExistAtAll_xyz` to
+   `Successor/Differential.lean` (and separately to `Successor/Config.lean`) and running `lake build`
+   exited **0** with "Build completed successfully (184 jobs)". Deleting
+   `Successor/Config.olean` and running `lake build` did **not** regenerate it. Both prove the default
+   target does not reach the modules.
+5. `lake build NearSpecV3.Successor` builds them: 96 jobs, exit 0. `lake build NearSpecV3.Successor.<M>`
+   builds one module.
+6. Pre-existing: 45 of 119 library modules have no `.olean` under the default build — this is not new
+   and not caused by W00. The new modules are in good company, but that does not make the default
+   build's green a verification of them.
+
+**Consequence.** A CI gate that only runs `lake build` will not catch a regression in
+`NearSpecV3/Successor/*.lean`. Until `lakefile.toml`'s `defaultTargets` changes (which W00 must not do —
+it is integration-owner territory per the hard constraints), the honest verification command for these
+modules is:
+
+```
+cd spec/lean/v3 && lake build NearSpecV3.Successor
+```
+
+**Exact edit needed, if the integration owner wants the default build to cover them** (W00 does not make
+this edit): in `spec/lean/v3/lakefile.toml`, add `"NearSpecV3.Successor"` to `defaultTargets`, i.e.
+
+```toml
+defaultTargets = ["NearSpecV3", "NearSpecV3.Successor", "nearspec-v3-check", "nearspec-v3-leaftest"]
+```
+
+That is a one-line change to an integration-owner file. The alternative — importing
+`NearSpecV3.Successor` from `NearSpecV3.lean` — is also integration-owner territory and would put the
+successor in the signed root module's closure, which the hard constraints discourage. The
+`defaultTargets` edit is the narrower one.
+
+## 7. Axiom closure
+
+Every `#print axioms` check point in the eight modules reports a subset of
+`{propext, Classical.choice, Quot.sound}`. None reports `sorryAx` and none reports a custom axiom.
+Twenty-one declarations are printed. **Five** depend on no axioms at all: `ActionTag.ofCode_code`,
+`distReceipt_encode_layout`, `coldCache_lookup_none`, `permanentExclusions_eq`, `signedExclusions_covers`.
+**Three** depend on `[propext]` only: `pActV_tag9`, `ethWallet_kind_unreachable`,
+`signedExclusions_owner_consistent`. **One** depends on `[propext, Quot.sound]`: `summarise_complete`.
+The remaining **12** add `Classical.choice` as well. 5 + 3 + 1 + 12 = 21; every set is within the allowed
+`{propext, Classical.choice, Quot.sound}`.
+
+No module uses `sorry`, `admit`, or `native_decide`. The grep hits for "sorry"/"admit" in the modules are
+prose in docstrings, not tactic terms; `grep -n "sorryAx" ` over a clean rebuild of all eight modules
+returns zero.
+
+## 8. Next executable steps
+
+1. **Integration owner**: decide the `defaultTargets` edit in §6 so CI covers the modules.
+2. **L4**: close `L0-action-09/10/11` execution (decoders are done); close `L0-D3-006`, `L0-D3-008`.
+3. **L3**: close the 14 unimplemented curve hosts and validate `ecrecover`/`p256_verify`.
+4. **L1/L5/L6/L9**: discharge the proof/decision UQs each row names in §3.
+5. **W13/W14**: consume `Differential.DiffResult`/`DiffSummary` so no lane can report agreement with a
+   skipped or invalid case.
