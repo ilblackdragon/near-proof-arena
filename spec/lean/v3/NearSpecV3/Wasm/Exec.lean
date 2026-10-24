@@ -72,12 +72,17 @@ def realOodHosts : List String :=
    "promise_batch_action_add_gas_key_with_full_access",
    "promise_batch_action_add_gas_key_with_function_call", "promise_batch_action_transfer_to_gas_key"]
 
-/-- Only these seven newly translated hosts are lifted by the explicit successor flag. -/
+/-- The promise hosts the explicit successor flag lifts out of D3α's exclusion list. Seven are the
+global/state-init family; three are the gas-key family, whose action-log translation now emits
+canonical borsh bytes (`toGasKeyRaw`, `addGasKeyRaw`) so the successor decoder can type them. -/
 def globalPromiseHosts : List String :=
   ["promise_batch_action_state_init", "promise_batch_action_state_init_by_account_id",
    "set_state_init_data_entry", "promise_batch_action_deploy_global_contract",
    "promise_batch_action_deploy_global_contract_by_account_id",
-   "promise_batch_action_use_global_contract", "promise_batch_action_use_global_contract_by_account_id"]
+   "promise_batch_action_use_global_contract", "promise_batch_action_use_global_contract_by_account_id",
+   "promise_batch_action_add_gas_key_with_full_access",
+   "promise_batch_action_add_gas_key_with_function_call",
+   "promise_batch_action_transfer_to_gas_key"]
 
 /-- The arm set a host call dispatches through.
 

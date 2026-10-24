@@ -1,9 +1,27 @@
 # Global and state-init promise action translation
 
-`NearCfg.globalActions` defaults to false. Enabling it carries the flag into `St`, lifts exactly the
-seven global/state-init entries of `realOodHosts`, and emits canonical raw action payloads. The three
-gas-key entries remain excluded. Signed configurations and mock harness defaults retain their previous
-host behavior, including the mock's global log-index return value for state initialization.
+`NearCfg.globalActions` defaults to false. Enabling it carries the flag into `St`, lifts all ten
+translated entries of `realOodHosts` — the seven global/state-init hosts and the three gas-key hosts —
+and emits canonical raw action payloads. Signed configurations and mock harness defaults retain their
+previous host behavior, including the mock's global log-index return value for state initialization.
+`globalPromiseHosts` is the lifted set; `realOodHosts` still lists all ten, so a call remains out of
+domain while the flag is false.
+
+Gas-key payloads (`Wasm/Host.lean`):
+- `promise_batch_action_transfer_to_gas_key` → tag 12 ‖ `PublicKey` ‖ `u128` deposit
+  (`TransferToGasKeyAction`, `core/primitives/src/action/mod.rs:296-320`).
+- `promise_batch_action_add_gas_key_with_full_access` → tag 5 ‖ `PublicKey` ‖ `AccessKey{nonce = 0,
+  GasKeyFullAccess{balance = 0, num_nonces}}` (`AccessKey::gas_key_full_access`,
+  `core/primitives-core/src/account.rs:493-514, 575-586`).
+- `promise_batch_action_add_gas_key_with_function_call` → the same `AddKey` shape with
+  `GasKeyFunctionCall{balance = 0, num_nonces}` and a `FunctionCallPermission`. nearcore maps a zero
+  allowance argument to `None` before appending (`runtime/near-vm-runner/src/logic/logic.rs:3145`), so
+  a zero allowance encodes option tag 0, not `1 ‖ 0`.
+
+Both gas-key variants are ordinary D2 actions, so `finishActsGlobal` types them through the existing
+tag-12 and tag-5 decoder arms; there is no gas-key-specific decoder. The encoders mirror
+`D2.Perm.encode`/`AK.encode` byte for byte but are written against the raw `PublicKeyBuffer` that the
+host already validated, because `Wasm/Host.lean` must not import the D2 layer.
 
 `MAct.rawAction` contains a receipt log index and Borsh action bytes. `stateInitData` retains the
 identifier, deposit and actual key/value pairs, so later `set_state_init_data_entry` calls can update
@@ -34,7 +52,11 @@ Pinned sources:
 Validation: build `NearSpecV3.Successor.PromiseActionsTests`. Native directed tests cover mixed
 ordinary/global actions on two interleaved receipts, refund metadata, each global mode, identifier
 encoding, per-receipt indices, data values and sorted keys, duplicates, wrong action indices, old
-mock defaults, disabled real host dispatch and residual gas-key exclusion. The compiled WAT fixture
+mock defaults and disabled real host dispatch. Gas-key coverage is separate and additive:
+`tools/d3/global-promise-fixtures/gas-keys.wasm` calls all three gas-key hosts and the suite asserts
+the emitted bytes decode to the exact typed actions (`toGasKey` with its deposit, `gasFull 0 4`, and
+`gasFc 0 2` with `allowance = none` and methods `f`, `g`, `m`); encoder-level tests assert
+byte-identity with `Perm.encode`/`AK.encode` and the zero-allowance option tag. The compiled WAT fixture
 executes all seven hosts and asserts both state-init indices equal one. Its alice/bob receiver names
 are intentionally not derived state-init IDs; this is a VM/serialization fixture and a whole-chunk
 receipt-validation failure control, not a claim of successful deterministic-account initialization.

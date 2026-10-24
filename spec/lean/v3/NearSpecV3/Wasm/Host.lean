@@ -522,6 +522,44 @@ def stateInitRaw (identifier : ByteArray) (deposit : Nat)
     sorted.foldl (fun acc (k, v) => acc ++ borshVector k ++ borshVector v) ByteArray.empty ++
     natLE deposit 16
 
+/-! ## Gas-key promise action payloads (`action/mod.rs:296-320, 340-370`)
+
+Three promise hosts append an action to a receipt. The signed D3α path only needed their action-log
+position (`text := "OTHER"`); the successor path must also emit canonical borsh bytes so the
+action-log translator can decode them into a typed action.
+
+The gas-key actions reuse ordinary D2 variants: `TransferToGasKey` is tag 12 with
+`public_key ‖ u128 deposit`, and `AddKey` is tag 5 with an access key whose permission is a gas key.
+`pk` is the raw `PublicKeyBuffer` already validated by `pkValid`, so the layouts below are written
+against `ByteArray` and mirror `D2.Perm.encode`/`AK.encode` byte for byte (`D2/Types.lean:163-176`)
+without importing D2 into the Wasm layer. -/
+
+/-- `TransferToGasKeyAction` borsh: `tag 12 ‖ PublicKey ‖ u128 deposit` (`action/mod.rs:296-320`). -/
+def toGasKeyRaw (pk : ByteArray) (deposit : Nat) : ByteArray :=
+  ⟨#[12]⟩ ++ pk ++ natLE deposit 16
+
+/-- `AddKeyAction` borsh for a gas key: `tag 5 ‖ PublicKey ‖ AccessKey`, where the appended key has
+`AccessKey.nonce = 0` (`AccessKey::gas_key_full_access`/`gas_key_function_call`,
+`core/primitives-core/src/account.rs:493-514`). -/
+def addGasKeyRaw (pk perm : ByteArray) : ByteArray :=
+  ⟨#[5]⟩ ++ pk ++ natLE 0 8 ++ perm
+
+/-- `AccessKeyPermission::GasKeyFullAccess` = `tag 3 ‖ GasKeyInfo`, `GasKeyInfo = u128 balance ‖
+u16 num_nonces` (`account.rs:546-549, 575-586`). A newly appended key starts at zero balance. -/
+def gasKeyFullPerm (numNonces : Nat) : ByteArray :=
+  ⟨#[3]⟩ ++ natLE 0 16 ++ natLE numNonces 2
+
+/-- `AccessKeyPermission::GasKeyFunctionCall` = `tag 2 ‖ GasKeyInfo ‖ FunctionCallPermission`
+(`account.rs:582, 608-640`), with the zero balance of a fresh key. `allowance` is `None` when the
+host's `u128` argument was 0 — nearcore maps zero to `None` before appending
+(`logic/logic.rs:3145`), so the encoded option tag is `0`, not `1 ‖ 0`. -/
+def gasKeyFcPerm (numNonces : Nat) (allowance : Option Nat) (receiver : ByteArray)
+    (methods : Array ByteArray) : ByteArray :=
+  ⟨#[2]⟩ ++ natLE 0 16 ++ natLE numNonces 2 ++
+    (match allowance with | none => ⟨#[0]⟩ | some a => ⟨#[1]⟩ ++ natLE a 16) ++
+    borshVector receiver ++ natLE methods.size 4 ++
+    methods.foldl (fun acc m => acc ++ borshVector m) ByteArray.empty
+
 def deployGlobalH (a : Vector Nat 3) (byAccount : Bool := false) : HM Unit := do
   payBaseH C.base
   let code ← memOrRegH a[2] a[1]
@@ -1126,7 +1164,8 @@ def hostCall (name : String) : Option (HM Unit) :=
     payActionH sendByte sendByte (sendByte + execByte)
     deductBalanceH amount
     if !pkValid pk then hErr "InvalidPublicKey"
-    let _ ← pushAction { text := "OTHER" }
+    let raw := if (← get).globalActions then some (r, toGasKeyRaw pk amount) else none
+    let _ ← pushAction { text := "OTHER", rawAction := raw }
   | "promise_batch_action_add_gas_key_with_full_access" => some do
     let a ← popArgs 4
     payBaseH C.base
@@ -1137,15 +1176,16 @@ def hostCall (name : String) : Option (HM Unit) :=
     payActionBaseH F.addFullAccessKey sir
     payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]
     if !pkValid pk then hErr "InvalidPublicKey"
-    let _ ← pushAction { text := "OTHER" }
+    let enc := if (← get).globalActions then some (r, addGasKeyRaw pk (gasKeyFullPerm a[3])) else none
+    let _ ← pushAction { text := "OTHER", rawAction := enc }
   | "promise_batch_action_add_gas_key_with_function_call" => some do
     let a ← popArgs 9
     payBaseH C.base
     let pk ← memOrRegH a[2] a[1]
     let pl := gasKeyPkLen pk
     if a[3] ≥ 65536 then hErr "IntegerOverflow"
-    let _ ← getU128H a[4]
-    let _ ← readAccountIdH a[5] a[6]
+    let allowance ← getU128H a[4]
+    let receiver ← readAccountIdH a[5] a[6]
     let raw ← memOrRegH a[8] a[7]
     let names ← match splitMethodNames raw with
       | some n => pure n
@@ -1156,7 +1196,10 @@ def hostCall (name : String) : Option (HM Unit) :=
     payActionPerByteH F.addFunctionCallKeyByte nb sir
     payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]
     if !pkValid pk then hErr "InvalidPublicKey"
-    let _ ← pushAction { text := "OTHER" }
+    let enc := if (← get).globalActions then
+      some (r, addGasKeyRaw pk (gasKeyFcPerm a[3] (if allowance == 0 then none else some allowance)
+        receiver.toUTF8 names)) else none
+    let _ ← pushAction { text := "OTHER", rawAction := enc }
   | "promise_yield_resume_with_yield_id" => some do
     let a ← popArgs 4
     payBaseH C.base
