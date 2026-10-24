@@ -1,6 +1,7 @@
 import NearSpecV3.Wasm.Host
 import NearSpecV3.Wasm.Float
 import NearSpecV3.Wasm.InstanceLayout
+import NearSpecV3.Wasm.CryptoHost
 /-!
 # NEAR WASM (D3α + L2 floats): instruction execution, instantiation, and the observable outcome
 
@@ -78,6 +79,33 @@ def globalPromiseHosts : List String :=
    "promise_batch_action_deploy_global_contract_by_account_id",
    "promise_batch_action_use_global_contract", "promise_batch_action_use_global_contract_by_account_id"]
 
+/-- The arm set a host call dispatches through.
+
+* `signed` — `Wasm.hostCall`, D3α's table. It has no arm for any of the 14 curve names, so a curve
+  call is `unmodeled`, which `D3.functionCall` classifies as `out of domain (e.wasm-α)`.
+* `successor` — the signed arms first, then `Wasm.cryptoHostCall`'s arms. Additive: every name the
+  signed table dispatches is dispatched identically (`successorDispatch_extends`).
+
+The selector lives on `St` (`s.curveHosts`) so `runCall`'s arity — and the `Logged` commutation
+proofs that match on `NearSpecV3.Wasm.runCall` at arity 8 — stay unchanged. -/
+def dispatchArm (s : St) (name : String) : Option (HM Unit) :=
+  match hostCall name with
+  | some h => some h
+  | none => if s.curveHosts then cryptoHostCall name else none
+
+/-- Under the signed selector the arm set is definitionally `Wasm.hostCall`. -/
+theorem dispatchArm_signed (s : St) (name : String) :
+    dispatchArm { s with curveHosts := false } name = hostCall name := by
+  unfold dispatchArm
+  cases hostCall name <;> simp
+
+/-- The successor arm set extends the signed one: wherever `hostCall` has an arm, the dispatch is
+identical, so nothing in the signed table moves. -/
+theorem successorDispatch_extends (s : St) (name : String) (h : hostCall name = some h') :
+    dispatchArm { s with curveHosts := true } name = some h' := by
+  unfold dispatchArm
+  rw [h]
+
 /-- A host call: `CallingHost` sync, the host function, `ReturningFromHost` (`g := remaining`). -/
 def callHost (s : St) (name : String) : Res :=
   if s.real.isSome && realOodHosts.contains name &&
@@ -86,8 +114,11 @@ def callHost (s : St) (name : String) : Res :=
   match sync s with
   | .error e => .unmodeled e
   | .ok s =>
-    match hostCall name with
-    | none => .unmodeled s!"host function {name} not modelled in D3α"
+    match dispatchArm s name with
+    | none =>
+      -- A curve name with no arm is an exclusion, not a modelling gap: the successor selector
+      -- either enabled it (and an arm exists) or the run is still signed.
+      .unmodeled s!"host function {name} not modelled in D3α"
     | some h =>
       match h.run s with
       | .ok _ s => .cont { s with gas := { s.gas with g := s.gas.remaining } }
@@ -449,7 +480,7 @@ def instantiate (cfg : NearCfg) (p : Prepared) (gas : Gas) : Except String St :=
     pages := Array.replicate cfg.initialMemoryPages zeroPage, globals := gs,
     table := Array.replicate tsize none, tableMax := tmax, elems := elems,
     datas := m.datas.map (·.bytes), stackRem := cfg.maxStackHeight, gas := gas,
-    globalActions := cfg.globalActions }
+    globalActions := cfg.globalActions, curveHosts := cfg.curveHosts }
   for el in m.elems, ini in elems, k in [0:m.elems.size] do
     match el.mode with
     | .active _ off =>
@@ -522,8 +553,11 @@ def runCall (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
     nop s!"CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
   | .ok p =>
     -- the harness context: importing a curve host function is out of domain; under the
-    -- trie-backed `External` (RuntimeD3) only *calling* one is (`callHost`: not modelled)
-    if real.isNone && p.m.imports.any (fun i => curveHosts.contains i.name) then
+    -- trie-backed `External` (RuntimeD3) only *calling* one is (`callHost`: not modelled).
+    -- `cfg.curveHosts` is the successor switch: when set, importing a curve name is in domain and
+    -- `callHost` dispatches the arms L3 implemented (`dispatchArm`). The signed configuration
+    -- leaves it `false`, so this test is exactly D3α's.
+    if !cfg.curveHosts && real.isNone && p.m.imports.any (fun i => curveHosts.contains i.name) then
       .line "out-of-domain curve host function" else
     let gs : Gas := Gas.init ctx.prepaidGas
     let loaded := match payPer gs C.contractLoadingBytes code.size with
@@ -545,7 +579,8 @@ def runCall (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
           | .error e => .line (s!"abort {gs.burnt} {gs.used} {e}" ++ ext (emptySt gs))
           | .ok s =>
             let s := { s with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
-                              storageUsage := ctx.storageUsage, real := real }
+                              storageUsage := ctx.storageUsage, real := real,
+                              curveHosts := cfg.curveHosts }
             let afterStart : Except String (St × Option String) :=
               match p.m.start with
               | some st => callEntry cfg p fuel s st

@@ -326,6 +326,10 @@ structure St where
   /-- `subsidized_amount` (`one_yocto_on_promise`, `logic.rs:3069-3080`) -/
   subsidized : Nat := 0
   globalActions : Bool := false
+  /-- `NearCfg.curveHosts` copied onto the state: `callHost` receives only `St`, so the successor
+  curve-host switch travels here rather than as a `runCall` argument. This keeps `runCall`'s arity
+  (and the `Logged` commutation proofs that pattern-match on it) unchanged. -/
+  curveHosts : Bool := false
 
 inductive Res where
   | cont (s : St)

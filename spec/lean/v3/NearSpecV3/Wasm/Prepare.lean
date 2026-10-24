@@ -53,6 +53,15 @@ structure NearCfg where
   loadingLimits : Bool := false
   /-- Successor global/state-init promise action translation; signed configs keep false. -/
   globalActions : Bool := false
+  /-- Successor curve-host dispatch (`D3γ`): decide the 14 curve host functions
+  (`ecrecover`, `p256_verify`, `alt_bn128_*`, `bls12381_*`) instead of excluding them.
+
+  `false` is D3α's behaviour and the signed statement's surface: importing one of the 14 names
+  under the mock `External`, or calling one under the trie-backed one, reports
+  `out of domain (e.wasm-α)` exactly as before. `true` routes `Exec.callHost` through
+  `Wasm.CryptoHost.cryptoHostCall`, so the arms L3 implemented are actually reachable from a chunk.
+  The signed `hostCall` is untouched and remains the arm set for every other name. -/
+  curveHosts : Bool := false
 
 def pv86 : NearCfg := {}
 /-- The PV86 configuration **with floats in domain**: the L2 extension. -/

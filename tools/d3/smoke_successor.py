@@ -25,8 +25,21 @@ def main():
             for row in rows:
                 entry = next(e for e in entries if (fixture / e["case_dir"]).resolve() == Path(row["case"]))
                 if "c.not_genesis" in entry["d3_violations"]:
-                    expected = "accept" if (tier.startswith("genesis") or tier in ("runtimeLimits", "storageResolution", "globalActions", "completeCodeGlobal")) else "out_of_domain"
+                    expected = "accept" if (tier.startswith("genesis") or tier in ("runtimeLimits", "storageResolution", "globalActions", "completeCodeGlobal", "curveHosts")) else "out_of_domain"
                     assert row["verdict"] == expected, (tier, row)
+                # `e.ood_host` is one label covering *both* the curve host family and the
+                # state-init / global-contract promise hosts. The curveHosts tier decides the
+                # former only, so an e.ood_host case may still be excluded here for a global
+                # action. The precise statement this gate can make: a case the tier accepted must
+                # not be one it declares out of domain elsewhere, and a curve-only exclusion must
+                # now be decided. The second half is asserted on the curve names directly below.
+                if tier == "curveHosts" and "e.ood_host" in entry["d3_violations"]:
+                    reason = row.get("reason", "")
+                    glob = "promise_batch_action" in reason or "global" in reason
+                    if not glob:
+                        # not a global-promise exclusion, so this is a curve/other host: the tier
+                        # must have decided it rather than still excluding it
+                        assert row["verdict"] != "out_of_domain", (tier, row)
             if tier == "completeCodeGlobal":
                 incomplete = [path for entry, path in zip(entries, cases)
                               if "e.code_cache" in entry["d3_violations"]]

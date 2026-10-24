@@ -18,6 +18,9 @@ REPO = Path(__file__).resolve().parents[2]
 TIERS = {
     "globalActions": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
     "completeCodeGlobal": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
+    # W05 curve hosts: the widest tier. A curve-host case is in domain here, so the tier declares
+    # no curve exclusion; it still carries the genesis/float/gas ones the narrower tiers carry.
+    "curveHosts": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
     "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
     "signed": (),

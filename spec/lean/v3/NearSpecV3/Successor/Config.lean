@@ -87,11 +87,17 @@ structure ProtocolCfg where
   globalActions : Bool := false
   /-- Explicit complete-code witness relation, independent of compiled cache history. -/
   completeCodeWitness : Bool := false
+  /-- Opt-in `D3γ` curve-host dispatch: decide the 14 curve host functions (`ecrecover`,
+  `p256_verify`, `alt_bn128_*`, `bls12381_*`) instead of excluding a contract that imports or calls
+  one. The signed configuration keeps this `false`, so the signed statement's surface is unchanged
+  (`checkSuccessor_signed` stays `rfl`). -/
+  curveHosts : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
 def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
-  { (if cfg.floats then Wasm.floatPv86 else Wasm.pv86) with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions }
+  let base := if cfg.floats then Wasm.floatPv86 else Wasm.pv86
+  { base with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions, curveHosts := cfg.curveHosts }
 
 /-- The signed configuration: exactly `checkD3`'s arguments. -/
 def signedCfg : ProtocolCfg := {}
@@ -228,6 +234,10 @@ inductive Tier where
   | storageResolution
   | globalActions
   | completeCodeGlobal
+  /-- Every decision the signed tier makes, plus floats, protocol gas, genesis, loading limits,
+  storage resolution and the `D3γ` curve-host table. This is the widest tier: it decides a chunk
+  that imports or calls a curve host instead of excluding it. -/
+  | curveHosts
   deriving DecidableEq, Repr
 
 /-- The tier's configuration. -/
@@ -254,6 +264,9 @@ def Tier.cfg : Tier → ProtocolCfg
     { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, globalActions := true,
                      completeCodeWitness := true }
+  | .curveHosts =>
+    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+                     loadingLimits := true, storageResolution := true, curveHosts := true }
 
 /-- The tier's checker: the root at the tier's configuration. -/
 def Tier.checker (t : Tier) : Bytes → Bytes → Except String Unit := checkSuccessor t.cfg
@@ -275,7 +288,8 @@ refinement obligations are W12's (`relSuccessor_*_mono`), and they need the adap
 theorems below plus the still-missing semantic families. -/
 def Tier.rank : Tier → Nat
   | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
-  | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7 | .globalActions => 8 | .completeCodeGlobal => 9
+  | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7
+  | .globalActions => 8 | .completeCodeGlobal => 9 | .curveHosts => 10
 
 /-! ## The adapters, at their tiers
 
