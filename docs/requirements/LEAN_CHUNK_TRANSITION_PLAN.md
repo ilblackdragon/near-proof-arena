@@ -222,12 +222,17 @@ entry path. No verifier-result oracle or “signature valid” hypothesis substi
 
 ### L4 — missing actions, hosts and contract resolution
 
-**Progress at `b2f83fe76`:**
+**Progress at `16e6802dc` (L4 lane; base `a5ef42e0c`):**
 
 - [x] Merged additive global-contract/state-init codecs, identifier resolution, fees and action bodies for tags 9/10/11 (`41b98f2bd`); modules now compile in the root build.
+- [x] Added the successor resolution layer: `functionCallResolved`/`resolveAccount` with the resolution theorems (`147e7c1d0`), the successor chunk checker `checkD3Global`/`RelD3Global` (`7d983f391`), and the guard-premise gap theorems (`9e6bc2b35`).
+- [x] Moved the five owned inventory rows `missing → partial` with measured evidence (`0caa57d16`); answered UQ-006 and UQ-007 from the pin.
 - [ ] Integrate successor chunk dispatch and validate fees, receipts, rollback, resolution and cache behaviour through whole chunks; complete the remaining reachable host/action paths. Existing chunk dispatch still excludes the new actions.
+- [ ] **Blocked on the format owner:** tags 9/10/11 cannot ride a whole chunk while `D2.Base` is closed; `pBase` (`D2/Types.lean:299-302`) rejects them before any action runs, and `pRcpt`/`pTxD2` are the decoders `checkD2Core` calls. Widening `Base` changes the signed `near-chunk-v3` format and is not an additive lane change.
+- [ ] **Blocked on an owner decision:** `L0-D3-006` cannot be lifted by a delegate. `resolvedContract` only yields `.none`/`.local _` (`resolvedContract_local_stays_local`), and `D3:236-239` rejects every `.local _` on an ETH-implicit receiver, so the guard's premise survives the delegate (`resolveAccount_eth_local_premise_survives`). Lifting needs that guard parametrised off-by-default — a `checkD3`-adjacent edit.
+- [ ] **Blocked on the oracle:** no corpus witness exercises `D3:248` or the wallet redirect (0 global/byAccount accounts and 0 wallet magic hashes among 1,455 decoded accounts over 539 witnesses), and `oracle/v3-d3` is pinned and off-limits.
 
-Evidence: [integration record](../logs/lean-chunk-integration-2026-10-23.md), [action module](../../spec/lean/v3/NearSpecV3/D3/GlobalContractExec.lean).
+Evidence: [L4 handoff log](../logs/lean-chunk-L4-2026-10-23.md), [integration record](../logs/lean-chunk-integration-2026-10-23.md), [action module](../../spec/lean/v3/NearSpecV3/D3/GlobalContractExec.lean), [successor hook](../../spec/lean/v3/NearSpecV3/D3/GlobalContractCall.lean), [successor checker](../../spec/lean/v3/NearSpecV3/D3/GlobalContractChunk.lean), [replay evidence](../../evidence/lean-chunk-L4/replay/d3-hook-full-replay-summary.json).
 
 Cover global-contract deployment/use/distribution, deterministic state-init actions, excluded gas-key
 and related host paths, ETH-implicit wallet execution, and code deployment/cache/preparation cases.
