@@ -64,8 +64,9 @@ def independent_outputs(claim_path):
     }
 
 
-def run_driver(cases, shards, timeout):
+def run_driver(cases, shards, timeout, d2=False):
     """Run the Lean driver over all cases in `shards` parallel processes. Returns case -> line."""
+    prefix = ["--d2"] if d2 else []
     import tempfile
     got = {}
     with tempfile.TemporaryDirectory() as td:
@@ -76,7 +77,7 @@ def run_driver(cases, shards, timeout):
                 continue
             out = open(os.path.join(td, f"out{s}"), "w")
             err = open(os.path.join(td, f"err{s}"), "w")
-            procs.append((s, subprocess.Popen([DRIVER] + part, stdout=out, stderr=err,
+            procs.append((s, subprocess.Popen([DRIVER] + prefix + part, stdout=out, stderr=err,
                                               stdin=subprocess.DEVNULL), out, err))
         for s, p, out, err in procs:
             try:
@@ -114,6 +115,7 @@ def main():
     ap.add_argument("--sample", type=int, default=0, help="randomly sample this many cases (0 = all)")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--report", default=None, help="write a machine-readable JSON report here")
+    ap.add_argument("--d2", action="store_true", help="run the D2 pipeline (checkD2CoreOut) instead of D3")
     args = ap.parse_args()
 
     fams = [f.strip() for f in args.families.split(",") if f.strip()]
@@ -135,7 +137,7 @@ def main():
     if not cases:
         return 2
 
-    got = run_driver(cases, args.shards, args.timeout)
+    got = run_driver(cases, args.shards, args.timeout, args.d2)
 
     counts = {"accept": 0, "reject": 0, "out_of_domain": 0}
     mismatches = []
