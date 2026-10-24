@@ -76,3 +76,21 @@ receipt-SHA tables consume 89.5% of the largest trace. This changes priority:
 measure representation/commitment acceleration, not further small-fixture tuning.
 Runner and captured reports/logs are in tail-architecture/evidence/live-native.
 Scratch contains full trace dumps; committed evidence excludes these large files.
+
+## Virtual trace experiment
+
+[Design and reproduction](../../research/near-compression/tail-architecture/VIRTUAL_TRACE.md).
+On the largest sampled receipt trace, nonzero intervals reduce 275.8 MB of field
+values to 23.5 MB. Exact MLE agreement on all 263 columns at two base-field points:
+40 ms interval evaluation vs 543–771 ms dense folding, plus 264 ms per-witness
+encoding. These are NumPy arithmetic benchmarks, not authenticated opening proofs.
+
+All 900 original local constraints pass an interval-boundary checker requiring
+33.0M evaluation sites vs 235.9M dense sites. First/interior/last active-cell
+mutants fail. Three focused unit tests pass (including exhaustive singleton
+positions under row rotation and boundary selectors). Static range extraction
+finds 495 unconditional bit columns in each SHA table and 133 in receipts.
+
+Next gate: authenticated interval expansion/openings, complete constraint-boundary
+unions and bus multiplicities. Must avoid recreating dense work. No PQ/recursion/
+300KB/2s completion claim; full goal stays active.

@@ -1,0 +1,33 @@
+{
+  "status": "EXACT_UNAUTHENTICATED_VIRTUAL_TRACE_EVALUATION",
+  "trace": "/data/illia/pq-tail-architecture-20261023/live-native/00-h10035-s3/dump/rcpt.bin",
+  "height": 262144,
+  "width": 263,
+  "preparation_s": 0.2644451856613159,
+  "intervals": 1955262,
+  "interval_storage_bytes": 23463144,
+  "dense_field_bytes": 275775488,
+  "runs": [
+    {
+      "seed": 20261023,
+      "virtual_evaluation_s": 0.03979950025677681,
+      "dense_fold_s": 0.7705739419907331,
+      "all_columns_equal": true,
+      "evaluations_sha256": "6aa40401d3f09ddce0336e421782b152f73d9ecbcf9c86d0def3d8f74d1bba64"
+    },
+    {
+      "seed": 20261024,
+      "virtual_evaluation_s": 0.04022311698645353,
+      "dense_fold_s": 0.5434582559391856,
+      "all_columns_equal": true,
+      "evaluations_sha256": "f2c37f8fa102056420e63b91f9678255841773352f6c07ac5b15ce4644475c3e"
+    }
+  ],
+  "limitations": [
+    "No PCS or soundness claim: interval list is unauthenticated.",
+    "Base-field microbenchmark; production extension-field costs unmeasured.",
+    "Compression preparation is per-witness work; not free preprocessing.",
+    "Does not prove AIR constraints, bus balance or recursive composition.",
+    "Python/NumPy comparison is not a GPU or optimized Rust comparison."
+  ]
+}

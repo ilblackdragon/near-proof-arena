@@ -29,6 +29,14 @@ small-fixture timing representative of NEAR. Existing Binius component trials
 in `results/swirl-security-review` use diagnostic security settings and are
 not a complete replacement; keep the terminal compression/security gates.
 
+## Compact-representation experiment
+
+[Virtual trace experiment](VIRTUAL_TRACE.md): exact interval receipt evaluation
+reduces storage 276 MB → 23.5 MB and local-constraint evaluation sites 236M → 33M.
+All 900 original local constraints retained; three mutations rejected. Opening
+authentication, bus binding, kernel equivalence and composed proof remain open.
+This is a candidate architecture, not a new sub-300 KB proof result.
+
 ## Start from the authenticated endpoint
 
 The existing `pq-realtime-hypothesis` experiment is substantially beyond its 21 KB
