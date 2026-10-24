@@ -13,7 +13,7 @@ Curve: `E: y² = x³ + 4` over `Fp`, `p = 0x1a0111ea…ffffaaab` (381 bits); the
 `E': y² = x³ + 4(u+1)` over `Fp2 = Fp[u]/(u²+1)`. Group orders: `r` (255 bits), cofactors `h1`
 (G1) and `h2` (G2).
 
-## Encoding (big-endian, `logic/bls12381.rs:6-13` sizes; docs of the eight `bls12381_impl!` uses)
+## Encoding (big-endian, `logic/bls12381.rs:8-15` sizes; docs of the eight `bls12381_impl!` uses)
 
 | object | wire form |
 |---|---|
@@ -96,7 +96,7 @@ map uses (`map_to_g1.c:319`, `sgn0_fp`), which is *not* the compressed-point sig
 def parity (a : Nat) : Nat := a % 2
 
 /-- Canonical 48-byte big-endian decoding: `none` when the input is not 48 bytes or not `< p`
-(`read_fp_point`, `logic/bls12381.rs:395-415`: the blst `bendian_from_fp` round trip rejects every
+(`read_fp_point`, `logic/bls12381.rs:386-404`: the blst `bendian_from_fp` round trip rejects every
 non-canonical encoding). -/
 def ofBE (b : Bytes) : Option Nat :=
   if b.length = 48 then
@@ -209,7 +209,7 @@ def sqrt (a : Fp2) : Option Fp2 :=
           if mul r r = a then some r else some (neg r)
         else none
 
-/-- Canonical `c1 ‖ c0` decoding (`read_fp2_point`, `logic/bls12381.rs:417-446`): 96 bytes, both
+/-- Canonical `c1 ‖ c0` decoding (`read_fp2_point`, `logic/bls12381.rs:406-436`): 96 bytes, both
 components `< p`. -/
 def ofBE (b : Bytes) : Option Fp2 :=
   if b.length = 96 then
@@ -413,12 +413,12 @@ end G2
 
 /-! ## The `blst` codec, branch by branch
 
-`blst`'s `blst_p1_deserialize` / `blst_p1_uncompress` (`blst/src/e1.c:270-355`) are the only decoders
+`blst`'s `blst_p1_deserialize` / `blst_p1_uncompress` (`blst/src/e1.c:261-351`) are the only decoders
 nearcore calls. The branches nearcore can reach are narrower than blst's, because every host first
 rejects an input whose first byte has the top bit set when the argument is an *uncompressed* point
-(`parse_p1`/`parse_p2`, `logic/bls12381.rs:120-140`), and first rejects one whose top bit is *clear*
+(`parse_p1`/`parse_p2`, `logic/bls12381.rs:101-120`), and first rejects one whose top bit is *clear*
 when the argument is a *compressed* point (`p1_decompress`/`p2_decompress`,
-`logic/bls12381.rs:203-240`). The functions below are the reachable subsets, named accordingly. -/
+`logic/bls12381.rs:202-244`). The functions below are the reachable subsets, named accordingly. -/
 namespace Codec
 
 /-! ### G1 -/
@@ -442,26 +442,26 @@ def decodeG1Uncompressed (b : Bytes) : Option G1 :=
       | _, _ => none
 
 /-- The `(0, ±2)` "on the curve but outside G1" case `blst` reports as `BLST_POINT_NOT_IN_GROUP`
-(`blst/src/e1.c:288-290`): `x = 0` with a valid `y`. -/
+(`blst/src/e1.c:323-325`): `x = 0` with a valid `y`. -/
 def g1NotInGroup (b : Bytes) : Bool :=
   match decodeG1Uncompressed b with
   | some P => P.X % p = 0
   | none => false
 
-/-- `parse_p1` at a given protocol version (`logic/bls12381.rs:120-140`): decode, then reject the
+/-- `parse_p1` at a given protocol version (`logic/bls12381.rs:101-120`): decode, then reject the
 `(0, ±2)` case unless the NEP-488 fix is active. PV86 has `bls12381_not_in_group_fix = false`
 (`parameters.snap:289`), i.e. `version = 0`.
 
 The `(0, ±2)` test is the *affine* `BLST_POINT_NOT_IN_GROUP` return of
-`POINTonE1_Deserialize_BE` (`blst/src/e1.c:288-290`), so it applies only to finite points: the
-infinity encoding short-circuits to `BLST_SUCCESS` in `POINTonE1_Deserialize_Z` (`e1.c:315-325`)
+`POINTonE1_Deserialize_BE` (`blst/src/e1.c:323-325`), so it applies only to finite points: the
+infinity encoding short-circuits to `BLST_SUCCESS` in `POINTonE1_Deserialize_Z` (`e1.c:339-344`)
 before that check, hence `P.Z = 0` is always accepted. -/
 def parseG1 (b : Bytes) (version : Nat) : Option G1 :=
   match decodeG1Uncompressed b with
   | some P => if version ≥ 1 ∨ P.Z = 0 ∨ P.X % p ≠ 0 then some P else none
   | none => none
 
-/-- `blst_p1_affine_serialize` (`blst/src/e1.c:153-163`): infinity → `0x40` ++ 95 zeros; otherwise
+/-- `blst_p1_affine_serialize` (`blst/src/e1.c:153-162`): infinity → `0x40` ++ 95 zeros; otherwise
 `x ‖ y` as 48-byte big-endian each. -/
 def encodeG1Affine (x y : Nat) : Bytes :=
   if G1.affIsInf x y then 0x40 :: List.replicate 95 0
@@ -473,7 +473,7 @@ def encodeG1 (P : G1) : Bytes :=
   | some (x, y) => encodeG1Affine x y
   | none => 0x40 :: List.replicate 95 0
 
-/-- Outcome of decoding a *compressed* G1 point, i.e. `blst_p1_uncompress` (`blst/src/e1.c:243-293`)
+/-- Outcome of decoding a *compressed* G1 point, i.e. `blst_p1_uncompress` (`blst/src/e1.c:261-291`)
 restricted to inputs whose top bit is set. `none` covers `BLST_BAD_ENCODING` and
 `BLST_POINT_NOT_ON_CURVE`; the `(0, ±2)` `BLST_POINT_NOT_IN_GROUP` case decodes and the caller
 rejects it at `version = 0`.
@@ -511,7 +511,7 @@ def g1CompressedNotInGroup (b : Bytes) : Bool :=
 /-! ### G2 -/
 
 /-- Outcome of decoding an *uncompressed* G2 point (`blst_p2_deserialize`,
-`blst/src/e2.c:345-405`), restricted to inputs whose top bit is clear. -/
+`blst/src/e2.c:345-406`), restricted to inputs whose top bit is clear. -/
 def decodeG2Uncompressed (b : Bytes) : Option G2 :=
   if b.length ≠ 192 then none
   else
@@ -529,7 +529,7 @@ def decodeG2Uncompressed (b : Bytes) : Option G2 :=
         if G2.onCurve x y then some (G2.ofAffine x y) else none
       | _, _, _, _ => none
 
-/-- `blst_p2_affine_serialize` (`blst/src/e2.c:194-205`): infinity → `0x40` ++ 191 zeros;
+/-- `blst_p2_affine_serialize` (`blst/src/e2.c:194-203`): infinity → `0x40` ++ 191 zeros;
 otherwise `x.c1 ‖ x.c0 ‖ y.c1 ‖ y.c0`. -/
 def encodeG2Affine (x y : Fp2) : Bytes :=
   if G2.affIsInf x y then 0x40 :: List.replicate 191 0
@@ -540,7 +540,7 @@ def encodeG2 (P : G2) : Bytes :=
   | some (x, y) => encodeG2Affine x y
   | none => 0x40 :: List.replicate 191 0
 
-/-- Outcome of decoding a *compressed* G2 point (`blst_p2_uncompress`, `blst/src/e2.c:312-343`),
+/-- Outcome of decoding a *compressed* G2 point (`blst_p2_uncompress`, `blst/src/e2.c:312-340`),
 restricted to inputs whose top bit is set. -/
 def decodeG2Compressed (b : Bytes) : Option G2 :=
   if b.length ≠ 96 then none
@@ -565,9 +565,10 @@ def decodeG2Compressed (b : Bytes) : Option G2 :=
           some (G2.ofAffine x y)
       | _, _ => none
 
-/-- `parse_p2` at a given protocol version (`logic/bls12381.rs:142-160`). `blst_p2_deserialize`'s
+/-- `parse_p2` at a given protocol version (`logic/bls12381.rs:101-120`, the `parse_p2`
+instantiation at `301-327`). `blst_p2_deserialize`'s
 `POINT_NOT_IN_GROUP` result only arises for the `(0, ±2)` G1 corner case, which has no G2 analogue
-(`blst/src/e2.c:345-405` has no such branch), so the version gate changes nothing for G2 — exactly as
+(`blst/src/e2.c:345-406` has no such branch), so the version gate changes nothing for G2 — exactly as
 in the source. -/
 def parseG2 (b : Bytes) (_version : Nat) : Option G2 :=
   match decodeG2Uncompressed b with
@@ -602,7 +603,7 @@ decreasing_by
 @[simp] theorem chunksExact_nil (n : Nat) : chunksExact n [] = [] := by
   rw [chunksExact]
 
-/-- `p1_sum` (`logic/bls12381.rs:130-170`): `(sign, P)` pairs, `sign ∈ {0,1}`, sum with negation for
+/-- `p1_sum` (`logic/bls12381.rs:137-168`): `(sign, P)` pairs, `sign ∈ {0,1}`, sum with negation for
 `sign = 1`. A bad sign byte or an undecodable point is `none`. -/
 def p1Sum (version : Nat) (d : Bytes) : Option Bytes :=
   let rec go : List Bytes → G1 → Option G1
@@ -621,7 +622,7 @@ def p1Sum (version : Nat) (d : Bytes) : Option Bytes :=
   | some P => some (Codec.encodeG1 P)
   | none => none
 
-/-- `p2_sum` (`logic/bls12381.rs:172-215`), the G2 twin. -/
+/-- `p2_sum` (`logic/bls12381.rs:137-168`, the `p2_sum` instantiation at `301-327`), the G2 twin. -/
 def p2Sum (version : Nat) (d : Bytes) : Option Bytes :=
   let rec go : List Bytes → G2 → Option G2
     | [], acc => some acc
@@ -640,7 +641,7 @@ def p2Sum (version : Nat) (d : Bytes) : Option Bytes :=
   | none => none
 
 /-- `g1_multiexp`: `(P, s)` with the 32-byte **little-endian** scalar and the extra subgroup gate
-`blst_p1_in_g1` (`logic/bls12381.rs:189-195`). -/
+`blst_p1_in_g1` (`logic/bls12381.rs:185-187`). -/
 def g1Multiexp (version : Nat) (d : Bytes) : Option Bytes :=
   let rec go : List Bytes → G1 → Option G1
     | [], acc => some acc
@@ -656,7 +657,8 @@ def g1Multiexp (version : Nat) (d : Bytes) : Option Bytes :=
   | some P => some (Codec.encodeG1 P)
   | none => none
 
-/-- `g2_multiexp`, the G2 twin (`logic/bls12381.rs:217-260`). -/
+/-- `g2_multiexp`, the G2 twin (`logic/bls12381.rs:170-200`, the `g2_multiexp` instantiation at
+`301-327`). -/
 def g2Multiexp (version : Nat) (d : Bytes) : Option Bytes :=
   let rec go : List Bytes → G2 → Option G2
     | [], acc => some acc
@@ -672,7 +674,7 @@ def g2Multiexp (version : Nat) (d : Bytes) : Option Bytes :=
   | some P => some (Codec.encodeG2 P)
   | none => none
 
-/-- `p1_decompress` (`logic/bls12381.rs:203-240`): each 48-byte chunk must have the compressed bit;
+/-- `p1_decompress` (`logic/bls12381.rs:202-244`): each 48-byte chunk must have the compressed bit;
 the `(0, ±2)` case is rejected at `version = 0` (the `min_pk` wrapper path). -/
 def p1Decompress (version : Nat) (d : Bytes) : Option Bytes :=
   let rec go : List Bytes → Bytes → Option Bytes
@@ -687,9 +689,10 @@ def p1Decompress (version : Nat) (d : Bytes) : Option Bytes :=
                   else go rest (acc ++ Codec.encodeG1 P)
   go (chunksExact 48 d) []
 
-/-- `p2_decompress`, the G2 twin (`logic/bls12381.rs:242-280`). Note that `blst`'s
+/-- `p2_decompress`, the G2 twin (`logic/bls12381.rs:202-244`, the `p2_decompress` instantiation at
+`301-327`). Note that `blst`'s
 `POINTonE2_Uncompress_Z` does **not** report the `(0, ±2)` case as not-in-group (there is no such
-check in `e2.c:312-343`), so the `version = 0` gate changes nothing for G2 — matching the source. -/
+check in `e2.c:312-340`), so the `version = 0` gate changes nothing for G2 — matching the source. -/
 def p2Decompress (_version : Nat) (d : Bytes) : Option Bytes :=
   let rec go : List Bytes → Bytes → Option Bytes
     | [], acc => some acc
@@ -1027,7 +1030,7 @@ end Map
 
 /-! ## The two map payloads (`map_fp_to_g1`, `map_fp2_to_g2`)
 
-`logic/bls12381.rs:246-262`: per element, `read_fp_point` / `read_fp2_point` — the canonical
+`logic/bls12381.rs:246-268`: per element, `read_fp_point` / `read_fp2_point` — the canonical
 big-endian round trip, which is exactly `Fp.ofBE` / `Fp2.ofBE` — then `blst_map_to_g1` /
 `blst_map_to_g2` and the ordinary affine serializer. `none` when an element is not canonical. -/
 

@@ -1,6 +1,6 @@
 name = "NearSpecV3"
 version = "0.1.0"
-defaultTargets = ["NearSpecV3", "NearSpecV3.Successor", "nearspec-v3-check", "nearspec-v3-leaftest"]
+defaultTargets = ["NearSpecV3", "nearspec-v3-check", "nearspec-v3-leaftest"]
 
 # v3 statement near/pv86/chunk-validation/v0 (spec/near-chunk-validation-v0.md).
 # A separate Lake package so that no file of the pinned v1/v2 package
@@ -67,9 +67,9 @@ name = "nearspec-v3-test-bls12381-host"
 root = "TestBLS12381Host"
 
 [[lean_exe]]
-name = "probe-l4"
-root = "ProbeL4"
+name = "nearspec-v3-test-altbn128"
+root = "TestAltBn128"
 
 [[lean_exe]]
-name = "nearspec-v3-check-l4"
-root = "MainL4"
+name = "nearspec-v3-test-altbn128-host"
+root = "TestAltBn128Host"

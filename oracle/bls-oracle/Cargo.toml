@@ -1,0 +1,15 @@
+[workspace]
+
+[package]
+name = "bls-oracle"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Reference oracle for the BLS12-381 host semantics: a verbatim transcription of nearcore 44f7ae6c runtime/near-vm-runner/src/logic/bls12381.rs over blst 0.3.11 (the version nearcore's Cargo.lock pins)."
+
+[[bin]]
+name = "bls-oracle"
+path = "src/main.rs"
+
+[dependencies]
+blst = { version = "=0.3.11", features = ["portable"] }

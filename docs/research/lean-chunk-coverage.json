@@ -13,8 +13,8 @@
   "counts": {
     "implemented": 147,
     "impossible-at-boundary": 11,
-    "missing": 5,
-    "partial": 23,
+    "missing": 2,
+    "partial": 26,
     "validated": 36
   },
   "evidence": "static reconciliation of pinned nearcore git objects against Lean dispatch tables; no execution, differential testing or proof",
@@ -99,8 +99,8 @@
     },
     "ChunkValidationD2.lean": {
       "check": 51,
-      "decision_sites": 67,
-      "error": 1,
+      "decision_sites": 69,
+      "error": 3,
       "ood": 11,
       "throw": 15,
       "unmodeled": 0
@@ -775,44 +775,44 @@
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts)",
+      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
       "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-alt_bn128_g1_multiexp",
-      "lean_path_symbol": "none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.alt_bn128_g1_multiexp (successor table); D3\u03b1: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::alt_bn128_g1_multiexp",
       "owner": "L3",
-      "remaining_work": "curve host: production-enabled at PV86 and reachable; the Lean spec reports out-of-domain and no arithmetic implementation exists",
-      "status": "missing"
+      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
+      "status": "partial"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts)",
+      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
       "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-alt_bn128_g1_sum",
-      "lean_path_symbol": "none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.alt_bn128_g1_sum (successor table); D3\u03b1: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::alt_bn128_g1_sum",
       "owner": "L3",
-      "remaining_work": "curve host: production-enabled at PV86 and reachable; the Lean spec reports out-of-domain and no arithmetic implementation exists",
-      "status": "missing"
+      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
+      "status": "partial"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts)",
+      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
       "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-alt_bn128_pairing_check",
-      "lean_path_symbol": "none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.alt_bn128_pairing_check (successor table); D3\u03b1: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::alt_bn128_pairing_check",
       "owner": "L3",
-      "remaining_work": "curve host: production-enabled at PV86 and reachable; the Lean spec reports out-of-domain and no arithmetic implementation exists",
-      "status": "missing"
+      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
+      "status": "partial"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -3634,7 +3634,7 @@
     "ChallengeChunkV3Float.lean": "c4732c25fe30d47bfa63d54087c7a6863b2064044d0a3f934ed44e8b55c3aefb",
     "ChunkValidationD1.lean": "772af672219bbb289e2768d82130cc8d80abbf511c7ce84704ce66f9586d6b05",
     "ChunkValidationD1a.lean": "5c3ee8da7e308d42fd91c47dc28f62d3de69e41cd9ec753abe30561936cd38ec",
-    "ChunkValidationD2.lean": "c58af4b97f334b49fdcf6fdc002dbdae66fab1ba3856fb26454b599c67844f9e",
+    "ChunkValidationD2.lean": "86ca3b3bcbbceee1fbdc41b099b3aa4d14fbcfe924a009808421ecff20187384",
     "ChunkValidationV0.lean": "14e583273dc7726c40f0b2862cf90742f1a78dcce9e8f9267e33b993d66a2b15",
     "D2/Actions.lean": "e8df76f116abec9eb0d08cc3da4928d6b5ae52c686070415f6b5708d5aa49dca",
     "D2/Queues.lean": "893be7c979194d0f5b4717d600a8820e9173b10f8943c97fd65cbf993e879e67",
@@ -3643,7 +3643,7 @@
     "D2/Types.lean": "bc432dd9390e604e66d23135dab6f2640e2efd205b25fc094af3183d7d5feacb",
     "D3/FunctionCall.lean": "683b94a59551c5e980b8d9c85133c9578b5c754c88fafd5570ae3298f80cb8b7",
     "Layout.lean": "0931ff561a8bc00b32cab315c99e090185be188e705dae407785c1d8889c0fda",
-    "Wasm/CryptoHost.lean": "24ab1a83d060047d63aaa9633dcabdd4526fa833dd933f6b2b0b2cc27794cc78",
+    "Wasm/CryptoHost.lean": "fd50912abbd3b9fef62f074287e49c63205008f218952e1119b8180c6230a06e",
     "Wasm/Decode.lean": "a5e7c1715c7bd88b78798c869f92dec166970fd8c16d68542caf9c6ab2143e73",
     "Wasm/DomainD3.lean": "bfa5fecf313275e486e0d5c549e3b53403453c560c4e9c5c4b43c65c8fe40714",
     "Wasm/Exec.lean": "2bb4f6bddfa4f05b99f789d5578b39abd67772d541004e19e17e7fa442a07929",
@@ -3656,7 +3656,7 @@
     "Wire.lean": "c5a197a50b8ddd332b05d2826ad01e8b56e3f35ffcd90a688851ef2d09406302"
   },
   "totals": {
-    "lean_crypto_host_arms": 11,
+    "lean_crypto_host_arms": 14,
     "lean_decoded_action_tags": 10,
     "lean_host_arms": 75,
     "lean_numeric_opcodes": 134,
