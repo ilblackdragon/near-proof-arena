@@ -79,14 +79,42 @@ validation shell has `rfl` checks against both original core validators at its l
   reference-only global lookup, cross-chain wallet resolution, identifier preservation, deduplication,
   and rollback after 2,001 removals followed by deferral. CI includes four ETH-local chunk fixtures,
   20 existing honest runtime/float chunks and four existing mutants in the new tier.
-- **Still open:** W07 global action tags/distribution/promise translation; W08 authenticated cache
-  and preparation-order closure plus positive nearcore global/wallet chunk windows; W09 independently
+- **Open at that checkpoint (superseded for W07/W08 by the next checkpoint):** global action
+  dispatch, code-witness policy and positive global windows. W09 still needs independently
   generated nearcore chunks at exact proof limits, full observable comparison, implicit/resharding
   composition and resource bounds. Native directed tests are not independent nearcore boundary
   comparisons. No whole W08/W09 package or completion gate is certified; W05 is untouched.
 
 See [implementation and handoff](../logs/lean-chunk-storage-resolution-2026-10-24.md) and
 [replay evidence](../evidence/lean-chunk-completion/storage-resolution/README.md).
+
+### Cache closure and global action integration — 2026-10-24
+
+Integrated from parallel lanes onto main baseline `197767793`; **W05 remains excluded**.
+The [handoff](../logs/lean-chunk-cache-global-2026-10-24.md) records implementation, evidence and
+remaining obligations. `globalActions` adds deploy/use/state-init actions and distribution receipts
+through versioned witness, transaction, delegate, postponed and buffered receipt decoding, recorded
+action execution and shard routing. All seven global/state-init promise hosts now produce executable
+actions. `completeCodeGlobal` adds an explicit complete-code witness requirement.
+
+- **W07 delivered:** tags 9/10/11, distribution V1/V2 freshness/forwarding, fees, storage usage,
+  third-party state-init, refunds and rollback; per-receipt promise indices; Borsh map normalization
+  and canonical transaction/delegate hashes. Twelve independent Rust codec vectors pass.
+- **W08 delivered:** hash-verified raw code, authenticated pre-state origin checks and current/
+  committed deployment or distribution materialization; attempted failed deployment code cannot
+  satisfy the complete policy. Missing required code is `w.code_complete`, a witness admission
+  failure rather than a claim that every native cache history rejects the protocol chunk.
+- **Independent evidence:** 265 selected cases per tier: 162 accepts, 99 rejects, four retained
+  unrelated key/crypto exclusions. Of 99 honest cases, 95 accept; all 166 mutants agree with their
+  raw oracle expectations. Another 83 promise-host chunks accept in each tier. Fourteen code-only
+  mutant pairs pass 84 repeated complete/incomplete/restored policy checks; raw incomplete native
+  outcomes (nine accepts, five rejects) remain separate. CI retains 26 accepted global chunks,
+  two explicit key exclusions, three promise controls and five code-policy pairs.
+- **Remaining:** gas-key hosts/actions; old-layout distribution ancestry; mismatched distribution
+  code identities and historical compiled-cache coherence; broader postponed/yield and wallet/cache
+  composition; full observable export, overlap proofs and final representative replay. Complete-code
+  admission does not prove equality with arbitrary poisoned or warmed native cache histories.
+  **W07/W08 and Gates A/B/C remain open.**
 
 ### Remaining work by package
 
@@ -102,12 +130,12 @@ No W00–W16 package is certified fully complete by this merge.
 | W04 / L2 | Float kernel; 2,050 full-output cases covering 70 operators; eight fixed and eight input-driven contracts; 1,284 input-driven chunk comparisons (1,200 accepts); CI fixtures | Complete overlap proof, preparation negatives and remaining cross-family execution; 350 mutant expectations now pass. |
 | W05 / L3 — held back | Main has ecrecover/p256 and nine BLS host implementations; pending branch adds BN128 and followups | Reconcile and validate pending checkpoint in a later merge, including fixture failure controls; connect all curve hosts to accepted chunks and verify gas/error/state parity. |
 | W06 / L3 keys | Existing Ed25519 paths | secp256k1 transactions/delegates and ML-DSA-65 codecs, verification, key handles and trie integration; positive/negative chunks with fees/nonces/roots. No W06 completion inferred from W05. |
-| W07 / L4 | Codecs/action bodies, 134 directed tests; standalone widened parser and resolving checker now merged | Wire tags 9/10/11 and distribution receipts through versioned successor dispatch; complete promise/gas-key translation; validate success/failure, fees, writes, receipts and rollback in chunks. |
-| W08 / L1 + L4 | Executable identifier-preserving successor resolution, hash-only global lookup, cross-chain legacy-wallet redirect; 161 ETH-local chunk accepts | Close cache/preparation environment; independently validate global/by-account/wallet chunk windows and missing-code/deploy combinations. |
+| W07 / L4 | Integrated global deploy/use/state-init, distribution, seven promise hosts; independent chunk and canonical-codec checks | Complete gas-key translation, obsolete-layout ancestry and mismatched code identity semantics; broaden observable/error/rollback composition and prove overlap. |
+| W08 / L1 + L4 | Identifier-preserving resolution plus tested complete-code witness policy; global/by-account/deploy/rollback chunks and paired incomplete-code evidence | Close historical compiled-cache identity boundary; broader postponed/yield/wallet preparation tests, authenticated environment contract and overlap proof; full observable comparison. |
 | W09 / L5 | Executable chunk recorder, per-receipt exhaustion, chunk deferral, rollback-preserved read/removal accounting; native boundaries and regression replay | Independent nearcore exact-limit chunk fixtures, full observable parity, implicit/resharding composition and resource bounds. |
 | W10 / L6 | Corrected genesis checker, 137 recorded new accepts, gas/float/genesis composition | Non-genesis overlap proof, genesis transaction-flag negatives, authenticated facts and combined-entry validation. Preserve header-mutant regressions. |
 | W11 / L6 | Boundary analysis/interface | Actual resharding retention, child state/buffers/congestion and epoch transitions; real layout-boundary fixtures and mixed-protocol reachability resolution. |
-| W12 / integration + L1 | Partial gas/float/genesis composition; additive family adapters | One executable W02–W11 relation; all required families reachable; tier/overlap proofs and cross-family tests. Runtime still calls old host dispatch. |
+| W12 / integration + L1 | Partial gas/float/genesis composition; additive family adapters | One executable W02–W11 relation; all required families reachable; tier/overlap proofs and cross-family tests. Seven global/state-init hosts are enabled; remaining required host/key families still need composition. |
 | W13 / L7 | Corpus infrastructure and provenance work | Acquire and execute authenticated witnesses for at least 1,000 consecutive PV86 blocks across all shards, plus rare-feature fixtures; complete observable/hash reports. |
 | W14 / L7 + integration | Lane-specific checks and replay evidence | Freeze one full package after W12; replay D1/D2/D3 plus generated/cross-family/W13 suites; close all UQs, audit axioms/runtime, publish reproducible identity and Gate B record. |
 | W15 / L8 | Admission workflow available for audit | Exact restricted-reference artifact binding, formal/kernel/conformance/resource checks and archived signed live formal-tier ADMITTED evidence; clean-checkout instructions. Can proceed now. |

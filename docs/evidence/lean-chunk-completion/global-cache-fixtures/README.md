@@ -7,7 +7,12 @@ Two final-source 140-block windows (seeds 2718 and 31415) produced 978 honest ch
 by the cold native validator, and 1,166 mutants. Manifests select 99 relevant honest cases and
 166 mutants. Their files, binary and collector are hashed. `cases/` retains 28 small honest chunks
 covering actual global action outcomes, distribution delivery and deployment/cache sequences.
-Lean replay is performed separately by integration; generation is not proof of Lean agreement.
+Integrated replay is archived under `replay/{globalActions,completeCodeGlobal}/`: both tiers pass
+265 cases, with 162 accepts, 99 rejects and four asserted unrelated key/crypto exclusions. Honest
+cases split into 95 accepts/four exclusions; all 166 mutant verdicts agree. The committed 28-case
+selection includes 26 accepts and two key exclusions, checked explicitly in CI. Generic `w.shape`
+metadata is not waived wholesale: successful new global executions compare the raw oracle verdict,
+while unsupported key shapes retain their precise guards. Generation alone is not Lean validation.
 
 Observed in each window: three successful global deployments (including redeployment nonce),
 hash/account use+call success, missing-use action failure, use+call rollback, two successful

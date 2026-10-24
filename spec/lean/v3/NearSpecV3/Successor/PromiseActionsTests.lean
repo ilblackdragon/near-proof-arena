@@ -27,6 +27,10 @@ def initial : St := {
     { text := "RT@0:bob" }] }
 
 def runTests : IO Unit := do
+  assertTest "decoder preserves unsupported key domain" (match finishActsGlobal
+      { recv := [], acts := [([6, 2] ++ zeros 1952, none)] } with
+    | .error e => e == oodMlDsaKey
+    | .ok _ => false)
   let s ← stepH (writeMemH 0 ⟨Array.replicate 32 7⟩) initial
   let s ← stepH (writeMemH 96 "provider".toUTF8) s
   let s ← stepH (stateInitH false #v[0, 32, 0, 64]) s

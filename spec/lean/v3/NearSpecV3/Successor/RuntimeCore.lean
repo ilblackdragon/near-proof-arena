@@ -421,11 +421,9 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
 
 
 theorem legacy_core_eq (h : ActionHooks) (a : Bool) (c w : Bytes) (cap : Option Nat) :
-    checkD2CoreWith legacyDriver h a c w cap = checkD2Core h a c w cap := by
-  simp only [checkD2CoreWith, checkD2Core, legacyDriver]
+    checkD2CoreWith legacyDriver h a c w cap = checkD2Core h a c w cap := rfl
 
 theorem legacy_genesis_eq (h : ActionHooks) (a : Bool) (c w : Bytes) (cap : Option Nat) :
-    checkD2CoreGWith legacyDriver h a c w cap = checkD2CoreG h a c w cap := by
-  simp only [checkD2CoreGWith, checkD2CoreG, legacyDriver, legacy_core_eq]
+    checkD2CoreGWith legacyDriver h a c w cap = checkD2CoreG h a c w cap := rfl
 
 end NearSpecV3.Successor

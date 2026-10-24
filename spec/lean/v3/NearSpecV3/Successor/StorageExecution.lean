@@ -5,6 +5,7 @@ import NearSpecV3.Successor.CodeResolution
 import NearSpecV3.Successor.GlobalCodecs
 import NearSpecV3.Successor.GlobalExecution
 import NearSpecV3.Successor.QueueExecution
+import NearSpecV3.Successor.PromiseActions
 
 /-! Chunk-scoped protocol recorder over the existing read-logging D2 operations.
 Reads are executed against the authenticated witness store; recorder state is computed locally.
@@ -149,7 +150,7 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
     let burnt := s.gas.burnt
     let logs := s.logs.toList.map ofBA
     -- receipts + gas distribution (only for VM-produced outcomes, §5.5)
-    let (rs, idx, resumes) ← liftE (manager s.actions ah h)
+    let (rs, idx, resumes) ← liftE ((if recording.globalActions then managerGlobal else manager) s.actions ah h)
     let (rs, extra) ← liftE (distribute rs gas s.gas.used)
     let used := s.gas.used + extra
     let ar1 := { ar with gasBurnt := ar.gasBurnt + burnt, gasFC := ar.gasFC + burnt,
@@ -175,7 +176,7 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
       if next != yn then o := o.set kYieldIdx (encIndices yf next)
       let st := { st with o }
       let rcpts ← rs.toList.mapM fun m => do
-        let acts ← liftE (finishActs m)
+        let acts ← liftE ((if recording.globalActions then finishActsGlobal else finishActs) m)
         pure (⟨c.r.recv, m.recv, zero32, .action m.yield ⟨true, a.signer, m.refundTo, a.signerPk,
           a.gasPrice, m.outputs, m.inputs, acts⟩⟩ : Rcpt)
       let rcpts := rcpts ++ resumes.map fun (d, p) =>

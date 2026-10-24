@@ -37,6 +37,6 @@ def finishActsGlobal (r : MR) : Except String (List Act) :=
     match GlobalCodecs.pActGlobal raw with
     | .ok (act, []) => pure act
     | .ok _ => throw "unmodeled: global action re-encoding"
-    | .error err => throw (oodE s!"global action decoding: {err}")
+    | .error err => throw err
 
 end NearSpecV3.Successor

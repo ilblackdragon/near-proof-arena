@@ -88,7 +88,22 @@ The release implementation of `ContractCode::new(code, Some(hash))` uses a debug
 code/hash coherence. A malformed historical global distribution can therefore associate wrong bytes
 with a claimed hash in the compiled cache. Raw witness completeness alone cannot make an already
 poisoned nearcore cache coherent: a cache hit bypasses the supplied bytes. The successor integration
-explicitly excludes malformed current distributions with `w.code_identity`; historical cache identity
+explicitly excludes malformed current distributions with `out of domain (w.shape): global_code_identity`; historical cache identity
 is a separate environment/admission boundary. No theorem in this module establishes equality with
 arbitrary warmed or poisoned nearcore histories. `complete_attempted_independent` states only the
 exact implemented fact that the attempted-deployment list is not read by complete-policy selection.
+
+## Integrated validation checkpoint — 2026-10-24
+
+The `globalActions` and `completeCodeGlobal` successor tiers now compose the typed actions,
+distribution queues, seven promise hosts and recorded execution. Each passes the same 265-case
+independent replay: 162 accepts, 99 rejects and four retained key/crypto exclusions. Another 83
+promise-host chunks accept in both tiers, including gas exhaustion and child-action failure.
+See [integration handoff](../logs/lean-chunk-cache-global-2026-10-24.md).
+
+`tools/d3/check_code_witness_policy.py` separately checks 14 independent complete/incomplete/restored
+pairs twice (84 verdicts). Complete and restored bytes accept; incomplete bytes report
+`w.code_complete`. The raw incomplete oracle observations remain nine accepts and five rejects,
+without relabeling their metadata. Five portable pairs and eight integrity tests are committed;
+`make d3-smoke` repeats their 30 policy checks. This establishes tested missing-byte closure under
+the stated coherent-code environment, not arbitrary historical compiled-cache equivalence.

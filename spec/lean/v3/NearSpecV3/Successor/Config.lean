@@ -91,7 +91,7 @@ structure ProtocolCfg where
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
 def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
-  { (if cfg.floats then Wasm.floatPv86 else Wasm.pv86) with loadingLimits := cfg.loadingLimits }
+  { (if cfg.floats then Wasm.floatPv86 else Wasm.pv86) with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions }
 
 /-- The signed configuration: exactly `checkD3`'s arguments. -/
 def signedCfg : ProtocolCfg := {}
