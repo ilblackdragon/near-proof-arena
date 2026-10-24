@@ -1,0 +1,53 @@
+{
+ "cases": [
+  {
+   "case_dir": "d3c7-d3-00-h10004-s1",
+   "d3_violations": [],
+   "expected_rel": true,
+   "in_d3": true,
+   "source": "d3c7/d3/00-h10004-s1",
+   "why": "in-domain accept"
+  },
+  {
+   "case_dir": "d3c7-mutants-00-h10004-s2-code.drop.0",
+   "d3_violations": [],
+   "expected_rel": false,
+   "in_d3": true,
+   "source": "d3c7/mutants/00-h10004-s2-code.drop.0",
+   "why": "in-domain reject"
+  },
+  {
+   "case_dir": "d3c7-mutants-00-h10153-s0-code.drop.1",
+   "d3_violations": [
+    "e.code_cache"
+   ],
+   "expected_rel": true,
+   "in_d3": false,
+   "source": "d3c7/mutants/00-h10153-s0-code.drop.1",
+   "why": "code-cache exclusion"
+  },
+  {
+   "case_dir": "d3c7-ood-00-h10002-s0",
+   "d3_violations": [
+    "c.not_genesis",
+    "c.no_resharding"
+   ],
+   "expected_rel": true,
+   "in_d3": false,
+   "source": "d3c7/ood/00-h10002-s0",
+   "why": "c.not_genesis exclusion (successor d3g accepts)"
+  },
+  {
+   "case_dir": "d3c7-ood-00-h10006-s2",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "expected_rel": true,
+   "in_d3": false,
+   "source": "d3c7/ood/00-h10006-s2",
+   "why": "e.ood_host exclusion"
+  }
+ ],
+ "note": "Five real D3 cases copied from the L7 corpora. Expected verdicts come from the oracle's meta.json. Run by CI to exercise the drivers and the comparison contract; not a substitute for the full 115,284-case sweep.",
+ "schema": "near-d3-smoke-fixture-v1"
+}

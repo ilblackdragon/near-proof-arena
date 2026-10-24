@@ -107,11 +107,13 @@ step "6. D3 regression (four corpora, 115,284 cases)"
 # recorded verdicts. Pass --python to reproduce the Lean-vs-Python leg as well (costs a second full
 # Python run per corpus, so it is opt-in via --python-leg).
 for c in d3c7 d3c8 d3c9 d3c10; do
-  args=(--shards "$JOBS" --save "$OUT/$c")
+  # --report writes the machine-readable per-case partition the workplan requires; the tail keeps the
+  # partition summary visible in the console log without dumping 33k records.
+  args=(--shards "$JOBS" --save "$OUT/$c" --report "$OUT/$c-report.json")
   [ "$QUICK" -eq 1 ] && args+=(--sample 300)
   [ "$PYLEG" -eq 1 ] && args+=(--python)
   python3 "$REPO/oracle/v3-d3/tools/difftest_d3.py" "$CORPORA/$c" "${args[@]}" \
-          2>&1 | tail -4
+          2>&1 | grep -E "^(==== |(lean|python): cases=|(lean|python): partition |wrote report|DISAGREE|  )" | tail -8
   [ "${PIPESTATUS[0]}" -eq 0 ] || fail "D3 regression on $c"
 done
 
