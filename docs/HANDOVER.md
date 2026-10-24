@@ -1,35 +1,27 @@
 # Handover — 2026-10-24
 
-**Current Lean chunk audit: main `0f2b32171`, 2026-10-24.** All nine lanes were inspected by
-ancestry, working changes and evidence. L0/L1/L2/L5/L6/L7/L8 have no unique commits; **L3 and L4
-each have six unmerged commits** at `b634a6c5c` and `06dffaac6`. These branches are not all rebased
-to current main. L3 also has untracked `TmpTest/` scratch work; no other uncommitted semantic lane
-changes were found. Full per-lane and W00–W16 status: [lane audit](logs/lean-chunk-lane-audit-2026-10-24.md).
+**Current Lean integration — 2026-10-24, merge `c3976e326`.** All committed inspected
+L0/L1/L2/L4/L5/L6/L7/L8 work is now on the integration tip promoted to main. L4's six commits
+through `06dffaac6` are newly merged. **W05 remains held back:** L3 has seven pending commits
+through `4a333be4e`; existing main BLS code is preserved. Lanes/worktrees remain intact.
+See the [merge ledger and fresh validation](logs/lean-chunk-integration-except-w05-2026-10-24.md).
 
-**Distance to completion:** W00 interfaces, W01 harness repairs and nine BLS hosts have landed, but
-no final completion gate has closed. The inventory is **222 rows: 147 implemented / 36 validated /
-10 missing / 18 partial / 11 impossible**. Nine BLS rows moved missing→partial; the 28 missing/partial
-rows and 36 validated rows are unchanged in total. This is implementation progress, not an effort
-percentage. The main path remains **runtime host/action/recorder integration → full successor/tier
-proofs → representative replay and frozen validation → admission**.
+**Distance to completion:** no Gate A/B/C closure. Inventory: **222 rows, 147 implemented /
+36 validated / 5 missing / 23 partial / 11 impossible-at-boundary**. Five L4 rows moved to partial;
+28 missing/partial rows remain. The resolving checker still uses old D2 action decoders and retains
+the ETH-local guard. Its fresh 539-case replay is unchanged, with no newly validated scoped acceptance.
+UQ-006 remains open; the imported lane log's non-instant-receipt argument does not prove impossibility.
 
-**Immediate integration blockers found in this audit:** L3's current BLS host test is **146/147**
-(exit 1: a stale test still expects the new BN128 arm to be absent). Its BN128 runner reports
-**`0/0 ok`, exit 0 for missing fixtures**. Fix both before promoting the checkpoint, and preserve
-main's BLS missing/empty-fixture checks. L4's new hook still accepts no additional scoped cases;
-it needs W00-based action dispatch, correct successor ETH handling and positive global fixtures.
-Its UQ-006 claim that non-instant distribution receipts cannot occur in witnesses needs review;
-non-instant status alone does not establish that boundary exclusion.
+**Next work:** shared runtime host/action/recorder adapters → semantic completion → combined relation
+and tier proofs → representative replay/frozen validation → admission. Capacity, runtime errors,
+float coverage, keys, actions/resolution, storage and resharding can progress in parallel behind those
+interfaces. L7 can acquire authenticated witnesses and L8 can audit restricted admission now.
+The [completion workplan](requirements/LEAN_CHUNK_COMPLETION_WORKPLAN.md) lists every W00–W16
+remaining obligation, owner and dependency. Fresh checks: Lean build (178 jobs), 539 replay comparisons,
+49 Python passes/1 skip, inventory/schema and pins. No full release validation is claimed.
 
-**Next parallel work:** L0/integration owns shared runtime adapters; L3 reconciles/tests BN128 and
-completes key families; L4 integrates actions/resolution; L2 fixes the known LoadingError divergence;
-L1/L5/L6 pursue capacity/storage/resharding. L7 must add observable and package-identity reporting and
-start real witness acquisition. L8 can audit restricted-reference admission now. No package is
-certified merely by merging. Fresh checks here: **49 harness tests passed, 1 skipped**, coverage
-drift and manifest schema passed; this was not a full clean build or corpus replay.
-
-The following integration notes preserve earlier measurements; the current audit above supersedes
-their lane readiness and completion implications.
+The [earlier lane audit](logs/lean-chunk-lane-audit-2026-10-24.md) and notes below are historical;
+recheck L3's reported test defects against its latest changes before a future W05 promotion.
 
 **Earlier integration checkpoint: W00 and W01 landed on main (`be3ebbca8`, pushed), with the hosted corpus prerequisite repaired.** Two work packages that had been sitting unpushed on their lanes are now on main and verified here:
 
@@ -45,7 +37,7 @@ their lane readiness and completion implications.
 Merged-state verification run on main `be3ebbca8`, not copied from the lanes' logs: `lake build` in `spec/lean/v3` **195 jobs green**; `make pin-check` all `ok`; coverage drift check matches pinned sources; `make d3-smoke` **SMOKE PASSED** (5 cases, 4 drivers, controlled breakage still detects a flipped verdict); 50 harness tests OK; `make workflow-lint` clean. `research/near-compression/wasm-base-lean` still builds at 248 jobs after the `defaultTargets` change.
 
 **Integration accounting:** measure ancestry and content rather than treating a merge title as
-proof that a moving lane is fully integrated. The current Lean gaps are L3 and L4, detailed above;
+proof that a moving lane is fully integrated. The remaining unmerged inspected Lean checkpoint is L3/W05, detailed above;
 PQ and join status is recorded separately under Pending integration. Re-measure before merging.
 
 **Also this checkpoint: `main` was red and CI could not see it.** The L2 float lane added `Val.f32`/`Val.f64` to `spec/lean/v3`, and `research/near-compression/wasm-base-lean` — a separate Lake project that *depends on* that module — stopped compiling: six `Missing cases` / `Alternative … has not been provided` errors in `Event.lean`, `Tool.lean` and `Main/Exec.lean`. No workflow and no `make lean` target built that project, so the breakage sat on `main` undetected. Fixed, and both now build it (248 jobs). See the shared-rules lesson on unbuilt Lean projects.

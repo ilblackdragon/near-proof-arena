@@ -17,30 +17,66 @@ natural existing owners, who must claim work in their lane logs.
 
 ## Current progress update
 
-As of main `0f2b32171` on 2026-10-24, the
-[all-lane audit](../logs/lean-chunk-lane-audit-2026-10-24.md) supersedes the original baseline status
-below. It records every lane tip, unmerged work, fresh checks and a status row for each W00–W16 package.
-The package deliverables, success criteria and dependency graph in this workplan remain the target.
+Integration snapshot: **2026-10-24, merge `c3976e326`**, based on main `e44e2cdbd`.
+All committed work at the inspected L0/L1/L2/L4/L5/L6/L7/L8 tips is integrated.
+L4's six commits through `06dffaac6` are newly merged. **W05 is explicitly held back**:
+L3's seven pending commits through `4a333be4e` remain on its branch; existing main BLS code is
+preserved. Branches and worktrees remain available for continued work and later reconciliation.
+The [earlier audit](../logs/lean-chunk-lane-audit-2026-10-24.md) is historical evidence, not the
+current merge ledger. Its L3 test findings must be rechecked against any subsequent lane fixes.
 
-- **W00:** interfaces/owner map and default-build integration delivered. `checkSuccessor` now composes
-  gas/floats/genesis, but the combined configuration lacks recorded validation and crypto/action/recorder
-  execution is not yet connected. Boundary questions and final refinement/tier proofs remain open.
-- **W01:** corpus-free versus content CI is separated; every saved D3 verdict is now accounted for;
-  four drivers have build/smoke coverage. Full observables, report package identities and combined
-  successor validation are still missing. The old always-red hosted-corpus issue is repaired.
-- **W05:** nine BLS hosts are now on main alongside ecrecover/p256; BN128 is committed in L3 but not
-  merged. Current L3 has a failing stale dispatch assertion and a BN128 missing-fixture false pass.
-  Accepted whole-chunk crypto paths and W06 transaction/delegate/ML-DSA coverage remain open.
-- **W07/W08:** L4 has unmerged resolving-hook/checker progress, but no additional scoped acceptance.
-  Real action/ETH integration and positive fixtures are still required. Its distribution-receipt
-  impossibility argument needs review before closing the boundary question.
-- **W02/W03/W09/W11:** capacity, runtime-error parity, protocol storage and actual resharding remain
-  substantial semantic work. **W13–W16:** authentic representative execution, frozen full validation
-  and admission/release have not been delivered by these checkpoints. Gates A/B/C remain open.
+**No completion gate has closed: Gate A 0/1, Gate B 0/1, Gate C 0/1.** The inventory is
+**222 rows: 147 implemented, 36 validated, 5 missing, 23 partial, 11 impossible-at-boundary**.
+The five L4 missing→partial moves recognize additive implementation, not new validated acceptance.
+There are still 28 missing/partial rows. Counts are not an estimate of remaining effort, and the
+inventory's impossibility classifications do not settle every open boundary question.
 
-The inventory is now 147 implemented, 36 validated, 10 missing, 18 partial and 11 impossible rows
-(222 total). Nine rows moved missing→partial; that is not nine completed work packages or an effort
-percentage. For current acceptance status use the audit, not the historical baseline table.
+### Remaining work by package
+
+Each row states what is available and what must still satisfy the detailed success criteria below.
+No W00–W16 package is certified fully complete by this merge.
+
+| Package / owner | Available now | Remaining completion obligation |
+|---|---|---|
+| W00 / L0 + integration | Seven successor interfaces, owner map, default-build inclusion, gas/float/genesis configuration | Connect real host/action/recorder execution; settle boundary questions and versioned facts/codecs; complete canonical relation and interface proofs. |
+| W01 / L7 | CI schema/content separation, all 115,284 saved verdicts accounted for, four drivers built/smoked | Compare roots, outcomes, gas, receipts, writes and rollback; bind reports to executable/input hashes; validate combined successor and failure controls. |
+| W02 / L1 | Protocol-gas checker, measured above-cap acceptance | Fuel/termination and protocol-scale memory/stack bounds; remove arena-only segment/size limits; stress limits and prove overlap/tier inclusion. |
+| W03 / Wasm owner + L7 | LoadingError discrepancy reproduced | Implement pinned instance-layout/resource failure semantics, zero-gas failed-call outcome and rollback; turn divergence into parity regression; settle linking/unknown-error assumptions. |
+| W04 / L2 | Float kernel, 141 directed tests, float/gas checkers | Varied generated whole-chunk operator/control-flow corpus, observable/trap parity, overlap proof and cross-family execution. |
+| W05 / L3 — held back | Main has ecrecover/p256 and nine BLS host implementations; pending branch adds BN128 and followups | Reconcile and validate pending checkpoint in a later merge, including fixture failure controls; connect all curve hosts to accepted chunks and verify gas/error/state parity. |
+| W06 / L3 keys | Existing Ed25519 paths | secp256k1 transactions/delegates and ML-DSA-65 codecs, verification, key handles and trie integration; positive/negative chunks with fees/nonces/roots. No W06 completion inferred from W05. |
+| W07 / L4 | Codecs/action bodies, 134 directed tests; standalone widened parser and resolving checker now merged | Wire tags 9/10/11 and distribution receipts through versioned successor dispatch; complete promise/gas-key translation; validate success/failure, fees, writes, receipts and rollback in chunks. |
+| W08 / L1 + L4 | Resolver, resolving hook, conditional agreement and guard-gap theorems | Lift successor ETH-local rejection correctly; positive global/by-account/wallet cases; define and test cache/deploy/preparation environment, missing code and recorded code reads. |
+| W09 / L5 | Storage analysis, conditional bounds and recorder interface | Actual protocol recorder, per-receipt limit and chunk soft-limit deferral; shared-path/cache/rollback accounting and boundary fixtures. |
+| W10 / L6 | Corrected genesis checker, 137 recorded new accepts, gas/float/genesis composition | Non-genesis overlap proof, genesis transaction-flag negatives, authenticated facts and combined-entry validation. Preserve header-mutant regressions. |
+| W11 / L6 | Boundary analysis/interface | Actual resharding retention, child state/buffers/congestion and epoch transitions; real layout-boundary fixtures and mixed-protocol reachability resolution. |
+| W12 / integration + L1 | Partial gas/float/genesis composition; additive family adapters | One executable W02–W11 relation; all required families reachable; tier/overlap proofs and cross-family tests. Runtime still calls old host dispatch. |
+| W13 / L7 | Corpus infrastructure and provenance work | Acquire and execute authenticated witnesses for at least 1,000 consecutive PV86 blocks across all shards, plus rare-feature fixtures; complete observable/hash reports. |
+| W14 / L7 + integration | Lane-specific checks and replay evidence | Freeze one full package after W12; replay D1/D2/D3 plus generated/cross-family/W13 suites; close all UQs, audit axioms/runtime, publish reproducible identity and Gate B record. |
+| W15 / L8 | Admission workflow available for audit | Exact restricted-reference artifact binding, formal/kernel/conformance/resource checks and archived signed live formal-tier ADMITTED evidence; clean-checkout instructions. Can proceed now. |
+| W16 / L8 + integration | Release requirements specified | After W14, freeze trusted relation/tiers and challenge; independently admit full successor, finish contributor instructions and authorized release with Gate C evidence. |
+
+### Integration consequences and parallel priorities
+
+1. **Shared integration first:** L0/integration exposes the executable adapters for host dispatch,
+   versioned actions/receipts, resolution and recorder. L4's `checkD3Global` still calls old D2
+   decoders; its `pActL4` is standalone. Normalizing an ETH contract to local preserves the old guard.
+2. **Parallel semantic work:** L1 capacity, L2 float coverage/runtime errors, L3 held-back curves and
+   separate key work, L4 actions/resolution, L5 recorder, L6 genesis/resharding. Consume the shared
+   interfaces rather than forking independent complete checkers. W07/W08 and W09/W11 must coordinate.
+3. **Start evidence/admission now:** L7 can build observable/hash reporting and acquire witnesses;
+   L8 can audit the restricted reference. Final full replay waits for the combined successor.
+4. **Critical completion chain:** W00 adapters → W02–W11 semantic closure → W12 combined relation
+   and proofs → W13 completed replay + W14 frozen validation → W16 admission/release.
+   W15/Gate A can close independently. The dependency graph below remains authoritative.
+
+L4's 539-case replay shows unchanged verdicts/reasons, not positive new execution. Generate missing
+global/distribution/wallet cases with versioned successor tooling while preserving the pinned
+oracle. **UQ-006 remains open:** non-instant distribution receipts alone do not prove exclusion from
+source receipt proofs; the lane log's stronger impossibility claim is not accepted as closure.
+
+Validation for this integration is recorded in
+[the merge handoff](../logs/lean-chunk-integration-except-w05-2026-10-24.md).
 
 ## Original baseline state and scope
 
@@ -375,8 +411,8 @@ Success criteria:
 Owner: L3, split into ecrecover/p256 integration, BN128, and BLS substreams with one host adapter owner.
 Reuse [existing arithmetic and host code](../research/lean-chunk-crypto-L3.md).
 
-Wire `ecrecover` and `p256_verify` into successor real-state host dispatch. Implement the three BN128
-hosts (`g1_multiexp`, `g1_sum`, `pairing_check`) and nine BLS hosts (`g1_multiexp`, `g2_multiexp`,
+Wire `ecrecover` and `p256_verify` into successor real-state host dispatch. Reconcile the held-back BN128
+hosts (`g1_multiexp`, `g1_sum`, `pairing_check`) and validate/integrate the nine already-implemented BLS hosts (`g1_multiexp`, `g2_multiexp`,
 `map_fp_to_g1`, `map_fp2_to_g2`, `p1_sum`, `p2_sum`, `p1_decompress`, `p2_decompress`, `pairing_check`).
 Their arithmetic and test work can proceed independently; field encodings and shared primitives
 must have one owner per curve. Preserve existing Ed25519 support and test its host path.
