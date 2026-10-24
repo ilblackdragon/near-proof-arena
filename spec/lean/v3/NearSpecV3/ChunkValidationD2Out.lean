@@ -108,63 +108,38 @@ theorem claimHeader?_eq (cb : Bytes) : claimHeader? cb = headerOfClaim cb := rfl
 
 /-! ## The theorem that ties the two checkers together
 
-`checkD2CoreOut` calls `checkD2Core` first. So the accept/reject decision is definitionally the signed
-one, and no separate pipeline exists that could disagree. -/
+`checkD2CoreOut` *is* `checkD2CoreObs`, the computation the signed checker projects. So the accept/reject
+decision is definitionally the signed one, and the emitted record is the computed record — there is no
+second pipeline that could disagree and no read-back of the header. -/
 
-/-- Run the signed checker; on acceptance, return the endorsed header's outputs.
-
-The header is decoded *first* so the `none` case is an explicit rejection rather than a post-acceptance
-failure: a claim whose header does not decode is rejected by `checkD2Core` too, so both checkers refuse
-it and the agreement theorem needs no side condition. -/
+/-- The output-returning checker: the signed checker's own computation, returning the record of values
+it computed and compared against the endorsed header. Definitionally `checkD2CoreObs`, so the verdict is
+the signed verdict and the emitted values are the computed values — not a read-back of the header. -/
 def checkD2CoreOut (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
-    (gasCap : Option Nat := none) : Except String (Option Observable) :=
-  match checkD2Core hooks allowCodes claimBytes witnessBytes gasCap with
-  | .error e => .error e
-  | .ok _ => .ok ((headerOfClaim claimBytes).map fun H => Observable.ofChunkInner H [] [] 0 0)
+    (gasCap : Option Nat := none) : Except String Observable :=
+  checkD2CoreObs hooks allowCodes claimBytes witnessBytes gasCap
 
-/-- **Agreement is definitional.** The output-returning checker accepts exactly what the signed checker
-accepts, because its first action is to run it. -/
+/-- **Agreement is definitional.** The output checker is the signed checker's computation. -/
 theorem checkD2CoreOut_agrees (hooks : ActionHooks) (allowCodes : Bool) (cb wb : Bytes)
     (gasCap : Option Nat) :
     (∃ o, checkD2CoreOut hooks allowCodes cb wb gasCap = .ok o) ↔
-      checkD2Core hooks allowCodes cb wb gasCap = .ok () := by
-  unfold checkD2CoreOut
-  cases h : checkD2Core hooks allowCodes cb wb gasCap <;> simp [h]
+      checkD2Core hooks allowCodes cb wb gasCap = .ok () :=
+  checkD2CoreObs_agrees hooks allowCodes cb wb gasCap
 
-/-- A rejection carries the signed checker's error string verbatim: the output layer adds no failure of
-its own on a rejected case. -/
+/-- A rejection carries the signed checker's error string verbatim. -/
 theorem checkD2CoreOut_reject (hooks : ActionHooks) (allowCodes : Bool) (cb wb : Bytes)
     (gasCap : Option Nat) (e : String)
-    (h : checkD2Core hooks allowCodes cb wb gasCap = .error e) :
-    checkD2CoreOut hooks allowCodes cb wb gasCap = .error e := by
-  unfold checkD2CoreOut
-  rw [h]
+    (h : checkD2CoreOut hooks allowCodes cb wb gasCap = .error e) :
+    checkD2Core hooks allowCodes cb wb gasCap = .error e := by
+  unfold checkD2Core
+  rw [show checkD2CoreObs hooks allowCodes cb wb gasCap = .error e from h, Except.map]
 
-/-- The `Option` in the result is only `none` when the claim's endorsed header does not decode. The signed
-checker decodes that header before its first comparison, so this cannot happen after acceptance; a driver
-that sees `ok none` has found a claim the signed checker accepted without decoding its header. -/
-theorem checkD2CoreOut_ok_some (hooks : ActionHooks) (allowCodes : Bool) (cb wb : Bytes)
-    (gasCap : Option Nat) (o : Option Observable)
-    (hacc : checkD2CoreOut hooks allowCodes cb wb gasCap = .ok o)
-    (hH : headerOfClaim cb = some H) :
-    o = some (Observable.ofChunkInner H [] [] 0 0) := by
-  unfold checkD2CoreOut at hacc
-  cases h : checkD2Core hooks allowCodes cb wb gasCap with
-  | error e => rw [h] at hacc; simp at hacc
-  | ok u => cases u; rw [h, hH] at hacc; simpa using hacc.symm
-
-/-- **An accepted run's outputs satisfy the header-agreement predicate.** This is the content claim: the
-record returned on acceptance is exactly the endorsed header's consensus fields, and the signed checker's
-comparison block proved those equal the values it computed. -/
-theorem accepted_observable_agrees (hooks : ActionHooks) (allowCodes : Bool) (cb wb : Bytes)
-    (gasCap : Option Nat) (H : ChunkInner) (o : Observable)
-    (hdec : headerOfClaim cb = some H) (hacc : checkD2CoreOut hooks allowCodes cb wb gasCap = .ok o) :
-    o.agreesWithHeader H.prevStateRoot H.prevOutcomeRoot H.prevGasUsed H.prevBalanceBurnt
-      H.prevOutgoingReceiptsRoot H.txRoot H.encodedMerkleRoot H.encodedLength H.proposals
-      H.congestion H.bwRequests = true := by
-  have hsome := checkD2CoreOut_ok_some hooks allowCodes cb wb gasCap o hacc hdec
-  simp only [Option.some.injEq] at hsome
-  rw [hsome]
-  exact ofChunkInner_agrees H [] [] 0 0
+/-- **On acceptance the emitted record is the computed transition.** No side condition: the output
+checker *is* the computation that produced these values. A report comparing them against the claim's
+header therefore measures the computation, and acceptance is the proof that they agreed. -/
+theorem accepted_observable_computed (hooks : ActionHooks) (allowCodes : Bool) (cb wb : Bytes)
+    (gasCap : Option Nat) (o : Observable)
+    (hacc : checkD2CoreOut hooks allowCodes cb wb gasCap = .ok o) :
+    checkD2CoreObs hooks allowCodes cb wb gasCap = .ok o := hacc
 
 end NearSpecV3

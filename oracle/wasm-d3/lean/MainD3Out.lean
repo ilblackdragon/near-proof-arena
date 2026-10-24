@@ -82,9 +82,8 @@ def jsonObservable (o : Observable) : String :=
   ",\"receiptCount\":" ++ toString o.receiptCount ++
   ",\"wasmGas\":" ++ toString o.wasmGas ++ "}"
 
-def classify : Except String (Option Observable) → String × String × String
-  | .ok none => ("accept", "", "null")
-  | .ok (some o) => ("accept", "", jsonObservable o)
+def classify : Except String Observable → String × String × String
+  | .ok o => ("accept", "", jsonObservable o)
   | .error e => (if e.startsWith "out of domain" then "out_of_domain" else "reject", e, "null")
 
 def main (args : List String) : IO UInt32 := do
@@ -94,7 +93,7 @@ def main (args : List String) : IO UInt32 := do
   for dir in dirs do
     let cb ← IO.FS.readBinFile (dir ++ "/claim.bin")
     let wb ← IO.FS.readBinFile (dir ++ "/witness.bin")
-    let r : Except String (Option Observable) :=
+    let r : Except String Observable :=
       if d2 then checkD2CoreOut d2Hooks false cb.toList wb.toList
       else checkD2CoreOut (d3Hooks Wasm.pv86) true cb.toList wb.toList (some gAlpha)
     let (v, reason, outs) := classify r
