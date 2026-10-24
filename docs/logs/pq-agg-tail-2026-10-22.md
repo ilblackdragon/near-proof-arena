@@ -19,7 +19,7 @@ as closing that gap.
 | 1 | The delivered D0a packet is **299,967 B** (proof 299,935 + 16 B hint), independently verified, forgery-rejected | **measured**, re-verified this session |
 | 2 | Its recursion tail is a **linear chain** of 5 NV levels + a final layer, **not** an aggregation tree | **measured** (`main.rs` loop, `chain.log`) |
 | 3 | An **exact S=13** aggregation node proves at **133,357 B** | **measured**, test targets, Fibonacci leaves |
-| 4 | Node **bytes are flat in depth**: depths 2, 3, 4 are byte-identical at 132,301 B | **measured**, test targets |
+| 4 | Node **bytes are flat in depth at TEST targets only**: depths 2, 3, 4 are byte-identical at 132,301 B — but this is a `log_blowup=3` result and **cannot transfer to production**, where depth 2 is arithmetically impossible (row 18) | **measured**, test targets; production superseded by row 18 |
 | 5 | Node **cost is linear in node count**; depth is a fixpoint; the tree is RAM-bound | **measured**, test targets |
 | 6 | At production targets a 1 Pgas tree is **~6–96 h** on this host | **extrapolated** from the 1-child chunk-chain anchor (507.7 s/node mean), ±2× |
 | 7 | **No production-target aggregation node has ever been proved** | absence of evidence, stated as such |
@@ -428,12 +428,27 @@ never at production targets.
 
 ## 4. The 300 KB margin as a function of S
 
-**There is no S-dependence.** The root is one fixpoint node; whether the tree is 13 leaves
-or 4,096, the root is the same shape (132,301 B at test targets, final-layer class at
-production). So:
+**There is no S-dependence in the root's SIZE — but at production targets the root cannot be
+proved at all, so the "flat in S" result is a test-target statement only.**
 
-* a wider or deeper tree **cannot** push the packet over the cap;
-* and it **cannot** rescue the 33 B margin either.
+The size-invariance argument: the root is one fixpoint node; whether the tree is 13 leaves or
+4,096, the root is the same shape (132,301 B at test targets, final-layer class at production).
+Two independent reasons make the statement S-independent by construction:
+
+* `RangeStmt::compose` (`nv/agg.rs:65`) collapses N children into **one** statement — `ctx`/`a`
+  from the first child, `e` from the last, so statement width does not grow with fan-in;
+* `NV_NUM_PVS = 1 + NV_DIGEST = 1 + 18 = 19` (`nv/uair.rs:142`) is a fixed public-value count.
+
+What *does* grow with S is the **NvAir row count** (≈ program instructions), which changes the
+WHIR leaf count rather than the statement. So:
+
+* a wider or deeper tree **cannot** push the packet over the cap — this part stands;
+* and it **cannot** rescue the 33 B margin either — this part stands too;
+* **but the invariance is only measured at `log_blowup = 3`.** At production targets an
+  aggregation node with two NV children needs a 2^21 SHA AIR against a 2^20 stacked-height
+  ceiling — an exact 1-bit gap that no blowup value closes (§2, row 18). So at production
+  targets there is no measured aggregation node above depth 1, and "flat in S" cannot be
+  quoted without that condition.
 
 The margin is a function of the **final layer's shape** only — query schedule, unwind `m`,
 digest width (42 B), and `program_part`. The two packets we hold straddle the cap by exactly
