@@ -7,13 +7,13 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Native outcome-tree composition](NATIVE_OUTCOME_TREE.md) reconstructs 813 public
-internal hashes while checking the same complete job root. Actual packets
-**225,985 / 158,950 B** verify in fresh processes; four warm observations
-**1.48–1.52 s** on one CPU core. These are component results, not full NEAR,
-recursive history, composed PQ128 or p95. Next: reconstruct receipt leaves from
-proven PEO digests and receipt IDs (64-case census; candidate capacity 3,232
-SHA blocks), then establish application/byte-bus binding and history composition.
+[Native receipt leaves](NATIVE_RECEIPT_LEAVES.md): reconstruct leaves and tree from
+receipt IDs and proven PEO digests, preserving the same complete job root.
+**266,607 / 206,889 B**, four warm observations **0.83–0.86 s**, fresh-process
+verification passes. Faster but larger than the preceding tree-only variant.
+Full NEAR, recursive history, composed PQ128 and p95 remain unestablished.
+Next: chunk/receipt byte-bus binding and bounded history composition; do not
+mistake a fast hash component for the complete target.
 
 [Outer security evidence](OUTER_SECURITY.md) and the
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)

@@ -1,0 +1,77 @@
+{
+  "status": "NATIVE_RECEIPT_LEAF_COMPONENT_NOT_FULL_NEAR_OR_PQ128",
+  "base_lane_commit": "d66a864b5",
+  "labinius_revision": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "binary_sha256": "b46fae8c82f4cbd303b5a1213a053b345cd2bd4552bc9b1a6a18c02807c3319c",
+  "source_sha256": {
+    "near-hash-non-leaf.rs": "11eadb8908a8e113eb59112c05bc24d7281b7f4da06156849c60efc4a08ce5ce",
+    "near-leaf-wire-check.rs": "3871debed12c869f29956b39277a3212f9ee3caff5ac8d5b09e8131cbf3298c6",
+    "support/non_leaf_wire.rs": "0c44b9c973c6557c33860e8f867fd6c8b19aed800c6f4228c99f7bf9ef819694",
+    "support/local_wire_non_leaf.rs": "6341a128ada41aa4cdeda09b91fb02ec373cd11f3b22a6e21bb61ffb5994615d",
+    "support/non_merkle_wire.rs": "af68d28b53749ed37d8a6a3a67c39cefc3f90c65ded63985865152eb19aceb85",
+    "support/event_wire.rs": "521185deb1f24dbac00654bb05bef6f498c1431d69b4ae52444a509c96492f69"
+  },
+  "run_cpu": 8,
+  "virtual_memory_limit_KiB": 16777216,
+  "peak_RSS_KiB": 2480304,
+  "warm_runs": [
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 833,
+      "prepare_s": 0.009770535,
+      "prove_s": 0.832965357,
+      "ready_s": 0.843849068,
+      "verify_s": 0.412971552,
+      "analytic_proof_bytes": 135895,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 11,
+      "prepare_s": 0.009302233,
+      "prove_s": 0.819448295,
+      "ready_s": 0.829093383,
+      "verify_s": 0.425342672,
+      "analytic_proof_bytes": 135842,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 833,
+      "prepare_s": 0.009673933,
+      "prove_s": 0.851761746,
+      "ready_s": 0.86263567,
+      "verify_s": 0.4238316,
+      "analytic_proof_bytes": 135895,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 11,
+      "prepare_s": 0.009512079,
+      "prove_s": 0.832231646,
+      "ready_s": 0.842215924,
+      "verify_s": 0.415888093,
+      "analytic_proof_bytes": 135842,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    }
+  ],
+  "fresh_verification": {
+    "large": "LOCAL_WIRE_VERIFY bytes=266607 decode_s=0.000929761 verify_s=0.38998635 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true",
+    "small": "LOCAL_WIRE_VERIFY bytes=206889 decode_s=0.000234822 verify_s=0.389558454 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true"
+  },
+  "packet_sha256": {
+    "00-h10012-s1.packet": "cd304dc5c821370880213915d8ed085d0f776f89cf0d54d47216d567901a1bc9",
+    "00-h10035-s3.packet": "7994940673af067476672e02fbc81744ddcce732caa563a0585f45a237ee3654"
+  },
+  "note": "Decoder-only rebuild changes expected left shape from 5 to 4; proving circuit unchanged. Frozen binary is rebuilt verifier version.",
+  "limitations": [
+    "Four warm observations not p95; original witness export excluded.",
+    "Backend scalar model only; no composed PQ128 result.",
+    "Full NEAR execution and history remain unproved."
+  ]
+}

@@ -127,3 +127,15 @@ Backend scalar minimum 144.955 modeled bits; new main-ring geometry needs a new
 outer analysis. No full NEAR/PQ/history or p95 claim. Leaf-link census supports
 next reduction to 3,232 SHA blocks, not yet implemented.
 [Reproduction and limitations](../../research/near-compression/tail-architecture/NATIVE_OUTCOME_TREE.md).
+
+## Native receipt leaves
+
+Implemented receipt-ID + proven-PEO reconstruction of leaves, then native tree.
+Same complete original job root; exact PEO/receipt association enforced.
+Large 833 private hashes, 814 native leaves, 813 native nodes; 266,607 B.
+Small 206,889 B. Warm 0.844/0.829/0.863/0.842 s; fresh byte verification passes.
+69 independent fixtures/450 mutations; 24 proof mutations; 26 backend scalar
+checks pass (minimum modeled 140.185 bits, not composed PQ security). Witness
+log 20/column log 9 changes geometry and grows backend despite faster proving.
+Execution, byte-bus, chunk and PQ history links remain required.
+[Evidence](../../research/near-compression/tail-architecture/NATIVE_RECEIPT_LEAVES.md).
