@@ -40,7 +40,8 @@ def failed (x : Except String Bytes) (reason : String) : Bool := match x with | 
 #guard !(resolveCodeBytes .complete { empty with current := [[99]] } .absent hash).isOk
 -- Probe results: absent leaf, unrevealed path and present reference are three distinct facts.
 #guard prestateCode (.leaf [1] (.val code) 0) [0] == .absent
-#guard prestateCode (.hash (zeros 32)) [0] == .unknown
+#guard prestateCode (.hash emptyRoot) [0] == .absent
+#guard prestateCode (.hash (List.replicate 32 1)) [0] == .unknown
 #guard prestateCode (.leaf [0, 0] (.ref code.length hash) 0) [0] == .present hash
 
 #print axioms complete_attempted_independent
