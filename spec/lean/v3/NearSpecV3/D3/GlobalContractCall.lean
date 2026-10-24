@@ -233,4 +233,46 @@ theorem resolvedContract_local_of_guard_gap (o : Ovl) (chainId acct h : Bytes)
   simp only [resolvedContract]
   split <;> simp_all
 
+/-! ## 6. The blocker for `L0-D3-006`: the delegate's output is always `local`
+
+The two rows are **not** symmetric. `L0-D3-008` is closed by the delegate, because
+`D3/FunctionCall.lean:248` rejects only the `.global`/`.byAccount` arms and the delegate replaces
+them by `.local _` (`resolvedContract_local_of_global`). `L0-D3-006` is *not* closed by the
+delegate, because `D3/FunctionCall.lean:236-239` rejects **every** `.local _` contract on an
+ETH-implicit receiver — including the `.local (ethWalletHash chainId)` the delegate writes. The
+theorems below make that asymmetry checked rather than asserted: whatever the delegate produces is
+`.none` or `.local _`, so the ETH guard's premise is invariant under it. -/
+
+/-- A `.local` contract stays `.local` under resolution: the wallet branch and the identity branch
+both produce a local hash. -/
+theorem resolvedContract_local_stays_local (o : Ovl) (chainId acct h : Bytes) :
+    ∃ x, resolvedContract o chainId acct (.local h) = .ok (.local x) := by
+  simp only [resolvedContract]
+  split <;> exact ⟨_, rfl⟩
+
+/-- Consequently the account the delegate hands to the unchanged `functionCall` never has a
+`global`/`byAccount` contract. -/
+theorem resolveAccount_local_stays_local (o : Ovl) (chainId acct h : Bytes) (a : Acct) :
+    ∃ (x : Bytes) (b : Bool),
+      resolveAccount o chainId acct { a with contract := .local h } =
+        .ok ({ a with contract := .local x }, b) := by
+  obtain ⟨x, hx⟩ := resolvedContract_local_stays_local o chainId acct h
+  refine ⟨x, ((.local x : Contract) != (.local h)), ?_⟩
+  simp only [resolveAccount, hx]
+
+/-- **The `L0-D3-006` blocker, checked.** For an ETH-implicit receiver whose account holds a
+`.local` contract, the successor hook's argument to `functionCall` is still `.local _`, so
+`D3/FunctionCall.lean:236-239`'s `match acct.contract with | .local _ => throw …` still fires.
+Lifting this row therefore requires changing that guard (a `checkD3`-adjacent edit), not adding a
+delegate: a delegate can only rewrite the contract, and every rewrite it produces is `.local`. -/
+theorem resolveAccount_eth_local_premise_survives (o : Ovl) (chainId acct h : Bytes) (a : Acct)
+    (hEth : AccountId.isEthImplicit acct = true) :
+    ∃ (x : Bytes) (b : Bool),
+      resolveAccount o chainId acct { a with contract := .local h } =
+        .ok ({ a with contract := .local x }, b) ∧
+      guardPremise acct (.local x) = true := by
+  obtain ⟨x, b, hx⟩ := resolveAccount_local_stays_local o chainId acct h a
+  refine ⟨x, b, hx, ?_⟩
+  simp only [guardPremise, hEth, Bool.true_and, and_true]
+
 end NearSpecV3.D3.L4

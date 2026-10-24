@@ -219,17 +219,26 @@ R("L0-D3-004","d3-hook",D3+"232","runtime/runtime/src/actions.rs (FunctionCall a
 R("L0-D3-005","d3-hook",D3+"233","runtime/runtime/src/lib.rs:631-668 (EXPECT_ACCOUNT_EXISTS)",
   "implemented","EXPECT_ACCOUNT_EXISTS",
   ["D3:233"],tests=["directed missing account at dispatch"],work="none")
-R("L0-D3-006","d3-hook",D3+"236-239","runtime/runtime/src/contract_code.rs:56-76 (LegacyEthWallet / EthImplicitGlobalContract)",
-  "missing","e.eth_implicit_local",
-  ["D3:236-239 conservatively OOD","209 exact verdicts; the resolution is deterministic given chain_id (`eth_wallet_global_contract_hash`, line 67)"],
-  owner="L4",deps=["L4"],tests=["replay d3.call_eth_implicit_local with the wallet hash enumerated"],work="resolve the legacy wallet (global) contract instead of excluding")
+R("L0-D3-006","d3-hook",D3+"236-239","runtime/runtime/src/contract_code.rs:56-76 (LegacyEthWallet / EthImplicitGlobalContract); runtime/near-wallet-contract/src/lib.rs:37-52,89-124",
+  "partial","e.eth_implicit_local",
+  ["D3:236-239 conservatively OOD","209 exact verdicts; the resolution is deterministic given chain_id (`eth_wallet_global_contract_hash`, lib.rs:89-105)",
+   "modelled: `Rci.resolve` (D3/GlobalContract.lean §6) returns `.global (ethWalletHash chainId)` for a wallet magic hash, `.accountLocal h` otherwise; `ethWalletHash`/`walletMagicHash` recomputed from the four pinned res/*.wasm blobs and kept distinct",
+   "PROVEN BLOCKER: the delegate cannot lift this guard. `resolvedContract` only ever yields `.none`/`.local _` (`resolvedContract_local_stays_local`), and D3:236-239 rejects every `.local _` on an ETH-implicit receiver, so `guardPremise` survives the delegate (`resolveAccount_eth_local_premise_survives`). Lifting needs an edit to that guard (a `checkD3`-adjacent change), not a delegate",
+   "measured on all 539 d3c7-d3c10 OOD cases whose d3_violations contain e.eth_implicit_local or w.shape: the resolving successor `checkD3Global` returns the identical verdict and reason for all 539 (0 differences); 0 of 1,455 decoded accounts in those witnesses carry a wallet magic hash, so no corpus case exercises the redirect"],
+  owner="L4",deps=["L4"],tests=["hand-built successor case with a wallet magic hash on an ETH-implicit receiver (needs the guard parametrised, blocked by additive-only)"],
+  work="parametrise D3:236-239's guard (off by default so checkD3 is unchanged) and replay a wallet-magic-hash witness; a delegate alone cannot reach the wallet branch")
 R("L0-D3-007","d3-hook",D3+"243","runtime/runtime/src/function_call.rs:49-54 (amount + deposit overflow)",
   "implemented","account balance overflow",
   ["D3:243 `acct.amount + deposit ≥ 2^128`"],tests=["directed u128 overflow deposit"],work="none")
-R("L0-D3-008","d3-hook",D3+"248","runtime/runtime/src/contract_code.rs:39-95 (RuntimeContractIdentifier::resolve)",
-  "missing","w.shape global contract identifier",
-  ["D3:248 `_ => throw \"out of domain (w.shape): global contract identifier\"`","89 UseGlobalContract OOD verdicts","global contracts are live at PV83 (version.rs:556)"],
-  owner="L4",deps=["L4"],tests=["replay UseGlobalContract / GlobalByAccount cases"],work="implement global contract resolution (E15 in spec §2.1)")
+R("L0-D3-008","d3-hook",D3+"248","runtime/runtime/src/contract_code.rs:39-95 (RuntimeContractIdentifier::resolve); trie_key.rs:133-143 (kGlobalContractCode)",
+  "partial","w.shape global contract identifier",
+  ["D3:248 `_ => throw \"out of domain (w.shape): global contract identifier\"`",
+   "CORRECTION to the earlier evidence: the 89 `w.shape: UseGlobalContract action` verdicts come from the ACTION decoder (`D2/Types.lean:301`, `oodUseGlobal`), not from D3:248; D3:248 needs an account whose `Contract` is `.global`/`.byAccount`, and 0 of 1,455 decoded accounts in all 539 OOD cases have one",
+   "implemented additively: `functionCallResolved` rewrites `.global h` -> `.local h` and `.byAccount id` -> `.local` (sha256 of the `kGlobalContractCode` trie value, column 18), so D3:248's global/byAccount arm is unreachable behind it (`resolvedContract_local_of_global`, `resolvedContract_local_of_byAccount`); a missing identifier value is `invalid: StorageInconsistentState` (contract_code.rs:107-116)",
+   "not exercised end to end: no corpus case reaches D3:248 (the action decoder fires first), and no whole-chunk case with a global-contract receiver could be generated without changing oracle/v3-d3 (pinned, off-limits)",
+   "measured: `checkD3Global` vs `checkD3` agree on all 300 sampled accepted chunks and all 539 OOD cases"],
+  owner="L4",deps=["L4"],tests=["hand-built witness whose receiver's account carries a `.global` contract and whose code blob is present (needs an oracle or hand-encoder path)"],
+  work="whole-chunk case with a global-contract receiver; the delegate closes D3:248 but no witness exercises it")
 R("L0-D3-009","d3-hook",D3+"252-275","runtime/runtime/src/contract.rs:104-131; contract.rs:42-69 (ContractsTracker); function_call.rs:355-393",
   "partial","e.code_cache",
   ["D3:252-275: no witness blob + pre-state hash => OOD if the same code was ever deployed in-chunk; else MissingTrieValue","279 exact OOD verdicts; cold validator accepts 169 and rejects 110","the rule does not distinguish committed from rolled-back deploys: a committed deploy is served deterministically by `ContractsTracker` (contract.rs:104-131), so the 169 cold-accept cases are protocol-valid witnesses excluded by the relation"],
