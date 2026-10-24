@@ -92,6 +92,26 @@ class CheckerTimeout(RuntimeError):
     """A checker shard exceeded the deadline. A timeout is a failure, never an exclusion."""
 
 
+def parse_results(lines, dirs):
+    expected = set(dirs)
+    if not expected or len(expected) != len(dirs):
+        raise ValueError("empty or duplicate checker inputs")
+    got = {}
+    for line in lines:
+        row = json.loads(line)
+        if not isinstance(row, dict) or row.get("case") not in expected:
+            raise ValueError("foreign/malformed checker output")
+        case = row["case"]
+        if case in got:
+            raise ValueError(f"duplicate checker output: {case}")
+        if row.get("verdict") not in VERDICTS or not isinstance(row.get("reason"), str):
+            raise ValueError(f"malformed checker verdict: {case}")
+        got[case] = row
+    if set(got) != expected:
+        raise ValueError(f"missing {len(expected - set(got))} checker results")
+    return got
+
+
 def run_checker(name, dirs, shards, td, timeout=None):
     """Lean takes case dirs as arguments; Python takes --list FILE. Both print one JSON line per case.
 
@@ -99,6 +119,8 @@ def run_checker(name, dirs, shards, td, timeout=None):
     exceeds it is killed and the run fails loudly: the workplan treats a timeout as a failure, so it
     must not turn into "fewer cases, still zero disagreements"."""
     timeout = timeout if timeout is not None else float(os.environ.get("D3_TIMEOUT", "0") or 0)
+    if shards <= 0 or not dirs or len(set(dirs)) != len(dirs):
+        raise ValueError("shards and input population must be nonempty and unique")
     procs = []
     for s in range(shards):
         part = dirs[s::shards]
@@ -129,19 +151,11 @@ def run_checker(name, dirs, shards, td, timeout=None):
         detail = ", ".join(f"shard {s} ({n} cases)" for s, n in timed_out)
         raise CheckerTimeout(f"{name} checker exceeded {timeout}s on {detail}")
     got = {}
-    for s in range(shards):
-        fn = os.path.join(td, f"{name}-out{s}")
-        if os.path.exists(fn):
-            for line in open(fn):
-                line = line.strip()
-                if line.startswith("{"):
-                    j = json.loads(line)
-                    got[j["case"]] = j
-        en = os.path.join(td, f"{name}-err{s}")
-        if os.path.exists(en) and os.path.getsize(en):
-            txt = open(en).read()
-            if "INTERNAL ERROR" in txt or "Traceback" in txt:
-                print(f"[{name} shard {s} stderr]\n" + txt[:4000], file=sys.stderr)
+    for s, part, p, _, _ in procs:
+        if p.returncode != 0:
+            raise subprocess.CalledProcessError(p.returncode, p.args)
+        with open(os.path.join(td, f"{name}-out{s}")) as f:
+            got.update(parse_results(f, part))
     return got
 
 
@@ -235,10 +249,11 @@ def compare(label, dirs, metas, got, domain="baseline", widen=()):
         # The relation under test: baseline = the oracle's D3α; successor = D3α plus the explicitly
         # widened exclusion families. Baseline and successor rows carry different expectation_domain.
         widened = set(viol) & widen
-        in_domain = ind3 or bool(widened)
+        remaining = set(viol) - widen
+        in_domain = ind3 or (bool(widened) and not remaining)
         row["in_domain_under_test"] = in_domain
         # ---- 3. a checker must never accept a case above G_alpha -----------------
-        if v == "accept" and "e.g_alpha" in viol:
+        if v == "accept" and "e.g_alpha" in viol and "e.g_alpha" not in widen:
             partition["accept_above_g_alpha"] += 1
             bad.append((d, f"G_\u03b1: oracle True, {label} accept", reason,
                         m.get("features", {}).get("fc_gas_burnt_for_function_call")))
@@ -257,7 +272,7 @@ def compare(label, dirs, metas, got, domain="baseline", widen=()):
             continue
         # ---- 5. domain exclusions need an asserted, licensed reason ---------------
         if v == "out_of_domain":
-            ok, codes = exclusion_asserted(reason, viol)
+            ok, codes = exclusion_asserted(reason, remaining)
             row.update(exclusion_codes=sorted(codes), exclusion_asserted=ok)
             if in_domain:
                 partition["domain_exclusion_where_in_domain"] += 1
@@ -332,13 +347,14 @@ def main():
         random.Random(1).shuffle(dirs)
         dirs = sorted(dirs[:sample])
     metas = {d: json.load(open(os.path.join(d, "meta.json"))) for d in dirs}
+    if not dirs:
+        sys.exit("FAIL: no corpus inputs")
+    if not use_lean and not use_py and not arg("--lean-from", "") and not arg("--python-from", ""):
+        sys.exit("FAIL: no checker selected")
     results = {}
     def load(fn):
-        got = {}
-        for line in open(fn):
-            j = json.loads(line)
-            got[j["case"]] = j
-        return got
+        with open(fn) as f:
+            return parse_results(f, dirs)
     lean_from, py_from = arg("--lean-from", ""), arg("--python-from", "")
     timed_out = None
     with tempfile.TemporaryDirectory(dir=os.environ.get("TMPDIR")) as td:

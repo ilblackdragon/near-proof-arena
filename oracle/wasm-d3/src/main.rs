@@ -153,7 +153,7 @@ fn fmt_action(a: &MockAction) -> String {
 fn main() {
     let mode = std::env::args().nth(1).unwrap_or_else(|| "run".into());
     // `full`: like `run`, plus ` || compute <n> || logs <hex,…> || actions <a;…> || trie <k=v,…>`
-    let full = mode == "full";
+    let full = mode == "full" || mode == "runtime-full";
     let store = RuntimeConfigStore::new(None);
     let runtime_config = Arc::clone(store.get_config(PV));
     let wasm_config = Arc::clone(&runtime_config.wasm_config);
@@ -190,8 +190,15 @@ fn main() {
         let gas_counter = ctx.make_gas_counter(&wasm_config);
         let prepared =
             near_vm_runner::prepare(&ext, Arc::clone(&wasm_config), None, gas_counter, "main");
-        let outcome =
-            near_vm_runner::run(prepared, &mut ext, &ctx, Arc::clone(&fees)).expect("VMRunnerError");
+        let outcome = match near_vm_runner::run(prepared, &mut ext, &ctx, Arc::clone(&fees)) {
+            Ok(outcome) => outcome,
+            // runtime/runtime/src/function_call.rs:328-330. Keep the old raw-run mode unchanged.
+            Err(near_vm_runner::logic::errors::VMRunnerError::LoadingError(msg))
+                if mode == "runtime-full" =>
+                near_vm_runner::logic::VMOutcome::nop_outcome(
+                    near_vm_runner::logic::errors::FunctionCallError::LoadingError { msg }),
+            Err(err) => panic!("VMRunnerError: {err:?}"),
+        };
         let extra = if full {
             let mut trie: Vec<_> = ext.fake_trie.iter().map(|(k, v)| format!("{}={}", hx(k), hx(v))).collect();
             trie.sort();
