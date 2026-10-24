@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "cases": 2050,
+  "operators": 70,
+  "generated_per_seed": 250,
+  "successes": 1960,
+  "traps": 90,
+  "lean_sha256": "2d1bae983d8036c8c98fc45858b521cd0422939c850972440f4e44a5241773bd",
+  "oracle_sha256": "7d1fe2891665d0f70ce4804aede729e5b426a8ae045adbb4d580d0e760840829",
+  "generator_sha256": "8f999080870ed2277067835ba0e5a07b70f5990fcd9fee5d8555512f80aa05f2",
+  "results_sha256": "e01ce690945191bf13c6494d3c4ce107c5190781a665c074a29647f01368bfda"
+}

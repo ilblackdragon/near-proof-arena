@@ -52,17 +52,7 @@ def run(binary, cases):
                           capture_output=True, text=True, timeout=600)
     if proc.returncode != 0:
         raise SystemExit(f"FAIL: {binary.name} exited {proc.returncode}\n{proc.stderr[:2000]}")
-    got = {}
-    for line in proc.stdout.splitlines():
-        if not line.startswith("{"):
-            continue
-        row = json.loads(line)
-        got[os.path.normpath(row["case"])] = row
-    missing = [str(c) for c in cases if os.path.normpath(str(c)) not in got]
-    if missing:
-        raise SystemExit(f"FAIL: {binary.name} produced no verdict for {missing[:3]}"
-                         f" ({len(missing)} missing)")
-    return got
+    return load_compare().parse_results(proc.stdout.splitlines(), [str(c) for c in cases])
 
 
 def main():

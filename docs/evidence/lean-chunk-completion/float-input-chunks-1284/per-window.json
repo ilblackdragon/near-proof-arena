@@ -1,0 +1,34 @@
+{
+  "float-dynamic-17-success": {
+    "accept": 150,
+    "out_of_domain": 14
+  },
+  "float-input-17-trap": {
+    "accept": 150,
+    "out_of_domain": 9
+  },
+  "float-input-29-success": {
+    "accept": 150,
+    "out_of_domain": 5
+  },
+  "float-input-29-trap": {
+    "accept": 150,
+    "out_of_domain": 8
+  },
+  "float-input-43-success": {
+    "accept": 150,
+    "out_of_domain": 9
+  },
+  "float-input-43-trap": {
+    "accept": 150,
+    "out_of_domain": 9
+  },
+  "float-input-71-success": {
+    "accept": 150,
+    "out_of_domain": 14
+  },
+  "float-input-71-trap": {
+    "accept": 150,
+    "out_of_domain": 16
+  }
+}

@@ -274,7 +274,7 @@ def max (f : Fmt) (a b : Nat) : Nat :=
   else if ltBits f a b then b else a
 
 /-- Floor of the square root, by binary search downwards from `2^63` (every root here is
-`< 2^128`; the argument to `isqrt` below is `< 2^113`). -/
+`< 2^58`; for f32/f64 the argument to `isqrt` below is `< 2^115`). -/
 def isqrtGo (n : Nat) : Nat → Nat → Nat → Nat
   | 0, _, r => r
   | fuel + 1, bit, r =>

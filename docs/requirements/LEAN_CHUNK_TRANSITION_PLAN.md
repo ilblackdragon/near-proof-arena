@@ -14,6 +14,16 @@ and arena so different succinct proof approaches can be researched against the s
 > are corroborated by `docs/logs/v3-progress-log-2026-10.md`, `spec/near-chunk-validation-d3.md` and
 > `docs/e2e-results/` — they are carried forward as cited evidence, not re-measured here.
 
+### Completion execution — 2026-10-24 (W05 excluded)
+
+The [completion workplan](LEAN_CHUNK_COMPLETION_WORKPLAN.md) and
+[execution log](../logs/lean-chunk-completion-2026-10-24.md) track the newer implementation:
+strict successor replay, pinned Wasmtime instance loading semantics, and generated float runtime /
+whole-chunk coverage. Six driver executables and seven configurations now have build/smoke coverage;
+recorded runtime regressions replay in CI without the external corpus. W05 remains with its owner.
+No Gate A/B/C closure is claimed; full semantic integration, proofs, representative witnesses,
+frozen validation and admission remain required. The snapshot below is historical.
+
 ### Progress snapshot — main at `e34852568` (2026-10-23)
 
 L0–L7 now have merged checkpoints. L1's above-cap example, L4's directed tests and exclusion replay,

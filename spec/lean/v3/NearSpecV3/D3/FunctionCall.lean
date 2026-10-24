@@ -301,7 +301,7 @@ def functionCall (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) 
   let real : TTN.RealStore := { store := fun hb => (env.codeOf (ofBA hb)).map toBA,
                                 root := toBA env.preRoot, overlay := ovl, pfx }
   let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
-  match runCall cfg codeB (strOf method) ctx fuel true false (some real) with
+  match runCallWithLimits cfg codeB (strOf method) ctx fuel true false (some real) with
   | .line l =>
     let (burnt, used) ← lineOutcome l
     let gb := ar.gasBurnt + burnt

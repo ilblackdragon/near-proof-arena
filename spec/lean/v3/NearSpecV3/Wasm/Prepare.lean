@@ -49,6 +49,8 @@ structure NearCfg where
   `floats: true`, `saturating_float_to_int: true`, `features.rs:47-59`) — the switch exists only
   to keep the signed D3α statement unchanged. -/
   floats : Bool := false
+  /-- Successor-only pinned Wasmtime pooling allocation check. Signed configurations keep false. -/
+  loadingLimits : Bool := false
 
 def pv86 : NearCfg := {}
 /-- The PV86 configuration **with floats in domain**: the L2 extension. -/

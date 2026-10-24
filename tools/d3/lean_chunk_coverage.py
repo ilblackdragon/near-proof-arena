@@ -46,6 +46,7 @@ LEAN_FILES = [
     "Wasm/Syntax.lean",
     "Wasm/DomainD3.lean",
     "Wasm/Prepare.lean",
+    "Wasm/InstanceLayout.lean",
     "D2/Types.lean",
     "D2/Actions.lean",
     # L2 (float domain): the kernel, its opcode dispatch, its guard switch and its successor

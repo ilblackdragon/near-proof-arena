@@ -1,0 +1,366 @@
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-c.inner_rest_flip", "reason": "decode: truncated split shard", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-c.slot_height_flip", "reason": "invalid: chunk slots do not match chunk_headers_root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-c.slot_inner_flip", "reason": "decode: invalid account id (stake account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.drop.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.flip.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.reorder", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.bandwidth_requests.add", "reason": "invalid: InvalidBandwidthRequests", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.congestion.allowed_shard", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.congestion.delayed_gas", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.congestion.receipt_bytes", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.encoded_length", "reason": "invalid: InvalidChunkEncodedLength", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.encoded_merkle_root", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.gas_limit", "reason": "invalid: InvalidGasLimit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.height_created", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.height_included(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.prev_balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.prev_gas_used", "reason": "invalid: InvalidGasUsed", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.prev_outcome_root", "reason": "invalid: InvalidOutcomesProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.prev_outgoing_receipts_root", "reason": "invalid: InvalidReceiptsProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.prev_state_root", "reason": "invalid: InvalidStateRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.proposals.add", "reason": "invalid: InvalidValidatorProposals", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.proposed_split.some", "reason": "invalid: InvalidChunkHeaderShardSplit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-hdr.tx_root", "reason": "invalid: InvalidTxRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.minimum_stake(unused_in_D0)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.rs_params", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.tx_valid_flip.0", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.tx_valid_flip.1", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.tx_valid_flip.2", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.tx_valid_flip.3", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.tx_valid_flip.4", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-t.tx_valid_flip.5", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.applied_receipts_hash", "reason": "invalid: applied receipts hash", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.base_state.drop_node", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.base_state.extra_junk", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.corrupt_proof", "reason": "invalid: receipt proof merkle path", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.drop_proof", "reason": "invalid: missing source receipt proof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.dup_key_last_bad", "reason": "invalid: receipt proof merkle path", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.dup_key_last_good", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.epoch_id", "reason": "invalid: epoch table does not match the referenced epochs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.extra_proof", "reason": "invalid: source_receipt_proofs contains extra proofs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.implicit.drop", "reason": "invalid: implicit transitions count", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.implicit.empty_base", "reason": "invalid: MissingTrieValue (DelayedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.implicit.post_root", "reason": "invalid: implicit transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.main_block_hash(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.main_post_root", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.new_tx.drop", "reason": "invalid: InvalidTxRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.new_tx.drop_rehashed", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.new_tx.sig_flip_rehashed", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.trailing_byte", "reason": "decode: Not all bytes read", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.tx.drop", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.tx.sig_flip", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.tx.sig_high_bits(undecodable)", "reason": "decode: ed25519 signature high bits", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.tx.swap", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10008-s3-w.unsorted_keys", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10011-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10011-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10011-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10011-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10011-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10011-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-c.inner_rest_flip", "reason": "decode: truncated split shard", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-c.slot_height_flip", "reason": "invalid: chunk slots do not match chunk_headers_root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-c.slot_inner_flip", "reason": "decode: invalid account id (stake account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.bandwidth_requests.add", "reason": "invalid: InvalidBandwidthRequests", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.congestion.allowed_shard", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.congestion.delayed_gas", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.congestion.receipt_bytes", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.encoded_length", "reason": "invalid: InvalidChunkEncodedLength", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.encoded_merkle_root", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.gas_limit", "reason": "invalid: InvalidGasLimit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.height_created", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.height_included(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.prev_balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.prev_gas_used", "reason": "invalid: InvalidGasUsed", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.prev_outcome_root", "reason": "invalid: InvalidOutcomesProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.prev_outgoing_receipts_root", "reason": "invalid: InvalidReceiptsProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.prev_state_root", "reason": "invalid: InvalidStateRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.proposals.add", "reason": "invalid: InvalidValidatorProposals", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.proposed_split.some", "reason": "invalid: InvalidChunkHeaderShardSplit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-hdr.tx_root", "reason": "invalid: InvalidTxRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-t.chain_id(unused_in_D0)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-t.minimum_stake(unused_in_D0)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-t.rs_params", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-t.tx_valid_flip.0", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-t.tx_valid_flip.1", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-t.tx_valid_flip.2", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.applied_receipts_hash", "reason": "invalid: applied receipts hash", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.base_state.drop_node", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.base_state.extra_junk", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.corrupt_proof", "reason": "invalid: receipt proof merkle path", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.0", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.1", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.10", "reason": "invalid: MissingTrieValue (bandwidth scheduler state)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.11", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.12", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.13", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.14", "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.15", "reason": "invalid: MissingTrieValue (bandwidth scheduler state)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.16", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.17", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.18", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.19", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.2", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.20", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.21", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.22", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.23", "reason": "invalid: MissingTrieValue (BufferedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.24", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.25", "reason": "invalid: MissingTrieValue (DelayedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.26", "reason": "invalid: MissingTrieValue (DelayedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.27", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.28", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.29", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.3", "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.30", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.31", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.32", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.33", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.34", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.35", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.36", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.37", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.38", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.39", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.4", "reason": "invalid: MissingTrieValue (BufferedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.40", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.41", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.42", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.43", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.44", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.45", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.46", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.47", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.5", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.6", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.7", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.8", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_node.main.9", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.drop_proof", "reason": "invalid: missing source receipt proof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.dup_key_last_bad", "reason": "invalid: receipt proof merkle path", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.dup_key_last_good", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.epoch_id", "reason": "invalid: epoch table does not match the referenced epochs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.extra_proof", "reason": "invalid: source_receipt_proofs contains extra proofs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.main_block_hash(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.main_post_root", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.trailing_byte", "reason": "decode: Not all bytes read", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.tx.drop", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.tx.sig_flip", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.tx.sig_high_bits(undecodable)", "reason": "decode: ed25519 signature high bits", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.tx.swap", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10013-s3-w.unsorted_keys", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-c.inner_rest_flip", "reason": "decode: truncated split shard", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-c.slot_height_flip", "reason": "invalid: chunk slots do not match chunk_headers_root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-c.slot_inner_flip", "reason": "decode: invalid account id (stake account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.reorder", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.bandwidth_requests.add", "reason": "invalid: InvalidBandwidthRequests", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.congestion.allowed_shard", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.congestion.delayed_gas", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.congestion.receipt_bytes", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.encoded_length", "reason": "invalid: InvalidChunkEncodedLength", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.encoded_merkle_root", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.gas_limit", "reason": "invalid: InvalidGasLimit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.height_created", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.height_included(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.prev_balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.prev_gas_used", "reason": "invalid: InvalidGasUsed", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.prev_outcome_root", "reason": "invalid: InvalidOutcomesProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.prev_outgoing_receipts_root", "reason": "invalid: InvalidReceiptsProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.prev_state_root", "reason": "invalid: InvalidStateRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.proposals.add", "reason": "invalid: InvalidValidatorProposals", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.proposed_split.some", "reason": "invalid: InvalidChunkHeaderShardSplit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-hdr.tx_root", "reason": "invalid: InvalidTxRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-t.minimum_stake(unused_in_D0)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-t.rs_params", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-t.tx_valid_flip.0", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-t.tx_valid_flip.1", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.applied_receipts_hash", "reason": "invalid: applied receipts hash", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.base_state.drop_node", "reason": "invalid: MissingTrieValue (pending data count)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.base_state.extra_junk", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.corrupt_proof", "reason": "invalid: receipt proof to_shard_id", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.0", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.1", "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.10", "reason": "invalid: MissingTrieValue (bandwidth scheduler state)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.11", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.12", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.13", "reason": "invalid: MissingTrieValue (pending data count)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.14", "reason": "invalid: MissingTrieValue (postponed receipt)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.15", "reason": "invalid: MissingTrieValue (postponed receipt id)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.16", "reason": "invalid: MissingTrieValue (pending data count)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.17", "reason": "invalid: MissingTrieValue (BufferedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.18", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.19", "reason": "invalid: MissingTrieValue (DelayedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.2", "reason": "invalid: MissingTrieValue (BufferedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.20", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.21", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.22", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.23", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.24", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.25", "reason": "invalid: MissingTrieValue (DelayedReceiptIndices)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.26", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.27", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.28", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.29", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.3", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.30", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.31", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.32", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.33", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.34", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.35", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.36", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.37", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.38", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.39", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.4", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.40", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.41", "reason": "invalid: MissingTrieValue (postponed receipt)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.42", "reason": "invalid: MissingTrieValue (access key)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.43", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.44", "reason": "invalid: MissingTrieValue (postponed receipt id)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.45", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.46", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.5", "reason": "invalid: MissingTrieValue (bandwidth scheduler state)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.6", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.7", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.8", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_node.main.9", "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.drop_proof", "reason": "invalid: missing source receipt proof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.dup_key_last_bad", "reason": "invalid: receipt proof to_shard_id", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.dup_key_last_good", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.epoch_id", "reason": "invalid: epoch table does not match the referenced epochs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.extra_proof", "reason": "invalid: source_receipt_proofs contains extra proofs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.main_block_hash(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.main_post_root", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.new_tx.drop", "reason": "invalid: InvalidTxRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.new_tx.drop_rehashed", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.new_tx.sig_flip_rehashed", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.trailing_byte", "reason": "decode: Not all bytes read", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.tx.drop", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.tx.sig_flip", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.tx.sig_high_bits(undecodable)", "reason": "decode: ed25519 signature high bits", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.tx.swap", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10016-s3-w.unsorted_keys", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.reorder", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10017-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.reorder", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10018-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10019-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10019-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10019-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10019-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10019-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10019-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-c.inner_rest_flip", "reason": "decode: truncated split shard", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-c.slot_height_flip", "reason": "invalid: chunk slots do not match chunk_headers_root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-c.slot_inner_flip", "reason": "decode: invalid account id (stake account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.reorder", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.bandwidth_requests.add", "reason": "invalid: InvalidBandwidthRequests", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.congestion.allowed_shard", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.congestion.delayed_gas", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.congestion.receipt_bytes", "reason": "invalid: InvalidCongestionInfo", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.encoded_length", "reason": "invalid: InvalidChunkEncodedLength", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.encoded_merkle_root", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.gas_limit", "reason": "invalid: InvalidGasLimit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.height_created", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.height_included(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.prev_balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.prev_gas_used", "reason": "invalid: InvalidGasUsed", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.prev_outcome_root", "reason": "invalid: InvalidOutcomesProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.prev_outgoing_receipts_root", "reason": "invalid: InvalidReceiptsProof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.prev_state_root", "reason": "invalid: InvalidStateRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.proposals.add", "reason": "invalid: InvalidValidatorProposals", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.proposed_split.some", "reason": "invalid: InvalidChunkHeaderShardSplit", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-hdr.tx_root", "reason": "invalid: InvalidTxRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-t.minimum_stake(unused_in_D0)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-t.rs_params", "reason": "invalid: InvalidChunkEncodedMerkleRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-t.tx_valid_flip.0", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-t.tx_valid_flip.1", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-t.tx_valid_flip.2", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.applied_receipts_hash", "reason": "invalid: applied receipts hash", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.base_state.drop_node", "reason": "invalid: MissingTrieValue (account)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.base_state.extra_junk", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.corrupt_proof", "reason": "invalid: receipt proof merkle path", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.drop_proof", "reason": "invalid: missing source receipt proof", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.dup_key_last_bad", "reason": "invalid: receipt proof merkle path", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.dup_key_last_good", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.epoch_id", "reason": "invalid: epoch table does not match the referenced epochs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.extra_proof", "reason": "invalid: source_receipt_proofs contains extra proofs", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.main_block_hash(unchecked)", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.main_post_root", "reason": "invalid: main transition post state root", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.new_tx.drop", "reason": "invalid: InvalidTxRoot", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.new_tx.drop_rehashed", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.new_tx.sig_flip_rehashed", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.trailing_byte", "reason": "decode: Not all bytes read", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.tx.drop", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.tx.sig_flip", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.tx.sig_high_bits(undecodable)", "reason": "decode: ed25519 signature high bits", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.tx.swap", "reason": "invalid: transaction root of the last chunk", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10020-s3-w.unsorted_keys", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10021-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10021-s3-code.duplicate", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10021-s3-code.extra_garbage", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10021-s3-code.extra_unneeded", "reason": "", "tier": "runtimeLimits", "verdict": "accept"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10021-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}
+{"case": "/tmp/lean-completion-fixtures/runtime-mutants-17/mutants/00-h10021-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "runtimeLimits", "verdict": "reject"}

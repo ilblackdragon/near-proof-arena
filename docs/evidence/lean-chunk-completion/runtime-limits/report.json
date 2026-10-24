@@ -1,0 +1,28 @@
+{
+  "schema": "near-runtime-limits-v1",
+  "binaries": {
+    "nearcore": {
+      "path": "/data/illia/nearproof-deps/target-wasm-d3/release/near-wasm-d3-harness",
+      "sha256": "7d1fe2891665d0f70ce4804aede729e5b426a8ae045adbb4d580d0e760840829"
+    },
+    "lean": {
+      "path": "/data/illia/nearproof-wt/lean-chunk-integration/spec/lean/v3/.lake/build/bin/nearspec-v3-runtime",
+      "sha256": "2d1bae983d8036c8c98fc45858b521cd0422939c850972440f4e44a5241773bd"
+    }
+  },
+  "requested": 1030,
+  "compared": 1030,
+  "matches": 1030,
+  "generated_per_seed": 250,
+  "loading_failures": 361,
+  "successes": 669,
+  "results_sha256": "5de0ecc093a563d30797dcea269dda21bbb396276fe7ed078d74932bea447187",
+  "per_seed": {
+    "17": 250,
+    "29": 250,
+    "43": 250,
+    "71": 250
+  },
+  "ablation_detected": true,
+  "pass": true
+}

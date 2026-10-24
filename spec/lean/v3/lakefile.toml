@@ -73,3 +73,15 @@ root = "TestAltBn128"
 [[lean_exe]]
 name = "nearspec-v3-test-altbn128-host"
 root = "TestAltBn128Host"
+
+[[lean_exe]]
+name = "nearspec-v3-check-l4"
+root = "MainL4"
+
+[[lean_exe]]
+name = "nearspec-v3-check-successor"
+root = "MainSuccessor"
+
+[[lean_exe]]
+name = "nearspec-v3-runtime"
+root = "MainRuntime"

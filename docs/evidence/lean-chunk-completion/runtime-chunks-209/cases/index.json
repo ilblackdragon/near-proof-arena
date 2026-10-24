@@ -1,0 +1,22 @@
+[
+  {
+    "case_dir": "runtime-targeted-1703",
+    "source": "/tmp/lean-completion-fixtures/runtime-targeted-1703/d3/00-h10004-s3",
+    "expected": "accept"
+  },
+  {
+    "case_dir": "runtime-at-29",
+    "source": "/tmp/lean-completion-fixtures/runtime-at-29/d3/00-h10006-s3",
+    "expected": "accept"
+  },
+  {
+    "case_dir": "runtime-above-43",
+    "source": "/tmp/lean-completion-fixtures/runtime-above-43/d3/00-h10005-s3",
+    "expected": "accept"
+  },
+  {
+    "case_dir": "runtime-mixed-71",
+    "source": "/tmp/lean-completion-fixtures/runtime-mixed-71/d3/00-h10006-s3",
+    "expected": "accept"
+  }
+]

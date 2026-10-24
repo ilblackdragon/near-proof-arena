@@ -31,6 +31,32 @@ The five L4 missing→partial moves recognize additive implementation, not new v
 There are still 28 missing/partial rows. Counts are not an estimate of remaining effort, and the
 inventory's impossibility classifications do not settle every open boundary question.
 
+### Execution checkpoint — W05 excluded
+
+Code checkpoint `25efc7265` is promoted to main; branch `work/lean-completion-except-w05-20261024`
+remains available for further work. See the
+[execution log](../logs/lean-chunk-completion-2026-10-24.md) for exact evidence and residual obligations.
+
+- **W01:** executable driver for every current configuration, strict process/output accounting,
+  artifact/input/output hashes and mixed-exclusion/gas-band comparison fixes are implemented.
+  Computed chunk-observable reporting remains open.
+- **W03:** the pinned pooling `LoadingError` branch is implemented in the successor and matches
+  1,030 independent full-output cases across four seeds. It passes 209 whole-chunk comparisons
+  (204 accepts, five retained unrelated exclusions), with four committed chunk fixtures and
+  removed-check controls. Another 366 mutant cases agree (298 rejects, 68 accepts).
+  Remaining runtime-error/environment branches and final validation stay open.
+- **W04:** 2,050 exact full-output comparisons cover all 70 numeric float operators (1,960 successes,
+  90 traps); 224 chunk comparisons pass (200 accepts, 24 residual exclusions). Input-driven
+  bundles pass 32 runtime comparisons and 1,284 generated chunk comparisons (1,200 accepts,
+  84 retained exclusions; 300 accepts per seed).
+  Another 350 mutant expectations pass (302 rejects, 48 accepts; expectation provenance is recorded).
+  Overlap proof, preparation negatives and full cross-family composition remain open.
+- **W12:** combined gas/float/genesis has a 1,788-case verdict checkpoint. The new runtime configuration
+  adds loading limits; full composition, tier proofs and release validation remain open.
+- **W02:** no whole-checker gas-cap theorem has landed; keep its proof and capacity criteria open.
+- **W13:** witness-source information is pending. **W05** remains with the other agent.
+  No complete W00–W16 package or Gate A/B/C is certified by this checkpoint.
+
 ### Remaining work by package
 
 Each row states what is available and what must still satisfy the detailed success criteria below.
@@ -39,10 +65,10 @@ No W00–W16 package is certified fully complete by this merge.
 | Package / owner | Available now | Remaining completion obligation |
 |---|---|---|
 | W00 / L0 + integration | Seven successor interfaces, owner map, default-build inclusion, gas/float/genesis configuration | Connect real host/action/recorder execution; settle boundary questions and versioned facts/codecs; complete canonical relation and interface proofs. |
-| W01 / L7 | CI schema/content separation, all 115,284 saved verdicts accounted for, four drivers built/smoked | Compare roots, outcomes, gas, receipts, writes and rollback; bind reports to executable/input hashes; validate combined successor and failure controls. |
+| W01 / L7 | Six executables built; seven configurations smoked; strict replay with artifact/input/output hashes and failure controls | Emit and compare computed chunk observables (roots, outcomes, gas, receipts, writes and rollback); validate the completed combined successor. |
 | W02 / L1 | Protocol-gas checker, measured above-cap acceptance | Fuel/termination and protocol-scale memory/stack bounds; remove arena-only segment/size limits; stress limits and prove overlap/tier inclusion. |
-| W03 / Wasm owner + L7 | LoadingError discrepancy reproduced | Implement pinned instance-layout/resource failure semantics, zero-gas failed-call outcome and rollback; turn divergence into parity regression; settle linking/unknown-error assumptions. |
-| W04 / L2 | Float kernel, 141 directed tests, float/gas checkers | Varied generated whole-chunk operator/control-flow corpus, observable/trap parity, overlap proof and cross-family execution. |
+| W03 / Wasm owner + L7 | Pooling allocation semantics, 1,030 exact output comparisons and 209 chunk comparisons; ablations and CI regressions | Complete remaining runtime-error/environment reachability audit and validate the final combined package. |
+| W04 / L2 | Float kernel; 2,050 full-output cases covering 70 operators; eight fixed and eight input-driven contracts; 1,284 input-driven chunk comparisons (1,200 accepts); CI fixtures | Complete overlap proof, preparation negatives and remaining cross-family execution; 350 mutant expectations now pass. |
 | W05 / L3 — held back | Main has ecrecover/p256 and nine BLS host implementations; pending branch adds BN128 and followups | Reconcile and validate pending checkpoint in a later merge, including fixture failure controls; connect all curve hosts to accepted chunks and verify gas/error/state parity. |
 | W06 / L3 keys | Existing Ed25519 paths | secp256k1 transactions/delegates and ML-DSA-65 codecs, verification, key handles and trie integration; positive/negative chunks with fees/nonces/roots. No W06 completion inferred from W05. |
 | W07 / L4 | Codecs/action bodies, 134 directed tests; standalone widened parser and resolving checker now merged | Wire tags 9/10/11 and distribution receipts through versioned successor dispatch; complete promise/gas-key translation; validate success/failure, fees, writes, receipts and rollback in chunks. |

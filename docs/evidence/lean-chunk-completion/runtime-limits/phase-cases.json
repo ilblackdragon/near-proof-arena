@@ -1,0 +1,66 @@
+[
+  {
+    "globals": 1000,
+    "variant": "missing-method",
+    "parameters": {
+      "method": "absent"
+    },
+    "wasm_sha256": "ada2ca16b9793f87cb1946063de15f17e57d41ae617c98ea5e8ee96a215113b0",
+    "oracle": "abort 0 0 MethodResolveError(MethodNotFound) || compute 0 || logs  || actions  || trie",
+    "lean": "abort 0 0 MethodResolveError(MethodNotFound) || compute 0 || logs  || actions  || trie"
+  },
+  {
+    "globals": 1000,
+    "variant": "unknown-import",
+    "parameters": {
+      "imports": 1,
+      "import_name": "unknown_gas"
+    },
+    "wasm_sha256": "16cd0b3138eda3e1ddd4201b8a66d12897f85a525817f3b56e18b9e120d9a8e7",
+    "oracle": "abort 5566885973 5566885973 LinkError { msg: \"unknown or invalid import\" } || compute 5566885973 || logs  || actions  || trie",
+    "lean": "abort 5566885973 5566885973 LinkError { msg: \"unknown or invalid import\" } || compute 5566885973 || logs  || actions  || trie"
+  },
+  {
+    "globals": 1000,
+    "variant": "bad-import-type",
+    "parameters": {
+      "imports": 1,
+      "import_name": "value_return"
+    },
+    "wasm_sha256": "b58bd9ebad0d4ce0f64a5051762d3fcfc3db9072c007ff82437cf68b3a578410",
+    "oracle": "abort 5567975268 5567975268 LinkError { msg: \"types incompatible: expected type `(func (result i64))`, found type `(func (param i64 i64))`\" } || compute 5567975268 || logs  || actions  || trie",
+    "lean": "abort 5567975268 5567975268 LinkError { msg: \"*incompatible import type*\" } || compute 5567975268 || logs  || actions  || trie"
+  },
+  {
+    "globals": 66000,
+    "variant": "missing-method",
+    "parameters": {
+      "method": "absent"
+    },
+    "wasm_sha256": "bdc48f04258b601fe296b322237561b4cfc59c4cbeb845a955450020d378ff9f",
+    "oracle": "abort 0 0 LoadingError { msg: \"module instance size does not fit in pooling allocator requirements\" } || compute 0 || logs  || actions  || trie",
+    "lean": "abort 0 0 LoadingError { msg: \"module instance size does not fit in pooling allocator requirements\" } || compute 0 || logs  || actions  || trie"
+  },
+  {
+    "globals": 66000,
+    "variant": "unknown-import",
+    "parameters": {
+      "imports": 1,
+      "import_name": "unknown_gas"
+    },
+    "wasm_sha256": "bbdfe25010140876be01ef7752526cc0167c958b71f746c9032b060b03d2ce64",
+    "oracle": "abort 0 0 LoadingError { msg: \"module instance size does not fit in pooling allocator requirements\" } || compute 0 || logs  || actions  || trie",
+    "lean": "abort 0 0 LoadingError { msg: \"module instance size does not fit in pooling allocator requirements\" } || compute 0 || logs  || actions  || trie"
+  },
+  {
+    "globals": 66000,
+    "variant": "bad-import-type",
+    "parameters": {
+      "imports": 1,
+      "import_name": "value_return"
+    },
+    "wasm_sha256": "1603d207741ab429d051de42119a10f1c8383c314c7f318b2dc245ac2af9428f",
+    "oracle": "abort 0 0 LoadingError { msg: \"module instance size does not fit in pooling allocator requirements\" } || compute 0 || logs  || actions  || trie",
+    "lean": "abort 0 0 LoadingError { msg: \"module instance size does not fit in pooling allocator requirements\" } || compute 0 || logs  || actions  || trie"
+  }
+]

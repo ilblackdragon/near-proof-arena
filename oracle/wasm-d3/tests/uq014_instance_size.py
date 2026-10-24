@@ -15,14 +15,9 @@ there. `function_call.rs:328-330` then turns that into a **0-gas** `nop_outcome`
 `FunctionCallError::LoadingError`, i.e. a consensus-observable *failed function call with zero burn*,
 not a chunk rejection.
 
-This script builds such a module from spec (not from any nearcore test fixture), then asserts:
-  1. nearcore's own `prepare_contract` ACCEPTS it (so it is not a `PrepareError`), and
-  2. running it through pinned nearcore yields `VMRunnerError::LoadingError`, and
-  3. the Lean spec `nearspec-v3-wasm` returns `ok` for the same module — the divergence.
-
-Exit 0 iff the divergence is reproduced exactly as described. A change in any leg (e.g. the Lean
-spec learning the instance-size limit) makes this exit nonzero, by design: it is a regression test
-for the *claim*, not a green-check.
+This regression builds a module independently, checks preparation succeeds, then compares
+nearcore's runtime outcome with the successor Lean runtime. The removed-check control must
+reproduce the historical success/failure divergence. Exit zero requires parity AND that control.
 
 Usage: uq014_instance_size.py [--harness PATH] [--lean PATH] [--globals N] [--keep DIR]
 """
@@ -36,10 +31,10 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_HARNESS = os.environ.get(
     "D3_HARNESS", "/data/illia/nearproof-deps/target-wasm-d3/release/near-wasm-d3-harness")
-DEFAULT_LEAN = os.environ.get("D3_SPEC", os.path.join(HERE, "../lean/.lake/build/bin/nearspec-v3-wasm"))
+DEFAULT_LEAN = os.environ.get("D3_SPEC", os.path.join(HERE, "../../../spec/lean/v3/.lake/build/bin/nearspec-v3-runtime"))
 # 65,505 globals run; 65,506 already fail. The instance-size requirement scales with
 # num_defined_globals * sizeof(VMGlobalDefinition) + vmctx overhead, so the exact crossing is a
-# wasmtime-layout detail; this script only asserts *some* N is reachable and both legs disagree.
+# wasmtime-layout detail; this script checks a reachable failure and detects removal of its semantics.
 GLOBALS = 66_000
 PREPAID_GAS = 300_000_000_000_000
 
@@ -88,47 +83,39 @@ def main():
 
     # Leg 1: nearcore preparation accepts it (not a PrepareError / CompilationError).
     with open(line, "rb") as f:
-        prep = subprocess.run([a.harness, "prepare"], stdin=f, capture_output=True, text=True)
+        prep = subprocess.run([a.harness, "prepare"], stdin=f, capture_output=True, text=True, timeout=120)
     prep_out = prep.stdout.strip()
-    ok_prep = bool(prep_out) and not prep_out.startswith("prepare-error")
+    ok_prep = prep.returncode == 0 and bool(prep_out) and all(c in "0123456789abcdefABCDEF" for c in prep_out)
     print(f"[1] nearcore prepare: {'accepted' if ok_prep else 'REJECTED'}"
           f" ({len(prep_out) // 2} instrumented bytes)")
     if not ok_prep:
         fails.append("nearcore preparation rejected the module, so this is not a LoadingError case")
 
-    # Leg 2: running it yields VMRunnerError::LoadingError -> the harness cannot print an outcome.
+    # Runtime conversion is the pinned function_call.rs LoadingError -> nop_outcome.
     with open(line, "rb") as f:
-        run = subprocess.run([a.harness], stdin=f, capture_output=True, text=True)
-    combined = run.stdout + run.stderr
-    hit = "LoadingError" in combined
-    print(f"[2] nearcore run: {'LoadingError (panic in harness)' if hit else 'no LoadingError'}")
-    if not hit:
-        fails.append(f"nearcore did not report LoadingError; got: {combined.strip()[:300]}")
-
-    # The specific allocator message proves the *pooling instance size* branch, not a stale cache.
-    size_msg = "does not fit in pooling allocator requirements" in combined
-    print(f"[2b] message is the pooling-allocator instance-size branch: {size_msg}")
-    if not size_msg:
-        fails.append("LoadingError came from a different branch (not core_instance_size)")
-
-    # Leg 3: the Lean spec accepts the same module -> divergence.
-    with open(line, "rb") as f:
-        lean = subprocess.run([a.lean], stdin=f, capture_output=True, text=True)
+        run = subprocess.run([a.harness, "runtime-full"], stdin=f,
+                             capture_output=True, text=True, timeout=120)
+    oracle_out = run.stdout.strip()
+    if run.returncode or "LoadingError" not in oracle_out or "does not fit in pooling allocator requirements" not in oracle_out:
+        fails.append(f"nearcore did not report pooling LoadingError: {oracle_out[:300]}")
+    lean = subprocess.run([a.lean, wasm], capture_output=True, text=True, timeout=120)
     lean_out = lean.stdout.strip()
-    lean_ok = lean_out.startswith("ok ")
-    print(f"[3] Lean nearspec-v3-wasm: {lean_out[:120]}")
-    if not lean_ok:
-        fails.append("the Lean spec did not return `ok`, so there is no divergence to report")
+    print(f"[2] nearcore: {oracle_out[:180]}")
+    print(f"[3] Lean: {lean_out[:180]}")
+    if lean.returncode or lean_out != oracle_out:
+        fails.append("successor full runtime outcome differs from nearcore")
+    ablation = subprocess.run([a.lean, wasm, "main", "--ablate-loading-limits"],
+                             capture_output=True, text=True, timeout=120)
+    if ablation.returncode or not ablation.stdout.startswith("ok "):
+        fails.append("removed-check control did not reproduce the historical divergence")
 
     print()
     if fails:
-        print("UQ-014 CLAIM NOT REPRODUCED:")
+        print("UQ-014 REGRESSION FAILED:")
         for x in fails:
             print(f"  - {x}")
         return 1
-    print("UQ-014 CONFIRMED: `LoadingError` (pooling-allocator instance size) is reachable at PV86 for a")
-    print("contract that passes preparation; nearcore burns 0 gas and reports a failed function call,")
-    print("while the Lean spec (`checkD3` via `prepare`/`instantiate`) accepts it.")
+    print("UQ-014 PARITY PASSED: full zero-gas LoadingError outcome; removed-check control detected")
     print(f"artifacts: {tmp}")
     return 0
 

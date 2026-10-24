@@ -1,0 +1,66 @@
+[
+  {
+    "seed": 17,
+    "trap": false,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-17-success.wasm",
+    "wat_sha256": "5cd4b63511b811b96fd7d8e67eabed2c8811f0be764f89c3ccd7d1ddc5b22002",
+    "wasm_sha256": "d1f46d6d32c6128bc610a6f3b59fc962cc1d54cb208d0798ee3b0b7b6830aa6b",
+    "operators": 70
+  },
+  {
+    "seed": 17,
+    "trap": true,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-17-trap.wasm",
+    "wat_sha256": "9dc7636cac90f2dece58eb0681c6b04be42c63e3c9d05e9bc7cdb8c0a314849c",
+    "wasm_sha256": "2e0d7758685effb5e16d5b2eda2008118956764a54fff90c5fb6c398c57007fd",
+    "operators": 70
+  },
+  {
+    "seed": 29,
+    "trap": false,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-29-success.wasm",
+    "wat_sha256": "3e18c5c5ce3d183fcf4cbd2e73751baf51e78aa561e5e83d7bec0ecc165ff87c",
+    "wasm_sha256": "b106b2689bdd32a5f4e12dabbc66a1dfcf7c6a0d35db568e3a80d08634ed3334",
+    "operators": 70
+  },
+  {
+    "seed": 29,
+    "trap": true,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-29-trap.wasm",
+    "wat_sha256": "034db34beb97029b22160d76d1629fa449f09fde2d113da23ece3a34c5222903",
+    "wasm_sha256": "031ebf77ddbdcb2d1eec9c7b7c7f6cff1b793d63124369818185a34d3fd83ff1",
+    "operators": 70
+  },
+  {
+    "seed": 43,
+    "trap": false,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-43-success.wasm",
+    "wat_sha256": "6799270483c561cae9040e3ea4f6f2ddfd3273a8a1aed033cedf3a4ca3e8ddc8",
+    "wasm_sha256": "a75f7ef4a99e54b7370af091b575ac10add645ce1f677eebe5b7d1cd0d101c2d",
+    "operators": 70
+  },
+  {
+    "seed": 43,
+    "trap": true,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-43-trap.wasm",
+    "wat_sha256": "014bdada56c3671139936373cf66cd1039e91349e95314b2ad216c6ddcc01c4c",
+    "wasm_sha256": "5bad82861303ca29eb1a989af796fa7ae984a6022ca01f56191d3b9e2cb719c5",
+    "operators": 70
+  },
+  {
+    "seed": 71,
+    "trap": false,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-71-success.wasm",
+    "wat_sha256": "632858c4b259b833d9ddfb1f44e8c80b88d99dcb7ead9536894479e268264af2",
+    "wasm_sha256": "2893cab21d66698139a6a8e8380c7f1e069b68f1b02820fece99f27d24c1cd6f",
+    "operators": 70
+  },
+  {
+    "seed": 71,
+    "trap": true,
+    "wasm": "/tmp/lean-float-chunk-contracts/float-71-trap.wasm",
+    "wat_sha256": "a616daaa25c86b115e95a37b6d0685d70fe621686010792446d186ec179f3995",
+    "wasm_sha256": "a0fe50e5531731fd1e8eba62cae785d7fba18c3aff8a04181c9bd693d3d687da",
+    "operators": 70
+  }
+]
