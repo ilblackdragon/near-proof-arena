@@ -81,15 +81,15 @@ requirement, gas order and error class, and declares the implemented subset.
 | `L0-host-alt_bn128_g1_multiexp` | missing | L3 | `implementedContracts`? no — `unimplementedHosts` entry | open — implementation |
 | `L0-host-alt_bn128_g1_sum` | missing | L3 | `unimplementedHosts` entry | open — implementation |
 | `L0-host-alt_bn128_pairing_check` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_g1_multiexp` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_g2_multiexp` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_map_fp2_to_g2` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_map_fp_to_g1` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_p1_decompress` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_p1_sum` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_p2_decompress` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_p2_sum` | missing | L3 | `unimplementedHosts` entry | open — implementation |
-| `L0-host-bls12381_pairing_check` | missing | L3 | `unimplementedHosts` entry | open — implementation |
+| `L0-host-bls12381_g1_multiexp` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_g1_multiexp` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_g2_multiexp` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_g2_multiexp` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_map_fp2_to_g2` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_map_fp2_to_g2` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_map_fp_to_g1` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_map_fp_to_g1` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_p1_decompress` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_p1_decompress` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_p1_sum` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_p1_sum` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_p2_decompress` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_p2_decompress` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_p2_sum` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_p2_sum` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
+| `L0-host-bls12381_pairing_check` | partial | L3 | `NearSpecV3.Wasm.CryptoHost.bls12381_pairing_check` (successor table); D3α: none | implemented in successor domain; D3α still excludes it — open — validation |
 | `L0-host-ecrecover` | partial | L3 | `implementedContracts` entry (`.ecrecover`); `successorTable` dispatch via `cryptoHostCall` | modelled, unvalidated |
 | `L0-host-p256_verify` | partial | L3 | `implementedContracts` entry (`.p256Verify`); `successorTable` dispatch | modelled, unvalidated |
 
