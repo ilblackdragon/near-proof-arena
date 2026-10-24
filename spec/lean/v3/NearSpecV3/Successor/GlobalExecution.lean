@@ -87,6 +87,12 @@ Freshness is >=, so an equal nonce re-applies and charges compute; a stale nonce
 The code supply is an authenticated distribution event, not a ContractStorage.record_deploy. -/
 def applyDistributionL (env : Env) (rs : RS) (r : Rcpt) (d : Distribution) :
     LM (RS × Option Rcpt × Option Bytes) := do
+  -- Release ContractCode::new trusts its supplied hash (only a debug assertion checks it).
+  -- Until materialized cache identities are represented, do not conflate hash-keyed code
+  -- with SHA-keyed raw witness blobs for a malformed distribution.
+  if let .codeHash h := d.id then
+    if h != sha256 d.code then
+      throw "out of domain (w.shape): global_code_identity: distribution hash differs from code bytes"
   if !(env.ctx.layout.shardIds.contains d.target) then
     throw "out of domain (c.same_layout): distribution targets an obsolete shard"
   let stored := (← rs.o.getU64L (kGlobalContractNonce d.id) "global contract nonce").getD 0

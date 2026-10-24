@@ -1,14 +1,40 @@
 import NearSpecV3.D2.TxD2
+import Std.Data.HashMap
 
 /-! Opt-in PV86 global codecs. Original D2 pBase/pRcpt remain rejecting. -/
 namespace NearSpecV3.Successor.GlobalCodecs
 open NearSpec NearSpecV3 NearSpecV3.D2
 
+/-- Pinned borsh 1.5.7 has no de_strict_order feature: BTreeMap decoding sorts
+keys and keeps the last occurrence, rather than rejecting noncanonical input order. -/
+def pDsiGlobal : P D3.L4.Dsi := fun bs => do
+  let (version, bs) ← pU8 "DeterministicAccountStateInit tag" bs
+  if version != 0 then throw "decode: DeterministicAccountStateInit tag"
+  let (code, bs) ← D3.L4.pGci bs
+  let (entries, bs) ← pVec "state_init data" (fun bs => do
+    let (k, bs) ← pBytes "state_init key" bs
+    let (v, bs) ← pBytes "state_init value" bs
+    pure ((k,v), bs)) bs
+  let map := entries.foldl (fun (m : Std.HashMap Bytes Bytes) (k,v) => m.insert k v) {}
+  let data := map.toList.mergeSort (fun a b => !bytesLt b.1 a.1)
+  let (deposit, bs) ← pU128 "deposit" bs
+  pure (⟨⟨code,data⟩,deposit⟩,bs)
+
+/-- Re-serialization is canonical, including normalized state-init maps. -/
+def baseRaw (raw : Bytes) (b : Base) : Bytes :=
+  match b with
+  | .stateInit d => [11] ++ d.encode
+  | _ => raw
+
+def nonceBytes (v2 : Bool) (n : Nat) (ni : Option Nat) : Bytes :=
+  if v2 then match ni with | some i => [1] ++ u64 n ++ u16 i | none => [0] ++ u64 n
+  else u64 n
+
 def pBaseGlobal (tag : Nat) : P Base := fun bs => do
   match tag with
   | 9 => let (d, bs) ← D3.L4.pDeployGlobal bs; pure (.deployGlobal d, bs)
   | 10 => let (u, bs) ← D3.L4.pUseGlobal bs; pure (.useGlobal u, bs)
-  | 11 => let (d, bs) ← D3.L4.pDsi bs; pure (.stateInit d, bs)
+  | 11 => let (d, bs) ← pDsiGlobal bs; pure (.stateInit d, bs)
   | _ => pBase tag bs
 
 def pBaseActGlobal : P BaseAct := fun bs => do
@@ -16,7 +42,7 @@ def pBaseActGlobal : P BaseAct := fun bs => do
   let (t, bs) ← pU8 "action tag" bs
   if t == 8 || t == 14 then throw "decode: DelegateAction mustn't contain a nested one"
   let (b, bs) ← pBaseGlobal t bs
-  pure (⟨consumed start bs, b⟩, bs)
+  pure (⟨baseRaw (consumed start bs) b, b⟩, bs)
 
 
 def pDelegateBodyGlobal (v2 : Bool) : P (Bytes × Bytes × List BaseAct × (Nat × Option Nat) × Nat × PublicKey) :=
@@ -34,19 +60,19 @@ def pActGlobal : P Act := fun bs => do
   let start := bs
   let (t, bs) ← pU8 "action tag" bs
   if t == 8 || t == 14 then
-    let pstart := bs
     let bs ← if t == 14 then (do
         let (pt, bs) ← pU8 "VersionedDelegateActionPayload tag" bs
         if pt != 0 then throw "decode: VersionedDelegateActionPayload tag"
         pure bs) else pure bs
     let ((s, r, acts, (n, ni), mh, pk), bs) ← pDelegateBodyGlobal (t == 14) bs
-    let payload := consumed pstart bs
+    let payload := (if t == 14 then [0] else []) ++ borshBytes s ++ borshBytes r ++
+      u32 acts.length ++ concatAll (acts.map (·.raw)) ++ nonceBytes (t == 14) n ni ++ u64 mh ++ pk.encode
     let ((st, sig), bs) ← pSig "delegate" bs
-    pure (.delegate (consumed start bs)
+    pure (.delegate ([UInt8.ofNat t] ++ payload ++ [UInt8.ofNat st] ++ sig)
       ⟨t == 14, s, r, acts, n, ni, mh, pk, payload, st, sig⟩, bs)
   else
     let (b, bs) ← pBaseGlobal t bs
-    pure (.base ⟨consumed start bs, b⟩, bs)
+    pure (.base ⟨baseRaw (consumed start bs) b, b⟩, bs)
 
 
 def pActionRGlobal (v2 : Bool) : P ActionR := fun bs => do
@@ -125,20 +151,22 @@ def pTxD2Global : P TxD2 := fun bs => do
   let ((nonce, ni), bs) ← if v1 then pTxNonce bs else (do let (n, bs) ← pU64 "nonce" bs; pure ((n, none), bs))
   let (recv, bs) ← pAccountId "receiver_id" bs
   let (bh, bs) ← pHash "block_hash" bs
+  let rawPrefix := consumed start bs
   let (acts, bs) ← pVec "actions" pActGlobal bs
   let (strict, bs) ← if v1 then (do
       let (m, bs) ← pU8 "NonceMode" bs
       if m == 0 then pure (false, bs) else if m == 1 then pure (true, bs)
       else throw "decode: NonceMode tag")
     else pure (false, bs)
-  let body := consumed start bs
+  let body := rawPrefix ++ u32 acts.length ++ concatAll (acts.map Act.raw) ++
+    (if v1 then [if strict then 1 else 0] else [])
   let (st, bs) ← pU8 "signature type" bs
   if st != 0 then
     if st == 1 || st == 2 then throw "out of domain (w.shape): non-ED25519 transaction signature"
     else throw "decode: unknown signature tag"
   let (sig, bs) ← pTake 64 "ed25519 signature" bs
   if (sig.getD 63 0).toNat / 32 != 0 then throw "decode: ed25519 signature high bits"
-  pure (⟨consumed start bs, body, signer, pk, nonce, ni, recv, bh, acts, strict, sig⟩, bs)
+  pure (⟨body ++ [0] ++ sig, body, signer, pk, nonce, ni, recv, bh, acts, strict, sig⟩, bs)
 
 def decodeStoredRcptGlobal (b : Bytes) (what : String) : Except String Rcpt :=
   match decodeRcptGlobal b with

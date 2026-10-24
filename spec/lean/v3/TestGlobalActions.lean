@@ -109,6 +109,38 @@ def main : IO UInt32 := do
   let (_, fail) ← run (stateInitL (ctx (deriveDetAccountId largeInit.stateInit))
     ⟨ovl.set (kGlobalContractCode g) [1], none, bs "payer", []⟩ ar largeInit)
   expect "new large deterministic account needs deposit" (!fail.ok)
+  expect "mismatched distribution identity is explicit exclusion"
+    (match LM.ev .tip emptyRoot (applyDistributionL env after receipt { dist with id := .codeHash hash }) with
+     | .error e => e.startsWith "out of domain (w.shape): global_code_identity"
+     | _ => false)
+  let noncanonical := [11,0] ++ g.encode ++ u32 3 ++
+    borshBytes [2] ++ borshBytes [20] ++ borshBytes [1] ++ borshBytes [10] ++
+    borshBytes [2] ++ borshBytes [21] ++ u128 123
+  let canonicalDsi : Dsi := ⟨⟨g, [([1],[10]),([2],[21])]⟩,123⟩
+  let canonical := [11] ++ canonicalDsi.encode
+  expect "map input normalizes order and keeps last duplicate" (match pActGlobal noncanonical with
+    | .ok (a,[]) => a.raw == canonical
+    | _ => false)
+  let receiver := deriveDetAccountId canonicalDsi.stateInit
+  let pk : PublicKey := ⟨0,zero32⟩
+  let delegatePrefix := borshBytes (bs "alice") ++ borshBytes receiver ++ u32 1
+  let delegateSuffix := u64 1 ++ u64 1000 ++ pk.encode
+  let sig := [0] ++ List.replicate 64 0
+  let delegateRaw := [8] ++ delegatePrefix ++ noncanonical ++ delegateSuffix ++ sig
+  let delegateCanonical := [8] ++ delegatePrefix ++ canonical ++ delegateSuffix ++ sig
+  expect "delegate payload and raw bytes canonicalize map" (match pActGlobal delegateRaw with
+    | .ok (.delegate raw d,[]) => raw == delegateCanonical &&
+        d.payload == delegatePrefix ++ canonical ++ delegateSuffix
+    | _ => false)
+  for v1 in [false,true] do
+    let prefixBytes := (if v1 then [1] else []) ++ borshBytes (bs "alice") ++ pk.encode ++
+      (if v1 then [0] else []) ++ u64 1 ++ borshBytes receiver ++ zero32 ++ u32 1
+    let suffixBytes := if v1 then [0] else []
+    let raw := prefixBytes ++ noncanonical ++ suffixBytes ++ sig
+    let canonicalBody := prefixBytes ++ canonical ++ suffixBytes
+    expect "transaction hash uses canonical BTreeMap serialization" (match pTxD2Global raw with
+      | .ok (t,[]) => t.raw == canonicalBody ++ sig && t.body == canonicalBody && t.hash == sha256 canonicalBody
+      | _ => false)
   IO.println "Global actions: codecs, fees, permissions, deploy/use/state-init, distribution freshness/routing/refunds passed"
   return 0
 end GlobalTests
