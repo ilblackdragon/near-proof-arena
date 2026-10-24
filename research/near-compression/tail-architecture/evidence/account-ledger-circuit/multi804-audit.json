@@ -1,0 +1,18 @@
+{
+  "status": "HOST_SOURCE_SET_OUTCOME_AND_LEDGER_BINDING_NOT_STATE_TRIE_PROOF",
+  "counts": [
+    1,
+    9,
+    804
+  ],
+  "accounts": 10,
+  "packet_bytes": 250094,
+  "envelope_bytes": 250320,
+  "packet_sha256": "b3d71ee85cce6257d486e9dfb0953c9b7db399dfe2a5a1bacea6ec9e45037c7d",
+  "envelope_sha256": "ea779aeb06ba1b3c5a103d0aaf8f07f75a594e6cb08ad343dd171b2bd146619b",
+  "claim_sha256": "edea3dafa08506e8b4af109dd8ccdea1a0384fa993d75ccf040bba3ba5e8b173",
+  "outcome_root": "6a57f4c1c5b909e136cd4f4f48cac7bb4f9f179c9d3f3ad17541ab2ef9d16f89",
+  "negative_checks": 137,
+  "table_mutations": 113,
+  "inner_proof_verified_here": false
+}

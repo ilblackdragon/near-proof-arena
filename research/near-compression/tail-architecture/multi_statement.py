@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
-"""Host checks for ordered source sets and their outcome root; proof verification separate."""
+"""Host checks for ordered source sets and their outcome root; proof verification separate.
+
+NPMULT02 adds the bounded account table (16 rows x 18 words) at the head of
+the public statement. The table is checked against the receipts: canonical
+names, initial/final structure, exactly the distinct receiver set, and the
+host ledger model threads balances in order (this duplicates the circuit's
+constraint independently).
+"""
 import hashlib
 import struct
 from audit_source_membership import root_from_digest
 from audit_public_merkle import reconstruct
+
+ACCOUNT_SLOTS = 16
+ROW_WORDS = 18
+TABLE_WORDS = ACCOUNT_SLOTS*ROW_WORDS
 
 
 def require(ok, message):
@@ -16,12 +27,37 @@ def encode(packet, paths):
             b''.join(struct.pack('<I', len(p)) + b''.join(bytes([x['direction']]) + bytes(x['sibling']) for x in p) for p in paths))
 
 
-def check(envelope, caps, mode, expected, outcome_root):
+def parse_table(words):
+    """Parse the 16-row account table; return list of (name, balance, locked, storage, final)."""
+    rows = []
+    for r in range(ACCOUNT_SLOTS):
+        row = words[r*ROW_WORDS:(r+1)*ROW_WORDS]
+        active, name_len = row[0], row[1]
+        name_words = row[2:10]
+        balance = row[10], row[11]
+        locked = row[12], row[13]
+        storage = row[14], row[15]
+        final = row[16], row[17]
+        if active == 0:
+            require(not any(row), 'inactive table row not zero')
+            continue
+        require(active == 1, 'active flag')
+        require(1 <= name_len <= 64, 'name length range')
+        raw = b''.join(w.to_bytes(8, 'little') for w in name_words)
+        require(not any(raw[name_len:]), 'name padding')
+        rows.append((raw[:name_len], balance, locked, storage, final))
+    return rows
+
+
+def check(envelope, caps, mode, expected, outcome_root, ledger_fixture=None):
     """Return packet/public after claim-relative checks, NOT proof acceptance.
 
     expected comes from trusted claim-only derivation; outcome_root from expected
     claim. Caller must verify returned packet with returned public and fixed caps/
-    mode. Account state, routing and runtime validity are not established here.
+    mode. The account-table/trie-root binding is checked separately
+    (audit_account_paths.py); when ledger_fixture is given, the table words must
+    equal the native ledger fixture byte-for-byte (active rows, names, initial
+    balance/locked/storage and final balances).
     """
     require(16 <= len(envelope) <= 300000 and envelope[:8] == b'NPMSET01', 'envelope')
     size = struct.unpack_from('<I', envelope, 8)[0]
@@ -40,16 +76,44 @@ def check(envelope, caps, mode, expected, outcome_root):
         paths.append([{'direction': envelope[pos+33*i], 'sibling': list(envelope[pos+33*i+1:pos+33*i+33])} for i in range(depth)])
         pos += 33*depth
     require(pos == len(envelope), 'trailing data')
-    header = 16+4*count
-    require(len(packet) >= header+8 and packet[:8] == b'NPMULT01', 'packet version')
+    header = 20+4*count
+    require(len(packet) >= header+8 and packet[:8] == b'NPMULT02', 'packet version')
     require(struct.unpack_from('<I', packet, 8)[0] == count, 'profile count')
     require(list(struct.unpack_from('<'+str(count)+'I', packet, 12)) == caps, 'profile capacities')
     require(struct.unpack_from('<I', packet, 12+4*count)[0] == mode, 'profile mode')
+    require(struct.unpack_from('<I', packet, 16+4*count)[0] == ACCOUNT_SLOTS, 'account table size')
     plen = struct.unpack_from('<Q', packet, header)[0]
-    require(plen == 8*sum(9+11*c for c in caps) and header+8+plen <= len(packet), 'public framing')
+    require(plen == 8*(TABLE_WORDS+sum(9+11*c for c in caps)) and header+8+plen <= len(packet), 'public framing')
     public = packet[header+8:header+8+plen]
-    off = 0
-    leaves, ids, counts = [], [], []
+    # Account table: canonical names, distinct, structure.
+    table_words = struct.unpack_from('<%dQ' % TABLE_WORDS, public, 0)
+    rows = parse_table(table_words)
+    names = [r[0] for r in rows]
+    require(len(set(names)) == len(names), 'duplicate account names')
+    if ledger_fixture is not None:
+        fixture = ledger_fixture
+        require(len(fixture) == 41+ACCOUNT_SLOTS*224 and fixture[:9] == b'NPMLEDG01', 'ledger fixture')
+        require(len(rows) > 0, 'active rows')
+        frows = []
+        for r in range(ACCOUNT_SLOTS):
+            frow = fixture[41+r*224:41+(r+1)*224]
+            active, name_len = struct.unpack_from('<QQ', frow, 0)
+            if active == 0:
+                require(not any(frow), 'inactive fixture row')
+                continue
+            name = frow[16:16+name_len]
+            initial = frow[80:152]
+            final = frow[152:224]
+            frows.append((name, initial, final))
+        require(len(frows) == len(rows), 'active row count')
+        for (name, initial, final), (tname, tb, tl, ts, tf) in zip(frows, rows):
+            require(name == tname, 'account name differs from native ledger')
+            require(tb == struct.unpack_from('<2Q', initial, 0), 'initial balance differs')
+            require(tl == struct.unpack_from('<2Q', initial, 16), 'locked differs')
+            require(ts[0] == struct.unpack_from('<Q', initial, 64)[0] and ts[1] == 0, 'storage differs')
+            require(tf == struct.unpack_from('<2Q', final, 0), 'final balance differs')
+    off = 8*TABLE_WORDS
+    leaves, ids, counts, receivers = [], [], [], []
     for index, cap in enumerate(caps):
         words = struct.unpack_from('<'+str(9+11*cap)+'Q', public, off)
         require(list(words[:4]) == expected['context'], 'claim context')
@@ -72,4 +136,4 @@ def check(envelope, caps, mode, expected, outcome_root):
     require(len(set(ids)) == len(ids), 'duplicate receipt id')
     root = reconstruct(leaves)[1] or bytes(32)
     require(root == outcome_root, 'claim outcome root')
-    return packet, public, counts
+    return packet, public, counts, rows

@@ -15,6 +15,17 @@ Warm readiness measures witness fill, proof, encoding and file export of the
 inner packet; it excludes circuit/setup and host claim/envelope validation.
 No GPU was used. The 1–2 second deadline is still unmet.
 
+## Update: account ledger constrained (NPMULT02)
+
+The same circuit now carries a 16-slot public account table and running-
+balance registers threaded across lists; the forged-starting-balance
+counterexample rejects in-circuit. Packets 250,094 B, envelopes 250,320 B,
+warm 3.090/3.133 s, fresh verify 1.511/1.502 s, RSS 13,115,024/13,024,740
+KiB. See ACCOUNT_LEDGER_HANDOFF.md and evidence/account-ledger-circuit for
+the constraint description, negative batteries and the host-audited
+trie-path binding. This section's earlier numbers remain the pre-constraint
+baseline.
+
 ## Combined relation
 
 `near-receipt-multi` builds each existing receipt-list relation within one circuit
@@ -79,33 +90,40 @@ The native claim parser/source selection/shuffle remain trusted here.
 
 ## What remains unproved
 
-This is stronger than the earlier isolated-list result, but is not full NEAR
-validity. Private starting balances/account data are not authenticated against
-state roots; consecutive transfers are not linked by account-state updates.
-Access keys, routing/domain predicates, general actions/Wasm, scheduling and
-full state transition semantics remain absent. Matching outcome commitments
-cannot substitute for those checks. Recursive bounded history, composed PQ
-security, zero knowledge and hostile parser safety also remain open.
+This is stronger than the earlier isolated-list result, and the account
+ledger is now circuit-constrained (ordered balances, repeated receivers,
+final balances), but it is still not full NEAR validity. The account
+table's trie membership is host-audited rather than proven in-circuit;
+access keys, routing/domain predicates, general actions/Wasm, scheduling
+and full state transition semantics remain absent. Matching outcome
+commitments cannot substitute for those checks. Recursive bounded history,
+composed PQ security, zero knowledge and hostile parser safety also remain
+open.
 
-The next semantic priority is authenticated account reads and ordered writes,
-including repeated receivers. Broader source profiles and lower proving latency
-remain necessary alongside that work.
+The next semantic priority is in-circuit trie membership for the account
+table (replacing the host audit), then access keys and routing. Broader
+source profiles and lower proving latency remain necessary alongside that
+work.
 
 ## Reproduction
 
-Driver/codec source, exporter, logs and hashes are in `evidence/multi-lists`.
-Reuse prior support modules and parallel-JL backend. Generate fixtures with:
+Driver/codec source, exporter, logs and hashes are in `evidence/multi-lists`
+(pre-constraint baseline) and `evidence/account-ledger-circuit` (NPMULT02 with
+the account ledger). Reuse prior support modules and parallel-JL backend.
+Generate fixtures with (ledger JSON exports come from account-ledger-export):
 
 ```
+python3 make_account_ledger_fixture.py account-ledgers/CASE.json OUT/CASE.ledger
 python3 make_multi_lists.py EXPORTS LISTS OUT --capacities 16,16,1024 \
-  00-h10035-s3 00-h10036-s3
+  --ledgers account-ledgers 00-h10035-s3 00-h10036-s3
 LABRADOR_JL_THREADS=4 LABRADOR_PAIR_THREADS=4 LABINIUS_COMMIT_THREADS=4 \
-RAYON_NUM_THREADS=4 NEAR_EXPORT_DIR=OUT taskset -c 8-11 \
-  near-receipt-multi 16,16,1024 compact FIRST.multi SECOND.multi
-RAYON_NUM_THREADS=1 NEAR_VERIFY_EXPORT=PACKET NEAR_EXPECTED_PUBLIC=PUBLIC \
-  taskset -c 8 near-receipt-multi 16,16,1024 compact
+RAYON_NUM_THREADS=4 NEAR_LEDGER=OUT/CASE.ledger NEAR_EXPORT_DIR=OUT \
+  taskset -c 8-11 near-receipt-multi 16,16,1024 compact FIRST.multi SECOND.multi
+RAYON_NUM_THREADS=1 NEAR_LEDGER=OUT/CASE.ledger NEAR_VERIFY_EXPORT=PACKET \
+  NEAR_EXPECTED_PUBLIC=PUBLIC taskset -c 8 near-receipt-multi 16,16,1024 compact
 python3 audit_multi_statement.py PACKET PUBLIC ROOTS_JSON AUTH_JSON CLAIM_BIN \
-  ENVELOPE REPORT --capacities 16,16,1024
+  ENVELOPE LEDGER REPORT --capacities 16,16,1024
+python3 audit_account_paths.py PATHS_JSON LEDGER REPORT
 ```
 
 Build with existing native RUSTFLAGS and isolated backend path. Claim roots JSON

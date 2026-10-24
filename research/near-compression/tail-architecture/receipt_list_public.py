@@ -1,7 +1,28 @@
 #!/usr/bin/env python3
-"""Independent dense public statement for the diagnostic ordered-list circuit."""
-import argparse,struct
+"""Independent dense public statement for the diagnostic ordered-list circuit.
+
+NPMULT02: 16x18-word account table first, then per-list context/records.
+"""
+import argparse, json, struct
 from pathlib import Path
+from make_account_ledger_fixture import build as build_ledger, SLOTS, ROW
+
+def table_words(ledger_json):
+    fixture = build_ledger(ledger_json)
+    words = []
+    for r in range(SLOTS):
+        row = fixture[41+r*ROW:41+(r+1)*ROW]
+        active, name_len = struct.unpack_from('<QQ', row, 0)
+        name = row[16:80]
+        initial = row[80:152]
+        final = row[152:224]
+        words += [active, name_len] + [int.from_bytes(name[i:i+8],'little') for i in range(0,64,8)]
+        words += [int.from_bytes(initial[i:i+8],'little') for i in range(0,16,8)]
+        words += [int.from_bytes(initial[i:i+8],'little') for i in range(16,32,8)]
+        words += [int.from_bytes(initial[i:i+8],'little') for i in range(64,72,8)] + [0]
+        words += [int.from_bytes(final[i:i+8],'little') for i in range(0,16,8)]
+    assert len(words) == SLOTS*18
+    return struct.pack('<%dQ' % len(words), *words)
 
 def emit(raw,cap):
  assert raw[:8]==b'NPLST001'
@@ -18,4 +39,6 @@ def emit(raw,cap):
  assert len(public)==8*(9+11*cap)
  return public
 if __name__=='__main__':
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('fixture',type=Path);p.add_argument('capacity',type=int);p.add_argument('output',type=Path);a=p.parse_args();a.output.write_bytes(emit(a.fixture.read_bytes(),a.capacity))
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('fixture',type=Path);p.add_argument('capacity',int,type=int);p.add_argument('output',type=Path);p.add_argument('ledger',type=Path);a=p.parse_args()
+ ledger_json=json.loads(a.ledger.read_text())
+ a.output.write_bytes(table_words(ledger_json)+emit(a.fixture.read_bytes(),a.capacity))

@@ -1,0 +1,44 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11931 private=10695840 constants=44542 and=4087792 zero=912127
+RECEIPT_LIST_CIRCUIT cap=1056 mode=1 lists=3 log=23 circuit_s=17.661049342 accounts=16
+RECEIPT_LIST_SETUP setup_s=2.871293756
+RECEIPT_LIST_PROVER_MS pack=41.406268000000004 commit=253.24067099999996 bitand=778.0449940000001 shift=265.216952 switch=226.121768 opening=1457.551085 total=3028.124435
+RECEIPT_OPENING_STAGES OpeningTimings { fold: 77.966706ms, encoding: 55.078406ms, witness: 4.092402ms, t_r: 6.749988ms, masks: 47.841823ms, phi: 10.60835ms, statement: 117.429901ms, labrador: 1.110743194s }
+SIS_POLICY inner rank=25 width=9567 source=20014777667210 target=292206099934 bound=248104485295.43359 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=292206099934 target=1797049066 bound=2440400521.9868112 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1797049066 target=73227667 bound=124594529.36197159 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=73227667 target=12921041 bound=26571171.988683976 bits=149.460 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=12921041 target=981977136 bound=14038758.460196685 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=981977136 target=63669799628 bound=56521640.688629411 bits=149.460 finite=1 tail=1
+RECEIPT_LIST_RESULT path=multi-lists/00-h10035-s3.multi cap=1056 mode=1 lists=3 count=814 bytes=250094 prepare_s=0.054715573 prove_s=3.034999217 ready_s=3.08994355 verify_s=1.017759001 table_mutations_rejected=112 mutations=21 full_near=false accounts=10
+	Command being timed: "taskset -c 8-11 target/release/near-receipt-multi 16,16,1024 compact multi-lists/00-h10035-s3.multi"
+	User time (seconds): 25.00
+	System time (seconds): 7.45
+	Percent of CPU this job got: 113%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:28.63
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 13115024
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 9576403
+	Voluntary context switches: 578
+	Involuntary context switches: 784
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 528
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

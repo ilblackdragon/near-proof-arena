@@ -1,0 +1,131 @@
+{
+  "status": "CIRCUIT_LEDGER_CONSTRAINT_CLOSES_FORGED_STARTING_BALANCE_HOLE_NOT_TRIE_PROOF_OR_FULL_NEAR",
+  "base_lane_commit": "d9b5c4d02",
+  "relation": {
+    "packet_version": "NPMULT02",
+    "account_slots": 16,
+    "row_words": 18,
+    "table_words": 288,
+    "witness_log": 23,
+    "public_words": 11931,
+    "private_words": 10695840,
+    "and_constraints": 4087792,
+    "circuit_s": 19.11,
+    "profile_note": "16 slots is an explicit supported bound (corpus max observed 10), not a universal NEAR bound"
+  },
+  "prover_verifier_binary_sha256": "3513de35bf5283709684215a03dc39afd8a60612d6462c32786f9123bc44664f",
+  "trie_path_export_binary_sha256": "2918481aaa0ba098c2edd4b67b131f42dd2d03453d492b7830c9dc0b36d79e41",
+  "cases": [
+    {
+      "case": "00-h10035-s3",
+      "counts": [1, 9, 804],
+      "accounts": 10,
+      "packet_bytes": 250094,
+      "envelope_bytes": 250320,
+      "packet_sha256": "b3d71ee85cce6257d486e9dfb0953c9b7db399dfe2a5a1bacea6ec9e45037c7d",
+      "envelope_sha256": "ea779aeb06ba1b3c5a103d0aaf8f07f75a594e6cb08ad343dd171b2bd146619b",
+      "warm_ready_s": 3.089943554,
+      "fresh_verify_s": 1.510877303,
+      "peak_rss_kib": 13115024,
+      "host_mutations_rejected": 137,
+      "in_process_public_mutations_rejected": 21,
+      "in_proof_table_mutations_rejected": 112,
+      "prev_state_root": "7156f54529bf89bbf47349de72f8b992341c7e1ef5e9f0f54940fadc71d6d55b",
+      "trie_path_negative_checks": 4
+    },
+    {
+      "case": "00-h10036-s3",
+      "counts": [0, 0, 711],
+      "accounts": 10,
+      "packet_bytes": 250094,
+      "envelope_bytes": 250320,
+      "packet_sha256": "9e371274ea8e8a332ef63ee622fedb6b907ed848706e87931d45ed371d249bab",
+      "envelope_sha256": "f10f3cd458b0e29c332b9366cbd66cd6ac4010224446eb949e25aec17caa00ca",
+      "warm_ready_s": 3.133209294,
+      "fresh_verify_s": 1.5021728749999999,
+      "peak_rss_kib": 13024740,
+      "host_mutations_rejected": 137,
+      "in_process_public_mutations_rejected": 21,
+      "in_proof_table_mutations_rejected": 112,
+      "prev_state_root": "2ee62d9e7cd2584fb4b72405739a5b23cd5293e59c5b24a115b8c8d37499f556",
+      "trie_path_negative_checks": 4
+    }
+  ],
+  "baseline_comparison": {
+    "baseline_commit": "d9b5c4d02",
+    "packet_bytes_before": 247786,
+    "envelope_bytes_before": 248012,
+    "warm_ready_s_before": [3.011, 2.792],
+    "fresh_verify_s_before": [1.446, 1.449],
+    "peak_rss_kib_before": 12806272,
+    "packet_bytes_delta": 2308,
+    "envelope_bytes_delta": 2308,
+    "warm_ready_s_delta": [0.079, 0.341],
+    "fresh_verify_s_delta": [0.065, 0.053],
+    "peak_rss_kib_delta": [308752, 218468],
+    "note": "Single observations per configuration, not repetitions or p95."
+  },
+  "counterexample": {
+    "fixture": "forged-repeat-balance.multi",
+    "sha256": "5b9e5e17f6a276f2976498f984cf4f35efa4968466dbe11a78188401e1795a67",
+    "mutation": "list1 receipt4 receiver s0a01, before/after +1, public digests unchanged",
+    "old_circuit_accepted": true,
+    "new_circuit_rejects": true,
+    "rejection_point": ".list-1.slot-4.account-bind.before-balance-0-0",
+    "rejection_detail": "Word(0xe1b14706136c69c8) != Word(0xe1b14706136c69c7) plus downstream slot-8 chain break"
+  },
+  "ledger_negative_fixtures": {
+    "duplicate_name": ".account-table.distinct-names-0-10/11",
+    "wrong_initial_balance": ".list-0.slot-0.account-bind.before-balance-0-0",
+    "wrong_final_balance": ".account-finalize.final-balance-0-0",
+    "wrong_locked": ".list-0.slot-0.account-bind.locked-unchanged-0-0",
+    "nonzero_inactive_row": ".account-table.account-10.inactive-zero-10-1",
+    "inert_uncovered_row": ".account-finalize.row-covered-10",
+    "forged_receiver_padding": ".list-1.slot-0.account-bind.exactly-one-match"
+  },
+  "trust_boundary": {
+    "circuit_constrained": [
+      "exactly-one padded-name match per active receipt against the 16-slot table",
+      "before == running register (register starts at public initial balance)",
+      "register update == constrained arithmetic after-value",
+      "locked/storage invariant per matched row on every touch",
+      "final table balances == final registers",
+      "distinct canonical names, zero inactive rows, active-row coverage, name padding"
+    ],
+    "host_audited_not_circuit": [
+      "trie path witnesses rehash to claim prev_state_root (audit_account_paths.py)",
+      "leaf value_ref binds table initial bytes to the trie leaf",
+      "native claim parsing, partial-trie construction, source/order derivation remain trusted"
+    ]
+  },
+  "open_obligations": [
+    "in-circuit trie membership (host audit replaced by proof constraint)",
+    "access-key/routing/domain predicates, general actions/Wasm, scheduling",
+    "full NEAR state-transition semantics",
+    "recursive bounded history, composed PQ security, zero knowledge",
+    "hostile C decoder safety",
+    "the 1-2 second deadline"
+  ],
+  "evidence_sha256": {
+    "00-h10035-s3.ledger": "7efbba278df14d73429a718ded00c7cbcb9cb828d339108d18bb49998f78bb7a",
+    "00-h10036-s3.ledger": "fd061af5a2d7bc929aa9e5c10c1b4eaf27b1499e636661b180674dfa5add77ca",
+    "account-paths-00-h10035-s3.json": "da92984d5b18de56385c1f457da36ce4c6e06f039360aa61804d30bbaa1cb135",
+    "account-paths-00-h10035-s3-report.json": "80efa7883ea604386bf9dae8e72f7b0e924852745d112668a6b883ee66467743",
+    "account-paths-00-h10036-s3.json": "bd2d9eb19da529985ef7d11f090e802ba92461635ed8487e0eaf8d4ff75990f4",
+    "account-paths-00-h10036-s3-report.json": "ff176725e16e9ad696aa8e1c33e942369e49c5c02a7e68bdf22d6d5d2619f2fd",
+    "account-trie-path-export.rs": "4fce4b3256a107104a84294e0f9424c4072264e264c1074f67199c0bfa0c81cf",
+    "account711.log": "c96b8f9d2f0a8bbb60d00161c47917ef0c46697d3e554d4484703d937315269d",
+    "account804.log": "718a1a49d29338816ac51f6912175afb12eb58a1c0c32d42bf594e6d152d2029",
+    "audit_account_paths.py": "63cdd33fdd2fabc02fe1be6738cd44fe0e4b1289da33e05f5560d6e3eafc9c77",
+    "forged-repeat-balance-reject.log": "a0d9355bee02a515ebc50ce5d4e19637badbbb9dcff5da0ca23146b174e0af2f",
+    "multi711-audit.json": "f5ec4a16a7592ce228d4e9b6cfe11cf20dc34131d157ec4af902a1b6bb726781",
+    "multi711.envelope": "f10f3cd458b0e29c332b9366cbd66cd6ac4010224446eb949e25aec17caa00ca",
+    "multi804-audit.json": "fcf507b8740710c695c7efbf9f1642df41f22a7947384055d17c0ecc174b70a5",
+    "multi804.envelope": "ea779aeb06ba1b3c5a103d0aaf8f07f75a594e6cb08ad343dd171b2bd146619b",
+    "near-receipt-multi.rs": "9d8c0a494a5c2af5ebc773451943373904fb42843faa69fe3828cf4eed04bb8d",
+    "receipt_account_ledger.rs": "29fec6aa676927a924c35f536a547883e125406360fb104dca3ee7312d067056",
+    "receipt_multi_wire.rs": "9cb326baf4e45af24b7f00b0ef989ba87b3035f7459e73e5a45d20616752909a",
+    "verify711.log": "75e89dd5fd62ae2551fa89fb3959522b78092a4aad727eb139d8894bbabf6927",
+    "verify804.log": "2c8c4ea2d131b4fc2715b4ff1fd3a4cd32f5664c671385b85a8396367b911330"
+  }
+}

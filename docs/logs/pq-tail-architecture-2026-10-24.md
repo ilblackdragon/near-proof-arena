@@ -387,3 +387,50 @@ account model rejects exact transition. Model matches64 fixtures/2138 receipts,
 Large fixtures10 accounts, candidate table974 B, all main-state values3996 B.
 No circuit fix yet. Full context/paths/build commands in ACCOUNT_LEDGER_HANDOFF.md;
 evidence/account-ledger stores native exports, counterexample and model audit.
+
+### Account ledger constrained in circuit
+
+Implemented the ordered account-ledger constraint in the multi-list circuit
+(NPMULT02): 16-slot public account table (18 words/row: active/name/name[8]/
+initial balance/locked/storage/final) and private running-balance registers
+threaded through every receipt slot in application order across list
+boundaries. Registers start at the row's public initial balance, so
+before==register binds first touch and repeats in one case; the register
+advances to the constrained after-value. Exactly-one padded-name match per
+active receipt, distinct canonical names, zero inactive rows, byte-exact name
+padding, active-row coverage, final balances==final registers, locked/storage
+invariant per touch.
+
+The handoff counterexample now rejects in-circuit: forged-repeat-balance
+(list1 receipt4, s0a01, +1 before/after) fails at
+.list-1.slot-4.account-bind.before-balance-0-0 plus the slot-8 chain break.
+Six ledger mutants reject at designed constraints (duplicate name, wrong
+initial/final/locked, nonzero inactive row, inert uncovered row); forged
+receiver padding rejects at exactly-one-match. A host parser pre-validation
+bug initially masked the nonzero-inactive rejection; fixed by parsing rows
+verbatim so the circuit constraints are exercised.
+
+Both fixtures prove and verify: 250,094 B packets, 250,320 B envelopes
+(under 300,000 B), warm 3.090/3.133 s (baseline 3.011/2.792 s), fresh
+serial verify 1.511/1.502 s, RSS 13,115,024/13,024,740 KiB under 16 GiB.
+Log stays 23; public 11,931, private 10,695,840, AND 4,087,792. Overhead of
+the account constraints: +2,308 B, +0.08..0.34 s warm, +0.05 s verify
+(single observations, not p95). 112 in-proof table mutations and 137
+host-envelope mutations reject per fixture; empty-context pair with an all-
+inactive table proves.
+
+State-root binding is host-audited, not in-circuit: account-trie-path-export
+dumps per-account PTrie path witnesses (6 nodes each) and
+audit_account_paths.py rehashes chains to the claim prev_state_root
+(7156f545.../2ee62d9e...), binding each leaf's value_ref to the table's
+initial bytes; four root/node/leaf/swap negatives reject per case. The table
+is public in the statement and bound by the proof; the trie chain itself
+remains host-side. Native claim parsing, partial-trie construction and
+source/order derivation remain trusted.
+
+Still open: in-circuit trie membership, access keys/routing/domain checks,
+scheduling, general actions/Wasm, full state-transition semantics, recursive
+history, composed PQ security, zero knowledge, hostile decoder safety, the
+1-2 s deadline, and broader profiles (16 slots is an explicit bound; corpus
+max observed 10). See ACCOUNT_LEDGER_HANDOFF.md and evidence/
+account-ledger-circuit under research/near-compression/tail-architecture.
