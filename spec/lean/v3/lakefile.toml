@@ -69,3 +69,7 @@ root = "TestBLS12381Host"
 [[lean_exe]]
 name = "nearspec-v3-test-altbn128"
 root = "TestAltBn128"
+
+[[lean_exe]]
+name = "nearspec-v3-test-altbn128-host"
+root = "TestAltBn128Host"
