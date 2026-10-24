@@ -1,5 +1,39 @@
 # Production-target aggregation: MEASURED at 303,053 B and 276,269 B; depth 2 IMPOSSIBLE
 
+> ## CORRECTION 2026-10-24: "depth 2 IMPOSSIBLE" is WRONG — depth 2 is measured LEGAL
+>
+> The title and the depth-2 block immediately below are **falsified**. A 2-child production node at
+> depth 2 **proves and verifies**: `AGG_DEPTH2_OK leaves=4 final statement = segments [0, 4)`,
+> 315,913 B, `prove_s=700.5`, `peak_rss_gb=18.76`. See
+> `docs/logs/pq-agg-depth2-legal-2026-10-24.md` and log `agg-d2-geom-ns19lb6.log`.
+>
+> **What went wrong here:** the "field limit" conclusion tested only two `(n_stack, log_blowup)`
+> pairings — `ns18 lb7` (sum 27, ceiling `2^20`, overflow at 21) and `ns20 lb7` (sum 29, illegal at
+> `monty_31.rs:654`). It never tested the pairing that keeps the sum at 27 while *lowering* the
+> blowup: **`n_stack=19, log_blowup=6`**, whose stacked ceiling is `2^21` — exactly the bit depth 2
+> needs — while leaving the WHIR evaluation domain `15·2^27` byte-identical. No circuit change was
+> required. The "Raising `n_stack` is illegal" sentence below is true only at `log_blowup=7`.
+>
+> **Also corrected:** the "36.1 % compression cut" target elsewhere in this directory. Measured L2
+> compressions at production hash levers (`d=42, coset_leaf=1`) are **8,747**, not the predicted
+> 12,813; the overrun against the 8,192 legal maximum is **555 (6.8 %)**, not 4,621. The prediction
+> over-counted `leaf_blocks` (3,048 predicted vs **1,427** measured) and `merkle_nodes` (9,764 vs
+> **7,320**) because it assumed `coset_leaf=0`. Depth 2 does not need a circuit change at all; the
+> compression cut would only be needed to make depth 2 fit the *cheaper* 126-query schedule.
+>
+> **Still true below:** the `log_blowup=3` depth law (132,301 B flat) does not transfer to
+> production; the 300 KB question at production geometry is still decided by the final layer's
+> shape; and no final layer over a depth-2 tree has been measured.
+>
+> **Production-lever L1 reconciliation (asked for in the handover):** the "~256 KB production-lever
+> L1" figure is `L1_0_CACHED proof_bytes=256165` / `L1_1_CACHED proof_bytes=255913` at
+> `agg-d2-geom-ns19lb6.log:22,43` — i.e. the two **App-child depth-1 nodes** at production hash
+> levers (`d=42, coset_leaf=1`), served from the proof cache (`cached=true prove_s=0.0`). These are
+> 11–12 KB *smaller* than the 267,513 B depth-1 figure, which was measured at default hash levers
+> (`d=48, coset_leaf=0`). So 267,513 B is a lever-contaminated upper bound for the App-child node,
+> and 256,165 B is its production-lever value. The 276,269 / 276,789 B pair remains the *Node-child*
+> production figure and is unaffected.
+
 > **DEPTH-2 RESULT 2026-10-23: measured, and NEGATIVE — a field limit, not a resource limit.**
 > The two App-child L1 nodes prove at production targets (**276,789 B** and **275,933 B**, both
 > ~24 KB under the cap, 1,175 s and 791 s at 8.8–8.9 GB). The L2 **Node-child** node panics:

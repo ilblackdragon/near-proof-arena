@@ -1,0 +1,206 @@
+# Depth-2 production aggregation is LEGAL and measured (2026-10-24)
+
+Session: `lane/pq-chunk-perf`. **Reverses the headline of**
+`docs/logs/pq-agg-depth2-production-2026-10-24.md` §1/§6.2 and the "36.1 % cut" target of
+`docs/logs/pq-agg-sha-compression-accounting-2026-10-24.md`.
+
+**Bottom line.** A 2-child production aggregation node at depth 2 **proves, verifies and
+statement-matches**: `AGG_DEPTH2_OK leaves=4 final statement = segments [0, 4)`, in 700.58 s at
+18.76 GB peak RSS. The proof is **315,913 B**. The geometry wall that two prior docs declared
+structural was an artefact of an unlucky `(n_stack, log_blowup)` pairing, not a field limit: the
+`2+19+6 = 27` pairing leaves the WHIR evaluation domain **byte-identical** and raises the stacked
+ceiling from `2^20` to `2^21`, which is exactly the bit depth 2 needed.
+
+This does **not** produce a 1 Pgas under-cap artifact, and the reason is now precise: the root
+proof *is* the artifact in the aggregation path, and 315,913 B is **15,913 B (5.3 %) over** the
+300,000 B cap — see §4 and §5. What it removes is the blocker that said a binary aggregation tree
+could not exist at production parameters at all.
+
+## 1. The measurement
+
+Log: `research/near-compression/results/pq-agg-prod-target/agg-d2-geom-ns19lb6.log`.
+Launch: `launch-d2-geom-ns19lb6.sh`. Binary
+`/var/tmp/pq-prod-target/release/deps/openvm_recursion_circuit-e8a84b4284f8a0d7`,
+test `agg_chain_depth_n --ignored --nocapture`.
+
+| quantity | measured |
+|---|---|
+| outcome | `AGG_DEPTH2_OK leaves=4 final statement = segments [0, 4)` |
+| test result | `ok. 1 passed; 0 failed … finished in 700.58s` |
+| `L2_0_PROOF_BYTES` | **315,913** = gkr 37,592 + relations 24,772 + stacking 5,920 + whir 247,430 |
+| `L2_0_SUMMARY` | `children=2 cols=173 opened=291 interactions=87,097,600 cells=254,084,224 program_rows=232,318 merkle_nodes=7,320 leaf_blocks=1,427 chain_starts=2 nvair_h=1,048,576 prove_s=700.5 peak_rss_gb=18.76` |
+| child cost in this run | `L1_0_SUMMARY … cached=true prove_s=0.0` and `L1_1_SUMMARY … cached=true prove_s=0.0` — **both children were cache hits**, so the 700.58 s wall clock is L2's own prove time |
+| `L2_0_SOUNDNESS` | `total=268.2 logup=321.9 proximity=283.1 query=268.2` |
+| geometry | `L2_0_GEOM merkle_nodes=7320 leaf_blocks=1427 comps=8747 rows=1119616 log_rows=21 a0h=20 a1h=21 a2h=7 a3h=16` |
+| WHIR schedule | `queries=[46, 41, 31, 25]` = **143**, 4 rounds, all `first_order=true` |
+| `L2_0_PARAMS` | `l_skip=2 n_stack=19 k=4 log_blowup=6` |
+
+`AGG_DEPTH2_OK` means proof-verifies plus statement-matches: `prove_mats` ends in
+`engine.verify` (`crates/recursion/src/nv/circuit.rs`). It does **not** mean the VK is pinned
+(regenerated in-memory) or that the program is bound on the App-child path — both remain open
+(§4).
+
+## 2. Why it works: the bit was bought without moving the domain
+
+The prior doc's invariant is correct but was read too narrowly:
+
+```
+l_skip + n_stack + log_blowup <= 27      (BabyBear two-adicity; monty_31.rs:654)
+=> log_stacked_height <= 27 - log_blowup
+```
+
+At `log_blowup = 7` the stacked ceiling is `2^20`; at `6` it is `2^21`. The point of holding the
+sum at exactly 27 is that the WHIR evaluation domain `n = 15·2^27` is unchanged, so this is *not* a
+smaller/faster domain — it is the same domain with a taller stacked commitment. Measured domain
+per round confirms it: `n = 2,013,265,920` in both configurations.
+
+**Two independent things had to change together, and only one of them is geometry.** An earlier
+attempt (`launch-lb6.sh` → `agg-d2-lb6.log`) *did* use this exact `ns19/lb6` pairing and still
+failed — at `log_height: 22` against a `2^21` ceiling. So the geometry fix alone is not sufficient.
+The second change is the **production hash levers** (`d=42, coset_leaf=1`), which cut L2's
+compressions enough to move its SHA AIR from `2^22` down to `2^21`:
+
+| config | hash levers | `l_skip+n_stack+lb` | stacked ceiling | SHA `a1h` | verdict | log |
+|---|---|---:|---:|---:|---|---|
+| `ns18 lb7` | `d=48, coset_leaf=0` | 27 | `2^20` | 21 | `LayoutHeightExceeded{21,20}` | `agg-d2-hashprod.log` |
+| `ns19 lb6` | `d=48, coset_leaf=0` | 27 | `2^21` | **22** | `LayoutHeightExceeded{22,21}` | `agg-d2-lb6.log` |
+| **`ns19 lb6`** | **`d=42, coset_leaf=1`** | **27** | **`2^21`** | **21** | **`AGG_DEPTH2_OK`** | `agg-d2-geom-ns19lb6.log` |
+
+The lever effect is visible in the measured child geometry: `agg-d2-lb6.log` reports
+`L1_0_SUMMARY … merkle_nodes=464 leaf_blocks=257 nvair_h=524288`, while the passing run reports
+`merkle_nodes=240 leaf_blocks=69 nvair_h=262144`. At default levers L1's children are `2^19` and
+each query's coset costs `2^k − 1` extra nodes; at production levers the children are `2^18` and
+the coset path is gone. That 2× child size propagates into L2's SHA AIR as the extra bit.
+
+So the honest statement is: **depth 2 required both the geometry pairing and production hash
+levers.** The prior doc's conclusion was wrong, but so would be the simpler claim that geometry
+alone fixed it. **No circuit change was needed** either way.
+
+### 2.1 The cost: 143 queries instead of 126/131
+
+Lowering `log_blowup` at a fixed 236-bit target costs queries. Measured schedules:
+
+| config | queries | total |
+|---|---|---:|
+| `ns18 lb7`, `k_first=2` | `[41, 35, 27, 23]` | 126 |
+| `ns18 lb7`, `k_first=1` | `[41, 38, 29, 23]` | 131 |
+| **`ns19 lb6`, `k_first=1`** | **`[46, 41, 31, 25]`** | **143** |
+
+The +17 queries are why the node proof is 315,913 B rather than ~276 KB. At the measured
+~1,751 B/query (§3 of the prior doc) 17 queries ≈ 29,767 B, which accounts for most of the gap
+from 276,269 B to 315,913 B. So the geometry escape is **paid for in size**, not in time: L2's
+prove time is 700.5 s, in line with the 695–739 s depth-1 nodes, despite the taller stacked
+commitment. Note this is *L2 only* — both L1 children came from cache at `prove_s=0.0`, so the
+node's true cold cost is 700.5 s plus two L1 proves.
+
+## 3. The compression deficit is 6.8 %, not 36.1 %
+
+The "36.1 %" target in `pq-agg-sha-compression-accounting-2026-10-24.md` came from a *predicted*
+`comps = 12,813` for depth 2 with the default hash levers. The measured value at production hash
+levers (`d=42, coset_leaf=1`) is **8,747**:
+
+```
+comps = merkle_nodes + leaf_blocks = 7,320 + 1,427 = 8,747      (measured, L2_0_GEOM)
+rows  = 128 × 8,747 = 1,119,616  ->  2^21                        (measured log_rows=21)
+```
+
+Against the `2^20` ceiling of `2^20/128 = 8,192` compressions, the overrun is
+
+```
+8,747 − 8,192 = 555 compressions = 6.8 % of the 8,192 ceiling
+```
+
+not 4,621 (36.1 %). The prediction's leaf term was 3,048; the measured production-lever leaf term
+is **1,427**, and `merkle_nodes` is 7,320 not 9,764. Both differences come from the same lever:
+`coset_leaf=1` removes the `2^k − 1` coset path per query. Independent confirmation on L1, where
+the same lever is visible in one line: `leaf_blocks=69` at `coset_leaf=1` versus `257` at
+`coset_leaf=0` (`L1_0_GEOM` here vs the `coset_leaf=0` runs).
+
+**This matters for the objective.** The circuit change once believed necessary to make depth 2
+possible is *not* needed to make it possible — depth 2 already fits at `ns19 lb6`. It would only
+be needed to make depth 2 fit at the *cheaper* `ns18 lb7` query schedule. A 6.8 % compression
+reduction is a far more tractable target than 36.1 %, but it is now an optimisation, not a gate.
+
+## 4. What this does and does not establish
+
+**Established by measurement:**
+
+1. A 2-child node whose children are **NV proofs** (not App proofs) proves and verifies at
+   production hash levers and the production WHIR target — `AGG_DEPTH2_OK`.
+2. The depth-2 SHA AIR is `2^21` and the legal stacked ceiling is `2^21`; they coincide exactly.
+   There is no headroom: `comps` would have to rise above 8,192 × 2 = 16,384 to need another bit.
+3. Depth 2 costs 143 queries, and 700.5 s / 18.76 GB for one node.
+4. The prior "depth 2 is not provable at production parameters" claim is **false as written**. It
+   was true for the `ns18 lb7` pairing only.
+
+**NOT established — do not quote this as a 1 Pgas result:**
+
+1. **The 315,913 B root proof IS the artifact, and it is over cap by 15,913 B.** In
+   `agg_tests.rs:567-570` the tree's single root proof is what gets statement-checked against
+   `RangeStmt::compose` of all leaves, and `AGG_DEPTH2_OK` is printed for that root. There is no
+   additional final layer in the aggregation path — unlike the base packet, whose 6-level chain
+   ends in a separate `FINAL`. So a depth-2 production tree currently ships a **315,913 B** proof,
+   **5.3 % over the 300,000 B cap**. Depth 2 being legal is therefore *necessary but not
+   sufficient* for the objective. The 15,913 B must come from somewhere (§5).
+2. **No depth-2 tree has been wrapped in a separate final layer.** The 299,935 B delivered final
+   layer wraps a depth-1 child. Whether adding one over depth 2 helps or hurts is **untested**: it
+   adds a commit and its own WHIR, but it drops `program_part` to a single commitment. Net effect
+   unknown.
+3. **`NodeOK` is still unproved**, and at `S = 146` it is required regardless of proof size (§4 of
+   the prior doc). Depth 2 being legal does not touch this.
+4. **Leaves are still `SegAir` Fibonacci fixtures**, not `seg-v1`. A 146-leaf production tree needs
+   `run_node_single`, which does not exist, so ragged (non-power-of-two) trees remain unproved.
+5. **`k_first=1` at 143 queries is 268.2 bits**, same as the other depth-2 settings; no soundness
+   was traded for the geometry escape. The union bound still fails from `S ≈ 103–118`.
+
+## 5. Where the 15,913 B must come from
+
+The root proof is 315,913 B against a 300,000 B cap. Three candidate levers, each with its own
+status. None is a measurement yet.
+
+### 5.1 Reclaim the 126-query schedule (needs the 6.8 % compression cut)
+
+The `ns18/lb7` geometry gives `[41, 35, 27, 23] = 126` queries, 17 fewer than 143. At the measured
+~1,751 B/query that is ~29,767 B — more than enough. But `ns18/lb7` gives only `2^20` of stacked
+height and L2 needs `2^21`. **This is the one place the 6.8 % compression cut genuinely buys
+something:** 555 compressions removed would put L2 at `≤ 8,192`, fitting `2^20` at 126 queries.
+
+The saving is not fully additive with 5.2/5.3, because removing 555 compressions also shrinks the
+SHA AIR rows and hence some per-query Merkle cost. **Modelled, not measured.**
+
+### 5.2 Drop to 1 WHIR commit (measured delta, projection applied)
+
+The measured 2-commit → 1-commit delta on the delivered chain is **35,068 B** of WHIR non-digest
+overhead. `PARENT2_COMMITS=1` is already set in the passing run, so this lever is **already
+consumed** — it cannot be counted twice. Recorded here to prevent double-counting.
+
+### 5.3 Re-balance `k_first` / `log_final` at `lb6` (cheapest untested lever)
+
+`PARENT2_LOG_FINAL=8, PARENT2_K1=1` was chosen because "`lf=7` would add a 5th round". But
+`k_first=2` at `lf=6` also gives 4 rounds (`launch-lb6.sh` measured `[48,38,29,23] = 138`, five
+fewer than 143) — and it failed only because that run's *children* were at default hash levers.
+With production levers the children are smaller, so this needs a re-run to know. The 5-query delta
+is worth ~8,755 B — over half the gap. **Untested.**
+
+### 5.4 The depth-3 question is separate from the size question
+
+The depth law measured at test targets is flat (`132,301 B` at depths 2/3/4), but those runs used
+`log_blowup = 3`, which does not transfer to production. Depth 3 aggregates two NV children exactly
+as depth 2 does, so the model predicts a flat SHA cost. Its run (`launch-d3-geom.sh` →
+`agg-d3-geom.log`) is in flight; **do not treat depth 3 as legal until it reports.**
+
+Note that depth 3's flatness does **not** fix the size problem. Even if depth 3 fits `2^21`, each
+level's root proof still carries ~143 queries, so a depth-8 tree's root would still be ~315 KB.
+**The depth law being flat is necessary for a 1 Pgas tree to exist; the size levers in 5.1/5.3 are
+what make it ship under cap.** These are independent problems.
+
+## Reproduce
+
+```
+cd research/near-compression/results/pq-agg-prod-target
+HEAVY_MEM=48G /data/illia/nearproof-deps/bin/heavy /bin/bash ./launch-d2-geom-ns19lb6.sh
+```
+
+Must run under the `heavy` wrapper: a bare `setsid` launch lands in the default 16 GiB scope and
+is OOM-killed silently partway through L2 with no panic line. The completed run peaks at 18.76 GB,
+so `HEAVY_MEM=48G` is required.
