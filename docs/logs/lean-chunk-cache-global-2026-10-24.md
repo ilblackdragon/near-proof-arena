@@ -1,6 +1,6 @@
 # Cache closure and global action integration — 2026-10-24
 
-Base: main `197767793`. Integration branch: `work/lean-cache-global-main-20261024`.
+Base: main `197767793`. Integrated code checkpoint: `d28f7e8d8`. Integration branch: `work/lean-cache-global-main-20261024`.
 Nearcore: `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86. W05 excluded.
 
 ## Delivered
@@ -36,6 +36,7 @@ main and only this task's commits were picked. Lane branches/worktrees remain av
 | Global promise chunks | 83 per tier all accept, covering successful seven-host emission, gas-exhaustion rollback and child-action failure. |
 | Complete-code pairs | 14 independent pairs × complete/incomplete/restored × two repetitions = 84 passing verdicts. Raw incomplete native observations remain 9 accept / 5 reject. |
 | Portable CI | 26 global accepts, 2 explicit key exclusions, 3 promise controls in both tiers; 5 code-policy pairs give 30 repeated checks; old-host ablation rejects widening. |
+| Full `make d3-smoke` | Pass, including 1,030 allocation + 6 phase cases and 2,050 float operator + 32 input-driven bundles. |
 | Python harness | 67 tests run, one existing skip; includes eight policy integrity checks. |
 | Coverage inventory | Regenerated/reviewed source hashes and legacy decision-site counts only. No whole W07/W08 row or completion gate promoted from this checkpoint. |
 
