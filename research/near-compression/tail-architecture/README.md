@@ -7,18 +7,18 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Metadata guard repair](STRICT_METADATA.md): earlier templates mistakenly used
-MSB-only `assert_false` for whole-word zero/range checks. Malformed private
-witnesses reproduced the gap; `assert_zero` repairs it. **Use NPSTRICT packets**,
-not earlier metadata-relation claims. Corrected component: **266,607 / 206,889 B**,
-warm **0.83–0.88 s**, fresh verification against original claim/job roots passes.
-Receipt producer oracle matches 64 cases, but all block gas prices are zero.
-[Shared-wire receipt outcome kernel](RECEIPT_OUTCOME.md) now connects constrained
-arithmetic, serialization and SHA: 2,305 cases / 27,216 mutations, plus five
-in-memory proofs and 15 verifier mutations. This is a local public-input harness,
-not the integrated batch or authenticated execution. Next: typed batch integration,
-receipt/source/state binding, representative positive-gas cases and PQ history.
-Full NEAR/PQ/p95 remain open.
+[Private receipt batches](RECEIPT_BATCH.md): uniform 1,024-slot kernel supports
+all implemented refund/length shapes. Original 814-receipt case: **215,398 B,
+1.52–1.54 s** warm; 1,024 varied synthetic long refunds: **230,098 B / 1.56 s**.
+Serialized packets verify in fresh processes. This proves local arithmetic and
+outcome hashes, **not authenticated receipt sourcing/state or full NEAR**.
+Other SHA jobs are absent, so these results cannot be combined arithmetically
+with the prior hash-only benchmark. Next: bind the same fields to source bytes,
+then integrate remaining hashes, state/runtime and bounded PQ history.
+
+[Metadata guard correction](STRICT_METADATA.md) remains mandatory; earlier
+MSB-only range guards were underconstrained. Composed PQ security, untrusted
+codec safety, representative positive-gas claims and full deadline remain open.
 
 [Outer security evidence](OUTER_SECURITY.md) and the
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)

@@ -1,0 +1,60 @@
+RECEIPT_BATCH_SETUP log=20 public_bytes=92248 left_rank=4 opening_rank=11 norms=36 binary_rank=1536 circuit_s=2.64287119 setup_s=0.79707575
+SIS_POLICY inner rank=23 width=4481 source=4575318212188 target=60761045423 bound=56595839001.521439 bits=148.665 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1494 source=60761045423 target=478928139 bound=632372398.55270672 bits=143.365 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1575 source=478928139 target=39878753 bound=46680203.750251472 bits=153.965 finite=1 tail=0
+SIS_POLICY inner rank=11 width=788 source=39878753 target=4283230615 bound=29319984.948034335 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=394 source=4283230615 target=52141458 bound=104327624.41625148 bits=152.110 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=301310 prepare_s=0.006003339 prove_s=1.035327106 ready_s=1.041619989 verify_s=0.503099768 negative_checks=7
+SIS_POLICY inner rank=23 width=4481 source=4574252721653 target=62245884058 bound=57283191106.492813 bits=148.665 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1494 source=62245884058 target=482494462 bound=634722502.04897976 bits=143.365 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1575 source=482494462 target=41068365 bound=47371339.450762421 bits=153.700 finite=1 tail=0
+SIS_POLICY inner rank=11 width=788 source=41068365 target=4084615362 bound=28632126.040775385 bits=147.605 finite=1 tail=0
+SIS_POLICY inner rank=13 width=394 source=4084615362 target=50157075 bound=102323134.11140612 bits=152.640 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=301310 prepare_s=0.0104302 prove_s=0.978488635 ready_s=0.989196938 verify_s=0.54956273 negative_checks=7
+SIS_POLICY inner rank=23 width=4481 source=4575318212188 target=60761045423 bound=56595839001.521439 bits=148.665 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1494 source=60761045423 target=478928139 bound=632372398.55270672 bits=143.365 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1575 source=478928139 target=39878753 bound=46680203.750251472 bits=153.965 finite=1 tail=0
+SIS_POLICY inner rank=11 width=788 source=39878753 target=4283230615 bound=29319984.948034335 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=394 source=4283230615 target=52141458 bound=104327624.41625148 bits=152.110 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=301310 prepare_s=0.009288862 prove_s=0.969044128 ready_s=0.978606735 verify_s=0.504175691 negative_checks=7
+SIS_POLICY inner rank=23 width=4481 source=4574252721653 target=62245884058 bound=57283191106.492813 bits=148.665 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1494 source=62245884058 target=482494462 bound=634722502.04897976 bits=143.365 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1575 source=482494462 target=41068365 bound=47371339.450762421 bits=153.700 finite=1 tail=0
+SIS_POLICY inner rank=11 width=788 source=41068365 target=4084615362 bound=28632126.040775385 bits=147.605 finite=1 tail=0
+SIS_POLICY inner rank=13 width=394 source=4084615362 target=50157075 bound=102323134.11140612 bits=152.640 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=301310 prepare_s=0.010067437 prove_s=0.980535794 ready_s=0.99104937 verify_s=0.497407012 negative_checks=7
+SIS_POLICY inner rank=23 width=4481 source=4574220772125 target=59909132063 bound=56197681369.378914 bits=148.930 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1494 source=59909132063 target=475538832 bound=630130820.46935534 bits=143.365 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1575 source=475538832 target=41221610 bound=47459639.307089552 bits=153.700 finite=1 tail=0
+SIS_POLICY inner rank=11 width=788 source=41221610 target=4415737257 bound=29770054.256398793 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=13 width=394 source=4415737257 target=52042613 bound=104228690.12930918 bits=152.110 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=synthetic-positive receipts=4 packet_bytes=301310 prepare_s=0.005655013 prove_s=0.886736693 ready_s=0.892639744 verify_s=0.403341461 negative_checks=7
+SIS_POLICY inner rank=23 width=4481 source=4573813775367 target=62025847031 bound=57181854431.469086 bits=148.665 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1494 source=62025847031 target=487455473 bound=637977267.38361132 bits=143.100 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1575 source=487455473 target=41935530 bound=47868853.547185771 bits=153.435 finite=1 tail=0
+SIS_POLICY inner rank=11 width=788 source=41935530 target=4382047274 bound=29656271.108837944 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=13 width=394 source=4382047274 target=50718495 bound=102894204.04522541 bits=152.375 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=synthetic-max-context receipts=1 packet_bytes=301310 prepare_s=0.005624826 prove_s=0.925401399 ready_s=0.931331659 verify_s=0.491426444 negative_checks=7
+	Command being timed: "taskset -c 8 /data/illia/pq-tail-architecture-20261024/target/release/near-receipt-batch /data/illia/pq-tail-architecture-20261024/receipt-batches/00-h10035-s3.batch /data/illia/pq-tail-architecture-20261024/receipt-batches/00-h10012-s1.batch /data/illia/pq-tail-architecture-20261024/receipt-batches/00-h10035-s3.batch /data/illia/pq-tail-architecture-20261024/receipt-batches/00-h10012-s1.batch /data/illia/pq-tail-architecture-20261024/receipt-batches/synthetic-positive.batch /data/illia/pq-tail-architecture-20261024/receipt-batches/synthetic-max-context.batch"
+	User time (seconds): 10.54
+	System time (seconds): 2.34
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:12.89
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1974900
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 2503044
+	Voluntary context switches: 556
+	Involuntary context switches: 1979
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 3584
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,102 @@
+{
+  "status": "PRIVATE_RECEIPT_BATCH_COMPONENT_NOT_FULL_NEAR_OR_PQ128",
+  "base_lane_commit": "dc794e65c",
+  "source_sha256": {
+    "near-receipt-typed-check.rs": "323bdad4d175000e349db753c946165f1b696b0159feb27579fe7d2f11e63961",
+    "near-receipt-batch.rs": "8b02470a2b7c4578209f3bfffe4e4b03ab209f15a95400404c59d8d9ce4f1291",
+    "near-receipt-batch-unified.rs": "0f14fe7ea397a1fd05d3ccc88876105b9ac0b77352686102f6797ac94b036d9a",
+    "near-receipt-batch-wire-check.rs": "3408c74a6cb0f5ac41027de68079660b38bb372bb3afbab0fa53e95bfa89298d",
+    "near-receipt-unified-wire-check.rs": "38df88319ec1108c260bf9d28062e1928f7d66e96472123bf56d1e38f0d64ed1",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726",
+    "support/receipt_outcome.rs": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+    "support/receipt_outcome_typed.rs": "0ef0cbb2c16663dd926512c1100adccbeb7cd67e20f34e1e9f72ac9cd8a0c0fd",
+    "support/receipt_batch_wire.rs": "d4a78616f31c12ef6ea3829fbb1d54916546820ae069e53bbac2b380934c35f3",
+    "support/receipt_unified_wire.rs": "b654069ab3f61b15c25ec94c78f54ab94ec5e62e47a8b9b9b85515a262dc5f0f",
+    "support/tight_sha.rs": "4152a626cf4cff0eaf66b2f9025d330611f859038f1947a054c352fdf79a5a2e"
+  },
+  "binary_sha256": {
+    "near-receipt-batch-dense": "e13d9c44b4a771ac09e99dc41f2abdbf49ece271cd80d4e77f00bb8de3f01b0e",
+    "near-receipt-batch-compact-frozen": "f05fe718e8e7544e50f7d4a476bfa090682fac33b9272207b63d8e1277eab622",
+    "near-receipt-batch-unified-frozen": "1866cc03c68e3b66a1b61b4e8fd26d41e46aaca293266d1d160e6e40a6bd30c3"
+  },
+  "run_cpu": 8,
+  "virtual_memory_limit_KiB": 16777216,
+  "uniform_peak_RSS_KiB": 4277948,
+  "profile_results": {
+    "receipt-batch.log": [
+      "RECEIPT_BATCH_SETUP log=20 public_bytes=92248 left_rank=4 opening_rank=11 norms=36 binary_rank=1536 circuit_s=2.64287119 setup_s=0.79707575",
+      "RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=301310 prepare_s=0.006003339 prove_s=1.035327106 ready_s=1.041619989 verify_s=0.503099768 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=301310 prepare_s=0.0104302 prove_s=0.978488635 ready_s=0.989196938 verify_s=0.54956273 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=301310 prepare_s=0.009288862 prove_s=0.969044128 ready_s=0.978606735 verify_s=0.504175691 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=301310 prepare_s=0.010067437 prove_s=0.980535794 ready_s=0.99104937 verify_s=0.497407012 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=synthetic-positive receipts=4 packet_bytes=301310 prepare_s=0.005655013 prove_s=0.886736693 ready_s=0.892639744 verify_s=0.403341461 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=synthetic-max-context receipts=1 packet_bytes=301310 prepare_s=0.005624826 prove_s=0.925401399 ready_s=0.931331659 verify_s=0.491426444 negative_checks=7"
+    ],
+    "receipt-batch-compact.log": [
+      "RECEIPT_BATCH_SETUP log=20 public_bytes=92248 left_rank=4 opening_rank=11 norms=36 binary_rank=1536 circuit_s=2.635627685 setup_s=0.832783295",
+      "RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=266078 prepare_s=0.010549232 prove_s=1.08189275 ready_s=1.0933179 verify_s=0.54608261 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=209168 prepare_s=0.0102511 prove_s=1.031478792 ready_s=1.042030928 verify_s=0.534684501 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=266078 prepare_s=0.010565612 prove_s=1.037077375 ready_s=1.048552909 verify_s=0.550664661 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=209168 prepare_s=0.010295333 prove_s=1.030882016 ready_s=1.041610915 verify_s=0.533753617 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=synthetic-positive receipts=4 packet_bytes=209378 prepare_s=0.010197238 prove_s=1.033153489 ready_s=1.043710334 verify_s=0.543637025 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=synthetic-max-context receipts=1 packet_bytes=209168 prepare_s=0.010144771 prove_s=1.040774448 ready_s=1.0512813 verify_s=0.547681245 negative_checks=7"
+    ],
+    "receipt-unified.log": [
+      "RECEIPT_BATCH_SETUP log=21 public_bytes=90136 left_rank=5 opening_rank=11 norms=36 binary_rank=3072 circuit_s=5.198971604 setup_s=1.207966302",
+      "RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=215398 prepare_s=0.018746361 prove_s=1.522192979 ready_s=1.5415232190000001 verify_s=0.704407524 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=158488 prepare_s=0.015028917 prove_s=1.4910634680000001 ready_s=1.5062985530000002 verify_s=0.698508284 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=215398 prepare_s=0.015457553 prove_s=1.505103703 ready_s=1.521161736 verify_s=0.707089829 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=158488 prepare_s=0.014858146 prove_s=1.504301694 ready_s=1.519352121 verify_s=0.704987374 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=synthetic-positive receipts=4 packet_bytes=158698 prepare_s=0.015072639 prove_s=1.550435022 ready_s=1.565657033 verify_s=0.70835061 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=synthetic-max-context receipts=1 packet_bytes=158488 prepare_s=0.014902609 prove_s=1.52289808 ready_s=1.537947866 verify_s=0.70689416 negative_checks=7",
+      "RECEIPT_BATCH_RESULT case=synthetic-1024-long-refunds receipts=1024 packet_bytes=230098 prepare_s=0.01545597 prove_s=1.5391621 ready_s=1.555303169 verify_s=0.717578483 negative_checks=7"
+    ],
+    "receipt-unified-varied.log": [
+      "RECEIPT_BATCH_SETUP log=21 public_bytes=90136 left_rank=5 opening_rank=11 norms=36 binary_rank=3072 circuit_s=5.197028989 setup_s=1.216704953",
+      "RECEIPT_BATCH_RESULT case=synthetic-1024-varied-refunds receipts=1024 packet_bytes=230098 prepare_s=0.01872595 prove_s=1.5407703050000001 ready_s=1.56010919 verify_s=0.7017377 negative_checks=7"
+    ]
+  },
+  "fresh_verification": {
+    "verify-receipt-batch-synthetic-positive.log": "RECEIPT_BATCH_VERIFY bytes=209378 decode_s=0.000197521 verify_s=0.620369036 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-batch-00-h10012-s1.log": "RECEIPT_BATCH_VERIFY bytes=209168 decode_s=0.000199596 verify_s=0.609468958 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-batch-00-h10035-s3.log": "RECEIPT_BATCH_VERIFY bytes=266078 decode_s=0.000720686 verify_s=0.616107812 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-batch-synthetic-max-context.log": "RECEIPT_BATCH_VERIFY bytes=209168 decode_s=0.00020206 verify_s=0.616296991 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-unified-synthetic-max-context.log": "RECEIPT_BATCH_VERIFY bytes=158488 decode_s=0.000083628 verify_s=0.724018158 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-unified-00-h10035-s3.log": "RECEIPT_BATCH_VERIFY bytes=215398 decode_s=0.000425614 verify_s=0.726197261 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-unified-00-h10012-s1.log": "RECEIPT_BATCH_VERIFY bytes=158488 decode_s=0.000078649 verify_s=0.722344903 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-unified-synthetic-positive.log": "RECEIPT_BATCH_VERIFY bytes=158698 decode_s=0.000080271 verify_s=0.733591344 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-unified-synthetic-1024-varied-refunds.log": "RECEIPT_BATCH_VERIFY bytes=230098 decode_s=0.000499871 verify_s=0.709986839 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false",
+    "verify-receipt-unified-synthetic-1024-long-refunds.log": "RECEIPT_BATCH_VERIFY bytes=230098 decode_s=0.000506446 verify_s=0.724739601 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false"
+  },
+  "packet_sha256": {
+    "exported-receipt-batches": {
+      "synthetic-positive.packet": "cc7e082cd5b403e5864339346f11c8d52816ef8ebf52a2472b390a171f3711fa",
+      "00-h10012-s1.packet": "4e960bad3a6e812ed1d8ee705039a0c4b8282bb0fd300bdbee04506097ceb595",
+      "synthetic-max-context.packet": "deeb408a68f7bb76a324517f1ebd2f8c16939ab47eae5fd8252ddfc4466add0f",
+      "00-h10035-s3.packet": "4bc6b3036dda04891e9c58f140b690b1cd894002b36e3a51e82ff33cf5797947"
+    },
+    "exported-receipt-batches-compact": {
+      "synthetic-positive.packet": "58d8851db54400a55e679ede5826aa9039a3601ca74b9409d06a8d45b808b28b",
+      "00-h10012-s1.packet": "c4ab88f117eadce951d45b5f2c45d11cf5a1c09f7e1c4d53682f6bc725964b83",
+      "synthetic-max-context.packet": "1a159f38ba914cb6de4add70106c5f3b753d36115820ce40a480ccc307b31293",
+      "00-h10035-s3.packet": "c2e824361a6f72cd666df5cfc3af1a3e97a01798f4ab0a0f5cb5723766cd6b0e"
+    },
+    "exported-receipt-unified": {
+      "synthetic-positive.packet": "487b13f7851f9b80d1f4027a2baf49a96cb1c6897dd31493b53eb5ebc180561f",
+      "synthetic-1024-varied-refunds.packet": "9da68cd4eb540f6966c9ba302050cb7c2e275e0ebd81bec26464b7c71c6b63b6",
+      "00-h10012-s1.packet": "bcc2c6cb7200f6a2e7f6629658bebed71dfe70b185dccaebe1d46452aaee6e6d",
+      "synthetic-1024-long-refunds.packet": "c5789e88eeb5fdc42fda59c1477e5bb543d59ae6aef89ca46c41a08c3812e71e",
+      "synthetic-max-context.packet": "9276e896550a2cedf47a3eb330c4705ce28da48eae75a773ae1dad66551b3cc2",
+      "00-h10035-s3.packet": "dc8f12e4499b3a27bab71232539dbe0269b33e190d05dd4e6dd48f8e416a7242"
+    }
+  },
+  "limitations": [
+    "Private inputs are not authenticated against receipt source lists or state.",
+    "Other hash jobs, general execution/Wasm and history are excluded.",
+    "Context is external input; its derivation from the full claim is not proved here.",
+    "Uniform profile supports 1024 receipts, not arbitrary NEAR workload sizes.",
+    "Synthetic full-capacity tests are not accepted NEAR claims.",
+    "Original preprocessing and cold setup excluded from warm readiness; not p95.",
+    "Backend scalar screens do not establish composed PQ security; decoder trusted-local."
+  ]
+}

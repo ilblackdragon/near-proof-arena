@@ -189,3 +189,19 @@ size/speed/PQ result. Census: no-refund receiver<=18 takes one SHA block; other
 no-refund <=64 takes two; refunds <=50 take two, >50 takes three. Observed maxima
 813 short no-refund / 6 refund; unseen longer classes remain valid and required.
 [Evidence](../../research/near-compression/tail-architecture/RECEIPT_OUTCOME.md).
+
+## Private receipt batches, typed and uniform profiles
+
+Moved receipt/account fields to private witnesses, bound shared declared context,
+public receipt IDs and computed outcome hashes; native tree matches expected roots.
+Typed [1024,8,8,8] profile: dense 301,310 B failed budget; sparse 266,078 B large
+with 1.04–1.09 s warm, but narrow refund capacity. Broadened to uniform 1024 slots
+supporting every kernel shape: 814 real receipts 215,398 B / 1.542,1.521 s; small
+158,488 B / 1.506,1.519 s. Synthetic 1024 varied long refunds 230,098 B / 1.560 s
+(repeated-input predecessor 1.555 s also retained). All six uniform packets
+verify freshly ~0.71–0.73 s; wrong expected root/context reject. Each codec
+passes 66 independent fixtures/762 mutations; full-capacity cases additionally
+prove/verify. Backend scalar min 144.955 modeled bits, not composed PQ security.
+Private source/state inputs are still unauthenticated; other SHA jobs omitted.
+Next source-byte equality and state/runtime/history integration, no full-goal claim.
+[Evidence/reproduction](../../research/near-compression/tail-architecture/RECEIPT_BATCH.md).

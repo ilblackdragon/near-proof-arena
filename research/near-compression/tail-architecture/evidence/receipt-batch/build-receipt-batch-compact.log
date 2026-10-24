@@ -1,0 +1,46 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling labinius-bench v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/bench)
+   Compiling labinius-binius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/binius)
+warning: struct `Reader` is never constructed
+  --> crates/binius/src/bin/support/receipt_batch_wire.rs:49:8
+   |
+49 | struct Reader<'a>{data:&'a[u8],pos:usize}
+   |        ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `take` and `part` are never used
+  --> crates/binius/src/bin/support/receipt_batch_wire.rs:50:24
+   |
+50 | impl<'a> Reader<'a>{fn take(&mut self,n:usize)->Result<&'a[u8],String>{let end=self.pos.checked_add(n).ok_or("length overflow")?;let x=self.data.get(self.pos..end).ok_or("truncated")?;self.pos=end;Ok(x)}fn part(&m...
+   | -------------------    ^^^^                                                                                                                                                                                   ^^^^
+   | |
+   | methods in this implementation
+
+warning: function `decode` is never used
+  --> crates/binius/src/bin/support/receipt_batch_wire.rs:54:15
+   |
+54 | pub unsafe fn decode(data:&[u8],context:&[u8],root:&[u8],shape:(usize,usize,usize))->Result<(Vec<Word>,Proof),String>{
+   |               ^^^^^^
+
+warning: field `after` is never read
+ --> crates/binius/src/bin/support/receipt_arithmetic.rs:5:24
+  |
+5 | pub struct Outputs{pub after:U128,pub burnt:U128,pub surplus:U128}
+  |            -------     ^^^^^
+  |            |
+  |            field in this struct
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `arithmetic` is never read
+ --> crates/binius/src/bin/support/receipt_outcome_typed.rs:7:24
+  |
+7 | pub struct Outputs{pub arithmetic:receipt::Outputs,pub digest:[Wire;4],pub length:Wire}
+  |            -------     ^^^^^^^^^^
+  |            |
+  |            field in this struct
+
+warning: `labinius-binius` (bin "near-receipt-batch-wire-check") generated 3 warnings
+warning: `labinius-binius` (bin "near-receipt-batch") generated 2 warnings
+    Finished `release` profile [optimized + debuginfo] target(s) in 1m 06s

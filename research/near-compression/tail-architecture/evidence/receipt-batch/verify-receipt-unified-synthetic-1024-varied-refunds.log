@@ -1,0 +1,10 @@
+RECEIPT_BATCH_SETUP log=21 public_bytes=90136 left_rank=5 opening_rank=11 norms=36 binary_rank=3072 circuit_s=5.172865458 setup_s=1.204612579
+SIS_POLICY inner rank=25 width=6062 source=13049487860698 target=189328929186 bound=199709381211.60284 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=189328929186 target=1388315104 bound=2144989476.9630737 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1388315104 target=63210897 bound=115759689.07292037 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63210897 target=6240525541 bound=35390654.672962233 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6240525541 target=91429159 bound=276299494.98632056 bits=146.280 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=91429159 target=10836543 bound=24333654.504154366 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=10836543 target=729779472 bound=12102465.002977204 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=729779472 target=41931166238 bound=45868706.076778404 bits=154.495 finite=1 tail=1
+RECEIPT_BATCH_VERIFY bytes=230098 decode_s=0.000499871 verify_s=0.709986839 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false

@@ -1,0 +1,11 @@
+{
+  "status": "SYNTHETIC_KERNEL_CONTEXTS_NOT_VALID_NEAR_CLAIMS",
+  "positive_record_indices": [
+    2138,
+    2170,
+    2144,
+    2240
+  ],
+  "max_context_record_index": 2141,
+  "source_vectors": "receipt-outcome.bin"
+}

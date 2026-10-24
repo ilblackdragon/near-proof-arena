@@ -1,0 +1,24 @@
+{
+  "status": "PRIVATE_RECEIPT_KERNEL_PACKET_NOT_FULL_NEAR",
+  "packet_version": "NPRCBU01",
+  "packet_bytes": 158488,
+  "packet_sha256": "bcc2c6cb7200f6a2e7f6629658bebed71dfe70b185dccaebe1d46452aaee6e6d",
+  "batch_sha256": "1b9f648c902a8258890abf73f79ad370b1c2869b6adb805f67e519eb37cacda8",
+  "public_bytes_equal_independent_fixture": true,
+  "outcome_root_matches_external": true,
+  "outcome_root": "2123af03d00323f090e826ae1163f3700a1c2cbbbbcfd2686d8c9c288ffd831a",
+  "sections": {
+    "public": 106,
+    "tape": 32137,
+    "claimed_value": 21,
+    "left_rns": 5120,
+    "opening_rns": 11264,
+    "norms": 288,
+    "backend": 109488
+  },
+  "limitations": [
+    "Other hash jobs/source/state authentication/history omitted.",
+    "Declared context is external input, not proved here from full claim.",
+    "Backend security and byte-level proof verification are separate checks."
+  ]
+}

@@ -31,7 +31,7 @@ unchanged and broader coverage requires a versioned successor.
 
 ## Remaining work
 
-- **PQ tail architecture** (`lane/pq-tail-architecture`): corrected `NPSTRICT` hash component 266,607/206,889 B, warm 0.83–0.88 s. Local arithmetic→outcome SHA kernel now verifies; next typed batch integration, source/state binding, positive-gas fixtures and PQ/history. [Evidence](../research/near-compression/tail-architecture/RECEIPT_OUTCOME.md).
+- **PQ tail architecture** (`lane/pq-tail-architecture`): private receipt kernel batches now serialize/verify: 814 receipts 215,398 B / 1.52–1.54 s; 1,024 synthetic varied refunds 230,098 B / 1.56 s. Next: source-byte/state binding, remaining hashes/runtime, PQ/history. Not full NEAR. [Evidence](../research/near-compression/tail-architecture/RECEIPT_BATCH.md).
 
 - **D3 succinct proof:** build the D2/D3 chunk AIR, state render/overlay replay and real Wasm/state/recursion connection. The shipped D3 artifact proves witness re-execution, not succinctness. [Latest preparation/join analysis](logs/pq-prepare-link-2026-10-23.md).
   - **Scoped in two design docs (2026-10-23), with open PROPOSALS P-D2-1…6 / P-D3-1…5 awaiting a user decision:** [D2 design](zk-formal/V3-D2-DESIGN.md), [D3 design](zk-formal/V3-D3-DESIGN.md). Read them before starting AIR work; the headline findings are that **no D2 AIR exists and has never existed** (`grep nearAirV3D2` = 0), **D3 is strictly gated on D2** (`checkD3` *is* `checkD2Core (d3Hooks pv86)`), and **`RelTier .d2`/`.d3a` are unbounded** so no completeness claim holds at their current statements. Order is L0 (corpus maxima) → `D2a` spec → native/AIR split → tables → assembly → budget measurement; D3 work other than its own tier restatement is speculative until D2's AIR lands.
