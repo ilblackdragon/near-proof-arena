@@ -29,3 +29,17 @@ started. Disk cleanup is being handled separately at the user's request.
 Evidence: [live probe](../evidence/lean-chunk-completion/mainnet-w13-probe/README.md).
 Usage and exact gate contract: [mainnet replay README](../../tools/mainnet-replay/README.md).
 No changes to Lean execution, signed oracle pins, or other lanes' uncommitted work were made here.
+
+## Disk cleanup and validation
+
+At the user's request, removed 3,473 old, regenerable Firecracker input/root filesystem cache
+images from four inactive test work roots. Source/toolchain image directories were verified present,
+no selected cache file had an open process descriptor, and live workers use separate work roots.
+Removed allocated storage: 49,931,014,144 bytes (46.5 GiB). `/data` available space rose from about
+7 GiB to 54 GiB; source trees, witness/replay corpora, proof outputs and the live service were kept.
+The detailed deletion manifest is `/tmp/nearproof-cache-cleanup-20261024.json`.
+
+Harness verification: 85 tests run, one existing skip, no failures; 18 are W13 gate controls.
+The live 30-chunk probe still fails honestly with zero executable witnesses and mismatch N/A.
+The gate implementation is merged locally as `7cdc06dea`; main also contains another collaborator's
+W05 integration not yet present on origin, so this task did not publish that unrelated work.
