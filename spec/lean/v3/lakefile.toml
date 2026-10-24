@@ -43,6 +43,10 @@ name = "nearspec-v3-test-ed25519"
 root = "TestEd25519"
 
 [[lean_exe]]
+name = "nearspec-v3-test-bls12381"
+root = "TestBLS12381"
+
+[[lean_exe]]
 name = "nearspec-v3-check-d2"
 root = "MainD2"
 
