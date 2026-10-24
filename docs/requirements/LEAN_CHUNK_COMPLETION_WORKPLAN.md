@@ -15,7 +15,34 @@ This workplan defines proposed work packages and acceptance dependencies; it doe
 start agents, certify completion or authorize signing/deployment. Lane names below identify the
 natural existing owners, who must claim work in their lane logs.
 
-## Current state and scope
+## Current progress update
+
+As of main `0f2b32171` on 2026-10-24, the
+[all-lane audit](../logs/lean-chunk-lane-audit-2026-10-24.md) supersedes the original baseline status
+below. It records every lane tip, unmerged work, fresh checks and a status row for each W00–W16 package.
+The package deliverables, success criteria and dependency graph in this workplan remain the target.
+
+- **W00:** interfaces/owner map and default-build integration delivered. `checkSuccessor` now composes
+  gas/floats/genesis, but the combined configuration lacks recorded validation and crypto/action/recorder
+  execution is not yet connected. Boundary questions and final refinement/tier proofs remain open.
+- **W01:** corpus-free versus content CI is separated; every saved D3 verdict is now accounted for;
+  four drivers have build/smoke coverage. Full observables, report package identities and combined
+  successor validation are still missing. The old always-red hosted-corpus issue is repaired.
+- **W05:** nine BLS hosts are now on main alongside ecrecover/p256; BN128 is committed in L3 but not
+  merged. Current L3 has a failing stale dispatch assertion and a BN128 missing-fixture false pass.
+  Accepted whole-chunk crypto paths and W06 transaction/delegate/ML-DSA coverage remain open.
+- **W07/W08:** L4 has unmerged resolving-hook/checker progress, but no additional scoped acceptance.
+  Real action/ETH integration and positive fixtures are still required. Its distribution-receipt
+  impossibility argument needs review before closing the boundary question.
+- **W02/W03/W09/W11:** capacity, runtime-error parity, protocol storage and actual resharding remain
+  substantial semantic work. **W13–W16:** authentic representative execution, frozen full validation
+  and admission/release have not been delivered by these checkpoints. Gates A/B/C remain open.
+
+The inventory is now 147 implemented, 36 validated, 10 missing, 18 partial and 11 impossible rows
+(222 total). Nine rows moved missing→partial; that is not nine completed work packages or an effort
+percentage. For current acceptance status use the audit, not the historical baseline table.
+
+## Original baseline state and scope
 
 ### Completed foundations to preserve
 
