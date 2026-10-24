@@ -137,9 +137,11 @@ reduction is a far more tractable target than 36.1 %, but it is now an optimisat
 
 1. A 2-child node whose children are **NV proofs** (not App proofs) proves and verifies at
    production hash levers and the production WHIR target — `AGG_DEPTH2_OK`.
-2. The depth-2 SHA AIR is `2^21` and the legal stacked ceiling is `2^21`; they coincide exactly.
-   There is no headroom: `comps` would have to rise above 8,192 × 2 = 16,384 to need another bit.
-3. Depth 2 costs 143 queries, and 700.5 s / 18.76 GB for one node.
+2. The depth-2 SHA AIR is `2^21` and the legal stacked ceiling at `ns19/lb6` is `2^21`. The fit is
+   **not** tight at that ceiling: 8,747 comps against 16,384 leaves **46.6 % headroom**, so the
+   "they coincide exactly" reading in earlier drafts was a `2^20` observation, not an inherent
+   property. Depth 3 confirms it independently at 9,911 comps (39.5 % headroom).
+3. Depth 2 costs 143 queries, and 700.5 s / 18.76 GB for one node (L2 alone; children cached).
 4. The prior "depth 2 is not provable at production parameters" claim is **false as written**. It
    was true for the `ns18 lb7` pairing only.
 
