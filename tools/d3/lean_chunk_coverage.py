@@ -167,6 +167,10 @@ def lean_crypto_host_arms(repo):
     These are still out of domain in D3α (`Host.hostCall` has no arm for them, and
     `D3/CryptoDomain.hostCall_no_arm` checks that), so having an arm here is `partial`: the host
     semantics exists, but the whole-chunk path is unchanged and no whole-chunk case exercises it.
+
+    `alt_bn128_*` is included: its arithmetic/codec lives in `NearSpecV3/AltBn128.lean` and its
+    three arms are in the same `cryptoHostCall` table, so the same reading applies. Only the
+    *payload* file differs; the arm's presence in the table is what this function reports.
     """
     src = (repo / LEAN_ROOT / "Wasm/CryptoHost.lean").read_text()
     block = src.split("def cryptoHostCall", 1)[1]

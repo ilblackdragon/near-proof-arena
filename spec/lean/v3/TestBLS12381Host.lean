@@ -17,7 +17,7 @@ The payload suite (`TestBLS12381.lean`) compares `BLS12381.p1Sum` and friends ag
 * `pairing_check`'s own order: base, **read**, per-element from `data.len()`, decode, and its
   three-way `0`/`1`/`2` verdict with no register write at all.
 
-Source: `runtime/near-vm-runner/src/wasmtime_runner/logic.rs:33-105` (the `bls12381_impl!` macro),
+Source: `runtime/near-vm-runner/src/wasmtime_runner/logic.rs:33-83` (the `bls12381_impl!` macro),
 `:1352-1376` (`bls12381_pairing_check`), and `runtime/near-vm-runner/src/logic/bls12381.rs`
 (the payloads). Gas: PV86 `core/parameters/res/runtime_configs/parameters.snap:184-201`.
 
@@ -330,10 +330,33 @@ def subgroupChecks : List (String × Bool) :=
     ("pairing: compressed G2 in uncompressed slot returns 1",
       (runPairMem (g1GenBytes ++ (g2GenCompressed ++ List.replicate 96 0)) 64).ret == some 1) ]
 
+/-! ## `cryptoHostCall` dispatch
+
+The arms above are reached here by direct call. `cryptoHostCall` is the table the successor call
+loop would consult, so its dispatch has to be checked too: every one of the nine names must select
+*some* arm (not `none`, which the loop reports as out of domain), and an unknown name must stay
+`none` rather than silently matching a prefix. The selected arm's arity is the argument count
+`popArgs` asks for, which differs for `pairing_check` (2) and the eight register writers (3). -/
+
+def dispatchChecks : List (String × Bool) :=
+  [ ("dispatch: p1_sum selects an arm", (cryptoHostCall "bls12381_p1_sum").isSome),
+    ("dispatch: p2_sum selects an arm", (cryptoHostCall "bls12381_p2_sum").isSome),
+    ("dispatch: g1_multiexp selects an arm", (cryptoHostCall "bls12381_g1_multiexp").isSome),
+    ("dispatch: g2_multiexp selects an arm", (cryptoHostCall "bls12381_g2_multiexp").isSome),
+    ("dispatch: map_fp_to_g1 selects an arm", (cryptoHostCall "bls12381_map_fp_to_g1").isSome),
+    ("dispatch: map_fp2_to_g2 selects an arm", (cryptoHostCall "bls12381_map_fp2_to_g2").isSome),
+    ("dispatch: p1_decompress selects an arm", (cryptoHostCall "bls12381_p1_decompress").isSome),
+    ("dispatch: p2_decompress selects an arm", (cryptoHostCall "bls12381_p2_decompress").isSome),
+    ("dispatch: pairing_check selects an arm", (cryptoHostCall "bls12381_pairing_check").isSome),
+    ("dispatch: unknown name stays out of domain", (cryptoHostCall "bls12381_nope").isNone),
+    ("dispatch: empty name stays out of domain", (cryptoHostCall "").isNone),
+    -- alt_bn128 is the parallel substream's region; this table must not claim it
+    ("dispatch: alt_bn128 not claimed by this table", (cryptoHostCall "alt_bn128_g1_sum").isNone) ]
+
 def allChecks : List (String × Bool) :=
   p1SumChecks ++ p2SumChecks ++ g1MultiexpChecks ++ g2MultiexpChecks ++
   p1DecompressChecks ++ p2DecompressChecks ++ mapFpChecks ++ mapFp2Checks ++
-  pairChecks ++ orderChecks ++ subgroupChecks
+  pairChecks ++ orderChecks ++ subgroupChecks ++ dispatchChecks
 
 def main : IO UInt32 := do
   let mut bad := 0

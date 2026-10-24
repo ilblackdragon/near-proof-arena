@@ -45,8 +45,8 @@ def storeFn : Option (HStore × List HStore) → Nat × Bytes → Option Bytes
 implicit transition `k`'s `base_state`. (Evaluate `storesData` once and use `storeFn`.) -/
 def storesOf (witnessBytes : Bytes) : Nat × Bytes → Option Bytes := storeFn (storesData witnessBytes)
 
-def checkD2CoreL (hooks : ActionHooksL) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
-    (gasCap : Option Nat := none) : SM (Nat × Bytes) Unit := do
+def checkD2CoreLObs (hooks : ActionHooksL) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : SM (Nat × Bytes) Observable := do
   -- 3.1 decoding, actor checks
   let c ← liftEK ((decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}"))
   let (swBytes, codes) ← liftEK (decodeWitnessFile witnessBytes)
@@ -200,7 +200,29 @@ def checkD2CoreL (hooks : ActionHooksL) (allowCodes : Bool) (claimBytes witnessB
   | some (emr, len) =>
     checkK (H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     checkK (H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
+    -- The consensus outputs this checker computed and compared against the endorsed header. Every
+    -- field is a computed value, not a read-back of the header, so emitting them makes a report's
+    -- comparison a measurement rather than a restatement.
+    return { stateRoot := root
+             outcomeRoot := outcomeRootD1 out.outcomes
+             gasBurnt := out.gasUsed
+             balanceBurnt := out.balanceBurnt
+             outgoingReceiptsRoot := outgoingReceiptsRootD2 L out.outgoing
+             proposals := out.proposals.map Proposal.encode
+             txRoot := merklizeBorsh (w.newTxs.map TxD2.raw)
+             encodedMerkleRoot := emr
+             encodedLength := len
+             congestion := out.congestion
+             bwRequests := out.bwRequests
+             logs := out.outcomes.map (fun o => o.logs) |>.flatten
+             receiptCount := out.outgoing.length
+             wasmGas := out.wasmGas }
 
+
+/-- The signed logged checker: the observable logged checker projected to its verdict. -/
+def checkD2CoreL (hooks : ActionHooksL) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : SM (Nat × Bytes) Unit :=
+  (checkD2CoreLObs hooks allowCodes claimBytes witnessBytes gasCap).map fun _ => ()
 
 def checkD2L (claimBytes witnessBytes : Bytes) : SM (Nat × Bytes) Unit :=
   checkD2CoreL d2HooksL false claimBytes witnessBytes
@@ -231,6 +253,14 @@ theorem RK_ok {α : Type} (a : α) : RK g (pure a) (.ok a) := by unfold RK; rfl
 theorem RK_throw {α : Type} (e : String) : RK g (throw e : SM K α) (throw e) := by unfold RK; rfl
 theorem RK_error {α : Type} (e : String) : RK g (throw e : SM K α) (.error e) := by unfold RK; rfl
 theorem RK_liftEK {α : Type} (x : Except String α) : RK g (liftEK x) x := by unfold RK; cases x <;> rfl
+
+/-- **`map` on both sides.** If the tagged program computes a value and the pure program computes the
+same value, their images under a common function agree. This is how the signed checkers, which are
+`map fun _ => ()` projections of the observable checkers, inherit the logged run's agreement. -/
+theorem RK_map {α β : Type} (f : α → β) {x : Except String α} {x' : SM K α}
+    (h : RK g x' x) : RK g (SM.map f x') (x.map f) := by
+  unfold RK at h ⊢
+  rw [h, SM.run_map]
 theorem RK_checkK (b : Bool) (m : String) : RK g (checkK b m) (check b m) := by
   unfold RK; cases b <;> rfl
 theorem RK_checkK_true {b : Bool} (m : String) (h : b = true) : RK g (checkK true m) (check b m) := by
@@ -386,11 +416,15 @@ macro_rules | `(tactic| lkk_step) => `(tactic| first
 
 macro "lkk" : tactic => `(tactic| repeat (any_goals lkk_step))
 
-theorem checkD2Core_logged (H : ActionHooks) (HL : ActionHooksL)
+/-- **The logged observable checker computes the pure observable checker.** Proved by the same `lkk`
+script as before, because both bodies have the same shape — only the final `return` differs, and it is
+now the same computed record on both sides. -/
+theorem checkD2CoreObs_logged (H : ActionHooks) (HL : ActionHooksL)
     (hH : ∀ (s : HStore) (root : Bytes), HInv s → HooksR s root s H HL)
     (allowCodes : Bool) (cb wb : Bytes) (gasCap : Option Nat) :
-    RK (storesOf wb) (checkD2CoreL HL allowCodes cb wb gasCap) (checkD2Core H allowCodes cb wb gasCap) := by
-  unfold checkD2Core checkD2CoreL
+    RK (storesOf wb) (checkD2CoreLObs HL allowCodes cb wb gasCap)
+      (checkD2CoreObs H allowCodes cb wb gasCap) := by
+  unfold checkD2CoreObs checkD2CoreLObs
   lkk
   all_goals
     apply RK_bind
@@ -409,6 +443,15 @@ theorem checkD2Core_logged (H : ActionHooks) (HL : ActionHooksL)
           intro h; simp [storesOf, storesData, storeFn, storesOfW, *]
       all_goals lkk
   all_goals lkk
+
+/-- **The logged signed checker computes the signed checker.** The projection to `Unit` commutes with the
+logged run, so agreement transfers from the observable pair to the signed pair definitionally. -/
+theorem checkD2Core_logged (H : ActionHooks) (HL : ActionHooksL)
+    (hH : ∀ (s : HStore) (root : Bytes), HInv s → HooksR s root s H HL)
+    (allowCodes : Bool) (cb wb : Bytes) (gasCap : Option Nat) :
+    RK (storesOf wb) (checkD2CoreL HL allowCodes cb wb gasCap) (checkD2Core H allowCodes cb wb gasCap) := by
+  unfold checkD2Core checkD2CoreL
+  exact RK_map _ (checkD2CoreObs_logged H HL hH allowCodes cb wb gasCap)
 
 /-- **The logged D2 checker computes `checkD2`.** -/
 theorem checkD2L_eq (cb wb : Bytes) : SM.run (storesOf wb) (checkD2L cb wb) = checkD2 cb wb := by

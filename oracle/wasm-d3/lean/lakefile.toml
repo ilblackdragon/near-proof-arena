@@ -36,3 +36,7 @@ root = "TestFloat"
 [[lean_exe]]
 name = "nearspec-v3-check-d3f"
 root = "MainD3F"
+
+[[lean_exe]]
+name = "nearspec-v3-check-d3-out"
+root = "MainD3Out"
