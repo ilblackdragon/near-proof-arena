@@ -1,0 +1,94 @@
+{
+  "status": "ALL_SOURCE_LISTS_AND_OUTCOME_ROOT_FOR_TWO_D0A_FIXTURES_NOT_FULL_NEAR",
+  "base_lane_commit": "fe01ecff4",
+  "fixed_profile": {
+    "caps": [
+      16,
+      16,
+      1024
+    ],
+    "mode": 1,
+    "source_budgets": [
+      2048,
+      2048,
+      131072
+    ]
+  },
+  "prover_verifier_binary_sha256": "c5d6834fe9fb5a0a61aa20f0879b37491c77b32dca4becb1fdd7e8f2c2d04279",
+  "claim_roots_export_binary_sha256": "6509cc8681065a036fdf3911957b32867d25e4004793044f59987c1127f09bf8",
+  "public_words": 11643,
+  "private_words": 10299688,
+  "witness_log": 23,
+  "peak_rss_kib": 12806272,
+  "cases": [
+    {
+      "status": "HOST_SOURCE_SET_AND_OUTCOME_BINDING_NOT_STATE_VALIDITY",
+      "counts": [
+        1,
+        9,
+        804
+      ],
+      "packet_bytes": 247786,
+      "envelope_bytes": 248012,
+      "packet_sha256": "e542e54303dddbc1510f691ee44a68eb25c3431574c550f5f803d124f108d22f",
+      "envelope_sha256": "26acdbd4dbc2bbbd448708f6117f2280bbe108f5441e9261785fd30cc7902e15",
+      "claim_sha256": "edea3dafa08506e8b4af109dd8ccdea1a0384fa993d75ccf040bba3ba5e8b173",
+      "outcome_root": "6a57f4c1c5b909e136cd4f4f48cac7bb4f9f179c9d3f3ad17541ab2ef9d16f89",
+      "negative_checks": 24,
+      "inner_proof_verified_here": false,
+      "ready_s": 3.010915954,
+      "fresh_verify_s": 1.445528675,
+      "fresh_negative_checks": 4,
+      "in_process_negative_checks": 21,
+      "fixture_sha256": "5fb589e9f9effe91e6c9a53c173ed36a42576d61530f30cc4826222c2de0502e",
+      "public_sha256": "440d96c41c9b3b6b33fef13d9577b8b3773c61b93944c730a68407b30ecf6e11"
+    },
+    {
+      "status": "HOST_SOURCE_SET_AND_OUTCOME_BINDING_NOT_STATE_VALIDITY",
+      "counts": [
+        0,
+        0,
+        711
+      ],
+      "packet_bytes": 247786,
+      "envelope_bytes": 248012,
+      "packet_sha256": "f2d51c78b33a4fadfe58171a1b9825b9aac194e20d03b96f5360c84b70943d4a",
+      "envelope_sha256": "20c961484766ae22562473d956f62adb15aa5a0c01f56eb8d6e3840d668c1c0e",
+      "claim_sha256": "22c25e89f43d7fd45fa9267b5339a5a70348ec2358a15101a6d5e2bb6656705e",
+      "outcome_root": "a21f59504da3dac9df917cf0b3619b6386a8bd8949b28ff144b84470433ce024",
+      "negative_checks": 24,
+      "inner_proof_verified_here": false,
+      "ready_s": 2.791780007,
+      "fresh_verify_s": 1.448536315,
+      "fresh_negative_checks": 4,
+      "in_process_negative_checks": 21,
+      "fixture_sha256": "b9a13447df1db45cbb71f8e41314154e3e24de0aa83aaad733cec9f0d2455a22",
+      "public_sha256": "73cc340d6844158bda37be542a3c8ed3c2b1ec0de4d905b6e8c9dcd735650788"
+    }
+  ],
+  "new_circuit_requires_new_verifier": true,
+  "evidence_sha256": {
+    "verify-multi804.log": "3a4925f24824bb1cc61aa444817f570971327fe1b04f63c6fdabf3a64cdbb42a",
+    "empty-context-invalid.multi": "620074b2707d23ebccf9a25cb369fe4e8189e02a419da19d7632efeb9ef432df",
+    "near-receipt-multi.rs": "3324bffe3ad1de60f97150df3ed1fa7f278a9936546537bc988656603d19287d",
+    "multi-context-invalid.log": "9e7051b15df49bd77d54169ac767a7d3fa10b4802d7ed025ae06b794ae13140f",
+    "source-roots-export.rs": "7b15bd8db73d40ae821447a0c1948c3f4ee9a5565e1ac2f28c9aea526f049afd",
+    "build-multi-roots-export.log": "7cd7202f447c70a0ed4c15312e3271b7fe8a7aaa4b51a7e3852ea9c2e6b9c4fe",
+    "build-multi-fixed.log": "8c1f2ff3e6c7c1ea40a3c4e22d6177a4c428a1f63a1ad51c63a4ded468c1efb3",
+    "multi-context-valid.log": "31156bf48cc0ebad0b496d98fb88d6c6ec0c4392133d08eff90710f8991f9bfb",
+    "00-h10036-s3-roots.json": "2bde618afa7cebee25482e14111b698bae0a216cbeca7d387fecb26ec1bcea77",
+    "multi711-audit.json": "e244448ebda8d71bc9e52cffb0c378888512bdaf96d8df849415b712fc6bd2cb",
+    "multi804-audit.json": "173734d1d26743f31ff44ae77b14228d1e278e421486a044a14f360cccb7397f",
+    "empty-context-valid.multi": "65130bd8a6bd15fc89e27f07eabb3fb6af1f7ce5a694e37ea9d0240a43adfe96",
+    "verify-multi711.log": "3aa73971e8ba3c2556e5898c8422db2b667f055d1d494d0d6b8bb6d253b12d04",
+    "receipt_multi_wire.rs": "add67d4957fb31a627404bc55b7b99fb80ffff05e01cb6cce3e9ce8545e90618",
+    "build-multi.log": "09e1e5934e7b754c9bd692cc27dea1646ad2fde67150b11ec22f94a022b89719",
+    "00-h10035-s3-roots.json": "9c4572a89612946788d307ed069f4b57457521ef2b224975cce04d8f201f0708",
+    "multi-original.log": "afc759993b33b5934e8e76c409305f22bdb9d79374bb7604c3371872932fd2d6"
+  },
+  "backend_sha256": {
+    "labrador.c": "a77f3c33f940bbe8dbc6f390b2d7358e313bab7a37fc66a08fc5ed510b2dface",
+    "np_pairs.h": "1c15e57567379c36437b94d9313d4d1e105fe3dc8dde87684f0a361639531c6d",
+    "np_jl.h": "6c8d45d88a23aa7ea55739f12f37032176b8a6fc5a411fb28ddd7136a685f79a"
+  }
+}

@@ -362,3 +362,17 @@ Inner packet hash matches previously verified parallel-JL packet. Native claim
 parser/order derivation trusted; no full ordered execution, runtime/state,
 recursion/PQ or new end-to-end timing claim. See SOURCE_MEMBERSHIP.md and
 evidence/source-membership under research/near-compression/tail-architecture.
+
+### Combined original source-list sets
+
+One circuit/proof now covers counts [1,9,804] and [0,0,711] with fixed caps
+[16,16,1024], log23 and shared gas/height/shard context. Inner packet 247,786 B;
+all-path envelope 248,012 B. Warm 3.011/2.792 s; fresh serial verifier
+1.446/1.449 s, no witnesses, four negatives each. Twenty-one in-process proof
+mutations and 24 host-envelope mutations reject per fixture. Independent public
+bytes, all ordered source memberships and full claim outcome roots match.
+Targeted recomputed-hash cross-list shard mutant rejects only shared-context
+constraint. PeakRSS12,806,272 KiB. New circuit/codec uses new verifier, not old
+single-list binary. Not authenticated state/runtime or PQ/history; next semantic
+work account reads and ordered writes/repeated receivers. See MULTI_LISTS.md and
+evidence/multi-lists under research/near-compression/tail-architecture.

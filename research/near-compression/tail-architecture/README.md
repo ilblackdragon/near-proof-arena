@@ -7,6 +7,13 @@ established by the current diagnostic packet.
 
 ## Current decision
 
+[Combined source lists](MULTI_LISTS.md) now prove all three lists of two original
+fixtures: 814 receipts / 3.011 s and 711 receipts / 2.792 s warm, each 247,786 B
+(or 248,012 B including all source paths). Claim-derived source order/context
+and complete outcome roots pass host checks; fresh proof verification passes.
+Authenticated account state and ordered writes, full runtime, composed PQ/history
+and the 1–2 s deadline remain open. Earlier single-list results follow.
+
 [Packed source/outcome lists](PACKED_RECEIPT_LISTS.md): an original **804-receipt
 list proves in 244,838 B / 4.543 s warm**, and its packet verifies freshly in
 1.549 s. Exact packed concatenation lets the 1,024-slot profile construct within
