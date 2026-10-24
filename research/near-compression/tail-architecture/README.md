@@ -7,14 +7,13 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Public event interface](PUBLIC_EVENTS.md): expose authenticated job metadata and
-hashes; move their SHA512 root computation to the verifier. Canonical sparse
-transport yields **258,134 / 157,766 B**, both fresh-process verified. Warm repeats
-1.965–2.033 s (earlier compact run 2.57–2.90 s): deadline remains unestablished.
-The same five-limb security qualifications apply; no composed PQ128/NEAR/history
-claim. Corpus checks identify 813 public outcome-tree nodes in the large case
-that can be reconstructed natively. Next: implement this authenticated tree
-composition, shrinking the candidate circuit from 7,296 to 5,248 SHA blocks.
+[Native outcome-tree composition](NATIVE_OUTCOME_TREE.md) reconstructs 813 public
+internal hashes while checking the same complete job root. Actual packets
+**225,985 / 158,950 B** verify in fresh processes; four warm observations
+**1.48–1.52 s** on one CPU core. These are component results, not full NEAR,
+recursive history, composed PQ128 or p95. Next: reconstruct receipt leaves from
+proven PEO digests and receipt IDs (64-case census; candidate capacity 3,232
+SHA blocks), then establish application/byte-bus binding and history composition.
 
 [Outer security evidence](OUTER_SECURITY.md) and the
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)

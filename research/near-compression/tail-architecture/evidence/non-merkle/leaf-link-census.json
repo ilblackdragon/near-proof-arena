@@ -1,0 +1,342 @@
+{
+  "status": "CANDIDATE_ONLY_NOT_IMPLEMENTED",
+  "cases": [
+    {
+      "case": "00-h10004-s3",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 8
+    },
+    {
+      "case": "00-h10006-s3",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 15
+    },
+    {
+      "case": "00-h10007-s3",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 15
+    },
+    {
+      "case": "00-h10008-s3",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 19
+    },
+    {
+      "case": "00-h10011-s1",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 13
+    },
+    {
+      "case": "00-h10011-s3",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "00-h10012-s0",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 11
+    },
+    {
+      "case": "00-h10012-s1",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 11
+    },
+    {
+      "case": "00-h10012-s3",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 17
+    },
+    {
+      "case": "00-h10013-s1",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 9
+    },
+    {
+      "case": "00-h10013-s2",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 13
+    },
+    {
+      "case": "00-h10014-s1",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 9
+    },
+    {
+      "case": "00-h10015-s0",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 8
+    },
+    {
+      "case": "00-h10016-s0",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "00-h10017-s0",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 11
+    },
+    {
+      "case": "00-h10018-s0",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 9
+    },
+    {
+      "case": "00-h10019-s0",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 13
+    },
+    {
+      "case": "00-h10019-s1",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 15
+    },
+    {
+      "case": "00-h10020-s1",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 17
+    },
+    {
+      "case": "00-h10021-s1",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "00-h10022-s1",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "00-h10023-s1",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 8
+    },
+    {
+      "case": "00-h10023-s2",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 21
+    },
+    {
+      "case": "00-h10023-s3",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 10
+    },
+    {
+      "case": "00-h10024-s0",
+      "leaf_links_checked": 5,
+      "remaining_jobs": 24
+    },
+    {
+      "case": "00-h10024-s3",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 8
+    },
+    {
+      "case": "00-h10025-s2",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 23
+    },
+    {
+      "case": "00-h10034-s1",
+      "leaf_links_checked": 6,
+      "remaining_jobs": 22
+    },
+    {
+      "case": "00-h10035-s1",
+      "leaf_links_checked": 3,
+      "remaining_jobs": 14
+    },
+    {
+      "case": "00-h10035-s3",
+      "leaf_links_checked": 814,
+      "remaining_jobs": 833
+    },
+    {
+      "case": "00-h10036-s3",
+      "leaf_links_checked": 711,
+      "remaining_jobs": 729
+    },
+    {
+      "case": "00-h10037-s3",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 9
+    },
+    {
+      "case": "00-h10038-s0",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "00-h10039-s1",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 10
+    },
+    {
+      "case": "00-h10040-s1",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 8
+    },
+    {
+      "case": "00-h10041-s1",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 11
+    },
+    {
+      "case": "01-h10004-s0",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 13
+    },
+    {
+      "case": "01-h10005-s2",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 14
+    },
+    {
+      "case": "01-h10005-s3",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 19
+    },
+    {
+      "case": "01-h10006-s2",
+      "leaf_links_checked": 5,
+      "remaining_jobs": 20
+    },
+    {
+      "case": "01-h10007-s0",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 22
+    },
+    {
+      "case": "01-h10007-s1",
+      "leaf_links_checked": 3,
+      "remaining_jobs": 18
+    },
+    {
+      "case": "01-h10007-s2",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 16
+    },
+    {
+      "case": "01-h10008-s0",
+      "leaf_links_checked": 7,
+      "remaining_jobs": 26
+    },
+    {
+      "case": "01-h10008-s3",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 10
+    },
+    {
+      "case": "01-h10009-s0",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "01-h10009-s1",
+      "leaf_links_checked": 5,
+      "remaining_jobs": 24
+    },
+    {
+      "case": "01-h10010-s1",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 14
+    },
+    {
+      "case": "01-h10011-s4",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 8
+    },
+    {
+      "case": "01-h10012-s2",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "01-h10013-s2",
+      "leaf_links_checked": 3,
+      "remaining_jobs": 17
+    },
+    {
+      "case": "01-h10015-s0",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 17
+    },
+    {
+      "case": "01-h10017-s1",
+      "leaf_links_checked": 8,
+      "remaining_jobs": 29
+    },
+    {
+      "case": "01-h10018-s2",
+      "leaf_links_checked": 4,
+      "remaining_jobs": 21
+    },
+    {
+      "case": "01-h10018-s4",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 13
+    },
+    {
+      "case": "01-h10019-s2",
+      "leaf_links_checked": 1,
+      "remaining_jobs": 10
+    },
+    {
+      "case": "01-h10022-s0",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 12
+    },
+    {
+      "case": "01-h10024-s0",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 9
+    },
+    {
+      "case": "01-h10024-s1",
+      "leaf_links_checked": 2,
+      "remaining_jobs": 18
+    },
+    {
+      "case": "01-h10025-s1",
+      "leaf_links_checked": 496,
+      "remaining_jobs": 518
+    },
+    {
+      "case": "01-h10025-s2",
+      "leaf_links_checked": 3,
+      "remaining_jobs": 16
+    },
+    {
+      "case": "01-h10026-s1",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 9
+    },
+    {
+      "case": "01-h10033-s3",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 9
+    },
+    {
+      "case": "01-h10034-s3",
+      "leaf_links_checked": 0,
+      "remaining_jobs": 8
+    }
+  ],
+  "case_count": 64,
+  "candidate_policy": {
+    "1": 1024,
+    "2": 16,
+    "4": 8,
+    "8": 4,
+    "16": 2,
+    "32": 1,
+    "2048": 1
+  },
+  "candidate_sha_block_slots": 3232,
+  "required_new_public_input": "32-byte receipt id per leaf; PEO digest already public",
+  "limitations": [
+    "Preserve exact PEO/LEAF id association and public root reconstruction.",
+    "Receipt membership and execution semantics still require proof.",
+    "Corpus-derived capacity is not a held-out guarantee."
+  ]
+}

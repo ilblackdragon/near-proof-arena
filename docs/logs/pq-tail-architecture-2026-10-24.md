@@ -116,3 +116,14 @@ public leaf digests; odd nodes promoted unchanged. Candidate non-Merkle policy
 fits corpus at 5,248 SHA blocks vs 7,296. Next implement native authenticated tree
 composition, not just host audit. Full chunk claim and byte-bus links still open.
 Evidence: [public events](../../research/near-compression/tail-architecture/PUBLIC_EVENTS.md).
+
+## Native outcome-tree composition
+
+Implemented removal of internal Merkle jobs from the private hash circuit; native
+verifier derives their exact records and checks the original full job root.
+225,985/158,950 B; alternating warm 1.517/1.483/1.506/1.494 s, fresh verification
+0.664/0.656 s. 69 independent fixtures, 208 tree mutations, 24 proof mutations pass.
+Backend scalar minimum 144.955 modeled bits; new main-ring geometry needs a new
+outer analysis. No full NEAR/PQ/history or p95 claim. Leaf-link census supports
+next reduction to 3,232 SHA blocks, not yet implemented.
+[Reproduction and limitations](../../research/near-compression/tail-architecture/NATIVE_OUTCOME_TREE.md).

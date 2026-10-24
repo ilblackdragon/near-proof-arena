@@ -1,0 +1,27 @@
+{
+  "status": "SAME_COMPLETE_JOB_ROOT_NOT_FULL_NEAR_STATEMENT",
+  "packet_bytes": 225985,
+  "packet_sha256": "93ea2b87536233249b9584469a71442ac4ac088b02e40c753fcc760d2ddc139b",
+  "source_sha256": "a1b32b91925e5b0df3b7237bacec54c9f44ab84777eee492dcaf089c1c1c687d",
+  "proven_sha_jobs": 1647,
+  "native_merkle_jobs": 813,
+  "complete_sha_jobs": 2460,
+  "outcome_root_hex": "6a57f4c1c5b909e136cd4f4f48cac7bb4f9f179c9d3f3ad17541ab2ef9d16f89",
+  "expected_complete_job_root": "becc555a1d42d4c6d4119acd4fd41e23fbcb7746e3450971987cb278e14e1b89476f5989af7624237c6dc733496a1ed74d97e5288937b1f0213ddbcdb4d9850a",
+  "all_complete_source_records_equal": true,
+  "complete_root_matches_external_expected": true,
+  "sections": {
+    "public_records": 67539,
+    "tape": 32201,
+    "claim": 21,
+    "left_rns": 5120,
+    "opening_rns": 11264,
+    "norms": 288,
+    "backend": 109488
+  },
+  "limitations": [
+    "Job-root-to-NEAR-claim binding remains outside this component.",
+    "D0a outcome-tree semantics only; no D1 transaction-leaf equivalence claim.",
+    "Other SHA bin, receipt byte buses, Wasm/state constraints, history recursion and composed PQ analysis remain open."
+  ]
+}
