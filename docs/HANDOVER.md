@@ -193,12 +193,15 @@ Three sentences the reader can act on, each with its evidence and its limit:
    looked viable. **The sole surviving exit is reducing SHA compressions per child by 2×** — a
    circuit change; `multiproof` does not help (`merkle_nodes` stays 464 in both lever configs), and
    digest width d=40 only gives 12 → 10 units = 16.7%. Not done.
-   Consequence for the goal: **the tree is load-bearing on TIME, not on geometry.** A linear chain
-   verifies one child per level and *is* geometrically legal — a 1-NV-child node fits the 2^20
-   ceiling (measured), so S=146 as 146 serial levels works in size terms but costs **≈20.6 h**
-   with no parallelism to exploit (each level consumes the previous level's proof). A binary tree
-   would need only 8 levels but depth 2 is blocked. So 1 Pgas currently has a legal-but-slow path
-   and no fast one; the geometry wall costs roughly 14 h of wall-clock against the tree plan.
+   Consequence for the goal: **the tree is load-bearing on TIME, not on geometry** — but the
+   long-chain fallback is **not merely slow, it is capped in code.** A 1-NV-child node *is*
+   geometrically legal (fits the 2^20 ceiling, measured 5×), so S=146 as 146 serial levels would
+   work in size terms at **≈20.6 h** with no parallelism to exploit (each level consumes the
+   previous level's proof). However `main.rs:314` loops `(resume+1..=10)` and `:370` asserts the
+   bound program converges by level 10 — so a 146-level chain needs that bound raised first. A
+   binary tree would need only 8 levels but depth 2 is blocked. So 1 Pgas currently has a
+   legal-but-slow path and no fast one; the geometry wall costs roughly 14 h of wall-clock
+   against the tree plan, and the chain path needs its level cap raised before it can be run.
 4. **`NodeOK` gap: the soundness of a 1 Pgas tree is an OPEN obligation.** The per-proof union
    bound fails from **S ≈ 103–118** and every 1 Pgas shape exceeds that (S ≈ 146 at 2^23
    ops/segment). The repair is to apply the extraction theorem **once** to the vk family
