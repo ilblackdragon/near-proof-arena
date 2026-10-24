@@ -1,0 +1,16 @@
+{
+  "driver": "nearspec-v3-check-l4 (checkD3 vs checkD3Global, same pipeline, resolving hook)",
+  "cases": 539,
+  "identical_verdicts": 539,
+  "differences": 0,
+  "by_reason": {
+    "out of domain (w.shape): non-ED25519 transaction key": 79,
+    "out of domain (w.shape): ML-DSA-65 public key": 149,
+    "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)": 209,
+    "out of domain (w.shape): UseGlobalContract action": 89,
+    "out of domain (c.segment)": 1,
+    "out of domain (e.secp): SECP256K1 delegate signature verification": 1,
+    "out of domain (e.wasm-\u03b1): float type or operator in a function body": 11
+  },
+  "note": "All 539 d3c7-d3c10 OOD cases whose d3_violations contain e.eth_implicit_local or w.shape. Both relations return the same verdict and reason, because the delegate cannot lift either guard: its output is always .none/.local _ (resolvedContract_local_stays_local), and D3:236-239 rejects every .local _ on an ETH-implicit receiver; D3:248 needs a .global/.byAccount account, of which there are zero in these witnesses."
+}

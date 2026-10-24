@@ -61,6 +61,33 @@ CURVE_PREFIXES = ("alt_bn128_", "bls12381_", "ecrecover", "p256_verify")
 TEST_FEATURES = ("sandbox_debug_log", "sleep_nanos", "burn_gas")
 
 
+# --- L4: additive bodies for the three global-contract actions -----------------
+# Each of these tags has a pinned codec, storage charge and action body in
+# D3/GlobalContract.lean / D3/GlobalContractExec.lean with directed #guard tests in
+# D3/GlobalContractTests.lean. None can be carried by a whole chunk yet: `D2.Base`
+# is closed, so `pBase` (D2/Types.lean:299-302) rejects them before any action runs,
+# and widening it changes the signed near-chunk-v3 format. Status is therefore
+# `partial`, not `implemented`, and the whole-chunk acceptance test is unmet.
+L4_ACTION_ROWS = {
+    9: (
+        "implemented additively (codec pDeployGlobal, storage charge "
+        "`0.0001 N/byte * code.len()` = global_contract_storage_per_byte, fee, "
+        "LackBalanceForState on insufficient balance, distribution receipt); "
+        "whole-chunk acceptance blocked: pBase:299 rejects the tag and D2.Base is closed"
+    ),
+    10: (
+        "implemented additively (codec pUseGlobal, Gci.len 32/account-id length, "
+        "global-contract key read, local-code removal, storage refund); "
+        "whole-chunk acceptance blocked: pBase:300 rejects the tag and D2.Base is closed"
+    ),
+    11: (
+        "implemented additively (codec pDsi, deterministic account id "
+        "`sha256`-based derivation, 0-balance/100-usage account, storage charge); "
+        "whole-chunk acceptance blocked: pBase:302 rejects the tag and D2.Base is closed"
+    ),
+}
+
+
 def _l0_supplement():
     """Execution/boundary rows and the oracle/exclusion/UQ sections (research analysis)."""
     import lean_chunk_coverage_l0 as l0
@@ -304,14 +331,26 @@ def inventory(repo, nearcore):
                 "execution, then remove the exclusion"
             )
             guard = f"out-of-domain ({ood_map[t]})"
+            # L4: tags 9/10/11 have an additive implementation (codec, fee, storage
+            # charge and action body in D3/GlobalContract{,Exec}.lean) but the D2
+            # `Base` type is closed, so `pBase`/`pRcpt`/`pTxD2` still reject them and
+            # no whole chunk can carry one. Honest status: partial, not implemented.
+            if t in L4_ACTION_ROWS:
+                status = "partial"
+                remaining = L4_ACTION_ROWS[t]
+                guard = f"out-of-domain ({ood_map[t]}) in checkD3/checkD2; accepted only in a widened-Base successor"
         else:
             status = "missing"
             remaining = "no Lean decode arm"
             guard = "undecoded"
         rows.append(row(
             f"L0-action-{t:02d}", "action", f"{ACTION_MOD}:{name} = {t}",
-            "NearSpecV3.D2.Types.pBase" if t in ok_tags else "none",
+            "NearSpecV3.D3.GlobalContractExec.BaseL4" if t in L4_ACTION_ROWS
+            else ("NearSpecV3.D2.Types.pBase" if t in ok_tags else "none"),
             status, guard,
+            "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase; "
+            "L4 additive bodies in D3/GlobalContractExec.lean"
+            if t in L4_ACTION_ROWS else
             "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
             "L4", "L0", "1 valid + 1 invalid whole-chunk case per tag",
             remaining,

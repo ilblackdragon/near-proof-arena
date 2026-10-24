@@ -13,8 +13,8 @@
   "counts": {
     "implemented": 147,
     "impossible-at-boundary": 11,
-    "missing": 10,
-    "partial": 18,
+    "missing": 5,
+    "partial": 23,
     "validated": 36
   },
   "evidence": "static reconciliation of pinned nearcore git objects against Lean dispatch tables; no execution, differential testing or proof",
@@ -649,44 +649,44 @@
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (oodDeployGlobal)",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "domain_guard": "out-of-domain (oodDeployGlobal) in checkD3/checkD2; accepted only in a widened-Base successor",
+      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase; L4 additive bodies in D3/GlobalContractExec.lean",
       "family": "action",
       "id": "L0-action-09",
-      "lean_path_symbol": "none",
+      "lean_path_symbol": "NearSpecV3.D3.GlobalContractExec.BaseL4",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DeployGlobalContract = 9",
       "owner": "L4",
-      "remaining_work": "decoder rejects this tag as out of domain; implement codec plus execution, then remove the exclusion",
-      "status": "missing"
+      "remaining_work": "implemented additively (codec pDeployGlobal, storage charge `0.0001 N/byte * code.len()` = global_contract_storage_per_byte, fee, LackBalanceForState on insufficient balance, distribution receipt); whole-chunk acceptance blocked: pBase:299 rejects the tag and D2.Base is closed",
+      "status": "partial"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (oodUseGlobal)",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "domain_guard": "out-of-domain (oodUseGlobal) in checkD3/checkD2; accepted only in a widened-Base successor",
+      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase; L4 additive bodies in D3/GlobalContractExec.lean",
       "family": "action",
       "id": "L0-action-10",
-      "lean_path_symbol": "none",
+      "lean_path_symbol": "NearSpecV3.D3.GlobalContractExec.BaseL4",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:UseGlobalContract = 10",
       "owner": "L4",
-      "remaining_work": "decoder rejects this tag as out of domain; implement codec plus execution, then remove the exclusion",
-      "status": "missing"
+      "remaining_work": "implemented additively (codec pUseGlobal, Gci.len 32/account-id length, global-contract key read, local-code removal, storage refund); whole-chunk acceptance blocked: pBase:300 rejects the tag and D2.Base is closed",
+      "status": "partial"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (oodStateInit)",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "domain_guard": "out-of-domain (oodStateInit) in checkD3/checkD2; accepted only in a widened-Base successor",
+      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase; L4 additive bodies in D3/GlobalContractExec.lean",
       "family": "action",
       "id": "L0-action-11",
-      "lean_path_symbol": "none",
+      "lean_path_symbol": "NearSpecV3.D3.GlobalContractExec.BaseL4",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DeterministicStateInit = 11",
       "owner": "L4",
-      "remaining_work": "decoder rejects this tag as out of domain; implement codec plus execution, then remove the exclusion",
-      "status": "missing"
+      "remaining_work": "implemented additively (codec pDsi, deterministic account id `sha256`-based derivation, 0-balance/100-usage account, storage charge); whole-chunk acceptance blocked: pBase:302 rejects the tag and D2.Base is closed",
+      "status": "partial"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
@@ -3097,18 +3097,18 @@
       "status": "implemented"
     },
     {
-      "acceptance_tests": "replay d3.call_eth_implicit_local with the wallet hash enumerated",
+      "acceptance_tests": "hand-built successor case with a wallet magic hash on an ETH-implicit receiver (needs the guard parametrised, blocked by additive-only)",
       "dependencies": "L4",
       "domain_guard": "e.eth_implicit_local",
-      "evidence": "D3:236-239 conservatively OOD | 209 exact verdicts; the resolution is deterministic given chain_id (`eth_wallet_global_contract_hash`, line 67)",
+      "evidence": "D3:236-239 conservatively OOD | 209 exact verdicts; the resolution is deterministic given chain_id (`eth_wallet_global_contract_hash`, lib.rs:89-105) | modelled: `Rci.resolve` (D3/GlobalContract.lean \u00a76) returns `.global (ethWalletHash chainId)` for a wallet magic hash, `.accountLocal h` otherwise; `ethWalletHash`/`walletMagicHash` recomputed from the four pinned res/*.wasm blobs and kept distinct | PROVEN BLOCKER: the delegate cannot lift this guard. `resolvedContract` only ever yields `.none`/`.local _` (`resolvedContract_local_stays_local`), and D3:236-239 rejects every `.local _` on an ETH-implicit receiver, so `guardPremise` survives the delegate (`resolveAccount_eth_local_premise_survives`). Lifting needs an edit to that guard (a `checkD3`-adjacent change), not a delegate | measured on all 539 d3c7-d3c10 OOD cases whose d3_violations contain e.eth_implicit_local or w.shape: the resolving successor `checkD3Global` returns the identical verdict and reason for all 539 (0 differences); 0 of 1,455 decoded accounts in those witnesses carry a wallet magic hash, so no corpus case exercises the redirect",
       "family": "d3-hook",
       "id": "L0-D3-006",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/D3/FunctionCall.lean:236-239",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "runtime/runtime/src/contract_code.rs:56-76 (LegacyEthWallet / EthImplicitGlobalContract)",
+      "nearcore_path_symbol": "runtime/runtime/src/contract_code.rs:56-76 (LegacyEthWallet / EthImplicitGlobalContract); runtime/near-wallet-contract/src/lib.rs:37-52,89-124",
       "owner": "L4",
-      "remaining_work": "resolve the legacy wallet (global) contract instead of excluding",
-      "status": "missing"
+      "remaining_work": "parametrise D3:236-239's guard (off by default so checkD3 is unchanged) and replay a wallet-magic-hash witness; a delegate alone cannot reach the wallet branch",
+      "status": "partial"
     },
     {
       "acceptance_tests": "directed u128 overflow deposit",
@@ -3125,18 +3125,18 @@
       "status": "implemented"
     },
     {
-      "acceptance_tests": "replay UseGlobalContract / GlobalByAccount cases",
+      "acceptance_tests": "hand-built witness whose receiver's account carries a `.global` contract and whose code blob is present (needs an oracle or hand-encoder path)",
       "dependencies": "L4",
       "domain_guard": "w.shape global contract identifier",
-      "evidence": "D3:248 `_ => throw \"out of domain (w.shape): global contract identifier\"` | 89 UseGlobalContract OOD verdicts | global contracts are live at PV83 (version.rs:556)",
+      "evidence": "D3:248 `_ => throw \"out of domain (w.shape): global contract identifier\"` | CORRECTION to the earlier evidence: the 89 `w.shape: UseGlobalContract action` verdicts come from the ACTION decoder (`D2/Types.lean:301`, `oodUseGlobal`), not from D3:248; D3:248 needs an account whose `Contract` is `.global`/`.byAccount`, and 0 of 1,455 decoded accounts in all 539 OOD cases have one | implemented additively: `functionCallResolved` rewrites `.global h` -> `.local h` and `.byAccount id` -> `.local` (sha256 of the `kGlobalContractCode` trie value, column 18), so D3:248's global/byAccount arm is unreachable behind it (`resolvedContract_local_of_global`, `resolvedContract_local_of_byAccount`); a missing identifier value is `invalid: StorageInconsistentState` (contract_code.rs:107-116) | not exercised end to end: no corpus case reaches D3:248 (the action decoder fires first), and no whole-chunk case with a global-contract receiver could be generated without changing oracle/v3-d3 (pinned, off-limits) | measured: `checkD3Global` vs `checkD3` agree on all 300 sampled accepted chunks and all 539 OOD cases",
       "family": "d3-hook",
       "id": "L0-D3-008",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/D3/FunctionCall.lean:248",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "runtime/runtime/src/contract_code.rs:39-95 (RuntimeContractIdentifier::resolve)",
+      "nearcore_path_symbol": "runtime/runtime/src/contract_code.rs:39-95 (RuntimeContractIdentifier::resolve); trie_key.rs:133-143 (kGlobalContractCode)",
       "owner": "L4",
-      "remaining_work": "implement global contract resolution (E15 in spec \u00a72.1)",
-      "status": "missing"
+      "remaining_work": "whole-chunk case with a global-contract receiver; the delegate closes D3:248 but no witness exercises it",
+      "status": "partial"
     },
     {
       "acceptance_tests": "split the 279 cases by committed vs rolled-back deploy; replay cold validator",

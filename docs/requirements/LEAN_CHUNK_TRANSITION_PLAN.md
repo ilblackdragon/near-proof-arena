@@ -229,13 +229,17 @@ entry path. No verifier-result oracle or “signature valid” hypothesis substi
 
 ### L4 — missing actions, hosts and contract resolution
 
-**Progress through `e34852568`:**
+**Integration update — 2026-10-24 (L4 through `06dffaac6`):**
 
-- [x] Merged additive global-contract/state-init codecs, identifier resolution, fees and action bodies for tags 9/10/11 (`41b98f2bd`); modules now compile in the root build.
-- [x] Added **134 kernel-evaluated directed tests** to the root build and replayed **388 existing excluded cases** to identify the current hook guards. This replay does not enable the new actions; tags 9 and 11 still need generated whole-chunk fixtures.
-- [ ] Integrate successor chunk dispatch and validate fees, receipts, rollback, resolution and cache behaviour through whole chunks; complete the remaining reachable host/action paths. Existing chunk dispatch still excludes the new actions.
+- [x] Merged additive global-contract/state-init codecs, resolution, fees and action bodies for tags 9/10/11, with 134 kernel-evaluated directed tests.
+- [x] Merged `functionCallResolved`/`resolveAccount`, `checkD3Global`/`RelD3Global`, and guard-premise gap theorems.
+- [x] Recorded 539 excluded-case comparisons with unchanged verdicts/reasons; five inventory rows move missing → partial. This is preservation evidence, not newly accepted semantics.
+- [ ] Connect widened action/receipt codecs and dispatch through W00's versioned successor; the current checker still calls D2 decoders and rejects tags 9/10/11.
+- [ ] Implement successor ETH-local handling: rewriting the contract to local preserves the old rejection guard.
+- [ ] Generate positive global/by-account/wallet whole chunks using versioned successor tooling while preserving the pinned oracle. Validate fees, receipts, rollback, cache and resolution.
+- [ ] Resolve UQ-006 against source-proof reachability. Non-instant distribution receipts alone do not establish impossibility; the lane's exclusion claim is not accepted as closure.
 
-Evidence: [integration record](../logs/lean-chunk-integration-2026-10-23.md), [action module](../../spec/lean/v3/NearSpecV3/D3/GlobalContractExec.lean).
+Evidence: [L4 handoff log](../logs/lean-chunk-L4-2026-10-23.md), [integration record](../logs/lean-chunk-integration-2026-10-23.md), [action module](../../spec/lean/v3/NearSpecV3/D3/GlobalContractExec.lean), [successor hook](../../spec/lean/v3/NearSpecV3/D3/GlobalContractCall.lean), [successor checker](../../spec/lean/v3/NearSpecV3/D3/GlobalContractChunk.lean), [replay evidence](../../evidence/lean-chunk-L4/replay/d3-hook-full-replay-summary.json).
 
 Cover global-contract deployment/use/distribution, deterministic state-init actions, excluded gas-key
 and related host paths, ETH-implicit wallet execution, and code deployment/cache/preparation cases.
