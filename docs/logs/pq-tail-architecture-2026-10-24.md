@@ -176,3 +176,16 @@ proof attempt stops at parameters; no arithmetic PCS proof claimed. Next combine
 with the necessary outcome serialization/SHA relation, not artificial padding.
 Preserved unbuilt shared-wire outcome draft; not correctness evidence.
 [Details](../../research/near-compression/tail-architecture/RECEIPT_ARITHMETIC.md).
+
+## Shared-wire receipt arithmetic, serialization and hash
+
+Compiled kernel derives system status from predecessor bytes and hashes outcome
+bytes built from constrained burn/refund outputs. 2,305 independent cases match
+(2,268 accept/37 reject), 27,216 output/length mutations reject. Three initial
+and two focused refund proofs verify in-memory; 15 input/burn/digest verifier
+mutations reject. Witness log 11 resolves the isolated arithmetic geometry limit.
+Public-input local harness only: not a batch/state/receipt-source proof or new
+size/speed/PQ result. Census: no-refund receiver<=18 takes one SHA block; other
+no-refund <=64 takes two; refunds <=50 take two, >50 takes three. Observed maxima
+813 short no-refund / 6 refund; unseen longer classes remain valid and required.
+[Evidence](../../research/near-compression/tail-architecture/RECEIPT_OUTCOME.md).

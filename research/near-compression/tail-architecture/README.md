@@ -13,11 +13,12 @@ witnesses reproduced the gap; `assert_zero` repairs it. **Use NPSTRICT packets**
 not earlier metadata-relation claims. Corrected component: **266,607 / 206,889 B**,
 warm **0.83–0.88 s**, fresh verification against original claim/job roots passes.
 Receipt producer oracle matches 64 cases, but all block gas prices are zero.
-[Receipt arithmetic kernel](RECEIPT_ARITHMETIC.md) matches 2,910 independent cases
-and rejects 18,893 mutations; its isolated geometry is too small for this PCS.
-Next: combine its constrained outputs with outcome serialization/hashing,
-representative positive-gas cases,
-state/history composition and full security audit. Full NEAR/PQ/p95 remain open.
+[Shared-wire receipt outcome kernel](RECEIPT_OUTCOME.md) now connects constrained
+arithmetic, serialization and SHA: 2,305 cases / 27,216 mutations, plus five
+in-memory proofs and 15 verifier mutations. This is a local public-input harness,
+not the integrated batch or authenticated execution. Next: typed batch integration,
+receipt/source/state binding, representative positive-gas cases and PQ history.
+Full NEAR/PQ/p95 remain open.
 
 [Outer security evidence](OUTER_SECURITY.md) and the
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)

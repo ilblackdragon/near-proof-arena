@@ -1,0 +1,16 @@
+RECEIPT_OUTCOME cases=2 accepted=2 rejected=0 mutations_rejected=24 log_witness=11 shared_arithmetic_hash_wires=true
+SIS_POLICY inner rank=21 width=1047 source=115207443309 target=10578223264 bound=23614472471.362686 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1047 source=10578223264 target=161703667 bound=367449501.8564024 bits=154.495 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1047 source=161703667 target=17916998 bound=31289208.756449431 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=17916998 target=1340779644 bound=16404262.789573204 bits=161.650 finite=1 tail=0
+SIS_POLICY inner rank=13 width=524 source=1340779644 target=37939800 bound=89682745.192595422 bits=155.555 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=37939800 target=3307856600 bound=25766257.994640976 bits=150.255 finite=1 tail=0
+SIS_POLICY inner rank=13 width=262 source=3307856600 target=36613514 bound=87423550.272966251 bits=156.350 finite=1 tail=1
+OUTCOME_PROOF example=0 honest=true wrong_input_burn_digest_rejected=true security_claim=false
+SIS_POLICY inner rank=21 width=1047 source=114802141742 target=10414217105 bound=23430696429.724762 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1047 source=10414217105 target=161766998 bound=367521450.33713937 bits=154.495 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1047 source=161766998 target=17778157 bound=31167741.036739387 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=17778157 target=1220721783 bound=15652595.463220533 bits=162.975 finite=1 tail=0
+SIS_POLICY inner rank=13 width=524 source=1220721783 target=35076588 bound=86232315.090323314 bits=156.615 finite=1 tail=0
+SIS_POLICY inner rank=10 width=524 source=35076588 target=2216348824 bound=10545497.550757101 bits=152.640 finite=1 tail=1
+OUTCOME_PROOF example=1 honest=true wrong_input_burn_digest_rejected=true security_claim=false

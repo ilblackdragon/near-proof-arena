@@ -1,0 +1,56 @@
+{
+  "status": "LOCAL_ARITHMETIC_SERIALIZATION_HASH_PROOFS_NOT_FULL_NEAR",
+  "base_lane_commit": "907a58fb7",
+  "binary_sha256": "f0862c00c8b9a35c9176eaa4160afce58dee399be62b0042f7037313c8093bfd",
+  "source_sha256": {
+    "near-receipt-outcome-check.rs": "bc3b84c7d994dcc8fe1178b006e5b3a0dcc41bc6cf99571084886a3fae0fae25",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726",
+    "support/receipt_outcome.rs": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+    "support/tight_sha.rs": "4152a626cf4cff0eaf66b2f9025d330611f859038f1947a054c352fdf79a5a2e"
+  },
+  "vector_sha256": {
+    "receipt-outcome.bin": "c44f5dfbac212f438ff8c039849536fffc8b37c88aef29ac6e505736d3266c25",
+    "receipt-outcome-refund.bin": "cf6788a6d53b60e4732c81932a1d1e1f2e131ca3f63991355af1735ac04b6bdb"
+  },
+  "results": {
+    "receipt-outcome-check.log": [
+      "RECEIPT_OUTCOME cases=2305 accepted=2268 rejected=37 mutations_rejected=27216 log_witness=11 shared_arithmetic_hash_wires=true",
+      "OUTCOME_PROOF example=0 honest=true wrong_input_burn_digest_rejected=true security_claim=false",
+      "OUTCOME_PROOF example=1 honest=true wrong_input_burn_digest_rejected=true security_claim=false",
+      "OUTCOME_PROOF example=2 honest=true wrong_input_burn_digest_rejected=true security_claim=false"
+    ],
+    "receipt-outcome-refund-check.log": [
+      "RECEIPT_OUTCOME cases=2 accepted=2 rejected=0 mutations_rejected=24 log_witness=11 shared_arithmetic_hash_wires=true",
+      "OUTCOME_PROOF example=0 honest=true wrong_input_burn_digest_rejected=true security_claim=false",
+      "OUTCOME_PROOF example=1 honest=true wrong_input_burn_digest_rejected=true security_claim=false"
+    ]
+  },
+  "proof_examples": [
+    {
+      "record": 0,
+      "case": "real refund with zero burn"
+    },
+    {
+      "record": 2142,
+      "case": "synthetic positive burn, no refund"
+    },
+    {
+      "record": 2282,
+      "case": "synthetic system receipt with 64-byte receiver"
+    },
+    {
+      "record": 2144,
+      "case": "synthetic positive burn and refund"
+    },
+    {
+      "record": 2288,
+      "case": "synthetic positive burn and refund, 64-byte receiver"
+    }
+  ],
+  "limitations": [
+    "Standalone harness exposes all kernel inputs and outputs.",
+    "No source/state/routing/access-key or full NEAR execution authentication.",
+    "Five in-memory proofs only; no independent serialized verifier.",
+    "No batch performance or composed PQ128 security claim."
+  ]
+}

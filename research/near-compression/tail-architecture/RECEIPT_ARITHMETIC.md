@@ -1,5 +1,9 @@
 # Receipt arithmetic circuit kernel
 
+Update: the [combined outcome/hash kernel](RECEIPT_OUTCOME.md) now compiles and
+verifies five in-memory proofs. The isolated-kernel geometry limit below remains
+historical evidence; no padding was used.
+
 2026-10-24. Work toward execution/hash binding, not a full receipt or NEAR proof.
 
 `receipt_arithmetic.rs` constrains unsigned 128-bit arithmetic using two 64-bit
@@ -50,8 +54,8 @@ Still required: derive the system flag from the same receipt bytes, feed these
 computed burnt/refund wires into the hashed outcome, bind gas context and
 account/state inputs to the chunk, enforce receipt sourcing/ordering/access-key
 and routing conditions, then integrate state/Wasm/history and composed security.
-The preserved draft `receipt_outcome.rs` sketches the shared-wire serialization
-and hashing step; it is not yet built or verified and is not result evidence.
+The original unbuilt `receipt_outcome.rs` draft remains in this checkpoint's
+evidence. Its compiled successor and test results are in RECEIPT_OUTCOME.md.
 
 Evidence: [receipt-arithmetic](evidence/receipt-arithmetic). Build the preserved
 `near-receipt-arithmetic-check` and support module on the preceding stronger
