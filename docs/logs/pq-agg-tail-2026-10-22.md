@@ -41,6 +41,84 @@ as closing that gap.
 | 23 | **Depth 2 is closed by an exact 1-bit gap that no parameter closes**: `lb=7/6/5` give stacked height 20/21/22 but the SHA AIR needs 21/22/23 — each blowup step costs exactly the bit it buys. Only `lb=3` (test-target soundness) fits | **measured** three end-to-end panics: `log_height` 21, 22, 23 at `circuit.rs:458` |
 | 24 | The **tree is load-bearing for 1 Pgas on time, not on geometry** — but the long-chain fallback is **capped at level 10 in code**, so it is unimplemented past that, not merely slow. A 1-NV-child node *is* geometrically legal (fits 2^20, measured 5×), so S=146 would need 146 serial levels ≈ **20.6 h**; but `main.rs:314` loops `(resume+1..=10)` and `:370` asserts convergence by then. A binary tree needs 8 levels and depth 2 is blocked | **arithmetic on measured 507.7 s/node** + **code check** `main.rs:314/365/370` |
 
+### 0.1 Depth-2 measurement, geometry wall, size law and `S` — consolidated (2026-10-24)
+
+This subsection consolidates the depth-2 readings in rows 18, 20, 21 and 23 into one coherent
+account and corrects two details in them (the production deficit is 1 bit, and the `23 > 22` pair
+belongs to `lb=5`). Every number is measured unless explicitly labelled a projection.
+
+**Depth-2 production measurement: 267,513 B.** With the full production lever set (`X15=15`,
+`multiproof`, `keep_domain`, `gruen_gkr`, `gkr_derive`, `next_mask`, `gruen_zc`, `wide_pow`,
+`tight`, `whir_y`, `QUERY_POW=32`, `COMMITS=1`), a 2-child node measures
+`L1_0_PROOF_BYTES total=267513 gkr=29960 relations=23332 stacking=2752 whir=211264` at
+`L1_0_SOUNDNESS total=268.2`. Schedule `queries=[41, 35, 27, 23]` = **126 queries** in **4**
+rounds with `first_order` on 3 of 4. Geometry `cols=173 opened=291 program_rows=17558
+merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=262144`; prove **752.5 s** at **6.63 GB**
+peak (streaming). Sibling `L1_1` is **265,657 B** (whir 209456) at 704.1 s / 6.65 GB. Both logs —
+`results/pq-agg-prod-target/agg-d2-l2prod.log` and `agg-d2-l2prod-ns18.log` — print the identical
+byte total. As proof bytes that is **32,487 B under the 300,000 B cap** (32,455 B as a bundle,
+`+32`), the widest measured production margin so far. **Limit:** these are *App*-child nodes at
+`nvair_h=2^18`; the 1 Pgas root aggregates *Node* children at `2^20`, so this does not measure the
+tree root.
+
+**Depth-2 geometry wall: production `lb=7` is 1 bit short, and the `23 > 22` pair is the `lb=5`
+row.** A common conflation — "blocked at `log_blowup=7` because `log_height (23) > log_stacked_height
+(22)`" — mixes two rows. Measured panics, all `LayoutHeightExceeded` at `circuit.rs:458` except
+where noted:
+
+| `lb` | `n_stack` | stacked height | SHA `log_height` | deficit | queries | log |
+|---:|---:|---:|---:|---:|---:|---|
+| 7, full levers, 1 commit | 18 | 20 | **21** | **1** | 126 | `agg-d2-l2prod.log`, `agg-d2-l2prod-ns18.log` |
+| 7, 2 commits | 18 | 20 | 22 | 2 | 131 | `agg-d2-streaming-qpow32.log` |
+| 6, full levers | 19 | 21 | 22 | 1 | 138 | `agg-d2-lb6.log` |
+| 5, full levers | 20 | 22 | **23** | **1** | 260 | `agg-d2-lb5-wwide.log` |
+
+The wall is real and it is **exactly 1 bit at production** (`21 > 20`), not 2. The `23 > 22` pair
+belongs to `lb=5`, where two bits of stacked height are bought and one bit more of SHA demand
+appears, so it too closes at a deficit of 1. Buying stacked height with a lower `log_blowup` is
+therefore self-cancelling: each bit bought costs about a bit. `lb=3` fits but is the test-target
+soundness, i.e. insufficient. `n_stack=19` at `lb=7` is illegal (28 > two-adicity 27, panic at
+`monty_31.rs:654`), so the 1-bit deficit cannot be closed from the `n_stack` side either.
+
+**Size law and margin: `D = 2,869` gives 299,935 B; Route C is refuted; `d=40` is a projection.**
+`proof_bytes = 42·D + C` holds 7/7. At `D = 2,869`, `C = 179,437`, the final layer proof is
+**299,935 B** and the bundle is **299,967 B** (`proof + 32`) — **33 B** of margin against the
+300,000 B cap on the bundle, i.e. 0.79 of one digest. **Route C (41 B digests) does not transfer to
+the NV tree.** The
+base layer genuinely proves at `d=41`: **456,003 B** vs 459,984 B, `BASE_VERIFIED bytes=456003`
+(`d41-chain/prove41.log:29-30`). But the NV recursion cannot encode a 41 B digest: `U2` units are
+8 B (`Word`) or 2 B (`Half`), so a digest length must be `8a+2b`; 48 = 6·8 and 42 = 5·8+2 are
+representable, **41 = 5·8+1 is not**. `hash.rs:262` asserts `8 + 2·digest_bytes`, and the d41 chain
+panics `104 != 90` on 16 worker threads — 48 B emitted per digest against 41 B expected, so the
+`digest_units` fallback (`hash.rs:238`) sends six 8 B words where five plus a 1 B tail are needed. The
+`d41-margin` run fails earlier and differently: `UnexpectedEof` in the proof codec at
+`main.rs:70:35`, so it produced no usable artifact. **`d=40` (5 words) is representable** and
+projects **≈293,077 B, i.e. ~6.9 KB of margin**. That figure is the projection that includes the
+digest-count drop (narrower rows give shallower Merkle trees); the size law alone, holding `D`
+fixed at 2,869, gives `40·2,869 + 179,437 = 294,197 B`, i.e. **5.8 KB** — so 6.9 KB is the
+optimistic end and 5.8 KB the conservative one. Either way it needs `digest_units` work
+(`hash.rs:238` special-cases only `== 42`, so `d=40` falls through to the 48 B `Word` branch and
+trips the same `8 + 2·digest_bytes` assert), and it **does not fix depth 2 at all**: its 12 → 10 cut
+is a reduction in **in-circuit digest units** (16.7 %), not in SHA compressions. A node job's
+message is `8 + 2·d` bytes — 88 to 104 across widths 40–48 — which always pads to **one** 128 B
+block, so `d=40` leaves the compression count identical. The wall needs **18.3 %** of compressions
+removed. Both `d=40` figures are projections from measured base-layer deltas, not measurements.
+
+**`S` reconciliation: 146 structural vs 103–118 empirical — two different quantities.**
+`S = 146` at 2^23 ops/segment (291 at 2^22) is the structural segment count for 1.22e9 adversarial
+WASM ops, from `results/pq-base-aggregation/model.out`; the plan's 1,880–3,760 is that count
+mis-divided by the W-eq→main-cell exchange rate (494/38 = 13.0, 995/38 = 26.2). `S ≈ 103–118` is
+the **empirical** per-proof union-bound failure point (117.8 z-split, 102.5 uniform z=32). 146 is
+how many segments the workload needs; 103–118 is how many proofs one union tolerates. Because
+146 > 118, the single-database `NodeOK` theorem is needed regardless. See §5 and §7 item 5.
+
+**Next structural path: reduce SHA compressions per child by circuit change.** Depth 2 needs
+10,021 → 8,192 compressions: **1,829 fewer (18.3 %)**, and since both children shrink that is
+**18.3 % per child** — 914.5 of each child's own ~5,010.5. (An earlier "~9.5 % per child" divided
+the cut by two but left the denominator at the total; corrected.)
+**`multiproof` does not reduce `merkle_nodes`** (464 in both lever configurations), so the WHIR
+query strategy cannot deliver this; it must come from the circuit. Unimplemented.
+
 Two reconciliations this log owes its reader, both done in full below and both correcting an
 earlier reading:
 
@@ -1260,7 +1338,9 @@ Still open, and each one is a real blocker rather than a formality:
      **cut the SHA compression count so the AIR stays at 2^20.** In compressions rather than rows
      the cut is **18.3%, not 2×**: measured `comps = merkle_nodes(9,764 cumulative) + leaf_blocks
      (257) = 10,021`, against the 8,192 that 2^20 admits, so 1,829 compressions must go — and since
-     both children shrink, that is ~9.5% per child. (Model validated on both levels: L1 = 464+257 =
+     both children shrink, each child loses **18.3%** of its own compressions (914.5 of ~5,010.5).
+     An earlier revision said "~9.5% per child"; that divided the cut by two while leaving the
+     denominator at the total, which is a units error. (Model validated on both levels: L1 = 464+257 =
      721 comps → 92,288 rows → 2^17, matching its measured SHA AIR; L2 = 10,021 → 2^21, matching its
      panic.) A circuit change is still required: the L2 node's SHA work is ~16× an L1 node's because
      it verifies two full NV proofs, and `multiproof` does not help — `merkle_nodes` stays 464 in

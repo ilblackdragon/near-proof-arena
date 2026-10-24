@@ -1,4 +1,4 @@
-# NEAR Proof Arena — handover (updated 2026-10-21)
+# NEAR Proof Arena — handover (updated 2026-10-24)
 
 This is for the next lead agent. Read it first. The raw working log for 2026-10-07 to 2026-10-09 (≈6,500 lines) now lives in `docs/logs/v3-progress-log-2026-10.md`. Use it only for evidence lookup.
 
@@ -159,9 +159,11 @@ Three sentences the reader can act on, each with its evidence and its limit:
      Route C is an unavailable lever for the delivered configuration, not a cheap one. Note it does
      **not** rescue depth 2: unit count 12 → 10 is only a 16.7% cut in SHA compressions, while the
      measured wall needs only **~18.3%** of the SHA compressions removed (1,829 of 10,021), i.e.
-     ~9.5% per child since both children shrink — see item 3, which also supersedes the earlier
-     "4×" and "2×" figures (the first was the pre-lever `X15 = 1` measurement; the second
-     conflated row-count with compression-count).
+     **18.3% per child** since both children shrink — an earlier "~9.5% per child" figure in this
+     section divided the cut by the two children but left the denominator at the total, which is a
+     units error; the per-child cut is 914.5 of its own 5,010.5 compressions. See item 3, which also
+     supersedes the earlier "4×" and "2×" figures (the first was the pre-lever `X15 = 1`
+     measurement; the second conflated row-count with compression-count).
 3. **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
    The 2-NV-child aggregation node needs a 2^21-row SHA compression AIR at the **full production
    lever set** (measured panic `LayoutHeightExceeded { log_height: 21, log_stacked_height: 20 }`,
@@ -194,7 +196,8 @@ Three sentences the reader can act on, each with its evidence and its limit:
    Note the full lever set does cut the deficit 2 → 1 bit (2^22 → 2^21), which is why the escape
    looked viable. **The sole surviving exit is reducing SHA compressions — and the exact size of
    the cut is 1,829 compressions (18.3%)**, from the measured 10,021 (9,764 `merkle_nodes` +
-   257 `leaf_blocks`) down to the 8,192 that 2^20 admits; both children shrink, so ~9.5% per child.
+   257 `leaf_blocks`) down to the 8,192 that 2^20 admits; both children shrink, so 18.3% per child
+   (914.5 of each child's own ~5,010.5 compressions), not the ~9.5% an earlier reading quoted.
    It is a circuit change; `multiproof` does not help (`merkle_nodes` stays 464 in both lever
    configs), and digest width d=40 gives only ~2% here — its 12 → 10 unit cut applies to the
    in-circuit unit count, not to SHA blocks (all widths 40–48 pad to one 128 B block). Not done.
@@ -215,6 +218,76 @@ Three sentences the reader can act on, each with its evidence and its limit:
    `RESULT.json`'s `security_established: false` is a hardcoded literal, not a derived verdict.
    **Until `NodeOK` lands, no byte count makes a 1 Pgas proof sound**, so size work is
    necessary but not sufficient.
+
+### Depth-2 production measurement and the size law (2026-10-24, decision-ready)
+
+Five facts, each measured unless marked, and each with the correction it needs:
+
+1. **A 2-child production node with the full lever set is 267,513 B.**
+   `L1_0_PROOF_BYTES total=267513 gkr=29960 relations=23332 stacking=2752 whir=211264`,
+   queries `[41, 35, 27, 23]` = **126** across **4** rounds, `first_order` on 3 of 4,
+   `L1_0_SOUNDNESS total=268.2`. Geometry `program_rows=17558 merkle_nodes=464 leaf_blocks=257
+   chain_starts=2 nvair_h=262144`; streaming prove 752.5 s / 6.63 GB peak. The sibling node is
+   `265657 B` (whir 209456) at 704.1 s / 6.65 GB. As proof bytes that is **32,487 B under the
+   300 KB cap** (32,455 B as a bundle) — the widest measured production margin so far. Logs
+   `results/pq-agg-prod-target/agg-d2-l2prod.log` and
+   `agg-d2-l2prod-ns18.log` (byte-identical totals). **Limit:** these are *App*-child nodes at
+   `nvair_h=2^18`; the 1 Pgas root aggregates *Node* children at `2^20`, which is the depth-2
+   geometry question, not a bytes question.
+2. **Depth 2 remains blocked at production blowup, and the deficit is exactly 1 bit — but the
+   frequently quoted `23 > 22` pair is the `lb = 5` row, not the production row.** The measured
+   panics are:
+
+   | `lb` | `n_stack` | stacked height | SHA `log_height` | deficit | log |
+   |---:|---:|---:|---:|---:|---|
+   | 7 (full levers, 1 commit) | 18 | 20 | **21** | **1** | `agg-d2-l2prod*.log` |
+   | 7 (2 commits) | 18 | 20 | 22 | 2 | `agg-d2-streaming-qpow32.log` |
+   | 6 (full levers) | 19 | 21 | 22 | 1 | `agg-d2-lb6.log` |
+   | 5 (full levers) | 20 | 22 | **23** | **1** | `agg-d2-lb5-wwide.log` |
+
+   So "blocked at `log_blowup = 7`" is correct; "`log_height 23 > log_stacked_height 22`" is the
+   `lb=5` row and should be quoted as such. Each bit bought costs exactly one bit: lowering
+   `log_blowup` needs more queries for the same 268-bit target, and those queries grow the SHA AIR.
+   **Only `lb = 3` fits, and that is the insufficient-soundness configuration.** `n_stack=19`
+   at `lb=7` is illegal (28 > two-adicity 27, panics at `monty_31.rs:654`).
+3. **The size law and the real margin.** `proof_bytes = 42·D + C` (7/7 proofs). At `D = 2,869`
+   the final layer proof is **299,935 B** and its bundle **299,967 B** (`+32`) — **33 B** of margin
+   on the bundle against the 300,000 B cap, 0.79 of one digest. **Route C (41 B
+   digests) is REFUTED for the NV tree:** the base layer does prove at `d=41` (**456,003 B** vs
+   459,984 B, verified), but the NV recursion cannot encode it — `U2` units are 8 B (`Word`) or
+   2 B (`Half`), so a digest length must be `8a+2b`; 42 = 5·8+2 and 48 = 6·8 are representable,
+   **41 = 5·8+1 is not**, and `hash.rs:262` asserts `8 + 2·digest_bytes`, panicking `104 != 90`
+   (3,568 times across 16 worker threads) in `d41-chain/prove41.log`. `d41-margin/prove41.log` dies
+   earlier with `UnexpectedEof` in the proof codec (`main.rs:70`). **`d=40` is the only representable
+   narrower width** (5 words): it projects **≈293,077 B proof (~6.9 KB of bundle margin)**, or
+   **294,197 B proof (5.8 KB)** by the size law alone at fixed `D = 2,869`, and changes digest units
+   12 → 10. It needs
+   `digest_units` work (`hash.rs:238` special-cases only `== 42`, so `d=40` would fall through to
+   the 48 B `Word` branch and trip the same `8 + 2·digest_bytes` assert) and **it does not fix
+   depth 2 at all** — the 12 → 10 unit cut is an **in-circuit unit** reduction (16.7 %), not a
+   compression reduction: a node job's message is `8 + 2·d` bytes = 88–104 for every width 40–48,
+   which always pads to **one** 128 B block, so the compression count is unchanged. An earlier
+   reading in this section called that 16.7 % "a cut in SHA compressions"; that was wrong and is
+   corrected here. The wall needs **18.3 %** of compressions removed. None of this is done; both
+   `d=40` numbers are projections from measured deltas.
+4. **`S` is reconciled as a units error: structural `S = 146`, empirical `S ≈ 103–118`.**
+   `S = 146` at 2^23 ops/segment (291 at 2^22) is the correct structural count from
+   `results/pq-base-aggregation/model.out`; the plan's 1,880–3,760 divides a *width-equivalent*
+   cost total by a *main*-cell segment size (ratio 494/38 = 13.0 and 995/38 = 26.2). The
+   **empirical** union-bound failure point is **S ≈ 103–118** (117.8 z-split, 102.5 uniform
+   z=32). These are not competing counts of the same thing: 146 is how many segments the
+   workload needs, 103–118 is how many proofs one union bound tolerates. 146 exceeds it, so the
+   single-database `NodeOK` theorem is required either way.
+5. **The surviving structural path is reducing SHA compressions per child, by circuit change.**
+   Depth 2 needs 10,021 → 8,192 compressions, i.e. **1,829 fewer (18.3 %), and 18.3 % per child**
+   (914.5 of each child's own ~5,010.5). An earlier "~9.5 % per child" divided the cut by two but
+   kept the total as the denominator; that is a units error, corrected here.
+   `multiproof` does **not** help: `merkle_nodes` stays 464 in both lever configurations, so the
+   reduction has to come from the circuit, not the WHIR query strategy. This is unimplemented.
+
+**Merge gate:** keep `lane/pq-agg-rebase` **unmerged** until a depth-2 target measurement or a
+1 Pgas target measurement exists. Everything above is measured at depth 1 and below; nothing
+above is a depth-2 or 1 Pgas size result.
 
 ## Aggregation tail: what is now measured (2026-10-23)
 
