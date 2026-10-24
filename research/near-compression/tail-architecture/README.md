@@ -5,6 +5,13 @@ post-quantum proof below **300,000 bytes**, with the final proof ready **within 
 (user clarification), as well as sustained throughput matching chunk arrival. Neither recursion nor PQ security is
 established by the current diagnostic packet.
 
+## Event protocol research
+
+[Design and falsifiable experiments](EVENT_PROTOCOL.md): current Jolt/Akita prior
+art, event-derived trace openings, complete constraint coverage and reusable hash
+templates. Algebra prototype passes 3,120 identity checks; authentication and
+recursive composition are open. Current Jolt reproduction is building.
+
 ## Binary/lattice candidate
 
 [LaBinius screen](LABINIUS_SCREEN.md): private 64 KiB SHA-256 message (1,025

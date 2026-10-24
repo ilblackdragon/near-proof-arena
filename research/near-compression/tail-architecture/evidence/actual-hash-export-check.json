@@ -1,0 +1,13 @@
+{
+  "status": "EXPORTED_MESSAGES_MATCH_EXISTING_SHA_BUS_TRAFFIC",
+  "messages": 2460,
+  "byte_bus_messages": 256315,
+  "digest_bus_messages": 2460,
+  "messages_sha256": "a1b32b91925e5b0df3b7237bacec54c9f44ab84777eee492dcaf089c1c1c687d",
+  "trace_sha256": "7f1239be253210e730415d21f3046005f89de19639a0cb40856bb92d3be6d783",
+  "all_byte_positions_values_and_ids_equal": true,
+  "all_enabled_digests_and_lengths_equal": true,
+  "limitations": [
+    "Off-chain consistency check, not a succinct hash/receipt bus argument."
+  ]
+}

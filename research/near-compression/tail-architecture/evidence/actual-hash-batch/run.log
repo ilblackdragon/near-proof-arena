@@ -1,0 +1,7 @@
+NEAR_BATCH_SETUP {"messages":2460,"message_bytes":256315,"sha256_compressions":5875,"sha512_root_compressions":770,"witness_log_elems":21,"column_log":10,"parameter_suite_ceiling":"sizel","circuit_s":6.828240964,"setup_s":2.209166954}
+ERROR in verify(): Amortized (inner commitment) opening wrong
+NEAR_BATCH_RESULT {"repeat":0,"public_bytes":64,"witness_s":0.017197383,"prove_s":1.0878155760000001,"verify_s":0.517829881,"elapsed_since_process_start_before_verification_s":10.142971392,"analytic_proof_bytes":107344,"tape_bytes":21129,"negative_checks":3}
+ERROR in verify(): Amortized (inner commitment) opening wrong
+NEAR_BATCH_RESULT {"repeat":1,"public_bytes":64,"witness_s":0.017327818,"prove_s":1.066213469,"verify_s":0.515610851,"elapsed_since_process_start_before_verification_s":12.271609232,"analytic_proof_bytes":107344,"tape_bytes":21129,"negative_checks":3}
+ERROR in verify(): Amortized (inner commitment) opening wrong
+NEAR_BATCH_RESULT {"repeat":2,"public_bytes":64,"witness_s":0.017382541,"prove_s":1.056443937,"verify_s":0.514733604,"elapsed_since_process_start_before_verification_s":14.373437789,"analytic_proof_bytes":107344,"tape_bytes":21129,"negative_checks":3}
