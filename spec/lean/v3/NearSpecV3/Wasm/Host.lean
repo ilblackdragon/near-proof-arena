@@ -492,33 +492,110 @@ def readContractIdH (byAccount : Bool) (len ptr : Nat) : HM Nat := do
     if h.size ≠ 32 then hErr "ContractCodeHashMalformed"
     pure 32
 
-def deployGlobalH (a : Vector Nat 3) : HM Unit := do
+/-- Target receipt of a real action entry. Refund routing is metadata, not an action. -/
+def actionReceiptOf (entry : MAct) : Option Nat :=
+  match entry.rawAction with
+  | some (r, _) => some r
+  | none => match entry.text.splitOn "@" with
+    | [tag, rest] =>
+      if ["CA", "DC", "FC", "TR", "ST", "AF", "AC", "DK", "DA"].contains tag then
+        (rest.splitOn ":").head?.bind String.toNat?
+      else none
+    | _ => none
+
+def borshVector (data : ByteArray) : ByteArray := natLE data.size 4 ++ data
+
+/-- Read once, preserving nearcore's memory/UTF-8 gas charging order. -/
+def readContractIdDataH (byAccount : Bool) (len ptr : Nat) : HM (Nat × ByteArray) := do
+  if byAccount then
+    let id ← readAccountIdH len ptr
+    pure (id.utf8ByteSize, ⟨#[1]⟩ ++ borshVector id.toUTF8)
+  else
+    let h ← memOrRegH ptr len
+    if h.size ≠ 32 then hErr "ContractCodeHashMalformed"
+    pure (32, ⟨#[0]⟩ ++ h)
+
+def stateInitRaw (identifier : ByteArray) (deposit : Nat)
+    (data : Array (ByteArray × ByteArray)) : ByteArray :=
+  let sorted := data.toList.mergeSort (fun a b => compare a.1.toList b.1.toList != .gt)
+  ⟨#[11, 0]⟩ ++ identifier ++ natLE sorted.length 4 ++
+    sorted.foldl (fun acc (k, v) => acc ++ borshVector k ++ borshVector v) ByteArray.empty ++
+    natLE deposit 16
+
+def deployGlobalH (a : Vector Nat 3) (byAccount : Bool := false) : HM Unit := do
   payBaseH C.base
   let code ← memOrRegH a[2] a[1]
   if code.size > maxContractSize then
     hErr s!"ContractSizeExceeded \{ size: {code.size}, limit: {maxContractSize} }"
-  let (_, sir) ← promiseReceiptH a[0]
+  let (r, sir) ← promiseReceiptH a[0]
   payActionBaseH F.deployGlobalContract sir
   payActionPerByteH F.deployGlobalContractByte code.size sir
-  let _ ← pushAction { text := "OTHER" }
+  let raw := if (← get).globalActions then
+    some (r, ⟨#[9]⟩ ++ borshVector code ++ ⟨#[if byAccount then 1 else 0]⟩) else none
+  let _ ← pushAction { text := "OTHER", rawAction := raw }
 
 def useGlobalH (byAccount : Bool) (a : Vector Nat 3) : HM Unit := do
   payBaseH C.base
-  let len ← readContractIdH byAccount a[1] a[2]
-  let (_, sir) ← promiseReceiptH a[0]
-  payActionBaseH F.useGlobalContract sir
-  payActionPerByteH F.useGlobalContractByte len sir
-  let _ ← pushAction { text := "OTHER" }
+  if (← get).globalActions then
+    let (len, identifier) ← readContractIdDataH byAccount a[1] a[2]
+    let (r, sir) ← promiseReceiptH a[0]
+    payActionBaseH F.useGlobalContract sir
+    payActionPerByteH F.useGlobalContractByte len sir
+    let _ ← pushAction { text := "OTHER", rawAction := some (r, ⟨#[10]⟩ ++ identifier) }
+  else
+    let len ← readContractIdH byAccount a[1] a[2]
+    let (_, sir) ← promiseReceiptH a[0]
+    payActionBaseH F.useGlobalContract sir
+    payActionPerByteH F.useGlobalContractByte len sir
+    let _ ← pushAction { text := "OTHER" }
 
 def stateInitH (byAccount : Bool) (a : Vector Nat 4) : HM Unit := do
   payBaseH C.base
-  let _ ← readContractIdH byAccount a[1] a[2]
-  let amount ← getU128H a[3]
-  let (r, sir) ← promiseReceiptH a[0]
-  payActionBaseH F.stateInit sir
-  deductBalanceH amount
-  let ai ← pushAction { text := "OTHER", stateInit := some (r, #[]) }
-  pushRet ai
+  if (← get).globalActions then
+    let (_, identifier) ← readContractIdDataH byAccount a[1] a[2]
+    let amount ← getU128H a[3]
+    let (r, sir) ← promiseReceiptH a[0]
+    payActionBaseH F.stateInit sir
+    deductBalanceH amount
+    let ai := ((← get).actions.filter (fun e => actionReceiptOf e == some r)).size
+    let _ ← pushAction {
+      text := "OTHER", stateInit := some (r, #[]),
+      stateInitData := some (identifier, amount, #[]), rawAction := some (r, stateInitRaw identifier amount #[]) }
+    pushRet ai
+  else
+    let _ ← readContractIdH byAccount a[1] a[2]
+    let amount ← getU128H a[3]
+    let (r, sir) ← promiseReceiptH a[0]
+    payActionBaseH F.stateInit sir
+    deductBalanceH amount
+    let ai ← pushAction { text := "OTHER", stateInit := some (r, #[]) }
+    pushRet ai
+
+/-- Real action indices are per-receipt ordinals; mock indices are global action-log indices. -/
+def setStateInitDataH (r index : Nat) (k v : ByteArray) : HM Unit := do
+  let s ← get
+  if s.globalActions then
+    let receiptIndex := (s.actions.toList.take r |>.filter (·.receiver.isSome)).length
+    let entries := s.actions.toList.zipIdx |>.filter fun (e, _) => actionReceiptOf e == some r
+    let some (entry, j) := entries[index]?
+      | hErr s!"InvalidActionIndex \{ receipt_index: {receiptIndex}, action_index: {index} }"
+    let some (identifier, deposit, data) := entry.stateInitData
+      | hErr s!"InvalidActionIndex \{ receipt_index: {receiptIndex}, action_index: {index} }"
+    let duplicate := data.any (fun (key, _) => key == k)
+    -- BTreeMap::insert occurs before the duplicate-key error in nearcore.
+    let data := (data.filter (fun (key, _) => key != k)).push (k, v)
+    let entry := { entry with
+      stateInit := some (r, data.map Prod.fst),
+      stateInitData := some (identifier, deposit, data), rawAction := some (r, stateInitRaw identifier deposit data) }
+    set { s with actions := s.actions.set! j entry }
+    if duplicate then hErr "DataEntryAlreadyExists"
+  else
+    match s.actions[index]?.bind (·.stateInit) with
+    | some (ri, keys) =>
+      if ri ≠ r then hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {index} }"
+      if keys.any (· == k) then hErr "DataEntryAlreadyExists"
+      set { s with actions := s.actions.modify index fun x => { x with stateInit := some (ri, keys.push k) } }
+    | none => hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {index} }"
 
 /-- `promise_yield_create_with_id` (mock: a repeated yield id returns `u64::MAX`, nothing recorded). -/
 def yieldCreateWithIdH (a : Vector Nat 9) : HM Unit := do
@@ -1112,7 +1189,7 @@ def hostCall (name : String) : Option (HM Unit) :=
       pushRet 1 (is64 := false)
     | none => pushRet 0 (is64 := false)
   | "promise_batch_action_deploy_global_contract" => some do deployGlobalH (← popArgs 3)
-  | "promise_batch_action_deploy_global_contract_by_account_id" => some do deployGlobalH (← popArgs 3)
+  | "promise_batch_action_deploy_global_contract_by_account_id" => some do deployGlobalH (← popArgs 3) true
   | "promise_batch_action_use_global_contract" => some do useGlobalH false (← popArgs 3)
   | "promise_batch_action_use_global_contract_by_account_id" => some do useGlobalH true (← popArgs 3)
   | "promise_batch_action_state_init" => some do stateInitH false (← popArgs 4)
@@ -1125,13 +1202,7 @@ def hostCall (name : String) : Option (HM Unit) :=
     let v ← memOrRegH a[5] a[4]
     payActionBaseH F.stateInitEntry sir
     payActionPerByteH F.stateInitByte (k.size + v.size) sir
-    let s ← get
-    match s.actions[a[1]]?.bind (·.stateInit) with
-    | some (ri, keys) =>
-      if ri ≠ r then hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]} }"
-      if keys.any (· == k) then hErr "DataEntryAlreadyExists"
-      set { s with actions := s.actions.modify a[1] fun x => { x with stateInit := some (ri, keys.push k) } }
-    | none => hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]} }"
+    setStateInitDataH r a[1] k v
   | _ => none
 
 end NearSpecV3.Wasm

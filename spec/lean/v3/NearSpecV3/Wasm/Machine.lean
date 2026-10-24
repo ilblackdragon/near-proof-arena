@@ -288,6 +288,10 @@ structure MAct where
   yieldCreate : Option (ByteArray × Option ByteArray) := none
   /-- `(receipt_index, keys)` for `DeterministicStateInit` (data entries set so far) -/
   stateInit : Option (Nat × Array ByteArray) := none
+  /-- Successor-only canonical action bytes, targeted at a receipt's action-log index. -/
+  rawAction : Option (Nat × ByteArray) := none
+  /-- State-init identifier bytes, attached deposit, and actual key/value entries. -/
+  stateInitData : Option (ByteArray × Nat × Array (ByteArray × ByteArray)) := none
   deriving Inhabited
 
 structure St where
@@ -321,6 +325,7 @@ structure St where
   real : Option TTN.RealStore := none
   /-- `subsidized_amount` (`one_yocto_on_promise`, `logic.rs:3069-3080`) -/
   subsidized : Nat := 0
+  globalActions : Bool := false
 
 inductive Res where
   | cont (s : St)

@@ -49,8 +49,9 @@ Do not count an uncompleted nearcore mutant expectation as the expected verdict 
   `function_call.rs:293–305` maps this to MissingTrieValue for deployed-contract accounts.
 
 Therefore replaying the same incomplete code witness with merely an initially empty cache does not
-establish universal verdict equality. The complete policy closes this environmental dependency by
-requiring the authenticated bytes before any asynchronous preparation could need them.
+establish universal verdict equality. The complete policy closes missing-byte preparation dependence within a coherent-code cache
+environment by requiring authenticated bytes before asynchronous preparation could need them.
+It is not a theorem about arbitrary preexisting compiled-cache contents.
 
 ## Global distribution caveat
 
@@ -66,7 +67,7 @@ witness code to avoid timing-sensitive prepared failures.
 
 ## Checked properties and fixtures
 
-`CodeResolutionTests.lean` checks 16 directed cases: cold-partial preservation; raw witness closure;
+`CodeResolutionTests.lean` checks 18 directed cases: cold-partial preservation; raw witness closure;
 current/committed/failed same-code deployments; changed-code deployment; rollback; absent versus
 unrevealed pre-state probes; bad hash-indexed storage; and present hash references without code blobs.
 Theorem `complete_attempted_independent` is definitional: changing attempted deployment history never
@@ -80,3 +81,14 @@ followed by call, postponed/yield preparation and global distribution with equal
 Complete-byte cases must match gas/outcomes/roots; incomplete-byte cases must be explicitly marked as
 outside the old cold-validator equivalence comparison. This source/model closure does not by itself
 certify every backend/environment error branch or close the full W08 release gate.
+
+## Compiled-code identity boundary
+
+The release implementation of `ContractCode::new(code, Some(hash))` uses a debug-only assertion for
+code/hash coherence. A malformed historical global distribution can therefore associate wrong bytes
+with a claimed hash in the compiled cache. Raw witness completeness alone cannot make an already
+poisoned nearcore cache coherent: a cache hit bypasses the supplied bytes. The successor integration
+explicitly excludes malformed current distributions with `w.code_identity`; historical cache identity
+is a separate environment/admission boundary. No theorem in this module establishes equality with
+arbitrary warmed or poisoned nearcore histories. `complete_attempted_independent` states only the
+exact implemented fact that the attempted-deployment list is not read by complete-policy selection.
