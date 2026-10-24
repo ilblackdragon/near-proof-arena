@@ -38,6 +38,8 @@ as closing that gap.
 | 20 | The documented escape "lower `log_blowup` to ≤5" **does not fit depth 2**: measured panic `log_height: 23` vs `log_stacked_height: 22` — buying 2 bits of stacked height costs ~2× queries, which needs ~1 more bit than it buys | **measured** 2026-10-23, `agg-d2-lb5-wwide.log`, 3,366.7 s |
 | 21 | With the **full production lever set** (`X15=15`, `multiproof`, `keep_domain`, `gruen_gkr`, `gkr_derive`, `next_mask`, `gruen_zc`, `wide_pow`, `tight`, `whir_y`, `QUERY_POW=32`, `COMMITS=1`) a 2-child production node measures **267,513 B** at **`total=268.2` soundness** — **32,487 B under the cap** | **measured** 2026-10-23, `agg-d2-l2prod.log`, `L1_0_PROOF_BYTES total=267513` |
 | 22 | The earlier **276,269 B** and **615,457 B** agg measurements used an **incomplete lever set** (`X15=1`, no multiproof/keep_domain/tight/whir_y), so their query counts (208 and 260) are lever-contaminated upper bounds, not production numbers | **measured** — `L1_0_O2` domain `134217728` = 2^27 in both logs |
+| 23 | **Depth 2 is closed by an exact 1-bit gap that no parameter closes**: `lb=7/6/5` give stacked height 20/21/22 but the SHA AIR needs 21/22/23 — each blowup step costs exactly the bit it buys. Only `lb=3` (test-target soundness) fits | **measured** three end-to-end panics: `log_height` 21, 22, 23 at `circuit.rs:458` |
+| 24 | The **tree is load-bearing for 1 Pgas on time**: a linear chain verifies 1 child/level, so 146 leaves need 146 levels (~20 h); a binary tree needs 8. With depth 2 blocked there is no tree, hence no 1 Pgas path in reasonable time | **arithmetic on the measured chain** (507.7 s/node mean) |
 
 Two reconciliations this log owes its reader, both done in full below and both correcting an
 earlier reading:
@@ -1175,19 +1177,30 @@ Still open, and each one is a real blocker rather than a formality:
        The same L1 node (2 APP children) then measures **615,457 B** against 276,269 B at lb=7 —
        **+339,188 B**, and **315,457 B over the cap**; its WHIR section alone is 532,920 B, 1.8×
        the entire 300 KB budget. So it cannot be a route under 300 KB.
-     * **It is self-defeating on geometry.** Measured panic: `LayoutHeightExceeded { log_height:
-       23, log_stacked_height: 22 }` (`agg-d2-lb5-wwide.log`, 3,366.7 s). Buying 2 bits of stacked
-       height costs ~2× queries, which grows the SHA AIR by ~1 bit — so the deficit only closes
-       from 2 bits to 1 and **depth 2 still cannot be proved**. The progression is
-       `lb=7 → needs 22, has 20 (short 2)`; `lb=5 → needs 23, has 22 (short 1)`;
-       `lb=3 → needs 2^20, has 22 (surplus 2, works — but lb=3 is the test-target soundness)`.
-       **Depth 2 fits only where the soundness is insufficient**, which is the wrong way round.
+     * **It is self-defeating on geometry — and the deficit is INVARIANT at one bit.** Three
+       configurations were measured end to end (all panic at `circuit.rs:458`):
 
-     The only surviving way out is **reduce the SHA compression count per child** so the AIR stays
-     at 2^20 (a circuit change: the L2 node's SHA work is ~16× an L1 node's because it verifies two
-     full NV proofs). Until that is done, **the production aggregation tree is measured only to
-     depth 1**, and the flat-in-depth claim must be quoted with its `log_blowup = 3` condition
-     attached.
+       | config | `lb` | `n_stack` | stacked height | SHA needs | deficit | queries |
+       |---|---:|---:|---:|---:|---:|---|
+       | no levers | 7 | 18 | 20 | **22** | 2 | 131 |
+       | **full levers** | 7 | 18 | 20 | **21** | **1** | 126 |
+       | full levers | 6 | 19 | 21 | **22** | **1** | 138 |
+       | full levers | 5 | 20 | 22 | **23** | **1** | 260 |
+
+       Lowering `log_blowup` by one raises the stacked height by one, **but it also raises the SHA
+       requirement by one**, because the agreement table needs more queries for the same 236-bit
+       target. So each bit bought is exactly one bit spent, and the deficit never closes. The only
+       configuration that fits is `lb=3`, where the SHA AIR measured 2^20 — **but `lb=3` *is* the
+       test-target soundness**, so depth 2 fits only where the soundness is insufficient. That is
+       the wrong way round, and it is an exact 1-bit gap, not a tuning problem.
+
+     The full lever set does cut the deficit from 2 bits to 1 (2^22 → 2^21), which is why the
+     escape looked viable, but the last bit cannot be bought. The only surviving way out is
+     **reduce the SHA compression count per child** so the AIR stays at 2^20 (a circuit change: the
+     L2 node's SHA work is ~16× an L1 node's because it verifies two full NV proofs; `multiproof`
+     does not help — `merkle_nodes` stays 464 in both lever configs). Until that is done, **the
+     production aggregation tree is measured only to depth 1**, and the flat-in-depth claim must be
+     quoted with its `log_blowup = 3` condition attached.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was
    reclaimed by a disk-cleanup job during this session (disk is 96 % full, 40 GB free). A
    rebuilt binary is not required to *re-verify* any existing result — only to run this node.

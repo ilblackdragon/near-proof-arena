@@ -1,0 +1,84 @@
+
+running 1 test
+L1_0_PARAMS l_skip=2 n_stack=19 k=4 log_blowup=6 queries=[48, 38, 29, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+L1_0_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 2097152, 65485518, 48, false), (2013265920, 524288, 26000207, 38, true), (2013265920, 32768, 6325509, 29, true), (2013265920, 2048, 1559051, 23, true)]
+NV_PHASE before_dag 2181
+NV_DAG air=0 nodes=24 rows_so_far=2236
+NV_PHASE after_dag 2249
+NV_PHASE after_stacking 2557
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 9558
+NV_PHASE before_dag 10168
+NV_DAG air=0 nodes=24 rows_so_far=10223
+NV_PHASE after_dag 10236
+NV_PHASE after_stacking 10543
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 17534
+test nv::agg_tests::agg_chain_depth_n has been running for over 60 seconds
+L1_0_SUMMARY children=2 cols=173 opened=291 interactions=27984128 cells=51053696 program_rows=17558 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=524288 prove_s=966.9 peak_rss_gb=6.94
+L1_0_SOUNDNESS total=269.2 logup=321.9 proximity=281.6 query=269.2
+L1_0_PROOF_BYTES total=283913 gkr=32408 relations=23812 stacking=2512 whir=224976
+L1_1_PARAMS l_skip=2 n_stack=19 k=4 log_blowup=6 queries=[48, 38, 29, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+L1_1_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 2097152, 65485518, 48, false), (2013265920, 524288, 26000207, 38, true), (2013265920, 32768, 6325509, 29, true), (2013265920, 2048, 1559051, 23, true)]
+NV_PHASE before_dag 2181
+NV_DAG air=0 nodes=24 rows_so_far=2236
+NV_PHASE after_dag 2249
+NV_PHASE after_stacking 2557
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 9558
+NV_PHASE before_dag 10168
+NV_DAG air=0 nodes=24 rows_so_far=10223
+NV_PHASE after_dag 10236
+NV_PHASE after_stacking 10543
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 17534
+L1_1_SUMMARY children=2 cols=173 opened=291 interactions=27984128 cells=51053696 program_rows=17558 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=524288 prove_s=503.4 peak_rss_gb=7.84
+L1_1_SOUNDNESS total=269.2 logup=321.9 proximity=281.6 query=269.2
+L1_1_PROOF_BYTES total=284681 gkr=32408 relations=23812 stacking=2512 whir=225744
+L2_0_PARAMS l_skip=2 n_stack=19 k=4 log_blowup=6 queries=[48, 38, 29, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+L2_0_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 2097152, 65485518, 48, false), (2013265920, 524288, 26000207, 38, true), (2013265920, 32768, 6325509, 29, true), (2013265920, 2048, 1559051, 23, true)]
+NV_PHASE before_dag 26272
+NV_DAG air=0 nodes=4518 rows_so_far=32347
+NV_DAG air=1 nodes=5848 rows_so_far=39807
+NV_DAG air=3 nodes=32 rows_so_far=40352
+NV_DAG air=2 nodes=1234 rows_so_far=41666
+NV_PHASE after_dag 41748
+NV_PHASE after_stacking 54239
+NV_QCOST round=0 queries=48 rows=15725 per_query=328 nbits=25 k=2 merkle_nodes=1536
+NV_QCOST round=1 queries=38 rows=19653 per_query=517 nbits=23 k=4 merkle_nodes=3132
+NV_QCOST round=2 queries=29 rows=14993 per_query=517 nbits=23 k=4 merkle_nodes=4350
+NV_QCOST round=3 queries=23 rows=11891 per_query=517 nbits=23 k=4 merkle_nodes=5316
+NV_PHASE end 140371
+NV_PHASE before_dag 165360
+NV_DAG air=0 nodes=4518 rows_so_far=171330
+NV_DAG air=1 nodes=5848 rows_so_far=178761
+NV_DAG air=3 nodes=32 rows_so_far=179305
+NV_DAG air=2 nodes=1234 rows_so_far=180259
+NV_PHASE after_dag 180341
+NV_PHASE after_stacking 191617
+NV_QCOST round=0 queries=48 rows=15696 per_query=327 nbits=25 k=2 merkle_nodes=6852
+NV_QCOST round=1 queries=38 rows=19646 per_query=517 nbits=23 k=4 merkle_nodes=8448
+NV_QCOST round=2 queries=29 rows=14993 per_query=517 nbits=23 k=4 merkle_nodes=9666
+NV_QCOST round=3 queries=23 rows=11891 per_query=517 nbits=23 k=4 merkle_nodes=10632
+NV_PHASE end 277713
+
+thread 'nv::agg_tests::agg_chain_depth_n' (471949) panicked at crates/recursion/src/nv/circuit.rs:458:23:
+called `Result::unwrap()` on an `Err` value: StackedPcs(LayoutHeightExceeded { log_height: 22, log_stacked_height: 21 })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test nv::agg_tests::agg_chain_depth_n ... FAILED
+
+failures:
+
+failures:
+    nv::agg_tests::agg_chain_depth_n
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 106 filtered out; finished in 1471.91s
+
