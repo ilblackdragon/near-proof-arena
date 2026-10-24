@@ -1,0 +1,25 @@
+{
+  "status": "COMPONENT_PUBLIC_INTERFACE_NOT_FULL_NEAR",
+  "packet_version": "NPSTRICT",
+  "packet_bytes": 206889,
+  "packet_sha256": "9c49d338f3bee2340527b6116d41bca728b2a2f9617aac00cf3b1afc8e2e9c62",
+  "fixture_sha256": "11428f87ddaa002a09a400efcffe2ba29b8d79b282a5da3d00ca360c0bef515c",
+  "proven_sha_jobs": 11,
+  "native_leaf_jobs": 1,
+  "native_internal_jobs": 0,
+  "expected_original_root": "bc344de7741c3450e0e49c33baa03bd645eeb6d8d251dcc41c59b6ae0951589894d9739a6f54797b7ba30dac1a9c144a131a7f83bc50f1c8dd1e54436e47e1c4",
+  "sections": [
+    499,
+    32025,
+    21,
+    4096,
+    11264,
+    288,
+    158632
+  ],
+  "public_bytes_equal_independent_original_message_fixture": true,
+  "limitations": [
+    "Cryptographic verification occurs separately in the fresh native process.",
+    "Original job-root link to NEAR claim and recursive history still missing."
+  ]
+}

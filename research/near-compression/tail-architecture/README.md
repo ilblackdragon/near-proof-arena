@@ -7,15 +7,14 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Native receipt leaves](NATIVE_RECEIPT_LEAVES.md): reconstruct leaves and tree from
-receipt IDs and proven PEO digests, preserving the same complete job root.
-**266,607 / 206,889 B**, four warm observations **0.83–0.86 s**, fresh-process
-verification passes. Faster but larger than the preceding tree-only variant.
-Full NEAR, recursive history, composed PQ128 and p95 remain unestablished.
-[Claim outcome binding](CLAIM_OUTCOME_BINDING.md) now checks the original claim
-outcome root, with 64-case/304-mutation coverage and fresh proof verification.
-Next: receipt-execution/hash-input byte equality, state and bounded history
-composition. Outcome equality alone is not execution validity.
+[Metadata guard repair](STRICT_METADATA.md): earlier templates mistakenly used
+MSB-only `assert_false` for whole-word zero/range checks. Malformed private
+witnesses reproduced the gap; `assert_zero` repairs it. **Use NPSTRICT packets**,
+not earlier metadata-relation claims. Corrected component: **266,607 / 206,889 B**,
+warm **0.83–0.88 s**, fresh verification against original claim/job roots passes.
+Receipt producer oracle matches 64 cases, but all block gas prices are zero.
+Next: in-proof execution/hash-byte binding, representative positive-gas cases,
+state/history composition and full security audit. Full NEAR/PQ/p95 remain open.
 
 [Outer security evidence](OUTER_SECURITY.md) and the
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)

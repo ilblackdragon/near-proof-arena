@@ -31,7 +31,7 @@ unchanged and broader coverage requires a versioned successor.
 
 ## Remaining work
 
-- **PQ tail architecture** (`lane/pq-tail-architecture`): 266,607/206,889 B hash component, warm 0.83–0.86 s; now checks original claim outcome root. Next: receipt-execution/hash-byte binding, state, PQ security and bounded history recursion. Full NEAR/deadline unestablished. [Evidence](../research/near-compression/tail-architecture/CLAIM_OUTCOME_BINDING.md).
+- **PQ tail architecture** (`lane/pq-tail-architecture`): fixed underconstrained metadata guards; use `NPSTRICT`. Corrected hash component 266,607/206,889 B, warm 0.83–0.88 s. Next: receipt/hash byte binding, positive-gas fixtures (current corpus all zero), state/PQ/history. [Evidence](../research/near-compression/tail-architecture/STRICT_METADATA.md).
 
 - **D3 succinct proof:** build the D2/D3 chunk AIR, state render/overlay replay and real Wasm/state/recursion connection. The shipped D3 artifact proves witness re-execution, not succinctness. [Latest preparation/join analysis](logs/pq-prepare-link-2026-10-23.md).
   - **Scoped in two design docs (2026-10-23), with open PROPOSALS P-D2-1…6 / P-D3-1…5 awaiting a user decision:** [D2 design](zk-formal/V3-D2-DESIGN.md), [D3 design](zk-formal/V3-D3-DESIGN.md). Read them before starting AIR work; the headline findings are that **no D2 AIR exists and has never existed** (`grep nearAirV3D2` = 0), **D3 is strictly gated on D2** (`checkD3` *is* `checkD2Core (d3Hooks pv86)`), and **`RelTier .d2`/`.d3a` are unbounded** so no completeness claim holds at their current statements. Order is L0 (corpus maxima) → `D2a` spec → native/AIR split → tables → assembly → budget measurement; D3 work other than its own tier restatement is speculative until D2's AIR lands.
@@ -53,6 +53,8 @@ unchanged and broader coverage requires a versioned successor.
 - **Arena:** verify actual signed admission reports; deployment/local PASS is not admission. Resolve D0a supplied-witness rejection/resubmission status against [live-run evidence](logs/v3-deploy-d0a-2026-10.md). Successor work: one canonical relation with proved tier restrictions, measured workload weights/succinct thresholds, full semantic coverage, guest-image isolation upgrade. Python VM independence remains unresolved ([provenance](research/python-vm-independence.md)).
 
 ## Shared rules and lessons
+
+- Binius `assert_false` checks only the MSB; use `assert_zero` for full-word/range guards. Test malformed private witnesses, not only mutated public inputs. [Failure/repair](../research/near-compression/tail-architecture/STRICT_METADATA.md).
 
 - Target: artifact-bound, independently checked chunk validation replacing `validate_chunk_state_witness`. No weakened measurement rules or hidden domain assumptions. Prove semantic claims; label tests, conditional lemmas and estimates accurately.
 - Keep one `near-chunk-v3` challenge with coverage tiers. Signed challenges, frozen `oracle/v3` and pins are immutable (`make pin-check`). Broader semantics/scoring need a versioned successor. Signed R5 forbids composition; long-term recursion research is separate. `G_α≈3.45 Tgas` is not 1 Pgas. Decisions: [D3 study](zk-formal/V3-D3A-STUDY.md), [contracts](CONTRACTS.md).

@@ -1,5 +1,9 @@
 # Native receipt-leaf reconstruction
 
+**Correction:** the original hash-template metadata guards were underconstrained.
+Use the [corrected NPSTRICT circuit and evidence](STRICT_METADATA.md); historical
+measurements below do not certify the intended metadata relation.
+
 2026-10-24. Hash/outcome-tree component; full NEAR and PQ recursion remain open.
 
 The proof now authenticates private SHA jobs other than D0a receipt leaves and

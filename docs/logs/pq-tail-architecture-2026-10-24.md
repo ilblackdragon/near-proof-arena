@@ -150,3 +150,17 @@ state roots still pass this outcome-only predicate. Prefix extraction is not
 full claim decoding/validation. Next prove execution-emitted RC/PEO/RID bytes
 equal the private hash inputs, plus state/history and composed security.
 [Evidence](../../research/near-compression/tail-architecture/CLAIM_OUTCOME_BINDING.md).
+
+## Metadata guard correction and receipt producer audit
+
+Found `assert_false` (MSB-only) misused for active/flag/id range and inactive-field
+zero checks. Length 11 + flag 3 aliases public length 10 + flag 1. Four malformed
+local witnesses pass old guards/reject strict guards; replaced six predicates
+with `assert_zero`. Earlier metadata-relation claims superseded. New NPSTRICT
+packets remain 266,607/206,889 B; warm 0.864/0.834/0.877/0.836 s, fresh claim/job
+root verification ~0.388 s. Backend scalar min 139.92 modeled bits, not PQ proof.
+Independent receipt oracle matches 4,602 jobs/540,197 bytes in 64 cases; 384
+mutations reject. All 2,138 receipts have zero block gas price/no token burn;
+positive-gas coverage currently synthetic (7 valid/6 invalid arithmetic cases).
+Execution/hash-byte binding, state/history and full security remain required.
+[Evidence](../../research/near-compression/tail-architecture/STRICT_METADATA.md).

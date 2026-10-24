@@ -1,5 +1,9 @@
 # Prove private hashes; reconstruct the public outcome tree
 
+**Correction:** the original hash-template metadata guards were underconstrained.
+Use the [corrected NPSTRICT circuit and evidence](STRICT_METADATA.md); historical
+measurements below do not certify the intended metadata relation.
+
 2026-10-24. Implemented component, not a full NEAR or composed PQ128 proof.
 
 The verifier reconstructs D0a internal outcome-Merkle nodes from proven leaf

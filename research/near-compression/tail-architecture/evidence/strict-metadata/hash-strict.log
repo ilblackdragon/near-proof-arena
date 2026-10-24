@@ -1,0 +1,80 @@
+TEMPLATE_SETUP {"message_slots":1056,"nominal_blocks":3232,"constructed_sha_blocks":3232,"root_bytes":50712,"witness_log_elems":20,"circuit_s":3.322933493,"setup_s":1.1629306480000001}
+EXPORT_BYTES case=00-h10035-s3 backend=158632 total=266607 analytical=135838 codec=export_only_rns
+SIS_POLICY inner rank=24 width=4481 source=7694511891917 target=133874861674 bound=167934333233.2597 bits=139.920 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133874861674 target=1116797422 bound=1923837310.2730956 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116797422 target=58340554 bound=111210719.21561517 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58340554 target=5534580135 bound=33328851.936648518 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5534580135 target=53912894 bound=106085018.26277535 bits=151.845 finite=1 tail=1
+EXPORT_TIME seconds=0.001093186 included_in_ready=true
+SIS_POLICY inner rank=24 width=4481 source=7694511891918 target=133874861674 bound=167934333233.2597 bits=139.920 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133874861674 target=1116797422 bound=1923837310.2730956 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116797422 target=58340554 bound=111210719.21561517 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58340554 target=5534580135 bound=33328851.936648518 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5534580135 target=53912894 bound=106085018.26277535 bits=151.845 finite=1 tail=1
+ERROR in verify(): Amortized (inner commitment) opening wrong
+TEMPLATE_RESULT {"path":"/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch","messages":833,"prepare_s":0.009971557,"prove_s":0.853096326,"ready_s":0.864161461,"verify_s":0.411566371,"analytic_proof_bytes":135838,"public_bytes":50712,"negative_checks":6}
+EXPORT_BYTES case=00-h10012-s1 backend=158632 total=206889 analytical=136037 codec=export_only_rns
+SIS_POLICY inner rank=24 width=4481 source=7274057501784 target=133135707489 bound=167470089330.21078 bits=140.185 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133135707489 target=1116413912 bound=1923506957.5230989 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116413912 target=58153359 bound=111032157.17305684 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58153359 target=5539567232 bound=33343864.529045336 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5539567232 target=56041176 bound=108158673.69717467 bits=151.315 finite=1 tail=1
+EXPORT_TIME seconds=0.000392879 included_in_ready=true
+SIS_POLICY inner rank=24 width=4481 source=7274057501785 target=133135707489 bound=167470089330.21078 bits=140.185 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133135707489 target=1116413912 bound=1923506957.5230989 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116413912 target=58153359 bound=111032157.17305684 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58153359 target=5539567232 bound=33343864.529045336 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5539567232 target=56041176 bound=108158673.69717467 bits=151.315 finite=1 tail=1
+ERROR in verify(): Amortized (inner commitment) opening wrong
+TEMPLATE_RESULT {"path":"/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch","messages":11,"prepare_s":0.009374936,"prove_s":0.823820553,"ready_s":0.833589159,"verify_s":0.411501978,"analytic_proof_bytes":136037,"public_bytes":50712,"negative_checks":6}
+EXPORT_BYTES case=00-h10035-s3 backend=158632 total=266607 analytical=135838 codec=export_only_rns
+SIS_POLICY inner rank=24 width=4481 source=7694511891917 target=133874861674 bound=167934333233.2597 bits=139.920 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133874861674 target=1116797422 bound=1923837310.2730956 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116797422 target=58340554 bound=111210719.21561517 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58340554 target=5534580135 bound=33328851.936648518 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5534580135 target=53912894 bound=106085018.26277535 bits=151.845 finite=1 tail=1
+EXPORT_TIME seconds=0.001114517 included_in_ready=true
+SIS_POLICY inner rank=24 width=4481 source=7694511891918 target=133874861674 bound=167934333233.2597 bits=139.920 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133874861674 target=1116797422 bound=1923837310.2730956 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116797422 target=58340554 bound=111210719.21561517 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58340554 target=5534580135 bound=33328851.936648518 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5534580135 target=53912894 bound=106085018.26277535 bits=151.845 finite=1 tail=1
+ERROR in verify(): Amortized (inner commitment) opening wrong
+TEMPLATE_RESULT {"path":"/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch","messages":833,"prepare_s":0.009514889,"prove_s":0.866476112,"ready_s":0.877105968,"verify_s":0.414620884,"analytic_proof_bytes":135838,"public_bytes":50712,"negative_checks":6}
+EXPORT_BYTES case=00-h10012-s1 backend=158632 total=206889 analytical=136037 codec=export_only_rns
+SIS_POLICY inner rank=24 width=4481 source=7274057501784 target=133135707489 bound=167470089330.21078 bits=140.185 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133135707489 target=1116413912 bound=1923506957.5230989 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116413912 target=58153359 bound=111032157.17305684 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58153359 target=5539567232 bound=33343864.529045336 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5539567232 target=56041176 bound=108158673.69717467 bits=151.315 finite=1 tail=1
+EXPORT_TIME seconds=0.000454124 included_in_ready=true
+SIS_POLICY inner rank=24 width=4481 source=7274057501785 target=133135707489 bound=167470089330.21078 bits=140.185 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133135707489 target=1116413912 bound=1923506957.5230989 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116413912 target=58153359 bound=111032157.17305684 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58153359 target=5539567232 bound=33343864.529045336 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5539567232 target=56041176 bound=108158673.69717467 bits=151.315 finite=1 tail=1
+ERROR in verify(): Amortized (inner commitment) opening wrong
+TEMPLATE_RESULT {"path":"/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch","messages":11,"prepare_s":0.009162485,"prove_s":0.826491984,"ready_s":0.836109365,"verify_s":0.414633246,"analytic_proof_bytes":136037,"public_bytes":50712,"negative_checks":6}
+	Command being timed: "taskset -c 8 /data/illia/pq-tail-architecture-20261024/target/release/near-hash-strict /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch"
+	User time (seconds): 9.22
+	System time (seconds): 2.29
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:11.52
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2480596
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 3273779
+	Voluntary context switches: 442
+	Involuntary context switches: 1812
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 3152
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

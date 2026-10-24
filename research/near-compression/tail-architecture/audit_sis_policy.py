@@ -12,10 +12,10 @@ from sis_screen import screen, check_model
 
 
 def audit(path, reference, profile="three"):
-    count,left,right=(24,4,9) if profile=="three" else ((36,4,11) if profile=="non_leaf" else (36,5,11))
+    count,left,right=(24,4,9) if profile=="three" else ((36,4,11) if profile in ["non_leaf","strict"] else (36,5,11))
     data=path.read_bytes()
     r=Reader(data)
-    assert r.take(8)=={'events':b'NPEVENT2','non_merkle':b'NPNOMRK2','non_leaf':b'NPNOLEF2'}.get(profile,b'NPTMPL01')
+    assert r.take(8)=={'events':b'NPEVENT2','non_merkle':b'NPNOMRK2','non_leaf':b'NPNOLEF2','strict':b'NPSTRICT'}.get(profile,b'NPTMPL01')
     parts=[r.take(r.integer()) for _ in range(7)]
     assert r.pos==len(data)
     assert len(parts[3])==left*1024 and len(parts[4])==right*1024
@@ -25,7 +25,7 @@ def audit(path, reference, profile="three"):
     # Column log 9 uses rank 1536; column log 10 uses rank 3072.
     # Others use norm.max(1) plus LOGQ-1 binary slack, matching statement.rs
     # and simple_reduce. This does not trust the proof's vector-rank metadata.
-    binary_rank=1536 if profile=="non_leaf" else 3072
+    binary_rank=1536 if profile in ["non_leaf","strict"] else 3072
     source=sum(binary_rank*64 if i==1 else max(1,n)+47 for i,n in enumerate(norms))
     rows=screen(parts[6],source)
     for row in rows:
@@ -48,7 +48,7 @@ if __name__=='__main__':
     p.add_argument('packets',nargs='+',type=Path)
     p.add_argument('--reference-model',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
-    p.add_argument('--profile',choices=['three','five','events','non_merkle','non_leaf'],default='three')
+    p.add_argument('--profile',choices=['three','five','events','non_merkle','non_leaf','strict'],default='three')
     a=p.parse_args();check_model()
     report={'status':'BACKEND_PARAMETER_SCREEN_ONLY_NOT_PQ_CERTIFICATION',
         'limitations':['Initial commitment and outer PCS excluded.',
