@@ -1,6 +1,6 @@
 # Handover — 2026-10-24
 
-**Active completion work, excluding W05:** branch `work/lean-completion-except-w05-20261024`
+**Latest code promoted to main: `25efc7265` (2026-10-24), excluding W05.** Branch `work/lean-completion-except-w05-20261024`
 adds strict tier replay, the pinned pooling allocation correction, and a versioned fixture generator.
 Evidence: 1,030 full runtime matches, 209 whole chunks, 366 mutants, and a 1,788-case combined
 verdict checkpoint. Float evidence now adds 2,050 operator outputs, 32 input-driven bundle outputs,

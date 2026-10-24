@@ -33,7 +33,8 @@ inventory's impossibility classifications do not settle every open boundary ques
 
 ### Execution checkpoint — W05 excluded
 
-Implementation is continuing on branch `work/lean-completion-except-w05-20261024`; see the
+Code checkpoint `25efc7265` is promoted to main; branch `work/lean-completion-except-w05-20261024`
+remains available for further work. See the
 [execution log](../logs/lean-chunk-completion-2026-10-24.md) for exact evidence and residual obligations.
 
 - **W01:** executable driver for every current configuration, strict process/output accounting,

@@ -157,3 +157,10 @@ Final checks for this checkpoint: changed Lean closure and input-enabled runtime
 runtime/float chunk fixtures, four float mutant fixtures, 1,030 allocation + six phase golden cases,
 and 2,050 operator + 32 input-driven runtime golden cases pass. Pins and inventory drift pass.
 W05 remains untouched. No W00–W16 completion or Gate A/B/C release is asserted.
+
+## Main promotion
+
+Code checkpoints `fb997a91e`, `766750ea7`, and `25efc7265` are fast-forwarded to main and pushed.
+The integration branch/worktree and all existing lanes remain available. No W05 commits or files
+were included; unrelated root RealCaseD3 work and pre-existing integration target deletions were
+preserved. The semantic/proof/admission obligations listed above remain unfinished.
