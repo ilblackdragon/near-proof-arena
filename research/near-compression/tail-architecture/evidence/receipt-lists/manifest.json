@@ -1,0 +1,130 @@
+{
+  "status": "ORDERED_SOURCE_LIST_OUTCOME_COMPONENT_NOT_FULL_NEAR",
+  "base_lane_commit": "a4fd11626",
+  "source_sha256": {
+    "near-receipt-list.rs": "8da9c644d84970335784a5ab509f10d2464b173319e729519a3c7a8def417061",
+    "support/receipt_list_wire.rs": "d8caa9d0cb3420311eb7c318f295aa25710545582a2bb5dcda5d972448acd163",
+    "support/receipt_source.rs": "1942c72fb92b2a532d7e40ee456baf5a2964abcc21ae856dbf2ed64a6372a923",
+    "support/receipt_outcome.rs": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726",
+    "support/tight_sha.rs": "4152a626cf4cff0eaf66b2f9025d330611f859038f1947a054c352fdf79a5a2e"
+  },
+  "binary_sha256": "d224c8d9cb122ec89f00b38a29a3f873e4ee638ca598e369ce73eecc9f5d53de",
+  "capacity": 16,
+  "witness_log": 17,
+  "packets": [
+    {
+      "case": "00-h10004-s3-list0",
+      "bytes": 198526,
+      "sha256": "d5ee6fa2e73d1bae65c13b23b0af4d5939309d2cf9affd05987d242082dd52a5",
+      "public_sha256": "daf3f6891158cd916d18ce943f154f54d35aaf144741912dee92496a4d801e42",
+      "source_root_matches_original_fixture": true
+    },
+    {
+      "case": "00-h10006-s3-list0",
+      "bytes": 198526,
+      "sha256": "93d0b4dfd6ae4fbb0ec1708d9f66e0218853f9f60e895c93b0f044d4147f004f",
+      "public_sha256": "b3d725ac94f52ba8401ab23ceca48be723690cee3c36fee2b28a401a19123898",
+      "source_root_matches_original_fixture": true
+    },
+    {
+      "case": "00-h10011-s1-list0",
+      "bytes": 198526,
+      "sha256": "978785e08638e26db6292e5332846ea02b1dc8d316c0325fbe961c15b1803bb1",
+      "public_sha256": "10159ec867dc27d9f806e4b22c745347cda0603e0761835a8922d6a8977ef97a",
+      "source_root_matches_original_fixture": true
+    },
+    {
+      "case": "00-h10012-s3-list0",
+      "bytes": 198526,
+      "sha256": "0072a1249afaaa0dca9c15d462f77e232ec852aecfe6ebb393409d5d6d8c278e",
+      "public_sha256": "f302f08363bb3383aeec33088f990be601a1cf470f5283c31cf18a0757317497",
+      "source_root_matches_original_fixture": true
+    },
+    {
+      "case": "00-h10008-s3-list2",
+      "bytes": 200830,
+      "sha256": "68de896d8a2b7dc92951b31ff45b93e6aad1fceab5eb4f548c4bffcc94b80752",
+      "public_sha256": "33663e12e9e646b15529b2363ddd534d6e0083f20473a4497a8b381602256c72",
+      "source_root_matches_original_fixture": true
+    },
+    {
+      "case": "00-h10035-s3-list1",
+      "bytes": 200830,
+      "sha256": "cc91c04158cbd731c6a3eae04ef6605bedef020e506531fafceff09a98c2305a",
+      "public_sha256": "e5556107579c148bd03335cc556c4dae263b52ba7a58bc0aefe48e4c6096d54d",
+      "source_root_matches_original_fixture": true
+    }
+  ],
+  "large_profile": {
+    "capacity": 1024,
+    "status": "CIRCUIT_CONSTRUCTION_ALLOCATION_FAILURE_NO_PROOF",
+    "virtual_limit_KiB": 16777216,
+    "peak_RSS_KiB": 9939772,
+    "failed_allocation_bytes": 6509559824,
+    "elapsed_s": 13.88,
+    "note": "Measured before decoder addition; circuit-building path unchanged."
+  },
+  "results": {
+    "build-receipt-list.log": [],
+    "build-receipt-list-codec.log": [],
+    "receipt-list16.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.243221829",
+      "RECEIPT_LIST_SETUP setup_s=0.088748264",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list1.list cap=16 count=9 bytes=200830 prepare_s=0.000858416 prove_s=0.298471351 ready_s=0.299567073 verify_s=0.162401186 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list0.list cap=16 count=1 bytes=200830 prepare_s=0.00086108 prove_s=0.282533572 ready_s=0.283576014 verify_s=0.162728502 mutations=7 full_near=false"
+    ],
+    "receipt-list16-cases.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.243490374",
+      "RECEIPT_LIST_SETUP setup_s=0.106037472",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10004-s3-list0.list cap=16 count=0 bytes=198526 prepare_s=0.00082386 prove_s=0.295214038 ready_s=0.296230972 verify_s=0.142040326 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10006-s3-list0.list cap=16 count=1 bytes=198526 prepare_s=0.000884555 prove_s=0.259856558 ready_s=0.260883481 verify_s=0.147691523 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10011-s1-list0.list cap=16 count=2 bytes=198526 prepare_s=0.000910063 prove_s=0.254717175 ready_s=0.255772281 verify_s=0.147366762 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10012-s3-list0.list cap=16 count=3 bytes=198526 prepare_s=0.000915493 prove_s=0.268055009 ready_s=0.269117809 verify_s=0.146844369 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10008-s3-list2.list cap=16 count=4 bytes=200830 prepare_s=0.000868424 prove_s=0.2576206 ready_s=0.2586409 verify_s=0.143770582 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list1.list cap=16 count=9 bytes=200830 prepare_s=0.000879976 prove_s=0.266659453 ready_s=0.267753892 verify_s=0.151551378 mutations=7 full_near=false"
+    ],
+    "receipt-list1024-geometry.log": [],
+    "receipt-list-reversed.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.237803179",
+      "RECEIPT_LIST_SETUP setup_s=0.105799204"
+    ],
+    "verify-list-00-h10004-s3-list0.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.239590774",
+      "RECEIPT_LIST_SETUP setup_s=0.107223855",
+      "RECEIPT_LIST_VERIFY bytes=198526 seconds=0.166542935 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-list-00-h10006-s3-list0.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.234853808",
+      "RECEIPT_LIST_SETUP setup_s=0.106160484",
+      "RECEIPT_LIST_VERIFY bytes=198526 seconds=0.166621652 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-list-00-h10011-s1-list0.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.238645965",
+      "RECEIPT_LIST_SETUP setup_s=0.105380255",
+      "RECEIPT_LIST_VERIFY bytes=198526 seconds=0.163515636 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-list-00-h10012-s3-list0.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.234269669",
+      "RECEIPT_LIST_SETUP setup_s=0.105885676",
+      "RECEIPT_LIST_VERIFY bytes=198526 seconds=0.165756895 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-list-00-h10008-s3-list2.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.240030952",
+      "RECEIPT_LIST_SETUP setup_s=0.106024598",
+      "RECEIPT_LIST_VERIFY bytes=200830 seconds=0.167010945 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-list-00-h10035-s3-list1.log": [
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.237697731",
+      "RECEIPT_LIST_SETUP setup_s=0.106065124",
+      "RECEIPT_LIST_VERIFY bytes=200830 seconds=0.164929357 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ]
+  },
+  "limits": [
+    "Public roots/context supplied externally, not proved members of original chunk claim.",
+    "State, account grammar, access keys and general runtime absent.",
+    "Composed PQ128 and recursive history unestablished.",
+    "C decoder trusted-local only.",
+    "Cold setup and original witness preprocessing excluded from readiness."
+  ]
+}

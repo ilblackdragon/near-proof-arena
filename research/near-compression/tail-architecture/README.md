@@ -15,8 +15,10 @@ outcome hashes, **not authenticated receipt sourcing/state or full NEAR**.
 Other SHA jobs are absent, so these results cannot be combined arithmetically
 with the prior hash-only benchmark. [Source serializer](RECEIPT_SOURCE.md) now constrains those same fields in a
 single-receipt source/outcome relation (2,170 fixtures, three verified proofs).
-Next: multi-receipt source lists and cost measurement, then authenticated
-state/runtime, remaining hashes and bounded PQ history.
+[Ordered lists](RECEIPT_LISTS.md) now prove original 0–9-receipt lists in a
+16-slot circuit (198–201 KB, 0.256–0.300 s; fresh verification passes). The
+1,024-slot build failed its 16 GiB memory limit. Next: cheaper source packing,
+then large-list integration, authenticated state/runtime and bounded PQ history.
 
 [Metadata guard correction](STRICT_METADATA.md) remains mandatory; earlier
 MSB-only range guards were underconstrained. Composed PQ security, untrusted

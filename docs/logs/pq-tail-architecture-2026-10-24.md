@@ -230,3 +230,16 @@ multi-receipt source concatenation and integrated cost before scaling. Evidence:
 `research/near-compression/tail-architecture/RECEIPT_SOURCE.md` and corresponding
 source/log/hash manifest. Initial generic-target build failed; explicit native
 RUSTFLAGS and isolated stronger backend succeeded.
+
+### Ordered source-list circuit and scaling failure
+
+Fixed 16-slot shared source/outcome circuit: original lists of 0/1/2/3/4/9
+receipts prove and verify freshly, 198,526–200,830 B, 0.256–0.296 s warm in the
+six-case run (initial samples up to 0.300 s). Fresh verification 0.164–0.167 s.
+42 proof/public mutations and 18 fresh checks reject; reversed nine-receipt
+input fails source-root assertions. Independent public statements match packets.
+1,024-slot construction aborts at allocation under 16 GiB virtual cap: peak RSS
+9,939,772 KiB, failed allocation 6,509,559,824 B, 13.88 s. No large proof exists.
+Next cheaper packing/streaming, not merely raised memory limits. Expected source
+roots are not yet bound to claim membership; state/runtime/PQ/history remain.
+See RECEIPT_LISTS.md and evidence/receipt-lists for code, logs, manifests.
