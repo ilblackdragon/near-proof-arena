@@ -1,0 +1,1731 @@
+{
+  "cases": [
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10071-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "b2e33592e7f595e800d4b4f7bf095a125d6d42cf4d7df611d4063b8b106235fd",
+        "meta.json": "95acb2ea163c63c20b47f9ac382175e0aad4622d0847ee3feb7306f089d9f491",
+        "witness.bin": "adc246683a055a1614b77354642091dd242d7be3a2752c5647e530e8d4ed75e5"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10072-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "c85655c890f7f6db76d026ece1f4ea3c2c9db2772b65da16f23054b61279f7e7",
+        "meta.json": "f195ee4e6d4d500cdf06c1fb91988414fb1a3435297dc75d51a5ae43810357be",
+        "witness.bin": "f0f78f52b42e58a899afb5606c4ab441c1740e689ae695b5d5946c6f14087acf"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10074-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "cecdad44672e17379356c4cbfff75792041fcaf8cfc07523af42e9c8196d6eb4",
+        "meta.json": "b64b06f152084ce8b43ad5d6c5cfd5681d66397ab59831368d8dbe449000a528",
+        "witness.bin": "38c086151c14ce07abaf4a2b6c206a1d7dece8f8892eb9bd0a95d10685864ff5"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10075-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "142adcbc36a1fa42d5d768d14ca22c9c39344fe11fdcc189efba56527de270d5",
+        "meta.json": "e27f30b2bed2edd16d8d0e08055dd8e88b91f1d6f2c32b5606ae2c28f8339416",
+        "witness.bin": "a3009658c147b8cef7f426032f00af3cb4e7ab7a848ee231814730a1868f0d56"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10080-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "20d22e5091c00665548576e705fae7f611a4998ef93d0f28025e00915d71ff67",
+        "meta.json": "4675f26cce863d192c0d6c01b4ba61f07418f48533a99fefa67782cbf5ec257a",
+        "witness.bin": "3da681ec6cc24a70eebd507b782fe6e158596813325cbc349dbc1609f5e45b6a"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10081-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "a2cab55dbe3eda67227854058f34bff8ae54fbd90dac960f901b9314d269aae6",
+        "witness.bin": "b1fcd6748e7ee75dc9da942f11ccf58adf0fafa075060b7ef0aed5b08963cb63"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10086-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "c5009ffd6c5e4147f9470a1a3d47d45526a63f2026941454e9b57620545424c5",
+        "meta.json": "01773ad2f214fd7f426d847ebd076e6ba528f291b8d09abc17bcc1a35d97eb51",
+        "witness.bin": "b7a84115576ce004ce7e9bd950bb9c18ce53e7a7d57d7d8b2399622a81641f9d"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10087-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "7e41d5c22973ff619d027ecaedb8764abcd4e382db01dfc6f1199c1f85a720a0",
+        "meta.json": "a57650c4a7fa8ccb04f39b9b985d6bda4f45e8a534f6961e62dd01d4ec66220a",
+        "witness.bin": "bfc22f64736c91155cf11d4f178f8a845d5ea776f727744b8823228cea19e500"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10088-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "61f2453f84cec24e6e2c8add4fd26e0f955bca159df9825779f026d604fc4ab7",
+        "witness.bin": "2d07d8d5d5b8def57eed916245044c0c3d0c020bb21c774ce125904c5d159e36"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/d3/00-h10094-s3",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "cd839979202ca2263e7c9a93880b6405de6a870078ba4745d3a9bb767c8878f3",
+        "meta.json": "ee08804264e4e3d9c9fb80eec349ccf1fd9750a3eb27776a4e1d3711d179e6c7",
+        "witness.bin": "1a615198f2a373475119fd6167f56179963913aae2a7276b3cf1ec0275567aa5"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10005-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "7eca80d7b7819dad0a78899085b039a468ef51811174c51b4db34bcfd72d038e",
+        "meta.json": "386bf1295e36ac4976628cdaf8b1cf0be5b0a71d104d7eafd41fd024aaf9102a",
+        "witness.bin": "6eb49b403e38a23dfaa200fa66135c2234137b60546429278423d993a5e9bb65"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10006-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "c43fffead340e2f49310ba2090d708e5ccc9659379c2ba0dde8b6185514f00eb",
+        "meta.json": "16faa9af9f03b9202b4eb7fb9ea55a8d76f7b596306b93dbe8ea5e1806914c89",
+        "witness.bin": "82868233212dfb0ca4828a8ccd775f1d2ff1a18239cb74b6e5fedde82c68f013"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10007-s3",
+      "d3_violations": [
+        "w.shape",
+        "e.float"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "f6e1198b950b778b9c70e3176f091f18992833d8048ca8df0ab30c956d126483",
+        "meta.json": "64007f067e4f57adcee2434edcf1d981993c02dbc3b501753c31487dd072b859",
+        "witness.bin": "235eca993c5b0ca3ba0062b043baadc1f3134a40d0130631c9f0746538e04183"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10009-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "0e3f4a06af492e13e3feeb5aebeeb80df292a4b5f0f34a1aeccf740d2455d18d",
+        "meta.json": "21996d9ce2d814a4380ddd90c5eaaec45ff80f6b3eb71c484ab0decf6de9420f",
+        "witness.bin": "71b8bc3191e6253d614c50f1ca0c03ec83c9940a11d6f462a832a1cd946dc0cd"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10011-s0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "bcbf64c69f81e59d21e87997cc3e6bea5147e07d4d5babcddd76265913507c88",
+        "meta.json": "93fb7ea76aca3adc2431e2f9605b8a9e50b617c10ab64bbc8fe7cbb554203a9d",
+        "witness.bin": "389361350d382d33a06c2057e3a096979b6955fee7b0e191785900d8f06ca75c"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10012-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "192d39282c0b424a5cf8bf39d55ef79368c9b0d065fc3eafa780c3590b6db822",
+        "meta.json": "b51ef88d6f5a08702a5beade902f87776b9b9e3db90cf43bdb9c993fa4b71502",
+        "witness.bin": "1ca120583a59432d9e19f3b7afb811b990a5093aeedfcbfa5cb41ef35289d285"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10013-s2",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "aa8e5a1618cd7662bc060a1fc616af39ba2915be08b36b0cf82a55368afd80ab",
+        "meta.json": "311a95540145f9d202689ab2a26dc39d35b0d8c8b06a0c32d96483db43613905",
+        "witness.bin": "380e8a86483bd780172932b4f3e8825ae7644e84030adcb56ddf7290d8271036"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10013-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "36679714e0cf96abcf26d414f2b881462144f3c1bf6816e7ee0b4a07a8e63c76",
+        "meta.json": "9651cd7d405eceb618de0484eb0630111b74c283ab828da58a6f09d11629fc0e",
+        "witness.bin": "7c6659e7335572610db33c4cc30e2a213cba476b42241b1f0196daca9f789879"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10014-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "4a9a66e2f1383df1f37129417ea88b66d927a52f77dae43c631f9cf186e073b2",
+        "meta.json": "c6b2fa3e01a87fd51bcd7966887d9f703cf2b1ebf53a6bddc394e53c530c5607",
+        "witness.bin": "ba10f06453d6c110ebca10f971388f92f06c9704de5c26c46cdf93da2c18376c"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10016-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "20dcbbf86ef7a6133c4c5b3aeae9f901d6e061b42da5e881054b8feb18cb665b",
+        "meta.json": "068eab796443b630aed0bdfdf4c2ef68657d13e79f1b479c3948e972b9773580",
+        "witness.bin": "ebecc4bd78cd45ddbc55f7f229a94d0c883fdb0f7471266f228b35f85f6bc577"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10017-s0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "bd7a1a66ca4245afae1a1ca8f45ccbbc52b426b11b12f39f349876da5c542c8e",
+        "witness.bin": "e091c20b061a8b4bc3874906a206ccef49ed6438c4070699c41ebf0adf8f9dd6"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10018-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "83c796e69f273669f29e10ca89b4b60a532f7b9fe04e5882208c2bf7e5426052",
+        "meta.json": "eb23cb1ed3e6effd052d171df3d74e45e7840683d877351de7fe0607b8650d49",
+        "witness.bin": "2b6c847d1aef90ac5fa1868caedd00620f8119b02a5009ff23cbfa2d5ffbd89f"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10019-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "5a4ff8f349385345426ae1e33364f41c3da86e02ef91bdfb7181b8e4e8bf5c4d",
+        "meta.json": "db554aac68c1e045f4badaf7e33c520ad8372ea311c8b04c3e4793748516e89e",
+        "witness.bin": "b655457fe48187e4a2698a9cabd87a28c810f0af449584a1ced4ca65f7921824"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10021-s2",
+      "d3_violations": [
+        "w.shape",
+        "e.mldsa_key"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "73e6a8131e83a324f5794907b029f54d98c623f57d344dea93eb0ead80345a82",
+        "meta.json": "ce003f69ed45a0720297b54a329485e36e138eb1e034a5f99a545b626914cd0e",
+        "witness.bin": "6af1c5b6062d254801c803b98e71441928379de87c78da3f7ace7057f829995d"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10024-s0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "32651e124e2e11d3f0d6f01d3a24b98de96b7cc80f73c1212fd36f8a7a96dda2",
+        "meta.json": "ad777891448e454bbba197cd8722ab233096b84660786e5263ddd4b0c528c20a",
+        "witness.bin": "1a4f9753baf12df6391e90f1a729e3ba2d373d5102c67ab621d03d2055852f2e"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10025-s0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "ff821515eb1844e8f1bf2f9640ca7b6d82244335ccce3dd4cf1397a2a838947e",
+        "meta.json": "5ea775bc2e19fe3021f00ca1c2a0b3d761782b67bbd8d0fec56aa232a2ad5418",
+        "witness.bin": "a76012935edcef82b7584c29cd390fca46939eecfa37995b72eb973e80a2483f"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10030-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "34432735b5ec6f6c074dcf12b4e8817c64618fc69662814d60c94da97f2aefd7",
+        "meta.json": "ca06fda2c601ffb793a3e67439b2731951a37b17abcb020c884ccbfff2caa6f0",
+        "witness.bin": "a71ace6032d845f1d92145c17fb7372722c40635d572519afedff7bbbe5b62e6"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10031-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "4e7eaba45da0568bde099397b8042c7ff69fa55433fed8472d62939077625c0e",
+        "meta.json": "f51a3ba9d4c2d09f07f78d045e0e4603a4058529013d0dbcd27edc3d17c3bf3a",
+        "witness.bin": "ce7b7d5d4a43d77a00023e2548959fc7916e509678c97813122e822b16d558a0"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10036-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "d80f58eaa91534ea6326c2285c4bb04223f88ce0d2ba589cfeec42d6c933650f",
+        "meta.json": "f37f1459f641a824278bd97772763343272b612f5b90af047635dece581a60cf",
+        "witness.bin": "a0ac30821e934920fab8b94d228cce44e375012a242fdcda6c05c67324284468"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10037-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "640688944f041030c6f6453bec1e4bcc02db575ccd5e62cffb74ce4ea89e104f",
+        "meta.json": "023ddced55069149fc3014c751734d7b4d4e8a04a46962a0b38bbf3e242b99a9",
+        "witness.bin": "7df23d339def79d68d8424918eb417eb2e2cafb6a257c54566c1f0606494501e"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10043-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "f65add5a183b8405e5a971a302d49409d3f687f3dc9f0887f0f7826eea95095b",
+        "meta.json": "d39986d3ac68e43bc0b196902c822f0dfa1f9485963922d629a0c05843b4e68d",
+        "witness.bin": "7fb5d67c59f087465b80e1532c1b02581ac2bd2862a8941c24fbf62ab02900bf"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10044-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "f189a1eb4f0f0127d3a444e962d4030b7d108d8a4840575e5ac17fca3d81430c",
+        "meta.json": "bb7b24b2db885d13777147a2935ce479afbb0ade45b3238be9da187afafc0256",
+        "witness.bin": "dd55fcb712ca4927321915d8fc17f6421c9ae30b5dc861927251ea9a6304f2c5"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10045-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "b028cbbf3f72be9f1576902cdbb170432681a4a92626e7204dac1935eba72f94",
+        "meta.json": "1ff841bc07692baa4a9e530e2ec1e84cdade9ace87dbf117ec11c1198cda544c",
+        "witness.bin": "6069cabcf5b3e648818ac8221d444c46262fbb308f985c7956de0ee33347bdc3"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10049-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "a596d3b517181bf47253f1bf1a1faa25761f445856de697a9fb015dfad046409",
+        "meta.json": "7848a38ccfc0ce61c3b225efc42e9baeab400b5d0331610f6fab97260697e30a",
+        "witness.bin": "2dbca16b39525a219a1573eeca51e6e24b3a260bf9a61ffac2ae55a302107405"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10050-s3",
+      "d3_violations": [
+        "w.shape",
+        "e.eth_implicit_local"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "cc1a65f25b2c4d606c289d4bbc7ce90133b4ce9068832c3b65f29580fb586caa",
+        "meta.json": "c46e90bca005e17c7cbf40de8504b2212950561ca2d495a33d747ab901fedeb6",
+        "witness.bin": "962dc34131792a3a05ffdfd4be0231c2b14f871ebc4010581c50d4c79b0230fb"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10051-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "a496acd0fab3cc26d31b25f4c03414052d06d0c9603c2e30c624213d82acb0d1",
+        "meta.json": "c695ccd0e070134f0ba4bf17b2b6677fda5b2aac7ca5e9d392aa41e498fbb746",
+        "witness.bin": "4350485766a1568264395832b466807be31c1bfe45d2ebc7a2381a2350db2f80"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10056-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "f548b3b448ae568e471934967e93bdc16658b2d24bd67e8a7f8f53b330da28e1",
+        "meta.json": "f7fa603242ed91bc8c470da641c3ba59966806c49fd1b22a622ec066539e77aa",
+        "witness.bin": "db996f268d902b62508a847794ec6f3254929f6c517985d40b781b653b156bba"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10057-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "269ac38c96fcc46a77159ee56c56982563feb61ffa0149089b2d6bf0692c0095",
+        "meta.json": "5fc67768697e854d068e6d0130313ec437c5d732d85eb5d733549c28caf984ff",
+        "witness.bin": "80907854de0451906defd2a1243f389fde8ca6a135248bac22ff384c800b7b5c"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10059-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "a8946aad58e231977235d83f161b63a57107d32aa623217bdda7a0a087d31ebd",
+        "witness.bin": "26dc124ced54a2f2fe5a70e241305288173015bd8db0dc327c04b59e264254dc"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10061-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "dc99c9a42bb1db769ce1de5621be2e38a7ff43b5952d3ad4c854bf698b9adcba",
+        "witness.bin": "1152d1dade3abe577f94e2ee744277b33e08f547ed214b227bb17a1d81474fae"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10062-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "950db5515c72f81a4cbc0b281a332061eb85c0d0f9b9d43a2a1aa97151f92224",
+        "meta.json": "0f1d827058ec932ceac73a049b70a0ca2830291383239831d160dc6a5e90e3f7",
+        "witness.bin": "e712c092da2234db481a96d0441a771635bcf5c833eccdda5720a23c62faaade"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10063-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "8f3f0531ce7f3c7b9995ea1119c3b8b5d3ddf5999618988f70908cddf059107b",
+        "meta.json": "c0d44bdd8334cdc2d89058e6bb6a5bf232c327fd3ac24956f03f3787d511b4c0",
+        "witness.bin": "7473db15f21920712a010a4ea2d013c02ce41a536fad351d2b96c0a2a90ff09e"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10068-s1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "a27885f56eabdd32c6e54fc9f26c53fc9b1d19570f65e125fef85289cae152a2",
+        "witness.bin": "283ee0857460e50ae003347b46912a9677e1b72bcc41bfb874fbea3c74028e40"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10069-s0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "290e71a4839aa85a67fcf27ad03e429313c645bebd2a1dd54bad736f1ec0f6a6",
+        "meta.json": "973b0bbb66cf99b82cc42cbc630cc976a14c2b2dde69e733a207b78df12253f9",
+        "witness.bin": "78ee446350c12d9b637cbcffc7ffe0227cfa599905fa559360c99e1413848048"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10070-s2",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "180a438f4cc6fbf779b0f2e060806ba1fc15996a19fc3dad8578d7ad1810839c",
+        "meta.json": "b527f9e8c91afa8254e29dc33a2376d9c1f79e103374e0558916aa9d4550e7af",
+        "witness.bin": "aaa4c2b4cb3ae59c841da8293f0e10bcead1aeb5a7817c0de62e0d15677716dc"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10093-s3",
+      "d3_violations": [
+        "e.float"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "e206d6f37da2ef7b07ab3fc4aa08562a8f3d1fece8a9aab779a84658b381cb20",
+        "meta.json": "8cc1fd97248f644ff4990a15cada8b0c99917ccefc45a44e9b49dba2f93746ad",
+        "witness.bin": "74b9745c5f4879860644f6d3c5e3e39b2048b16e2c03258ae4a8d6cf271541bb"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10100-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "497d12293e5cd9d12153448709bacfd72a72b8075b9c6ff143b8fd613711de8d",
+        "meta.json": "1c9924f17b078fdb10c526bc7550cae0ec1039967485f8954ecdedcd9a3d631e",
+        "witness.bin": "a210e22b7154202a7d1b9fde4135ff28594350ed4977091226d580380947c54a"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10101-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "e576dec3de738884f8ad73edb84523e99214cec46fb114b3e1c8bd091603e867",
+        "meta.json": "1daa6d2b5cfabeff31b6a4717c22676ff15633bc7d7cc95491d0b185fe0ca358",
+        "witness.bin": "ed57f6715cf7373981271cd5c57923e0131c41fd25b304b7520afd150b102415"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/ood/00-h10102-s3",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "597f5a87b526a8ff1b4261f63b56f6d1d164ccdbcdbefbfd8af0b47cacb73b66",
+        "meta.json": "21e7d394782351ec071e8b61434bb31cf3f1e371a511caf261926672582b7e7b",
+        "witness.bin": "f60541d24169ec52e8169398edc1ab6492e97c29a1ca573c14e4a166393a8fe3"
+      },
+      "kind": "honest"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.drop.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "8be7da13f760c2b10b64e608bf60b30fb37df16ade585eda47e8990abaf4ae2b",
+        "witness.bin": "aed9ca9bdc0fb214769358cd93c8026d93357a790432f644e7a9475858d35de1"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.drop.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "f404f7d61cebeba697d30dddffc80646fab10e4f949a3c17c49dd8f2a9b7acb0",
+        "witness.bin": "a28fb2a4b10d6c6f9c97216f29b296b832aa2bf1898e19173467a1f4861e39a4"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.duplicate",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "1149b37497d17f1e60c26d181bca40392f74bf42c417d8ada687e2548eeb36be",
+        "witness.bin": "b4a56d11a613fa0ed71fdde9a7709b9cc345289366cd70509a9f8c3187037944"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.extra_garbage",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "ff835d0626182e79280a10c6e7e624f7b034ae0add32f3a68a04b2b66653236e",
+        "witness.bin": "8e5eab193ba6b919e4390cbc24b69754568fad85d1635d21c963f6d2ee393ab4"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.extra_unneeded",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "6225167a0e8ae0b5fbab692f5d7d2173fceb77cf587c87a7f4e8e39a4fcb049f",
+        "witness.bin": "36e7da135860471d8d9c24e934f162a46893693dfd5f63c3ac6186c4a3c42d58"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.flip.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "636f71bd9678269d217d710d0171ddd26dda5648af96a664ef98ed567859be02",
+        "witness.bin": "d3608ee5c98b720f1a71ece53eeac5ca3e25a9ff20ac2e410c092f1e85aee6e4"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.flip.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "6b8110d2c89def442aa25fbe600e7f99020a6ed0ecaeb06ff97cc14cf42be1a5",
+        "witness.bin": "3344bab7132e7d61ad19b8c9928640872e5a72fc17080cbc3e23d0423eb9ab92"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.none",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "84639b046fe0b1c360b9b4d1aa340b7dee00f0d00eae9df0c88f636e95670899",
+        "witness.bin": "774ab3c192160b5709ef22225da0d484ecb1b41eae4959031d812ec9bb5c3d1f"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.reorder",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "cc941c19de64ced7f06578bd2ad1e20ecc3d60b109395a4821b06103673971bd",
+        "witness.bin": "c0eab21d5eefab0d8dd7ea9be0be57dac9f5800521e508957eeec1fdd71b2091"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.truncate.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fc0f5e71344c1ae05a1cf096ef47a9c72a77b35b1fabdeded0f701534eda867",
+        "meta.json": "731c24082a5cabf376a9b99a42593d51120ffbffbf38b7f5491183e2b12a0ee2",
+        "witness.bin": "39ac005a948d240a0d79eaac1b0b67b3c532c77e4502ac605342dab33c47bfc6"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.drop.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "d80f58eaa91534ea6326c2285c4bb04223f88ce0d2ba589cfeec42d6c933650f",
+        "meta.json": "0b50258dc0fba8df5edb1beb0e2621bbc7bf14652e67d4ef014a6138e75823a7",
+        "witness.bin": "3eee1671a4317dbe63550ec73ad0e0f799f0edd22e70c96e9f3f9d86d0e015fd"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.duplicate",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "d80f58eaa91534ea6326c2285c4bb04223f88ce0d2ba589cfeec42d6c933650f",
+        "meta.json": "ba591a450c5611de5ff53ecfd7ccfe63064bd4ba14158b59bf7b0b2fba1687e4",
+        "witness.bin": "0bd7e67858a5e525fd868c39a7aff8a815a20ba1b7a0f10e2be57ca29f4080bb"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.extra_garbage",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "d80f58eaa91534ea6326c2285c4bb04223f88ce0d2ba589cfeec42d6c933650f",
+        "meta.json": "18ced6b387ded8d3cbc2df965d0d293d5b8ec352c9cd1f76b93885c87b2cf9f1",
+        "witness.bin": "9fb545c587926b3bb45b75cb8af86c905f685b84899dd6cb2b462622639a806d"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.extra_unneeded",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "d80f58eaa91534ea6326c2285c4bb04223f88ce0d2ba589cfeec42d6c933650f",
+        "meta.json": "d075ab7a0447a8fa27800169a6c5135c2e597b5475a69da11365ae968afe0bf5",
+        "witness.bin": "36d54257b4fde5f6a0b19747252d687aaeed003167c42bbda952f8aff7a0897c"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.flip.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "d80f58eaa91534ea6326c2285c4bb04223f88ce0d2ba589cfeec42d6c933650f",
+        "meta.json": "d464a0cf3652c96fd59d538c5513cf7f58e2694c2bfd30af6f7240db4c21e6ca",
+        "witness.bin": "545aa9710a6da93763c80c24b7c04dbdd65173f5fcccb76a32971112efa23aff"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.truncate.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "d80f58eaa91534ea6326c2285c4bb04223f88ce0d2ba589cfeec42d6c933650f",
+        "meta.json": "e60fe4716e5ca39661f747ad16f996813a32e259be5a9f7c13dc4c655993d56e",
+        "witness.bin": "3e1ff745051329c2285436947e47b8b18c6613796a3f31791dcae3de24f3bb2e"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.drop.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "640688944f041030c6f6453bec1e4bcc02db575ccd5e62cffb74ce4ea89e104f",
+        "meta.json": "c830eb93f2a1657d3d0b9c68dda239af4b4995cc9a7f3061fe057bfb1e9ed46a",
+        "witness.bin": "fef53580dbfa6e87af1214a0868bc9bf6813b61fbb520ce9c0318c3dd06ea318"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.duplicate",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "640688944f041030c6f6453bec1e4bcc02db575ccd5e62cffb74ce4ea89e104f",
+        "meta.json": "8bd1c79bd75275c0d3d8d347dade1929d180ec1a9c1ac40eea776a22cd9bba7a",
+        "witness.bin": "cfaf297b0c8982e33bd00d2ba659009945854ba3693c138a20a65e573c33670d"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.extra_garbage",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "640688944f041030c6f6453bec1e4bcc02db575ccd5e62cffb74ce4ea89e104f",
+        "meta.json": "87289c3d8f3ee90219f12ed7e531650a4f0a03f5f063df45af6a7fcce632ccad",
+        "witness.bin": "eed3fa45dea46ad01e1f0b83f41c65728660bd987a2a66060292f1db6790e28c"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.extra_unneeded",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "640688944f041030c6f6453bec1e4bcc02db575ccd5e62cffb74ce4ea89e104f",
+        "meta.json": "a3d0938d137f48e469f9c17fc73d6b325eaee67f3260998e2af33223ee060b6c",
+        "witness.bin": "dc7ee1dc7c35a48fc5a75ef30c9bc1bf12c05723696eac8ad4c6b36efb0f63a2"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.flip.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "640688944f041030c6f6453bec1e4bcc02db575ccd5e62cffb74ce4ea89e104f",
+        "meta.json": "c08f36256cde9b8c5b564dd568d87022cad3eba0e491cc5962c3e91e75c420f0",
+        "witness.bin": "feb9900b1b68179d52c137c073a46bce107803f559f0bad3567d229097d543a7"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.truncate.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "640688944f041030c6f6453bec1e4bcc02db575ccd5e62cffb74ce4ea89e104f",
+        "meta.json": "3d2977b58d5d51ddfe720df0bd1ebeab5492ed6627c9c09cf363e3b3a58ce137",
+        "witness.bin": "4cf8b29500b085b2f75f55c5b13a008866de944122b15867ffdc6f24011dee2d"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.drop.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "b028cbbf3f72be9f1576902cdbb170432681a4a92626e7204dac1935eba72f94",
+        "meta.json": "8ddb0c53cf16fccc8b93ae850d3ccc779b40c4afeeac9d55274c60f729ad4251",
+        "witness.bin": "2cfdb6a11c261468a8cd6d5de2b203fce01f971315c3b232f83db4746be7f4ae"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.duplicate",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "b028cbbf3f72be9f1576902cdbb170432681a4a92626e7204dac1935eba72f94",
+        "meta.json": "a1ced63c6b90bdeba69745aadb2a3c35bce35d88813d38e63a09ed3284a05dd2",
+        "witness.bin": "42de40470ae4d27dd27abca096aa2c6d4d5fe88777d279938ca2d612330d773c"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.extra_garbage",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "b028cbbf3f72be9f1576902cdbb170432681a4a92626e7204dac1935eba72f94",
+        "meta.json": "932114e6cc4d6473e81bdb70ab1757cef38ad6204013374315548bd858e1e248",
+        "witness.bin": "869616bef27461c459068f8c315fdd6f05f4eb2b4ff1b79649c37471195fb5b5"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.extra_unneeded",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "b028cbbf3f72be9f1576902cdbb170432681a4a92626e7204dac1935eba72f94",
+        "meta.json": "cbcc0a8cf53b079f51de499041af670b8100fe647c737f9476931018d9995196",
+        "witness.bin": "4131166ce191d0df4ed95fcad46fab8a3c61330748de40ca2e7e8ece2264cf39"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.flip.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "b028cbbf3f72be9f1576902cdbb170432681a4a92626e7204dac1935eba72f94",
+        "meta.json": "c75227d21e369d5d64120d0b3fb9b8aacce6e777ad26aebe04633e1577b1b2bd",
+        "witness.bin": "42aa5fb9355d1d98b060b23e4ffc38a839a8655e731030fc9e3d555a77398cb5"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.truncate.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "b028cbbf3f72be9f1576902cdbb170432681a4a92626e7204dac1935eba72f94",
+        "meta.json": "6b1c67f7432fffc8676d4832ca2fb4bab79ed2f5224e22b6ff137ddf9f17196f",
+        "witness.bin": "f2df87d139a3c6a374f28a0522549c973d382de38fd869d34d216a775f0474ac"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.drop.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "d659a36529cce768f201d56db700dd9f88f49954a6bdbee1874bbf5359963ed8",
+        "witness.bin": "2ab237070a2f7eb96efc48c0b92cd35a1a0eed2755f4f36e070e223ab4ed0930"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.drop.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "ff05a0364eeacd8859baefbdfb0c3521de765ef362ddd70bdaed6d493d5950fc",
+        "witness.bin": "d9bcc4465e70f9fa39aeeb3e2ace24f1d0554827205bf97ab80944230dab1c4c"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.duplicate",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "b44bda3f26249d85ea393b6d63c224afa7aad8c9ab21f217d9c6257d3de91306",
+        "witness.bin": "fa9560de6c94901899ee4c08fcd4f97a31cb97e6f81084c41d746f8b5a9aa14f"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.extra_garbage",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "0e4492ec49822dc292ae74270e490722b330f95bad9fbf23b602a3a867285f31",
+        "witness.bin": "99c5c9376d2fd33e61a60b1a2c5e2ce8dc9596a3e7adeacd56f3b40838ab946c"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.extra_unneeded",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "f888565961392f2a64e5c27fc0b01d100e73b1600fbacdb67cf41d3111cd9fd5",
+        "witness.bin": "eb790f24caba5f28b813aad53e855a05cdb20b06386c3b0709f8253571e83b0d"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.flip.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "306468a448f46972fd934a8002da3471a35f6d41145db4deb11dd69a55110832",
+        "witness.bin": "4b53d0ec5211ab93582e54fc4fc38b8cf826f8ed044fa1fd0054604e62bc239f"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.flip.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "0713040bab6c699a564078b8f11e7d9af04b36d65c8d956abbade5ded60c02d7",
+        "witness.bin": "f050b69d1321e21ae486e4547140519c4b35f6e93e5e77b877ce56b4c802eb2b"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.none",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "5e39cb47ce5de3a009bcee40b122bd0f4bff4f184f672658fd71cf71f7759f6a",
+        "witness.bin": "94eddb2aec04240c4a568ac441709c0e1cd2f0436ddc921292f672d4426310de"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.reorder",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "61b28b83eb34c1bb4248b19a95a4c6b1f7b6f9e9258233783e0a0ede746f3935",
+        "witness.bin": "cbda9ae15269e6dc6011c54c93494ba5828b437994191535604c3bed7c2eb18e"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.truncate.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "7f1470a18494f3a7a5115a67cb8484972bc2283ec3493777152ec5b651e44a09",
+        "meta.json": "82fd7e2a98c55d9d2eebcfb370d8af8c35ad5105dd6da4b2d984bb346fe585ac",
+        "witness.bin": "20bc567536fe198a08d7734f3e257ee997905340ed2c61fae9985d34196d26ca"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.drop.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "324a284f5fca96b06e036866e5d70d5c0a6026ad5b2c2acd1e606cd28e4b7b45",
+        "witness.bin": "ee81c108c4391b13aaa4b5adc383d73bbcab3acecdede8d89732e508300b666b"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.drop.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "ea8f1ba4482ce288f977b939b855d2e4a0692dd4d6ddd9347bcd8df09051c3bf",
+        "witness.bin": "59dcbe0a9143f52858998e61fc91a71b0bdcc68cf9d0b889f47e00276092ad13"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.duplicate",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "ce817809792d273d698fed66e4312727f69ca687a159a769dae6c1c6f5b388ae",
+        "witness.bin": "56789c8cc726df9436e85c37430c2e1f523daa242f4b2d4beddada7f7e9720fc"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.extra_garbage",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "a69dbdeb3f7ff2e7e6ff36599a21526397c6207cfca97a9c47d27edac901d312",
+        "witness.bin": "0ac78068228c0b4d35894c5785d850e21b54cfd117f12cb461586772a7dae877"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.extra_unneeded",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "05a7ce391acb1aac660e3ce23b35272b3cf356f7c76fbf471789f97c1091db12",
+        "witness.bin": "ebfe819f9f54e17fe1da9739f9be5ad0a569956359bde8915cdc18326f36c96f"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.flip.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "1a13cb853229f0380ccf2c4d9dbbfe1a6ab28462d22e03643e6691a2d8bb6b81",
+        "witness.bin": "4e438e09854bea9361a2fce72217d7468204a67bd8b806befcb6ed11cb0fbb33"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.flip.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "747eddeab6af39d5a86e71decb65fb2a00ad24ea3d98663303c0e4a6882a1e12",
+        "witness.bin": "9ebfb0cc6d1de38530b51155bd01f723f5efd4ee1a54d6b4ac6193be0d25dafe"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.none",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "aef6d9ca3644291d9dacfb57bd5197e17c5bb1391a8162c76d68c5a4addd6864",
+        "witness.bin": "5caad97e96189003927546a79ff3982c48d5bb4fb08b191dd133e0d877dab81f"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.reorder",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "8aade0a11fdbf2c36f04e05144b099f30fea8ec07582ad5c807881470ccfe511",
+        "witness.bin": "1d76595bb0efed964edbd840c9b7a966c9bcfe92c5349a46f57c1b525d141dab"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.truncate.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9fb3bbcb5eb4c638091490a2d9d514db4c6edbf963b4f899e7a6fe76b840ef1f",
+        "meta.json": "84c0a0f43d9ab06bd52ac3e72bb9d30857f2ef44f3266c8093276f00e67aec59",
+        "witness.bin": "b7bf4f4266213b16ffffa8eec793d392cc0745c7fb0364e07eca6b3f30ae6cdd"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.drop.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "8c33226c39d0ad27d030d96c44399ff10374b9514312448b02d0b0a2d3dd0ee5",
+        "witness.bin": "64952f29d82d6de8027fab173b483a3287a696f3adcda712c28a3e916b4b2117"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.drop.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "444f26b9b1815bb84ba03390409009571cf194c30efa550f6c9666ecfd27a260",
+        "witness.bin": "8ce91abc2f6c89d4681283dc0ef1fd142ae5d60d06fdba809f6e0bb2300e1c8c"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.duplicate",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "074d76649c4a9a927e72ce856793254061dc6ccd0bc5d33e1330aa3281df97af",
+        "witness.bin": "11f584b8b1f3e4b92efad5de3ced824d2d2393a010bdc2c61e1cb35864a8cc85"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.extra_garbage",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "370f34aefd77d61b9f8aa0b3082c1460d0f7e5be32227ebfdd1c19a36b653a81",
+        "witness.bin": "b76d8de53dad7c0d5b6e7498ea4ecbb2e3e448e937c7bf88c58143367b137538"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.extra_unneeded",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "6be6c684e7f92cfcc809a038c5987eeca984a69fdf321d36e6af126c8be8ccdc",
+        "witness.bin": "f2b1818db8bde46fc91a0e776ceb352a3205a9b810642873e5a43ca9dcfbd921"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.flip.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "de4579256c734ea964b832fd754af1fac0e460295bbd34ccca562788b5d2e725",
+        "witness.bin": "43620357f09cf55fa0ce1d6f77d4681bb810ffc27b6c33916d3f8efd36b081c5"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.flip.1",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "3dbd72519e127ecda3576befb33a4ee74c535d579687ba38e02c93a8eeffe7a1",
+        "witness.bin": "c8415c15cc577c522892b23cfe0b4dc0ecc08bd6d284eeeea595eec3a978ade6"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.none",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "8c84d3742e26c14f2350775cb381d18d8da4f1218b90cea049291b406f367d65",
+        "witness.bin": "5bfbf5d1a784c62898cda25277040df3a5cea567b79e79b6d753ca1f3696cbeb"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.reorder",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "3c32aee3be37d6ef9e50d1ae36257fce3cb94d26e9a9f51214f9accace943118",
+        "witness.bin": "6ee3688b64367ab7379ad138e4f3924883d15944875caf1cf140f3147d58d8ae"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.truncate.0",
+      "d3_violations": [
+        "w.shape"
+      ],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "64f3a9aec9e33d081af46c9b10ce7bf29a346560cd36d2a07aac2dfbe0a5fc37",
+        "meta.json": "3c871fff727c14924fbf2c5409f4e24ff1d43d69816cd3cacfa60b6c4112713a",
+        "witness.bin": "6c2086f76fd40422f2c347ee2f1993016f8be751cd57938a041555972f4960f8"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.drop.0",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "94fee2a1607087a53620fa6ca45446b3de58dec27eb958605faed3e4b87e347d",
+        "witness.bin": "8f596212c2bef9b405a697d7aae34ee82c22583fdb0009b5e3a4323cc76d8da6"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.drop.1",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "c654f98a0659db74c7ffc89b034b0c67ae7669faf47545478dfab417b032b5c0",
+        "witness.bin": "27fd0d77c8a4e7b770f738b44604495ba988b31b6c609a4a1c33cb7a2cae34b3"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.drop.2",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "4d86f8e7858fc8a964a41d09669e0a79b19354f2642feddac5c1ec4adac66cc4",
+        "witness.bin": "ca0f090982f35ffaf0e490758b8684e24e2f5477dbf2f58102310323e23cc72e"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.duplicate",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "4f678683156323a4f723355cd0cfb955e12a4a7d25557415a953b73ecfa66689",
+        "witness.bin": "efcd4eefa838dfb2ea027a1bd69bd6bc08e2281e1c76d873232f95637dda95c6"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.extra_garbage",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "f9cf18469c4c48fd972c963b6a3f57e2961b021196ce6ab025ffdd474c572453",
+        "witness.bin": "f8c5e8a183a7cd1160a2980e49e8e655483a06bd00267fa9207ed39ca3638262"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.extra_unneeded",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "5bd5397b05498c863b13b6496e3d828bc93db12bec78a142378c8125727fd854",
+        "witness.bin": "c4c2f518122f6e41966dd4b7d6c68aecb6e4739f4daca7ad6c54a6bdeca7d7d5"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.flip.0",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "f3ea1b3bd0c3de27753728a00728fc182d7c5d83f37e366f3d4e20223ffe8274",
+        "witness.bin": "1d28e0a2c130b7a382ee3e040079409e7b496368c09dddda6c2ce76660fc5b57"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.flip.1",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "9e4b47aee6588d78ce7436bc9655dfedd646f0a552961d23e551e4d17289b5bd",
+        "witness.bin": "55f5bc7d973fa1e230795e5cfd28042b8e0a7d9c253a52ea02850796cfdd56b1"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.flip.2",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "a7d03686e126a5fb107c0b8ea181223900533436ae846aa4a6db57a015686bb5",
+        "witness.bin": "bce2067ae1983aac4b4873ba35dad2525d6e1d7152086cc4436ebc8d78fbdc70"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.none",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "2cd58fbe3703902fabbb9e1c1a0b49e4f50434d73961e1201ac3bcd33f49faa4",
+        "witness.bin": "a271e8de8634287bff2ad36e08d56e4fb4f62cf92bf43f4a91e57ccf7271faac"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.reorder",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "6285eb7753d4e4c864514cb86111d127048a815ae4b936c8a2780a68a4d08393",
+        "witness.bin": "06b1756b21a43943508d814e09c66382d0d9b1e61f03b976218d839537139907"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.truncate.0",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "2eff5e092bf7050df771e6643536969f7474c2c9329b214e03437eedb1644a50",
+        "meta.json": "8e0a60b7cd7a4bcb4f5376f184f11e5584222eda7804739424fd48fdd5232ede",
+        "witness.bin": "b261b2c2765c6e190172831b75b7d72291f6558d6482fb18a7180285bedcac77"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.drop.0",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "09da1aad1693383e6227905a6237e5d09cd17f6902b1981b6a965520478d7257",
+        "witness.bin": "c8c1a7cd63488de3867f7904742870b47d19dfe970b8978c30f5bdf834dbafa5"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.drop.1",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "923c7d66ec255463c69b71ca1a0f3016e75ea18be87b015662d91a5e4d7d495d",
+        "witness.bin": "282dd947100deeba34ffaf19232417566b854e89d590641a0b716780b32fe8af"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.duplicate",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "108496b63854a6b197421880ede07901193e91f9b11807aa34d5dd9d07cb313f",
+        "witness.bin": "dc3490f94fb6829594e4e68c603a33397e3412e47ccc5952c4f855fee32b1485"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.extra_garbage",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "5366a84dc8c05510bbb64d40473f5b5c50db5de339175cd1bed253a3cefaa2a1",
+        "witness.bin": "fd103e33a268ad4f7129a46af5bac202c82eb946a0d576428bdd56a4c72366ba"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.extra_unneeded",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "c16a3143257701b441a8ea39f61faf5e6a2558817150e464b85558f9dce48b86",
+        "witness.bin": "2af6ef191a791bedd5e7135025f0965238f8eabeb3587db7b41745ee1627be61"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.flip.0",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "2f0e6e5bad323358107ccb9071b178379cf20328804b84968e6f4ae77f31c8d6",
+        "witness.bin": "8c3ab6fda1929bdf7b27457d38d3907588cfa5570c0af5c11095be19d6daad8a"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.flip.1",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "8ad7d861963c2938e5c26a17dbcdc5e756b2d01071c23b75b0e2cea7ef4f2332",
+        "witness.bin": "b4897eaef9d5357bf015a676609b394505260e38d07c84dee37fc9e6bf02a7e8"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.none",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "11445138b9ac4eb36092176e242443cb487f66dd61b10774aa37762fb67c3a18",
+        "witness.bin": "2761fa63935dd4b2d917f3a0218d38df02264690cddad94ea062d0710a2d0d58"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.reorder",
+      "d3_violations": [],
+      "expected_rel": true,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "4dcd8051b23f8bfd31653945fe23e98fa565228af685e514135d2a136e92b1f0",
+        "witness.bin": "b8973f7c185cc862794b22076c01e381a81f0dd7fef1f165c850aab4ffb6162a"
+      },
+      "kind": "mutant"
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.truncate.0",
+      "d3_violations": [],
+      "expected_rel": false,
+      "files": {
+        "claim.bin": "9ec170838363bdd594de71c0c0c00748f8686a0e09dc3f8dcbe19e93574516a8",
+        "meta.json": "6b762201aa10df10657b1c747bb2af1dbf4beae4fd2954b5b634ba533296307e",
+        "witness.bin": "a37cbb33e3e6756c22b071e9e623abe31c20666e37c281b465b82996c61bbda5"
+      },
+      "kind": "mutant"
+    }
+  ],
+  "collector_sha256": "95a0d713d755171e0bf10d1974e2c5358f8ebd531f8bc59ca99835f73a7d71aa",
+  "executed_action_results": {
+    "incoming:[DeterministicStateInit,FunctionCall] => fail:GlobalContractDoesNotExist": 1,
+    "incoming:[DeterministicStateInit,FunctionCall] => fail:LackBalanceForState": 1,
+    "incoming:[DeterministicStateInit,FunctionCall] => ok": 2,
+    "local:[DeployGlobalContract] => ok": 3,
+    "local:[UseGlobalContract,FunctionCall] => fail:FunctionCallError": 1,
+    "local:[UseGlobalContract,FunctionCall] => fail:GlobalContractDoesNotExist": 1,
+    "local:[UseGlobalContract,FunctionCall] => ok": 2
+  },
+  "limitations": [
+    "transaction labels do not establish action success",
+    "raw cold-cache verdicts are not completed-code witness policy verdicts",
+    "not a Lean differential result"
+  ],
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "oracle_binary": {
+    "path": "/tmp/lean-global-oracle-target/release/near-arena-oracle-v3-successor",
+    "sha256": "02455800fc61d16cd6930b0321b4f6052401082ba99a76c32f96ec37c490d3d9"
+  },
+  "population": {
+    "honest": 49,
+    "mutant": 80
+  },
+  "receipt_classes": {
+    "buffered_forwarded": 1413,
+    "buffered_pushed": 1569,
+    "incoming_action": 1249,
+    "incoming_data": 9,
+    "incoming_global_contract": 12,
+    "incoming_refund": 215,
+    "instant": 5,
+    "local": 35,
+    "out_action": 1550,
+    "out_data": 14,
+    "out_other": 10,
+    "out_refund": 1322,
+    "postponed_executed": 6
+  },
+  "schema": "near-global-cache-fixtures-v1",
+  "status": "collected",
+  "transaction_labels": {
+    "successor.global-cache.00.deploy-hash": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10005-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10006-s3"
+    ],
+    "successor.global-cache.01.deploy-account": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10012-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10013-s3"
+    ],
+    "successor.global-cache.02.use-hash-call": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10018-s1",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10019-s1"
+    ],
+    "successor.global-cache.03.use-account-call": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10024-s0",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10025-s0"
+    ],
+    "successor.global-cache.04.missing-global-action-failure": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10030-s1",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10031-s1"
+    ],
+    "successor.global-cache.05.use-rollback": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10036-s1",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10037-s1"
+    ],
+    "successor.global-cache.06.state-init-third-party": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10043-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10044-s3"
+    ],
+    "successor.global-cache.07.state-init-missing-code": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10049-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10050-s3"
+    ],
+    "successor.global-cache.08.state-init-existing-refund": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10056-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10057-s3"
+    ],
+    "successor.global-cache.09.redeploy-account-nonce": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10061-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10062-s3"
+    ],
+    "successor.global-cache.10.local-deploy-call": [
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10071-s3",
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10072-s3"
+    ],
+    "successor.global-cache.11.local-deploy-rollback": [
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10074-s3",
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10075-s3"
+    ],
+    "successor.global-cache.12.call-after-rollback": [
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10080-s3",
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10081-s3"
+    ],
+    "successor.global-cache.13.cross-account-deploy-rollback": [
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10086-s3",
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10087-s3"
+    ],
+    "successor.global-cache.14.cross-account-prestate-call": [
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10087-s3",
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10088-s3"
+    ],
+    "successor.global-cache.15.account-global-post-distribution-call": [
+      "/tmp/lean-global-cache-v2-2718/d3/00-h10094-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10093-s3"
+    ],
+    "successor.global-cache.16.state-init-zero-deposit": [
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10100-s3",
+      "/tmp/lean-global-cache-v2-2718/ood/00-h10101-s3"
+    ]
+  }
+}

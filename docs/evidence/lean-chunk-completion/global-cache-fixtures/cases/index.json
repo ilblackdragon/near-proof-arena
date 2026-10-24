@@ -1,0 +1,272 @@
+[
+  {
+    "case_dir": "00-h10072-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/d3/00-h10072-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.10.local-deploy-call"
+    ]
+  },
+  {
+    "case_dir": "00-h10075-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/d3/00-h10075-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.11.local-deploy-rollback"
+    ]
+  },
+  {
+    "case_dir": "00-h10081-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/d3/00-h10081-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.12.call-after-rollback"
+    ]
+  },
+  {
+    "case_dir": "00-h10087-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/d3/00-h10087-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.13.cross-account-deploy-rollback"
+    ]
+  },
+  {
+    "case_dir": "00-h10088-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/d3/00-h10088-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.14.cross-account-prestate-call"
+    ]
+  },
+  {
+    "case_dir": "00-h10006-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10006-s3",
+    "expected_rel": true,
+    "executed_action_results": [
+      "local:[DeployGlobalContract] => ok"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.00.deploy-hash"
+    ]
+  },
+  {
+    "case_dir": "00-h10007-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10007-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10009-s1",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10009-s1",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10011-s0",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10011-s0",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10013-s2",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10013-s2",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10013-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10013-s3",
+    "expected_rel": true,
+    "executed_action_results": [
+      "local:[DeployGlobalContract] => ok"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.01.deploy-account"
+    ]
+  },
+  {
+    "case_dir": "00-h10014-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10014-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10016-s1",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10016-s1",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10017-s0",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10017-s0",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10019-s1",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10019-s1",
+    "expected_rel": true,
+    "executed_action_results": [
+      "local:[UseGlobalContract,FunctionCall] => ok"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.02.use-hash-call"
+    ]
+  },
+  {
+    "case_dir": "00-h10021-s2",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10021-s2",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10025-s0",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10025-s0",
+    "expected_rel": true,
+    "executed_action_results": [
+      "local:[UseGlobalContract,FunctionCall] => ok"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.03.use-account-call"
+    ]
+  },
+  {
+    "case_dir": "00-h10031-s1",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10031-s1",
+    "expected_rel": true,
+    "executed_action_results": [
+      "local:[UseGlobalContract,FunctionCall] => fail:GlobalContractDoesNotExist"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.04.missing-global-action-failure"
+    ]
+  },
+  {
+    "case_dir": "00-h10037-s1",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10037-s1",
+    "expected_rel": true,
+    "executed_action_results": [
+      "local:[UseGlobalContract,FunctionCall] => fail:FunctionCallError"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.05.use-rollback"
+    ]
+  },
+  {
+    "case_dir": "00-h10045-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10045-s3",
+    "expected_rel": true,
+    "executed_action_results": [
+      "incoming:[DeterministicStateInit,FunctionCall] => ok"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10051-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10051-s3",
+    "expected_rel": true,
+    "executed_action_results": [
+      "incoming:[DeterministicStateInit,FunctionCall] => fail:GlobalContractDoesNotExist"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10059-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10059-s3",
+    "expected_rel": true,
+    "executed_action_results": [
+      "incoming:[DeterministicStateInit,FunctionCall] => ok"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10062-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10062-s3",
+    "expected_rel": true,
+    "executed_action_results": [
+      "local:[DeployGlobalContract] => ok"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": [
+      "successor.global-cache.09.redeploy-account-nonce"
+    ]
+  },
+  {
+    "case_dir": "00-h10063-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10063-s3",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10068-s1",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10068-s1",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10069-s0",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10069-s0",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10070-s2",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10070-s2",
+    "expected_rel": true,
+    "executed_action_results": [],
+    "distribution_receipts": 1,
+    "transaction_labels": []
+  },
+  {
+    "case_dir": "00-h10102-s3",
+    "source": "/tmp/lean-global-cache-v2-2718/ood/00-h10102-s3",
+    "expected_rel": true,
+    "executed_action_results": [
+      "incoming:[DeterministicStateInit,FunctionCall] => fail:LackBalanceForState"
+    ],
+    "distribution_receipts": 0,
+    "transaction_labels": []
+  }
+]

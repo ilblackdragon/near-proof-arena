@@ -721,6 +721,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     }
     let meta = json!({
         "case": name, "kind": "honest", "chain_params": params,
+        "successor_scenario": std::env::var("NEAR_SUCCESSOR_SCENARIO").ok(),
         "nearcore": vstr(verdict),
         "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
         "nearcore_warm_no_codes": vstr(warm),
@@ -778,7 +779,10 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
             stats.ood_written += 1;
             write_case(&out.join("ood").join(&name), &built.claim, wb, codes, meta.clone());
         }
-        if viol3.iter().any(|v| !matches!(*v, "e.float" | "e.g_alpha")) {
+        // In opt-in global traffic, also produce independently judged mutants of global shapes.
+        // This changes fixture generation only, never the baseline classification or expectation.
+        let global_scenario = std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok("global-cache");
+        if viol3.iter().any(|v| !matches!(*v, "e.float" | "e.g_alpha") && !(global_scenario && *v == "w.shape")) {
             return;
         }
     } else {

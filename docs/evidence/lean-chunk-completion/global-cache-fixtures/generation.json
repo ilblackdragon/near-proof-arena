@@ -1,0 +1,32 @@
+{
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "oracle_binary_sha256": "02455800fc61d16cd6930b0321b4f6052401082ba99a76c32f96ec37c490d3d9",
+  "generator_sources": {
+    "oracle/v3-successor/src/d3gen.rs": "a50037171918d8c060cd8f37692680e569ca7e61bbfd8494aaf25639d4f325e2",
+    "oracle/v3-successor/src/d3.rs": "8240917a43634958c14dbc276c6c49715fa8b4441b10610a1f97f78934eee074",
+    "tools/d3/collect_global_cache.py": "95a0d713d755171e0bf10d1974e2c5358f8ebd531f8bc59ca99835f73a7d71aa"
+  },
+  "runs": {
+    "2718": {
+      "blocks": 140,
+      "max_d3": 4,
+      "honest": 477,
+      "cold_accepted": 477,
+      "mutants": 496,
+      "selected_honest": 49,
+      "selected_mutants": 80
+    },
+    "31415": {
+      "blocks": 140,
+      "max_d3": 8,
+      "honest": 501,
+      "cold_accepted": 501,
+      "mutants": 670,
+      "selected_honest": 50,
+      "selected_mutants": 86
+    }
+  },
+  "committed_cases": 28,
+  "status": "nearcore-generated; Lean replay pending integration",
+  "collector_empty_input_and_stale_success_control": "passed"
+}
