@@ -55,6 +55,17 @@ not a fresh full replay of one combined successor. The v3 CI build and harness t
 the new corpus-manifest job still needs corpus provisioning, and not every successor target is in
 the default build. These remaining CI obligations are W01 in the completion workplan.
 
+### Mandatory mainnet replay gate — W13
+
+`make w13-gate` now exposes an explicit fail-closed mainnet replay gate: at least 1,000 consecutive
+captured block heights, all shards' newly included chunks, zero mismatches and full replay coverage.
+Reports include mismatch %, coverage %, verified-match %, missing witnesses and exclusions/errors;
+zero comparisons is mismatch **N/A**, never a passing 0%. See
+[W13 criteria](LEAN_CHUNK_COMPLETION_WORKPLAN.md#w13-authentic-validator-witness-replay) and
+[reproduction](../../tools/mainnet-replay/README.md). The initial live probe captured 30 chunks,
+executed zero and correctly failed. W13 is **not satisfied** until actual mainnet witnesses and
+canonical native context are exported and the full gate passes.
+
 ## 1. Objective and target
 
 Deliver an executable Lean specification of the full chunk state transition at the repository's

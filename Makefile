@@ -266,3 +266,16 @@ workflow-lint: ## zizmor + actionlint over .github/workflows
 	@if command -v actionlint >/dev/null 2>&1; then actionlint; \
 	 elif command -v docker >/dev/null 2>&1; then docker run --rm -v $(REPO):/repo:ro -w /repo $(ACTIONLINT_IMAGE); \
 	 else echo "make: *** actionlint not found (and no docker to run it)" >&2; exit 2; fi
+
+# W13 is a data-dependent release gate. Unit tests do not certify mainnet replay.
+W13_CAPTURE ?= $(REPO)/var/mainnet-w13
+W13_REPORT ?= $(REPO)/var/mainnet-w13-report
+W13_BINARY ?= $(REPO)/spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor
+W13_TIER ?= curveHosts
+
+.PHONY: w13-test w13-gate
+w13-test: ## Test W13 coverage, binding, failure handling and mismatch accounting (offline)
+	@$(PYTHON) -m unittest discover -s oracle/tools -p 'test_mainnet_gate.py'
+
+w13-gate: ## Require 1000-block all-shard mainnet replay, 100% coverage and zero mismatches
+	@$(PYTHON) tools/mainnet-replay/gate.py run --capture "$(W13_CAPTURE)" --binary "$(W13_BINARY)" --tier "$(W13_TIER)" --out "$(W13_REPORT)" $(if $(W13_NATIVE_COMMAND_FILE),--native-command-file "$(W13_NATIVE_COMMAND_FILE)",)
