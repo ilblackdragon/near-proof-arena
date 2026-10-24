@@ -1,4 +1,6 @@
 import NearSpecV3.TxD1
+import NearSpecV3.Layout
+import NearSpecV3.D2.GlobalTypes
 
 /-!
 # D2 state and message types: decoders and encoders
@@ -231,6 +233,9 @@ inductive Base where
   | deleteAccount (beneficiary : Bytes)
   | toGasKey (pk : PublicKey) (deposit : Nat)
   | fromGasKey (pk : PublicKey) (amount : Nat)
+  | deployGlobal (d : D3.L4.DeployGlobal)
+  | useGlobal (u : D3.L4.UseGlobal)
+  | stateInit (d : D3.L4.Dsi)
   deriving DecidableEq, Repr
 
 structure BaseAct where
@@ -269,6 +274,7 @@ def Base.deposit : Base → Nat
   | .fcall _ _ _ d => d
   | .transfer d => d
   | .toGasKey _ d => d
+  | .stateInit d => d.deposit
   | _ => 0
 
 def Base.prepaidGas : Base → Nat
@@ -390,9 +396,24 @@ structure ActionR where
   actions : List Act
   deriving DecidableEq, Repr
 
+/-- GlobalContractDistributionReceipt V1/V2; nonce is zero for V1. -/
+structure Distribution where
+  v2 : Bool
+  id : D3.L4.Gci
+  target : Nat
+  delivered : List Nat
+  code : Bytes
+  nonce : Nat
+  deriving DecidableEq, Repr
+
+def Distribution.encode (d : Distribution) : Bytes :=
+  [if d.v2 then 1 else 0] ++ d.id.encode ++ u64 d.target ++ u32 d.delivered.length ++
+  concatAll (d.delivered.map u64) ++ borshBytes d.code ++ (if d.v2 then u64 d.nonce else [])
+
 inductive RBody where
   | action (yield : Bool) (a : ActionR)
   | data (resume : Bool) (dataId : Bytes) (data : Option Bytes)
+  | distribution (d : Distribution)
   deriving DecidableEq, Repr
 
 structure Rcpt where
@@ -414,6 +435,7 @@ def ActionR.encode (a : ActionR) : Bytes :=
   u32 a.actions.length ++ concatAll (a.actions.map Act.raw)
 
 def RBody.encode : RBody → Bytes
+  | .distribution d => [4] ++ d.encode
   | .action y a => [if a.v2 then (if y then 6 else 5) else (if y then 2 else 0)] ++ a.encode
   | .data r d x => [if r then 3 else 1] ++ d ++ encOptBytes x
 
@@ -479,6 +501,13 @@ def Rcpt.isAction (r : Rcpt) : Bool :=
   match r.body with
   | .action _ _ => true
   | _ => false
+
+/-- Distribution receipts route to their explicit target; action/data receipts use account routing.
+W11 handles obsolete shard IDs; successor callers reject targets outside the current layout. -/
+def Rcpt.targetShard (r : Rcpt) (layout : Layout) : Nat :=
+  match r.body with
+  | .distribution d => d.target
+  | _ => layout.shardOf r.recv
 
 /-! ## `ReceiptOrStateStoredReceipt` (`receipt.rs:150-330`) -/
 

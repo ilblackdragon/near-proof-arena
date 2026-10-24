@@ -162,8 +162,81 @@ def permExec (p : Perm) (acct : Bytes) (pk : PublicKey) : Cost :=
     ⟨key.gas + base.gas + pb.gas, key.compute + base.compute + pb.compute⟩
   | none => key
 
+end NearSpecV3.D2
+namespace NearSpecV3.D3.L4
+open NearSpec NearSpecV3 NearSpecV3.D2
+/-- `action_deploy_global_contract` (`parameters.snap:263-267`, `77.yaml:3-14`). -/
+def feeDeployGlobalBase : Fee := .mk3 184765750000 184765750000 184765750000
+/-- `action_deploy_global_contract_per_byte` (`parameters.snap:267-271`, `77.yaml:15-26`); the compute
+component is `70_000_000` (`core/parameters/src/cost.rs:631`). -/
+def feeDeployGlobalByte : Fee := .mk3 6812999 47683715 70000000
+/-- `action_use_global_contract` (`parameters.snap:275-279`, `77.yaml:27-38`). -/
+def feeUseGlobalBase : Fee := .mk3 184765750000 184765750000 184765750000
+/-- `action_use_global_contract_per_identifier_byte` (`parameters.snap:279-283`, `77.yaml:39-54`). -/
+def feeUseGlobalByte : Fee := .mk3 6812999 47683715 64572944
+/-- `action_deterministic_state_init` (`parameters.snap:86-90`, `85.yaml:28-39`). -/
+def feeStateInitBase : Fee := .mk3 500000000000 500000000000 7430000000000
+/-- `action_deterministic_state_init_per_entry` (`parameters.snap:90-94`). -/
+def feeStateInitEntry : Fee := .mk3 0 0 200000000000
+/-- `action_deterministic_state_init_per_byte` (`parameters.snap:94-98`). -/
+def feeStateInitByte : Fee := .mk3 72000000 72000000 70000000
+/-- `global_contract_storage_amount_per_byte = 0.0001 N` (`parameters.snap:272`, `77.yaml:2`). -/
+def globalContractStoragePerByte : Nat := 100000000000000000000
+/-- `deploy_global_contract_execution_base` (`parameters.snap:273`, `84.yaml:39`), a *compute* cost
+charged when the distribution receipt executes, not an action fee. -/
+def deployGlobalExecBase : Nat := 20000000000000
+/-- `deploy_global_contract_execution_per_byte` (`parameters.snap:274`, `84.yaml:40`). -/
+def deployGlobalExecPerByte : Nat := 250000000
+
+/-- Send fee of a `DeployGlobalContract` action (`config.rs:150-161`): base + per byte of `code`. -/
+def deployGlobalSend (sir : Bool) (d : DeployGlobal) : Cost :=
+  let b := feeDeployGlobalBase.send sir
+  let y := (feeDeployGlobalByte.send sir).scale d.code.length
+  ⟨b.gas + y.gas, b.compute + y.compute⟩
+
+/-- Exec fee of a `DeployGlobalContract` action (`config.rs:320-328`): base + per byte of `code`. -/
+def deployGlobalExec (d : DeployGlobal) : Cost :=
+  let b := feeDeployGlobalBase.ex
+  let y := feeDeployGlobalByte.ex.scale d.code.length
+  ⟨b.gas + y.gas, b.compute + y.compute⟩
+
+/-- Send fee of a `UseGlobalContract` action (`config.rs:162-172`): base + per *identifier* byte
+(`Gci.len`, not the borsh length). -/
+def useGlobalSend (sir : Bool) (u : UseGlobal) : Cost :=
+  let b := feeUseGlobalBase.send sir
+  let y := (feeUseGlobalByte.send sir).scale u.gci.len
+  ⟨b.gas + y.gas, b.compute + y.compute⟩
+
+/-- Exec fee of a `UseGlobalContract` action (`config.rs:329-337`). -/
+def useGlobalExec (u : UseGlobal) : Cost :=
+  let b := feeUseGlobalBase.ex
+  let y := feeUseGlobalByte.ex.scale u.gci.len
+  ⟨b.gas + y.gas, b.compute + y.compute⟩
+
+/-- Send fee of a `DeterministicStateInit` action (`config.rs:173-193`): base + per entry + per byte
+of `len_bytes()`. -/
+def stateInitSend (sir : Bool) (d : Dsi) : Cost :=
+  let b := feeStateInitBase.send sir
+  let e := (feeStateInitEntry.send sir).scale d.stateInit.data.length
+  let y := (feeStateInitByte.send sir).scale d.stateInit.lenBytes
+  ⟨b.gas + e.gas + y.gas, b.compute + e.compute + y.compute⟩
+
+/-- Exec fee of a `DeterministicStateInit` action (`config.rs:338-352`). -/
+def stateInitExec (d : Dsi) : Cost :=
+  let b := feeStateInitBase.ex
+  let e := feeStateInitEntry.ex.scale d.stateInit.data.length
+  let y := feeStateInitByte.ex.scale d.stateInit.lenBytes
+  ⟨b.gas + e.gas + y.gas, b.compute + e.compute + y.compute⟩
+
+end NearSpecV3.D3.L4
+namespace NearSpecV3.D2
+open NearSpec NearSpecV3
+
 /-- Send fee of a non-delegate action. -/
 def baseSend (sir : Bool) (r : Bytes) : Base → Cost
+  | .deployGlobal d => D3.L4.deployGlobalSend sir d
+  | .useGlobal u => D3.L4.useGlobalSend sir u
+  | .stateInit d => D3.L4.stateInitSend sir d
   | .createAccount => Fees.createAccount.send sir
   | .deploy code => let b := Fees.deployBase.send sir; let y := (Fees.deployByte.send sir).scale code.length
                     ⟨b.gas + y.gas, b.compute + y.compute⟩
@@ -180,6 +253,9 @@ def baseSend (sir : Bool) (r : Bytes) : Base → Cost
 
 /-- Exec fee of a non-delegate action (`exec_fee`, `config.rs:279-356`). -/
 def baseExec (r : Bytes) : Base → Cost
+  | .deployGlobal d => D3.L4.deployGlobalExec d
+  | .useGlobal u => D3.L4.useGlobalExec u
+  | .stateInit d => D3.L4.stateInitExec d
   | .createAccount => Fees.createAccount.ex
   | .deploy code => let b := Fees.deployBase.ex; let y := Fees.deployByte.ex.scale code.length
                     ⟨b.gas + y.gas, b.compute + y.compute⟩
@@ -315,6 +391,9 @@ def validAddKey (ak : AK) : Bool :=
     1 ≤ n && n ≤ Lim.maxNoncesForGasKey && bal == 0
 
 def validBase : Base → Bool
+  | .deployGlobal d => d.code.length ≤ Lim.maxContractSize
+  | .useGlobal u => D3.L4.gciValid u.gci
+  | .stateInit d => D3.L4.gciValid d.stateInit.code && d.stateInit.data.all (fun (k,v) => k.length ≤ 2048 && v.length ≤ 4194304)
   | .deploy code => code.length ≤ Lim.maxContractSize
   | .fcall m a g _ => g != 0 && m.length ≤ Lim.maxMethodName && a.length ≤ Lim.maxArgs
   | .stake _ pk => validStakingKey pk
@@ -323,7 +402,7 @@ def validBase : Base → Bool
   | _ => true
 
 def isDeploy : Base → Bool
-  | .deploy _ => true
+  | .deploy _ | .deployGlobal _ => true
   | _ => false
 
 def isDeleteAccount : Base → Bool
@@ -361,6 +440,15 @@ def validActs (newMode : Bool) (acts : List Act) : Bool :=
   | some g => g ≤ Lim.maxTotalPrepaidGas
   | none => false
 
+/-- Receiver-dependent state-init validity, including delegated receiver IDs. -/
+def validActReceivers (receiver : Bytes) (acts : List Act) : Bool :=
+  acts.all fun a => match a with
+    | .base ⟨_, .stateInit d⟩ => D3.L4.dsiValid receiver d
+    | .delegate _ d => d.actions.all fun b => match b.b with
+      | .stateInit s => D3.L4.dsiValid d.receiver s
+      | _ => true
+    | _ => true
+
 /-- `validate_receipt(receipt, mode)` (`verifier.rs:540-644`). -/
 def validReceipt (newMode : Bool) (r : Rcpt) : Bool :=
   (!newMode || r.encode.length ≤ Lim.maxReceiptSize) &&
@@ -369,8 +457,9 @@ def validReceipt (newMode : Bool) (r : Rcpt) : Bool :=
   | .action _ a =>
     a.inputs.length ≤ Lim.maxInputDeps &&
     (match a.refundTo with | some t => AccountId.valid t | none => true) &&
-    validActs newMode a.actions
+    validActs newMode a.actions && validActReceivers r.recv a.actions
   | .data _ _ x => (x.map List.length |>.getD 0) ≤ Lim.maxReturnedData
+  | .distribution _ => true
 
 /-! ## Congestion gas and receipt size (`congestion_control.rs:657-741, 946-967`) -/
 

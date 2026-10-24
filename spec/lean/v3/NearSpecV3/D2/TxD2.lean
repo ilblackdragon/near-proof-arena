@@ -66,7 +66,7 @@ def TxD2.sizeOk (t : TxD2) : Bool := t.body.length + 65 ≤ TxParams.maxTransact
 
 /-- `validate_transaction`. -/
 def TxD2.valid (t : TxD2) : Bool :=
-  validActs true t.actions && t.sizeOk && Ed25519.verify t.pk.data t.sig t.hash
+  validActs true t.actions && validActReceivers t.receiver t.actions && t.sizeOk && Ed25519.verify t.pk.data t.sig t.hash
 
 /-- `verify_nonce` (`verifier.rs:212-238`). -/
 def nonceOk (strict : Bool) (txNonce cur height : Nat) : Bool :=
