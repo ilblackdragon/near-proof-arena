@@ -349,3 +349,16 @@ older verifier pass (1.499 s, four negatives, backend roundtrip).
 See `PARALLEL_JL.md` and `evidence/parallel-jl` under
 `research/near-compression/tail-architecture`. Next lifting aggregation;
 source inclusion/state/runtime, bounded history, composed PQ and 2 s remain open.
+
+### Source membership against claim-derived roots
+
+Claim-only native prep exports 64 source-root sets without witness inputs.
+Separate witness exporter plus Python audit matches all 268 original source
+lists and rejects 2,571 leaf/root/path/omitted-double-hash mutations. NEAR
+path starts at SHA256(list_digest), not list_digest. Latest 804-receipt packet
+public digest reaches claim-designated source index2 root through depth2 path.
+Concrete NPSRC001 envelope: 244,900 B (+86); 11 envelope mutations reject.
+Inner packet hash matches previously verified parallel-JL packet. Native claim
+parser/order derivation trusted; no full ordered execution, runtime/state,
+recursion/PQ or new end-to-end timing claim. See SOURCE_MEMBERSHIP.md and
+evidence/source-membership under research/near-compression/tail-architecture.

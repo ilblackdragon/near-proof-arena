@@ -1,0 +1,9 @@
+[package]
+name = "near-hash-export"
+version = "0.1.0"
+edition = "2024"
+[workspace]
+[dependencies]
+npudr = { package = "np-udr-stark", path = "/data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source" }
+serde_json = "1"
+sha2 = "0.10"

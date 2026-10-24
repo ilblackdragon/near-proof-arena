@@ -35,6 +35,11 @@ codec safety, representative positive-gas claims and full deadline remain open.
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)
 retain the wider protocol and completeness obligations.
 
+[Source membership audit](SOURCE_MEMBERSHIP.md) now matches 268 lists to
+claim-derived roots across 64 original cases. The large proof plus a two-step
+public path is 244,900 B. Native claim derivation remains trusted; complete
+source execution/order, state/runtime and PQ/history remain open.
+
 ## Event protocol research
 
 [Design and falsifiable experiments](EVENT_PROTOCOL.md): current Jolt/Akita prior
