@@ -28,3 +28,9 @@ Both use `--code-mutant-p 0.2 --mutate-every 0 --ood-cap 2000`, with no contract
 hashes and executable hash are in `generation.json`. Selected paths refer to local raw runs;
 committed `cases/index.json` records their origins. The two run outputs were independently judged,
 not synthesized by mutating Lean's answers.
+
+`codec-vectors.json` contains 12 direct pinned-nearcore Borsh probes: reversed maps and duplicate
+keys for StateInit, Action, SignedTransaction and SignedDelegateAction, plus four malformed inputs.
+Canonical bytes are independently checked against Python layouts. Transaction hashes are checked
+against the canonical unsigned transaction; delegate hashes and deterministic IDs are taken directly
+from nearcore and checked stable after canonical re-decoding. This does not claim signature validity.

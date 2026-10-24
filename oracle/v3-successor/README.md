@@ -46,3 +46,15 @@ case is supported by Lean.
 A complete-code successor policy can reject an incomplete witness that a warm or racing cold
 nearcore cache happens to accept. These are different contracts: retain raw cold observations and
 complete-code witness-policy expectations separately. No mutation expectation is rewritten here.
+
+## Codec normalization probes
+
+`codec-roundtrip KIND HEX` decodes and re-encodes actual pinned-nearcore types. Supported kinds:
+`action`, `signed-transaction`, `signed-delegate`, `state-init`. Successful output includes canonical
+hex, and transaction/delegate hashes or the derived deterministic account ID where applicable.
+These are codec probes; zero placeholder signatures are not asserted cryptographically valid.
+
+`python3 tools/d3/gen_global_codec_vectors.py --binary PATH_TO_ORACLE --out FILE` generates 12
+independent vectors covering reversed and duplicate StateInit map entries (last value wins, sorted
+canonical encoding), stable derived hashes, and malformed/trailing input. Expected byte layouts are
+also independently constructed in Python and compared with Rust output.
