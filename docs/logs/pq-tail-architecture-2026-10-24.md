@@ -243,3 +243,18 @@ input fails source-root assertions. Independent public statements match packets.
 Next cheaper packing/streaming, not merely raised memory limits. Expected source
 roots are not yet bound to claim membership; state/runtime/PQ/history remain.
 See RECEIPT_LISTS.md and evidence/receipt-lists for code, logs, manifests.
+
+### Packed source concatenation reaches original 804-receipt list
+
+Direct bounded word shifts/canonical suffixes replace generic concat. Local
+source kernel log13->12; 625 short + 410 wide dirty-suffix oracle cases pass,
+46,062 mutation rejects; prior 2,170 source cases and three proofs still pass.
+First packed large attempt still failed; removing repeated per-level cleaning
+allows cap1024/log23 within 16 GiB. Original 804-receipt list: 244,838 B,
+prepare0.063/prove4.480/ready4.543 s; fresh decode+verify1.549 s. Peak whole-run
+RSS14,256,456 KiB; cold circuit20.710/setup4.060 s. Six small lists also verify
+freshly; reversed order rejects. Full details and failure history in
+PACKED_RECEIPT_LISTS.md and evidence/packed-receipt-lists. This is one list, not
+full chunk; source inclusion/state/runtime/PQ history remain. Next isolate
+worst-case source SHA budget from packing; any capacity reduction must be a
+publicly declared, circuit-enforced profile with explicit larger-source coverage.

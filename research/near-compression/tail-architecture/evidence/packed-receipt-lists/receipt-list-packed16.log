@@ -1,0 +1,41 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.214642907
+RECEIPT_LIST_SETUP setup_s=0.098756228
+SIS_POLICY inner rank=22 width=2767 source=2177399430930 target=35946204697 bound=43530976076.809982 bits=144.160 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1425 source=35946204697 target=334716066 bound=528659459.84618294 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1425 source=334716066 target=30465480 bound=40800545.606140122 bits=157.410 finite=1 tail=0
+SIS_POLICY inner rank=11 width=713 source=30465480 target=3553683486 bound=26706525.239614081 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=13 width=357 source=3553683486 target=45026639 bound=96948813.454161748 bits=153.965 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10004-s3-list0.list cap=16 count=0 bytes=198462 prepare_s=0.000654642 prove_s=0.282326244 ready_s=0.283213223 verify_s=0.141463497 mutations=7 full_near=false
+SIS_POLICY inner rank=22 width=2767 source=2285586543086 target=37161700808 bound=44260842351.526222 bits=143.895 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1425 source=37161700808 target=331857642 bound=526397284.37532037 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1425 source=331857642 target=30187709 bound=40614118.876417547 bits=157.410 finite=1 tail=0
+SIS_POLICY inner rank=11 width=713 source=30187709 target=3604657154 bound=26897381.08880521 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=13 width=357 source=3604657154 target=44863425 bound=96772942.355036408 bits=153.965 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10006-s3-list0.list cap=16 count=1 bytes=198462 prepare_s=0.000640345 prove_s=0.269783187 ready_s=0.270595425 verify_s=0.133789925 mutations=7 full_near=false
+SIS_POLICY inner rank=22 width=2767 source=2284814766648 target=36127149735 bound=43640401072.56369 bits=143.895 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1425 source=36127149735 target=327930780 bound=523273594.22615284 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1425 source=327930780 target=31097398 bound=41221518.32223399 bits=157.145 finite=1 tail=0
+SIS_POLICY inner rank=11 width=713 source=31097398 target=3641823284 bound=27035689.382590856 bits=148.930 finite=1 tail=0
+SIS_POLICY inner rank=13 width=357 source=3641823284 target=44641886 bound=96533710.583773494 bits=153.965 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10011-s1-list0.list cap=16 count=2 bytes=198462 prepare_s=0.000655984 prove_s=0.274877906 ready_s=0.275695935 verify_s=0.160354241 mutations=7 full_near=false
+SIS_POLICY inner rank=22 width=2767 source=2281009458304 target=36564520736 bound=43903771198.409523 bits=143.895 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1425 source=36564520736 target=332207051 bound=526674330.2182399 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1425 source=332207051 target=33166683 bound=42570914.348654903 bits=156.350 finite=1 tail=0
+SIS_POLICY inner rank=11 width=713 source=33166683 target=3950879808 bound=28159498.947687831 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=13 width=357 source=3950879808 target=45591491 bound=97555021.878495127 bits=153.700 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10012-s3-list0.list cap=16 count=3 bytes=198462 prepare_s=0.000644914 prove_s=0.272805685 ready_s=0.273597756 verify_s=0.160215851 mutations=7 full_near=false
+SIS_POLICY inner rank=22 width=2767 source=2300404448073 target=36952368315 bound=44136005261.832092 bits=143.895 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1425 source=36952368315 target=338070900 bound=531302211.36943746 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1425 source=338070900 target=31802859 bound=41686462.259555869 bits=156.880 finite=1 tail=0
+SIS_POLICY inner rank=11 width=713 source=31802859 target=3591156737 bound=26846964.851596318 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=13 width=357 source=3591156737 target=44398996 bound=96270739.469047308 bits=153.965 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10008-s3-list2.list cap=16 count=4 bytes=198462 prepare_s=0.000635997 prove_s=0.273041599 ready_s=0.273829852 verify_s=0.171196778 mutations=7 full_near=false
+SIS_POLICY inner rank=22 width=2767 source=2348266768560 target=36607364092 bound=43929485117.084251 bits=143.895 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1425 source=36607364092 target=332324567 bound=526767475.72470027 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1425 source=332324567 target=31849154 bound=41716792.440841563 bits=156.880 finite=1 tail=0
+SIS_POLICY inner rank=11 width=713 source=31849154 target=3642790291 bound=27039278.514133178 bits=148.930 finite=1 tail=0
+SIS_POLICY inner rank=13 width=357 source=3642790291 target=45256752 bound=97196230.895243093 bits=153.700 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list1.list cap=16 count=9 bytes=198462 prepare_s=0.000652818 prove_s=0.27275513 ready_s=0.273585282 verify_s=0.162161513 mutations=7 full_near=false

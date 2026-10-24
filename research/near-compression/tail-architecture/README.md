@@ -7,18 +7,16 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Private receipt batches](RECEIPT_BATCH.md): uniform 1,024-slot kernel supports
-all implemented refund/length shapes. Original 814-receipt case: **215,398 B,
-1.52–1.54 s** warm; 1,024 varied synthetic long refunds: **230,098 B / 1.56 s**.
-Serialized packets verify in fresh processes. This proves local arithmetic and
-outcome hashes, **not authenticated receipt sourcing/state or full NEAR**.
-Other SHA jobs are absent, so these results cannot be combined arithmetically
-with the prior hash-only benchmark. [Source serializer](RECEIPT_SOURCE.md) now constrains those same fields in a
-single-receipt source/outcome relation (2,170 fixtures, three verified proofs).
-[Ordered lists](RECEIPT_LISTS.md) now prove original 0–9-receipt lists in a
-16-slot circuit (198–201 KB, 0.256–0.300 s; fresh verification passes). The
-1,024-slot build failed its 16 GiB memory limit. Next: cheaper source packing,
-then large-list integration, authenticated state/runtime and bounded PQ history.
+[Packed source/outcome lists](PACKED_RECEIPT_LISTS.md): an original **804-receipt
+list proves in 244,838 B / 4.543 s warm**, and its packet verifies freshly in
+1.549 s. Exact packed concatenation lets the 1,024-slot profile construct within
+16 GiB. It fits size but misses the deadline; source inclusion, state/runtime
+and bounded PQ history remain open. Next measure a constrained source-byte
+budget to reduce worst-case hash work, while preserving larger-capacity coverage.
+
+The earlier [receipt-only batch](RECEIPT_BATCH.md) measured 215,398 B / 1.52–1.54 s
+for 814 receipts, but omitted incoming source-list work. Do not substitute that
+narrower timing for the new integrated relation or full NEAR.
 
 [Metadata guard correction](STRICT_METADATA.md) remains mandatory; earlier
 MSB-only range guards were underconstrained. Composed PQ security, untrusted

@@ -1,0 +1,205 @@
+{
+  "status": "PACKED_ORDERED_SOURCE_OUTCOME_PROOF_NOT_FULL_NEAR",
+  "base_lane_commit": "7e2f18ad1",
+  "source_sha256": {
+    "near-packed-concat-check.rs": "aa998b4ab9720d687d59c02a51487a08638d10507acb514f7628d65f0a0a7aac",
+    "near-packed-concat-wide.rs": "e7f1a4d06144f2a34e6f835fa657bf9453fcc78566145acd2829858867669bc1",
+    "near-receipt-source-packed.rs": "8a21358ef679e8907875c5430ebc426d4ae75f8c44be1d1ef2b6b31987a36945",
+    "near-receipt-list-packed.rs": "49e96026f40761bea0107b0b983e9235cc700c6cb5968fcd217bb2a56a5425af",
+    "support/packed_concat.rs": "a9ff3297defaaa0bd6185d75d3e385e300f9674d33a961a0b02d2e7145484e59",
+    "support/receipt_source_packed.rs": "7dc2ab663bf3a2a5ddf9047b6a9543649d0eb396c594e8ffd0815e7ff64e5a76",
+    "support/receipt_list_packed_wire.rs": "a61b3e3c6a7969d9d387cbed692c829396bf3fe3de17dfa837e4d5d261450157",
+    "support/receipt_outcome.rs": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726",
+    "support/tight_sha.rs": "4152a626cf4cff0eaf66b2f9025d330611f859038f1947a054c352fdf79a5a2e"
+  },
+  "binary_sha256": {
+    "near-packed-concat-check": "c078e6e763c09ec9b7a41e75ecaa5f16354a1e9d2fa1a4704b4f0b104d6f371a",
+    "near-packed-concat-wide": "7016fb93f84637d543cab8e841664f2ff5b2882d3845ca82f404c21d5929d4c3",
+    "near-receipt-source-packed": "c96b5b7761831ba0a5856e51b39408248fe0fdd01c44a62c144ca553d8ef0a9d",
+    "near-receipt-list-packed": "5d6e12ef328bf98ba444f667f10513bda811af6c7d556d6623ea92e9e1dc7b36"
+  },
+  "packets": [
+    {
+      "capacity": 16,
+      "case": "00-h10004-s3-list0",
+      "bytes": 198462,
+      "sha256": "f2d83be1ffa77c6540e6f6d9ecacddf901e5d513e828121d94927f4860b41575",
+      "public_sha256": "daf3f6891158cd916d18ce943f154f54d35aaf144741912dee92496a4d801e42",
+      "independent_public_match": true
+    },
+    {
+      "capacity": 16,
+      "case": "00-h10006-s3-list0",
+      "bytes": 198462,
+      "sha256": "28b8b076b9568604d8a151e9769c14190a77f5262c11202ed3f5fac9473e10ff",
+      "public_sha256": "b3d725ac94f52ba8401ab23ceca48be723690cee3c36fee2b28a401a19123898",
+      "independent_public_match": true
+    },
+    {
+      "capacity": 16,
+      "case": "00-h10011-s1-list0",
+      "bytes": 198462,
+      "sha256": "d7f3bafc64afd126cc0f9be435be609191974b83d59d5fde613707ad7c9c9e1f",
+      "public_sha256": "10159ec867dc27d9f806e4b22c745347cda0603e0761835a8922d6a8977ef97a",
+      "independent_public_match": true
+    },
+    {
+      "capacity": 16,
+      "case": "00-h10012-s3-list0",
+      "bytes": 198462,
+      "sha256": "6b7d5cc8d9653602a44f109c7eb05e8174353cae5874d702bf7899ff8175ec09",
+      "public_sha256": "f302f08363bb3383aeec33088f990be601a1cf470f5283c31cf18a0757317497",
+      "independent_public_match": true
+    },
+    {
+      "capacity": 16,
+      "case": "00-h10008-s3-list2",
+      "bytes": 198462,
+      "sha256": "cbbd90534394cde8ea3753ac10c7614aa88fff16bcd1834a8633b5c6e9bffcd3",
+      "public_sha256": "33663e12e9e646b15529b2363ddd534d6e0083f20473a4497a8b381602256c72",
+      "independent_public_match": true
+    },
+    {
+      "capacity": 16,
+      "case": "00-h10035-s3-list1",
+      "bytes": 198462,
+      "sha256": "40e3a43a507f0c9bbd386a0a928c84b7eb54fdac0b4bfdf4fcc7e4ebe269e1ee",
+      "public_sha256": "e5556107579c148bd03335cc556c4dae263b52ba7a58bc0aefe48e4c6096d54d",
+      "independent_public_match": true
+    },
+    {
+      "capacity": 1024,
+      "case": "00-h10035-s3-list2",
+      "bytes": 244838,
+      "sha256": "0586f5f15ca0caee43e686d19a64d1490f64ecd411661dc37303702c4206dfb8",
+      "public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8",
+      "independent_public_match": true
+    }
+  ],
+  "cpu": 8,
+  "virtual_limit_KiB": 16777216,
+  "large_peak_RSS_KiB": 14256456,
+  "large_witness_log": 23,
+  "large_fixture": {
+    "receipts": 804,
+    "system": 803,
+    "refunds": 1,
+    "block_gas_price": 0
+  },
+  "results": {
+    "build-packed-concat.log": [],
+    "build-packed-concat-wide.log": [],
+    "near-packed-concat-check.log": [
+      "PACKED_CONCAT cases=625 rejected_mutations=4378 dirty_suffixes=true"
+    ],
+    "packed-concat-wide.log": [
+      "PACKED_WIDE cap=129 cases=121 rejected_mutations=4114 dirty_suffixes=true",
+      "PACKED_WIDE cap=513 cases=289 rejected_mutations=37570 dirty_suffixes=true"
+    ],
+    "near-receipt-source-packed.log": [
+      "RECEIPT_SOURCE cases=2170 accepted=2158 rejected=12 mutations=56108 log=12 same_source_outcome_wires=true",
+      "RECEIPT_SOURCE_PROOF example=0 honest=true public_mutations_rejected=4 full_near=false",
+      "RECEIPT_SOURCE_PROOF example=1 honest=true public_mutations_rejected=4 full_near=false",
+      "RECEIPT_SOURCE_PROOF example=2 honest=true public_mutations_rejected=4 full_near=false"
+    ],
+    "receipt-list-packed16.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.214642907",
+      "RECEIPT_LIST_SETUP setup_s=0.098756228",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10004-s3-list0.list cap=16 count=0 bytes=198462 prepare_s=0.000654642 prove_s=0.282326244 ready_s=0.283213223 verify_s=0.141463497 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10006-s3-list0.list cap=16 count=1 bytes=198462 prepare_s=0.000640345 prove_s=0.269783187 ready_s=0.270595425 verify_s=0.133789925 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10011-s1-list0.list cap=16 count=2 bytes=198462 prepare_s=0.000655984 prove_s=0.274877906 ready_s=0.275695935 verify_s=0.160354241 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10012-s3-list0.list cap=16 count=3 bytes=198462 prepare_s=0.000644914 prove_s=0.272805685 ready_s=0.273597756 verify_s=0.160215851 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10008-s3-list2.list cap=16 count=4 bytes=198462 prepare_s=0.000635997 prove_s=0.273041599 ready_s=0.273829852 verify_s=0.171196778 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list1.list cap=16 count=9 bytes=198462 prepare_s=0.000652818 prove_s=0.27275513 ready_s=0.273585282 verify_s=0.162161513 mutations=7 full_near=false"
+    ],
+    "receipt-list-packed1024-geometry.log": [],
+    "receipt-list-packed1024-once-geometry.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=1024 log=23 circuit_s=20.299041553"
+    ],
+    "receipt-list-packed1024.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=1024 log=23 circuit_s=20.710128861",
+      "RECEIPT_LIST_SETUP setup_s=4.059775553",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 count=804 bytes=244838 prepare_s=0.062532187 prove_s=4.480239018 ready_s=4.542993169 verify_s=1.531093814 mutations=7 full_near=false"
+    ],
+    "verify-packed1024.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=1024 log=23 circuit_s=20.3445654",
+      "RECEIPT_LIST_SETUP setup_s=4.068662566",
+      "RECEIPT_LIST_VERIFY bytes=244838 seconds=1.5490660410000001 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "receipt-list-packed-reversed.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.19876654",
+      "RECEIPT_LIST_SETUP setup_s=0.098081092"
+    ],
+    "verify-packed-00-h10004-s3-list0.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.199017089",
+      "RECEIPT_LIST_SETUP setup_s=0.097805388",
+      "RECEIPT_LIST_VERIFY bytes=198462 seconds=0.163733231 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-packed-00-h10006-s3-list0.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.19844977",
+      "RECEIPT_LIST_SETUP setup_s=0.097567411",
+      "RECEIPT_LIST_VERIFY bytes=198462 seconds=0.163211259 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-packed-00-h10011-s1-list0.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.199822023",
+      "RECEIPT_LIST_SETUP setup_s=0.097748862",
+      "RECEIPT_LIST_VERIFY bytes=198462 seconds=0.162146394 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-packed-00-h10012-s3-list0.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.19686607",
+      "RECEIPT_LIST_SETUP setup_s=0.09777955",
+      "RECEIPT_LIST_VERIFY bytes=198462 seconds=0.162927044 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-packed-00-h10008-s3-list2.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.199353761",
+      "RECEIPT_LIST_SETUP setup_s=0.097907331",
+      "RECEIPT_LIST_VERIFY bytes=198462 seconds=0.162183083 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ],
+    "verify-packed-00-h10035-s3-list1.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.196295526",
+      "RECEIPT_LIST_SETUP setup_s=0.097222902",
+      "RECEIPT_LIST_VERIFY bytes=198462 seconds=0.163127852 no_witness_loaded=true backend_roundtrip=true negative_checks=3"
+    ]
+  },
+  "limits": [
+    "One incoming list, not full chunk; other ten receipts in separate lists are excluded.",
+    "Source root inclusion and account/state authentication absent.",
+    "No general runtime, complete PQ128 composition or recursive history.",
+    "One large warm timing observation, excludes cold setup and original preprocessing.",
+    "C decoder is trusted-local."
+  ]
+}

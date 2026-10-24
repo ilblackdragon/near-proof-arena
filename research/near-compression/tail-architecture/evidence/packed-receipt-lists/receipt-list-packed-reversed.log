@@ -1,0 +1,9 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.19876654
+RECEIPT_LIST_SETUP setup_s=0.098081092
+
+thread 'main' (1279655) panicked at crates/binius/src/bin/near-receipt-list-packed.rs:45:35:
+called `Result::unwrap()` on an `Err` value: PopulateError { failures: [AssertionFailure { path: ".root-0", detail: "Word(0x985d7268a8be8b81) != Word(0xaec8139eb4a32d47)" }, AssertionFailure { path: ".root-1", detail: "Word(0x257ad8d1acce0bd5) != Word(0xe5a5cabd25d0a2dd)" }, AssertionFailure { path: ".root-2", detail: "Word(0x89d30481019b9273) != Word(0x488c018d3f3be32c)" }, AssertionFailure { path: ".root-3", detail: "Word(0xe4bc81c5a6d1c245) != Word(0xe255645d5645339b)" }], total: 4 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
