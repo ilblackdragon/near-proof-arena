@@ -1,0 +1,6 @@
+{
+  "case": "docs/evidence/lean-chunk-completion/runtime-chunks-209/cases/runtime-targeted-1703",
+  "reason": "invalid: main transition post state root",
+  "tier": "genesisFloatsProtoGas",
+  "verdict": "reject"
+}

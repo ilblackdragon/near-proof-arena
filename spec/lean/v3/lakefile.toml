@@ -73,3 +73,11 @@ root = "ProbeL4"
 [[lean_exe]]
 name = "nearspec-v3-check-l4"
 root = "MainL4"
+
+[[lean_exe]]
+name = "nearspec-v3-check-successor"
+root = "MainSuccessor"
+
+[[lean_exe]]
+name = "nearspec-v3-runtime"
+root = "MainRuntime"

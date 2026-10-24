@@ -1,5 +1,6 @@
 import NearSpecV3.Wasm.Host
 import NearSpecV3.Wasm.Float
+import NearSpecV3.Wasm.InstanceLayout
 /-!
 # NEAR WASM (D3α + L2 floats): instruction execution, instantiation, and the observable outcome
 
@@ -548,6 +549,27 @@ def runCall (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
               | .error why => .line s!"unmodeled {why}"
               | .ok (s, e) => .done s e
 
+/-- Successor loading preflight. Deserialization/allocator validation precedes gas charging,
+linking and method resolution in the pinned runner. A loading failure is a zero-gas failed call.
+The original runCall remains the signed execution path. -/
+def runCallWithLimits (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
+    (fuel : Nat) (blockLevel : Bool := true) (full : Bool := false)
+    (real : Option TTN.RealStore := none) : Run :=
+  let fallback := fun (_ : Unit) => runCall cfg code method ctx fuel blockLevel full real
+  if !cfg.loadingLimits then fallback () else
+  match prepare cfg code blockLevel with
+  | .ok p =>
+    if instanceAllocationFits p.m then fallback () else
+      .line ("abort 0 0 " ++ instanceLoadingError ++
+        (if full then " || compute 0 || logs  || actions  || trie " else ""))
+  | _ => fallback ()
+
+/-- Loading checks are definitionally absent from the signed configuration. -/
+theorem runCallWithLimits_signed (code : ByteArray) (method : String) (ctx : CallCtx)
+    (fuel : Nat) (blockLevel full : Bool) (real : Option TTN.RealStore) :
+    runCallWithLimits pv86 code method ctx fuel blockLevel full real =
+      runCall pv86 code method ctx fuel blockLevel full real := rfl
+
 /-- One line in the harness format (`oracle/wasm-d3/src/main.rs`):
 `ok <burnt> <used> <ret|-|receiptN> <balance>`, `abort <burnt> <used> <error>` (the zero-gas no-op
 outcome of a missing method prints as `abort 0 0 …`, as the harness does), or `out-of-domain …` /
@@ -555,7 +577,7 @@ outcome of a missing method prints as `abort 0 0 …`, as the harness does), or 
 def outcome (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
     (blockLevel : Bool := true) (full : Bool := false) : String :=
   let ext (s : St) : String := if full then fullExtra s else ""
-  match runCall cfg code method ctx fuel blockLevel full with
+  match runCallWithLimits cfg code method ctx fuel blockLevel full with
   | .line l => l
   | .done s (some e) => s!"abort {s.gas.burnt} {s.gas.used} {e}" ++ ext s
   | .done s none =>

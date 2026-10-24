@@ -37,7 +37,7 @@ configuration cannot carry an arbitrary `NearCfg` that drifts from the declared 
 
 ## Tiers and their predicates
 
-`Tier` enumerates the successor tiers in increasing domain order. `Tier.cfg` is its configuration and
+`Tier` names successor configurations. Their feature sets are not a linear inclusion chain. `Tier.cfg` is its configuration and
 `Tier.checker` its checker. The **tier predicate** is `Tier.domainPredicate`: the tier's declared
 domain, as a decidable predicate on the *verdict* — a tier excludes an input exactly when its checker
 classifies it as `out of domain`. This is the honest form of the predicate for a successor: the
@@ -47,9 +47,11 @@ carries", and each exclusion is a named obligation in the W00 owner map
 
 ## Residual premises
 
-* The `genesis + floats + protocol-gas` composition (`checkD3GProtoFloat`) has **no** recorded
-  differential evidence. It is a composition of two adapters, not a validated checker. W12 must not
-  admit it as accepted without W13 replay.
+* The `genesis + floats + protocol-gas` composition (`checkD3GProtoFloat`) has a 1,788-case
+  verdict replay checkpoint. This is not full observable or representative-window validation.
+* loadingLimits selects the pinned x86-64 Wasmtime pooling instance-layout correction.
+  runtimeLimits combines it with genesis, floats and protocol gas. This is a semantic correction,
+  not a theorem that the old and new runtime agree on every byte input.
 * No theorem here states that any successor tier agrees with nearcore. Agreement is a differential
   obligation (W13/W14), not a property of this module.
 * `checkSuccessor` does not implement the "one semantic root" as a *refinement* of the signed
@@ -74,11 +76,13 @@ structure ProtocolCfg where
   gasCap : Option Nat := some D3.gAlpha
   /-- Use L6's genesis-aware pipeline (`checkD2CoreG`) instead of `checkD2Core`. -/
   genesisMainTransition : Bool := false
+  /-- Pinned validator's Wasmtime pooling allocation failure semantics. -/
+  loadingLimits : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` only: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
 def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
-  if cfg.floats then Wasm.floatPv86 else Wasm.pv86
+  { (if cfg.floats then Wasm.floatPv86 else Wasm.pv86) with loadingLimits := cfg.loadingLimits }
 
 /-- The signed configuration: exactly `checkD3`'s arguments. -/
 def signedCfg : ProtocolCfg := {}
@@ -195,8 +199,8 @@ theorem checkSuccessor_unsupported_pv (cfg : ProtocolCfg) (c w : Bytes)
 
 /-! ## Tiers -/
 
-/-- The successor tiers, in increasing domain order. `signed` is the signed D3α statement itself;
-every later tier is a configuration of the same root that decides inputs the earlier tier excludes. -/
+/-- Named configurations. Floats, gas and genesis are independent dimensions; loading limits
+correct runtime semantics. Enumeration/rank alone never establishes relation inclusion. -/
 inductive Tier where
   | signed
   | floats
@@ -204,6 +208,7 @@ inductive Tier where
   | floatsProtoGas
   | genesis
   | genesisFloatsProtoGas
+  | runtimeLimits
   deriving DecidableEq, Repr
 
 /-- The tier's configuration. -/
@@ -215,6 +220,9 @@ def Tier.cfg : Tier → ProtocolCfg
   | .genesis => { signedCfg with genesisMainTransition := true }
   | .genesisFloatsProtoGas =>
     { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true }
+
+  | .runtimeLimits =>
+    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true, loadingLimits := true }
 
 /-- The tier's checker: the root at the tier's configuration. -/
 def Tier.checker (t : Tier) : Bytes → Bytes → Except String Unit := checkSuccessor t.cfg
@@ -236,7 +244,7 @@ refinement obligations are W12's (`relSuccessor_*_mono`), and they need the adap
 theorems below plus the still-missing semantic families. -/
 def Tier.rank : Tier → Nat
   | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
-  | .genesis => 4 | .genesisFloatsProtoGas => 5
+  | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6
 
 /-! ## The adapters, at their tiers
 

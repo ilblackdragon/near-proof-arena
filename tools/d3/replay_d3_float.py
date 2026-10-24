@@ -30,6 +30,8 @@ import os
 import subprocess
 import sys
 
+from replay_successor import run_batch, load_compare
+
 BIN = os.environ.get(
     "D3_BIN",
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -71,15 +73,7 @@ def d3_disagreement(fam, m, g):
 
 
 def run(binary, dirs):
-    p = subprocess.run([binary, *dirs], capture_output=True, text=True)
-    if p.returncode != 0:
-        raise SystemExit(f"{binary} failed: {p.stderr[-2000:]}")
-    out = {}
-    for line in p.stdout.splitlines():
-        if line.startswith("{"):
-            j = json.loads(line)
-            out[os.path.normpath(j["case"])] = j
-    return out
+    return run_batch([binary], dirs, timeout=600)
 
 
 def main():
@@ -101,7 +95,11 @@ def main():
             names = sorted(n for n in os.listdir(d) if os.path.isdir(os.path.join(d, n)))
             if a.limit:
                 names = names[:a.limit]
-            cases += [(fam, os.path.join(d, n)) for n in names]
+            cases += [(fam, os.path.realpath(os.path.join(d, n))) for n in names]
+    if not cases:
+        sys.exit("FAIL: no corpus cases found")
+    if a.jobs <= 0 or a.chunk <= 0:
+        sys.exit("FAIL: jobs and chunk must be positive")
     print(f"cases={len(cases)}", flush=True)
     chunks = [cases[i:i + a.chunk] for i in range(0, len(cases), a.chunk)]
     got3, got3f = {}, {}
@@ -134,10 +132,20 @@ def main():
             changed.append(case)
             viol = m.get("d3_violations") or []
             ok = ("e.float" in viol and g3.get("verdict") == "out_of_domain"
+                  and g3f.get("verdict") in ("accept", "reject")
                   and (g3f.get("verdict") == "accept") == bool(m.get("expected_rel")))
             (floatmoved if ok else other).append(
                 [case, g3.get("verdict"), g3.get("reason"), g3f.get("verdict"),
                  g3f.get("reason"), m.get("expected_rel"), viol])
+    # Independently account for every baseline and successor verdict, including unchanged
+    # exclusions. A missing output has already failed in run_batch.
+    compare = load_compare()
+    metas = {c: json.load(open(os.path.join(c, "meta.json"))) for c in fam_of}
+    _, baseline_bad, _, _ = compare.compare("baseline", list(fam_of), metas, got3)
+    _, successor_bad, _, _ = compare.compare("floats", list(fam_of), metas, got3f,
+                                            domain="successor", widen=["e.float"])
+    regress.extend(baseline_bad)
+    other.extend(successor_bad)
     v3 = collections.Counter(v.get("verdict") for v in got3.values())
     v3f = collections.Counter(v.get("verdict") for v in got3f.values())
     report = {

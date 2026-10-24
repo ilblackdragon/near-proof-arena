@@ -1,5 +1,15 @@
 # Handover — 2026-10-24
 
+**Active completion work, excluding W05:** branch `work/lean-completion-except-w05-20261024`
+adds strict tier replay, the pinned pooling allocation correction, and a versioned fixture generator.
+Evidence: 1,030 full runtime matches, 209 whole chunks, 366 mutants, and a 1,788-case combined
+verdict checkpoint. Full driver build and CI smoke pass; Python tests: 58 pass / one skip.
+See [execution log](logs/lean-chunk-completion-2026-10-24.md) for artifact identities and limits.
+No package or gate is certified complete. W02's checker theorem, W01 computed observables,
+remaining semantic adapters and representative/release/admission gates remain open.
+W13 requires an authenticated witness source; W05 belongs to the other agent and is untouched.
+
+
 **Current Lean integration — 2026-10-24, merge `c3976e326`.** All committed inspected
 L0/L1/L2/L4/L5/L6/L7/L8 work is now on the integration tip promoted to main. L4's six commits
 through `06dffaac6` are newly merged. **W05 remains held back:** L3 has seven pending commits

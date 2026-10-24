@@ -173,7 +173,9 @@ lean: ## lake build the Lean projects in LEAN_PROJECTS
 D3_DRIVERS := spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3g \
               spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3proto \
               oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3 \
-              oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3f
+              oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3f \
+              spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor \
+              spec/lean/v3/.lake/build/bin/nearspec-v3-runtime
 
 .PHONY: d3-drivers
 d3-drivers: ## Build the named D3 successor drivers (genesis, protocol-gas, D3alpha, floats)
