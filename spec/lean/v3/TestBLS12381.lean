@@ -133,12 +133,22 @@ def main (args : List String) : IO UInt32 := do
     else args
   let mut total := 0
   let mut bad := 0
+  let mut absent := 0
   for d in dirs do
     if ← System.FilePath.pathExists d then
       let (n, b) ← checkDir d d
       total := total + n
       bad := bad + b
     else
+      absent := absent + 1
       IO.eprintln s!"missing fixture directory {d}"
   IO.println s!"bls12381 fixtures: {total - bad}/{total} ok"
+  -- A missing fixture directory is not a pass: with no rows read, "0/0 ok" would
+  -- report success for having checked nothing. Fail instead, and say which dirs.
+  if absent > 0 then
+    IO.eprintln s!"{absent} fixture director(ies) missing; nothing was checked there"
+    return 2
+  if total == 0 then
+    IO.eprintln "no fixture rows read; refusing to report a vacuous pass"
+    return 2
   if bad == 0 then return 0 else return 1
