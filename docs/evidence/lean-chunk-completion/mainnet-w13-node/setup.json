@@ -1,0 +1,340 @@
+{
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "mainnet_status": {
+    "chain_id": "mainnet",
+    "genesis_hash": "EPnLgE7iEq9s7yTkos96M3cWymH5avBAPm3qx3NXqR8H",
+    "latest_protocol_version": 86,
+    "node_key": null,
+    "node_public_key": "ed25519:GLqMGfYemei8fSfq4uh6Mw3srVZ9iXA2HrwniMMXWzUx",
+    "protocol_version": 86,
+    "rpc_addr": "0.0.0.0:3030",
+    "sync_info": {
+      "earliest_block_hash": "3BFx8uaHryorRBq1GG4Xei1ubAh1zbCXW2Hc7E6vFL7P",
+      "earliest_block_height": 221327533,
+      "earliest_block_time": "2026-10-24T02:45:53.886729225Z",
+      "epoch_id": "AvuK6u4okXELk8yJvQY9zTVEHZogaLVWzxLaqjhv8rsJ",
+      "epoch_start_height": 221413934,
+      "latest_block_hash": "2kRS2dw2XNpPNbJGJp4tCMpDogWskdEY812s5bALNuPH",
+      "latest_block_height": 221446839,
+      "latest_block_time": "2026-10-24T21:47:33.369945635Z",
+      "latest_state_root": "AkpvJ4WG6uhs6cw41oKkS8hR4QXbu8PiT81LJEwrYtKQ",
+      "syncing": false
+    },
+    "uptime_sec": 169780,
+    "validator_account_id": null,
+    "validator_public_key": null,
+    "validators": [
+      {
+        "account_id": "astro-stakers.poolv1.near"
+      },
+      {
+        "account_id": "figment.poolv1.near"
+      },
+      {
+        "account_id": "ledgerbyfigment.poolv1.near"
+      },
+      {
+        "account_id": "staked.poolv1.near"
+      },
+      {
+        "account_id": "binancenode1.poolv1.near"
+      },
+      {
+        "account_id": "sumerian.poolv1.near"
+      },
+      {
+        "account_id": "zavodil.poolv1.near"
+      },
+      {
+        "account_id": "bitwise_2.poolv1.near"
+      },
+      {
+        "account_id": "liver.pool.near"
+      },
+      {
+        "account_id": "cnear-1.poolv1.near"
+      },
+      {
+        "account_id": "cnear-2.poolv1.near"
+      },
+      {
+        "account_id": "cnear-3.poolv1.near"
+      },
+      {
+        "account_id": "bitwise_1.poolv1.near"
+      },
+      {
+        "account_id": "kiln-1.poolv1.near"
+      },
+      {
+        "account_id": "svrn-ai.poolv1.near"
+      },
+      {
+        "account_id": "svrn.pool.near"
+      },
+      {
+        "account_id": "epic.poolv1.near"
+      },
+      {
+        "account_id": "svrn-luganodes.pool.near"
+      },
+      {
+        "account_id": "nearvana.poolv1.near"
+      },
+      {
+        "account_id": "svrn_bitwise.poolv1.near"
+      },
+      {
+        "account_id": "stake1.poolv1.near"
+      },
+      {
+        "account_id": "p2p-org.poolv1.near"
+      },
+      {
+        "account_id": "dragonfly.poolv1.near"
+      },
+      {
+        "account_id": "metapool01.pool.near"
+      },
+      {
+        "account_id": "solsticestaking.poolv1.near"
+      },
+      {
+        "account_id": "bisontrails.poolv1.near"
+      },
+      {
+        "account_id": "macrodatarefinement.poolv1.near"
+      },
+      {
+        "account_id": "allnodes.poolv1.near"
+      },
+      {
+        "account_id": "aca87218e28c41f5a693dee3dff12238.poolv1.near"
+      },
+      {
+        "account_id": "silentnodes.pool.near"
+      },
+      {
+        "account_id": "svrn-twinstake.poolv1.near"
+      },
+      {
+        "account_id": "d1.poolv1.near"
+      },
+      {
+        "account_id": "lst-pool.near"
+      },
+      {
+        "account_id": "stakin.poolv1.near"
+      },
+      {
+        "account_id": "legends.poolv1.near"
+      },
+      {
+        "account_id": "northernlights.poolv1.near"
+      },
+      {
+        "account_id": "republic.poolv1.near"
+      },
+      {
+        "account_id": "okx-earn.poolv1.near"
+      },
+      {
+        "account_id": "rekt.poolv1.near"
+      },
+      {
+        "account_id": "ni.poolv1.near"
+      },
+      {
+        "account_id": "everstake.poolv1.near"
+      },
+      {
+        "account_id": "gtnode-0.poolv1.near"
+      },
+      {
+        "account_id": "nearfans.poolv1.near"
+      },
+      {
+        "account_id": "nearone.pool.near"
+      },
+      {
+        "account_id": "x.poolv1.near"
+      },
+      {
+        "account_id": "here.poolv1.near"
+      },
+      {
+        "account_id": "bitcoinsuisse.poolv1.near"
+      },
+      {
+        "account_id": "twinstake.poolv1.near"
+      },
+      {
+        "account_id": "anonymous.poolv1.near"
+      },
+      {
+        "account_id": "erm.poolv1.near"
+      },
+      {
+        "account_id": "lux.poolv1.near"
+      },
+      {
+        "account_id": "staking4all.poolv1.near"
+      },
+      {
+        "account_id": "baziliknear.poolv1.near"
+      },
+      {
+        "account_id": "dsrvlabs.poolv1.near"
+      },
+      {
+        "account_id": "blockdaemon.poolv1.near"
+      },
+      {
+        "account_id": "moonlet.poolv1.near"
+      },
+      {
+        "account_id": "cryptium.poolv1.near"
+      },
+      {
+        "account_id": "buildlinks.poolv1.near"
+      },
+      {
+        "account_id": "sofarsonear.poolv1.near"
+      },
+      {
+        "account_id": "chorusone.poolv1.near"
+      },
+      {
+        "account_id": "stakesabai.poolv1.near"
+      },
+      {
+        "account_id": "npro.poolv1.near"
+      },
+      {
+        "account_id": "falcon.pool.near"
+      },
+      {
+        "account_id": "meteor.poolv1.near"
+      },
+      {
+        "account_id": "lunanova.poolv1.near"
+      },
+      {
+        "account_id": "openshards.poolv1.near"
+      },
+      {
+        "account_id": "trust-nodes.poolv1.near"
+      },
+      {
+        "account_id": "kiln.poolv1.near"
+      },
+      {
+        "account_id": "autostake.poolv1.near"
+      },
+      {
+        "account_id": "luganodes.pool.near"
+      },
+      {
+        "account_id": "qbit.poolv1.near"
+      },
+      {
+        "account_id": "nearai.pool.near"
+      },
+      {
+        "account_id": "hb436_pool.poolv1.near"
+      },
+      {
+        "account_id": "eno-blockdaemon0.pool.near"
+      },
+      {
+        "account_id": "masternode24.poolv1.near"
+      },
+      {
+        "account_id": "stardust.poolv1.near"
+      },
+      {
+        "account_id": "brea.poolv1.near"
+      },
+      {
+        "account_id": "avado.poolv1.near"
+      },
+      {
+        "account_id": "bisontrails2.poolv1.near"
+      },
+      {
+        "account_id": "hapi.poolv1.near"
+      },
+      {
+        "account_id": "01node.poolv1.near"
+      },
+      {
+        "account_id": "optimusvalidatornetwork.poolv1.near"
+      },
+      {
+        "account_id": "dexagon.poolv1.near"
+      },
+      {
+        "account_id": "stakely_io.poolv1.near"
+      },
+      {
+        "account_id": "near-prime-public.poolv1.near"
+      },
+      {
+        "account_id": "nodeasy.poolv1.near"
+      },
+      {
+        "account_id": "atomic-nodes.poolv1.near"
+      },
+      {
+        "account_id": "lavenderfive.poolv1.near"
+      },
+      {
+        "account_id": "colossus.poolv1.near"
+      },
+      {
+        "account_id": "smart-stake.poolv1.near"
+      },
+      {
+        "account_id": "polkachu.poolv1.near"
+      },
+      {
+        "account_id": "northstakenear.poolv1.near"
+      },
+      {
+        "account_id": "fresh.poolv1.near"
+      },
+      {
+        "account_id": "hashquark.poolv1.near"
+      },
+      {
+        "account_id": "pangdao.poolv1.near"
+      },
+      {
+        "account_id": "near-prime.poolv1.near"
+      },
+      {
+        "account_id": "rhea-validator.poolv1.near"
+      },
+      {
+        "account_id": "link.poolv1.near"
+      },
+      {
+        "account_id": "p2pstaking.poolv1.near"
+      },
+      {
+        "account_id": "namdokmai.poolv1.near"
+      }
+    ],
+    "version": {
+      "build": "2.13.4",
+      "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "rustc_version": "1.93.0",
+      "version": "2.13.4"
+    }
+  },
+  "selected_shards": [
+    13
+  ],
+  "scope": "single-shard acquisition pilot; not W13 all-shard completion",
+  "config_sha256": "004efda7c2405ca94f1c00d68695ab50e83c955d80c063d02062fd97d2e91bef"
+}

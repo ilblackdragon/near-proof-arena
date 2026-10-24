@@ -1,0 +1,26 @@
+{
+  "state": "running",
+  "pid": 2428199,
+  "updated_unix": 1792878536.7334733,
+  "captures": 0,
+  "native_accepts": 0,
+  "native_rejects": 0,
+  "free_bytes": 120354127872,
+  "home_allocated_bytes": 101326848,
+  "node": {
+    "chain_id": "mainnet",
+    "protocol_version": 29,
+    "sync_info": {
+      "latest_block_hash": "EPnLgE7iEq9s7yTkos96M3cWymH5avBAPm3qx3NXqR8H",
+      "latest_block_height": 9820210,
+      "latest_state_root": "5o1trt9N9YgDL4xeY33z9adS5Ub3jMmuyQpWM7UHowrq",
+      "latest_block_time": "2020-07-21T16:55:51.591948000Z",
+      "syncing": true,
+      "earliest_block_hash": "EPnLgE7iEq9s7yTkos96M3cWymH5avBAPm3qx3NXqR8H",
+      "earliest_block_height": 9820210,
+      "earliest_block_time": "2020-07-21T16:55:51.591948000Z",
+      "epoch_id": "11111111111111111111111111111111",
+      "epoch_start_height": 0
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "rust": "1.93.0",
+  "features": [
+    "json_rpc",
+    "shadow_chunk_validation"
+  ],
+  "release_lto": false,
+  "release_codegen_units": 16,
+  "cargo_jobs": 8,
+  "binary_version": "neard (release 2.13.4) (build 2.13.4-modified) (commit 44f7ae6cd7ef08bab604e20a473bf77e35d4c993) (rustc 1.93.0) (min_protocol 83) (protocol 86) (db 49)\nfeatures: [json_rpc, shadow_chunk_validation]\n",
+  "sha256": {
+    "bin/neard": "3654d2428ceedfe58fcc27fd35c53a7624d305df437960d29a1bb0b8e999d32e",
+    "run/export.patch": "6bda19c352a3dc016f5ec914e65beee81ed773265144c71e70e8566e5a257162",
+    "run/configure.py": "67e77374994d27303528f32482b5099570241e34674a1f1c07494773ff891318",
+    "run/supervise.py": "0cdb98003c28d7614f0a8c740fa588fa639dcf220c30a9a0fb416d8daac21054"
+  }
+}

@@ -689,6 +689,19 @@ validator adapter are still needed. Raw Borsh witness packaging alone does not c
 Archive authentication currently trusts HTTPS plus the native canonical store; independent finality
 proof verification is not implemented. W13 remains open and blocks full Gate B.
 
+**Acquisition pilot (2026-10-24):** built and started mainnet nearcore 2.13.4 at
+`44f7ae6cd7ef08bab604e20a473bf77e35d4c993` with Rust 1.93.0 and shadow witness
+validation. The [capture hook and launcher](../../tools/mainnet-replay/nearcore-capture/README.md)
+export raw witnesses, full chunks, block context, available code and native shadow verdicts.
+The persistent `nearproof-mainnet-w13.service` tracks shard 13, with localhost RPC on 3038.
+Runtime home/export/evidence are under `/data/illia/nearproof-deps/mainnet-w13/`;
+`home/capture-status.json` is the live source for counts and sync state. Initial launch reached
+12 peers and completed epoch sync; headers/state sync and first witness acquisition remain pending
+at this checkpoint. The pilot stops at 1,200 captures, 35 GiB home allocation, or a 15 GiB disk
+reserve. Native shadow acceptance is not cold replay or Lean acceptance. Remaining W13 work:
+finish acquisition, authenticate and convert DB context into claims, supply complete code closure,
+implement the cold native adapter, and execute the required all-shard representative window.
+
 ### W14 Frozen combined validation and Gate B
 
 Owner: L7 plus integration owner. Freeze one commit and executable package after W12, then validate

@@ -1,0 +1,199 @@
+diff --git a/chain/chain/Cargo.toml b/chain/chain/Cargo.toml
+index 00388d1..ec8dc2d 100644
+--- a/chain/chain/Cargo.toml
++++ b/chain/chain/Cargo.toml
+@@ -24,6 +24,7 @@ rand_chacha.workspace = true
+ rand.workspace = true
+ rayon.workspace = true
+ serde.workspace = true
++serde_json.workspace = true
+ strum.workspace = true
+ tempfile.workspace = true
+ thiserror.workspace = true
+@@ -56,7 +57,6 @@ near-schema-checker-lib.workspace = true
+ near-mainnet-res.workspace = true
+ near-primitives = { workspace = true, features = ["clock"] }
+ near-test-contracts.workspace = true
+-serde_json.workspace = true
+ primitive-types.workspace = true
+ insta.workspace = true
+ assert_matches.workspace = true
+diff --git a/chain/chain/src/stateless_validation/chunk_validation.rs b/chain/chain/src/stateless_validation/chunk_validation.rs
+index c3901c1..767a3a3 100644
+--- a/chain/chain/src/stateless_validation/chunk_validation.rs
++++ b/chain/chain/src/stateless_validation/chunk_validation.rs
+@@ -832,6 +832,10 @@ impl Chain {
+         let shard_id = witness.chunk_header().shard_id();
+         let height_created = witness.chunk_header().height_created();
+         let chunk_hash = witness.chunk_header().chunk_hash().clone();
++        let export_path = std::env::var("NEAR_W13_EXPORT_DIR").ok().map(|root| {
++            std::path::PathBuf::from(root)
++                .join(format!("h{}-s{}-{}", height_created, shard_id, chunk_hash.0))
++        });
+         let parent_span = tracing::debug_span!(
+             target: "chain", "shadow_validate", %shard_id, height_created);
+         let (encoded_witness, raw_witness_size) = {
+@@ -883,7 +887,7 @@ impl Chain {
+ 
+             let validation_start = Instant::now();
+ 
+-            match validate_chunk_state_witness(
++            let result = validate_chunk_state_witness(
+                 witness,
+                 pre_validation_result,
+                 epoch_manager.as_ref(),
+@@ -892,7 +896,21 @@ impl Chain {
+                 store,
+                 false,
+                 rs,
+-            ) {
++            );
++            if let Some(dir) = export_path {
++                let verdict = serde_json::json!({"chunk_hash": chunk_hash, "shard_id": shard_id,
++                    "height_created": height_created, "verdict": if result.is_ok() { "accept" } else { "reject" },
++                    "error": result.as_ref().err().map(|e| format!("{e:?}")),
++                    "cache_policy": "native shadow validation; not a cold complete-code W13 adapter"});
++                let write_result = (|| -> std::io::Result<()> {
++                    std::fs::create_dir_all(&dir)?;
++                    let tmp = dir.join("native-validation.json.tmp");
++                    std::fs::write(&tmp, serde_json::to_vec_pretty(&verdict)?)?;
++                    std::fs::rename(tmp, dir.join("native-validation.json"))
++                })();
++                if let Err(err) = write_result { tracing::error!(target: "chain", error=%err, "W13 native result export failed"); }
++            }
++            match result {
+                 Ok(_) => {
+                     tracing::debug!(
+                         parent: &parent_span,
+diff --git a/chain/client/src/stateless_validation/shadow_validate.rs b/chain/client/src/stateless_validation/shadow_validate.rs
+index f7fc9d4..7b9a869 100644
+--- a/chain/client/src/stateless_validation/shadow_validate.rs
++++ b/chain/client/src/stateless_validation/shadow_validate.rs
+@@ -17,12 +17,19 @@ impl Client {
+         tracing::debug!(target: "client", ?block_hash, "shadow validation for block chunks");
+         let prev_block = self.chain.get_block(block.header().prev_hash())?;
+         let prev_block_chunks = prev_block.chunks();
+-        for (shard_index, chunk) in block.chunks().iter_new().enumerate() {
+-            let chunk = get_chunk_clone_from_header(&self.chain.chain_store.chunk_store(), chunk)?;
++        for (shard_index, chunk) in block.chunks().iter().enumerate() {
++            if !chunk.is_new_chunk()
++                || !self
++                    .shard_tracker
++                    .cares_about_shard(block.header().prev_hash(), chunk.shard_id())
++            {
++                continue;
++            }
++            let chunk = get_chunk_clone_from_header(&self.chain.chain_store.chunk_store(), &chunk)?;
+             // TODO(resharding) This doesn't work if shard layout changes.
+             let prev_chunk_header = prev_block_chunks.get(shard_index).unwrap();
+             if let Err(err) =
+-                self.shadow_validate_chunk(prev_block.header(), prev_chunk_header, &chunk)
++                self.shadow_validate_chunk(block, prev_block.header(), prev_chunk_header, &chunk)
+             {
+                 near_chain::stateless_validation::metrics::SHADOW_CHUNK_VALIDATION_FAILED_TOTAL
+                     .inc();
+@@ -40,17 +47,90 @@ impl Client {
+ 
+     fn shadow_validate_chunk(
+         &self,
++        block: &Block,
+         prev_block_header: &BlockHeader,
+         prev_chunk_header: &ShardChunkHeader,
+         chunk: &ShardChunk,
+     ) -> Result<(), Error> {
+-        let CreateWitnessResult { state_witness, .. } =
++        let CreateWitnessResult { state_witness, contract_updates, main_transition_shard_id } =
+             self.chain.chain_store().create_state_witness(
+                 self.epoch_manager.as_ref(),
+                 prev_block_header,
+                 prev_chunk_header,
+                 chunk,
+             )?;
++        if let Ok(export_root) = std::env::var("NEAR_W13_EXPORT_DIR") {
++            let capture = || -> Result<(), Box<dyn std::error::Error>> {
++                use near_epoch_manager::shard_assignment::shard_id_to_uid;
++                use near_store::adapter::trie_store::TrieStoreAdapter;
++                use near_store::{TrieDBStorage, TrieStorage};
++                use std::path::Path;
++                let header = state_witness.chunk_header();
++                let dir = Path::new(&export_root).join(format!(
++                    "h{}-s{}-{}",
++                    header.height_created(),
++                    header.shard_id(),
++                    header.chunk_hash().0
++                ));
++                if dir.join("capture.json").exists() {
++                    return Ok(());
++                }
++                std::fs::create_dir_all(&dir)?;
++                let write = |name: &str, data: &[u8]| -> std::io::Result<()> {
++                    let tmp = dir.join(format!("{name}.tmp"));
++                    std::fs::write(&tmp, data)?;
++                    std::fs::rename(tmp, dir.join(name))
++                };
++                let raw = borsh::to_vec(&state_witness)?;
++                write("state_witness.borsh", &raw)?;
++                write("chunk.borsh", &borsh::to_vec(chunk)?)?;
++                write("block.borsh", &borsh::to_vec(block)?)?;
++                write("parent_header.borsh", &borsh::to_vec(prev_block_header)?)?;
++                let transition = state_witness.main_state_transition();
++                let epoch = self.epoch_manager.get_epoch_id(&transition.block_hash)?;
++                let uid =
++                    shard_id_to_uid(self.epoch_manager.as_ref(), main_transition_shard_id, &epoch)?;
++                let storage = TrieDBStorage::new(
++                    TrieStoreAdapter::new(self.runtime_adapter.store().clone()),
++                    uid,
++                );
++                std::fs::create_dir_all(dir.join("code"))?;
++                let mut missing = Vec::new();
++                let mut codes = Vec::new();
++                for hash in &contract_updates.contract_accesses {
++                    match storage.retrieve_raw_bytes(&hash.0) {
++                        Ok(bytes) => {
++                            if near_primitives::hash::hash(&bytes) != hash.0 {
++                                return Err("exported code hash mismatch".into());
++                            }
++                            write(&format!("code/{}.wasm", hash.0), &bytes)?;
++                            codes.push(hash.0.to_string());
++                        }
++                        Err(err) => missing.push(format!("{}: {}", hash.0, err)),
++                    }
++                }
++                for code in &contract_updates.contract_deploys {
++                    write(&format!("code/{}.wasm", code.hash()), code.code())?;
++                }
++                let metadata = serde_json::json!({
++                    "schema": "near-w13-native-capture-v1", "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
++                    "block_hash": block.hash(), "block_height": block.header().height(),
++                    "chunk_hash": header.chunk_hash(), "height_created": header.height_created(),
++                    "shard_id": header.shard_id(), "epoch_id": state_witness.epoch_id(),
++                    "protocol_version": self.epoch_manager.get_epoch_protocol_version(state_witness.epoch_id())?,
++                    "witness_hash": near_primitives::hash::hash(&raw), "witness_bytes": raw.len(),
++                    "main_transition_shard_id": main_transition_shard_id,
++                    "code_hashes": codes, "missing_code": missing,
++                    "validation_status": "pending; see native-validation.json"
++                });
++                write("capture.json", &serde_json::to_vec_pretty(&metadata)?)?;
++                tracing::info!(target: "client", path=?dir, "W13 witness and full chunk exported");
++                Ok(())
++            };
++            if let Err(err) = capture() {
++                tracing::error!(target: "client", error=%err, "W13 capture failed");
++            }
++        }
+         if self.config.save_latest_witnesses {
+             self.chain.chain_store.save_latest_chunk_state_witness(&state_witness)?;
+         }
+diff --git a/neard/src/cli.rs b/neard/src/cli.rs
+index d9effab..d081b22 100644
+--- a/neard/src/cli.rs
++++ b/neard/src/cli.rs
+@@ -527,7 +527,7 @@ impl RunCmd {
+         } else {
+             if let Some(rpc_addr) = self.rpc_addr {
+                 near_config.rpc_config.get_or_insert_with(Default::default).addr =
+-                    tcp::ListenerAddr::new(rpc_addr.parse().unwrap());
++                    near_network::tcp::ListenerAddr::new(rpc_addr.parse().unwrap());
+             }
+             if let Some(rpc_prometheus_addr) = self.rpc_prometheus_addr {
+                 near_config.rpc_config.get_or_insert_with(Default::default).prometheus_addr =
