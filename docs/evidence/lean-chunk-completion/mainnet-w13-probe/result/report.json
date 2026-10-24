@@ -1,0 +1,330 @@
+{
+  "artifacts": {
+    "/data/illia/nearproof-wt/lean-chunk-integration/spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor": "f4f48eee6749925aa7c267dad1429f202b1c52196e58e4e815576a8efb884d23",
+    "/data/illia/nearproof-wt/lean-mainnet-replay/docs/evidence/lean-chunk-completion/mainnet-w13-probe/capture/blocks/220185437.json": "f2239b77be9fe85bba8d24617a6e47f7318c5377d896bd33972abd2d06b32660",
+    "/data/illia/nearproof-wt/lean-mainnet-replay/docs/evidence/lean-chunk-completion/mainnet-w13-probe/capture/blocks/220185438.json": "144f9c64a04def9289f84e7d92e3b3a3b3f23480c785e1dd82dddc30de93fea1",
+    "/data/illia/nearproof-wt/lean-mainnet-replay/docs/evidence/lean-chunk-completion/mainnet-w13-probe/capture/blocks/220185439.json": "0c9b6eb3014ad56da32346977a9538142d75722a2760a39547cdb73bf4099fd0",
+    "/data/illia/nearproof-wt/lean-mainnet-replay/docs/evidence/lean-chunk-completion/mainnet-w13-probe/capture/manifest.json": "017b4e31160ab0ac7d8f5030af3b8ec156df601ef7cdb2df006f40b871c84fa5"
+  },
+  "block_capture_percent": 100.0,
+  "captured_blocks": 3,
+  "checked_commitments": [
+    "state_root",
+    "implicit_transition_roots",
+    "outcome_root",
+    "outgoing_receipts_root",
+    "gas_used",
+    "gas_limit",
+    "balance_burnt",
+    "validator_proposals",
+    "congestion_info",
+    "bandwidth_requests",
+    "transaction_root",
+    "encoded_merkle_root",
+    "encoded_length",
+    "incoming_receipt_proofs",
+    "applied_receipts_hash"
+  ],
+  "compared_chunks": 0,
+  "comparison": "recomputed validator commitments",
+  "counts": {
+    "missing_witness": 30
+  },
+  "errors": [
+    "mainnet native validator adapter unavailable"
+  ],
+  "expected_chunk_count_complete": true,
+  "expected_chunks": 30,
+  "harness_sha256": "3a450ed7e6fbc8f2944a00a5f5d31fe4cbc744d5102816947f4f6fd8d81a4343",
+  "independent_finality_verification": false,
+  "lean": {
+    "path": "/data/illia/nearproof-wt/lean-chunk-integration/spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor",
+    "sha256": "f4f48eee6749925aa7c267dad1429f202b1c52196e58e4e815576a8efb884d23",
+    "tier": "completeCodeGlobal"
+  },
+  "mismatch_denominator": "matched + mismatched chunks; excludes missing/unsupported/errors",
+  "mismatch_percent": null,
+  "missed_chunk_slots": 0,
+  "replay_coverage_percent": 0.0,
+  "required_blocks": 1000,
+  "results": [
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s10",
+      "chunk_hash": "C8D7zcVYXcCxHXgpraeh7xPhV9X7ZJgssdmvE2YrDDvF",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 10,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s11",
+      "chunk_hash": "7MmMHRbuvt63CVDdrmDh67fHLmfNUZsnhhmmio5n6hWX",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 11,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s1",
+      "chunk_hash": "2x5HhfopZ5mJy46uAYYzzxwZqMmMwLb1ixMLkqK6aKbu",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 1,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s8",
+      "chunk_hash": "6yHvf4M6z9d4WVjFv4JMKptH9cK3v9tsmCEAzYw7VSx5",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 8,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s9",
+      "chunk_hash": "Evm6nqmBcMLpHKVrV4gMjAQeDk6Bi9oqFvFasm5mR1wm",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 9,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s6",
+      "chunk_hash": "6yW5PVKgYvVy9YWV17AiQY1nmqjaCQqs6js6TBb86tM3",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 6,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s7",
+      "chunk_hash": "BTuVqsxGArMpwYgZeH9qhqMfEFTVaH4jpogTry4ABJZR",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 7,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s4",
+      "chunk_hash": "6M15rXtpKBzydu7PWkHs8szpBF7SQ5Vx6HLzRm3oMj9c",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 4,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s12",
+      "chunk_hash": "8m1ah8JuRaeN6J7yDLaauUyNa34ib17DX1msFwrnmE4a",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 12,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "513RFAkkZG1JGe2ZnbVK4cHJwDsVYTzWkWZHbnxJudAe",
+      "case_dir": "cases/h220185437-s13",
+      "chunk_hash": "Cy8FbN54hRLniKZP31SnzUQmZTnk7irqMUfQesjuf5PB",
+      "height": 220185437,
+      "new_chunk": true,
+      "shard_id": 13,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s10",
+      "chunk_hash": "Fy7DdFWmVPhjyH92fTRSG5HQvRYGf11SZpJmiEUtPDaa",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 10,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s11",
+      "chunk_hash": "7krhwTDrgFXiUKCNXGpcc8CziVhBViakP98CJ6uHX7p1",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 11,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s1",
+      "chunk_hash": "4MHPUaVjf27h7sSsmvRn6Tn9NRxZh1TEpRMJBS8LSurj",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 1,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s8",
+      "chunk_hash": "8TxFw7ZxErVWEUZs77xND6zxdGX4R7qY6ps5XD6sYB5q",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 8,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s9",
+      "chunk_hash": "EAEbxCev6KY8M8EHpAEknZwFgydZyKMccBztQE8zzUpj",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 9,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s6",
+      "chunk_hash": "fHViD5gtuBPg93ED5Zt4byC7bK17T5KTgyF1ADKWt4c",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 6,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s7",
+      "chunk_hash": "4H4UmiRafDaVVzXkNh282JCb8koFZRVQSbXak9rGMYsK",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 7,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s4",
+      "chunk_hash": "CpUQFhRc2fH3cJdmLH16ez1cwuySBtssBNneNosA1X1P",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 4,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s12",
+      "chunk_hash": "6GHRDD6GkqQHxXJzoECnnqZoQtAdeXLCuXdhpgkobDY3",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 12,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "63SXKUVECrFeFkFJJE1jXEfo7VT4GMomTKV71ScCT9pC",
+      "case_dir": "cases/h220185438-s13",
+      "chunk_hash": "BRU8nhn7f51Nxi1BkaTfsaQwu6pkD6LAfFgfJej5DYQk",
+      "height": 220185438,
+      "new_chunk": true,
+      "shard_id": 13,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s10",
+      "chunk_hash": "7mTgESeJHbUckT62ymDL8SsG8PwZR9nqq9YnpEuYH4NP",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 10,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s11",
+      "chunk_hash": "GpSZ2uMAcK9jqnr7EKeM66ZfJ5YCRppPQtmZdBraVeDD",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 11,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s1",
+      "chunk_hash": "wCSdWQj4ES6SvMsMyMpcccG8F9rTwWjpq2cPX5g6vmN",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 1,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s8",
+      "chunk_hash": "BLmGuz9hGymQnzpRsvriHAFUaK3QmczsUTNCSsc9AtbP",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 8,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s9",
+      "chunk_hash": "GvVM3h7JpmvxRzZB138JnfE7BwJXQYprANf8ouPhNjaa",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 9,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s6",
+      "chunk_hash": "Td8XzMjhu9ZVpRv1nXT3ypag85AfivzgZXNFFNtaxd8",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 6,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s7",
+      "chunk_hash": "55qHSgtZa7f9MMwf299kHkpXrst63PJYA1jsnHH5Jz1s",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 7,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s4",
+      "chunk_hash": "HSWh7fVsfabcUarZTsDjr9c1s3vTjeT2Ki7fuYwPFhA9",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 4,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s12",
+      "chunk_hash": "4cC6aGyqXq4m11KgcHKT4hTzoSkqQaERjJb2ZJ8cXaCB",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 12,
+      "status": "missing_witness"
+    },
+    {
+      "block_hash": "5pCLryQkhYYZ8Dy2oq7KgSTcV5hGszBeMuihfGhwtx49",
+      "case_dir": "cases/h220185439-s13",
+      "chunk_hash": "9PGFLd325yZ4CoRJoXmjL2BYf5yf92CcFMieQbjwZnrF",
+      "height": 220185439,
+      "new_chunk": true,
+      "shard_id": 13,
+      "status": "missing_witness"
+    }
+  ],
+  "schema": "near-mainnet-replay-v1",
+  "source": "https://mainnet.neardata.xyz/v0/block/{height}",
+  "status": "fail",
+  "verified_match_percent": 0.0,
+  "window": {
+    "block_count": 3,
+    "start": 220185437
+  }
+}

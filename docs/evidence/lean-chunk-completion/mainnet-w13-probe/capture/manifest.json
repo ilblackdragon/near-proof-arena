@@ -1,0 +1,33 @@
+{
+  "acquisition_errors": [],
+  "authentication": "trusted HTTPS archive; not an independent finality proof",
+  "block_count": 3,
+  "blocks": [
+    {
+      "artifact": {
+        "path": "blocks/220185437.json",
+        "sha256": "f2239b77be9fe85bba8d24617a6e47f7318c5377d896bd33972abd2d06b32660"
+      },
+      "height": 220185437
+    },
+    {
+      "artifact": {
+        "path": "blocks/220185438.json",
+        "sha256": "144f9c64a04def9289f84e7d92e3b3a3b3f23480c785e1dd82dddc30de93fea1"
+      },
+      "height": 220185438
+    },
+    {
+      "artifact": {
+        "path": "blocks/220185439.json",
+        "sha256": "0c9b6eb3014ad56da32346977a9538142d75722a2760a39547cdb73bf4099fd0"
+      },
+      "height": 220185439
+    }
+  ],
+  "chain_id": "mainnet",
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "schema": "near-mainnet-replay-v1",
+  "source_url": "https://mainnet.neardata.xyz/v0/block/{height}",
+  "start_height": 220185437
+}

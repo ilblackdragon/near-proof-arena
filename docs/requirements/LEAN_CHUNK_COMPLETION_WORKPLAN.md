@@ -136,7 +136,7 @@ No W00–W16 package is certified fully complete by this merge.
 | W10 / L6 | Corrected genesis checker, 137 recorded new accepts, gas/float/genesis composition | Non-genesis overlap proof, genesis transaction-flag negatives, authenticated facts and combined-entry validation. Preserve header-mutant regressions. |
 | W11 / L6 | Boundary analysis/interface | Actual resharding retention, child state/buffers/congestion and epoch transitions; real layout-boundary fixtures and mixed-protocol reachability resolution. |
 | W12 / integration + L1 | Partial gas/float/genesis composition; additive family adapters | One executable W02–W11 relation; all required families reachable; tier/overlap proofs and cross-family tests. Seven global/state-init hosts are enabled; remaining required host/key families still need composition. |
-| W13 / L7 | Corpus infrastructure and provenance work | Acquire and execute authenticated witnesses for at least 1,000 consecutive PV86 blocks across all shards, plus rare-feature fixtures; complete observable/hash reports. |
+| W13 / L7 | Mainnet capture/import and explicit fail-closed replay gate with mismatch/coverage reports; live 30-chunk metadata probe | Acquire and execute authenticated witnesses for at least 1,000 consecutive PV86 blocks across all shards, plus rare-feature fixtures; complete observable/hash reports. |
 | W14 / L7 + integration | Lane-specific checks and replay evidence | Freeze one full package after W12; replay D1/D2/D3 plus generated/cross-family/W13 suites; close all UQs, audit axioms/runtime, publish reproducible identity and Gate B record. |
 | W15 / L8 | Admission workflow available for audit | Exact restricted-reference artifact binding, formal/kernel/conformance/resource checks and archived signed live formal-tier ADMITTED evidence; clean-checkout instructions. Can proceed now. |
 | W16 / L8 + integration | Release requirements specified | After W14, freeze trusted relation/tiers and challenge; independently admit full successor, finish contributor instructions and authorized release with Gate C evidence. |
@@ -665,6 +665,29 @@ Success criteria:
   differences. Acquisition failures and checker resource failures remain failures to close the gate.
 - Rare semantic branches absent from the window have targeted validator fixtures tied to inventory IDs.
 - Another checkout can reproduce the conversion and replay from the recorded inputs and build recipe.
+
+#### Mandatory W13 mainnet replay gate (implemented harness; not yet satisfied)
+
+Run `make w13-gate` with a captured mainnet window and the pinned native validator adapter.
+The [tooling and adapter contract](../../tools/mainnet-replay/README.md) define the reproducible
+capture, raw witness packaging, anchored case import and report. Passing requires **at least 1,000
+consecutive block heights, every shard's newly included chunks, 100% replay coverage, 100% verified
+matches, and zero mismatches, unsupported cases, missing witnesses or errors**. Repeated/missed
+chunk slots are reported separately; acquisition gaps cannot disappear from the population.
+
+Every run reports `mismatch_percent = 100 × mismatches / (matches + mismatches)` alongside
+`replay_coverage_percent` and `verified_match_percent`. With no comparisons, mismatch is **N/A**
+(JSON null), not 0%. Missing data and unsupported execution fail the gate even at 0% mismatch.
+The verifier checks recomputed state/outcome/outgoing roots, gas/balance/proposals/congestion/
+bandwidth and transaction/chunk encoding commitments against the anchored mainnet header.
+The native adapter must also verify the claim's trusted epoch/chain facts against its mainnet store.
+
+**Current evidence:** a live three-block capture has 30 newly included mainnet chunks but no
+executable witnesses: 0/30 replayed, 0% coverage, mismatch N/A, **FAIL**. This is an acquisition/gate
+probe, not replay success. A native mainnet database/export and a validated database-to-claim /
+validator adapter are still needed. Raw Borsh witness packaging alone does not close acquisition.
+Archive authentication currently trusts HTTPS plus the native canonical store; independent finality
+proof verification is not implemented. W13 remains open and blocks full Gate B.
 
 ### W14 Frozen combined validation and Gate B
 
