@@ -19,11 +19,16 @@ No GPU was used. The 1–2 second deadline is still unmet.
 
 The same circuit now carries a 16-slot public account table and running-
 balance registers threaded across lists; the forged-starting-balance
-counterexample rejects in-circuit. Packets 250,094 B, envelopes 250,320 B,
-warm 3.090/3.133 s, fresh verify 1.511/1.502 s, RSS 13,115,024/13,024,740
-KiB. See ACCOUNT_LEDGER_HANDOFF.md and evidence/account-ledger-circuit for
-the constraint description, negative batteries and the host-audited
-trie-path binding. This section's earlier numbers remain the pre-constraint
+counterexample rejects in-circuit. A review-caught off-by-one in the table
+padding constraint (the byte at name_len was unconstrained; fixed with
+icmp_uge after reproducing a +1 forged-balance exploit through it) is
+documented in ACCOUNT_LEDGER_HANDOFF.md. Packets 250,094 B, envelopes
+250,320 B, warm 3.090/3.133 s, fresh verify 1.511/1.502 s (pre-fix binary;
+post-fix reruns 3.56/3.88 s under background load, sizes unchanged), RSS
+13,115,024/13,024,740 KiB. See ACCOUNT_LEDGER_HANDOFF.md and
+evidence/account-ledger-circuit for the constraint description, negative
+batteries, the boundary-exploit record, and the host-audited trie-path
+binding. This section's earlier numbers remain the pre-constraint
 baseline.
 
 ## Combined relation

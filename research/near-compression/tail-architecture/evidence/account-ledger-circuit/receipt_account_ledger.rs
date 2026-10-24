@@ -112,9 +112,13 @@ pub fn build(b: &CircuitBuilder) -> Ledger {
         let too_long = s.icmp_ugt(name_len, s.add_constant_64(64));
         let len_ok = s.band(nonzero, s.bnot(too_long));
         s.assert_true(format!("len-range-{r}"), s.bor(s.band(act, len_ok), inactive));
-        // Active rows: zero name padding beyond name_len, byte-exact.
+        // Active rows: zero name padding from name_len on, byte-exact. The
+        // boundary byte AT name_len is padding too: icmp_uge, not ugt — an
+        // off-by-one here let a table row and receipts carry matching garbage
+        // at that byte (name_eq compares full words) while source/outcome
+        // hashes masked it, reopening the forged-balance hole.
         for k in 0..64usize {
-            let beyond = s.band(s.icmp_ugt(s.add_constant_64(k as u64), name_len), act);
+            let beyond = s.band(s.icmp_uge(s.add_constant_64(k as u64), name_len), act);
             let byte = s.extract_byte(name[k / 8], (k % 8) as u32);
             s.assert_eq_cond(
                 format!("name-padding-{r}-{k}"),

@@ -434,3 +434,23 @@ history, composed PQ security, zero knowledge, hostile decoder safety, the
 1-2 s deadline, and broader profiles (16 slots is an explicit bound; corpus
 max observed 10). See ACCOUNT_LEDGER_HANDOFF.md and evidence/
 account-ledger-circuit under research/near-compression/tail-architecture.
+
+### Review finding fixed: account-name padding off-by-one
+
+External review of the account-ledger commit spotted that the table padding
+constraint gated on icmp_ugt(k, name_len) — strictly greater — leaving the
+byte at k == name_len unconstrained in table rows. Reproduced before
+fixing: a table row and 78 s0a01 receipts carrying matching 0xFF at the
+boundary byte word-matched (name_eq compares full words) while clean()
+masked bytes >= len in the source/outcome serializers, so all public digests
+stayed honest and populate accepted a +1 forged starting balance — the exact
+hole the constraint closed, reopened by the boundary. Fix: icmp_uge in the
+padding loop. After the fix the exploit rejects at
+.account-table.account-0.name-padding-0-5, the original counterexample and
+all six ledger mutants still reject at their designed constraints, both
+originals still prove (250,094 B packets) and fresh-verify, and the
+empty-context pair still proves. Evidence: exploit-padding-boundary.{ledger,
+multi}, exploit-padding-boundary-reject.log, refreshed envelopes/audits and
+manifest (23 hashes) in evidence/account-ledger-circuit. Lesson: a padding
+boundary is a >= boundary; serialization masking must never be the only
+guard between garbage padding and name matching.

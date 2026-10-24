@@ -30,9 +30,32 @@ now **rejected in-circuit**:
   already-constrained arithmetic after-value.
 - Guards: exactly-one padded-name match per active receipt (sum asserted),
   pairwise-distinct canonical names, zero inactive rows (whole-word), active
-  rows 1..=64 name length with byte-exact zero padding, every active row
+  rows 1..=64 name length with byte-exact zero padding **from name_len on**
+  (`icmp_uge`, see the boundary-bug note below), every active row
   matched at least once (row-covered), final table balances == final
   registers, locked/storage invariant per matched row on every touch.
+
+## Boundary bug found in review (fixed): name-padding off-by-one
+
+The first version of the padding constraint gated on `icmp_ugt(k, name_len)`
+— strictly greater — leaving the byte at `k == name_len` unconstrained in
+table rows. That was exploitable, and an external review caught it: a table
+row and receipts carrying **matching** garbage at that boundary byte still
+word-matched (name_eq compares all eight full words), while `clean()` in the
+source/outcome serializers masks bytes `>= len`, so the digests stayed
+honest. With that, a +1 forged starting balance was accepted for all 78
+`s0a01` receipts — reopening the exact hole the constraint was built to
+close. Reproduced before fixing: `populate_wire_witness` succeeded on the
+exploit pair (evidence `exploit-padding-boundary.{ledger,multi}`).
+
+Fix: `icmp_ugt` -> `icmp_uge` in the table padding loop — the byte at
+`name_len` is padding too. After the fix the exploit rejects at
+`.account-table.account-0.name-padding-0-5` (the boundary byte itself), the
+original counterexample still rejects at its exact transition, all six
+ledger mutants still reject, both originals still prove (250,094 B) and
+fresh-verify, and the empty-context pair still proves. The lesson: a padding
+boundary is a `>=` boundary, and masking in the serialization layer must
+never be the only thing standing between garbage padding and name matching.
 
 ## Latest integrated result (NPMULT02, account-table profile)
 
