@@ -164,6 +164,32 @@ lean: ## lake build the Lean projects in LEAN_PROJECTS
 	done
 	@for p in $(LEAN_PROJECTS); do echo "== lake build ($$p)"; (cd "$$p" && $(LAKE) build) || exit $$?; done
 
+# The D3 differential drivers live in two separate Lake projects:
+#   * spec/lean/v3             — checkD3G (genesis), checkD3Proto (L1 protocol gas)
+#   * oracle/wasm-d3/lean      — checkD3 (the D3alpha checker the difftests use), checkD3F (floats)
+# None of those are in v3's defaultTargets, and oracle/wasm-d3/lean is not in LEAN_PROJECTS at all,
+# so a plain `lake build` leaves them unbuilt (the W01 "root's default build does not include every
+# executable" gap). This target builds each by name and refuses to pass if a binary is absent.
+D3_DRIVERS := spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3g \
+              spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3proto \
+              oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3 \
+              oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3f
+
+.PHONY: d3-drivers
+d3-drivers: ## Build the named D3 successor drivers (genesis, protocol-gas, D3alpha, floats)
+	$(call require_cmd,$(LAKE),install elan: https://github.com/leanprover/elan)
+	@cd spec/lean/v3 && $(LAKE) build nearspec-v3-check-d3g nearspec-v3-check-d3proto
+	@cd oracle/wasm-d3/lean && $(LAKE) build nearspec-v3-check-d3 nearspec-v3-check-d3f
+	@for b in $(D3_DRIVERS); do \
+	  [ -x "$$b" ] || { echo "make: *** MISSING BINARY: '$$b' was not built" >&2; exit 2; }; \
+	done
+	@echo "d3 drivers built: $(D3_DRIVERS)"
+
+.PHONY: d3-smoke
+d3-smoke: ## Run the D3 drivers + comparison contract against the committed 5-case fixture
+	$(call require_cmd,$(PYTHON),install python3)
+	@$(PYTHON) oracle/wasm-d3/tests/d3_smoke/run_smoke.py
+
 .PHONY: web
 web: ## Build and test the web frontend (pnpm)
 	$(call require,web/package.json,web,web frontend)
