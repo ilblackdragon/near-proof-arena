@@ -428,23 +428,31 @@ never at production targets.
 
 ## 4. The 300 KB margin as a function of S
 
-**There is no S-dependence in the root's SIZE — but at production targets the root cannot be
-proved at all, so the "flat in S" result is a test-target statement only.**
+**The root's SHAPE has no S-dependence; its byte count varies by a few digests with the child's
+bytes. And at production targets the root cannot be proved above depth 1 at all, so "flat in S"
+is a test-target statement.**
 
 The size-invariance argument: the root is one fixpoint node; whether the tree is 13 leaves or
 4,096, the root is the same shape (132,301 B at test targets, final-layer class at production).
-Two independent reasons make the statement S-independent by construction:
+Two independent reasons make the *statement* S-independent by construction (note: the statement,
+not the proof bytes — see the `D` caveat below):
 
 * `RangeStmt::compose` (`nv/agg.rs:65`) collapses N children into **one** statement — `ctx`/`a`
   from the first child, `e` from the last, so statement width does not grow with fan-in;
 * `NV_NUM_PVS = 1 + NV_DIGEST = 1 + 18 = 19` (`nv/uair.rs:142`) is a fixed public-value count.
 
 What *does* grow with S is the **NvAir row count** (≈ program instructions), which changes the
-WHIR leaf count rather than the statement. So:
+WHIR leaf count rather than the statement. But a second, subtler dependence does exist and it is
+**measured, not theoretical**: the parent's digest count `D` varies with the *child proof's bytes*
+because those bytes seed the transcript. Wrapping L5 gives `D = 2,869` (299,935 B, pass); wrapping
+L4 gives `D = 2,888` (300,733 B, **fail by 765 B**) — same final-layer geometry, 19 extra digests
+(§4.2). So "flat in S" holds for the *shape*, not for the byte count to the digest. That is exactly
+why the 33 B margin is fragile. So:
 
-* a wider or deeper tree **cannot** push the packet over the cap — this part stands;
-* and it **cannot** rescue the 33 B margin either — this part stands too;
-* **but the invariance is only measured at `log_blowup = 3`.** At production targets an
+* a wider or deeper tree **cannot** change the packet's *shape* — that part stands;
+* but it **can** move the byte count by digest-sized amounts, so it **cannot** be relied on to
+  rescue the 33 B margin (measured: 19 digests = 798 B from the child alone);
+* **and the invariance is only measured at `log_blowup = 3`.** At production targets an
   aggregation node with two NV children needs a 2^21 SHA AIR against a 2^20 stacked-height
   ceiling — an exact 1-bit gap that no blowup value closes (§2, row 18). So at production
   targets there is no measured aggregation node above depth 1, and "flat in S" cannot be
