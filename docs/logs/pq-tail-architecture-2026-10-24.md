@@ -77,3 +77,22 @@ processes against external roots; four root/tape mutations reject. Final measure
 warm readiness 1.707/1.724 s; previous run 1.80/2.03 s, so no p95 margin claim.
 Outer PCS, transcript/QROM and full NEAR/history remain open. Patches, failures,
 final logs and manifest: [policy experiment](../../research/near-compression/tail-architecture/SIS_POLICY_EXPERIMENT.md).
+
+Outer security follow-up: source-derived setup census found legacy Y/u/R bridge
+ranks and three-limb ring-648 commitment unchanged by the backend port. Conditional
+scalar screen distinguishes 2x direct collision from extraction factors; main
+three/four/five-limb estimates under notebook factor are 79.235/125.61/176.49 bits.
+Author's benchmark description explicitly targets 100-bit security. Saved notebook
+outputs archived as not rerun. A single signed short challenge has support at most
+2^103.997; this is not the full protocol's soundness or a demonstrated forgery.
+
+Implemented five limbs and model-selected bridge ranks 15/5/11. First honest proof
+failed static no-wrap bound (145.209e12 > 140.737e12). Verifier now uses announced,
+transcript-bound, statement-enforced nonbinary norm bounds; binary caps unchanged.
+No guard removed. Same packet subsequently verifies, including in fresh process.
+Two final packets: 158,654 B, readiness 2.1657/2.1275 s; cold setup ~13.02 s extra.
+Twelve in-process and four fresh root/tape mutations reject. All 44 backend model
+crosschecks pass (minimum 144.69 bits). Source/patches, failures, final logs and
+manifest: [outer screen](../../research/near-compression/tail-architecture/OUTER_SECURITY.md).
+Component misses 2 s and full PQ/NEAR/history obligations remain. Do not extrapolate
+GPU speed or count two observations as p95.

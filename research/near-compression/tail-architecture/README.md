@@ -7,15 +7,18 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Backend policy experiment](SIS_POLICY_EXPERIMENT.md) ports revised collision
-bounds and a scalar quantum-128 selection/check policy: **150,526 B / 1.71–1.72 s**
-for the two warm hash-template observations. All 44 screened obligations meet
-that model's floor (minimum 140.45 bits). An actual serialization carry defect
-was found and repaired; see fresh verification evidence. This is not composed
-PQ128: initial/outer PCS, structured attacks, transcript security, NEAR binding
-and history recursion remain open. The [earlier screen](SECURITY_SCREEN.md)
-rejects the old configuration; retain it as historical performance evidence.
-[Execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)
+[Outer security experiment](OUTER_SECURITY.md): five modulus limbs and stronger
+bridge keys produce **158,654 B / 2.13–2.17 s warm**. Both packets verify in fresh
+processes, but the component alone misses the deadline. The static no-wrap guard
+initially rejected the configuration; using transcript-bound, statement-enforced
+nonbinary norms makes it pass without removing the guard. Main/bridge/backend
+scalar estimates clear the chosen floor under stated extraction assumptions;
+structured attacks, protocol-specific extraction and quantum transcript losses
+remain unqualified. No composed PQ128 or NEAR/history proof claim.
+
+The [three-limb backend experiment](SIS_POLICY_EXPERIMENT.md) remains a faster
+150,526 B / 1.71–1.72 s baseline with weaker outer parameters. The
+[execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)
 defines the broader architectural experiment and completeness obligations.
 
 ## Event protocol research

@@ -1,0 +1,21 @@
+{
+  "status": "HASH_COMPONENT_ONLY_DEADLINE_MISSED_NO_COMPOSED_PQ_CERTIFICATION",
+  "labinius_revision": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "scalar_reference_revision": "672e74100496f6ef698ba35e241cf7593e3d57af",
+  "binary_sha256": "35154e75cf1b5df73ebd7a2570fd49f67fa5076442b06eda729663617e0d00c0",
+  "sources_sha256": {
+    "crates/pcs/src/recursion/setup.rs": "68400e92cc398acb05d0b947f25cbc499ba0bdecfe39730d5b94c495a4444165",
+    "crates/pcs/src/scheme/verifier.rs": "5d06b7cf8242dceaa9c7cc9051bd74892f447a540affafc5f546849c9b29576b",
+    "crates/binius/src/bin/near-hash-template-five.rs": "27e4678dc4bd17c0645b91372189f170e9aea3dbdd9d43b57c589df6d38c9c2c",
+    "crates/binius/src/bin/support/local_wire_five.rs": "2954cfbe90b6cda6e9fa76304c5bad5394a58042bf4fdbc1680a9c4db6de1493"
+  },
+  "backend_labrador_c_sha256": "bc56beae7685a4bd75c939526d9d4480b49ce2e5372c608b87fbe00c57e7f2d7",
+  "build_command": "LABINIUS_LABRADOR_DIR=/data/illia/pq-tail-architecture-20261024/labrador-sis128 RUSTFLAGS=\"-C target-cpu=native\" CARGO_TARGET_DIR=/data/illia/pq-tail-architecture-20261024/target taskset -c 8-15,24-31 cargo build --release --locked -j4 -p labinius-binius --bin near-hash-template-five",
+  "virtual_memory_limit_KiB": 16777216,
+  "run_cpu": 8,
+  "setup_rank_predictions_matched": 9,
+  "fresh_verification": {
+    "large": "LOCAL_WIRE_VERIFY bytes=158654 decode_s=0.000056215 verify_s=0.831111645 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true",
+    "small": "LOCAL_WIRE_VERIFY bytes=158654 decode_s=0.000056005 verify_s=0.832536638 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true"
+  }
+}
