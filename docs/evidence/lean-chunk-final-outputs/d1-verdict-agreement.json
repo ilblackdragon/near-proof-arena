@@ -1,0 +1,20 @@
+{
+ "cases_read": 53048,
+ "corpus": "/data/illia/nearproof-deps/corpora/d1run",
+ "disagreements": [],
+ "families": "d1,mutants,ood",
+ "missing": [],
+ "missing_lines": 0,
+ "output_driver": "/data/illia/nearproof-wt/lean-d1-outputs/oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3-out",
+ "reason_differences": [],
+ "reason_only_differences": 0,
+ "schema": "near-d1-verdict-agreement-v1",
+ "signed_driver": "/data/illia/nearproof-wt/lean-d1-outputs/spec/lean/v3/.lake/build/bin/nearspec-v3-check-d1",
+ "signed_verdicts": {
+  "accept": 11089,
+  "out_of_domain": 4522,
+  "reject": 37437
+ },
+ "total_failures": 0,
+ "verdict_disagreements": 0
+}

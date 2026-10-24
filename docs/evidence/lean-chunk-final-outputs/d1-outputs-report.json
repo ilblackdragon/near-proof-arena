@@ -1,0 +1,25 @@
+{
+ "accepted_null_outputs": [],
+ "accepted_with_outputs": 11089,
+ "cases_read": 53048,
+ "corpus": "/data/illia/nearproof-deps/corpora/d1run",
+ "d1_invariant_failures": {},
+ "driver": "/data/illia/nearproof-wt/lean-d1-outputs/oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3-out",
+ "families": [
+  "d1",
+  "mutants",
+  "ood"
+ ],
+ "field_mismatches": 0,
+ "mismatches": [],
+ "mismatches_by_field": {},
+ "missing_lines": [],
+ "mode": "d1",
+ "schema": "near-d3-output-agreement-v1",
+ "total_failures": 0,
+ "verdicts": {
+  "accept": 11089,
+  "out_of_domain": 4522,
+  "reject": 37437
+ }
+}

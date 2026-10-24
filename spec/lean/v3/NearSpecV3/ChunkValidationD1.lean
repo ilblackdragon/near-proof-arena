@@ -1,5 +1,6 @@
 import NearSpecV3.ChunkValidationV0
 import NearSpecV3.RuntimeD1
+import NearSpecV3.Observable
 
 /-!
 # `NearSpecV3.ChunkValidationD1` — `Rel_D1(claim, witness)`
@@ -56,7 +57,87 @@ def decodeStateWitnessD1 (bs : Bytes) : Except String StateWitnessD1 := do
   if !bs.isEmpty then throw "decode: Not all bytes read"
   pure ⟨eid, ib, ci, main, entries, arh, txs, impl, ntxs⟩
 
-def checkD1 (claimBytes witnessBytes : Bytes) : Except String Unit := do
+/-- **The D1 output record**, built from the values the main transition and the implicit loop computed.
+The arguments are exactly the operands of the endorsed-header comparison at step 3.7: `root` (the
+post-state root), `out.gasUsed`, `out.tokensBurnt`, `outgoingReceiptsRoot L out.outgoing`,
+`merklizeBorsh (w.newTxs.map Tx.raw)`, the slot's own congestion with the allowed shard filled in, and
+the Reed–Solomon `(emr, len)`. The three fields D1 does not compute are honest constants: `proposals`
+and `bwRequests` are empty (the comparison's whole content is "the header's list is empty") and
+`wasmGas` is `0` (no WASM in D1). -/
+def d1Outputs (root : Bytes) (outcomes : List OutD1) (gasBurnt tokensBurnt : Nat)
+    (layout : Layout) (outgoing : List Receipt) (txRoot : Bytes) (emr : Bytes) (len : Nat)
+    (congestion : Congestion) : Observable :=
+  { stateRoot := root
+    outcomeRoot := outcomeRootD1 outcomes
+    gasBurnt := gasBurnt
+    balanceBurnt := tokensBurnt
+    outgoingReceiptsRoot := outgoingReceiptsRoot layout outgoing
+    proposals := []
+    txRoot := txRoot
+    encodedMerkleRoot := emr
+    encodedLength := len
+    congestion := congestion
+    bwRequests := []
+    logs := outcomes.map (fun o => o.logs) |>.flatten
+    receiptCount := outgoing.length
+    wasmGas := 0 }
+
+/-- **The builder's fields are its computed arguments.** Every consensus field of `d1Outputs` is the
+value passed in — so a report that compares the emitted record against the endorsed header is comparing
+the same expressions the checker's comparison block tested. The list fields are the honest constants. -/
+theorem d1Outputs_fields (root : Bytes) (outcomes : List OutD1) (gasBurnt tokensBurnt : Nat)
+    (layout : Layout) (outgoing : List Receipt) (txRoot emr : Bytes) (len : Nat)
+    (congestion : Congestion) :
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).stateRoot = root ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).outcomeRoot =
+      outcomeRootD1 outcomes ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).gasBurnt = gasBurnt ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).balanceBurnt = tokensBurnt ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).outgoingReceiptsRoot =
+      outgoingReceiptsRoot layout outgoing ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).txRoot = txRoot ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).encodedMerkleRoot = emr ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).encodedLength = len ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).congestion = congestion ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).receiptCount =
+      outgoing.length := by
+  simp [d1Outputs]
+
+/-- The three fields D1 does not compute are the honest constants: both list fields are empty and
+`wasmGas` is zero. -/
+theorem d1Outputs_not_computed (root : Bytes) (outcomes : List OutD1) (gasBurnt tokensBurnt : Nat)
+    (layout : Layout) (outgoing : List Receipt) (txRoot emr : Bytes) (len : Nat)
+    (congestion : Congestion) :
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).proposals = [] ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).bwRequests = [] ∧
+    (d1Outputs root outcomes gasBurnt tokensBurnt layout outgoing txRoot emr len congestion).wasmGas = 0 := by
+  simp [d1Outputs]
+
+/-- The D1 transition returning the consensus outputs it computed.
+
+This runs the *same* pipeline as the signed `checkD1` (which is definitionally its projection to the
+verdict, below) and returns the values the header comparison at step 3.7 tests. Every field is a
+computed value, not a read-back of the endorsed header:
+
+* `stateRoot` — `root` after the main and every implicit transition (`H.prevStateRoot`);
+* `outcomeRoot` — `outcomeRootD1 out.outcomes` (`H.prevOutcomeRoot`);
+* `gasBurnt` — `out.gasUsed` (`H.prevGasUsed`);
+* `balanceBurnt` — `out.tokensBurnt` (`H.prevBalanceBurnt`);
+* `outgoingReceiptsRoot` — `outgoingReceiptsRoot L out.outgoing` (`H.prevOutgoingReceiptsRoot`);
+* `proposals` — `[]`: D1 computes no proposal list; the comparison checks the header's is empty
+  (`H.proposals.isEmpty`), so the computed list is honestly empty;
+* `txRoot` — `merklizeBorsh (w.newTxs.map Tx.raw)` (`H.txRoot`);
+* `encodedMerkleRoot` / `encodedLength` — the Reed–Solomon encoded chunk body (`H.encodedMerkleRoot`,
+  `H.encodedLength`);
+* `congestion` — `ownCongestion` (the slot's own congestion with the allowed shard filled in)
+  (`H.congestion`);
+* `bwRequests` — `[]`: D1 computes no bandwidth requests; the comparison checks the header's is empty
+  (`H.bwRequests.isEmpty`);
+* `logs` — every executed outcome's logs in order (folded into `outcomeRoot`; D0–D1 outcomes carry
+  none, so this is `[]` on the wire);
+* `receiptCount` — `out.outgoing.length` (folded into `outgoingReceiptsRoot`);
+* `wasmGas` — `0`: D1 has no WASM execution. -/
+def checkD1CoreObs (claimBytes witnessBytes : Bytes) : Except String Observable := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
@@ -187,6 +268,31 @@ def checkD1 (claimBytes witnessBytes : Bytes) : Except String Unit := do
   | some (emr, len) =>
     check (H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     check (H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
+    -- The consensus outputs this checker computed and compared against the endorsed header. The
+    -- comparison block above tests exactly these expressions (`root`, `out.*`, `ownCongestion`,
+    -- `merklizeBorsh …`, and this arm's `emr`/`len`); the two empty-list fields are what D1 verifies
+    -- the header's lists to be. See `NearSpecV3.ChunkValidationD1Out` for the projection theorems.
+    return d1Outputs root out.outcomes out.gasUsed out.tokensBurnt L out.outgoing
+      (merklizeBorsh (w.newTxs.map Tx.raw)) emr len ownCongestion
+
+/-- The signed D1 checker: the observable checker projected to its verdict. Definitionally the same
+computation, so every downstream proof, verdict and relation is unchanged. -/
+def checkD1 (claimBytes witnessBytes : Bytes) : Except String Unit :=
+  (checkD1CoreObs claimBytes witnessBytes).map fun _ => ()
+
+/-- The signed checker accepts iff the observable checker does. -/
+theorem checkD1CoreObs_agrees (cb wb : Bytes) :
+    (∃ o, checkD1CoreObs cb wb = .ok o) ↔ checkD1 cb wb = .ok () := by
+  unfold checkD1
+  rw [Except.map.eq_def]
+  cases checkD1CoreObs cb wb <;> simp
+
+/-- A rejection carries the signed checker's error string verbatim. -/
+theorem checkD1CoreObs_reject (cb wb : Bytes) (e : String)
+    (h : checkD1CoreObs cb wb = .error e) : checkD1 cb wb = .error e := by
+  unfold checkD1
+  rw [h]
+  rfl
 
 /-- **The D1 relation** on canonical bytes. -/
 def acceptsD1 (claimBytes witnessBytes : Bytes) : Bool :=

@@ -1,9 +1,16 @@
 import NearSpecV3.D3.FunctionCall
+import NearSpecV3.ChunkValidationD1Out
 import NearSpecV3.ChunkValidationD2Out
 
 /-!
-`nearspec-v3-check-d3-out [--d2] CASE_DIR...` — evaluates the chunk transition and prints, per case, the
-verdict **and the consensus outputs**.
+`nearspec-v3-check-d3-out [--d1|--d2] CASE_DIR...` — evaluates the chunk transition and prints, per
+case, the verdict **and the consensus outputs**.
+
+Modes: no flag runs the signed D3 pipeline (`checkD2CoreOut` with `d3Hooks`); `--d2` runs the signed D2
+pipeline (`checkD2CoreOut` with `d2Hooks`); `--d1` runs the signed D1 pipeline (`checkD1CoreOut`). The
+JSON shape is identical in all three. In `--d1` the three D2/D3-only fields are honest: `proposals` and
+`bwRequests` are `[]` (D1 verifies the header's are empty and computes no list) and `wasmGas` is `0`
+(D1 executes no WASM).
 
 This is the observable-emitting companion to `nearspec-v3-check-d3`. The plain driver prints only
 `{"case", "verdict", "reason"}`, so nothing it produces can be diffed against nearcore's gas/roots/logs.
@@ -25,12 +32,13 @@ the header field that disagreed; the outputs are `null` because the signed check
 computed values on a failing path (see `NearSpecV3.ChunkValidationD2Out`'s module docstring, "Does not buy
 (1)").
 
-## Why `outputs` is the *endorsed header's* record
+## Why `outputs` is the *computed* record
 
-`checkD2CoreOut` runs the signed checker and, on acceptance, returns the endorsed header's consensus
-fields. The signed checker's comparison block proved those fields equal the values it computed, so on
-acceptance the two coincide. Emitting the header's record therefore emits the computed output; the
-justification is `NearSpecV3.accepted_observable_agrees`.
+Each mode's `check…CoreOut` runs the signed checker and returns the record of values the pipeline
+computed and then compared against the endorsed header (`checkD2CoreObs` for D2/D3, `checkD1CoreObs` for
+D1). It is not a read-back of the header: the comparison block tests those same computed expressions, so
+on acceptance the computed value and the header's value coincide. The justification is
+`NearSpecV3.accepted_observable_computed`.
 
 ## Exit status
 
@@ -86,16 +94,27 @@ def classify : Except String Observable → String × String × String
   | .ok o => ("accept", "", jsonObservable o)
   | .error e => (if e.startsWith "out of domain" then "out_of_domain" else "reject", e, "null")
 
+/-- Which checker the driver runs. `d3` is the default (the signed D3 pipeline); `d2` and `d1` select
+the lower domains so the same JSON shape carries their outputs. -/
+inductive Mode where
+  | d3
+  | d2
+  | d1
+  deriving DecidableEq, Repr
+
 def main (args : List String) : IO UInt32 := do
-  let (d2, dirs) := match args with
-    | "--d2" :: rest => (true, rest)
-    | _ => (false, args)
+  let (mode, dirs) := match args with
+    | "--d2" :: rest => (Mode.d2, rest)
+    | "--d1" :: rest => (Mode.d1, rest)
+    | _ => (Mode.d3, args)
   for dir in dirs do
     let cb ← IO.FS.readBinFile (dir ++ "/claim.bin")
     let wb ← IO.FS.readBinFile (dir ++ "/witness.bin")
     let r : Except String Observable :=
-      if d2 then checkD2CoreOut d2Hooks false cb.toList wb.toList
-      else checkD2CoreOut (d3Hooks Wasm.pv86) true cb.toList wb.toList (some gAlpha)
+      match mode with
+      | .d1 => checkD1CoreOut cb.toList wb.toList
+      | .d2 => checkD2CoreOut d2Hooks false cb.toList wb.toList
+      | .d3 => checkD2CoreOut (d3Hooks Wasm.pv86) true cb.toList wb.toList (some gAlpha)
     let (v, reason, outs) := classify r
     IO.println s!"\{\"case\": \"{esc dir}\", \"verdict\": \"{v}\", \"reason\": \"{esc reason}\", \"outputs\": {outs}}"
   return 0
