@@ -1257,10 +1257,14 @@ Still open, and each one is a real blocker rather than a formality:
 
      The full lever set does cut the deficit from 2 bits to 1 (2^22 → 2^21), which is why the
      escape looked viable, but the last bit cannot be bought. The only surviving way out is
-     **halve the SHA compression count per child** so the AIR stays at 2^20 — a 2× cut, not 4×
-     (a circuit change: the L2 node's SHA work is ~16× an L1 node's because it verifies two full
-     NV proofs; `multiproof` does not help — `merkle_nodes` stays 464 in both lever configs).
-     Until that is done, **the
+     **cut the SHA compression count so the AIR stays at 2^20.** In compressions rather than rows
+     the cut is **18.3%, not 2×**: measured `comps = merkle_nodes(9,764 cumulative) + leaf_blocks
+     (257) = 10,021`, against the 8,192 that 2^20 admits, so 1,829 compressions must go — and since
+     both children shrink, that is ~9.5% per child. (Model validated on both levels: L1 = 464+257 =
+     721 comps → 92,288 rows → 2^17, matching its measured SHA AIR; L2 = 10,021 → 2^21, matching its
+     panic.) A circuit change is still required: the L2 node's SHA work is ~16× an L1 node's because
+     it verifies two full NV proofs, and `multiproof` does not help — `merkle_nodes` stays 464 in
+     both lever configs. Until that is done, **the
      production aggregation tree is measured only to depth 1**, and the flat-in-depth claim must be
      quoted with its `log_blowup = 3` condition attached.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was

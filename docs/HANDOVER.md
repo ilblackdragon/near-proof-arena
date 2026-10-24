@@ -158,8 +158,10 @@ Three sentences the reader can act on, each with its evidence and its limit:
      so d=40 would emit a 48 B message and trip the same assert). **None of this is done**, so
      Route C is an unavailable lever for the delivered configuration, not a cheap one. Note it does
      **not** rescue depth 2: unit count 12 → 10 is only a 16.7% cut in SHA compressions, while the
-     measured wall needs **2×** (see item 3 — the earlier "4×" figure was the pre-lever
-     `X15 = 1` measurement and is superseded).
+     measured wall needs only **~18.3%** of the SHA compressions removed (1,829 of 10,021), i.e.
+     ~9.5% per child since both children shrink — see item 3, which also supersedes the earlier
+     "4×" and "2×" figures (the first was the pre-lever `X15 = 1` measurement; the second
+     conflated row-count with compression-count).
 3. **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
    The 2-NV-child aggregation node needs a 2^21-row SHA compression AIR at the **full production
    lever set** (measured panic `LayoutHeightExceeded { log_height: 21, log_stacked_height: 20 }`,
@@ -190,9 +192,12 @@ Three sentences the reader can act on, each with its evidence and its limit:
    Each bit bought is exactly one bit spent, so **no blowup closes it**. Only `lb = 3` fits — and
    that *is* the test-target soundness, i.e. depth 2 fits only where the soundness is insufficient.
    Note the full lever set does cut the deficit 2 → 1 bit (2^22 → 2^21), which is why the escape
-   looked viable. **The sole surviving exit is reducing SHA compressions per child by 2×** — a
-   circuit change; `multiproof` does not help (`merkle_nodes` stays 464 in both lever configs), and
-   digest width d=40 only gives 12 → 10 units = 16.7%. Not done.
+   looked viable. **The sole surviving exit is reducing SHA compressions — and the exact size of
+   the cut is 1,829 compressions (18.3%)**, from the measured 10,021 (9,764 `merkle_nodes` +
+   257 `leaf_blocks`) down to the 8,192 that 2^20 admits; both children shrink, so ~9.5% per child.
+   It is a circuit change; `multiproof` does not help (`merkle_nodes` stays 464 in both lever
+   configs), and digest width d=40 gives only ~2% here — its 12 → 10 unit cut applies to the
+   in-circuit unit count, not to SHA blocks (all widths 40–48 pad to one 128 B block). Not done.
    Consequence for the goal: **the tree is load-bearing on TIME, not on geometry** — but the
    long-chain fallback is **not merely slow, it is capped in code.** A 1-NV-child node *is*
    geometrically legal (fits the 2^20 ceiling, measured 5×), so S=146 as 146 serial levels would
