@@ -9,7 +9,8 @@ statement-matches**: `AGG_DEPTH2_OK leaves=4 final statement = segments [0, 4)`,
 18.76 GB peak RSS. The proof is **315,913 B**. The geometry wall that two prior docs declared
 structural was an artefact of an unlucky `(n_stack, log_blowup)` pairing, not a field limit: the
 `2+19+6 = 27` pairing leaves the WHIR evaluation domain **byte-identical** and raises the stacked
-ceiling from `2^20` to `2^21`, which is exactly the bit depth 2 needed.
+ceiling from `2^20` to `2^21`, which is one bit more than depth 2 needs and leaves it 46.6 %
+headroom.
 
 This does **not** produce a 1 Pgas under-cap artifact, and the reason is now precise: the root
 proof *is* the artifact in the aggregation path, and 315,913 B is **15,913 B (5.3 %) over** the
