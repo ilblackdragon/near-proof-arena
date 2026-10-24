@@ -1,0 +1,105 @@
+{
+  "scope": "raw cold-validator observations; not complete-code policy expectations",
+  "cases": [
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10056-s0-code.drop.0",
+      "raw_cold_expected_rel": false,
+      "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+      "files": {
+        "claim.bin": "ab83476eed67bcb3fe02feb8e98550f0cab25b95f5780b047fc93ba0778d9dc3",
+        "witness.bin": "e24fd753956c10e75f5ce2b9c466a5144eef7d2bc779799e0c79abbe6aaa8104",
+        "meta.json": "b49254a17c06a169f17f3d42a0aa6107b7137ee9b882c882237e23f954941409"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10056-s0-code.flip.0",
+      "raw_cold_expected_rel": false,
+      "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+      "files": {
+        "claim.bin": "ab83476eed67bcb3fe02feb8e98550f0cab25b95f5780b047fc93ba0778d9dc3",
+        "witness.bin": "a8b474b229c0156e6835482c0956afdf4eacac6dfbdb8d758676bf3e64cb806b",
+        "meta.json": "74ba589691d4f0d890e2ab31c4de993fe4192ad9db04cdd6c0d17cd5a7c166c1"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10056-s0-code.truncate.0",
+      "raw_cold_expected_rel": false,
+      "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+      "files": {
+        "claim.bin": "ab83476eed67bcb3fe02feb8e98550f0cab25b95f5780b047fc93ba0778d9dc3",
+        "witness.bin": "b7858728cb2fd0c8cbec29cfc501650f7bb491a424698bc425a3a11e4b1c82da",
+        "meta.json": "1d00b881ea6505ced5f918d0053c751ad021a9fe62c094167dd2e75d3519a602"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10066-s0-code.drop.0",
+      "raw_cold_expected_rel": true,
+      "nearcore": "ok",
+      "files": {
+        "claim.bin": "7e28bf74482b216a136477d22f194c45f79aa6da8cac0d90ecf544ddfe6bcec6",
+        "witness.bin": "8d2c08d1f2b882b34905831674707b772477be438d831cb6abbf5622908b891d",
+        "meta.json": "b813210166eb12011633681c2686e5f582bdd503e9f9b7c3bf52e7a3dd49f459"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10066-s0-code.flip.0",
+      "raw_cold_expected_rel": true,
+      "nearcore": "ok",
+      "files": {
+        "claim.bin": "7e28bf74482b216a136477d22f194c45f79aa6da8cac0d90ecf544ddfe6bcec6",
+        "witness.bin": "341b6292850f7b9846add7717ad82464937fd4ac7a7b5d99ffccd7e33c17bc69",
+        "meta.json": "be1b784d21f1fb2fdb921a6e65b3c862e0ec766548c0b9564e674259c58e7a2f"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10066-s0-code.truncate.0",
+      "raw_cold_expected_rel": true,
+      "nearcore": "ok",
+      "files": {
+        "claim.bin": "7e28bf74482b216a136477d22f194c45f79aa6da8cac0d90ecf544ddfe6bcec6",
+        "witness.bin": "0659577d413bcdce4c532a9c3ce691e1ad1aea067aa798dbacf995230d1e2fe5",
+        "meta.json": "0238dedf72337e64fe099edeba172bf33ce677c8558110291d9b08d8e872ae88"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10092-s3-code.drop.1",
+      "raw_cold_expected_rel": false,
+      "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+      "files": {
+        "claim.bin": "6ddd0303b4fa7f875fbf9ba885cd8fefb91cfc68188cb7b8c6fbc75b78ddf215",
+        "witness.bin": "2a329bec13a3421e6bd45c01690836fe164592706dc169bf40d5d1a8df59907f",
+        "meta.json": "22576c4e1370a0777e9174cd24c4e44cf8b6ba37c4eff5082261c13f374d43db"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10092-s3-code.flip.1",
+      "raw_cold_expected_rel": false,
+      "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+      "files": {
+        "claim.bin": "6ddd0303b4fa7f875fbf9ba885cd8fefb91cfc68188cb7b8c6fbc75b78ddf215",
+        "witness.bin": "4a2691c1b582147b3c5db62298dea249a1ad449c3db8a2637bab9e8585dbd13a",
+        "meta.json": "cc70af0fc7b1b61a012a6ecadf91c3109dc74dcc52015d8008d3d89eb1abe06a"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10118-s3-code.drop.1",
+      "raw_cold_expected_rel": false,
+      "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+      "files": {
+        "claim.bin": "d6bfd17e0fc8cd1a4764c4bc86bb5cfa3d4fd1464b7ce6af6846f798c587d6af",
+        "witness.bin": "1e6eb4964f908a87d8a9f402044d21962564545029760d14ac8061068777d5ed",
+        "meta.json": "d8f98cdffbe6f86800ee337cabd5d6ae1d0faf2bdea76f23665f8ae1001074de"
+      }
+    },
+    {
+      "case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10118-s3-code.flip.1",
+      "raw_cold_expected_rel": false,
+      "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+      "files": {
+        "claim.bin": "d6bfd17e0fc8cd1a4764c4bc86bb5cfa3d4fd1464b7ce6af6846f798c587d6af",
+        "witness.bin": "915d3f170ee347cb5239cec6c49298ae152e1db85cb1e78b7e4e4892936b666d",
+        "meta.json": "16dd53fa9411cdfe21be8af37fd6f6fb30835ad44c0136493f632322b8ee6524"
+      }
+    }
+  ]
+}

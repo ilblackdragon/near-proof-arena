@@ -1,0 +1,21 @@
+{
+  "base": "00-h10056-s0",
+  "case": "00-h10056-s0-code.drop.0",
+  "codes": [],
+  "d3_violations": [
+    "e.code_cache"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 2475715503472,
+    "fc_gas_burnt_for_function_call": 2475715503472
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+  "verdict_source": "nearcore(cold)"
+}

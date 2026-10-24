@@ -1,6 +1,11 @@
 import NearSpecV3.Logged.D2Runtime
 import NearSpecV3.D3.GlobalContract
 import NearSpecV3.D3.FunctionCall
+import NearSpecV3.Successor.CodeResolution
+import NearSpecV3.Successor.GlobalCodecs
+import NearSpecV3.Successor.GlobalExecution
+import NearSpecV3.Successor.QueueExecution
+import NearSpecV3.Successor.PromiseActions
 
 /-! Chunk-scoped protocol recorder over the existing read-logging D2 operations.
 Reads are executed against the authenticated witness store; recorder state is computed locally.
@@ -15,6 +20,10 @@ structure Recording where
   cache : TTN.Acct := {}
   receiptStart : Nat := 0
   softLimit : Nat := 4000000
+  globalActions : Bool := false
+  codePolicy : CodeWitnessPolicy := .coldPartial
+  /-- Authenticated code committed by distribution, distinct from local deployment tracking. -/
+  materialized : List Bytes := []
 
 abbrev M := StateT Recording (ReaderT Env (Except String))
 
@@ -86,17 +95,12 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
   -- nearcore's `MissingTrieValue`. A contract set by a deploy in this chunk comes from the deploy
   -- tracker (`contract.rs:42-69`).
   -- This probe has NO_SIDE_EFFECTS in nearcore and never records proof bytes.
-  let preHash := ((st.o.trie.findRef (nibbles codeKey)).join).map fun slot => slot.valueRef.drop 4
-  let code ← match env.codeOf hh with
-    | some code => pure code
-    | none =>
-      if preHash == some hh then
-        if (st.deploys ++ c.deployed ++ c.attempted).any (fun x => sha256 x == hh) then
-          throw (oodE "pre-state contract served only by the in-chunk compiled-contract cache")
-        else throw "invalid: MissingTrieValue (contract code)"
-      else match codeAvailable c st hh with
-        | some code => pure code
-        | none => throw "invalid: MissingTrieValue (contract code)"
+  let recording ← get
+  let pre := prestateCode st.o.trie codeKey
+  let sources : CodeSources := {
+    witness := env.codeOf, current := st.deploys,
+    committed := c.deployed ++ recording.materialized, attempted := c.attempted }
+  let code ← liftE (resolveCodeBytes recording.codePolicy sources pre hh)
   let codeB := toBA code
   if let some why := contractOOD cfg codeB then throw (oodE why)
   -- VMContext (§3)
@@ -146,7 +150,7 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
     let burnt := s.gas.burnt
     let logs := s.logs.toList.map ofBA
     -- receipts + gas distribution (only for VM-produced outcomes, §5.5)
-    let (rs, idx, resumes) ← liftE (manager s.actions ah h)
+    let (rs, idx, resumes) ← liftE ((if recording.globalActions then managerGlobal else manager) s.actions ah h)
     let (rs, extra) ← liftE (distribute rs gas s.gas.used)
     let used := s.gas.used + extra
     let ar1 := { ar with gasBurnt := ar.gasBurnt + burnt, gasFC := ar.gasFC + burnt,
@@ -172,7 +176,7 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
       if next != yn then o := o.set kYieldIdx (encIndices yf next)
       let st := { st with o }
       let rcpts ← rs.toList.mapM fun m => do
-        let acts ← liftE (finishActs m)
+        let acts ← liftE ((if recording.globalActions then finishActsGlobal else finishActs) m)
         pure (⟨c.r.recv, m.recv, zero32, .action m.yield ⟨true, a.signer, m.refundTo, a.signerPk,
           a.gasPrice, m.outputs, m.inputs, acts⟩⟩ : Rcpt)
       let rcpts := rcpts ++ resumes.map fun (d, p) =>
@@ -188,6 +192,18 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
             { ar1 with newReceipts := ar1.newReceipts ++ rcpts, ret := ret,
                        subsidized := ar1.subsidized + s.subsidized })
 
+def applyGlobal (c : ActCtx) (st : ActSt) (a : Act) (b : Base) : M (ActSt × AR) := do
+  if !(← get).globalActions then throw "out of domain (w.shape): global action"
+  let ex := actExec c.r.recv a
+  let res : AR := { gasBurnt := ex.gas, gasUsed := ex.gas, compute := ex.compute,
+                    ok := true, newReceipts := [], proposals := [], tokensBurnt := 0 }
+  let elig := c.nActs == 1 && c.r.pred != AccountId.system
+  if !existenceOk a st.account c.r.recv elig then return (st, res.fail)
+  if !permissionOk a st.account st.actor c.r.recv then return (st, res.fail)
+  let out ← logged (GlobalExecution.applyGlobalActionL c st res b)
+  accountRemovals st.o out.1.o
+  pure out
+
 /-- Dispatch shares the original fee/existence/permission checks. Only call resolution and
 recorder state differ. Other actions reuse their read-logging implementation. -/
 def applyAction (cfg : NearCfg) (c : ActCtx) (st : ActSt) (a : Act) : M (ActSt × AR) := do
@@ -201,6 +217,9 @@ def applyAction (cfg : NearCfg) (c : ActCtx) (st : ActSt) (a : Act) : M (ActSt �
     if !permissionOk a st.account st.actor c.r.recv then return (st, res.fail)
     try functionCallRecorded cfg c st res b
     catch e => throw (if e.startsWith "unmodeled" then oodE e else e)
+  | .base ⟨_, b@(.deployGlobal _)⟩
+  | .base ⟨_, b@(.useGlobal _)⟩
+  | .base ⟨_, b@(.stateInit _)⟩ => applyGlobal c st a b
   | _ => ordinaryAction c st a
 
 def getR (o : Ovl) (k : Bytes) (what : String) := logged (o.getL k what)
@@ -208,10 +227,27 @@ def getAcctR (o : Ovl) (k : Bytes) := logged (o.getAcctL k)
 def getIndicesR (o : Ovl) (k : Bytes) (what : String) := logged (o.getIndicesL k what)
 def containsR (o : Ovl) (k : Bytes) (what : String) := logged (o.containsL k what)
 def finalizeR (o : Ovl) := logged o.finalizeL
-def forwardOrBufferR (env : Env) (rs : RS) (r : Rcpt) := logged (forwardOrBufferL env rs r)
-def delayPopR (env : Env) (fuel : Nat) (rs : RS) := logged (delayPopL env fuel rs)
+def globalTarget (layout : Layout) (r : Rcpt) : Except String Nat := do
+  let target := r.targetShard layout
+  if !layout.shardIds.contains target then
+    throw "out of domain (c.same_layout): distribution target requires shard ancestry"
+  pure target
+
+def globalQueuePolicy : QueuePolicy := ⟨GlobalCodecs.decodeStoredGlobal, globalTarget⟩
+
+def forwardOrBufferR (env : Env) (rs : RS) (r : Rcpt) : M RS := do
+  if (← get).globalActions then logged (forwardOrBufferLWith globalQueuePolicy env rs r)
+  else logged (forwardOrBufferL env rs r)
+def delayPopR (env : Env) (fuel : Nat) (rs : RS) : M (RS × Option Rcpt) := do
+  if (← get).globalActions then logged (delayPopLWith globalQueuePolicy env fuel rs)
+  else logged (delayPopL env fuel rs)
 def bandwidthRequestsR (env : Env) (rs : RS) := logged (bandwidthRequestsL env rs)
-def forwardFromBufferR (env : Env) (rs : RS) := logged (forwardFromBufferL env rs)
+def forwardFromBufferR (env : Env) (rs : RS) : M RS := do
+  if (← get).globalActions then logged (forwardFromBufferLWith globalQueuePolicy env rs)
+  else logged (forwardFromBufferL env rs)
+def decodeStoredRcptR (b : Bytes) (what : String) : M Rcpt := do
+  if (← get).globalActions then liftE (GlobalCodecs.decodeStoredRcptGlobal b what)
+  else liftE (decodeStoredRcpt b what)
 def trieFindR (key : Bytes) := logged (trieFindL key)
 def processTxR (env : Env) (rs : RS × List Bytes) (tf : TxD2 × Bool) := logged (processTxD2L env rs tf)
 def validatorUpdateR (l : Layout) (own : Nat) (o : Ovl) (f : ValidatorUpdateFacts) (ps : List (Bytes × Nat)) :=
@@ -366,6 +402,15 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
     M (RS × Option (OutD1 × Nat)) := do
   let recv := r.recv
   match r.body with
+  | .distribution d =>
+    if !(← get).globalActions then throw oodGcd
+    let (rs, forward, materialized) ← logged (GlobalExecution.applyDistributionL env rs r d)
+    if let some code := materialized then
+      modify fun state => { state with materialized := state.materialized ++ [code] }
+    let rs ← match forward with
+      | some next => forwardOrBufferR env rs next
+      | none => pure rs
+    pure (rs, none)
   | .data false d x =>
     let o := rs.o.set (kReceivedData recv d) (encOptBytes x)
     match ← getR o (kPostponedId recv d) "postponed receipt id" with
@@ -380,7 +425,7 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
         let o := o.remove (kPendingCount recv ridb)
         let pr ← match ← getR o (kPostponed recv ridb) "postponed receipt" with
           | none => throw (inconsistent "pending receipt should be in the state")
-          | some b => liftE (decodeStoredRcpt b "postponed receipt")
+          | some b => decodeStoredRcptR b "postponed receipt"
         let o := o.remove (kPostponed recv ridb)
         match pr.body with
         | .action _ a =>
@@ -414,7 +459,7 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
     match ← getR rs.o (kYieldReceipt recv d) "promise yield receipt" with
     | none => pure (rs, none)
     | some b =>
-      let yr ← liftE (decodeStoredRcpt b "promise yield receipt")
+      let yr ← decodeStoredRcptR b "promise yield receipt"
       let o := (rs.o.remove (kYieldReceipt recv d)).remove (kYieldStatus recv d)
       let o ← match ← getR o (kDataToYield recv d) "data id to yield id" with
         | none => pure o
@@ -557,8 +602,10 @@ def applyNewChunkD2 (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
 recorder is empty regardless of unused values included in the witness. -/
 def run (cfg : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
     (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat))
-    (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (congestion : Congestion) :
+    (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (congestion : Congestion)
+    (globalActions : Bool := false) (codePolicy : CodeWitnessPolicy := .coldPartial) :
     Except String MainOutD2 :=
-  ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion).run {} env).map Prod.fst
+  ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion).run
+    { globalActions, codePolicy } env).map Prod.fst
 
 end NearSpecV3.Successor.StorageExecution

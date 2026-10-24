@@ -24,6 +24,18 @@ recorded runtime regressions replay in CI without the external corpus. W05 remai
 No Gate A/B/C closure is claimed; full semantic integration, proofs, representative witnesses,
 frozen validation and admission remain required. The snapshot below is historical.
 
+### Global actions and cache policy checkpoint — 2026-10-24
+
+The successor now integrates global deploy/use/state-init, distribution receipt execution/routing,
+and all seven global/state-init promise hosts. `completeCodeGlobal` adds authenticated complete-code
+witness admission; incomplete-code policy failures are kept separate from raw nearcore verdicts.
+Both new tiers pass 265 targeted comparisons and 83 promise-host chunks each; twelve pinned Rust
+codec vectors and fourteen paired code-witness cases provide additional checks. See the
+[workplan](LEAN_CHUNK_COMPLETION_WORKPLAN.md#cache-closure-and-global-action-integration--2026-10-24)
+and [handoff](../logs/lean-chunk-cache-global-2026-10-24.md) for exact counts and scope.
+W05 remains excluded. Gas-key, historical compiled-cache identity, old-layout distribution,
+full observable/proof/composition and release obligations remain; no completion gate is closed.
+
 ### Progress snapshot — main at `e34852568` (2026-10-23)
 
 L0–L7 now have merged checkpoints. L1's above-cap example, L4's directed tests and exclusion replay,

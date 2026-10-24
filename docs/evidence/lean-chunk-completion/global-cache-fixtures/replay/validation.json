@@ -1,0 +1,14 @@
+{
+  "code_commit": "d28f7e8d8",
+  "binary_sha256": "f4f48eee6749925aa7c267dad1429f202b1c52196e58e4e815576a8efb884d23",
+  "d3_drivers": "pass",
+  "d3_smoke": "pass",
+  "runtime_allocation_cases": 1030,
+  "runtime_phase_cases": 6,
+  "float_operator_cases": 2050,
+  "float_dynamic_bundles": 32,
+  "python_tests_run": 67,
+  "python_tests_skipped": 1,
+  "coverage_drift": "pass",
+  "w05_included": false
+}

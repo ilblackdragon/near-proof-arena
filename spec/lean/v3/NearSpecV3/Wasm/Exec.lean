@@ -71,9 +71,17 @@ def realOodHosts : List String :=
    "promise_batch_action_add_gas_key_with_full_access",
    "promise_batch_action_add_gas_key_with_function_call", "promise_batch_action_transfer_to_gas_key"]
 
+/-- Only these seven newly translated hosts are lifted by the explicit successor flag. -/
+def globalPromiseHosts : List String :=
+  ["promise_batch_action_state_init", "promise_batch_action_state_init_by_account_id",
+   "set_state_init_data_entry", "promise_batch_action_deploy_global_contract",
+   "promise_batch_action_deploy_global_contract_by_account_id",
+   "promise_batch_action_use_global_contract", "promise_batch_action_use_global_contract_by_account_id"]
+
 /-- A host call: `CallingHost` sync, the host function, `ReturningFromHost` (`g := remaining`). -/
 def callHost (s : St) (name : String) : Res :=
-  if s.real.isSome && realOodHosts.contains name then
+  if s.real.isSome && realOodHosts.contains name &&
+      !(s.globalActions && globalPromiseHosts.contains name) then
     .unmodeled s!"out-of-domain host function {name} called" else
   match sync s with
   | .error e => .unmodeled e
@@ -440,7 +448,8 @@ def instantiate (cfg : NearCfg) (p : Prepared) (gas : Gas) : Except String St :=
   let mut s : St := {
     pages := Array.replicate cfg.initialMemoryPages zeroPage, globals := gs,
     table := Array.replicate tsize none, tableMax := tmax, elems := elems,
-    datas := m.datas.map (·.bytes), stackRem := cfg.maxStackHeight, gas := gas }
+    datas := m.datas.map (·.bytes), stackRem := cfg.maxStackHeight, gas := gas,
+    globalActions := cfg.globalActions }
   for el in m.elems, ini in elems, k in [0:m.elems.size] do
     match el.mode with
     | .active _ off =>

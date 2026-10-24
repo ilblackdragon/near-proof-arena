@@ -64,6 +64,7 @@ mod chaind3;
 mod d3;
 mod d3contracts;
 mod d3gen;
+mod codec_probe;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
@@ -192,6 +193,7 @@ fn main() {
     let code = match args.get(1).map(String::as_str) {
         Some("gen") => cmd_gen(&args),
         Some("contracts") => cmd_contracts(),
+        Some("codec-roundtrip") => codec_probe::command(&args),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-successor gen --domain d3 ... | contracts (see src/main.rs)");

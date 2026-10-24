@@ -159,6 +159,7 @@ def processReceiptL (hooks : ActionHooksL) (env : Env) (rs : RS) (r : Rcpt) :
     LM (RS × Option (OutD1 × Nat)) := do
   let recv := r.recv
   match r.body with
+  | .distribution _ => throw "out of domain (w.shape): distribution requires successor dispatch"
   | .data false d x =>
     let o := rs.o.set (kReceivedData recv d) (encOptBytes x)
     match ← o.getL (kPostponedId recv d) "postponed receipt id" with

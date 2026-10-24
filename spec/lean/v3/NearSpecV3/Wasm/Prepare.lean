@@ -51,6 +51,8 @@ structure NearCfg where
   floats : Bool := false
   /-- Successor-only pinned Wasmtime pooling allocation check. Signed configurations keep false. -/
   loadingLimits : Bool := false
+  /-- Successor global/state-init promise action translation; signed configs keep false. -/
+  globalActions : Bool := false
 
 def pv86 : NearCfg := {}
 /-- The PV86 configuration **with floats in domain**: the L2 extension. -/

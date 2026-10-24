@@ -1,0 +1,265 @@
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10071-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10072-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10074-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10075-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10080-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10081-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10086-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10087-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10088-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/d3/00-h10094-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10005-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10006-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10007-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10009-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10011-s0", "reason": "out of domain (w.shape): non-ED25519 transaction key", "tier": "globalActions", "verdict": "out_of_domain"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10012-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10013-s2", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10013-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10014-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10016-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10017-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10018-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10019-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10021-s2", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "globalActions", "verdict": "out_of_domain"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10024-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10025-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10030-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10031-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10036-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10037-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10043-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10044-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10045-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10049-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10050-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10051-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10056-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10057-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10059-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10061-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10062-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10063-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10068-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10069-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10070-s2", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10093-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10100-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10101-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/ood/00-h10102-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10017-s0-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10036-s1-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10037-s1-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10045-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10059-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10061-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10068-s1-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.drop.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.flip.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10081-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-v2-2718/mutants/00-h10088-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/d3/00-h10065-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/d3/00-h10066-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/d3/00-h10072-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/d3/00-h10077-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/d3/00-h10078-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/d3/00-h10083-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/d3/00-h10091-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10005-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10006-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10007-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10009-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10011-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10011-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10012-s2", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10012-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10013-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10015-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10017-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10018-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10018-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10022-s2", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in D3\u03b1", "tier": "globalActions", "verdict": "out_of_domain"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10023-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10024-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10029-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10030-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10035-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10035-s2", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10036-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10042-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10043-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10044-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10047-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10048-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10049-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10053-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10054-s3", "reason": "out of domain (e.secp): SECP256K1 delegate signature verification", "tier": "globalActions", "verdict": "out_of_domain"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10055-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10059-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10060-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10061-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10062-s1", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10063-s0", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10064-s2", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10073-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10084-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10090-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10096-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10097-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10098-s3", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/ood/00-h10111-s2", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s0-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10011-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10013-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10013-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10013-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10013-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10013-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10013-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.drop.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.flip.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10018-s1-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10030-s1-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10060-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10060-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10060-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10060-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10060-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10060-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10061-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10062-s1-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.drop.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.drop.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.drop.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.duplicate", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.extra_garbage", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.extra_unneeded", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.flip.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.flip.1", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.flip.2", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.none", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.reorder", "reason": "", "tier": "globalActions", "verdict": "accept"}
+{"case": "/tmp/lean-global-cache-31415/mutants/00-h10096-s3-code.truncate.0", "reason": "invalid: MissingTrieValue (contract code)", "tier": "globalActions", "verdict": "reject"}

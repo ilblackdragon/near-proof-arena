@@ -84,3 +84,11 @@ root = "MainRuntime"
 [[lean_exe]]
 name = "nearspec-v3-test-storage-resolution"
 root = "TestStorageResolution"
+
+[[lean_exe]]
+name = "nearspec-v3-test-global-actions"
+root = "TestGlobalActions"
+
+[[lean_exe]]
+name = "nearspec-v3-test-global-codecs"
+root = "TestGlobalCodecVectors"

@@ -1,5 +1,16 @@
 # Handover — 2026-10-24
 
+## Global actions and complete-code policy — 2026-10-24
+
+Global deploy/use/state-init, distribution receipts and seven promise hosts now execute in the
+`globalActions` successor. `completeCodeGlobal` additionally enforces authenticated complete-code
+witness admission. Both pass 265 targeted cases and 83 promise chunks each; paired missing-code
+checks retain native expectations separately. W05 is excluded and lanes remain available.
+See [integration handoff](logs/lean-chunk-cache-global-2026-10-24.md) and the
+[remaining workplan](requirements/LEAN_CHUNK_COMPLETION_WORKPLAN.md). Gas-key, historical cache
+identity, obsolete-layout distribution, overlap/full observable validation and release gates remain.
+
+
 **Latest code promoted to main: `25efc7265` (2026-10-24), excluding W05.** Branch `work/lean-completion-except-w05-20261024`
 adds strict tier replay, the pinned pooling allocation correction, and a versioned fixture generator.
 Evidence: 1,030 full runtime matches, 209 whole chunks, 366 mutants, and a 1,788-case combined

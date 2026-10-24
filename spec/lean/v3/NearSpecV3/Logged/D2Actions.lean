@@ -291,6 +291,7 @@ def applyActionL (hooks : ActionHooksL) (c : ActCtx) (st : ActSt) (act : Act) : 
     | .deleteAccount ben => actDeleteAccountL c st res ben
     | .toGasKey pk d => actToGasKeyL c st res pk d
     | .fromGasKey pk a => actFromGasKeyL c st res pk a
+    | .deployGlobal _ | .useGlobal _ | .stateInit _ => throw "out of domain (w.shape): global action requires successor dispatch"
 
 end NearSpecV3.D2
 

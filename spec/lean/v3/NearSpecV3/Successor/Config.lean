@@ -83,11 +83,15 @@ structure ProtocolCfg where
   loadingLimits : Bool := false
   /-- Chunk-scoped proof recording and runtime contract identifier resolution. -/
   storageResolution : Bool := false
+  /-- Opt-in typed global actions, distribution receipts and promise translation. -/
+  globalActions : Bool := false
+  /-- Explicit complete-code witness relation, independent of compiled cache history. -/
+  completeCodeWitness : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
 def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
-  { (if cfg.floats then Wasm.floatPv86 else Wasm.pv86) with loadingLimits := cfg.loadingLimits }
+  { (if cfg.floats then Wasm.floatPv86 else Wasm.pv86) with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions }
 
 /-- The signed configuration: exactly `checkD3`'s arguments. -/
 def signedCfg : ProtocolCfg := {}
@@ -156,11 +160,13 @@ tier's checker is this function at that tier's configuration; there is no second
 def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Except String Unit :=
   match cfg.protocolVersion with
   | 86 =>
-    if cfg.storageResolution then
+    if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness then
       if cfg.genesisMainTransition then
-        checkD2CoreGWith (recorderDriver cfg.wasm) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+        checkD2CoreGWith (recorderDriver cfg.wasm cfg.globalActions
+          (if cfg.completeCodeWitness then .complete else .coldPartial)) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
       else
-        checkD2CoreWith (recorderDriver cfg.wasm) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+        checkD2CoreWith (recorderDriver cfg.wasm cfg.globalActions
+          (if cfg.completeCodeWitness then .complete else .coldPartial)) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else if cfg.genesisMainTransition then
       checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else
@@ -220,6 +226,8 @@ inductive Tier where
   | genesisFloatsProtoGas
   | runtimeLimits
   | storageResolution
+  | globalActions
+  | completeCodeGlobal
   deriving DecidableEq, Repr
 
 /-- The tier's configuration. -/
@@ -238,6 +246,14 @@ def Tier.cfg : Tier → ProtocolCfg
   | .storageResolution =>
     { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                          loadingLimits := true, storageResolution := true }
+
+  | .globalActions =>
+    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+                     loadingLimits := true, storageResolution := true, globalActions := true }
+  | .completeCodeGlobal =>
+    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+                     loadingLimits := true, storageResolution := true, globalActions := true,
+                     completeCodeWitness := true }
 
 /-- The tier's checker: the root at the tier's configuration. -/
 def Tier.checker (t : Tier) : Bytes → Bytes → Except String Unit := checkSuccessor t.cfg
@@ -259,7 +275,7 @@ refinement obligations are W12's (`relSuccessor_*_mono`), and they need the adap
 theorems below plus the still-missing semantic families. -/
 def Tier.rank : Tier → Nat
   | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
-  | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7
+  | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7 | .globalActions => 8 | .completeCodeGlobal => 9
 
 /-! ## The adapters, at their tiers
 

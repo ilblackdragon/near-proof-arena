@@ -1,0 +1,31 @@
+smoke: 5 cases, 4 drivers built and run, baseline partition {"domain_exclusion_asserted": 3, "verdict_compared_agree": 2}
+  baseline  {'accept': 1, 'reject': 1, 'out_of_domain': 3}
+  float     {'accept': 1, 'reject': 1, 'out_of_domain': 3}
+  genesis   {'accept': 2, 'reject': 1, 'out_of_domain': 2}
+  proto     {'accept': 1, 'reject': 1, 'out_of_domain': 3}
+  successor widening: [{'case': 'd3c7-ood-00-h10002-s0', 'baseline': 'out_of_domain', 'genesis': 'accept', 'd3_violations': ['c.not_genesis', 'c.no_resharding']}]
+  controlled breakage: 1 disagreement(s) from flipping d3c7-d3-00-h10004-s1
+SMOKE PASSED
+Storage resolution tests passed: limits, shared receipt budget, code identities, missing blobs, deduplication, deferral
+Global actions: codecs, fees, permissions, deploy/use/state-init, distribution freshness/routing/refunds passed
+Global codec differential vectors: 12 passed
+globalActions: 5 raw comparisons; {'accept': 2, 'reject': 1, 'out_of_domain': 2}
+completeCodeGlobal: 4 raw comparisons; {'accept': 2, 'reject': 1, 'out_of_domain': 1}
+storageResolution: 5 raw comparisons; {'accept': 2, 'reject': 1, 'out_of_domain': 2}
+runtimeLimits: 5 raw comparisons; {'accept': 2, 'reject': 1, 'out_of_domain': 2}
+signed: 5 raw comparisons; {'accept': 1, 'reject': 1, 'out_of_domain': 3}
+floats: 5 raw comparisons; {'accept': 1, 'reject': 1, 'out_of_domain': 3}
+protoGas: 5 raw comparisons; {'accept': 1, 'reject': 1, 'out_of_domain': 3}
+floatsProtoGas: 5 raw comparisons; {'accept': 1, 'reject': 1, 'out_of_domain': 3}
+genesis: 5 raw comparisons; {'accept': 2, 'reject': 1, 'out_of_domain': 2}
+genesisFloatsProtoGas: 5 raw comparisons; {'accept': 2, 'reject': 1, 'out_of_domain': 2}
+CODE WITNESS POLICY SMOKE PASSED: 5 pairs, 30 repeated checks
+GLOBAL ACTION SMOKE PASSED: 26 accepted action chunks + 2 key exclusions + 3 promise controls in both tiers; host ablation detected
+STORAGE RESOLUTION SMOKE PASSED: 24 honest chunks + 4 mutants; ETH guard ablation detected
+FLOAT MUTANT SMOKE PASSED: 2 rejects + 2 accepted mutations
+INPUT-DRIVEN FLOAT CHUNK SMOKE PASSED: 8 chunks
+FLOAT CHUNK SMOKE PASSED: 8 chunks, removed-float tier detected
+SUCCESSOR SMOKE PASSED: 49 raw configuration comparisons + 1 complete-code policy check, 4 runtime chunks, ablation detected
+RUNTIME GOLDEN PASSED: 1030 allocation cases + 6 phase cases; removed-check control detected
+{"status": "pass", "per_seed": {"17": 250, "29": 250, "43": 250, "71": 250}, "cases": 2050, "operators": 70, "generated_per_seed": 250, "successes": 1960, "traps": 90, "lean_sha256": "2cd36e41bb56dbecaf89c0502c0ad8b474ae6fbbc3bbe993b91893d0c52ff6e2", "oracle_sha256": null, "generator_sha256": "1a5e58f606224e4b31bee15fe22cb46a1f322d2f58756c518a67c9a561bc9648", "results_sha256": "e01ce690945191bf13c6494d3c4ce107c5190781a665c074a29647f01368bfda"}
+FLOAT GOLDEN PASSED: 2050 operator cases + 32 input-driven bundles

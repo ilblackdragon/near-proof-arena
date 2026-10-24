@@ -14,6 +14,8 @@ def parseTier : String → Option Successor.Tier
   | "genesisFloatsProtoGas" => some .genesisFloatsProtoGas
   | "runtimeLimits" => some .runtimeLimits
   | "storageResolution" => some .storageResolution
+  | "globalActions" => some .globalActions
+  | "completeCodeGlobal" => some .completeCodeGlobal
   | _ => none
 
 def resultRow (dir tier verdict reason : String) : String :=

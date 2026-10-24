@@ -1,4 +1,5 @@
 import NearSpecV3.Successor.StorageExecution
+import NearSpecV3.Successor.WitnessCodec
 import NearSpecV3.GenesisD3
 
 /-! Parameterized validation shell. The legacy driver reduces definitionally to the original
@@ -13,12 +14,31 @@ structure ExecutionDriver where
   apply : ActionHooks → Prims → Env → PTrie → Option ValidatorUpdateFacts →
     List (Bytes × Nat) → List Rcpt → List (TxD2 × Bool) → Congestion → Except String MainOutD2
   sizeOk : Nat → Nat → Bool
+  decodeWitness : Bytes → Except String StateWitnessD2 := decodeStateWitnessD2
+  receiptShard : Layout → Rcpt → Nat := fun l r => l.shardOf r.recv
+  validateRouting : Layout → List Rcpt → Except String Unit := fun _ _ => pure ()
+  outgoingRoot : Layout → List Rcpt → Bytes := outgoingReceiptsRootD2
 
 def legacyDriver : ExecutionDriver :=
-  ⟨applyNewChunkD2, fun base removals => base + 2000 * removals ≤ 4000000⟩
+  { apply := applyNewChunkD2, sizeOk := fun base removals => base + 2000 * removals ≤ 4000000 }
 
-def recorderDriver (cfg : Wasm.NearCfg) : ExecutionDriver :=
-  ⟨fun _ => StorageExecution.run cfg, fun _ _ => true⟩
+def recorderDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
+    (codePolicy : CodeWitnessPolicy := .coldPartial) : ExecutionDriver := {
+  apply := fun _ p e t vu props incoming txs congestion =>
+    StorageExecution.run cfg p e t vu props incoming txs congestion globals codePolicy,
+  sizeOk := fun _ _ => true,
+  decodeWitness := if globals then
+    decodeStateWitnessWith GlobalCodecs.pRcptGlobal GlobalCodecs.pTxD2Global
+    else decodeStateWitnessD2,
+  receiptShard := if globals then fun l r => r.targetShard l else fun l r => l.shardOf r.recv,
+  validateRouting := if globals then fun l rs => do
+    for r in rs do
+      let _ ← StorageExecution.globalTarget l r
+    else fun _ _ => pure (),
+  outgoingRoot := if globals then fun l rs =>
+    merklizeBorsh (l.shardIds.map fun shard =>
+      sha256 (u64 shard ++ encodeRcpts (rs.filter fun r => r.targetShard l == shard)))
+    else outgoingReceiptsRootD2 }
 
 def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
     (gasCap : Option Nat := none) : Except String Unit := do
@@ -27,7 +47,7 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
   check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
-  let w ← decodeStateWitnessD2 swBytes
+  let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"
   let H ← (decodeChunkInner c.chunkInner).mapError (fun e => s!"invalid claim: {e}")
@@ -109,6 +129,7 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
         let e ← match lookupLastD2 key w.entries with
           | some e => pure e
           | none => throw "invalid: missing source receipt proof"
+        driver.validateRouting L e.receipts
         check (e.proof.fromShard == ci.shardId) "invalid: receipt proof from_shard_id"
         check (e.proof.toShard == H.shardId) "invalid: receipt proof to_shard_id"
         check (verifyReceiptProofD2 ci.prevOutgoingReceiptsRoot e) "invalid: receipt proof merkle path"
@@ -118,7 +139,7 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
       | some p => pure p
       | none => throw "invalid: shuffle fuel exhausted (probability < 2^-1024)"
     receipts := receipts ++
-      (shuffled.map fun e => e.receipts.filter fun r => L.shardOf r.recv == H.shardId).flatten
+      (shuffled.map fun e => e.receipts.filter fun r => driver.receiptShard L r == H.shardId).flatten
   check ((distinctKeysD2 w.entries).length == used) "invalid: source_receipt_proofs contains extra proofs"
   check (sha256 (encodeRcpts receipts) == w.appliedReceiptsHash) "invalid: applied receipts hash"
   -- steps 8, 9: transactions of the last new chunk and their validity flags
@@ -166,7 +187,7 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
   check (H.gasLimit == slotB2.gasLimit) "invalid: InvalidGasLimit"
   check (H.prevGasUsed == out.gasUsed) "invalid: InvalidGasUsed"
   check (H.prevBalanceBurnt == out.balanceBurnt) "invalid: InvalidBalanceBurnt"
-  check (H.prevOutgoingReceiptsRoot == outgoingReceiptsRootD2 L out.outgoing) "invalid: InvalidReceiptsProof"
+  check (H.prevOutgoingReceiptsRoot == driver.outgoingRoot L out.outgoing) "invalid: InvalidReceiptsProof"
   check (H.congestion == out.congestion) "invalid: InvalidCongestionInfo"
   check (H.bwRequests == out.bwRequests) "invalid: InvalidBandwidthRequests"
   check H.proposedSplit.isNone "invalid: InvalidChunkHeaderShardSplit"
@@ -186,7 +207,7 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
   check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
-  let w ← decodeStateWitnessD2 swBytes
+  let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"
   let H ← (decodeChunkInner c.chunkInner).mapError (fun e => s!"invalid claim: {e}")
@@ -298,6 +319,7 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
           let e ← match lookupLastD2 key w.entries with
             | some e => pure e
             | none => throw "invalid: missing source receipt proof"
+          driver.validateRouting L e.receipts
           check (e.proof.fromShard == ci.shardId) "invalid: receipt proof from_shard_id"
           check (e.proof.toShard == H.shardId) "invalid: receipt proof to_shard_id"
           check (verifyReceiptProofD2 ci.prevOutgoingReceiptsRoot e) "invalid: receipt proof merkle path"
@@ -307,7 +329,7 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
         | some p => pure p
         | none => throw "invalid: shuffle fuel exhausted (probability < 2^-1024)"
       receipts := receipts ++
-        (shuffled.map fun e => e.receipts.filter fun r => L.shardOf r.recv == H.shardId).flatten
+        (shuffled.map fun e => e.receipts.filter fun r => driver.receiptShard L r == H.shardId).flatten
   check ((distinctKeysD2 w.entries).length == used) "invalid: source_receipt_proofs contains extra proofs"
   check (sha256 (encodeRcpts receipts) == w.appliedReceiptsHash) "invalid: applied receipts hash"
   -- steps 8, 9: transactions of the last new chunk and their validity flags

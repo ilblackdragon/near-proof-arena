@@ -171,6 +171,7 @@ def Base.isFcall : Base → Bool
 /-- `check_account_existence` (`actions.rs:824-892`); `true` = passes. -/
 def existenceOk (act : Act) (account : Option Acct) (recv : Bytes) (elig : Bool) : Bool :=
   match act with
+  | .base ⟨_, .stateInit _⟩ => true
   | .base ⟨_, .createAccount⟩ => account.isNone && !isImplicit recv
   | .base ⟨_, .transfer _⟩ => account.isSome || (elig && isImplicit recv)
   | _ => account.isSome
@@ -179,7 +180,8 @@ def existenceOk (act : Act) (account : Option Acct) (recv : Bytes) (elig : Bool)
 def permissionOk (act : Act) (account : Option Acct) (actor recv : Bytes) : Bool :=
   match act with
   | .base ⟨_, .deploy _⟩ | .base ⟨_, .stake _ _⟩ | .base ⟨_, .addKey _ _⟩
-  | .base ⟨_, .deleteKey _⟩ | .base ⟨_, .fromGasKey _ _⟩ => actor == recv
+  | .base ⟨_, .deleteKey _⟩ | .base ⟨_, .fromGasKey _ _⟩
+  | .base ⟨_, .deployGlobal _⟩ | .base ⟨_, .useGlobal _⟩ => actor == recv
   | .base ⟨_, .deleteAccount _⟩ =>
     actor == recv && (match account with | some a => a.locked == 0 | none => false)
   | _ => true
@@ -465,5 +467,6 @@ def applyAction (hooks : ActionHooks) (c : ActCtx) (st : ActSt) (act : Act) : Ex
     | .deleteAccount ben => actDeleteAccount c st res ben
     | .toGasKey pk d => actToGasKey c st res pk d
     | .fromGasKey pk a => actFromGasKey c st res pk a
+    | .deployGlobal _ | .useGlobal _ | .stateInit _ => throw "out of domain (w.shape): global action requires successor dispatch"
 
 end NearSpecV3.D2
