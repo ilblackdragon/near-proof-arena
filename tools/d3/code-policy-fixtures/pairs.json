@@ -1,0 +1,29 @@
+{
+  "pairs": [
+    {
+      "name": "00-h10056-s0-code.drop.0",
+      "complete": "00-h10056-s0-code.drop.0/complete",
+      "incomplete": "00-h10056-s0-code.drop.0/incomplete"
+    },
+    {
+      "name": "00-h10066-s0-code.drop.0",
+      "complete": "00-h10066-s0-code.drop.0/complete",
+      "incomplete": "00-h10066-s0-code.drop.0/incomplete"
+    },
+    {
+      "name": "00-h10092-s3-code.drop.1",
+      "complete": "00-h10092-s3-code.drop.1/complete",
+      "incomplete": "00-h10092-s3-code.drop.1/incomplete"
+    },
+    {
+      "name": "00-h10133-s3-code.drop.0",
+      "complete": "00-h10133-s3-code.drop.0/complete",
+      "incomplete": "00-h10133-s3-code.drop.0/incomplete"
+    },
+    {
+      "name": "00-h10139-s0-code.drop.0",
+      "complete": "00-h10139-s0-code.drop.0/complete",
+      "incomplete": "00-h10139-s0-code.drop.0/incomplete"
+    }
+  ]
+}

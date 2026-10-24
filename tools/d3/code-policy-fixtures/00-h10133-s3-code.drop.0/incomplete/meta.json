@@ -1,0 +1,21 @@
+{
+  "base": "00-h10133-s3",
+  "case": "00-h10133-s3-code.drop.0",
+  "codes": [],
+  "d3_violations": [
+    "e.code_cache"
+  ],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 113499979320,
+    "fc_gas_burnt_for_function_call": 113499979320
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

@@ -1,0 +1,42 @@
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.drop.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.drop.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.drop.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.flip.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.flip.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.flip.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.truncate.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.truncate.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10056-s0-code.truncate.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.drop.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.drop.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.drop.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.flip.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.flip.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.flip.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.truncate.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.truncate.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10066-s0-code.truncate.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10092-s3-code.drop.1/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10092-s3-code.drop.1/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10092-s3-code.drop.1/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10092-s3-code.flip.1/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10092-s3-code.flip.1/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10092-s3-code.flip.1/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.drop.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.drop.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.drop.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.flip.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.flip.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.flip.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.truncate.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.truncate.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10133-s3-code.truncate.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.drop.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.drop.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.drop.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.flip.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.flip.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.flip.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.truncate.0/complete", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.truncate.0/incomplete", "reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution", "tier": "completeCodeGlobal", "verdict": "reject"}
+{"case": "/tmp/cache-policy-check/cases/00-h10139-s0-code.truncate.0/normalized", "reason": "", "tier": "completeCodeGlobal", "verdict": "accept"}
