@@ -1,0 +1,165 @@
+{
+  "status": "DIAGNOSTIC_MODEL_NOT_SECURITY_PROOF",
+  "backend_sha256": "83f7d9f0c9931d63e37d0eaa512a48b1353627db2249426717d4cdb22bdac57c",
+  "model_regressions_passed": 5,
+  "instances": [
+    {
+      "level": 0,
+      "role": "inner_legacy_bound",
+      "module_rank": 16,
+      "ring_columns": 4864,
+      "output_normsq": 53170401905,
+      "collision_bound": 39668356711.46691,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 349,
+        "dimension": 2792,
+        "quantum_bits": 92.485
+      }
+    },
+    {
+      "level": 0,
+      "role": "outer1",
+      "module_rank": 6,
+      "ring_columns": 3220,
+      "output_normsq": 53170401905,
+      "collision_bound": 922348.323834331,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 445,
+        "dimension": 1860,
+        "quantum_bits": 117.92500000000001
+      }
+    },
+    {
+      "level": 0,
+      "role": "outer2",
+      "module_rank": 6,
+      "ring_columns": 1380,
+      "output_normsq": 53170401905,
+      "collision_bound": 922348.323834331,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 445,
+        "dimension": 1860,
+        "quantum_bits": 117.92500000000001
+      }
+    },
+    {
+      "level": 1,
+      "role": "inner_legacy_bound",
+      "module_rank": 11,
+      "ring_columns": 1622,
+      "output_normsq": 440630095,
+      "collision_bound": 451394568.90858966,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 365,
+        "dimension": 2350,
+        "quantum_bits": 96.72500000000001
+      }
+    },
+    {
+      "level": 1,
+      "role": "outer1",
+      "module_rank": 4,
+      "ring_columns": 1008,
+      "output_normsq": 440630095,
+      "collision_bound": 83964.76356186563,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 431,
+        "dimension": 1502,
+        "quantum_bits": 114.215
+      }
+    },
+    {
+      "level": 1,
+      "role": "outer2",
+      "module_rank": 4,
+      "ring_columns": 315,
+      "output_normsq": 440630095,
+      "collision_bound": 83964.76356186563,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 431,
+        "dimension": 1502,
+        "quantum_bits": 114.215
+      }
+    },
+    {
+      "level": 2,
+      "role": "inner_legacy_bound",
+      "module_rank": 8,
+      "ring_columns": 811,
+      "output_normsq": 30022348547,
+      "collision_bound": 29109290.01866119,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 353,
+        "dimension": 1982,
+        "quantum_bits": 93.545
+      }
+    },
+    {
+      "level": 2,
+      "role": "outer1",
+      "module_rank": 5,
+      "ring_columns": 345,
+      "output_normsq": 30022348547,
+      "collision_bound": 693078.3337776473,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 363,
+        "dimension": 1583,
+        "quantum_bits": 96.19500000000001
+      }
+    },
+    {
+      "level": 2,
+      "role": "outer2",
+      "module_rank": 5,
+      "ring_columns": 105,
+      "output_normsq": 30022348547,
+      "collision_bound": 693078.3337776473,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 363,
+        "dimension": 1583,
+        "quantum_bits": 96.19500000000001
+      }
+    },
+    {
+      "level": 3,
+      "role": "inner_legacy_bound",
+      "module_rank": 11,
+      "ring_columns": 271,
+      "output_normsq": 126384677,
+      "collision_bound": 483499977.7863442,
+      "legacy_gate_accepts": true,
+      "model": {
+        "kind": "finite",
+        "beta": 361,
+        "dimension": 2342,
+        "quantum_bits": 95.665
+      }
+    }
+  ],
+  "limitations": [
+    "Uses exact legacy verifier collision bounds, not a proof those bounds are sufficient.",
+    "Omits the initial Dachshund commitment and the outer LaBinius PCS.",
+    "Scalar Euclidean model only; no structured attacks, QROM or recursion composition.",
+    "New reference fork uses revised inner collision bounds; not substituted silently.",
+    "No finite reduction in this model is not an unconditional security claim."
+  ],
+  "c_reference_crosschecks_passed": 10
+}

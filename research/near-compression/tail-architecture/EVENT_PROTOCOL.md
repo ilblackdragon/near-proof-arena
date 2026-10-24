@@ -123,3 +123,52 @@ Success requires representative NEAR workloads, actual serialized packets,
 all preparation and bridges, p95 timing on named hardware, and bounded queues.
 If event authentication loses, retain Jolt/Akita as the fallback. No GPU latency
 prediction or state-of-the-art claim follows from these algebra tests.
+
+## Further hypothesis: finalize the execution frontier
+
+The next architectural step is to exploit *when* obligations become final, as
+well as their sparse representation. This is a research hypothesis, not a claim
+of novelty: streaming proofs, authenticated dataflow and folding are prior art.
+
+Partition execution into segments with typed interfaces: input/output state
+commitments, receipt identities, memory dependencies and hash requests/results.
+Each segment proves its local semantics and binds its interface. Maintain an
+accumulator whose invariant covers every completed segment plus a committed set
+of outstanding dependencies. On insertion, consume matching dependencies exactly
+once and add new ones. Chunk closure binds the final state and receipt commitment,
+checks the prescribed completed-segment set and discharges allowed outstanding
+cross-chunk messages under NEAR's actual semantics. An empty set alone cannot
+prove completeness: an attacker could omit both ends of an interaction.
+
+The proposed gain is an authenticated frontier: closed internal dependencies no
+longer expand the finalization relation. The accumulator still binds them, and
+soundness must prevent a prover from deleting obligations or substituting another
+history. Receipts destined for later chunks must be carried explicitly, not
+incorrectly required to vanish. No history replay is allowed at verification.
+
+Timing must separate three regimes:
+
+| Regime | Work available before chunk closes | Required measurement |
+|---|---|---|
+| Cold verifier/prover start | None | Setup and full processing latency |
+| Chunk arrives as a complete object | Reusable setup only | Full execution-to-proof latency |
+| Online producer | Finalized segments of this chunk | Tail latency AND sustained throughput |
+
+Online processing helps only if segments become irrevocable early enough and
+there is spare proving capacity. Post-commitment challenges create genuine later
+work. No changing the clock origin to hide hashing, execution, or queue growth.
+
+A falsifiable first experiment is a two-segment receipt/hash relation. Prove
+local processing against a common authenticated interface; join using exact
+request identity, byte length and digest; bind the result to an independently
+computed chunk claim. Test omission of both producer and consumer, duplicates,
+reordering where order matters, wrong predecessor, and cross-chunk replay. Then
+scale to 1/2/4/8 accumulated segments and record total work, post-close work,
+packet bytes and queue depth. Compare against the same monolithic relation at
+identical security. Reject the design if interface proofs or accumulator updates
+consume the savings. A complete compatible PQ accumulator remains unimplemented.
+
+The [security screen](SECURITY_SCREEN.md) prevents using the current 1.7-second
+hash result as the secure endpoint in that comparison. First qualify and measure
+a replacement parameter policy; then test the frontier hypothesis. This ordering
+keeps a representation improvement from being mistaken for a security reduction.

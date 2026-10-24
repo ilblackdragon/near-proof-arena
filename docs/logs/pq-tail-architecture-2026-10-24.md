@@ -49,3 +49,15 @@ The first decode rejected legitimate tail kappa1=0; fixed the format check only.
 Sources/logs: `evidence/import-codec` under the lane research directory.
 Prioritize concrete PQ feasibility (16-byte C transcript/SHAKE128/AES128/lattice
 sizing) before treating this as a full-system integration choice.
+
+Security follow-up: parsed the exported backend's actual parameters and legacy
+verifier bounds. Greyhound-reference scalar Euclidean SIS model estimates
+92.485–117.925 quantum bits for all ten obligations; all pass the old gate.
+Five regression checks and ten C/Python crosschecks pass. This rejects the
+measured configuration as evidence of PQ128, not a demonstrated attack. Initial
+commitment, outer PCS, structured attacks and QROM remain outside this screen.
+Pinned sources/results: [security screen](../../research/near-compression/tail-architecture/SECURITY_SCREEN.md).
+Next: justified bounds/parameter policy, regenerate real proofs, then test a
+complete two-segment authenticated receipt/hash join. EVENT_PROTOCOL now defines
+an execution-frontier hypothesis, completeness attacks and explicit cold/full/
+online timing regimes. No recursion or novelty claim.

@@ -1,0 +1,12 @@
+Greyhound Reference
+
+This product includes software developed by IBM Corp. and published in the
+lattice-dogs/labrador repository:
+https://github.com/lattice-dogs/labrador
+
+The original work is Copyright 2024 IBM Corp. Greyhound Reference contains
+subsequent modifications for portability, parallel execution, parameter
+reporting, security estimation, serialization, and testing.
+
+This product also includes SIMDe as a pinned Git submodule. SIMDe retains its
+own copyright notices and license terms.

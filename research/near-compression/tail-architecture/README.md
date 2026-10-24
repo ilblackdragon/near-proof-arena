@@ -5,6 +5,15 @@ post-quantum proof below **300,000 bytes**, with the final proof ready **within 
 (user clarification), as well as sustained throughput matching chunk arrival. Neither recursion nor PQ security is
 established by the current diagnostic packet.
 
+## Current decision
+
+[Concrete security screen](SECURITY_SCREEN.md): all ten measured backend
+obligations fall below the selected quantum-128 scalar-model floor (92.5–117.9
+bits), despite passing the legacy gate. The 166 KB / 1.7 s hash result remains
+a performance baseline; security-qualified parameters and full composition are
+required before integration. [Execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)
+sets out the next architectural experiment and its completeness obligations.
+
 ## Event protocol research
 
 [Design and falsifiable experiments](EVENT_PROTOCOL.md): current Jolt/Akita prior
