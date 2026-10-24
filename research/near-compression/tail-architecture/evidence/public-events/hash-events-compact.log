@@ -1,0 +1,64 @@
+TEMPLATE_SETUP {"message_slots":3088,"nominal_blocks":7296,"constructed_sha_blocks":7296,"root_bytes":148248,"witness_log_elems":22,"circuit_s":7.728150969,"setup_s":3.986648714}
+EXPORT_BYTES case=00-h10035-s3 backend=108208 total=258134 analytical=129943 codec=export_only_rns
+SIS_POLICY inner rank=23 width=6582 source=8664682994686 target=98152516052 bound=71932077271.546951 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=16 width=2194 source=98152516052 target=684555071 bound=756035040.6365937 bits=152.905 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1097 source=684555071 target=53585321 bound=106582104.99866101 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=53585321 target=5446226616 bound=33061752.324062679 bits=144.160 finite=1 tail=0
+SIS_POLICY inner rank=14 width=549 source=5446226616 target=87467871 bound=270247700.01911348 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=87467871 target=10777598 bound=24267383.226113856 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=549 source=10777598 target=827798682 bound=12889627.871747423 bits=147.605 finite=1 tail=0
+SIS_POLICY inner rank=12 width=275 source=827798682 target=46713490526 bound=48413800.724923216 bits=153.170 finite=1 tail=1
+EXPORT_TIME seconds=0.000451889 included_in_ready=true
+SIS_POLICY inner rank=23 width=6582 source=8664682994687 target=98152516052 bound=71932077271.546951 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=16 width=2194 source=98152516052 target=684555071 bound=756035040.6365937 bits=152.905 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1097 source=684555071 target=53585321 bound=106582104.99866101 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=53585321 target=5446226616 bound=33061752.324062679 bits=144.160 finite=1 tail=0
+SIS_POLICY inner rank=14 width=549 source=5446226616 target=87467871 bound=270247700.01911348 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=87467871 target=10777598 bound=24267383.226113856 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=549 source=10777598 target=827798682 bound=12889627.871747423 bits=147.605 finite=1 tail=0
+SIS_POLICY inner rank=12 width=275 source=827798682 target=46713490526 bound=48413800.724923216 bits=153.170 finite=1 tail=1
+ERROR in verify(): Amortized (inner commitment) opening wrong
+TEMPLATE_RESULT {"path":"/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch","messages":2460,"prepare_s":0.025686199,"prove_s":2.8776565610000002,"ready_s":2.903794989,"verify_s":1.179148592,"analytic_proof_bytes":129943,"public_bytes":148248,"negative_checks":6}
+EXPORT_BYTES case=00-h10012-s1 backend=108208 total=157766 analytical=129906 codec=export_only_rns
+SIS_POLICY inner rank=23 width=6582 source=8436405309986 target=95405932249 bound=70918505267.577667 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=16 width=2194 source=95405932249 target=687697779 bound=757768485.27452612 bits=152.905 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1097 source=687697779 target=53664313 bound=106660634.27711651 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=53664313 target=5580734188 bound=33467531.645885568 bits=143.895 finite=1 tail=0
+SIS_POLICY inner rank=14 width=549 source=5580734188 target=86764985 bound=269159663.48165494 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=86764985 target=10621750 bound=24091286.69440468 bits=151.845 finite=1 tail=0
+SIS_POLICY inner rank=10 width=549 source=10621750 target=832311788 bound=12924716.828571217 bits=147.605 finite=1 tail=0
+SIS_POLICY inner rank=12 width=275 source=832311788 target=46056100448 bound=48071934.598878458 bits=153.435 finite=1 tail=1
+EXPORT_TIME seconds=0.000255119 included_in_ready=true
+SIS_POLICY inner rank=23 width=6582 source=8436405309987 target=95405932249 bound=70918505267.577667 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=16 width=2194 source=95405932249 target=687697779 bound=757768485.27452612 bits=152.905 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1097 source=687697779 target=53664313 bound=106660634.27711651 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=53664313 target=5580734188 bound=33467531.645885568 bits=143.895 finite=1 tail=0
+SIS_POLICY inner rank=14 width=549 source=5580734188 target=86764985 bound=269159663.48165494 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=11 width=549 source=86764985 target=10621750 bound=24091286.69440468 bits=151.845 finite=1 tail=0
+SIS_POLICY inner rank=10 width=549 source=10621750 target=832311788 bound=12924716.828571217 bits=147.605 finite=1 tail=0
+SIS_POLICY inner rank=12 width=275 source=832311788 target=46056100448 bound=48071934.598878458 bits=153.435 finite=1 tail=1
+ERROR in verify(): Amortized (inner commitment) opening wrong
+TEMPLATE_RESULT {"path":"/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch","messages":12,"prepare_s":0.030102201,"prove_s":2.5438078600000003,"ready_s":2.57416563,"verify_s":1.146065405,"analytic_proof_bytes":129906,"public_bytes":148248,"negative_checks":6}
+	Command being timed: "timeout 120 taskset -c 8 /data/illia/pq-tail-architecture-20261024/target/release/near-hash-events /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch"
+	User time (seconds): 18.21
+	System time (seconds): 4.64
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:22.86
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 6225552
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 5225044
+	Voluntary context switches: 267
+	Involuntary context switches: 1383
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 1272
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

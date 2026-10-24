@@ -15,7 +15,7 @@ def audit(path, reference, profile="three"):
     count,left,right=(24,4,9) if profile=="three" else (36,5,11)
     data=path.read_bytes()
     r=Reader(data)
-    assert r.take(8)==b'NPTMPL01'
+    assert r.take(8)==(b'NPEVENT2' if profile=='events' else b'NPTMPL01')
     parts=[r.take(r.integer()) for _ in range(7)]
     assert r.pos==len(data)
     assert len(parts[3])==left*1024 and len(parts[4])==right*1024
@@ -46,7 +46,7 @@ if __name__=='__main__':
     p.add_argument('packets',nargs='+',type=Path)
     p.add_argument('--reference-model',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
-    p.add_argument('--profile',choices=['three','five'],default='three')
+    p.add_argument('--profile',choices=['three','five','events'],default='three')
     a=p.parse_args();check_model()
     report={'status':'BACKEND_PARAMETER_SCREEN_ONLY_NOT_PQ_CERTIFICATION',
         'limitations':['Initial commitment and outer PCS excluded.',

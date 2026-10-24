@@ -7,19 +7,18 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Outer security experiment](OUTER_SECURITY.md): five modulus limbs and stronger
-bridge keys produce **158,654 B / 2.13–2.17 s warm**. Both packets verify in fresh
-processes, but the component alone misses the deadline. The static no-wrap guard
-initially rejected the configuration; using transcript-bound, statement-enforced
-nonbinary norms makes it pass without removing the guard. Main/bridge/backend
-scalar estimates clear the chosen floor under stated extraction assumptions;
-structured attacks, protocol-specific extraction and quantum transcript losses
-remain unqualified. No composed PQ128 or NEAR/history proof claim.
+[Public event interface](PUBLIC_EVENTS.md): expose authenticated job metadata and
+hashes; move their SHA512 root computation to the verifier. Canonical sparse
+transport yields **258,134 / 157,766 B**, both fresh-process verified. Warm repeats
+1.965–2.033 s (earlier compact run 2.57–2.90 s): deadline remains unestablished.
+The same five-limb security qualifications apply; no composed PQ128/NEAR/history
+claim. Corpus checks identify 813 public outcome-tree nodes in the large case
+that can be reconstructed natively. Next: implement this authenticated tree
+composition, shrinking the candidate circuit from 7,296 to 5,248 SHA blocks.
 
-The [three-limb backend experiment](SIS_POLICY_EXPERIMENT.md) remains a faster
-150,526 B / 1.71–1.72 s baseline with weaker outer parameters. The
+[Outer security evidence](OUTER_SECURITY.md) and the
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)
-defines the broader architectural experiment and completeness obligations.
+retain the wider protocol and completeness obligations.
 
 ## Event protocol research
 

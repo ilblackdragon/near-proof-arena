@@ -96,3 +96,23 @@ crosschecks pass (minimum 144.69 bits). Source/patches, failures, final logs and
 manifest: [outer screen](../../research/near-compression/tail-architecture/OUTER_SECURITY.md).
 Component misses 2 s and full PQ/NEAR/history obligations remain. Do not extrapolate
 GPU speed or count two observations as p95.
+
+Public event experiment: removed in-circuit SHA512 record-root calculation;
+exposed metadata/digests as public outputs and checks the same expected root
+natively. Dense wire 305,510 B failed size. Canonical active-record encoding
+reconstructs the identical dense vector: 258,134/157,766 B, fresh verification and
+independent source-record matching pass. Twelve codec checks and 24 mutation
+checks in four repeated proofs pass. Backend model floor unchanged (minimum
+143.895 bits in the two packets), not composed security.
+
+Timings: dense 1.974/1.895 s; first compact 2.904/2.574 s; repeats
+2.033/1.965/2.002/2.002 s. File timestamps disprove own compilation as the cause of
+slow compact proving (build began ten seconds after completion); build did overlap
+fresh verification. Preserve all runs, no deadline or p95 claim.
+
+Independent D0a outcome-tree reconstruction matches every internal preimage/ID/
+digest in all 64 cases. Largest has 813 internal nodes derived entirely from 814
+public leaf digests; odd nodes promoted unchanged. Candidate non-Merkle policy
+fits corpus at 5,248 SHA blocks vs 7,296. Next implement native authenticated tree
+composition, not just host audit. Full chunk claim and byte-bus links still open.
+Evidence: [public events](../../research/near-compression/tail-architecture/PUBLIC_EVENTS.md).

@@ -1,0 +1,19 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling labinius-bench v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/bench)
+   Compiling labinius-binius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/binius)
+warning: use of deprecated method `sha2::digest::generic_array::GenericArray::<T, N>::as_slice`: please upgrade to generic-array 1.x
+  --> crates/binius/src/bin/support/local_wire_events.rs:13:100
+   |
+13 |  let public=crate::event_wire::expand(r.part()?)?;if public.len()!=148248||Sha512::digest(&public).as_slice()!=expected{return Err("...
+   |                                                                                                    ^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `sha2::digest::generic_array::GenericArray::<T, N>::as_slice`: please upgrade to generic-array 1.x
+  --> crates/binius/src/bin/near-hash-events.rs:18:308
+   |
+18 | ...xact(&mut bytes).unwrap();assert_eq!(Sha256::digest(&bytes).as_slice(),&digest);out.push(Message{id,flag:flag[0],bytes});}
+   |                                                                ^^^^^^^^
+
+warning: `labinius-binius` (bin "near-hash-events") generated 2 warnings
+    Finished `release` profile [optimized + debuginfo] target(s) in 46.20s
