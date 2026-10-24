@@ -1,0 +1,26 @@
+{
+  "status": "CLAIM_OUTCOME_BINDING_NOT_FULL_NEAR_VALIDITY",
+  "base_lane_commit": "2e7d1fcce",
+  "binary_sha256": "5c7bd99e7a5d3ac4464a4aa93392548f8ef190a601e4c9ded09072541fdc1440",
+  "source_sha256": {
+    "near-hash-claim-outcome.rs": "21395a4aa8efedff7ceb8ad8ee4649ebc1e71e34256040b22b8418605129d17f",
+    "near-claim-outcome-check.rs": "b34265b8589ef0a7b512d99ded2d09835dc8db6798d5c24a0e2b17ae2991f622",
+    "support/claim_outcome.rs": "162273bd19d320cb626a4f054cbaabf4eb4d6a8e51a9a395c693da286fd92c24"
+  },
+  "fresh_verification": {
+    "large": "LOCAL_WIRE_VERIFY bytes=266607 decode_s=0.001796321 verify_s=0.387440023 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true claim_outcome_matches=true full_near_validity=false",
+    "small": "LOCAL_WIRE_VERIFY bytes=206889 decode_s=0.000386387 verify_s=0.387776179 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true claim_outcome_matches=true full_near_validity=false"
+  },
+  "packet_sha256": {
+    "00-h10012-s1.packet": "cd304dc5c821370880213915d8ed085d0f776f89cf0d54d47216d567901a1bc9",
+    "00-h10035-s3.packet": "7994940673af067476672e02fbc81744ddcce732caa563a0585f45a237ee3654"
+  },
+  "native_check": "CLAIM_OUTCOME_CHECK cases=64 rejected_mutations=304 unrelated_state_changes_not_checked=64 full_near_validity=false",
+  "cross_claim_substitution_rejected": true,
+  "limits": [
+    "Only a bounded claim prefix is extracted; full claim validity is not checked.",
+    "Receipt execution/hash-input byte equality, state and history remain unproved.",
+    "No new prover timing; packets/circuit unchanged.",
+    "Composed PQ security remains unestablished."
+  ]
+}

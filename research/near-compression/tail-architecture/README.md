@@ -12,8 +12,10 @@ receipt IDs and proven PEO digests, preserving the same complete job root.
 **266,607 / 206,889 B**, four warm observations **0.83–0.86 s**, fresh-process
 verification passes. Faster but larger than the preceding tree-only variant.
 Full NEAR, recursive history, composed PQ128 and p95 remain unestablished.
-Next: chunk/receipt byte-bus binding and bounded history composition; do not
-mistake a fast hash component for the complete target.
+[Claim outcome binding](CLAIM_OUTCOME_BINDING.md) now checks the original claim
+outcome root, with 64-case/304-mutation coverage and fresh proof verification.
+Next: receipt-execution/hash-input byte equality, state and bounded history
+composition. Outcome equality alone is not execution validity.
 
 [Outer security evidence](OUTER_SECURITY.md) and the
 [execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)

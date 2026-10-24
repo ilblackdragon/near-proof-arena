@@ -139,3 +139,14 @@ checks pass (minimum modeled 140.185 bits, not composed PQ security). Witness
 log 20/column log 9 changes geometry and grows backend despite faster proving.
 Execution, byte-bus, chunk and PQ history links remain required.
 [Evidence](../../research/near-compression/tail-architecture/NATIVE_RECEIPT_LEAVES.md).
+
+## Original-claim outcome linkage
+
+Verifier now requires caller's original claim and compares its outcome root to
+the authenticated PEO/receipt tree. Same packet and job root; fresh verification
+passes (~0.387 s). Independent 64-case field/root audit; 304 mutations reject,
+integrated cross-claim substitution rejects. Explicit scope test: all 64 altered
+state roots still pass this outcome-only predicate. Prefix extraction is not
+full claim decoding/validation. Next prove execution-emitted RC/PEO/RID bytes
+equal the private hash inputs, plus state/history and composed security.
+[Evidence](../../research/near-compression/tail-architecture/CLAIM_OUTCOME_BINDING.md).
