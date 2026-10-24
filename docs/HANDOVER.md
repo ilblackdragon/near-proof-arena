@@ -239,7 +239,11 @@ Full detail, with the scope attached to every number, is in
   * It is an **App-child** node (`nvair_h=2^18`); a 1 Pgas tree's root aggregates **Node**
     children at `2^20`, which is a bigger program. Depth 2 is the measurement that closes this.
   * It ran under `NEARPROOF_STREAM_COMMIT=1` (9.46 GB peak). The size is streaming-invariant;
-    the 2,160.8 s prove time is not — the same node materialised proved in ~66 s at 25.9 GB.
+    the prove time is not. At the same 2-child geometry and 131 queries, **materialised proves in
+    65.4–66.2 s at ~26 GB** while **streaming takes 739.4–752.5 s at ~6.6 GB** — a measured
+    **~11.3× penalty for a 3.9× memory saving**. (The 2,160.8 s run is 32.6× but used an earlier
+    lever config, so it is not the clean comparison.) The delivered chain is materialised at
+    13.3 GB peak, so its 462–582 s/level timings carry no streaming penalty.
   * The 26,784 B saving vs the earlier 303,053 B run is exactly 18 fewer queries at
     ~1,488 B/query: moving 32 bits from query sampling into query-phase PoW is a **pure size
     win at equal total soundness** (268.7 → 268.2).

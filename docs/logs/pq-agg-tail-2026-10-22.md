@@ -914,8 +914,17 @@ Still open, and each one is a real blocker rather than a formality:
    base final layer's 299,935 B at the same schedule**, and 23,731 B under the cap.
    Two caveats that matter for reading it: (i) it is an **APP-child** node (`nvair_h=2^18`),
    not the Node-child node a 1 Pgas tree root would be; (ii) it ran under
-   `NEARPROOF_STREAM_COMMIT=1`, whose 27× prove-time penalty accounts for essentially all of
-   the 2,160.8 s. The size is unaffected by streaming; the time is not.
+   `NEARPROOF_STREAM_COMMIT=1`, whose prove-time penalty accounts for essentially all of the
+   2,160.8 s. The size is unaffected by streaming; the time is not.
+
+   **Measured streaming penalty: ~11×, not 27× (corrected 2026-10-24).** At the same 2-child
+   geometry and the same 131 queries, materialised runs prove in **65.4–66.2 s at ~26 GB**
+   (`agg-prod-d2.log`, `opened=346`) while streaming runs prove in **739.4–752.5 s at ~6.6 GB**
+   (`agg-d2-l2prod.log`, `opened=291`). That is **11.3× time for a 3.9× memory saving**. The
+   2,160.8 s figure is 32.6× but used an earlier lever config, so it is not the clean comparison.
+   Note also that the **delivered chain itself is materialised** (no `STREAM_COMMIT` in its stage
+   environment) at 13.3 GB peak — so the 462–582 s/level NV-child timings carry **no** streaming
+   penalty, and the ~20.6 h long-chain projection is materialised, not streaming, time.
 
    Logs are sha256-pinned in `research/near-compression/results/pq-agg-depth-law/logs/`:
    `agg-prod-depth1-ns18.log` = `684bbdba…ed1837` (the 368,177 B run),
