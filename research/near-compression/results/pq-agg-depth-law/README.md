@@ -81,8 +81,8 @@ depth-1 node costs ~12.6 s and ~3.5 GB. So for a tree over S leaves:
 | | nodes | serial prove time (test targets) | peak RSS |
 |---|---:|---:|---:|
 | binary tree over 16 leaves (depth 4) | 15 | **890.47 s measured** (`finished in 890.47s`); estimate 8×12.6 + 4×108 + 2×117 + 1×119 ≈ 885 s | 19 GB |
-| binary tree over 1,880 leaves (depth 11) | 1,879 | 940×12.6 + 939×106 ≈ 30.9 h | 19 GB |
-| binary tree over 3,760 leaves (depth 12) | 3,759 | 1,880×12.6 + 1,879×106 ≈ 61.9 h | 19 GB |
+| binary tree over 256 leaves (depth 8, S=146) | 255 | 128×12.6 + 127×106 ≈ 4.2 h | 19 GB |
+| binary tree over 512 leaves (depth 9, S=291) | 511 | 256×12.6 + 255×106 ≈ 8.4 h | 19 GB |
 
 Those are **test-target** times. At production query targets a node is ~1.5–2 orders of
 magnitude more expensive (the model's `[L]` numbers put one real segment child at
@@ -113,7 +113,10 @@ proposition at best, and that is the honest reading of the model, not a measurem
 * **A real leaf.** The leaves are `SegAir` Fibonacci fixtures, not `seg-v1`. P9/P10/P11
   are untouched. A tree over fixture leaves says nothing about a NEAR chunk's leaves.
 * **Any 1 Pgas run.** Per the plan §0, `G_α` (3.451e12 gas) needs no tree at all under
-  design G; 1 Pgas is ~1,880–3,760 segments and remains a research build.
+  design G; 1 Pgas is **~146 segments** at 2^23 ops/segment (291 at 2^22) and remains a
+  research build. The 1,880–3,760 figure that appeared here was a units error (a
+  width-equivalent total divided by a main-cell segment size); see
+  `docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5.
 * **Ragged / repeated-child trees.** Only perfect binary and flat k-ary shapes were proved.
   The statement layer rejects ragged chains (`Stmt.compose_rejects`), but no *proof* was
   built for a ragged shape, and single-child passthrough does not exist.
@@ -194,3 +197,209 @@ deliberate change.
    statement indices stay exact.
 4. Do **not** invest in larger-S runs before (2): a wider tree cannot change the root's
    byte count, so more S only buys more of the same 132,301 B at a linear time cost.
+
+## Leaf-adapter gap (verified 2026-10-23)
+
+The aggregation code cannot consume a real chunk base proof, and this is a type mismatch
+rather than an unfinished feature. Two shapes:
+
+| | `SegAir` fixture (what works) | real chunk base proof |
+|---|---|---|
+| AIR width | 2 columns (`l`, `r`) | 26 AIRs, widths 263/57/52/60 on the four with pvs |
+| public values | one flat slice `[ctx…, j, pre, post]` | per-AIR `Vec<Vec<F>>` (`StatementClaim`) |
+| where pvs live | AIR 0 | AIRs 16/21/22/23 (198/202/30/178); **none on AIR 0** |
+| consumer | `ChildKind::App` reads `pv[0]`, asserts `len == n_ctx + 1 + 2·n_state` | — |
+
+Evidence:
+* `SegFixture::rows` / `of_segment` — `nv/agg.rs:355-362`, `:53-63`
+* `ChildKind::App` assertion — `nv/agg.rs:169-172`
+* `StatementClaim.public_values: Vec<Vec<F>>` — `nv/circuit.rs:299-304`, filled at
+  `pq-state-port/src/chunk_bridge.rs:164-167`
+* `BASE.vk.json` / `BASE.proof` in `runs/opt-baseline-8/` as above
+
+**"No adapter exists" is checked, not assumed:** a tree-wide search for `RangeStmt` /
+`of_segment` finds them only in `nv/agg.rs` and `nv/agg_tests.rs` (plus the same files in
+`pq-agg`). Nothing in `pq-chunk-e2e`, `public-tape-protocol`, or the tracked repo constructs
+a `RangeStmt` from a real base proof.
+
+What the adapter would have to do, none of which is implemented:
+1. flatten the four pv-bearing AIRs into one `(ctx, segment index, incoming state,
+   outgoing state)` tuple;
+2. decide which commitment plays the role of the segment's `cached_roots` entry — the base
+   proof carries one (`cached_roots` length 1), while the fixture has none;
+3. state and prove that the flattened tuple really is the chunk relation's boundary, which
+   is the `G_α` coverage obligation, not a plumbing task.
+
+## The leaf adapter is smaller than it first looked (checked 2026-10-23)
+
+The correction above says a real base proof's statement is `Vec<Vec<F>>` (per AIR) while
+`RangeStmt` wants one flat slice. That sounds like a merge problem. It is not: every AIR
+reads a **prefix of the same public tape**.
+
+* `near-air-v3.json` declares `numPub = 202` and `maxPub = 2^26` — a fixed 202-element
+  prefix plus a variable-length tail the `pubSegs` buses range over.
+* `pv_of(t, pubs)` (`pq-state-port/src/main.rs:413-417`) returns `pubs[0..t.num_pub]`,
+  i.e. a prefix of that one tape, for every AIR.
+* The four pv-bearing AIRs are therefore nested prefixes, not disjoint records:
+
+  | AIR | table | `num_pub` | reads |
+  |---:|---|---:|---|
+  | 16 | `rcpt` | 198 | `tape[0..198]` |
+  | 21 | `size` | 202 | `tape[0..202]` |
+  | 22 | `qv` | 30 | `tape[0..30]` |
+  | 23 | `mrk` | 178 | `tape[0..178]` |
+
+So the adapter reads **one 202-element tape** and projects it — it never has to reconcile
+four independent records. That removes the hardest-looking part of the job.
+
+What still has to be decided (and is not decided anywhere in the tree):
+1. **Which tape elements are the segment boundary state?** Now investigated directly, and the
+   answer is that **they are not on the tape at all** (see below). This is a specification
+   gap, and a sharper one than "we have not looked".
+2. **What plays `cached_roots`?** The base proof carries one cached root; the fixture has
+   none. Whether a segment's range statement should pin that root is unstated.
+3. **The coverage obligation.** Even with (1) and (2), stating that the projected tuple is
+   the chunk relation's boundary is the `G_α` coverage theorem, which is separate work.
+
+Item 1 is the real blocker, and it is a *specification* gap: `near-air-v3.json` gives the
+tape layout for bus range-checks but nothing in the tree maps tape positions to the
+"segment index / incoming state / outgoing state" triple that `RangeStmt` requires.
+
+## A flat 146-to-1 node is infeasible; only the binary tree is (checked 2026-10-23)
+
+`agg_s13_flat` takes `AGG_S` from the environment, so S=146 is directly runnable in
+principle — but the measured slope says it cannot run on this host, and the reason is
+instructive.
+
+Measured flat-node points (`logs/agg_depth4.log`, `logs/agg_s13_lr19.log`):
+
+| S | program_rows | `nvair_h` | prove | peak RSS |
+|---:|---:|---:|---:|---:|
+| 2 | 16,598 | 2^17 | 12.8 s | 2.52 GB |
+| 13 | 104,614 | 2^19 | 75.5 s | 12.16 GB |
+
+Slope = (104,614 − 16,598) / 11 ≈ **8,001 program rows per added child**. Extrapolating to
+S=146 gives ≈ **1,168,807 program rows**, which needs `nvair_h = 2^21`.
+
+The time/RAM projection depends on which measured node is used as the anchor, so both are
+given rather than one:
+
+| anchor | cells ratio | projected prove | projected RSS |
+|---|---:|---:|---:|
+| S=13 flat node (127.2 G cells, 75.5 s, 12.16 GB) | 44.7× | 3,374 s | **543 GB** |
+| depth-4 `Node` child (100.6 G cells, 105.5 s, 17.65 GB) | 24.4× | 2,570 s | **430 GB** |
+
+Either way it is **3.4–4.3× this host's 125 GB**, so the conclusion does not depend on the
+choice of anchor — but the honest number is the range **430–543 GB**, not a single figure.
+
+The binary tree has none of that problem, but the reason is subtler than "every node has 2
+children". A 2-child node's size depends on **what kind** of children it has, and the depth-4
+sweep separates the two classes cleanly (`logs/agg_depth4.log`):
+
+| node class | children | `program_rows` | `nvair_h` | prove | peak RSS |
+|---|---|---:|---:|---:|---:|
+| level 1 (`App` = fixture segment proofs) | 2 | **16,598** | 2^17 | 12.4–12.9 s | 2.5–3.7 GB |
+| level ≥ 2 (`Node` = NV child proofs) | 2 | **89,564–95,974** | 2^20 | 105.5–118.7 s | 17.5–19.4 GB |
+
+and both are **flat in depth** (8 level-1 nodes all 16,598; level-2/3/4 nodes all 89,564 or
+95,974). So a tree node never grows with the leaf count — it grows with the *child class*,
+once, at the first NV-child level. S=146 is therefore reachable as a **255-node tree**
+(4.19 h serial at test targets) and not as one flat 146-to-1 node.
+
+The earlier sentence in this section said every node is 16,598 rows at 2^17 — **wrong**: that
+is only the level-1 (`App`-child) class. The 2^20 / ~90k-row class is what most of the tree
+actually runs.
+
+Consequence for the flat shape's role: `agg_s13_flat` is a device for stating an **exact
+segment count without padding** (it avoids the non-existent single-child passthrough), not a
+template for the 1 Pgas node. Any "one big k-ary node" design at S=146 is ruled out by
+memory, and that should be said before anyone tries it.
+
+### The boundary state is internal, not public (checked 2026-10-23)
+
+Decoding `dump/pubs.bin` against `near-air-v3.json`'s `pubSegs` descriptors shows the tape is
+**self-describing**: each descriptor names a `countAt` index and a `startAt` index, and the
+tape carries both the count and the start of that bus's public run. For
+`runs/opt-baseline-8/dump/pubs.bin` (3,920 elements, `numPub = 202`):
+
+| bus | dir | width | count | start | span |
+|---:|---|---:|---:|---:|---|
+| 14 | send | 34 | 3 | 18 | [18,120) |
+| 28 | send | 3 | 65 | 120 | [120,315) |
+| 0 | recv | 1 | 0 | 59 | empty |
+| 51 | send | 7 | 64 | 59 | [59,507) |
+| 52 | send | 11 | 25 | 251 | [251,526) |
+| 56 | send/recv | 5 | 0 | 14 | empty |
+| 10 | send | 33 | 1 | 14 | [14,47) |
+| 10 | recv | 33 | 1 | 47 | [47,80) |
+
+The candidate that *looked* like a boundary pair — bus 10's 1×33 send and 1×33 receive — is
+**not** the segment boundary: bus 10 is `head`'s output into `ups`
+(`tables[3].interactions`, one send of message length 33). Decoding those 33 words shows a
+human-readable tag rather than state:
+
+```
+[45,112,114,101,112,45,100,48,97,45,118,48,0,…]  =  "-prep-d0a-v0"
+```
+
+i.e. a domain/version string, padded, followed by a few small integers. (An earlier draft of
+this note called it a "33-word block header"; that interpretation was unsupported and is
+withdrawn — the bytes say what they say.)
+
+The actual boundary state rides **bus 15**, message length 5, and bus 15 **does not appear in
+`pubSegs` at all**:
+
+```
+bus 15: rcpt send=False len=5   rcpt send=True len=5
+        bnd  send=True  len=5   bnd  send=False len=5
+```
+
+Both endpoints are *tables*, and each both sends and receives on it. That is a **row-to-row
+chain inside `bnd`/`rcpt`**, not a value the verifier supplies per segment. So a segment's
+boundary is expressed only implicitly, by the `bnd` table's own continuity constraint.
+
+**Consequence for the leaf adapter.** `RangeStmt` needs `(ctx, a, s_a, s_e)` as *public*
+values, because an aggregation node reads them from the child's public values and asserts
+`stmts[i].a == stmts[i-1].e` and `s_a[i] == s_e[i-1]`. Since the boundary state is an internal
+bus, exposing it requires one of:
+
+1. a change to the AIR's public interface so each segment's boundary state is a declared
+   public segment (i.e. a new `pubSeg` for bus 15), which changes the vk and therefore every
+   stored proof and the trusted setup; or
+
+2. a derived statement: prove inside the base proof that the internal bus-15 endpoints equal
+   committed public values (a "boundary commitment" AIR), which is the `G_α` coverage
+   obligation and is not implemented.
+
+Neither is a plumbing task, and (1) invalidates the existing 299,967 B packet. This is why the
+leaf adapter is not a small piece of glue — the data it needs is not currently public.
+
+### Cross-check: the decoded public tape agrees with the trace, and one proof = one chunk
+
+The bus-28 descriptor decodes to `count = 65`, and `dump/heights.json` records
+`bnd.used_rows = 65`. That exact agreement across an independent file is what makes the tape
+decode trustworthy rather than a plausible reading.
+
+Measured base-proof trace sizes (`dump/heights.json`, used rows):
+
+| table | rows | | table | rows |
+|---|---:|---|---|---:|
+| `ups` | 628 | | `bnd` | 65 |
+| `sha_t` | 526 | | `cmp` | 49 |
+| `srcp` | 483 | | `rcpt` | 36 |
+| `codec` | 453 | | `head` | 32 |
+| `val` | 422 | | `scandist` | 28 |
+| `sha_r` | 280 | | `mem` | 24 |
+| `node` | 204 | | `proc` | 17 |
+| `uniq` | 126 | | 7 tables | 0–12 |
+| | | | **total** | **3,391** |
+
+**One base proof covers the entire chunk** — all 25 tables, 3,391 used rows, and a tape whose
+bus-10 count is 1. There is no notion of a "segment" inside it. A 1 Pgas chunk therefore needs
+~146 such proofs *first*, each carrying its own statement, before any tree can exist. The leaf
+adapter question is downstream of that: today there is one proof per chunk, not one per
+segment, so there is nothing to aggregate at the leaf level yet.
+
+This also bounds what the aggregation work delivered: the tree was measured over `SegAir`
+*fibonacci* leaves precisely because segment proofs of this shape (25 AIRs, 3,391 rows) did
+not exist to use instead.

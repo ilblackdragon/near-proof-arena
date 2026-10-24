@@ -30,3 +30,12 @@ import NearSpecV3.D3.GlobalContractExec
 -- then breaks the build instead of only a downstream replay. Additive only -- nothing below this
 -- import is reachable from `checkD2Core`/`checkD3`/`RelD3`, so the signed D3 statement is unchanged.
 import NearSpecV3.D3.GlobalContractTests
+
+-- Recursion track: segment fold semantics (Wasm/Segment.lean). Was orphaned until
+-- 2026-10-23; imported here so the result is in the default build and cannot rot.
+import NearSpecV3.Wasm.Segment
+import NearSpecV3.Wasm.StEncode
+import NearSpecV3.Wasm.EncodeRT
+import NearSpecV3.Wasm.ValEncode
+import NearSpecV3.Wasm.GasEncode
+import NearSpecV3.Wasm.LabelEncode

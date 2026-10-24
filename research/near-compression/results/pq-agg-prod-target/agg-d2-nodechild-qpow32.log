@@ -1,0 +1,20 @@
+
+running 1 test
+L1_0_PARAMS l_skip=2 n_stack=18 k=4 log_blowup=7 queries=[41, 38, 29, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+L1_0_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 1048576, 37140791, 41, true), (2013265920, 524288, 26000207, 38, true), (2013265920, 32768, 6325509, 29, true), (2013265920, 2048, 1559051, 23, true)]
+NV_PHASE before_dag 2181
+NV_DAG air=0 nodes=24 rows_so_far=2236
+NV_PHASE after_dag 2249
+NV_PHASE after_stacking 2557
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 9558
+NV_PHASE before_dag 10168
+NV_DAG air=0 nodes=24 rows_so_far=10223
+NV_PHASE after_dag 10236
+NV_PHASE after_stacking 10543
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 17534

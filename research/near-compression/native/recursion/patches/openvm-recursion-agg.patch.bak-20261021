@@ -1,0 +1,1442 @@
+diff --git a/crates/recursion/src/nv/agg.rs b/crates/recursion/src/nv/agg.rs
+new file mode 100644
+index 0000000..35dd810
+--- /dev/null
++++ b/crates/recursion/src/nv/agg.rs
+@@ -0,0 +1,404 @@
++//! [agg] n-to-1 aggregation node on NV (lane/pq-base-aggregation, DESIGN-BASE.md §5).
++//!
++//! One NV proof verifies k >= 2 child proofs.  Each child's verifier runs on its own
++//! transcript: the builder restarts the sponge between children (`Builder::restart_transcript`),
++//! the hash-chain role starts a new chain there (input state = the initial-state constant), and
++//! the ALU declares every chain start by anchoring the chain's first job with P3 = 1, so the
++//! number and position of chain starts are fixed by the (bound) program.
++//!
++//! Statement: every node exposes NvAir public values [level, D] with
++//!   D = SHA-384(prefix, tag 9, [n_ctx, n_state, ctx.., a, e, s_a.., s_e..])   (truncated like
++//!   Merkle digests: 42 B under the lever),
++//! "segments [a, e) of the chunk named by ctx take boundary state s_a to s_e".
++//! * App children (level-1 node): child j's public values are [ctx.., j, pre.., post..].
++//! * NV children (level >= 2): child i exposes [level, D_i]; the node witnesses the preimage
++//!   of D_i, hashes it in-circuit and compares it with D_i.
++//! The node checks ctx_i = ctx_0, a_{i+1} = e_i, s_a(i+1) = s_e(i) (continuity), then exposes
++//! D(ctx, a_0, e_{k-1}, s_a(0), s_e(k-1)).  Above the tree root the digest passes through
++//! unchanged (statement passthrough); V_d compares it with D(ctx, 0, S, S_0, S_S) computed
++//! from the claimed chunk statement.
++//!
++//! Prototype limits (stated in results/pq-base-aggregation/README.md): program binding of NV
++//! children is not emitted by this node (one BIND region per child is needed, §5.3 of the
++//! design); levels of NV children must be equal (balanced tree).
++use std::sync::Arc;
++
++use openvm_stark_backend::{keygen::types::MultiStarkVerifyingKey, proof::Proof};
++use p3_field::{PrimeCharacteristicRing, PrimeField32};
++
++use super::{
++    builder::{coeffs, ef_from, Builder, DigestCells, V},
++    fmt::limbs_digest,
++    verifier::build_verifier,
++};
++use crate::sha384::config::{range_digest, range_values, Digest, Sha384Config, F, TAG_RANGE};
++
++/// A segment-range statement (native).
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub struct RangeStmt {
++    pub ctx: Vec<F>,
++    pub a: F,
++    pub e: F,
++    pub s_a: Vec<F>,
++    pub s_e: Vec<F>,
++}
++impl RangeStmt {
++    pub fn digest(&self) -> Digest {
++        range_digest(&self.ctx, self.a, self.e, &self.s_a, &self.s_e)
++    }
++    pub fn values(&self) -> Vec<F> {
++        range_values(&self.ctx, self.a, self.e, &self.s_a, &self.s_e)
++    }
++    /// The statement of one app segment from its public values [ctx.., j, pre.., post..].
++    pub fn of_segment(pv: &[F], n_ctx: usize, n_state: usize) -> Self {
++        assert_eq!(pv.len(), n_ctx + 1 + 2 * n_state, "segment public values");
++        let j = pv[n_ctx];
++        RangeStmt {
++            ctx: pv[..n_ctx].to_vec(),
++            a: j,
++            e: j + F::ONE,
++            s_a: pv[n_ctx + 1..n_ctx + 1 + n_state].to_vec(),
++            s_e: pv[n_ctx + 1 + n_state..].to_vec(),
++        }
++    }
++    /// Native composition (what an honest node exposes); None if the children do not chain.
++    pub fn compose(children: &[RangeStmt]) -> Option<RangeStmt> {
++        let f = children.first()?;
++        for w in children.windows(2) {
++            if w[1].ctx != f.ctx || w[1].a != w[0].e || w[1].s_a != w[0].s_e {
++                return None;
++            }
++        }
++        let l = children.last().unwrap();
++        Some(RangeStmt { ctx: f.ctx.clone(), a: f.a, e: l.e, s_a: f.s_a.clone(), s_e: l.s_e.clone() })
++    }
++}
++
++/// Native statement check of a node / final proof: public values 1..19 = D(stmt).
++pub fn check_range_statement(nv_public_values: &[F], stmt: &RangeStmt) -> bool {
++    let (lo, hi) = super::builder::digest_cells(stmt.digest());
++    nv_public_values.len() == super::uair::NV_NUM_PVS && nv_public_values[1..13] == lo[..] && nv_public_values[13..19] == hi[..6]
++}
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum ChildKind {
++    /// app segment proofs (AIR 0 public values = [ctx.., j, pre.., post..])
++    App { n_ctx: usize, n_state: usize },
++    /// NV proofs exposing [level, D]; the node is given the preimages of the D's
++    Node { n_ctx: usize, n_state: usize },
++}
++
++/// Statement cells.
++struct StmtCells {
++    ctx: Vec<V>,
++    a: V,
++    e: V,
++    s_a: Vec<V>,
++    s_e: Vec<V>,
++}
++
++/// In-circuit SHA-384 (tag 9) of the range message of `s`; returns the digest cells.
++fn hash_range(b: &mut Builder, s: &StmtCells) -> DigestCells {
++    let n_ctx = b.c(F::from_usize(s.ctx.len()));
++    let n_state = b.c(F::from_usize(s.s_a.len()));
++    let mut cells = vec![n_ctx, n_state];
++    cells.extend(&s.ctx);
++    cells.push(s.a);
++    cells.push(s.e);
++    cells.extend(&s.s_a);
++    cells.extend(&s.s_e);
++    let vals: Vec<F> = cells.iter().map(|c| coeffs(c.val)[0]).collect();
++    let job = b.job_start(TAG_RANGE, 4 * cells.len());
++    for (i, &x) in cells.iter().enumerate() {
++        b.unit1(x, job, 2 + i as u32);
++    }
++    let d = crate::sha384::config::digest_from_bytes(crate::sha384::config::truncate_digest(
++        crate::sha384::config::hash_parts(TAG_RANGE, &[&crate::sha384::config::felt_bytes(&vals)]),
++    ));
++    b.dig(job, d)
++}
++
++/// Pack 12 (or 6) base cells into one Ext12 cell: sum_k x_k X^k (basis cells cached).
++fn pack(b: &mut Builder, basis: &mut Vec<V>, cells: &[V]) -> V {
++    if basis.is_empty() {
++        for k in 0..12 {
++            let mut c = [F::ZERO; 12];
++            c[k] = F::ONE;
++            let v = b.ce(ef_from(c));
++            basis.push(v);
++        }
++    }
++    let mut acc = b.c(F::ZERO);
++    for (k, &x) in cells.iter().enumerate() {
++        let t = b.mul(x, basis[k]);
++        acc = b.add(acc, t);
++    }
++    acc
++}
++
++/// The k-child aggregation program.  `preimages[i]` is child i's statement (used as witness
++/// for NV children; ignored for app children).  Returns the exposed statement (native) as the
++/// program computed it (also on failure, for diagnostics).
++pub fn build_agg(
++    b: &mut Builder,
++    children: &[(&MultiStarkVerifyingKey<Sha384Config>, &Proof<Sha384Config>)],
++    kind: ChildKind,
++    preimages: &[RangeStmt],
++) -> RangeStmt {
++    assert!(children.len() >= 2, "an aggregation node has k >= 2 children");
++    b.agg = true;
++    let mut stmts: Vec<StmtCells> = vec![];
++    let mut levels: Vec<V> = vec![];
++    let mut basis: Vec<V> = vec![];
++    for (i, &(vk, proof)) in children.iter().enumerate() {
++        if i > 0 {
++            b.restart_transcript();
++        }
++        let pv = build_verifier(b, vk, proof);
++        match kind {
++            ChildKind::App { n_ctx, n_state } => {
++                let v = &pv[0];
++                assert_eq!(v.len(), n_ctx + 1 + 2 * n_state, "segment public values");
++                let a = v[n_ctx];
++                let one = b.c(F::ONE);
++                let e = b.add(a, one);
++                stmts.push(StmtCells {
++                    ctx: v[..n_ctx].to_vec(),
++                    a,
++                    e,
++                    s_a: v[n_ctx + 1..n_ctx + 1 + n_state].to_vec(),
++                    s_e: v[n_ctx + 1 + n_state..].to_vec(),
++                });
++            }
++            ChildKind::Node { n_ctx, n_state } => {
++                let v = &pv[0];
++                assert_eq!(v.len(), super::uair::NV_NUM_PVS, "NV child public values");
++                levels.push(v[0]);
++                let w = &preimages[i];
++                assert_eq!((w.ctx.len(), w.s_a.len()), (n_ctx, n_state));
++                let mut ld = |b: &mut Builder, xs: &[F]| -> Vec<V> { xs.iter().map(|&x| b.load_f(x)).collect() };
++                let s = StmtCells {
++                    ctx: ld(b, &w.ctx),
++                    a: b.load_f(w.a),
++                    e: b.load_f(w.e),
++                    s_a: ld(b, &w.s_a),
++                    s_e: ld(b, &w.s_e),
++                };
++                // the preimage hashes to the child's exposed digest
++                let dc = hash_range(b, &s);
++                let lo = pack(b, &mut basis, &v[1..13]);
++                let hi = pack(b, &mut basis, &v[13..19]);
++                let limbs: Vec<F> = v[1..19].iter().map(|c| coeffs(c.val)[0]).collect();
++                if limbs_digest(&limbs) != dc.digest {
++                    b.failures.push(format!("child {i}: statement preimage"));
++                }
++                b.assert_eq(dc.lo, lo, "child statement digest lo");
++                b.assert_eq(dc.hi, hi, "child statement digest hi");
++                stmts.push(s);
++            }
++        }
++    }
++    // continuity: same chunk, adjacent ranges, boundary states equal
++    for i in 1..stmts.len() {
++        for (x, y) in stmts[i].ctx.clone().into_iter().zip(stmts[0].ctx.clone()) {
++            b.assert_eq(x, y, &format!("child {i}: chunk context"));
++        }
++        let (a1, e0) = (stmts[i].a, stmts[i - 1].e);
++        b.assert_eq(a1, e0, &format!("child {i}: segment index continuity"));
++        for (x, y) in stmts[i].s_a.clone().into_iter().zip(stmts[i - 1].s_e.clone()) {
++            b.assert_eq(x, y, &format!("child {i}: boundary state continuity"));
++        }
++    }
++    // level: 1 over app proofs, else child level + 1 (all children at the same level)
++    let level = match kind {
++        ChildKind::App { .. } => b.c(F::ONE),
++        ChildKind::Node { .. } => {
++            for i in 1..levels.len() {
++                b.assert_eq(levels[i], levels[0], "children at the same level");
++            }
++            let one = b.c(F::ONE);
++            b.add(levels[0], one)
++        }
++    };
++    b.pv_level(level);
++    let (f, l) = (&stmts[0], &stmts[stmts.len() - 1]);
++    let out = StmtCells { ctx: f.ctx.clone(), a: f.a, e: l.e, s_a: f.s_a.clone(), s_e: l.s_e.clone() };
++    let dc = hash_range(b, &out);
++    b.pv_digest(&dc);
++    let val = |c: &V| coeffs(c.val)[0];
++    RangeStmt {
++        ctx: out.ctx.iter().map(val).collect(),
++        a: val(&out.a),
++        e: val(&out.e),
++        s_a: out.s_a.iter().map(val).collect(),
++        s_e: out.s_e.iter().map(val).collect(),
++    }
++}
++
++// ---------------------------------------------------------------------------------------
++// Design G level 1: one main (shared-transcript) base proof + linked sub-proofs (P-PERF-8 PREP /
++// code-hash proofs).  No segment statements: continuity is inside the main proof.
++// ---------------------------------------------------------------------------------------
++
++/// A cross-proof link: public value `sub_pv` of AIR 0 of child `sub` must equal public value
++/// `main_pv` of AIR 0 of the main child (child 0), e.g. "PREP proof's code-table commitment = the
++/// commitment the main proof's FETCH table uses".
++#[derive(Clone, Copy, Debug)]
++pub struct Link {
++    pub sub: usize,
++    pub sub_pv: usize,
++    pub main_pv: usize,
++}
++
++/// L1 of design G: verify child 0 (the main base proof) and children 1.. (sub-proofs, any vks), each on
++/// its own transcript; check the links; expose level 1 and the tag-8 statement digest of the main
++/// proof's public values (the recursion lane's G1 format, so T1.. pass it through unchanged).
++pub fn build_l1_linked(
++    b: &mut Builder,
++    children: &[(&MultiStarkVerifyingKey<Sha384Config>, &Proof<Sha384Config>)],
++    links: &[Link],
++) -> Digest {
++    b.agg = true;
++    let mut pvs: Vec<Vec<Vec<V>>> = vec![];
++    for (i, &(vk, proof)) in children.iter().enumerate() {
++        if i > 0 {
++            b.restart_transcript();
++        }
++        pvs.push(build_verifier(b, vk, proof));
++    }
++    for (n, l) in links.iter().enumerate() {
++        assert!(l.sub >= 1 && l.sub < children.len());
++        let (x, y) = (pvs[l.sub][0][l.sub_pv], pvs[0][0][l.main_pv]);
++        b.assert_eq(x, y, &format!("link {n}: sub-proof {} pv {} = main pv {}", l.sub, l.sub_pv, l.main_pv));
++    }
++    let one = b.c(F::ONE);
++    b.pv_level(one);
++    let main = &pvs[0];
++    let mut cells: Vec<V> = vec![b.c(F::from_usize(main.len()))];
++    for p in main {
++        let n = b.c(F::from_usize(p.len()));
++        cells.push(n);
++    }
++    cells.extend(main.iter().flatten().copied());
++    let job = b.job_start(crate::sha384::config::TAG_STATEMENT, 4 * cells.len());
++    for (i, &x) in cells.iter().enumerate() {
++        b.unit1(x, job, 2 + i as u32);
++    }
++    let d = crate::sha384::config::statement_digest(&children[0].1.public_values);
++    let dc = b.dig(job, d);
++    b.pv_digest(&dc);
++    d
++}
++
++/// Native check of the G statement: public values 1..19 = tag-8 digest of the main proof's values.
++pub fn check_statement(nv_public_values: &[F], main_public_values: &[Vec<F>]) -> bool {
++    let (lo, hi) = super::builder::digest_cells(crate::sha384::config::statement_digest(main_public_values));
++    nv_public_values.len() == super::uair::NV_NUM_PVS && nv_public_values[1..13] == lo[..] && nv_public_values[13..19] == hi[..6]
++}
++
++// ---------------------------------------------------------------------------------------
++// Segment fixture: a Fibonacci machine split into segments (state (l, r), r' = l + r)
++// ---------------------------------------------------------------------------------------
++
++/// Segment AIR: columns (l, r); public values [ctx.. (n_ctx), j, pre_l, pre_r, post_l, post_r];
++/// first row = pre, transition (l, r) -> (r, l + r), post = step(last row).
++#[derive(Clone, Copy)]
++pub struct SegAir {
++    pub n_ctx: usize,
++}
++impl<T> p3_air::BaseAir<T> for SegAir {
++    fn width(&self) -> usize {
++        2
++    }
++}
++impl<T> openvm_stark_backend::BaseAirWithPublicValues<T> for SegAir {
++    fn num_public_values(&self) -> usize {
++        self.n_ctx + 5
++    }
++}
++impl<T> openvm_stark_backend::PartitionedBaseAir<T> for SegAir {}
++impl<AB: p3_air::AirBuilderWithPublicValues> p3_air::Air<AB> for SegAir {
++    fn eval(&self, builder: &mut AB) {
++        use p3_air::AirBuilder;
++        use p3_matrix::Matrix;
++        let main = builder.main();
++        let pv: Vec<AB::Expr> = builder.public_values().iter().map(|&x| x.into()).collect();
++        let (lc, nc) = (main.row_slice(0).unwrap(), main.row_slice(1).unwrap());
++        let (l, r): (AB::Expr, AB::Expr) = (lc[0].clone().into(), lc[1].clone().into());
++        let (nl, nr): (AB::Expr, AB::Expr) = (nc[0].clone().into(), nc[1].clone().into());
++        let o = self.n_ctx + 1;
++        builder.when_first_row().assert_eq(l.clone(), pv[o].clone());
++        builder.when_first_row().assert_eq(r.clone(), pv[o + 1].clone());
++        builder.when_transition().assert_eq(nl, r.clone());
++        builder.when_transition().assert_eq(nr, l.clone() + r.clone());
++        // post = the state after the last row (the next segment's first row)
++        builder.when_last_row().assert_eq(r.clone(), pv[o + 2].clone());
++        builder.when_last_row().assert_eq(l + r, pv[o + 3].clone());
++    }
++}
++
++/// Segment j of a chunk: n rows from state `pre`.
++#[derive(Clone, Debug)]
++pub struct SegFixture {
++    pub ctx: Vec<F>,
++    pub j: u64,
++    pub pre: (F, F),
++    pub n: usize,
++}
++impl SegFixture {
++    pub fn rows(&self) -> Vec<(F, F)> {
++        let mut v = vec![self.pre];
++        for _ in 1..self.n {
++            let (l, r) = *v.last().unwrap();
++            v.push((r, l + r));
++        }
++        v
++    }
++    /// State after the segment (the next segment's pre-state).
++    pub fn post(&self) -> (F, F) {
++        let (l, r) = *self.rows().last().unwrap();
++        (r, l + r)
++    }
++    pub fn public_values(&self) -> Vec<F> {
++        let p = self.post();
++        let mut v = self.ctx.clone();
++        v.extend([F::from_u64(self.j), self.pre.0, self.pre.1, p.0, p.1]);
++        v
++    }
++    pub fn stmt(&self) -> RangeStmt {
++        RangeStmt::of_segment(&self.public_values(), self.ctx.len(), 2)
++    }
++    /// The next segment (continuing from this one's post-state).
++    pub fn next(&self) -> SegFixture {
++        let p = self.post();
++        SegFixture { ctx: self.ctx.clone(), j: self.j + 1, pre: p, n: self.n }
++    }
++}
++impl openvm_stark_backend::test_utils::TestFixture<Sha384Config> for SegFixture {
++    fn airs(&self) -> Vec<openvm_stark_backend::AirRef<Sha384Config>> {
++        vec![Arc::new(SegAir { n_ctx: self.ctx.len() })]
++    }
++    fn generate_proving_ctx(
++        &self,
++    ) -> openvm_stark_backend::prover::ProvingContext<openvm_stark_backend::prover::CpuColMajorBackend<Sha384Config>> {
++        use openvm_stark_backend::prover::{AirProvingContext, ColMajorMatrix, ProvingContext};
++        let v: Vec<F> = self.rows().into_iter().flat_map(|(l, r)| [l, r]).collect();
++        let m = p3_matrix::dense::RowMajorMatrix::new(v, 2);
++        ProvingContext::new(vec![(0, AirProvingContext::simple(ColMajorMatrix::from_row_major(&m), self.public_values()))])
++    }
++}
++
++/// A chunk of `s` consecutive segments of `n` rows each.
++pub fn chunk_segments(ctx: &[u64], s: usize, n: usize) -> Vec<SegFixture> {
++    let mut v = vec![SegFixture { ctx: ctx.iter().map(|&x| F::from_u64(x)).collect(), j: 0, pre: (F::ZERO, F::ONE), n }];
++    while v.len() < s {
++        let nx = v.last().unwrap().next();
++        v.push(nx);
++    }
++    v
++}
++
++#[allow(dead_code)]
++fn _unused(x: F) -> u32 {
++    x.as_canonical_u32()
++}
+diff --git a/crates/recursion/src/nv/agg_tests.rs b/crates/recursion/src/nv/agg_tests.rs
+new file mode 100644
+index 0000000..a0fa75a
+--- /dev/null
++++ b/crates/recursion/src/nv/agg_tests.rs
+@@ -0,0 +1,443 @@
++//! [agg] Tests of the n-to-1 aggregation node (nv/agg.rs).
++use openvm_stark_backend::{keygen::types::MultiStarkVerifyingKey, proof::Proof, test_utils::TestFixture, StarkEngine};
++use p3_field::PrimeCharacteristicRing;
++use p3_matrix::dense::RowMajorMatrix;
++
++use super::{
++    agg::{build_agg, chunk_segments, check_range_statement, ChildKind, RangeStmt, SegFixture},
++    builder::Builder,
++    circuit::NvCircuit,
++    transcript2::{Hash2Cols, HASH2_WIDTH},
++    uair::{N_COMMON, NV_NUM_PVS},
++};
++use crate::sha384::{
++    config::*,
++    e2e_tests::child_params_small,
++};
++
++type Vk = MultiStarkVerifyingKey<Sha384Config>;
++type Pf = Proof<Sha384Config>;
++
++const N_CTX: usize = 1;
++const APP: ChildKind = ChildKind::App { n_ctx: N_CTX, n_state: 2 };
++
++fn prove_segs(segs: &[SegFixture]) -> Vec<(Vk, Pf)> {
++    let engine = Sha384CpuEngine::new(child_params_small());
++    segs.iter()
++        .map(|s| {
++            let (vk, p) = s.keygen_and_prove(&engine);
++            engine.verify(&vk, &p).unwrap();
++            (vk, p)
++        })
++        .collect()
++}
++
++fn refs(v: &[(Vk, Pf)]) -> Vec<(&Vk, &Pf)> {
++    v.iter().map(|(a, b)| (a, b)).collect()
++}
++
++fn program(children: &[(Vk, Pf)]) -> (Builder, RangeStmt) {
++    let mut b = Builder::new(18, 0);
++    let s = build_agg(&mut b, &refs(children), APP, &[]);
++    (b, s)
++}
++
++fn debug_params() -> openvm_stark_backend::SystemParams {
++    let mut p = crate::sha384::e2e_tests::parent_params_debug();
++    p.max_constraint_degree = NvCircuit::new(3, 16, 1).layout().degree().max(6);
++    p
++}
++
++/// Generate the aggregation circuit's traces, mutate them, run the debug constraint + bus check.
++fn agg_debug(
++    children: &[(Vk, Pf)],
++    kind: ChildKind,
++    pre: &[RangeStmt],
++    log_rows: usize,
++    mutate: impl FnOnce(&mut Vec<RowMajorMatrix<F>>, &mut Vec<F>),
++) -> Builder {
++    use openvm_cpu_backend::CpuBackend;
++    use openvm_stark_backend::prover::{AirProvingContext, MatrixDimensions, ProvingContext};
++    let circ = NvCircuit::new(3, log_rows, 1);
++    let airs = circ.airs::<Sha384Config>();
++    let (mut mats, b) = circ.generate_with(|b| {
++        build_agg(b, &refs(children), kind, pre);
++    });
++    let mut pvs = b.public_values();
++    let mut total = 0;
++    for (a, m) in airs.iter().zip(&mats) {
++        println!("AGG_AIR {} {} x {}", a.name(), m.height(), m.width());
++        total += m.height() * m.width();
++    }
++    println!("AGG_TOTAL_CELLS {total} program_rows={} jobs={} merkle_nodes={}", b.instrs.len(), b.job_units.len(), b.merkle_nodes);
++    mutate(&mut mats, &mut pvs);
++    let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
++        .into_iter()
++        .enumerate()
++        .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, pvs.clone()) } else { AirProvingContext::simple_no_pis(m) })
++        .collect();
++    let parent = Sha384CpuEngine::new(debug_params());
++    parent.debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
++    b
++}
++
++fn must_fail(name: &str, f: impl FnOnce()) {
++    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(f));
++    assert!(r.is_err(), "tamper not rejected: {name}");
++    println!("AGG_TAMPER rejected: {name}");
++}
++
++/// Column index (in NvAir) of a Hash2Cols field, by its value in an index-filled view.
++fn hcol(f: impl Fn(&Hash2Cols<usize>) -> usize) -> usize {
++    use core::borrow::Borrow;
++    let idx: Vec<usize> = (0..HASH2_WIDTH).collect();
++    let v: &Hash2Cols<usize> = idx[..].borrow();
++    N_COMMON + f(v)
++}
++
++/// Rows of NvAir whose hash-chain flag (kh, common column 3) is set.
++fn hash_rows(m: &RowMajorMatrix<F>) -> Vec<usize> {
++    (0..m.values.len() / m.width).filter(|&r| m.values[r * m.width + 3] == F::ONE).collect()
++}
++
++// ---------------------------------------------------------------------------------------
++
++#[test]
++fn agg_segment_chain_native() {
++    let segs = chunk_segments(&[7], 4, 32);
++    for w in segs.windows(2) {
++        assert_eq!(w[0].post(), w[1].pre);
++    }
++    let st: Vec<RangeStmt> = segs.iter().map(|s| s.stmt()).collect();
++    let all = RangeStmt::compose(&st).unwrap();
++    assert_eq!((all.a, all.e), (F::ZERO, F::from_u64(4)));
++    assert!(RangeStmt::compose(&[st[1].clone(), st[0].clone()]).is_none());
++    assert!(RangeStmt::compose(&[st[0].clone(), st[2].clone()]).is_none());
++    // proofs verify natively and expose the statement fields
++    let pr = prove_segs(&segs[..2]);
++    assert_eq!(pr[0].1.public_values[0], segs[0].public_values());
++}
++
++/// The k-child program: honest k = 2, 3 pass and expose the composed statement; each child's
++/// verifier runs on its own transcript (k - 1 restarts).
++#[test]
++fn agg_program_honest() {
++    let segs = chunk_segments(&[7], 3, 32);
++    let pr = prove_segs(&segs);
++    for k in [2usize, 3] {
++        let (b, s) = program(&pr[..k]);
++        assert!(b.failures.is_empty(), "k = {k}: {:?}", b.failures);
++        assert_eq!(b.transcript.starts.len(), k - 1);
++        let want = RangeStmt::compose(&segs[..k].iter().map(|s| s.stmt()).collect::<Vec<_>>()).unwrap();
++        assert_eq!(s, want);
++        assert!(check_range_statement(&b.public_values(), &want));
++        println!("AGG_PROGRAM k={k} rows={} jobs={} merkle_nodes={}", b.instrs.len(), b.job_units.len(), b.merkle_nodes);
++    }
++}
++
++/// Program-level tampers: swapped children, broken continuity (a valid proof of a segment that
++/// does not start where the previous one ended), a dropped child, a different chunk.
++#[test]
++fn agg_program_tamper() {
++    let segs = chunk_segments(&[7], 3, 32);
++    let pr = prove_segs(&segs);
++    let mut wrong_pre = segs[1].clone();
++    wrong_pre.pre = (wrong_pre.pre.0 + F::ONE, wrong_pre.pre.1);
++    let mut other_ctx = segs[1].clone();
++    other_ctx.ctx = vec![F::from_u64(8)];
++    let extra = prove_segs(&[wrong_pre, other_ctx]);
++    let cases: Vec<(&str, Vec<(Vk, Pf)>)> = vec![
++        ("swapped children", vec![pr[1].clone(), pr[0].clone()]),
++        ("broken continuity", vec![pr[0].clone(), extra[0].clone()]),
++        ("dropped child", vec![pr[0].clone(), pr[2].clone()]),
++        ("other chunk", vec![pr[0].clone(), extra[1].clone()]),
++    ];
++    for (name, ch) in cases {
++        let (b, _) = program(&ch);
++        println!("AGG_PROGRAM_TAMPER {name}: {:?}", b.failures);
++        assert!(!b.failures.is_empty(), "{name} not detected");
++    }
++}
++
++/// The circuit: debug constraint and bus check for honest k = 2 and 3; tampers at the trace
++/// level (statement limb, chain-start forging) and the program-level tampers (the circuit's Zero
++/// rows reject them).
++#[test]
++fn agg_circuit_debug() {
++    let segs = chunk_segments(&[7], 3, 32);
++    let pr = prove_segs(&segs);
++    agg_debug(&pr[..2], APP, &[], 17, |_, _| {});
++    agg_debug(&pr[..3], APP, &[], 17, |_, _| {});
++    // exposed statement digest limb
++    must_fail("statement digest limb", || {
++        agg_debug(&pr[..2], APP, &[], 17, |_, pvs| pvs[5] += F::ONE);
++    });
++    must_fail("level", || {
++        agg_debug(&pr[..2], APP, &[], 17, |_, pvs| pvs[0] += F::ONE);
++    });
++    // chain starts are declared by the program: un-declare / forge one
++    let is_first = hcol(|h| h.is_first);
++    let hn = hcol(|h| h.hn);
++    must_fail("chain start removed", || {
++        agg_debug(&pr[..2], APP, &[], 17, |m, _| {
++            let rows = hash_rows(&m[0]);
++            let w = m[0].width;
++            let r = *rows.iter().skip(1).find(|&&r| m[0].values[r * w + is_first] == F::ONE).unwrap();
++            m[0].values[r * w + is_first] = F::ZERO;
++            m[0].values[(r - 1) * w + hn] = F::ONE;
++        });
++    });
++    must_fail("chain start forged", || {
++        agg_debug(&pr[..2], APP, &[], 17, |m, _| {
++            let rows = hash_rows(&m[0]);
++            let w = m[0].width;
++            let r = rows[3];
++            assert_eq!(m[0].values[r * w + is_first], F::ZERO);
++            m[0].values[r * w + is_first] = F::ONE;
++            m[0].values[(r - 1) * w + hn] = F::ZERO;
++        });
++    });
++    let mut wrong_pre = segs[1].clone();
++    wrong_pre.pre = (wrong_pre.pre.0 + F::ONE, wrong_pre.pre.1);
++    let extra = prove_segs(&[wrong_pre]);
++    for (name, ch) in [
++        ("circuit: swapped children", vec![pr[1].clone(), pr[0].clone()]),
++        ("circuit: broken continuity", vec![pr[0].clone(), extra[0].clone()]),
++        ("circuit: dropped child", vec![pr[0].clone(), pr[2].clone()]),
++    ] {
++        must_fail(name, || {
++            agg_debug(&ch, APP, &[], 17, |_, _| {});
++        });
++    }
++}
++
++/// Keygen: columns, degree and interactions of the aggregation circuit (same AIRs as NV).
++#[test]
++fn agg_shape() {
++    let circ = NvCircuit::new(3, 17, 1);
++    let airs = circ.airs::<Sha384Config>();
++    let engine = Sha384CpuEngine::new(debug_params());
++    let (_, vk) = engine.keygen(&airs);
++    for (a, avk) in airs.iter().zip(&vk.inner.per_air) {
++        println!(
++            "AGG_SHAPE {} w={} int/row={} deg={} pvs={}",
++            a.name(),
++            avk.params.width.common_main,
++            avk.symbolic_constraints.interactions.len(),
++            avk.max_constraint_degree,
++            avk.params.num_public_values
++        );
++    }
++    assert_eq!(vk.inner.per_air[0].params.num_public_values, NV_NUM_PVS);
++}
++
++/// Real proofs (heavy; env PARENT_* / CHILD2_* params): level 1 = 2-to-1 over app segments
++/// (twice: segments 0-1 and 2-3), level 2 = 2-to-1 over the two level-1 proofs (statement
++/// preimages checked in-circuit; program binding not emitted, see agg.rs).  Checks the final
++/// statement natively and prints per-level shape, cost and resources.
++#[test]
++#[ignore]
++fn agg_chain() {
++    use crate::sha384::e2e_tests::{describe, env_usize, params_from_env, proof_sizes, soundness};
++    let segs = chunk_segments(&[7], 4, 32);
++    let pr = prove_segs(&segs);
++    let reset_hwm = || {
++        let _ = std::fs::write("/proc/self/clear_refs", "5");
++    };
++    let hwm_gb = || -> f64 {
++        std::fs::read_to_string("/proc/self/status")
++            .ok()
++            .and_then(|s| s.lines().find(|l| l.starts_with("VmHWM")).map(|l| l.split_whitespace().nth(1).unwrap().parse::<f64>().unwrap()))
++            .unwrap_or(0.0)
++            / 1048576.0
++    };
++    let level = |tag: &str, pp: openvm_stark_backend::SystemParams, log_rows: usize, k_child: usize, children: &[(Vk, Pf)], kind: ChildKind, pre: &[RangeStmt]| -> (Vk, Pf, Builder) {
++        let mut pp = pp;
++        pp.max_constraint_degree = debug_params().max_constraint_degree;
++        describe(tag, &pp);
++        let engine = Sha384CpuEngine::new(pp);
++        let circ = NvCircuit::new(k_child, log_rows, 1);
++        reset_hwm();
++        let t = std::time::Instant::now();
++        let (mats, b) = circ.generate_with(|b| {
++            build_agg(b, &refs(children), kind, pre);
++        });
++        let shapes: Vec<(usize, usize)> = mats.iter().map(|m| (m.values.len() / m.width, m.width)).collect();
++        let (vk, p, _) = super::circuit::prove_mats(&circ, &engine, mats, &b);
++        let secs = t.elapsed().as_secs_f64();
++        let airs = circ.airs::<Sha384Config>();
++        let (mut cols, mut opened, mut ints, mut cells) = (0, 0, 0usize, 0usize);
++        for (i, a) in vk.inner.per_air.iter().enumerate() {
++            let w = a.params.width.common_main;
++            cols += w;
++            opened += w + a.params.opening_masks()[0].iter().filter(|&&m| m).count();
++            ints += shapes[i].0 * a.symbolic_constraints.interactions.len();
++            cells += shapes[i].0 * shapes[i].1;
++            println!("{tag}_AIR {} h={} w={} int/row={} deg={}", airs[i].name(), shapes[i].0, w, a.symbolic_constraints.interactions.len(), a.max_constraint_degree);
++        }
++        let blocks: usize = b.jobs().iter().filter(|j| !j.node).map(|j| j.num_blocks()).sum();
++        println!(
++            "{tag}_SUMMARY children={} cols={cols} opened={opened} interactions={ints} cells={cells} program_rows={} merkle_nodes={} leaf_blocks={blocks} chain_starts={} prove_s={secs:.1} peak_rss_gb={:.2}",
++            children.len(),
++            b.instrs.len(),
++            b.merkle_nodes,
++            b.transcript.starts.len() + 1,
++            hwm_gb()
++        );
++        soundness(tag, &vk);
++        println!("{tag}_PROOF_BYTES {}", proof_sizes(&p));
++        (vk, p, b)
++    };
++    let p1 = params_from_env("PARENT", [16, 3, 20, 3]);
++    let lr1 = env_usize("AGG_LOG_ROWS1", 17);
++    let k1 = child_params_small().k_whir();
++    let (va, pa, ba) = level("N1a", p1.clone(), lr1, k1, &pr[..2], APP, &[]);
++    let (vb, pb, bb) = level("N1b", p1.clone(), lr1, k1, &pr[2..], APP, &[]);
++    let sa = RangeStmt::compose(&[segs[0].stmt(), segs[1].stmt()]).unwrap();
++    let sb = RangeStmt::compose(&[segs[2].stmt(), segs[3].stmt()]).unwrap();
++    assert!(check_range_statement(&ba.public_values(), &sa));
++    assert!(check_range_statement(&bb.public_values(), &sb));
++    assert_eq!(pa.public_values[0], ba.public_values());
++    if env_usize("AGG_LEVELS", 2) < 2 {
++        return;
++    }
++    let p2 = params_from_env("PARENT2", [16, 3, 20, 3]);
++    let lr2 = env_usize("AGG_LOG_ROWS2", 19);
++    let kp = p1.k_whir();
++    let node = ChildKind::Node { n_ctx: N_CTX, n_state: 2 };
++    let (_v2, p2p, b2) = level("N2", p2, lr2, kp, &[(va, pa), (vb, pb)], node, &[sa.clone(), sb.clone()]);
++    let all = RangeStmt::compose(&segs.iter().map(|s| s.stmt()).collect::<Vec<_>>()).unwrap();
++    assert!(check_range_statement(&p2p.public_values[0], &all), "final statement");
++    assert_eq!(b2.level, 2);
++    // a dropped last segment is not the chunk statement
++    let short = RangeStmt::compose(&segs[..3].iter().map(|s| s.stmt()).collect::<Vec<_>>()).unwrap();
++    assert!(!check_range_statement(&p2p.public_values[0], &short));
++    println!("AGG_CHAIN_OK final statement = segments [0, 4)");
++}
++
++/// Level-2 node in the debug checker (no proving of the level-2 trace): two real level-1
++/// proofs at a low query target, statement preimages hashed in-circuit; tampered preimages,
++/// swapped and duplicated children are rejected.
++#[test]
++#[ignore]
++fn agg_node_debug() {
++    use crate::sha384::e2e_tests::{env_usize, params_from_env};
++    let segs = chunk_segments(&[7], 4, 32);
++    let pr = prove_segs(&segs);
++    let mut p1 = params_from_env("PARENT", [12, 2, 8, 3]);
++    p1.max_constraint_degree = debug_params().max_constraint_degree;
++    let engine = Sha384CpuEngine::new(p1.clone());
++    let lr1 = env_usize("AGG_LOG_ROWS1", 17);
++    let k1 = child_params_small().k_whir();
++    let one = |ch: &[(Vk, Pf)]| -> (Vk, Pf) {
++        let circ = NvCircuit::new(k1, lr1, 1);
++        let (mats, b) = circ.generate_with(|b| {
++            build_agg(b, &refs(ch), APP, &[]);
++        });
++        let (vk, p, _) = super::circuit::prove_mats(&circ, &engine, mats, &b);
++        (vk, p)
++    };
++    let na = one(&pr[..2]);
++    let nb = one(&pr[2..]);
++    let sa = RangeStmt::compose(&[segs[0].stmt(), segs[1].stmt()]).unwrap();
++    let sb = RangeStmt::compose(&[segs[2].stmt(), segs[3].stmt()]).unwrap();
++    let node = ChildKind::Node { n_ctx: N_CTX, n_state: 2 };
++    let lr2 = env_usize("AGG_LOG_ROWS2", 19);
++    let kids = vec![na.clone(), nb.clone()];
++    let b = agg_debug_k(&kids, node, &[sa.clone(), sb.clone()], lr2, p1.k_whir());
++    let all = RangeStmt::compose(&segs.iter().map(|s| s.stmt()).collect::<Vec<_>>()).unwrap();
++    assert!(check_range_statement(&b.public_values(), &all));
++    // wrong preimage (claims a different boundary state), swapped, duplicated
++    let mut bad = sa.clone();
++    bad.s_e[0] += F::ONE;
++    let mut b2 = Builder::new(lr2, 0);
++    build_agg(&mut b2, &refs(&kids), node, &[bad.clone(), sb.clone()]);
++    assert!(!b2.failures.is_empty());
++    must_fail("node: wrong preimage", || {
++        agg_debug_k(&kids, node, &[bad.clone(), sb.clone()], lr2, p1.k_whir());
++    });
++    must_fail("node: swapped children", || {
++        agg_debug_k(&[nb.clone(), na.clone()], node, &[sb.clone(), sa.clone()], lr2, p1.k_whir());
++    });
++    must_fail("node: duplicated child", || {
++        agg_debug_k(&[na.clone(), na.clone()], node, &[sa.clone(), sa.clone()], lr2, p1.k_whir());
++    });
++}
++
++fn agg_debug_k(children: &[(Vk, Pf)], kind: ChildKind, pre: &[RangeStmt], log_rows: usize, k: usize) -> Builder {
++    use openvm_cpu_backend::CpuBackend;
++    use openvm_stark_backend::prover::{AirProvingContext, MatrixDimensions, ProvingContext};
++    let circ = NvCircuit::new(k, log_rows, 1);
++    let airs = circ.airs::<Sha384Config>();
++    let (mats, b) = circ.generate_with(|b| {
++        build_agg(b, &refs(children), kind, pre);
++    });
++    let pvs = b.public_values();
++    let mut total = 0;
++    for (a, m) in airs.iter().zip(&mats) {
++        println!("AGGN_AIR {} {} x {}", a.name(), m.height(), m.width());
++        total += m.height() * m.width();
++    }
++    println!("AGGN_TOTAL_CELLS {total} program_rows={} merkle_nodes={}", b.instrs.len(), b.merkle_nodes);
++    let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
++        .into_iter()
++        .enumerate()
++        .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, pvs.clone()) } else { AirProvingContext::simple_no_pis(m) })
++        .collect();
++    let parent = Sha384CpuEngine::new(debug_params());
++    parent.debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
++    b
++}
++
++/// Design G, level 1: main proof (a segment-machine proof whose ctx[0] stands for the code-table
++/// commitment its FETCH table uses) + one PREP-like sub-proof (Fib, public value 2 = its output, the
++/// "commitment"), linked; plus a second sub-proof of a different vk to show heterogeneous children.
++#[test]
++fn agg_g_l1_linked() {
++    use super::agg::{build_l1_linked, check_statement, Link};
++    use openvm_stark_backend::test_utils::FibFixture;
++    let engine = Sha384CpuEngine::new(child_params_small());
++    let fib = FibFixture::new(0, 1, 1 << 5);
++    let (vf, pf) = fib.keygen_and_prove(&engine);
++    let code = pf.public_values[0][2];
++    let mut main = chunk_segments(&[0], 1, 32).remove(0);
++    main.ctx = vec![code];
++    let mut bad_main = main.clone();
++    bad_main.ctx = vec![code + F::ONE];
++    let pr = prove_segs(&[main.clone(), bad_main]);
++    let (vk_m, p_m) = &pr[0];
++    let link = [Link { sub: 1, sub_pv: 2, main_pv: 0 }];
++    let run = |main: &(Vk, Pf), log_rows: usize, mutate: &dyn Fn(&mut Vec<RowMajorMatrix<F>>, &mut Vec<F>)| -> Builder {
++        use openvm_cpu_backend::CpuBackend;
++        use openvm_stark_backend::prover::{AirProvingContext, ProvingContext};
++        let circ = NvCircuit::new(3, log_rows, 1);
++        let airs = circ.airs::<Sha384Config>();
++        let (mut mats, b) = circ.generate_with(|b| {
++            build_l1_linked(b, &[(&main.0, &main.1), (&vf, &pf)], &link);
++        });
++        let mut pvs = b.public_values();
++        mutate(&mut mats, &mut pvs);
++        let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
++            .into_iter()
++            .enumerate()
++            .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, pvs.clone()) } else { AirProvingContext::simple_no_pis(m) })
++            .collect();
++        Sha384CpuEngine::new(debug_params()).debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
++        b
++    };
++    let b = run(&pr[0], 17, &|_, _| {});
++    assert!(b.failures.is_empty(), "{:?}", b.failures);
++    assert!(check_statement(&b.public_values(), &p_m.public_values));
++    println!("AGG_G_L1 rows={} chain_starts={}", b.instrs.len(), b.transcript.starts.len() + 1);
++    let _ = vk_m;
++    // a main proof using a different code commitment than the sub-proof proves: rejected
++    let mut bb = Builder::new(18, 0);
++    build_l1_linked(&mut bb, &[(&pr[1].0, &pr[1].1), (&vf, &pf)], &link);
++    assert!(!bb.failures.is_empty());
++    must_fail("G: broken link", || {
++        run(&pr[1], 17, &|_, _| {});
++    });
++    must_fail("G: statement digest limb", || {
++        run(&pr[0], 17, &|_, pvs| pvs[3] += F::ONE);
++    });
++}
+diff --git a/crates/recursion/src/nv/builder.rs b/crates/recursion/src/nv/builder.rs
+index 144421c..7262ed8 100644
+--- a/crates/recursion/src/nv/builder.rs
++++ b/crates/recursion/src/nv/builder.rs
+@@ -20,6 +20,8 @@ pub struct NvRecorder {
+     pub inner: ShaTranscript,
+     pub values: Vec<F>,
+     pub kinds: Vec<u32>,
++    /// [agg] tidx at which a fresh transcript chain starts (besides 0)
++    pub starts: Vec<usize>,
+ }
+ impl NvRecorder {
+     pub fn into_log(self) -> ShaTranscriptLog {
+@@ -142,6 +144,14 @@ pub struct Builder {
+     tr_started: bool,
+     /// witness cells of the last PoW (pushed into every later block of its run, T*)
+     pow_wit: Vec<V>,
++    /// [agg] the next allocated transcript job starts a chain (its anchor carries P3 = 1)
++    start_pending: bool,
++    /// [agg] the static job that starts the current chain
++    chain_first: Option<u32>,
++    /// [agg] build_verifier leaves level / statement exposure to the caller
++    pub agg: bool,
++    /// exposed statement digest (public values 1..19)
++    pub statement: Option<Digest>,
+ }
+ 
+ impl Builder {
+@@ -174,6 +184,10 @@ impl Builder {
+             tr_static: 0,
+             tr_started: false,
+             pow_wit: vec![],
++            start_pending: true,
++            chain_first: None,
++            agg: false,
++            statement: None,
+         }
+     }
+ 
+@@ -373,10 +387,56 @@ impl Builder {
+         self.load(EF::from(x))
+     }
+     /// First transcript job of the chain: push the initial state as its state units 2..13.
+-    fn tr_first(&mut self, _job: u32) {
++    fn tr_first(&mut self, job: u32) {
+         // T*: every hash-chain row sends its own input-state units; the first row's are the
+         // initial state (constants of the hash-chain role)
+         self.tr_started = true;
++        if self.start_pending {
++            self.start_pending = false;
++            self.chain_first = Some(job);
++        }
++    }
++    /// [agg] P3 of the anchor of static job `job`: 1 iff it starts a transcript chain.
++    fn anchor_p3(&self, job: u32) -> u32 {
++        u32::from(self.chain_first == Some(job))
++    }
++    /// [agg] Start an independent transcript (the next child's verifier): close the open
++    /// flush, reset the sponge to the initial state.  tidx and job ids stay global; the
++    /// hash-chain role starts a new chain at the next job (anchored with P3 = 1).
++    pub fn restart_transcript(&mut self) {
++        self.tr_close();
++        self.transcript.inner = ShaTranscript::default();
++        let t = self.tidx() as usize;
++        self.transcript.starts.push(t);
++        self.tr_started = false;
++        self.start_pending = true;
++        self.pow_wit.clear();
++    }
++    /// One base-field cell as unit `uidx` of leaf job `job`.
++    pub fn unit1(&mut self, x: V, job: u32, uidx: u32) -> V {
++        let c = coeffs(x.val);
++        debug_assert!(c[1..].iter().all(|v| *v == F::ZERO));
++        self.job_unit(job, uidx, c[0]);
++        self.push(Op::Unit1, x.addr, 0, job, uidx, x.val, F::ZERO)
++    }
++    /// Expose the statement digest held in cells (lo, hi) as public values 1..19.
++    pub fn pv_digest(&mut self, d: &DigestCells) {
++        self.statement = Some(d.digest);
++        self.push(Op::PvD, d.lo.addr, 0, 0, 0, d.lo.val, F::ZERO);
++        self.push(Op::PvD, d.hi.addr, 0, 1, 0, d.hi.val, F::ZERO);
++    }
++    /// NvAir public values: [level, statement digest limbs] (zeros if no digest is exposed).
++    pub fn public_values(&self) -> Vec<F> {
++        let mut v = vec![F::from_u32(self.level)];
++        match self.statement {
++            Some(d) => {
++                let (lo, hi) = digest_cells(d);
++                v.extend_from_slice(&lo);
++                v.extend_from_slice(&hi[..6]);
++            }
++            None => v.extend([F::ZERO; NV_DIGEST]),
++        }
++        v
+     }
+     /// T*: blocks B_j (j >= 2) of a PoW run created by the last sample: push the PoW witness as
+     /// their units 16.. (the hash-chain row adds the counter).
+@@ -409,7 +469,8 @@ impl Builder {
+     /// Close the open flush job: anchor (job, t_start, count).
+     fn tr_close(&mut self) {
+         if let Some((job, t, cnt)) = self.tr_pending.take() {
+-            self.push(Op::Anchor, t, cnt, job, 0, EF::ZERO, F::ZERO);
++            let p3 = self.anchor_p3(job);
++            self.push(Op::Anchor, t, cnt, job, p3, EF::ZERO, F::ZERO);
+         }
+     }
+     /// Proof-of-work check (levers spec, tag 7): flush; job H(7, [state, witness]) with the
+@@ -445,7 +506,8 @@ impl Builder {
+             self.push(Op::Unit1, v.addr, 0, job, 16 + i as u32, v.val, F::ZERO);
+             self.pow_wit.push(v);
+         }
+-        self.push(Op::Anchor, t, witness.len() as u32, job, 0, EF::ZERO, F::ZERO);
++        let p3 = self.anchor_p3(job);
++        self.push(Op::Anchor, t, witness.len() as u32, job, p3, EF::ZERO, F::ZERO);
+         // output word 0 as limbs (l0, l1, l2) from the hash chain
+         let state = self.transcript.inner.state;
+         let w0 = u64::from_be_bytes(state[..8].try_into().unwrap());
+@@ -552,7 +614,8 @@ impl Builder {
+         );
+         let lo = self.push(Op::UnitW, lo.addr, 4, job, 16, lo.val, F::ZERO);
+         let hi = self.push(Op::UnitW, hi.addr, 2, job, 24, hi.val, F::ZERO);
+-        self.push(Op::Anchor, t, NV_DIGEST as u32, job, 0, EF::ZERO, F::ZERO);
++        let p3 = self.anchor_p3(job);
++        self.push(Op::Anchor, t, NV_DIGEST as u32, job, p3, EF::ZERO, F::ZERO);
+         DigestCells { lo, hi, digest: d }
+     }
+     // ---- SHA jobs (leaf messages) ----
+diff --git a/crates/recursion/src/nv/circuit.rs b/crates/recursion/src/nv/circuit.rs
+index efc54ef..aaed136 100644
+--- a/crates/recursion/src/nv/circuit.rs
++++ b/crates/recursion/src/nv/circuit.rs
+@@ -14,7 +14,7 @@ use super::{
+     fmt::sha_k,
+         hash::{byte_table2, generate2, ByteAir, HashBuses, Job2, Work2, U2},
+     isa::Op,
+-    transcript2::{replay2, tr2_traces, TrBuses},
++    transcript2::{replay2_multi, tr2_traces, TrBuses},
+     verifier::build_verifier,
+ };
+ use crate::sha384::{
+@@ -150,6 +150,14 @@ impl NvCircuit {
+         vk: &MultiStarkVerifyingKey<Sha384Config>,
+         proof: &Proof<Sha384Config>,
+     ) -> (Vec<RowMajorMatrix<F>>, Builder) {
++        self.generate_with(|b| {
++            build_verifier(b, vk, proof);
++        })
++    }
++
++    /// [agg] Execute an arbitrary verifier program (e.g. the k-child aggregation program of
++    /// nv/agg.rs) and generate every trace.
++    pub fn generate_with(&self, program: impl FnOnce(&mut Builder)) -> (Vec<RowMajorMatrix<F>>, Builder) {
+         let mut b = Builder::new(self.log_rows, self.reserved());
+         b.prog_log = self.prog_log;
+         if let Some(app) = &self.app {
+@@ -157,14 +165,14 @@ impl NvCircuit {
+         }
+         b.begin();
+         b.bind = self.bind;
+-        build_verifier(&mut b, vk, proof);
++        program(&mut b);
+         b.finish();
+         let _ = self.k; // per-round folding factors come from the child vk
+ 
+         // leaf and Merkle-node jobs (ids 0..), then the transcript jobs
+         let leaf_jobs: Vec<Job2> = b.jobs();
+         let log = b.transcript.clone().into_log();
+-        let tr_jobs = replay2(&log);
++        let tr_jobs = replay2_multi(&log, &b.transcript.starts);
+         let hh = |i: usize| self.heights.as_ref().map_or(1, |h| h[i]);
+         let mut work = Work2 {
+             jobs: leaf_jobs,
+@@ -205,6 +213,18 @@ pub fn prove_level(
+     Builder,
+     Vec<(usize, usize)>,
+ ) {
++    let (mats, b) = circ.generate(child_vk, child);
++    let (vk, proof, shapes) = prove_mats(circ, engine, mats, &b);
++    (vk, proof, b, shapes)
++}
++
++/// Prove executed NV traces (public values from the builder).
++pub fn prove_mats(
++    circ: &NvCircuit,
++    engine: &crate::sha384::config::Sha384CpuEngine,
++    mats: Vec<RowMajorMatrix<F>>,
++    b: &Builder,
++) -> (MultiStarkVerifyingKey<Sha384Config>, Proof<Sha384Config>, Vec<(usize, usize)>) {
+     use openvm_cpu_backend::CpuBackend;
+     use openvm_stark_backend::{
+         prover::{AirProvingContext, DeviceDataTransporter, MatrixDimensions, ProvingContext},
+@@ -212,16 +232,15 @@ pub fn prove_level(
+     };
+     let airs = circ.airs::<Sha384Config>();
+     let (pk, vk) = engine.keygen(&airs);
+-    let (mats, b) = circ.generate(child_vk, child);
+     assert!(b.failures.is_empty(), "verifier program failures: {:?}", b.failures);
+     let shapes = mats.iter().map(|m| (m.height(), m.width())).collect();
+-    let level = F::from_u32(b.level);
++    let pvs = b.public_values();
+     let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
+         .into_iter()
+         .enumerate()
+         .map(|(i, m)| {
+             if i == 0 {
+-                AirProvingContext::simple(m, vec![level])
++                AirProvingContext::simple(m, pvs.clone())
+             } else {
+                 AirProvingContext::simple_no_pis(m)
+             }
+@@ -232,5 +251,5 @@ pub fn prove_level(
+         .prove(&d_pk, ProvingContext::new(ctxs.into_iter().enumerate().collect()))
+         .unwrap();
+     engine.verify(&vk, &proof).unwrap();
+-    (vk, proof, b, shapes)
++    (vk, proof, shapes)
+ }
+diff --git a/crates/recursion/src/nv/glue.rs b/crates/recursion/src/nv/glue.rs
+index 0f8dd27..b6a20ee 100644
+--- a/crates/recursion/src/nv/glue.rs
++++ b/crates/recursion/src/nv/glue.rs
+@@ -501,7 +501,8 @@ pub fn glue_rows(jobs: &[Job2], job_blocks: &[(Vec<Comp>, [u64; 6])], cid_base:
+         let total = slots.len();
+         let (mut phase, mut uidx) = (false, 0usize);
+         let w42 = sha_levers().digest_bytes == 42;
+-        let merkle = j.node || j.tag == 0 || j.tag == crate::sha384::config::TAG_COSET_LEAF;
++        // ALU-started jobs are truncated (job bus tr = 1): leaves, coset leaves, [agg] range statements
++        let merkle = j.node || j.tag == 0 || j.tag == crate::sha384::config::TAG_COSET_LEAF || j.tag == crate::sha384::config::TAG_RANGE || j.tag == crate::sha384::config::TAG_STATEMENT;
+         let trunc = w42 && merkle;
+         let mut hs = false;
+         if j.node {
+diff --git a/crates/recursion/src/nv/isa.rs b/crates/recursion/src/nv/isa.rs
+index 69cde7d..fc46757 100644
+--- a/crates/recursion/src/nv/isa.rs
++++ b/crates/recursion/src/nv/isa.rs
+@@ -75,9 +75,12 @@ pub enum Op {
+     Acc2 = 27,
+     /// c = free witness bit: c0 in {0, 1}, c1..c11 = 0 (one row instead of Load + Bit)
+     LoadBit = 28,
++    /// c = a; expose the statement digest: a's coefficients = public values 1..13 (P2 = 0, lo
++    /// cell) or 13..19 (P2 = 1, hi cell, coefficients 0..6)
++    PvD = 31,
+ }
+ 
+-pub const NUM_OPS: usize = 29;
++pub const NUM_OPS: usize = 30;
+ /// Op code = 8 * hi + lo, hi < OP_HI (UAIR one-hot selector halves).
+ pub const OP_LO: usize = 8;
+ pub const OP_HI: usize = 4;
+@@ -87,7 +90,7 @@ impl Op {
+         use Op::*;
+         [
+             Nop, Mul, Add, Sub, Const, ConstX, Load, Unit1, Anchor, UnitW, Smp1, Smp12, Unit12,
+-            Horn, Job, Bit, Zero, Dig, NodeJob, Acc, DblAdd, MulAddA, Pv, UnitWS4, UnitWS2, PowChk, Data, Acc2, LoadBit,
++            Horn, Job, Bit, Zero, Dig, NodeJob, Acc, DblAdd, MulAddA, Pv, UnitWS4, UnitWS2, PowChk, Data, Acc2, LoadBit, PvD,
+         ]
+     }
+     pub fn reads_a(self) -> bool {
+@@ -95,7 +98,7 @@ impl Op {
+         matches!(
+             self,
+             Mul | Add | Sub | Unit1 | UnitW | Unit12 | Horn | Bit | Zero | DblAdd
+-                | MulAddA | Pv | UnitWS4 | UnitWS2
++                | MulAddA | Pv | UnitWS4 | UnitWS2 | PvD
+         )
+     }
+     pub fn reads_b(self) -> bool {
+diff --git a/crates/recursion/src/nv/mod.rs b/crates/recursion/src/nv/mod.rs
+index df6e338..989e18b 100644
+--- a/crates/recursion/src/nv/mod.rs
++++ b/crates/recursion/src/nv/mod.rs
+@@ -1,4 +1,5 @@
+ //! NV: narrow fixed-point verifier circuit (see results/pq-recursion-nv/DESIGN.md).
++pub mod agg;
+ pub mod builder;
+ pub mod circuit;
+ pub mod fmt;
+@@ -9,6 +10,8 @@ pub mod transcript2;
+ pub mod uair;
+ pub mod verifier;
+ #[cfg(test)]
++mod agg_tests;
++#[cfg(test)]
+ mod hash_tests;
+ #[cfg(test)]
+ mod tests;
+diff --git a/crates/recursion/src/nv/tests.rs b/crates/recursion/src/nv/tests.rs
+index cdd15d6..e112272 100644
+--- a/crates/recursion/src/nv/tests.rs
++++ b/crates/recursion/src/nv/tests.rs
+@@ -93,7 +93,7 @@ fn nv_debug(fx: &impl TestFixture<Sha384Config>, log_rows: usize) {
+     let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
+         .into_iter()
+         .enumerate()
+-        .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, vec![F::ONE]) } else { AirProvingContext::simple_no_pis(m) })
++        .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, { let mut v = vec![F::ONE]; v.resize(super::uair::NV_NUM_PVS, F::ZERO); v }) } else { AirProvingContext::simple_no_pis(m) })
+         .collect();
+     let parent = Sha384CpuEngine::new(nv_debug_params());
+     parent.debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
+@@ -125,7 +125,7 @@ fn nv_debug_mats(
+     let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
+         .into_iter()
+         .enumerate()
+-        .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, vec![F::ONE]) } else { AirProvingContext::simple_no_pis(m) })
++        .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, { let mut v = vec![F::ONE]; v.resize(super::uair::NV_NUM_PVS, F::ZERO); v }) } else { AirProvingContext::simple_no_pis(m) })
+         .collect();
+     let parent = Sha384CpuEngine::new(nv_debug_params());
+     parent.debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
+@@ -675,7 +675,7 @@ fn nv_app_binding() {
+         let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = mats
+             .into_iter()
+             .enumerate()
+-            .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, vec![F::from_u32(b2.level)]) } else { AirProvingContext::simple_no_pis(m) })
++            .map(|(i, m)| if i == 0 { AirProvingContext::simple(m, b2.public_values()) } else { AirProvingContext::simple_no_pis(m) })
+             .collect();
+         Sha384CpuEngine::new(nv_debug_params()).debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
+         b2.failures
+diff --git a/crates/recursion/src/nv/transcript2.rs b/crates/recursion/src/nv/transcript2.rs
+index 46f052a..25d2d3b 100644
+--- a/crates/recursion/src/nv/transcript2.rs
++++ b/crates/recursion/src/nv/transcript2.rs
+@@ -114,6 +114,9 @@ pub struct TrJob2 {
+     pub ctr: u32,
+     pub wit: Vec<F>,
+     pub scnt: usize,
++    /// [agg] first job of a transcript chain (its input state is the initial state; anchored
++    /// by the ALU with P3 = 1)
++    pub first: bool,
+ }
+ 
+ impl TrJob2 {
+@@ -153,6 +156,12 @@ impl TrJob2 {
+ 
+ /// Replay a transcript log as hash-chain jobs (T* transcript only).
+ pub fn replay2(log: &ShaTranscriptLog) -> Vec<TrJob2> {
++    replay2_multi(log, &[])
++}
++
++/// [agg] Replay a log that holds several independent transcripts back to back: a fresh chain
++/// (initial state) starts at each tidx in `starts` (and at 0).  Job ids and tidx stay global.
++pub fn replay2_multi(log: &ShaTranscriptLog, starts: &[usize]) -> Vec<TrJob2> {
+     use crate::sha384::config::{felt_bytes, pow_skip_words, SqueezeSrc, KIND_POW, KIND_POW_CONT, TAG_POW};
+     assert!(crate::sha384::config::sha_levers().tstar, "the NV transcript requires the T* transcript");
+     let mut jobs: Vec<TrJob2> = vec![];
+@@ -178,6 +187,7 @@ pub fn replay2(log: &ShaTranscriptLog) -> Vec<TrJob2> {
+         ctr: 0,
+         wit: vec![],
+         scnt: 0,
++        first: false,
+     };
+     macro_rules! absorbed {
+         ($k:expr) => {{
+@@ -202,7 +212,18 @@ pub fn replay2(log: &ShaTranscriptLog) -> Vec<TrJob2> {
+     }
+     let n = log.len();
+     let mut i = 0;
++    let mut chain_start = 0usize; // jobs.len() at the start of the current chain
+     while i < n {
++        if i > 0 && starts.contains(&i) {
++            flush!();
++            state = initial_state();
++            src = SqueezeSrc::Key(state);
++            ctr = 0;
++            nw = 12;
++            pow_wit.clear();
++            chain_start = jobs.len();
++        }
++        let before = jobs.len();
+         match log.kinds[i] {
+             KIND_OBSERVE => {
+                 if pending.is_empty() {
+@@ -295,8 +316,15 @@ pub fn replay2(log: &ShaTranscriptLog) -> Vec<TrJob2> {
+             }
+             k => panic!("bad kind {k}"),
+         }
++        if before == chain_start && jobs.len() > chain_start {
++            jobs[chain_start].first = true;
++        }
+     }
++    // a trailing observe run is flushed at the end of the log (the ALU closes it)
+     assert!(pending.is_empty());
++    if let Some(j) = jobs.first_mut() {
++        j.first = true;
++    }
+     jobs
+ }
+ 
+@@ -364,7 +392,7 @@ pub fn eval_hash<AB: AirBuilder + InteractionBuilder>(
+     let sq: AB::Expr = l.op_s + l.op_q; // blocks read from word 0
+     let pw: AB::Expr = l.op_p + l.op_q; // tag-7 blocks
+     builder.assert_zero(g(l.op_f + l.op_c + l.op_s + l.op_p + l.op_q - one.clone()));
+-    builder.assert_zero(g(l.is_first * l.t_start));
++    // [agg] chain starts may occur on any row; their t_start is pinned by the anchor
+     builder.assert_zero(g(l.is_first * sq.clone()));
+     let init = state_limbs(&initial_state());
+     for i in 0..NV_DIGEST {
+@@ -393,12 +421,12 @@ pub fn eval_hash<AB: AirBuilder + InteractionBuilder>(
+         let mut tr = builder.when_transition();
+         let both = kh.clone() * nkh.clone();
+         tr.assert_zero(nkh.clone() * (one.clone() - kh.clone()) * (one.clone() - n.is_first));
+-        tr.assert_zero(both.clone() * n.is_first);
+-        tr.assert_zero(kh.clone() * (l.hn - nkh.clone()));
++        // [agg] a row has a next job unless the next row starts a new chain
++        tr.assert_zero(kh.clone() * (l.hn - nkh.clone() * (one.clone() - n.is_first)));
+         tr.assert_zero(both.clone() * (n.job - l.nxt));
+         tr.assert_zero(both.clone() * (n.t_start - l.t_start - l.cnt - l.scnt));
+         tr.assert_zero(both.clone() * l.op_f * n.op_f);
+-        tr.assert_zero(kh.clone() * l.op_f * (one.clone() - nkh.clone()));
++        tr.assert_zero(kh.clone() * l.op_f * (one.clone() - l.hn));
+         // a squeeze block follows an absorb or a fully read squeeze block (same key)
+         tr.assert_zero(both.clone() * n.op_s * (l.op_p + l.op_q));
+         tr.assert_zero(both.clone() * n.op_s * l.op_s * (one.clone() - l.full));
+@@ -483,7 +511,8 @@ pub fn eval_hash<AB: AirBuilder + InteractionBuilder>(
+             AB::Expr::ZERO,
+             l.t_start.into(),
+             l.cnt.into(),
+-            AB::Expr::ZERO,
++            // [agg] the ALU declares chain starts: anchor P3 = 1 exactly for a chain's first job
++            l.is_first.into(),
+         ],
+         g(l.op_f + l.op_c + l.op_p),
+     );
+@@ -666,7 +695,7 @@ pub fn tr2_traces(jobs: &[TrJob2]) -> Tr2Traces {
+     for (k, j) in jobs.iter().enumerate() {
+         let job = j.id as usize;
+         let r: &mut Hash2Cols<F> = hash[k * HASH2_WIDTH..(k + 1) * HASH2_WIDTH].borrow_mut();
+-        r.is_first = F::from_bool(k == 0);
++        r.is_first = F::from_bool(k == 0 || j.first);
+         r.op_f = F::from_bool(j.op == Op2::Flush);
+         r.op_c = F::from_bool(j.op == Op2::Commit);
+         r.op_s = F::from_bool(j.op == Op2::Squeeze);
+@@ -679,9 +708,11 @@ pub fn tr2_traces(jobs: &[TrJob2]) -> Tr2Traces {
+         r.ctr = F::from_u32(j.ctr);
+         r.nwit = fu(j.wit.len());
+         if k + 1 < jobs.len() {
+-            r.hn = F::ONE;
+             r.nxt = F::from_u32(jobs[k + 1].id);
+-            r.nsq = F::from_bool(matches!(jobs[k + 1].op, Op2::Squeeze | Op2::PowQ));
++            if !jobs[k + 1].first {
++                r.hn = F::ONE;
++                r.nsq = F::from_bool(matches!(jobs[k + 1].op, Op2::Squeeze | Op2::PowQ));
++            }
+         }
+         let si = state_limbs(&j.state_in);
+         let so = state_limbs(&j.state_out);
+diff --git a/crates/recursion/src/nv/uair.rs b/crates/recursion/src/nv/uair.rs
+index 9f59ad4..0a95d2a 100644
+--- a/crates/recursion/src/nv/uair.rs
++++ b/crates/recursion/src/nv/uair.rs
+@@ -134,6 +134,8 @@ pub const POOL: usize = max(max(max(AB_W, BIND_W), GLUE_W), max(HASH2_WIDTH, SAM
+ pub const NV_WIDTH: usize = N_COMMON + POOL;
+ /// Column offsets used by tests / the binding check.
+ pub const U_P: usize = 7;
++/// NvAir public values: [level, statement digest limbs (18)]
++pub const NV_NUM_PVS: usize = 1 + super::fmt::NV_DIGEST;
+ pub const U_A: usize = N_COMMON;
+ pub const U_C: usize = N_COMMON + 24;
+ 
+@@ -151,7 +153,7 @@ impl<T> BaseAir<T> for NvAir {
+ }
+ impl<T> BaseAirWithPublicValues<T> for NvAir {
+     fn num_public_values(&self) -> usize {
+-        1
++        NV_NUM_PVS
+     }
+ }
+ impl<T> PartitionedBaseAir<T> for NvAir {}
+@@ -389,7 +391,7 @@ fn eval_alu<AB: AirBuilderWithPublicValues + InteractionBuilder>(
+     let bb: [AB::Expr; 12] = l.b.map(Into::into);
+     let ab = ext_field_multiply::<AB::Expr>(a.clone(), bb.clone());
+     let free = s(Op::Load) + s(Op::Smp1) + s(Op::Smp12) + s(Op::Acc) + s(Op::Dig) + s(Op::PowChk) + s(Op::Acc2) + s(Op::LoadBit);
+-    let copy_a = s(Op::Unit1) + s(Op::UnitW) + s(Op::Unit12) + s(Op::Bit) + s(Op::Pv) + s(Op::UnitWS4) + s(Op::UnitWS2);
++    let copy_a = s(Op::Unit1) + s(Op::UnitW) + s(Op::Unit12) + s(Op::Bit) + s(Op::Pv) + s(Op::PvD) + s(Op::UnitWS4) + s(Op::UnitWS2);
+     let mulab = s(Op::Mul) + s(Op::Horn);
+     for k in 0..12 {
+         let mut e = mulab.clone() * ab[k].clone()
+@@ -416,8 +418,14 @@ fn eval_alu<AB: AirBuilderWithPublicValues + InteractionBuilder>(
+     for k in 1..12 {
+         builder.assert_zero(s(Op::LoadBit) * l.c[k]);
+     }
+-    let pv0: AB::Expr = builder.public_values()[0].into();
+-    builder.assert_zero(s(Op::Pv) * (l.a[0] - pv0));
++    let pvs: Vec<AB::Expr> = builder.public_values().iter().map(|&x| x.into()).collect();
++    builder.assert_zero(s(Op::Pv) * (l.a[0] - pvs[0].clone()));
++    // statement digest (G1): PvD lo (P2 = 0) = public values 1..13, hi (P2 = 1) = 13..19
++    builder.assert_zero(s(Op::PvD) * p[2] * (p[2] - one.clone()));
++    for k in 0..12 {
++        let hi = if k < 6 { pvs[13 + k].clone() } else { AB::Expr::ZERO };
++        builder.assert_zero(s(Op::PvD) * (l.a[k] - (one.clone() - p[2]) * pvs[1 + k].clone() - p[2] * hi));
++    }
+ 
+ 
+     // memory: ALU rows offer (y, c); operand reads on ALU rows, E1/E2 reads on BIND rows
+@@ -485,6 +493,8 @@ fn eval_alu<AB: AirBuilderWithPublicValues + InteractionBuilder>(
+                 + s(Op::Job) * bfield.clone()
+                 + s(Op::Anchor) * p[0];
+             v[1] += s(Op::Anchor) * bfield.clone();
++            // [agg] P3 of an anchor = 1 iff the job starts a transcript chain
++            v[2] += s(Op::Anchor) * p[3];
+         }
+         if k < 4 {
+             for t in 0..3 {
+diff --git a/crates/recursion/src/nv/verifier.rs b/crates/recursion/src/nv/verifier.rs
+index 2bac28e..2ee0cf8 100644
+--- a/crates/recursion/src/nv/verifier.rs
++++ b/crates/recursion/src/nv/verifier.rs
+@@ -357,7 +357,8 @@ pub struct NvChildData {
+ /// Build the verifier program for `proof` under `vk`.  Requirements (asserted): every
+ /// AIR present, no preprocessed or cached traces, all PoW bits zero, trace heights >=
+ /// 2^l_skip.
+-pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &Proof<SC>) {
++/// Returns the child's public-value cells (per AIR), observed in its transcript.
++pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &Proof<SC>) -> Vec<Vec<V>> {
+     let mvk = &vk.inner;
+     let params = &mvk.params;
+     let l_skip = params.l_skip;
+@@ -751,7 +752,9 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
+         .iter()
+         .map(|cs| cs.iter().map(|(c, _)| c.val).collect())
+         .collect();
+-    if b.bind {
++    if b.agg {
++        // [agg] the aggregation program exposes level and statement itself (nv/agg.rs)
++    } else if b.bind {
+         // child is NV: level = child level + 1; binding enforced iff child level != 1
+         let cl = pv_cells[0][0];
+         let one = b.c(F::ONE);
+@@ -1070,6 +1073,7 @@ pub fn build_verifier(b: &mut Builder, vk: &MultiStarkVerifyingKey<SC>, proof: &
+     };
+     whir(b, vk, proof, &stack_open, &main_commit, &u_cube, &mut pow_id);
+     eprintln!("NV_PHASE end {}", b.instrs.len());
++    pv_cells
+ }
+ 
+ /// Program binding (DESIGN §2.1): the child's ALU (air 0) program columns P0..P3 must
+diff --git a/crates/recursion/src/sha384/config.rs b/crates/recursion/src/sha384/config.rs
+index e679d06..40a5117 100644
+--- a/crates/recursion/src/sha384/config.rs
++++ b/crates/recursion/src/sha384/config.rs
+@@ -43,6 +43,43 @@ pub const TAG_COMMIT: u8 = 4;
+ pub const TAG_SQUEEZE: u8 = 5;
+ pub const TAG_COSET_LEAF: u8 = 6;
+ pub const TAG_POW: u8 = 7;
++/// Statement digest (NV level 1 hashes the app proof's public values; final-soundness G1;
++/// identical to lane/pq-recursion-sha384's passthrough)
++pub const TAG_STATEMENT: u8 = 8;
++
++/// The statement message of an app proof's public values: [num_airs, len_0, .., len_{m-1},
++/// pv_0.., pv_1.., ..] (per-AIR lengths make it injective).
++pub fn statement_values(pvs: &[Vec<F>]) -> Vec<F> {
++    let mut v = vec![F::from_usize(pvs.len())];
++    v.extend(pvs.iter().map(|p| F::from_usize(p.len())));
++    v.extend(pvs.iter().flatten().copied());
++    v
++}
++/// Statement digest = SHA-384(prefix, tag 8, statement_values) (truncated like Merkle digests).
++pub fn statement_digest(pvs: &[Vec<F>]) -> Digest {
++    digest_from_bytes(truncate_digest(hash_parts(TAG_STATEMENT, &[&felt_bytes(&statement_values(pvs))])))
++}
++/// [agg] Segment-range statement digest (aggregation tree; results/pq-base-aggregation):
++/// D = SHA-384(prefix, tag 9, range_values(..)), truncated like Merkle digests (42 B under the
++/// lever; narrow-leaf oracle class with tags 0 and 6).
++pub const TAG_RANGE: u8 = 9;
++
++/// [agg] Range statement message [n_ctx, n_state, ctx.., a, e, s_a.., s_e..]: segments
++/// [a, e) of the chunk named by ctx, from boundary state s_a to boundary state s_e.
++pub fn range_values(ctx: &[F], a: F, e: F, s_a: &[F], s_e: &[F]) -> Vec<F> {
++    assert_eq!(s_a.len(), s_e.len());
++    let mut v = vec![F::from_usize(ctx.len()), F::from_usize(s_a.len())];
++    v.extend_from_slice(ctx);
++    v.push(a);
++    v.push(e);
++    v.extend_from_slice(s_a);
++    v.extend_from_slice(s_e);
++    v
++}
++/// [agg] Range statement digest (what V_d compares with the claimed chunk statement).
++pub fn range_digest(ctx: &[F], a: F, e: F, s_a: &[F], s_e: &[F]) -> Digest {
++    digest_from_bytes(truncate_digest(hash_parts(TAG_RANGE, &[&felt_bytes(&range_values(ctx, a, e, s_a, s_e))])))
++}
+ 
+ /// Hash-level levers (process-global; read once from the environment).
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]

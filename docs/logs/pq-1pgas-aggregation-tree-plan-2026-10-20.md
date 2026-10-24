@@ -188,7 +188,43 @@ than the tree itself.
 2. **D3 join**: `storage_write` needs `TrieKey::ContractData`, which D1 does not cover — a D3-join, not
    a D1-join (`pq-gap-analysis` §4, verified).
 3. **Segment split correctness** for arbitrary `S` at receipt boundaries (`Segment.lean` fold lifted to
-   the PQ stack).
+   the PQ stack). **Status corrected 2026-10-23 — the Lean half of this is DONE, and it is stronger
+   than "receipt boundaries".** `spec/lean/v3/NearSpecV3/Wasm/Segment.lean` (111 lines) builds
+   (`lake build NearSpecV3.Wasm.Segment`, exit 0, 24 jobs) and its four theorems depend only on
+   `[propext, Classical.choice, Quot.sound]` — no `sorry`, no custom axioms:
+   * `seg_add`: `seg (a+b) = seg a` then `seg b`
+   * `run_seg`: `run (a+n) = seg a` then `run n`
+   * `foldSegments_eq_seg`: the segments run in sequence equal one `seg (Σ ks)`
+   * `run_foldSegments` (§3.1): `run (Σ ks + n) s = foldSegments ks s >>= run n` **for every split**
+   * `foldSegments_stop`: a segment that ends early makes later segments irrelevant
+
+   Two things follow. First, **the boundary rule is maximally permissive** — "a segment boundary may
+   fall between any two steps", with host calls, gas charge points and traps each being a single
+   `step`, so no step is ever split (`Segment.lean:15-18`). There is no receipt-boundary restriction
+   to prove. Second, `Segment.lean` is **orphaned**: nothing imports it (`grep -r "import
+   NearSpecV3.Wasm.Segment"` finds no file), so it is not in any default build target and had no
+   `.olean` until this session built it explicitly. Wiring it into `NearSpecV3.lean` is one line and
+   should be done so the result cannot silently rot.
+
+   **What is still missing is the PQ-stack lift, and the gap is now quantified.** `Segment.lean`'s
+   boundary state is the *whole* machine state `St` (`Machine.lean:278-303`): operand stack, frames,
+   linear-memory pages, globals, tables, element/data segments, gas, registers, logs, promises,
+   mock storage, action log, data-id counter. The aggregation layer's `RangeStmt` carries `ctx`,
+   segment index `a`, and two boundary states of `n_state` field elements — 2 in every test. So the
+   missing piece is an **injective encoding of `St` (a variable-length structure containing
+   `ByteArray`s) into a fixed field-vector width**, and a proof that it commutes with the segment
+   fold. That is a hash/commitment design, not a transcription exercise, which is why this is the
+   expensive step.
+
+   **Sharpened further:** the AIR itself has *no* segment concept — `near-air-v3.json`
+   declares only `format/numBuses/numPub/tables/pubSegs/maxPub`, with no segment count, no range and no
+   per-segment boundary declaration, and one base proof covers the whole chunk (25 tables, 3,391 used
+   rows, `dump/heights.json`). The per-segment boundary state rides **bus 15**, which is a row-to-row
+   chain inside `bnd`/`rcpt` and is **absent from `pubSegs`** — so it is not a public value today.
+   Exposing it needs either a new public segment (which changes the vk, every stored proof and the
+   trusted setup, invalidating the 299,967 B packet) or a boundary-commitment statement (item 4's
+   territory). Evidence: `research/near-compression/results/pq-agg-depth-law/README.md`,
+   "The boundary state is internal, not public".
 4. **Base-faithful for seg-v1** (B4/BF1).
 
 **Acceptance.** One real segment proof (ctx, j, pre, post) whose relation is `segRel`, with the
@@ -410,6 +446,17 @@ width), which is exactly what the 299,967 B D0a packet already sits 33 B under.
 Cost, however, is linear in node count and a depth-2 node is ~8.4× a depth-1 node
 (106 s vs 12.6 s; 18 GB vs 3.5 GB). At test targets a binary tree over 1,880 leaves is
 ~31 h serial and over 3,760 leaves ~62 h; production targets are far worse.
+
+> **Correction (2026-10-23): the leaf counts in the last paragraph are ~13× too large.**
+> 1,880–3,760 divides a *width-equivalent* cell total by a *main*-cell segment size
+> (`0.6e12 / 2^28.25`). The structural count is `1.22e9 ops / 2^23 ops-per-segment = `
+> **146** (or 291 at the older 2^22). The ratio between the two is exactly the
+> W-eq→main-cell exchange rate, `494/38 = 13.0` and `995/38 = 26.2`, which reproduces the
+> published range from 146. Recomputed at the measured per-node costs, a binary tree over
+> 146 leaves (padded to 256) is **~4.3 h serial** at test targets — 128 L1 nodes at 12.6 s
+> plus 127 nodes at 107.8 s — and ~8.5 h for 291 leaves. The *shape* of every conclusion
+> holds (cost is linear in node count, production is far worse); only the magnitude moves.
+> Derivation and the self-consistency check: `docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5.
 
 ### 9.3 The P5 gate is live here (contradicts §7.3)
 

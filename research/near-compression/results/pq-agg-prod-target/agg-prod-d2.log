@@ -1,0 +1,83 @@
+
+running 1 test
+L1_0_PARAMS l_skip=2 n_stack=18 k=3 log_blowup=7 queries=[77, 60, 49, 42, 36, 32] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_0_O2 target=268 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(134217728, 1048576, 11955966, 77, false), (67108864, 131072, 2988992, 60, false), (33554432, 16384, 747248, 49, false), (16777216, 2048, 186812, 42, false), (8388608, 256, 46703, 36, false), (4194304, 32, 11676, 32, false)]
+NV_PHASE before_dag 1285
+NV_DAG air=0 nodes=24 rows_so_far=1340
+NV_PHASE after_dag 1353
+NV_PHASE after_stacking 1661
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8662
+NV_PHASE before_dag 9272
+NV_DAG air=0 nodes=24 rows_so_far=9327
+NV_PHASE after_dag 9340
+NV_PHASE after_stacking 9647
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16638
+test nv::agg_tests::agg_chain_depth_n has been running for over 60 seconds
+L1_0_SUMMARY children=2 cols=173 opened=346 interactions=15139072 cells=31130752 program_rows=16662 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=262144 prove_s=66.2 peak_rss_gb=25.94
+L1_0_SOUNDNESS total=268.6 logup=323.4 proximity=294.9 query=268.6
+L1_0_PROOF_BYTES total=547657 gkr=44408 relations=26208 stacking=3520 whir=473336
+L1_1_PARAMS l_skip=2 n_stack=18 k=3 log_blowup=7 queries=[77, 60, 49, 42, 36, 32] pow(mu,fold,query,logup)=(0,0,0,0)
+L1_1_O2 target=268 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(134217728, 1048576, 11955966, 77, false), (67108864, 131072, 2988992, 60, false), (33554432, 16384, 747248, 49, false), (16777216, 2048, 186812, 42, false), (8388608, 256, 46703, 36, false), (4194304, 32, 11676, 32, false)]
+NV_PHASE before_dag 1285
+NV_DAG air=0 nodes=24 rows_so_far=1340
+NV_PHASE after_dag 1353
+NV_PHASE after_stacking 1661
+NV_QCOST round=0 queries=10 rows=2800 per_query=280 nbits=8 k=3 merkle_nodes=150
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=206
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=232
+NV_PHASE end 8662
+NV_PHASE before_dag 9272
+NV_DAG air=0 nodes=24 rows_so_far=9327
+NV_PHASE after_dag 9340
+NV_PHASE after_stacking 9647
+NV_QCOST round=0 queries=10 rows=2790 per_query=279 nbits=8 k=3 merkle_nodes=382
+NV_QCOST round=1 queries=4 rows=1124 per_query=281 nbits=7 k=3 merkle_nodes=438
+NV_QCOST round=2 queries=2 rows=550 per_query=275 nbits=6 k=3 merkle_nodes=464
+NV_PHASE end 16638
+L1_1_SUMMARY children=2 cols=173 opened=346 interactions=15139072 cells=31130752 program_rows=16662 merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=262144 prove_s=65.7 peak_rss_gb=25.91
+L1_1_SOUNDNESS total=268.6 logup=323.4 proximity=294.9 query=268.6
+L1_1_PROOF_BYTES total=547657 gkr=44408 relations=26208 stacking=3520 whir=473336
+L2_0_PARAMS l_skip=2 n_stack=18 k=3 log_blowup=7 queries=[77, 60, 49, 42, 36, 32] pow(mu,fold,query,logup)=(0,0,0,0)
+L2_0_O2 target=268 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(134217728, 1048576, 11955966, 77, false), (67108864, 131072, 2988992, 60, false), (33554432, 16384, 747248, 49, false), (16777216, 2048, 186812, 42, false), (8388608, 256, 46703, 36, false), (4194304, 32, 11676, 32, false)]
+NV_PHASE before_dag 14500
+NV_DAG air=0 nodes=4518 rows_so_far=20575
+NV_DAG air=1 nodes=5848 rows_so_far=28035
+NV_DAG air=3 nodes=32 rows_so_far=28580
+NV_DAG air=2 nodes=1234 rows_so_far=29894
+NV_PHASE after_dag 29976
+NV_PHASE after_stacking 32973
+NV_QCOST round=0 queries=77 rows=37526 per_query=487 nbits=24 k=3 merkle_nodes=2387
+NV_QCOST round=1 queries=60 rows=22621 per_query=377 nbits=23 k=3 merkle_nodes=4187
+NV_QCOST round=2 queries=49 rows=18180 per_query=371 nbits=22 k=3 merkle_nodes=5608
+NV_QCOST round=3 queries=42 rows=15331 per_query=365 nbits=21 k=3 merkle_nodes=6784
+NV_QCOST round=4 queries=36 rows=12925 per_query=359 nbits=20 k=3 merkle_nodes=7756
+NV_QCOST round=5 queries=32 rows=11297 per_query=353 nbits=19 k=3 merkle_nodes=8588
+NV_PHASE end 163423
+NV_PHASE before_dag 177157
+NV_DAG air=0 nodes=4518 rows_so_far=183124
+NV_DAG air=1 nodes=5848 rows_so_far=190555
+NV_DAG air=3 nodes=32 rows_so_far=191099
+NV_DAG air=2 nodes=1234 rows_so_far=192053
+NV_PHASE after_dag 192135
+NV_PHASE after_stacking 195132
+NV_QCOST round=0 queries=77 rows=37500 per_query=487 nbits=24 k=3 merkle_nodes=10975
+NV_QCOST round=1 queries=60 rows=22621 per_query=377 nbits=23 k=3 merkle_nodes=12775
+
+thread 'nv::agg_tests::agg_chain_depth_n' (1766529) panicked at crates/recursion/src/nv/builder.rs:303:9:
+program exceeds 2^18 rows
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test nv::agg_tests::agg_chain_depth_n ... FAILED
+
+failures:
+
+failures:
+    nv::agg_tests::agg_chain_depth_n
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 106 filtered out; finished in 131.91s
+

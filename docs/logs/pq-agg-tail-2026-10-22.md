@@ -4,6 +4,14 @@ Session: `lane/pq-chunk-perf`, goal phase `p2-tail` → `p3-report`.
 Supersedes the "aggregation tree never measured above 4 leaves" note in
 `docs/logs/pq-1pgas-aggregation-tree-plan-2026-10-20.md`.
 
+**What the 299,967 B packet does and does not satisfy.** It is a **D0a-scope chunk** proof
+(`RESULT.json` `"scope": "D0a"`), 33 B under 300,000 B, independently verified and
+forgery-rejected. It is **not** a 1 Pgas proof: 1 Pgas needs ≈146 segments at 2^23
+ops/segment (see §7 item 5), and no real segment leaf exists (the tree leaves are `SegAir`
+Fibonacci fixtures). So the goal's "under 300 KB with independent verification" criterion is
+met *at D0a scope*, and is **not** met for the 1 Pgas objective. Nothing below should be read
+as closing that gap.
+
 ## 0. Headline, with the scope attached to each sentence
 
 | # | statement | basis |
@@ -11,10 +19,10 @@ Supersedes the "aggregation tree never measured above 4 leaves" note in
 | 1 | The delivered D0a packet is **299,967 B** (proof 299,935 + 16 B hint), independently verified, forgery-rejected | **measured**, re-verified this session |
 | 2 | Its recursion tail is a **linear chain** of 5 NV levels + a final layer, **not** an aggregation tree | **measured** (`main.rs` loop, `chain.log`) |
 | 3 | An **exact S=13** aggregation node proves at **133,357 B** | **measured**, test targets, Fibonacci leaves |
-| 4 | Node **bytes are flat in depth**: depths 2, 3, 4 are byte-identical at 132,301 B | **measured**, test targets |
+| 4 | Node **bytes are flat in depth at TEST targets only**: depths 2, 3, 4 are byte-identical at 132,301 B — but this is a `log_blowup=3` result and **cannot transfer to production**, where depth 2 is arithmetically impossible (row 18) | **measured**, test targets; production superseded by row 18 |
 | 5 | Node **cost is linear in node count**; depth is a fixpoint; the tree is RAM-bound | **measured**, test targets |
 | 6 | At production targets a 1 Pgas tree is **~6–96 h** on this host | **extrapolated** from the 1-child chunk-chain anchor (507.7 s/node mean), ±2× |
-| 7 | **No production-target aggregation node has ever been proved** | absence of evidence, stated as such |
+| 7 | ~~No production-target aggregation node has ever been proved~~ **CORRECTED: the delivered run proves five 1-NV-child aggregation nodes.** L2–L5 + FINAL each verify **1 NV child** at `log_blowup=7`, `query_pow=32` (production targets), measured 372,001–374,563 B and 459.4–582.2 s apiece. L1 verifies the base proof (`circ.child_nv = false`, `main.rs:319`), so it is an app-child node, not an NV one. What has never been proved at production targets is a **2-child NV node** — and row 18 shows why: it needs a 2^21 SHA AIR against a 2^20 ceiling | **measured**, `runs/opt-baseline-8/{L2..L5,FINAL}.proof` + `chain.log`; `SETUP.json` confirms `log_blowup=7`, `query_phase_pow_bits=32`; `main.rs:319` for the child kind |
 | 8 | The per-proof union **fails from S ≈ 103–118**, not at 295 as recorded | **arithmetic on measured bounds** |
 | 9 | No 1 Pgas root has been measured under 300 KB; no real segment leaf exists | **unproven / blocked** |
 | 10 | The prover **rebuilds from the deps tree in 13.77 s** and its binary verifies the packet in **1.58 s** | **measured**, this session |
@@ -23,6 +31,104 @@ Supersedes the "aggregation tree never measured above 4 leaves" note in
 | 13 | The 798 B base-vs-replay gap is **19 WHIR digests** in the WHIR section; every other section is byte-identical | **measured** via the new `proof-sections` subcommand |
 | 14 | The 300 KB cap requires `D ≤ 2,869`; base sits **exactly at 2,869** (33 B margin) and a second valid proof at `D = 2,888` is 765 B over | **measured** |
 | 15 | Therefore "under 300 KB" is a **transcript-sampled property**, not a structural bound | **measured** — two valid proofs straddle the cap |
+| 16 | The agg tests **do verify their proofs** — `prove_mats` calls `engine.verify(&vk, &proof).unwrap()` unconditionally, per level | **code check**, `nv/circuit.rs:466` |
+| 17 | A 2-child agg node at the base final layer's *exact* production schedule (`[41,38,29,23]`, `QUERY_POW=32`, `COMMITS=1`) measures **276,269 B** | **measured** 2026-10-23, streaming, 2,160.8 s, 9.46 GB |
+| 18 | **Depth 2 is arithmetically impossible at production blowup, and at the full production lever set the deficit is invariant at 1 bit**: stacked height is `≤ 27−lb`, while the 2-NV-child SHA demand rises as `lb` falls because more queries are needed for the same 236-bit target. Measured lb=7 → 21/20, lb=6 → 22/21, lb=5 → 23/22. (At `lb=3` the *test* schedule needs only 2^20, so the invariance is a property of the fixed 236-bit target, not of the field alone.) | **measured** 3 panics + field 2-adicity, `circuit.rs:458`, `monty_31.rs:654` |
+| 19 | The "bytes are flat in depth" result (132,301 B at depths 2–4) is a **`log_blowup=3`** result and does not transfer to production | **measured** params `n_stack=20, log_blowup=3` in `agg_depth4.log` |
+| 20 | The documented escape "lower `log_blowup` to ≤5" **does not fit depth 2**: measured panic `log_height: 23` vs `log_stacked_height: 22` — buying 2 bits of stacked height costs ~2× queries, which needs ~1 more bit than it buys | **measured** 2026-10-23, `agg-d2-lb5-wwide.log`, 3,366.7 s |
+| 21 | With the **full production lever set** (`X15=15`, `multiproof`, `keep_domain`, `gruen_gkr`, `gkr_derive`, `next_mask`, `gruen_zc`, `wide_pow`, `tight`, `whir_y`, `QUERY_POW=32`, `COMMITS=1`) a 2-child production node measures **267,513 B** at **`total=268.2` soundness** — **32,487 B under the cap** | **measured** 2026-10-23, `agg-d2-l2prod.log`, `L1_0_PROOF_BYTES total=267513` |
+| 22 | The earlier **276,269 B** and **615,457 B** agg measurements used an **incomplete lever set** (`X15=1`, no multiproof/keep_domain/tight/whir_y), so their query counts (208 and 260) are lever-contaminated upper bounds, not production numbers | **measured** — `L1_0_O2` domain `134217728` = 2^27 in both logs |
+| 23 | **Depth 2 is closed by an exact 1-bit gap that no parameter closes**: `lb=7/6/5` give stacked height 20/21/22 but the SHA AIR needs 21/22/23 — each blowup step costs exactly the bit it buys. Only `lb=3` (test-target soundness) fits | **measured** three end-to-end panics: `log_height` 21, 22, 23 at `circuit.rs:458` |
+| 24 | The **tree is load-bearing for 1 Pgas on time, not on geometry** — but the long-chain fallback is **capped at level 10 in code**, so it is unimplemented past that, not merely slow. A 1-NV-child node *is* geometrically legal (fits 2^20, measured 5×), so S=146 would need 146 serial levels ≈ **20.6 h**; but `main.rs:314` loops `(resume+1..=10)` and `:370` asserts convergence by then. A binary tree needs 8 levels and depth 2 is blocked | **arithmetic on measured 507.7 s/node** + **code check** `main.rs:314/365/370` |
+
+### 0.1 Depth-2 measurement, geometry wall, size law and `S` — consolidated (2026-10-24)
+
+> **Superseded in part by [`pq-agg-depth2-production-2026-10-24.md`](pq-agg-depth2-production-2026-10-24.md)**,
+> which is the current record for the production-target aggregation numbers. Three corrections it
+> makes to this subsection:
+> * The **root-shaped** node (the delivered final layer's own levers, `k_first=1`, 131 queries) is
+>   **276,269 B** — 23,731 B under the cap. The **267,513 B** quoted below is a **chain-shaped**
+>   node (`k_first=2`, 126 queries). Both are measured; only `k_first=1` matches the final layer.
+> * `d=40` does **not** cut SHA compressions at all (all widths 40–48 pad to one 128 B block); its
+>   16.7% is an in-circuit unit cut. The 18.3%-of-compressions target below is unaffected.
+> * Several depth-2 logs listed as evidence are params-only or killed mid-run; the new file names
+>   which ones must not be cited.
+
+This subsection consolidates the depth-2 readings in rows 18, 20, 21 and 23 into one coherent
+account and corrects two details in them (the production deficit is 1 bit, and the `23 > 22` pair
+belongs to `lb=5`). Every number is measured unless explicitly labelled a projection.
+
+**Depth-2 production measurement: 267,513 B.** With the full production lever set (`X15=15`,
+`multiproof`, `keep_domain`, `gruen_gkr`, `gkr_derive`, `next_mask`, `gruen_zc`, `wide_pow`,
+`tight`, `whir_y`, `QUERY_POW=32`, `COMMITS=1`), a 2-child node measures
+`L1_0_PROOF_BYTES total=267513 gkr=29960 relations=23332 stacking=2752 whir=211264` at
+`L1_0_SOUNDNESS total=268.2`. Schedule `queries=[41, 35, 27, 23]` = **126 queries** in **4**
+rounds with `first_order` on 3 of 4. Geometry `cols=173 opened=291 program_rows=17558
+merkle_nodes=464 leaf_blocks=257 chain_starts=2 nvair_h=262144`; prove **752.5 s** at **6.63 GB**
+peak (streaming). Sibling `L1_1` is **265,657 B** (whir 209456) at 704.1 s / 6.65 GB. Both logs —
+`results/pq-agg-prod-target/agg-d2-l2prod.log` and `agg-d2-l2prod-ns18.log` — print the identical
+byte total. As proof bytes that is **32,487 B under the 300,000 B cap** (32,455 B as a bundle,
+`+32`), the widest measured production margin so far. **Limit:** these are *App*-child nodes at
+`nvair_h=2^18`; the 1 Pgas root aggregates *Node* children at `2^20`, so this does not measure the
+tree root.
+
+**Depth-2 geometry wall: production `lb=7` is 1 bit short, and the `23 > 22` pair is the `lb=5`
+row.** A common conflation — "blocked at `log_blowup=7` because `log_height (23) > log_stacked_height
+(22)`" — mixes two rows. Measured panics, all `LayoutHeightExceeded` at `circuit.rs:458` except
+where noted:
+
+| `lb` | `n_stack` | stacked height | SHA `log_height` | deficit | queries | log |
+|---:|---:|---:|---:|---:|---:|---|
+| 7, full levers, 1 commit | 18 | 20 | **21** | **1** | 126 | `agg-d2-l2prod.log`, `agg-d2-l2prod-ns18.log` |
+| 7, 2 commits | 18 | 20 | 22 | 2 | 131 | `agg-d2-streaming-qpow32.log` |
+| 6, full levers | 19 | 21 | 22 | 1 | 138 | `agg-d2-lb6.log` |
+| 5, full levers | 20 | 22 | **23** | **1** | 260 | `agg-d2-lb5-wwide.log` |
+
+The wall is real and it is **exactly 1 bit at production** (`21 > 20`), not 2. The `23 > 22` pair
+belongs to `lb=5`, where two bits of stacked height are bought and one bit more of SHA demand
+appears, so it too closes at a deficit of 1. Buying stacked height with a lower `log_blowup` is
+therefore self-cancelling: each bit bought costs about a bit. `lb=3` fits but is the test-target
+soundness, i.e. insufficient. `n_stack=19` at `lb=7` is illegal (28 > two-adicity 27, panic at
+`monty_31.rs:654`), so the 1-bit deficit cannot be closed from the `n_stack` side either.
+
+**Size law and margin: `D = 2,869` gives 299,935 B; Route C is refuted; `d=40` is a projection.**
+`proof_bytes = 42·D + C` holds 7/7. At `D = 2,869`, `C = 179,437`, the final layer proof is
+**299,935 B** and the bundle is **299,967 B** (`proof + 32`) — **33 B** of margin against the
+300,000 B cap on the bundle, i.e. 0.79 of one digest. **Route C (41 B digests) does not transfer to
+the NV tree.** The
+base layer genuinely proves at `d=41`: **456,003 B** vs 459,984 B, `BASE_VERIFIED bytes=456003`
+(`d41-chain/prove41.log:29-30`). But the NV recursion cannot encode a 41 B digest: `U2` units are
+8 B (`Word`) or 2 B (`Half`), so a digest length must be `8a+2b`; 48 = 6·8 and 42 = 5·8+2 are
+representable, **41 = 5·8+1 is not**. `hash.rs:262` asserts `8 + 2·digest_bytes`, and the d41 chain
+panics `104 != 90` on 16 worker threads — 48 B emitted per digest against 41 B expected, so the
+`digest_units` fallback (`hash.rs:238`) sends six 8 B words where five plus a 1 B tail are needed. The
+`d41-margin` run fails earlier and differently: `UnexpectedEof` in the proof codec at
+`main.rs:70:35`, so it produced no usable artifact. **`d=40` (5 words) is representable** and
+projects **≈293,077 B, i.e. ~6.9 KB of margin**. That figure is the projection that includes the
+digest-count drop (narrower rows give shallower Merkle trees); the size law alone, holding `D`
+fixed at 2,869, gives `40·2,869 + 179,437 = 294,197 B`, i.e. **5.8 KB** — so 6.9 KB is the
+optimistic end and 5.8 KB the conservative one. Either way it needs `digest_units` work
+(`hash.rs:238` special-cases only `== 42`, so `d=40` falls through to the 48 B `Word` branch and
+trips the same `8 + 2·digest_bytes` assert), and it **does not fix depth 2 at all**: its 12 → 10 cut
+is a reduction in **in-circuit digest units** (16.7 %), not in SHA compressions. A node job's
+message is `8 + 2·d` bytes — 88 to 104 across widths 40–48 — which always pads to **one** 128 B
+block, so `d=40` leaves the compression count identical. The wall needs **18.3 %** of compressions
+removed. Both `d=40` figures are projections from measured base-layer deltas, not measurements.
+
+**`S` reconciliation: 146 structural vs 103–118 empirical — two different quantities.**
+`S = 146` at 2^23 ops/segment (291 at 2^22) is the structural segment count for 1.22e9 adversarial
+WASM ops, from `results/pq-base-aggregation/model.out`; the plan's 1,880–3,760 is that count
+mis-divided by the W-eq→main-cell exchange rate (494/38 = 13.0, 995/38 = 26.2). `S ≈ 103–118` is
+the **empirical** per-proof union-bound failure point (117.8 z-split, 102.5 uniform z=32). 146 is
+how many segments the workload needs; 103–118 is how many proofs one union tolerates. Because
+146 > 118, the single-database `NodeOK` theorem is needed regardless. See §5 and §7 item 5.
+
+**Next structural path: reduce SHA compressions per child by circuit change.** Depth 2 needs
+10,021 → 8,192 compressions: **1,829 fewer (18.3 %)**, and since both children shrink that is
+**18.3 % per child** — 914.5 of each child's own ~5,010.5. (An earlier "~9.5 % per child" divided
+the cut by two but left the denominator at the total; corrected.)
+**`multiproof` does not reduce `merkle_nodes`** (464 in both lever configurations), so the WHIR
+query strategy cannot deliver this; it must come from the circuit. Unimplemented.
 
 Two reconciliations this log owes its reader, both done in full below and both correcting an
 earlier reading:
@@ -110,6 +216,12 @@ delivered tail is a **linear chain**, not a tree. Measured per level (production
 | L5 | 374,521 | 582.17 |
 | **final** | **299,935** | **522.08** |
 
+**Verify time for the whole delivered chain: 2.08 s** (`TIMINGS.json` stage `verify`;
+`INDEPENDENT_VERIFY_OK bundle_bytes=299967`). Against 3,143.55 s of prove (base 77.87 + chain
+3,065.68) that is a **~1,510× prove/verify asymmetry** — so on the time axis the cost of this
+design is almost entirely proving, and the aggregation depth being blocked hurts prove time
+(the 146-level chain) while barely touching verify time.
+
 Two facts that matter:
 
 * **Every chain level is ~373 KB — 24 % over the 300 KB cap.** Only the final layer is
@@ -120,6 +232,201 @@ Two facts that matter:
   the *byte* difference, and the byte count is what the cap sees.
 * Each level is a fixpoint: identical geometry every time (137,196 rows,
   shapes `(2^20,76) (2^20,83) (2^7,9) (2^16,5)`). Depth costs time, not bytes.
+
+### 2.1 Five levels is one more than necessary — and the extra one costs 582 s
+
+The loop's exit condition is `by_bind` (`main.rs:357`), which is true when
+`select_anchor` returns an anchor with `M != level - 1` (`circuit.rs:233-240`) — i.e. when the
+child's program already equals a program this circuit produced at an earlier level. The
+measured anchors are:
+
+| level | `M` returned | `by_bind` |
+|---|---:|---|
+| L2 | 1 | false |
+| L3 | 2 | false |
+| L4 | 3 | false |
+| L5 | 3 | **true** |
+
+So the anchor had already stabilised at `M = 3` by L4; **L5 exists only to detect that fact.**
+It is not part of the proof's logical content — it is the termination test, and it costs
+**582.17 s**, the single most expensive level in the chain (23 % of the 2,538.55 s chain).
+
+That gives a measured, ready alternative:
+
+| option | chain levels | chain prove | proof B | digest | margin vs 300,000 |
+|---|---|---|---:|---:|---|
+| A: wrap L5 (delivered) | 5 | 2,538.55 s | 299,935 | 42 B | **+33 B** |
+| B: wrap L4 (measured, `replay-l4`) | 4 | **1,956.38 s** | 300,733 | 42 B | −765 B |
+| C: wrap L4 + 41 B digests | 4 | **1,956.38 s** | 297,845 *(projected)* | 41 B | **+2,123 B** |
+
+**Option B is already fully measured and is a valid proof**, not a hypothetical:
+`runs/replay-l4` records `FINAL_PHASE proved_and_verified=425.96 s`,
+`NEGATIVE_CONTROLS_OK changed_tape_root changed_program`, and a clean
+`INDEPENDENT_VERIFY_OK bundle_bytes=300765 under_300000=false` on an independent re-run this
+session. It simply misses the cap by 765 B at 42 B digests.
+
+**Option C is the promising one and it is arithmetic, not a measurement.** It combines two
+measured facts — 4-level `D_final = 2,888` (from replay-l4) and the 41 B digest saving — and
+would deliver **−582 s prove time *and* +2,123 B margin simultaneously**, at the cost of the
+digest-width change documented in §7 item 3. Note the two goals ("minimise prove time",
+"stay under 300 KB") currently pull in opposite directions at 42 B digests: the faster chain is
+765 B over. The digest width is what removes that conflict.
+
+### 2.2 The real prove-time lever: `M = 3` is an artefact of discovering the tight-height floor
+
+Dropping L5 saves one level. A **much** larger saving is available one level up, and it comes
+from *why* `M` reaches 3 at all.
+
+`tight_floor` is a **prover-side** setting: `prove_mats` passes it to
+`stacked_pcs::set_tight_floor` (`circuit.rs:453-457`) and it never reaches the builder or the
+verifier. What the *program* depends on is one step downstream — the child proof's
+**`tight_height`** field, which the verifier observes:
+
+```rust
+// verifier.rs:493-501
+let lh = proof.trace_vdata[a]...log_height;
+b.obs1(b.cu(lh as u64));
+if let Some(h) = proof.trace_vdata[a]...tight_height {
+    b.obs1(b.cu(h as u64));          // <-- this is what moves the program
+}
+```
+
+So the causal chain is: the floor sets the heights this level commits → the committed
+`tight_height` lands in this level's proof → **the next level's program observes that value**.
+A component that the floor does *not* bind is left to the natural height, which is why
+`log_height` alone is unchanged across L2–L5 (`vd_per_air=[50,8,8,8]` at every level) while
+the program still differs. The driver discovers the floor **empirically, one level at a time**
+(`main.rs:320-331`):
+
+1. generate the level's traces,
+2. read their *natural* tight heights,
+3. and if **any** component exceeds the current floor, **replace the whole floor** with the
+   new vector (it is not a componentwise maximum — components can and do decrease),
+4. then prove, committing to that floor.
+
+So a level's program cannot match its child's until the floor has stopped moving.
+Measured floors:
+
+| level | floor |
+|---|---|
+| L2 | `[274384, 1047412, 128, 65536]` |
+| L3 | `[281016, 1047280, 128, 65536]` |
+| L4 | `[281016, 1047280, 128, 65536]` (unchanged) |
+| L5 | unchanged |
+
+The floor reaches its fixpoint at **L3** and never moves again. Note the L2→L3 step moves
+AIR 1 *down* (1,047,412 → 1,047,280) while AIR 0 moves up (274,384 → 281,016), which is only
+possible because the update replaces the vector rather than taking a maximum.
+
+**The mechanism is confirmed: the floor determines the committed height, which determines the
+program.** `tight_height` is the last non-zero row (`stacked_pcs.rs:517-527`), and with a floor
+set a trace commits `max(tight_height, floor_i)` rows (`stacked_pcs.rs:532-534`). The source
+states the consequence outright: *"it lets a recursive verifier pin its child's committed
+heights (NV G2: the program depends on them)"* (`stacked_pcs.rs:536-537`). The measured floors
+differ at exactly the AIRs that matter — AIR 0 goes 274,384 → 281,016 and AIR 1 goes
+1,047,412 → 1,047,280 from L2 to L3 — so the committed heights differ there, so the programs
+differ there, so `M` increments. Once the floor stops moving at L3 the committed heights stop
+moving, L3's program equals L4's, and `M` stops at 3. **That is a mechanism, not an
+observation about this fixture.**
+
+**A correction here, forced by measuring the program words.** I first claimed the pre-pass
+would give `L1, L2, L3 + final` and save 1,041.55 s. **That was wrong**, and the stored
+`state.json` files say so directly. `state[0]` holds the executed program words, so program
+identity can be read off without any new run:
+
+| pair | program words | verdict |
+|---|---|---|
+| L3 vs L4 | 138,610 vs 137,196 | **differ** |
+| L4 vs L5 | 137,196 vs 137,196 | **identical** |
+
+So convergence is `L4 == L5`, **not** `L3 == L4`. There is **one level of lag** between the
+floor fixpoint and the program fixpoint, and it is structural: program `P(k)` is
+`build_verifier(proof_{k-1})` and observes `proof_{k-1}`'s committed heights, which are set by
+`floor(k-1)`. Hence
+
+```
+P(k) == P(k-1)  <=>  heights(p_{k-1}) == heights(p_{k-2})  <=>  floor(k-1) == floor(k-2)
+```
+
+`floor` first satisfies `floor(k-1) == floor(k-2)` at `k = 4`, which gives `P(4) == P(5)` — one
+level later than the naive reading, and exactly what the data shows. The model applies from
+`k = 2` onward: `floor` is only set for `level >= 2` (`main.rs:314`), and `L1.state.json`
+correspondingly records `floor = None`, so L1 is deliberately outside the floor story.
+
+**Corrected saving: pinning the converged floor from L2 gives `L1, L2, L3, L4 + final`, i.e.
+it saves L5 alone = 582.17 s** (2,538.55 s → 1,956.38 s, **−23 %**), not 1,041.55 s. Going
+further would require seeding the floor at L1, but L1's heights come from the base proof, not
+from a floor the prover chooses, so that step is not available.
+
+Note this lands on the *same* 4-level chain that `replay-l4` already measures — so the
+pre-pass would make the 4-level chain the natural one produced by the driver, rather than
+something reached by wrapping a stored L4. Whether it converges in one extra generate is still
+untested: the pre-pass presumes the L3 vector is already the fixpoint, which the driver's
+iterating loop does not assume.
+
+**These two savings are the same 582 s, not two of them.** Worth stating because it is easy to
+double-count: dropping L5 (wrapping a stored `L4`) and the floor pre-pass both terminate at a
+**4-level chain** costing **1,956.38 s**. They differ only in how the chain is obtained —
+option A wraps an already-proved `L4` (so the 582 s was already spent, once), while option B
+makes the driver converge at L4 in the first place (so the 582 s is never spent). For a cold
+production run B is strictly better; for an already-existing artifact A is free because
+`runs/replay-l4` is on disk. Neither stacks with the other, and neither stacks with itself.
+
+**This is a design proposal, not a result.** Nothing in this session implemented or measured
+the pre-pass; the 582.17 s figure is arithmetic on measured level times under the stated
+mechanism. **The cost of the pre-pass is now measured, and it is not the objection.** The driver already
+has a generate-only command on a real production proof: `probe` calls `program_words`
+(`main.rs:232-243`), which executes the verifier program and builds its matrices without
+LDE, commit or prove. Timed live on `runs/opt-baseline-8` this session:
+
+| run | wall | peak RSS |
+|---|---:|---:|
+| 1 | 0.08 s | 32,292 KB |
+| 2 | 0.06 s | 32,544 KB |
+| 3 | 0.06 s | 31,828 KB |
+
+against a **measured ~460 s** to prove a production level. That is a **~6,000×** ratio, so an
+iterate-to-fixpoint pre-pass of a handful of generates would cost under a second — three
+orders of magnitude below the 582.17 s it is meant to save. (The `probe` numbers come from
+`program_words` rather than a full `generate` with a *pinned* floor, so they bound the cost of
+the program execution, which is the repeated part; they do not include one-off trace
+materialisation.)
+
+**The lag model is measured; the one-step convergence is not.** The program-word equality above
+fixes the *relationship* (`P(k) == P(k-1)` iff `floor(k-1) == floor(k-2)`), and the floor
+series is known (changes at L2→L3, fixed from L3). Together those give the 4-level chain with
+no free parameters. What is still untested is whether the pre-pass reaches the L3 floor vector
+in **one** extra generate rather than needing a fixed-point iteration — the driver iterates
+precisely because the authors did not assume one step. So two checks remain before trusting the
+582.17 s: (a) confirm generate-with-pinned-floor converges in one step on *other* inputs, not
+just this fixture; and (b) confirm that pinning a floor the prover later cannot meet is safe,
+which the existing assertion at `circuit.rs:461-462` ("committed `h` below the floor") already
+guards. It is ranked first in §7 because it attacks the dominant cost, not the tail.
+
+**Caveat, and what checking it actually showed.** Dropping L5 removes the level where
+`by_bind` first returns true, so the question is whether a 4-level chain leaves the
+`M = 3` stability assertion unconfirmed. The measured evidence says **no, it does not**, and
+this is worth stating precisely because it changes option C from "needs a proof argument" to
+"already sound at the same standard as the delivered packet":
+
+* `main.rs:373` asserts `fw == words` — the final layer's executed program must equal the
+  wrapped child's program. That check is on the **final program**, and it is the same check in
+  both runs.
+* The two runs' `SETUP.json` files differ **only** in the `level` field (6 vs 5):
+  `final_vk`, `program`, `base_params`, `air_sha256`, `domain_odd_factor` and `version` are
+  byte-identical, verified field by field this session.
+* The anchor `(M, C_M)` is identical at L4 and L5 — both record
+  `[3, [15539961368661287768, …, 19248]]` in their `state.json`.
+* The verifier enforces the anchor, not the prover: an anchor-level child's program root must
+  equal the constant `C_M` (`verifier.rs:903-921`), and any other child is bound by BIND
+  (`bind_child_program`, `verifier.rs:1335-1402`). So the *verifier* pins the converged program
+  whether or not a fifth level was ever proved.
+
+So L5's cost buys a **prover-side convergence observation** (`select_anchor` comparing program
+words, `circuit.rs:225-241`), and nothing the verifier depends on. Option B is therefore
+already-verified as a valid proof on its own terms — it fails only the size cap. What is still
+**not** established is whether some other chunk needs a higher `M` and so a longer chain; that
+is a per-input property, and `replay-l4`'s result only covers this fixture.
 
 Total: 3,065.68 s chain wall (`TIMINGS.json` → `stages.chain.wall_s` = 3065.6827; L1–L5 sum
 2,538.55 s, final layer **522.075 s** measured as L5_VERIFIED 15:21:48.118868 → FINAL_VERIFIED
@@ -210,12 +517,35 @@ never at production targets.
 
 ## 4. The 300 KB margin as a function of S
 
-**There is no S-dependence.** The root is one fixpoint node; whether the tree is 13 leaves
-or 4,096, the root is the same shape (132,301 B at test targets, final-layer class at
-production). So:
+**The root's SHAPE has no S-dependence; its byte count varies by a few digests with the child's
+bytes. And at production targets the root cannot be proved above depth 1 at all, so "flat in S"
+is a test-target statement.**
 
-* a wider or deeper tree **cannot** push the packet over the cap;
-* and it **cannot** rescue the 33 B margin either.
+The size-invariance argument: the root is one fixpoint node; whether the tree is 13 leaves or
+4,096, the root is the same shape (132,301 B at test targets, final-layer class at production).
+Two independent reasons make the *statement* S-independent by construction (note: the statement,
+not the proof bytes — see the `D` caveat below):
+
+* `RangeStmt::compose` (`nv/agg.rs:65`) collapses N children into **one** statement — `ctx`/`a`
+  from the first child, `e` from the last, so statement width does not grow with fan-in;
+* `NV_NUM_PVS = 1 + NV_DIGEST = 1 + 18 = 19` (`nv/uair.rs:142`) is a fixed public-value count.
+
+What *does* grow with S is the **NvAir row count** (≈ program instructions), which changes the
+WHIR leaf count rather than the statement. But a second, subtler dependence does exist and it is
+**measured, not theoretical**: the parent's digest count `D` varies with the *child proof's bytes*
+because those bytes seed the transcript. Wrapping L5 gives `D = 2,869` (299,935 B, pass); wrapping
+L4 gives `D = 2,888` (300,733 B, **fail by 765 B**) — same final-layer geometry, 19 extra digests
+(§4.2). So "flat in S" holds for the *shape*, not for the byte count to the digest. That is exactly
+why the 33 B margin is fragile. So:
+
+* a wider or deeper tree **cannot** change the packet's *shape* — that part stands;
+* but it **can** move the byte count by digest-sized amounts, so it **cannot** be relied on to
+  rescue the 33 B margin (measured: 19 digests = 798 B from the child alone);
+* **and the invariance is only measured at `log_blowup = 3`.** At production targets an
+  aggregation node with two NV children needs a 2^21 SHA AIR against a 2^20 stacked-height
+  ceiling — an exact 1-bit gap that no blowup value closes (§2, row 18). So at production
+  targets there is no measured aggregation node above depth 1, and "flat in S" cannot be
+  quoted without that condition.
 
 The margin is a function of the **final layer's shape** only — query schedule, unwind `m`,
 digest width (42 B), and `program_part`. The two packets we hold straddle the cap by exactly
@@ -354,7 +684,98 @@ bundle_bytes = proof_bytes + 32   (8 B magic + 8 B length + 16 B hint)
 ```
 
 `C` is constant because every non-WHIR section is constant at fixed geometry; `D` is the only
-variable. The final layer's `C` is 35,358 B below a chain level's. That gap is **not** a single
+variable. **`C` is now fully decomposed** by re-running `proof-sections` on the saved base proof
+this session (it reproduces every figure in the table above byte for byte):
+
+```
+C = 179,437 = 110,378  WHIR non-digest overhead
+            +  68,948  named non-WHIR sections (48+40+37,592+24,292+6,976)
+            +      76  19 public values x 4 B (BabyBear)
+            +      35  proof framing / length prefixes
+```
+
+so nothing in `C` is unexplained, and the only sub-term large enough to matter for a 1 KB
+margin cut is the **110,378 B WHIR overhead** — which is *not* digest bytes and therefore not
+addressable by digest width. The final layer's `C` is 35,358 B below a chain level's.
+
+**What the 110,378 B actually is, from the proof struct** (`proof.rs:176-201`): the WHIR proof's
+non-digest payload is dominated by `initial_round_opened_rows`, laid out as
+`num_commits × num_queries × 2^k × stacking_width` **field elements** (4 B each), plus
+`codeword_opened_values`, `ood_values`, sumcheck polys and the 128-coefficient `final_poly`.
+That makes the overhead a function of **queries × width × 2^k**, not of digest width. At 131
+queries the overhead is 843 B/query against 920 B/query of digests — the two are comparable, so
+a margin cut cannot come from digest width alone if the goal is Route A. The levers that touch
+it are `k` (2^k rows opened per query), the stacking width, or the query count — each of which
+changes the schedule and therefore the soundness/byte trade rather than being free.
+
+**Two margin levers were checked and eliminated this session, which narrows Route A to nothing:**
+* **`margin_milli` (O-2 agreement slack) does not move query counts.** Reducing 50 → 0 changes
+  each round's `agree` threshold (37,140,791 → 34,843,478 in round 0) but `ceil(target/per_query_bits)`
+  lands on the same query count in all four rounds. So the 50 ‰ margin is not costing bytes.
+* **`C` is width-invariant, so the digest-width lever does not touch the 110,378 B overhead.**
+  `WhirProof::encode` (`proof.rs:373-420`) writes `initial_round_opened_rows` as **base-field**
+  elements and only the Merkle proofs as digests, so shrinking the digest only shrinks the `42·D`
+  term. At `d = 41` the estimate `41·D + 179,437` gives **297,066 B at D=2,869** and **297,845 B at
+  D=2,888** — i.e. 2,902 B and 2,123 B of margin. Both clear 1 KB comfortably.
+* **The d=41 calibration needs a full re-prove, not a replay.** The base proof on disk is 42 B, and
+  `replay-final` starts from `load_base(out)`, so a 41 B final layer requires a 41 B base+chain
+  first: ~78 s base + ~3,066 s chain + ~522 s final ≈ **1.02 h** of proving.
+
+**MEASURED 2026-10-23: `C` IS width-invariant, and the d=41 lever is real.** Two hard assertions
+blocked the path and both were relaxed this session: `sha_levers()` (`sha384/config.rs:110`) now
+accepts 41 as well as 48/42, and the driver's `init()` (`src/main.rs:187`) no longer overrides an
+explicit `NEARPROOF_DIGEST_BYTES` from the environment. A third, in `chunk_bridge.rs:17`, also
+hard-asserted `digest_bytes == 42`; it now allows 42/41 while keeping `coset_leaf`/`tstar` strict.
+With those relaxed, a full d=41 base+chain run was launched. **Its base proof verified at
+456,003 B against 459,984 B at 42 B — a 3,981 B reduction — but the recursion chain then died**
+(`hash.rs:262`, `104 != 90`). Two separate findings, and the second one kills the lever:
+
+**(a) The base proof's d=41 split, measured by `proof-sections` on both widths:**
+
+| section | d=42 | d=41 | delta |
+|---|---:|---:|---:|
+| `common_main_commit` | 48 | 48 | 0 |
+| `trace_vdata` | 280 | 279 | −1 |
+| `gkr` | 15,512 | 15,512 | 0 |
+| `relations` | 257,944 | 257,944 | 0 |
+| `stacking` | 2,372 | 2,372 | 0 |
+| `whir` | 181,204 | 177,225 | −3,979 |
+| **total** | **459,984** | **456,003** | **−3,981** |
+| `whir_digest_count` | 2,788 | 2,759 | **−29** |
+| `whir_bytes_overhead` | 64,108 | 61,347 printed / **64,106 actual** | −2 |
+
+So the drop is **not** just `(42−41)·D`. Only 2,759 B of it is the per-digest saving; 1,218 B is
+**29 fewer digests at 42 B each** (init 1,666 → 1,642 = −24, exactly 2 commits × −12; later
+[633,489] → [627,490] = −5); 2 B is overhead — those three sum to the −3,979 WHIR delta, and the
+remaining −2 B is non-WHIR (`trace_vdata` −1, plus 1 B elsewhere). Narrower digest rows
+(`init_lens` 833 → 821,
+i.e. −12 B per commit) make the Merkle trees shallower and sample fewer leaves. One trap: the
+printer computed `whir_bytes_overhead` as `whir − 42·D` with **42 hardcoded**
+(`native/pq-chunk-e2e/src/main.rs:182`), so at d=41 it printed 61,347 when the true figure is
+`177,225 − 41·2,759 = 64,106`. The printer is now width-aware and re-measures 64,106 at d=41 and
+64,108 at d=42 — i.e. the overhead is **width-invariant to 2 B**, which is the clean statement:
+**the width lever changes digest count and per-digest bytes, not the WHIR framing.** `C` therefore
+moved by 4 B, not 0:
+
+```
+d=42:  C = 459,984 − 42·2,788 = 342,888
+d=41:  C = 456,003 − 41·2,759 = 342,884      (delta −4)
+```
+
+**(b) The chain cannot encode a 41-byte digest at all — this is a structural wall.** `U2` units are
+`Word` (8 B) or `Half` (2 B), so a digest's byte length must be `8a + 2b`: 48 = 6·8 and 42 = 5·8+2
+are representable, **41 = 5·8+1 is not**. The node message asserts
+`m.len() == 8 + 2·digest_bytes` (`hash.rs:262`), which asks for 8+2·41 = 90 B while the 6-word
+encoder emits 8+2·48 = 104 B — hence `104 != 90`, panicking **3,568** times in the NV levels. The
+base layer never hit this because it is not the NV circuit. `digest_units` also only branches on
+`== 42` (`hash.rs:238`), so it never truncates to 41.
+
+**Consequence: the digest-width margin lever is unavailable for the NV tree.** The only even widths
+representable are 48 (6 words), 42 (5W+1H) and 40 (5 words); 41 needs a 1-byte tail. And 40 B is
+*not* a drop-in: it changes unit count from 12 to 10 per digest, so it changes geometry and needs
+its own recalibration. The margin arithmetic for d=41 therefore does **not** stand as a usable
+lever, and this paragraph replaces the earlier "C width-invariant across d=42→41" claim, which was
+wrong on two counts (`C` moved 4 B; and the chain cannot encode the width). That gap is **not** a single
 `program_part` section — measured against `L5` it decomposes as **−35,068 B of WHIR non-digest
 overhead** (the final layer carries **one** WHIR commit where a chain level carries **two**) plus
 −290 B across the non-WHIR sections (`trace_vdata` −42, `stacking` −244, `relations` −4). So the
@@ -371,6 +792,43 @@ Three consequences that matter for the goal:
   input, so "under 300 KB" is a property of the sampled transcript, not of the configuration.
 * The 798 B is **not** a wobble to be averaged away; it is 19 discrete digests. Sizes here move in
   42-byte units, and the cap sits 0.79 digest above base, so the margin is sub-digest.
+
+### 4.4 Do the aggregation tests actually verify? Yes — checked in the source
+
+The question was raised that `level()` in `agg_tests.rs` "calls `prove_mats` and only checks
+the statement", so `AGG_*_OK` might be statement-level only. **That is not the case.**
+`prove_mats` (`nv/circuit.rs:430-468`) ends with
+
+```rust
+engine.verify(&vk, &proof).unwrap();
+(vk, proof, shapes)
+```
+
+— an unconditional native verification of the proof it just produced, on **every** level,
+before returning. So each `L*_PROOF_BYTES` line in these logs describes a proof that has
+already passed `engine.verify` against its own freshly keygen'd vk. `level()` then additionally
+checks the statement (`check_range_statement`), and `soundness(tag, &vk)` computes the bit
+count from the vk. Three separate checks, in that order.
+
+Two honest limits on what this establishes, neither of which the tests claim to cover:
+
+* **The vk is regenerated in-memory, not read from a pinned artifact.** `prove_mats` does
+  `engine.keygen(&airs)` and verifies against that. It proves prover/verifier agreement on the
+  same circuit, not agreement with a *committed* vk. The delivered packet's independent check
+  (`INDEPENDENT_VERIFY_OK`) is the one that uses a pinned vk and a pinned setup hash; the agg
+  tests do not reproduce that.
+* **`b.failures.is_empty()` is asserted but program binding is not emitted for NV children**
+  (`agg.rs:21-23`: "program binding of NV children is not emitted by this node"). The
+  `ChildKind::Node` path does set `b.bind_child = true` (`agg.rs:159`), so binding is on for
+  the depth-2+ node path, but the *App*-child path does not bind. This is the same prototype
+  limit recorded in `results/pq-base-aggregation/README.md`, not a new finding — but it means
+  an `AGG_*_OK` line is "proof verifies + statement matches", **not** "full packet-grade
+  verification".
+
+**Consequence for labelling:** `AGG_DEPTH1_OK`, `AGG_CHAIN_OK`, `AGG_DEPTH3_OK`, `AGG_S13_OK`
+are all backed by a real `engine.verify` pass. They are *not* backed by an independent
+pinned-vk verification, and the App-child path lacks program binding. Any sentence in this
+repo that treats `AGG_*_OK` as packet-grade evidence should say which of the two it means.
 
 ## 5. Soundness: why this cannot be a per-proof union (and a correction)
 
@@ -508,6 +966,190 @@ Still open, and each one is a real blocker rather than a formality:
    patch.** Today the measurements live in a mutated deps checkout; that is a
    reproducibility debt, not a blocker.
 2. **Measure one depth-2 node at production targets** (268-bit, z=32, 42 B, pinned `m`).
+
+   **Partial measurement landed 2026-10-23: a 2-child agg node at 268-bit targets measures
+   368,177 B, and a depth-2 node at `n_stack=18` panics on program size.** The cold
+   `target-agg` rebuild took 41.3 s (sccache), so the build was never the blocker it looked
+   like. Four runs were attempted; **every one was killed by a server restart**, and none of
+   the production-parameter runs reached its byte total. The two byte figures below come from
+   the run whose odd-factor lever was wrong (`X15=1`), so they are **upper bounds**: the
+   production query list is shorter. Read the "over cap" framing accordingly.
+
+   | quantity | `agg-prod-depth2-ns18.log` | `agg-prod-depth2-exact.log` |
+   |---|---|---|
+   | domain `n` in O-2 table | `134217728` (`X15=1`, certs missed) | `2013265920` (`X15=15`, 2/5 rounds first-order) |
+   | WHIR queries/round | `[68, 43, 32, 25, 21]` | `[44, 35, 27, 23]` |
+   | `L1_0` total bytes | **368,177** (gkr 34,952, relations 24,292, stacking 2,704, whir 306,024) | not reached |
+   | `L1_1` total bytes | **366,929** (whir 304,776) | not reached |
+   | `L1_0` prove_s / peak RSS | 401.2 s / 28.13 GB | — |
+   | depth-2 outcome | `program exceeds 2^18 rows` (`builder.rs:303`) | killed at restart |
+   | final-layer params reached? | 5 rounds, not 4 | **4 rounds `[41,35,27,23]`, 3/4 first-order** |
+
+   The 4-round config is the one that matches the base final layer exactly
+   (`queries=[41, 35, 27, 23]` vs the base's `[41, 38, 29, 23]` — same 4 rounds, same
+   `k=4`, same `X15=15` domain, 3/4 rounds certified where the base certifies 4/4).
+   That run needed `COMMITS=1` **and** `X15=15` together; `COMMITS` defaults to 2 for the
+   `PARENT` prefix (`params_from_env`, `e("COMMITS", if prefix == "PARENT" { 2 } else { 1 })`),
+   so a `COMMITS=1` override is mandatory for a final-layer-shaped node. That run's log
+   (`agg-prod-d1-c1.log`) confirms the params but was killed before its byte total.
+
+   **CORRECTED 2026-10-23: the 1-commit production agg node is now MEASURED at 276,269 B.**
+   `L1_0_PARAMS ... queries=[41, 38, 29, 23] pow(...,query,...)=(0,0,32,0)`, i.e. the base
+   final layer's own schedule, `COMMITS=1`, `target=236 + 32 pow = 268.2` bits total. Section
+   split `total=276269 gkr=29960 relations=23332 stacking=2704 whir=220068`, prove 2,160.8 s,
+   peak RSS 9.46 GB, `program_rows=16662`, `nvair_h=262144`, `AGG_DEPTH1_OK`, and
+   `L1_0_SOUNDNESS total=268.2`. Log
+   `results/pq-agg-prod-target/agg-prod-qpow32.log`. **This is 23,666 B *below* the delivered
+   base final layer's 299,935 B at the same schedule**, and 23,731 B under the cap.
+   Two caveats that matter for reading it: (i) it is an **APP-child** node (`nvair_h=2^18`),
+   not the Node-child node a 1 Pgas tree root would be; (ii) it ran under
+   `NEARPROOF_STREAM_COMMIT=1`, whose prove-time penalty accounts for essentially all of the
+   2,160.8 s. The size is unaffected by streaming; the time is not.
+
+   **Measured streaming penalty: ~11×, not 27× (corrected 2026-10-24).** At the same 2-child
+   geometry and the same 131 queries, materialised runs prove in **65.4–66.2 s at ~26 GB**
+   (`agg-prod-d2.log`, `opened=346`) while streaming runs prove in **739.4–752.5 s at ~6.6 GB**
+   (`agg-d2-l2prod.log`, `opened=291`). That is **11.3× time for a 3.9× memory saving**. The
+   2,160.8 s figure is 32.6× but used an earlier lever config, so it is not the clean comparison.
+   Note also that the **delivered chain itself is materialised** (no `STREAM_COMMIT` in its stage
+   environment) at 13.3 GB peak — so the 462–582 s/level NV-child timings carry **no** streaming
+   penalty, and the ~20.6 h long-chain projection is materialised, not streaming, time.
+
+   Logs are sha256-pinned in `research/near-compression/results/pq-agg-depth-law/logs/`:
+   `agg-prod-depth1-ns18.log` = `684bbdba…ed1837` (the 368,177 B run),
+   `agg-prod-depth2-exact-killed.log` = `27e3c6ad…ab60` (4-round params, killed) and its
+   byte-identical retry `agg-prod-d2-run3-killed.log` (same sha256), plus
+   `agg-prod-d1-commits1-killed.log` = `92f46bcb…da507` (the `COMMITS=1` config that matches
+   the base final layer's params, killed before its bytes). All are raw captures from
+   `target-agg`, not reproductions of the base packet.
+
+   **Why the runs kept dying — CORRECTED 2026-10-23. The earlier "not OOM kills, the server
+   restarted" attribution in this paragraph was WRONG and is withdrawn.** The real cause is
+   memory: these runs are killed by the cgroup OOM killer in `zkbuild.slice`, whose
+   `memory.peak` reached 40.0–42.9 GB against a 48 GiB `memory.max`
+   (`memory.events: oom_kill` rising 4 → 5 across two launches). Two mechanisms compound it:
+   * **Page cache fills the slice.** At kill time `memory.stat` showed `anon ≈ 0`,
+     `file = 16.5 GB`, `current = 18.8 GB` — so a ~26 GB materialised-LDE run has under
+     ~29 GB of headroom and dies mid-WHIR-commit. Every materialised depth-2 launch this
+     session died at the same point: the log stops right after `NV_PHASE end <n>`, i.e. at the
+     first `engine.prove` call, with no panic and no error line.
+   * **A `mem-watchdog` also kills.** `/data/illia/nearproof-deps/bin/mem-watchdog` polls
+     `MemAvailable` each second and, when it stays under `CRIT=10` GiB while the slice is
+     frozen, `kill -9`s the largest process in `zkbuild.slice`. A long prove is the largest
+     process by construction, so host-wide pressure can end a run without an OOM event in
+     `memory.events`.
+   The "server restart" story is therefore unsupported; what looked like restarts were OOM
+   kills plus watchdog kills. The launcher defects noted earlier (no `setsid`, a cleanup
+   pattern matching its own command string) were real but secondary.
+   **What works:** `NEARPROOF_STREAM_COMMIT=1` at 9.46 GB peak ran to completion (2,160.8 s).
+   A 2-child production node measured **28.1 GB peak RSS** materialised at 5 rounds and
+   ~400 s/level, so only one such run should ever be in flight, and materialised depth 2 needs
+   the page cache dropped or a larger slice first.
+
+   Three findings, in order of consequence:
+
+   * **A 2-child agg node at production targets measures 368,177 B, which is the same order
+     as the chain levels it would replace — not smaller.** Section split: whir 306,024,
+     gkr 34,952, relations 24,292, stacking 2,704. Compare the delivered chain's own levels
+     (`proof-sections` on the base packet): L1 374,105 B (whir 304,804), L4 373,177 B
+     (whir 303,828), L5 374,521 B (whir 305,172). The agg node's WHIR section sits **inside**
+     the chain's 303.8–305.2 KB band, so aggregating two children buys ≈ 1 KB, not a layer
+     collapse. That measurement is an upper bound (68 queries, `X15=1`), and the corrected
+     44-query config would land lower — but not by 68 KB, since the WHIR section is ~83 % of
+     the proof.
+     **The 300 KB cap binds the final artifact only, so this does not yet put the agg tree
+     over it.** The base packet's final layer is 299,935 B precisely because it sets
+     `program_part = false` (`main.rs:364`), dropping from 2 WHIR commits to 1 and cutting
+     the section by 35,068 B of non-digest overhead (`C = 214,795` at 2 commits vs
+     `179,437` at 1; measured on L4 vs FINAL). The 368,177 B node ran with `COMMITS=2` — the
+     `PARENT` default — so it is an **intermediate** node and may be ~374 KB.
+     **Whether a 2-child node at the production final-layer schedule fits under 300 KB is not
+     measured, but the two earlier "Route A / Route B" projections that disagreed by 7,184 B
+     are both withdrawn — they rested on the false premise that `COMMITS` sets the commitment
+     count. With that corrected, the accounting collapses to a single estimate.**
+
+     The chain of reasoning, all from measured quantities:
+
+     1. **WHIR bytes are set by the schedule and the commit count, not by the child count.**
+        The base final layer's NvAir height is 2^20 and the agg node's is also 2^20 — it
+        *saturates*, so a second child adds no rows. The commit count is `1 + #(preprocessed +
+        cached_mains parts)`, identical (1) for both when `program_part = false`.
+     2. **Therefore a 2-child node at the base final schedule has the base final WHIR section:
+        230,876 B.** The measured 306,024 B belongs to the 68-query schedule, which no
+        production run has reproduced.
+     3. **Only the non-WHIR sections move, and they are measured at both ends:** agg node
+        62,153 B (2 children, `program_part=false`) vs base final layer 68,860 B (1 child,
+        `program_part=false`). The 2-child figure is the cheaper one and is the one to use.
+     4. **Estimate: 62,153 + 230,876 = 293,029 B → 6,971 B of margin.**
+
+     **This is an estimate, not a measurement, and one term in it is unverified:** step 2
+     assumes the WHIR section is child-count-invariant, which is true of the *height* and
+     *commit* drivers but has not been demonstrated for a 2-child node at 41 queries. If a
+     second transcript restart (measured `chain_starts = 2`) perturbs round-0 opening lengths,
+     it could move by some digests. The estimate's margin (6,971 B ≈ 166 digests) is large
+     enough to absorb that, which is why it is worth stating — but a run is what would make it
+     a fact. **What is already solid:** with the digest at 42 B the node is no longer the
+     knife-edge the base packet is, and with 41 B digests it would carry ~9.9 KB of margin.
+
+     **The AIR geometry does transfer, but the query schedule does not — and the schedule
+     dominates WHIR bytes.** The agg node and the base final layer do share an AIR shape:
+     `cols = 173` in both (`SETUP.json` `final_vk.inner.per_air[*].params.width.common_main` =
+     76 + 83 + 9 + 5), and `nvair_h = 2^20` in both (`L5_VERIFIED shapes=[(1048576,76),
+     (1048576,83), (128,9), (65536,5)]`). But they do **not** share a WHIR schedule, and the
+     difference is larger than either child count or commit count:
+
+     | config | `k_first` | `log_final` | rounds | queries | WHIR bytes |
+     |---|---:|---:|---:|---|---:|
+     | base FINAL (`profile.rs`, `final_layer=true`) | 1 | 7 | 4 | `[41,38,29,23]` | 230,876 |
+     | agg as measured (`X15=1`) | 2 | 0 | 5 | `[68,43,32,25,21]` | 306,024 |
+
+     Round 0 carries the most weight, and 68/41 = 1.66×, which alone accounts for most of the
+     75 KB difference. So the earlier sentence in this log — that the two differ "only in child
+     count and WHIR commits" — is **wrong and is withdrawn**: `k_first = 1, log_final = 7` is what
+     `profile.rs` uses for a final layer, and **no completed agg run used it**. The 368,177 B
+     figure therefore measures a 2-child node at a *test-shaped* schedule, not at the production
+     final-layer schedule. What it does establish stands: 2 children prove, verify, and stay in
+     the same 173-column / 2^20-row geometry. What it does **not** establish is the production
+     byte total, and the projection below remains arithmetic on the size law rather than a
+     measurement of that node.
+
+     **The two 4-round configs are close but not identical, and the difference is in `kdim`
+     only.** Working `WhirConfig::num_rounds` / `round_codes` for `l_skip=2, n_stack=18,
+     log_blowup=7, k=4, odd=15`:
+
+     | config | `k_first` | `log_final` | `kdim` per round | queries |
+     |---|---:|---:|---|---|
+     | base FINAL | 1 | 7 | `[1048576, 524288, 32768, 2048]` | `[41,38,29,23]` |
+     | agg `COMMITS=1` run | 2 | 6 | `[1048576, 262144, 16384, 1024]` | `[41,35,27,23]` |
+
+     Both give 4 rounds and the same `n`, but the agg `kdim` halves after round 0, which is why
+     its queries are `35/27/23` instead of `38/29/23` — a *shorter* schedule, so it would land
+     slightly **below** 299,935 B, not above. Setting `K1=1` and `LOG_FINAL=7` on the agg node
+     would reproduce the base final layer's schedule exactly; that specific run has not been
+     done.
+
+     **One more mechanism worth recording, because it invalidates a natural assumption:**
+     `COMMITS` does *not* create a WHIR commitment. It is only the `max_commits` argument to
+     `with_first_order`, where it gates whether round 0 may use the first-order threshold
+     (`config.rs:301`: `let allowed = i > 0 || max_commits <= 1`). The actual commitment count
+     comes from `StackingBlob::new`, which sets `num_commits = 1` and then adds one per
+     `preprocessed`/`cached_mains` part (`stacking/mod.rs:421-466`). The base final layer has
+     `preprocessed: None` and `cached_mains: []` on all four AIRs, hence exactly 1 commit; the
+     chain levels carry a second commit because `program_part = true` gives them a program part.
+     So "child count" never affects the commit count either — the earlier framing was wrong on
+     both counts.
+   * **`X15=15` is mandatory and was silently wrong in the first run.** The odd factor is the
+     6th positional argument of `WhirConfig::new_full`; `X15` defaults to 1, which changes the
+     domain to `2^27` and makes every DKT certificate miss (`first_order=false` on all rounds).
+     With `X15=15` the domain is `2^27·15 = 2,013,265,920` and rounds 1–2 hit their
+     first-order thresholds. The 68-vs-44 query gap between the two runs is exactly this bug,
+     so **the 368,177 B figure is a 68-query upper bound, not the production number**; the
+     corrected query count should be materially smaller and is what run 3 measures.
+   * **`n_stack=20` is impossible at production blowup.** `l_skip + n_stack + log_blowup = 29`
+     exceeds BabyBear's 2-adicity of 27 (`monty_31.rs:654`), which is why `profile.rs` asserts
+     `n_stack <= 18`. The test-target value 20 does not transfer. Depth 2 at `n_stack=18` then
+     fails for a different reason — the agg program needs more than 2^18 rows — so
+     `NV_PROG_LOG=19` is required; that run was also interrupted.
    This is the only remaining unmeasured quantity on the size axis and the one thing that
    can break §4's "does not degrade with S" claim.
    *Reachability checked (2026-10-23): no code change is needed, but it is not "four env
@@ -517,6 +1159,17 @@ Still open, and each one is a real blocker rather than a formality:
      lever set (`MULTIPROOF KEEP_DOMAIN GRUEN_GKR GKR_DERIVE NEXT_MASK GRUEN_ZC WIDE_POW
      TIGHT WHIR_Y`, all default **off**), so a production node must set the levers explicitly
      to match `profile.rs`'s `WhirLevers`;
+   * **Prefix semantics settled (2026-10-23): each level's prefix is independent — there is NO
+     inheritance.** `params_from_env` reads only `{prefix}_{NAME}`, falling back to the literal
+     default array the *caller* passes (`e2e_tests.rs:269`, `env_usize(format!("{prefix}_{n}"),
+     dflt)`). The depth-n driver calls `params_from_env("PARENT", [16,3,20,3])` for L1 and
+     `params_from_env(&format!("PARENT{d}"), [16,3,20,3])` for each level `d ≥ 2`
+     (`agg_tests.rs:471/485`). So L1 reads `PARENT_*` and L2 reads `PARENT2_*`, and setting only
+     `PARENT_*` leaves L2 on the literal defaults `[16,3,20,3]` — the *test* targets, not
+     production. Both prefixes must be set explicitly. A second prefix-scoped default bites
+     harder: `COMMITS` defaults to **2 for prefix `PARENT` and 1 for everything else**
+     (`e2e_tests.rs:317`), so L2 defaults to 1 commit while L1 defaults to 2 — the opposite of
+     what a naive "set both to production" would assume, and it changes section geometry;
    * **A DKT cert set.** With `LIST_M>0` the O-2 first-order table is certificate-gated
      (`O2=1` by default) and reads `{prefix}_DKT_CERTS` or `NEARPROOF_DKT_CERTS`. A matching
      file exists at `research/near-compression/final-soundness/calc/dkt_certs_o2.json` (the
@@ -535,15 +1188,360 @@ Still open, and each one is a real blocker rather than a formality:
        Neither log's ending should be read as the other's.
      So a production-target agg node's minimum `n_stack` is unmeasured; 20 is the only value known
      to work and is the safe default, and 18/19 are not excluded.
+   * **Resolved (2026-10-23): at production blowup, `n_stack = 20` is impossible and 18 is the
+     ceiling.** Launching the node at the full production shape (`BITS=268 LOG_BLOWUP=7 LIST_M=64
+     K=4 N_STACK=20`, all levers on, real DKT certs) panics before proving anything:
+     `assertion failed: bits <= Self::TWO_ADICITY` (`p3-monty-31/src/monty_31.rs:654`). BabyBear's
+     2-adicity is 27 and `l_skip + n_stack + log_blowup = 2 + 20 + 7 = 29`. This is not a harness
+     limit — it is the field's multiplicative-group structure, and `profile.rs` already encodes it
+     as `assert!(n_stack <= 18, "chunk shape exceeds the supported BabyBear extended domain")`.
+     So the test-target depth-2 value 20 **does not transfer** to production; 18 is the only
+     production-legal choice, and it is the value the delivered chain uses. Whether an agg node's
+     program still fits 2^18 rows (rather than the 2^20 the test used) is the open sub-question,
+     and it is now the thing the production run has to answer.
+
+     **The planned `n_stack` 18/19/20 sweep is VOID — do not run it.** The binding constraint is
+     `l_skip + n_stack + log_blowup <= 27` (BabyBear 2-adicity) at production `log_blowup = 7`,
+     `l_skip = 2`:
+
+     | `n_stack` | `l_skip+n_stack+log_blowup` | verdict |
+     |---:|---:|---|
+     | 18 | 27 | **legal — the only legal value** |
+     | 19 | 28 | impossible, `assert!(bits <= TWO_ADICITY)` |
+     | 20 | 29 | impossible |
+
+     So 19 and 20 cannot be launched at all: they panic in the field constructor before any
+     proving. The sweep collapses to a single point. Any text proposing to "sweep 18/19/20"
+     should be read as "18, with the other two excluded arithmetically".
+
+     **Depth 2's real blocker is the stacked-layout height, not the program row count.**
+     `NV_PROG_LOG=22` (the value tried in `agg-prod-d2-r2.log`) forces `log_height = 22` against
+     `log_stacked_height = l_skip + n_stack = 20`, so the PCS rejects it:
+     `LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 }` (`circuit.rs:458`).
+     `NV_PROG_LOG=20` (the earlier attempt) instead trips the builder's own guard,
+     `program exceeds 2^18 rows` (`builder.rs:303`) — because `AGG_LOG_ROWS2=20` defaults
+     `prog_log = log_rows - 2 = 18`, and the Node-child program needs more than 2^18.
+     The height arithmetic (`nv_trace`: `used = na + na/2 + glue + hash + samp`,
+     `na ≈ 2^prog_log`) pins the legal pairing:
+
+     | `prog_log` | `used ≈ 1.5·2^prog_log` | minimum `log_rows` | resulting `nvair_h` |
+     |---:|---:|---:|---:|
+     | 18 | 393k | 19 | 2^19 |
+     | **19** | **786k** | **20** | **2^20** |
+     | 20 | 1.57M | 21 | 2^21 (exceeds `log_stacked_height = 20`) |
+
+     So the legal production pairing is **`NV_PROG_LOG = 19` with `AGG_LOG_ROWS2 = 20`**, which
+     lands `nvair_h = 2^20` — **exactly the base final layer's geometry**, making the byte
+     comparison apples-to-apples for the first time. That is the configuration launched, under
+     `NEARPROOF_STREAM_COMMIT=1` to stay inside the memory budget.
+
+     **MEASURED RESULT of that launch (2026-10-23): the two App-child L1 nodes prove; the L2
+     Node-child node does NOT, and the blocker is a 2^22 column height, not the program log.**
+     Run `results/pq-agg-prod-target/agg-d2-streaming-qpow32.log`:
+
+     ```
+     L1_0_SUMMARY ... program_rows=17558 nvair_h=262144 prove_s=1175.1 peak_rss_gb=8.80
+     L1_0_PROOF_BYTES total=276789 gkr=29960 relations=23332 stacking=2752 whir=220540
+     L1_1_SUMMARY ... program_rows=17558 nvair_h=262144 prove_s=791.3  peak_rss_gb=8.90
+     L1_1_PROOF_BYTES total=275933 gkr=29960 relations=23332 stacking=2704 whir=219732
+     L2_0_PARAMS ... queries=[41,38,29,23]
+     panicked at circuit.rs:458: StackedPcs(LayoutHeightExceeded
+                { log_height: 22, log_stacked_height: 20 })
+     ```
+
+     So `NV_PROG_LOG=19` fixed the *program* guard but not the *layout* guard. The 2^22 is the
+     **SHA compression AIR's natural height**, computed as `main_height(comps.len())` in
+     `hash.rs:319` where `comps` = leaf jobs + transcript replay jobs. An L2 node verifies **two
+     NV child proofs**, and each NV child's WHIR proof carries 131 queries' worth of Merkle
+     paths and transcript blocks — far more SHA work than the two small App proofs an L1 node
+     verifies. The production L1 geometry is recoverable exactly from its own `cells` figure:
+     `31,130,752 = 2^18·76 + 2^17·83 + 128·9 + 2^16·5`, i.e. **NvAir 2^18 but SHA AIR only
+     2^17**. The L2 node demands **2^22** on that same column — **32× growth** from one extra NV
+     child — *with the incomplete lever set used by this run*. At the full production lever set the
+     demand is **2^21** (2× over 1 child; see the correction box below). At test targets the same
+     comparison was 8× (L1 SHA 2^17 → L2 SHA 2^20), because the test schedule runs ~24 queries
+     against production's 131. The 2^22 exceeds
+     `log_stacked_height = l_skip + n_stack = 20` by 2 bits (22 − 20; an earlier draft said "4
+     bits", which was an arithmetic slip). Note the offending column is the
+     **SHA AIR**, not the NvAir: L2's own `rows_so_far` was 171,873, i.e. NvAir 2^18.
+
+     **Why this is a real production wall, and its exact arithmetic.** The stacked height is
+     `log_stacked_height = l_skip + n_stack`, and the field caps
+     `l_skip + n_stack + log_blowup ≤ 27` (BabyBear 2-adicity; `monty_31.rs:654`). So the
+     achievable stacked height is **`27 − log_blowup`**, and nothing more:
+
+     | `log_blowup` | max legal `n_stack` | max `log_stacked_height` | measured SHA demand | fits? |
+     |---:|---:|---:|---:|---|
+     | 3 | 22 | 24 | 2^20 (test targets) | yes |
+     | 4 | 21 | 23 | — not measured | unknown |
+     | 5 | 20 | 22 | **2^23** | **no — 1 short** |
+     | 6 | 19 | 21 | **2^22** | **no — 1 short** |
+     | **7 (production)** | **18** | **20** | **2^21** | **no — 1 short** |
+
+     Note the demand column **rises as `log_blowup` falls**: each bit of stacked height bought is
+     paid for by one bit of extra query count. The "covers 2^22?" framing in the original table was
+     arithmetically right *for a fixed 2^22 demand* but misleading, because the demand is not fixed.
+
+     > **CORRECTION 2026-10-23 (full production lever set): the demand is 2^21, not 2^22, and the
+     > deficit is 1 bit, not 4.** The 2^22 figure above came from this launch, which ran with an
+     > incomplete lever set (`X15 = 1`; no multiproof / keep_domain / tight / whir_y) and so needed
+     > 208 queries. With the full set (`X15 = 15` etc.) the same L2 node needs only **126 queries**
+     > and its SHA AIR is **2^21** — measured `log_height: 21` against `log_stacked_height: 20`.
+     > The demand grows **linearly** in child count (1 NV child = 2^20 and fits; 2 = 2^21), not
+     > 32×. The corrected table's `fits?` column therefore reads: lb=7 no (1 short), lb=6 no
+     > (1 short), lb=5 no (1 short) — **the deficit is invariant at one bit**, so no blowup value
+     > closes it. See the invariant table further down. The pre-lever "2^22 / 4 bits short"
+     > narrative in this subsection is retained only as the record of that run.
+
+     **This explains the whole depth-2 anomaly.** The test-target depth-4 runs used
+     `log_blowup = 3` with `n_stack = 20`, giving `log_stacked_height = 22` — exactly the SHA
+     AIR's demand — so depths 2–4 proved. At production `log_blowup = 7` there is no 2-adicity
+     left to raise `n_stack`, so the stacked height stops at 20 and the SHA column (2^21 at full
+     levers) cannot be placed. **Depth 2 is arithmetically impossible at production blowup**, and that is not a
+     memory or time problem — it is the field's multiplicative-group structure. The earlier
+     depth-2 "flat in depth" result (132,301 B at depths 2/3/4) is therefore a **log_blowup = 3
+     result** and does not transfer to production targets.
+
+     **The precise production constraint, measured:** an aggregation node with **2 NV children**
+     cannot be proved at `log_blowup = 7`; an aggregation node with **2 App children** can. A
+     1-NV-child node has SHA AIR **2^20 — exactly at the `log_stacked_height = 20` ceiling, with
+     zero headroom** — and this is measured **five times**: L2, L3, L4, L5 and FINAL all report
+     `shapes=[(2^20,76),(2^20,83),(128,9),(2^16,5)]` at `l_skip=2 n_stack=18 lb=7`. Going to 2 NV
+     children takes that column to
+     2^21 — **2×, linear in child count** — and 2^21 needs `log_stacked_height ≥ 21`, i.e.
+     `log_blowup ≤ 6`. **But lowering the blowup to reach 21 raises the demand too** (lb=6 needs
+     138 queries ⇒ 2^22; measured panic `log_height: 22, log_stacked_height: 21`), so `lb ≤ 6` does
+     *not* actually work — the deficit is invariant at one bit. So the blocker is specific: **the
+     second NV child**, not aggregation in general. A 1-NV-child node already sits exactly on the
+     ceiling; there is no geometry headroom to absorb one more NV child. That is why depth 1
+     measured fine and depth 2 died, and why the depth-4 "flat in depth" result cannot be assumed
+     to hold at production.
+
+     Two candidate ways out were listed. **The first — lower `log_blowup` to ≤ 5 — is now
+     MEASURED, and it fails twice over: once on size and once on geometry.** It does buy the
+     stacked height (lb=5 gives `l_skip + n_stack = 22`), but it *pays* for it in queries:
+
+     * **It costs 2.23× in bytes.** At `log_blowup = 5` the proximity soundness per query falls,
+       so the agreement table needs more queries for the same 236-bit target: `[41,38,29,23]`
+       (131 queries, 4 rounds) → **`[95,60,43,34,28]` (260 queries, 5 rounds)**, 1.98× the queries.
+       The same L1 node (2 APP children) then measures **615,457 B** against 276,269 B at lb=7 —
+       **+339,188 B**, and **315,457 B over the cap**; its WHIR section alone is 532,920 B, 1.8×
+       the entire 300 KB budget. So it cannot be a route under 300 KB.
+     * **It is self-defeating on geometry — and the deficit is INVARIANT at one bit.** Three
+       configurations were measured end to end (all panic at `circuit.rs:458`):
+
+       | config | `lb` | `n_stack` | stacked height | SHA needs | deficit | queries |
+       |---|---:|---:|---:|---:|---:|---|
+       | no levers | 7 | 18 | 20 | **22** | 2 | 131 |
+       | **full levers** | 7 | 18 | 20 | **21** | **1** | 126 |
+       | full levers | 6 | 19 | 21 | **22** | **1** | 138 |
+       | full levers | 5 | 20 | 22 | **23** | **1** | 260 |
+
+       Lowering `log_blowup` by one raises the stacked height by one, **but it also raises the SHA
+       requirement by one**, because the agreement table needs more queries for the same 236-bit
+       target. So each bit bought is exactly one bit spent, and the deficit never closes. The only
+       configuration that fits is `lb=3`, where the SHA AIR measured 2^20 — **but `lb=3` *is* the
+       test-target soundness**, so depth 2 fits only where the soundness is insufficient. That is
+       the wrong way round, and it is an exact 1-bit gap, not a tuning problem.
+
+     The full lever set does cut the deficit from 2 bits to 1 (2^22 → 2^21), which is why the
+     escape looked viable, but the last bit cannot be bought. The only surviving way out is
+     **cut the SHA compression count so the AIR stays at 2^20.** In compressions rather than rows
+     the cut is **18.3%, not 2×**: measured `comps = merkle_nodes(9,764 cumulative) + leaf_blocks
+     (257) = 10,021`, against the 8,192 that 2^20 admits, so 1,829 compressions must go — and since
+     both children shrink, each child loses **18.3%** of its own compressions (914.5 of ~5,010.5).
+     An earlier revision said "~9.5% per child"; that divided the cut by two while leaving the
+     denominator at the total, which is a units error. (Model validated on both levels: L1 = 464+257 =
+     721 comps → 92,288 rows → 2^17, matching its measured SHA AIR; L2 = 10,021 → 2^21, matching its
+     panic.) A circuit change is still required: the L2 node's SHA work is ~16× an L1 node's because
+     it verifies two full NV proofs, and `multiproof` does not help — `merkle_nodes` stays 464 in
+     both lever configs. Until that is done, **the
+     production aggregation tree is measured only to depth 1**, and the flat-in-depth claim must be
+     quoted with its `log_blowup = 3` condition attached.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was
    reclaimed by a disk-cleanup job during this session (disk is 96 % full, 40 GB free). A
    rebuilt binary is not required to *re-verify* any existing result — only to run this node.
 3. **Widen the 300 KB margin by ≥1 KB** before treating the bound as a bound. 33 B is less
    than one 42-byte digest of variance; a configuration change already moved it 798 B.
+
+   **Closed channel: "wrap a smaller child proof".** All five chain levels have
+   byte-identical vks (`sha256` equal), so vk identity does not restrict the choice — but
+   **program binding does**, and it has already been tested. Wrapping `L2`/`L3` fails with
+   `verifier program failures: ["program binding"]`, so the admissible set for this base chunk
+   is exactly **{L4, L5}**, and both have been measured: L5 → 299,935 B (the deliverable),
+   L4 → 300,733 B. The base run already wrapped the smaller of the two, so there is nothing
+   left to win here.
+   One tempting mistake to pre-empt: `D_final` is **not** a function of the child's digest
+   count. L4 has fewer child digests than L5 (3,771 vs 3,803) yet produces *more* final
+   digests (2,888 vs 2,869), because the multiproof's sibling dedup is data-dependent. So
+   "pick the child with the smallest proof" is not a valid strategy even in principle, and no
+   prediction is made for a hypothetical L3 child — it is excluded by binding, not by size.
+
+   **Resolved on paper (2026-10-23): the margin is a function of digest width, and a
+   already-proven narrower width clears it by ~43 KB.** The size law `proof_bytes = 42·D + C`
+   makes the digest width the dominant lever: at the delivered `D = 2,869` and `C = 179,437`,
+   shrinking the digest byte `d` gives
+
+   | digest `d` | final-layer bytes | margin vs 300,000 | status of that width |
+   |---:|---:|---:|---|
+   | 42 B | 299,935 | **+33 B** | current PQ setting (U-10) |
+   | 41 B | 297,066 | +2,934 B | **REFUTED — base proof works (456,003 B) but the NV chain cannot encode it**: `U2` units are 8 B/2 B, so 41 = 5·8+1 has no representation; `hash.rs:262` asserts 8+2·d and panics `104 != 90`, 3,568 times. See §5's d=41 paragraph. |
+   | 32 B | 271,245 | +28,755 B | not analysed in the note |
+   | 27 B | 256,900 | +43,100 B | proven *in the note*, conditional on H-rob |
+   | 26 B | 254,031 | +45,969 B | proven *in the note*, conditional on H-rob |
+
+   So a **1-byte reduction to 41 B — which needs no new cryptography, only the already-proven
+   Thm 4 at K = 0 — buys +2,934 B**, i.e. 3.5× the 798 B observed spread and 89× the current
+   margin. That is the cheapest available fix and it is a *pure* parameter change to the digest
+   wire width. The 26–27 B widths would add ~43–46 KB of margin but need H-rob, WHIR-Y,
+   position-indexed nodes and a U-7 decision — see `pq-final-layer-model-2026-10-17.md:523–535`.
+   The same lever also rescues the 2-child agg node: at `D = 2,921` (Route A) the 42 B config is
+   2,119 B over, while 41 B is +971 B under and 32 B is +27,091 B under.
+   **A bigger documented lever does *not* apply here — checked and excluded.**
+   `research/near-compression/results/pq384-sha-air2/README.md` models a final layer at
+   **283,692 B** (from a 336,453 B baseline, −52.8 KB) by slimming the SHA-512 compression AIR
+   to 171 columns / 7,524 cells. That saving is **not available to the delivered packet**,
+   because the two proofs contain different circuits. The delivered final layer's four AIRs are
+   `NvAir` (76 common-main cols) + `Sha512Air4` (83) + `TableAir4` (9) + `ByteAir` (5) —
+   `NvCircuit::airs()` at `nv/circuit.rs:146-163` — i.e. the *recursion verifier* circuit. The
+   slim-AIR lane optimises the near-AIR SHA table (442 → 171 cols), which is a different AIR
+   than `Sha512Air4`, and its own baseline (336,453 B at `n_stack=20, log_blowup=3`) is 36,518 B
+   away from the delivered 299,935 B at `n_stack=18, log_blowup=7`, so the two are not the same
+   configuration and the delta cannot be transplanted. Anyone tempted to subtract ~52 KB from
+   the 299,935 B packet should stop at this paragraph.
+
+   **Two blockers before this counts as a fix, both mechanical.**
+   (a) *The code refuses 41 B today.* `sha_levers()` (`sha384/config.rs:131`) asserts
+   `digest_bytes == 48 || digest_bytes == 42`, so `NEARPROOF_DIGEST_BYTES=41` panics. The
+   env lever exists and the wire path is width-generic (`digest_wire`, `truncate_digest` both
+   slice by `digest_bytes`), so this is a one-line relaxation plus a re-run — but it has not
+   been done, and the assertion exists to stop unanalysed widths, not by accident.
+   (b) *`C` is calibrated at 42 B.* The law `proof_bytes = 42·D + C` was validated on 7/7
+   proofs, all at 42 B; nothing here shows `C` is digest-width-invariant in its non-digit part.
+   The next step is therefore **one final-layer run at `d = 41`** to confirm `C` — costing a
+   single 500 s proving pass, not a tree run — before quoting the +2,934 B as realised margin.
+   Until that run exists, treat the table as arithmetic on the measured law, not as a result.
 4. **Do not buy larger-S runs.** More S buys the same 132,301 B root at linear cost; it
    cannot move the size question.
-5. Only after (2): decide between discharging `NodeOK` and raising every target ~8 bits for
+5. **The two segment-sizings are reconciled: one is a unit error, not a disagreement.**
+   `docs/logs/pq-gap-analysis-2026-10-19.md` and the plan say **S ≈ 1,880–3,760**;
+   `results/pq-base-aggregation/model.out` says **S = 146**. Both start from the same
+   workload (1.22e9 adversarial WASM ops) and the same segment size, so the gap is purely
+   the units of "cells":
+   * `model.out` divides by **main** cells: `seg_ops = 2^23`, `seg_cells = 2^23 · 38 =
+     2^28.25`, `S = 1.22e9 / 2^23 = 145.4` → **146**.
+   * The plan divides a **width-equivalent** total by a **main**-cell segment:
+     `0.6e12 / 2^28.25 = 1,880`, `1.2e12 / 2^28.25 = 3,759`.
+   The factor between them is exactly the exchange rate, `494/38 = 13.0` and
+   `995/38 = 26.2`: `146 · 13.0 = 1,898` and `146 · 26.2 = 3,823`, which reproduces the
+   plan's range. W-eq is a *cost* unit (committed widths × height, used for proving time),
+   not a count of trace rows, so it cannot be divided by a main-cell segment. The
+   self-consistency check is the plan's own neighbouring column: its single-proof width
+   `0.6e12 / 2^24 = 35,763` matches the recorded `W ≈ 35,000–71,000`, i.e. the same
+   numerator divided by a **main**-cell denominator gives the right answer there.
+   **Conclusion: 146 segments is the correct structural count at 2^23 ops/segment; the
+   1,880–3,760 range is the same count mis-divided by the W-eq→main-cell ratio and should
+   be read as S ≈ 146 (or S ≈ 291 at the older 2^22 ops/segment).** No measured result
+   changes: the proof is flat in S either way, and the union-bound failure at S ≈ 103–118
+   is reached by *both* counts.
+6. Only after (2): decide between discharging `NodeOK` and raising every target ~8 bits for
    S ≥ 103.
+
+## 7.1 The segment-fold semantics are proved — the blocker is the state encoding
+
+Worth recording because it moves the 1 Pgas blocker from "unstarted" to "one specific design
+problem", and because the file in question was invisible to the build until this session.
+
+`spec/lean/v3/NearSpecV3/Wasm/Segment.lean` contains the recursion track's §3.1 result and it
+is **complete**:
+
+| theorem | statement |
+|---|---|
+| `seg_add` | `seg (a+b) = seg a` then `seg b` |
+| `run_seg` | `run (a+n) = seg a` then `run n` |
+| `foldSegments_eq_seg` | segments in sequence = one `seg (Σ ks)` |
+| `run_foldSegments` | `run (Σ ks + n) s = foldSegments ks s >>= run n`, **for every split** |
+| `foldSegments_stop` | an early-ending segment makes later ones irrelevant |
+
+Verified this session: `lake build NearSpecV3.Wasm.Segment` succeeds (24 jobs) and every
+theorem's axiom set is exactly `[propext, Classical.choice, Quot.sound]` — no `sorry`, no
+custom axioms. The boundary rule is also **maximally permissive**: "a segment boundary may
+fall between any two steps", with host calls, gas charge points and traps each a single
+`step`, so no step is ever split (`Segment.lean:15-18`). There is no receipt-boundary
+restriction left to prove.
+
+**But the file was orphaned** — `grep -r "import NearSpecV3.Wasm.Segment"` found nothing, so
+it sat in no default build target and no `.olean` for it existed anywhere. Fixed by adding the
+import to `NearSpecV3.lean`; `lake build NearSpecV3` now succeeds (62 jobs), `Segment.olean`
+exists, and `pin-check` still passes. The other two orphans (`ChunkStorage.lean`,
+`DomainD3.lean`) were deliberately left alone — their headers describe them as forward-looking
+D3 scaffolding, not finished results.
+
+**So what is actually missing?** `Segment.lean`'s boundary state is the *whole* machine state
+`St` (`Machine.lean:278-303`): operand stack, frames, linear-memory pages, globals, tables,
+element and data segments, gas, registers, logs, promises, mock storage, action log, data-id
+counter. `RangeStmt` carries `n_state` field elements — **2** in every measured test. The gap
+is therefore an **injective encoding of a variable-length, `ByteArray`-containing state into a
+fixed field-vector width**, plus a proof that it commutes with the segment fold. That is a
+hash/commitment design problem, which is why it is the expensive part; it is not a
+transcription of the Lean.
+
+## 7.2 The state-encoding gap has a concrete design, and it is smaller than "design work"
+
+§7.1 ended at "the missing piece is an injective encoding of `St` into a fixed field width".
+Working that out against the actual code, it is more tractable than that phrasing suggests.
+
+**The encoding layer already exists.** `hash_range` (`nv/agg.rs:101-119`) builds the range
+message
+
+```
+[n_ctx, n_state, ctx…, a, e, s_a…, s_e…]
+```
+
+and hashes it with **in-circuit SHA-384** (`TAG_RANGE`). `felt_bytes`
+(`sha384/config.rs:214-219`) serialises field elements as `as_canonical_u32().to_le_bytes()`.
+So the aggregate layer never needs a *decodable* boundary state — only a **commitment** to it.
+The design is therefore:
+
+```
+s_a := SHA384(domain_sep ‖ serialise(St))   truncated to 42 B
+s_e := same, for the outgoing state
+n_state := 11 field elements
+```
+
+**The 11 is not arbitrary, and the round-trip checks out.** A 42-byte digest is 10.5 `u32`
+words, so it occupies exactly **11** canonical field elements (the last holding 2 bytes,
+value < 2¹⁶ < BabyBear's P). Verified numerically this session:
+
+```
+42 B digest  ->  11 little-endian u32 words
+             ->  felt_bytes  (44 B)
+             ->  truncate to 42 B   ==  the original digest   (identity)
+```
+
+So `felt_bytes`/`digest_wire` already implement the exact inverse pair; nothing new is needed
+at the serialisation layer.
+
+**And `n_state` is a free parameter, not a fixed 2.** The aggregate code takes `n_state:
+usize` and asserts only internal consistency (`pv.len() == n_ctx + 1 + 2·n_state`,
+`agg.rs:54/165/182`); the value 2 appears solely in the test fixtures
+(`agg_tests.rs:22/307/389/…`). So moving to `n_state = 11` is a parameter change on the
+aggregate side, not a redesign.
+
+**What is genuinely left**, in dependency order:
+1. **`serialise : St → ByteArray`** in Lean, with an **injectivity theorem**. No such function
+   exists today (`grep` for a `St →` hash or serialiser finds only `run`/`seg`/`foldSegments`).
+   `St` holds `Array ByteArray`, `List Frame`, `Array (ByteArray × ByteArray)` and similar, so
+   this is real work — but it is a serialisation proof, not a cryptographic one.
+2. **A theorem that the encoding commutes with the fold**: if `foldSegments` reaches `.cont s`,
+   then `serialise s` equals the `s_e` the aggregate layer asserts against the next segment's
+   `s_a`. This is where `run_foldSegments` gets used.
+3. **Expose `s_a`/`s_e` as public values** — still the boundary-public-interface question from
+   the previous turn (a new `pubSeg`, or a boundary-commitment statement).
+
+Item 1 is the new, precise statement of the blocker. It is a bounded piece of Lean
+engineering, and — importantly — it is **not** the same as "prove the WASM semantics", which
+is already done.
 
 ## 8. The one-paragraph version
 

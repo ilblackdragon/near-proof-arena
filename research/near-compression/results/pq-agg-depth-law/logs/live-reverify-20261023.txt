@@ -1,0 +1,34 @@
+LIVE RE-VERIFICATION 2026-10-23 (pq-agg session), 5 forgery classes + honest verify
+binary: /data/illia/nearproof-deps/pq-chunk-e2e/target/release/nearproof-chunk-e2e
+  718def333d7313fc81152f9a5471ae2f4d951f497d664b096b3fb32656a4e4a6
+bundle: runs/opt-baseline-8/FINAL.bundle  299,967 B
+  a1a2cce82ecc7adcb5319aa59af8e35234fe6150011306eb3ab98e6ab95bb248
+setup pin: b373c618279055625c9124d7c3d80e303f5d0abad7f8b59928f5c251b8812623
+
+--- honest verify ---
+PUBLIC_PREPARATION_OK
+INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true
+exit=0
+
+--- 1. one bit flipped at byte 149,983 of 299,967 (proof body) ---
+final verifier: "final proof: WhirError(MerkleVerify)"
+exit=101   REJECTED
+
+--- 2. untrusted setup: setup pin replaced with 64 zeros ---
+left  "b373c618279055625c9124d7c3d80e303f5d0abad7f8b59928f5c251b8812623"
+right "0000000000000000000000000000000000000000000000000000000000000000"
+exit=101   REJECTED
+
+--- 3. trailing byte: bundle + 1 zero byte (299,968) ---
+left 299935  right 299936
+exit=101   REJECTED
+
+--- 4. truncated hint: bundle minus 1 byte (299,966) ---
+proof codec: Error { kind: UnexpectedEof, message: "failed to fill whole buffer" }
+exit=101   REJECTED
+
+--- 5. changed claim: claim.bin byte 0 flipped ---
+claim/hint rejected
+exit=101   REJECTED
+
+All five distinct forgery classes reject live, not just from the stored run logs.

@@ -1,0 +1,4 @@
+
+thread 'main' (3971312) panicked at /data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/native/pq-chunk-e2e/src/main.rs:70:35:
+proof codec: Error { kind: UnexpectedEof, message: "failed to fill whole buffer" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

@@ -14,7 +14,12 @@ pub fn prove_base(
 ) -> (MultiStarkVerifyingKey<Sha384Config>, Proof<Sha384Config>) {
     // The driver initializes these once, before spawning worker threads.
     let levers = config::sha_levers();
-    assert!(levers.digest_bytes == 42 && levers.coset_leaf && levers.tstar);
+    // 41 B is the documented margin lever (CMS19 constants + Thm 4, K = 0); the wire path is
+    // width-generic. Keep the coset/tstar invariants strict and allow only the 42 -> 41 width.
+    assert!(
+        matches!(levers.digest_bytes, 42 | 41) && levers.coset_leaf && levers.tstar,
+        "chunk proof requires coset_leaf, tstar and a 42/41-byte digest"
+    );
     let inst = load(air, dump, Variant::D0a);
     report(&inst);
     precheck(&inst);
@@ -103,7 +108,12 @@ fn public_statement(
 ) -> StatementClaim {
     // The driver initializes these once, before spawning worker threads.
     let levers = config::sha_levers();
-    assert!(levers.digest_bytes == 42 && levers.coset_leaf && levers.tstar);
+    // 41 B is the documented margin lever (CMS19 constants + Thm 4, K = 0); the wire path is
+    // width-generic. Keep the coset/tstar invariants strict and allow only the 42 -> 41 width.
+    assert!(
+        matches!(levers.digest_bytes, 42 | 41) && levers.coset_leaf && levers.tstar,
+        "chunk proof requires coset_leaf, tstar and a 42/41-byte digest"
+    );
     let mut cl = ClassicalAir::parse(&std::fs::read_to_string(air).unwrap(), ORDER);
     assert_eq!(cl.tables.len(), ORDER.len());
     offset_buses(&mut cl);

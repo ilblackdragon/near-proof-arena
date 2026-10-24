@@ -62,17 +62,23 @@ Serial cost and RAM-bound makespan (6 nodes concurrently at 18 GB on this 125 GB
 | target | S | padded leaves | depth | nodes | serial @ test | serial @ prod (507.7 s) | makespan @ prod, 6-way |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `G_α` exact | 13 | 13 (flat) | 1 | **1** | **75.5 s** | not measured | — |
-| model's 1 Pgas | 146 | 256 | 8 | 255 | 4.2 h | **36 h** | **6.0 h** |
-| HANDOVER low | 1,880 | 2,048 | 11 | 2,047 | 34 h | **289 h** | **48 h** |
-| HANDOVER high | 3,760 | 4,096 | 12 | 4,095 | 67 h | **578 h** | **96 h** |
+| 1 Pgas, 2^23 ops/seg | **146** | 256 | 8 | 255 | 4.2 h | **36 h** | **6.0 h** |
+| 1 Pgas, 2^22 ops/seg | 291 | 512 | 9 | 511 | 8.5 h | **72 h** | **12 h** |
+
+**Only 146 and 291 are live counts.** The 1,880 / 3,760 rows that used to sit here were a
+units error: they divided a width-equivalent cell total by a *main*-cell segment size, and the
+ratio between the two is exactly the W-eq→main-cell exchange rate (494/38 = 13.0, 995/38 =
+26.2). `146 × 13.0 = 1,898` and `146 × 26.2 = 3,823` reproduce the old range exactly. Derivation:
+`docs/logs/pq-agg-tail-2026-10-22.md` §7 item 5. Both live counts are far past the per-proof
+union bound's failure point (S ≈ 103–118), so the correction changes labour, not soundness.
 
 Production columns are `nodes × 507.7 s` (the measured mean of L1–L5), rounded to whole hours;
 an earlier draft computed them at a flat 500 s and is corrected here. The `serial @ test`
 column mixes both measured node classes: `2^(d-1)` level-1 nodes at 12.6 s plus `2^(d-1) − 1`
 level ≥ 2 nodes at ~106 s.
 
-Critical path (one node per depth level, unlimited RAM): 13 min / 18 min / 20 min for
-S = 146 / 1,880 / 3,760 — i.e. **the tree is embarrassingly parallel; it is RAM-bound, not
+Critical path (one node per depth level, unlimited RAM): **13 min / 18 min** for
+S = 146 / 291 — i.e. **the tree is embarrassingly parallel; it is RAM-bound, not
 depth-bound.** At 6 concurrent nodes the makespan is ~1/6 of serial; with 64 GB/node
 headroom (the `pq-stream-g2` runs use 60 GB) concurrency drops and the makespan doubles.
 
@@ -112,8 +118,11 @@ final z = 32) and **2^−134.68** (uniform z = 32, `bound-base-z32.out`), both o
 | 117 | 118 | 2^−128.01 | 2^−127.81 | **FAIL** (uniform) |
 | 145 | 146 | 2^−127.70 | 2^−127.50 | **FAIL** |
 | 295 | 296 | 2^−126.68 | 2^−126.48 | **FAIL** |
-| 1,879 | 1,880 | 2^−124.00 | 2^−123.79 | **FAIL** |
-| 3,759 | 3,760 | 2^−123.00 | 2^−122.79 | **FAIL** |
+| 291 | 292 | 2^−126.69 | 2^−126.49 | **FAIL** |
+
+(An earlier version of this table also listed 1,880 and 3,760. Those are not live segment
+counts — see the note in §2 — so they are dropped here; the trend they illustrated is already
+established by 118 and 146.)
 
 **The union dies at 103–118 nodes (S ≈ 103–118), not at 295.** The plan, the obligations
 doc and the base README all quote "2^−126.5 at 295 proofs". That number is arithmetically
@@ -128,7 +137,7 @@ z = 32. So:
 
 That sharpens the plan's claim in the direction that matters: there is no "small-ish
 1 Pgas tree" for which the cheap accounting works. It also means the ~8-bit target raise
-the plan contemplates has to be applied from S ≈ 103 upward, not only at 1,880+.
+the plan contemplates has to be applied from S ≈ 103 upward, not only at the top of the range.
 
 Why it is not a union, and what has to replace it:
 
