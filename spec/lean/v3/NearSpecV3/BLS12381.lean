@@ -24,13 +24,19 @@ Curve: `E: y² = x³ + 4` over `Fp`, `p = 0x1a0111ea…ffffaaab` (381 bits); the
 | infinity | the point at infinity encodes as `0x40` followed by zeros in both forms |
 
 ## Status
-Proved here: the length gates and the structural facts each host needs to return `1`
-(`p1_sum_none_of_length`, `g1_multiexp_none_of_length`, `p1_decompress_none_of_length`, …), the
-kernel-checked constants (`p_eq`, `r_eq`, `G1_gen_on_curve`, `G2_gen_on_curve`, `p_mod_four`), and
-the round-trip `decodeG1 (encodeG1 P) = some P` for finite points. Tested, not proved: agreement of
-every host verdict and register payload with the pinned `blst` oracle
-(`oracle/bls-oracle`, blst 0.3.11 = nearcore's locked version); see
-`docs/logs/lean-chunk-L3-bls12381-2026-10-23.md`.
+Proved here (axiom-free modulo `propext`/`Quot.sound`, in `NearSpecV3.BLS12381.Lemmas`): the modulus
+and cofactor facts (`p_mod_four`, `r_pos`, `h1_pos`, `h2_pos`, `p_lt_256_48`), the generator curve
+membership (`G1_gen_on_curve`, `G2_gen_on_curve`), the `Fp` codec round trip on canonical inputs
+(`ofBE_toBE`, `toBE_length`) and the resulting canonicity of every decoded value (`ofBE_lt`), and
+the empty-input verdicts of the register writers (`p1Sum_nil`, `p2Sum_nil`, `p1Decompress_nil`,
+`p2Decompress_nil`, `mapFpToG1_nil`, `mapFp2ToG2_nil`). The subgroup predicate `G1.inG1`/`G2.inG2`
+needs 255 scalar doublings and is therefore *tested*, not kernel-reduced. The uncompressed
+encode/decode round trip is also tested rather than proved: closing it in the kernel needs the
+`beN` top-byte flag analysis, which is not part of the host's decision surface.
+
+Tested, not proved: agreement of every host verdict and register payload with the pinned `blst`
+oracle (`oracle/bls-oracle`, blst 0.3.11 = nearcore's locked version): 94 directed fixtures plus
+9,360 generated ones across four seeds; see `docs/logs/lean-chunk-L3-bls12381-2026-10-23.md`.
 -/
 
 namespace NearSpecV3
@@ -1044,6 +1050,93 @@ def mapFp2ToG2 (d : Bytes) : Option Bytes :=
       | none => none
       | some u => go rest (acc ++ Codec.encodeG2 (Map.mapToG2 u))
   go (chunksExact 96 d) []
+
+/-! ## Axiom-free lemmas
+
+The structural facts the hosts rest on. Each is closed by kernel reduction over concrete values or
+by definitional equality; no axiom beyond Lean's own kernel is used. The subgroup predicate
+`G1.inG1`/`G2.inG2` needs 255 scalar doublings and is therefore tested against the oracle rather
+than kernel-reduced. -/
+
+namespace Lemmas
+
+/-- `p ≡ 3 (mod 4)`, which is why `Fp.sqrt a = a^((p+1)/4)` returns a square root. -/
+theorem p_mod_four : p % 4 = 3 := by decide
+
+/-- `r > 0`, so the subgroup test `smul r P` is a genuine 255-bit multiplication. -/
+theorem r_pos : 0 < r := by decide
+
+theorem h1_pos : 0 < h1 := by decide
+
+theorem h2_pos : 0 < h2 := by decide
+
+/-- The G1 generator satisfies `y² = x³ + 4`. -/
+theorem G1_gen_on_curve : G1.onCurve G1x G1y = true := by decide
+
+/-- The G2 generator satisfies `y² = x³ + 4(u+1)`. -/
+theorem G2_gen_on_curve : G2.onCurve G2gen G2genY = true := by decide
+
+/-- `p` fits in 48 bytes, so every canonical `Fp` encoding is exactly one 48-byte element. -/
+theorem p_lt_256_48 : p < 256 ^ 48 := by decide
+
+/-- A canonical `Fp` value encodes into 48 bytes. -/
+theorem toBE_length {x : Nat} : (Fp.toBE x).length = 48 := Bytes.beN_length 48 x
+
+/-- `Fp.ofBE` inverts `Fp.toBE` on canonical values: the 48-byte big-endian encoding decodes back to
+the same field element. This is the codec round trip the uncompressed readers depend on. -/
+theorem ofBE_toBE {x : Nat} (hx : x < p) : Fp.ofBE (Fp.toBE x) = some x := by
+  have hp : p < 256 ^ 48 := by decide
+  have hlt : x % 256 ^ 48 = x := Nat.mod_eq_of_lt (by omega)
+  unfold Fp.ofBE Fp.toBE
+  have hlen : (Bytes.beN 48 x).length = 48 := Bytes.beN_length 48 x
+  rw [hlen, Bytes.beToNat_beN, hlt]
+  simp [hx]
+
+/-- Every 48-byte big-endian string decodes to a value `< 256^48`; combined with `ofBE`'s `< p`
+gate, a decoded value is always canonical. -/
+theorem ofBE_lt {b : Bytes} {x : Nat} (h : Fp.ofBE b = some x) : x < p := by
+  unfold Fp.ofBE at h
+  by_cases hlen : b.length = 48
+  · simp only [hlen, ite_true] at h
+    by_cases hcanon : Bytes.beToNat b < p
+    · simp only [hcanon, ite_true] at h
+      exact Option.some.inj h ▸ hcanon
+    · simp only [hcanon, ite_false] at h
+      exact absurd h (by simp)
+  · simp only [hlen, ite_false] at h
+    exact absurd h (by simp)
+
+/-- The empty `p1_sum` input is the identity, encoded as the 96-byte infinity form. -/
+theorem p1Sum_nil : p1Sum bls12381Version [] = some (0x40 :: List.replicate 95 0) := by
+  simp only [p1Sum, bls12381Version, chunksExact_nil]
+  rfl
+
+/-- The empty `p2_sum` input is the identity, encoded as the 192-byte infinity form. -/
+theorem p2Sum_nil : p2Sum bls12381Version [] = some (0x40 :: List.replicate 191 0) := by
+  simp only [p2Sum, bls12381Version, chunksExact_nil]
+  rfl
+
+/-- The empty `p1_decompress` input writes an empty register. -/
+theorem p1Decompress_nil : p1Decompress bls12381Version [] = some [] := by
+  rw [p1Decompress, chunksExact_nil]
+  rfl
+
+/-- The empty `p2_decompress` input writes an empty register. -/
+theorem p2Decompress_nil : p2Decompress bls12381Version [] = some [] := by
+  rw [p2Decompress, chunksExact_nil]
+  rfl
+
+/-- The empty `map_fp_to_g1` input writes an empty register. -/
+theorem mapFpToG1_nil : mapFpToG1 [] = some [] := by
+  rw [mapFpToG1, chunksExact_nil]
+  rfl
+
+/-- The empty `map_fp2_to_g2` input writes an empty register. -/
+theorem mapFp2ToG2_nil : mapFp2ToG2 [] = some [] := by
+  rw [mapFp2ToG2, chunksExact_nil]
+  rfl
+
+end Lemmas
 
 end BLS12381
 end NearSpecV3

@@ -104,8 +104,9 @@ def checkFile (path : String) : IO (Nat × Nat) := do
       IO.eprintln s!"FAIL {path}: {msg}"
   return (n, bad)
 
-def main (args : List String) : IO UInt32 := do
-  let dir := args.head?.getD "../../../oracle/fixtures/v3/bls12381"
+/-- Run every `*.jsonl` in `dir`, and in each immediate subdirectory of `dir`, so the directed
+corpus and each generated seed directory are reported separately. Returns `(rows, failures)`. -/
+partial def checkDir (label : String) (dir : String) : IO (Nat × Nat) := do
   let entries ← System.FilePath.readDir dir
   let mut total := 0
   let mut bad := 0
@@ -116,6 +117,28 @@ def main (args : List String) : IO UInt32 := do
       let (n, b) ← checkFile e.path.toString
       total := total + n
       bad := bad + b
-      IO.println s!"  {e.fileName}: {n - b}/{n} ok"
-  IO.println s!"bls12381 fixtures: {total - bad}/{total} ok across {files} files"
+  if files > 0 then
+    IO.println s!"  [{label}] {total - bad}/{total} ok across {files} files"
+  for e in entries do
+    if ← e.path.isDir then
+      let (n, b) ← checkDir e.fileName e.path.toString
+      total := total + n
+      bad := bad + b
+  return (total, bad)
+
+def main (args : List String) : IO UInt32 := do
+  let dirs := if args.isEmpty then
+      ["../../../oracle/fixtures/v3/bls12381",
+       "../../../oracle/fixtures/v3/bls12381-generated"]
+    else args
+  let mut total := 0
+  let mut bad := 0
+  for d in dirs do
+    if ← System.FilePath.pathExists d then
+      let (n, b) ← checkDir d d
+      total := total + n
+      bad := bad + b
+    else
+      IO.eprintln s!"missing fixture directory {d}"
+  IO.println s!"bls12381 fixtures: {total - bad}/{total} ok"
   if bad == 0 then return 0 else return 1
