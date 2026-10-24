@@ -91,3 +91,29 @@ Detailed source snapshots, narrow patches, initial/complete/detailed logs,
 aggregated timing JSON and source/binary/packet hashes are preserved in
 `evidence/labrador-phases`. Output is opt-in through LABRADOR_PROFILE; timing
 reads remain in the instrumented code when output is disabled.
+
+## Amortization kernel follow-up
+
+The original 804-receipt relation was rerun with nested instrumentation. Initial
+amortization takes 216.7 ms: pair products 161.0 ms, challenge/combine 47.6 ms,
+decomposition/norm 6.9 ms, and conversion/outer commitment about 1.1 ms.
+Across later non-tail rounds, pair products add about 8.4 ms. These are nested
+intervals, not additional top-level costs.
+
+Ideal four-way scaling of the initial pair loop would save only 120.8 ms before
+thread/cache overhead. This is a bounded optimization candidate, not a route to
+the two-second deadline by itself; lifting/projection and the remaining frontend
+work still need reductions. No parallel kernel has been implemented here.
+
+Code inspection found a lazy shared `chunk[2][K]` cache in
+`polx.c::sprod_chunk`, called by `polxvec_sprod_add`. Before any parallel pair
+workers, initialize the required bound's entries serially (or make initialization
+thread-safe); disjoint output cells alone do not guarantee race freedom. Keep
+each output's original block/product accumulation order.
+
+The instrumented proof takes 3.652 s warm, still 244,814 B, with seven public
+mutations rejected. This is not a speedup; other host processes were active.
+An unchanged older verifier accepts freshly in 1.529 s, with four negative
+checks and backend roundtrip. Dense public bytes match the independent original
+fixture. Evidence, source patch and binary hashes: `evidence/amortize-detail/`.
+Full NEAR validity, recursive history and composed PQ security remain open.

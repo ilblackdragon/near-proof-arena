@@ -1,0 +1,198 @@
+{
+  "status": "PROFILE_ONLY_NO_NEW_SPEEDUP",
+  "base_commit": "9716d8987",
+  "packet_bytes": 244814,
+  "packet_sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+  "independent_public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8",
+  "prover_sha256": "27f2279b4d3b6f67c568475ddae98a686dcefc92a5aac81577ee3ee51a7633a6",
+  "old_verifier_sha256": "b638d284498aeb743fcac01f196ad202b9d471e76b59935c7f3798ea6cb50c3f",
+  "backend_source_sha256": "34659ce022b015187806871315ab215117a08bd2cbd42dc4fc86ff624c5c9068",
+  "phases": [
+    {
+      "phase": "pair_products",
+      "r": 31,
+      "n": 9567,
+      "ms": 161.040306
+    },
+    {
+      "phase": "decompose_convert",
+      "r": 31,
+      "n": 9567,
+      "ms": 0.590801
+    },
+    {
+      "phase": "outer_commitment",
+      "r": 31,
+      "n": 9567,
+      "ms": 0.484467
+    },
+    {
+      "phase": "challenge_combine",
+      "r": 31,
+      "n": 9567,
+      "ms": 47.620535
+    },
+    {
+      "phase": "decompose_norm",
+      "r": 31,
+      "n": 9567,
+      "ms": 6.940365
+    },
+    {
+      "phase": "pair_products",
+      "r": 12,
+      "n": 2392,
+      "ms": 7.012844
+    },
+    {
+      "phase": "decompose_convert",
+      "r": 12,
+      "n": 2392,
+      "ms": 0.095129
+    },
+    {
+      "phase": "outer_commitment",
+      "r": 12,
+      "n": 2392,
+      "ms": 0.086784
+    },
+    {
+      "phase": "challenge_combine",
+      "r": 12,
+      "n": 2392,
+      "ms": 3.309727
+    },
+    {
+      "phase": "decompose_norm",
+      "r": 12,
+      "n": 2392,
+      "ms": 0.883341
+    },
+    {
+      "phase": "pair_products",
+      "r": 6,
+      "n": 1196,
+      "ms": 0.914812
+    },
+    {
+      "phase": "decompose_convert",
+      "r": 6,
+      "n": 1196,
+      "ms": 0.037193
+    },
+    {
+      "phase": "outer_commitment",
+      "r": 6,
+      "n": 1196,
+      "ms": 0.026464
+    },
+    {
+      "phase": "challenge_combine",
+      "r": 6,
+      "n": 1196,
+      "ms": 0.418186
+    },
+    {
+      "phase": "decompose_norm",
+      "r": 6,
+      "n": 1196,
+      "ms": 0.278234
+    },
+    {
+      "phase": "pair_products",
+      "r": 3,
+      "n": 1196,
+      "ms": 0.219107
+    },
+    {
+      "phase": "decompose_convert",
+      "r": 3,
+      "n": 1196,
+      "ms": 0.013828
+    },
+    {
+      "phase": "outer_commitment",
+      "r": 3,
+      "n": 1196,
+      "ms": 0.01049
+    },
+    {
+      "phase": "challenge_combine",
+      "r": 3,
+      "n": 1196,
+      "ms": 0.139713
+    },
+    {
+      "phase": "decompose_norm",
+      "r": 3,
+      "n": 1196,
+      "ms": 0.252247
+    },
+    {
+      "phase": "pair_products",
+      "r": 5,
+      "n": 598,
+      "ms": 0.212669
+    },
+    {
+      "phase": "decompose_convert",
+      "r": 5,
+      "n": 598,
+      "ms": 0.020742
+    },
+    {
+      "phase": "outer_commitment",
+      "r": 5,
+      "n": 598,
+      "ms": 0.01359
+    },
+    {
+      "phase": "challenge_combine",
+      "r": 5,
+      "n": 598,
+      "ms": 0.130892
+    },
+    {
+      "phase": "decompose_norm",
+      "r": 5,
+      "n": 598,
+      "ms": 0.11754
+    },
+    {
+      "phase": "pair_products",
+      "r": 2,
+      "n": 598,
+      "ms": 0.040531
+    },
+    {
+      "phase": "decompose_convert",
+      "r": 2,
+      "n": 598,
+      "ms": 0.004768
+    },
+    {
+      "phase": "outer_commitment",
+      "r": 2,
+      "n": 598,
+      "ms": 0.005245
+    },
+    {
+      "phase": "challenge_combine",
+      "r": 2,
+      "n": 598,
+      "ms": 0.045538
+    },
+    {
+      "phase": "decompose_norm",
+      "r": 2,
+      "n": 598,
+      "ms": 0.119925
+    }
+  ],
+  "fresh_old_verifier": {
+    "seconds": 1.528621974,
+    "negative_checks": 4,
+    "no_witness_loaded": true,
+    "backend_roundtrip": true
+  }
+}

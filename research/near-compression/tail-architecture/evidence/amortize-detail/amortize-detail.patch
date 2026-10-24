@@ -1,0 +1,43 @@
+--- a/labrador.c
++++ b/labrador.c
+@@ -1048,6 +1048,7 @@
+   polx (*phi)[n] = (polx(*)[n])ost->cnst->phi;
+   polx *hx = (polx*)_aligned_alloc(64,(m-h)*sizeof(polx));
+ 
++  double np_amort=np_profile_clock();
+   /* linear garbage */
+   /* hx[k+t] = <phi[i], sx[i+t]> + <phi[i+t], sx[i]>, blocked over the rank like the
+    * quadratic garbage so both rows of a block stay cached across the pairs. */
+@@ -1064,13 +1065,16 @@
+       k += r-i;
+     }
+   }
++  np_profile_mark("amortize_detail","pair_products",r,n,0,&np_amort);
+   decompose_checked(vh,hx,(r*r+r)/2,cpp->fu,cpp->bu,"amortize linear garbage");
+   polxvec_frompolyvec(hx,vh,m-h);
+ 
++  np_profile_mark("amortize_detail","decompose_convert",r,n,0,&np_amort);
+   /* second outer commitment */
+   polxvec_mul_extension(ost->u2,comkey,hx,m-h,cpp->kappa1,1,SPROD_WALK);
+   polzvec_frompolxvec(pi->u2,ost->u2,cpp->u2len);
+ 
++  np_profile_mark("amortize_detail","outer_commitment",r,n,0,&np_amort);
+   /* amortization */
+   __attribute__((aligned(16)))
+   uint8_t hashbuf[16+cpp->kappa1*N*QBYTES];
+@@ -1086,6 +1090,7 @@
+     polxvec_polx_mul_add(sx[0],&ost->c[i],sx[i],n);
+     polxvec_polx_mul_add(phi[0],&ost->c[i],phi[i],n);
+   }
++  np_profile_mark("amortize_detail","challenge_combine",r,n,0,&np_amort);
+   decompose_checked(owt->s[0],sx[0],n,cpp->f,cpp->b,"amortize");
+ 
+   ost->betasq = 0;
+@@ -1099,6 +1104,7 @@
+ 
+   ost->cnst->phi = realloc(ost->cnst->phi,n*sizeof(polx));
+   free(hx);
++  np_profile_mark("amortize_detail","decompose_norm",r,n,0,&np_amort);
+ }
+ 
+ int reduce_amortize(statement *ost, const proof *pi, uint64_t source_betasq) {

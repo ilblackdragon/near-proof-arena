@@ -311,3 +311,13 @@ Next isolate independent amortization output pairs with preserved accumulation
 order; no C parallel optimization is implemented yet. Initial partial trace and
 header-order build failure retained with complete/detailed evidence. Full NEAR/
 state/runtime/PQ history remain open. See LABRADOR_PHASES.md.
+
+### Amortization substage attribution
+
+Initial pair products account for 161.0/216.7 ms; combine 47.6 ms. Ideal
+four-way pair parallelism saves at most about 121 ms before overhead. Found
+lazy shared scalar-product chunk cache: initialize before workers. No kernel
+optimization yet. Instrumented packet 244,814 B / 3.652 s warm; independent
+public-byte audit and unchanged old verifier pass (1.529 s, four negatives).
+See `research/near-compression/tail-architecture/LABRADOR_PHASES.md` and
+`evidence/amortize-detail/`. Full NEAR/PQ history and deadline remain open.
