@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Corpus-free CI replay of generated modules against recorded pinned-nearcore outputs."""
 import json
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -27,11 +28,22 @@ def main():
             got = subprocess.run([str(binary), str(path)],text=True,capture_output=True,
                                  timeout=60,check=True).stdout.strip()
             assert got == row["nearcore"], (row["index"], row["parameters"], got, row["nearcore"])
+        phases = json.loads((evidence / "phase-cases.json").read_text())
+        assert len(phases) == 6
+        for row in phases:
+            code = module(row["globals"], **row["parameters"])
+            assert hashlib.sha256(code).hexdigest() == row["wasm_sha256"]
+            path.write_bytes(code)
+            got = subprocess.run([str(binary), str(path)], text=True, capture_output=True,
+                                 timeout=60, check=True).stdout.strip()
+            # Existing relation quotients LinkError message text, not gas or phase.
+            norm = lambda s: re.sub(r'LinkError \{ msg: .*? \}', 'LinkError', s)
+            assert norm(got) == norm(row["oracle"]), (row, got)
         path.write_bytes(module(66000))
         broken = subprocess.run([str(binary),str(path),"main","--ablate-loading-limits"],
                                 text=True,capture_output=True,timeout=60,check=True).stdout.strip()
         assert broken.startswith("ok "), "loading-check ablation no longer reproduces the defect"
-    print("RUNTIME GOLDEN PASSED: 1030 cases; removed-check control detected")
+    print("RUNTIME GOLDEN PASSED: 1030 allocation cases + 6 phase cases; removed-check control detected")
 
 if __name__ == "__main__":
     main()

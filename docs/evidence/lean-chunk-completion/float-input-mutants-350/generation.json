@@ -1,0 +1,23 @@
+{
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "generator_sha256": "2d00491192cb84fcdd4afa2e4e5cf5ed191eb9ee037e97302459a48d48f6c978",
+  "sources": {
+    "oracle/v3-successor/src/d3gen.rs": "1dccae08e25910f72da8c13a143bf15f3c8e65f474e44303916a4fa7fcb21ffd",
+    "oracle/v3-successor/src/d3contracts.rs": "e4166f66ef31677368580d8f0e1aba41831ea59ed2bfc31a8a2bb0329965b8aa",
+    "oracle/v3-successor/src/main.rs": "9634855d066c2e30ab3e43f3e9d9cc2b3001d22f3df9d9a6d13a95bbdfc3c890",
+    "oracle/v3-successor/src/d3.rs": "bc5ff5ad59a18910890b7c88d058243dd63010155c7325f90788e4dc060164da"
+  },
+  "contract_sha256": "8ec6af0b2d729f43e4074a5e57a1badfca872f7e33359c3b8775c915d18e2b0d",
+  "seed": 17,
+  "chains": 1,
+  "blocks": 12,
+  "mutate_every": 1,
+  "code_mutant_p": 1,
+  "expectation_sources": {
+    "claim-v3": 24,
+    "nearcore(cold)": 316,
+    "derived": 2,
+    "nearcore(cold,tx_valid=claim)": 8
+  },
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)"
+}

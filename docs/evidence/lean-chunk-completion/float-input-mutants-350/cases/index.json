@@ -1,0 +1,22 @@
+[
+  {
+    "case_dir": "0",
+    "source": "/tmp/lean-completion-fixtures/float-successor-mutants-17/mutants/00-h10007-s3-c.drop_last_block",
+    "expected": "reject"
+  },
+  {
+    "case_dir": "1",
+    "source": "/tmp/lean-completion-fixtures/float-successor-mutants-17/mutants/00-h10007-s3-c.epoch_start_flip",
+    "expected": "reject"
+  },
+  {
+    "case_dir": "2",
+    "source": "/tmp/lean-completion-fixtures/float-successor-mutants-17/mutants/00-h10007-s3-code.duplicate",
+    "expected": "accept"
+  },
+  {
+    "case_dir": "3",
+    "source": "/tmp/lean-completion-fixtures/float-successor-mutants-17/mutants/00-h10007-s3-code.extra_garbage",
+    "expected": "accept"
+  }
+]

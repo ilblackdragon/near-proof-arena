@@ -6,6 +6,7 @@ This is verdict validation; unavailable transition observables remain explicitly
 """
 import argparse
 import collections
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import importlib.util
 import json
@@ -68,8 +69,8 @@ def load_compare():
     return mod
 
 
-def _replay(binary, tier, cases, out, batch=100, timeout=600):
-    if tier not in TIERS or batch <= 0 or timeout <= 0:
+def _replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
+    if tier not in TIERS or batch <= 0 or timeout <= 0 or jobs <= 0:
         raise ValueError("invalid tier, batch size or timeout")
     cases = [Path(c).resolve() for c in cases]
     if not cases or len(set(cases)) != len(cases):
@@ -87,7 +88,7 @@ def _replay(binary, tier, cases, out, batch=100, timeout=600):
     out.mkdir(parents=True, exist_ok=True)
     report = {"schema": "near-successor-replay-v1", "status": "running",
               "package": package, "inputs": inputs, "cases": len(cases),
-              "comparison": "verdict-and-domain-only",
+              "comparison": "verdict-and-domain-only", "workers": jobs,
               "harness_sources": {str(p.relative_to(REPO)): sha256(p) for p in (
                   Path(__file__).resolve(), REPO / "oracle/v3-d3/tools/difftest_d3.py")}}
     report_path = out / "report.json"
@@ -96,9 +97,12 @@ def _replay(binary, tier, cases, out, batch=100, timeout=600):
     save()
     try:
         got = {}
-        for start in range(0, len(cases), batch):
-            got.update(run_batch([str(binary), "--tier", tier],
-                                 cases[start:start + batch], timeout, tier))
+        batches = [cases[start:start + batch] for start in range(0, len(cases), batch)]
+        def execute(part):
+            return run_batch([str(binary), "--tier", tier], part, timeout, tier)
+        with ThreadPoolExecutor(max_workers=jobs) as executor:
+            for result in executor.map(execute, batches):
+                got.update(result)
         if sha256(binary) != package["sha256"] or any(
             sha256(Path(row["case"]) / n) != digest
             for row in inputs for n, digest in row["files"].items()
@@ -125,7 +129,7 @@ def _replay(binary, tier, cases, out, batch=100, timeout=600):
         raise
 
 
-def replay(binary, tier, cases, out, batch=100, timeout=600):
+def replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
     # Invalidate any older pass before even input/executable validation. A failed rerun must
     # not leave an apparently current successful report behind.
     out = Path(out)
@@ -134,7 +138,7 @@ def replay(binary, tier, cases, out, batch=100, timeout=600):
     report_path.write_text(json.dumps({"schema": "near-successor-replay-v1",
                                       "status": "running"}) + "\n")
     try:
-        return _replay(binary, tier, cases, out, batch, timeout)
+        return _replay(binary, tier, cases, out, batch, timeout, jobs)
     except Exception as e:
         report = json.loads(report_path.read_text())
         report.update(status="fail", failure=type(e).__name__, detail=str(e))
@@ -150,10 +154,11 @@ def main():
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--batch", type=int, default=100)
     parser.add_argument("--timeout", type=float, default=600)
+    parser.add_argument("--jobs", type=int, default=1, help="bounded independent checker processes")
     args = parser.parse_args()
     try:
         cases = [line for line in args.cases_file.read_text().splitlines() if line]
-        report = replay(args.binary, args.tier, cases, args.out, args.batch, args.timeout)
+        report = replay(args.binary, args.tier, cases, args.out, args.batch, args.timeout, args.jobs)
         print(json.dumps({k: report[k] for k in ("status", "cases", "verdicts", "partition")}))
         return int(report["status"] != "pass")
     except (OSError, ValueError, subprocess.SubprocessError) as e:

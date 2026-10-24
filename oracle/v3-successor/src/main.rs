@@ -61,7 +61,6 @@ mod arena;
 // D3 (this crate)
 #[path = "../../v3-d3/src/chaind3.rs"]
 mod chaind3;
-#[path = "../../v3-d3/src/d3.rs"]
 mod d3;
 mod d3contracts;
 mod d3gen;

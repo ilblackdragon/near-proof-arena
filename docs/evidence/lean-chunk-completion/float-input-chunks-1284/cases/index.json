@@ -1,0 +1,50 @@
+[
+  {
+    "case_dir": "float-dynamic-17-success",
+    "source": "/tmp/lean-completion-fixtures/float-dynamic-17-success/ood/00-h10009-s3",
+    "expected": "accept",
+    "trapping": false
+  },
+  {
+    "case_dir": "float-input-17-trap",
+    "source": "/tmp/lean-completion-fixtures/float-input-17-trap/ood/00-h10009-s3",
+    "expected": "accept",
+    "trapping": true
+  },
+  {
+    "case_dir": "float-input-29-success",
+    "source": "/tmp/lean-completion-fixtures/float-input-29-success/ood/00-h10006-s3",
+    "expected": "accept",
+    "trapping": false
+  },
+  {
+    "case_dir": "float-input-29-trap",
+    "source": "/tmp/lean-completion-fixtures/float-input-29-trap/ood/00-h10006-s3",
+    "expected": "accept",
+    "trapping": true
+  },
+  {
+    "case_dir": "float-input-43-success",
+    "source": "/tmp/lean-completion-fixtures/float-input-43-success/ood/00-h10005-s3",
+    "expected": "accept",
+    "trapping": false
+  },
+  {
+    "case_dir": "float-input-43-trap",
+    "source": "/tmp/lean-completion-fixtures/float-input-43-trap/ood/00-h10005-s3",
+    "expected": "accept",
+    "trapping": true
+  },
+  {
+    "case_dir": "float-input-71-success",
+    "source": "/tmp/lean-completion-fixtures/float-input-71-success/ood/00-h10006-s3",
+    "expected": "accept",
+    "trapping": false
+  },
+  {
+    "case_dir": "float-input-71-trap",
+    "source": "/tmp/lean-completion-fixtures/float-input-71-trap/ood/00-h10006-s3",
+    "expected": "accept",
+    "trapping": true
+  }
+]

@@ -3,7 +3,9 @@
 **Active completion work, excluding W05:** branch `work/lean-completion-except-w05-20261024`
 adds strict tier replay, the pinned pooling allocation correction, and a versioned fixture generator.
 Evidence: 1,030 full runtime matches, 209 whole chunks, 366 mutants, and a 1,788-case combined
-verdict checkpoint. Full driver build and CI smoke pass; Python tests: 58 pass / one skip.
+verdict checkpoint. Float evidence now adds 2,050 operator outputs, 32 input-driven bundle outputs,
+1,284 input-driven chunks (1,200 accepts), and 350 mutant comparisons (302 rejects/48 accepts).
+Committed regressions cover success, traps, phase priority and removal controls. Full driver build and CI smoke pass; Python tests: 58 pass / one skip.
 See [execution log](logs/lean-chunk-completion-2026-10-24.md) for artifact identities and limits.
 No package or gate is certified complete. W02's checker theorem, W01 computed observables,
 remaining semantic adapters and representative/release/admission gates remain open.

@@ -39,7 +39,8 @@ target contract: 204 accepted, five correctly retained ETH/ML-DSA exclusions**. 
 the exact size boundary, above it, and mixed import/table/function layouts. Four independently
 judged chunk fixtures are committed. Removing the new check makes a valid loading-failure chunk
 reject with an incorrect main-transition state root. This control runs in CI. A further 366 target-contract mutants agree with nearcore: 298 rejects
-and 68 accepted mutations (not 366 semantic negatives).
+and 68 accepted mutations (not 366 semantic negatives). These use the oracle generator's labelled
+expectations, including derived trusted-fact and claim-discipline cases, not only cold execution.
 
 W12: the pre-runtime combined gas/float/genesis driver passed **1,788 cases** (1,452 accepts,
 134 rejects, 202 asserted residual exclusions). The selected population includes all recorded
@@ -85,3 +86,74 @@ Exhausting retries returns `None`, and `:1013–1019` turns that into a charged
 counter requires a scheduler/concurrency argument or measurement; ordinary successful allocation
 fixtures do not establish absence. Earlier lane language saying contention cannot fail is too strong.
 The successor does not yet model that environment input. W03 remains open for this reason.
+
+## Float execution checkpoint (W04)
+
+Added an independent WAT generator covering all 70 numeric float operators, signed zero,
+subnormals, infinities, NaN payloads/signs, rounding ties and conversion boundaries. It carries
+results through branches, selects, locals, globals, loads/stores, storage writes and return data.
+The directed population is 70 × 15 = 1,050; generated cases add 250 per seed 17/29/43/71.
+All **2,050 full outputs** agree with pinned nearcore: 1,960 successes and 90 arithmetic traps.
+CI replays stored Wasm and oracle outputs without nearcore or a WAT assembler; that path passed
+with PATH restricted to `/usr/bin:/bin`. An empty checker is detected as a failed comparison.
+
+Eight seeded whole-chunk contracts execute every numeric operator, with a distinct storage key per
+operator; four deliberately trap after a write. The first 224 target-executing chunks agree:
+200 accepts and 24 residual exclusions. Per window (seed, success/trap): 17=29/29, 29=26/26,
+43=28/30, 71=28/28. Eight accepted fixtures plus removal of the float-enabled configuration run
+in CI. These cases test checker commitments; they do not add W01's missing observable exporter.
+
+The runtime CLI now accepts an optional input file after METHOD. Input-driven bundles use actual
+receipt argument bytes for operands; 32 full-output preliminary comparisons pass. Expanded
+six-chain/80-block windows are being generated across the same four seeds, success and trap.
+The initial 500-block expansion was interrupted after one window completed; no partial window
+is counted as a pass. Retrying under fresh output directories preserves completed evidence.
+
+Internal arithmetic bound audit (source reasoning, not new Lean theorems): f64 decode has at most
+53 mantissa bits and finite decoded exponent span 2,045, so alignment/addition stays below 2^2,100,
+well inside bitLen's 4,096 divisions. Products have at most 106 bits; bounded integer inputs have
+at most 64 bits. For sqrt, M has at most 54 bits, and the k formula gives bitLen(n) ≤ 115;
+therefore its root is below 2^58 and the 64 descending bit trials suffice. Corrected the old
+comment claiming n < 2^113; no arithmetic code changed. Formal range/overlap proofs remain open.
+
+W03 follow-up: six cases test missing methods, unknown imports and incompatible import types
+below/above the allocation limit. All agree on phase/gas/outcome (only LinkError message text is
+quotiented). Oversized modules report loading failure before method/link failure. CI retains them.
+
+### Expanded float chunk result
+
+All **1,284 exported target-executing chunks pass**: **1,200 accept**, 84 residual exclusions.
+Each seed contributes 300 accepts (150 success + 150 trap). Total comparisons per seed:
+17=323, 29=313, 43=318, 71=330. Exported exclusions are capped by the generator's ordinary OOD
+population limit; this is generated family coverage, not an uncapped representative block window.
+Eight input-driven chunk fixtures now replay in CI in addition to the first eight fixed bundles.
+Exact results/input hashes are in `float-input-chunks-1284`; per-window counts are recorded there.
+
+Reproduction: generate contracts with `python3 tools/d3/gen_float_chunk_contracts.py --dynamic
+--out CONTRACT_DIR`; for each seed 17/29/43/71 and each success/trap contract run the versioned
+generator with `NEAR_SUCCESSOR_CONTRACT=CONTRACT.wasm gen --domain d3 --seed SEED --chains 6
+--blocks 80 --mutate-every 0 --code-mutant-p 0 --out WINDOW_DIR`. Select exported honest cases
+whose `executed_contracts` includes `d3float`; run `replay_successor.py --tier runtimeLimits`.
+The checker binary and every selected input/output are hashed in the report. The generator used
+source checkpoint `766750ea7`; its original executable hash was not captured before rebuilding
+for the mutation fix, so this is explicitly not a complete frozen-package provenance manifest.
+A later release run must capture that identity before execution as well as rerun its required gates.
+
+The first two attempted mutation populations contain zero target float bases and are not counted.
+Inspection showed the signed case writer returns on every float/gas exclusion before mutation.
+A versioned copy now continues into the same cold-judge mutation path for those two widened
+exclusions while retaining baseline metadata. It does not mutate unrelated excluded families.
+The replay runner now supports bounded `--jobs` for independent case batches and records workers;
+strict per-batch accounting, input/output binding and failure checks remain in effect.
+
+The versioned mutation replay passes **350 cases: 302 rejects, 48 accepts**. Sources of expected
+verdicts: 316 cold validator, 8 cold validator with supplied transaction-validity facts, 24 claim-v3
+discipline, 2 derived trusted-fact cases. Those distinctions are retained in `generation.json`;
+none are called 350 independent validator negatives. Four mutant fixtures (two rejects/two accepts)
+are committed. Generator binary/source/contract hashes and seed/configuration are archived.
+
+Final checks for this checkpoint: changed Lean closure and input-enabled runtime build passed;
+58 Python tests pass, one corpus-dependent test skips. Baseline smoke, seven-tier smoke, 20 honest
+runtime/float chunk fixtures, four float mutant fixtures, 1,030 allocation + six phase golden cases,
+and 2,050 operator + 32 input-driven runtime golden cases pass. Pins and inventory drift pass.
+W05 remains untouched. No W00–W16 completion or Gate A/B/C release is asserted.

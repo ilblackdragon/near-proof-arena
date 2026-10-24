@@ -12,3 +12,9 @@ needs explicit successor expectations. Do not relabel generated evidence as the 
 Build after `bash oracle/scripts/link-nearcore.sh`:
 `cargo build --release --manifest-path oracle/v3-successor/Cargo.toml`.
 The CLI is the existing D3 generator CLI; `gen --domain d3 --seed S --chains K --blocks N --out DIR`.
+
+The versioned `src/d3.rs` case writer keeps baseline domain classifications in metadata,
+but permits mutation of honest cases whose only exclusions are floats and/or the old gas cap.
+Mutant metadata retains those base exclusions and adds cache exclusions when applicable.
+The cold validator and mutation algorithms are reused. This is necessary because the signed
+writer returns before mutating every baseline-excluded float case. No signed source is changed.

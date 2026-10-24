@@ -1,0 +1,74 @@
+[
+  {
+    "seed": 17,
+    "trap": false,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-17-success.wasm",
+    "wat_sha256": "944e4a0f4630a4a6a75f2c236efce1ebdd6ee365c068c5b658d4b2370a606c63",
+    "wasm_sha256": "8ec6af0b2d729f43e4074a5e57a1badfca872f7e33359c3b8775c915d18e2b0d",
+    "operators": 70
+  },
+  {
+    "seed": 17,
+    "trap": true,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-17-trap.wasm",
+    "wat_sha256": "a186fc17134e2d080a72ee8981e1a03e9339285012b1b433f1d9cf9bbbba5605",
+    "wasm_sha256": "9c1efc0933ce35b9bd879ce8228b009ba4d9aa0974f205070967d8c7baea7f26",
+    "operators": 70
+  },
+  {
+    "seed": 29,
+    "trap": false,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-29-success.wasm",
+    "wat_sha256": "83a11b2ec971b1915a9d80968959792f94a755657c41e169f5f01b8bc82413d1",
+    "wasm_sha256": "352f96b697b862812d66c45fe61fb9a270c953cae2b42545d21c337d08147450",
+    "operators": 70
+  },
+  {
+    "seed": 29,
+    "trap": true,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-29-trap.wasm",
+    "wat_sha256": "6049eb9c9cbcc41f1f44d82adcb71945912fa886ae03b4092b8f6dbc34083d29",
+    "wasm_sha256": "6fde41f3eb99cdde8f885601e22ee40e2f3911d6a7130606d6e85aad32cc9b86",
+    "operators": 70
+  },
+  {
+    "seed": 43,
+    "trap": false,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-43-success.wasm",
+    "wat_sha256": "e93841674bb7f28035288c9ecf2ec1c55db4f61162bf588d7f8735d6f8039694",
+    "wasm_sha256": "ebb3296c9668a025642dd747e3562de76578842b8f9af728846488a75cfb6145",
+    "operators": 70
+  },
+  {
+    "seed": 43,
+    "trap": true,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-43-trap.wasm",
+    "wat_sha256": "1f51da7badcbabe4ca54d4b2d39329164ccffb52932dd51c8dc9c754d4bf3274",
+    "wasm_sha256": "b6dc7c82e5e5d1bb154d0437fa144f8b253c399a9d60f0f2341dab7a5049dc9e",
+    "operators": 70
+  },
+  {
+    "seed": 71,
+    "trap": false,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-71-success.wasm",
+    "wat_sha256": "83155849225b459860023e7ccef173b45b50d6ad658d9d57af8da66b18cf8cba",
+    "wasm_sha256": "113e14c88087c7fdba8644785234fbe9c072f0e24f5ec5a4ffd05f83492cd4d9",
+    "operators": 70
+  },
+  {
+    "seed": 71,
+    "trap": true,
+    "dynamic": true,
+    "wasm": "/tmp/lean-float-dynamic-contracts/float-71-trap.wasm",
+    "wat_sha256": "93ae4ddbfd826565cc7b67bbdee2c8ea4b9c6f788bca762eb1e9840de3fc830b",
+    "wasm_sha256": "6b65ca7984b4e4ee8c1eedd1585ff9bbd7d22216055dec0881fa8ccb3946fca3",
+    "operators": 70
+  }
+]

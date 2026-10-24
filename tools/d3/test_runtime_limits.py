@@ -37,11 +37,11 @@ def section(tag, b):
     return bytes([tag]) + leb(len(b)) + b
 
 
-def module(globals_count, imports=0, tables=0, functions=1, aliases=0, start=False, elements=False, method="main"):
+def module(globals_count, imports=0, tables=0, functions=1, aliases=0, start=False, elements=False, method="main", import_name="prepaid_gas"):
     # Types: () -> (), () -> i64 (prepaid_gas imports).
     sections = [section(1, vec([b"\x60\0\0", b"\x60\0\x01\x7e"]))]
     if imports:
-        sections.append(section(2, vec([string("env") + string("prepaid_gas") + b"\0\x01"] * imports)))
+        sections.append(section(2, vec([string("env") + string(import_name) + b"\0\x01"] * imports)))
     sections.append(section(3, vec([b"\0"] * functions)))
     if tables:
         sections.append(section(4, vec([b"\x70\0" + leb(functions)])))

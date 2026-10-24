@@ -193,6 +193,7 @@ d3-smoke: ## Run the D3 drivers + comparison contract against the committed 5-ca
 	@$(PYTHON) oracle/wasm-d3/tests/d3_smoke/run_smoke.py
 	@$(PYTHON) tools/d3/smoke_successor.py
 	@$(PYTHON) tools/d3/check_runtime_golden.py
+	@$(PYTHON) tools/d3/check_float_golden.py
 
 .PHONY: web
 web: ## Build and test the web frontend (pnpm)
