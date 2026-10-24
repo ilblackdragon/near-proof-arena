@@ -251,6 +251,39 @@ level's root proof still carries ~143 queries, so a depth-8 tree's root would st
 **The depth law being flat is necessary for a 1 Pgas tree to exist; the size levers in 5.1/5.3 are
 what make it ship under cap.** These are independent problems.
 
+**Partial depth-3 evidence is already in** (`agg-d3-geom.log`, still running at time of writing):
+
+```
+L2_0_GEOM … comps=8747 … log_rows=21        (identical to the depth-2 run — deterministic)
+L2_1_GEOM … comps=8747 … log_rows=21        (the second L2 node, also identical)
+L2_0_PROOF_BYTES total=315913               (byte-identical to the depth-2 node)
+L2_1_PROOF_BYTES total=317845               (16 B wider: L2_1's own two children differ)
+L3_0_GEOM merkle_nodes=7998 leaf_blocks=1913 comps=9911 rows=1268608 log_rows=21
+```
+
+**L3's SHA AIR is `log_height 21` against a `2^21` ceiling — depth 3 is legal.** That is the first
+evidence that the production depth law is flat. Two independent checks support it:
+
+* `merkle_nodes = 7998` matches the model exactly: `2 × (46·30 + (41+31+25)·27) = 7998`.
+* Headroom is real, not marginal: 9,911 against the 16,384-compression ceiling, **39.5 %** spare —
+  unlike depth 2's 6.8 % overrun at `2^20`. Every level ≥ 2 uses the same `PARENT{d}` schedule
+  (`[46,41,31,25]`), so L4 and above should land near 9,911 and stay legal through depth 8.
+
+`L2_0` being byte-identical to the depth-2 run (**315,913 B** in both) confirms prover determinism
+for this node on identical input — which the 520 B spread noted in the earlier depth-1 table did not
+have.
+
+**But "flat" is approximate at production geometry, not byte-identical — and this matters for size.**
+Within this same run, `L2_0` is 315,913 B while `L2_1` is **317,845 B**, a 1,932 B difference. Both
+report `merkle_nodes=7320 leaf_blocks=1427 comps=8747`, so the AIR geometry is identical; what
+differs is `program_rows` (232,318 vs 232,702) because the two nodes cover different Fib segments.
+The earlier depth-law "byte-identical" claim (132,301 B at depths 2/3/4) came from test targets with
+10 query bits. At production geometry **node proofs vary by ~2 KB depending on which leaves they
+cover**, so a production root's size carries that uncertainty on top of the depth law.
+
+**`AGG_DEPTH3_OK` itself is not yet printed — do not quote depth 3 as verified until the run
+completes.**
+
 ## Reproduce
 
 ```
