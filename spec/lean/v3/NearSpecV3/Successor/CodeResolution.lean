@@ -33,11 +33,12 @@ inductive PrestateCode where
 /-- `record_contract_call`'s read uses the actual local/global contract key and no recorder effects.
 An unresolved path does not establish that the contract was deployed in this chunk. -/
 def prestateCode (trie : PTrie) (key : Bytes) : PrestateCode :=
-  if trie.hashOf == emptyRoot then .absent else
-  match trie.findRef (nibbles key) with
-  | none => .unknown
-  | some none => .absent
-  | some (some slot) => .present (slot.valueRef.drop 4)
+  match trie with
+  | .hash hash => if hash == emptyRoot then .absent else .unknown
+  | _ => match trie.findRef (nibbles key) with
+    | none => .unknown
+    | some none => .absent
+    | some (some slot) => .present (slot.valueRef.drop 4)
 
 def PrestateCode.hash? : PrestateCode → Option Bytes
   | .present h => some h
