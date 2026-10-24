@@ -1,0 +1,43 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+error: failed to run custom build command for `labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)`
+
+Caused by:
+  process didn't exit successfully: `/data/illia/pq-tail-architecture-20261024/target/release/build/labinius-dd40e58203db66e9/build-script-build` (exit status: 101)
+  --- stdout
+  cargo:rerun-if-env-changed=LABINIUS_LABRADOR_DIR
+  make: Entering directory '/data/illia/pq-tail-architecture-20261024/labrador-sis128'
+  cc -std=c2x -Wall -Wextra -Wmissing-prototypes -Wredundant-decls -Wshadow -Wpointer-arith -Wno-unused-function -fwrapv -march=native -mtune=native -O3 -DLOGQ=48 -c chihuahua.c -o libobj/chihuahua.o
+  cc -std=c2x -Wall -Wextra -Wmissing-prototypes -Wredundant-decls -Wshadow -Wpointer-arith -Wno-unused-function -fwrapv -march=native -mtune=native -O3 -DLOGQ=48 -c labrador.c -o libobj/labrador.o
+  make: Leaving directory '/data/illia/pq-tail-architecture-20261024/labrador-sis128'
+
+  --- stderr
+  In file included from labrador.c:20:
+  sis_policy.h: In function ‘root_hermite_factor’:
+  sis_policy.h:15:19: error: ‘M_PI’ undeclared (first use in this function)
+     15 |   return pow(b/(2*M_PI*M_E)*pow(M_PI*b,1/b),1/(2*(b-1)));
+        |                   ^~~~
+  sis_policy.h:15:19: note: each undeclared identifier is reported only once for each function it appears in
+  sis_policy.h:15:24: error: ‘M_E’ undeclared (first use in this function)
+     15 |   return pow(b/(2*M_PI*M_E)*pow(M_PI*b,1/b),1/(2*(b-1)));
+        |                        ^~~
+  sis_policy.h: At top level:
+  sis_policy.h:35:14: warning: no previous prototype for ‘sis_estimate_l2_core_svp_adps16’ [-Wmissing-prototypes]
+     35 | sis_estimate sis_estimate_l2_core_svp_adps16(size_t rank, size_t width,
+        |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  sis_policy.h: In function ‘sis_estimate_l2_core_svp_adps16’:
+  sis_policy.h:73:14: error: ‘M_LN2’ undeclared (first use in this function)
+     73 |   lnq = logq*M_LN2;
+        |              ^~~~~
+  sis_policy.h: At top level:
+  sis_policy.h:90:8: warning: no previous prototype for ‘labrador_inner_commitment_l2_bound’ [-Wmissing-prototypes]
+     90 | double labrador_inner_commitment_l2_bound(size_t parts, size_t log2_base,
+        |        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  sis_policy.h: In function ‘root_hermite_factor’:
+  sis_policy.h:16:1: warning: control reaches end of non-void function [-Wreturn-type]
+     16 | }
+        | ^
+  make: *** [Makefile:78: libobj/labrador.o] Error 1
+
+  thread 'main' (1402461) panicked at crates/pcs/build.rs:42:5:
+  make -C /data/illia/pq-tail-architecture-20261024/labrador-sis128 LOGQ=48 liblabrador.a failed
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

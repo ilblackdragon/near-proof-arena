@@ -15,8 +15,10 @@ and bounded PQ history remain open. A [source-byte budget experiment](SOURCE_BYT
 takes 4.20–4.35 s; it does not solve the deadline. [Bitmask selection](SELECTION_AND_PARALLEL.md) increased circuit size and was
 rejected. Four-core execution of the existing relation gives 244,814 B /
 3.72–3.77 s; fresh single-core verification passes. [Parallel commitment](PARALLEL_COMMIT.md) now gives 244,814 B / 3.13–3.30 s
-on four cores; exact parity and older-verifier checks pass. Next investigate
-the 1.39 s LaBRADOR backend, then source inclusion/state/runtime and PQ history.
+on four cores; exact parity and older-verifier checks pass. [Backend profiling](LABRADOR_PHASES.md) attributes the remaining cost to initial
+constraint lifting, commitment, projection and amortization. Next measure exact
+parallelism over independent amortization outputs; source inclusion/state/runtime
+and PQ history still remain.
 
 The earlier [receipt-only batch](RECEIPT_BATCH.md) measured 215,398 B / 1.52–1.54 s
 for 814 receipts, but omitted incoming source-list work. Do not substitute that

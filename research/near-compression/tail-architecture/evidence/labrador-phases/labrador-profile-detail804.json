@@ -1,0 +1,31 @@
+{
+  "c_stage_totals_ms": {
+    "simple/setup": 0.045061,
+    "simple/commit": 213.999748,
+    "simple/project": 170.134544,
+    "simple/constraints_eval": 33.115864,
+    "simple_detail/lift_jl": 157.18722400000001,
+    "simple_detail/lift_scalars": 36.396026,
+    "simple_detail/lift_simple": 77.38566399999999,
+    "simple_detail/lift_aggregate": 182.46269199999998,
+    "simple/constraints_lifts": 453.484058,
+    "simple/constraints_apply": 92.109203,
+    "simple/aggregate": 128.269434,
+    "simple/amortize": 211.348534,
+    "simple/refresh": 13.79776,
+    "recursive/setup": 0.705481,
+    "recursive/commit": 20.909786,
+    "recursive/project": 20.383596999999998,
+    "recursive/constraints": 66.36285899999999,
+    "recursive/aggregate": 12.979030999999999,
+    "recursive/amortize": 15.088559,
+    "recursive/refresh": 3.2224649999999997
+  },
+  "rust_boundary_ms": {
+    "checks": 10.761571,
+    "raw_statement": 0.272632,
+    "raw_witness": 1.960173,
+    "composite_prove": 1456.23102
+  },
+  "note": "simple_detail phases are nested within simple/constraints_lifts; do not add them twice."
+}

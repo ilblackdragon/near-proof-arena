@@ -298,3 +298,16 @@ including expected public-byte/root/tape checks. LaBRADOR stays~1.39s; next
 backend attribution/optimization, not security relaxation. Full source/state/
 runtime/PQ history scope remains open. See PARALLEL_COMMIT.md and narrow patch
 plus archived source/logs under evidence/parallel-commit.
+
+### LaBRADOR phase profile, no speedup claim
+
+Instrumented actual simple_prove entry plus recursive rounds and Rust boundary.
+C composite1456ms; raw statement/witness~2.2ms, checks10.8ms, setup<1ms.
+Initial simple phases:commit214ms,project170ms,lifts453ms,apply92ms,aggregate128ms,
+amortize211ms; later recursive rounds~140ms. Nested lifts:JL157ms,scalars36ms,
+simple77ms,aggregate182ms (do not double-count). Old unchanged verifier accepts
+244814B packet freshly1.586s; expected public bytes and negative checks pass.
+Next isolate independent amortization output pairs with preserved accumulation
+order; no C parallel optimization is implemented yet. Initial partial trace and
+header-order build failure retained with complete/detailed evidence. Full NEAR/
+state/runtime/PQ history remain open. See LABRADOR_PHASES.md.

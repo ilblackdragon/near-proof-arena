@@ -1,0 +1,35 @@
+--- a/crates/pcs/src/labrador/mod.rs
++++ b/crates/pcs/src/labrador/mod.rs
+@@ -997,14 +997,24 @@
+     prove_inner(stmt, wit, true)
+ }
+ 
++fn profile_phase(label:&str, last:&mut std::time::Instant){
++    let now=std::time::Instant::now();
++    if std::env::var_os("LABRADOR_PROFILE").is_some(){eprintln!("LABRADOR_RUST phase={label} ms={}",now.duration_since(*last).as_secs_f64()*1000.0);}
++    *last=now;
++}
++
+ fn prove_inner(stmt: &Statement, wit: &Witness, verify: bool) -> Result<ProofHandle, String> {
++    let mut profile_start=std::time::Instant::now();
+     check_statement(stmt)?;
+     check_witness(stmt, wit)?;
++    profile_phase("checks",&mut profile_start);
+ 
+     let _guard = labrador_lock();
+     let _quiet = Quiet::new();
+     let raw_stmt = build_raw_statement(stmt)?;
++    profile_phase("raw_statement",&mut profile_start);
+     let raw_wit = build_raw_witness(stmt, wit)?;
++    profile_phase("raw_witness",&mut profile_start);
+ 
+     if verify {
+         let ret = unsafe { ffi::labrador48_simple_verify(raw_stmt.0, raw_wit.0) };
+@@ -1032,6 +1042,7 @@
+             raw_wit.0,
+         )
+     };
++    profile_phase("composite_prove",&mut profile_start);
+     if ret != 0 {
+         return Err(format!("composite_prove_simple: FAIL (code {ret})"));
+     }

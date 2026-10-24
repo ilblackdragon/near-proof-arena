@@ -1,0 +1,26 @@
+{
+  "c_stage_totals_ms": {
+    "simple/setup": 0.050306,
+    "simple/commit": 212.42094,
+    "simple/project": 173.655748,
+    "simple/constraints_eval": 33.123016,
+    "simple/constraints_lifts": 446.569443,
+    "simple/constraints_apply": 95.06917,
+    "simple/aggregate": 131.5341,
+    "simple/amortize": 202.873707,
+    "simple/refresh": 14.802694,
+    "recursive/setup": 0.710964,
+    "recursive/commit": 21.212340000000005,
+    "recursive/project": 20.552159999999997,
+    "recursive/constraints": 63.432932,
+    "recursive/aggregate": 13.236761,
+    "recursive/amortize": 14.741658999999999,
+    "recursive/refresh": 3.034829
+  },
+  "rust_boundary_ms": {
+    "checks": 9.558299,
+    "raw_statement": 0.277802,
+    "raw_witness": 1.756259,
+    "composite_prove": 1447.312301
+  }
+}
