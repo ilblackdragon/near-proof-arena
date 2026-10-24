@@ -284,6 +284,30 @@ cover**, so a production root's size carries that uncertainty on top of the dept
 **`AGG_DEPTH3_OK` itself is not yet printed — do not quote depth 3 as verified until the run
 completes.**
 
+## 6. The whole problem in one table
+
+The "depth 2 is impossible" claim and the "depth 2 is too big" concern are **different claims about
+different ceilings**, and conflating them caused the earlier error:
+
+| configuration | SHA comps | ceiling | verdict |
+|---|---:|---:|---|
+| depth 2, `ns18/lb7` | 8,747 | 8,192 (`2^20`) | **FAILS** by 555 (6.8 %) |
+| depth 2, `ns19/lb6` | 8,747 | 16,384 (`2^21`) | **LEGAL**, 46.6 % headroom |
+| depth 3, `ns19/lb6` | 9,911 | 16,384 (`2^21`) | **LEGAL**, 39.5 % headroom |
+
+Depth 2 was only ever impossible **at `2^20`**. At `2^21` it has *more* headroom than the base final
+layer has at its own ceiling. So the depth question is settled and favourable; the remaining problem
+is purely that the `2^21` geometry costs 143 queries, which makes the proof ~316 KB.
+
+The size problem and the legality problem therefore pull in opposite directions:
+
+* **Legality wants `2^21`** (`ns19/lb6`) — more stacked height, but 143 queries.
+* **Size wants `2^20`** (`ns18/lb7`) — 126–131 queries, but needs comps ≤ 8,192.
+
+**The 6.8 % compression cut reconciles them**, and that is the single remaining engineering change.
+If it lands, depth 2 runs at 126 queries in `2^20` and projects under cap (§5.1); if it does not,
+depth 2 remains legal but 15,913 B over. Either way the depth law itself is no longer the blocker.
+
 ## Reproduce
 
 ```
