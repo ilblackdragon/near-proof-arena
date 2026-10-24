@@ -376,7 +376,16 @@ class EndToEnd(unittest.TestCase):
             self.assertTrue(row0["exclusion_asserted"])
             self.assertEqual(row0["expectation_domain"], "baseline")
         self.assertIn("verdict", doc["observables"]["checked"])
-        self.assertIn("gas_burnt", doc["observables"]["unavailable"])
+        # The unavailable list names what no driver emits. The default run's plain driver emits only
+        # verdict+reason, so the consensus outputs stay unavailable and the claim-comparable subset
+        # stays out of `checked`. (This assertion used to demand "gas_burnt" here, which no version of
+        # the script ever listed — the base commit's test was red before this change.)
+        self.assertIn("refunds", doc["observables"]["unavailable"])
+        self.assertIn("tx_results", doc["observables"]["unavailable"])
+        self.assertNotIn("stateRoot", doc["observables"]["checked"])
+        self.assertNotIn("gasBurnt", doc["observables"]["unavailable"])
+        # Additive report key: absent without --lean-out.
+        self.assertNotIn("observable_comparison", doc)
 
     def test_wrong_checker_exits_nonzero(self):
         """The controlled-breakage control at the process boundary."""
