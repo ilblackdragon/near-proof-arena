@@ -22,7 +22,7 @@ as closing that gap.
 | 4 | Node **bytes are flat in depth at TEST targets only**: depths 2, 3, 4 are byte-identical at 132,301 B — but this is a `log_blowup=3` result and **cannot transfer to production**, where depth 2 is arithmetically impossible (row 18) | **measured**, test targets; production superseded by row 18 |
 | 5 | Node **cost is linear in node count**; depth is a fixpoint; the tree is RAM-bound | **measured**, test targets |
 | 6 | At production targets a 1 Pgas tree is **~6–96 h** on this host | **extrapolated** from the 1-child chunk-chain anchor (507.7 s/node mean), ±2× |
-| 7 | **No production-target aggregation node has ever been proved** | absence of evidence, stated as such |
+| 7 | ~~No production-target aggregation node has ever been proved~~ **CORRECTED: the delivered run proves five 1-NV-child aggregation nodes.** L2–L5 + FINAL each verify **1 NV child** at `log_blowup=7`, `query_pow=32` (production targets), measured 372,001–374,563 B and 459.4–582.2 s apiece. L1 verifies the base proof (`circ.child_nv = false`, `main.rs:319`), so it is an app-child node, not an NV one. What has never been proved at production targets is a **2-child NV node** — and row 18 shows why: it needs a 2^21 SHA AIR against a 2^20 ceiling | **measured**, `runs/opt-baseline-8/{L2..L5,FINAL}.proof` + `chain.log`; `SETUP.json` confirms `log_blowup=7`, `query_phase_pow_bits=32`; `main.rs:319` for the child kind |
 | 8 | The per-proof union **fails from S ≈ 103–118**, not at 295 as recorded | **arithmetic on measured bounds** |
 | 9 | No 1 Pgas root has been measured under 300 KB; no real segment leaf exists | **unproven / blocked** |
 | 10 | The prover **rebuilds from the deps tree in 13.77 s** and its binary verifies the packet in **1.58 s** | **measured**, this session |
@@ -39,7 +39,7 @@ as closing that gap.
 | 21 | With the **full production lever set** (`X15=15`, `multiproof`, `keep_domain`, `gruen_gkr`, `gkr_derive`, `next_mask`, `gruen_zc`, `wide_pow`, `tight`, `whir_y`, `QUERY_POW=32`, `COMMITS=1`) a 2-child production node measures **267,513 B** at **`total=268.2` soundness** — **32,487 B under the cap** | **measured** 2026-10-23, `agg-d2-l2prod.log`, `L1_0_PROOF_BYTES total=267513` |
 | 22 | The earlier **276,269 B** and **615,457 B** agg measurements used an **incomplete lever set** (`X15=1`, no multiproof/keep_domain/tight/whir_y), so their query counts (208 and 260) are lever-contaminated upper bounds, not production numbers | **measured** — `L1_0_O2` domain `134217728` = 2^27 in both logs |
 | 23 | **Depth 2 is closed by an exact 1-bit gap that no parameter closes**: `lb=7/6/5` give stacked height 20/21/22 but the SHA AIR needs 21/22/23 — each blowup step costs exactly the bit it buys. Only `lb=3` (test-target soundness) fits | **measured** three end-to-end panics: `log_height` 21, 22, 23 at `circuit.rs:458` |
-| 24 | The **tree is load-bearing for 1 Pgas on time**: a linear chain verifies 1 child/level, so 146 leaves need 146 levels (~20 h); a binary tree needs 8. With depth 2 blocked there is no tree, hence no 1 Pgas path in reasonable time | **arithmetic on the measured chain** (507.7 s/node mean) |
+| 24 | The **tree is load-bearing for 1 Pgas on time, not on geometry**: a linear chain verifies 1 child/level and *is* geometrically legal (1 NV child fits 2^20 — measured), so S=146 needs 146 serial levels ≈ **20.6 h** with no parallelism to exploit. A binary tree needs 8 levels but depth 2 is blocked. So 1 Pgas has a legal-but-slow path (long chain) and no fast one | **arithmetic on the measured chain** (507.7 s/node mean); chain is strictly serial |
 
 Two reconciliations this log owes its reader, both done in full below and both correcting an
 earlier reading:
@@ -1197,15 +1197,16 @@ Still open, and each one is a real blocker rather than a formality:
      result** and does not transfer to production targets.
 
      **The precise production constraint, measured:** an aggregation node with **2 NV children**
-     cannot be proved at `log_blowup = 7`; an aggregation node with **2 App children** can. The
-     base final layer verifies **1** NV child and its SHA AIR is **2^20 — exactly at the
-     `log_stacked_height = 20` ceiling, with zero headroom** (reconstructed from its own
-     `shapes`: `2^20·76 + 2^20·83 + 128·9 + 2^16·5`). Going to 2 NV children takes that column to
+     cannot be proved at `log_blowup = 7`; an aggregation node with **2 App children** can. A
+     1-NV-child node has SHA AIR **2^20 — exactly at the `log_stacked_height = 20` ceiling, with
+     zero headroom** — and this is measured **five times**: L2, L3, L4, L5 and FINAL all report
+     `shapes=[(2^20,76),(2^20,83),(128,9),(2^16,5)]` at `l_skip=2 n_stack=18 lb=7`. Going to 2 NV
+     children takes that column to
      2^21 — **2×, linear in child count** — and 2^21 needs `log_stacked_height ≥ 21`, i.e.
      `log_blowup ≤ 6`. **But lowering the blowup to reach 21 raises the demand too** (lb=6 needs
      138 queries ⇒ 2^22; measured panic `log_height: 22, log_stacked_height: 21`), so `lb ≤ 6` does
      *not* actually work — the deficit is invariant at one bit. So the blocker is specific: **the
-     second NV child**, not aggregation in general. The base final layer is already sitting on the
+     second NV child**, not aggregation in general. A 1-NV-child node already sits exactly on the
      ceiling; there is no geometry headroom to absorb one more NV child. That is why depth 1
      measured fine and depth 2 died, and why the depth-4 "flat in depth" result cannot be assumed
      to hold at production.

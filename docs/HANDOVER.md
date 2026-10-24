@@ -168,9 +168,11 @@ Three sentences the reader can act on, each with its evidence and its limit:
    `n_stack`: 19 gives 28 and panics at `monty_31.rs:654`. **So a production aggregation node with
    two NV children cannot be proved in this configuration at all** — not a memory or time limit,
    a domain limit. Depth 1 works because its children are App proofs (SHA 2^17); the second NV
-   child takes SHA to 2^21. **The growth is linear in child count, not superlinear**: the delivered
-   base final layer verifies 1 NV child at 131 queries and fits 2^20 exactly (its params are
-   `l_skip=2 n_stack=18 lb=7`, so stacked height 20), so 2 children need exactly one more bit.
+   child takes SHA to 2^21. **The growth is linear in child count, not superlinear**: this is
+   measured five times over — L2, L3, L4, L5 and FINAL all verify 1 NV child at 131 queries with
+   `shapes=[(2^20,76),(2^20,83),(128,9),(2^16,5)]` and params `l_skip=2 n_stack=18 lb=7` (stacked
+   height 20), so each sits exactly on the 2^20 ceiling. Two NV children therefore need exactly
+   one more bit.
    Consequently **the "bytes flat in depth" result (132,301 B at depths 2–4) is a
    `log_blowup = 3` result** (those runs used `n_stack=20, log_blowup=3`, giving stacked height
    22) and **does not transfer to production**. Two exits were named; **the first is measured and
@@ -191,9 +193,12 @@ Three sentences the reader can act on, each with its evidence and its limit:
    looked viable. **The sole surviving exit is reducing SHA compressions per child by 2×** — a
    circuit change; `multiproof` does not help (`merkle_nodes` stays 464 in both lever configs), and
    digest width d=40 only gives 12 → 10 units = 16.7%. Not done.
-   Consequence for the goal: **the tree is load-bearing on time** — a linear chain verifies one
-   child per level, so 146 leaves need 146 levels (~20 h at ~500 s/level), while a binary tree needs
-   8. With depth 2 blocked there is no tree, so there is currently no 1 Pgas path in reasonable time.
+   Consequence for the goal: **the tree is load-bearing on TIME, not on geometry.** A linear chain
+   verifies one child per level and *is* geometrically legal — a 1-NV-child node fits the 2^20
+   ceiling (measured), so S=146 as 146 serial levels works in size terms but costs **≈20.6 h**
+   with no parallelism to exploit (each level consumes the previous level's proof). A binary tree
+   would need only 8 levels but depth 2 is blocked. So 1 Pgas currently has a legal-but-slow path
+   and no fast one; the geometry wall costs roughly 14 h of wall-clock against the tree plan.
 4. **`NodeOK` gap: the soundness of a 1 Pgas tree is an OPEN obligation.** The per-proof union
    bound fails from **S ≈ 103–118** and every 1 Pgas shape exceeds that (S ≈ 146 at 2^23
    ops/segment). The repair is to apply the extraction theorem **once** to the vk family
