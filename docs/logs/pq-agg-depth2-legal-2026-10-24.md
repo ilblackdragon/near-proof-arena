@@ -223,7 +223,23 @@ fewer than 143) — and it failed only because that run's *children* were at def
 With production levers the children are smaller, so this needs a re-run to know. The 5-query delta
 is worth ~8,755 B — over half the gap. **Untested.**
 
-### 5.4 The depth-3 question is separate from the size question
+### 5.4 `X15=1` as a candidate — a tradeoff, not a free win
+
+The `+4` in `nodes/query = nbits + 4` is `ceil_log2(15)`, from `domain_odd_factor = 15`
+(`config.rs:513`), and the base packet's own `SETUP.json` has `domain_odd_factor = 15`. If that
+term went to 0, L2's Merkle cost would fall from 7,320 to **6,272** compressions — a 1,048 cut,
+comfortably more than the 555 needed.
+
+**But `X15` is not a free size lever, and this is the trap to avoid.** The odd factor is bought in
+exchange for query count: with `c=15` the per-round rate is `2^-log_blowup / 15`, so fewer queries
+are needed for the same bits; with `c=1` the rate is `2^-log_blowup` and **more** queries are
+required. The 1,048-compression saving would be partly or wholly given back in additional queries
+and their leaf blocks. The net effect on `comps` is **unmeasured**, and dropping the odd factor
+also changes the delivered artifact's own WHIR domain, so it is not a drop-in for the shipped base.
+
+Recorded as a candidate only. The 6.8 % cut in §5.1 is the lever with a measured target.
+
+### 5.5 The depth-3 question is separate from the size question
 
 The depth law measured at test targets is flat (`132,301 B` at depths 2/3/4), but those runs used
 `log_blowup = 3`, which does not transfer to production. Depth 3 aggregates two NV children exactly
