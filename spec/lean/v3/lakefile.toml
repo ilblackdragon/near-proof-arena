@@ -65,3 +65,7 @@ root = "MainD3G"
 [[lean_exe]]
 name = "nearspec-v3-test-bls12381-host"
 root = "TestBLS12381Host"
+
+[[lean_exe]]
+name = "nearspec-v3-test-altbn128"
+root = "TestAltBn128"

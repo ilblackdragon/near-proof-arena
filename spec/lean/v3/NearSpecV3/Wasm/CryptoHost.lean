@@ -3,6 +3,7 @@ import NearSpecV3.Secp256k1
 import NearSpecV3.P256
 import NearSpecV3.BLS12381
 import NearSpecV3.BLS12381Pairing
+import NearSpecV3.AltBn128
 
 /-!
 # Host semantics of the crypto host functions (successor domain `D3γ`)
@@ -240,13 +241,99 @@ def hostPairingCheck (a : Vector Nat 2) : HM Unit := do
   if data.size % 288 ≠ 0 then hErr (blsInvalidLength "bls12381_pairing_check" data.size 288)
   pushRet (BLS12381.pairingCheck data.toList)
 
-/-- `cryptoHostCall`: the `D3γ` host table. `none` for every name whose semantics is not
-implemented yet (the alt_bn128 family), which the successor call loop reports as out of domain
-rather than guessing. -/
+/-! ## alt_bn128 (`alt_bn128_*`, 3 hosts)
+
+The two register writers share one body shape (`wasmtime_runner/logic.rs:932-954` and `:982-1004`);
+`pairing_check` has its own (`:1033-1054`). Both differences from the BLS writers matter:
+
+* charge order — `pay_base`, **read**, then `pay_per(element, elements.len())` where the count comes
+  from the *split input*, so a length that is not a multiple of the element size burns base + read
+  and **no** per-element charge (`logic/alt_bn128.rs:25-29` runs the split before `pay_per`);
+* return convention — the two writers return `()` and write the 64-byte point to `register_id`;
+  `pairing_check` writes nothing and returns `0`/`1` as a `u64` (`:1051-1053` `Ok(res as u64)`),
+  where `1` means "the product is one".
+
+Errors: every decode failure and the split failure are `HostError::AltBn128InvalidInput`
+(`logic/alt_bn128.rs:19-23`), whose `Display` prefixes `AltBn128 invalid input: `
+(`logic/errors.rs:614`), and the split message is `stdx::as_chunks_exact`'s
+`slice of size {len} cannot be precisely split into chunks of size {n}`
+(`utils/stdx/src/lib.rs:89-96`).
+
+Gas: PV86 `parameters.snap:173-178`.
+
+| cost | gas |
+|---|---|
+| `wasm_alt_bn128_g1_multiexp_base` / `_element` | 713_000_000_000 / 320_000_000_000 |
+| `wasm_alt_bn128_g1_sum_base` / `_element` | 3_000_000_000 / 5_000_000_000 |
+| `wasm_alt_bn128_pairing_check_base` / `_element` | 9_686_000_000_000 / 5_102_000_000_000 |
+
+Compute equals gas for all six keys (no `compute:` annotation in the snapshot). -/
+
+/-- `wasm_alt_bn128_g1_multiexp_base` / `_element` (`parameters.snap:173-174`). -/
+def altBn128G1MultiexpBase : Cost := ⟨713000000000, 713000000000, none⟩
+def altBn128G1MultiexpElement : Cost := ⟨320000000000, 320000000000, none⟩
+/-- `wasm_alt_bn128_g1_sum_base` / `_element` (`parameters.snap:177-178`). -/
+def altBn128G1SumBase : Cost := ⟨3000000000, 3000000000, none⟩
+def altBn128G1SumElement : Cost := ⟨5000000000, 5000000000, none⟩
+/-- `wasm_alt_bn128_pairing_check_base` / `_element` (`parameters.snap:175-176`). -/
+def altBn128PairingBase : Cost := ⟨9686000000000, 9686000000000, none⟩
+def altBn128PairingElement : Cost := ⟨5102000000000, 5102000000000, none⟩
+
+/-- `AltBn128InvalidInput`'s payload for a length that is not a multiple of the element size
+(`stdx::as_chunks_exact`, `utils/stdx/src/lib.rs:89-96`), formatted as nearcore's `Display` prints
+the variant: `AltBn128 invalid input: {msg}` (`logic/errors.rs:614`). `hErr` supplies the
+surrounding `HostError(...)`, so this string must not repeat it. -/
+def altBn128SplitMsg (len item : Nat) : String :=
+  s!"AltBn128 invalid input: slice of size {len} cannot be precisely split into chunks of size {item}"
+
+/-- The shared body of the two register writers: base, **read**, split, per-element, decode, then a
+register write. `decode` receives the already-split-valid input. -/
+def altBn128Writer (base element : Cost) (itemSize : Nat)
+    (decode : ArenaCore.Bytes → Option ArenaCore.Bytes) (a : Vector Nat 3) : HM Unit := do
+  payBaseH base
+  let len := a[0]; let ptr := a[1]; let reg := a[2]
+  let data ← memOrRegH ptr len
+  if data.size % itemSize ≠ 0 then hErr (altBn128SplitMsg data.size itemSize)
+  payPerH element (data.size / itemSize)
+  match decode data.toList with
+  | some out => regSetH reg (ByteArray.mk out.toArray)
+  | none => hErr "AltBn128 invalid input: invalid point or scalar"
+
+/-- `alt_bn128_g1_multiexp` (`wasmtime_runner/logic.rs:932-954`): `[(G1: 64 B, Fr: 32 B)]`, output
+the 64-byte `∑ kᵢ·Pᵢ`. -/
+def hostAltBn128G1Multiexp (a : Vector Nat 3) : HM Unit :=
+  altBn128Writer altBn128G1MultiexpBase altBn128G1MultiexpElement 96
+    (fun d => AltBn128.g1MultiExp d) a
+
+/-- `alt_bn128_g1_sum` (`wasmtime_runner/logic.rs:982-1004`): `[(sign: u8, G1: 64 B)]`, output the
+64-byte signed sum. -/
+def hostAltBn128G1Sum (a : Vector Nat 3) : HM Unit :=
+  altBn128Writer altBn128G1SumBase altBn128G1SumElement 65
+    (fun d => AltBn128.g1Sum d) a
+
+/-- `alt_bn128_pairing_check` (`wasmtime_runner/logic.rs:1033-1054`): `[(G1: 64 B, G2: 128 B)]`, no
+register, returns `1` iff the product is one and `0` otherwise. Charge order: base, **read**,
+per-element from the split input, decode. -/
+def hostAltBn128PairingCheck (a : Vector Nat 2) : HM Unit := do
+  payBaseH altBn128PairingBase
+  let len := a[0]; let ptr := a[1]
+  let data ← memOrRegH ptr len
+  if data.size % 192 ≠ 0 then hErr (altBn128SplitMsg data.size 192)
+  payPerH altBn128PairingElement (data.size / 192)
+  match AltBn128.pairingCheck data.toList with
+  | some r => pushRet r
+  | none => hErr "AltBn128 invalid input: invalid point"
+
+/-- `cryptoHostCall`: the `D3γ` host table. It selects an arm for every name `D3α` excludes;
+`none` for anything else, which the successor call loop reports as out of domain rather than
+guessing. -/
 def cryptoHostCall (name : String) : Option (HM Unit) :=
   match name with
   | "ecrecover" => some do hostEcrecover (← popArgs 7)
   | "p256_verify" => some do hostP256Verify (← popArgs 6)
+  | "alt_bn128_g1_multiexp" => some do hostAltBn128G1Multiexp (← popArgs 3)
+  | "alt_bn128_g1_sum" => some do hostAltBn128G1Sum (← popArgs 3)
+  | "alt_bn128_pairing_check" => some do hostAltBn128PairingCheck (← popArgs 2)
   | "bls12381_p1_sum" => some do hostP1Sum (← popArgs 3)
   | "bls12381_p2_sum" => some do hostP2Sum (← popArgs 3)
   | "bls12381_g1_multiexp" => some do hostG1Multiexp (← popArgs 3)
