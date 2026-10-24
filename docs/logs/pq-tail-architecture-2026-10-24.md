@@ -273,3 +273,14 @@ words (16.7% reduction). Pinned frontend select uses BMUL; next compare exact
 bitmask selection rather than further source-size narrowing. Keep full profile
 as coverage baseline. Source/state/runtime/PQ history remain incomplete.
 See SOURCE_BYTE_BUDGET.md and evidence/source-byte-budget.
+
+### Selection rejection and four-core baseline
+
+Bitmask-concat selection passes all short/wide/source and capacity checks but
+increases cap16 private words112734->114931 and AND55594->78752; cap1024 build
+fails 16 GiB virtual limit. Rejected, source preserved. Existing byte-budget
+binary with Rayon4/CPUs8-11 proves original804 in244814B /3.770 and3.716s warm;
+fresh Rayon1/CPU8 verification1.448s passes. Commit~0.63s/opening~1.8s unchanged;
+next inspect OpeningProof::timings and serial commitment/opening, not another
+thread sweep. Source/state/runtime/PQ history remain incomplete. Evidence:
+SELECTION_AND_PARALLEL.md and evidence/selection-and-parallel.

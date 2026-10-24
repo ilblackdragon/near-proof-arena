@@ -1,0 +1,13 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=53 private=25886 constants=301 and=17958 zero=3947 bmul=4424
+RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.028433447
+RECEIPT_LIST_SETUP setup_s=0.030703074
+RECEIPT_LIST_PROVER_MS pack=0.020679 commit=3.1418739999999996 bitand=1.5862260000000001 shift=2.075804 switch=0.192581 opening=95.67865 total=102.777247
+SIS_POLICY inner rank=22 width=1625 source=833509196032 target=18145488261 bound=30928311664.961563 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1625 source=18145488261 target=242787203 bound=450246789.32879871 bits=150.255 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1625 source=242787203 target=26992932 bound=38404930.942768902 bits=159.000 finite=1 tail=0
+SIS_POLICY inner rank=11 width=813 source=26992932 target=1770796422 bound=18852212.736999549 bits=157.940 finite=1 tail=0
+SIS_POLICY inner rank=12 width=407 source=1770796422 target=36537526 bound=44004890.841341719 bits=155.555 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-512.list cap=4 mode=1 source_budget=512 count=2 bytes=205958 prepare_s=0.000145123 prove_s=0.102802683 ready_s=0.103179451 verify_s=0.054016528 mutations=7 full_near=false

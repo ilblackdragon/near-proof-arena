@@ -1,0 +1,139 @@
+{
+  "status": "MASK_SELECTION_REJECTED_PARALLEL_BASELINE_MEASURED_NOT_FULL_NEAR",
+  "base_lane_commit": "0a8deccb4",
+  "rejected_source_sha256": {
+    "near-masked-concat-check.rs": "b2b7adce6364ff05a2192d1ac03b1ef70a4721631cd06972362cda4b16d2796a",
+    "near-masked-concat-wide.rs": "4d3d02d78108f8e265a2f9b852276cb7b094e39a7306b239a8693b70550ddd00",
+    "near-receipt-source-masked.rs": "025fb541fc18f300f425030e4190f650d4aa5fadd47c822b8c1dc3058a53f915",
+    "near-receipt-list-masked.rs": "7fbb874f2d5f02059ad1b1dd4f531a8cfebccd1996e857b14df38e94018459a7",
+    "support/packed_concat_masked.rs": "92e5189fdc63f45dcb8f483af9687c7b84a7e864fa770158a11bc9e6bfc95fbc",
+    "support/receipt_list_masked_wire.rs": "45a5185c645f659ec9fba1a0da507a239ee243df6e74782536062edad6593da8",
+    "support/receipt_source_packed.rs": "7dc2ab663bf3a2a5ddf9047b6a9543649d0eb396c594e8ffd0815e7ff64e5a76",
+    "support/receipt_outcome.rs": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726",
+    "support/tight_sha.rs": "4152a626cf4cff0eaf66b2f9025d330611f859038f1947a054c352fdf79a5a2e"
+  },
+  "baseline_source": "../source-byte-budget/source/near-receipt-list-budget.rs",
+  "baseline_binary_sha256": "b638d284498aeb743fcac01f196ad202b9d471e76b59935c7f3798ea6cb50c3f",
+  "masked_binary_sha256": "1d8045211e3c041078352ead6cb02d04239c911778173a7f62531f58551f537e",
+  "parallelism": {
+    "proving_cpus": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "physical_core_ids": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "RAYON_NUM_THREADS": 4,
+    "fresh_verifier_cpu": 8,
+    "fresh_verifier_threads": 1
+  },
+  "packet": {
+    "bytes": 244814,
+    "sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+    "public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8",
+    "independent_public_match": true
+  },
+  "results": {
+    "build-masked-concat.log": [],
+    "near-masked-concat-check.log": [
+      "PACKED_CONCAT cases=625 rejected_mutations=4378 dirty_suffixes=true"
+    ],
+    "near-masked-concat-wide.log": [
+      "PACKED_WIDE cap=129 cases=121 rejected_mutations=4114 dirty_suffixes=true",
+      "PACKED_WIDE cap=513 cases=289 rejected_mutations=37570 dirty_suffixes=true"
+    ],
+    "near-receipt-source-masked.log": [
+      "RECEIPT_SOURCE cases=2170 accepted=2158 rejected=12 mutations=56108 log=12 same_source_outcome_wires=true",
+      "RECEIPT_SOURCE_PROOF example=0 honest=true public_mutations_rejected=4 full_near=false",
+      "RECEIPT_SOURCE_PROOF example=1 honest=true public_mutations_rejected=4 full_near=false",
+      "RECEIPT_SOURCE_PROOF example=2 honest=true public_mutations_rejected=4 full_near=false"
+    ],
+    "masked4-compact-512.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=53 private=25886 constants=301 and=17958 zero=3947 bmul=4424",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.028433447",
+      "RECEIPT_LIST_SETUP setup_s=0.030703074",
+      "RECEIPT_LIST_PROVER_MS pack=0.020679 commit=3.1418739999999996 bitand=1.5862260000000001 shift=2.075804 switch=0.192581 opening=95.67865 total=102.777247",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-512.list cap=4 mode=1 source_budget=512 count=2 bytes=205958 prepare_s=0.000145123 prove_s=0.102802683 ready_s=0.103179451 verify_s=0.054016528 mutations=7 full_near=false"
+    ],
+    "masked4-compact-513.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=53 private=25886 constants=301 and=17958 zero=3947 bmul=4424",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.029700174",
+      "RECEIPT_LIST_SETUP setup_s=0.030462353",
+      "RECEIPT_BUDGET_REJECT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-513.list error=PopulateError { failures: [AssertionFailure { path: \".source-byte-cap\", detail: \"Word(0xffffffffffffffff) MSB is true\" }, AssertionFailure { path: \".root-0\", detail: \"Word(0xd6efc3afad945d16) != Word(0x50259919a75db8cf)\" }, AssertionFailure { path: \".root-1\", detail: \"Word(0x07e6baa1806a2e47) != Word(0xe4e1ed22688d74d2)\" }, AssertionFailure { path: \".root-2\", detail: \"Word(0x80087513e899ced0) != Word(0x08a9bc7bc74f25c7)\" }, AssertionFailure { path: \".root-3\", detail: \"Word(0x4773f583aa3e1479) != Word(0xb821be9f4eacb91f)\" }], total: 5 }"
+    ],
+    "masked4-full-513.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=53 private=35297 constants=490 and=25003 zero=5423 bmul=5314",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=0 source_budget=1400 log=15 circuit_s=0.040175684",
+      "RECEIPT_LIST_SETUP setup_s=0.039711784",
+      "RECEIPT_LIST_PROVER_MS pack=0.032491 commit=6.721238 bitand=1.928107 shift=2.674216 switch=0.339607 opening=133.06385 total=144.84882800000003",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-513.list cap=4 mode=0 source_budget=1400 count=2 bytes=172038 prepare_s=0.000191119 prove_s=0.144875888 ready_s=0.145268615 verify_s=0.078137195 mutations=7 full_near=false"
+    ],
+    "receipt-list-masked1024.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built"
+    ],
+    "selection-control16.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=185 private=112734 constants=816 and=55594 zero=13897",
+      "RECEIPT_LIST_CIRCUIT cap=16 mode=1 source_budget=2048 log=16 circuit_s=0.137386599"
+    ],
+    "selection-masked16.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=185 private=114931 constants=816 and=78752 zero=16094 bmul=21812",
+      "RECEIPT_LIST_CIRCUIT cap=16 mode=1 source_budget=2048 log=16 circuit_s=0.178120624"
+    ],
+    "receipt-list-budget4core.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=17.34718914",
+      "RECEIPT_LIST_SETUP setup_s=3.373807716",
+      "RECEIPT_LIST_PROVER_MS pack=41.225741000000006 commit=637.103624 bitand=788.20537 shift=259.281993 switch=210.956798 opening=1768.0686830000002 total=3712.9665880000002",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.050733785 prove_s=3.7190617059999997 ready_s=3.770019883 verify_s=1.114234039 mutations=7 full_near=false",
+      "RECEIPT_LIST_PROVER_MS pack=41.646953 commit=627.153676 bitand=749.467857 shift=286.808842 switch=148.099073 opening=1798.32966 total=3659.850841",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.049667215 prove_s=3.666214965 ready_s=3.7161486 verify_s=1.174773758 mutations=7 full_near=false"
+    ],
+    "verify-budget4core-single.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=17.000162205",
+      "RECEIPT_LIST_SETUP setup_s=3.609566575",
+      "RECEIPT_LIST_VERIFY bytes=244814 seconds=1.447502175 no_witness_loaded=true backend_roundtrip=true negative_checks=4"
+    ]
+  },
+  "masked_large_failure": {
+    "virtual_limit_KiB": 16777216,
+    "peak_RSS_KiB": 11075084,
+    "failed_allocation_bytes": 2147483648,
+    "elapsed_s": 21.63,
+    "large_proof_exists": false
+  },
+  "limits": [
+    "Four-core measurements cover one list/relation only, not full NEAR.",
+    "No p95, original preprocessing or cold setup in warm timing.",
+    "Source inclusion, state/runtime, PQ composition and history incomplete."
+  ]
+}
