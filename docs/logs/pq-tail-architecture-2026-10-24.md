@@ -376,3 +376,14 @@ constraint. PeakRSS12,806,272 KiB. New circuit/codec uses new verifier, not old
 single-list binary. Not authenticated state/runtime or PQ/history; next semantic
 work account reads and ordered writes/repeated receivers. See MULTI_LISTS.md and
 evidence/multi-lists under research/near-compression/tail-architecture.
+
+### Account-state handoff
+
+Confirmed current multi-list proof accepts a +1 forged before/after balance for
+a repeated receiver (list1 receipt4, global5); original public statement and
+claim source/outcome roots unchanged. Fresh verify1.451 s accepts. Ordered
+account model rejects exact transition. Model matches64 fixtures/2138 receipts,
+2010 repeats/25 cross-list links;96 initial/final account mutations reject.
+Large fixtures10 accounts, candidate table974 B, all main-state values3996 B.
+No circuit fix yet. Full context/paths/build commands in ACCOUNT_LEDGER_HANDOFF.md;
+evidence/account-ledger stores native exports, counterexample and model audit.

@@ -5,6 +5,9 @@ post-quantum proof below **300,000 bytes**, with the final proof ready **within 
 (user clarification), as well as sustained throughput matching chunk arrival. Neither recursion nor PQ security is
 established by the current diagnostic packet.
 
+See [current agent handoff](ACCOUNT_LEDGER_HANDOFF.md) for the accepted forged-balance
+counterexample, ordered account model, scratch paths and next circuit work.
+
 ## Current decision
 
 [Combined source lists](MULTI_LISTS.md) now prove all three lists of two original
