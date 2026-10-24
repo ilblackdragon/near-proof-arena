@@ -43,3 +43,9 @@ Three compact cases and hashes are committed under
 `docs/evidence/lean-chunk-completion/global-promise-fixtures/`. Their native
 expected acceptance includes ordinary failed actions; Lean replay is a separate
 validation step. These opt-in generator controls do not change signed D3 sources.
+
+Integrated Lean replay: 83 target/child cases from both windows accepted on each
+of `globalActions` and `completeCodeGlobal` (166/166 checks). This includes the
+clean 300 Tgas success and 20 Tgas GasExceeded control against the same wasm,
+so both host emission and gas-failure behavior match independent chunk headers.
+See `lean-replay.json` in the evidence directory for exact runner hash/results.

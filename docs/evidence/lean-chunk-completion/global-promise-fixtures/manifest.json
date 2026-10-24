@@ -1,5 +1,5 @@
 {
-  "status": "collected-native-not-lean-validated",
+  "status": "native-collected-and-lean-validated",
   "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
   "windows": [
     {
@@ -242,5 +242,15 @@
         "yield_queue_pre": 0
       }
     }
-  ]
+  ],
+  "lean_replay": {
+    "artifact": "lean-replay.json",
+    "cases_per_tier": 83,
+    "tiers": [
+      "globalActions",
+      "completeCodeGlobal"
+    ],
+    "accepted_per_tier": 83,
+    "scope": "all target s0fl executions plus state-init child receipts from both gas windows"
+  }
 }
