@@ -1,0 +1,81 @@
+{
+  "status": "PARALLEL_COMMIT_VERIFIED_SAME_PROTOCOL_NOT_FULL_NEAR",
+  "base_lane_commit": "0e155785a",
+  "source_sha256": {
+    "crates/pcs/src/key.rs": "8268c00d7504b5766f221dbccefd1a2b2875ab215634c4c92fc2b7c34f25a155",
+    "crates/pcs/src/scheme/prover.rs": "8c8c6b2c698c56cad6aa980e4349c6e72d7d7a8b66b18e1091eb3dfc5248b897",
+    "crates/pcs/tests/commit_parallel.rs": "af8bfb054e713b4a2a44f736b31527e6f2f069418c93f6997f4185aa30a40420",
+    "crates/binius/src/bin/near-receipt-list-stages.rs": "363ca8201ed14d453ea7cf31f2570e90392065293ccfcaf1f70908f3b0252bbb"
+  },
+  "prover_binary_sha256": "0f6d8c3e3938b00ea87fefb341d9f7873f6a3e16231e08c08d6f9e608596972d",
+  "old_serial_verifier_sha256": "b638d284498aeb743fcac01f196ad202b9d471e76b59935c7f3798ea6cb50c3f",
+  "old_verifier_matches_source_byte_budget_checkpoint": true,
+  "packet": {
+    "bytes": 244814,
+    "sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+    "public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8",
+    "independent_public_match": true
+  },
+  "parallelism": {
+    "cpu_affinity": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "RAYON_NUM_THREADS": 4,
+    "LABINIUS_COMMIT_THREADS": 4,
+    "fresh_verifier_cpu": 8,
+    "fresh_verifier_threads": 1
+  },
+  "parity_cases": 210,
+  "peak_RSS_KiB": 12590880,
+  "results": {
+    "build-opening-stages.log": [],
+    "opening-stages.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=18.341904224",
+      "RECEIPT_LIST_SETUP setup_s=3.481224385",
+      "RECEIPT_LIST_PROVER_MS pack=43.412482000000004 commit=640.881886 bitand=761.9419710000001 shift=284.67373699999996 switch=233.21087 opening=1734.211577 total=3707.816141",
+      "RECEIPT_OPENING_STAGES OpeningTimings { fold: 74.069995ms, encoding: 52.824454ms, witness: 4.133361ms, t_r: 6.526204ms, masks: 48.968604ms, phi: 10.739806ms, statement: 118.435356ms, labrador: 1.390630204s }",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.050226706 prove_s=3.714506995 ready_s=3.764968812 verify_s=1.112580627 mutations=7 full_near=false"
+    ],
+    "commit-parallel-test.log": [
+      "COMMIT_PARITY cases=210 matrix_raw_retained_transform_exact=true workspace_reused=true",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s"
+    ],
+    "build-parallel-commit.log": [],
+    "parallel-commit804.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=16.946438549",
+      "RECEIPT_LIST_SETUP setup_s=2.673981848",
+      "RECEIPT_LIST_PROVER_MS pack=41.005162999999996 commit=247.585758 bitand=744.729388 shift=255.378634 switch=209.79208699999998 opening=1738.4785940000002 total=3243.8944890000002",
+      "RECEIPT_OPENING_STAGES OpeningTimings { fold: 72.864339ms, encoding: 52.970806ms, witness: 4.03556ms, t_r: 6.333094ms, masks: 48.242836ms, phi: 10.482117ms, statement: 116.013058ms, labrador: 1.399744717s }",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.048939144 prove_s=3.249684873 ready_s=3.298814145 verify_s=1.093007607 mutations=7 full_near=false",
+      "RECEIPT_LIST_PROVER_MS pack=39.068787 commit=217.812792 bitand=710.771939 shift=252.92825499999998 switch=124.604254 opening=1722.6169009999999 total=3074.792164",
+      "RECEIPT_OPENING_STAGES OpeningTimings { fold: 73.038676ms, encoding: 41.179912ms, witness: 2.884257ms, t_r: 5.175671ms, masks: 48.994859ms, phi: 10.650543ms, statement: 118.720333ms, labrador: 1.39058561s }",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.04873961 prove_s=3.081311518 ready_s=3.13028089 verify_s=1.108185114 mutations=7 full_near=false"
+    ],
+    "verify-parallel-commit-old.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=16.98978878",
+      "RECEIPT_LIST_SETUP setup_s=3.591461651",
+      "RECEIPT_LIST_VERIFY bytes=244814 seconds=1.4419984989999999 no_witness_loaded=true backend_roundtrip=true negative_checks=4"
+    ]
+  },
+  "limits": [
+    "Same source-byte-limited 804-receipt relation, not full NEAR.",
+    "No composed PQ128/history proof.",
+    "Single process with two warm runs, not p95; original preprocessing and cold setup excluded.",
+    "C backend remains serial and decoder trusted-local."
+  ]
+}

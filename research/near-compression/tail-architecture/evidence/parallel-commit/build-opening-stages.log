@@ -1,0 +1,21 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling labinius-bench v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/bench)
+   Compiling labinius-binius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/binius)
+warning: field `after` is never read
+ --> crates/binius/src/bin/support/receipt_arithmetic.rs:5:24
+  |
+5 | pub struct Outputs{pub after:U128,pub burnt:U128,pub surplus:U128}
+  |            -------     ^^^^^
+  |            |
+  |            field in this struct
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `singleton_list` is never used
+  --> crates/binius/src/bin/support/receipt_source_packed.rs:31:8
+   |
+31 | pub fn singleton_list(b:&CircuitBuilder,shard:Wire,receipt:ByteVec)->ByteVec{
+   |        ^^^^^^^^^^^^^^
+
+warning: `labinius-binius` (bin "near-receipt-list-stages") generated 2 warnings
+    Finished `release` profile [optimized + debuginfo] target(s) in 12.61s

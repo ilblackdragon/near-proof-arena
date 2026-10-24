@@ -284,3 +284,17 @@ fresh Rayon1/CPU8 verification1.448s passes. Commit~0.63s/opening~1.8s unchanged
 next inspect OpeningProof::timings and serial commitment/opening, not another
 thread sweep. Source/state/runtime/PQ history remain incomplete. Evidence:
 SELECTION_AND_PARALLEL.md and evidence/selection-and-parallel.
+
+### Parallel commitment with exact serial parity
+
+Opening breakdown: LaBRADOR1.391s of1.734s; fold74ms,encoding53ms,masks49ms,
+statement118ms. Parallelized only independent Rust commitment column groups,
+private scratch/disjoint transform slices/ordered join; serial default.
+210 exact matrix/raw/retained-transform parity cases pass (five limbs, variable
+columns/worker partitions, zero/full/random/reused workspaces). Four workers
+reduce commit641ms->248/218ms. Original804 readiness3.299/3.130s,244814B.
+Fresh CPU8 verification with hash-matched older serial binary1.442s passes,
+including expected public-byte/root/tape checks. LaBRADOR stays~1.39s; next
+backend attribution/optimization, not security relaxation. Full source/state/
+runtime/PQ history scope remains open. See PARALLEL_COMMIT.md and narrow patch
+plus archived source/logs under evidence/parallel-commit.
