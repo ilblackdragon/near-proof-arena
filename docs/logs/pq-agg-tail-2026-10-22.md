@@ -127,6 +127,12 @@ delivered tail is a **linear chain**, not a tree. Measured per level (production
 | L5 | 374,521 | 582.17 |
 | **final** | **299,935** | **522.08** |
 
+**Verify time for the whole delivered chain: 2.08 s** (`TIMINGS.json` stage `verify`;
+`INDEPENDENT_VERIFY_OK bundle_bytes=299967`). Against 3,143.55 s of prove (base 77.87 + chain
+3,065.68) that is a **~1,510× prove/verify asymmetry** — so on the time axis the cost of this
+design is almost entirely proving, and the aggregation depth being blocked hurts prove time
+(the 146-level chain) while barely touching verify time.
+
 Two facts that matter:
 
 * **Every chain level is ~373 KB — 24 % over the 300 KB cap.** Only the final layer is
