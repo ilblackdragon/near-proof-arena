@@ -61,3 +61,19 @@ Next: justified bounds/parameter policy, regenerate real proofs, then test a
 complete two-segment authenticated receipt/hash join. EVENT_PROTOCOL now defines
 an execution-frontier hypothesis, completeness attacks and explicit cold/full/
 online timing regimes. No recursion or novelty claim.
+
+Backend policy experiment: revised source/target collision bounds and scalar
+quantum-128 rank checks ported into isolated backend. Prediction-only selection
+failed honestly at 127.995 bits; added 2x target-norm selection headroom with
+unchanged actual-bound verification. All 44 final obligations screen >=140.45
+bits (C/Python agree). Eight backend reductions shrink terminal witness; these
+are not history recursion.
+
+Fresh decoding initially exposed quadratic-check failures. Export assertions
+found noncanonical top-limb carry lost by 48-bit packing. Canonicalization before
+all transcript/wire packing fixes it; 704 residue boundary checks pass (legacy
+fails 512). Both regenerated 150,526 B packets independently verify in fresh
+processes against external roots; four root/tape mutations reject. Final measured
+warm readiness 1.707/1.724 s; previous run 1.80/2.03 s, so no p95 margin claim.
+Outer PCS, transcript/QROM and full NEAR/history remain open. Patches, failures,
+final logs and manifest: [policy experiment](../../research/near-compression/tail-architecture/SIS_POLICY_EXPERIMENT.md).

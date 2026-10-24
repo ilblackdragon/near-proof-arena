@@ -1,0 +1,8 @@
+TEMPLATE_SETUP {"message_slots":3088,"nominal_blocks":7296,"constructed_sha_blocks":7296,"root_bytes":148248,"witness_log_elems":22,"circuit_s":9.705938912,"setup_s":3.38777053}
+SIS_POLICY inner rank=16 width=4864 source=1784625912146 target=53170401905 bound=52942793788.090599 bits=89.305 finite=1 tail=0
+ERROR: diagnostic quantum128 commitment policy rejected
+
+thread 'main' (797006) panicked at crates/binius/src/bin/near-hash-template.rs:46:59:
+decoded proof verifies: Opening(Rejected)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+timeout: the monitored command dumped core

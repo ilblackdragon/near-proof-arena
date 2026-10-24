@@ -1,0 +1,10 @@
+TEMPLATE_SETUP {"message_slots":3088,"nominal_blocks":7296,"constructed_sha_blocks":7296,"root_bytes":148248,"witness_log_elems":22,"circuit_s":9.705414522,"setup_s":3.379321073}
+SIS_POLICY inner rank=22 width=4864 source=1743098883201 target=56324017756 bound=54490237032.592705 bits=140.450 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1764 source=56324017756 target=482679070 bound=634843916.54687929 bits=143.100 finite=1 tail=0
+SIS_POLICY inner rank=13 width=882 source=482679070 target=45451012 bound=98159684.481579304 bits=153.435 finite=1 tail=0
+SIS_POLICY inner rank=11 width=960 source=45451012 target=3881091390 bound=27909685.88749361 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=14 width=480 source=3881091390 target=84850487 bound=266173550.85034913 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=11 width=480 source=84850487 target=9982765 bound=23355403.891197428 bits=152.640 finite=1 tail=0
+SIS_POLICY inner rank=10 width=480 source=9982765 target=767491373 bound=12411228.3246499 bits=148.400 finite=1 tail=0
+SIS_POLICY inner rank=12 width=240 source=767491373 target=48494017580 bound=49327840.273967803 bits=152.640 finite=1 tail=1
+LOCAL_WIRE_VERIFY bytes=150526 decode_s=0.000050936 verify_s=0.656473422 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true

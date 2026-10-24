@@ -1,0 +1,20 @@
+--- a/bn_export.c
++++ b/bn_export.c
+@@ -7,6 +7,8 @@
+ #include <stddef.h>
+ #include <string.h>
+ #include <limits.h>
++#include <stdio.h>
++#include <stdlib.h>
+ #include "pack.h"
+ typedef struct { uint8_t *out; size_t cap,pos; int failed; } writer;
+ static void emit(writer *w,const void *p,size_t n){
+@@ -15,7 +17,7 @@
+ }
+ static void integer(writer*w,uint64_t v,size_t n){uint8_t b[8];for(size_t i=0;i<n;i++)b[i]=(uint8_t)(v>>(8*i));emit(w,b,n);}
+ static void zs(writer*w,const polz*p,size_t n){
+- integer(w,n,8);for(size_t i=0;i<n;i++){uint8_t b[N*QBYTES];if(w->out)polz_bitpack(b,p+i);emit(w,b,sizeof(b));}
++ integer(w,n,8);for(size_t i=0;i<n;i++){uint8_t b[N*QBYTES];if(w->out){polz_bitpack(b,p+i);polz decoded,delta;polz_bitunpack(&decoded,b);polz_sub(&delta,p+i,&decoded);polz_reduce(&delta);polz_center(&delta);if(!polz_iszero(&delta)){fprintf(stderr,"EXPORT_ROUNDTRIP_MISMATCH offset=%zu poly=%zu\n",w->pos,i);abort();}}emit(w,b,sizeof(b));}
+ }
+ size_t bn_export_proof(const void *vp,const void *vc,uint8_t*out,size_t cap){
+  const composite *p=vp;const commitment*c=vc;writer w={out,cap,0,0};

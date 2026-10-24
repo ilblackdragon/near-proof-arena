@@ -58,7 +58,7 @@ def check_model():
     assert estimate(64,128,2**32-99,2**32-99)['quantum_bits'] == 0
 
 
-def screen(data):
+def screen(data, initial_source_normsq=None):
     r = Reader(data)
     assert r.take(8) == b'NPLAB001'
     degree, logq, levels = [r.integer() for _ in range(3)]
@@ -67,6 +67,7 @@ def screen(data):
     r.take(cr*8)
     r.take(r.integer()*64*6)
     rows=[]
+    source_normsq=initial_source_normsq
     for level in range(levels):
         count,tail = r.integer(),r.integer()
         pairs=[(r.integer(),r.integer()) for _ in range(count)]
@@ -86,14 +87,20 @@ def screen(data):
         tri=groups*(groups+1)//2
         # Exact legacy bounds used by the measured verifier's reduce_amortize.
         instances=[('inner_legacy_bound',k,width,6*14*2*2**((f-1)*b)*math.sqrt(normsq))]
+        if source_normsq is not None:
+            reconstruction=2**((f-1)*b)+1
+            target_opening=reconstruction*(1 if tail else 2)*math.sqrt(normsq)
+            bound=max(8*14*target_opening,2*target_opening+4*14*2*math.sqrt(source_normsq))
+            instances=[('inner_revised_bound',k,width,bound)]
         if not tail:
             instances += [('outer1',k1,fu*groups*k+fg*tri,4*math.sqrt(normsq)),
                           ('outer2',k1,fu*tri,4*math.sqrt(normsq))]
         for role,rank,columns,bound in instances:
             rows.append({'level':level,'role':role,'module_rank':rank,'ring_columns':columns,
-                'output_normsq':normsq,'collision_bound':bound,
+                'source_normsq':source_normsq,'output_normsq':normsq,'collision_bound':bound,
                 'legacy_gate_accepts':math.log2(bound)<min(48,2*math.sqrt(48*math.log2(1.00444)*64*rank)),
                 'model':estimate(rank*64,columns*64,2**48-59,bound)})
+        if source_normsq is not None: source_normsq=normsq
     return rows
 
 
@@ -102,16 +109,17 @@ def main():
     p.add_argument('backend',type=Path)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--reference-model',type=Path,help='Compiled adjacent reference_model.c; crosscheck finite instances')
+    p.add_argument('--initial-source-normsq',type=int,help='Use revised collision bounds with this independently established initial statement bound')
     a=p.parse_args()
     check_model()
     data=a.backend.read_bytes()
-    rows=screen(data)
+    rows=screen(data,a.initial_source_normsq)
     report={'status':'DIAGNOSTIC_MODEL_NOT_SECURITY_PROOF','backend_sha256':hashlib.sha256(data).hexdigest(),
-        'model_regressions_passed':5,'instances':rows,
-        'limitations':['Uses exact legacy verifier collision bounds, not a proof those bounds are sufficient.',
+        'model_regressions_passed':5,'bound_policy':'revised' if a.initial_source_normsq is not None else 'legacy','instances':rows,
+        'limitations':['Uses selected verifier collision bounds, not a proof those bounds are sufficient.',
             'Omits the initial Dachshund commitment and the outer LaBinius PCS.',
             'Scalar Euclidean model only; no structured attacks, QROM or recursion composition.',
-            'New reference fork uses revised inner collision bounds; not substituted silently.',
+            'Revised mode requires a caller-supplied initial source norm bound; validate it against the authenticated statement.',
             'No finite reduction in this model is not an unconditional security claim.']}
     if a.reference_model:
         checked=0

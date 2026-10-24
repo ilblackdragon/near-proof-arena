@@ -1,0 +1,19 @@
+{
+  "coefficient_checks": 704,
+  "canonical_failures": 0,
+  "legacy_failures": 512,
+  "cases": [
+    "-q-1",
+    "-q",
+    "-59",
+    "-1",
+    "0",
+    "1",
+    "q-1",
+    "q",
+    "q+1",
+    "2^48",
+    "2^48+1"
+  ],
+  "note": "Legacy bitpack expects normalized limbs; new wrapper enforces canonical residue before hashing/serialization."
+}

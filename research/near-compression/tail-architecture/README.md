@@ -7,12 +7,16 @@ established by the current diagnostic packet.
 
 ## Current decision
 
-[Concrete security screen](SECURITY_SCREEN.md): all ten measured backend
-obligations fall below the selected quantum-128 scalar-model floor (92.5–117.9
-bits), despite passing the legacy gate. The 166 KB / 1.7 s hash result remains
-a performance baseline; security-qualified parameters and full composition are
-required before integration. [Execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)
-sets out the next architectural experiment and its completeness obligations.
+[Backend policy experiment](SIS_POLICY_EXPERIMENT.md) ports revised collision
+bounds and a scalar quantum-128 selection/check policy: **150,526 B / 1.71–1.72 s**
+for the two warm hash-template observations. All 44 screened obligations meet
+that model's floor (minimum 140.45 bits). An actual serialization carry defect
+was found and repaired; see fresh verification evidence. This is not composed
+PQ128: initial/outer PCS, structured attacks, transcript security, NEAR binding
+and history recursion remain open. The [earlier screen](SECURITY_SCREEN.md)
+rejects the old configuration; retain it as historical performance evidence.
+[Execution-frontier hypothesis](EVENT_PROTOCOL.md#further-hypothesis-finalize-the-execution-frontier)
+defines the broader architectural experiment and completeness obligations.
 
 ## Event protocol research
 

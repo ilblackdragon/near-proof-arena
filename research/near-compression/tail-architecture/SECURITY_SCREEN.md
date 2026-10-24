@@ -42,7 +42,13 @@ actual scalar dimensions and quantum sieve cost 0.265 times BKZ block size.
 - A hypothetical rank increase changes recursive witnesses, norms and schedules.
   Fixed-bound rank sensitivity cannot predict a corrected proof's size or time.
 
-## Decision
+## Follow-up
+
+The [policy experiment](SIS_POLICY_EXPERIMENT.md) regenerates proofs with revised
+bounds, stronger rank selection and canonical serialization. Its backend model
+checks pass; the whole-system security obligations above remain open.
+
+## Decision at this screen
 
 Do not integrate the measured backend as a security-qualified endpoint. Evaluate
 parameter selection with justified collision bounds and a concrete security
