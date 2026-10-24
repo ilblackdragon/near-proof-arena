@@ -29,8 +29,10 @@ existing database. No FastNear API key is needed for these public RPC calls.
 Run `supervise.py --binary /absolute/path/neard --home HOME --exports EXPORTS`
 in a persistent service. Defaults stop at 1,200 captures, 35 GiB allocated home
 data, or less than 15 GiB free on the home filesystem. Keep home and exports on
-the same filesystem so the reserve covers both. A fully synced node outside PV86
-also stops. Limits are a pilot budget, not a claim that every mainnet shard fits.
+the same filesystem so the reserve covers both. A recent synced head outside PV86, or any head beyond PV86, also stops.
+Historical/genesis status after a nearcore reset is allowed. State sync uses
+24 concurrent peer downloads for the tracked shard and a 60-second response
+timeout; application concurrency remains 4. Limits are a pilot budget, not a claim that every mainnet shard fits.
 
 ## Output and interpretation
 

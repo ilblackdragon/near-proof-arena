@@ -53,6 +53,9 @@ def main():
     config['tracked_shards_config'] = {'Schedule': [[a.shard]]}
     for key in ('tracked_shards', 'tracked_accounts', 'tracked_shard_schedule'):
         config.pop(key, None)
+    config['state_sync'] = {'concurrency': {'apply': 4, 'apply_during_catchup': 1,
+                                            'peer_downloads': 24, 'per_shard': 24}}
+    config['consensus']['state_sync_p2p_timeout'] = {'secs': 60, 'nanos': 0}
     config['save_latest_witnesses'] = True
     config['save_invalid_witnesses'] = True
     config['archive'] = False

@@ -704,6 +704,14 @@ reserve. Native shadow acceptance is not cold replay or Lean acceptance. Remaini
 finish acquisition, authenticate and convert DB context into claims, supply complete code closure,
 implement the cold native adapter, and execute the required all-shard representative window.
 
+**Acquisition restart:** the first attempt reached 243/371 state parts (65.5%) before
+nearcore reset a stale sync target; no witnesses were exported. The supervisor then incorrectly
+stopped on temporary genesis PV29 status. Fixed the guard to tolerate historical startup/reset
+status, retaining rejection of a recent mismatched head or any protocol above 86. Restarted with
+24 concurrent shard downloads (previously 6) and 60-second P2P timeout (previously 10); six
+protocol-guard regression tests pass. Throughput improvement and witness acquisition are still
+to be measured. Runtime `restart-evidence.json` records the revised config/launcher hashes.
+
 ### W14 Frozen combined validation and Gate B
 
 Owner: L7 plus integration owner. Freeze one commit and executable package after W12, then validate

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run an isolated capture node with disk reserve and export-count stop conditions."""
 import argparse
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,23 @@ def atomic_json(path, value):
     tmp = path.with_suffix('.tmp')
     tmp.write_text(json.dumps(value, indent=2) + '\n')
     tmp.replace(path)
+
+
+def protocol_stop_reason(node, now):
+    """Historical/genesis status after reset is not evidence of a live mismatch."""
+    if node.get('chain_id') not in (None, 'mainnet'):
+        return 'node is not on mainnet'
+    version = node.get('protocol_version')
+    if isinstance(version, int) and version > 86:
+        return 'node advanced beyond pinned PV86'
+    sync = node.get('sync_info', {})
+    try:
+        head_time = datetime.fromisoformat(sync['latest_block_time'].replace('Z', '+00:00')).timestamp()
+    except (KeyError, ValueError, TypeError):
+        return None
+    if sync.get('syncing') is False and -60 <= now - head_time <= 600 and version != 86:
+        return 'recent synced head is outside pinned PV86'
+    return None
 
 
 def allocated(root):
@@ -89,8 +107,9 @@ def main():
                     status['rpc_error'] = str(exc)
                 atomic_json(a.home / 'capture-status.json', status)
                 node_status = status.get('node', {})
-                if node_status.get('sync_info', {}).get('syncing') is False and node_status.get('protocol_version') != 86:
-                    reason = 'synced node is outside pinned PV86'; break
+                protocol_reason = protocol_stop_reason(node_status, time.time())
+                if protocol_reason:
+                    reason = protocol_reason; break
                 if free < a.reserve_gib * 2**30:
                     reason = 'disk reserve reached'; break
                 if used > a.max_data_gib * 2**30:
