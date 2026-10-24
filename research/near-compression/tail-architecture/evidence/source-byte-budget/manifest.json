@@ -1,0 +1,131 @@
+{
+  "status": "SOURCE_BYTE_PROFILE_VALIDATED_NO_DEADLINE_SOLUTION",
+  "base_lane_commit": "426c1cc6e",
+  "source_sha256": {
+    "near-receipt-list-budget.rs": "15794a91cb72dc4c5604ce882a16e9befa3beb4b9194ec38980c040f68307362",
+    "support/receipt_list_budget_wire.rs": "f271275836f035e44932af29db9706e75ffeb39df80f56dccc5f1ec691847ae8",
+    "support/packed_concat.rs": "a9ff3297defaaa0bd6185d75d3e385e300f9674d33a961a0b02d2e7145484e59",
+    "support/receipt_source_packed.rs": "7dc2ab663bf3a2a5ddf9047b6a9543649d0eb396c594e8ffd0815e7ff64e5a76",
+    "support/receipt_outcome.rs": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726",
+    "support/tight_sha.rs": "4152a626cf4cff0eaf66b2f9025d330611f859038f1947a054c352fdf79a5a2e"
+  },
+  "binary_sha256": "b638d284498aeb743fcac01f196ad202b9d471e76b59935c7f3798ea6cb50c3f",
+  "before_timing_binary_sha256": "96ae97681e58e1c083e5676ebf9fb8a86b46a506e8684e4c7c2c4d0166d6a5e4",
+  "packets": [
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/exported-budget4-compact-512/synthetic-source-512.packet",
+      "capacity": 4,
+      "mode": 1,
+      "bytes": 205910,
+      "sha256": "736cc383c1f43be033c5863ddf1cb195cf7c1c99a0f267f33f5113478d3cc51d",
+      "public_sha256": "71944178bb8c9ec07c12e2ab3fc6a208ffb6e82876ae0d343abfc3d86c651d2d"
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/exported-budget4-full-513/synthetic-source-513.packet",
+      "capacity": 4,
+      "mode": 0,
+      "bytes": 172070,
+      "sha256": "36735e1c503613fee4d9a369500863cc40fa931f24e9c02e1235f7e380d30816",
+      "public_sha256": "7c3285250ca934d1a359497b904cfe3be65cd386aeffb40f36c91761bb4bfe8c"
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/exported-receipt-budget1024-profiled/00-h10035-s3-list2.packet",
+      "capacity": 1024,
+      "mode": 1,
+      "bytes": 244814,
+      "sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+      "public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8"
+    }
+  ],
+  "results": {
+    "build-receipt-list-budget.log": [],
+    "build-receipt-list-budget-small.log": [],
+    "build-receipt-list-budget-timing.log": [],
+    "budget4-initial-column-failure.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.02662378"
+    ],
+    "budget4-compact-512.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.025309065",
+      "RECEIPT_LIST_SETUP setup_s=0.031798315",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-512.list cap=4 mode=1 source_budget=512 count=2 bytes=205910 prepare_s=0.00013872 prove_s=0.110466703 ready_s=0.110842156 verify_s=0.05905187 mutations=7 full_near=false"
+    ],
+    "budget4-compact-513.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.023635973",
+      "RECEIPT_LIST_SETUP setup_s=0.031072346",
+      "RECEIPT_BUDGET_REJECT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-513.list error=PopulateError { failures: [AssertionFailure { path: \".source-byte-cap\", detail: \"Word(0xffffffffffffffff) MSB is true\" }, AssertionFailure { path: \".root-0\", detail: \"Word(0xd6efc3afad945d16) != Word(0x50259919a75db8cf)\" }, AssertionFailure { path: \".root-1\", detail: \"Word(0x07e6baa1806a2e47) != Word(0xe4e1ed22688d74d2)\" }, AssertionFailure { path: \".root-2\", detail: \"Word(0x80087513e899ced0) != Word(0x08a9bc7bc74f25c7)\" }, AssertionFailure { path: \".root-3\", detail: \"Word(0x4773f583aa3e1479) != Word(0xb821be9f4eacb91f)\" }], total: 5 }"
+    ],
+    "budget4-full-513.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=0 source_budget=1400 log=15 circuit_s=0.03516549",
+      "RECEIPT_LIST_SETUP setup_s=0.040759934",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-513.list cap=4 mode=0 source_budget=1400 count=2 bytes=172070 prepare_s=0.0001811 prove_s=0.146980328 ready_s=0.147337988 verify_s=0.08012136 mutations=7 full_near=false"
+    ],
+    "verify-budget4-compact-512.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.023345609",
+      "RECEIPT_LIST_SETUP setup_s=0.031182673",
+      "RECEIPT_LIST_VERIFY bytes=205910 seconds=0.069489271 no_witness_loaded=true backend_roundtrip=true negative_checks=4"
+    ],
+    "verify-budget4-full-513.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=4 mode=0 source_budget=1400 log=15 circuit_s=0.034536762",
+      "RECEIPT_LIST_SETUP setup_s=0.040695504",
+      "RECEIPT_LIST_VERIFY bytes=172070 seconds=0.092223217 no_witness_loaded=true backend_roundtrip=true negative_checks=4"
+    ],
+    "receipt-list-budget1024.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=16.849814785",
+      "RECEIPT_LIST_SETUP setup_s=3.603423352",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.047762296 prove_s=4.3019883199999995 ready_s=4.349980206 verify_s=1.418966535 mutations=7 full_near=false",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.049872361 prove_s=4.146717306 ready_s=4.196839465 verify_s=1.424005795 mutations=7 full_near=false"
+    ],
+    "receipt-list-budget1024-profiled.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=17.098044019",
+      "RECEIPT_LIST_SETUP setup_s=3.587094855",
+      "RECEIPT_LIST_PROVER_MS pack=50.059549000000004 commit=641.628147 bitand=1078.0979450000002 shift=578.6030509999999 switch=198.090399 opening=1706.188085 total=4260.41261",
+      "RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.05105216 prove_s=4.266624662 ready_s=4.317881385 verify_s=1.45375343 mutations=7 full_near=false"
+    ],
+    "verify-budget1024-profiled.log": [
+      "RECEIPT_LIST_PHASE slots-built",
+      "RECEIPT_LIST_PHASE bytes-packed",
+      "RECEIPT_LIST_PHASE hash-built",
+      "RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973",
+      "RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=18.215130334",
+      "RECEIPT_LIST_SETUP setup_s=3.741976472",
+      "RECEIPT_LIST_VERIFY bytes=244814 seconds=1.488542309 no_witness_loaded=true backend_roundtrip=true negative_checks=4"
+    ]
+  },
+  "threshold": {
+    "private_words": 10074314,
+    "next_smaller_domain_max_private_words": 8388608,
+    "required_reduction_words": 1685706
+  },
+  "limits": [
+    "Byte-limited profile is not a universal NEAR source bound. Full-capacity mode retained.",
+    "No source inclusion/state authentication/general runtime or bounded PQ history.",
+    "Not composed PQ128; trusted-local decoder only.",
+    "Warm measurements exclude cold setup and original preprocessing."
+  ]
+}

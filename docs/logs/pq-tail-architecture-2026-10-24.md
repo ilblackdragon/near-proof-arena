@@ -258,3 +258,18 @@ PACKED_RECEIPT_LISTS.md and evidence/packed-receipt-lists. This is one list, not
 full chunk; source inclusion/state/runtime/PQ history remain. Next isolate
 worst-case source SHA budget from packing; any capacity reduction must be a
 publicly declared, circuit-enforced profile with explicit larger-source coverage.
+
+### Source-byte capacity experiment and prover attribution
+
+NPLIST03 fixed full/compact modes count an eight-byte selector; compact forces
+source <=128*receipt capacity in circuit. Exact512-byte cap4 case proves;513
+rejects at source-byte-cap and proves in full mode; fresh checks pass. Initial
+tiny ColumnTooShort issue fixed by bounding column log to witness log-8.
+Original804 compact128KiB source profile:244,814B; readiness4.350/4.197/4.318s,
+fresh1.489s. Still log23:10,074,314 private words. Source SHA capacity5553->2049
+is insufficient. Profiled prover:opening1706ms,bitand1078ms,commit642ms,
+shift579ms,switch198ms,pack50ms. Next smaller domain requires <=8,388,608 private
+words (16.7% reduction). Pinned frontend select uses BMUL; next compare exact
+bitmask selection rather than further source-size narrowing. Keep full profile
+as coverage baseline. Source/state/runtime/PQ history remain incomplete.
+See SOURCE_BYTE_BUDGET.md and evidence/source-byte-budget.
