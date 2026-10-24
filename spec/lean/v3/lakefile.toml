@@ -1,6 +1,6 @@
 name = "NearSpecV3"
 version = "0.1.0"
-defaultTargets = ["NearSpecV3", "nearspec-v3-check", "nearspec-v3-leaftest"]
+defaultTargets = ["NearSpecV3", "NearSpecV3.Successor", "nearspec-v3-check", "nearspec-v3-leaftest"]
 
 # v3 statement near/pv86/chunk-validation/v0 (spec/near-chunk-validation-v0.md).
 # A separate Lake package so that no file of the pinned v1/v2 package
