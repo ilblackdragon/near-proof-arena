@@ -1,0 +1,24 @@
+{
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "method": "actual pinned nearcore derive_near_deterministic_account_id over canonical StateInit",
+  "probes": [
+    {
+      "canonical_hex": "00000000000000000000000000000000000000000000000000000000000000000000020000000100000061050000006669727374010000007a040000006c617374",
+      "extra": {
+        "derived_account_id": "0s4694c9c78c0e8c83afcf016f076b350a973f1964"
+      },
+      "input_hex": "00000000000000000000000000000000000000000000000000000000000000000000020000000100000061050000006669727374010000007a040000006c617374",
+      "kind": "state-init",
+      "status": "ok"
+    },
+    {
+      "canonical_hex": "00010800000070726f7669646572010000000100000062060000007365636f6e64",
+      "extra": {
+        "derived_account_id": "0s2546cf13f32c0dd47de558354e62a6f142b979b9"
+      },
+      "input_hex": "00010800000070726f7669646572010000000100000062060000007365636f6e64",
+      "kind": "state-init",
+      "status": "ok"
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+{
+  "status": "collected-native-not-lean-validated",
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "windows": [
+    {
+      "path": "/tmp/lean-global-promises-full-1618",
+      "gas_tgas": 300,
+      "honest": 211,
+      "cold_accepted": 211
+    },
+    {
+      "path": "/tmp/lean-global-promises-1618",
+      "gas_tgas": 20,
+      "honest": 210,
+      "cold_accepted": 210
+    }
+  ],
+  "cases": [
+    {
+      "label": "caller-success",
+      "source": "/tmp/lean-global-promises-full-1618/ood/00-h10004-s3",
+      "sha256": {
+        "claim.bin": "702041a274f9f8d09a8e7510727de33b307b660497e7b478a05606e1333e4b58",
+        "witness.bin": "682bdaa39e88bb3a618e0d8647b2d7c9470e42904287db44e12cb20deaacfea3",
+        "meta.json": "b405cf869e97e321d4145b9a80940333b2234617e9817d65783dfbad031e079e"
+      },
+      "expected_rel": true,
+      "action_results": [
+        "incoming:[FunctionCall] => ok"
+      ],
+      "features": {
+        "accesses_equal_state_executed": true,
+        "base_state_bytes": 3845,
+        "buffered_post": 1,
+        "buffered_pre": 1,
+        "chunk_gas_price": "0",
+        "code_blobs": 1,
+        "code_bytes": 940,
+        "contract_data_removals": 0,
+        "contracts_ran": [
+          "d3float"
+        ],
+        "delayed_queue_post": 0,
+        "delayed_queue_pre": 0,
+        "deployed_in_chunk": 0,
+        "ed25519_import": false,
+        "executed_receipts": 1,
+        "fc_failure_kinds": {},
+        "fc_gas_burnt": 4171675542638,
+        "fc_gas_burnt_for_function_call": 3283537784948,
+        "fc_profile_exceeds_gas_burnt": 0,
+        "header_bandwidth_requests": 0,
+        "header_validator_proposals": 0,
+        "n_blocks": 2,
+        "n_callbacks": 0,
+        "n_epochs": 1,
+        "n_fc_failures": 0,
+        "n_function_calls": 1,
+        "n_function_calls_with_code": 1,
+        "n_implicit": 0,
+        "n_logs": 0,
+        "n_ood_host_calls": 0,
+        "n_outcomes_tokens_burnt_nonzero": 0,
+        "n_promises": 3,
+        "n_receipts": 1,
+        "n_receipts_with_receiver_reward": 0,
+        "n_shards": 4,
+        "ood_host_import": true,
+        "ood_host_profile_unmarked": 1,
+        "own_congestion_nonzero_post": true,
+        "own_congestion_nonzero_pre": true,
+        "pending_data_count_post": 0,
+        "pending_data_count_pre": 0,
+        "ran_deployed_in_chunk": 0,
+        "received_data_post": 0,
+        "received_data_pre": 0,
+        "receiver_reward_est": "0",
+        "rs": [
+          2,
+          8
+        ],
+        "tokens_burnt_receipts": "0",
+        "tokens_burnt_txs": "0",
+        "validator_update_in_main": false,
+        "validator_updates": 0,
+        "witness_bytes": 5651,
+        "yield_queue_pre": 0
+      }
+    },
+    {
+      "label": "child-action-failure",
+      "source": "/tmp/lean-global-promises-full-1618/ood/00-h10005-s3",
+      "sha256": {
+        "claim.bin": "977031dafe14391af1b2de9d128ca37055dfa15cd9d1471d0f6d214d957e0255",
+        "witness.bin": "8af2d56041983f07affca7a1c76de0d51bfa27657b498ed6799dcd658acb631f",
+        "meta.json": "58564ed63acdfeeed94afa1fc7d23385eceb1c1f379e4822a805dc902ff0e139"
+      },
+      "expected_rel": true,
+      "action_results": [
+        "local:[DeleteAccount] => fail:DeleteAccountWithLargeState",
+        "incoming(refund):[Transfer] => fail:AccountDoesNotExist",
+        "incoming:[CreateAccount,Transfer,AddKey(full)] => ok",
+        "incoming:[Transfer,DeterministicStateInit,DeployGlobalContract,UseGlobalContract] => fail:AccountDoesNotExist",
+        "incoming:[Transfer,DeterministicStateInit,DeployGlobalContract,UseGlobalContract] => fail:AccountDoesNotExist",
+        "incoming(refund):[Transfer] => ok",
+        "incoming:[FunctionCall] => ok",
+        "incoming:[FunctionCall] => ok",
+        "incoming:[Delegate[FunctionCall,FunctionCall]] => ok",
+        "incoming:[FunctionCall] => ok"
+      ],
+      "features": {
+        "accesses_equal_state_executed": true,
+        "base_state_bytes": 6208,
+        "buffered_post": 0,
+        "buffered_pre": 1,
+        "chunk_gas_price": "0",
+        "code_blobs": 3,
+        "code_bytes": 7501,
+        "contract_data_removals": 0,
+        "contracts_ran": [
+          "d2program",
+          "d3float",
+          "d3rich"
+        ],
+        "delayed_queue_post": 0,
+        "delayed_queue_pre": 0,
+        "deployed_in_chunk": 0,
+        "ed25519_import": false,
+        "executed_receipts": 10,
+        "fc_failure_kinds": {},
+        "fc_gas_burnt": 6870151126015,
+        "fc_gas_burnt_for_function_call": 4205854121513,
+        "fc_profile_exceeds_gas_burnt": 0,
+        "header_bandwidth_requests": 0,
+        "header_validator_proposals": 0,
+        "n_blocks": 2,
+        "n_callbacks": 0,
+        "n_epochs": 1,
+        "n_fc_failures": 0,
+        "n_function_calls": 3,
+        "n_function_calls_with_code": 3,
+        "n_implicit": 0,
+        "n_logs": 0,
+        "n_ood_host_calls": 0,
+        "n_outcomes_tokens_burnt_nonzero": 1,
+        "n_promises": 5,
+        "n_receipts": 9,
+        "n_receipts_with_receiver_reward": 0,
+        "n_shards": 4,
+        "ood_host_import": true,
+        "ood_host_profile_unmarked": 1,
+        "own_congestion_nonzero_post": false,
+        "own_congestion_nonzero_pre": true,
+        "pending_data_count_post": 0,
+        "pending_data_count_pre": 0,
+        "ran_deployed_in_chunk": 0,
+        "received_data_post": 0,
+        "received_data_pre": 0,
+        "receiver_reward_est": "0",
+        "rs": [
+          2,
+          8
+        ],
+        "tokens_burnt_receipts": "7000000000000000000000",
+        "tokens_burnt_txs": "0",
+        "validator_update_in_main": false,
+        "validator_updates": 0,
+        "witness_bytes": 10645,
+        "yield_queue_pre": 0
+      }
+    },
+    {
+      "label": "caller-gas-failure",
+      "source": "/tmp/lean-global-promises-1618/ood/00-h10004-s3",
+      "sha256": {
+        "claim.bin": "05c5dfb15cfa54b835808f1fc8523660c4c1ef74fd80080412dca822593f3ed1",
+        "witness.bin": "7dd279b32c6a6caf0225df01ac4058e3a079e5b4747171da543bcff9cf0e47ef",
+        "meta.json": "3602a04f927b26046807d262673afabb348c3718b294eaa145d1b0008c4ed887"
+      },
+      "expected_rel": true,
+      "action_results": [
+        "incoming:[FunctionCall] => fail:FunctionCallError"
+      ],
+      "features": {
+        "accesses_equal_state_executed": true,
+        "base_state_bytes": 3845,
+        "buffered_post": 1,
+        "buffered_pre": 1,
+        "chunk_gas_price": "0",
+        "code_blobs": 1,
+        "code_bytes": 940,
+        "contract_data_removals": 0,
+        "contracts_ran": [
+          "d3float"
+        ],
+        "delayed_queue_post": 0,
+        "delayed_queue_pre": 0,
+        "deployed_in_chunk": 0,
+        "ed25519_import": false,
+        "executed_receipts": 1,
+        "fc_failure_kinds": {
+          "FunctionCallError:GasExceeded": 1
+        },
+        "fc_gas_burnt": 2883908882602,
+        "fc_gas_burnt_for_function_call": 1995771124912,
+        "fc_profile_exceeds_gas_burnt": 0,
+        "header_bandwidth_requests": 0,
+        "header_validator_proposals": 0,
+        "n_blocks": 2,
+        "n_callbacks": 0,
+        "n_epochs": 1,
+        "n_fc_failures": 1,
+        "n_function_calls": 1,
+        "n_function_calls_with_code": 1,
+        "n_implicit": 0,
+        "n_logs": 0,
+        "n_ood_host_calls": 0,
+        "n_outcomes_tokens_burnt_nonzero": 0,
+        "n_promises": 2,
+        "n_receipts": 1,
+        "n_receipts_with_receiver_reward": 0,
+        "n_shards": 4,
+        "ood_host_import": true,
+        "ood_host_profile_unmarked": 1,
+        "own_congestion_nonzero_post": true,
+        "own_congestion_nonzero_pre": true,
+        "pending_data_count_post": 0,
+        "pending_data_count_pre": 0,
+        "ran_deployed_in_chunk": 0,
+        "received_data_post": 0,
+        "received_data_pre": 0,
+        "receiver_reward_est": "0",
+        "rs": [
+          2,
+          8
+        ],
+        "tokens_burnt_receipts": "0",
+        "tokens_burnt_txs": "0",
+        "validator_update_in_main": false,
+        "validator_updates": 0,
+        "witness_bytes": 5651,
+        "yield_queue_pre": 0
+      }
+    }
+  ]
+}

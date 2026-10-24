@@ -45,10 +45,21 @@ impl D3World {
             let signer = &s.accounts[shard][rng.gen_range(0..crate::d2gen::HONEST)];
             let receiver = baseline::acct("s0fl");
             let args = (0..32).map(|_| rng.r#gen()).collect();
+            let target_gas = std::env::var("NEAR_SUCCESSOR_GAS_TGAS")
+                .map(|value| {
+                    value
+                        .parse::<u64>()
+                        .expect("NEAR_SUCCESSOR_GAS_TGAS must be an integer")
+                })
+                .unwrap_or(20);
+            assert!(
+                (1..=300).contains(&target_gas),
+                "NEAR_SUCCESSOR_GAS_TGAS must be in 1..=300"
+            );
             let action = Action::FunctionCall(Box::new(FunctionCallAction {
                 method_name: "run".into(),
                 args,
-                gas: Gas::from_teragas(20),
+                gas: Gas::from_teragas(target_gas),
                 deposit: Balance::from_yoctonear(rng.gen_range(0..1000)),
             }));
             return w

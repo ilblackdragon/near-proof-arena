@@ -16,6 +16,20 @@ fn roundtrip<T: BorshDeserialize + BorshSerialize>(input: &[u8]) -> Result<(T, V
 pub fn command(args: &[String]) -> i32 {
     let run = || -> Result<Value, String> {
         let kind = args.get(2).ok_or("missing codec kind")?;
+        if kind == "runtime-fees" {
+            let store = near_parameters::RuntimeConfigStore::new(None);
+            let config = store.get_config(86);
+            let fees: Vec<_> = config
+                .fees
+                .action_fees
+                .iter()
+                .map(|(kind, fee)| {
+                    json!({"kind":format!("{kind:?}"),"send_sir":fee.send_sir.gas(),
+                    "send_not_sir":fee.send_not_sir.gas(),"execution":fee.execution.gas()})
+                })
+                .collect();
+            return Ok(json!({"protocol_version":86,"action_fees":fees}));
+        }
         let input =
             hex::decode(args.get(3).ok_or("missing hex bytes")?).map_err(|e| e.to_string())?;
         let (canonical, extra) = match kind.as_str() {
