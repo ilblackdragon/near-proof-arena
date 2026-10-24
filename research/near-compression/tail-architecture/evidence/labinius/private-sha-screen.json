@@ -1,0 +1,57 @@
+{
+  "status": "PRIVATE_MESSAGE_SHA256_IN_PROCESS_PROOF_SCREEN",
+  "setup": {
+    "circuit_s": 0.81199352,
+    "setup_s": 0.151833857
+  },
+  "runs": [
+    {
+      "repeat": 0,
+      "message_bytes": 65536,
+      "sha256_compressions": 1025,
+      "public_bytes": 64,
+      "witness_s": 0.002606676,
+      "prove_s": 0.207570405,
+      "verify_s": 0.098811587,
+      "analytic_proof_bytes": 97745,
+      "tape_bytes": 20537,
+      "negative_checks": 3
+    },
+    {
+      "repeat": 1,
+      "message_bytes": 65536,
+      "sha256_compressions": 1025,
+      "public_bytes": 64,
+      "witness_s": 0.002772407,
+      "prove_s": 0.191391768,
+      "verify_s": 0.095808837,
+      "analytic_proof_bytes": 97745,
+      "tape_bytes": 20537,
+      "negative_checks": 3
+    },
+    {
+      "repeat": 2,
+      "message_bytes": 65536,
+      "sha256_compressions": 1025,
+      "public_bytes": 64,
+      "witness_s": 0.002720841,
+      "prove_s": 0.184282645,
+      "verify_s": 0.096587198,
+      "analytic_proof_bytes": 97745,
+      "tape_bytes": 20537,
+      "negative_checks": 3
+    }
+  ],
+  "median_witness_plus_prove_s": 0.194164175,
+  "median_verify_s": 0.096587198,
+  "upstream_commit": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "binary_sha256": "247ae22989a67d81cabd56f29bb523c8c44bbc8eb81227c76d512736cca52de3",
+  "source_sha256": "29ec1c1dad84e9c1c3bfe32cf7beb5171a4f418fd4be1345b234c460ad4b87bd",
+  "limitations": [
+    "One synthetic private message and public digest, not NEAR hash buses or chunk validity.",
+    "Analytical LaBRADOR size; opaque C proof handle has no serialized artifact.",
+    "In-process verification, not an independent artifact replay.",
+    "No concrete PQ128 audit or recursion of chunk proofs.",
+    "Circuit and key setup timed separately; reusable fixed message length."
+  ]
+}

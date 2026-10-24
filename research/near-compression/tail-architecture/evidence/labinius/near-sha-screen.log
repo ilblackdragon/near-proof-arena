@@ -1,0 +1,7 @@
+NEAR_SHA_SETUP {"circuit_s":0.81199352,"setup_s":0.151833857}
+ERROR in verify(): Amortized (inner commitment) opening wrong
+NEAR_SHA_RESULT {"repeat":0,"message_bytes":65536,"sha256_compressions":1025,"public_bytes":64,"witness_s":0.002606676,"prove_s":0.207570405,"verify_s":0.098811587,"analytic_proof_bytes":97745,"tape_bytes":20537,"negative_checks":3}
+ERROR in verify(): Amortized (inner commitment) opening wrong
+NEAR_SHA_RESULT {"repeat":1,"message_bytes":65536,"sha256_compressions":1025,"public_bytes":64,"witness_s":0.002772407,"prove_s":0.191391768,"verify_s":0.095808837,"analytic_proof_bytes":97745,"tape_bytes":20537,"negative_checks":3}
+ERROR in verify(): Amortized (inner commitment) opening wrong
+NEAR_SHA_RESULT {"repeat":2,"message_bytes":65536,"sha256_compressions":1025,"public_bytes":64,"witness_s":0.002720841,"prove_s":0.184282645,"verify_s":0.096587198,"analytic_proof_bytes":97745,"tape_bytes":20537,"negative_checks":3}

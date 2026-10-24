@@ -94,3 +94,22 @@ finds 495 unconditional bit columns in each SHA table and 133 in receipts.
 Next gate: authenticated interval expansion/openings, complete constraint-boundary
 unions and bus multiplicities. Must avoid recreating dense work. No PQ/recursion/
 300KB/2s completion claim; full goal stays active.
+
+## 2026-10-24: binary/lattice candidate screen
+
+[Full screen](../../research/near-compression/tail-architecture/LABINIUS_SCREEN.md).
+Pinned LaBinius 96b57f7; one core, native AVX-512. Native opening benchmark:
+21 MB binary payload in 499 ms, 84.9 MB in 1.181 s; analytical totals 76.7/90.2 KiB.
+11 upstream opening tests pass. Added a private-message SHA constructor and test:
+65,536-byte message / 1,025 compressions; three proofs with median witness+prove
+194 ms, verify 97 ms, analytical proof 97,745 B + 64 B public output. All nine
+claim/tape/norm negative controls rejected. Setup ~964 ms, separate and reusable
+only for this fixed shape.
+
+This advances the candidate choice, not the final goal: opening sizes include
+LaBRADOR's analytic size, not serialization; C proof objects are opaque handles.
+Concrete PQ128 audit remains (rank heuristic, 16-byte C transcript states,
+SHAKE128/AES128 paths, outer BLAKE3 and composition). The actual NEAR hash batch,
+receipt/hash bus binding, sparse argument, full execution and recursion are open.
+Next: extract actual SHA collector messages; build canonical byte transport and
+fresh verifier; security-parameter audit before promoting size/performance claims.

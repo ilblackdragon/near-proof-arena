@@ -1,0 +1,105 @@
+{
+  "upstream": "https://github.com/osdnk/labinius",
+  "upstream_commit": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "rustflags": "-C target-cpu=native -C link-arg=-fuse-ld=mold",
+  "binary_sha256": "0bdd706118ca76abcc91de414869397f99a055f35fdabee03cb2170df52427bb",
+  "manifest_sha256": "97501e96f96b5e44ea0caa5c863443fc64b92bc62efeb59e3b2cca7877ce1a67",
+  "lock_sha256": "6052b19fc332f5c65f49231cde1214c25c8390663d9c233fb399b4595ffe6d59",
+  "cpu": 8,
+  "threads": 1,
+  "repetitions_per_stage": 10,
+  "cases": [
+    {
+      "suite": "m",
+      "native_F162_elements": 1048576,
+      "witness_bits": 169869312,
+      "witness_payload_bytes": 21233664,
+      "timings_ms_sum_of_stage_medians": {
+        "PROVER": {
+          "commit (with T_Y)": 65.07,
+          "row_evaluate": 1.57,
+          "commit_left_expansion": 0.33,
+          "prove_opening": 432.16,
+          "  fold": 15.12,
+          "  encoding": 14.82,
+          "  T_R": 3.6,
+          "  masks": 11.21,
+          "  constraint phi": 5.58,
+          "  statement build": 29.34,
+          "  labrador::prove": 347.98,
+          "total": 499.13
+        },
+        "STATEMENT": {
+          "derive_evaluation_point": 0.01,
+          "mle_evaluate": 1.03,
+          "total": 1.04
+        },
+        "VERIFIER": {
+          "derive_folding_challenges": 0.61,
+          "statement rebuild": 31.11,
+          "  layout": 3.0,
+          "  no-wrap bound": 4.6,
+          "  constraint phi": 5.44,
+          "  statement build": 13.46,
+          "labrador::verify": 212.03,
+          "total": 241.63
+        }
+      },
+      "analytic_total_KiB_rounded": 76.7,
+      "serialized_artifact_measured": false,
+      "peak_rss_MB_upstream": 847.0,
+      "verification_accepted": true,
+      "log_sha256": "85e917251e4b01871bc9ef0bc2f99381444579befbb92bccf204ae38a6bb5891"
+    },
+    {
+      "suite": "l",
+      "native_F162_elements": 4194304,
+      "witness_bits": 679477248,
+      "witness_payload_bytes": 84934656,
+      "timings_ms_sum_of_stage_medians": {
+        "PROVER": {
+          "commit (with T_Y)": 257.08,
+          "row_evaluate": 7.7,
+          "commit_left_expansion": 0.89,
+          "prove_opening": 914.85,
+          "  fold": 46.36,
+          "  encoding": 29.33,
+          "  T_R": 7.64,
+          "  masks": 24.49,
+          "  constraint phi": 12.31,
+          "  statement build": 64.97,
+          "  labrador::prove": 713.81,
+          "total": 1180.52
+        },
+        "STATEMENT": {
+          "derive_evaluation_point": 0.01,
+          "mle_evaluate": 7.68,
+          "total": 7.69
+        },
+        "VERIFIER": {
+          "derive_folding_challenges": 1.3,
+          "statement rebuild": 109.83,
+          "  layout": 13.13,
+          "  no-wrap bound": 9.06,
+          "  constraint phi": 12.19,
+          "  statement build": 66.11,
+          "labrador::verify": 417.23,
+          "total": 539.5
+        }
+      },
+      "analytic_total_KiB_rounded": 90.2,
+      "serialized_artifact_measured": false,
+      "peak_rss_MB_upstream": 2358.0,
+      "verification_accepted": true,
+      "log_sha256": "f6e3c52f7d7f8496b6b82a12378dce556ed55012af801d449c37c2fdfeb4aa5d"
+    }
+  ],
+  "upstream_opening_tests_passed": 11,
+  "limitations": [
+    "Random native binary-field witnesses, not a NEAR statement.",
+    "Warm reusable buffers; totals sum per-stage medians, not cold end-to-end medians.",
+    "LaBRADOR size is analytical; no serialized recursive proof or independent process replay.",
+    "No full PQ security instantiation/composition audit.",
+    "Public setup and witness generation excluded from displayed prover total."
+  ]
+}

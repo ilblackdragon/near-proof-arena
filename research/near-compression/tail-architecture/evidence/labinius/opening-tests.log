@@ -1,0 +1,30 @@
+   Compiling cfg-if v1.0.4
+   Compiling arrayvec v0.7.8
+   Compiling cpufeatures v0.3.1
+   Compiling constant_time_eq v0.4.2
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling blake3 v1.8.7
+    Finished `release` profile [optimized + debuginfo] target(s) in 40.87s
+     Running tests/opening.rs (/data/illia/pq-tail-architecture-20261024/target/release/deps/opening-8e87c1a6c88eb7f1)
+
+running 11 tests
+test a_coefficient_at_a_zero_position_is_caught_by_the_masks ... ERROR in simple_verify(): Sparse dot-product constraint 181 does not hold
+ok
+test a_commitment_to_other_residues_is_rejected ... ERROR in verify(): Aggregated dot-product constraint doesn't hold
+ok
+test a_long_fold_is_refused_and_a_short_one_is_proven ... ok
+test a_modified_left_expansion_commitment_is_rejected ... ERROR in verify(): Aggregated dot-product constraint doesn't hold
+ok
+test a_recursive_round_takes_any_base ... ok
+test a_wrong_challenge_set_is_rejected ... ERROR in verify(): Linear garbage polynomials wrong
+ok
+test a_wrong_norm_is_rejected ... ERROR in verify(): Amortized (inner commitment) opening wrong
+ok
+test an_honest_plain_round_is_accepted ... ok
+test an_honest_recursive_round_is_accepted ... ok
+test the_prover_and_the_verifier_encode_the_same_relation ... ERROR in verify(): Amortized (inner commitment) opening wrong
+ok
+test the_stage_timings_account_for_the_run ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+

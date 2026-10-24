@@ -1,0 +1,46 @@
+=== size sizel ===
+=== short challenge: weight 28, canonical bound 12, 1000 samples ===
+  acceptance rate: 0.6562 (1 in 1.52)
+
+
+=== recursion on ===
+witness: 2^22 F162 = 1048576 ring elements of R_648, 1024 columns of 4096 F162
+  public parameters              103.45 ms
+  key-time buffers                  124 MB
+  witness: 24 vectors, 53472 polynomials of Z_Q[X]/(X^64+1)
+  commitment ranks: kappa_Y 11, kappa_u 4, kappa_R 9
+
+PROVER
+  commit (with T_Y)              257.08 ms
+  row_evaluate                     7.70 ms
+  commit_left_expansion            0.89 ms
+  prove_opening                  914.85 ms
+    fold                          46.36 ms
+    encoding                      29.33 ms
+    T_R                            7.64 ms
+    masks                         24.49 ms
+    constraint phi                12.31 ms
+    statement build               64.97 ms
+    labrador::prove              713.81 ms
+  total                         1180.52 ms
+
+STATEMENT
+  derive_evaluation_point          0.01 ms
+  mle_evaluate                     7.68 ms
+  total                            7.69 ms
+
+VERIFIER
+  derive_folding_challenges        1.30 ms
+  statement rebuild              109.83 ms
+    layout                        13.13 ms
+    no-wrap bound                  9.06 ms
+    constraint phi                12.19 ms
+    statement build               66.11 ms
+  labrador::verify               417.23 ms
+  total                          539.50 ms
+
+wire: T_Y 4.1 KB, T_u 1.5 KB, T_R 3.4 KB, norms 0.2 KB, labrador 81.0 KB
+proof: 90.2 KB total, per-proof phi 6 MB
+verification: accepted
+
+peak resident set: 2358 MB

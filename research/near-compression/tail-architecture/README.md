@@ -5,6 +5,15 @@ post-quantum proof below **300,000 bytes**, with the final proof ready **within 
 (user clarification), as well as sustained throughput matching chunk arrival. Neither recursion nor PQ security is
 established by the current diagnostic packet.
 
+## Binary/lattice candidate
+
+[LaBinius screen](LABINIUS_SCREEN.md): private 64 KiB SHA-256 message (1,025
+compressions) proved in **194 ms**, verified in **97 ms**, with **97,745 B
+analytical proof size** on one CPU core. Three honest proofs and nine negative
+checks passed. This is a component result with opaque C proof objects; canonical
+serialization, concrete PQ128 analysis, actual NEAR hash-bus binding and whole
+chunk recursion remain open. It changes assumptions from the SHA384-only baseline.
+
 ## Latest live screen
 
 The newer declared-profile packet derives its key locally from trusted AIR,
