@@ -164,3 +164,15 @@ mutations reject. All 2,138 receipts have zero block gas price/no token burn;
 positive-gas coverage currently synthetic (7 valid/6 invalid arithmetic cases).
 Execution/hash-byte binding, state/history and full security remain required.
 [Evidence](../../research/near-compression/tail-architecture/STRICT_METADATA.md).
+
+## Receipt arithmetic circuit
+
+Implemented unsigned 128-bit credit/storage/burn/refund constraints. Initial
+IntMul implementation was rejected by LaBinius (no IntMul IOP oracle); switched
+constant products to checked shift/add. Independent 2,910-case oracle: 2,699
+accept/211 reject; 18,893 changed output/system flags reject, including positive
+gas branches. Actual isolated witness log is 7, below PCS minimum 8, so the
+proof attempt stops at parameters; no arithmetic PCS proof claimed. Next combine
+with the necessary outcome serialization/SHA relation, not artificial padding.
+Preserved unbuilt shared-wire outcome draft; not correctness evidence.
+[Details](../../research/near-compression/tail-architecture/RECEIPT_ARITHMETIC.md).

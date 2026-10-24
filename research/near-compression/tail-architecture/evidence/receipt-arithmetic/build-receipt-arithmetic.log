@@ -1,0 +1,43 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling labinius-bench v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/bench)
+   Compiling labinius-binius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/binius)
+error[E0277]: the type `[Wire]` cannot be indexed by `i32`
+   --> crates/binius/src/bin/near-receipt-arithmetic-check.rs:8:98
+    |
+  8 |  let b=CircuitBuilder::new();let ins:Vec<_>=(0..13).map(|_|b.add_inout()).collect();let pair=|i|[ins[2*i],ins[2*i+1]];
+    |                                                                                                  ^^^^^^^^ slice indices are of type `usize` or ranges of `usize`
+    |
+    = help: the trait `SliceIndex<[Wire]>` is not implemented for `i32`
+help: `usize` implements trait `SliceIndex<T>`
+   --> /home/illia/.rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/bstr/traits.rs:197:1
+    |
+197 | unsafe impl SliceIndex<ByteStr> for usize {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `SliceIndex<ByteStr>`
+    |
+   ::: /home/illia/.rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:214:1
+    |
+214 | unsafe impl<T> const SliceIndex<[T]> for usize {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `SliceIndex<[T]>`
+    = note: required for `Vec<Wire>` to implement `Index<i32>`
+
+error[E0277]: the type `[Wire]` cannot be indexed by `i32`
+   --> crates/binius/src/bin/near-receipt-arithmetic-check.rs:8:107
+    |
+  8 |  let b=CircuitBuilder::new();let ins:Vec<_>=(0..13).map(|_|b.add_inout()).collect();let pair=|i|[ins[2*i],ins[2*i+1]];
+    |                                                                                                           ^^^^^^^^^^ slice indices are of type `usize` or ranges of `usize`
+    |
+    = help: the trait `SliceIndex<[Wire]>` is not implemented for `i32`
+help: `usize` implements trait `SliceIndex<T>`
+   --> /home/illia/.rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/bstr/traits.rs:197:1
+    |
+197 | unsafe impl SliceIndex<ByteStr> for usize {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `SliceIndex<ByteStr>`
+    |
+   ::: /home/illia/.rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:214:1
+    |
+214 | unsafe impl<T> const SliceIndex<[T]> for usize {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `SliceIndex<[T]>`
+    = note: required for `Vec<Wire>` to implement `Index<i32>`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `labinius-binius` (bin "near-receipt-arithmetic-check") due to 2 previous errors

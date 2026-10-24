@@ -1,0 +1,22 @@
+{
+  "status": "CONSTRAINT_EVALUATION_PASS_NO_ARITHMETIC_PCS_PROOF",
+  "base_lane_commit": "c0d5bc3a1",
+  "binary_sha256": "41078053f563043413aa72cf0f03757ded3aaabb4b6cc662226bb59fee68aec3",
+  "source_sha256": {
+    "near-receipt-arithmetic-check.rs": "c9572202d0842cc5ebb126454025c9f50b19834480484ccf83f09b84b39d3364",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726"
+  },
+  "input_sha256": "71322ff1e7cf69433aeb666e16cb50157826d383f1ec4617f89937acd367345e",
+  "final_result": [
+    "RECEIPT_ARITHMETIC cases=2910 accepted=2699 rejected=211 mutated_outputs_and_system_rejected=18893 log_witness=7",
+    "ARITHMETIC_PCS_NOT_RUN reason=below_minimum_geometry required_log_at_least=8 actual_log=7 next=combine_with_outcome_hash"
+  ],
+  "draft_outcome_sha256": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+  "draft_status": "NOT_COMPILED_OR_VERIFIED",
+  "limitations": [
+    "No receipt sourcing/state authentication or complete execution validity.",
+    "IntMul rejected by LIOP; checked constant shifts/additions used instead.",
+    "Isolated witness log 7 below PCS minimum 8; no proof/size/speed result.",
+    "Positive burns include synthetic arithmetic inputs, not valid NEAR claim fixtures."
+  ]
+}
