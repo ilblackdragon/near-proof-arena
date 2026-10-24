@@ -1,0 +1,13 @@
+{
+  "status": "LOCAL_SOURCE_OUTCOME_FIXTURES_NOT_FULL_NEAR",
+  "real_receipts": 2138,
+  "original_singleton_lists_matched": 47,
+  "synthetic_positive": 20,
+  "invalid_metadata": 12,
+  "cases": 2170,
+  "sha256": "0b67a044d9a8030aec931897a098a70cecb386c70637e8b6da120edb069f513b",
+  "limits": [
+    "Non-singleton corpus receipts are wrapped in synthetic singleton lists.",
+    "No source inclusion, account authentication or recursive history."
+  ]
+}

@@ -13,8 +13,10 @@ all implemented refund/length shapes. Original 814-receipt case: **215,398 B,
 Serialized packets verify in fresh processes. This proves local arithmetic and
 outcome hashes, **not authenticated receipt sourcing/state or full NEAR**.
 Other SHA jobs are absent, so these results cannot be combined arithmetically
-with the prior hash-only benchmark. Next: bind the same fields to source bytes,
-then integrate remaining hashes, state/runtime and bounded PQ history.
+with the prior hash-only benchmark. [Source serializer](RECEIPT_SOURCE.md) now constrains those same fields in a
+single-receipt source/outcome relation (2,170 fixtures, three verified proofs).
+Next: multi-receipt source lists and cost measurement, then authenticated
+state/runtime, remaining hashes and bounded PQ history.
 
 [Metadata guard correction](STRICT_METADATA.md) remains mandatory; earlier
 MSB-only range guards were underconstrained. Composed PQ security, untrusted

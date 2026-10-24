@@ -217,3 +217,16 @@ report is reproducible with `audit_receipt_source.py`; compact evidence is
 share source fields with kernel wires, constrain signer/key/list structure,
 and authenticate source lists plus state/context. Full PQ/recursive NEAR goal
 remains open.
+
+### Constrained singleton source serialization
+
+`receipt_source.rs` now serializes incoming D0a fields from the same wires as
+receipt arithmetic/outcome SHA. The harness hashes a singleton RC list: 2,158
+valid / 12 invalid cases, 56,108 rejected mutations; three in-memory proofs and
+12 public mutations pass. 47 original singleton RC messages match exactly;
+other receipts are synthetic singleton wrappers. Witness log13 vs prior local
+outcome log11. No private batch or full-source membership claim. Next: measure
+multi-receipt source concatenation and integrated cost before scaling. Evidence:
+`research/near-compression/tail-architecture/RECEIPT_SOURCE.md` and corresponding
+source/log/hash manifest. Initial generic-target build failed; explicit native
+RUSTFLAGS and isolated stronger backend succeeded.

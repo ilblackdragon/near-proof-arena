@@ -1,0 +1,25 @@
+{
+  "status": "SINGLE_RECEIPT_SOURCE_OUTCOME_RELATION_NOT_FULL_NEAR",
+  "base_lane_commit": "97351781d",
+  "source_sha256": {
+    "near-receipt-source-check.rs": "94e2ca02ce64c8678fd7a370abf2b647114310940fb4068128e7168c9c7e43f8",
+    "support/receipt_source.rs": "1942c72fb92b2a532d7e40ee456baf5a2964abcc21ae856dbf2ed64a6372a923",
+    "support/receipt_outcome.rs": "2f0ba7869f21e10a3d3bca4a66470524b7858fd40a9b3c0469bad095753cba9e",
+    "support/receipt_arithmetic.rs": "6409a5e58cfe83b45218aa903dadcb4b34955c7dde30465a72f50697c967d726",
+    "support/tight_sha.rs": "4152a626cf4cff0eaf66b2f9025d330611f859038f1947a054c352fdf79a5a2e"
+  },
+  "binary_sha256": "2912e7fc9769798c8705ea68c05ce3e3f0c04e1c73037e971ac70f768603b8f5",
+  "fixture_sha256": "0b67a044d9a8030aec931897a098a70cecb386c70637e8b6da120edb069f513b",
+  "results": [
+    "RECEIPT_SOURCE cases=2170 accepted=2158 rejected=12 mutations=56108 log=13 same_source_outcome_wires=true",
+    "RECEIPT_SOURCE_PROOF example=0 honest=true public_mutations_rejected=4 full_near=false",
+    "RECEIPT_SOURCE_PROOF example=1 honest=true public_mutations_rejected=4 full_near=false",
+    "RECEIPT_SOURCE_PROOF example=2 honest=true public_mutations_rejected=4 full_near=false"
+  ],
+  "limitations": [
+    "No private batch packet for this relation yet; harness inputs are public.",
+    "Only singleton source lists; 47 match original source messages, other corpus inputs are synthetically rewrapped.",
+    "No source root membership or state authentication.",
+    "No composed PQ128 or recursive history result."
+  ]
+}
