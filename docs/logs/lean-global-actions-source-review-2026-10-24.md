@@ -24,3 +24,9 @@ The current materialized-code source is keyed by the actual raw-code hash. It ca
 - `lake env lean --run TestGlobalActions.lean` passed. Directed cases cover codec legacy rejection, normalized map/delegate/transaction bytes, fees and permissions, deploy/use/state-init storage and refunds, nonce overflow, fresh/equal/stale distribution forwarding, V1 behavior, and the explicit code-identity exclusion.
 - The independent fixture lane's actual pinned Rust codec probe confirms reversed-map sorting and duplicate-last-wins behavior for StateInit, Action, SignedDelegateAction, and SignedTransaction. Its vectors live in `docs/evidence/lean-chunk-completion/global-cache-fixtures/codec-vectors.json` when integrated.
 - Independent whole-chunk fixtures contain incoming distribution receipts in source receipt proofs, so distribution reachability is positively witnessed; emitted receipt descriptors alone are not the evidence.
+
+The Lean differential consumer `TestGlobalCodecVectors.lean` passed all 12 independent Rust vectors, comparing canonical bytes, transaction hashes, NEP-461 delegate hashes, derived deterministic account IDs, and malformed-input rejection. Run from `spec/lean/v3`:
+
+```sh
+lake env lean --run TestGlobalCodecVectors.lean ../../../docs/evidence/lean-chunk-completion/global-cache-fixtures/codec-vectors.json
+```
