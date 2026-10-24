@@ -45,14 +45,31 @@ cyclic of prime order), so `∏ t = 1 ⟺ ∏ e = 1`. Agreement on every vector 
 pinned oracle, not proved.
 
 ## Status
-Proved here (axiom-free, `propext`/`Quot.sound` only): the `Fq` operation laws, the codec length
-gates, the structural lemmas each host's error branch needs, curve membership preserved by G1
-doubling and addition and by G2 doubling and addition, and the definitional fact that the host
-returns `1` exactly when its pairing product is one.
+
+Proved here (axiom-free: only `propext`, `Classical.choice`, `Quot.sound`; no `sorryAx`):
+
+* the `Fq` operation laws — `add_mod`, `mul_mod`, `sub_mod`, `neg_mod` — and canonicity
+  (`add_lt` … `neg_lt`), plus the `Nat`→`Int` bridges `cast_add`, `cast_mul`, `cast_sub`;
+* **curve membership is preserved by the group law**, as four polynomial identities over `Int`:
+  * `dbl_defect_int` — Jacobian doubling: the output defect is `64·Y⁶` times the input defect;
+  * `dbl_membership_int` — affine doubling, given the slope relation `2yλ = 3x²`;
+  * `add_membership_scaled` — affine addition in denominator-free form (`(x₂−x₁)²` times the
+    output defect is `0`), given `λ(x₂−x₁) = y₂−y₁`;
+  * `add_defect_int` — Jacobian addition: the output defect is an explicit combination of the two
+    input defects, so an on-curve pair yields an on-curve output;
+* `productIsOne_nil` — the empty pairing product is one, so the empty `pairing_check` input is the
+  `1` verdict.
+
+The residual premise of the two affine statements is exactly "`λ` is the chord/tangent slope", which
+is what `g1Slope` computes through `Fq.inv`; a statement mentioning the divided quantity directly
+would need an inverse witness, so the scaled form is used instead. Nothing here asserts that the
+group law is the chord–tangent *group* operation, that `q` is prime, or that the reduced Tate
+pairing agrees with `bn`'s optimal ate pairing — those are tested, not proved.
 
 Tested, not proved: agreement with `zeropool-bn` 0.5.11 on 56 directed rows (including all 19
 vectors of nearcore's own `logic/tests/alt_bn128.rs`, whose asserted verdicts the oracle is first
-checked against) and 3,120 generated rows; see
+checked against) and 3,120 generated rows across four seeds; plus 47 host-arm cases for gas, charge
+order, argument order, register behaviour and error text. See
 `docs/logs/lean-chunk-L3-bn128-2026-10-23.md`.
 -/
 
@@ -233,6 +250,79 @@ the infinity encoding", both in the codec. -/
 def subgroupCheck (_P : G1) : Bool := true
 
 end G1
+
+/-! ### Curve membership is preserved by the group law
+
+These are the chord–tangent identities. Each is one polynomial identity over `Int`, discharged by
+`grind`; nothing here depends on `q` being prime, and no inverse is mentioned (the slope `λ` is a
+free variable with the relation the executable code establishes through `Fq.inv`, so the residual
+premise is exactly "λ is the slope"). -/
+
+/-- **Jacobian doubling preserves the curve**, unconditionally: the output's defect
+`Y₃² − (X₃³ + 3Z₃⁶)` is `64·Y⁶` times the input's defect. -/
+theorem dbl_defect_int (X Y Z : Int) :
+    (let A := X*X
+     let B := Y*Y
+     let C := B*B
+     let D := 2*((X+B)*(X+B) - A - C)
+     let E := 3*A
+     let F := E*E
+     let X3 := F - 2*D
+     let Y3 := E*(D - X3) - 8*C
+     let Z3 := 2*Y*Z
+     Y3*Y3 - (X3*X3*X3 + 3*Z3^6)) = 64*(Y^6)*(Y*Y - (X*X*X + 3*Z^6)) := by
+  dsimp only
+  grind (splits := 100) (ringSteps := 1000000)
+
+/-- **Affine doubling preserves the curve**: if `y² = x³ + 3` and `2yλ = 3x²`, the chord–tangent
+output satisfies the curve equation. -/
+theorem dbl_membership_int (x y lam : Int)
+    (h : y*y = x*x*x + 3) (hl : 2*y*lam = 3*x*x) :
+    (let x3 := lam*lam - 2*x
+     let y3 := lam*(x - x3) - y
+     y3*y3 = x3*x3*x3 + 3) := by
+  dsimp only
+  grind (splits := 100) (ringSteps := 1000000)
+
+/-- **Affine addition preserves the curve**, in the denominator-free form: multiplying the output
+defect by `(x₂−x₁)²` clears the division that `λ(x₂−x₁) = y₂−y₁` encodes. Since the curve
+coordinates come from a field, `(x₂−x₁)² ≠ 0` for distinct inputs, so this is exactly the usual
+statement, with no inverse hypothesis. -/
+theorem add_membership_scaled (x1 y1 x2 y2 lam : Int)
+    (h1 : y1*y1 = x1*x1*x1 + 3) (h2 : y2*y2 = x2*x2*x2 + 3)
+    (hl : lam*(x2-x1) = y2-y1) :
+    (let x3 := lam*lam - x1 - x2
+     let y3 := lam*(x1 - x3) - y1
+     (x2-x1)*(x2-x1)*(y3*y3 - (x3*x3*x3 + 3)) = 0) := by
+  dsimp only
+  grind (splits := 100) (ringSteps := 2000000)
+
+/-- **Jacobian addition preserves the curve**, unconditionally: the output defect is an explicit
+combination of the two input defects, so an on-curve pair yields an on-curve output. -/
+theorem add_defect_int (X1 Y1 Z1 X2 Y2 Z2 : Int) :
+    (let Z1Z1 := Z1*Z1
+     let Z2Z2 := Z2*Z2
+     let U1 := X1*Z2Z2
+     let U2 := X2*Z1Z1
+     let S1 := Y1*Z2*Z2Z2
+     let S2 := Y2*Z1*Z1Z1
+     let H := U2 - U1
+     let I := (2*H)*(2*H)
+     let J := H*I
+     let r := 2*(S2 - S1)
+     let V := U1*I
+     let X3 := r*r - J - 2*V
+     let Y3 := r*(V - X3) - 2*(S1*J)
+     let Z3 := ((Z1+Z2)*(Z1+Z2) - Z1Z1 - Z2Z2)*H
+     (Y3*Y3 - (X3*X3*X3 + 3*Z3^6))
+       = (Y1*Y1 - (X1*X1*X1 + 3*Z1^6)) * (-64*Z2^6*(X1*Z2^2 - X2*Z1^2)^3*
+            (X1^3*Z2^6 - 3*X1*X2^2*Z1^4*Z2^2 + X2^3*Z1^6 - Y1^2*Z2^6
+              + 2*Y1*Y2*Z1^3*Z2^3 - 3*Z1^6*Z2^6))
+         + (Y2*Y2 - (X2*X2*X2 + 3*Z2^6)) * (64*Z1^6*(X1*Z2^2 - X2*Z1^2)^3*
+            (X1^3*Z2^6 - 3*X1^2*X2*Z1^2*Z2^4 + X2^3*Z1^6 + 2*Y1*Y2*Z1^3*Z2^3
+              - Y2^2*Z1^6 - 3*Z1^6*Z2^6))) := by
+  dsimp only
+  grind (splits := 200) (ringSteps := 4000000)
 
 /-! ## `Fq2 = Fq[i]/(i² + 1)` -/
 
