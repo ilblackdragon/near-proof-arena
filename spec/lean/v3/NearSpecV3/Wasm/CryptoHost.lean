@@ -161,10 +161,12 @@ def p2DecompressElement : Cost := ⟨165000000000, 165000000000, none⟩
 so the post-NEP-488 behaviour is one edit away. -/
 def bls12381Version : Nat := 0
 
-/-- `BLS12381InvalidInput` with `check_input_size`'s message text
-(`logic/bls12381.rs:438-450`). -/
+/-- `BLS12381InvalidInput`'s payload for `check_input_size` (`logic/bls12381.rs:438-450`), formatted
+as nearcore's `Display` prints the variant: `BLS12-381 invalid input: {msg}`
+(`logic/errors.rs:622`). `hErr` supplies the surrounding `HostError(...)`, so this string must not
+repeat it. -/
 def blsInvalidLength (fnName : String) (len item : Nat) : String :=
-  s!"HostError(BLS12381InvalidInput \{ msg: \"Incorrect input length for {fnName}: {len} is not divisible by {item}\" })"
+  s!"BLS12-381 invalid input: Incorrect input length for {fnName}: {len} is not divisible by {item}"
 
 /-- The shared `bls12381_impl!` body: base, per-element, read, decode, then register write and `0`
 on success or `1` on a decode failure. `decode` gets the whole input and returns `none` when the
@@ -224,13 +226,16 @@ def hostMapFp2ToG2 (a : Vector Nat 3) : HM Unit :=
   blsWriter mapFp2ToG2Base mapFp2ToG2Element 96 "bls12381_map_fp2_to_g2"
     (fun d => BLS12381.mapFp2ToG2 d) a
 
-/-- `bls12381_pairing_check` (`logic.rs:1340-1370`): `[(p1: 96 B, p2: 192 B)]`, no register, returns
-`0`/`1`/`2`. Note the charge order: base, **read**, per-element (`len / 288`), decode. -/
+/-- `bls12381_pairing_check` (`logic.rs:1352-1376`): `[(p1: 96 B, p2: 192 B)]`, no register,
+returns `0`/`1`/`2`. Note the charge order: base, **read**, per-element, decode. Unlike the eight
+`bls12381_impl!` writers — which divide the *operand* `value_len` — this body computes
+`elements_count = data.len() / ITEM_SIZE` from the **read data** (`logic.rs:1368`), so a
+register-sourced input (`value_len = u64::MAX`) is charged for the register's own length. -/
 def hostPairingCheck (a : Vector Nat 2) : HM Unit := do
   payBaseH pairingBase
   let len := a[0]; let ptr := a[1]
   let data ← memOrRegH ptr len
-  payPerH pairingElement (len / 288)
+  payPerH pairingElement (data.size / 288)
   if data.size % 288 ≠ 0 then hErr (blsInvalidLength "bls12381_pairing_check" data.size 288)
   pushRet (BLS12381.pairingCheck data.toList)
 
