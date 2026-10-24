@@ -135,18 +135,20 @@ def runStepsH (cfg : NearCfg) (p : Prepared) :
     match hostAt p s with
     | some (hid, np, ar) =>
       let sb := s.stack.size - np
+      -- Host arguments are integers; a float or reference here would mean the D1 checker admitted
+      -- an out-of-domain program, so those arms only keep the match total.
       let args := (List.range np).map fun j =>
         (match s.stack[sb + j]?.getD (.i32 0) with
          | .i32 v => v.toNat
          | .i64 v => v.toNat
-         | .ref _ => 0)
+         | .f32 _ | .f64 _ | .ref _ => 0)
       match step cfg p s with
       | .cont os =>
         let word := if ar = 1 then
           (match os.stack.back?.getD (.i64 0) with
            | .i32 v => v.toNat
            | .i64 v => v.toNat
-           | .ref _ => 0) else 0
+           | .f32 _ | .f64 _ | .ref _ => 0) else 0
         let ev : HostEv := { hid, np, ar, args, st := 0, word, gAfter := os.gas.g,
                              regs := os.registers.toList.map fun (id, d) => (id, d.toList.map (·.toNat)) }
         runStepsH cfg p k os (n + 1) (evs ++ [ev])
@@ -160,10 +162,14 @@ def runStepsH (cfg : NearCfg) (p : Prepared) :
       | .cont s' => runStepsH cfg p k s' (n + 1) evs
       | r => (n + 1, r, evs)
 
+/-- Tag/limb form of a value for the exporter's JSON.  Tags are 0 = i32 and 1 = i64, the two types
+the AIR's value channel encodes.  Floats and references are tagged 2: they are outside the D1
+domain (`kindOf` has no float arm), and the Rust trace generator rejects tag 2 rather than silently
+reinterpreting the bits. -/
 def valLimbs : Val → (Nat × List Nat)
   | .i32 v => (0, limbs4 v.toNat)
   | .i64 v => (1, limbs4 v.toNat)
-  | .ref _ => (2, [0, 0, 0, 0])
+  | .f32 _ | .f64 _ | .ref _ => (2, [0, 0, 0, 0])
 
 /-- Hex digits → bytes (`none` on a malformed string). -/
 def hexBytes (s : String) : Option (List Nat) := Id.run do

@@ -94,7 +94,10 @@ jobs:
         # spec/lean/v3 is a *separate* Lake project (NearSpecV3: the Lean chunk
         # transition). It is not a path dependency of spec/lean, so nothing built
         # it before — a regression there was invisible to CI.
-        project: [formal-core, spec/lean, spec/lean/v3, zk-formal]
+        # research/near-compression/wasm-base-lean (WasmBase: the direct-Wasm base
+        # layer AIR) is likewise separate: it *depends on* NearSpecV3 and ZkFormal,
+        # so an upstream change to the spec's `Val` broke it without CI noticing.
+        project: [formal-core, spec/lean, spec/lean/v3, zk-formal, research/near-compression/wasm-base-lean]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -121,9 +124,10 @@ jobs:
             spec/lean/.lake
             spec/lean/v3/.lake
             zk-formal/.lake
-          key: lake-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('formal-core/lean-toolchain', 'formal-core/lakefile.toml', 'formal-core/lake-manifest.json', 'spec/lean/lean-toolchain', 'spec/lean/lakefile.toml', 'spec/lean/lake-manifest.json', 'spec/lean/v3/lean-toolchain', 'spec/lean/v3/lakefile.toml', 'zk-formal/lean-toolchain', 'zk-formal/lakefile.toml', 'zk-formal/lake-manifest.json') }}-${{ hashFiles('formal-core/**/*.lean', 'spec/lean/**/*.lean', 'zk-formal/**/*.lean') }}
+            research/near-compression/wasm-base-lean/.lake
+          key: lake-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('formal-core/lean-toolchain', 'formal-core/lakefile.toml', 'formal-core/lake-manifest.json', 'spec/lean/lean-toolchain', 'spec/lean/lakefile.toml', 'spec/lean/lake-manifest.json', 'spec/lean/v3/lean-toolchain', 'spec/lean/v3/lakefile.toml', 'zk-formal/lean-toolchain', 'zk-formal/lakefile.toml', 'zk-formal/lake-manifest.json', 'research/near-compression/wasm-base-lean/lean-toolchain', 'research/near-compression/wasm-base-lean/lakefile.toml', 'research/near-compression/wasm-base-lean/lake-manifest.json') }}-${{ hashFiles('formal-core/**/*.lean', 'spec/lean/**/*.lean', 'zk-formal/**/*.lean', 'research/near-compression/wasm-base-lean/**/*.lean') }}
           restore-keys: |
-            lake-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('formal-core/lean-toolchain', 'formal-core/lakefile.toml', 'formal-core/lake-manifest.json', 'spec/lean/lean-toolchain', 'spec/lean/lakefile.toml', 'spec/lean/lake-manifest.json', 'spec/lean/v3/lean-toolchain', 'spec/lean/v3/lakefile.toml', 'zk-formal/lean-toolchain', 'zk-formal/lakefile.toml', 'zk-formal/lake-manifest.json') }}-
+            lake-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('formal-core/lean-toolchain', 'formal-core/lakefile.toml', 'formal-core/lake-manifest.json', 'spec/lean/lean-toolchain', 'spec/lean/lakefile.toml', 'spec/lean/lake-manifest.json', 'spec/lean/v3/lean-toolchain', 'spec/lean/v3/lakefile.toml', 'zk-formal/lean-toolchain', 'zk-formal/lakefile.toml', 'zk-formal/lake-manifest.json', 'research/near-compression/wasm-base-lean/lean-toolchain', 'research/near-compression/wasm-base-lean/lakefile.toml', 'research/near-compression/wasm-base-lean/lake-manifest.json') }}-
       - name: Put cached elan on PATH
         run: echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1

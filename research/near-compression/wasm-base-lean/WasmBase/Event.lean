@@ -39,11 +39,18 @@ def vTag : Val → Nat
 def vNum : Val → Nat
   | .i32 v => v.toNat
   | .i64 v => v.toNat
+  | .f32 b => b.toNat
+  | .f64 b => b.toNat
   | .ref _ => 0
 
+/-- The AIR's value channel is integer-only.  The D1 checker rejects every float instruction
+(`kindOf` has no float arm), so a D1 program never pushes an `f32`/`f64`; `isNum` is stated to
+exclude them so that `enc_toVal` is honest rather than silently reinterpreting float bits as an
+`i32`. -/
 def isNum : Val → Prop
-  | .ref _ => False
-  | _ => True
+  | .i32 _ => True
+  | .i64 _ => True
+  | _ => False
 
 /-- Encoding of a value as a channel message. -/
 def enc (space slot : Nat) (v : Val) (tp : Nat) : Msg :=
@@ -67,7 +74,7 @@ theorem enc_ok {v : Val} (hv : isNum v) (space slot tp : Nat) : (enc space slot 
     have := x.toNat_lt
     simp only [enc, Msg.ok, vTag, vNum, Nat.reducePow, true_and, or_true, and_true, Nat.reduceEqDiff, or_false] at *
     omega
-  | ref _ => exact absurd hv id
+  | f32 _ | f64 _ | ref _ => exact absurd hv id
 
 theorem enc_val {v : Val} (hv : isNum v) (space slot tp : Nat) : (enc space slot v tp).val = vNum v := by
   cases v with
@@ -79,7 +86,7 @@ theorem enc_val {v : Val} (hv : isNum v) (space slot tp : Nat) : (enc space slot
     have := x.toNat_lt
     simp only [enc, Msg.val, val4, vNum, Nat.reducePow] at *
     omega
-  | ref _ => exact absurd hv id
+  | f32 _ | f64 _ | ref _ => exact absurd hv id
 
 theorem enc_toVal {v : Val} (hv : isNum v) (space slot tp : Nat) : (enc space slot v tp).toVal = v := by
   cases v with
@@ -93,7 +100,7 @@ theorem enc_toVal {v : Val} (hv : isNum v) (space slot tp : Nat) : (enc space sl
     have ht : (enc space slot (.i64 x) tp).tag = 1 := rfl
     simp only [Msg.toVal, hv, ht, vNum]
     simp
-  | ref _ => exact absurd hv id
+  | f32 _ | f64 _ | ref _ => exact absurd hv id
 
 /-- A message `m` equals the encoding of its decoded value when well-formed. -/
 theorem enc_of_ok {m : Msg} (hm : m.ok) : enc m.space m.slot m.toVal m.tp = m := by

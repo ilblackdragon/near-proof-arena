@@ -91,7 +91,15 @@ impl Prep {
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(|e| (e["tag"].as_u64().unwrap(), nums(&e["limbs"]).try_into().unwrap()))
+                .map(|e| {
+                    let tag = e["tag"].as_u64().unwrap();
+                    // The Lean exporter tags floats and references 2. The D1 checker rejects every
+                    // float instruction and every reference type, so an eligible program never
+                    // produces one; if this fires the exporter's domain check and the checker have
+                    // diverged. Same rule as the globals above (GlobOK).
+                    assert!(tag <= 1, "non-integer stack entry is outside the domain (D1)");
+                    (tag, nums(&e["limbs"]).try_into().unwrap())
+                })
                 .collect(),
             max_fee: v["maxFee"].as_u64().unwrap(),
             mem: v["mem"].as_u64().unwrap_or(0),

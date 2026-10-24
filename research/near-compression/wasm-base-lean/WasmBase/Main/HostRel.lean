@@ -74,14 +74,14 @@ theorem host_frames_eq {os : St} {f' : Frame} {E : Env} (hos : os.frames = f' ::
 /-! ## The operand stack stays numeric
 
 `popArgs` pops, `pushRet` pushes `.i64`/`.i32`, and `isNum` holds for both.  So a host function
-cannot introduce a reference into the operand stack.  Stated as the rely-free part of `numS`. -/
+cannot introduce a reference or a float into the operand stack.  Stated as the rely-free part of
+`numS`. -/
 
-/-- `isNum` holds of anything that is not a reference. -/
-theorem isNum_of_not_ref {v : Val} (h : ∀ r, v ≠ .ref r) : isNum v := by
-  rcases v with _ | _ | r
-  · trivial
-  · trivial
-  · exact absurd rfl (h r)
+/-- `isNum` holds of an integer value.  "Not a reference" is *not* enough: the value channel is
+integer-only and `isNum` excludes floats as well, because the D1 checker rejects every float
+instruction (`kindOf` has no float arm), so a float on the stack would be outside the domain. -/
+theorem isNum_of_int {v : Val} (h : (∃ x, v = .i32 x) ∨ (∃ x, v = .i64 x)) : isNum v := by
+  rcases h with ⟨_, rfl⟩ | ⟨_, rfl⟩ <;> trivial
 
 /-! ## The rely condition
 

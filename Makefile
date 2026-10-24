@@ -29,7 +29,7 @@ DEV_PROFILES     ?=
 DEV_DOWN_VOLUMES ?= 0
 E2E_SCRIPT         ?= tests/e2e/run.sh
 E2E_HOSTILE_SCRIPT ?= adversarial/e2e/run.sh
-LEAN_PROJECTS      ?= formal-core spec/lean spec/lean/v3
+LEAN_PROJECTS      ?= formal-core spec/lean spec/lean/v3 research/near-compression/wasm-base-lean
 SHELL_SCRIPTS := deploy/scripts/arena-guard deploy/scripts/test-arena-guard.sh \
                  deploy/local/gen-dev-secrets.sh deploy/local/postgres-init/10-roles.sh \
                  deploy/hardened/bin/arena-backup deploy/hardened/bin/check-hardened
@@ -155,7 +155,7 @@ test-sdk-ts:
 	cd sdk/typescript && npm ci && npm run build && npm test
 
 .PHONY: lean
-lean: ## lake build formal-core and spec/lean
+lean: ## lake build the Lean projects in LEAN_PROJECTS
 	$(call require_cmd,$(LAKE),install elan: https://github.com/leanprover/elan)
 	@for p in $(LEAN_PROJECTS); do \
 	  if [ ! -f "$$p/lakefile.lean" ] && [ ! -f "$$p/lakefile.toml" ]; then \

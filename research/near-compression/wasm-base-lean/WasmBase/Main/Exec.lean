@@ -711,6 +711,8 @@ theorem vNum_lt64 (v : Val) : vNum v < 2 ^ 64 := by
   cases v with
   | i32 x => have := x.toNat_lt; simp only [vNum]; omega
   | i64 x => exact x.toNat_lt
+  | f32 x => have := x.toNat_lt; simp only [vNum]; omega
+  | f64 x => exact x.toNat_lt
   | ref _ => simp [vNum]
 
 /-- After a normal return (status 1) DRAIN only consumes messages outside space 0 (memory). -/
