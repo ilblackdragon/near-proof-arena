@@ -15,3 +15,10 @@ Release build with pinned Rust 1.93.0 passed. Python syntax checks and a bounded
 supervisor exercise (capture target, verdict counts, child shutdown) passed.
 The node connected to 12 peers and completed epoch sync; headers/state sync still
 precede execution and witness export. No node keys or database are committed.
+
+Separately acquired 10 complete RPC chunk responses from finalized mainnet block
+221447054 (3 transactions, 32 receipts). Hashes and source are recorded in
+`rpc-full-chunks-manifest.json`; payloads are under
+`/data/illia/nearproof-deps/mainnet-w13/rpc-full-chunks/221447054/`.
+These are full transaction/receipt payloads, not execution state witnesses, and
+have not been counted as native/Lean replay acceptance.

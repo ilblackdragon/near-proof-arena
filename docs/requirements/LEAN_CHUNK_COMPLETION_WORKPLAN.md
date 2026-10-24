@@ -697,7 +697,9 @@ The persistent `nearproof-mainnet-w13.service` tracks shard 13, with localhost R
 Runtime home/export/evidence are under `/data/illia/nearproof-deps/mainnet-w13/`;
 `home/capture-status.json` is the live source for counts and sync state. Initial launch reached
 12 peers and completed epoch sync; headers/state sync and first witness acquisition remain pending
-at this checkpoint. The pilot stops at 1,200 captures, 35 GiB home allocation, or a 15 GiB disk
+at this checkpoint. Separately, finalized block 221447054 supplied 10 full RPC chunk responses
+(3 transactions, 32 receipts), stored with hashes under `rpc-full-chunks/221447054/`; these do
+not contain execution state witnesses and do not count as replay coverage. The pilot stops at 1,200 captures, 35 GiB home allocation, or a 15 GiB disk
 reserve. Native shadow acceptance is not cold replay or Lean acceptance. Remaining W13 work:
 finish acquisition, authenticate and convert DB context into claims, supply complete code closure,
 implement the cold native adapter, and execute the required all-shard representative window.

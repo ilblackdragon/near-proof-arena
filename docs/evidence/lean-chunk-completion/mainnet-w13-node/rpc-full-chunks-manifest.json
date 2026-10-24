@@ -1,0 +1,23 @@
+{
+  "source": "https://rpc.mainnet.fastnear.com",
+  "fetched_utc": "2026-10-24T21:49:39.084274+00:00",
+  "block_height": 221447054,
+  "block_hash": "EE9qd2BuKio3XgkVFUBCbdkXqokJKDCMs8SC8xo3a3Jc",
+  "full_chunks": 10,
+  "transactions": 3,
+  "receipts": 32,
+  "files_sha256": {
+    "block.json": "aaca3227220f836fa8741d670b04abfcc86c0ee7c0717d9b94fd92ef77b27c74",
+    "chunk-s10-E3fPukzxbwd1nZg8rz95YTaAVktwxZRMd218b3cR24mC.json": "4f48b58a2e3cc695a7ce76f6c7b58b73035f6672ed4a81955788f0c28924d9fe",
+    "chunk-s11-9APN2qCuCSJoDgytDgvJgu9q3yJdtRCbWK3Dh3SMgK48.json": "319452f3e0c2404a77a80e37bcc2da5906cc2f618d9cddbaba9f56fbfda8b80f",
+    "chunk-s1-9g79rpMhPaimuJCEbE8D3M9dSCDn4hZnVTq85wF8ZBLy.json": "f94c0acbe6efcea43edd3de97d576c6a51a9e5dcda3c7a5e3b74d9358303e4b7",
+    "chunk-s8-AkjekJ3NNaeqSPadkrkNt7HQvLjABfuaJUnLacT1hAFH.json": "a8d0b53d34995a2d303566d4e8193085dcf74671fada474a1b2cbf75e806beb6",
+    "chunk-s9-Apq7vHBivTsNf5iZPa4rWEwRjBDf3LYWoXxFyrNUzzbU.json": "7ba110bd566fd22add0ea63c28549b7b1eca6017f05514a26da16e0ef63166ba",
+    "chunk-s6-9SnszDvqTjdd6w8n31rVZWg7QbMqetyzHxMf1aqKFj7G.json": "4a5a265d9865e51f44203fead481bee17e5a3c53f61f41860e0238e65117274b",
+    "chunk-s7-XRnwMFRDiDwnTt6vJfx9Dv7h68vyVMpKjw81MedyLRv.json": "f2ca1bb9f4e98e12876d5e98a12f9f3e179c10d354d85564436100bfcfb27ecb",
+    "chunk-s4-9x3bw5QjSfVhZKytYM7C6bebfWD1RGNB2MgjgcWNbvT6.json": "0e9f140fb33bc5d5c279212a43f0311928f3af418e4291a45d3f895b599f89e9",
+    "chunk-s12-o58k5FECMz9FYVcvAvnzfbDTAqNL1VbfvkZveSUEu8L.json": "d1e6380b4f91eb7e1078b42b7e74cf0a6dda42f3970b11052aa106d4d6d69d23",
+    "chunk-s13-FD64tsLgQ2XG9ediWsSDtxh7gt7rUEoxkRZxwBAKMXcg.json": "eeae483eded98e8f479d20807a913b43269ab0525a170a04e924738a4541a215"
+  },
+  "status": "RPC full chunks only; no state witnesses, native acceptance or Lean replay claimed"
+}
