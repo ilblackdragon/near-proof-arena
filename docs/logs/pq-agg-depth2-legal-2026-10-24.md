@@ -86,12 +86,22 @@ Lowering `log_blowup` at a fixed 236-bit target costs queries. Measured schedule
 | `ns18 lb7`, `k_first=1` | `[41, 38, 29, 23]` | 131 |
 | **`ns19 lb6`, `k_first=1`** | **`[46, 41, 31, 25]`** | **143** |
 
-The +17 queries are why the node proof is 315,913 B rather than ~276 KB. At the measured
-~1,751 B/query (§3 of the prior doc) 17 queries ≈ 29,767 B, which accounts for most of the gap
-from 276,269 B to 315,913 B. So the geometry escape is **paid for in size**, not in time: L2's
+The +17 queries are the main reason the node proof is 315,913 B rather than ~276 KB. Two effects
+separate cleanly and both are already measured elsewhere in this directory:
+
+* **queries:** 126 → 143, i.e. +17. At ~1,751 B/query ≈ **29,767 B**.
+* **height:** this node is `nvair_h=2^20` with **Node** children, while the 276,269 B figure was
+  `nvair_h=2^18` with **App** children. Two extra Merkle path levels at 131 queries × 2 digests ×
+  42 B ≈ **11,004 B** (the height effect already isolated in `FINDING.md`).
+
+Sum ≈ 40,771 B against a measured difference of 39,644 B, i.e. the gap is accounted for within
+~1.1 KB by these two effects. So the geometry escape is **paid for in size**, not in time: L2's
 prove time is 700.5 s, in line with the 695–739 s depth-1 nodes, despite the taller stacked
 commitment. Note this is *L2 only* — both L1 children came from cache at `prove_s=0.0`, so the
 node's true cold cost is 700.5 s plus two L1 proves.
+
+The size bill is what stands between this legal node and the cap: 143 queries at 2^20 is
+inherently ~40 KB larger than 126 queries at 2^18, and only 15,913 B has to be clawed back.
 
 ## 3. The compression deficit is 6.8 %, not 36.1 %
 
@@ -158,21 +168,52 @@ reduction is a far more tractable target than 36.1 %, but it is now an optimisat
 The root proof is 315,913 B against a 300,000 B cap. Three candidate levers, each with its own
 status. None is a measurement yet.
 
-### 5.1 Reclaim the 126-query schedule (needs the 6.8 % compression cut)
+### 5.1 Reclaim the cheaper query schedule — this is the only lever that matters
 
-The `ns18/lb7` geometry gives `[41, 35, 27, 23] = 126` queries, 17 fewer than 143. At the measured
-~1,751 B/query that is ~29,767 B — more than enough. But `ns18/lb7` gives only `2^20` of stacked
-height and L2 needs `2^21`. **This is the one place the 6.8 % compression cut genuinely buys
-something:** 555 compressions removed would put L2 at `≤ 8,192`, fitting `2^20` at 126 queries.
+Three schedules are measured at depth 2, and the ordering is unambiguous:
 
-The saving is not fully additive with 5.2/5.3, because removing 555 compressions also shrinks the
-SHA AIR rows and hence some per-query Merkle cost. **Modelled, not measured.**
+| geometry | `k_first` | queries | stacked ceiling | verdict |
+|---|---:|---:|---:|---|
+| `ns18 lb7` | 2 | 126 | `2^20` | `LayoutHeightExceeded{21,20}` |
+| `ns18 lb7` | 1 | 131 | `2^20` | `LayoutHeightExceeded{21,20}` |
+| `ns19 lb6` | 1 | 143 | `2^21` | **`AGG_DEPTH2_OK`** |
 
-### 5.2 Drop to 1 WHIR commit (measured delta, projection applied)
+Both `2^20` schedules fail **only** because L2's 8,747 compressions exceed 8,192. So the 555-cut
+(6.77 %) is precisely what unlocks them, and it buys 12–17 queries:
 
-The measured 2-commit → 1-commit delta on the delivered chain is **35,068 B** of WHIR non-digest
-overhead. `PARENT2_COMMITS=1` is already set in the passing run, so this lever is **already
-consumed** — it cannot be counted twice. Recorded here to prevent double-counting.
+* **131 queries** → ~16–21 KB saved → **294,901–299,929 B**, i.e. at or just under the cap.
+* **126 queries** → ~23–30 KB saved → **286,146–293,269 B**, ~7–14 KB of margin.
+
+The ranges bracket the two *measured* per-query rates in this directory: ~1,332 B/query from the
+base-final-layer vs depth-2 comparison (§5.2), and ~1,751 B/query from the prior doc's 126→131
+delta. Neither is a depth-2 measurement at the new schedule, so treat the band as a projection.
+
+The 126-query row is better on size and the 131-query row is better on soundness-per-query. Either
+way, **the 6.8 % compression cut is the single change that makes depth 2 ship**, and it is now a
+much smaller ask than the 36.1 % the earlier accounting demanded. Part of the saving is not purely
+additive: removing 555 compressions also shrinks L2's SHA AIR rows below `2^21`, which removes the
+height effect on its own Merkle paths. That makes the projection conservative, not optimistic.
+**Modelled from measured query deltas; not measured.**
+
+### 5.2 The 1-commit lever is already consumed — and that is why this is close
+
+`PARENT2_COMMITS=1` is already set in the passing run, and `NvCircuit::new` defaults
+`program_part: false` (`circuit.rs:137`), so the agg root is already a **single-commitment** proof.
+This makes the comparison to the delivered base final layer apples-to-apples, and it is the most
+encouraging number in this document:
+
+| proof | queries | NvAir | commits | bytes |
+|---|---:|---|---:|---:|
+| base final layer (`SETUP.json`) | 131 | `2^20` | 1 | **299,935** |
+| depth-2 L2 node | 143 | `2^20` | 1 | **315,913** |
+
+Same height, same commit count, same WHIR params. The 15,978 B difference is **12 queries**, at
+~1,332 B/query — and the base final layer already sits 65 B under the cap. So a depth-2 root at
+**131 queries and 2^20** would land within noise of the delivered artifact. That is the entire
+remaining problem, and it is a 12-query / 555-compression gap, not a structural one.
+
+The 35,068 B 1-commit delta measured on the chain is therefore **not available here**; counting it
+would be double-counting. Recorded to prevent that.
 
 ### 5.3 Re-balance `k_first` / `log_final` at `lb6` (cheapest untested lever)
 
