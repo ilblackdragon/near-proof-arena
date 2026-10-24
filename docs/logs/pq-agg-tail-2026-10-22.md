@@ -33,7 +33,7 @@ as closing that gap.
 | 15 | Therefore "under 300 KB" is a **transcript-sampled property**, not a structural bound | **measured** — two valid proofs straddle the cap |
 | 16 | The agg tests **do verify their proofs** — `prove_mats` calls `engine.verify(&vk, &proof).unwrap()` unconditionally, per level | **code check**, `nv/circuit.rs:466` |
 | 17 | A 2-child agg node at the base final layer's *exact* production schedule (`[41,38,29,23]`, `QUERY_POW=32`, `COMMITS=1`) measures **276,269 B** | **measured** 2026-10-23, streaming, 2,160.8 s, 9.46 GB |
-| 18 | **Depth 2 is arithmetically impossible at production blowup**: the 2-NV-child SHA AIR needs 2^22 rows but `log_stacked_height = l_skip+n_stack ≤ 27−log_blowup = 20` | **measured** panic + field 2-adicity, `circuit.rs:458`, `monty_31.rs:654` |
+| 18 | **Depth 2 is arithmetically impossible at production blowup, and at the full production lever set the deficit is invariant at 1 bit**: stacked height is `≤ 27−lb`, while the 2-NV-child SHA demand rises as `lb` falls because more queries are needed for the same 236-bit target. Measured lb=7 → 21/20, lb=6 → 22/21, lb=5 → 23/22. (At `lb=3` the *test* schedule needs only 2^20, so the invariance is a property of the fixed 236-bit target, not of the field alone.) | **measured** 3 panics + field 2-adicity, `circuit.rs:458`, `monty_31.rs:654` |
 | 19 | The "bytes are flat in depth" result (132,301 B at depths 2–4) is a **`log_blowup=3`** result and does not transfer to production | **measured** params `n_stack=20, log_blowup=3` in `agg_depth4.log` |
 | 20 | The documented escape "lower `log_blowup` to ≤5" **does not fit depth 2**: measured panic `log_height: 23` vs `log_stacked_height: 22` — buying 2 bits of stacked height costs ~2× queries, which needs ~1 more bit than it buys | **measured** 2026-10-23, `agg-d2-lb5-wwide.log`, 3,366.7 s |
 | 21 | With the **full production lever set** (`X15=15`, `multiproof`, `keep_domain`, `gruen_gkr`, `gkr_derive`, `next_mask`, `gruen_zc`, `wide_pow`, `tight`, `whir_y`, `QUERY_POW=32`, `COMMITS=1`) a 2-child production node measures **267,513 B** at **`total=268.2` soundness** — **32,487 B under the cap** | **measured** 2026-10-23, `agg-d2-l2prod.log`, `L1_0_PROOF_BYTES total=267513` |
@@ -1130,9 +1130,12 @@ Still open, and each one is a real blocker rather than a formality:
      verifies. The production L1 geometry is recoverable exactly from its own `cells` figure:
      `31,130,752 = 2^18·76 + 2^17·83 + 128·9 + 2^16·5`, i.e. **NvAir 2^18 but SHA AIR only
      2^17**. The L2 node demands **2^22** on that same column — **32× growth** from one extra NV
-     child. At test targets the same comparison was 8× (L1 SHA 2^17 → L2 SHA 2^20), because the
-     test schedule runs ~24 queries against production's 131. The 2^22 exceeds
-     `log_stacked_height = l_skip + n_stack = 20` by 4 bits. Note the offending column is the
+     child — *with the incomplete lever set used by this run*. At the full production lever set the
+     demand is **2^21** (2× over 1 child; see the correction box below). At test targets the same
+     comparison was 8× (L1 SHA 2^17 → L2 SHA 2^20), because the test schedule runs ~24 queries
+     against production's 131. The 2^22 exceeds
+     `log_stacked_height = l_skip + n_stack = 20` by 2 bits (22 − 20; an earlier draft said "4
+     bits", which was an arithmetic slip). Note the offending column is the
      **SHA AIR**, not the NvAir: L2's own `rows_so_far` was 171,873, i.e. NvAir 2^18.
 
      **Why this is a real production wall, and its exact arithmetic.** The stacked height is
@@ -1140,19 +1143,34 @@ Still open, and each one is a real blocker rather than a formality:
      `l_skip + n_stack + log_blowup ≤ 27` (BabyBear 2-adicity; `monty_31.rs:654`). So the
      achievable stacked height is **`27 − log_blowup`**, and nothing more:
 
-     | `log_blowup` | max legal `n_stack` | max `log_stacked_height` | covers 2^22 SHA? |
-     |---:|---:|---:|---|
-     | 3 | 22 | 24 | yes |
-     | 4 | 21 | 23 | yes |
-     | 5 | 20 | 22 | yes, exactly |
-     | 6 | 19 | 21 | no |
-     | **7 (production)** | **18** | **20** | **no — 4 bits short** |
+     | `log_blowup` | max legal `n_stack` | max `log_stacked_height` | measured SHA demand | fits? |
+     |---:|---:|---:|---:|---|
+     | 3 | 22 | 24 | 2^20 (test targets) | yes |
+     | 4 | 21 | 23 | — not measured | unknown |
+     | 5 | 20 | 22 | **2^23** | **no — 1 short** |
+     | 6 | 19 | 21 | **2^22** | **no — 1 short** |
+     | **7 (production)** | **18** | **20** | **2^21** | **no — 1 short** |
+
+     Note the demand column **rises as `log_blowup` falls**: each bit of stacked height bought is
+     paid for by one bit of extra query count. The "covers 2^22?" framing in the original table was
+     arithmetically right *for a fixed 2^22 demand* but misleading, because the demand is not fixed.
+
+     > **CORRECTION 2026-10-23 (full production lever set): the demand is 2^21, not 2^22, and the
+     > deficit is 1 bit, not 4.** The 2^22 figure above came from this launch, which ran with an
+     > incomplete lever set (`X15 = 1`; no multiproof / keep_domain / tight / whir_y) and so needed
+     > 208 queries. With the full set (`X15 = 15` etc.) the same L2 node needs only **126 queries**
+     > and its SHA AIR is **2^21** — measured `log_height: 21` against `log_stacked_height: 20`.
+     > The demand grows **linearly** in child count (1 NV child = 2^20 and fits; 2 = 2^21), not
+     > 32×. The corrected table's `fits?` column therefore reads: lb=7 no (1 short), lb=6 no
+     > (1 short), lb=5 no (1 short) — **the deficit is invariant at one bit**, so no blowup value
+     > closes it. See the invariant table further down. The pre-lever "2^22 / 4 bits short"
+     > narrative in this subsection is retained only as the record of that run.
 
      **This explains the whole depth-2 anomaly.** The test-target depth-4 runs used
      `log_blowup = 3` with `n_stack = 20`, giving `log_stacked_height = 22` — exactly the SHA
      AIR's demand — so depths 2–4 proved. At production `log_blowup = 7` there is no 2-adicity
-     left to raise `n_stack`, so the stacked height stops at 20 and the 2^22 SHA column cannot be
-     placed. **Depth 2 is arithmetically impossible at production blowup**, and that is not a
+     left to raise `n_stack`, so the stacked height stops at 20 and the SHA column (2^21 at full
+     levers) cannot be placed. **Depth 2 is arithmetically impossible at production blowup**, and that is not a
      memory or time problem — it is the field's multiplicative-group structure. The earlier
      depth-2 "flat in depth" result (132,301 B at depths 2/3/4) is therefore a **log_blowup = 3
      result** and does not transfer to production targets.
@@ -1162,10 +1180,14 @@ Still open, and each one is a real blocker rather than a formality:
      base final layer verifies **1** NV child and its SHA AIR is **2^20 — exactly at the
      `log_stacked_height = 20` ceiling, with zero headroom** (reconstructed from its own
      `shapes`: `2^20·76 + 2^20·83 + 128·9 + 2^16·5`). Going to 2 NV children takes that column to
-     2^22 — 4× — and 2^22 needs `log_stacked_height ≥ 22`, i.e. `log_blowup ≤ 5`. So the blocker
-     is specific: **the second NV child**, not aggregation in general. The base final layer is
-     already sitting on the ceiling; there is no geometry headroom to absorb one more NV child. That is why depth 1 measured fine and depth 2 died,
-     and why the depth-4 "flat in depth" result cannot be assumed to hold at production.
+     2^21 — **2×, linear in child count** — and 2^21 needs `log_stacked_height ≥ 21`, i.e.
+     `log_blowup ≤ 6`. **But lowering the blowup to reach 21 raises the demand too** (lb=6 needs
+     138 queries ⇒ 2^22; measured panic `log_height: 22, log_stacked_height: 21`), so `lb ≤ 6` does
+     *not* actually work — the deficit is invariant at one bit. So the blocker is specific: **the
+     second NV child**, not aggregation in general. The base final layer is already sitting on the
+     ceiling; there is no geometry headroom to absorb one more NV child. That is why depth 1
+     measured fine and depth 2 died, and why the depth-4 "flat in depth" result cannot be assumed
+     to hold at production.
 
      Two candidate ways out were listed. **The first — lower `log_blowup` to ≤ 5 — is now
      MEASURED, and it fails twice over: once on size and once on geometry.** It does buy the
@@ -1196,9 +1218,10 @@ Still open, and each one is a real blocker rather than a formality:
 
      The full lever set does cut the deficit from 2 bits to 1 (2^22 → 2^21), which is why the
      escape looked viable, but the last bit cannot be bought. The only surviving way out is
-     **reduce the SHA compression count per child** so the AIR stays at 2^20 (a circuit change: the
-     L2 node's SHA work is ~16× an L1 node's because it verifies two full NV proofs; `multiproof`
-     does not help — `merkle_nodes` stays 464 in both lever configs). Until that is done, **the
+     **halve the SHA compression count per child** so the AIR stays at 2^20 — a 2× cut, not 4×
+     (a circuit change: the L2 node's SHA work is ~16× an L1 node's because it verifies two full
+     NV proofs; `multiproof` does not help — `merkle_nodes` stays 464 in both lever configs).
+     Until that is done, **the
      production aggregation tree is measured only to depth 1**, and the flat-in-depth claim must be
      quoted with its `log_blowup = 3` condition attached.
    So the run is feasible, but it is a cold rebuild now: the warm `target-agg` dir (500 MB) was

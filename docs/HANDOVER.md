@@ -158,16 +158,19 @@ Three sentences the reader can act on, each with its evidence and its limit:
      so d=40 would emit a 48 B message and trip the same assert). **None of this is done**, so
      Route C is an unavailable lever for the delivered configuration, not a cheap one. Note it does
      **not** rescue depth 2: unit count 12 → 10 is only a 16.7% cut in SHA compressions, while the
-     2^22 wall needs ~4×.
+     measured wall needs **2×** (see item 3 — the earlier "4×" figure was the pre-lever
+     `X15 = 1` measurement and is superseded).
 3. **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
-   The 2-NV-child aggregation node needs a 2^22-row SHA compression AIR (measured panic
-   `LayoutHeightExceeded { log_height: 22, log_stacked_height: 20 }`, `circuit.rs:458`), but the
-   stacked height is `l_skip + n_stack ≤ 27 − log_blowup`, which at production `log_blowup = 7`
-   caps at **20**. The field's 2-adicity (27) leaves nothing to raise `n_stack`: 19 gives 28 and
-   panics at `monty_31.rs:654`. **So a production aggregation node with two NV children cannot be
-   proved in this configuration at all** — not a memory or time limit, a domain limit. Depth 1
-   works because its children are App proofs (SHA 2^17); the second NV child takes SHA to 2^22
-   (32× growth, recovered exactly from L1's `cells = 2^18·76 + 2^17·83 + 128·9 + 2^16·5`).
+   The 2-NV-child aggregation node needs a 2^21-row SHA compression AIR at the **full production
+   lever set** (measured panic `LayoutHeightExceeded { log_height: 21, log_stacked_height: 20 }`,
+   `circuit.rs:458`), but the stacked height is `l_skip + n_stack ≤ 27 − log_blowup`, which at
+   production `log_blowup = 7` caps at **20**. The field's 2-adicity (27) leaves nothing to raise
+   `n_stack`: 19 gives 28 and panics at `monty_31.rs:654`. **So a production aggregation node with
+   two NV children cannot be proved in this configuration at all** — not a memory or time limit,
+   a domain limit. Depth 1 works because its children are App proofs (SHA 2^17); the second NV
+   child takes SHA to 2^21. **The growth is linear in child count, not superlinear**: the delivered
+   base final layer verifies 1 NV child at 131 queries and fits 2^20 exactly (its params are
+   `l_skip=2 n_stack=18 lb=7`, so stacked height 20), so 2 children need exactly one more bit.
    Consequently **the "bytes flat in depth" result (132,301 B at depths 2–4) is a
    `log_blowup = 3` result** (those runs used `n_stack=20, log_blowup=3`, giving stacked height
    22) and **does not transfer to production**. Two exits were named; **the first is measured and
@@ -185,8 +188,9 @@ Three sentences the reader can act on, each with its evidence and its limit:
    Each bit bought is exactly one bit spent, so **no blowup closes it**. Only `lb = 3` fits — and
    that *is* the test-target soundness, i.e. depth 2 fits only where the soundness is insufficient.
    Note the full lever set does cut the deficit 2 → 1 bit (2^22 → 2^21), which is why the escape
-   looked viable. **The sole surviving exit is reducing SHA compressions per child** — a circuit
-   change; `multiproof` does not help (`merkle_nodes` stays 464 in both lever configs). Not done.
+   looked viable. **The sole surviving exit is reducing SHA compressions per child by 2×** — a
+   circuit change; `multiproof` does not help (`merkle_nodes` stays 464 in both lever configs), and
+   digest width d=40 only gives 12 → 10 units = 16.7%. Not done.
    Consequence for the goal: **the tree is load-bearing on time** — a linear chain verifies one
    child per level, so 146 leaves need 146 levels (~20 h at ~500 s/level), while a binary tree needs
    8. With depth 2 blocked there is no tree, so there is currently no 1 Pgas path in reasonable time.
