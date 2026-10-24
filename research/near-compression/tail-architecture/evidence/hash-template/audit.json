@@ -1,0 +1,76 @@
+{
+  "status": "REUSABLE_HASH_COMPONENT_ONLY",
+  "setup": {
+    "message_slots": 3088,
+    "nominal_blocks": 7296,
+    "constructed_sha_blocks": 7296,
+    "root_bytes": 148248,
+    "witness_log_elems": 22,
+    "circuit_s": 9.51432276,
+    "setup_s": 3.321261816
+  },
+  "runs": [
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 2460,
+      "prepare_s": 0.026551903,
+      "prove_s": 1.639066108,
+      "ready_s": 1.665618422,
+      "verify_s": 0.711778802,
+      "analytic_proof_bytes": 116481,
+      "public_bytes": 64,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 12,
+      "prepare_s": 0.026415966,
+      "prove_s": 1.693623144,
+      "ready_s": 1.7200395099999999,
+      "verify_s": 0.715853533,
+      "analytic_proof_bytes": 116460,
+      "public_bytes": 64,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 2460,
+      "prepare_s": 0.02672105,
+      "prove_s": 1.6809722360000001,
+      "ready_s": 1.707693977,
+      "verify_s": 0.721084495,
+      "analytic_proof_bytes": 116481,
+      "public_bytes": 64,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 12,
+      "prepare_s": 0.026445831,
+      "prove_s": 1.718301647,
+      "ready_s": 1.7447479289999999,
+      "verify_s": 0.730674379,
+      "analytic_proof_bytes": 116460,
+      "public_bytes": 64,
+      "negative_checks": 6
+    }
+  ],
+  "ready_median_s": 1.7138667435,
+  "ready_max_s": 1.7447479289999999,
+  "honest_proofs": 4,
+  "negative_checks": 24,
+  "boundary_checks": 44,
+  "binary_sha256": "aa0ab95900ed8272a3f8650880a98de87fb7ee7d3fc421fac9197aaccad5c282",
+  "host": "Ryzen 9 9950X3D, CPU 8, no concurrent owned compile during tight run",
+  "labinius_revision": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "binius_revision": "81cdfff40cb21746581df0b5ea34eaf1761bc82f",
+  "limitations": [
+    "Analytical proof size; opaque C proof handle has no full wire codec.",
+    "No receipt/hash bus binding or recursive history proof.",
+    "No composed PQ security claim.",
+    "Circuit/setup amortized; cold first proof includes ~12.84 seconds construction/setup.",
+    "Input exporter time excluded; measured timer starts from exported hash batch.",
+    "Two shapes from training corpus; not held-out coverage or p95 latency.",
+    "Fixed capacity makes small chunks pay the large capacity cost."
+  ]
+}

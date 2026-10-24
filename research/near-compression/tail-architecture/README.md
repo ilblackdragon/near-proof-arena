@@ -10,10 +10,12 @@ established by the current diagnostic packet.
 [Design and falsifiable experiments](EVENT_PROTOCOL.md): current Jolt/Akita prior
 art, event-derived trace openings, complete constraint coverage and reusable hash
 templates. Algebra prototype passes 3,120 identity checks; authentication and
-recursive composition are open. [Jolt reproduction](JOLT_SCREEN.md) is building;
-its scale-20 SHA guest requests only 277 compressions, versus 5,875 in our largest
-sampled receipt workload. [64-case hash census](HASH_CAPACITY.md) gives a reusable
-bucket-policy candidate, with concrete variable-length gadget overhead identified.
+recursive composition are open. [Jolt reproduction](JOLT_SCREEN.md) now verifies
+a decoded 97,998 B proof; scale 20 is 99,490 B / 7.46 s prover for just 277 hashes.
+[Reusable hash template](HASH_CAPACITY.md) proves 2,460-message and 12-message
+actual batches with one circuit/setup: **1.67–1.74 s warm**, ~116 KB analytical,
+four honest proofs / 24 mutants / 44 gadget checks. Construction/setup adds
+12.84 s cold; receipt binding, wire codec, PQ audit and recursion remain open.
 
 ## Binary/lattice candidate
 

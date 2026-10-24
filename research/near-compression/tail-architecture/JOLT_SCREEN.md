@@ -1,10 +1,37 @@
 # Current Jolt/Akita screen
 
-2026-10-24; source inspected, independent runtime reproduction pending.
+2026-10-24; current source built and independently run on Ryzen 9 9950X3D.
+
+## Measured results
+
+CI profile, native CPU codegen, eight prover threads, affinity 8-15/24-31.
+One sample per original workload; no GPU involved.
+
+| SHA-chain scale | Requested 32-byte hashes | Prove | Actual proof bytes | Setup | Full process |
+|---:|---:|---:|---:|---:|---:|
+| 18 | 69 | 1.99 s | 97,998 | 0.112 s | 8.39 s |
+| 20 | 277 | 7.46 s | 99,490 | 0.126 s | 7.87 s |
+
+Both proofs verified in parallel and single-threaded modes. Scale 20 verification
+was 12.907/28.960 ms respectively. The first process included first-run guest
+preparation; it is not a warm latency comparison with the second.
+
+A narrowly patched scale-18 rerun serializes, decodes with a byte limit, checks
+complete consumption, and verifies the DECODED object. A midpoint-byte mutation
+is rejected (decode error or verification failure). Result: 97,998 bytes,
+1.96 s prove, 2.32 s full process, 10.586/19.584 ms verification. No independent
+verifier process yet; public inputs and setup still come from the harness.
+
+Evidence: `evidence/jolt/{manifest.json,original-timings.csv,wire-18.log,
+wire-audit.patch}` and original scale logs. The proof blob remains in scratch,
+pinned by SHA-256 in the manifest. None is a full NEAR or recursive-history proof.
+The current CPU implementation misses the target already at this small workload;
+proof byte size itself has substantial margin below 300 KB.
 
 - Jolt `7931b223ddefe3cfa35671d0fa8321df4578ff96`.
 - Pinned Akita `dfdbd7674cab5cfbe95243e947d1b10a982f232b`.
-- Scratch `/data/illia/pq-tail-architecture-20261024/jolt`; no source changes.
+- Scratch `/data/illia/pq-tail-architecture-20261024/jolt`; original measurements
+  use unchanged source, later wire-audit patch is preserved separately.
 
 ## What is implemented
 
@@ -14,7 +41,8 @@ sparse one-hot trace support and bincode serialization of the actual Jolt proof.
 after witness preparation. It measures the serialized proof length and verifies
 the in-memory proof twice (parallel/single-threaded). It does NOT currently
 establish independent deserialization or include tracing/witness construction
-in its reported prover duration. Add those checks before accepting an artifact.
+in its reported prover duration. The local patch adds roundtrip verification;
+separate-process verification and application context binding remain open.
 
 `examples/recursion` is not evidence of Akita history recursion: the SDK's
 `VerifierPCS` aliases in `jolt-sdk/src/host_utils.rs` select Dory. Full NEAR

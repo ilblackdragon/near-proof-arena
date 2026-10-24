@@ -1,5 +1,47 @@
 # Reusable hash templates: corpus geometry
 
+## Implemented experiment
+
+One fixed bucket circuit and one PCS setup now prove two different real message
+layouts, alternating large/small twice. The circuit binds active masks, private
+IDs, multiplicity flags, private lengths and computed SHA digests through a fixed
+SHA-512 batch root (64 public bytes). Inactive metadata must be zero. The root
+does not yet bind to the NEAR receipt proof; this is still a component statement.
+
+The copied Binius variable-length helper now uses an explicit upper byte bound,
+checks it in constraints, and derives block capacity from that bound. Its 44
+boundary checks compare against independent host SHA-256 and reject over-bound
+lengths. This removes the extra block caused by rounded storage allocation.
+
+| Case | Messages | Ready after exported batch, two runs | Verify | Analytical bytes |
+|---|---:|---:|---:|---:|
+| 00-h10035-s3 | 2,460 | 1.666 / 1.708 s | 0.712 / 0.721 s | 116,481 |
+| 00-h10012-s1 | 12 | 1.720 / 1.745 s | 0.716 / 0.731 s | 116,460 |
+
+All four honest proofs and 24 negative checks passed. Mutants change the public
+root's active/ID/length/digest records, the proof tape and the opening norm. These
+are rejection examples, not a soundness proof. The two fixtures are from the
+capacity-training corpus, not held-out cases.
+
+Construction 9.514 s + setup 3.321 s is amortized above. Cold first proof takes
+about 14.50 s before input export; native export for the large case previously
+took 0.261 s. Warm proof-ready includes batch reading, host reference hashes and
+witness generation, but not that exporter. Fixed policy supports both shapes
+without rebuilding; it makes small cases pay the large-case capacity cost.
+
+The witness remains at log size 22. Measured on CPU 8 of Ryzen 9 9950X3D, with
+no concurrent owned compilation in the tight run. The stock-gadget screen took
+1.95/2.93 s while a compiler ran on other cores, so do not attribute the full
+timing difference solely to this code change.
+
+Evidence/source: `evidence/hash-template/`. To reproduce, restore the previously
+recorded LaBinius private-session patch, copy the bin and its `support/tight_sha.rs`
+module into `crates/binius/src/bin`, and build with `RUSTFLAGS='-C target-cpu=native'`.
+Exact invocation and source/binary pins are in the logs/audit. Canonical proof
+serialization, composed PQ security, receipt binding and recursion remain open.
+
+## Capacity census
+
 2026-10-24. `hash_capacity.py` exported all **64/64 D0a fixtures** successfully.
 Evidence: `evidence/hash-capacity.json`, with claim/witness/exporter hashes.
 This is a geometry census, not proof verification or full NEAR coverage.

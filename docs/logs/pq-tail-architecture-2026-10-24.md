@@ -19,6 +19,14 @@ Worktree `pq-tail-architecture`; goal still open: PQ recursive NEAR proof below
   Warm witness+prove median ~1.084 s; first proof ~10.143 s plus export ~0.261 s.
   Analytical size only, exact-layout setup, no receipt/hash bridge or recursion.
 
-Next: finish independent Jolt run; then measure one reusable hash circuit on
-different actual chunks. Keep full NEAR semantics, composed PQ security, actual
-serialization and recursive history linkage as completion gates.
+Follow-up: current Jolt independently measured 97,998/99,490 serialized bytes at
+scale 18/20, 1.99/7.46 s proving. Decoded-object verification and one wire mutation
+passed on a patched scale-18 rerun (2.32 s full process). Reusable hash template
+now proves both large and small actual layouts without rebuilding: four proofs
+ready in 1.67–1.74 s warm; 24 mutants reject; tighter-length gadget passes 44
+checks. Cold construction/setup adds 12.84 s. Evidence and source linked above.
+
+Next: canonical LaBinius wire codec and authenticated receipt/hash connection;
+measure complete capacity-class pipeline. Keep full NEAR semantics, composed PQ
+security and recursive history linkage as completion gates. Current CPU Jolt
+whole-VM path is too slow even for a small hash workload; preserve it as a baseline.
