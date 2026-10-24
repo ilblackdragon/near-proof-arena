@@ -245,7 +245,7 @@ entry path. No verifier-result oracle or “signature valid” hypothesis substi
 - [x] Merged `functionCallResolved`/`resolveAccount`, `checkD3Global`/`RelD3Global`, and guard-premise gap theorems.
 - [x] Recorded 539 excluded-case comparisons with unchanged verdicts/reasons; five inventory rows move missing → partial. This is preservation evidence, not newly accepted semantics.
 - [ ] Connect widened action/receipt codecs and dispatch through W00's versioned successor; the current checker still calls D2 decoders and rejects tags 9/10/11.
-- [ ] Implement successor ETH-local handling: rewriting the contract to local preserves the old rejection guard.
+- [x] Implemented identifier-preserving call resolution in the `storageResolution` successor tier: 161 recorded ETH-local chunks now accept; global/by-account and cross-chain wallet paths have native regression tests. The older normalization delegate is not used.
 - [ ] Generate positive global/by-account/wallet whole chunks using versioned successor tooling while preserving the pinned oracle. Validate fees, receipts, rollback, cache and resolution.
 - [ ] Resolve UQ-006 against source-proof reachability. Non-instant distribution receipts alone do not establish impossibility; the lane's exclusion claim is not accepted as closure.
 
@@ -265,7 +265,8 @@ Test same-chunk deploy/call, rolled-back deploy, postponed calls and missing cod
 **Progress through `e34852568`:**
 
 - [x] Merged storage-bound analysis and kernel-checked facts distinguishing the conservative witness bound from protocol per-receipt limits (`a98bd9965`).
-- [ ] Implement actual accounting/exhaustion semantics and validate below/at/above-limit cases, rollback, exact gas/roots and resource use. The existing exclusion has not been removed.
+- [x] Implemented chunk-scoped recording, per-receipt exhaustion, rollback-preserved read/removal charges and chunk soft-limit deferral in `storageResolution`; its conservative merged-value overestimate is removed. Native boundary/rollback tests and whole-chunk regression replay pass.
+- [ ] Finish independent nearcore exact-boundary chunk fixtures, full computed gas/root/receipt comparison, implicit/resharding interactions and resource bounds. The serialized witness cap remains. See the [implementation handoff](../logs/lean-chunk-storage-resolution-2026-10-24.md).
 
 Evidence: [L5 log](../logs/lean-chunk-L5-2026-10-23.md).
 

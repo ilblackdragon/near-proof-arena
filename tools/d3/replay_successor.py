@@ -16,6 +16,7 @@ import sys
 
 REPO = Path(__file__).resolve().parents[2]
 TIERS = {
+    "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
     "signed": (),
     "floats": ("e.float",),

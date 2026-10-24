@@ -1,15 +1,16 @@
 import NearSpecV3.ChallengeChunkV3Gas
 import NearSpecV3.ChallengeChunkV3Float
 import NearSpecV3.GenesisD3
+import NearSpecV3.Successor.RuntimeCore
 
 /-!
 # W00 interface 1/7 — the canonical checker and its tiers
 
 This module publishes the **single semantic root** of the successor checker plus its explicit
 protocol configuration and tier predicates. It is additive: it defines no new semantics of its own,
-it only *names* the configurations that already exist as adapters (`checkD3`, `checkD3F`,
+it names the configurations that already exist as adapters (`checkD3`, `checkD3F`,
 `checkD3Proto`, `checkD3ProtoFloat`, `checkD3G`) and composes the two configurations that have no
-existing adapter (`genesis + floats + protocol gas`).
+existing adapter (`genesis + floats + protocol gas`) and the recorder-backed runtime.
 
 ## What is signed and what is not
 
@@ -30,9 +31,11 @@ configuration of the same root. Nothing here widens `checkD3`.
 * `gasCap` — the per-chunk function-call gas bound. `some D3.gAlpha` is the signed prover-capacity
   bound; `some maxGasBurnt` is the protocol bound from L1's `ChallengeChunkV3Gas`; `none` disables the
   bound (documented as "no per-chunk gas condition" — **not** an accepted configuration, see UQ-012).
-* `genesisMainTransition` — use L6's `checkD2CoreG` genesis-aware pipeline instead of `checkD2Core`.
+* `genesisMainTransition` — use L6's genesis-aware validation pipeline.
+* `storageResolution` — use the recorder-backed main transition and runtime identifier resolution.
+  The legacy merged-value overestimate is disabled; the serialized witness cap remains.
 
-`ProtocolCfg.wasm` is the derived `NearCfg`. It is deliberately a *function* of `floats` only, so a
+`ProtocolCfg.wasm` is the derived `NearCfg`. It is deliberately a *function* of `floats` and `loadingLimits`, so a
 configuration cannot carry an arbitrary `NearCfg` that drifts from the declared protocol version.
 
 ## Tiers and their predicates
@@ -78,8 +81,10 @@ structure ProtocolCfg where
   genesisMainTransition : Bool := false
   /-- Pinned validator's Wasmtime pooling allocation failure semantics. -/
   loadingLimits : Bool := false
+  /-- Chunk-scoped proof recording and runtime contract identifier resolution. -/
+  storageResolution : Bool := false
 
-/-- The Wasm configuration of this protocol run. A function of `floats` only: the successor does not
+/-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
 def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
   { (if cfg.floats then Wasm.floatPv86 else Wasm.pv86) with loadingLimits := cfg.loadingLimits }
@@ -151,7 +156,12 @@ tier's checker is this function at that tier's configuration; there is no second
 def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Except String Unit :=
   match cfg.protocolVersion with
   | 86 =>
-    if cfg.genesisMainTransition then
+    if cfg.storageResolution then
+      if cfg.genesisMainTransition then
+        checkD2CoreGWith (recorderDriver cfg.wasm) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+      else
+        checkD2CoreWith (recorderDriver cfg.wasm) (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+    else if cfg.genesisMainTransition then
       checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else
       checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
@@ -209,6 +219,7 @@ inductive Tier where
   | genesis
   | genesisFloatsProtoGas
   | runtimeLimits
+  | storageResolution
   deriving DecidableEq, Repr
 
 /-- The tier's configuration. -/
@@ -223,6 +234,10 @@ def Tier.cfg : Tier → ProtocolCfg
 
   | .runtimeLimits =>
     { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true, loadingLimits := true }
+
+  | .storageResolution =>
+    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+                         loadingLimits := true, storageResolution := true }
 
 /-- The tier's checker: the root at the tier's configuration. -/
 def Tier.checker (t : Tier) : Bytes → Bytes → Except String Unit := checkSuccessor t.cfg
@@ -244,7 +259,7 @@ refinement obligations are W12's (`relSuccessor_*_mono`), and they need the adap
 theorems below plus the still-missing semantic families. -/
 def Tier.rank : Tier → Nat
   | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
-  | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6
+  | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7
 
 /-! ## The adapters, at their tiers
 

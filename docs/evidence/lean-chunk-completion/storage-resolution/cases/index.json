@@ -1,0 +1,22 @@
+[
+  {
+    "case_dir": "eth-local-0",
+    "source": "/data/illia/nearproof-deps/corpora/d3c7/ood/03-h10016-s3",
+    "expected": "accept"
+  },
+  {
+    "case_dir": "eth-local-1",
+    "source": "/data/illia/nearproof-deps/corpora/d3c7/ood/00-h10058-s3",
+    "expected": "accept"
+  },
+  {
+    "case_dir": "eth-local-2",
+    "source": "/data/illia/nearproof-deps/corpora/d3c7/ood/03-h10166-s3",
+    "expected": "accept"
+  },
+  {
+    "case_dir": "eth-local-3",
+    "source": "/data/illia/nearproof-deps/corpora/d3c7/ood/01-h10030-s0",
+    "expected": "accept"
+  }
+]

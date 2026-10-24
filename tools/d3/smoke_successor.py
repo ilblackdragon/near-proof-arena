@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run all seven configurations on the committed smoke fixture and assert widening."""
+"""Run all configurations on the committed smoke fixture and assert widening."""
 import json
 from pathlib import Path
 import tempfile
@@ -19,7 +19,7 @@ def main():
             rows = [json.loads(s) for s in (out / "results.jsonl").read_text().splitlines()]
             for entry, row in zip(entries, rows):
                 if "c.not_genesis" in entry["d3_violations"]:
-                    expected = "accept" if (tier.startswith("genesis") or tier == "runtimeLimits") else "out_of_domain"
+                    expected = "accept" if (tier.startswith("genesis") or tier in ("runtimeLimits", "storageResolution")) else "out_of_domain"
                     assert row["verdict"] == expected, (tier, row)
             print(f"{tier}: {len(cases)} cases; {report['verdicts']}")
     regression = REPO / "docs/evidence/lean-chunk-completion/runtime-chunks-209/cases"
@@ -51,10 +51,24 @@ def main():
     got = run_batch([str(binary), "--tier", "runtimeLimits"], mutant_cases, 120, "runtimeLimits")
     for entry, path in zip(entries, mutant_cases):
         assert got[str(path.resolve())]["verdict"] == entry["expected"], got
+    resolved = REPO / "docs/evidence/lean-chunk-completion/storage-resolution/cases"
+    entries = json.loads((resolved / "index.json").read_text())
+    resolved_cases = [resolved / entry["case_dir"] for entry in entries]
+    assert len(resolved_cases) == 4
+    all_cases = cases + float_cases + dynamic_cases + resolved_cases
+    got = run_batch([str(binary), "--tier", "storageResolution"], all_cases, 180, "storageResolution")
+    assert all(r["verdict"] == "accept" for r in got.values()), got
+    removed = run_batch([str(binary), "--tier", "runtimeLimits"], resolved_cases, 120, "runtimeLimits")
+    assert all(r["verdict"] == "out_of_domain" for r in removed.values()), removed
+    got = run_batch([str(binary), "--tier", "storageResolution"], mutant_cases, 120, "storageResolution")
+    for path in mutant_cases:
+        meta = json.loads((path / "meta.json").read_text())
+        assert got[str(path.resolve())]["verdict"] == ("accept" if meta["expected_rel"] else "reject"), got
+    print("STORAGE RESOLUTION SMOKE PASSED: 24 honest chunks + 4 mutants; ETH guard ablation detected")
     print("FLOAT MUTANT SMOKE PASSED: 2 rejects + 2 accepted mutations")
     print("INPUT-DRIVEN FLOAT CHUNK SMOKE PASSED: 8 chunks")
     print("FLOAT CHUNK SMOKE PASSED: 8 chunks, removed-float tier detected")
-    print("SUCCESSOR SMOKE PASSED: 35 configuration comparisons, 4 runtime chunks, ablation detected")
+    print("SUCCESSOR SMOKE PASSED: 40 configuration comparisons, 4 runtime chunks, ablation detected")
 
 if __name__ == "__main__":
     main()

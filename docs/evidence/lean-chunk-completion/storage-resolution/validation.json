@@ -1,0 +1,55 @@
+{
+  "schema": "lean-storage-resolution-checkpoint-v1",
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "scope": "W08/W09 implementation; not package or gate closure",
+  "sources": {
+    "spec/lean/v3/NearSpecV3/Successor/StorageExecution.lean": "0c5de420ed9687fdaab89b522f99276a622341fc5d50233344ad791c56ceef84",
+    "spec/lean/v3/NearSpecV3/Successor/RuntimeCore.lean": "be5b54661e150e5fd74b84f6af2bc8d5f45a0cc2703b8c19ef73d119d28d43a5",
+    "spec/lean/v3/NearSpecV3/D3/GlobalContract.lean": "33ab5b37f71ac08bdb12a0037dfbed44cf16064bdc97cb2d72c323ac9f757c7f",
+    "spec/lean/v3/TestStorageResolution.lean": "72a64fdfc65c84ba68db23b41fa5b688a3fdfa2b77decc39261a283d3bdc639f",
+    "tools/d3/storage-fixtures/record.wat": "39912decffc29fd4454ed7d8aae9ba9ab26b3864eefcbc71e557be757edc77d3",
+    "tools/d3/storage-fixtures/record.wasm": "57e64c10613061bc3cd47a16c244ac73e701516f9559b007e79af047f4a05e66",
+    "tools/d3/storage-fixtures/exhaust.wat": "797dc621bc430e5901766167fa6149268b784cc7658f538dc642104ccbdda9d8",
+    "tools/d3/storage-fixtures/exhaust.wasm": "879f783647f459d5773e38fd1352387b13a0010256a36677f5f8f7a2a4266846"
+  },
+  "checks": {
+    "build": "pass",
+    "native_boundary_and_rollback": "pass",
+    "make_d3_smoke": "pass",
+    "python_tests": {
+      "run": 59,
+      "passed": 58,
+      "skipped": 1
+    },
+    "coverage_drift": "pass"
+  },
+  "replays": {
+    "combined-1788": {
+      "status": "pass",
+      "cases": 1788,
+      "verdicts": {
+        "accept": 1503,
+        "out_of_domain": 151,
+        "reject": 134
+      },
+      "package": {
+        "binary": "/data/illia/nearproof-wt/lean-chunk-integration/spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor",
+        "sha256": "8e4e4fabd4610761ad2aa503b5752f92779020078099702f1ae19c8ecb73f883",
+        "tier": "storageResolution"
+      }
+    },
+    "l4-388": {
+      "status": "pass",
+      "cases": 388,
+      "verdicts": {
+        "accept": 161,
+        "out_of_domain": 227
+      },
+      "package": {
+        "binary": "/data/illia/nearproof-wt/lean-chunk-integration/spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor",
+        "sha256": "8e4e4fabd4610761ad2aa503b5752f92779020078099702f1ae19c8ecb73f883",
+        "tier": "storageResolution"
+      }
+    }
+  }
+}

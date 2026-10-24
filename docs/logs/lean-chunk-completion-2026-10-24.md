@@ -164,3 +164,10 @@ Code checkpoints `fb997a91e`, `766750ea7`, and `25efc7265` are fast-forwarded to
 The integration branch/worktree and all existing lanes remain available. No W05 commits or files
 were included; unrelated root RealCaseD3 work and pre-existing integration target deletions were
 preserved. The semantic/proof/admission obligations listed above remain unfinished.
+
+## W08/W09 follow-up — action code resolution and storage execution
+
+The `storageResolution` tier now uses identifier-preserving calls and a real chunk-scoped recorder.
+See [the implementation handoff](lean-chunk-storage-resolution-2026-10-24.md) for source details,
+boundary/rollback regressions, targeted and broader replay, and remaining validation obligations.
+Global action tags/distribution and authenticated cache closure remain open; W05 stays untouched.

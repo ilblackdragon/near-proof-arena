@@ -13,6 +13,7 @@ def parseTier : String → Option Successor.Tier
   | "genesis" => some .genesis
   | "genesisFloatsProtoGas" => some .genesisFloatsProtoGas
   | "runtimeLimits" => some .runtimeLimits
+  | "storageResolution" => some .storageResolution
   | _ => none
 
 def resultRow (dir tier verdict reason : String) : String :=

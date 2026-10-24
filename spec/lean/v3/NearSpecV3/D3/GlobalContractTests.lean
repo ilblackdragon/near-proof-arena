@@ -274,9 +274,11 @@ def ethAcct : Bytes := [48, 120] ++ List.replicate 40 97
 #guard decide (Rci.resolve [116, 101, 115, 116, 110, 101, 116] ethAcct (.local (walletMagicHash .oldTestnet))
                = .global (ethWalletHash [116, 101, 115, 116, 110, 101, 116])
                          (.codeHash (ethWalletHash [116, 101, 115, 116, 110, 101, 116])))
--- The old-testnet hash on mainnet does NOT: it is not a mainnet wallet.
+-- Runtime resolution recognizes all legacy hashes on every chain (contract_code.rs:62).
+-- Unlike matchesWallet, it redirects the old-testnet hash on mainnet too.
 #guard decide (Rci.resolve [109, 97, 105, 110, 110, 101, 116] ethAcct (.local (walletMagicHash .oldTestnet))
-               = .accountLocal (walletMagicHash .oldTestnet) ethAcct)
+               = .global (ethWalletHash [109, 97, 105, 110, 110, 101, 116])
+                         (.codeHash (ethWalletHash [109, 97, 105, 110, 110, 101, 116])))
 -- The resolved global hash differs from the local magic hash it replaced.
 #guard (Rci.resolve [109, 97, 105, 110, 110, 101, 116] ethAcct (.local (walletMagicHash .mainnet))).codeHashOf
        != walletMagicHash .mainnet

@@ -1,0 +1,80 @@
+⚠ [16/212] Replayed NearSpecV3.Logged.LazyTrieSpec
+warning: NearSpecV3/Logged/LazyTrieSpec.lean:168:78: This simp argument is unused:
+  LK.force
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [SM.pure_eq, SM.bind_eq, SM.ok_bind, SM.run_bind, ih, LT.force, PTrie.allKeys, Option.map_none]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: NearSpecV3/Logged/LazyTrieSpec.lean:176:40: This simp argument is unused:
+  SM.ok_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Except.bind, ite_true, SM.run_bind, SM.run_ok, ih]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [23/212] Replayed NearSpecV3.D2.Types
+warning: NearSpecV3/D2/Types.lean:330:20: Variable name `bs` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _bs
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [39/212] Replayed NearSpecV3.Logged.D2State
+warning: NearSpecV3/Logged/D2State.lean:174:41: This simp argument is unused:
+  Ovl.wt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [preT]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [42/212] Replayed NearSpecV3.Logged.Lockstep
+warning: NearSpecV3/Logged/Lockstep.lean:67:29: This simp argument is unused:
+  ex_ok_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Except.map, bind, Except.bind] at ih ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [73/212] Replayed NearSpecV3.Wasm.Host
+warning: NearSpecV3/Wasm/Host.lean:225:88: `List.asString` has been deprecated: Use `String.ofList` instead
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.asString` to `String.ofList x`).
+⚠ [194/212] Built NearSpecV3.D3.GlobalContract (412ms)
+warning: NearSpecV3/D3/GlobalContract.lean:334:22: Variable name `chainId` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _chainId
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+✔ [195/212] Built NearSpecV3.D3.GlobalContractExec (250ms)
+✔ [196/212] Built NearSpecV3.D3.GlobalContract:c.o (435ms)
+ℹ [197/212] Built NearSpecV3.Successor.ActionsReceipts (475ms)
+info: NearSpecV3/Successor/ActionsReceipts.lean:384:0: 'NearSpecV3.Successor.ActionTag.ofCode_code' does not depend on any axioms
+info: NearSpecV3/Successor/ActionsReceipts.lean:385:0: 'NearSpecV3.Successor.pActV_tag9' depends on axioms: [propext]
+info: NearSpecV3/Successor/ActionsReceipts.lean:386:0: 'NearSpecV3.Successor.distReceipt_encode_layout' does not depend on any axioms
+⚠ [198/212] Built NearSpecV3.D3.GlobalContractCall (254ms)
+warning: NearSpecV3/D3/GlobalContractCall.lean:276:48: This simp argument is unused:
+  and_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [guardPremise, hEth, Bool.true_and]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+ℹ [199/212] Built NearSpecV3.Successor.Resolution (249ms)
+info: NearSpecV3/Successor/Resolution.lean:254:0: 'NearSpecV3.Successor.ethWallet_kind_unreachable' depends on axioms: [propext]
+info: NearSpecV3/Successor/Resolution.lean:255:0: 'NearSpecV3.Successor.coldCache_lookup_none' does not depend on any axioms
+✔ [200/212] Built NearSpecV3.D3.GlobalContractTests (615ms)
+✔ [201/212] Built NearSpecV3.Successor.StorageExecution (1.2s)
+✔ [202/212] Built TestStorageResolution (738ms)
+✔ [203/212] Built TestStorageResolution:c.o (441ms)
+✔ [204/212] Built NearSpecV3.Successor.StorageExecution:c.o (1.9s)
+✔ [205/212] Built «nearspec-v3-test-storage-resolution»:exe (456ms)
+✔ [206/212] Built NearSpecV3.Successor.RuntimeCore (6.3s)
+ℹ [208/212] Built NearSpecV3.Successor.Config (2.5s)
+info: NearSpecV3/Successor/Config.lean:313:0: 'NearSpecV3.Successor.checkSuccessor_signed' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NearSpecV3/Successor/Config.lean:314:0: 'NearSpecV3.Successor.tier_floats_eq_checkD3F' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NearSpecV3/Successor/Config.lean:315:0: 'NearSpecV3.Successor.checkSuccessor_unsupported_pv' depends on axioms: [propext, Classical.choice, Quot.sound]
+✔ [210/212] Built MainSuccessor (544ms)
+✔ [212/212] Built «nearspec-v3-check-successor»:exe (457ms)
+Build completed successfully (212 jobs).

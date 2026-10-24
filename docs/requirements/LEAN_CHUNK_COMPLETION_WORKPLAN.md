@@ -57,6 +57,37 @@ remains available for further work. See the
 - **W13:** witness-source information is pending. **W05** remains with the other agent.
   No complete W00–W16 package or Gate A/B/C is certified by this checkpoint.
 
+### Action code resolution and storage execution checkpoint — 2026-10-24
+
+The `storageResolution` successor tier composes runtime limits, floats, protocol gas and genesis
+with actual chunk-scoped recording and FunctionCall identifier resolution. The signed checker
+and the seven earlier tier configurations retain their original dispatch. The parameterized
+validation shell has `rfl` checks against both original core validators at its legacy driver.
+
+- **W08 implemented:** local/global-by-hash/global-by-account code dispatch; all four legacy wallet
+  magic hashes redirect using the current chain; account identifiers survive successful calls.
+  Global-by-account lookup reads the value reference without requiring the code blob. Missing
+  identifier, missing proof and missing code remain distinct errors. The cold-cache exclusion
+  remains explicit; no unauthenticated warm-cache input was introduced.
+- **W09 implemented:** deduplicated authenticated node/value reads, non-rollback removal charges,
+  shared VM accounting cache, one proof baseline per action receipt, per-receipt exhaustion and
+  chunk soft-limit deferral across local/delayed/incoming receipts and yield timeouts. The merged
+  witness-size overestimate is disabled only in this tier; the 8 MiB serialized witness cap remains.
+- **Evidence:** 388 targeted cases (161 ETH-local accepts, 227 residual exclusions) and 1,788 broader
+  comparisons (1,503 accepts, 134 rejects, 151 residual exclusions) agree with recorded expectations.
+  Native tests cover strict boundaries, two calls sharing a receipt budget, reset between receipts,
+  reference-only global lookup, cross-chain wallet resolution, identifier preservation, deduplication,
+  and rollback after 2,001 removals followed by deferral. CI includes four ETH-local chunk fixtures,
+  20 existing honest runtime/float chunks and four existing mutants in the new tier.
+- **Still open:** W07 global action tags/distribution/promise translation; W08 authenticated cache
+  and preparation-order closure plus positive nearcore global/wallet chunk windows; W09 independently
+  generated nearcore chunks at exact proof limits, full observable comparison, implicit/resharding
+  composition and resource bounds. Native directed tests are not independent nearcore boundary
+  comparisons. No whole W08/W09 package or completion gate is certified; W05 is untouched.
+
+See [implementation and handoff](../logs/lean-chunk-storage-resolution-2026-10-24.md) and
+[replay evidence](../evidence/lean-chunk-completion/storage-resolution/README.md).
+
 ### Remaining work by package
 
 Each row states what is available and what must still satisfy the detailed success criteria below.
@@ -65,15 +96,15 @@ No W00–W16 package is certified fully complete by this merge.
 | Package / owner | Available now | Remaining completion obligation |
 |---|---|---|
 | W00 / L0 + integration | Seven successor interfaces, owner map, default-build inclusion, gas/float/genesis configuration | Connect real host/action/recorder execution; settle boundary questions and versioned facts/codecs; complete canonical relation and interface proofs. |
-| W01 / L7 | Six executables built; seven configurations smoked; strict replay with artifact/input/output hashes and failure controls | Emit and compare computed chunk observables (roots, outcomes, gas, receipts, writes and rollback); validate the completed combined successor. |
+| W01 / L7 | Seven executables built; eight configurations smoked; strict replay with artifact/input/output hashes and failure controls | Emit and compare computed chunk observables (roots, outcomes, gas, receipts, writes and rollback); validate the completed combined successor. |
 | W02 / L1 | Protocol-gas checker, measured above-cap acceptance | Fuel/termination and protocol-scale memory/stack bounds; remove arena-only segment/size limits; stress limits and prove overlap/tier inclusion. |
 | W03 / Wasm owner + L7 | Pooling allocation semantics, 1,030 exact output comparisons and 209 chunk comparisons; ablations and CI regressions | Complete remaining runtime-error/environment reachability audit and validate the final combined package. |
 | W04 / L2 | Float kernel; 2,050 full-output cases covering 70 operators; eight fixed and eight input-driven contracts; 1,284 input-driven chunk comparisons (1,200 accepts); CI fixtures | Complete overlap proof, preparation negatives and remaining cross-family execution; 350 mutant expectations now pass. |
 | W05 / L3 — held back | Main has ecrecover/p256 and nine BLS host implementations; pending branch adds BN128 and followups | Reconcile and validate pending checkpoint in a later merge, including fixture failure controls; connect all curve hosts to accepted chunks and verify gas/error/state parity. |
 | W06 / L3 keys | Existing Ed25519 paths | secp256k1 transactions/delegates and ML-DSA-65 codecs, verification, key handles and trie integration; positive/negative chunks with fees/nonces/roots. No W06 completion inferred from W05. |
 | W07 / L4 | Codecs/action bodies, 134 directed tests; standalone widened parser and resolving checker now merged | Wire tags 9/10/11 and distribution receipts through versioned successor dispatch; complete promise/gas-key translation; validate success/failure, fees, writes, receipts and rollback in chunks. |
-| W08 / L1 + L4 | Resolver, resolving hook, conditional agreement and guard-gap theorems | Lift successor ETH-local rejection correctly; positive global/by-account/wallet cases; define and test cache/deploy/preparation environment, missing code and recorded code reads. |
-| W09 / L5 | Storage analysis, conditional bounds and recorder interface | Actual protocol recorder, per-receipt limit and chunk soft-limit deferral; shared-path/cache/rollback accounting and boundary fixtures. |
+| W08 / L1 + L4 | Executable identifier-preserving successor resolution, hash-only global lookup, cross-chain legacy-wallet redirect; 161 ETH-local chunk accepts | Close cache/preparation environment; independently validate global/by-account/wallet chunk windows and missing-code/deploy combinations. |
+| W09 / L5 | Executable chunk recorder, per-receipt exhaustion, chunk deferral, rollback-preserved read/removal accounting; native boundaries and regression replay | Independent nearcore exact-limit chunk fixtures, full observable parity, implicit/resharding composition and resource bounds. |
 | W10 / L6 | Corrected genesis checker, 137 recorded new accepts, gas/float/genesis composition | Non-genesis overlap proof, genesis transaction-flag negatives, authenticated facts and combined-entry validation. Preserve header-mutant regressions. |
 | W11 / L6 | Boundary analysis/interface | Actual resharding retention, child state/buffers/congestion and epoch transitions; real layout-boundary fixtures and mixed-protocol reachability resolution. |
 | W12 / integration + L1 | Partial gas/float/genesis composition; additive family adapters | One executable W02–W11 relation; all required families reachable; tier/overlap proofs and cross-family tests. Runtime still calls old host dispatch. |
@@ -86,7 +117,8 @@ No W00–W16 package is certified fully complete by this merge.
 
 1. **Shared integration first:** L0/integration exposes the executable adapters for host dispatch,
    versioned actions/receipts, resolution and recorder. L4's `checkD3Global` still calls old D2
-   decoders; its `pActL4` is standalone. Normalizing an ETH contract to local preserves the old guard.
+   decoders; its `pActL4` is standalone. Use the new `storageResolution` path for calls and recording;
+   the older normalization delegate is not the integrated execution path.
 2. **Parallel semantic work:** L1 capacity, L2 float coverage/runtime errors, L3 held-back curves and
    separate key work, L4 actions/resolution, L5 recorder, L6 genesis/resharding. Consume the shared
    interfaces rather than forking independent complete checkers. W07/W08 and W09/W11 must coordinate.

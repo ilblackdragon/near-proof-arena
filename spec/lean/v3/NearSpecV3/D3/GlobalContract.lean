@@ -323,7 +323,7 @@ def Rci.resolve (chainId : Bytes) (acct : Bytes) (c : Contract) : Rci :=
   match c with
   | .none => .none
   | .local h =>
-    if AccountId.isEthImplicit acct && matchesWallet chainId h then
+    if AccountId.isEthImplicit acct && (resolveWallet h).isSome then
       .global (ethWalletHash chainId) (.codeHash (ethWalletHash chainId))
     else .accountLocal h acct
   | .global h => .global h (.codeHash h)
@@ -363,7 +363,7 @@ theorem legacyWallet_unreachable_pv86 (chainId : Bytes) (acct : Bytes) (c : Cont
   cases c with
   | «none» => simp [Rci.resolve] at h
   | «local» hh =>
-    by_cases hc : AccountId.isEthImplicit acct && matchesWallet chainId hh
+    by_cases hc : AccountId.isEthImplicit acct && (resolveWallet hh).isSome
     · simp [Rci.resolve, hc] at h
     · simp [Rci.resolve, hc] at h
   | «global» hh => simp [Rci.resolve] at h
@@ -372,7 +372,7 @@ theorem legacyWallet_unreachable_pv86 (chainId : Bytes) (acct : Bytes) (c : Cont
 /-- At PV86 an ETH-implicit account with a wallet-hash local contract resolves to the global wallet
 contract's code hash, not to its own local hash. -/
 theorem ethImplicit_resolves_global (chainId acct h : Bytes)
-    (hEth : AccountId.isEthImplicit acct = true) (hW : matchesWallet chainId h = true) :
+    (hEth : AccountId.isEthImplicit acct = true) (hW : (resolveWallet h).isSome = true) :
     Rci.resolve chainId acct (.local h) = .global (ethWalletHash chainId) (.codeHash (ethWalletHash chainId)) := by
   simp [Rci.resolve, hEth, hW]
 
@@ -414,9 +414,16 @@ def Rci.resolveCodeHash (o : Ovl) (r : Rci) : Except String (Option Bytes) :=
   | .accountLocal h _ => pure (some h)
   | .global h (.codeHash _) => pure (some h)
   | .global _ (.accountId id) => do
-    match ← o.get (kGlobalContractCode (.accountId id)) "global contract code" with
-    | some raw => pure (some (sha256 raw))
-    | Option.none => throw (inconsistent "global contract identifier not found")
+    let key := kGlobalContractCode (.accountId id)
+    -- nearcore get_ref().value_hash(): code bytes need not be in the witness.
+    match o.lookup key with
+    | some (some raw) => pure (some (sha256 raw))
+    | some Option.none => throw (inconsistent "global contract identifier not found")
+    | Option.none =>
+      match o.trie.findRef (nibbles key) with
+      | some (some slot) => pure (some (slot.valueRef.drop 4))
+      | some Option.none => throw (inconsistent "global contract identifier not found")
+      | Option.none => throw (missing "global contract identifier")
   | .legacyEthWallet _ => pure (Option.none : Option Bytes)
 
 /-! ## 9. Fees: the effective PV86 values
