@@ -1,0 +1,96 @@
+{
+ "bases": [
+  "00-h10010-s1",
+  "00-h10016-s1",
+  "00-h10022-s1",
+  "00-h10030-s2",
+  "00-h10039-s3",
+  "00-h10044-s1",
+  "00-h10051-s3",
+  "00-h10057-s1",
+  "00-h10067-s0",
+  "00-h10073-s2",
+  "00-h10082-s3",
+  "00-h10094-s0",
+  "00-h10101-s0",
+  "00-h10108-s3",
+  "00-h10113-s2",
+  "00-h10119-s0",
+  "00-h10128-s2",
+  "00-h10134-s1",
+  "00-h10142-s0",
+  "00-h10148-s1",
+  "00-h10158-s1",
+  "00-h10164-s1",
+  "00-h10171-s3",
+  "00-h10179-s3",
+  "00-h10189-s3",
+  "00-h10194-s2",
+  "00-h10201-s2",
+  "01-h10009-s0",
+  "01-h10014-s1",
+  "01-h10018-s0",
+  "01-h10023-s0",
+  "01-h10029-s4",
+  "01-h10036-s1",
+  "01-h10042-s3",
+  "01-h10048-s3",
+  "01-h10052-s4",
+  "01-h10057-s2",
+  "01-h10065-s1",
+  "01-h10071-s2",
+  "01-h10076-s4"
+ ],
+ "corpus": "/data/illia/nearproof-deps/corpora/d3c7",
+ "failures": [],
+ "families": {
+  "hdr.encoded_length": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.encoded_merkle_root": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.gas_limit": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.prev_balance_burnt": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.prev_gas_used": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.prev_outcome_root": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.prev_outgoing_receipts_root": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.prev_state_root": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  },
+  "hdr.tx_root": {
+   "n": 40,
+   "rejected_right": 40,
+   "wrong": 0
+  }
+ },
+ "honest_bases_accepted": 40,
+ "schema": "near-d3-output-mutants-v1",
+ "total_failures": 0
+}
