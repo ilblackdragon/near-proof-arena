@@ -1,0 +1,15 @@
+[workspace]
+
+[package]
+name = "altbn128-oracle"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Reference oracle for the three alt_bn128 host semantics: a verbatim transcription of nearcore 44f7ae6c runtime/near-vm-runner/src/logic/alt_bn128.rs over zeropool-bn 0.5.11 (the crate + version nearcore's Cargo.toml pins as `bn`)."
+
+[[bin]]
+name = "altbn128-oracle"
+path = "src/main.rs"
+
+[dependencies]
+bn = { package = "zeropool-bn", version = "=0.5.11", default-features = false }

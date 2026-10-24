@@ -1,0 +1,62 @@
+{
+ "oracle/fixtures/v3/altbn128-generated/seed-20261023/alt_bn128_g1_multiexp.jsonl": {
+  "lines": 260,
+  "sha256": "6531542019dd8898d7fac40ce275212397fd0e6a1d43658879e09b9fbfa5ea01"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261023/alt_bn128_g1_sum.jsonl": {
+  "lines": 260,
+  "sha256": "ef473458f05132eeacf85d736a44f09e5031be977b56474ad0becb5803c79c22"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261023/alt_bn128_pairing_check.jsonl": {
+  "lines": 260,
+  "sha256": "6577e9c78fbbd1ae4051f48ad74525cce804591e4a9aea1b69ceb57aaf743b4f"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261024/alt_bn128_g1_multiexp.jsonl": {
+  "lines": 260,
+  "sha256": "7a5c0cca272a3d027e27fa6da73c0d2d5aa20b670d65b6bac02a3fbf695768e1"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261024/alt_bn128_g1_sum.jsonl": {
+  "lines": 260,
+  "sha256": "223b07f185b2fcc77c13e448d4f65f82ca8d089b97d62d647f1c5dcfab07bbca"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261024/alt_bn128_pairing_check.jsonl": {
+  "lines": 260,
+  "sha256": "22093954276f950cb0b8b65f2dd488c28f6ec5d44b3e5e51bb065208fb9c8056"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261025/alt_bn128_g1_multiexp.jsonl": {
+  "lines": 260,
+  "sha256": "6f4342e936a577473110fe2a1529da7d7161f8ba636da7b15b9cd2a5785077ba"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261025/alt_bn128_g1_sum.jsonl": {
+  "lines": 260,
+  "sha256": "c55db30b7cc0b89ac6ed105f1c5e6b7311b9760182cb922610ebe3491baaab5d"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261025/alt_bn128_pairing_check.jsonl": {
+  "lines": 260,
+  "sha256": "67c84df27ec1ceeddc87d3928b2225531108fe0261403c451a2b7a3b3fd310c5"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261026/alt_bn128_g1_multiexp.jsonl": {
+  "lines": 260,
+  "sha256": "325c86b16b642d2f1584ca334f4b7ca1e811ce8381979a9e07380cd3d2f9c55e"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261026/alt_bn128_g1_sum.jsonl": {
+  "lines": 260,
+  "sha256": "931454f917c2f0d84c24137c30d5494d4c909d1fb1b8714282f2f2c588c5b56d"
+ },
+ "oracle/fixtures/v3/altbn128-generated/seed-20261026/alt_bn128_pairing_check.jsonl": {
+  "lines": 260,
+  "sha256": "7700891cd9ac97223b7637f8c2981d611c1e107da66ad0db10f4363952b93974"
+ },
+ "oracle/fixtures/v3/altbn128/alt_bn128_g1_multiexp.jsonl": {
+  "lines": 19,
+  "sha256": "81c81557db2dd49c44cb2060f77cd3650f7258cf758e89db0cb51da8b11014fe"
+ },
+ "oracle/fixtures/v3/altbn128/alt_bn128_g1_sum.jsonl": {
+  "lines": 18,
+  "sha256": "92120cc17a3e2ba6c7782c5b9d782642fa207853857165f631447326225137fc"
+ },
+ "oracle/fixtures/v3/altbn128/alt_bn128_pairing_check.jsonl": {
+  "lines": 19,
+  "sha256": "b2ef0fae4e3a94a2e6c7b0a6412e9803aab207c363307e7fe0cb8ce706c226b8"
+ }
+}
