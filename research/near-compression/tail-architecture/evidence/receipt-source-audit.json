@@ -1,0 +1,3085 @@
+{
+  "status": "HOST_SOURCE_TO_KERNEL_CONFORMANCE_NOT_PROOF",
+  "cases": [
+    {
+      "case": "00-h10004-s3",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10006-s3",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "b4f38bf6f574aeaec79a455ec014efc7cbc92817b7d835a077f56bedb93e96a4",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10007-s3",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 81,
+          "shard": 3,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "e4b6bd7c6318291757c961a8056aacad218ecb2569b4c942f8bee2c4ed650732",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 97,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10008-s3",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 564,
+          "sha_blocks": 9,
+          "sha256": "d2ad3fe9003436a56f9a1cf2d4d52161e375ffaef2e45b8331bebbc0bf26c1e2",
+          "receipt_count": 4,
+          "receipt_bytes": 552,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "00-h10011-s1",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "ba1bf10ca27529ab499f28ba81bc2ae66f5fa7c018da005672d058e57f4e06c9",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10011-s3",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 3,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "a4a627cc436856c8ac266d98f65d6c711aa7cbeddcfbf4787e8f76a0f955fa0c",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "00-h10012-s0",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "6ff5dc66b0eae26c45fab6c2699c8cc0afcb82155571c27761e42948a90e64c8",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10012-s1",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "0886fa00e131cb475c9b86e94db4746be9c1506c01184e19e0d79cfe109006bc",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10012-s3",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 428,
+          "sha_blocks": 7,
+          "sha256": "7cb6ac9952ea66c172a877a2ba908d6d4ecbe4ff8ba3aeb3d3f5c3ec1608434f",
+          "receipt_count": 3,
+          "receipt_bytes": 416,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "24bd2fdd7d6a3c7d7e8f7d19d753153e8ea6faf4224a8cabf3a617a98d20f281",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10013-s1",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10013-s2",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "744baa222cef8bb71546b211c23414e774a984006d9b77e9d2be401b28138612",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10014-s1",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10015-s0",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10016-s0",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "3fd9e1f9fff792d63716cfdb83a48d076a9a9f8314df2ed0d987e367ec5f0fbe",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10017-s0",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "225b89a5ac4b0070e52e38d5a5b6dfb977fe944a4661205ddbd8f391f4b26de2",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "00-h10018-s0",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10019-s0",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "3c8607455c6548523a2a164ef364f002c36adbb6baba6837bc103a9e24f0b2cf",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10019-s1",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 288,
+          "sha_blocks": 5,
+          "sha256": "1e8fefdb92800406954690b630ead615fe43562a6b0848d76f297f422de31900",
+          "receipt_count": 2,
+          "receipt_bytes": 276,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10020-s1",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 568,
+          "sha_blocks": 10,
+          "sha256": "e6681241183e016c8a7694c738707894686f4e4b6f8d1e8f42a3433bbda0934e",
+          "receipt_count": 4,
+          "receipt_bytes": 556,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10021-s1",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "3836e3dcd261726e26cac0cb2e4881bfbf32333915ac8aa155191d45eff3cd96",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "00-h10022-s1",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "5bbb04736748aedc099941bc8637a4857a2bd6e666db7ffaf92986bc47b26d59",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10023-s1",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10023-s2",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "5b9e56056876f1e11696beaf7da75c4470a35ddb6c55349df3df158bfd42b6ca",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "bf6861c79293d8ba3b88ce31089232ee6ba3d2533fa442072c554e2e94832151",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "d9fb94d06506e38f0c1390126efb5c43617a2b406c0980fef9f4a0cf9b7fe4bb",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10023-s3",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "d714d428292ba16f3c7301ecac0475a5b7fac46bc22ade508acfb59d810fd7de",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10024-s0",
+      "receipts": 5,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "3f3bdf0659fb81ed77ca18c4fc5e79a569056816bb02b3184f5908f6d046c0a1",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 566,
+          "sha_blocks": 9,
+          "sha256": "ca05165ad7ee46a67bf5db689fc712f764973fc0840fce8ca0d06d27c5872b6d",
+          "receipt_count": 4,
+          "receipt_bytes": 554,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10024-s3",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10025-s2",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "8ceb3bb62486e42010be026926724215baa6dde5cca7c3d9b47e8af0a3ad1aa4",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 65,
+          "shard": 2,
+          "bytes": 291,
+          "sha_blocks": 5,
+          "sha256": "885bec5e8f838883d35bdaa695fe999254bc0663f684f55b109f0a3c9d1e4e33",
+          "receipt_count": 2,
+          "receipt_bytes": 279,
+          "max_receipt_bytes": 140
+        },
+        {
+          "job_id": 81,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "bba7e63940a0667c5b9f246d0eec7bbbfc4561bc37dd44c9a8f99746039441cc",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10034-s1",
+      "receipts": 6,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "e10c360d6c45b321a25574707444ec57d2cbb2a9385abb68008d561d0ad67af2",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 427,
+          "sha_blocks": 7,
+          "sha256": "cb0a91de11c5625ba70e27f89c4eec5769045ca94ff9b82df3174fccc65145b6",
+          "receipt_count": 3,
+          "receipt_bytes": 415,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "f7380bede5e9dc50a637ad2954019a2c4cef62ae18b7c99dca1a70acb28c1e7d",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10035-s1",
+      "receipts": 3,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "65ca54702199661589746f52b7c256101da431cccfa88797ec650e5a633fcffa",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "d5b7ffa8d7d61312670e042b958d5144166356465572a405550f9e6c5fae8567",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10035-s3",
+      "receipts": 814,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "fbdb6c368db0b91e48795c7237f27e25aedb50e46ec0c441198405d0916eb477",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 1263,
+          "sha_blocks": 20,
+          "sha256": "985d7268a8be8b81257ad8d1acce0bd589d30481019b9273e4bc81c5a6d1c245",
+          "receipt_count": 9,
+          "receipt_bytes": 1251,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 111780,
+          "sha_blocks": 1747,
+          "sha256": "70f37c92084aa5dd0312d45e28f06fd90d4cc5ff472a428b6737f1ea308c2c83",
+          "receipt_count": 804,
+          "receipt_bytes": 111768,
+          "max_receipt_bytes": 140
+        }
+      ]
+    },
+    {
+      "case": "00-h10036-s3",
+      "receipts": 711,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 98849,
+          "sha_blocks": 1545,
+          "sha256": "b09b6c4e143ddc135d5164cab568bb286b6329b26891ab6e51e7728033e4c249",
+          "receipt_count": 711,
+          "receipt_bytes": 98837,
+          "max_receipt_bytes": 140
+        }
+      ]
+    },
+    {
+      "case": "00-h10037-s3",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10038-s0",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "d2bc21b622c3f504dd7b47fdb75e5c3dae0113640433c44754ca038d9c18f505",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10039-s1",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "07bab6b448597d7b69baa45a3a2ab3ecdd6c88717a5526ee65ec99a3a596092b",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "00-h10040-s1",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "00-h10041-s1",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "15f55819179a9b491db6892d09c7d02c29f535850e71e4a64e873367225ee647",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10004-s0",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "bce2a96ce2a677341d34b20ed08d1c3d79bd6a56babccf758816fd720633e77f",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10005-s2",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "28abf8c0a9f8a3e07c6ee9a865e03847d0b65acd44fc3a29732ee1e2db5e94a8",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "8f08d1617a8865ca67a3f94549b312a31cdb57ab08f9fefdcc17e1c6b2bfee0f",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "01-h10005-s3",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 288,
+          "sha_blocks": 5,
+          "sha256": "b08a8c50654bb715360b1317a45c2c96cb95bb3de6c4b00a9ded6d31f6ffa869",
+          "receipt_count": 2,
+          "receipt_bytes": 276,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 49,
+          "shard": 3,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "c20cf2077ded9f4d0f39e4694ab576057fedb917e93ba2595e6f179d41f7e24f",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "01-h10006-s2",
+      "receipts": 5,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "06694d71e5ef320f213ec49fd57cdc10d36c9fd36d582fbbf8669a8d2ee823f3",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "2b852130743ecb03cb8908e847d66673328aa45bda43ea791a687558771c7422",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "159cc0e5a5ceed9cec2abd2b06fb8adc01c8a7f0e5ab3818e932197d2edc5cb6",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10007-s0",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "a9e66fe7c1ee4c171247878b6a0c6975112a7b0a294717e23605338b4f0159c6",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "e212fc092d6ae6a56c25632da8dc1b465217c0af64afb99ea2db168d2f547d20",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 65,
+          "shard": 0,
+          "bytes": 288,
+          "sha_blocks": 5,
+          "sha256": "bcf2fedf3775f16e1371c2ffc905441ba31a28a99bdf19d3479cabc55a8fd546",
+          "receipt_count": 2,
+          "receipt_bytes": 276,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "01-h10007-s1",
+      "receipts": 3,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 288,
+          "sha_blocks": 5,
+          "sha256": "6e08e6f5966e862d3a7d41c1f29a8b9235855e955ce56560200e7f2ed6a5e797",
+          "receipt_count": 2,
+          "receipt_bytes": 276,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "6381ccb6275af9346328b4108f63c57add03bd104fc94ab8e095b4d9a979956d",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10007-s2",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "6eda92957961bd72e5bf6d6de2f3e96df333b12fc7d507847c26691433c11af9",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "789518ffa718669796962d9cde86151d8e88104606068f134518ecc554eaea92",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 65,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10008-s0",
+      "receipts": 7,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "8fbb1da04dbc09f235c42e61466e94d8d0e04a0740ecf447210e80366a31dcb4",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "37aa249753b7fce64183236aae56e0aaced3825da16f8e321ac8abe9b726536a",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 427,
+          "sha_blocks": 7,
+          "sha256": "c67aa1e72fe9dcac82fd429b69e9ef4743772524a0529061f5549c7dcfbd773a",
+          "receipt_count": 3,
+          "receipt_bytes": 415,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 65,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10008-s3",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10009-s0",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "360b36d16c01f0a0ff84540754e2f7a1141eab9c1781a1226c15388013c1b8ea",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "01-h10009-s1",
+      "receipts": 5,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "fc4665a6cc290474f6ad53c0dcc639d420da6f7e439466053815b4f8df00a473",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "594c5583a09a51f00147aa184a6ab29a654887f6b04207792d9b00e5111add81",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "dadef118dfa115b1b4bc1074efec88050ba7137b0c2fbcd323c0408bd3cf81f1",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 65,
+          "shard": 1,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "33cc74d732e5379ecd51cd6813ee18f3b801a369facedfca5b09c07c22605733",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "01-h10010-s1",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 81,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 97,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 113,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 129,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10011-s4",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 4,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "1acd855e4657b0c3f4e203d3452dbfd1cf66eff0101b0ac539f0570f06990f9c",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 4,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "1acd855e4657b0c3f4e203d3452dbfd1cf66eff0101b0ac539f0570f06990f9c",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 4,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "1acd855e4657b0c3f4e203d3452dbfd1cf66eff0101b0ac539f0570f06990f9c",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10012-s2",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "912bfb28717f87f2f8c0602c4c4897d4c07a0c801f6ff8aa4f48f6507c7008b0",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10013-s2",
+      "receipts": 3,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "fa6ff4eac11081670aa02345f5e3b71d445bd03cbcd9b570b5ee0f5ceb98fa23",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 2,
+          "bytes": 288,
+          "sha_blocks": 5,
+          "sha256": "68bbeec57746714e1fc7385891b3431a884c8192fbaf78d6b4014b2dd0e444da",
+          "receipt_count": 2,
+          "receipt_bytes": 276,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "01-h10015-s0",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "ed42f03eaa9a0fc9eaa39494c9b77cc6b68d35c6cf01cea9960a6689b31add61",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "d8732de1672660cfbe58ebb0d672552236768c61ec9784c3cf7788585cdefb1d",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 81,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 97,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10017-s1",
+      "receipts": 8,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 427,
+          "sha_blocks": 7,
+          "sha256": "c5b45bd77dfdfda78394f906ac855253a1082cb1180e27fc9b095752327466d9",
+          "receipt_count": 3,
+          "receipt_bytes": 415,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "bcd18ccedab43a033ae6f2326d17bc416bd6cb45624cfe4dc0745f2e3f71ec38",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 65,
+          "shard": 1,
+          "bytes": 426,
+          "sha_blocks": 7,
+          "sha256": "ea5dea2adb9d3a63824ca0736f1f72f700ae57915f6129aede5936dc0de1957b",
+          "receipt_count": 3,
+          "receipt_bytes": 414,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "01-h10018-s2",
+      "receipts": 4,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "4931a821adc1978eeb379992123d4fa2be0fa44988279bbebe89538ac885afb4",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "97ba04b3f815aa8a51ca0ca8fc411d10735e2db910dc0744173c1df55ed595e1",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "9ee8791ce744acc65225da6f6dd7446d372309507dc00544ef660eb2e500559f",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 65,
+          "shard": 2,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "29279369e8f15dbe2f37ec2e54a9bc7b4266a3739130375df69e4d248c382ee9",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        }
+      ]
+    },
+    {
+      "case": "01-h10018-s4",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 4,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "1acd855e4657b0c3f4e203d3452dbfd1cf66eff0101b0ac539f0570f06990f9c",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 4,
+          "bytes": 150,
+          "sha_blocks": 3,
+          "sha256": "d781bfad30079286623a486195c5a58e1a63661fc3bab5e39519cdd6dcf54e99",
+          "receipt_count": 1,
+          "receipt_bytes": 138,
+          "max_receipt_bytes": 138
+        },
+        {
+          "job_id": 33,
+          "shard": 4,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "1acd855e4657b0c3f4e203d3452dbfd1cf66eff0101b0ac539f0570f06990f9c",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 4,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "1acd855e4657b0c3f4e203d3452dbfd1cf66eff0101b0ac539f0570f06990f9c",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 4,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "1acd855e4657b0c3f4e203d3452dbfd1cf66eff0101b0ac539f0570f06990f9c",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10019-s2",
+      "receipts": 1,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "2d96e31271cd3f6362de10ebbd3f0140d0d9c5a4cb7a6080769e40beefc53912",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10022-s0",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "8832a0c9004fde797412a2b78c6619627524ddafb17c75d6fbc9a9f3c5cf9077",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "e57b01831eb964b0f5d552926914aecd11778b62be3543ffe0862826a91be272",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "01-h10024-s0",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 0,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10024-s1",
+      "receipts": 2,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 81,
+          "shard": 1,
+          "bytes": 289,
+          "sha_blocks": 5,
+          "sha256": "752e3941986bd04619d989e03a349458fb59604c63f48ba54e8e862c05dd3841",
+          "receipt_count": 2,
+          "receipt_bytes": 277,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 97,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 113,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10025-s1",
+      "receipts": 496,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 68415,
+          "sha_blocks": 1070,
+          "sha256": "b62342af69d7b53c981c2d5698d1fe422a89e6b05fbd7d979bec5ed02edb9677",
+          "receipt_count": 492,
+          "receipt_bytes": 68403,
+          "max_receipt_bytes": 140
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 566,
+          "sha_blocks": 9,
+          "sha256": "f64df7c163c32867b94be21660bcc45594c1902b7d57d02f3f877d7b99337748",
+          "receipt_count": 4,
+          "receipt_bytes": 554,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 65,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10025-s2",
+      "receipts": 3,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 2,
+          "bytes": 290,
+          "sha_blocks": 5,
+          "sha256": "96b4fac594edee59a3866661b054de10fc71c060ca97459df2a8ab52a34d88b6",
+          "receipt_count": 2,
+          "receipt_bytes": 278,
+          "max_receipt_bytes": 139
+        },
+        {
+          "job_id": 33,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 2,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "b76875c50ef704dbbf7f02c982445971d1bbd61aebe2e4b28ddc58a1d66317d5",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 65,
+          "shard": 2,
+          "bytes": 151,
+          "sha_blocks": 3,
+          "sha256": "729209b8839738dcb4eccd0221624b8f14416ae0e6d0212d01beb08a68e5b637",
+          "receipt_count": 1,
+          "receipt_bytes": 139,
+          "max_receipt_bytes": 139
+        }
+      ]
+    },
+    {
+      "case": "01-h10026-s1",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 1,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "ca888f40c3caca805b37a5434c75de5550616e0795e7602fb91156f22dd90851",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10033-s3",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 49,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    },
+    {
+      "case": "01-h10034-s3",
+      "receipts": 0,
+      "lists": [
+        {
+          "job_id": 1,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 17,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        },
+        {
+          "job_id": 33,
+          "shard": 3,
+          "bytes": 12,
+          "sha_blocks": 1,
+          "sha256": "82f63b935a385c7a6e1176aec3307db0df131cd469b491b666e01d47d91a02d1",
+          "receipt_count": 0,
+          "receipt_bytes": 0,
+          "max_receipt_bytes": 0
+        }
+      ]
+    }
+  ],
+  "rejected_field_mutations": 10690,
+  "unbound_source_fields": [
+    "signer",
+    "key type/public key",
+    "list shard/count/order"
+  ],
+  "non_source_kernel_inputs": [
+    "before balance",
+    "locked balance",
+    "storage usage",
+    "block gas price",
+    "height"
+  ],
+  "remaining": "Constrain parser/serialization on shared kernel wires; authenticate RC digests, list inclusion/order and account state.",
+  "full_span_report_sha256": "08163b2f8910a8c7daf451713ff3ba85a0c69b7719c72ac84280a2450f7fad70",
+  "full_span_report_path": "/data/illia/pq-tail-architecture-20261024/receipt-source-audit.json"
+}

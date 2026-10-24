@@ -205,3 +205,15 @@ prove/verify. Backend scalar min 144.955 modeled bits, not composed PQ security.
 Private source/state inputs are still unauthenticated; other SHA jobs omitted.
 Next source-byte equality and state/runtime/history integration, no full-goal claim.
 [Evidence/reproduction](../../research/near-compression/tail-architecture/RECEIPT_BATCH.md).
+
+### Source-to-kernel audit after private batch checkpoint
+
+Committed/pushed uniform batches as `483b3ccd6`. Independently parsed original
+RC messages against exact batch bytes: 64 cases, 2,138 receipts, 10,690 rejected
+field mutations. Largest receipt batch requires 1,770 additional RC SHA blocks
+(three lists: 151/1,263/111,780 bytes), absent from current proof. Exact interval
+report is reproducible with `audit_receipt_source.py`; compact evidence is
+`evidence/receipt-source-audit.json`. Host conformance only; next circuit must
+share source fields with kernel wires, constrain signer/key/list structure,
+and authenticate source lists plus state/context. Full PQ/recursive NEAR goal
+remains open.

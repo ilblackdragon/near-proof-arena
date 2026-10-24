@@ -128,3 +128,20 @@ and `audit_receipt_batch.py` independently reconstruct/check public vectors.
 Fresh verification requires `NEAR_VERIFY_EXPORT`, `NEAR_EXPECTED_CONTEXT` and
 `NEAR_OUTCOME_ROOT`; the circuit/setup policy is fixed by the binary. Proof mode
 accepts batch paths and writes packets under `NEAR_EXPORT_DIR`.
+
+## Source-binding audit checkpoint
+
+`audit_receipt_source.py` independently parses the original RC SHA messages
+and compares predecessor, receiver, receipt ID, gas price and deposit to the
+exact batch kernel input bytes. All 64 cases / 2,138 receipts match; 10,690
+single-field mutations reject. This is **host conformance, not proof binding**.
+The compact report is `evidence/receipt-source-audit.json`; reproduction also
+emits every source field's byte interval for shared-wire circuit construction.
+
+The 814-receipt case has three source lists of 151, 1,263 and 111,780 bytes:
+**1,770 additional SHA-256 compressions** including padding. These are absent
+from the current uniform packet. Source signer/key fields and list shard/count/
+ordering must be constrained too. Before/locked balances and storage are not
+receipt-source fields and require separate authenticated state reads; block gas
+price and height need authenticated context. Matching these host fixtures does
+not discharge any of those proof obligations.
