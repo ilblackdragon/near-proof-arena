@@ -335,3 +335,17 @@ Initial pair kernel 44–57 vs 153–156 ms. Unchanged old verifier accepts in
 new best latency guarantee, full NEAR or composed PQ/history claim.
 Next: independent JL/lifting outputs. See `PARALLEL_PAIRS.md` and
 `evidence/parallel-pairs` under `research/near-compression/tail-architecture`.
+
+### Parallel JL matrix collapse
+
+Added opt-in `LABRADOR_JL_THREADS` (default1, max16), splitting unchanged
+collapse routine on complete 16-polynomial blocks and preserving final remainder.
+306 exact-output boundary cases plus three large r31*n9567 comparisons pass.
+Integrated three initial lifts: 150.6/151.6 ms serial vs 48.4/56.6 ms parallel.
+Original 804-receipt packet remains 244,814 B; warm readiness 3.108/3.004 s vs
+same-build serial JL 3.281/3.095 s, with pair/Rust workers fixed at4. Shared
+host, two samples/mode: no p95 claim. Independent public bytes and unchanged
+older verifier pass (1.499 s, four negatives, backend roundtrip).
+See `PARALLEL_JL.md` and `evidence/parallel-jl` under
+`research/near-compression/tail-architecture`. Next lifting aggregation;
+source inclusion/state/runtime, bounded history, composed PQ and 2 s remain open.
