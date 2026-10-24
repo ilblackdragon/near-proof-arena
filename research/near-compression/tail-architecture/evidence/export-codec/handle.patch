@@ -2,10 +2,7 @@ diff --git a/crates/pcs/src/labrador/mod.rs b/crates/pcs/src/labrador/mod.rs
 index b5b6e9b..ff2e3cb 100644
 --- a/crates/pcs/src/labrador/mod.rs
 +++ b/crates/pcs/src/labrador/mod.rs
-@@ -678,6 +678,17 @@ pub struct ProofHandle {
- unsafe impl Send for ProofHandle {}
- 
- impl ProofHandle {
+@@ -680,0 +681,11 @@ impl ProofHandle {
 +    /// Experimental export-only encoding. No receiver/decoder is established.
 +    pub fn export_bytes(&self) -> Vec<u8> {
 +        let _guard = labrador_lock();
@@ -17,6 +14,3 @@ index b5b6e9b..ff2e3cb 100644
 +        bytes
 +    }
 +
-     /// The analytic proof size in KB that LaBRADOR reports in `composite->size`.
-     pub fn size_kb(&self) -> f64 {
-         self.size_kb
