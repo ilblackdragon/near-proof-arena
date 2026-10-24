@@ -1,10 +1,26 @@
-# Experimental LaBinius export: actual bytes, decoding still open
+# Experimental LaBinius export: fresh-process verification
 
 2026-10-24. Both real hash-batch proofs export to **165,950 bytes**, including
 64 public-root bytes and all seven framed sections below. Independent structural
 parsing consumes every byte; truncation, trailing data and oversized section
-lengths reject. This is NOT yet a cryptographically verified wire proof: the
-native proof is verified before export, but no native decoder exists yet.
+lengths reject. Both honest exports now decode and verify in fresh processes,
+without loading any witness. The expected roots are computed independently from
+message JSON by `hash_template_root.py`; no proof is read to derive those roots.
+Backend re-encoding is byte-identical. Native verification takes 0.648/0.649 s;
+decoding takes ~0.06 ms. Changed public roots and transcript tapes reject in both
+processes. Circuit/setup rebuild still adds ~12.8 s to cold verification.
+
+A follow-up proving run now exports BEFORE honest verification: **1.672/1.728 s**
+from exported hash requests to the saved 165,950-byte packet, including
+0.235/0.170 ms export/write time. Both saved packets are byte-for-byte identical
+to those checked by the fresh verifier processes. This is warm component latency,
+not full chunk latency; input export and cold construction are excluded.
+
+**Decoder scope:** an explicit unsafe research API for trusted local exports.
+It bounds parsing/allocation but does not establish that arbitrary shape metadata
+or RNS values are safe for the upstream C verifier. Thus this establishes honest
+wire-artifact interoperability, not production adversarial decoder safety or
+cryptographic soundness. Evidence: `evidence/import-codec/`.
 
 | Section | Bytes |
 |---|---:|
@@ -53,15 +69,21 @@ malformed-framing checks: `audit_export.py`; packet SHA-256 and structural count
 `evidence/export-audit.json`. Actual packets stay in scratch at the paths in that
 audit. Rebuild using the earlier private-session patch plus these changes.
 
-Proving and in-memory verification passed for both exported proofs, with 12
-negative checks. Logged 1.67/1.71 s readiness excludes export (which currently
-runs after honest verification), native input export and cold circuit/setup.
-Measure the serialization-inclusive critical path once decoding is implemented.
+Proving and in-memory verification passed for both original exported proofs,
+with 12 negative checks. The original export log measured readiness before export;
+use the follow-up `evidence/import-codec/timed-export.log` for the explicitly
+serialization-inclusive measurement above.
 
-## Next gate: decode and independently verify
+## Decoder implementation and remaining gate
 
-Build a bounded native decoder and test fresh-process verification against an
-independently supplied expected root and pinned circuit/setup. Do not expose the
+A native local-export decoder now reconstructs the commitment, proof levels and
+terminal witness with the upstream allocation layout. The first honest decode
+exposed a format-check bug: tail proofs legitimately have zero outer commitment
+rank. It was corrected to reject zero only for non-tail levels. No proof/security
+parameters changed. The Rust harness validates the fixed template's outer sizes
+and expected public root, then checks a byte-identical backend re-encoding.
+
+Next, audit and harden this path for arbitrary submitted proofs. Do not expose the
 C verifier as an untrusted parser merely by reconstructing its pointers.
 
 Required checks include lengths/ranks, supported decomposition parameters,
@@ -69,9 +91,12 @@ shift/division bounds, allocation/product bounds, terminal witness dimensions,
 canonical coefficients and full consumption. Validate cross-level relationships:
 the C verifier derives allocations from sums/products of proof metadata. The
 structural Python reader deliberately does not certify those algebraic or memory
-safety conditions. Re-encode decoded honest proofs and require byte equality;
-mutate every section, not just the transcript and root. Only after this gate can
-the 165,950 bytes be called a verified serialized component proof.
+safety conditions. Extend mutation coverage to every section, not just the
+transcript and root. Existing honest checks must not be promoted to an
+adversarial-safe verifier claim.
 
 Receipt/hash binding, full NEAR semantics, recursive history, concrete PQ security
 and representative p95 latency remain additional completion requirements.
+Before deeper integration, resolve the previously identified security questions
+around the C backend's 16-byte transcript state, SHAKE128/AES128 usage and lattice
+sizing: these timings are not a concrete PQ128 result.

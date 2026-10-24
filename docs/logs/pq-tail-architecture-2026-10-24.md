@@ -37,3 +37,15 @@ coding. Independent structural reader consumes all fields and rejects six
 malformed-framing cases. Native decoding and verification from bytes remain
 unimplemented; do not promote the export to a verified proof claim. See
 [codec evidence/gates](../../research/near-compression/tail-architecture/EXPORT_CODEC.md).
+
+Decode follow-up: both 165,950-byte exports now verify in separate fresh processes
+without witnesses, against Python-derived expected roots. Backend re-encoding is
+byte-identical; wrong root/tape mutations reject (four checks). Decode ~0.06 ms,
+verify ~0.65 s after cold setup. New packet-ready timing includes export/write:
+1.672/1.728 s, and emitted packets match the independently verified ones exactly.
+Decoder remains explicitly unsafe for untrusted metadata/RNS; arbitrary-input
+hardening and statement-dependent dimensional checks are not established.
+The first decode rejected legitimate tail kappa1=0; fixed the format check only.
+Sources/logs: `evidence/import-codec` under the lane research directory.
+Prioritize concrete PQ feasibility (16-byte C transcript/SHAKE128/AES128/lattice
+sizing) before treating this as a full-system integration choice.

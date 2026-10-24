@@ -17,8 +17,10 @@ actual batches with one circuit/setup: **1.67–1.74 s warm**, ~116 KB analytica
 four honest proofs / 24 mutants / 44 gadget checks. Construction/setup adds
 12.84 s cold; receipt binding, wire codec, PQ audit and recursion remain open.
 [Actual export](EXPORT_CODEC.md) is now **165,950 B** including public root and
-framing; independent structural parsing passes. Native decoding/fresh-process
-verification is still missing, so this is not yet a verified wire proof.
+framing. Both honest exports decode and verify in fresh processes (~0.65 s),
+against independently computed roots, with byte-identical backend re-encoding.
+Export-inclusive warm readiness is **1.67/1.73 s** for the two tested layouts.
+Decoder safety for arbitrary metadata remains open; it is a local research API.
 
 ## Binary/lattice candidate
 

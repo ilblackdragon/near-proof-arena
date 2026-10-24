@@ -1,0 +1,13 @@
+diff --git a/crates/pcs/src/scheme/commitment.rs b/crates/pcs/src/scheme/commitment.rs
+index 46f8098..21d65c5 100644
+--- a/crates/pcs/src/scheme/commitment.rs
++++ b/crates/pcs/src/scheme/commitment.rs
+@@ -305,0 +306,2 @@ impl LeftExpansionCommitment {
++    pub fn from_local_rns(t_u: PolxBuf) -> Self { Self { t_u: Arc::new(t_u) } }
++
+@@ -377,0 +380,5 @@ impl OpeningProof {
++    /// Research constructor; the caller owns the safety contract of the decoded handle.
++    pub fn from_local_parts(t_r: PolxBuf, norms: Vec<u64>, proof: labrador::ProofHandle) -> Self {
++        Self { t_r:Arc::new(t_r),norms,proof,timings:OpeningTimings::default(),phi_bytes:0 }
++    }
++
