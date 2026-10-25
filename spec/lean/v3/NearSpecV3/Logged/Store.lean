@@ -47,6 +47,7 @@ instance : MonadExceptOf String (SM K) where
   throw := .err
   tryCatch := tryCatch
 
+
 /-- Interpret against a store. -/
 def run {α : Type} (s : K → Option Bytes) : SM K α → Except String α
   | .ok a => .ok a
@@ -58,6 +59,29 @@ def reads {α : Type} (s : K → Option Bytes) : SM K α → List K
   | .ok _ => []
   | .err _ => []
   | .get k c => k :: reads s (c (s k))
+
+/-- Functorial map: applies `f` to a successful value, leaving errors and reads untouched. -/
+def map {α β : Type} (f : α → β) : SM K α → SM K β
+  | .ok a => .ok (f a)
+  | .err e => .err e
+  | .get k c => .get k (fun v => map f (c v))
+
+instance : Functor (SM K) where
+  map := map
+
+@[simp] theorem run_map {α β : Type} (g : K → Option Bytes) (f : α → β) (n : SM K α) :
+    SM.run g (map f n) = (SM.run g n).map f := by
+  induction n with
+  | ok a => rfl
+  | err e => rfl
+  | get k c ih => unfold map run; exact ih (g k)
+
+@[simp] theorem reads_map {α β : Type} (g : K → Option Bytes) (f : α → β) (n : SM K α) :
+    SM.reads g (map f n) = SM.reads g n := by
+  induction n with
+  | ok a => rfl
+  | err e => rfl
+  | get k c ih => simp only [map, reads, ih]
 
 /-- Result and reads in one pass (reads accumulated in reverse). -/
 def runAcc {α : Type} (s : K → Option Bytes) : SM K α → List K → Except String α × List K
