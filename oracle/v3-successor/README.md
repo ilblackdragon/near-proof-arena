@@ -47,6 +47,32 @@ A complete-code successor policy can reject an incomplete witness that a warm or
 nearcore cache happens to accept. These are different contracts: retain raw cold observations and
 complete-code witness-policy expectations separately. No mutation expectation is rewritten here.
 
+## Curve-host scenario
+
+Set `NEAR_SUCCESSOR_SCENARIO=curve-hosts` to deploy `contracts/curvehosts.wat` (compiled at run time
+with the lock's `wat`) on two funded accounts, `s0curvehosts` and `s2curvehosts`, and submit 149
+deterministic FunctionCalls (`src/curve_hosts.rs`, at most 3 per height). They call every
+alt_bn128 and BLS12-381 host plus `p256_verify` and `ecrecover`, from memory, from a register
+(`value_len = u64::MAX`) and from out-of-bounds memory, with valid inputs, malformed lengths,
+non-canonical field elements and scalars, off-curve and non-subgroup points, infinity, the
+`(0, ±2)` corner, empty input and gas exhaustion at the per-element charge. Inputs are built with the
+crates nearcore links (zeropool-bn, blst, p256, near-crypto); every output, error and gas figure is
+nearcore's. Receivers alternate and every third call is signed by the other account, so some receipts
+cross shards. Each executed call of the contract is recorded under `features.curve_calls` (status,
+exact value bytes, gas, ext profile). The scenario's `e.ood_host` chunks are also mutated.
+
+```
+near-arena-oracle-v3-successor curve-steps > STEPS.json
+NEAR_SUCCESSOR_SCENARIO=curve-hosts near-arena-oracle-v3-successor gen --domain d3 --seed 4242 \
+  --chains 1 --blocks 100 --mutate-every 8 --code-mutant-p 0.2 --ood-cap 5000 \
+  --min-gas-price 100000000 --out RUN
+python3 tools/d3/collect_curve_hosts.py --source RUN --steps STEPS.json --binary PATH_TO_ORACLE --out DIR
+```
+
+The collector fails unless every step executed exactly once; it locates a step by method, args hash
+and attached gas, never by label. Labels name the input class (`pos`/`neg`/`edge`), not an expected
+result.
+
 ## Codec normalization probes
 
 `codec-roundtrip KIND HEX` decodes and re-encodes actual pinned-nearcore types. Supported kinds:

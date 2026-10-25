@@ -218,6 +218,8 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
     let chunk_price = b2.header().next_gas_price().as_yoctonear();
     let (mut tb_receipts, mut tb_txs, mut n_tb_nonzero, mut reward_est, mut n_reward) = (0u128, 0u128, 0u64, 0u128, 0u64);
     let (mut n_profile_unmarked, mut n_ood_calls) = (0u64, 0u64);
+    // curve-hosts scenario: every executed call of the scenario contract, with nearcore's status
+    let mut curve_calls: Vec<serde_json::Value> = Vec::new();
     for id in &outcome_ids {
         let outs = store.get_outcomes_by_id(id).map_err(|e| format!("{e:?}"))?;
         let Some(o) = outs.into_iter().find(|o| &o.block_hash == b2.hash()) else { continue };
@@ -237,6 +239,7 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
         let mut g_receipt = 0u64;
         // the receipt's profile shows a curve / excluded-family host call (`e.ood_host`)
         let mut profile_ood = false;
+        let mut ext_nonzero: BTreeMap<String, u64> = BTreeMap::new();
         if let Some(p) = profile {
             let g = p.actions_profile.values().chain(p.wasm_ext_profile.values()).fold(p.wasm_gas.as_gas(), |a, x| a + x.as_gas());
             if g > outcome.gas_burnt.as_gas() {
@@ -246,6 +249,9 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
             g_receipt = g;
             for (k, x) in p.wasm_ext_profile.iter() {
                 let n = format!("{k:?}");
+                if x.as_gas() > 0 {
+                    ext_nonzero.insert(n.clone(), x.as_gas());
+                }
                 if x.as_gas() > 0 && (n.starts_with("alt_bn128") || n.starts_with("bls12381") || n.starts_with("ecrecover") || n.starts_with("p256")) {
                     profile_ood = true;
                 }
@@ -332,6 +338,21 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
                     if let Some(h) = cur {
                         n_fc_code += 1;
                         if let Some((cn, _)) = crate::d3contracts::registry().by_hash.get(&h) {
+                            if *cn == crate::curve_hosts::CODE_NAME {
+                                use sha2::Digest;
+                                curve_calls.push(json!({
+                                    "receipt_id": id.to_string(), "receiver": a.to_string(),
+                                    "method": fca.method_name, "gas": fca.gas.as_gas(),
+                                    "args_sha256": hex::encode(sha2::Sha256::digest(&fca.args)),
+                                    // Debug abbreviates long values: keep the exact bytes too
+                                    "status": format!("{:?}", outcome.status),
+                                    "value_hex": match &outcome.status {
+                                        ExecutionStatus::SuccessValue(v) => Some(hex::encode(v)),
+                                        _ => None,
+                                    },
+                                    "gas_burnt": outcome.gas_burnt.as_gas(), "ext_profile": ext_nonzero,
+                                }));
+                            }
                             if let Some(m) = crate::d3contracts::ood_call(cn, &fca.method_name) {
                                 add(&mut v, m);
                                 n_ood_calls += 1;
@@ -420,6 +441,9 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
     an.features.insert("ood_host_import".into(), json!(ood_import));
     an.features.insert("n_ood_host_calls".into(), json!(n_ood_calls));
     an.features.insert("ood_host_profile_unmarked".into(), json!(n_profile_unmarked));
+    if !curve_calls.is_empty() {
+        an.features.insert("curve_calls".into(), json!(curve_calls));
+    }
     an.features.insert("chunk_gas_price".into(), json!(b2.header().next_gas_price().as_yoctonear().to_string()));
     an.features.insert("tokens_burnt_receipts".into(), json!(tb_receipts.to_string()));
     an.features.insert("tokens_burnt_txs".into(), json!(tb_txs.to_string()));
@@ -781,8 +805,15 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         }
         // In opt-in global traffic, also produce independently judged mutants of global shapes.
         // This changes fixture generation only, never the baseline classification or expectation.
-        let global_scenario = std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok("global-cache");
-        if viol3.iter().any(|v| !matches!(*v, "e.float" | "e.g_alpha") && !(global_scenario && *v == "w.shape")) {
+        let scenario = crate::d3gen::scenario();
+        let global_scenario = scenario == Some(crate::d3gen::Scenario::GlobalCache);
+        // Opt-in curve traffic likewise mutates its `e.ood_host` chunks (independently judged).
+        let curve_scenario = scenario == Some(crate::d3gen::Scenario::CurveHosts);
+        if viol3.iter().any(|v| {
+            !matches!(*v, "e.float" | "e.g_alpha")
+                && !(global_scenario && *v == "w.shape")
+                && !(curve_scenario && *v == "e.ood_host")
+        }) {
             return;
         }
     } else {

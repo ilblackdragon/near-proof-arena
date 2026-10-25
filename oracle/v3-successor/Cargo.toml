@@ -47,6 +47,11 @@ near-wallet-contract = { path = "../vendor/nearcore/runtime/near-wallet-contract
 near-vm-runner = { path = "../vendor/nearcore/runtime/near-vm-runner" }
 # same version as nearcore's lock (near-vm-runner's `wasmparser-236`): the D3alpha contract scan
 wasmparser = "=0.236.1"
+# curve-hosts scenario input construction only (src/curve_hosts.rs); same versions/features as
+# nearcore's workspace (Cargo.toml), so the lock file resolves them to nearcore's exact crates
+blst = { version = "0.3.11", features = ["portable"] }
+bn = { package = "zeropool-bn", version = "0.5.11", default-features = false }
+p256 = { version = "0.13.2", default-features = false, features = ["ecdsa", "std"] }
 
 [patch.crates-io]
 protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
