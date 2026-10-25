@@ -191,6 +191,35 @@ Two guard failures were also checked deliberately: removing the source stamp or 
 `run_smoke.py` exit 1 with a "binaries are stale" message rather than reporting a green result against
 old binaries.
 
+### The two key-widened fixtures are settled, not merely excluded
+
+An earlier revision left two questions open about the fixtures the stale exclusion table named. Both
+are now measured on the current head, and both resolve in favour of "accept, with no transition
+disagreement":
+
+- **`00-h10011-s0` does not reject with "invalid: main transition post state root".** Run across all
+  twelve tiers — `signed`, `runtimeLimits`, `globalActions`, `completeCodeGlobal`, `curveHosts`,
+  `resharding`, `allFeatures`, `genesis`, `genesisFloatsProtoGas`, `floats`, `protoGas`,
+  `storageResolution` — it returns `accept` with an empty reason on **every** tier. So the earlier
+  "once the secp256k1 exclusion is lifted it rejects with a main-transition-post-state-root mismatch"
+  observation does not reproduce on this tree: there is no genuine transition disagreement to chase
+  and no exclusion to restore for that reason. (The rejection text still exists in the codebase —
+  `ChunkValidationD1.lean:161`, `ChunkValidationD2.lean:242`, `ChunkValidationV0.lean:204`,
+  `GenesisD3.lean:374` — but this fixture never reaches it.)
+- **`00-h10021-s2`'s ML-DSA-65 exclusion entry needs no replacement.** Same sweep, same result:
+  `accept` on all twelve tiers. The `PublicKey.handle` widening (§ above) resolves its access-key
+  lookups, so nothing about the ML-DSA key blocks it.
+
+Both remain load-bearing under tampering, re-measured in this session on a copy of each fixture: flipping
+one byte mid-`claim.bin` turns `00-h10011-s0` into `reject` / `invalid: chunk slots do not match
+chunk_headers_root` and `00-h10021-s2` into `reject` / `invalid: segment is not hash-linked`. So the
+accepts are not vacuous — the earlier text's two tamper reasons reproduce.
+
+The *smoke-level* split is separate and still holds: on the **global-cache fixture copies** the signed
+tier excludes both at `GlobalContractDistribution receipt` while `globalActions`/`completeCodeGlobal`
+accept. The d3c9 corpus copies of the same names accept everywhere, including `signed` — different
+bytes, different case. Do not read the d3c9 result as the fixture result or vice versa.
+
 ### Remaining open work — prioritized
 
 The package table above is the authoritative per-package backlog. In descending order of what
