@@ -1,0 +1,35 @@
+[2m2026-10-25T07:02:07.707942Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m 
+/data/illia/pq-tail-architecture-20261024/jolt-target/ci/jolt build -p near-chunk-guest --backtrace off --stack-size 65536 --heap-size 33554432 -- --release --target-dir /tmp/jolt-guest-targets/near-chunk-guest-near_chunk-compute-advice --features guest,compute_advice
+[2m2026-10-25T07:02:07.767976Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m guest does not support compute_advice feature
+[2m2026-10-25T07:02:07.768023Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m 
+/data/illia/pq-tail-architecture-20261024/jolt-target/ci/jolt build -p near-chunk-guest --backtrace off --stack-size 65536 --heap-size 33554432 -- --release --target-dir /tmp/jolt-guest-targets/near-chunk-guest-near_chunk --features guest
+[2m2026-10-25T07:02:07.927519Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m Built guest binary with jolt: /tmp/jolt-guest-targets/near-chunk-guest-near_chunk/riscv64imac-unknown-none-elf/release/near-chunk-guest
+[2m2026-10-25T07:02:07.964849Z[0m [32m INFO[0m [1mDoryScheme::setup_prover[0m[2m:[0m [2mdory_pcs::setup[0m[2m:[0m Looking for saved setup at /home/illia/.cache/dory/dory_36.urs
+[2m2026-10-25T07:03:09.749337Z[0m [32m INFO[0m [1mDoryScheme::setup_prover[0m[2m:[0m [2mdory_pcs::setup[0m[2m:[0m Loaded setup for max_log_n=36
+[2m2026-10-25T07:03:56.226218Z[0m [32m INFO[0m [2mnear_chunk[0m[2m:[0m native output: e710a42317aa8aa89ab988f70c3183d40507488dbd6a4f40e92792f74fd1d908
+[2m2026-10-25T07:05:38.563083Z[0m [32m INFO[0m [2mnear_chunk[0m[2m:[0m Prover runtime: 102.336837804 s
+[2m2026-10-25T07:05:38.563790Z[0m [32m INFO[0m [2mnear_chunk[0m[2m:[0m Proof size: 98154 bytes
+[2m2026-10-25T07:05:38.691292Z[0m [32m INFO[0m [2mnear_chunk[0m[2m:[0m correctness gate: proof output == native output == expected commitments
+	Command being timed: "/data/illia/pq-tail-architecture-20261024/jolt-target/ci/near-chunk"
+	User time (seconds): 636.91
+	System time (seconds): 6.79
+	Percent of CPU this job got: 305%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:30.99
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4326096
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 7821432
+	Voluntary context switches: 26958
+	Involuntary context switches: 33082
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 224
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

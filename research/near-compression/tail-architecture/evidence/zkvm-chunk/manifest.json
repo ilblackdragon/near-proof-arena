@@ -1,0 +1,79 @@
+{
+  "status": "ZKVM_NEAR_CHUNK_WORKLOAD_MEASURED_NOT_FULL_NEAR_VALIDITY",
+  "base_lane_commit": "2804961b8",
+  "stack": {
+    "jolt": "7931b223ddefe3cfa35671d0fa8321df4578ff96",
+    "akita": "dfdbd7674cab5cfbe95243e947d1b10a982f232b",
+    "profile": "ci (release optimization, no LTO, no debug info)",
+    "sha256_inline_backend": "PQ lattice (akita); folding PCS separately stated in phase 4"
+  },
+  "workload": {
+    "definition": "ZKVM_WORKLOAD_DEF.md \u2014 the custom circuit's proven slice (NPMULT03)",
+    "corpus": "00-h10035-s3: 814 receipts, 10 accounts, trie witness (chain 6)",
+    "synthetic": "6 NPMTRIE02 families, 27 chains, depths 5..15 incl. mixed within one trie",
+    "guest_semantics": "in-guest key derivation nibbles(0x00||name); SHA-256 node rehash; child-link + fragment checks; leaf value_ref binding; u64-limb 128-bit ledger threading (u128 arithmetic avoided: upstream expander has no MULHU dispatch arm); ordered outcome-leaf hashing; final-balance commitment",
+    "correctness_gate": "proof output == native host execution of the identical code (both == e710a42317aa8aa89ab988f70c3183d40507488dbd6a4f40e92792f74fd1d908)"
+  },
+  "measurements": {
+    "trace_rows_cycles": 8462213,
+    "program_size_bytes": 478680,
+    "pinned_4thread_prove_s": [
+      102.336837804,
+      102.340594999
+    ],
+    "unpinned_16thread_prove_s": [
+      47.571488847
+    ],
+    "proof_bytes": 98154,
+    "verify_parallel_default_s": 0.132774479,
+    "peak_rss_kib": {
+      "pinned_4t": [
+        4326096,
+        4346908
+      ],
+      "unpinned": 4635672
+    },
+    "note": "Two observations for the pinned headline; single observations otherwise; no p95."
+  },
+  "comparison_baseline": {
+    "custom_circuit_NPMULT03": "250,126 B packet / 3.08 s warm (4 threads) / 1.48 s serial verify / 13.3 GB RSS / AND 4,191,241 / witness log 23",
+    "witness_fixture": "~410 KB receipt data + few KB account/trie witness"
+  },
+  "capability_gaps_found": {
+    "mulhu_missing": "u128 arithmetic in the guest lowers to MULHU which upstream Jolt's expander does not dispatch (fail-closed UnsupportedInstruction); the guest uses u64-limb arithmetic instead \u2014 a real zkVM capability gap for 128-bit financial arithmetic, worked around here",
+    "inline_registration_link": "the host crate must depend on jolt-inlines-sha2 with the host feature or inline lookups fail with UnsupportedInstruction (inventory-based registration)",
+    "guest_stack_limit": "large stack arrays overflow the 4K-word guest stack silently corrupting memory (observed as garbage reads); heap allocation via extern crate alloc required"
+  },
+  "open_obligations": [
+    "phase 4: recursive folding k=2,4 (examples/recursion pattern; folding PCS PQ status to be stated)",
+    "phase 5: ZKVM_NEAR_CHUNK.md decision table + go/no-go verdict",
+    "GPU proving unmeasured (CPU only)",
+    "D0a transfer-only coverage; Wasm/access-keys/routing/post-state remain unmeasured in any system"
+  ],
+  "evidence_sha256": {
+    "audit_synthetic_tries.py": "afa0a75a793a68819b89a01e724db62307a65998ff995e686f9231f096620e81",
+    "corpus-trie-census.json": "e847f1fae64500a0630302aa65135daf012820296491b4bf5a72a2b69cc58798",
+    "first-full-run.log": "b7d7cb36fb6d732a953c9b9e8288f5b47636e0b09445643bfe69f284de285acf",
+    "guest-src/Cargo.toml": "0442f3e4492fa69a22daa77f5fd07c91a73ee0496c9d5f4f6ecf3416c83f2878",
+    "guest-src/guest-Cargo.toml": "68581b4a07eed075ca2fe8c405d8450ddfe8b7e4c85708810dd6c7205283a7d7",
+    "guest-src/src/lib.rs": "0a6c97a0aa39261e448f409a74bc3ff1537755382e914a9339c21a7786139aab",
+    "guest-src/src/main.rs": "a56e5a99dda196be67bb3d5a37eb6cc1f5bea1f2adf262f800b36935b79adf0f",
+    "inline-registration-fix-evidence.log": "3c849ab7515b534ca5098139d8c9335c7ff369c63c76b4254776ef0cdabe9589",
+    "measure1.log": "494ffe882eea9df5e23556d747d064f0bcf603b9376ed94c994c079d362d0286",
+    "measure2.log": "ff6960dba9feaa3da11451e9b2cb8b34b0ff2d427e19f5625ef359d94290f30a",
+    "measure3.log": "d4d1119b02608025d40eca719d89dba7f6ef4455414cd4a3568319c39df054d4",
+    "synthetic/depth2.bin": "9929ab0f8ff8b9c6cfb1c0be6d60430f2ce6c71bd9ddd5b4f8f5a9089cc0c45d",
+    "synthetic/depth2.json": "ed1692eef3fa1f16b7d4e7684b36328838c2634d8e2340eea8adc3199481817c",
+    "synthetic/depth3.bin": "923cef02e1a6961a33c08e2d66543233695ea0a49fb93d1cb0ee3a6a86ae741a",
+    "synthetic/depth3.json": "fa02b6d5ef553ed57a693bf2c7a9c7e93949acf5c838d144e48e89ce915db07f",
+    "synthetic/depth4.bin": "7ef1f6ecd4975928ee947aac80710aff74922212d971eb138cce70cf7b646586",
+    "synthetic/depth4.json": "50e1a83f57d93c1a0461fc44eceb0fee8eb43800d8427d43a0f7e515d8a7b366",
+    "synthetic/depth5ext.bin": "25d128f9a6becf5526082e534da93394e7e2a77b46736c9f13f92cc3289cd41f",
+    "synthetic/depth5ext.json": "28d804f5935e84d044ae282f5ed43b6e3010fff601fb3687987d1ca24c5a998a",
+    "synthetic/depth6.bin": "8bdf337cd7cc3619ab93e62f1c7195b5127bf80be5c798cf90bbe7d7498c007a",
+    "synthetic/depth6.json": "b456ab6501a01f187bfa7009426240b7330a7a259bcf74a60a5c61a09231025e",
+    "synthetic/mixed16.bin": "e8f1c0476723db5ac12a0c93d6539b26736076b2c6e9d2147a8057f1ee73ceb4",
+    "synthetic/mixed16.json": "8ec00694fe24ffd6f8dfd8f1c6a89c6f35d7cb7d49a8efdc366f5a3acf82a0f6",
+    "synthetic-trie-fixtures.rs": "dd75f66913fc29e411e7bc847588b5bb15426c102cff0325ac50b577d3d254d1"
+  }
+}

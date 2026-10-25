@@ -1,0 +1,16 @@
+[package]
+name = "near-chunk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jolt-sdk = { workspace = true, features = ["host"] }
+tracing-subscriber.workspace = true
+tracing.workspace = true
+guest = { package = "near-chunk-guest", path = "./guest" }
+hex.workspace = true
+bincode.workspace = true
+jolt-inlines-sha2 = { workspace = true, features = ["host"] }
+
+[package.metadata.cargo-machete]
+ignored = []
