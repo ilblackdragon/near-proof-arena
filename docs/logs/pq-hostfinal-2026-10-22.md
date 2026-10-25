@@ -282,26 +282,35 @@ theorem in two vocabularies, not two competing proofs. See §4.4.
 
 ## 4. Lane state at handover
 
-Committed on `lane/pq-hostfinal` (newest first).  The `§` references are to this log.  The lane
-branched from `origin/main` `dba4b0cc`; as of this handover its HEAD is `78436ac9f`, **12 ahead /
-1 behind `origin/main`**, and the branch has **no remote counterpart** (`git branch -r` lists only
-`origin/lane/pq-host-{ctx,logreg,memio,promise,storage2}` for this family).  Nothing in this lane is
-pushed.
+**Corrected 2026-10-25: the lane is merged and pushed.**  The original text of this section said the
+lane had no remote counterpart and that "nothing in this lane is pushed"; both statements were true
+when written and are false now.  Re-checked by ancestry rather than by message:
+`origin/lane/pq-hostfinal` = `54ce39baf`, `main` = `eff525719`, and
+`git merge-base --is-ancestor origin/lane/pq-hostfinal origin/main` exits 0 — so the lane contributes
+**0 unique commits** and every lane commit is already on `main`.  The count `git rev-list --left-right
+--count origin/main...origin/lane/pq-hostfinal` reads **295 / 0** (main ahead by 295, lane ahead by 0),
+not "12 ahead / 1 behind".  Nothing from this lane needs re-merging; only the open proof items below.
 
-| commit | content |
-|---|---|
-| `78436ac9f` | log: the measured axiom audit of the stage-4 declarations (§4.2) |
-| `87d53f22c` | log: the real lane state, and exactly how far RIPEMD got |
-| `2e90a315f` | `RipemdRound`'s header corrected to match the file (§4.1) |
-| `3fb84f5f1` | RIPEMD stage 4, part 2: bit-to-word readout, eight shift-wired next words (§4.1) |
-| `e13129b84` | RIPEMD stage 4, part 1b: `bitOf_ofBitsN`, `ofBitsN_congr` (§4.1) |
-| `7cddf9289` | RIPEMD stage 4, part 1: the five gated sums in general form (§4.1) |
-| `ceee23052` | RIPEMD stage 4 scaffolding: `gsumAux`/`csumAux` collapse |
-| `45af882a9` | RIPEMD stages 1–3: plumbing, selector collapses, adder chain (§2) |
-| `14af4935e` | coverage: `relD3_of_lift` was a tautology; add the `StateSide` conjunct (§3) |
-| `6a347a89a` | merge `origin/main` into the lane (the previous reconciliation) |
-| `598d85bd2` | docs: the ripemd160 cost corrected; the `promise_*` encodings marked closed (§1) |
-| `f7b1a6e0c` | RIPEMD row defined and differentially tested; coverage premises de-circularised (§2) |
+Committed on `lane/pq-hostfinal` (newest first).  The `§` references are to this log.  The lane
+branched from `origin/main` `dba4b0cc`.  HEAD is now `54ce39baf`, a merge of `origin/main` into the
+lane; its first descendant on `main` is `5b6a4ca1b` (`pq-prepare-link: the chunk -> preparation link,
+and the direction that is false`), whose parent is `54ce39baf`.
+
+| commit | content | on main |
+|---|---|---|
+| `78436ac9f` | log: the measured axiom audit of the stage-4 declarations (§4.2) | yes |
+| `87d53f22c` | log: the real lane state, and exactly how far RIPEMD got | yes |
+| `2e90a315f` | `RipemdRound`'s header corrected to match the file (§4.1) | yes |
+| `3fb84f5f1` | RIPEMD stage 4, part 2: bit-to-word readout, eight shift-wired next words (§4.1) | yes |
+| `e13129b84` | RIPEMD stage 4, part 1b: `bitOf_ofBitsN`, `ofBitsN_congr` (§4.1) | yes |
+| `7cddf9289` | RIPEMD stage 4, part 1: the five gated sums in general form (§4.1) | yes |
+| `ceee23052` | RIPEMD stage 4 scaffolding: `gsumAux`/`csumAux` collapse | yes |
+| `45af882a9` | RIPEMD stages 1–3: plumbing, selector collapses, adder chain (§2) | yes |
+| `14af4935e` | coverage: `relD3_of_lift` was a tautology; add the `StateSide` conjunct (§3) | yes |
+| `6a347a89a` | merge `origin/main` into the lane (the previous reconciliation) | yes |
+| `598d85bd2` | docs: the ripemd160 cost corrected; the `promise_*` encodings marked closed (§1) | yes |
+| `f7b1a6e0c` | RIPEMD row defined and differentially tested; coverage premises de-circularised (§2) | yes |
+| `54ce39baf` | merge `origin/main` into `lane/pq-hostfinal` (the final reconciliation) | yes |
 
 Nothing is left uncommitted except the Rust `target/release/**` churn from the KAT run, which is
 build output, not a source change.  (The churn is 812 tracked deletions of stale build artifacts —
@@ -315,7 +324,8 @@ trace + AIR pre-check. That is the "existing behaviour did not move" check for t
 
 ### 4.1 The RIPEMD round lemma is *partly* done — say which part
 
-`RipemdRound.lean` (488 lines) now holds:
+`RipemdRound.lean` (495 lines as measured on `eff525719`; the "488" this line carried was a stale
+count from the pre-merge tree) now holds:
 
 | section | content |
 |---|---|
@@ -325,13 +335,23 @@ trace + AIR pre-check. That is the "existing behaviour did not move" check for t
 
 What is **not** there, and should not be claimed:
 
-* `round_agrees` itself.  The eight wiring-only next words are immediate from §D, but `bl'` and `br'`
-  need the four-addition chain composed with the `f` column, the selected message word and the rotated
-  `t3`, matched against `rot32 (…) sl[j] + el`.  `adder_chain` gives each addition separately; the
+* `round_agrees` itself.  **Corrected 2026-10-25 (commit `2466d7299` on `main`): there are zero
+  per-word instance theorems in this file.**  The eight wiring-only words follow from
+  `nxtWord_eq_cur` plus `RipemdAir.shiftConstraints`, but the reduction is stated in prose in §D, not
+  written as eight lemmas — "eight of the ten next words are done" overstates the file, and "eight of
+  the ten need no adder chain" is what §D actually establishes.  `bl'` and `br'` additionally need the
+  four-addition chain composed with the `f` column, the selected message word and the rotated `t3`,
+  matched against `rot32 (…) sl[j] + el`.  `adder_chain` gives each addition separately; the
   composition is unwritten.
 * Any *general* rotation bridge.  `rotl32n_is_rot` is a `decide` over 80 offsets × 8 values, not a
   proof for arbitrary arguments.  Rotation claims should be read as concrete checks.
-* The feed-forward row family and the digest bus, so the row still cannot be consumed by a host call.
+* The feed-forward row family plus the block-boundary/digest rows, so the row still cannot be consumed
+  by a host call.
+* The `X`-column message-word binding: that the 512 message columns really are the block's bytes at the
+  call's `(ptr, len)`.  The `X` columns carry no interaction, so this is the same stated join obligation
+  `Sha.HashInputLink` carries (`HOSTB`/memory ↔ bytes) and the AIR's own constraints cannot close it.
+  This is a **fourth** obligation the earlier three-item list here omitted; `RipemdAir.lean` §"What this
+  file does not do" names all four.
 
 ### 4.2 Axiom audit of the stage-4 declarations (measured, not asserted)
 
@@ -359,9 +379,15 @@ statement, not the shorter one.
 
 1. `bl'`/`br'`: compose `adder_chain` over the four additions per line with `f_eq`, `xsel_eq`,
    `rot_eq`, `kSelAux_at`, and state the result as the spec's `t`/`t'`.  This is the last piece of
-   `round_agrees`.
-2. The feed-forward row family and the digest bus (so the row is consumable by a host call).
-3. `ArmAgrees` and the D1→D3 witness lift remain the state port's items (§3.3).
+   `round_agrees`.  *Nothing here is started:* the eight wiring-only words are also only reduced in
+   prose, so an honest count of what remains is "all ten next words, eight trivially and two by
+   arithmetic".
+2. The feed-forward row family plus the block-boundary/digest rows (so the row is consumable by a host
+   call).
+3. The `X`-column message-word binding to the block's bytes at the call's `(ptr, len)` — the same join
+   obligation `Sha.HashInputLink` carries; the `X` columns have no interaction.
+4. A general rotation bridge, replacing the 80×8 `decide` check.
+5. `ArmAgrees` and the D1→D3 witness lift remain the state port's items (§3.3).
 
 ### 4.4 Merging `origin/main` in — what conflicted and what did not
 
@@ -399,6 +425,19 @@ Measured on the merged tree (this worktree, HEAD after the merge commit):
 wasm-base-lean  lake build  243 jobs, exit 0
 zk-formal       lake build  3,065 jobs, exit 0   (was 3,062 without the two root imports)
 ```
+
+**Re-measured 2026-10-25 on `main` at `eff525719` (the two figures above are pre-merge and stale):**
+
+```
+wasm-base-lean  lake build  262 jobs, exit 0   (was 243 at the lane's merge)
+zk-formal       lake build  3,077 jobs, exit 0  (was 3,065 at the lane's merge)
+```
+
+Both counts grew because `main` kept landing modules after this lane's merge; the two root-import fixes
+in §4.4 item 1 are still in place (the `.olean`s exist), so the increase is new reachable modules, not
+a regression in this lane's work. `lake build WasmBase.RipemdVectors` inside that 262 reports "320 rows
+satisfy all 2625 constraints, 17 tampers rejected, 13 digests == spec, 2 message-columns confirmed free
+(named gap), RIPEMD-160 KATs ok" — the same differential the workplan cites.
 
 Axioms, re-measured on the merged tree with a `lake env lean` probe (not carried over from the
 commit messages):

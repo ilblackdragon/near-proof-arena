@@ -1,10 +1,11 @@
 # Full Lean chunk transition — open work
 
-Reviewed: 2026-10-25, against **main at `8c6694412`** — five commits past `4ae27c76e`, the merge that
-landed the W06 key widening and the 10-vs-13 base-arm repair — and CI run `40218347295` on that exact
+Reviewed: 2026-10-25, against **main at `eff525719`** — six commits past `4ae27c76e`, the merge that
+landed the W06 key widening and the 10-vs-13 base-arm repair — and CI run `40221939071` on that exact
 commit. Every "verified" claim below was re-run on that commit or read out of that run; nothing here is
-taken from a commit message. The five commits after `4ae27c76e` are documentation-only apart from the
-honest `RipemdRound` header correction in `2466d7299`. The earlier draft reviewed `a035df4a2` plus an
+taken from a commit message. The six commits after `4ae27c76e` are documentation-only apart from the
+honest `RipemdRound` header correction in `2466d7299`; the tree has no Lean or driver source change
+between `8c6694412` and `eff525719`. The earlier draft reviewed `a035df4a2` plus an
 uncommitted widening tree; that tree is now merged, so "working tree" wording below means "landed on
 main" wherever it describes the widening.
 Target: nearcore 2.13.4, commit `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86,
@@ -15,7 +16,7 @@ already build on, so open items are not re-done. Package IDs are stable: a packa
 while any implementation, proof, validation or admission criterion is open. Detailed historical
 results belong in lane logs and evidence directories, not this backlog.
 
-**Re-verified on `8c6694412` (measured, not copied from a commit message):** the source is unchanged
+**Re-verified on `eff525719` (measured, not copied from a commit message):** the source is unchanged
 from `4ae27c76e` for every Lean and driver target, so the build results there still stand —
 `lake build` in `spec/lean/v3` → 247 jobs green (246 before that commit; 247 after it adds
 `NearSpecV3.Examples.SecpVerifyVector` to `defaultTargets` so the secp pin actually compiles);
@@ -30,14 +31,16 @@ promise-encoding axiom audit → the four documented axiom closures; and the fou
 below, each of which reproduces its documented failure count. The one claim in the previous draft
 that did **not** reproduce is "the signed tier is bit-identical" — see the correction below.
 
-**Re-run on `8c6694412` for this revision:** `make d3-smoke` → exit 0, "SMOKE PASSED" (7 cases, 13
+**Re-run on `eff525719` for this revision:** `make d3-smoke` → exit 0, "SMOKE PASSED" (7 cases, 13
 tiers, storage resolution, global actions, code-witness policy, float and runtime goldens); the global
 block reports 28 accepted action chunks + 3 promise controls in both tiers with **2 key-widened chunks
 decided by the successor and still excluded by the signed tier**, plus a host ablation that is detected;
 `make pin-check` → all `ok`; coverage drift → "matches pinned sources"; corpus-manifest schema → ok.
-CI run `40218347295` on that commit is fully green: 16 passed / 0 failed / 2 skipped (corpus-content
-gate without corpora, firecracker without KVM). Run `40214402787`, previously red only on the known
-`fork_bomb` EAGAIN flake, also passes on attempt 2 — so no recent `main` run is red.
+CI run `40221939071` on `eff525719` is fully green: 16 passed / 0 failed / 2 skipped (corpus-content
+gate without corpora, firecracker without KVM); the three jobs still in progress when this revision
+started — "d3 successor drivers (build + smoke)", "formal-checker" and "rust" — all completed
+`success`. Run `40218347295` on `8c6694412` and run `40214402787` (previously red only on the known
+`fork_bomb` EAGAIN flake, green on attempt 2) are green as well — so no recent `main` run is red.
 The [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md) defines the authoritative gates:
 
 - **Gate A:** restricted reference independently checked and admitted live with signed evidence.
@@ -85,8 +88,16 @@ and both censuses contain exactly that set. Rebuild the reverted-arm binary, the
 `python3 tools/d3/replay_successor.py --tier signed --cases-file <list> --out <dir>` on the reverted
 and the widened trees; the two `results.jsonl` files differ on exactly those 35 cases, all
 `out_of_domain → accept` with the before-side reason
-`out of domain (e.secp): SECP256K1 delegate signature verification`. Re-checked in this session against
-the recorded rows: 2,438/700 and 2,403/735 reproduce, and all 35 moves carry that one reason.
+`out of domain (e.secp): SECP256K1 delegate signature verification`.
+
+*Re-derived in this session from the two censuses* (`census-signed-before-full.json` and
+`census-signed-widened-full.json`, both produced outside the repo and therefore not citable as paths):
+the case sets are set-identical at 3,138 entries; the verdict tallies are 2,438 out-of-domain / 700
+accept and 2,403 / 735; the diff is exactly 35 rows, all `out_of_domain → accept`, and all 35 carry the
+single before-side reason above. So the 35-verdict figure is now reproduced from a stated population
+rather than asserted — but the two JSONs themselves are untracked scratch files, so a clone still has
+to regenerate them with the command above. The earlier "bit-identical" claim remains withdrawn: the two
+byte-identical post-change censuses it rested on prove nothing.
 
 The mechanism is not subtle, and it is why the "additive only" framing was wrong: `D2.actDelegate` is
 *shared* by both layers. `checkD3` is `checkD2Core (d3Hooks …)`, and `checkD2Core` reaches
@@ -229,6 +240,21 @@ actually blocks the three gates:
    hypothesis: it equates the D1 state tables' answer with the Wasm machine's outcome and needs both
    artifacts, which `zk-formal` does not import. No D2 or D3 AIR exists to port against.
 7. **W00 — 17 UQs and 28 inventory rows** stay open and Gate-B-blocking; W14–W16 depend on them.
+8. **The AIR/supporting-research family — landed but not gate-load-bearing.** Nothing below blocks a
+   gate today, which is exactly why it is easy to lose. Each is a named gap in its source file, not an
+   unstated defect:
+   - **RIPEMD `round_agrees` is unproved.** `WasmBase/RipemdRound.lean` has the machinery and **zero**
+     per-word instance theorems; the eight wiring-only words follow only in prose from
+     `nxtWord_eq_cur` + `RipemdAir.shiftConstraints`. `bl'`/`br'` need the four-addition chain composed
+     with the `f` column, the selected message word and the rotated `t3`. A general rotation bridge is
+     also absent (`rotl32n_is_rot` is a `decide` over 80 offsets × 8 values).
+   - **The feed-forward row family and the block-boundary/digest rows** are absent from `RipemdAir`, so
+     the row cannot yet be consumed by a host call.
+   - **The `X`-column message-word binding** — that the 512 message columns are the block's bytes at the
+     call's `(ptr, len)` — is the same `HOSTB`/memory ↔ bytes join obligation `Sha.HashInputLink`
+     carries. The `X` columns carry no interaction, so the AIR's own constraints cannot close it.
+   - **Promise-family coarseness.** `promise_yield_resume*` pushes an `i32` result tag 0 while the chip's
+     result tag is fixed at 1 (`results/pq-host-promise/DESIGN.md` §3).
 
 Two supporting-research results are landed but not yet load-bearing for any gate, and should not be
 mistaken for package closure:
@@ -263,6 +289,25 @@ mistaken for package closure:
   (`RipemdAir.shiftConstraints`), from which the eight wiring-only words follow — but that reduction is
   stated in prose, not written as eight lemmas. Only `bl'`/`br'` need arithmetic; the eight are
   "immediate" in the sense that no adder chain is involved, not in the sense of being proved.
+
+### Working-tree state at `eff525719` — five untracked paths, now decided
+
+`main` at `eff525719` carried five untracked paths. Each was inspected and given a disposition rather
+than left dangling; the first two are now ignored by name in `.gitignore` with the reason beside them:
+
+| path | size / shape | disposition |
+|---|---|---|
+| `req.log` | 1.7 KB, chain-generator stdout from 2026-10-20 | gitignored — regenerable scratch output, no provenance value |
+| `research/near-compression/results/pq-realtime-hypothesis/` | 112 MB, 943 top-level entries / 1,106 files (prover benchmark packets, `.bin` witnesses, endpoint JSON) | gitignored — **no file in the tree or in any doc cites a path under it**, so committing it would add 112 MB of unreferenced blobs; keep it locally |
+| `spec/lean/scripts/gen_realcase_d3.py` | 3.8 KB generator | gitignored with the draft below — it only exists to emit them |
+| `spec/lean/v3/NearSpecV3/Examples/RealCaseD3.lean` | 799 B, one `decide +kernel` theorem | gitignored — the theorem does not close (four SIGTERM timeouts at 1,800–3,000 s, zero output); do not land as evidence |
+| `spec/lean/v3/NearSpecV3/Examples/RealCaseD3Data.lean` | 27.8 KB, two byte literals (5,267 B claim / 6,023 B witness) | gitignored with its theorem |
+
+The D3 kernel non-vacuity gap this represents stays open and is **not** hidden by ignoring the draft:
+the analogue of D2's `RealCaseD2` gate still does not exist, and `spec/near-chunk-validation-d3.md` has
+no kernel non-vacuity bullet. See `docs/HANDOVER.md` "No kernel non-vacuity gate for D3" for the two
+separated failure modes and the structural fix (making `RelD3` Bool-primary needs a versioned
+successor).
 
 | Package | Landed on main | Still open (headline) |
 |---|---|---|

@@ -10,3 +10,13 @@ research/*/.lake/
 research/*/lake-manifest.json
 # Lean build outputs that land beside sources when built outside lake
 spec/lean/**/*.olean
+# Scratch stdout from local chain-generator runs (regenerable, no provenance value)
+req.log
+# 112 MB of prover benchmark packets from the pq-realtime-hypothesis sweep. Kept locally for
+# reference; nothing in the tree or docs cites a path under it, so it stays out of git.
+research/near-compression/results/pq-realtime-hypothesis/
+# RealCaseD3 kernel non-vacuity draft: the `decide +kernel` theorem does not close (killed by
+# SIGTERM at 3000 s, twice). Kept as a working draft only; do not land as evidence.
+spec/lean/scripts/gen_realcase_d3.py
+spec/lean/v3/NearSpecV3/Examples/RealCaseD3.lean
+spec/lean/v3/NearSpecV3/Examples/RealCaseD3Data.lean
