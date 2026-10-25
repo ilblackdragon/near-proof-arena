@@ -181,7 +181,12 @@ theorem CR_readContractIdH (σ : TTN.Store) (b : Bool) (l p : Nat) : CR σ (read
 
 macro_rules | `(tactic| cr_call) => `(tactic| apply CR_readContractIdH)
 
-theorem CR_deployGlobalH (σ : TTN.Store) (a : Vector Nat 3) : CR σ (deployGlobalH a) (deployGlobalH a) := by
+theorem CR_readContractIdDataH (σ : TTN.Store) (b : Bool) (l p : Nat) : CR σ (readContractIdDataH b l p) (readContractIdDataH b l p) := by
+  unfold readContractIdDataH; cr
+
+macro_rules | `(tactic| cr_call) => `(tactic| apply CR_readContractIdDataH)
+
+theorem CR_deployGlobalH (σ : TTN.Store) (a : Vector Nat 3) (b : Bool) : CR σ (deployGlobalH a b) (deployGlobalH a b) := by
   unfold deployGlobalH; cr
 
 macro_rules | `(tactic| cr_call) => `(tactic| apply CR_deployGlobalH)
@@ -190,6 +195,11 @@ theorem CR_useGlobalH (σ : TTN.Store) (b : Bool) (a : Vector Nat 3) : CR σ (us
   unfold useGlobalH; cr
 
 macro_rules | `(tactic| cr_call) => `(tactic| apply CR_useGlobalH)
+
+theorem CR_setStateInitDataH (σ : TTN.Store) (r i : Nat) (k v : ByteArray) : CR σ (setStateInitDataH r i k v) (setStateInitDataH r i k v) := by
+  unfold setStateInitDataH; cr
+
+macro_rules | `(tactic| cr_call) => `(tactic| apply CR_setStateInitDataH)
 
 theorem CR_stateInitH (σ : TTN.Store) (b : Bool) (a : Vector Nat 4) : CR σ (stateInitH b a) (stateInitH b a) := by
   unfold stateInitH; cr

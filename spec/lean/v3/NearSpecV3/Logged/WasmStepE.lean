@@ -28,9 +28,9 @@ theorem exmap_error (e : String) : Except.map (ε := String) f (.error e) = .err
 end
 
 /-- Fold a structure literal over `E σ s`'s store field back into `E σ`. -/
-theorem E_mk (σ : TTN.Store) (s : St) (a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 a24) :
-    St.mk a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 (E σ s).real a24 =
-      E σ (St.mk a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 s.real a24) := rfl
+theorem E_mk (σ : TTN.Store) (s : St) (a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 a24 a25 a26) :
+    St.mk a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 (E σ s).real a24 a25 a26 =
+      E σ (St.mk a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 s.real a24 a25 a26) := rfl
 
 open Lean Elab Tactic Meta in
 /-- On a `mapRes f X` / `Except.map f X` with `X` a call (not a `match`/`if`): generalize `X` and
