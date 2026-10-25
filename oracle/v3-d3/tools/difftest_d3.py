@@ -25,7 +25,9 @@ disagreement only when its own bucket says so:
                                   A failure.
   * `accept_above_g_alpha`      — accept on a case the oracle puts above G_α. A failure.
   * `missing_code_cache_exclusion` — the oracle marks `e.code_cache` and the checker does not report
-                                  the compiled-contract-cache exclusion. A failure.
+                                  the compiled-contract-cache exclusion. A failure, unless the run
+                                  widens `e.code_cache`: then the verdict is compared with nearcore
+                                  and the cache exclusion remains admissible (rolled-back deploys).
   * `verdict_compared_agree`    — accept/reject matches nearcore and the case is in domain. Pass.
   * `verdict_compared_disagree` — accept/reject differs from nearcore. A failure.
   * `verdict_agree_outside_domain` — accept/reject matches nearcore on a case the oracle classifies
@@ -262,8 +264,20 @@ def compare(label, dirs, metas, got, domain="baseline", widen=()):
             records.append(row)
             continue
         # ---- 4. a code-cache case needs the cache exclusion ----------------------
+        # A successor that widens `e.code_cache` resolves in-chunk deploys through the deploy
+        # tracker, so such a case is compared against nearcore; only a rolled-back deploy may still
+        # carry the cache exclusion, which then counts as asserted.
         codes = reason_codes(reason)
-        if "e.code_cache" in viol and not (v == "out_of_domain" and "code_cache" in codes):
+        if "e.code_cache" in viol and "e.code_cache" in widen and v == "out_of_domain" \
+                and "code_cache" in codes and not (set(viol) - widen):
+            partition["domain_exclusion_asserted"] += 1
+            stats[("domain_exclusion", "asserted", label)] += 1
+            row.update(classification="domain_exclusion_asserted", verdict_compared=False,
+                       verdict_agrees=None, exclusion_codes=sorted(codes), exclusion_asserted=True)
+            records.append(row)
+            continue
+        if "e.code_cache" in viol and "e.code_cache" not in widen \
+                and not (v == "out_of_domain" and "code_cache" in codes):
             partition["missing_code_cache_exclusion"] += 1
             bad.append((d, f"code cache: oracle True, {label} {v}", reason, m.get("nearcore")))
             row.update(classification="missing_code_cache_exclusion", verdict_compared=v != "out_of_domain",

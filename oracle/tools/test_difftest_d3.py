@@ -245,6 +245,32 @@ class ControlledBreakage(unittest.TestCase):
         self.assertEqual(partition["missing_code_cache_exclusion"], 1)
         self.assertEqual(len(bad), 1)
 
+    def widened(self, mutate):
+        got = {d: dict(r) for d, r in self.got.items()}
+        mutate(got)
+        return d3.compare("lean", self.dirs, self.metas, got, domain="successor",
+                          widen=("e.code_cache",))
+
+    def test_widened_code_cache_compares_verdict(self):
+        """With `e.code_cache` widened, a decided cache case is compared against nearcore."""
+        target = self.first("mutants")
+        self.assertEqual(self.metas[target]["d3_violations"], ["e.code_cache"])
+        near = "accept" if self.metas[target]["expected_rel"] else "reject"
+        wrong = "reject" if near == "accept" else "accept"
+        _, bad, partition, _ = self.widened(lambda g: g[target].update(verdict=near, reason=""))
+        self.assertEqual(partition["missing_code_cache_exclusion"], 0)
+        self.assertNotIn(target, [b[0] for b in bad])
+        _, bad, partition, _ = self.widened(lambda g: g[target].update(verdict=wrong, reason=""))
+        self.assertIn(target, [b[0] for b in bad])
+
+    def test_widened_code_cache_keeps_cache_exclusion(self):
+        """A rolled-back deploy may still report the cache exclusion when widened."""
+        target = self.first("mutants")
+        _, bad, _, records = self.widened(lambda g: None)
+        self.assertNotIn(target, [b[0] for b in bad])
+        row = next(r for r in records if r["case"] == target)
+        self.assertEqual(row["classification"], "domain_exclusion_asserted")
+
 
 class TimeoutIsAFailure(unittest.TestCase):
     """A hung checker shard must fail the run, not silently shorten the population."""

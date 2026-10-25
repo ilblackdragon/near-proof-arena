@@ -71,18 +71,26 @@ def incompleteCodeWitness : String :=
 def unauthenticatedCodeWitness : String :=
   "invalid witness (w.code_complete): contract code does not hash to the resolved identifier"
 
-/-- Historical behavior, factored out without changing its missing-code or exclusion strings. -/
+/-- Historical behavior, factored out without changing its missing-code or exclusion strings.
+
+The order is nearcore's `ContractStorage::get` (`contract.rs:125-151`): the deploy tracker is
+consulted *before* trie storage, and the tracker holds both uncommitted and committed deploys. A
+pre-state contract whose code was also deployed (and not rolled back) in this chunk is therefore
+served deterministically from the tracker — the cold validator needs no compiled cache for it.
+Only a *rolled-back* deploy (`attempted`) leaves the code reachable exclusively through the
+compiled-artifact cache, so only that case remains an explicit exclusion. -/
 def resolveColdCode (sources : CodeSources) (pre : PrestateCode) (hash : Bytes) : Except String Bytes :=
   match sources.witness hash with
   | some code => .ok code
   | none =>
-    if pre.hash? == some hash then
-      if (sources.current ++ sources.committed ++ sources.attempted).any (fun code => sha256 code == hash) then
-        .error (D3.oodE "pre-state contract served only by the in-chunk compiled-contract cache")
+    match sources.deployed hash with
+    | some code => .ok code
+    | none =>
+      if pre.hash? == some hash then
+        if sources.attempted.any (fun code => sha256 code == hash) then
+          .error (D3.oodE "pre-state contract served only by the in-chunk compiled-contract cache")
+        else .error "invalid: MissingTrieValue (contract code)"
       else .error "invalid: MissingTrieValue (contract code)"
-    else match sources.deployed hash with
-      | some code => .ok code
-      | none => .error "invalid: MissingTrieValue (contract code)"
 
 /-- The complete-witness decision does not read `attempted` or any compiled cache. Raw witness
 code is checked even if the store implementation is not `mkHStore`; production stores are built

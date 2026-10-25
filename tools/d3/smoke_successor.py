@@ -25,7 +25,7 @@ def main():
             for row in rows:
                 entry = next(e for e in entries if (fixture / e["case_dir"]).resolve() == Path(row["case"]))
                 if "c.not_genesis" in entry["d3_violations"]:
-                    expected = "accept" if (tier.startswith("genesis") or tier in ("runtimeLimits", "storageResolution", "globalActions", "completeCodeGlobal", "curveHosts", "resharding")) else "out_of_domain"
+                    expected = "accept" if (tier.startswith("genesis") or tier in ("runtimeLimits", "storageResolution", "globalActions", "completeCodeGlobal", "curveHosts", "resharding", "allFeatures")) else "out_of_domain"
                     assert row["verdict"] == expected, (tier, row)
                 # `e.ood_host` is one label covering *both* the curve host family and the
                 # state-init / global-contract promise hosts. The curveHosts tier decides the

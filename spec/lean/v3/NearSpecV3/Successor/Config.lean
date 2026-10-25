@@ -97,6 +97,11 @@ structure ProtocolCfg where
   signed configuration keeps this `false`, so both `c.same_layout` and `c.no_split_gate` stay in
   force there and `checkSuccessor_signed` remains `rfl`. -/
   resharding : Bool := false
+  /-- Opt-in lift of the `c.blocks.length ≤ 32` chain-segment bound. That bound is a prover-capacity
+  restriction inherited from D0 (Gate B forbids it as an accepted configuration), not a protocol
+  condition; the pipeline already walks an arbitrary `c.blocks` list. The signed configuration keeps
+  this `false`, so the bound stays in force there and `checkSuccessor_signed` remains `rfl`. -/
+  segmentUnbounded : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
@@ -174,11 +179,13 @@ tier's checker is this function at that tier's configuration; there is no second
 def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Except String Unit :=
   match cfg.protocolVersion with
   | 86 =>
+    let codePolicy : CodeWitnessPolicy :=
+      if cfg.completeCodeWitness then .complete else .coldPartial
+    let baseDriver : ExecutionDriver :=
+      if cfg.resharding then reshardingDriver cfg.wasm cfg.globalActions codePolicy
+      else recorderDriver cfg.wasm cfg.globalActions codePolicy
     let mkDriver : ExecutionDriver :=
-      if cfg.resharding then reshardingDriver cfg.wasm cfg.globalActions
-        (if cfg.completeCodeWitness then .complete else .coldPartial)
-      else recorderDriver cfg.wasm cfg.globalActions
-        (if cfg.completeCodeWitness then .complete else .coldPartial)
+      { baseDriver with segmentUnbounded := cfg.segmentUnbounded }
     if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness || cfg.resharding then
       if cfg.genesisMainTransition then
         checkD2CoreGWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
@@ -251,8 +258,16 @@ inductive Tier where
   | curveHosts
   /-- Every decision the `curveHosts` tier makes, plus resharding: a claim whose epochs differ in
   shard layout or whose facts carry a split gate is decided by the split's retention instead of
-  excluded. This is the widest tier. -/
+  excluded. -/
   | resharding
+  /-- Every implemented feature at once: the whole-state `globalActions` path (typed global actions,
+  distribution receipts and promise translation), the `curveHosts` table and resharding together.
+  This is the only tier whose domain is the union of the other wide tiers': the named tiers are not
+  cumulative (`curveHosts`/`resharding` omit `globalActions`, so each excludes 222 chunks that
+  `globalActions` decides), and `completeCodeGlobal` is *narrower* than `globalActions` (its
+  complete-code policy rejects 76 valid warm-cache chunks). See `allFeatures_sets_globalActions`,
+  `allFeatures_sets_curveHosts` and `allFeatures_sets_resharding`. -/
+  | allFeatures
   deriving DecidableEq, Repr
 
 /-- The tier's configuration. -/
@@ -286,6 +301,13 @@ def Tier.cfg : Tier → ProtocolCfg
     { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, curveHosts := true,
                      resharding := true }
+  -- Every implemented feature at once. This is the only tier whose domain is the union of the
+  -- other wide tiers': the named tiers are not cumulative (`curveHosts`/`resharding` omit
+  -- `globalActions`), and `completeCodeGlobal` is narrower than `globalActions`.
+  | .allFeatures =>
+    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+                     loadingLimits := true, storageResolution := true, globalActions := true,
+                     curveHosts := true, resharding := true, segmentUnbounded := true }
 
 /-- The tier's checker: the root at the tier's configuration. -/
 def Tier.checker (t : Tier) : Bytes → Bytes → Except String Unit := checkSuccessor t.cfg
@@ -302,13 +324,67 @@ def Tier.domainPredicate (t : Tier) (c w : Bytes) : Bool :=
 def Tier.exclusion (t : Tier) (c w : Bytes) : Option String :=
   (checkVerdict (Tier.checker t) c w).exclusionReason
 
+/-! ## The widest tier's configuration is the composition of the wide ones
+
+The named wide tiers were declared as a rank chain, but the chain is **false as written**: the
+`curveHosts` and `resharding` configurations set `curveHosts := true` without `globalActions`, so a
+chunk whose *shape* needs the global-action path is excluded there even though `.globalActions`
+decides it. Measured on 3,138 nearcore-valid cases: `.globalActions` decides 222 chunks that
+`.curveHosts` and `.resharding` exclude, and `.resharding` decides 237 that `.globalActions`
+excludes. Neither is wider. `.allFeatures` is the join of both. -/
+
+/-- `.allFeatures` sets every field `.globalActions` sets. -/
+theorem allFeatures_sets_globalActions :
+    (Tier.cfg .allFeatures).globalActions = true ∧
+      (Tier.cfg .allFeatures).storageResolution = true ∧
+      (Tier.cfg .allFeatures).floats = true ∧
+      (Tier.cfg .allFeatures).genesisMainTransition = true ∧
+      (Tier.cfg .allFeatures).loadingLimits = true ∧
+      (Tier.cfg .allFeatures).gasCap = some maxGasBurnt := ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- `.allFeatures` sets every field `.curveHosts` sets. -/
+theorem allFeatures_sets_curveHosts : (Tier.cfg .allFeatures).curveHosts = true := rfl
+
+/-- `.allFeatures` sets every field `.resharding` sets. -/
+theorem allFeatures_sets_resharding : (Tier.cfg .allFeatures).resharding = true := rfl
+
+/-- `.allFeatures` lifts the prover-capacity `c.segment` bound; the signed configuration does not. -/
+theorem allFeatures_lifts_segment :
+    (Tier.cfg .allFeatures).segmentUnbounded = true ∧ signedCfg.segmentUnbounded = false := ⟨rfl, rfl⟩
+
+/-- The `c.segment` lift is additive: at the signed configuration the segment bound is still
+enforced, so `checkSuccessor_signed` is untouched. -/
+theorem segmentUnbounded_signed_false : (Tier.cfg .signed).segmentUnbounded = false := rfl
+
+/-- The join is *strict*: neither `.globalActions` nor `.resharding` sets both features. -/
+theorem wide_tiers_not_cumulative :
+    (Tier.cfg .resharding).globalActions = false ∧
+      (Tier.cfg .globalActions).resharding = false ∧
+      (Tier.cfg .globalActions).curveHosts = false := ⟨rfl, rfl, rfl⟩
+
+/-- `.completeCodeGlobal` adds the complete-code witness policy to `.globalActions`, and that policy
+is *not* monotone in domain: it rejects valid warm-cache chunks. The configuration therefore is not
+an ancestor of `.allFeatures`, whose cold-partial policy keeps them. -/
+theorem completeCodeGlobal_not_in_join :
+    (Tier.cfg .completeCodeGlobal).completeCodeWitness = true ∧
+      (Tier.cfg .allFeatures).completeCodeWitness = false := ⟨rfl, rfl⟩
+
 /-- Tiers are ordered by domain inclusion; this is a *declaration*, not a proved refinement. The
 refinement obligations are W12's (`relSuccessor_*_mono`), and they need the adapter agreement
-theorems below plus the still-missing semantic families. -/
+theorems below plus the still-missing semantic families.
+
+**The earlier rank order was false.** Measured on the 3,138 nearcore-valid cases Lean refused, the
+named tiers are not cumulative: `.curveHosts` and `.resharding` omit `globalActions`, so each
+*excludes* 222 chunks its rank-8 predecessor decides; `.completeCodeGlobal` is narrower than
+`.globalActions` (its complete-code policy rejects 76 valid warm-cache chunks), so it cannot be an
+ancestor of any widest tier. `.allFeatures` is the first tier that actually composes every
+implemented feature; only for it does "higher rank" mean "wider domain" among the wide tiers.
+The rank remains a *declaration*: no refinement theorem is proved. -/
 def Tier.rank : Tier → Nat
   | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
   | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7
-  | .globalActions => 8 | .completeCodeGlobal => 9 | .curveHosts => 10 | .resharding => 11
+  | .globalActions => 8 | .curveHosts => 9 | .resharding => 10 | .allFeatures => 11
+  | .completeCodeGlobal => 12
 
 /-! ## The adapters, at their tiers
 

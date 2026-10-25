@@ -16,15 +16,22 @@ import sys
 
 REPO = Path(__file__).resolve().parents[2]
 TIERS = {
-    "globalActions": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
+    # `e.code_cache` is widened on every cold-partial whole-state tier: a pre-state contract also
+    # deployed in the chunk is served by the deploy tracker (`ContractStorage::get` order), so only a
+    # rolled-back deploy still needs the compiled cache. `completeCodeGlobal` rejects such witnesses.
+    "globalActions": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
     "completeCodeGlobal": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
     # W05 curve hosts: the widest tier. A curve-host case is in domain here, so the tier declares
     # no curve exclusion; it still carries the genesis/float/gas ones the narrower tiers carry.
-    "curveHosts": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
+    "curveHosts": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
     # The widest tier: curve hosts plus resharding. The resharding guards (`c.same_layout`,
     # `c.no_split_gate`) are lifted, so those labels are no longer exclusion labels here.
-    "resharding": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
-    "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
+    "resharding": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
+    # The genuinely cumulative tier: global actions and curve hosts and resharding together. The
+    # named wide tiers are NOT cumulative (`curveHosts`/`resharding` omit `globalActions`), so this
+    # is the only tier whose domain contains every other wide tier's decided cases.
+    "allFeatures": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
+    "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
     "signed": (),
     "floats": ("e.float",),

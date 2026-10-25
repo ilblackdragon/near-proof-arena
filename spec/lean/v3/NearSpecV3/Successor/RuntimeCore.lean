@@ -42,6 +42,12 @@ structure ExecutionDriver where
   shard layout or whose facts carry a split gate. `false` is the signed and D2 behaviour: both
   guards stay in force and no implicit transition can be a resharding. -/
   resharding : Bool := false
+  /-- Lift the `c.blocks.length ≤ 32` chain-segment bound. That bound is inherited from the D0 design
+  to keep the AIR's public-segment and table heights small — a prover-capacity restriction, not a
+  protocol condition (Gate B forbids such bounds in an accepted configuration). The pipeline already
+  walks an arbitrary `c.blocks` list, so lifting it adds no semantics. `false` keeps the signed and
+  D2 behaviour exactly. -/
+  segmentUnbounded : Bool := false
   /-- How each implicit transition is applied. The default is the signed behaviour: every implicit
   transition is an old-chunk application. A resharding-enabled driver consults the layout's split
   map instead. -/
@@ -119,7 +125,8 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
   let L ← decodeLayout ep.shardLayout
   check (1 ≤ L.numShards && L.numShards ≤ 64) "out of domain (c.layout)"
   check (rsGenesisParamsOk c.rsDataParts c.rsTotalParts) "invalid: Reed-Solomon parameters"
-  check (c.blocks.length ≤ 32) "out of domain (c.segment)"
+  if !driver.segmentUnbounded then
+    check (c.blocks.length ≤ 32) "out of domain (c.segment)"
   check (c.epochStartAfter.length == c.blocks.length) "invalid: epoch_start_after length"
   check (c.epochStartAfter.all (·.toNat ≤ 1)) "invalid: epoch_start_after flag"
   -- epoch_start_after vs headers (spec/claim-v3.md §2.2)
@@ -293,7 +300,8 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
   let L ← decodeLayout ep.shardLayout
   check (1 ≤ L.numShards && L.numShards ≤ 64) "out of domain (c.layout)"
   check (rsGenesisParamsOk c.rsDataParts c.rsTotalParts) "invalid: Reed-Solomon parameters"
-  check (c.blocks.length ≤ 32) "out of domain (c.segment)"
+  if !driver.segmentUnbounded then
+    check (c.blocks.length ≤ 32) "out of domain (c.segment)"
   check (c.epochStartAfter.length == c.blocks.length) "invalid: epoch_start_after length"
   check (c.epochStartAfter.all (·.toNat ≤ 1)) "invalid: epoch_start_after flag"
   let afterEpochs := c.epochId :: blks.map (·.hdr.epochId)

@@ -18,6 +18,7 @@ def parseTier : String → Option Successor.Tier
   | "completeCodeGlobal" => some .completeCodeGlobal
   | "curveHosts" => some .curveHosts
   | "resharding" => some .resharding
+  | "allFeatures" => some .allFeatures
   | _ => none
 
 def resultRow (dir tier verdict reason : String) : String :=
