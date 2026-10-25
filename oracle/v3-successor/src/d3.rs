@@ -781,7 +781,8 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         }
         // In opt-in global traffic, also produce independently judged mutants of global shapes.
         // This changes fixture generation only, never the baseline classification or expectation.
-        let global_scenario = std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok("global-cache");
+        // The keys scenario does the same for its key shapes (secp256k1 / ML-DSA keys, gas keys).
+        let global_scenario = matches!(std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref(), Ok("global-cache" | "keys"));
         if viol3.iter().any(|v| !matches!(*v, "e.float" | "e.g_alpha") && !(global_scenario && *v == "w.shape")) {
             return;
         }

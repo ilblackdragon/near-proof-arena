@@ -59,8 +59,9 @@ mod d2gen;
 #[path = "../../v3-d1/src/arena.rs"]
 mod arena;
 // D3 (this crate)
-#[path = "../../v3-d3/src/chaind3.rs"]
+// versioned copy of ../../v3-d3/src/chaind3.rs with the opt-in keys scenario hook
 mod chaind3;
+mod keys;
 mod d3;
 mod d3contracts;
 mod d3gen;

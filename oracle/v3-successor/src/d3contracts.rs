@@ -22,6 +22,9 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
         let entry = contracts.iter_mut().find(|(name, _)| *name == "d3float").unwrap();
         entry.1 = code.clone();
     }
+    if crate::keys::enabled() {
+        contracts.push(("kgashost", crate::keys::host_code()));
+    }
     contracts
 }
 

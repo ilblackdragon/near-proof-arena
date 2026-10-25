@@ -114,13 +114,20 @@ pub fn genesis_records(
             supply = supply.checked_add(amount).unwrap();
         }
     }
+    if crate::keys::enabled() {
+        let (extra, amount) = crate::keys::genesis_records();
+        records.extend(extra);
+        supply = supply.checked_add(amount).unwrap();
+    }
     (records, supply)
 }
 
+/// The global-cache scenario; `keys` (src/keys.rs) is the other accepted value.
 fn scenario_enabled() -> bool {
     match std::env::var("NEAR_SUCCESSOR_SCENARIO") {
         Err(std::env::VarError::NotPresent) => false,
         Ok(value) if value == "global-cache" => true,
+        Ok(value) if value == crate::keys::SCENARIO => false,
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }
