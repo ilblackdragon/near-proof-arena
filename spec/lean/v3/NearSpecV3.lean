@@ -11,6 +11,10 @@ import NearSpecV3.Layout
 import NearSpecV3.TrieBuild
 import NearSpecV3.RuntimeD0
 import NearSpecV3.ChunkValidationV0
+-- The D1 output-emitting checker (`checkD1CoreObs`, `checkD1CoreOut`) and its projection theorems.
+-- Additive only: `checkD1` is defined as its projection, so importing this module changes no signed
+-- statement and no verdict. Imported here so the axioms and the projection are in the default build.
+import NearSpecV3.ChunkValidationD1Out
 import NearSpecV3.ChallengeV3
 import NearSpecV3.ClaimV3Props
 import NearSpecV3.SHA512

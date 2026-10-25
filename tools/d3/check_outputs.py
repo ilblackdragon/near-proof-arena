@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """Verify that Lean's emitted chunk outputs match an independent decode of the claim, per case.
 
-`nearspec-v3-check-d3-out` prints, per case, the verdict and the consensus outputs it produced. Those
-outputs are the endorsed header's fields, which the signed checker proved equal to the values it computed
-(`NearSpecV3.accepted_observable_agrees`). This script checks the *emission* side independently: it
-decodes each case's `claim.bin` in Python (`tools/d3/claim_outputs.py`) and compares field by field.
+`nearspec-v3-check-d3-out` prints, per case, the verdict and the consensus outputs it computed. The
+signed checkers compare those computed values against the endorsed header and only accept when they
+agree, so on acceptance the emitted values equal the header's (`NearSpecV3.accepted_observable_computed`
+for D2/D3, `NearSpecV3.checkD1_accepted_observable_computed` for D1). This script checks the *emission*
+side independently: it decodes each case's `claim.bin` in Python (`tools/d3/claim_outputs.py`) and
+compares field by field.
+
+Modes: default (D3), `--d2`, and `--d1`. `--d1` additionally asserts the D1-only invariants — `wasmGas`
+is `0`, `bwRequests` is empty — because D1 executes no WASM and computes no bandwidth requests. Those are
+not claim comparisons; they are checks that the D1 emission does not fabricate D2/D3-only observations.
 
 ## What this establishes, and what it does not
 
@@ -64,9 +70,11 @@ def independent_outputs(claim_path):
     }
 
 
-def run_driver(cases, shards, timeout, d2=False):
+def run_driver(cases, shards, timeout, d2=False, d1=False):
     """Run the Lean driver over all cases in `shards` parallel processes. Returns case -> line."""
-    prefix = ["--d2"] if d2 else []
+    if d1 and d2:
+        raise SystemExit("--d1 and --d2 are mutually exclusive")
+    prefix = ["--d1"] if d1 else (["--d2"] if d2 else [])
     import tempfile
     got = {}
     with tempfile.TemporaryDirectory() as td:
@@ -116,7 +124,10 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--report", default=None, help="write a machine-readable JSON report here")
     ap.add_argument("--d2", action="store_true", help="run the D2 pipeline (checkD2CoreOut) instead of D3")
+    ap.add_argument("--d1", action="store_true", help="run the D1 pipeline (checkD1CoreOut) instead of D3")
     args = ap.parse_args()
+    if args.d1 and args.d2:
+        ap.error("--d1 and --d2 are mutually exclusive")
 
     fams = [f.strip() for f in args.families.split(",") if f.strip()]
     cases = []
@@ -137,13 +148,14 @@ def main():
     if not cases:
         return 2
 
-    got = run_driver(cases, args.shards, args.timeout, args.d2)
+    got = run_driver(cases, args.shards, args.timeout, args.d2, args.d1)
 
     counts = {"accept": 0, "reject": 0, "out_of_domain": 0}
     mismatches = []
     accept_no_outputs = []
     missing = []
     per_field = {}
+    d1_invariants = {}
 
     for p in cases:
         j = got.get(p)
@@ -172,14 +184,29 @@ def main():
             mismatches.append({"case": p, "field": "proposals",
                                "lean": len(outs.get("proposals") or []),
                                "claim": len(ind.get("proposals") or [])})
+        if args.d1:
+            # D1-only invariants: no WASM, no bandwidth requests. Not claim comparisons — the claim
+            # header carries no bandwidth-request list in the fields this decoder reads — but a
+            # fabricated D2/D3-only value would be a real emission bug.
+            if outs.get("wasmGas") != 0:
+                d1_invariants["wasmGas_nonzero"] = d1_invariants.get("wasmGas_nonzero", 0) + 1
+                mismatches.append({"case": p, "field": "wasmGas", "lean": outs.get("wasmGas"),
+                                   "claim": 0})
+            if outs.get("bwRequests"):
+                d1_invariants["bwRequests_nonempty"] = d1_invariants.get("bwRequests_nonempty", 0) + 1
+                mismatches.append({"case": p, "field": "bwRequests",
+                                   "lean": len(outs.get("bwRequests") or []), "claim": 0})
 
     total_bad = len(mismatches) + len(accept_no_outputs) + len(missing)
     print()
+    print(f"mode: {'d1' if args.d1 else ('d2' if args.d2 else 'd3')}")
     print(f"verdicts: {counts}")
     print(f"accepted with outputs: {counts.get('accept', 0) - len(accept_no_outputs)}")
     print(f"field mismatches: {len(mismatches)}" + (f" {per_field}" if per_field else ""))
     print(f"accepted but null outputs: {len(accept_no_outputs)}")
     print(f"missing lines: {len(missing)}")
+    if args.d1:
+        print(f"d1 invariant failures: {d1_invariants if d1_invariants else 'none'}")
     print(f"TOTAL FAILURES: {total_bad}")
     for m in mismatches[:15]:
         print(f"  MISMATCH {os.path.basename(m['case'])} {m['field']}: lean={m['lean']} claim={m['claim']}")
@@ -191,11 +218,13 @@ def main():
     if args.report:
         doc = {
             "schema": "near-d3-output-agreement-v1",
+            "mode": "d1" if args.d1 else ("d2" if args.d2 else "d3"),
             "corpus": os.path.abspath(args.corpus),
             "families": fams,
             "cases_read": len(cases),
             "driver": DRIVER,
             "verdicts": counts,
+            "d1_invariant_failures": d1_invariants,
             "accepted_with_outputs": counts.get("accept", 0) - len(accept_no_outputs),
             "field_mismatches": len(mismatches),
             "mismatches_by_field": per_field,

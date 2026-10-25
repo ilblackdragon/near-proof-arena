@@ -60,9 +60,12 @@ theorem checkD1_witnessOfD1 {cb : NearSpec.Bytes} {k : NearSpecV3.WalkD0}
     cases hh
     simp_all only [pure, Except.pure, Except.ok.injEq, Option.bind_some, beq_iff_eq,
       Bool.and_eq_true]
-    unfold NearSpecV3.checkD1
+    -- `checkD1` is definitionally `(checkD1CoreObs …).map fun _ => ()` (the output-returning checker
+    -- projected to its verdict, `NearSpecV3.ChunkValidationD1`), so the pipeline to reduce is the
+    -- observable one and the projection's equation closes the goal.
+    unfold NearSpecV3.checkD1 NearSpecV3.checkD1CoreObs
     simp only [hdfile, hdsw, hsize, List.isEmpty_nil, check, bind, Except.bind,
-      pure, Except.pure, ↓reduceIte]
+      pure, Except.pure, Except.map.eq_def, ↓reduceIte]
     unfold ZkFormal.NearV3.checkedSourceBlock ZkFormal.NearV3.checkedSourceSlot at hs
     simp only [check, bind, Except.bind, pure, Except.pure, beq_iff_eq] at hs
     unfold checkedImplicitStep at him
