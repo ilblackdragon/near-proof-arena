@@ -1,6 +1,7 @@
 # Full Lean chunk transition — open work
 
-Reviewed: 2026-10-25, against main at the commit that adds the status table.
+Reviewed: 2026-10-25, against main at `7cdc8eed7` (status table) and re-verified on the working tree
+that widens the D3 smoke fixture to seven cases.
 Target: nearcore 2.13.4, commit `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86,
 pinned mainnet runtime parameters.
 
@@ -31,12 +32,73 @@ served by the deploy tracker and 3 `c.segment` cases. Remaining 387: 266 ML-DSA-
 non-ED25519 transaction keys, 41 SECP256K1 delegate signatures; the 8 rejects are
 `MissingTrieValue (contract code)` disagreements with recorded `nearcore(cold)` verdicts.
 Same source: `lake build` 246 jobs, `make d3-drivers`, `make d3-smoke`, coverage drift check and
-86 harness tests pass.
+the differential harness reports 87 tests: 86 pass, 1 skipped.
+
+### CI state at `7cdc8eed7` (measured on the GitHub run for that push)
+
+The run had 18 jobs: 15 ran and 3 were skipped (corpus-content gate without corpora, firecracker and
+hostile-submission e2e without KVM). Four of the 15 failed, and all four are repaired on the working
+tree; each fix is verified locally, not inferred from the commit message:
+
+| Failing job | Cause | Repair (verified) |
+|---|---|---|
+| `rust (fmt, clippy, test, build)` | `umask_0077_trees_…` built its scratch dir under `deps()`, which does not exist on a hosted runner; `create_dir_all` failed with EACCES | `work_base()` falls back to the system temp dir when the deps tree is absent (`cargo test -p arena-firecracker --test umask` → 1 passed) |
+| `lean (zk-formal)` | `ZkFormal.PQ.Join.RunCallFold.d3_only_execution` matched 10 `Act` constructors; the type now has 13 | three added `rfl` arms (`lake build ZkFormal.PQ.Join.RunCallFold` → 117 jobs green) |
+| `lean (research/near-compression/wasm-base-lean)` | `RipemdVectors.lean` wrote a diagnostic to `/tmp/opencode/ripemd_diag.txt`, which is absent on CI | diagnostic write removed; the differential still runs and still fails the build on mismatch (`lake build WasmBase.RipemdVectors` → 18 jobs, "320 rows satisfy all 2625 constraints … RIPEMD-160 KATs ok") |
+| `formal-checker (corpus, native csimp, NEAR spec)` | `near-chunk-v3.json`'s trusted import closure omitted 9 modules that the changed sources now import | nine modules added to the challenge closure (`cargo test -p arena-formal-checker --lib` → 16 passed) |
+
+`d3-drivers` itself passed on that push at five cases, so the seven-case widening is a strengthening,
+not a repair: it makes each widening driver answer for its own family instead of only being executed.
+
+### Remaining open work — prioritized
+
+The package table above is the authoritative per-package backlog. In descending order of what
+actually blocks the three gates:
+
+1. **W12 / Gate B — prover-derived bounds.** `c.segment` is lifted on `allFeatures` only and needs a
+   full-corpus rerun proving it changes no other verdict. The `w.size` 4,000,000-byte storage-proof
+   bound (`ChunkValidationD2.lean:236`, `Successor/RuntimeCore.lean:55`) has **no lift at all**; it
+   shows zero failures today only because no corpus case reaches it. Gate B forbids both.
+2. **W06 — key families.** 266 ML-DSA-65 keys and 80 non-ED25519 transaction keys are unimplemented,
+   plus 41 SECP256K1 delegate signatures. `Secp256k1.verify` and `sha3_256` exist but are called by no
+   action path. This is the single largest exclusion block in the 387.
+3. **W08 — the 8 `MissingTrieValue` disagreements.** Lean rejects 8 mutants whose recorded
+   `nearcore(cold)` verdict accepts. These are disagreements, not exclusions, and they need a base/
+   mutant witness diff at the code lookup, not a tier change. Separately,
+   `completeCodeGlobal` rejects 86 nearcore-valid warm-cache chunks, so it is not an ancestor of
+   `allFeatures` in the accept direction.
+4. **W02 — fuel and termination.** No proof that evaluator fuel suffices for valid metered execution.
+5. **W13 — all-shard replay.** The shard-13 diagnostic (1,223 chunks, 0% mismatch) is not the
+  1,000-block all-shard gate, and the cold native adapter is still unimplemented.
+6. **W00 — 17 UQs and 28 inventory rows** stay open and Gate-B-blocking; W14–W16 depend on them.
+
+Two supporting-research results are landed but not yet load-bearing for any gate, and should not be
+mistaken for package closure:
+
+- **The eleven `promise_*` encodings** (`bdf80d018`, `ZkFormal/PQ/Receipt/Receipt.lean` §7) encode the
+  receipt body as one field list and close `promise_encodings_cover`,
+  `promise_encodings_cover_discriminates`, `receiptCreators_are_six` and `remaining_eleven_closed`.
+  Axiom audit: the first two depend on no axioms; `promise_encodings_cover_discriminates` uses
+  `[propext]`; `remaining_eleven_closed` uses `[propext, Quot.sound]`. "Axioms: none" holds only for
+  the first two. Coverage is keyed by action kind and receipt shape, not host id;
+  `promise_set_refund_to` (id 13) is the lone `rtOnlyIds` exception. The promise family remains
+  coarse on one point: `promise_yield_resume*` pushes an i32 result tag 0 against the chip's fixed
+  tag 1 (`results/pq-host-promise/DESIGN.md` §3).
+- **The `ripemd160` AIR row** (`f7b1a6e0c`, `WasmBase/RipemdAir.lean`, 1,608 columns / 2,625
+  constraints; `WasmBase/RipemdVectors.lean`) is differentially tested: 320 rows satisfy all 2,625
+  constraints, 17 tampers are rejected, 13 digests match the spec, and the RIPEMD-160 KATs pass.
+  Cost is **128,640 committed cells per block** (1,608 × 80), 13.8× SHA-256's 9,333; the earlier
+  "≈9–11 k" figure was wrong and is retracted. Three obligations remain open and the file states
+  them: `round_agrees` itself (the two computed next words `bl'`/`br'` need the four-addition chain
+  composed with the `f` column, selected message word and rotated `t3`; 8 of 10 next words exist),
+  the general rotation bridge (`rotl32n_is_rot` is only a `decide` over 80 offsets × 8 values), and
+  the feed-forward row family plus digest bus. The AIR proves "digest follows from message columns";
+  two message columns are still free, which is a named gap, not a fix. No gate depends on this AIR.
 
 | Package | Landed on main | Still open (headline) |
 |---|---|---|
 | W00 | Successor interfaces (7 contracts) and owner map for all 28 open rows / 17 UQs (`be3ebbca8`); `checkD3`/`RelD3` named statement of record (UQ-010) | All 17 UQs; fact authentication; versioned schema |
-| W01 | CI split into schema / corpus-content / `d3-drivers` jobs; 1,259 unasserted exclusions asserted; comparator compares widened `e.code_cache` cases against nearcore | Computed-observable export and comparison; corpus gate on a provisioned runner |
+| W01 | CI split into schema / corpus-content / `d3-drivers` jobs; 1,259 unasserted exclusions asserted; comparator compares widened `e.code_cache` cases against nearcore; smoke fixture widened to seven cases so each of the four drivers is compared against its **own** declared expectation domain (baseline as `domain=baseline`; d3f/d3g/d3proto as `domain=successor` with the family each lifts), with a per-driver controlled breakage | Computed-observable export and comparison; corpus gate on a provisioned runner |
 | W02 | `protoGas` tier and `checkD3Proto` driver (846 band chunks); opt-in `segmentUnbounded` lifts `c.segment` on `allFeatures` only (signed unchanged) | Full-corpus proof the lift changes no other verdict; `w.size` 4 MB bound; fuel/termination; checker/overlap/tier proofs; stress |
 | W03 | — | Everything listed |
 | W04 | Float tiers with 2,050 operator / 1,284 chunk / 350 mutant comparisons | Overlap/range proofs; preparation negatives; composition |
@@ -163,6 +225,11 @@ Owner: L7 + integration.
   schema-only checks are not corpus-content validation.
 - Exercise CI builds/tests for the final required successor modules and drivers, including the
   remaining key and real resharding paths; a YAML command alone is not execution evidence.
+  The smoke fixture now carries seven cases and compares every driver against its own declared
+  domain (`baseline` or `successor` with an explicit `widen` set), so "the driver ran" is no longer
+  sufficient: a driver that stops widening, widens wrongly or returns a wrong verdict fails. That
+  closes the "merely executed the other three drivers" gap for the four D3 binaries, but it is still
+  seven cases, not the corpus sweep.
 
 Success: every required case has an asserted outcome and complete observable comparison;
 missing/wrong results fail; clean-run CI and package identities support W12–W14.
