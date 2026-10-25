@@ -213,10 +213,16 @@ mistaken for package closure:
   Cost is **128,640 committed cells per block** (1,608 × 80), 13.8× SHA-256's 9,333; the earlier
   "≈9–11 k" figure was wrong and is retracted. Three obligations remain open and the file states
   them: `round_agrees` itself (the two computed next words `bl'`/`br'` need the four-addition chain
-  composed with the `f` column, selected message word and rotated `t3`; 8 of 10 next words exist),
-  the general rotation bridge (`rotl32n_is_rot` is only a `decide` over 80 offsets × 8 values), and
-  the feed-forward row family plus digest bus. The AIR proves "digest follows from message columns";
-  two message columns are still free, which is a named gap, not a fix. No gate depends on this AIR.
+  composed with the `f` column, selected message word and rotated `t3`), the general rotation bridge
+  (`rotl32n_is_rot` is only a `decide` over 80 offsets × 8 values), and the feed-forward row family
+  plus digest bus. The AIR proves "digest follows from message columns"; two message columns are
+  still free, which is a named gap, not a fix. No gate depends on this AIR.
+  *Correction to an earlier count:* the earlier "8 of the 10 next words exist" wording overstates the
+  file. `RipemdRound.lean` has **zero** per-word instance theorems; what exists is the generic
+  `nxtWord_eq_cur` (per-bit shift → word identity) plus the AIR's ten shift constraints
+  (`RipemdAir.shiftConstraints`), from which the eight wiring-only words follow — but that reduction is
+  stated in prose, not written as eight lemmas. Only `bl'`/`br'` need arithmetic; the eight are
+  "immediate" in the sense that no adder chain is involved, not in the sense of being proved.
 
 | Package | Landed on main | Still open (headline) |
 |---|---|---|

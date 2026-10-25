@@ -5,9 +5,9 @@ import WasmBase.RipemdVectors
 # WasmBase.RipemdRound — stage 4: the ten next-row words are the spec's step
 
 `WasmBase.RipemdSound` proves stages 1–3 (field plumbing, selector collapses, adder chain).  This
-file is stage 4: given that a row satisfies `RipemdAir.constraints`, the ten words its `nxt` group
-holds are exactly one step of `NearSpecV3.Wasm.Crypto.ripemd160` applied to the ten words its `cur`
-group holds.
+file is stage 4, whose target statement is: given that a row satisfies `RipemdAir.constraints`, the
+ten words its `nxt` group holds are exactly one step of `NearSpecV3.Wasm.Crypto.ripemd160` applied to
+the ten words its `cur` group holds.  That statement is **not** proved here — see the boundary below.
 
 ## The shape of the statement
 
@@ -29,8 +29,9 @@ Proved, in four sections:
   it), `ofBitsN_congr` (32 agreeing bits make equal words), and `ofBitsN_foldl` (the `foldl` in
   `RipemdVectors.stateOf` *is* `ofBitsN`).
 * **§D** — `curWord`/`nxtWord` and `nxtWord_eq_cur`, which lift a per-bit shift constraint to a word
-  identity.  This is what makes the eight wiring-only next words `al'`, `cl'`, `el'`, `dl'`, `ar'`,
-  `cr'`, `er'`, `dr'` immediate.
+  identity.  This is the tool that would make the eight wiring-only next words `al'`, `cl'`, `el'`,
+  `dl'`, `ar'`, `cr'`, `er'`, `dr'` immediate; the instantiation is described in §D's prose, not
+  written out as eight lemmas.
 
 Not proved here — and this is the honest boundary of the file:
 
@@ -48,7 +49,10 @@ Not proved here — and this is the honest boundary of the file:
   README's §3.6 names both as separate obligations).
 
 So `round_agrees` — the statement the file is named for — is **not** in this file yet.  What is here is
-the machinery it is built from, plus the eight of the ten next words that need no arithmetic at all.
+the machinery it is built from.  No per-word instance theorem is stated here either: the eight
+wiring-only words follow from `nxtWord_eq_cur` plus `RipemdAir.shiftConstraints` by the argument in §D,
+but that argument is prose, not eight lemmas.  So "eight of the ten next words are done" would overstate
+this file; "eight of the ten need no adder chain" is what §D actually establishes.
 -/
 set_option linter.unusedSimpArgs false
 set_option maxHeartbeats 1000000
@@ -443,7 +447,10 @@ The rest of this section is the half of `round_agrees` that needs **no** arithme
 shift constraints say `al' = el`, `cl' = bl`, `el' = dl`, `dl' = rotl32 cl 10` (and the mirrored
 three), so eight of the ten next words are pinned by wiring alone.  Only `bl'` and `br'` — the two
 words the step actually computes — need the adder chain, the `f` form, the message word and the
-rotation; those are **not** in this file (see the header). -/
+rotation; those are **not** in this file (see the header).  Note what "pinned by wiring" does and does
+not mean: the wiring constraints exist in `RipemdAir.shiftConstraints` and `nxtWord_eq_cur` turns each
+into a word identity, but no theorem below instantiates the eight — the reduction is stated, not
+performed. -/
 
 /-- `ofBitsN` is the little-endian `foldl` that `stateOf` uses. -/
 theorem ofBitsN_foldl (f : Nat → Nat) :
