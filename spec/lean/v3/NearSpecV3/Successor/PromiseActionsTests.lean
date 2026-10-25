@@ -77,8 +77,36 @@ def runTests : IO Unit := do
   let real : TTN.RealStore := { store := fun _ => none, root := toBA emptyRoot }
   assertTest "disabled real host remains excluded" (match callHost { s with real := some real, globalActions := false } "promise_batch_action_use_global_contract" with
     | .unmodeled _ => true | _ => false)
-  assertTest "gas-key host remains excluded even when globals enabled" (match callHost { s with real := some real } "promise_batch_action_add_gas_key_with_full_access" with
+  assertTest "gas-key host lifted once globals are enabled" (match callHost { s with real := some real } "promise_batch_action_add_gas_key_with_full_access" with
+    | .unmodeled _ => false | _ => true)
+  assertTest "gas-key host still excluded when the flag is off" (match callHost { s with real := some real, globalActions := false } "promise_batch_action_add_gas_key_with_full_access" with
     | .unmodeled _ => true | _ => false)
+  -- Encoders must produce the exact borsh bytes the D2 decoders accept, and the decoded action must
+  -- be the same logical value the host appended. `pk` is a 33-byte ED25519 PublicKeyBuffer.
+  let pkB : ByteArray := ⟨#[0]⟩ ++ ⟨(List.replicate 32 (7 : UInt8)).toArray⟩
+  let pkS : PublicKey := ⟨0, List.replicate 32 (7 : UInt8)⟩
+  assertTest "transfer-to-gas-key raw encodes tag 12 and round-trips"
+    ((toGasKeyRaw pkB 12345).toList == [12] ++ pkS.encode ++ u128 12345 &&
+     (match GlobalCodecs.pActGlobal (toGasKeyRaw pkB 12345).toList with
+      | .ok (.base ⟨_, .toGasKey k d⟩, []) => k == pkS && d == 12345
+      | _ => false))
+  assertTest "full-access gas key raw encodes tag 5 with nonce 0 and round-trips"
+    ((addGasKeyRaw pkB (gasKeyFullPerm 3)).toList == [5] ++ pkS.encode ++ AK.encode ⟨0, .gasFull 0 3⟩ &&
+     (match GlobalCodecs.pActGlobal (addGasKeyRaw pkB (gasKeyFullPerm 3)).toList with
+      | .ok (.base ⟨_, .addKey k ak⟩, []) => k == pkS && ak.nonce == 0 && ak.perm == .gasFull 0 3
+      | _ => false))
+  assertTest "function-call gas key raw encodes tag 5 with allowance and round-trips"
+    (match GlobalCodecs.pActGlobal
+        (addGasKeyRaw pkB (gasKeyFcPerm 2 (some 99) "bob".toUTF8 #["a".toUTF8, "bb".toUTF8])).toList with
+     | .ok (.base ⟨_, .addKey _ ak⟩, []) =>
+       ak.nonce == 0 && ak.perm == .gasFc 0 2 ⟨some 99, bytesOf "bob", [bytesOf "a", bytesOf "bb"]⟩
+     | _ => false)
+  -- nearcore maps a zero allowance to `None` before appending (`logic/logic.rs:3145`), so the
+  -- permission's allowance option tag must be 0 there, not `1 ‖ 0`.
+  assertTest "zero allowance encodes as none"
+    (((gasKeyFcPerm 1 none "bob".toUTF8 #[]).toList.drop 19).take 1 == [0])
+  assertTest "nonzero allowance encodes as some"
+    (((gasKeyFcPerm 1 (some 99) "bob".toUTF8 #[]).toList.drop 19).take 1 == [1])
   assertTest "malformed raw action never escapes decoding" (match finishActsGlobal { recv := [], acts := [([255], none)] } with
     | .error _ => true | _ => false)
   let fixture ← IO.FS.readBinFile "../../../tools/d3/global-promise-fixtures/all-hosts.wasm"
@@ -100,7 +128,37 @@ def runTests : IO Unit := do
       runCallWithLimits pv86 fixture "run" ctx 1000000 true false (some real) with
     | .done _ none => false
     | _ => true)
-  IO.println "Global promise tests passed: modes, identifiers, per-receipt indices, values, sorting, errors and old-path guards"
+  -- Whole-chunk gas-key run: the fixture calls all three gas-key hosts, so this proves the actions
+  -- reach the action log as decodable borsh and survive receipt reconstruction.
+  let gkFixture ← IO.FS.readBinFile "../../../tools/d3/global-promise-fixtures/gas-keys.wasm"
+  let gkMachine ← match runCallWithLimits cfg gkFixture "run" ctx 1000000 true false (some real) with
+    | .done machine none => pure machine
+    | .done _ (some error) => throw (IO.userError s!"gas-key runtime: {error}")
+    | .line error => throw (IO.userError s!"gas-key loading: {error}")
+  let gkRaw := gkMachine.actions.toList.filterMap (·.rawAction)
+  assertTest "three gas-key hosts emit raw actions" (gkRaw.length == 3)
+  let (gkRs, _, _) ← match managerGlobal gkMachine.actions (zeros 32) 100 with
+    | .ok x => pure x | .error error => throw (IO.userError error)
+  let gkActs ← gkRs.toList.mapM fun receipt => match finishActsGlobal receipt with
+    | .ok acts => pure acts | .error error => throw (IO.userError error)
+  assertTest "gas-key receipts decode into typed actions" (match gkActs with
+    | [first, second] =>
+      (match first with
+       | [.base ⟨_, .transfer _⟩, .base ⟨_, .toGasKey k d⟩, .base ⟨_, .addKey _ ak⟩] =>
+         k.tag == 0 && k.data.length == 32 && d == 16 && ak.nonce == 0 && ak.perm == .gasFull 0 4
+       | _ => false) &&
+      (match second with
+       | [.base ⟨_, .transfer _⟩, .base ⟨_, .addKey _ ak⟩] =>
+         (match ak.perm with
+          | .gasFc 0 2 p => p.allowance == none && p.methods == [bytesOf "f", bytesOf "g", bytesOf "m"]
+          | _ => false)
+       | _ => false)
+    | _ => false)
+  assertTest "disabled real global host rejects the gas-key fixture" (match
+      runCallWithLimits pv86 gkFixture "run" ctx 1000000 true false (some real) with
+    | .done _ none => false
+    | _ => true)
+  IO.println "Global promise tests passed: modes, identifiers, per-receipt indices, values, sorting, errors, gas-key actions and old-path guards"
 
 #eval runTests
 end NearSpecV3.Successor.PromiseActionsTests

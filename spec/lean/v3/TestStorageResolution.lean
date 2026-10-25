@@ -6,7 +6,7 @@ namespace StorageTests
 
 def bs (s : String) : Bytes := s.toUTF8.toList
 def env : Env := {
-  ctx := ⟨100, zero32, 0, 10^15, ⟨[], [0], [(0, 0)]⟩, 0, [], []⟩,
+  ctx := ⟨100, zero32, 0, 10^15, { boundaries := [], shardIds := [0], idToIndex := [(0, 0)] }, 0, [], []⟩,
   chainId := bs "testnet", minStake := 0, sched := ⟨0, 0, 0, 0, 0⟩,
   preRoot := emptyRoot }
 def actions : ActionR := ⟨true, bs "alice", none, ⟨0, zero32⟩, 0, [], [], []⟩
