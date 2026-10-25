@@ -11,10 +11,11 @@ See [integration handoff](logs/lean-chunk-cache-global-2026-10-24.md) and the
 identity, obsolete-layout distribution, overlap/full observable validation and release gates remain.
 
 
-**Latest code promoted to main: `628551b85` (2026-10-25).** The earlier promotion in this paragraph was
-`25efc7265`; main is now 45 commits past it. That sequence added strict tier replay, the pinned pooling
-allocation correction, and a versioned fixture generator, and this checkpoint adds the L4 gas-key promise
-hosts plus two base repairs (below).
+**Latest code promoted to main: `4ae27c76e` (2026-10-25)** — the W06 key widening plus the 10-vs-13
+base-arm repair, and the first tip whose CI run is fully green. The prior promotion in this paragraph
+was `628551b85`; main is now 12 commits past it (57 past `25efc7265`). Those 12 add strict tier replay,
+the pinned pooling allocation correction, the versioned fixture generator, the seven-case D3 smoke
+widening, the four red-job repairs, the W06 widening and two base repairs (below).
 Evidence from that `25efc7265` sequence (not re-measured here): 1,030 full runtime matches, 209 whole
 chunks, 366 mutants, and a 1,788-case combined verdict checkpoint. Float evidence now adds 2,050
 operator outputs, 32 input-driven bundle outputs, 1,284 input-driven chunks (1,200 accepts), and 350
@@ -41,14 +42,16 @@ Both are detailed under "Merged since the last checkpoint" below. Re-run those t
 trusting a green build on main: neither test file is in v3's `defaultTargets`, so a plain
 `lake build` does not reach them.
 
-**W06 key widening is on the working tree but not on main, and it changes the signed statement.**
-The tree carries a SECP256K1/ML-DSA-65 widening: `Secp256k1.verify` is called at `D2.actDelegate`
+**W06 key widening is now on main as `4ae27c76e`, and it changes the signed statement.**
+That merge carries a SECP256K1/ML-DSA-65 widening: `Secp256k1.verify` is called at `D2.actDelegate`
 and `D2.actDelegateL`, `TxD2.sigOk` dispatches on the new `TxD2.sigTag`, `PublicKey.handle` maps an
 ML-DSA-65 key to its 33-byte `SHA3-256` handle, and the successor decoders `pTxD2Global` /
 `pPkGlobal` / `pBaseGlobalKeyed` admit what the signed decoders still refuse. Measured on that tree
 against the 3,138-case gap census under `allFeatures`: **3,130 accept / 8 reject / 0 out-of-domain**
 (from 2,743/8/387); the 2,743 accepts and the 8 rejects are the same case set, so all 387 moves are
-`out_of_domain → accept`.
+`out_of_domain → accept`. Re-checked on main after the merge: the two censuses
+`census-signed-before-full.json` → `census-signed-widened-full.json` reproduce the signed numbers
+below exactly.
 
 **The earlier "signed tier is bit-identical" note is withdrawn — it is false.** `D2.actDelegate` is
 shared: `checkD3` is `checkD2Core (d3Hooks …)`, which reaches `applyAction … .delegate d =>
@@ -70,6 +73,14 @@ Deliberate-breakage controls all reproduce on the tree (measured, not copied): d
 mismatch, 1 on `MissingTrieValue (access key)`); forcing `TxD2.sigOk`'s secp arm to `false` fails
 **34/80** tx-key cases; forcing the delegate secp arm to `false` fails **30/41** delegate cases
 (27 signed rejects + 3 more at `allFeatures`).
+
+**CI is fully green on the merged tree: run `40207431857`, 16 jobs passed / 0 failed / 2 skipped.**
+That includes every job that was red on `40181642479` — `rust`, `formal-checker`, `lean (zk-formal)`,
+`lean (research/near-compression/wasm-base-lean)` — plus `d3 successor drivers (build + smoke)` and
+`lean (spec/lean/v3)`. So the d3-smoke fix and the 10-vs-13 base-arm fix are confirmed in CI, not only
+locally. Local gates on the same tree: `spec/lean/v3` 247 jobs, `zk-formal` 3,077 jobs / 0 errors,
+`wasm-base-lean` 262 jobs, `make d3-smoke` exit 0, `make pin-check` all ok, coverage drift check
+matches, `pytest oracle/tools` 86 passed / 1 skipped.
 
 **Distance to completion:** no Gate A/B/C closure. Inventory: **222 rows, 147 implemented /
 36 validated / 2 missing / 26 partial / 11 impossible-at-boundary** (recounted from the merged
@@ -176,7 +187,7 @@ unchanged and broader coverage requires a versioned successor.
   - **Judge-budget wall (design-level, not scheduling):** D0a is 2.43 h of the 4 h elaboration budget, D1a projects 2.8–3.5 h, and D2 lands at **3.4–4.7 h** on the same per-table architecture — already over. `V3-D2-DESIGN.md` §5.3 gives three options (split the certificate / coarsen tables / native-extract more) and recommends native-extraction first because it adds no new admitted statement.
   - **Join: resolved, negatively then positively.** `compose_pv86` is *not* an independent join — `compose_pv86_premise_iff_conclusion` (`ZkFormal/PQ/Join/Compose.lean` §4) proves `ArmAgrees pv86 sa → (StateSide pv86 cb w sa ↔ RelD3 cb w)`, so its premise is its conclusion. It is retained as a documented non-join; its real content is the fold (`checkD2Core_patch`). **Do not cite it as the join and do not "strengthen" it.**
   - **The non-vacuous composition is `Read.check → RelD3`** (`examples/reexec-v3-d3/formal/ReexecV3D3/ReadCanonSplit.lean`, wired into `Certificate.lean` so it cannot rot). `check_iff` decomposes acceptance into `RelD3 cb w ∧ encodeReads cb w (d3Reads cb w) = w`; the second conjunct is absent from `RelD3`'s statement, so the premise is strictly stronger. Separated by witness across the whole public corpus **[M]**: 172/172 `RelD3`-true raw witnesses rejected by shipped `out/verify`, 10/10 canonical forms accepted on identical claim bytes (case `d3-04-h10105-s4`: same 5267 B claim, same 6023 B witness size). Reproduce with the three commands in the log. *Caveat:* a byte-flip mutant also destroys `RelD3`, so the 11/11 mutation-binding sweep is binding evidence, not the separation evidence — the separation evidence is the raw-witness vs canonical-form pair.
-  - **Hook-level `functionCall`→preparation lift remains open.** `runCall_done_prepare_ok` is `[K]` at the `Run`/`prepare` level (a VM-produced `.done` implies `prepare = .ok p`); the converse is *false* (a compilation-abort line parses through `lineOutcome` as a zero-gas ordinary action failure the chunk still accepts). The route through `functionCall`'s do-block is now measured rather than guessed: the first blocker is **not** `runCall` opacity but the bind `let some acct := st.account`, whose matcher sits on a projection that `split`, `rw` and `cases hacc : st.account` all refuse to enter. Working recipe, probed to 16 fully-open `do` goals: `obtain ⟨o, account, actor, deploys⟩ := st` then `dsimp only at h`, `cases account`, `obtain` on `Acct`, `cases contract`, then `by_cases` + explicit `ite_true`/`ite_false` for the guard ifs — **never `split` a guard** (no budget knob; it fails outright on the balance guard). Remaining work is the `env.codeOf`/`contractOOD`/`runCall` scrutinees plus per-goal dead-branch closure. Do not `unfold functionCall` (146 goals). See [lane log](logs/d3-join-2026-10-23.md). Do not import the untracked `Final.lean` containing `sorry`.
+  - **Hook-level `functionCall`→preparation lift remains open.** `runCall_done_prepare_ok` is `[K]` at the `Run`/`prepare` level (a VM-produced `.done` implies `prepare = .ok p`); the converse is *false* (a compilation-abort line parses through `lineOutcome` as a zero-gas ordinary action failure the chunk still accepts). The route through `functionCall`'s do-block is now measured rather than guessed: the first blocker is **not** `runCall` opacity but the bind `let some acct := st.account`, whose matcher sits on a projection that `split`, `rw` and `cases hacc : st.account` all refuse to enter. Working recipe, probed to 16 fully-open `do` goals: `obtain ⟨o, account, actor, deploys⟩ := st` then `dsimp only at h`, `cases account`, `obtain` on `Acct`, `cases contract`, then `by_cases` + explicit `ite_true`/`ite_false` for the guard ifs — **never `split` a guard** (no budget knob; it fails outright on the balance guard). Remaining work is the `env.codeOf`/`contractOOD`/`runCall` scrutinees plus per-goal dead-branch closure. Do not `unfold functionCall` (146 goals). The lane log `docs/logs/d3-join-2026-10-23.md` (commit `fe491417f`) exists only on `lane/d3-join`, which is **not** merged — so this link is dead on main; read it from `/data/illia/nearproof-wt/d3-join/`. Do not import the untracked `Final.lean` containing `sorry`.
   - **No kernel non-vacuity gate for D3.** D2 has one (`lake build NearSpecV3.Examples.RealCaseD2`, ≈7 min, 4 theorems). The D3 analogue does **not** currently work, and the two failure modes were separated by measurement rather than guessed:
     - *The `RelD3` form fails immediately* with a kernel application type mismatch, because the `Decidable (RelD3 c w)` instance is `decidable_of_iff` over the theorem `relD3_iff_acceptsD3`, and a theorem is opaque to kernel reduction. D0/D1/D2 have no such instance — they are **Bool-primary** (`RelDk c w := acceptsDk c w = true`) and reduce fine. This is the structural difference, and it is why `RealCaseD3.lean` cannot simply mirror `RealCaseD2.lean`.
     - *The Bool-primary form does reduce, but slowly.* `acceptsD3 … = true` by `decide +kernel` was still running when my harness timeout killed it at 2400 s (EXIT 143 — not a proof, and not a failure). D3 adds real WASM execution over D2's workload, so it is plausible this closes with a much larger budget; it is untested.
