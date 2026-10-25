@@ -7,7 +7,7 @@ namespace GlobalTests
 
 def bs (s : String) : Bytes := s.toUTF8.toList
 def env : Env := {
-  ctx := ⟨100, zero32, 0, 10^15, ⟨[], [2,5,9], [(2,0),(5,1),(9,2)]⟩, 2, [], []⟩,
+  ctx := ⟨100, zero32, 0, 10^15, { boundaries := [], shardIds := [2,5,9], idToIndex := [(2,0),(5,1),(9,2)] }, 2, [], []⟩,
   chainId := bs "testnet", minStake := 0, sched := ⟨0,0,0,0,0⟩, preRoot := emptyRoot }
 def actionR : ActionR := ⟨false, bs "alice", none, ⟨0,zero32⟩, 0, [], [], []⟩
 def ctx (recv : Bytes := bs "alice") : ActCtx :=
