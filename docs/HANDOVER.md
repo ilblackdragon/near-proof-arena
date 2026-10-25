@@ -1,6 +1,6 @@
-# Handover — 2026-10-24
+# Handover — 2026-10-25
 
-## Global actions and complete-code policy — 2026-10-24
+## Global actions and complete-code policy — 2026-10-24 (historical)
 
 Global deploy/use/state-init, distribution receipts and seven promise hosts now execute in the
 `globalActions` successor. `completeCodeGlobal` additionally enforces authenticated complete-code
@@ -11,37 +11,59 @@ See [integration handoff](logs/lean-chunk-cache-global-2026-10-24.md) and the
 identity, obsolete-layout distribution, overlap/full observable validation and release gates remain.
 
 
-**Latest code promoted to main: `25efc7265` (2026-10-24), excluding W05.** Branch `work/lean-completion-except-w05-20261024`
-adds strict tier replay, the pinned pooling allocation correction, and a versioned fixture generator.
-Evidence: 1,030 full runtime matches, 209 whole chunks, 366 mutants, and a 1,788-case combined
-verdict checkpoint. Float evidence now adds 2,050 operator outputs, 32 input-driven bundle outputs,
-1,284 input-driven chunks (1,200 accepts), and 350 mutant comparisons (302 rejects/48 accepts).
+**Latest code promoted to main: `628551b85` (2026-10-25).** The earlier promotion in this paragraph was
+`25efc7265`; main is now 45 commits past it. That sequence added strict tier replay, the pinned pooling
+allocation correction, and a versioned fixture generator, and this checkpoint adds the L4 gas-key promise
+hosts plus two base repairs (below).
+Evidence from that `25efc7265` sequence (not re-measured here): 1,030 full runtime matches, 209 whole
+chunks, 366 mutants, and a 1,788-case combined verdict checkpoint. Float evidence now adds 2,050
+operator outputs, 32 input-driven bundle outputs, 1,284 input-driven chunks (1,200 accepts), and 350
+mutant comparisons (302 rejects/48 accepts).
 Committed regressions cover success, traps, phase priority and removal controls. Full driver build and CI smoke pass; Python tests: 58 pass / one skip.
 See [execution log](logs/lean-chunk-completion-2026-10-24.md) for artifact identities and limits.
 No package or gate is certified complete. W02's checker theorem, W01 computed observables,
 remaining semantic adapters and representative/release/admission gates remain open.
-W13 requires an authenticated witness source; W05 belongs to the other agent and is untouched.
+W13 requires an authenticated witness source. W05's curve code is now merged; its whole-chunk parity
+evidence obligation is still open (see "Distance to completion" below).
 
 
-**Current Lean integration — 2026-10-24, merge `c3976e326`.** All committed inspected
-L0/L1/L2/L4/L5/L6/L7/L8 work is now on the integration tip promoted to main. L4's six commits
-through `06dffaac6` are newly merged. **W05 remains held back:** L3 has seven pending commits
-through `4a333be4e`; existing main BLS code is preserved. Lanes/worktrees remain intact.
-See the [merge ledger and fresh validation](logs/lean-chunk-integration-except-w05-2026-10-24.md).
+**Current Lean integration — 2026-10-25, merge `628551b85`.** All committed inspected
+L0/L1/L2/L4/L5/L6/L7/L8 work is on the integration tip promoted to main, plus L4's gas-key promise
+hosts. L4's six earlier commits through `06dffaac6` were merged in `c3976e326`. **W05's commits are
+merged too** — L3's seven commits through `4a333be4e` and the curve-host integration `5bf2ee8f4` are
+ancestors of main, and `lane/lean-chunk-L3` tip `34f4daed2` has 0 unique commits. What remains open is
+W05's *evidence obligation* (whole-chunk parity for every curve host), not its code. Lanes/worktrees
+remain intact. See the [merge ledger and fresh validation](logs/lean-chunk-integration-except-w05-2026-10-24.md).
+
+This checkpoint also repaired two things main was carrying red: W11's broken `Layout` literals in two
+test drivers (so `make d3-drivers` and `make d3-smoke` exited 2) and the resulting inventory drift.
+Both are detailed under "Merged since the last checkpoint" below. Re-run those two targets before
+trusting a green build on main: neither test file is in v3's `defaultTargets`, so a plain
+`lake build` does not reach them.
 
 **Distance to completion:** no Gate A/B/C closure. Inventory: **222 rows, 147 implemented /
-36 validated / 5 missing / 23 partial / 11 impossible-at-boundary**. Five L4 rows moved to partial;
-28 missing/partial rows remain. The resolving checker still uses old D2 action decoders and retains
-the ETH-local guard. Its fresh 539-case replay is unchanged, with no newly validated scoped acceptance.
-UQ-006 remains open; the imported lane log's non-instant-receipt argument does not prove impossibility.
+36 validated / 2 missing / 26 partial / 11 impossible-at-boundary** (recounted from the merged
+`docs/research/lean-chunk-coverage.json`, not carried over). The earlier "5 missing / 23 partial"
+was stale: L3's BLS merge moved `L0-host-alt_bn128_{g1_multiexp,g1_sum,pairing_check}` from
+`missing` to `partial`, so 28 missing/partial rows remain. The resolving checker still uses old D2
+action decoders and retains the ETH-local guard. Its 539-case replay is carried over from
+`c3976e326` and was not re-run at `628551b85`; the resolving checker's source is untouched by this
+merge, so "unchanged" means unchanged source, not a re-measured replay. No newly validated scoped
+acceptance. UQ-006 remains open; the imported lane log's non-instant-receipt argument does not prove
+impossibility.
 
 **Next work:** shared runtime host/action/recorder adapters → semantic completion → combined relation
 and tier proofs → representative replay/frozen validation → admission. Capacity, runtime errors,
 float coverage, keys, actions/resolution, storage and resharding can progress in parallel behind those
 interfaces. L7 can acquire authenticated witnesses and L8 can audit restricted admission now.
 The [completion workplan](requirements/LEAN_CHUNK_COMPLETION_WORKPLAN.md) lists every W00–W16
-remaining obligation, owner and dependency. Fresh checks: Lean build (178 jobs), 539 replay comparisons,
-49 Python passes/1 skip, inventory/schema and pins. No full release validation is claimed.
+remaining obligation, owner and dependency. Fresh checks at merge `628551b85`: Lean build **246 jobs
+green**, `make d3-drivers` and `make d3-smoke` both **exit 0** (both were exit 2 before this
+checkpoint's base repairs), `make pin-check` all `ok`, coverage and schema checks exit 0, and
+`research/near-compression/wasm-base-lean` builds **262 jobs** (the 248 figure in the earlier
+checkpoint paragraphs is historical, from `be3ebbca8`). The 539
+replay comparisons and 49 Python passes/1 skip figures are from the earlier `c3976e326` checkpoint and
+were **not** re-run here; they are not reasserted. No full release validation is claimed.
 
 The [earlier lane audit](logs/lean-chunk-lane-audit-2026-10-24.md) and notes below are historical;
 recheck L3's reported test defects against its latest changes before a future W05 promotion.
@@ -60,8 +82,11 @@ recheck L3's reported test defects against its latest changes before a future W0
 Merged-state verification run on main `be3ebbca8`, not copied from the lanes' logs: `lake build` in `spec/lean/v3` **195 jobs green**; `make pin-check` all `ok`; coverage drift check matches pinned sources; `make d3-smoke` **SMOKE PASSED** (5 cases, 4 drivers, controlled breakage still detects a flipped verdict); 50 harness tests OK; `make workflow-lint` clean. `research/near-compression/wasm-base-lean` still builds at 248 jobs after the `defaultTargets` change.
 
 **Integration accounting:** measure ancestry and content rather than treating a merge title as
-proof that a moving lane is fully integrated. The remaining unmerged inspected Lean checkpoint is L3/W05, detailed above;
-PQ and join status is recorded separately under Pending integration. Re-measure before merging.
+proof that a moving lane is fully integrated. **No inspected Lean chunk lane remains unmerged:** L0–L8
+and L3/W05 are all ancestors of main (`lane/lean-chunk-L3` tip `34f4daed2` has 0 unique commits, and
+`4a333be4e`/`675b3f7cf`/`a7b691624` are all in main), so the earlier "remaining checkpoint is L3/W05"
+line was stale. Branches that do carry unique commits are PQ/research lanes, not Lean chunk lanes;
+see "Pending integration". Re-measure before merging.
 
 **Also this checkpoint: `main` was red and CI could not see it.** The L2 float lane added `Val.f32`/`Val.f64` to `spec/lean/v3`, and `research/near-compression/wasm-base-lean` — a separate Lake project that *depends on* that module — stopped compiling: six `Missing cases` / `Alternative … has not been provided` errors in `Event.lean`, `Tool.lean` and `Main/Exec.lean`. No workflow and no `make lean` target built that project, so the breakage sat on `main` undetected. Fixed, and both now build it (248 jobs). See the shared-rules lesson on unbuilt Lean projects.
 
@@ -69,6 +94,10 @@ Merged since the last checkpoint:
 
 * **L1** — exhibited the band chunk on real data. `d3c7/ood/00-h10007-s1` (`expected_rel: true`, its only violation `e.g_alpha`) is refused by `checkD3` and accepted by the new `checkD3Proto`; 846 protocol-valid chunks sit in the band across the four corpora. Added the `nearspec-v3-check-d3proto` driver. Overlap agreement sampled 12/12; band acceptance sampled 25/25. Still open: the monotonicity proof, and termination/fuel for newly reachable executions.
 * **L4** — measured D3-hook replay over 388 corpus cases (`w.shape` 227, `e.eth_implicit_local` 161) confirming which single guard fires per group; no corpus case carries action tags 9 or 11.
+* **L4 gas-key promise hosts, merged (`628551b85`).** The three gas-key promise hosts appended a bare `{ text := "OTHER" }` with no `rawAction`, so `finishActsGlobal` could not type them and they stayed in `realOodHosts` even with `globalActions` enabled — the flag lifted seven of ten translated hosts. They now emit canonical borsh bytes (`toGasKeyRaw`: tag 12 | PublicKey | u128 deposit; `addGasKeyRaw`: tag 5 | PublicKey | AccessKey; `gasKeyFullPerm` tag 3 / `gasKeyFcPerm` tag 2), written against the raw `PublicKeyBuffer` because `Wasm/Host.lean` must not import D2. A zero allowance encodes as option tag 0, matching nearcore's mapping before append. All ten hosts now lift with the flag on, and all ten stay excluded with it off, so the opt-in gate is tested in both directions. The signed D3α statement is unchanged.
+  * **Limit 1: no pinned-nearcore whole-chunk replay.** The new fixture `tools/d3/global-promise-fixtures/gas-keys.wasm` (713 B) is a VM/action-log and serialization control: the suite decodes its emitted actions to `.transfer 16`, `.toGasKey` (deposit 16), `.addKey` (`.gasFull 0 4`) and `.gasFc 0 2` with `allowance = none` and methods `f,g,m`. It proves the emitted bytes decode to the intended typed actions, **not** that a chunk carrying them is accepted. The inventory's acceptance test for those rows stays unmet.
+  * **Limit 2: target-side gas-key execution is out of scope here** — funding, nonce indices, withdraw/transfer out and key deletion with balance are separate.
+  * **Two base repairs came with it.** Rebasing onto main's W11 resharding commit surfaced that W11 added three fields to `Layout` without updating `TestGlobalActions.lean` and `TestStorageResolution.lean`, which use the anonymous constructor `⟨boundaries, shardIds, idToIndex⟩` — that form does not fill structure defaults, so both stopped compiling and `make d3-drivers`/`make d3-smoke` exited 2 on main. W11's "full build green" missed it because neither file is in `defaultTargets`. Fixed with named fields, values unchanged. The chunk inventory also needed regenerating for W11's `Layout.lean` hash move; only `source_sha256.Layout.lean` changes and all 222 rows are identical.
 * **L6** — **the genesis checker's soundness correction.** The committed draft re-implemented the non-genesis tail and dropped ten endorsed-header comparisons, wrongly accepting 307 header mutants. `checkD2CoreG` now delegates to `checkD2Core` for `!B2.isGenesis`. Verified over the full replay: **exactly 137 verdicts change, all `out_of_domain → accept`, all genesis; zero non-genesis changes across 115,147 cases.** 137/137 genesis cases accept. Adds inventory rows for the genesis transition and the two resharding guards.
 * **L7 / W01** — differential-harness audit, UQ-014 answered per branch, readiness assessment, plus two new oracle test scripts. Then the W01 repair above: the red corpus gate, the 1,259 unasserted exclusions, and CI coverage for the four D3 drivers. Its lane log (`logs/lean-chunk-L7-2026-10-24.md`) records the full 115,284-case accounting; that run needs the pinned corpora and saved verdicts, so it was **not** re-executed on main — the merged-tree evidence is the schema gate, the 50-test suite and `make d3-smoke`.
 
@@ -79,15 +108,13 @@ Remove completed items; update their logs instead. Old lane labels are not proof
 
 ## Pending integration
 
-- **Lean lanes:** L0/L1/L2/L5/L6/L7/L8 are ancestors of `0f2b32171` with zero unique commits;
-  they are not necessarily at its tip. **L3 (`b634a6c5c`) has six unique commits:** pending BLS
-  oracle/provenance/dispatch-test follow-ups and BN128 oracle/fixtures/semantics. Main already has
-  the BLS fixture files and the fail-closed runner repair; preserve both when reconciling. L3 is
-  not ready unchanged: see the two reproduced test issues above.
-- **L4 (`06dffaac6`) has six unique commits:** resolving hook, successor checker, guard proofs,
-  evidence and handoff. Reconcile against the landed W00 APIs; the old additive-only restrictions
-  are implementation coordination issues, not proof that required successor semantics are impossible.
-  Do not treat its 539 identical verdicts as positive global-path coverage.
+- **Lean chunk lanes: all merged.** L0/L1/L2/L5/L6/L7/L8 are ancestors of main with zero unique
+  commits. **L3 and L4 are also merged now** — `lane/lean-chunk-L3` tip `34f4daed2` and
+  `lane/lean-chunk-L4` tip `07fe9839c` both have 0 unique commits against main. The BLS fixtures and
+  the fail-closed runner repair are on main and reproduce (9454/9454 ok, exit 2 on absent evidence);
+  L4's resolving hook, successor checker, guard proofs and evidence are on main via `c3976e326`, and
+  its gas-key promise hosts via `628551b85`. **Do not treat L4's 539 identical verdicts as positive
+  global-path coverage** — that caveat still stands, as does L0-D3-006's negative result.
 - **`lane/pq-hostfinal` is merged and its worktree is gone.** Re-checked by ancestry, not by message: `origin/lane/pq-hostfinal` = `54ce39baf`, and every lane commit — `bdf80d018`, `f7b1a6e0c`, `598d85bd2`, `45af882a9`, `ceee23052`, `14af4935e`, `7cddf9289`, `e13129b84`, `3fb84f5f1`, `2e90a315f`, `87d53f22c`, `78436ac9f`, `229518416` — is an ancestor of main. 0 unique commits. The promise encodings and the `Coverage.lean` tautology fix are on main; the lane's RIPEMD work is on main but **incomplete** (see "RIPEMD `round_agrees`" under Remaining work). Nothing from this lane needs re-merging; only the open proof items below.
 - **`lane/lean-chunk-L0` (W00) and `lane/lean-chunk-L7` (W01) are merged** (`f4b9b4837`, `be3ebbca8`) and pushed. The L0 branch tip `190841d3d` and L7 tip `1edbf9cb4` are ancestors of main; the integration edit on top is `565d1b9ca`.
 - `pq-chunk-e2e` (`lane/pq-chunk-perf`): **merged 2026-10-24.** Supersedes the earlier "not integrated" note. The production-target aggregation measurements, the depth-2 geometry wall, the size law and the `S` reconciliation are now on main, with the full evidence and the exact log citations in
@@ -135,7 +162,7 @@ unchanged and broader coverage requires a versioned successor.
 - **Recursion/security:** production-parameter aggregation node, real D3 segment leaves, single-database `NodeOK`, concrete family-QROM instantiation, WHIR transfer, arbitrary-trace NV semantics and concrete-hash bridge. The 299,967 B D0a packet is a linear chain with 33 B margin; another valid replay exceeds 300 KB. Test-target tree measurements do not certify production trees. Keep `security_established=false` until obligations close. [Aggregation](logs/pq-agg-tail-2026-10-22.md), [security](logs/pq-paper-blockers-recheck-2026-10-21.md).
   - **A root-shaped 2-child production node fits the cap; depth 2 does not fit the field.** Measured on `lane/pq-chunk-perf` (now merged): a 2-child node at the delivered final layer's own levers (`k_first=1`, 131 queries, 268.2 bits) is **276,269–276,789 B**, ~23.5 KB under the cap. But a node with **two NV children cannot be proved at production `log_blowup = 7`** — it needs 1 more bit of stacked height than the field's 2-adicity allows (`log_height 21` vs `log_stacked_height 20`; `n_stack=20` with `lb=7` is `29 > 27` outright). Every blowup step down costs exactly the bit it buys, so no parameter closes it; only `lb=3`, i.e. test-target soundness, fits. The "bytes flat in depth" result (132,301 B at depths 2–4) is therefore a `lb=3` result that does **not** transfer. The sole structural exit is **18.3% fewer SHA compressions per child** — a circuit change, unimplemented; `multiproof` is measured not to help. Details, citations and four corrections to earlier numbers: [`logs/pq-agg-depth2-production-2026-10-24.md`](logs/pq-agg-depth2-production-2026-10-24.md).
 - **D1:** `A7D1Step`, `LinkD1CoreStmt`, R1/R2/A1; exercise stub/nmem queries and reprove the 33-table path. Archived phase-2 drafts fail through `LinkSched`/`RecModel`/`A7Bound`; L4's reference-prover draft fails honest tests. [Plan](zk-formal/V3-D1-PHASE2.md), [recovery](logs/worktree-reconciliation-2026-10-23.md).
-  - **L4's successor-hook work is only partially merged, and the headline L4 item above overstates it.** The "L4 — measured D3-hook replay" merge (`e6c97d55b`) took 3 commits; the 6 later ones (`147e7c1d0`…`06dffaac6`) are **not** in main. They carry the global-contract/ETH-guard analysis in `NearSpecV3/D3/GlobalContractCall.lean` and the successor chunk layer in `GlobalContractChunk.lean`, plus `probe-l4`/`nearspec-v3-check-l4` drivers. The result is a **negative** one for `L0-D3-006`: a delegate cannot lift that row, because `resolvedContract_local_stays_local` shows the delegate only ever produces `.none`/`.local _`, so the ETH guard's premise survives it (`resolveAccount_eth_local_premise_survives`). Lifting `L0-D3-006` needs a narrower guard in `checkD3`, not a delegate — unlike `L0-D3-008`, which the delegate does close. `GlobalContractChunk.successorHooks_functionCall_{none,local}` prove the hook change is a no-op off the wallet-redirect domain. Axioms measured: the four guard theorems use `[propext]`; the two successor-hook theorems use `[propext, Classical.choice, Quot.sound]`. Builds clean on its branch (63 jobs). Merging onto current main conflicts only mechanically in `docs/research/lean-chunk-coverage.json` and `spec/lean/v3/lakefile.toml`; the Lean sources merge cleanly.
+  - **L4's successor-hook work is now fully merged — this note previously said the opposite and was stale.** The "L4 — measured D3-hook replay" merge (`e6c97d55b`) took 3 commits; the 6 later ones (`147e7c1d0`…`06dffaac6`) were merged in `c3976e326`, and all are ancestors of main. They carry the global-contract/ETH-guard analysis in `NearSpecV3/D3/GlobalContractCall.lean` and the successor chunk layer in `GlobalContractChunk.lean`, plus `probe-l4`/`nearspec-v3-check-l4` drivers, all present on main. The analysis below is what those commits established, and its negative result stands. The result is a **negative** one for `L0-D3-006`: a delegate cannot lift that row, because `resolvedContract_local_stays_local` shows the delegate only ever produces `.none`/`.local _`, so the ETH guard's premise survives it (`resolveAccount_eth_local_premise_survives`). Lifting `L0-D3-006` needs a narrower guard in `checkD3`, not a delegate — unlike `L0-D3-008`, which the delegate does close. `GlobalContractChunk.successorHooks_functionCall_{none,local}` prove the hook change is a no-op off the wallet-redirect domain. Axioms measured: the four guard theorems use `[propext]`; the two successor-hook theorems use `[propext, Classical.choice, Quot.sound]`. Builds clean on main (the merged tree compiles 246 jobs). The mechanical `docs/research/lean-chunk-coverage.json` and `lakefile.toml` conflicts anticipated on its branch were resolved in `c3976e326`; the Lean sources merged cleanly as expected.
 - **Arena:** verify actual signed admission reports; deployment/local PASS is not admission. Resolve D0a supplied-witness rejection/resubmission status against [live-run evidence](logs/v3-deploy-d0a-2026-10.md). Successor work: one canonical relation with proved tier restrictions, measured workload weights/succinct thresholds, full semantic coverage, guest-image isolation upgrade. Python VM independence remains unresolved ([provenance](research/python-vm-independence.md)).
 
 ## Shared rules and lessons
