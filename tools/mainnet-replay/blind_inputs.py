@@ -32,6 +32,8 @@ import spec_check_v3 as s3  # noqa: E402
 from v3lib.prim import R, encoded_merkle_root  # noqa: E402
 from v3lib import near2 as N  # noqa: E402
 
+N.LENIENT = True    # walk every witness shape; this module only locates bytes, it decides nothing
+
 B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 
@@ -175,8 +177,10 @@ def state_witness(case_dir):
     return r.bytes()
 
 
-def post_root_spans(sw):
-    """Byte spans of the main and implicit transitions' `post_state_root` in a state witness."""
+def post_root_spans(sw, reads=None):
+    """Byte spans of the main and implicit transitions' `post_state_root` in a state witness.
+
+    With `reads` (a list), also appends each transition's number of revealed trie nodes."""
     r = R(sw)
     if r.u8() != 1:
         raise BlindError('ChunkStateWitness tag')
@@ -190,7 +194,9 @@ def post_root_spans(sw):
 
     def transition():
         r.hash()
-        s3.read_partial_state(r)
+        nodes = s3.read_partial_state(r)
+        if reads is not None:
+            reads.append(len(nodes))
         spans.append((r.i, r.i + 32))
         r.hash()
     transition()
@@ -259,7 +265,8 @@ def blind_case(case_dir, capture_dir, out_dir):
     sw_start = r.i
     sw = r.bytes()
     rest = wit[r.i:]
-    spans = post_root_spans(sw)
+    reads = []
+    spans = post_root_spans(sw, reads)
     post_roots = [sw[a:z] for a, z in spans]
     swb = bytearray(sw)
     for a, z in spans:
@@ -276,7 +283,10 @@ def blind_case(case_dir, capture_dir, out_dir):
             continue    # an empty-chunk constant; still blinded in the header and compared
         secrets[real[k]] = k
     for i, root in enumerate(post_roots):
-        if root != bytes(32):
+        # A transition that reveals no trie node cannot change a non-empty trie: its post root
+        # is its pre root, which the inputs carry legitimately (still blinded and compared). A
+        # non-genesis shard trie is never empty: it holds at least the system account.
+        if root != bytes(32) and reads[i] > 0:
             secrets[root] = f'post_state_root[{i}]'
     for name, data in (('claim.bin', claim), ('witness.bin', wit)):
         for secret, label in secrets.items():

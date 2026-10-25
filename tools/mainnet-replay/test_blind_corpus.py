@@ -41,6 +41,8 @@ class BlindCorpusTests(unittest.TestCase):
         self.assertEqual(bc.classify('accept', [], 'accept'), 'blind_leak')
         self.assertEqual(bc.classify('reject', [], 'reject'), 'mismatch')
         self.assertEqual(bc.classify('out_of_domain', [], 'reject'), 'unsupported')
+        self.assertEqual(bc.classify('out_of_domain', [], 'accept', 'out of domain (c.not_genesis)'),
+                         'genesis')
 
 
 if __name__ == '__main__':

@@ -8,7 +8,9 @@ matches only if every emitted output equals nearcore's. The blinded inputs are a
 comparisons on as a control, which must not accept.
 
 Only cases whose recorded nearcore verdict is valid are blind-replayed; others are skipped, since a
-rejected chunk has no produced outputs to grade. `--features` reports, per graded feature, how many
+rejected chunk has no produced outputs to grade. A genesis-main claim is reported separately
+(`genesis`): its main outputs are the stored `genesis_chunk_extra`, a claim input by design, so
+there is nothing computed to grade beyond the implicit transitions; `--blind` does not run it. `--features` reports, per graded feature, how many
 matched cases exercised a non-empty / non-zero value of it.
 """
 import argparse
@@ -55,7 +57,9 @@ def features(expected, facts):
     return [k for k, v in out.items() if v]
 
 
-def classify(lean, diffs, control):
+def classify(lean, diffs, control, reason=''):
+    if lean == 'out_of_domain' and reason == 'out of domain (c.not_genesis)':
+        return 'genesis'
     if lean != 'accept':
         return {'reject': 'mismatch', 'out_of_domain': 'unsupported'}.get(lean, 'error')
     if control == 'accept':
@@ -126,7 +130,7 @@ def main():
             return dict(case=name, lean=lean, expected=expected, output_diffs=diffs,
                         control_verdict=control, features=features(expected, facts),
                         seconds=time.monotonic() - start, **facts,
-                        category=classify(lean['verdict'], diffs, control))
+                        category=classify(lean['verdict'], diffs, control, lean.get('reason', '')))
         except Exception as e:
             return dict(case=name, category='error', error=str(e), seconds=time.monotonic() - start)
         finally:
@@ -151,7 +155,7 @@ def main():
         changed.append(str(binary))
     wrong = counts['mismatch'] + counts['output_mismatch'] + counts['blind_leak']
     compared = counts['match'] + wrong
-    graded = [r for r in rows if r['category'] not in ('nearcore_reject', 'no_verdict')]
+    graded = [r for r in rows if r['category'] not in ('nearcore_reject', 'no_verdict', 'genesis')]
     exercised = Counter(k for r in rows if r['category'] == 'match' for k in r['features'])
     field_diffs = Counter(k for r in rows for k in r.get('output_diffs', []))
     report = dict(

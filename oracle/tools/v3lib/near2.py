@@ -19,12 +19,27 @@ ACTION_NAMES = ["CreateAccount", "DeployContract", "FunctionCall", "Transfer", "
                 "DeterministicStateInit", "TransferToGasKey", "WithdrawFromGasKey", "DelegateV2"]
 
 
+# Skip-only decoding of shapes this reference checker excludes (ML-DSA-65 keys, global-contract
+# actions). Off by default: the checker's domain is unchanged. Byte-level tools that only need to
+# walk a witness (e.g. `tools/mainnet-replay/blind_inputs.py`) turn it on.
+LENIENT = False
+
+
+def read_gci(r):
+    t = r.u8()
+    if t == 0:
+        return r.hash()
+    if t == 1:
+        return r.account()
+    raise DecodeError("GlobalContractIdentifier tag")
+
+
 def read_pk(r):
     t = r.u8()
     if t not in PK_LEN:
         raise DecodeError("PublicKey tag")
     b = u8(t) + r.take(PK_LEN[t])
-    if t == 2:
+    if t == 2 and not LENIENT:
         raise OOD("w.shape: ML-DSA-65 public key in a transaction or receipt")
     return b
 
@@ -249,11 +264,20 @@ def read_action(r, nested=False):
         m = r.u8()
         if m > 1:
             raise DecodeError("GlobalContractDeployMode tag")
-        raise OOD("w.shape: DeployGlobalContract action")
+        if not LENIENT:
+            raise OOD("w.shape: DeployGlobalContract action")
     elif t == A_USE_GLOBAL:
-        raise OOD("w.shape: UseGlobalContract action")
+        if not LENIENT:
+            raise OOD("w.shape: UseGlobalContract action")
+        f['contract'] = read_gci(r)
     elif t == A_DSI:
-        raise OOD("w.shape: DeterministicStateInit action")
+        if not LENIENT:
+            raise OOD("w.shape: DeterministicStateInit action")
+        if r.u8() != 0:
+            raise DecodeError("DeterministicAccountStateInit tag")
+        f['code'] = read_gci(r)
+        f['data'] = r.vec(lambda: (r.bytes(), r.bytes()))
+        f['deposit'] = r.u128()
     elif t in (A_TO_GK, A_FROM_GK):
         f['pk'] = read_pk(r)
         f['amount'] = r.u128()
