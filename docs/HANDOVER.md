@@ -11,11 +11,13 @@ See [integration handoff](logs/lean-chunk-cache-global-2026-10-24.md) and the
 identity, obsolete-layout distribution, overlap/full observable validation and release gates remain.
 
 
-**Latest code promoted to main: `4ae27c76e` (2026-10-25)** — the W06 key widening plus the 10-vs-13
-base-arm repair, and the first tip whose CI run is fully green. The prior promotion in this paragraph
-was `628551b85`; main is now 12 commits past it (57 past `25efc7265`). Those 12 add strict tier replay,
-the pinned pooling allocation correction, the versioned fixture generator, the seven-case D3 smoke
-widening, the four red-job repairs, the W06 widening and two base repairs (below).
+**Latest code promoted to main: `8c6694412` (2026-10-25)** — five commits past `4ae27c76e`, whose CI
+run was the first fully green tip. The prior promotion in this paragraph was `628551b85`; main is now
+17 commits past it (62 past `25efc7265`). Those 17 add strict tier replay, the pinned pooling
+allocation correction, the versioned fixture generator, the seven-case D3 smoke widening, the four
+red-job repairs, the W06 widening and two base repairs (below). The five after `4ae27c76e` are
+documentation-only except for the honest `RipemdRound` header correction (`2466d7299`), which removes a
+claim that the rotation bridge was proved: `round_agrees` is still unproved and the file now says so.
 Evidence from that `25efc7265` sequence (not re-measured here): 1,030 full runtime matches, 209 whole
 chunks, 366 mutants, and a 1,788-case combined verdict checkpoint. Float evidence now adds 2,050
 operator outputs, 32 input-driven bundle outputs, 1,284 input-driven chunks (1,200 accepts), and 350
@@ -85,14 +87,17 @@ locally. Local gates on the same tree: `spec/lean/v3` 247 jobs, `zk-formal` 3,07
 `wasm-base-lean` 262 jobs, `make d3-smoke` exit 0, `make pin-check` all ok, coverage drift check
 matches, `pytest oracle/tools` 86 passed / 1 skipped.
 
-**One known CI flake, not a regression:** the next run (`40214402787`, the docs-only commit
-`1348c421f`) failed only `rust` at `make test-rust`, in `arena-worker`'s
+**One known CI flake, not a regression — and it has since passed on rerun.** Run `40214402787`
+(docs-only commit `1348c421f`) failed only `rust` at `make test-rust`, in `arena-worker`'s
 `fork_bomb_and_background_daemon`: `failed to spawn thread: … Resource temporarily unavailable`
 (EAGAIN) when the deliberately fork-bombing child exhausted the runner's threads. That test passes
 locally in 0.72 s and the same flake is already recorded in
 `docs/UNTRUSTED_NEAR_ZK_AUDIT_2026-10-05.md` ("failed once from host thread exhaustion (EAGAIN) under
 full-workspace parallelism and passed on two isolated reruns. That flakiness predates this branch").
-The commit touched only two Markdown files, so it cannot have caused it.
+The commit touched only two Markdown files, so it cannot have caused it. Re-checked on attempt 2 of
+the same run: `conclusion=success`, all 18 jobs green, so the flake cleared without a code change and
+`40214402787` is no longer a red run. The newest run `40218347295` (on `8c6694412`) is green too —
+16 passed / 0 failed / 2 skipped, including `d3 successor drivers (build + smoke)`.
 
 **Distance to completion:** no Gate A/B/C closure. Inventory: **222 rows, 147 implemented /
 36 validated / 2 missing / 26 partial / 11 impossible-at-boundary** (recounted from the merged

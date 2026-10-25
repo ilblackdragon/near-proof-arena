@@ -1,10 +1,12 @@
 # Full Lean chunk transition — open work
 
-Reviewed: 2026-10-25, against **main at `4ae27c76e`** — the merge that lands the W06 key widening and
-the 10-vs-13 base-arm repair — and CI run `40207431857` on that exact commit. Every "verified" claim
-below was re-run on that commit or read out of that run; nothing here is taken from a commit message.
-The earlier draft reviewed `a035df4a2` plus an uncommitted widening tree; that tree is now merged, so
-"working tree" wording below means "landed on main at `4ae27c76e`" wherever it describes the widening.
+Reviewed: 2026-10-25, against **main at `8c6694412`** — five commits past `4ae27c76e`, the merge that
+landed the W06 key widening and the 10-vs-13 base-arm repair — and CI run `40218347295` on that exact
+commit. Every "verified" claim below was re-run on that commit or read out of that run; nothing here is
+taken from a commit message. The five commits after `4ae27c76e` are documentation-only apart from the
+honest `RipemdRound` header correction in `2466d7299`. The earlier draft reviewed `a035df4a2` plus an
+uncommitted widening tree; that tree is now merged, so "working tree" wording below means "landed on
+main" wherever it describes the widening.
 Target: nearcore 2.13.4, commit `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86,
 pinned mainnet runtime parameters.
 
@@ -13,8 +15,9 @@ already build on, so open items are not re-done. Package IDs are stable: a packa
 while any implementation, proof, validation or admission criterion is open. Detailed historical
 results belong in lane logs and evidence directories, not this backlog.
 
-**Re-verified on `4ae27c76e` (measured, not copied from a commit message):** `lake build` in
-`spec/lean/v3` → 247 jobs green (246 before that commit; 247 after it adds
+**Re-verified on `8c6694412` (measured, not copied from a commit message):** the source is unchanged
+from `4ae27c76e` for every Lean and driver target, so the build results there still stand —
+`lake build` in `spec/lean/v3` → 247 jobs green (246 before that commit; 247 after it adds
 `NearSpecV3.Examples.SecpVerifyVector` to `defaultTargets` so the secp pin actually compiles);
 `lake build` in `zk-formal` → 3,077 jobs green, 0 errors;
 `make d3-smoke` → exit 0; `make pin-check` → all `ok`; corpus-manifest schema → ok;
@@ -26,6 +29,15 @@ KATs ok"; the differential suite `pytest oracle/tools` → 86 passed / 1 skipped
 promise-encoding axiom audit → the four documented axiom closures; and the four breakage controls
 below, each of which reproduces its documented failure count. The one claim in the previous draft
 that did **not** reproduce is "the signed tier is bit-identical" — see the correction below.
+
+**Re-run on `8c6694412` for this revision:** `make d3-smoke` → exit 0, "SMOKE PASSED" (7 cases, 13
+tiers, storage resolution, global actions, code-witness policy, float and runtime goldens); the global
+block reports 28 accepted action chunks + 3 promise controls in both tiers with **2 key-widened chunks
+decided by the successor and still excluded by the signed tier**, plus a host ablation that is detected;
+`make pin-check` → all `ok`; coverage drift → "matches pinned sources"; corpus-manifest schema → ok.
+CI run `40218347295` on that commit is fully green: 16 passed / 0 failed / 2 skipped (corpus-content
+gate without corpora, firecracker without KVM). Run `40214402787`, previously red only on the known
+`fork_bomb` EAGAIN flake, also passes on attempt 2 — so no recent `main` run is red.
 The [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md) defines the authoritative gates:
 
 - **Gate A:** restricted reference independently checked and admitted live with signed evidence.
@@ -204,7 +216,19 @@ actually blocks the three gates:
 4. **W02 — fuel and termination.** No proof that evaluator fuel suffices for valid metered execution.
 5. **W13 — all-shard replay.** The shard-13 diagnostic (1,223 chunks, 0% mismatch) is not the
   1,000-block all-shard gate, and the cold native adapter is still unimplemented.
-6. **W00 — 17 UQs and 28 inventory rows** stay open and Gate-B-blocking; W14–W16 depend on them.
+6. **The D1→D3 witness lift — unproved, and not owned by any package row.** It is the `def`
+   `ZkFormal.PQ.Join.WitnessLift` *in* `ZkFormal/PQ/Join/Coverage.lean:191` (there is no separate
+   `WitnessLift.lean` module), and `Coverage.lean` states it as the existential it must be:
+   `WitnessLift B cb w := RelD1a B cb w → ∃ w2, RelD3 cb w2`, consumed by `relD3_of_lift`, whose
+   conclusion carries the extra `StateSide … w2 sa` conjunct so it cannot be discharged by
+   `hlift hrel` alone. The *existence* is open: `RelD1a`'s decoders reject every non-Transfer action
+   (`TxD1.lean:97`), every non-Transfer receipt (`NearSpec/Codec.lean:75`) and any code blob
+   (`ChunkValidationD1.lean:63`), so a D1 witness has no `FunctionCall` to cover, while `RelD3` is
+   checked on the D2 witness format. Closing it needs a real D2 witness *producer* whose state
+   witness has the D3 shape — not a re-reading of the same bytes. `ArmAgrees` is likewise a
+   hypothesis: it equates the D1 state tables' answer with the Wasm machine's outcome and needs both
+   artifacts, which `zk-formal` does not import. No D2 or D3 AIR exists to port against.
+7. **W00 — 17 UQs and 28 inventory rows** stay open and Gate-B-blocking; W14–W16 depend on them.
 
 Two supporting-research results are landed but not yet load-bearing for any gate, and should not be
 mistaken for package closure:
