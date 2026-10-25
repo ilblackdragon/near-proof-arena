@@ -1,0 +1,200 @@
+{
+  "action_results": [
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => fail:AccountDoesNotExist",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10048-s0",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.success",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.success",
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s2curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 6143,
+    "buffered_post": 0,
+    "buffered_pre": 1,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1915,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "e145b2e9ac92a10cd931918d410214ca1225b7120d935aaa2cfcdc6941679e1e",
+        "ext_profile": {
+          "base": 1853376777,
+          "bls12381_g2_multiexp_base": 18600000000,
+          "bls12381_g2_multiexp_element": 3990000000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 10439452800,
+          "read_memory_byte": 3227331717,
+          "read_register_base": 5034330372,
+          "read_register_byte": 63079680,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 256938456,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 6203707800,
+          "touching_trie_node": 20520000000,
+          "write_memory_base": 5607589722,
+          "write_memory_byte": 1743214080,
+          "write_register_base": 8596567458,
+          "write_register_byte": 760312800
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 5028453962669,
+        "method": "bls12381_g2_multiexp",
+        "receipt_id": "2oya4MChkFVjyk54xCDXMPMrvaNpAjuSJebUaSbwoXnk",
+        "receiver": "s2curvehosts",
+        "status": "SuccessValue((200)AAAAAAAAAAANUseoL+zpknneeklDnA/4RjpjfMYAMyAnXWlUlELJUYT9de5ecSLlV1r3Qy5RWSkCspGSlF3wp07tE45DGWLx05l4IC0kczX/vynYoC6YLGnp…)",
+        "value_hex": "00000000000000000d52c7a82fece99279de7a49439c0ff8463a637cc6003320275d69549442c95184fd75ee5e7122e5575af7432e51592902b29192945df0a74eed138e431962f1d39978202d247335ffbf29d8a02e982c69e96b58d7d92528baf5c422ed633f1f175f906a99c9d65c4647807879e5eb781532db184d28a326ef9691f8738af067b6a80147bd69327d219fad7c850a754506ddbaad6cc16c9e62b0da9ab0196dffe92253fcfb2df9aa2076d3f16b3284997d6558cc4432d2aa1705452c4e951e6e"
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 9,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 5028453962669,
+    "fc_gas_burnt_for_function_call": 4139348045557,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 1,
+    "n_function_calls_with_code": 1,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 4,
+    "n_promises": 1,
+    "n_receipts": 9,
+    "n_receipts_with_receiver_reward": 1,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "124180441366700000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "502845396266900000000",
+    "tokens_burnt_txs": "145900226164000000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 10062,
+    "yield_queue_pre": 0
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [],
+  "receipt_classes": {
+    "buffered_forwarded": 1,
+    "incoming_action": 1,
+    "incoming_refund": 8,
+    "out_action": 4,
+    "out_refund": 1
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "h.call_then_create",
+    "h.deterministic",
+    "h.delegate_sender_mismatch"
+  ],
+  "tx_results": [
+    "success",
+    "success",
+    "success"
+  ]
+}

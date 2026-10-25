@@ -12,13 +12,19 @@ pub struct D3World {
     inner: baseline::D3World,
     next_step: usize,
     next_height: u64,
+    /// curve-hosts: (height, steps submitted at it)
+    curve_at: (u64, usize),
 }
+
+/// Curve-hosts steps submitted per block height; later steps wait for the next height.
+const CURVE_STEPS_PER_HEIGHT: usize = 3;
 impl D3World {
     pub fn new(n_shards: usize) -> Self {
         Self {
             inner: baseline::D3World::new(n_shards),
             next_step: 0,
             next_height: 10004,
+            curve_at: (0, 0),
         }
     }
     pub fn one(
@@ -29,7 +35,35 @@ impl D3World {
         height: u64,
         rng: &mut StdRng,
     ) -> Option<(String, SignedTransaction)> {
-        if scenario_enabled() && height >= self.next_height {
+        if scenario() == Some(Scenario::CurveHosts) && height >= self.next_height {
+            if self.curve_at.0 != height {
+                self.curve_at = (height, 0);
+            }
+            if self.curve_at.1 < CURVE_STEPS_PER_HEIGHT {
+                if let Some(step) = crate::curve_hosts::steps().get(self.next_step) {
+                    let (a, b) = (
+                        baseline::acct(crate::curve_hosts::ACCOUNT_A),
+                        baseline::acct(crate::curve_hosts::ACCOUNT_B),
+                    );
+                    // receivers alternate between the two contract accounts (different shards);
+                    // every third step is signed by the other one, so its receipt crosses shards
+                    let (recv, other) = if self.next_step % 2 == 0 { (a, b) } else { (b, a) };
+                    let signer = if self.next_step % 3 == 0 { other } else { recv.clone() };
+                    let action = Action::FunctionCall(Box::new(FunctionCallAction {
+                        method_name: step.method.into(),
+                        args: step.args.clone(),
+                        gas: Gas::from_teragas(step.tgas),
+                        deposit: Balance::ZERO,
+                    }));
+                    if let Some(tx) = w.plain_tx(s, bh, &signer, &recv, vec![action]) {
+                        self.next_step += 1;
+                        self.curve_at.1 += 1;
+                        return Some((step.label.clone(), tx));
+                    }
+                }
+            }
+        }
+        if scenario() == Some(Scenario::GlobalCache) && height >= self.next_height {
             if let Some((label, signer, receiver, actions)) = global_step(self.next_step) {
                 if let Some(tx) = w.plain_tx(s, bh, &signer, &receiver, actions) {
                     // Cross-account rollback and pre-state call may share a block, exercising
@@ -82,17 +116,27 @@ pub fn genesis_records(
     };
     use near_primitives_core::account::Account;
     let (mut records, mut supply) = baseline::genesis_records(accounts);
-    if scenario_enabled() {
-        for name in [
-            "s0global",
-            "s1globalhash",
-            "s2globalacct",
-            "s0cacheleft",
-            "s0cacheright",
-        ] {
+    let funded: &[(&str, &[u8])] = match scenario() {
+        None => &[],
+        Some(Scenario::GlobalCache) => &[
+            ("s0global", crate::d3contracts::TINY),
+            ("s1globalhash", crate::d3contracts::TINY),
+            ("s2globalacct", crate::d3contracts::TINY),
+            ("s0cacheleft", crate::d3contracts::TINY),
+            ("s0cacheright", crate::d3contracts::TINY),
+        ],
+        Some(Scenario::CurveHosts) => &[],
+    };
+    let curve: Vec<(&str, &[u8])> = if scenario() == Some(Scenario::CurveHosts) {
+        let code = crate::curve_hosts::code();
+        vec![(crate::curve_hosts::ACCOUNT_A, code), (crate::curve_hosts::ACCOUNT_B, code)]
+    } else {
+        vec![]
+    };
+    {
+        for &(name, code) in funded.iter().chain(curve.iter()) {
             let account_id = baseline::acct(name);
             let amount = Balance::from_near(1_000_000);
-            let code = crate::d3contracts::TINY;
             records.push(StateRecord::Account {
                 account_id: account_id.clone(),
                 account: Account::new(
@@ -117,10 +161,18 @@ pub fn genesis_records(
     (records, supply)
 }
 
-fn scenario_enabled() -> bool {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Scenario {
+    GlobalCache,
+    CurveHosts,
+}
+
+/// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
+pub fn scenario() -> Option<Scenario> {
     match std::env::var("NEAR_SUCCESSOR_SCENARIO") {
-        Err(std::env::VarError::NotPresent) => false,
-        Ok(value) if value == "global-cache" => true,
+        Err(std::env::VarError::NotPresent) => None,
+        Ok(value) if value == "global-cache" => Some(Scenario::GlobalCache),
+        Ok(value) if value == "curve-hosts" => Some(Scenario::CurveHosts),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

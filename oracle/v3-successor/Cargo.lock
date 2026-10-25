@@ -2844,6 +2844,7 @@ dependencies = [
 name = "near-arena-oracle-v3-successor"
 version = "0.1.0"
 dependencies = [
+ "blst",
  "borsh",
  "chrono",
  "ed25519-dalek",
@@ -2864,6 +2865,7 @@ dependencies = [
  "near-vm-runner",
  "near-wallet-contract",
  "node-runtime",
+ "p256",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "reed-solomon-erasure",
@@ -2872,6 +2874,7 @@ dependencies = [
  "strum",
  "wasmparser 0.236.1",
  "wat",
+ "zeropool-bn",
 ]
 
 [[package]]

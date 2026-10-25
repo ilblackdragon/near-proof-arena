@@ -1,0 +1,32 @@
+{
+  "base": "00-h10008-s0",
+  "case": "00-h10008-s0-code.extra_garbage",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    },
+    {
+      "hash": "ETn2ptP327vEJpkJ5Ho2UB8NMp1cKiLjUxtM3vzsEvrq",
+      "len": 55,
+      "name": "unknown"
+    }
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 131288833924,
+    "fc_gas_burnt_for_function_call": 131288833924
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.extra_garbage",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

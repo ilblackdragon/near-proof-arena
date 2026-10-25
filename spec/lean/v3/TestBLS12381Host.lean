@@ -272,11 +272,31 @@ def pairChecks : List (String × Bool) :=
   let rReg := runPairReg [0] 5
   -- register-sourced 577-byte input: 2 elements from the data length, then a length error
   let rReg577 := runPairReg (List.replicate 577 0) 5
+  -- a non-trivial product that is one: `e(5·G1, G2) · e(−G1, 5·G2)`. Both pairs are finite, so
+  -- every Miller-loop addition step contributes; the pinned nearcore returned `0` for exactly these
+  -- bytes in a validator-produced chunk (docs/evidence/lean-chunk-completion/curve-host-fixtures,
+  -- step `116.bls12381_pairing_check.pos.e(5a,b)e(-a,5b)`)
+  let bilinear := unhex (
+      "10e7791fb972fe014159aa33a98622da3cdc98ff707965e536d8636b5fcc5ac7a91a8c46e59a00dca575af0f18fb13dc" ++
+      "16ba437edcc6551e30c10512367494bfb6b01cc6681e8a4c3cd2501832ab5c4abc40b4578b85cbaffbf0bcd70d67c6e2" ++
+      "13e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e" ++
+      "024aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8" ++
+      "0606c4a02ea734cc32acd2b02bc28b99cb3e287e85a763af267492ab572e99ab3f370d275cec1da1aaa9075ff05f79be" ++
+      "0ce5d527727d6e118cc9cdc6da2e351aadfd9baa8cbdd3a76d429a695160d12c923ac9cc3baca289e193548608b82801" ++
+      "17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb" ++
+      "114d1d6855d545a8aa7d76c8cf2e21f267816aef1db507c96655b9d5caac42364e6f38ba0ecb751bad54dcd6b939c2ca" ++
+      "00fb837804dba8213329db46608b6c121d973363c1234a86dd183baff112709cf97096c5e9a1a770ee9d7dc641a894d6" ++
+      "0411a5de6730ffece671a9f21d65028cc0f1102378de124562cb1ff49db6f004fcd14d683024b0548eff3d1468df2688" ++
+      "093567b4228be17ee62d11a254edd041ee4b953bffb8b8c7f925bd6662b4298bac2822b446f5b5de3b893e1be5aa4986" ++
+      "19b5e8f5d4a72f2b75811ac084a7f814317360bac52f6aab15eed416b4ef9938e0bdc4865cc2c4d0fd947e7c6925fd14")
+  let rOne := runPairMem bilinear 64
   [ ("pairing: one pair returns 2", r1.ret == some 2),
     ("pairing: one pair writes no register", r1.reg == none),
     ("pairing: one pair no error", r1.err == none),
     ("pairing: one pair gas", r1.burnt = pairGas 288),
     ("pairing: empty returns 0", r0.ret == some 0),
+    ("pairing: e(5a,b)·e(-a,5b) returns 0", rOne.ret == some 0),
+    ("pairing: e(5a,b)·e(-a,5b) gas", rOne.burnt = pairGas 576),
     ("pairing: empty gas", r0.burnt = pairGas 0),
     ("pairing: malformed length errors", isBlsInvalid rBad),
     ("pairing: malformed length burnt gas", rBad.burnt = pairGas 289),

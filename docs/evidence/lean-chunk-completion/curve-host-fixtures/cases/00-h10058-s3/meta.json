@@ -1,0 +1,211 @@
+{
+  "action_results": [
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[Transfer,Transfer,Transfer,Transfer,Transfer,Transfer,Transfer,Transfer,Transfer] => ok",
+    "incoming:[FunctionCall] => fail:FunctionCallError",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10058-s3",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+    "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt"
+  ],
+  "d0_violations": [
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s0rc",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "name": "d3rich",
+      "ood_family_imports": [],
+      "source": "state"
+    },
+    {
+      "account": "s0curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 8444,
+    "buffered_post": 573,
+    "buffered_pre": 572,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 2,
+    "code_bytes": 7518,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts",
+      "d3rich"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "8542681424ecba28d65569c3be0d3962837fdf9d6cb770620108a86cf9e8d75f",
+        "ext_profile": {
+          "base": 794304333,
+          "bls12381_map_fp2_to_g2_base": 1500000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 2609863200,
+          "read_memory_byte": 361126635,
+          "read_register_base": 2517165186,
+          "read_register_byte": 9363390,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 258758340,
+          "write_register_base": 2865522486
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 904184663009,
+        "method": "bls12381_map_fp2_to_g2",
+        "receipt_id": "DdPR4usFGJ1rZT4vBXcySgMEFefCatReThqo9QcgvQGy",
+        "receiver": "s0curvehosts",
+        "status": "Failure(Action #0: ExecutionError(\"BLS12-381 invalid input: Incorrect input length for bls12381_map_fp2_to_g2: 95 is not divisible by 96\"))",
+        "value_hex": null
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 10,
+    "fc_failure_kinds": {
+      "FunctionCallError:ExecutionError:BLS12-381_invalid_input": 1
+    },
+    "fc_gas_burnt": 5715463773042,
+    "fc_gas_burnt_for_function_call": 3938479466584,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 3,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 1,
+    "n_function_calls": 2,
+    "n_function_calls_with_code": 2,
+    "n_implicit": 1,
+    "n_logs": 2,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 3,
+    "n_promises": 9,
+    "n_receipts": 10,
+    "n_receipts_with_receiver_reward": 2,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": true,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "118154383997400000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "685963083554200000000",
+    "tokens_burnt_txs": "0",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 13674,
+    "yield_queue_pre": 1
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "h.create_toplevel",
+    "h.create_implicit",
+    "h.call_yield",
+    "h.create_toplevel_registrar",
+    "h.create_existing"
+  ],
+  "receipt_classes": {
+    "buffered_pushed": 1,
+    "incoming_action": 3,
+    "incoming_refund": 7,
+    "instant": 1,
+    "out_action": 5,
+    "out_refund": 3
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [],
+  "tx_results": []
+}

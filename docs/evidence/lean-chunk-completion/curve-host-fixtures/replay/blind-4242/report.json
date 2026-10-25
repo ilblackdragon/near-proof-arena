@@ -1,0 +1,43 @@
+{
+  "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+  "cases": 87,
+  "graded": 87,
+  "counts": {
+    "match": 87
+  },
+  "mismatch_percent": 0.0,
+  "verified_match_percent": 100.0,
+  "matched_cases_exercising": {
+    "balance_burnt": 87,
+    "congestion_buffered_gas": 15,
+    "congestion_receipt_bytes": 15,
+    "gas_used": 87,
+    "implicit_transitions": 8,
+    "proposals": 2
+  },
+  "field_diffs": {},
+  "reasons": {},
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "identities": {
+    "lean_binary_sha256": "63bf3b66d94dea0733b46592b4bae6db144805a91f6f63d0efe0bcecec21c9e3",
+    "harness_sha256": "61e6490cf8d7ca611651ca384c79635f1d58dfde8b95bd98fafca77ce7ae9c3c",
+    "blind_inputs_sha256": "f18f9114aae725cee41865ca7f3d14067f595820af083b500d70d8e13a24036b",
+    "tier": "allFeatures",
+    "cases_list_sha256": "54d01186b112dae843c98f8245efd75342908463d1d829da8a50e354d1c832f4"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 10.940730419941247,
+  "pass": true
+}

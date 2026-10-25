@@ -22,6 +22,8 @@
 //!       The same conversion of an existing corpus (public fixtures).
 //!   contracts
 //!       Print the code registry (name, hash, length, D3α facts).
+//!   curve-steps
+//!       Print the curve-hosts scenario steps (label, method, args, gas) and contract hash as JSON.
 
 // Shared, unmodified, with the D0 oracle (oracle/v3/src, pinned by the signed D0 challenge).
 #[path = "../../v3/src/claim.rs"]
@@ -65,6 +67,7 @@ mod d3;
 mod d3contracts;
 mod d3gen;
 mod codec_probe;
+mod curve_hosts;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
@@ -194,6 +197,7 @@ fn main() {
         Some("gen") => cmd_gen(&args),
         Some("contracts") => cmd_contracts(),
         Some("codec-roundtrip") => codec_probe::command(&args),
+        Some("curve-steps") => curve_hosts::print_steps(),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-successor gen --domain d3 ... | contracts (see src/main.rs)");

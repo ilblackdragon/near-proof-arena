@@ -1,0 +1,204 @@
+{
+  "action_results": [
+    "local:[DeleteKey] => fail:DeleteKeyDoesNotExist",
+    "local:[FunctionCall] => ok",
+    "incoming:[CreateAccount,Transfer,AddKey(full)] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10029-s0",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape",
+    "w.tx_shape",
+    "r.success"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s2curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 5763,
+    "buffered_post": 3,
+    "buffered_pre": 2,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1915,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "3d7584dd3bb7c2f7901293ac05e53f7784d4b3ed398307f6eba354721650d480",
+        "ext_profile": {
+          "base": 1853376777,
+          "bls12381_g1_multiexp_base": 16500000000,
+          "bls12381_g1_multiexp_element": 1860000000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 10439452800,
+          "read_memory_byte": 1767619845,
+          "read_register_base": 5034330372,
+          "read_register_byte": 34693824,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 256938456,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 3225928056,
+          "touching_trie_node": 20520000000,
+          "write_memory_base": 5607589722,
+          "write_memory_byte": 958767744,
+          "write_register_base": 8596567458,
+          "write_register_byte": 395362656
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 2890309389389,
+        "method": "bls12381_g1_multiexp",
+        "receipt_id": "6HWJgj4LDePnLUBBSgvvd4R95q6WyJf1iVp4Hqfxr5T1",
+        "receiver": "s2curvehosts",
+        "status": "SuccessValue((104)AAAAAAAAAAAScSBSJ8eqJ/RfILO6OA3+qLUe+ukf0y5VJ3TJnioSN6pZwMQ/UqrZm7o3g+ovNqQUB//CwaL+OwDR+R4fT+vNoxAE98MBB1yQMcVd09+oEEsV…)",
+        "value_hex": "00000000000000001271205227c7aa27f45f20b3ba380dfea8b51efae91fd32e552774c99e2a1237aa59c0c43f52aad99bba3783ea2f36a41407ffc2c1a2fe3b00d1f91e1f4febcda31004f7c301075c9031c55dd3dfa8104b156a6a3b7017fccd27f81c2af222ef"
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 4,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 2890309389389,
+    "fc_gas_burnt_for_function_call": 2001632771605,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 1,
+    "n_function_calls_with_code": 1,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 8,
+    "n_promises": 1,
+    "n_receipts": 2,
+    "n_receipts_with_receiver_reward": 1,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": true,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "60048983148100000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "7341826320188900000000",
+    "tokens_burnt_txs": "245341700229400000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 9546,
+    "yield_queue_pre": 0
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "h.add_key",
+    "successor.curve-hosts.059.bls12381_g1_multiexp.pos.infinity",
+    "successor.curve-hosts.060.bls12381_g1_multiexp.neg.not_in_subgroup"
+  ],
+  "receipt_classes": {
+    "buffered_pushed": 1,
+    "incoming_action": 1,
+    "incoming_refund": 1,
+    "local": 2,
+    "out_action": 2,
+    "out_refund": 3
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "h.delete_key_missing",
+    "d3.call",
+    "h.create_implicit",
+    "d3.call_method_edge",
+    "successor.curve-hosts.055.bls12381_g1_multiexp.pos.5a+7(2a)"
+  ],
+  "tx_results": [
+    "success_local",
+    "success",
+    "success",
+    "success",
+    "success_local"
+  ]
+}

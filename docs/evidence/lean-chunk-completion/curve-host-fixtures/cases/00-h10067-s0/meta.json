@@ -1,0 +1,199 @@
+{
+  "action_results": [
+    "incoming:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => fail:AccountDoesNotExist",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[Transfer,DeleteAccount] => fail:ActorNoPermission",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => fail:AccountDoesNotExist",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10067-s0",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape",
+    "r.success"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape",
+    "r.success",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s2curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 5494,
+    "buffered_post": 0,
+    "buffered_pre": 2,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1915,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "c995538e9c7e1b0203cb0c3ad5100a492f124ae1480b0596116feede56acff14",
+        "ext_profile": {
+          "base": 1588608666,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "p256_verify_base": 1300000000000,
+          "p256_verify_byte": 416000000,
+          "read_memory_base": 15659179200,
+          "read_memory_byte": 554994618,
+          "read_register_base": 2517165186,
+          "read_register_byte": 12911622,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 256938456,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 248148312,
+          "touching_trie_node": 20520000000,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 356814132,
+          "write_register_base": 5731044972,
+          "write_register_byte": 30412512
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 2305535727960,
+        "method": "p256_verify",
+        "receipt_id": "12xeoXRU3xuq34ZNAobdiMx24PdvYLzm9UoTjvXrCCGx",
+        "receiver": "s2curvehosts",
+        "status": "SuccessValue(AAAAAAAAAAA=)",
+        "value_hex": "0000000000000000"
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 7,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 2305535727960,
+    "fc_gas_burnt_for_function_call": 1417158725332,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 1,
+    "n_function_calls_with_code": 1,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 3,
+    "n_promises": 1,
+    "n_receipts": 7,
+    "n_receipts_with_receiver_reward": 1,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "42514761759900000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "267620729046000000000",
+    "tokens_burnt_txs": "30839328600500000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 9699,
+    "yield_queue_pre": 1
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "d3.call",
+    "h.transfer_multi",
+    "successor.curve-hosts.143.ecrecover.neg.wrong_v",
+    "successor.curve-hosts.144.ecrecover.neg.r_zero",
+    "successor.curve-hosts.145.ecrecover.neg.v4"
+  ],
+  "receipt_classes": {
+    "buffered_forwarded": 2,
+    "incoming_action": 2,
+    "incoming_refund": 5,
+    "out_action": 2,
+    "out_refund": 4
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "h.call_yield"
+  ],
+  "tx_results": [
+    "success"
+  ]
+}

@@ -1,7 +1,7 @@
 //! Versioned generator code registry. Signed v3-d3 sources and default contracts remain unchanged.
 #[path = "../../v3-d3/src/d3contracts.rs"]
 mod baseline;
-pub use baseline::{RICH, TINY, TTN2, HOSTX, code_facts, ood_call};
+pub use baseline::{RICH, TINY, TTN2, HOSTX, code_facts};
 use near_primitives::hash::CryptoHash;
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
@@ -22,7 +22,19 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
         let entry = contracts.iter_mut().find(|(name, _)| *name == "d3float").unwrap();
         entry.1 = code.clone();
     }
+    if crate::d3gen::scenario() == Some(crate::d3gen::Scenario::CurveHosts) {
+        contracts.push((crate::curve_hosts::CODE_NAME, crate::curve_hosts::code().to_vec()));
+    }
     contracts
+}
+
+/// Baseline call marks, plus `e.ood_host` for every method of the curve-hosts scenario contract
+/// (each one calls a curve host unconditionally).
+pub fn ood_call(name: &str, method: &str) -> Option<&'static str> {
+    if name == crate::curve_hosts::CODE_NAME {
+        return Some("e.ood_host");
+    }
+    baseline::ood_call(name, method)
 }
 
 pub struct Registry {

@@ -1,0 +1,27 @@
+{
+  "base": "00-h10008-s0",
+  "case": "00-h10008-s0-t.tx_valid_flip.0",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 131288833924,
+    "fc_gas_burnt_for_function_call": 131288833924
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "t.tx_valid_flip.0",
+  "nearcore": "validate: InvalidChunkStateWitness(\"Post state root 6DQyzepBJk6StGUbVUNoMsmjGSVW1PqU6iVivGVEg9zx for main transition does not match expected post state root AdZyvgD8orU5ZrHrvpEfu6d2FTc5gZ35iUJMfMFobmqu\")",
+  "verdict_source": "nearcore(cold,tx_valid=claim)"
+}
