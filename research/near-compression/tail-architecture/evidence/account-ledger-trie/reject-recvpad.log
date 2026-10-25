@@ -1,0 +1,2 @@
+RECEIPT_LEDGER_REJECT path=/tmp/opencode/forged-recv-pad.multi error=circuit not satisfied: 3 assertion(s) failed
+  .list-1.slot-0.account-bind.exactly-one-match: Word(0x0000000000000000) != Word(0x0000000000000001)

@@ -1,0 +1,2 @@
+RECEIPT_LEDGER_REJECT path=multi-lists/00-h10035-s3.multi error=circuit not satisfied: 1 assertion(s) failed
+  .account-finalize.final-balance-0-0: Word(0x3a5cfe006ee7b4c2) != Word(0x3a5cfe006ee7b4c3)

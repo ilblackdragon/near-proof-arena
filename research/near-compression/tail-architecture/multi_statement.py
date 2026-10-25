@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Host checks for ordered source sets and their outcome root; proof verification separate.
 
-NPMULT02 adds the bounded account table (16 rows x 18 words) at the head of
-the public statement. The table is checked against the receipts: canonical
-names, initial/final structure, exactly the distinct receiver set, and the
-host ledger model threads balances in order (this duplicates the circuit's
-constraint independently).
+NPMULT03 leads the public statement with the claim's prev_state_root (4
+words), then the bounded account table (16 rows x 18 words). The table is
+checked against the receipts: canonical names, initial/final structure,
+exactly the distinct receiver set, and the host ledger model threads
+balances in order (this duplicates the circuit's constraint independently).
+The root words must match the expected claim-derived prev_state_root.
 """
 import hashlib
 import struct
@@ -13,6 +14,7 @@ from audit_source_membership import root_from_digest
 from audit_public_merkle import reconstruct
 
 ACCOUNT_SLOTS = 16
+ROOT_WORDS = 4
 ROW_WORDS = 18
 TABLE_WORDS = ACCOUNT_SLOTS*ROW_WORDS
 
@@ -77,16 +79,19 @@ def check(envelope, caps, mode, expected, outcome_root, ledger_fixture=None):
         pos += 33*depth
     require(pos == len(envelope), 'trailing data')
     header = 20+4*count
-    require(len(packet) >= header+8 and packet[:8] == b'NPMULT02', 'packet version')
+    require(len(packet) >= header+8 and packet[:8] == b'NPMULT03', 'packet version')
     require(struct.unpack_from('<I', packet, 8)[0] == count, 'profile count')
     require(list(struct.unpack_from('<'+str(count)+'I', packet, 12)) == caps, 'profile capacities')
     require(struct.unpack_from('<I', packet, 12+4*count)[0] == mode, 'profile mode')
     require(struct.unpack_from('<I', packet, 16+4*count)[0] == ACCOUNT_SLOTS, 'account table size')
     plen = struct.unpack_from('<Q', packet, header)[0]
-    require(plen == 8*(TABLE_WORDS+sum(9+11*c for c in caps)) and header+8+plen <= len(packet), 'public framing')
+    require(plen == 8*(ROOT_WORDS+TABLE_WORDS+sum(9+11*c for c in caps)) and header+8+plen <= len(packet), 'public framing')
     public = packet[header+8:header+8+plen]
     # Account table: canonical names, distinct, structure.
-    table_words = struct.unpack_from('<%dQ' % TABLE_WORDS, public, 0)
+    root_words = struct.unpack_from('<4Q', public, 0)
+    require(bytes(expected['pre_state_root']) == b''.join(w.to_bytes(8, 'big') for w in root_words),
+            'claim prev_state_root')
+    table_words = struct.unpack_from('<%dQ' % TABLE_WORDS, public, 8*ROOT_WORDS)
     rows = parse_table(table_words)
     names = [r[0] for r in rows]
     require(len(set(names)) == len(names), 'duplicate account names')
@@ -112,7 +117,7 @@ def check(envelope, caps, mode, expected, outcome_root, ledger_fixture=None):
             require(tl == struct.unpack_from('<2Q', initial, 16), 'locked differs')
             require(ts[0] == struct.unpack_from('<Q', initial, 64)[0] and ts[1] == 0, 'storage differs')
             require(tf == struct.unpack_from('<2Q', final, 0), 'final balance differs')
-    off = 8*TABLE_WORDS
+    off = 8*(ROOT_WORDS+TABLE_WORDS)
     leaves, ids, counts, receivers = [], [], [], []
     for index, cap in enumerate(caps):
         words = struct.unpack_from('<'+str(9+11*cap)+'Q', public, off)

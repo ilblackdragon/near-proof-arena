@@ -1,0 +1,2 @@
+RECEIPT_LEDGER_REJECT path=multi-lists/00-h10035-s3.multi error=circuit not satisfied: 1 assertion(s) failed
+  .account-table.account-10.inactive-zero-10-1: conditional assert: Word(0x0000000000000078) != Word(0x0000000000000000)

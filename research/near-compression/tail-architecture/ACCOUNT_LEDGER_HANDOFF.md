@@ -1,9 +1,9 @@
-# Account ledger handoff — 2026-10-24 (post circuit constraint)
+# Account ledger handoff — 2026-10-25 (post in-circuit trie)
 
 ## Checkout and runtime state
 
 - Owned worktree: `/data/illia/nearproof-wt/pq-tail-architecture`.
-- Branch: `lane/pq-tail-architecture`; checkpoint preceding the circuit fix: `d9b5c4d02`.
+- Branch: `lane/pq-tail-architecture`; checkpoint preceding the trie goal: `3e18aa43b`.
 - Main checkout: `/data/illia/nearproof`. Do not merge or modify main implicitly.
 - Scratch: `/data/illia/pq-tail-architecture-20261024`.
 - All builds/proofs/verifications finished. No live process/session to resume.
@@ -12,180 +12,133 @@
 Goal remains under 300,000 bytes, PQ, bounded recursive history, applicable to
 full NEAR, final proof within 1–2 seconds of chunk. **Not achieved.**
 
-## Circuit fix landed: the forged-starting-balance hole is closed
+## State authentication is now IN-CIRCUIT (NPMULT03)
 
-The prior handoff's counterexample — `forged-repeat-balance.multi`, list1
-receipt4, receiver `s0a01`, before/after +1 with public digests unchanged — is
-now **rejected in-circuit**:
+The account table's trie membership is proven, not host-audited. Each PTrie
+witness node's `node_ser` is reconstructed in-circuit from decoded fields and
+hashed with tight_sha:
 
-- Rejection point: `.list-1.slot-4.account-bind.before-balance-0-0`
-  (`Word(0xe1b14706136c69c8) != Word(0xe1b14706136c69c7)`), plus the
-  downstream slot-8 chain break.
-- Mechanism: a 16-slot public account table (18 words/row: active, name_len,
-  name[8], initial balance/locked/storage, final balance) and private
-  running-balance registers threaded through every receipt slot in
-  application order, across list boundaries. Registers start at each row's
-  public initial balance, so first touch and repeats are one case: `before ==
-  register` on every matched receipt, and the register advances to the
-  already-constrained arithmetic after-value.
-- Guards: exactly-one padded-name match per active receipt (sum asserted),
-  pairwise-distinct canonical names, zero inactive rows (whole-word), active
-  rows 1..=64 name length with byte-exact zero padding **from name_len on**
-  (`icmp_uge`, see the boundary-bug note below), every active row
-  matched at least once (row-covered), final table balances == final
-  registers, locked/storage invariant per matched row on every touch.
+- The chain top hash must equal four public statement words carrying the
+  claim-derived `prev_state_root` (statement head).
+- Branch children link by rank among set bitmap bits, selected by the row's
+  key nibble; ext children link after their fragment.
+- Each active row's leaf `value_ref` must equal `u32le(72)||sha256(72-byte
+  initial value)`, binding the trie leaf to the public table row (the 4
+  code-hash words are witness-only, authenticated through the leaf).
+- **Key-path correspondence** (the binding the old host audit lacked): key =
+  `nibbles(0x00||name)` computed from the row's PUBLIC name wires; branches
+  consume exactly one nibble each; ext/leaf hexPrefix fragments equal the key
+  nibbles positionally; the path ends exactly at the leaf; walked nibbles
+  must be set bitmap bits. A swapped witness chain for another account is
+  rejected by nibble selection even when both accounts have identical values
+  (demonstrated with a crafted duplicate-initial fixture).
 
-## Boundary bug found in review (fixed): name-padding off-by-one
+Corpus profile (explicit, not universal): 5 shared chain nodes with roles
+[Branch,Branch,Branch,Ext,Branch], per-account leaf attaching by the final
+key nibble, max node 331 B, 16 account slots. Tag-2 branches are out of
+profile (roles asserted). Empty tables gate all trie constraints on a
+has-accounts bit; the empty-table root remains host-checked only — that is
+the one remaining host-side root case, documented.
 
-The first version of the padding constraint gated on `icmp_ugt(k, name_len)`
-— strictly greater — leaving the byte at `k == name_len` unconstrained in
-table rows. That was exploitable, and an external review caught it: a table
-row and receipts carrying **matching** garbage at that boundary byte still
-word-matched (name_eq compares all eight full words), while `clean()` in the
-source/outcome serializers masks bytes `>= len`, so the digests stayed
-honest. With that, a +1 forged starting balance was accepted for all 78
-`s0a01` receipts — reopening the exact hole the constraint was built to
-close. Reproduced before fixing: `populate_wire_witness` succeeded on the
-exploit pair (evidence `exploit-padding-boundary.{ledger,multi}`).
+## Latest integrated result (NPMULT03)
 
-Fix: `icmp_ugt` -> `icmp_uge` in the table padding loop — the byte at
-`name_len` is padding too. After the fix the exploit rejects at
-`.account-table.account-0.name-padding-0-5` (the boundary byte itself), the
-original counterexample still rejects at its exact transition, all six
-ledger mutants still reject, both originals still prove (250,094 B) and
-fresh-verify, and the empty-context pair still proves. The lesson: a padding
-boundary is a `>=` boundary, and masking in the serialization layer must
-never be the only thing standing between garbage padding and name matching.
-
-## Latest integrated result (NPMULT02, account-table profile)
-
-One circuit covers all three original source lists of both fixtures with the
-account ledger constrained. Fixed capacities [16,16,1024], compact budgets,
-16 account slots.
-
-| Original fixture | Ordered counts | Packet | With paths | Warm ready | Fresh verify |
+| Original fixture | Counts | Packet | Envelope | Warm ready | Fresh verify |
 |---|---|---:|---:|---:|---:|
-| `00-h10035-s3` | 1, 9, 804 | 250,094 B | 250,320 B | 3.090 s | 1.511 s |
-| `00-h10036-s3` | 0, 0, 711 | 250,094 B | 250,320 B | 3.133 s | 1.502 s |
+| `00-h10035-s3` | 1, 9, 804 | 250,126 B | 250,352 B | 3.082 s | 1.521 s |
+| `00-h10036-s3` | 0, 0, 711 | 250,126 B | 250,352 B | 2.983 s | 1.477 s |
 
-Baseline (pre-constraint): 247,786/248,012 B, 3.011/2.792 s, verify
-1.446/1.449 s, RSS 12,806,272 KiB. Account-constraint overhead: +2,308 B,
-+0.08/+0.34 s warm, +0.05 s verify, +0.2–0.3 GiB RSS. Single observations,
-not p95. Witness log stays 23 (no suite jump); public 11,931 words, private
-10,695,840, AND 4,087,792. Peak RSS 13,115,024/13,024,740 KiB under the
-16 GiB cap. Geometry: circuit_s ≈ 19.1 s cold.
+vs NPMULT02 baseline: +32 B (root words), AND +2.5% (4,191,241), private
++1.8%, warm/verify within run noise, peak RSS 13.3 GB-scale KiB under the
+16 GiB cap, witness log 23 (no suite jump). Single observations, no p95.
+One 00-h10036-s3 run produced a 295,038 B packet (nondeterministic LaBRADOR
+terminal tail block when the deepest reduction crossed rank 13); three
+repeats and the final runs measured 250,126 B. Backend export size is
+witness-shape dependent; both observed sizes are under 300,000 B.
 
-State-root binding (host-audited, NOT in-circuit): per-account PTrie path
-witnesses (6 nodes each) rehash to the claim's `prev_state_root`
-(`7156f545…` / `2ee62d9e…`); each leaf's `value_ref` is
-`u32le(72) || sha256(initial)` binding the table's initial bytes. Four
-root/node/leaf/swap negatives reject per case. The table is public in the
-statement and bound by the proof; the trie chain check remains host-side.
+## Rejection battery (all in-circuit, with the final binary)
 
-## Negative evidence
+Prior: forged-repeat-balance at `.list-1.slot-4.before-balance`; boundary
+padding exploit at `.name-padding-0-5`; forged receiver padding at
+`.exactly-one-match`; dup-name/wrong-final/nonzero-inactive at their table
+constraints. Note the trie now catches several ledger mutants earlier:
+wrong-initial and wrong-locked at `r0-vref-hash`, inert-account at
+`leaf10-hp-len-range` — the trie value binding is doing work.
 
-- Forged counterexample rejects at the exact transition (above).
-- Ledger mutants all reject in-circuit at their designed constraints:
-  duplicate name (`distinct-names`), wrong initial (`before-balance`),
-  wrong final (`final-balance`), wrong locked (`locked-unchanged`), nonzero
-  inactive row (`inactive-zero`), inert uncovered row (`row-covered`),
-  forged receiver padding (`exactly-one-match`).
-- 112 in-proof account-table mutations reject (16 rows x 7 positions).
-- 21 in-process public mutations reject per proof; 137 host-envelope
-  mutations reject per fixture (113 of them table positions); empty-context
-  pair with empty table still proves.
+New trie negatives: wrong root word at `trie-root-0`; mutated shared node at
+`link-b1`; mutated leaf value_ref at `r0-leaf-link`/`r0-vref-hash`; swapped
+chain at `r0-leaf-link`; **duplicate-initial swap rejected by key-nibble
+selection despite identical value hashes**; corrupted branch bitmap at
+`branch-3-kids-overflow`/`len_check`.
 
 ## Files / commands for continuation
 
-Scratch implementation (all updated for NPMULT02):
-
-- `labinius/crates/binius/src/bin/near-receipt-multi.rs` — driver; reads
-  `NEAR_LEDGER` (NPMLEDG01 binary fixture), threads registers, emits
-  NPMULT02 packets; `NEAR_EXPECT_REJECT=1` prints in-circuit rejection points.
-- `labinius/crates/binius/src/bin/support/receipt_account_ledger.rs` — the
-  account table/register constraint module.
-- `labinius/crates/binius/src/bin/support/receipt_multi_wire.rs` — NPMULT02
-  decoder (trusted-local).
-- `export/src/bin/account-trie-path-export.rs` — per-account trie path
-  witnesses + prev_state_root.
-- Pre-fix snapshots: `prover-before-account-ledger.rs`,
-  `support/receipt_multi_wire_before_account_ledger.rs` in scratch.
+Scratch implementation:
+- `labinius/crates/binius/src/bin/near-receipt-multi.rs` — NPMULT03 driver;
+  requires `NEAR_LEDGER` (NPMLEDG01) and `NEAR_TRIE` (NPMTRIE01).
+- `.../support/receipt_account_trie.rs` — the in-circuit trie module.
+- `.../support/receipt_account_ledger.rs` — the ledger/table module.
+- `.../support/receipt_multi_wire.rs` — NPMULT03 trusted-local decoder.
+- `export/src/bin/account-trie-path-export.rs` — NPMTRIE01 witness exporter
+  (shared-prefix + role assertions; value_ref==sha256(initial) at export).
+- Pre-trie snapshots: `prover-before-npmtrie.rs`.
 
 Research scripts (worktree `research/near-compression/tail-architecture`):
+- `audit_account_paths.py` — reference model incl. key-path correspondence.
+- `multi_statement.py` / `audit_multi_statement.py` — NPMULT03 statement
+  checks (root vs claim-derived value; 141 mutations reject per fixture).
 
-- `make_account_ledger_fixture.py` — NPMLEDG01 generator from native JSON.
-- `audit_account_paths.py` — trie-chain host audit + 4 negatives.
-- `multi_statement.py` / `audit_multi_statement.py` / `make_multi_lists.py` /
-  `receipt_list_public.py` — NPMULT02 statement checks (table parsing,
-  ledger-fixture comparison, 113 table mutations).
+Evidence: `evidence/account-ledger-trie/` — manifest.json (44 verified
+hashes, measurements, rejection records, trust boundary, open obligations),
+both envelopes, prove/verify logs, all 15 rejection logs, witness fixtures
++ 6 trie mutants, source copies.
 
-Evidence: `evidence/account-ledger-circuit/` — manifest.json (hashes,
-measurements, trust boundary, open obligations), both packets' envelopes,
-proof/verify logs, rejection log, trie-path witnesses and reports, source
-copies, ledger fixtures.
-
-From scratch `labinius`, build with explicit native flags (global config
-otherwise can override native CPU features):
-
-```
-ulimit -v 16777216
-RUSTFLAGS='-C target-cpu=native -C link-arg=-fuse-ld=mold' \
-CARGO_TARGET_DIR=/data/illia/pq-tail-architecture-20261024/target \
-LABINIUS_LABRADOR_DIR=/data/illia/pq-tail-architecture-20261024/labrador-sis128 \
-  taskset -c 8-15,24-31 cargo build --release -j4 -p labinius-binius \
-  --bin near-receipt-multi
-```
-
-Prove (note: `NEAR_LEDGER` is now required; ledger fixtures are generated by
-`make_account_ledger_fixture.py` from the native `account-ledgers/*.json`):
+Prove/verify commands (build unchanged; see the previous handoff for the
+native-flags build):
 
 ```
 LABRADOR_JL_THREADS=4 LABRADOR_PAIR_THREADS=4 LABINIUS_COMMIT_THREADS=4 \
-RAYON_NUM_THREADS=4 NEAR_LEDGER=CASE.ledger NEAR_EXPORT_DIR=OUT \
-  taskset -c 8-11 near-receipt-multi 16,16,1024 compact CASE.multi
+RAYON_NUM_THREADS=4 NEAR_LEDGER=CASE.ledger NEAR_TRIE=CASE-trie.bin \
+NEAR_EXPORT_DIR=OUT taskset -c 8-11 near-receipt-multi 16,16,1024 compact CASE.multi
+RAYON_NUM_THREADS=1 NEAR_LEDGER=CASE.ledger NEAR_TRIE=CASE-trie.bin \
+NEAR_VERIFY_EXPORT=PACKET NEAR_EXPECTED_PUBLIC=PUBLIC \
+  taskset -c 8 near-receipt-multi 16,16,1024 compact
 ```
 
-Fresh verify: `NEAR_VERIFY_EXPORT=PACKET NEAR_EXPECTED_PUBLIC=PUBLIC
-RAYON_NUM_THREADS=1 NEAR_LEDGER=CASE.ledger`, CPU8, same binary/profile.
-Required-rejection runs: add `NEAR_EXPECT_REJECT=1` (prints the failing
-constraint paths). C decoding remains trusted-local.
-
-Trie-path export (scratch `export`):
-`account-trie-path-export CASE_DIR OUT_JSON` (built into
-`export-target/release`); then
-`audit_account_paths.py OUT_JSON CASE.ledger REPORT`.
+Trie witness export: `account-trie-path-export CASE_DIR OUT.bin` (writes
+OUT.bin + OUT.bin.json); `audit_account_paths.py OUT.bin.json LEDGER REPORT`.
 
 ## Lessons to preserve
 
-- Frontend `assert_false` checks only MSB; use `assert_zero` for whole-word
-  guards (the account-table booleans/ranges depend on this).
+- The framework's booleans are MSB-bools: `band(shr(x,k),1)` is an LSB 0/1
+  that ANDs to zero inside select/band/assert_true. Normalize with
+  `shl(..,63)`; keep raw 0/1 only for arithmetic (popcounts).
+- No u16-wraparound arithmetic tricks on u64 words — use `isub` variants.
 - A running register initialized to the row's public initial balance removes
-  the first-touch/repeat case split entirely; before==register is then the
-  single binding for every touch.
-- Match on full padded name words (length + all eight 64-bit words); pad
-  rows byte-exact, or padding garbage silently changes which account a
-  receipt binds to.
-- Do not duplicate circuit constraints in the host fixture parser: reject
-  paths must exercise the circuit, not a host assert (the nonzero-inactive
-  mutant initially passed because the parser pre-validated it).
-- Host audits check what the proof does not; make the split explicit in
-  docs. The trie-chain check is host-side today; in-circuit SHA256 chains
-  are the next step toward state-validity proof.
-- Do not relax lattice ranks/norm/security policy for speed; composed PQ is
-  unproved.
-- NEAR receipt membership starts at SHA256(list_digest), not list_digest.
-- Serial/parallel kernels retain exact per-output accumulation order;
-  scalar-product lazy cache must be warmed before worker launch. Keep the
-  existing whole-prover lock.
+  the first-touch/repeat case split; before==register is the single binding.
+- Match on full padded name words; padding boundaries are `>=` boundaries.
+- Do not duplicate circuit constraints in host parsers — reject paths must
+  exercise the circuit.
+- Conditional asserts need explicit OR-inactive escapes for zero-row tables.
+- Host audits check what the proof does not; now that the trie chain is
+  in-circuit, the Python audit is a reference model, not the binding.
 - Before committing, check `git status` for incidental deletions under
-  `research/near-compression/native/wasm-base/target` (a recurring pattern
-  from concurrent lanes); restore them with `git checkout --` rather than
-  committing the deletions.
+  `research/near-compression/native/wasm-base/target`; restore, don't commit.
 
 ## Still open
 
-In-circuit trie membership (replace the host audit), access-key/routing/
-domain checks, scheduling, general actions/Wasm, full state-transition
-semantics, recursive history, composed PQ security, zero knowledge,
-hostile C decoder safety, and the 1–2 second deadline. The 16-slot account
-profile is explicit, not a claim of arbitrary full-NEAR coverage.
+Variable-depth/variable-shape trie chains (the 5-node shared profile is
+asserted, not general), post-state root and full state-transition semantics,
+access keys/routing/domain checks, general actions/Wasm, scheduling,
+recursive history, composed PQ security, zero knowledge, hostile C decoder
+safety, and the 1–2 second deadline. The 16-slot account profile is
+explicit, not a claim of arbitrary full-NEAR coverage.
+## History (superseded sections preserved in git)
+
+- 2026-10-24 (commit 2da81825c): the forged-starting-balance hole closed via
+  the 16-slot account table + running-balance registers (NPMULT02); the
+  handoff counterexample rejected at `.list-1.slot-4.before-balance-0-0`.
+- 2026-10-24 (commit 3e18aa43b): review-caught padding off-by-one fixed
+  (`icmp_ugt` -> `icmp_uge`; boundary exploit reproduced first, then
+  rejected at `.name-padding-0-5`).
+- 2026-10-25 (this commit): trie membership moved in-circuit (NPMULT03);
+  key-path correspondence closes the duplicate-value swap class.

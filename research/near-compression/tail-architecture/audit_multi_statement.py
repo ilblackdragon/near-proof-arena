@@ -1,33 +1,36 @@
 #!/usr/bin/env python3
-"""Check full source sets, outcome roots and the account ledger for an NPMULT02 packet."""
+"""Check full source sets, outcome roots and the account ledger+trie root for an NPMULT03 packet."""
 import argparse
 import hashlib
 import json
 import struct
 from pathlib import Path
 from audit_claim_outcome import claim_root
-from multi_statement import check, encode, ACCOUNT_SLOTS, ROW_WORDS
+from multi_statement import check, encode, ACCOUNT_SLOTS, ROW_WORDS, ROOT_WORDS
 
 p = argparse.ArgumentParser(description=__doc__)
-for name in ['packet', 'public', 'roots', 'auth', 'claim', 'envelope', 'ledger', 'report']:
+for name in ['packet', 'public', 'roots', 'auth', 'claim', 'envelope', 'ledger', 'paths', 'report']:
     p.add_argument(name, type=Path)
 p.add_argument('--capacities', required=True)
 a = p.parse_args()
 caps = [int(x) for x in a.capacities.split(',')]
 expected = json.loads(a.roots.read_text())
 auth = json.loads(a.auth.read_text())
+paths = json.loads(a.paths.read_text())
 cb = a.claim.read_bytes()
 assert bytes(expected['claim_sha256']) == hashlib.sha256(cb).digest()
 assert expected['witness_loaded'] is False
+# The claim-derived prev_state_root comes from the native trie-path export.
+expected['pre_state_root'] = paths['pre_state_root']
 root = claim_root(cb)
 packet = a.packet.read_bytes()
-paths = [s['path'] for s in auth['sources']]
-envelope = encode(packet, paths)
+src_paths = [s['path'] for s in auth['sources']]
+envelope = encode(packet, src_paths)
 ledger_fixture = a.ledger.read_bytes()
 inner, public, counts, rows = check(envelope, caps, 1, expected, root, ledger_fixture)
 assert inner == packet and public == a.public.read_bytes()
 
-mutants = [envelope[:-1], envelope+b'\0', encode(packet, paths[:-1]), encode(packet, paths[::-1])]
+mutants = [envelope[:-1], envelope+b'\0', encode(packet, src_paths[:-1]), encode(packet, src_paths[::-1])]
 # Change list count/capacity/mode/table-size, each list's context, count, source hash and outcome.
 header = 20+4*len(caps)
 offsets = [0, 8, 12+8, 12+12, 12+16+4*len(caps)]
@@ -39,24 +42,25 @@ for at in offsets:
     x = bytearray(envelope)
     x[at] ^= 1
     mutants.append(bytes(x))
-# Account-table mutations inside the public section: active bit, name length,
-# name word, initial balance, locked, storage, final balance per row, plus the
-# declared table-size field.
+# Root-word mutations (statement head) + account-table mutations + slots field.
 base = 12+header+8
-table_mutations = 0
+root_mutations = 0
 positions = []
+for j in range(ROOT_WORDS):
+    positions.append(base+8*j)
 for r in range(ACCOUNT_SLOTS):
     for j in [0, 1, 2, 10, 12, 14, 16]:
-        positions.append(base+8*(r*ROW_WORDS+j))
+        positions.append(base+8*(ROOT_WORDS+r*ROW_WORDS+j))
 positions.append(12+16+4*len(caps))  # declared account slots field
 for at in positions:
     x = bytearray(envelope)
     x[at] ^= 1
     mutants.append(bytes(x))
-    table_mutations += 1
+root_mutations = ROOT_WORDS
+table_mutations = ACCOUNT_SLOTS*7+1
 rejected = 0
 for x in mutants:
-    if x == envelope:  # identical empty paths do not represent a changed statement
+    if x == envelope:
         continue
     try:
         check(x, caps, 1, expected, root, ledger_fixture)
@@ -65,15 +69,17 @@ for x in mutants:
     else:
         raise AssertionError('mutant accepted')
 a.envelope.write_bytes(envelope)
-report = {'status': 'HOST_SOURCE_SET_OUTCOME_AND_LEDGER_BINDING_NOT_STATE_TRIE_PROOF',
+report = {'status': 'HOST_SOURCE_SET_OUTCOME_LEDGER_AND_TRIE_ROOT_BINDING_NOT_FULL_STATE_VALIDITY',
           'counts': counts,
           'accounts': len(rows),
+          'prev_state_root': bytes(paths['pre_state_root']).hex(),
           'packet_bytes': len(packet),
           'envelope_bytes': len(envelope),
           'packet_sha256': hashlib.sha256(packet).hexdigest(),
           'envelope_sha256': hashlib.sha256(envelope).hexdigest(),
           'claim_sha256': hashlib.sha256(cb).hexdigest(), 'outcome_root': root.hex(),
-          'negative_checks': rejected, 'table_mutations': table_mutations,
+          'negative_checks': rejected, 'root_mutations': root_mutations,
+          'table_mutations': table_mutations,
           'inner_proof_verified_here': False}
 a.report.write_text(json.dumps(report, indent=2)+'\n')
 print(json.dumps(report))

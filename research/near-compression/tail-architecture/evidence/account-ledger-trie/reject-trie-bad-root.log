@@ -1,0 +1,2 @@
+RECEIPT_LEDGER_REJECT path=multi-lists/00-h10035-s3.multi error=circuit not satisfied: 1 assertion(s) failed
+  .trie-constraints.trie-root-0: conditional assert: Word(0x7056f54529bf89bb) != Word(0x7156f54529bf89bb)

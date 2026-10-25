@@ -15,21 +15,22 @@ Warm readiness measures witness fill, proof, encoding and file export of the
 inner packet; it excludes circuit/setup and host claim/envelope validation.
 No GPU was used. The 1–2 second deadline is still unmet.
 
-## Update: account ledger constrained (NPMULT02)
+## Update: account ledger constrained + trie membership in-circuit (NPMULT03)
 
-The same circuit now carries a 16-slot public account table and running-
-balance registers threaded across lists; the forged-starting-balance
-counterexample rejects in-circuit. A review-caught off-by-one in the table
-padding constraint (the byte at name_len was unconstrained; fixed with
-icmp_uge after reproducing a +1 forged-balance exploit through it) is
-documented in ACCOUNT_LEDGER_HANDOFF.md. Packets 250,094 B, envelopes
-250,320 B, warm 3.090/3.133 s, fresh verify 1.511/1.502 s (pre-fix binary;
-post-fix reruns 3.56/3.88 s under background load, sizes unchanged), RSS
-13,115,024/13,024,740 KiB. See ACCOUNT_LEDGER_HANDOFF.md and
-evidence/account-ledger-circuit for the constraint description, negative
-batteries, the boundary-exploit record, and the host-audited trie-path
-binding. This section's earlier numbers remain the pre-constraint
-baseline.
+The circuit now carries the 16-slot account table with running-balance
+registers threaded across lists, AND the table's trie membership: witness
+node serializations are hashed in-circuit, the chain binds to the public
+claim-derived prev_state_root, leaf value_refs bind the 72-byte initial
+values, and key-path correspondence (nibbles(0x00||name), branch nibble
+consumption, ext/leaf fragment equality) is circuit-enforced — closing the
+swapped-witness class the host audit could not catch. A review-caught
+padding off-by-one in the first table version was reproduced as an exploit
+and fixed before this (see history in ACCOUNT_LEDGER_HANDOFF.md). Packets
+250,126 B, envelopes 250,352 B, warm 3.08/2.98 s, fresh verify
+1.52/1.48 s, RSS 13.3 GB-scale KiB, AND +2.5%, log 23. All prior and new
+trie negatives reject in-circuit; 141 host mutations reject per fixture.
+See ACCOUNT_LEDGER_HANDOFF.md and evidence/account-ledger-trie. This
+section's earlier numbers remain the pre-constraint baseline.
 
 ## Combined relation
 
