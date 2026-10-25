@@ -868,6 +868,7 @@ impl Driver {
         })).collect();
         let v = json!({
             "scenario": format!("{:?}", scenario().unwrap()), "start_height": self.start,
+            "shards": shard_map(s),
             "sizes": {"big_receipt": BIG_RECEIPT, "big_soft": BIG_SOFT, "big_code": BIG_CODE, "large_pad": LARGE_PAD},
             "contracts": contracts().iter().map(|(n, c)| json!({"name": n, "hash": CryptoHash::hash_bytes(c).to_string(), "len": c.len()})).collect::<Vec<_>>(),
             "lanes": lanes, "submitted": submitted,
@@ -941,4 +942,18 @@ pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String]) 
         }
         _ => (false, false),
     }
+}
+
+/// Shard id of every scenario account (and of each `s<k>` shard prefix) in the final layout.
+fn shard_map(s: &Setup) -> serde_json::Value {
+    use near_epoch_manager::EpochManagerAdapter;
+    let c = &s.env.clients[0];
+    let tip = c.chain.head().unwrap();
+    let layout = c.epoch_manager.get_shard_layout(&tip.epoch_id).unwrap();
+    let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode"];
+    let mut m = serde_json::Map::new();
+    for n in names {
+        m.insert(n.into(), json!(layout.account_id_to_shard_id(&acct(n)).to_string()));
+    }
+    json!(m)
 }
