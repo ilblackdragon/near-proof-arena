@@ -5,7 +5,9 @@ landed the W06 key widening and the 10-vs-13 base-arm repair — and CI run `402
 commit. Every "verified" claim below was re-run on that commit or read out of that run; nothing here is
 taken from a commit message. The six commits after `4ae27c76e` are documentation-only apart from the
 honest `RipemdRound` header correction in `2466d7299`; the tree has no Lean or driver source change
-between `8c6694412` and `eff525719`. The earlier draft reviewed `a035df4a2` plus an
+between `8c6694412` and `eff525719`. The follow-up commit `56526dcb9` that lands this revision plus the
+`.gitignore` rules below is also docs/ignore-only, so the build and driver figures still apply to the
+current head. The earlier draft reviewed `a035df4a2` plus an
 uncommitted widening tree; that tree is now merged, so "working tree" wording below means "landed on
 main" wherever it describes the widening.
 Target: nearcore 2.13.4, commit `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86,
@@ -20,7 +22,8 @@ results belong in lane logs and evidence directories, not this backlog.
 from `4ae27c76e` for every Lean and driver target, so the build results there still stand —
 `lake build` in `spec/lean/v3` → 247 jobs green (246 before that commit; 247 after it adds
 `NearSpecV3.Examples.SecpVerifyVector` to `defaultTargets` so the secp pin actually compiles);
-`lake build` in `zk-formal` → 3,077 jobs green, 0 errors;
+`lake build` in `zk-formal` → 3,077 jobs green, 0 errors (both counts re-run on `eff525719` for this
+revision; the wasm-base-lean count is 262 jobs, up from the 243 the lane log recorded at its merge);
 `make d3-smoke` → exit 0; `make pin-check` → all `ok`; corpus-manifest schema → ok;
 `python3 tools/d3/lean_chunk_coverage.py --repo . --nearcore <deps>/nearcore --check
 docs/research/lean-chunk-coverage.json` → "matches pinned sources" (both path arguments are required;
