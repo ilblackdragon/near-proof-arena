@@ -72,9 +72,13 @@ def realOodHosts : List String :=
    "promise_batch_action_add_gas_key_with_full_access",
    "promise_batch_action_add_gas_key_with_function_call", "promise_batch_action_transfer_to_gas_key"]
 
-/-- The promise hosts the explicit successor flag lifts out of D3α's exclusion list. Seven are the
-global/state-init family; three are the gas-key family, whose action-log translation now emits
-canonical borsh bytes (`toGasKeyRaw`, `addGasKeyRaw`) so the successor decoder can type them. -/
+/-- The promise hosts the explicit successor flag `s.globalActions` lifts: the seven newly
+translated global-contract/state-init hosts plus the three gas-key hosts.
+
+The gas-key hosts are reachable in the pinned validator (protocol feature `GasKeys`, enabled at
+PV 86: `core/primitives-core/src/version.rs:343`) and their arms are the signed table's arms
+(`Wasm.hostCall`); lifting them adds no arm. What they need is the canonical raw action bytes the
+successor's `managerGlobal` translates, which the arms emit only when `globalActions` is set. -/
 def globalPromiseHosts : List String :=
   ["promise_batch_action_state_init", "promise_batch_action_state_init_by_account_id",
    "set_state_init_data_entry", "promise_batch_action_deploy_global_contract",
@@ -83,6 +87,13 @@ def globalPromiseHosts : List String :=
    "promise_batch_action_add_gas_key_with_full_access",
    "promise_batch_action_add_gas_key_with_function_call",
    "promise_batch_action_transfer_to_gas_key"]
+
+/-- The three gas-key promise hosts lifted by `globalActions` (the gas-key subset of
+`globalPromiseHosts`), named so the gate's extension can be stated exactly. -/
+def gasKeyPromiseHosts : List String :=
+  ["promise_batch_action_transfer_to_gas_key",
+   "promise_batch_action_add_gas_key_with_full_access",
+   "promise_batch_action_add_gas_key_with_function_call"]
 
 /-- The arm set a host call dispatches through.
 
@@ -128,6 +139,51 @@ def callHost (s : St) (name : String) : Res :=
       match h.run s with
       | .ok _ s => .cont { s with gas := { s.gas with g := s.gas.remaining } }
       | .error e s => if e.startsWith "unmodeled" then .unmodeled e else .abort s e
+
+/-! ### The signed gate is definitionally unchanged
+
+`callHost`'s exclusion guard is
+`s.real.isSome && realOodHosts.contains name && !(s.globalActions && globalPromiseHosts.contains name)`.
+Extending `globalPromiseHosts` can only change the guard when `s.globalActions = true`, and every
+signed path sets `globalActions := false`. These three theorems state that, so the `rfl` signed
+identities that follow from `callHost`'s definition cannot be disturbed by the extension. -/
+
+/-- The exclusion guard as a standalone predicate (definitionally `callHost`'s `if` condition). -/
+def hostExcluded (s : St) (name : String) : Bool :=
+  s.real.isSome && realOodHosts.contains name &&
+    !(s.globalActions && globalPromiseHosts.contains name)
+
+theorem hostExcluded_def (s : St) (name : String) :
+    hostExcluded s name =
+      (s.real.isSome && realOodHosts.contains name &&
+        !(s.globalActions && globalPromiseHosts.contains name)) := rfl
+
+/-- At `globalActions = false` the guard is the signed guard: the successor list does not occur. -/
+theorem hostExcluded_signed (s : St) (name : String) (h : s.globalActions = false) :
+    hostExcluded s name = (s.real.isSome && realOodHosts.contains name) := by
+  unfold hostExcluded; rw [h]; simp
+
+/-- The signed guard is the *original* gate: extending `globalPromiseHosts` leaves it fixed. -/
+theorem hostExcluded_signed_of_any_list (s : St) (name : String) (h : s.globalActions = false)
+    (l : List String) :
+    (s.real.isSome && realOodHosts.contains name && !(s.globalActions && l.contains name)) =
+      (s.real.isSome && realOodHosts.contains name) := by
+  rw [h]; simp
+
+/-- Every lifted name is in `realOodHosts`: lifting only ever *removes* an exclusion. -/
+theorem globalPromiseHosts_subset_realOodHosts :
+    globalPromiseHosts.all (fun n => realOodHosts.contains n) = true := by decide
+
+/-- The three gas-key names are lifted by the same flag. -/
+theorem gasKeyPromiseHosts_subset_global :
+    gasKeyPromiseHosts.all (fun n => globalPromiseHosts.contains n) = true := by decide
+
+/-- With `globalActions` set, a lifted name's guard is `false` whenever the run is trie-backed:
+the host runs instead of being excluded. -/
+theorem hostExcluded_lifted (s : St) (name : String) (hr : s.real.isSome = true)
+    (hg : s.globalActions = true) (hn : globalPromiseHosts.contains name = true) :
+    hostExcluded s name = false := by
+  unfold hostExcluded; rw [hr, hg, hn]; simp
 
 def callFunc (_cfg : NearCfg) (p : Prepared) (s : St) (fi : Nat) : Res :=
   if h : fi < p.m.imports.size then callHost s p.m.imports[fi].name else enter p s fi

@@ -2,6 +2,7 @@ import NearSpecV3.Successor.PromiseActions
 
 namespace NearSpecV3.Successor.PromiseActionsTests
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.D3 NearSpecV3.Wasm NearSpecV3.Successor
+open NearSpecV3.Successor.GlobalCodecs
 
 def assertTest (name : String) (ok : Bool) : IO Unit :=
   unless ok do throw (IO.userError s!"global promise: {name}")
@@ -119,6 +120,18 @@ def runTests : IO Unit := do
     (((gasKeyFcPerm 1 none "bob".toUTF8 #[]).toList.drop 19).take 1 == [0])
   assertTest "nonzero allowance encodes as some"
     (((gasKeyFcPerm 1 (some 99) "bob".toUTF8 #[]).toList.drop 19).take 1 == [1])
+  -- The gate predicate itself: extending the list leaves the signed guard untouched, and the
+  -- lifted name's guard is `false` under `globalActions`. These are the two directions of the
+  -- `hostExcluded` extension and do not depend on which encoder names the arms call.
+  assertTest "signed gate unaffected by list extension" (
+    hostExcluded { s with globalActions := false } "promise_batch_action_add_gas_key_with_full_access" ==
+      (s.real.isSome && realOodHosts.contains "promise_batch_action_add_gas_key_with_full_access"))
+  assertTest "lifted gate disables exclusion under globalActions" (
+    hostExcluded { s with real := some real } "promise_batch_action_add_gas_key_with_full_access" == false)
+  assertTest "every lifted host name is in the exclusion table" (
+    globalPromiseHosts.all (fun n => realOodHosts.contains n) == true)
+  assertTest "gas-key names are the lifted subset" (
+    gasKeyPromiseHosts.all (fun n => globalPromiseHosts.contains n) == true)
   assertTest "malformed raw action never escapes decoding" (match finishActsGlobal { recv := [], acts := [([255], none)] } with
     | .error _ => true | _ => false)
   let fixture ← IO.FS.readBinFile "../../../tools/d3/global-promise-fixtures/all-hosts.wasm"
