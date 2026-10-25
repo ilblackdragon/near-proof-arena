@@ -82,6 +82,15 @@ locally. Local gates on the same tree: `spec/lean/v3` 247 jobs, `zk-formal` 3,07
 `wasm-base-lean` 262 jobs, `make d3-smoke` exit 0, `make pin-check` all ok, coverage drift check
 matches, `pytest oracle/tools` 86 passed / 1 skipped.
 
+**One known CI flake, not a regression:** the next run (`40214402787`, the docs-only commit
+`1348c421f`) failed only `rust` at `make test-rust`, in `arena-worker`'s
+`fork_bomb_and_background_daemon`: `failed to spawn thread: … Resource temporarily unavailable`
+(EAGAIN) when the deliberately fork-bombing child exhausted the runner's threads. That test passes
+locally in 0.72 s and the same flake is already recorded in
+`docs/UNTRUSTED_NEAR_ZK_AUDIT_2026-10-05.md` ("failed once from host thread exhaustion (EAGAIN) under
+full-workspace parallelism and passed on two isolated reruns. That flakiness predates this branch").
+The commit touched only two Markdown files, so it cannot have caused it.
+
 **Distance to completion:** no Gate A/B/C closure. Inventory: **222 rows, 147 implemented /
 36 validated / 2 missing / 26 partial / 11 impossible-at-boundary** (recounted from the merged
 `docs/research/lean-chunk-coverage.json`, not carried over). The earlier "5 missing / 23 partial"
