@@ -83,8 +83,8 @@
   "guards_per_module": {
     "ChunkValidationD1.lean": {
       "check": 46,
-      "decision_sites": 60,
-      "error": 1,
+      "decision_sites": 62,
+      "error": 3,
       "ood": 13,
       "throw": 13,
       "unmodeled": 0
@@ -99,8 +99,8 @@
     },
     "ChunkValidationD2.lean": {
       "check": 51,
-      "decision_sites": 67,
-      "error": 1,
+      "decision_sites": 69,
+      "error": 3,
       "ood": 11,
       "throw": 15,
       "unmodeled": 0
@@ -3633,9 +3633,9 @@
   "schema": "near-lean-chunk-coverage-v2",
   "source_sha256": {
     "ChallengeChunkV3Float.lean": "c4732c25fe30d47bfa63d54087c7a6863b2064044d0a3f934ed44e8b55c3aefb",
-    "ChunkValidationD1.lean": "772af672219bbb289e2768d82130cc8d80abbf511c7ce84704ce66f9586d6b05",
+    "ChunkValidationD1.lean": "eb1c92ed716fd19c219966a67915272f8bcbf8ec9d7f68584a2de1bb21119c12",
     "ChunkValidationD1a.lean": "5c3ee8da7e308d42fd91c47dc28f62d3de69e41cd9ec753abe30561936cd38ec",
-    "ChunkValidationD2.lean": "c58af4b97f334b49fdcf6fdc002dbdae66fab1ba3856fb26454b599c67844f9e",
+    "ChunkValidationD2.lean": "86ca3b3bcbbceee1fbdc41b099b3aa4d14fbcfe924a009808421ecff20187384",
     "ChunkValidationV0.lean": "14e583273dc7726c40f0b2862cf90742f1a78dcce9e8f9267e33b993d66a2b15",
     "D2/Actions.lean": "ccefd9238105445965feba3c161228b7f019aca9a8abb5bb86c3467c5b3d611b",
     "D2/Queues.lean": "893be7c979194d0f5b4717d600a8820e9173b10f8943c97fd65cbf993e879e67",
@@ -3647,7 +3647,7 @@
     "Wasm/CryptoHost.lean": "fd50912abbd3b9fef62f074287e49c63205008f218952e1119b8180c6230a06e",
     "Wasm/Decode.lean": "a5e7c1715c7bd88b78798c869f92dec166970fd8c16d68542caf9c6ab2143e73",
     "Wasm/DomainD3.lean": "bfa5fecf313275e486e0d5c549e3b53403453c560c4e9c5c4b43c65c8fe40714",
-    "Wasm/Exec.lean": "78d2a55288c073afbd60ce54f0c1ef8af6621bc68102af4d9d18289f7b2b0a19",
+    "Wasm/Exec.lean": "4c79bbecd7ebf96209ddd0abe6615910c72c796be12253083203aa64c5875a32",
     "Wasm/Float.lean": "752cd8be5e1903e40f65667a2dc57a4857d60280a1a314804d40553dee9b1ba7",
     "Wasm/FloatTests.lean": "a7735325dade0120d4909033747c516727655e0e01853c11be183d5c0334287a",
     "Wasm/Host.lean": "f9b4bf236e2fd6a3efe2173d02c81c156779affa9920783d38dc300f4eb0b44c",

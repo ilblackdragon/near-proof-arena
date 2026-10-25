@@ -20,6 +20,43 @@ class DiagnosticTests(unittest.TestCase):
             with self.subTest(native=native, lean=lean):
                 self.assertEqual(mod.classify(native, lean), expected)
 
+    def test_blind_classification(self):
+        for native, lean, diffs, control, expected in [
+                ('accept', 'accept', [], 'reject', 'match'),
+                ('accept', 'accept', ['stateRoot'], 'reject', 'output_mismatch'),
+                ('accept', 'accept', [], 'accept', 'blind_leak'),
+                ('accept', 'reject', [], 'reject', 'mismatch'),
+                ('accept', 'out_of_domain', [], 'reject', 'unsupported'),
+                ('reject', 'accept', [], 'reject', 'native_reject')]:
+            with self.subTest(lean=lean, diffs=diffs, control=control):
+                self.assertEqual(mod.classify_blind(native, lean, diffs, control), expected)
+
+    def test_blind_compare_outputs(self):
+        exp = {k: 'x' for k in mod.blind_inputs.COMPARED}
+        self.assertEqual(mod.blind_inputs.compare_outputs(exp, dict(exp)), [])
+        self.assertEqual(mod.blind_inputs.compare_outputs(exp, {**exp, 'gasUsed': 'y'}), ['gasUsed'])
+        self.assertEqual(mod.blind_inputs.compare_outputs(exp, None), list(mod.blind_inputs.COMPARED))
+
+    def test_blind_inner_zeroes_outputs(self):
+        # A synthetic V5 inner: every produced value nonzero, one proposal-free header.
+        b = mod.blind_inputs
+        inner = (bytes([4]) + b'\x01' * 32 + b'\x02' * 32 + b'\x03' * 32 + b'\x04' * 32 +
+                 b.struct.pack('<QQQQQ', 9, 7, 13, 5, 1000) + (77).to_bytes(16, 'little') +
+                 b'\x06' * 32 + b'\x07' * 32 + b.u32(0) + b'\0' + (1).to_bytes(16, 'little') +
+                 bytes(16) + b.struct.pack('<QH', 3, 2) + b'\0' + b.u32(1) + b.struct.pack('<H', 2) +
+                 b'\x1f' * 5 + b'\0')
+        v, _, end = b.parse_inner(b.blind_inner(inner), 0)
+        self.assertEqual(end, len(b.blind_inner(inner)))
+        for k in ('prev_state_root', 'prev_outcome_root', 'encoded_merkle_root',
+                  'prev_outgoing_receipts_root'):
+            self.assertEqual(v[k], bytes(32), k)
+        self.assertEqual((v['prev_gas_used'], v['prev_balance_burnt'], v['encoded_length']), (0, 0, 0))
+        self.assertEqual(v['congestion_info'], (0, 0, 0, 0))
+        self.assertEqual(v['bandwidth_requests'], [])
+        # Inputs the checker needs are kept.
+        self.assertEqual((v['prev_block_hash'], v['shard_id'], v['gas_limit'], v['tx_root']),
+                         (b'\x01' * 32, 13, 1000, b'\x07' * 32))
+
     def run_fixture(self, verdicts, missing=False, bad_output=False):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);captures=root/'captures';cases=root/'cases';cases.mkdir()

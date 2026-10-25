@@ -197,6 +197,31 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
       checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
   | _ => .error (unsupportedPvError cfg.protocolVersion)
 
+/-- The whole-state driver `checkSuccessor` builds for a wide configuration. -/
+def successorDriver (cfg : ProtocolCfg) : ExecutionDriver :=
+  let codePolicy : CodeWitnessPolicy :=
+    if cfg.completeCodeWitness then .complete else .coldPartial
+  let baseDriver : ExecutionDriver :=
+    if cfg.resharding then reshardingDriver cfg.wasm cfg.globalActions codePolicy
+    else recorderDriver cfg.wasm cfg.globalActions codePolicy
+  { baseDriver with segmentUnbounded := cfg.segmentUnbounded }
+
+/-- The computed outputs of a wide configuration's non-genesis transition. With `blind = false` it
+runs every check `checkSuccessor` runs on a non-genesis claim (the genesis-capable path delegates
+such claims to `checkD2CoreWith`, the projection of this function) and returns what it computed.
+With `blind = true` the comparisons against produced values are skipped (`blindOutputs`), so inputs
+whose output fields are zeroed still yield the computed outputs. A genesis claim is reported out of
+domain here; narrow (non-whole-state) configurations are not supported. -/
+def checkSuccessorObs (cfg : ProtocolCfg) (blind : Bool) (claimBytes witnessBytes : Bytes) :
+    Except String Observable :=
+  match cfg.protocolVersion with
+  | 86 =>
+    if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness || cfg.resharding then
+      checkD2CoreWithObs { successorDriver cfg with blindOutputs := blind } (D3.d3Hooks cfg.wasm) true
+        claimBytes witnessBytes cfg.gasCap
+    else .error "out of domain (outputs): only whole-state successor tiers emit outputs"
+  | _ => .error (unsupportedPvError cfg.protocolVersion)
+
 /-- The successor relation of a configuration. -/
 def RelSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Prop :=
   checkSuccessor cfg claimBytes witnessBytes = .ok ()

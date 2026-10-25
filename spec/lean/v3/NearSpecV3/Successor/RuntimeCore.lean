@@ -48,6 +48,13 @@ structure ExecutionDriver where
   walks an arbitrary `c.blocks` list, so lifting it adds no semantics. `false` keeps the signed and
   D2 behaviour exactly. -/
   segmentUnbounded : Bool := false
+  /-- Blind replay: skip every comparison against a value the transition *produces* — the main and
+  implicit `post_state_root`s and the endorsed header's output fields (state/outcome/outgoing-receipt
+  roots, gas used, balance burnt, proposals, congestion, bandwidth requests, encoded merkle root and
+  length). The checker still computes them and returns them in its `Observable`, so a harness can
+  supply inputs with those fields zeroed and compare the emitted values against the chain. `false`
+  is every accepting configuration: the guards are `false || x`, which reduces to `x`. -/
+  blindOutputs : Bool := false
   /-- How each implicit transition is applied. The default is the signed behaviour: every implicit
   transition is an old-chunk application. A resharding-enabled driver consults the layout's split
   map instead. -/
@@ -89,8 +96,8 @@ def reshardingDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
     splitApply := fun t bd mode => .ok (splitRoot t bd mode) }
 
 
-def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
-    (gasCap : Option Nat := none) : Except String Unit := do
+def checkD2CoreWithObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : Except String Observable := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
@@ -226,7 +233,7 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
   if let some cap := gasCap then
     check (out.wasmGas ≤ cap) s!"out of domain (e.g_alpha): chunk function-call gas {out.wasmGas} > G_α {cap}"
   let mut root := out.root
-  check (root == w.main.postStateRoot) "invalid: main transition post state root"
+  check (driver.blindOutputs || root == w.main.postStateRoot) "invalid: main transition post state root"
   -- 3.6 implicit transitions
   check (w.implicit.length == implicitIdx.length) "invalid: implicit transitions count"
   let mainProps := out.proposals.map fun p => (p.acct, p.stake)
@@ -250,25 +257,46 @@ def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes
       -- root is its retained half's hash. Congestion bookkeeping is checked by the header
       -- comparison below (`H.congestion`), which the split's finalization must match.
       root ← driver.splitApply tM bd mode
-    check (root == T.postStateRoot) "invalid: implicit transition post state root"
+    check (driver.blindOutputs || root == T.postStateRoot) "invalid: implicit transition post state root"
   -- 3.7 comparison with the endorsed header
-  check (H.prevStateRoot == root) "invalid: InvalidStateRoot"
-  check (H.prevOutcomeRoot == outcomeRootD1 out.outcomes) "invalid: InvalidOutcomesProof"
-  check (H.proposals == out.proposals.map Proposal.encode) "invalid: InvalidValidatorProposals"
+  check (driver.blindOutputs || H.prevStateRoot == root) "invalid: InvalidStateRoot"
+  check (driver.blindOutputs || H.prevOutcomeRoot == outcomeRootD1 out.outcomes) "invalid: InvalidOutcomesProof"
+  check (driver.blindOutputs || H.proposals == out.proposals.map Proposal.encode) "invalid: InvalidValidatorProposals"
   check (H.gasLimit == slotB2.gasLimit) "invalid: InvalidGasLimit"
-  check (H.prevGasUsed == out.gasUsed) "invalid: InvalidGasUsed"
-  check (H.prevBalanceBurnt == out.balanceBurnt) "invalid: InvalidBalanceBurnt"
-  check (H.prevOutgoingReceiptsRoot == driver.outgoingRoot L out.outgoing) "invalid: InvalidReceiptsProof"
-  check (H.congestion == out.congestion) "invalid: InvalidCongestionInfo"
-  check (H.bwRequests == out.bwRequests) "invalid: InvalidBandwidthRequests"
+  check (driver.blindOutputs || H.prevGasUsed == out.gasUsed) "invalid: InvalidGasUsed"
+  check (driver.blindOutputs || H.prevBalanceBurnt == out.balanceBurnt) "invalid: InvalidBalanceBurnt"
+  check (driver.blindOutputs || H.prevOutgoingReceiptsRoot == driver.outgoingRoot L out.outgoing) "invalid: InvalidReceiptsProof"
+  check (driver.blindOutputs || H.congestion == out.congestion) "invalid: InvalidCongestionInfo"
+  check (driver.blindOutputs || H.bwRequests == out.bwRequests) "invalid: InvalidBandwidthRequests"
   check H.proposedSplit.isNone "invalid: InvalidChunkHeaderShardSplit"
   check (H.txRoot == merklizeBorsh (w.newTxs.map TxD2.raw)) "invalid: InvalidTxRoot"
   let body := u32 w.newTxs.length ++ concatAll (w.newTxs.map TxD2.raw) ++ encodeRcpts out.outgoing
   match encodedMerkleRoot c.rsDataParts c.rsTotalParts body with
   | none => throw "invalid: Reed-Solomon parameters"
   | some (emr, len) =>
-    check (H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
-    check (H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
+    check (driver.blindOutputs || H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
+    check (driver.blindOutputs || H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
+    return { stateRoot := root
+             outcomeRoot := outcomeRootD1 out.outcomes
+             gasBurnt := out.gasUsed
+             balanceBurnt := out.balanceBurnt
+             outgoingReceiptsRoot := driver.outgoingRoot L out.outgoing
+             proposals := out.proposals.map Proposal.encode
+             txRoot := merklizeBorsh (w.newTxs.map TxD2.raw)
+             encodedMerkleRoot := emr
+             encodedLength := len
+             congestion := out.congestion
+             bwRequests := out.bwRequests
+             logs := out.outcomes.map (fun o => o.logs) |>.flatten
+             receiptCount := out.outgoing.length
+             wasmGas := out.wasmGas }
+
+/-- The successor's whole-state checker: the observable checker projected to its verdict, the same
+shape as `checkD2Core`, so `checkD2CoreWith_legacy` stays `rfl`. -/
+def checkD2CoreWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : Except String Unit :=
+  (checkD2CoreWithObs driver hooks allowCodes claimBytes witnessBytes gasCap).map fun _ => ()
+
 
 
 def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
