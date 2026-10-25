@@ -12,6 +12,7 @@ pub struct D3World {
     inner: baseline::D3World,
     next_step: usize,
     next_height: u64,
+    driver: crate::scenarios::Driver,
 }
 impl D3World {
     pub fn new(n_shards: usize) -> Self {
@@ -19,7 +20,21 @@ impl D3World {
             inner: baseline::D3World::new(n_shards),
             next_step: 0,
             next_height: 10004,
+            driver: crate::scenarios::Driver::new(),
         }
+    }
+    /// Scheduled transactions of the opt-in `yield` / `storage-limits` scenarios (none otherwise).
+    pub fn scenario_txs(
+        &mut self,
+        w: &mut crate::d2gen::World,
+        s: &crate::chaingen::Setup,
+        bh: &CryptoHash,
+        height: u64,
+    ) -> Vec<(String, SignedTransaction)> {
+        self.driver.txs(w, s, bh, height)
+    }
+    pub fn finish(&self, s: &crate::chaingen::Setup, out: &std::path::Path, chain_idx: usize) {
+        self.driver.finish(s, out, chain_idx);
     }
     pub fn one(
         &mut self,
@@ -114,15 +129,14 @@ pub fn genesis_records(
             supply = supply.checked_add(amount).unwrap();
         }
     }
+    let (extra, extra_supply) = crate::scenarios::genesis_records(accounts.len());
+    records.extend(extra);
+    supply = supply.checked_add(extra_supply).unwrap();
     (records, supply)
 }
 
 fn scenario_enabled() -> bool {
-    match std::env::var("NEAR_SUCCESSOR_SCENARIO") {
-        Err(std::env::VarError::NotPresent) => false,
-        Ok(value) if value == "global-cache" => true,
-        other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
-    }
+    crate::scenarios::scenario() == Some(crate::scenarios::Scenario::GlobalCache)
 }
 
 fn global_step(

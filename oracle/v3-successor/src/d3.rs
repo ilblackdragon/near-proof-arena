@@ -782,7 +782,11 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         // In opt-in global traffic, also produce independently judged mutants of global shapes.
         // This changes fixture generation only, never the baseline classification or expectation.
         let global_scenario = std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok("global-cache");
-        if viol3.iter().any(|v| !matches!(*v, "e.float" | "e.g_alpha") && !(global_scenario && *v == "w.shape")) {
+        // The yield / storage-limits scenarios mutate every sampled chunk: their shapes (yield
+        // hosts, large proofs) are what the fixtures are for.
+        let any_scenario = matches!(crate::scenarios::scenario(),
+            Some(crate::scenarios::Scenario::Yield | crate::scenarios::Scenario::StorageLimits));
+        if !any_scenario && viol3.iter().any(|v| !matches!(*v, "e.float" | "e.g_alpha") && !(global_scenario && *v == "w.shape")) {
             return;
         }
     } else {
@@ -799,7 +803,10 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     let me = o.mutate_every;
     // the full mutant set for every me-th D3 case; code mutants only for a fraction
     // (`code_mutant_p`) of the other cases that executed state codes
-    let full = me > 0 && *d3_seen % me == 0;
+    // Opt-in yield / storage-limits scenarios: also the full set for every chunk that ran a
+    // scenario contract (yield) or contains a final boundary probe (storage-limits).
+    let (forced, forced_drop) = crate::scenarios::force_full_mutants(&executed_meta, &tx_labels);
+    let full = forced || (me > 0 && *d3_seen % me == 0);
     let code_only = !full && !codes.is_empty() && rng.gen_bool(code_mutant_p);
     if !(verdict.is_ok() && (full || code_only)) {
         return;
@@ -829,7 +836,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
             }
             ms.push((m, None, None, codes.to_vec()));
         }
-        if *d3_seen % (me * 2) == 0 {
+        if forced_drop || (!forced && *d3_seen % (me * 2) == 0) {
             ms.extend(drop_each_node(&built.claim, sw, drop_cap).into_iter().map(|m| (m, None, None, codes.to_vec())));
         }
         ms.extend(crate::d1::mutants(client, &built.claim, sw, rng).into_iter().map(|(m, f)| (m, f, None, codes.to_vec())));
