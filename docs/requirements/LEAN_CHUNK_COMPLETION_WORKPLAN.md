@@ -121,17 +121,30 @@ than vacuously accepting. `Secp256k1.verify` is additionally pinned against an i
 (`verify_accepts_known_good`), which the workplan's "Python reference only" note had left unchecked
 in-tree.
 
-### CI state at `7cdc8eed7` (measured on the GitHub run for that push)
+### CI state, measured on the runs for the current head
 
 `d3-smoke` is **not** a red CI job and has not been one on any recent run. The `d3 successor drivers
 (build + smoke)` job passed on every measured run (`40116447922`, `40148396532`, `40166878067`,
-`40172718660`, `40181642479`), including the newest. The red jobs on those runs are the ones below.
+`40172718660`, `40181642479`, and the runs cited below). The red jobs on the older runs are the ones
+below; all are repaired.
 
 **Resolved and confirmed in CI: run `40207431857` on the merged tree is fully green — 16 jobs passed,
 0 failed, 2 skipped** (corpus-content gate without corpora, firecracker without KVM). Every previously
 red job is green there: `rust`, `formal-checker`, `lean (zk-formal)`, `lean (research/near-compression/
 wasm-base-lean)`, `lean (spec/lean/v3)` and `d3 successor drivers (build + smoke)`. So "fix d3-smoke"
 is done and measured in CI, not only locally.
+
+**Current head.** Run `40221939071` on `eff525719` finished fully green: 16 passed / 0 failed / 2
+skipped, including the three jobs that were still `in_progress` when the previous revision was written
+(`d3 successor drivers (build + smoke)`, `formal-checker`, `rust`). Run `40224660584` on `786270732`
+(the revision that lands this text) is green on the same 16/0/2 split.
+
+**One flake seen and cleared in this session.** Run `40224150896` on the docs-only commit `56526dcb9`
+failed `rust (fmt, clippy, test, build)` at `make test-rust`, but that run was **cancelled** when the
+next push superseded it, so no failed log was retained. The same suite passed in full locally
+(`make test-rust` exit 0) and on the next two runs (`40224660584` and its retry chain), which is
+consistent with the known `fork_bomb` EAGAIN flake already recorded — but it is *inferred*, not read
+from a failed log. Treat "docs-only commits cannot fail rust" as unproven for this specific run.
 
 The earlier run had 18 jobs: 15 ran and 3 were skipped (corpus-content gate without corpora,
 firecracker and hostile-submission e2e without KVM). Four of the 15 failed, and all four are repaired;

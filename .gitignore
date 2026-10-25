@@ -15,8 +15,8 @@ req.log
 # 112 MB of prover benchmark packets from the pq-realtime-hypothesis sweep. Kept locally for
 # reference; nothing in the tree or docs cites a path under it, so it stays out of git.
 research/near-compression/results/pq-realtime-hypothesis/
-# RealCaseD3 kernel non-vacuity draft: the `decide +kernel` theorem does not close (killed by
-# SIGTERM at 3000 s, twice). Kept as a working draft only; do not land as evidence.
+# RealCaseD3 kernel non-vacuity draft: the `decide +kernel` theorem does not close. Four runs at
+# 1,800-3,000 s budgets were killed by SIGTERM with zero output. Working draft only; not evidence.
 spec/lean/scripts/gen_realcase_d3.py
 spec/lean/v3/NearSpecV3/Examples/RealCaseD3.lean
 spec/lean/v3/NearSpecV3/Examples/RealCaseD3Data.lean
