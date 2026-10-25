@@ -2,6 +2,7 @@ import NearSpecV3.Logged.D2Runtime
 import NearSpecV3.D3.GlobalContract
 import NearSpecV3.D3.FunctionCall
 import NearSpecV3.Successor.CodeResolution
+import NearSpecV3.Successor.Pipeline
 import NearSpecV3.Successor.GlobalCodecs
 import NearSpecV3.Successor.GlobalExecution
 import NearSpecV3.Successor.QueueExecution
@@ -24,6 +25,8 @@ structure Recording where
   codePolicy : CodeWitnessPolicy := .coldPartial
   /-- Authenticated code committed by distribution, distinct from local deployment tracking. -/
   materialized : List Bytes := []
+  /-- The preparation pipeline's schedule, replayed to decide deploy-served code (`Pipeline`). -/
+  pipe : Pipeline.Pipe := {}
 
 abbrev M := StateT Recording (ReaderT Env (Except String))
 
@@ -42,6 +45,7 @@ def logged {α : Type} (x : LM α) : M α := do
   liftE out
 
 def startReceipt : M Unit := modify fun r => { r with receiptStart := r.recorder.size }
+def modifyPipe (f : Pipeline.Pipe → Pipeline.Pipe) : M Unit := modify fun r => { r with pipe := f r.pipe }
 def softExceeded : M Bool := do
   let r ← get
   pure (r.recorder.size > r.softLimit)
@@ -87,20 +91,18 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
     -- CodeDoesNotExist: 0 VM gas, action failure
     pure (st, ar.fail)
   | some hh =>
-  -- Code (§2.2, cold-cache rule). A blob in the merged witness store always serves. Otherwise:
-  -- for the account's *pre-state* contract (nearcore's "contract access", `fc.rs:355-393`) the
-  -- verdict depends on the compiled-contract cache and the preparation pipeline (an in-chunk
-  -- deploy of the same code, even rolled back, precompiles it; pipelined receipts are prepared
-  -- before such a deploy runs): out of domain if that code was deployed in this chunk, else
-  -- nearcore's `MissingTrieValue`. A contract set by a deploy in this chunk comes from the deploy
-  -- tracker (`contract.rs:42-69`).
-  -- This probe has NO_SIDE_EFFECTS in nearcore and never records proof bytes.
+  -- Code (§2.2). A blob in the merged witness store always serves. Otherwise an in-chunk deploy
+  -- of the same code serves it through the deploy tracker or, even rolled back, the compiled
+  -- cache, unless the call's preparation was pipelined before that deploy ran (`Pipeline`).
+  -- The pre-state probe has NO_SIDE_EFFECTS in nearcore and never records proof bytes; only the
+  -- complete-code policy consults it.
   let recording ← get
   let pre := prestateCode st.o.trie codeKey
   let sources : CodeSources := {
     witness := env.codeOf, current := st.deploys,
     committed := c.deployed ++ recording.materialized, attempted := c.attempted }
-  let code ← liftE (resolveCodeBytes recording.codePolicy sources pre hh)
+  let timely := recording.pipe.deterministic c.r.rid c.idx hh
+  let code ← liftE (resolveCodeBytes recording.codePolicy sources pre hh timely)
   let codeB := toBA code
   if let some why := contractOOD cfg codeB then throw (oodE why)
   -- VMContext (§3)
@@ -313,6 +315,7 @@ def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : A
   -- 3. actions
   let (st, res) ← actionLoop hooks env r a inputs rs.deployed rs.attempted 0 a.actions
     ({ o := o, account := acct, actor := r.pred }, res0)
+  modifyPipe (·.recordDeploys st.deploys)
   let mut o := st.o
   let mut res := res
   -- 4. storage stake
@@ -407,6 +410,7 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
     let (rs, forward, materialized) ← logged (GlobalExecution.applyDistributionL env rs r d)
     if let some code := materialized then
       modify fun state => { state with materialized := state.materialized ++ [code] }
+      modifyPipe (·.recordDeploys [code])
     let rs ← match forward with
       | some next => forwardOrBufferR env rs next
       | none => pure rs
@@ -475,6 +479,7 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
 
 /-- `process_receipt_with_metrics`: totals and outcome (`lib.rs:2335-2345`). -/
 def processWithTotals (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS := do
+  modifyPipe Pipeline.startReceipt
   let (rs, o) ← processReceipt hooks env rs r
   match o with
   | none => pure rs
@@ -496,12 +501,31 @@ def processWithInstant (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS
         drain fuel rs
   drain 100000 rs
 
-def processLocals (hooks : NearCfg) (env : Env) (rs : RS) (locals : List Rcpt) : M RS :=
+/-- The stored-receipt decoder of the active codec, for the pipeline's side-effect-free reads. -/
+def pipeDecode : M (Bytes → Except String Rcpt) := do
+  if (← get).globalActions then pure fun b => GlobalCodecs.decodeStoredRcptGlobal b "stored receipt"
+  else pure fun b => decodeStoredRcpt b "stored receipt"
+
+/-- A fresh `peek_iter` of the delayed queue and a schedule over it (`lib.rs:2452-2493`). -/
+def scheduleDelayed (env : Env) (rs : RS) : M Unit := do
+  let decode ← pipeDecode
+  let decodeStored := if (← get).globalActions then globalQueuePolicy.decodeStored else decodeStored
+  modifyPipe fun p =>
+    let (p, look) := Pipeline.peekDelayed decodeStored env.ctx.layout env.ctx.own rs.o p
+      (rs.dq.next - rs.dq.first + 1) rs.dq.first rs.dq.next
+    let (p, _, next) := Pipeline.schedule decode rs.o p look
+    { p with next }
+
+def processLocals (hooks : NearCfg) (env : Env) (rs : RS) (locals : List Rcpt) : M RS := do
+  let decode ← pipeDecode
+  modifyPipe (Pipeline.startList decode rs.o · locals)
   locals.foldlM (fun rs r => do
     if rs.compute ≥ env.ctx.gasLimit || (← softExceeded) then logged (delayPushL rs r)
-    else processWithInstant hooks env rs r) rs
+    else
+      modifyPipe (Pipeline.stepList decode rs.o)
+      processWithInstant hooks env rs r) rs
 
-def processDelayed (hooks : NearCfg) (env : Env) : Nat → RS → M RS
+def processDelayedLoop (hooks : NearCfg) (env : Env) : Nat → RS → M RS
   | 0, rs => pure rs
   | fuel + 1, rs => do
     if rs.compute ≥ env.ctx.gasLimit || (← softExceeded) then return rs
@@ -509,15 +533,28 @@ def processDelayed (hooks : NearCfg) (env : Env) : Nat → RS → M RS
     match r with
     | none => pure rs
     | some r =>
+      match (← get).pipe.next with
+      | some n =>
+        if n - 1 == 0 then scheduleDelayed env rs
+        else modifyPipe fun p => { p with next := some (n - 1) }
+      | none => pure ()
       if !validReceipt false r then throw (inconsistent "Delayed receipt in the state is invalid")
       let rs ← processWithInstant hooks env rs r
-      processDelayed hooks env fuel rs
+      processDelayedLoop hooks env fuel rs
 
-def processIncoming (hooks : NearCfg) (env : Env) (rs : RS) (incoming : List Rcpt) : M RS :=
+def processDelayed (hooks : NearCfg) (env : Env) (fuel : Nat) (rs : RS) : M RS := do
+  scheduleDelayed env rs
+  processDelayedLoop hooks env fuel rs
+
+def processIncoming (hooks : NearCfg) (env : Env) (rs : RS) (incoming : List Rcpt) : M RS := do
+  let decode ← pipeDecode
+  modifyPipe (Pipeline.startList decode rs.o · incoming)
   incoming.foldlM (fun rs r => do
     if !validReceipt false r then throw (panicked "ReceiptValidationError on an incoming receipt")
     if rs.compute ≥ env.ctx.gasLimit || (← softExceeded) then logged (delayPushL rs r)
-    else processWithInstant hooks env rs r) rs
+    else
+      modifyPipe (Pipeline.stepList decode rs.o)
+      processWithInstant hooks env rs r) rs
 
 /-- `resolve_promise_yield_timeouts` (`lib.rs:2986-3088`); returns the state and the final
 `first_index`. -/

@@ -16,7 +16,7 @@ namespace NearSpecV3.Successor
 open NearSpec NearSpecV3 NearSpecV3.D2
 
 inductive CodeWitnessPolicy where
-  /-- Preserve the earlier successor's explicit cache-dependent exclusion. -/
+  /-- nearcore's cold validator: in-chunk deploys serve missing code unless preparation raced. -/
   | coldPartial
   /-- Reject incomplete code witnesses; execution never relies on external cache history. -/
   | complete
@@ -53,8 +53,9 @@ def PrestateCode.needsWitness (pre : PrestateCode) (hash : Bytes) : Bool :=
   | .present h => h == hash
 
 /-- Bytes in these lists come from executed authenticated deploy/distribution actions. Rollback
-clears `current`; it never promotes failed deploys into `committed`. `attempted` is used only by
-`coldPartial`, to conservatively exclude cache/preparation-dependent missing-code cases. -/
+clears `current`; it never promotes failed deploys into `committed`. `attempted` (every executed
+deploy, committed or rolled back) is used only by `coldPartial`: it is what the compiled cache
+holds. -/
 structure CodeSources where
   witness : Bytes → Option Bytes
   current : List Bytes := []
@@ -71,26 +72,28 @@ def incompleteCodeWitness : String :=
 def unauthenticatedCodeWitness : String :=
   "invalid witness (w.code_complete): contract code does not hash to the resolved identifier"
 
-/-- Historical behavior, factored out without changing its missing-code or exclusion strings.
+/-- The cold validator (`ContractStorage::get`, `contract.rs:104-128`, behind the compiled-contract
+cache). Code not in the witness can still be served by a deploy earlier in this chunk: the deploy
+tracker holds uncommitted and committed deploys, and `action_deploy_contract` precompiles every
+deploy into the compiled cache, so a rolled-back one (`attempted`) is still a cache hit for the
+same hash. Whether a *pipelined* preparation sees it depends on when it was submitted:
+`timely` is `Pipeline.deterministic`, false when the task was submitted before every deploy of
+this code finished, which is a thread race in nearcore and therefore out of domain.
 
-The order is nearcore's `ContractStorage::get` (`contract.rs:125-151`): the deploy tracker is
-consulted *before* trie storage, and the tracker holds both uncommitted and committed deploys. A
-pre-state contract whose code was also deployed (and not rolled back) in this chunk is therefore
-served deterministically from the tracker — the cold validator needs no compiled cache for it.
-Only a *rolled-back* deploy (`attempted`) leaves the code reachable exclusively through the
-compiled-artifact cache, so only that case remains an explicit exclusion. -/
-def resolveColdCode (sources : CodeSources) (pre : PrestateCode) (hash : Bytes) : Except String Bytes :=
+A deploy in the call's own receipt (`current`) blocks the receiver from pipelining, so it never
+races. The pre-state probe plays no part: nearcore's validator never reads the code key. -/
+def resolveColdCode (sources : CodeSources) (timely : Bool) (hash : Bytes) : Except String Bytes :=
   match sources.witness hash with
   | some code => .ok code
   | none =>
-    match sources.deployed hash with
+    match sources.current.find? (fun code => sha256 code == hash) with
     | some code => .ok code
     | none =>
-      if pre.hash? == some hash then
-        if sources.attempted.any (fun code => sha256 code == hash) then
-          .error (D3.oodE "pre-state contract served only by the in-chunk compiled-contract cache")
-        else .error "invalid: MissingTrieValue (contract code)"
-      else .error "invalid: MissingTrieValue (contract code)"
+      match (sources.committed ++ sources.attempted).find? (fun code => sha256 code == hash) with
+      | some code =>
+        if timely then .ok code
+        else .error (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code")
+      | none => .error "invalid: MissingTrieValue (contract code)"
 
 /-- The complete-witness decision does not read `attempted` or any compiled cache. Raw witness
 code is checked even if the store implementation is not `mkHStore`; production stores are built
@@ -106,9 +109,9 @@ def resolveCompleteCode (sources : CodeSources) (pre : PrestateCode) (hash : Byt
       | none => .error "invalid witness (w.code_complete): no authenticated code in witness or committed deployment"
 
 def resolveCodeBytes (policy : CodeWitnessPolicy) (sources : CodeSources)
-    (pre : PrestateCode) (hash : Bytes) : Except String Bytes :=
+    (pre : PrestateCode) (hash : Bytes) (timely : Bool := true) : Except String Bytes :=
   match policy with
-  | .coldPartial => resolveColdCode sources pre hash
+  | .coldPartial => resolveColdCode sources timely hash
   | .complete => resolveCompleteCode sources pre hash
 
 /-- Changing attempted (including rolled-back) deployments cannot change a complete-code verdict.

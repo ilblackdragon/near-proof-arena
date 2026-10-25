@@ -10,11 +10,21 @@ def supplied : CodeSources := { witness := fun h => if h == hash then some code 
 def success (x : Except String Bytes) : Bool := match x with | .ok got => got == code | _ => false
 def failed (x : Except String Bytes) (reason : String) : Bool := match x with | .error e => e == reason | _ => false
 
--- Cold-partial behavior is preserved; complete-code behavior classifies the witness separately.
+-- Cold partial: no code anywhere is nearcore's MissingTrieValue; an in-chunk deploy (even rolled
+-- back, via the compiled cache) serves it unless the call's preparation raced the deploy.
 #guard failed (resolveCodeBytes .coldPartial empty (.present hash) hash)
   "invalid: MissingTrieValue (contract code)"
-#guard failed (resolveCodeBytes .coldPartial { empty with attempted := [code] } (.present hash) hash)
-  (D3.oodE "pre-state contract served only by the in-chunk compiled-contract cache")
+#guard success (resolveCodeBytes .coldPartial { empty with attempted := [code] } .unknown hash)
+#guard success (resolveCodeBytes .coldPartial { empty with committed := [code] } .unknown hash)
+#guard failed (resolveCodeBytes .coldPartial { empty with attempted := [code] } .unknown hash false)
+  (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code")
+#guard failed (resolveCodeBytes .coldPartial { empty with committed := [code] } .unknown hash false)
+  (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code")
+-- The call's own receipt deployed it: the receiver is blocked from pipelining.
+#guard success (resolveCodeBytes .coldPartial { empty with current := [code] } .unknown hash false)
+-- Bytes that do not hash to the identifier never serve.
+#guard failed (resolveCodeBytes .coldPartial { empty with attempted := [[99]] } .unknown hash)
+  "invalid: MissingTrieValue (contract code)"
 #guard failed (resolveCodeBytes .complete { empty with attempted := [code] } (.present hash) hash)
   incompleteCodeWitness
 -- A same-hash current/committed deployment cannot bypass pre-state completeness.
