@@ -1,0 +1,8 @@
+#[path="support/tight_sha.rs"] mod tight_sha;
+use binius_core::word::Word;
+use binius_frontend::CircuitBuilder;
+use binius_circuits::fixed_byte_vec::ByteVec;
+use sha2::{Digest,Sha256};
+fn main(){let mut checks=0;for max in [55usize,119,247]{let b=CircuitBuilder::new();let len=b.add_witness();let message=ByteVec::new((0..max.div_ceil(8)).map(|_|b.add_witness()).collect(),len);let digest=tight_sha::sha256_tight(&b,&message,max);let outputs:Vec<_>=(0..4).map(|_|b.add_inout()).collect();for i in 0..4{b.assert_eq(format!("digest-{i}"),digest[i],outputs[i]);}let circuit=b.build();for length in [0usize,1,3,4,7,8,54,55,56,63,64,65,118,119,120,127,128,246,247].into_iter().filter(|n|*n<=max){let bytes:Vec<u8>=(0..length).map(|i|(i*37+13) as u8).collect();let expected=Sha256::digest(&bytes);let mut filler=circuit.new_witness_filler();filler[len]=Word(length as u64);for (i,w) in message.data.iter().enumerate(){let mut word=[0;8];for j in 0..8{word[j]=bytes.get(i*8+j).copied().unwrap_or(0);}filler[*w]=Word(u64::from_le_bytes(word));}for(w,v)in outputs.iter().zip(expected.chunks_exact(8)){filler[*w]=Word(u64::from_be_bytes(v.try_into().unwrap()));}circuit.populate_wire_witness(&mut filler).expect("reference SHA256");checks+=1;}
+let mut filler=circuit.new_witness_filler();for w in &message.data{filler[*w]=Word(0);}filler[len]=Word((max+1)as u64);let expected=Sha256::digest(vec![0;max+1]);for(w,v)in outputs.iter().zip(expected.chunks_exact(8)){filler[*w]=Word(u64::from_be_bytes(v.try_into().unwrap()));}assert!(circuit.populate_wire_witness(&mut filler).is_err(),"out-of-bound length rejected");checks+=1;
+}println!("TIGHT_SHA_KAT checks={checks} honest_digest_parity=true overbound_lengths_rejected=true");}

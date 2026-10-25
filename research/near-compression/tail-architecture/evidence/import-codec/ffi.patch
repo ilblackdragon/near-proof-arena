@@ -1,0 +1,7 @@
+diff --git a/crates/pcs/src/labrador/ffi.rs b/crates/pcs/src/labrador/ffi.rs
+index 2c784bc..9e81b2c 100644
+--- a/crates/pcs/src/labrador/ffi.rs
++++ b/crates/pcs/src/labrador/ffi.rs
+@@ -11,0 +12,2 @@ extern "C" {
++    pub fn bn_import_local_export(bytes: *const u8, len: usize, p: *mut c_void, c: *mut c_void) -> c_int;
++    pub fn bn_export_proof(p: *const c_void, c: *const c_void, out: *mut u8, cap: usize) -> usize;

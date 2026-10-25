@@ -1,0 +1,4 @@
+EXACT_PARITY cases=540
+LARGE_PARITY repeat=0 serial_ms=165.642 parallel_ms=57.534
+LARGE_PARITY repeat=1 serial_ms=173.187 parallel_ms=77.177
+LARGE_PARITY repeat=2 serial_ms=170.844 parallel_ms=85.676

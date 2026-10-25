@@ -1,0 +1,59 @@
+TEMPLATE_SETUP {"message_slots":3088,"nominal_blocks":7296,"constructed_sha_blocks":7296,"root_bytes":148248,"witness_log_elems":22,"circuit_s":9.570923838,"setup_s":3.326869427}
+EXPORT_BYTES case=00-h10035-s3 backend=102096 total=143998 analytical=120602 codec=export_only_rns
+SIS_POLICY inner rank=21 width=4864 source=1784625912146 target=56026279407 bound=54346023860.298347 bits=131.705 finite=1 tail=0
+SIS_POLICY inner rank=14 width=1725 source=56026279407 target=472319788 bound=627994440.54673851 bits=130.115 finite=1 tail=0
+SIS_POLICY inner rank=12 width=863 source=472319788 target=44188551 bound=96786827.64340198 bits=137.535 finite=1 tail=0
+SIS_POLICY inner rank=10 width=912 source=44188551 target=3603813915 bound=26894234.846824698 bits=130.380 finite=1 tail=0
+SIS_POLICY inner rank=13 width=456 source=3603813915 target=80327306 bound=258981850.43811411 bits=133.030 finite=1 tail=0
+SIS_POLICY inner rank=10 width=456 source=80327306 target=9205476 bound=22427717.818629339 bits=134.355 finite=1 tail=0
+SIS_POLICY inner rank=9 width=456 source=9205476 target=656242352 bound=11476517.983073438 bits=129.850 finite=1 tail=0
+SIS_POLICY inner rank=11 width=228 source=656242352 target=40810939296 bound=45251847.366887644 bits=137.270 finite=1 tail=1
+EXPORT_TIME seconds=0.000203247 included_in_ready=true
+SIS_POLICY inner rank=21 width=4864 source=1784625912147 target=56026279407 bound=54346023860.298347 bits=131.705 finite=1 tail=0
+SIS_POLICY inner rank=14 width=1725 source=56026279407 target=472319788 bound=627994440.54673851 bits=130.115 finite=1 tail=0
+SIS_POLICY inner rank=12 width=863 source=472319788 target=44188551 bound=96786827.64340198 bits=137.535 finite=1 tail=0
+SIS_POLICY inner rank=10 width=912 source=44188551 target=3603813915 bound=26894234.846824698 bits=130.380 finite=1 tail=0
+SIS_POLICY inner rank=13 width=456 source=3603813915 target=80327306 bound=258981850.43811411 bits=133.030 finite=1 tail=0
+SIS_POLICY inner rank=10 width=456 source=80327306 target=9205476 bound=22427717.818629339 bits=134.355 finite=1 tail=0
+SIS_POLICY inner rank=9 width=456 source=9205476 target=656242352 bound=11476517.983073438 bits=129.850 finite=1 tail=0
+SIS_POLICY inner rank=11 width=228 source=656242352 target=40810939296 bound=45251847.366887644 bits=137.270 finite=1 tail=1
+ERROR in verify(): Amortized (inner commitment) opening wrong
+TEMPLATE_RESULT {"path":"/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch","messages":2460,"prepare_s":0.02658598,"prove_s":1.702963963,"ready_s":1.729753602,"verify_s":0.722348283,"analytic_proof_bytes":120602,"public_bytes":64,"negative_checks":6}
+EXPORT_BYTES case=00-h10012-s1 backend=102096 total=143998 analytical=120771 codec=export_only_rns
+SIS_POLICY inner rank=21 width=4864 source=1743098883201 target=55390525103 bound=54036800273.644669 bits=131.705 finite=1 tail=0
+SIS_POLICY inner rank=14 width=1725 source=55390525103 target=472675213 bound=628230681.91810548 bits=130.115 finite=1 tail=0
+SIS_POLICY inner rank=12 width=863 source=472675213 target=43810799 bound=96372241.84839949 bits=137.800 finite=1 tail=0
+SIS_POLICY inner rank=10 width=912 source=43810799 target=3603794667 bound=26894163.025563151 bits=130.380 finite=1 tail=0
+SIS_POLICY inner rank=13 width=456 source=3603794667 target=81499385 bound=260864447.5432176 bits=133.030 finite=1 tail=0
+SIS_POLICY inner rank=10 width=456 source=81499385 target=9498077 bound=22781368.090615805 bits=134.090 finite=1 tail=0
+SIS_POLICY inner rank=9 width=456 source=9498077 target=777738885 bound=12493810.674691688 bits=127.995 finite=1 tail=0
+ERROR: diagnostic quantum128 commitment policy rejected
+
+thread 'main' (780420) panicked at crates/binius/src/bin/near-hash-template.rs:74:165:
+honest template proof: Opening(Rejected)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+timeout: the monitored command dumped core
+Command terminated by signal 6
+	Command being timed: "timeout 120 taskset -c 8 /data/illia/pq-tail-architecture-20261024/target/release/near-hash-template /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch /data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch"
+	User time (seconds): 14.98
+	System time (seconds): 3.75
+	Percent of CPU this job got: 94%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:19.79
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 6678912
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 5467320
+	Voluntary context switches: 254
+	Involuntary context switches: 1276
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 992
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

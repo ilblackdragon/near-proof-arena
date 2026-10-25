@@ -1,0 +1,739 @@
+{
+  "status": "BACKEND_PARAMETER_SCREEN_ONLY_NOT_PQ_CERTIFICATION",
+  "limitations": [
+    "Initial commitment and outer PCS excluded.",
+    "Scalar model omits structured attacks and Fiat-Shamir/QROM.",
+    "Collision bounds ported from research reference; not independently proved.",
+    "This reader only accepts trusted local fixed-template packets."
+  ],
+  "packets": [
+    {
+      "packet": "/data/illia/pq-tail-architecture-20261024/exported-proofs-events-compact/00-h10035-s3.packet",
+      "bytes": 258134,
+      "sha256": "710f590479c9b842d7f8a2426e500c012d3a929b9ac1c995cb3880939a4a5562",
+      "initial_statement_normsq": 8664682994686,
+      "levels": 8,
+      "c_crosschecks": 22,
+      "minimum_scalar_quantum_bits": 144.16,
+      "all_screened_obligations_meet_128": true,
+      "instances": [
+        {
+          "level": 0,
+          "role": "inner_revised_bound",
+          "module_rank": 23,
+          "ring_columns": 6582,
+          "source_normsq": 8664682994686,
+          "output_normsq": 98152516052,
+          "collision_bound": 71932077271.54695,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 547,
+            "dimension": 3918,
+            "quantum_bits": 144.955
+          }
+        },
+        {
+          "level": 0,
+          "role": "outer1",
+          "module_rank": 8,
+          "ring_columns": 4500,
+          "source_normsq": 8664682994686,
+          "output_normsq": 98152516052,
+          "collision_bound": 1253172.0779015147,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 625,
+            "dimension": 2426,
+            "quantum_bits": 165.625
+          }
+        },
+        {
+          "level": 0,
+          "role": "outer2",
+          "module_rank": 8,
+          "ring_columns": 1625,
+          "source_normsq": 8664682994686,
+          "output_normsq": 98152516052,
+          "collision_bound": 1253172.0779015147,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 625,
+            "dimension": 2426,
+            "quantum_bits": 165.625
+          }
+        },
+        {
+          "level": 1,
+          "role": "inner_revised_bound",
+          "module_rank": 16,
+          "ring_columns": 2194,
+          "source_normsq": 98152516052,
+          "output_normsq": 684555071,
+          "collision_bound": 756035040.6365937,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 577,
+            "dimension": 3333,
+            "quantum_bits": 152.905
+          }
+        },
+        {
+          "level": 1,
+          "role": "outer1",
+          "module_rank": 6,
+          "ring_columns": 1323,
+          "source_normsq": 98152516052,
+          "output_normsq": 684555071,
+          "collision_bound": 104656.0133771586,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 718,
+            "dimension": 2210,
+            "quantum_bits": 190.27
+          }
+        },
+        {
+          "level": 1,
+          "role": "outer2",
+          "module_rank": 6,
+          "ring_columns": 315,
+          "source_normsq": 98152516052,
+          "output_normsq": 684555071,
+          "collision_bound": 104656.0133771586,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 718,
+            "dimension": 2210,
+            "quantum_bits": 190.27
+          }
+        },
+        {
+          "level": 2,
+          "role": "inner_revised_bound",
+          "module_rank": 13,
+          "ring_columns": 1097,
+          "source_normsq": 684555071,
+          "output_normsq": 53585321,
+          "collision_bound": 106582104.99866101,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 572,
+            "dimension": 2995,
+            "quantum_bits": 151.58
+          }
+        },
+        {
+          "level": 2,
+          "role": "outer1",
+          "module_rank": 5,
+          "ring_columns": 792,
+          "source_normsq": 684555071,
+          "output_normsq": 53585321,
+          "collision_bound": 29280.798076555224,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 770,
+            "dimension": 2070,
+            "quantum_bits": 204.05
+          }
+        },
+        {
+          "level": 2,
+          "role": "outer2",
+          "module_rank": 5,
+          "ring_columns": 168,
+          "source_normsq": 684555071,
+          "output_normsq": 53585321,
+          "collision_bound": 29280.798076555224,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 770,
+            "dimension": 2070,
+            "quantum_bits": 204.05
+          }
+        },
+        {
+          "level": 3,
+          "role": "inner_revised_bound",
+          "module_rank": 11,
+          "ring_columns": 549,
+          "source_normsq": 53585321,
+          "output_normsq": 5446226616,
+          "collision_bound": 33061752.32406268,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 544,
+            "dimension": 2705,
+            "quantum_bits": 144.16
+          }
+        },
+        {
+          "level": 3,
+          "role": "outer1",
+          "module_rank": 7,
+          "ring_columns": 435,
+          "source_normsq": 53585321,
+          "output_normsq": 5446226616,
+          "collision_bound": 295194.21717913105,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 701,
+            "dimension": 2366,
+            "quantum_bits": 185.76500000000001
+          }
+        },
+        {
+          "level": 3,
+          "role": "outer2",
+          "module_rank": 7,
+          "ring_columns": 105,
+          "source_normsq": 53585321,
+          "output_normsq": 5446226616,
+          "collision_bound": 295194.21717913105,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 701,
+            "dimension": 2366,
+            "quantum_bits": 185.76500000000001
+          }
+        },
+        {
+          "level": 4,
+          "role": "inner_revised_bound",
+          "module_rank": 14,
+          "ring_columns": 549,
+          "source_normsq": 5446226616,
+          "output_normsq": 87467871,
+          "collision_bound": 270247700.0191135,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 554,
+            "dimension": 3070,
+            "quantum_bits": 146.81
+          }
+        },
+        {
+          "level": 4,
+          "role": "outer1",
+          "module_rank": 5,
+          "ring_columns": 217,
+          "source_normsq": 5446226616,
+          "output_normsq": 87467871,
+          "collision_bound": 37409.70376787285,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 722,
+            "dimension": 2022,
+            "quantum_bits": 191.33
+          }
+        },
+        {
+          "level": 4,
+          "role": "outer2",
+          "module_rank": 5,
+          "ring_columns": 21,
+          "source_normsq": 5446226616,
+          "output_normsq": 87467871,
+          "collision_bound": 37409.70376787285,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 1068,
+            "dimension": 1344,
+            "quantum_bits": 283.02000000000004
+          }
+        },
+        {
+          "level": 5,
+          "role": "inner_revised_bound",
+          "module_rank": 11,
+          "ring_columns": 549,
+          "source_normsq": 87467871,
+          "output_normsq": 10777598,
+          "collision_bound": 24267383.226113856,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 572,
+            "dimension": 2754,
+            "quantum_bits": 151.58
+          }
+        },
+        {
+          "level": 5,
+          "role": "outer1",
+          "module_rank": 4,
+          "ring_columns": 390,
+          "source_normsq": 87467871,
+          "output_normsq": 10777598,
+          "collision_bound": 13131.70087993174,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 709,
+            "dimension": 1796,
+            "quantum_bits": 187.88500000000002
+          }
+        },
+        {
+          "level": 5,
+          "role": "outer2",
+          "module_rank": 4,
+          "ring_columns": 60,
+          "source_normsq": 87467871,
+          "output_normsq": 10777598,
+          "collision_bound": 13131.70087993174,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 709,
+            "dimension": 1796,
+            "quantum_bits": 187.88500000000002
+          }
+        },
+        {
+          "level": 6,
+          "role": "inner_revised_bound",
+          "module_rank": 10,
+          "ring_columns": 549,
+          "source_normsq": 10777598,
+          "output_normsq": 827798682,
+          "collision_bound": 12889627.871747423,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 557,
+            "dimension": 2601,
+            "quantum_bits": 147.60500000000002
+          }
+        },
+        {
+          "level": 6,
+          "role": "outer1",
+          "module_rank": 6,
+          "ring_columns": 216,
+          "source_normsq": 10777598,
+          "output_normsq": 827798682,
+          "collision_bound": 115085.96314060199,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 702,
+            "dimension": 2192,
+            "quantum_bits": 186.03
+          }
+        },
+        {
+          "level": 6,
+          "role": "outer2",
+          "module_rank": 6,
+          "ring_columns": 36,
+          "source_normsq": 10777598,
+          "output_normsq": 827798682,
+          "collision_bound": 115085.96314060199,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 702,
+            "dimension": 2192,
+            "quantum_bits": 186.03
+          }
+        },
+        {
+          "level": 7,
+          "role": "inner_revised_bound",
+          "module_rank": 12,
+          "ring_columns": 275,
+          "source_normsq": 827798682,
+          "output_normsq": 46713490526,
+          "collision_bound": 48413800.724923216,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 578,
+            "dimension": 2888,
+            "quantum_bits": 153.17000000000002
+          }
+        }
+      ]
+    },
+    {
+      "packet": "/data/illia/pq-tail-architecture-20261024/exported-proofs-events-compact/00-h10012-s1.packet",
+      "bytes": 157766,
+      "sha256": "2c4470df7e70f720bb3fd3e0677a29e61bb4f3551cda3e8599a68b3eec391aa9",
+      "initial_statement_normsq": 8436405309986,
+      "levels": 8,
+      "c_crosschecks": 22,
+      "minimum_scalar_quantum_bits": 143.895,
+      "all_screened_obligations_meet_128": true,
+      "instances": [
+        {
+          "level": 0,
+          "role": "inner_revised_bound",
+          "module_rank": 23,
+          "ring_columns": 6582,
+          "source_normsq": 8436405309986,
+          "output_normsq": 95405932249,
+          "collision_bound": 70918505267.57767,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 547,
+            "dimension": 3920,
+            "quantum_bits": 144.955
+          }
+        },
+        {
+          "level": 0,
+          "role": "outer1",
+          "module_rank": 8,
+          "ring_columns": 4500,
+          "source_normsq": 8436405309986,
+          "output_normsq": 95405932249,
+          "collision_bound": 1235514.029051876,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 627,
+            "dimension": 2428,
+            "quantum_bits": 166.155
+          }
+        },
+        {
+          "level": 0,
+          "role": "outer2",
+          "module_rank": 8,
+          "ring_columns": 1625,
+          "source_normsq": 8436405309986,
+          "output_normsq": 95405932249,
+          "collision_bound": 1235514.029051876,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 627,
+            "dimension": 2428,
+            "quantum_bits": 166.155
+          }
+        },
+        {
+          "level": 1,
+          "role": "inner_revised_bound",
+          "module_rank": 16,
+          "ring_columns": 2194,
+          "source_normsq": 95405932249,
+          "output_normsq": 687697779,
+          "collision_bound": 757768485.2745261,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 577,
+            "dimension": 3332,
+            "quantum_bits": 152.905
+          }
+        },
+        {
+          "level": 1,
+          "role": "outer1",
+          "module_rank": 6,
+          "ring_columns": 1323,
+          "source_normsq": 95405932249,
+          "output_normsq": 687697779,
+          "collision_bound": 104895.96972238734,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 718,
+            "dimension": 2210,
+            "quantum_bits": 190.27
+          }
+        },
+        {
+          "level": 1,
+          "role": "outer2",
+          "module_rank": 6,
+          "ring_columns": 315,
+          "source_normsq": 95405932249,
+          "output_normsq": 687697779,
+          "collision_bound": 104895.96972238734,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 718,
+            "dimension": 2210,
+            "quantum_bits": 190.27
+          }
+        },
+        {
+          "level": 2,
+          "role": "inner_revised_bound",
+          "module_rank": 13,
+          "ring_columns": 1097,
+          "source_normsq": 687697779,
+          "output_normsq": 53664313,
+          "collision_bound": 106660634.2771165,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 572,
+            "dimension": 2994,
+            "quantum_bits": 151.58
+          }
+        },
+        {
+          "level": 2,
+          "role": "outer1",
+          "module_rank": 5,
+          "ring_columns": 792,
+          "source_normsq": 687697779,
+          "output_normsq": 53664313,
+          "collision_bound": 29302.372054152886,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 769,
+            "dimension": 2070,
+            "quantum_bits": 203.785
+          }
+        },
+        {
+          "level": 2,
+          "role": "outer2",
+          "module_rank": 5,
+          "ring_columns": 168,
+          "source_normsq": 687697779,
+          "output_normsq": 53664313,
+          "collision_bound": 29302.372054152886,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 769,
+            "dimension": 2070,
+            "quantum_bits": 203.785
+          }
+        },
+        {
+          "level": 3,
+          "role": "inner_revised_bound",
+          "module_rank": 11,
+          "ring_columns": 549,
+          "source_normsq": 53664313,
+          "output_normsq": 5580734188,
+          "collision_bound": 33467531.645885568,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 543,
+            "dimension": 2703,
+            "quantum_bits": 143.895
+          }
+        },
+        {
+          "level": 3,
+          "role": "outer1",
+          "module_rank": 7,
+          "ring_columns": 435,
+          "source_normsq": 53664313,
+          "output_normsq": 5580734188,
+          "collision_bound": 298817.246838264,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 699,
+            "dimension": 2364,
+            "quantum_bits": 185.235
+          }
+        },
+        {
+          "level": 3,
+          "role": "outer2",
+          "module_rank": 7,
+          "ring_columns": 105,
+          "source_normsq": 53664313,
+          "output_normsq": 5580734188,
+          "collision_bound": 298817.246838264,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 699,
+            "dimension": 2364,
+            "quantum_bits": 185.235
+          }
+        },
+        {
+          "level": 4,
+          "role": "inner_revised_bound",
+          "module_rank": 14,
+          "ring_columns": 549,
+          "source_normsq": 5580734188,
+          "output_normsq": 86764985,
+          "collision_bound": 269159663.48165494,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 554,
+            "dimension": 3071,
+            "quantum_bits": 146.81
+          }
+        },
+        {
+          "level": 4,
+          "role": "outer1",
+          "module_rank": 5,
+          "ring_columns": 217,
+          "source_normsq": 5580734188,
+          "output_normsq": 86764985,
+          "collision_bound": 37259.08962924349,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 723,
+            "dimension": 2023,
+            "quantum_bits": 191.595
+          }
+        },
+        {
+          "level": 4,
+          "role": "outer2",
+          "module_rank": 5,
+          "ring_columns": 21,
+          "source_normsq": 5580734188,
+          "output_normsq": 86764985,
+          "collision_bound": 37259.08962924349,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 1070,
+            "dimension": 1344,
+            "quantum_bits": 283.55
+          }
+        },
+        {
+          "level": 5,
+          "role": "inner_revised_bound",
+          "module_rank": 11,
+          "ring_columns": 549,
+          "source_normsq": 86764985,
+          "output_normsq": 10621750,
+          "collision_bound": 24091286.69440468,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 573,
+            "dimension": 2756,
+            "quantum_bits": 151.845
+          }
+        },
+        {
+          "level": 5,
+          "role": "outer1",
+          "module_rank": 4,
+          "ring_columns": 390,
+          "source_normsq": 86764985,
+          "output_normsq": 10621750,
+          "collision_bound": 13036.410548920281,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 710,
+            "dimension": 1797,
+            "quantum_bits": 188.15
+          }
+        },
+        {
+          "level": 5,
+          "role": "outer2",
+          "module_rank": 4,
+          "ring_columns": 60,
+          "source_normsq": 86764985,
+          "output_normsq": 10621750,
+          "collision_bound": 13036.410548920281,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 710,
+            "dimension": 1797,
+            "quantum_bits": 188.15
+          }
+        },
+        {
+          "level": 6,
+          "role": "inner_revised_bound",
+          "module_rank": 10,
+          "ring_columns": 549,
+          "source_normsq": 10621750,
+          "output_normsq": 832311788,
+          "collision_bound": 12924716.828571217,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 557,
+            "dimension": 2600,
+            "quantum_bits": 147.60500000000002
+          }
+        },
+        {
+          "level": 6,
+          "role": "outer1",
+          "module_rank": 6,
+          "ring_columns": 216,
+          "source_normsq": 10621750,
+          "output_normsq": 832311788,
+          "collision_bound": 115399.25739795729,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 702,
+            "dimension": 2192,
+            "quantum_bits": 186.03
+          }
+        },
+        {
+          "level": 6,
+          "role": "outer2",
+          "module_rank": 6,
+          "ring_columns": 36,
+          "source_normsq": 10621750,
+          "output_normsq": 832311788,
+          "collision_bound": 115399.25739795729,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 702,
+            "dimension": 2192,
+            "quantum_bits": 186.03
+          }
+        },
+        {
+          "level": 7,
+          "role": "inner_revised_bound",
+          "module_rank": 12,
+          "ring_columns": 275,
+          "source_normsq": 832311788,
+          "output_normsq": 46056100448,
+          "collision_bound": 48071934.59887846,
+          "legacy_gate_accepts": true,
+          "model": {
+            "kind": "finite",
+            "beta": 579,
+            "dimension": 2889,
+            "quantum_bits": 153.435
+          }
+        }
+      ]
+    }
+  ]
+}

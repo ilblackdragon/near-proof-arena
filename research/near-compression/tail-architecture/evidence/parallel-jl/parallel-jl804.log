@@ -1,0 +1,241 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973
+RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=17.933325118
+RECEIPT_LIST_SETUP setup_s=2.663822547
+LABRADOR_RUST phase=checks ms=9.141038
+LABRADOR_RUST phase=raw_statement ms=0.24963999999999997
+LABRADOR_RUST phase=raw_witness ms=1.592698
+LABRADOR_PHASE kind=simple phase=setup r=31 n=9567 tail=0 ms=0.042200
+LABRADOR_PHASE kind=simple phase=commit r=31 n=9567 tail=0 ms=206.797123
+LABRADOR_PHASE kind=simple phase=project r=31 n=9567 tail=0 ms=163.795233
+LABRADOR_PHASE kind=simple phase=constraints_eval r=31 n=9567 tail=0 ms=30.961990
+LABRADOR_PHASE kind=simple_detail phase=lift_jl r=31 n=9567 tail=0 ms=17.775059
+LABRADOR_PHASE kind=simple_detail phase=lift_scalars r=31 n=9567 tail=0 ms=22.105932
+LABRADOR_PHASE kind=simple_detail phase=lift_simple r=31 n=9567 tail=0 ms=25.162697
+LABRADOR_PHASE kind=simple_detail phase=lift_aggregate r=31 n=9567 tail=0 ms=74.639559
+LABRADOR_PHASE kind=simple_detail phase=lift_jl r=31 n=9567 tail=0 ms=16.338348
+LABRADOR_PHASE kind=simple_detail phase=lift_scalars r=31 n=9567 tail=0 ms=5.741119
+LABRADOR_PHASE kind=simple_detail phase=lift_simple r=31 n=9567 tail=0 ms=25.061369
+LABRADOR_PHASE kind=simple_detail phase=lift_aggregate r=31 n=9567 tail=0 ms=49.170732
+LABRADOR_PHASE kind=simple_detail phase=lift_jl r=31 n=9567 tail=0 ms=14.256716
+LABRADOR_PHASE kind=simple_detail phase=lift_scalars r=31 n=9567 tail=0 ms=5.676746
+LABRADOR_PHASE kind=simple_detail phase=lift_simple r=31 n=9567 tail=0 ms=24.487257
+LABRADOR_PHASE kind=simple_detail phase=lift_aggregate r=31 n=9567 tail=0 ms=49.433470
+LABRADOR_PHASE kind=simple phase=constraints_lifts r=31 n=9567 tail=0 ms=329.902887
+LABRADOR_PHASE kind=simple phase=constraints_apply r=31 n=9567 tail=0 ms=90.739727
+LABRADOR_PHASE kind=simple phase=aggregate r=31 n=9567 tail=0 ms=127.147198
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=31 n=9567 tail=0 ms=46.983480
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=31 n=9567 tail=0 ms=0.621796
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=31 n=9567 tail=0 ms=0.406981
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=31 n=9567 tail=0 ms=41.914463
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=31 n=9567 tail=0 ms=6.930828
+LABRADOR_PHASE kind=simple phase=amortize r=31 n=9567 tail=0 ms=96.898079
+LABRADOR_PHASE kind=simple phase=refresh r=31 n=9567 tail=0 ms=12.569666
+LABRADOR_PHASE kind=recursive phase=setup r=12 n=2392 tail=0 ms=0.138283
+LABRADOR_PHASE kind=recursive phase=commit r=12 n=2392 tail=0 ms=15.033484
+LABRADOR_PHASE kind=recursive phase=project r=12 n=2392 tail=0 ms=12.048006
+LABRADOR_PHASE kind=recursive phase=constraints r=12 n=2392 tail=0 ms=33.300638
+LABRADOR_PHASE kind=recursive phase=aggregate r=12 n=2392 tail=0 ms=9.284496
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=12 n=2392 tail=0 ms=7.100821
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=12 n=2392 tail=0 ms=0.087738
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=12 n=2392 tail=0 ms=0.073910
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=12 n=2392 tail=0 ms=3.532171
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=12 n=2392 tail=0 ms=0.873566
+LABRADOR_PHASE kind=recursive phase=amortize r=12 n=2392 tail=0 ms=11.695147
+LABRADOR_PHASE kind=recursive phase=refresh r=12 n=2392 tail=0 ms=1.815796
+LABRADOR_PHASE kind=recursive phase=setup r=6 n=1196 tail=0 ms=0.130415
+LABRADOR_PHASE kind=recursive phase=commit r=6 n=1196 tail=0 ms=3.312588
+LABRADOR_PHASE kind=recursive phase=project r=6 n=1196 tail=0 ms=6.183386
+LABRADOR_PHASE kind=recursive phase=constraints r=6 n=1196 tail=0 ms=4.342318
+LABRADOR_PHASE kind=recursive phase=aggregate r=6 n=1196 tail=0 ms=2.163172
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=6 n=1196 tail=0 ms=0.951529
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=6 n=1196 tail=0 ms=0.033379
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=6 n=1196 tail=0 ms=0.030518
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=6 n=1196 tail=0 ms=0.411749
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=6 n=1196 tail=0 ms=0.273705
+LABRADOR_PHASE kind=recursive phase=amortize r=6 n=1196 tail=0 ms=1.721859
+LABRADOR_PHASE kind=recursive phase=refresh r=6 n=1196 tail=0 ms=0.346661
+LABRADOR_PHASE kind=recursive phase=setup r=3 n=1196 tail=0 ms=0.123262
+LABRADOR_PHASE kind=recursive phase=commit r=3 n=1196 tail=0 ms=0.953436
+LABRADOR_PHASE kind=recursive phase=project r=3 n=1196 tail=0 ms=0.428677
+LABRADOR_PHASE kind=recursive phase=constraints r=3 n=1196 tail=0 ms=1.615524
+LABRADOR_PHASE kind=recursive phase=aggregate r=3 n=1196 tail=0 ms=0.541687
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=3 n=1196 tail=0 ms=0.172377
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=3 n=1196 tail=0 ms=0.011206
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=3 n=1196 tail=0 ms=0.008821
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=3 n=1196 tail=0 ms=0.146151
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=3 n=1196 tail=0 ms=0.232220
+LABRADOR_PHASE kind=recursive phase=amortize r=3 n=1196 tail=0 ms=0.579357
+LABRADOR_PHASE kind=recursive phase=refresh r=3 n=1196 tail=0 ms=0.354528
+LABRADOR_PHASE kind=recursive phase=setup r=5 n=598 tail=0 ms=0.116825
+LABRADOR_PHASE kind=recursive phase=commit r=5 n=598 tail=0 ms=0.785351
+LABRADOR_PHASE kind=recursive phase=project r=5 n=598 tail=0 ms=0.681877
+LABRADOR_PHASE kind=recursive phase=constraints r=5 n=598 tail=0 ms=1.150608
+LABRADOR_PHASE kind=recursive phase=aggregate r=5 n=598 tail=0 ms=0.415087
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=5 n=598 tail=0 ms=0.221491
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=5 n=598 tail=0 ms=0.015736
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=5 n=598 tail=0 ms=0.010014
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=5 n=598 tail=0 ms=0.133038
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=5 n=598 tail=0 ms=0.113010
+LABRADOR_PHASE kind=recursive phase=amortize r=5 n=598 tail=0 ms=0.496626
+LABRADOR_PHASE kind=recursive phase=refresh r=5 n=598 tail=0 ms=0.175238
+LABRADOR_PHASE kind=recursive phase=setup r=2 n=598 tail=0 ms=0.133276
+LABRADOR_PHASE kind=recursive phase=commit r=2 n=598 tail=0 ms=0.342131
+LABRADOR_PHASE kind=recursive phase=project r=2 n=598 tail=0 ms=0.393152
+LABRADOR_PHASE kind=recursive phase=constraints r=2 n=598 tail=0 ms=0.554800
+LABRADOR_PHASE kind=recursive phase=aggregate r=2 n=598 tail=0 ms=0.199080
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=2 n=598 tail=0 ms=0.039816
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=2 n=598 tail=0 ms=0.005722
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=2 n=598 tail=0 ms=0.004292
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=2 n=598 tail=0 ms=0.047684
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=2 n=598 tail=0 ms=0.118017
+LABRADOR_PHASE kind=recursive phase=amortize r=2 n=598 tail=0 ms=0.217915
+LABRADOR_PHASE kind=recursive phase=refresh r=2 n=598 tail=0 ms=0.176907
+LABRADOR_PHASE kind=recursive phase=setup r=4 n=299 tail=1 ms=0.067234
+LABRADOR_PHASE kind=recursive phase=commit r=4 n=299 tail=1 ms=0.334501
+LABRADOR_PHASE kind=recursive phase=project r=4 n=299 tail=1 ms=0.426292
+LABRADOR_PHASE kind=recursive phase=constraints r=4 n=299 tail=1 ms=0.463009
+LABRADOR_PHASE kind=recursive phase=aggregate r=4 n=299 tail=1 ms=0.198364
+LABRADOR_PHASE kind=recursive phase=amortize r=4 n=299 tail=1 ms=0.178576
+LABRADOR_PHASE kind=recursive phase=refresh r=4 n=299 tail=1 ms=0.088692
+LABRADOR_RUST phase=composite_prove ms=1172.8314799999998
+RECEIPT_LIST_PROVER_MS pack=41.170614 commit=262.631375 bitand=756.44508 shift=251.79944300000002 switch=208.18167200000002 opening=1525.955215 total=3052.185868
+RECEIPT_OPENING_STAGES OpeningTimings { fold: 75.458851ms, encoding: 54.216171ms, witness: 4.002876ms, t_r: 6.102397ms, masks: 48.040446ms, phi: 11.14476ms, statement: 114.554499ms, labrador: 1.183850343s }
+SIS_POLICY inner rank=25 width=9567 source=18796463511276 target=289832688122 bound=247094830256.3006 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=289832688122 target=1792684871 bound=2437435422.6952996 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1792684871 target=72650317 bound=124102386.12521195 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72650317 target=13084337 bound=26738547.941441547 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13084337 target=1017303669 bound=14289048.79909702 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=1017303669 target=60383808194 bound=55043782.209638752 bits=150.255 finite=1 tail=1
+RECEIPT_LIST_RESULT path=receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.050017629 prove_s=3.057675482 ready_s=3.10792611 verify_s=1.002024963 mutations=7 full_near=false
+LABRADOR_RUST phase=checks ms=9.011995
+LABRADOR_RUST phase=raw_statement ms=0.30419300000000005
+LABRADOR_RUST phase=raw_witness ms=0.8046340000000001
+LABRADOR_PHASE kind=simple phase=setup r=31 n=9567 tail=0 ms=0.041246
+LABRADOR_PHASE kind=simple phase=commit r=31 n=9567 tail=0 ms=209.439278
+LABRADOR_PHASE kind=simple phase=project r=31 n=9567 tail=0 ms=164.209604
+LABRADOR_PHASE kind=simple phase=constraints_eval r=31 n=9567 tail=0 ms=31.030178
+LABRADOR_PHASE kind=simple_detail phase=lift_jl r=31 n=9567 tail=0 ms=17.843246
+LABRADOR_PHASE kind=simple_detail phase=lift_scalars r=31 n=9567 tail=0 ms=22.249222
+LABRADOR_PHASE kind=simple_detail phase=lift_simple r=31 n=9567 tail=0 ms=24.854183
+LABRADOR_PHASE kind=simple_detail phase=lift_aggregate r=31 n=9567 tail=0 ms=75.387239
+LABRADOR_PHASE kind=simple_detail phase=lift_jl r=31 n=9567 tail=0 ms=24.221420
+LABRADOR_PHASE kind=simple_detail phase=lift_scalars r=31 n=9567 tail=0 ms=5.695820
+LABRADOR_PHASE kind=simple_detail phase=lift_simple r=31 n=9567 tail=0 ms=25.349617
+LABRADOR_PHASE kind=simple_detail phase=lift_aggregate r=31 n=9567 tail=0 ms=49.775362
+LABRADOR_PHASE kind=simple_detail phase=lift_jl r=31 n=9567 tail=0 ms=14.568806
+LABRADOR_PHASE kind=simple_detail phase=lift_scalars r=31 n=9567 tail=0 ms=5.685329
+LABRADOR_PHASE kind=simple_detail phase=lift_simple r=31 n=9567 tail=0 ms=24.817944
+LABRADOR_PHASE kind=simple_detail phase=lift_aggregate r=31 n=9567 tail=0 ms=50.692797
+LABRADOR_PHASE kind=simple phase=constraints_lifts r=31 n=9567 tail=0 ms=341.207027
+LABRADOR_PHASE kind=simple phase=constraints_apply r=31 n=9567 tail=0 ms=90.828180
+LABRADOR_PHASE kind=simple phase=aggregate r=31 n=9567 tail=0 ms=127.103090
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=31 n=9567 tail=0 ms=63.417435
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=31 n=9567 tail=0 ms=0.494957
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=31 n=9567 tail=0 ms=0.431299
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=31 n=9567 tail=0 ms=48.670530
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=31 n=9567 tail=0 ms=7.191420
+LABRADOR_PHASE kind=simple phase=amortize r=31 n=9567 tail=0 ms=120.237827
+LABRADOR_PHASE kind=simple phase=refresh r=31 n=9567 tail=0 ms=12.974024
+LABRADOR_PHASE kind=recursive phase=setup r=12 n=2392 tail=0 ms=0.128031
+LABRADOR_PHASE kind=recursive phase=commit r=12 n=2392 tail=0 ms=15.614748
+LABRADOR_PHASE kind=recursive phase=project r=12 n=2392 tail=0 ms=12.000561
+LABRADOR_PHASE kind=recursive phase=constraints r=12 n=2392 tail=0 ms=21.420717
+LABRADOR_PHASE kind=recursive phase=aggregate r=12 n=2392 tail=0 ms=8.885860
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=12 n=2392 tail=0 ms=8.901596
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=12 n=2392 tail=0 ms=0.105619
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=12 n=2392 tail=0 ms=0.068665
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=12 n=2392 tail=0 ms=3.845692
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=12 n=2392 tail=0 ms=0.494003
+LABRADOR_PHASE kind=recursive phase=amortize r=12 n=2392 tail=0 ms=13.433218
+LABRADOR_PHASE kind=recursive phase=refresh r=12 n=2392 tail=0 ms=1.798153
+LABRADOR_PHASE kind=recursive phase=setup r=6 n=1196 tail=0 ms=0.128031
+LABRADOR_PHASE kind=recursive phase=commit r=6 n=1196 tail=0 ms=2.828836
+LABRADOR_PHASE kind=recursive phase=project r=6 n=1196 tail=0 ms=4.304409
+LABRADOR_PHASE kind=recursive phase=constraints r=6 n=1196 tail=0 ms=4.116535
+LABRADOR_PHASE kind=recursive phase=aggregate r=6 n=1196 tail=0 ms=1.992464
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=6 n=1196 tail=0 ms=0.962734
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=6 n=1196 tail=0 ms=0.035048
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=6 n=1196 tail=0 ms=0.017881
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=6 n=1196 tail=0 ms=0.406504
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=6 n=1196 tail=0 ms=0.235319
+LABRADOR_PHASE kind=recursive phase=amortize r=6 n=1196 tail=0 ms=1.667023
+LABRADOR_PHASE kind=recursive phase=refresh r=6 n=1196 tail=0 ms=0.351906
+LABRADOR_PHASE kind=recursive phase=setup r=3 n=1196 tail=0 ms=0.120878
+LABRADOR_PHASE kind=recursive phase=commit r=3 n=1196 tail=0 ms=0.941515
+LABRADOR_PHASE kind=recursive phase=project r=3 n=1196 tail=0 ms=0.406742
+LABRADOR_PHASE kind=recursive phase=constraints r=3 n=1196 tail=0 ms=1.511335
+LABRADOR_PHASE kind=recursive phase=aggregate r=3 n=1196 tail=0 ms=0.533581
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=3 n=1196 tail=0 ms=0.176668
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=3 n=1196 tail=0 ms=0.010490
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=3 n=1196 tail=0 ms=0.008345
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=3 n=1196 tail=0 ms=0.154495
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=3 n=1196 tail=0 ms=0.231504
+LABRADOR_PHASE kind=recursive phase=amortize r=3 n=1196 tail=0 ms=0.585318
+LABRADOR_PHASE kind=recursive phase=refresh r=3 n=1196 tail=0 ms=0.356197
+LABRADOR_PHASE kind=recursive phase=setup r=5 n=598 tail=0 ms=0.119686
+LABRADOR_PHASE kind=recursive phase=commit r=5 n=598 tail=0 ms=1.197577
+LABRADOR_PHASE kind=recursive phase=project r=5 n=598 tail=0 ms=1.494408
+LABRADOR_PHASE kind=recursive phase=constraints r=5 n=598 tail=0 ms=1.581907
+LABRADOR_PHASE kind=recursive phase=aggregate r=5 n=598 tail=0 ms=0.527859
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=5 n=598 tail=0 ms=0.225782
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=5 n=598 tail=0 ms=0.015020
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=5 n=598 tail=0 ms=0.011683
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=5 n=598 tail=0 ms=0.141144
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=5 n=598 tail=0 ms=0.113726
+LABRADOR_PHASE kind=recursive phase=amortize r=5 n=598 tail=0 ms=0.511408
+LABRADOR_PHASE kind=recursive phase=refresh r=5 n=598 tail=0 ms=0.176191
+LABRADOR_PHASE kind=recursive phase=setup r=2 n=598 tail=0 ms=0.127077
+LABRADOR_PHASE kind=recursive phase=commit r=2 n=598 tail=0 ms=0.368118
+LABRADOR_PHASE kind=recursive phase=project r=2 n=598 tail=0 ms=0.384331
+LABRADOR_PHASE kind=recursive phase=constraints r=2 n=598 tail=0 ms=0.616789
+LABRADOR_PHASE kind=recursive phase=aggregate r=2 n=598 tail=0 ms=0.187635
+LABRADOR_PHASE kind=amortize_detail phase=pair_products r=2 n=598 tail=0 ms=0.040054
+LABRADOR_PHASE kind=amortize_detail phase=decompose_convert r=2 n=598 tail=0 ms=0.004530
+LABRADOR_PHASE kind=amortize_detail phase=outer_commitment r=2 n=598 tail=0 ms=0.004292
+LABRADOR_PHASE kind=amortize_detail phase=challenge_combine r=2 n=598 tail=0 ms=0.048637
+LABRADOR_PHASE kind=amortize_detail phase=decompose_norm r=2 n=598 tail=0 ms=0.113726
+LABRADOR_PHASE kind=recursive phase=amortize r=2 n=598 tail=0 ms=0.213146
+LABRADOR_PHASE kind=recursive phase=refresh r=2 n=598 tail=0 ms=0.176668
+LABRADOR_PHASE kind=recursive phase=setup r=4 n=299 tail=1 ms=0.063419
+LABRADOR_PHASE kind=recursive phase=commit r=4 n=299 tail=1 ms=0.321865
+LABRADOR_PHASE kind=recursive phase=project r=4 n=299 tail=1 ms=0.414848
+LABRADOR_PHASE kind=recursive phase=constraints r=4 n=299 tail=1 ms=0.454903
+LABRADOR_PHASE kind=recursive phase=aggregate r=4 n=299 tail=1 ms=0.184059
+LABRADOR_PHASE kind=recursive phase=amortize r=4 n=299 tail=1 ms=0.172853
+LABRADOR_PHASE kind=recursive phase=refresh r=4 n=299 tail=1 ms=0.088453
+LABRADOR_RUST phase=composite_prove ms=1200.908565
+RECEIPT_LIST_PROVER_MS pack=40.192051 commit=219.8842 bitand=737.938348 shift=264.13631300000003 switch=133.786451 opening=1546.767518 total=2950.1557150000003
+RECEIPT_OPENING_STAGES OpeningTimings { fold: 76.148427ms, encoding: 48.93502ms, witness: 2.927731ms, t_r: 4.715446ms, masks: 48.766212ms, phi: 11.265167ms, statement: 114.547564ms, labrador: 1.211066667s }
+SIS_POLICY inner rank=25 width=9567 source=18796463511276 target=289832688122 bound=247094830256.3006 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=289832688122 target=1792684871 bound=2437435422.6952996 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1792684871 target=72650317 bound=124102386.12521195 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72650317 target=13084337 bound=26738547.941441547 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13084337 target=1017303669 bound=14289048.79909702 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=1017303669 target=60383808194 bound=55043782.209638752 bits=150.255 finite=1 tail=1
+RECEIPT_LIST_RESULT path=receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.049681365 prove_s=2.954480076 ready_s=3.00438928 verify_s=1.012948759 mutations=7 full_near=false
+	Command being timed: "target/release/near-receipt-list-stages 1024 compact receipt-lists/00-h10035-s3-list2.list receipt-lists/00-h10035-s3-list2.list"
+	User time (seconds): 30.56
+	System time (seconds): 7.84
+	Percent of CPU this job got: 119%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:32.26
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 12779012
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 11068632
+	Voluntary context switches: 1059
+	Involuntary context switches: 2485
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 1024
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

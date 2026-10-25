@@ -1,0 +1,47 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling labinius-bench v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/bench)
+   Compiling labinius-binius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/binius)
+warning: variable `positive` is assigned to, but never used
+  --> crates/binius/src/bin/near-receipt-typed-check.rs:15:173
+   |
+15 | ...ejected=0;let mut mutations=0;let mut examples=vec![];let mut positive=false;let mut long=false;
+   |                                                              ^^^^^^^^^^^^
+   |
+   = note: consider using `_positive` instead
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable `long` is assigned to, but never used
+  --> crates/binius/src/bin/near-receipt-typed-check.rs:15:196
+   |
+15 | ...ations=0;let mut examples=vec![];let mut positive=false;let mut long=false;
+   |                                                                ^^^^^^^^
+   |
+   = note: consider using `_long` instead
+
+warning: value assigned to `positive` is never read
+  --> crates/binius/src/bin/near-receipt-typed-check.rs:20:60
+   |
+20 |   if examples.is_empty(){examples.push(w.into_value_vec());positive|=is_positive;long|=is_long;}
+   |                                                            ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+   = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `long` is never read
+  --> crates/binius/src/bin/near-receipt-typed-check.rs:20:82
+   |
+20 |   if examples.is_empty(){examples.push(w.into_value_vec());positive|=is_positive;long|=is_long;}
+   |                                                                                  ^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: field `length` is never read
+ --> crates/binius/src/bin/support/receipt_outcome_typed.rs:7:76
+  |
+7 | pub struct Outputs{pub arithmetic:receipt::Outputs,pub digest:[Wire;4],pub length:Wire}
+  |            ------- field in this struct                                    ^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `labinius-binius` (bin "near-receipt-typed-check") generated 5 warnings
+    Finished `release` profile [optimized + debuginfo] target(s) in 1m 07s

@@ -1,0 +1,52 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling labinius-bench v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/bench)
+   Compiling labinius-binius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/binius)
+warning: unused variable: `shape`
+  --> crates/binius/src/bin/support/receipt_unified_wire.rs:12:7
+   |
+12 |  for (shape,&cap) in CAP.iter().enumerate(){let mut inactive=false;let mut previous=None;for _ in 0..cap{
+   |       ^^^^^ help: if this is intentional, prefix it with an underscore: `_shape`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Reader` is never constructed
+  --> crates/binius/src/bin/support/receipt_unified_wire.rs:49:8
+   |
+49 | struct Reader<'a>{data:&'a[u8],pos:usize}
+   |        ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `take` and `part` are never used
+  --> crates/binius/src/bin/support/receipt_unified_wire.rs:50:24
+   |
+50 | impl<'a> Reader<'a>{fn take(&mut self,n:usize)->Result<&'a[u8],String>{let end=self.pos.checked_add(n).ok_or("length overflow")?;let x=self.data.get(self.pos..end).ok_or("truncated")?;self.pos=end;Ok(x)}fn part(&m...
+   | -------------------    ^^^^                                                                                                                                                                                   ^^^^
+   | |
+   | methods in this implementation
+
+warning: function `decode` is never used
+  --> crates/binius/src/bin/support/receipt_unified_wire.rs:54:15
+   |
+54 | pub unsafe fn decode(data:&[u8],context:&[u8],root:&[u8],shape:(usize,usize,usize))->Result<(Vec<Word>,Proof),String>{
+   |               ^^^^^^
+
+warning: unused variable: `refund`
+  --> crates/binius/src/bin/near-receipt-batch-unified.rs:42:288
+   |
+42 | ...4],u64le(&ctx[16..]));let refund=words[39]!=0||words[40]!=0;let class=0;classes[class].push(Record{index,words});}
+   |                              ^^^^^^ help: if this is intentional, prefix it with an underscore: `_refund`
+
+warning: field `after` is never read
+ --> crates/binius/src/bin/support/receipt_arithmetic.rs:5:24
+  |
+5 | pub struct Outputs{pub after:U128,pub burnt:U128,pub surplus:U128}
+  |            -------     ^^^^^
+  |            |
+  |            field in this struct
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `labinius-binius` (bin "near-receipt-unified-wire-check") generated 4 warnings (run `cargo fix --bin "near-receipt-unified-wire-check" -p labinius-binius` to apply 1 suggestion)
+warning: `labinius-binius` (bin "near-receipt-batch-unified") generated 3 warnings (1 duplicate) (run `cargo fix --bin "near-receipt-batch-unified" -p labinius-binius` to apply 1 suggestion)
+    Finished `release` profile [optimized + debuginfo] target(s) in 46.49s

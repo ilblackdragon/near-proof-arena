@@ -1,0 +1,8 @@
+RECEIPT_LIST_CIRCUIT cap=16 log=17 circuit_s=0.239590774
+RECEIPT_LIST_SETUP setup_s=0.107223855
+SIS_POLICY inner rank=22 width=2767 source=3245585231054 target=40070586443 bound=45960498759.51107 bits=143.100 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1425 source=40070586443 target=347295406 bound=538501909.84259224 bits=146.545 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1425 source=347295406 target=31549613 bound=41520155.983281568 bits=156.880 finite=1 tail=0
+SIS_POLICY inner rank=11 width=713 source=31549613 target=3716060568 bound=27309855.734512255 bits=148.665 finite=1 tail=0
+SIS_POLICY inner rank=13 width=357 source=3716060568 target=46187731 bound=98190856.173202932 bits=153.435 finite=1 tail=1
+RECEIPT_LIST_VERIFY bytes=198526 seconds=0.166542935 no_witness_loaded=true backend_roundtrip=true negative_checks=3

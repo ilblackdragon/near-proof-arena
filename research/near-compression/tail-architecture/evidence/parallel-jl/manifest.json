@@ -1,0 +1,48 @@
+{
+  "status": "JL_PARALLELISM_NOT_FULL_NEAR_OR_COMPOSED_PQ",
+  "base_commit": "dbde0ec62",
+  "packet_bytes": 244814,
+  "packet_sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+  "independent_public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8",
+  "prover_sha256": "b75c91fea64a586d5825fa29ac3bb66b059155e6751f84258e2cdb5d35f4e930",
+  "old_verifier_sha256": "b638d284498aeb743fcac01f196ad202b9d471e76b59935c7f3798ea6cb50c3f",
+  "test_binary_sha256": "6a2cf868f23128e394a7c5d5d70d60e66ec4bf90cdd2003efc5ccd7437594902",
+  "backend_source_sha256": {
+    "labrador.c": "a77f3c33f940bbe8dbc6f390b2d7358e313bab7a37fc66a08fc5ed510b2dface",
+    "np_jl.h": "6c8d45d88a23aa7ea55739f12f37032176b8a6fc5a411fb28ddd7136a685f79a",
+    "Makefile": "f0f9b90c5b0ce149bfda2a4732809236b26c4ed21313cf613f67d9fbd4e92cae",
+    "test_np_jl.c": "2f512cfc348149c21203c14d664ad4b22745a706065add1d52ee3dca84f0e799"
+  },
+  "exact_parity_cases": 306,
+  "large_parity_runs": 3,
+  "fresh_old_verifier": {
+    "seconds": 1.498530504,
+    "negative_checks": 4,
+    "no_witness_loaded": true,
+    "backend_roundtrip": true
+  },
+  "timings": {
+    "parallel": {
+      "ready_s": [
+        3.10792611,
+        3.00438928
+      ],
+      "initial_jl_ms": [
+        48.370123,
+        56.633472
+      ],
+      "max_rss_kib": 12779012
+    },
+    "serial": {
+      "ready_s": [
+        3.2811749199999998,
+        3.094703675
+      ],
+      "initial_jl_ms": [
+        150.57611500000002,
+        151.614905
+      ],
+      "max_rss_kib": 12751288
+    }
+  }
+}

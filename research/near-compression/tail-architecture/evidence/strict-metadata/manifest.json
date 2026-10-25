@@ -1,0 +1,76 @@
+{
+  "status": "CORRECTED_METADATA_COMPONENT_NOT_FULL_NEAR_OR_PQ128",
+  "base_lane_commit": "bc90c7188",
+  "binary_sha256": "5d82111f614f26fa851f0e68585b65f16345edb8976cceac64960de5be38d630",
+  "source_sha256": {
+    "near-hash-strict.rs": "3c7b8f88d5757827f90dcd702808d2e882ea56ee10b4ee8121e08251c3c561be",
+    "near-metadata-guard-check.rs": "7e44404349dfea2957a200448eb0f7efdf3eefe7c4f461d9024dc048fe8959f4",
+    "support/local_wire_strict.rs": "c1c5ac1bff729feae57ff4f1c119ec4e1ec4fb0a8471bf59015164869eafc97b",
+    "support/claim_outcome_strict.rs": "6a65c3f4ec41bd444354207750eed9f7c51d0b5ead599eed5d2ebee80a2944d4"
+  },
+  "run_cpu": 8,
+  "virtual_memory_limit_KiB": 16777216,
+  "peak_RSS_KiB": 2480596,
+  "warm_runs": [
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 833,
+      "prepare_s": 0.009971557,
+      "prove_s": 0.853096326,
+      "ready_s": 0.864161461,
+      "verify_s": 0.411566371,
+      "analytic_proof_bytes": 135838,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 11,
+      "prepare_s": 0.009374936,
+      "prove_s": 0.823820553,
+      "ready_s": 0.833589159,
+      "verify_s": 0.411501978,
+      "analytic_proof_bytes": 136037,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 833,
+      "prepare_s": 0.009514889,
+      "prove_s": 0.866476112,
+      "ready_s": 0.877105968,
+      "verify_s": 0.414620884,
+      "analytic_proof_bytes": 135838,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 11,
+      "prepare_s": 0.009162485,
+      "prove_s": 0.826491984,
+      "ready_s": 0.836109365,
+      "verify_s": 0.414633246,
+      "analytic_proof_bytes": 136037,
+      "public_bytes": 50712,
+      "negative_checks": 6
+    }
+  ],
+  "fresh_verification": {
+    "large": "LOCAL_WIRE_VERIFY bytes=266607 decode_s=0.00181235 verify_s=0.387845355 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true claim_outcome_matches=true full_near_validity=false",
+    "small": "LOCAL_WIRE_VERIFY bytes=206889 decode_s=0.00038815 verify_s=0.388501927 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true claim_outcome_matches=true full_near_validity=false"
+  },
+  "packet_sha256": {
+    "00-h10012-s1.packet": "9c49d338f3bee2340527b6116d41bca728b2a2f9617aac00cf3b1afc8e2e9c62",
+    "00-h10035-s3.packet": "71c1669a460dbc4a847806a9b7a7dafacb36e066a98e8d25f99cedbf296f0084"
+  },
+  "guards": "METADATA_GUARDS legacy_accepts_invalid=4 strict_rejects_invalid=4 honest_passes=4 length_flag_alias_reproduced=true",
+  "backend_c_crosschecks": 26,
+  "limits": [
+    "Prior template metadata relation was underconstrained; superseded by NPSTRICT.",
+    "Local malformed-witness checks are not full forged-packet demonstrations.",
+    "Real receipt corpus has zero block gas prices; positive burn coverage synthetic only.",
+    "Receipt execution/hash byte relation, state, history and composed PQ security unfinished."
+  ]
+}

@@ -1,0 +1,30 @@
+diff --git a/crates/pcs/src/labrador/mod.rs b/crates/pcs/src/labrador/mod.rs
+index b5b6e9b..735ae96 100644
+--- a/crates/pcs/src/labrador/mod.rs
++++ b/crates/pcs/src/labrador/mod.rs
+@@ -680,0 +681,25 @@ impl ProofHandle {
++    /// Reconstruct a local research export. NOT an untrusted proof API.
++    /// # Safety
++    /// Bytes must be an authentic export from this implementation. Upstream C
++    /// verification has not been audited for arbitrary decoded shape metadata.
++    pub unsafe fn from_local_export(bytes: &[u8]) -> Result<Self,String> {
++        let _guard = labrador_lock();
++        let p = ffi::bn_alloc_composite(); let c = ffi::bn_alloc_commitment();
++        if p.is_null() || c.is_null() { ffi::bn_free(p); ffi::bn_free(c); return Err("allocation".into()); }
++        if ffi::bn_import_local_export(bytes.as_ptr(),bytes.len(),p,c) != 1 {
++            ffi::bn_free(p); ffi::bn_free(c); return Err("local export decoding".into());
++        }
++        Ok(Self { composite:p,commitment:c,size_kb:0.0 })
++    }
++
++    /// Experimental export-only encoding. No receiver/decoder is established.
++    pub fn export_bytes(&self) -> Vec<u8> {
++        let _guard = labrador_lock();
++        let n = unsafe { ffi::bn_export_proof(self.composite,self.commitment,std::ptr::null_mut(),0) };
++        assert!(n > 0 && n < 16*1024*1024);
++        let mut bytes = vec![0;n];
++        let written = unsafe { ffi::bn_export_proof(self.composite,self.commitment,bytes.as_mut_ptr(),n) };
++        assert_eq!(n,written);
++        bytes
++    }
++

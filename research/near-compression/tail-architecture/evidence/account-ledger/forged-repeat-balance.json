@@ -1,0 +1,10 @@
+{
+  "list": 1,
+  "receipt": 4,
+  "global_index": 5,
+  "receiver": "s0a01",
+  "prior_global_index": 0,
+  "expected_before": "999981279259175733117231851975",
+  "mutant_before": "999981279259175733117231851976",
+  "mutant_after": "999981279784123420617231851976"
+}

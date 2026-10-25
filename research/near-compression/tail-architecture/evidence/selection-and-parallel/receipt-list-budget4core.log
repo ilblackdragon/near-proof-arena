@@ -1,0 +1,45 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973
+RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=17.34718914
+RECEIPT_LIST_SETUP setup_s=3.373807716
+RECEIPT_LIST_PROVER_MS pack=41.225741000000006 commit=637.103624 bitand=788.20537 shift=259.281993 switch=210.956798 opening=1768.0686830000002 total=3712.9665880000002
+SIS_POLICY inner rank=25 width=9567 source=18796463511276 target=289832688122 bound=247094830256.3006 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=289832688122 target=1792684871 bound=2437435422.6952996 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1792684871 target=72650317 bound=124102386.12521195 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72650317 target=13084337 bound=26738547.941441547 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13084337 target=1017303669 bound=14289048.79909702 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=1017303669 target=60383808194 bound=55043782.209638752 bits=150.255 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.050733785 prove_s=3.7190617059999997 ready_s=3.770019883 verify_s=1.114234039 mutations=7 full_near=false
+RECEIPT_LIST_PROVER_MS pack=41.646953 commit=627.153676 bitand=749.467857 shift=286.808842 switch=148.099073 opening=1798.32966 total=3659.850841
+SIS_POLICY inner rank=25 width=9567 source=18796463511276 target=289832688122 bound=247094830256.3006 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=289832688122 target=1792684871 bound=2437435422.6952996 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1792684871 target=72650317 bound=124102386.12521195 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72650317 target=13084337 bound=26738547.941441547 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13084337 target=1017303669 bound=14289048.79909702 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=1017303669 target=60383808194 bound=55043782.209638752 bits=150.255 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.049667215 prove_s=3.666214965 ready_s=3.7161486 verify_s=1.174773758 mutations=7 full_near=false
+	Command being timed: "/data/illia/pq-tail-architecture-20261024/target/release/near-receipt-list-budget 1024 compact /data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list /data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list"
+	User time (seconds): 29.84
+	System time (seconds): 7.88
+	Percent of CPU this job got: 110%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:34.13
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 12617432
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 10993417
+	Voluntary context switches: 1001
+	Involuntary context switches: 2655
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 992
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

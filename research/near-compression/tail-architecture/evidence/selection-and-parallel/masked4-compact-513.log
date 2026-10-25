@@ -1,0 +1,7 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=53 private=25886 constants=301 and=17958 zero=3947 bmul=4424
+RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.029700174
+RECEIPT_LIST_SETUP setup_s=0.030462353
+RECEIPT_BUDGET_REJECT path=/data/illia/pq-tail-architecture-20261024/receipt-list-boundaries/synthetic-source-513.list error=PopulateError { failures: [AssertionFailure { path: ".source-byte-cap", detail: "Word(0xffffffffffffffff) MSB is true" }, AssertionFailure { path: ".root-0", detail: "Word(0xd6efc3afad945d16) != Word(0x50259919a75db8cf)" }, AssertionFailure { path: ".root-1", detail: "Word(0x07e6baa1806a2e47) != Word(0xe4e1ed22688d74d2)" }, AssertionFailure { path: ".root-2", detail: "Word(0x80087513e899ced0) != Word(0x08a9bc7bc74f25c7)" }, AssertionFailure { path: ".root-3", detail: "Word(0x4773f583aa3e1479) != Word(0xb821be9f4eacb91f)" }], total: 5 }

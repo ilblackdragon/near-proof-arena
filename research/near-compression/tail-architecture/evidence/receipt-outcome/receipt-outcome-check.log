@@ -1,0 +1,48 @@
+RECEIPT_OUTCOME cases=2305 accepted=2268 rejected=37 mutations_rejected=27216 log_witness=11 shared_arithmetic_hash_wires=true
+SIS_POLICY inner rank=21 width=1047 source=116078047864 target=10571872647 bound=23607382954.46735 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1047 source=10571872647 target=163200138 bound=369145849.22260284 bits=154.495 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1047 source=163200138 target=18232231 bound=31563260.925835654 bits=145.220 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=18232231 target=1353672797 bound=16482947.098413195 bits=161.650 finite=1 tail=0
+SIS_POLICY inner rank=13 width=524 source=1353672797 target=38713306 bound=90592345.740915671 bits=155.290 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=38713306 target=3304862034 bound=25754592.399646629 bits=150.255 finite=1 tail=0
+SIS_POLICY inner rank=13 width=262 source=3304862034 target=34383978 bound=84719969.95958221 bits=156.880 finite=1 tail=1
+OUTCOME_PROOF example=0 honest=true wrong_input_burn_digest_rejected=true security_claim=false
+SIS_POLICY inner rank=21 width=1047 source=117870945746 target=10658375449 bound=23703768171.106377 bits=144.690 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1047 source=10658375449 target=161576809 bound=367305339.83578038 bits=154.495 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1047 source=161576809 target=17632957 bound=31040201.541234367 bits=145.750 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=17632957 target=1196991686 bound=15499710.298807008 bits=163.240 finite=1 tail=0
+SIS_POLICY inner rank=13 width=524 source=1196991686 target=35220337 bound=86408830.763083458 bits=156.615 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=35220337 target=3067991858 bound=24814476.37706732 bits=151.050 finite=1 tail=0
+SIS_POLICY inner rank=13 width=262 source=3067991858 target=33812080 bound=84012455.214832991 bits=157.145 finite=1 tail=1
+OUTCOME_PROOF example=1 honest=true wrong_input_burn_digest_rejected=true security_claim=false
+SIS_POLICY inner rank=21 width=1047 source=115423835809 target=10605385204 bound=23644770738.488808 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1047 source=10605385204 target=161917984 bound=367692924.28523421 bits=154.495 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1047 source=161917984 target=18229879 bound=31561224.993315078 bits=145.220 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=18229879 target=1296750390 bound=16132668.417672262 bits=162.180 finite=1 tail=0
+SIS_POLICY inner rank=13 width=524 source=1296750390 target=32582693 bound=83110302.530822247 bits=157.410 finite=1 tail=0
+SIS_POLICY inner rank=11 width=524 source=32582693 target=2951408554 bound=24338436.729215294 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=13 width=262 source=2951408554 target=35041709 bound=85526435.520598739 bits=156.880 finite=1 tail=1
+OUTCOME_PROOF example=2 honest=true wrong_input_burn_digest_rejected=true security_claim=false
+	Command being timed: "taskset -c 8 /data/illia/pq-tail-architecture-20261024/target/release/near-receipt-outcome-check /data/illia/pq-tail-architecture-20261024/receipt-outcome.bin"
+	User time (seconds): 0.94
+	System time (seconds): 0.03
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.98
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 80624
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 40301
+	Voluntary context switches: 15
+	Involuntary context switches: 276
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

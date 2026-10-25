@@ -1,0 +1,8 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_CIRCUIT cap=4 mode=1 source_budget=512 log=14 circuit_s=0.02662378
+
+thread 'main' (1288983) panicked at crates/binius/src/bin/near-receipt-list-budget.rs:37:274:
+called `Result::unwrap()` on an `Err` value: ColumnTooShort
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

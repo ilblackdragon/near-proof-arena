@@ -1,0 +1,27 @@
+{
+  "status": "COMPONENT_ONLY_NOT_COMPOSED_PQ128",
+  "labinius_revision": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "reference_revision": "672e74100496f6ef698ba35e241cf7593e3d57af",
+  "binary": "/data/illia/pq-tail-architecture-20261024/target/release/near-hash-template",
+  "binary_sha256": "3c0ccb01a6062c80d996a8996a1342c35f724a6b4c110ec21f3916896874a7bc",
+  "build_env": {
+    "LABINIUS_LABRADOR_DIR": "/data/illia/pq-tail-architecture-20261024/labrador-sis128",
+    "RUSTFLAGS": "-C target-cpu=native",
+    "CARGO_TARGET_DIR": "/data/illia/pq-tail-architecture-20261024/target"
+  },
+  "build_command": "taskset -c 8-15,24-31 cargo build --release --locked -j4 -p labinius-binius --bin near-hash-template",
+  "virtual_memory_limit_KiB": 16777216,
+  "cpu": 8,
+  "fresh_verification": {
+    "large": "LOCAL_WIRE_VERIFY bytes=150526 decode_s=0.000050555 verify_s=0.658980734 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true",
+    "small": "LOCAL_WIRE_VERIFY bytes=150526 decode_s=0.000050936 verify_s=0.656473422 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true"
+  },
+  "source_sha256": {
+    "labrador.c": "c32d97fbc9cb07b61029a118d195963f82d250fd6e33a2ee3190f7be8f6afea8",
+    "labrador.h": "63d660315a8081b16a147384a76dd5a0597975334cca86bc41f452ce3cfc046d",
+    "chihuahua.c": "5bbd7e9741c73bcc68e9bd399212937e9eb1829805ba9ce912c3887ce404862d",
+    "dachshund.c": "9fbc591359903d940a8b6253dfb3d73e768a9368c285ce584141e06fbbc1d44d",
+    "polz.c": "0ea1936644d5baf2a699d31530441171d60f47efdcf1393a265a66d781fbef3f",
+    "sis_policy.h": "3eec88fa9b2b0f8f5ae3099bdf664e2249708a657c525cbb19ce136f48bd6f20"
+  }
+}

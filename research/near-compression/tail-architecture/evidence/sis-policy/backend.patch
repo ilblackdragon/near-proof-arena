@@ -1,0 +1,303 @@
+--- a/labrador.c
++++ b/labrador.c
+@@ -1,3 +1,4 @@
++#define _DEFAULT_SOURCE
+ #include <stdint.h>
+ #include <stddef.h>
+ #include <stdlib.h>
+@@ -15,6 +16,7 @@
+ #include "sparsemat.h"
+ #include "jlproj.h"
+ #include "labrador.h"
++#include "sis_policy.h"
+ 
+ /* Ranks per pass over the garbage pairs: 16 polx per row is 16 KB, so a handful of rows
+  * and the (r*r+r)/2 accumulators stay in cache while every pair reads the block. */
+@@ -72,7 +74,7 @@
+   comkey_len = 0;
+ }
+ 
+-int init_proof(proof *pi, const witness *wt, int quadratic, int tail) {
++int init_proof(proof *pi, const witness *wt, uint64_t source_betasq, int quadratic, int tail) {
+   size_t i,j,k,t,u;
+   size_t nn,rr;
+   int ret,decompose;
+@@ -144,7 +146,7 @@
+       }
+     }
+     varz *= TAU1+4*TAU2;
+-    decompose = !tail && !sis_secure(13,6*T*SLACK*sqrt(2*(TAU1+4*TAU2)*varz*nn*N));
++    decompose = !tail && !screen_sis_secure(13,nn,labrador_inner_commitment_l2_bound(1,0,sqrt((double)source_betasq),sqrt(2*(TAU1+4*TAU2)*varz*nn*N),0));
+     decompose = decompose || 64*varz > (1 << 28);
+     if(decompose) {
+       cpp->f = 2;
+@@ -213,13 +215,13 @@
+       if(!tail && quadratic)
+         pi->normsq += (ldexp(1,2*cpp->bg)/12*(cpp->fg-1) + varg/ldexp(1,2*(cpp->fg-1)*cpp->bg))*(rr*rr+rr)/2;
+       pi->normsq *= N;
+-      if(sis_secure(cpp->kappa,6*T*SLACK*ldexp(1,(cpp->f-1)*cpp->b)*sqrt(pi->normsq)))
++      if(inner_commitment_secure(cpp->kappa,nn,cpp->f,cpp->b,source_betasq,4*pi->normsq,tail))
+         break;
+     }
+ 
+     if(!tail) {
+       for(cpp->kappa1=1;cpp->kappa1<=32;cpp->kappa1++)
+-        if(sis_secure(cpp->kappa1,2*SLACK*sqrt(pi->normsq)))
++        if((screen_sis_secure(cpp->kappa1,cpp->fu*rr*cpp->kappa+cpp->fg*(rr*rr+rr)/2,4*SLACK*sqrt(pi->normsq)) && screen_sis_secure(cpp->kappa1,cpp->fu*(rr*rr+rr)/2,4*SLACK*sqrt(pi->normsq))))
+           break;
+ 
+       cpp->u1len = cpp->u2len = cpp->kappa1;
+@@ -1098,7 +1100,7 @@
+   free(hx);
+ }
+ 
+-int reduce_amortize(statement *ost, const proof *pi) {
++int reduce_amortize(statement *ost, const proof *pi, uint64_t source_betasq) {
+   const size_t r = ost->r;
+   const size_t n = ost->n;
+   const comparams *cpp = ost->cpp;
+@@ -1107,13 +1109,12 @@
+   polx (*phi)[n] = (polx(*)[n])ost->cnst->phi;
+ 
+   ost->betasq = pi->normsq;
+-  if(!sis_secure(cpp->kappa,6*T*SLACK*ldexp(1,(cpp->f-1)*cpp->b)*sqrt(ost->betasq))) {
+-    fprintf(stderr,"ERROR in reduce_amortize(): Inner commitments not secure\n");
++  double bound=labrador_inner_commitment_l2_bound(cpp->f,cpp->b,sqrt((double)source_betasq),sqrt((double)pi->normsq),pi->tail);
++  sis_estimate e=sis_estimate_l2_core_svp_adps16(cpp->kappa,n,bound);
++  fprintf(stderr,"SIS_POLICY inner rank=%zu width=%zu source=%llu target=%llu bound=%.17g bits=%.3f finite=%d tail=%d\n",cpp->kappa,n,(unsigned long long)source_betasq,(unsigned long long)pi->normsq,bound,e.quantum_bits,e.finite,pi->tail);
++  if(!amortized_commitments_secure(cpp,r,n,source_betasq,pi->normsq,pi->tail)) {
++    fprintf(stderr,"ERROR: diagnostic quantum128 commitment policy rejected\n");
+     return 1;
+-  }
+-  if(!pi->tail && !sis_secure(cpp->kappa1,2*SLACK*sqrt(ost->betasq))) {
+-    fprintf(stderr,"ERROR in reduce_amortize(): Outer commitments not secure\n");
+-    return 2;
+   }
+ 
+   /* second outer commitment resp garbage terms */
+@@ -1155,7 +1156,7 @@
+   constraint cnst[1] = {};
+   void *buf = NULL;
+ 
+-  ret = init_proof(pi,iwt,ist->cpp->fg != 0,tail);
++  ret = init_proof(pi,iwt,ist->betasq,ist->cpp->fg != 0,tail);
+   if(ret) // commitments not secure (1/2)
+     return ret;
+   init_statement(ost,pi,ist->h);
+@@ -1222,7 +1223,7 @@
+   jlmat = NULL;
+ 
+   aggregate(ost,pi,ist);
+-  ret = reduce_amortize(ost,pi);
++  ret = reduce_amortize(ost,pi,ist->betasq);
+   if(ret) {  // commitments not secure (1/2)
+     ret += 10;
+     goto err;
+--- a/labrador.h
++++ b/labrador.h
+@@ -75,7 +75,7 @@
+ __attribute__((visibility("default")))
+ void free_comkey(void);
+ 
+-int init_proof(proof *pi, const witness *wt, int quadratic, int tail);
++int init_proof(proof *pi, const witness *wt, uint64_t source_betasq, int quadratic, int tail);
+ void init_constraint_raw(constraint *cnst, size_t r, size_t n, size_t deg, int quadratic);
+ void init_constraint(constraint *cnst, const statement *st);
+ void init_statement(statement *st, const proof *pi, const uint8_t h[16]);
+@@ -128,7 +128,7 @@
+                                   const zqdefer *df);
+ 
+ void amortize(statement *ost, witness *owt, proof *pi, polx sx[ost->r][ost->n]);
+-int reduce_amortize(statement *ost, const proof *pi);
++int reduce_amortize(statement *ost, const proof *pi, uint64_t source_betasq);
+ 
+ int prove(statement *ost, witness *owt, proof *pi, const statement *ist, const witness *iwt, int tail);
+ int reduce(statement *ost, const proof *pi, const statement *ist);
+--- a/chihuahua.c
++++ b/chihuahua.c
+@@ -926,7 +926,7 @@
+   int64_t *zqs = NULL;
+   polx *zqbuf = NULL;
+ 
+-  ret = init_proof(pi,iwt,ist->quadratic,tail);
++  ret = init_proof(pi,iwt,ist->betasq,ist->quadratic,tail);
+   if(ret)  // commitments not secure (1/2)
+     return ret;
+   init_statement(ost,pi,ist->h);
+@@ -1020,7 +1020,7 @@
+   jlmat = NULL;
+ 
+ aggregate_sparsecnst(ost,pi,ist->cnst,ist->k);
+-  ret = reduce_amortize(ost,pi);
++  ret = reduce_amortize(ost,pi,ist->betasq);
+   if(ret) {  // commitments not secure (1/2)
+     ret += 10;
+     goto err;
+--- a/dachshund.c
++++ b/dachshund.c
+@@ -438,7 +438,9 @@
+   ret = expand_witness(ewt,ist,iwt);
+   if(ret)
+     return ret;  // norm too big for shortness proofs (1/2)
+-  ret = init_proof(pi,ewt,2,tail);
++  uint64_t source_betasq=0;
++  for(i=0;i<ist->r;i++) source_betasq += ist->betasq[i] ? ist->betasq[i]+LOGQ-1 : ist->n[i]*N;
++  ret = init_proof(pi,ewt,source_betasq,2,tail);
+   if(ret) {  // commitments not secure (1/2)
+     ret += 10;
+     goto err;
+@@ -559,7 +561,7 @@
+ 
+ simple_aggregate(ost,pi,com,ist);
+   aggregate_sparsecnst(ost,pi,ist->cnst,ist->k);
+-ret = reduce_amortize(ost,pi);
++ret = reduce_amortize(ost,pi,betasq);
+   if(ret) {  // commitments not secure (1/2)
+     ret += 10;
+     goto err;
+--- a/polz.c
++++ b/polz.c
+@@ -195,6 +195,14 @@
+ }
+ 
+ void polz_bitpack(uint8_t r[N*QBYTES], const polz *a) {
++  /* polz_reduce may leave a carry in the top limb. Pack a canonical residue,
++   * consistently for both transcript and wire encoding. */
++  polz canonical = *a;
++  polz_reduce(&canonical);
++  polz_center(&canonical);
++  polz_caddq(&canonical);
++  a = &canonical;
++
+ #if LOGQ % 8 == 0
+   size_t i,j,k,bits;
+   __m512i f,g,h;
+--- /dev/null
++++ b/sis_policy.h
+@@ -0,0 +1,126 @@
++/* Diagnostic policy port; see greyhound-reference 672e741 LICENSE/NOTICE. */
++typedef struct {
++  double quantum_bits;
++  size_t beta;
++  size_t lattice_dimension;
++  int valid;
++  int finite;
++  int trivially_easy;
++} sis_estimate;
++static double root_hermite_factor(size_t beta) {
++  double b;
++
++  if(beta <= 40) return 1.01295;
++  b = beta;
++  return pow(b/(2*M_PI*M_E)*pow(M_PI*b,1/b),1/(2*(b-1)));
++}
++
++static size_t beta_from_delta(double target) {
++  size_t low = 40;
++  size_t high = 1 << 16;
++
++  if(!isfinite(target)) return 0;
++  if(root_hermite_factor(40) < target) return 40;
++  if(target < root_hermite_factor(high)) return 0;
++  while(low < high) {
++    size_t mid = low+(high-low)/2;
++    if(root_hermite_factor(mid) <= target+1e-13)
++      high = mid;
++    else
++      low = mid+1;
++  }
++  return low;
++}
++
++sis_estimate sis_estimate_l2_core_svp_adps16(size_t rank, size_t width,
++                                             double norm) {
++  sis_estimate result = {};
++  const double q = ldexp(1,LOGQ)-QOFF;
++  const double logq = log2(q);
++  double logbound,logdelta,droot,rootvolume,target;
++  double lnq,loga2,logb2;
++  size_t n,m,d,beta;
++
++  if(!rank || !width || !isfinite(norm) || norm <= 0) return result;
++  if(rank > SIZE_MAX/N || width > SIZE_MAX/N) return result;
++  result.valid = 1;
++  /* In Euclidean SIS, q*e_i is the unconditional modular-zero solution.
++   * The centered-representative boundary (q-1)/2 is not a triviality bound. */
++  if(norm >= q) {
++    result.trivially_easy = 1;
++    result.finite = 1;
++    return result;
++  }
++  norm = ceil(norm);
++  n = rank*N;
++  m = width*N;
++  logbound = log2(norm);
++  logdelta = logbound*logbound/(4*n*logq);
++  droot = sqrt(n*logq/logdelta);
++  d = droot >= (double)SIZE_MAX ? SIZE_MAX : (size_t)floor(droot);
++  d = MIN(d,m);
++  result.lattice_dimension = d;
++  if(d <= 1) {
++    result.valid = 0;
++    return result;
++  }
++
++  rootvolume = (double)n/d*logq;
++  target = exp2((logbound-rootvolume)/(d-1));
++  beta = target >= 1 ? beta_from_delta(target) : 0;
++  result.beta = beta ? MIN(beta,d) : d;
++
++  lnq = logq*M_LN2;
++  loga2 = log((double)n*lnq);
++  logb2 = log((double)d)+2*(double)n/d*lnq;
++  if(!beta || beta > d || log(norm) <= 0.5*MIN(loga2,logb2))
++    return result;
++
++  result.finite = 1;
++  result.quantum_bits = 0.265*beta;
++  return result;
++}
++
++
++
++static int screen_sis_secure(size_t rank,size_t width,double norm) {
++ sis_estimate e=sis_estimate_l2_core_svp_adps16(rank,width,norm);
++ return e.valid && !e.trivially_easy && (!e.finite || e.quantum_bits>=128);
++}
++double labrador_inner_commitment_l2_bound(size_t parts, size_t log2_base,
++                                          double source_l2, double target_l2,
++                                          int tail) {
++  /* LaBRADOR, Theorem 5.1 requires
++   * max(8*T*(B+1)*beta', 2*(B+1)*beta' + 4*T*SLACK*beta).
++   * Remark 5.2 applies the recursive JL slack to beta' unless the target
++   * witness is sent directly by a tail proof. */
++  double reconstruction_bound = ldexp(1,(parts-1)*log2_base)+1;
++  double target_opening = reconstruction_bound*(tail ? 1 : SLACK)*target_l2;
++  double weak_opening = 8*T*target_opening;
++  double opening_difference = 2*target_opening+4*T*SLACK*source_l2;
++  return fmax(weak_opening,opening_difference);
++}
++
++static int inner_commitment_secure(size_t kappa, size_t width,
++                                   size_t f, size_t b, uint64_t source_normsq,
++                                   uint64_t target_normsq, int tail) {
++  return screen_sis_secure(kappa,width,
++                    labrador_inner_commitment_l2_bound(
++                      f,b,sqrt((double)source_normsq),
++                      sqrt((double)target_normsq),tail));
++}
++
++static int amortized_commitments_secure(const comparams *cpp, size_t r,
++                                        size_t n, uint64_t source_normsq,
++                                        uint64_t target_normsq, int tail) {
++  size_t tri = (r*r+r)/2;
++  double outer_norm = 2*SLACK*sqrt((double)target_normsq);
++
++  if(!inner_commitment_secure(cpp->kappa,n,cpp->f,cpp->b,
++                              source_normsq,target_normsq,tail))
++    return 0;
++  return tail ||
++         (screen_sis_secure(cpp->kappa1,cpp->fu*r*cpp->kappa+cpp->fg*tri,outer_norm) &&
++          screen_sis_secure(cpp->kappa1,cpp->fu*tri,outer_norm));
++}
++

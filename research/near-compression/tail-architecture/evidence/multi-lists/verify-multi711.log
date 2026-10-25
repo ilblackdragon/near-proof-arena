@@ -1,0 +1,19 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11643 private=10299688 constants=44536 and=3641768 zero=908759
+RECEIPT_LIST_CIRCUIT cap=1056 mode=1 lists=3 log=23 circuit_s=16.966571288
+RECEIPT_LIST_SETUP setup_s=3.579689697
+SIS_POLICY inner rank=25 width=9567 source=18936540471112 target=290430779433 bound=247349648146.26184 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=290430779433 target=1795989555 bound=2439681005.6223645 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1795989555 target=72789015 bound=124220792.66493191 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72789015 target=13082127 bound=26736289.71901913 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13082127 target=1001532582 bound=14177855.808891837 bits=145.220 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=1001532582 target=60052846048 bound=54892728.145943411 bits=150.255 finite=1 tail=1
+RECEIPT_LIST_VERIFY bytes=247786 seconds=1.4485363150000001 no_witness_loaded=true backend_roundtrip=true negative_checks=4

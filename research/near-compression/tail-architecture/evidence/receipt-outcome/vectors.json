@@ -1,0 +1,20 @@
+{
+  "status": "INDEPENDENT_KERNEL_EXPECTATIONS_NOT_FULL_NEAR",
+  "cases": 2305,
+  "accepted": 2268,
+  "rejected": 37,
+  "positive_burns": 90,
+  "kinds": {
+    "corpus": 2138,
+    "invalid-arithmetic": 5,
+    "invalid-length": 2,
+    "synthetic-boundary": 160
+  },
+  "sha256": "c44f5dfbac212f438ff8c039849536fffc8b37c88aef29ac6e505736d3266c25",
+  "inputs": "six u128 amounts, predecessor length+64 bytes, receiver length+64 bytes, receipt id32, heightu64",
+  "outputs": "after/burnt/surplus u128 and SHA256 partial-outcome digest",
+  "limits": [
+    "Synthetic kernel vectors are not accepted NEAR claims.",
+    "No source/state/access-key/routing authentication."
+  ]
+}

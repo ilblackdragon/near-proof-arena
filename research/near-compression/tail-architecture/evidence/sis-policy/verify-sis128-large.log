@@ -1,0 +1,15 @@
+TEMPLATE_SETUP {"message_slots":3088,"nominal_blocks":7296,"constructed_sha_blocks":7296,"root_bytes":148248,"witness_log_elems":22,"circuit_s":11.3766725,"setup_s":3.40378711}
+SIS_POLICY inner rank=22 width=4864 source=1784625912146 target=56381689616 bound=54518126993.389954 bits=140.450 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1764 source=56381689616 target=484976784 bound=636353157.36767399 bits=143.100 finite=1 tail=0
+SIS_POLICY inner rank=13 width=882 source=484976784 target=45524075 bound=98238549.184726864 bits=153.435 finite=1 tail=0
+SIS_POLICY inner rank=11 width=960 source=45524075 target=3830055425 bound=27725573.826689322 bits=148.400 finite=1 tail=0
+SIS_POLICY inner rank=14 width=480 source=3830055425 target=84075936 bound=264955893.49054262 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=11 width=480 source=84075936 target=9877900 bound=23232410.396375146 bits=152.640 finite=1 tail=0
+SIS_POLICY inner rank=10 width=480 source=9877900 target=702685592 bound=11875681.414418627 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=240 source=702685592 target=45716668470 bound=47894462.69821512 bits=153.435 finite=1 tail=1
+ERROR in verify(): Quadratic garbage polynomials wrong
+
+thread 'main' (789566) panicked at crates/binius/src/bin/near-hash-template.rs:46:59:
+decoded proof verifies: Opening(Rejected)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+timeout: the monitored command dumped core

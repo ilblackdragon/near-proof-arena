@@ -1,0 +1,24 @@
+{
+  "status": "PUBLIC_RECORD_COMPONENT_DEADLINE_NOT_ESTABLISHED",
+  "base_lane_commit": "482de0966",
+  "labinius_revision": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "binary_sha256": "fa82f6cf62497ebb0d9a6a42fdb270be7d21e76c6dd4651830c65ae47ecc3430",
+  "source_sha256": {
+    "near-hash-events.rs": "c9c430672411cb7856f73a4c299d95c289cc9c2e425f330dfb3cec8f59655fcf",
+    "near-event-wire-check.rs": "dd14c254570a549b21f062729b8d3d226ea86a243db0cc2eb39825848ba9f363",
+    "support/local_wire_events.rs": "e12d865ef305f41db378afa018ced5bb9cc792db769c742511d692f2d6302c27",
+    "support/event_wire.rs": "521185deb1f24dbac00654bb05bef6f498c1431d69b4ae52444a509c96492f69"
+  },
+  "run_cpu": 8,
+  "virtual_memory_limit_KiB": 16777216,
+  "fresh_verification": {
+    "large": "LOCAL_WIRE_VERIFY bytes=258134 decode_s=0.0003249 verify_s=1.0867906569999999 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true",
+    "small": "LOCAL_WIRE_VERIFY bytes=157766 decode_s=0.000326433 verify_s=1.113336335 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true"
+  },
+  "timing_correction": {
+    "compact_proving_end_utc": "2026-10-24 01:35:36.316188833",
+    "codec_build_start_utc": "2026-10-24 01:35:46.404198083",
+    "own_compile_explains_slow_proving": false,
+    "fresh_verification_overlapped_build": true
+  }
+}

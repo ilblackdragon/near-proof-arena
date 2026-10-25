@@ -1,0 +1,59 @@
+--- a/crates/pcs/src/recursion/setup.rs
++++ b/crates/pcs/src/recursion/setup.rs
+@@ -13,7 +13,7 @@
+ use crate::ring::N162;
+ use crate::challenge::ShortChallenge;
+ use crate::fields::scalar::F162;
+-use crate::labrador::{sis_rank, sizeof_polx, CommitmentKey, PolxBuf, ShortPhi};
++use crate::labrador::{sizeof_polx, CommitmentKey, PolxBuf, ShortPhi};
+ use crate::params::N;
+ use crate::scheme::{EvaluationPoint, FoldingChallenges, Params, PublicParameters};
+ 
+@@ -139,7 +139,11 @@
+             h.update(label);
+             let mut sub = [0u8; 16];
+             sub.copy_from_slice(&h.finalize().as_bytes()[..16]);
+-            CommitmentKey::expand(length, sis_rank(SIS_SLACK * norm), &sub, 0)
++            // Diagnostic scalar cost policy only; not composed PQ certification.
++            unsafe extern "C" { fn near_sis_secure(rank: usize, width: usize, norm: f64) -> i32; }
++            let rank=(1..=32).find(|&k| unsafe {near_sis_secure(k,length,SIS_SLACK*norm)}!=0)
++                .expect("bridge commitment exceeds diagnostic rank budget");
++            CommitmentKey::expand(length, rank, &sub, 0)
+         };
+         let key_y = key_of(&setup.residues, b"Y");
+         let key_u = key_of(&[setup.left_expansion], b"u");
+--- a/crates/pcs/src/scheme/verifier.rs
++++ b/crates/pcs/src/scheme/verifier.rs
+@@ -410,18 +410,31 @@
+         if proof.norms.len() != setup.caps.len()
+             || proof.norms.iter().zip(&setup.caps).any(|(n, c)| n > c)
+         {
++            eprintln!("OUTER_REJECT norms={:?} caps={:?}",proof.norms,setup.caps);
+             return Err(VerificationError::Rejected);
+         }
+         absorb_opening(transcript, claimed_value, &proof.t_r, &proof.norms);
+         let masks = recursion::statement::Masks::squeeze(setup, transcript);
+         let digest = statement_digest(transcript);
+         let clock = Instant::now();
+-        let layout = recursion::Instance::layout(setup, challenges, point, claimed_value);
++        let mut layout = recursion::Instance::layout(setup, challenges, point, claimed_value);
++        // These norms are transcript-bound above and enforced in the rebuilt
++        // LaBRADOR statement (statement::build uses max(norm,1)). For nonbinary
++        // vectors they safely tighten the static caps used in the integer
++        // no-wrap check. Binary statements enforce bitness, not the announced
++        // norm, so retain their static cap. Never replace this with witness-only
++        // estimates or skip the bound check.
++        for (i, vector) in layout.vectors.iter_mut().enumerate() {
++            if !setup.binary[i] {
++                vector.cap = recursion::Cap::Betasq(proof.norms[i].max(1) as f64);
++            }
++        }
+         timings.layout = clock.elapsed();
+         let clock = Instant::now();
+         let cleared = layout.clears();
+         timings.bound = clock.elapsed();
+         if !cleared {
++            eprintln!("OUTER_REJECT no_wrap={:?}",layout.bound());
+             return Err(VerificationError::Rejected);
+         }
+         let clock = Instant::now();

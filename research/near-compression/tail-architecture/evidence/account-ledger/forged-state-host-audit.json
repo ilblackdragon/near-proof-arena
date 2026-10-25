@@ -1,0 +1,16 @@
+{
+  "status": "HOST_SOURCE_SET_AND_OUTCOME_BINDING_NOT_STATE_VALIDITY",
+  "counts": [
+    1,
+    9,
+    804
+  ],
+  "packet_bytes": 247786,
+  "envelope_bytes": 248012,
+  "packet_sha256": "0d81774a12f613824748f38f10cfd19003c63a30bf8e3f84c2b151fe88aaefc1",
+  "envelope_sha256": "10510762df2a8ae78767ab442ac13192f7cf8bcfe54f3f302168b6285a0a8e1f",
+  "claim_sha256": "edea3dafa08506e8b4af109dd8ccdea1a0384fa993d75ccf040bba3ba5e8b173",
+  "outcome_root": "6a57f4c1c5b909e136cd4f4f48cac7bb4f9f179c9d3f3ad17541ab2ef9d16f89",
+  "negative_checks": 24,
+  "inner_proof_verified_here": false
+}

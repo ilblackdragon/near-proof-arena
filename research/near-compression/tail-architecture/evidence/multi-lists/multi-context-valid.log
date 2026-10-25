@@ -1,0 +1,17 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=62 private=24389 constants=217 and=14464 zero=3724
+RECEIPT_LIST_CIRCUIT cap=4 mode=1 lists=2 log=14 circuit_s=0.025872599
+RECEIPT_LIST_SETUP setup_s=0.031953916
+RECEIPT_LIST_PROVER_MS pack=0.02138 commit=3.367743 bitand=1.162306 shift=1.867612 switch=0.193634 opening=105.11474199999999 total=111.808662
+RECEIPT_OPENING_STAGES OpeningTimings { fold: 198.593µs, encoding: 2.852475ms, witness: 166.493µs, t_r: 907.046µs, masks: 2.753508ms, phi: 422.425µs, statement: 6.365412ms, labrador: 90.349643ms }
+SIS_POLICY inner rank=22 width=1625 source=780965965383 target=18278958360 bound=31041850678.384132 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1625 source=18278958360 target=241884147 bound=449408654.42404419 bits=150.255 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1625 source=241884147 target=26111840 bound=37772931.94473736 bits=159.265 finite=1 tail=0
+SIS_POLICY inner rank=11 width=813 source=26111840 target=1856239618 bound=19301676.515035477 bits=157.410 finite=1 tail=0
+SIS_POLICY inner rank=12 width=407 source=1856239618 target=36280875 bound=43850066.426403508 bits=155.555 finite=1 tail=1
+RECEIPT_LIST_RESULT path=multi-lists/empty-context-valid.multi cap=4 mode=1 lists=2 count=0 bytes=205990 prepare_s=0.000148179 prove_s=0.111838889 ready_s=0.112063912 verify_s=0.062295521 mutations=14 full_near=false

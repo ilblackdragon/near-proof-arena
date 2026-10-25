@@ -1,0 +1,87 @@
+RECEIPT_BATCH_SETUP log=21 public_bytes=90136 left_rank=5 opening_rank=11 norms=36 binary_rank=3072 circuit_s=5.198971604 setup_s=1.207966302
+SIS_POLICY inner rank=25 width=6062 source=13062824150085 target=189968899783 bound=200046625789.6001 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=189968899783 target=1393042734 bound=2148638539.8426099 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1393042734 target=63576020 bound=116093537.08743653 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63576020 target=6219835184 bound=35331937.404698543 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6219835184 target=91292927 bound=276093571.26821047 bits=146.280 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=91292927 target=10829234 bound=24325446.873703595 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=10829234 target=796706554 bound=12645243.857435727 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=796706554 target=50800392672 bound=50487231.085793085 bits=152.110 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=215398 prepare_s=0.018746361 prove_s=1.522192979 ready_s=1.5415232190000001 verify_s=0.704407524 negative_checks=7
+SIS_POLICY inner rank=25 width=6062 source=13054446290560 target=189787949712 bound=199951328413.90097 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=189787949712 target=1395745282 bound=2150721744.1231036 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1395745282 target=63858215 bound=116350904.11090066 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63858215 target=6189447479 bound=35245522.649341092 bits=161.120 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6189447479 target=92354502 bound=277694171.22480196 bits=146.015 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=92354502 target=10757544 bound=24244795.41495898 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=10757544 target=788699080 bound=12581536.478201699 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=788699080 target=46887967180 bound=48504130.146036841 bits=153.170 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=158488 prepare_s=0.015028917 prove_s=1.4910634680000001 ready_s=1.5062985530000002 verify_s=0.698508284 negative_checks=7
+SIS_POLICY inner rank=25 width=6062 source=13062824150085 target=189968899783 bound=200046625789.6001 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=189968899783 target=1393042734 bound=2148638539.8426099 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1393042734 target=63576020 bound=116093537.08743653 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63576020 target=6219835184 bound=35331937.404698543 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6219835184 target=91292927 bound=276093571.26821047 bits=146.280 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=91292927 target=10829234 bound=24325446.873703595 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=10829234 target=796706554 bound=12645243.857435727 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=796706554 target=50800392672 bound=50487231.085793085 bits=152.110 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10035-s3 receipts=814 packet_bytes=215398 prepare_s=0.015457553 prove_s=1.505103703 ready_s=1.521161736 verify_s=0.707089829 negative_checks=7
+SIS_POLICY inner rank=25 width=6062 source=13054446290560 target=189787949712 bound=199951328413.90097 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=189787949712 target=1395745282 bound=2150721744.1231036 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1395745282 target=63858215 bound=116350904.11090066 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63858215 target=6189447479 bound=35245522.649341092 bits=161.120 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6189447479 target=92354502 bound=277694171.22480196 bits=146.015 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=92354502 target=10757544 bound=24244795.41495898 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=10757544 target=788699080 bound=12581536.478201699 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=788699080 target=46887967180 bound=48504130.146036841 bits=153.170 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=00-h10012-s1 receipts=1 packet_bytes=158488 prepare_s=0.014858146 prove_s=1.504301694 ready_s=1.519352121 verify_s=0.704987374 negative_checks=7
+SIS_POLICY inner rank=25 width=6062 source=13055984795174 target=189566972399 bound=199834889050.05652 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=189566972399 target=1394190161 bound=2149523257.2830129 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1394190161 target=63682108 bound=116190358.1649906 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63682108 target=6249235634 bound=35415343.972441323 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6249235634 target=92905857 bound=278521852.782372 bits=146.015 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=92905857 target=11173936 bound=24709562.045279231 bits=151.050 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=11173936 target=834098671 bound=12938583.371620867 bits=147.605 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=834098671 target=57259414490 bound=53600824.447486252 bits=150.785 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=synthetic-positive receipts=4 packet_bytes=158698 prepare_s=0.015072639 prove_s=1.550435022 ready_s=1.565657033 verify_s=0.70835061 negative_checks=7
+SIS_POLICY inner rank=25 width=6062 source=13055467837167 target=189373430645 bound=199732850516.31934 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=189373430645 target=1393802705 bound=2149224552.1357365 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1393802705 target=63798920 bound=116296873.2464979 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63798920 target=6287175725 bound=35522687.352034613 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6287175725 target=91700128 bound=276708627.08720964 bits=146.280 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=91700128 target=10867127 bound=24367968.774178285 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=10867127 target=772749232 bound=12453668.610466879 bits=148.400 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=772749232 target=50118030132 bound=50147006.689365141 bits=152.375 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=synthetic-max-context receipts=1 packet_bytes=158488 prepare_s=0.014902609 prove_s=1.52289808 ready_s=1.537947866 verify_s=0.70689416 negative_checks=7
+SIS_POLICY inner rank=25 width=6062 source=13070270864163 target=190635976606 bound=200397550397.4498 bits=145.485 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2125 source=190635976606 target=1393723698 bound=2149163637.4202037 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1063 source=1393723698 target=63746582 bound=116249160.88245627 bits=149.725 finite=1 tail=0
+SIS_POLICY inner rank=12 width=532 source=63746582 target=6296147209 bound=35548022.862532541 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=14 width=570 source=6296147209 target=92207582 bound=277473201.66924751 bits=146.015 finite=1 tail=0
+SIS_POLICY inner rank=11 width=570 source=92207582 target=11004705 bound=24521733.075562175 bits=151.315 finite=1 tail=0
+SIS_POLICY inner rank=10 width=570 source=11004705 target=816881950 bound=12804353.747565709 bits=147.870 finite=1 tail=0
+SIS_POLICY inner rank=12 width=285 source=816881950 target=57618276920 bound=53768528.55284325 bits=150.785 finite=1 tail=1
+RECEIPT_BATCH_RESULT case=synthetic-1024-long-refunds receipts=1024 packet_bytes=230098 prepare_s=0.01545597 prove_s=1.5391621 ready_s=1.555303169 verify_s=0.717578483 negative_checks=7
+	Command being timed: "taskset -c 8 /data/illia/pq-tail-architecture-20261024/target/release/near-receipt-batch-unified /data/illia/pq-tail-architecture-20261024/receipt-batches-unified/00-h10035-s3.batch /data/illia/pq-tail-architecture-20261024/receipt-batches-unified/00-h10012-s1.batch /data/illia/pq-tail-architecture-20261024/receipt-batches-unified/00-h10035-s3.batch /data/illia/pq-tail-architecture-20261024/receipt-batches-unified/00-h10012-s1.batch /data/illia/pq-tail-architecture-20261024/receipt-batches-unified/synthetic-positive.batch /data/illia/pq-tail-architecture-20261024/receipt-batches-unified/synthetic-max-context.batch /data/illia/pq-tail-architecture-20261024/receipt-batches-unified/synthetic-1024-long-refunds.batch"
+	User time (seconds): 18.77
+	System time (seconds): 4.79
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:23.57
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4277948
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 6592532
+	Voluntary context switches: 768
+	Involuntary context switches: 2867
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 2592
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

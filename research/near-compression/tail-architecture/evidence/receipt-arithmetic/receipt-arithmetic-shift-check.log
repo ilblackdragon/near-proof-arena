@@ -1,0 +1,5 @@
+RECEIPT_ARITHMETIC cases=2910 accepted=2699 rejected=211 mutated_outputs_and_system_rejected=18893 log_witness=7
+
+thread 'main' (1032200) panicked at crates/binius/src/bin/near-receipt-arithmetic-check.rs:25:215:
+called `Result::unwrap()` on an `Err` value: TooFewColumns
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

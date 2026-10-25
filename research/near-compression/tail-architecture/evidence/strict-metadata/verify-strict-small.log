@@ -1,0 +1,7 @@
+TEMPLATE_SETUP {"message_slots":1056,"nominal_blocks":3232,"constructed_sha_blocks":3232,"root_bytes":50712,"witness_log_elems":20,"circuit_s":3.315858577,"setup_s":1.153713782}
+SIS_POLICY inner rank=24 width=4481 source=7274057501784 target=133135707489 bound=167470089330.21078 bits=140.185 finite=1 tail=0
+SIS_POLICY inner rank=17 width=1494 source=133135707489 target=1116413912 bound=1923506957.5230989 bits=147.075 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1494 source=1116413912 target=58153359 bound=111032157.17305684 bits=150.785 finite=1 tail=0
+SIS_POLICY inner rank=12 width=747 source=58153359 target=5539567232 bound=33343864.529045336 bits=162.445 finite=1 tail=0
+SIS_POLICY inner rank=13 width=374 source=5539567232 target=56041176 bound=108158673.69717467 bits=151.315 finite=1 tail=1
+LOCAL_WIRE_VERIFY bytes=206889 decode_s=0.00038815 verify_s=0.388501927 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true claim_outcome_matches=true full_near_validity=false

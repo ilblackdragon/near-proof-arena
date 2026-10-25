@@ -1,0 +1,10 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+    Finished `release` profile [optimized + debuginfo] target(s) in 24.91s
+     Running tests/commit_parallel.rs (/data/illia/pq-tail-architecture-20261024/target/release/deps/commit_parallel-2877d97fbeb734d7)
+
+running 1 test
+COMMIT_PARITY cases=210 matrix_raw_retained_transform_exact=true workspace_reused=true
+test parallel_matches_serial_matrix_raw_and_retained_transform ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

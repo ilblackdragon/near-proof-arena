@@ -1,0 +1,154 @@
+{
+  "status": "INTERVAL_LOCAL_CONSTRAINT_CHECK",
+  "air_sha256": "fa599b3b0c2dc786c295959ce92cfbbe73d74c4414b77979b436512a8ae3b452",
+  "trace": "/data/illia/pq-tail-architecture-20261023/live-native/00-h10035-s3/dump/rcpt.bin",
+  "height": 262144,
+  "width": 263,
+  "boundary_preparation_s": 0.23971179826185107,
+  "honest": {
+    "wall_s": 5.583911230321974,
+    "constraint_interval_evaluations": 32999727,
+    "dense_constraint_row_evaluations": 235929600,
+    "all_local_constraints_zero": true,
+    "failures": []
+  },
+  "mutants": [
+    {
+      "mutation": {
+        "row": 0,
+        "column": 0,
+        "value": 2
+      },
+      "wall_s": 5.65427365899086,
+      "constraint_interval_evaluations": 32999727,
+      "dense_constraint_row_evaluations": 235929600,
+      "all_local_constraints_zero": false,
+      "failures": [
+        {
+          "constraint": 203,
+          "first_bad_row": 0
+        },
+        {
+          "constraint": 389,
+          "first_bad_row": 0
+        },
+        {
+          "constraint": 508,
+          "first_bad_row": 0
+        },
+        {
+          "constraint": 585,
+          "first_bad_row": 0
+        },
+        {
+          "constraint": 609,
+          "first_bad_row": 0
+        }
+      ]
+    },
+    {
+      "mutation": {
+        "row": 777,
+        "column": 0,
+        "value": 2
+      },
+      "wall_s": 5.6424857741221786,
+      "constraint_interval_evaluations": 32999931,
+      "dense_constraint_row_evaluations": 235929600,
+      "all_local_constraints_zero": false,
+      "failures": [
+        {
+          "constraint": 203,
+          "first_bad_row": 777
+        },
+        {
+          "constraint": 389,
+          "first_bad_row": 777
+        },
+        {
+          "constraint": 508,
+          "first_bad_row": 777
+        },
+        {
+          "constraint": 585,
+          "first_bad_row": 777
+        }
+      ]
+    },
+    {
+      "mutation": {
+        "row": 262143,
+        "column": 0,
+        "value": 2
+      },
+      "wall_s": 5.660017852205783,
+      "constraint_interval_evaluations": 32999735,
+      "dense_constraint_row_evaluations": 235929600,
+      "all_local_constraints_zero": false,
+      "failures": [
+        {
+          "constraint": 121,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 129,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 389,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 508,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 509,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 510,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 511,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 584,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 585,
+          "first_bad_row": 262142
+        },
+        {
+          "constraint": 609,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 616,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 627,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 628,
+          "first_bad_row": 262143
+        },
+        {
+          "constraint": 636,
+          "first_bad_row": 262143
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Local constraints only; no bus-balance, commitment or succinct proof.",
+    "Coverage argument implemented algorithmically, not kernel-checked.",
+    "All 900 original receipt constraints retained; no altered relation.",
+    "Timings are Python/NumPy, not an optimized native/GPU comparison."
+  ]
+}

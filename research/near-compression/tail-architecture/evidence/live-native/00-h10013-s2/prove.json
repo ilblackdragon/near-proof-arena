@@ -1,0 +1,50 @@
+{
+  "capture_files_read": false,
+  "commitments_reused": true,
+  "compile_s": 0.284175072,
+  "context_s": 0.480573268,
+  "endpoint": {
+    "circuit_evaluation_s": 0.015205417,
+    "circuit_sha384": "844102e89f2d965fac3c81062cbc6edc9a487a0a65777b9c176616c627f40550571b69d43098332a1e2e3fea044a147f",
+    "codec_preserves_original_messages": true,
+    "compact_wire_bytes": 21216,
+    "decode_s": 0.010528174,
+    "decoded_proof_verified": true,
+    "layers": 9,
+    "limitations": [
+      "Caller must derive public circuit from verified frontend context.",
+      "Explicit input oracle, no hiding or input commitment authentication.",
+      "Diagnostic SHA384 transcript; no concrete Fiat-Shamir/QROM bound.",
+      "Single-thread component timings exclude circuit compilation and JSON parsing, and are not chunk end-to-end latency."
+    ],
+    "proving_s": 0.625890308,
+    "status": "SPARSE_ENDPOINT_GKR_WITH_EXPLICIT_ORACLE_NOT_ZK_OR_PCS",
+    "sumcheck_rounds": 187,
+    "tampered_round_input_linear_endpoint_and_line_rejected": true,
+    "verification_s": 0.039587314
+  },
+  "endpoint_including_checks_s": 0.843806722,
+  "frontend_and_stacking_proving_s": 10.904081269,
+  "generated_key_json_bytes": 3045747,
+  "generated_key_sha384": "ede642e0a0aa3f01b6fb126f55cf22d4868f19087e8b8ede2faa0a92f4c5b7403017105d5b08dac2462da37667809f8a",
+  "limitations": [
+    "No original base WHIR or transitional explicit-vector verification; separate packet verification is required.",
+    "Input is prepared trace dump, not execution from original chunk witness.",
+    "D0a only; no ZK or complete PQ bound; verifier derives key from trusted AIR, claim and declared profile."
+  ],
+  "packet_bytes": 279454,
+  "shared": {
+    "commitments_recomputed": false,
+    "preparation_s": 0.253166044,
+    "shared_bytes": 3072,
+    "shared_proving_s": 0.059885516,
+    "shared_verification_s": 0.003344774,
+    "status": "SHARED_OPENING_FROM_RETAINED_PCS",
+    "total_s": 5.709293934,
+    "whir_bytes": 216712,
+    "whir_proving_s": 5.380518612,
+    "whir_verification_s": 0.002359521
+  },
+  "status": "SINGLE_PASS_DECLARED_PROFILE_PACKET_FROM_PREPARED_TRACE",
+  "total_s": 18.284484756
+}

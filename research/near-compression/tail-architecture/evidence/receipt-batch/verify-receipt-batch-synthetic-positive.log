@@ -1,0 +1,7 @@
+RECEIPT_BATCH_SETUP log=20 public_bytes=92248 left_rank=4 opening_rank=11 norms=36 binary_rank=1536 circuit_s=2.981731742 setup_s=0.787104252
+RECEIPT_BATCH_VERIFY bytes=209378 decode_s=0.000197521 verify_s=0.620369036 no_witness_loaded=true backend_roundtrip=true wrong_context_tape_rejected=true full_near=false
+SIS_POLICY inner rank=23 width=4481 source=4574220772125 target=59909132063 bound=56197681369.378914 bits=148.930 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1494 source=59909132063 target=475538832 bound=630130820.46935534 bits=143.365 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1575 source=475538832 target=41221610 bound=47459639.307089552 bits=153.700 finite=1 tail=0
+SIS_POLICY inner rank=11 width=788 source=41221610 target=4415737257 bound=29770054.256398793 bits=146.810 finite=1 tail=0
+SIS_POLICY inner rank=13 width=394 source=4415737257 target=52042613 bound=104228690.12930918 bits=152.110 finite=1 tail=1

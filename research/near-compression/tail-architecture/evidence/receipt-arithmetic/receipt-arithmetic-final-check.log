@@ -1,0 +1,2 @@
+RECEIPT_ARITHMETIC cases=2910 accepted=2699 rejected=211 mutated_outputs_and_system_rejected=18893 log_witness=7
+ARITHMETIC_PCS_NOT_RUN reason=below_minimum_geometry required_log_at_least=8 actual_log=7 next=combine_with_outcome_hash

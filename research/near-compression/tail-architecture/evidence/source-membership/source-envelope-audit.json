@@ -1,0 +1,10 @@
+{
+  "status": "HOST_ENVELOPE_MEMBERSHIP_CHECKED_INNER_PROOF_MATCHES_PREVIOUS_VERIFIED_PACKET",
+  "bytes": 244900,
+  "sha256": "665e8e93a29ec6d6d0873ce490ff2c810254e513934fc2e5a9f2b7840de4cdbc",
+  "negative_checks": 11,
+  "inner_packet_sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+  "inner_verification_evidence": "evidence/parallel-jl/manifest.json",
+  "extra_bytes": 86,
+  "whole_chunk_validity": false
+}

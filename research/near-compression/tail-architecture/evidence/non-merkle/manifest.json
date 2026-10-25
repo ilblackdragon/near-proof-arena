@@ -1,0 +1,75 @@
+{
+  "status": "NATIVE_OUTCOME_TREE_COMPONENT_NOT_FULL_NEAR_OR_PQ128",
+  "base_lane_commit": "6876b9f0a",
+  "labinius_revision": "96b57f724fc15c8e40495015c01dc3e6d8dfe595",
+  "binary_sha256": "a4ca68d3947b6d2a5736fbda1067e9346689f23bd13b7e53ad150f7d16fa135c",
+  "source_sha256": {
+    "near-hash-non-merkle.rs": "c44f9caf75ad2516da036271b4f315bd3f81b2d23369ab6d5f6b0a3f20b12f93",
+    "near-merkle-wire-check.rs": "4005569d6fe5127e684f16d21d4ca5d1dccc171a40d18d3b5ef2bb24c0491fa5",
+    "support/non_merkle_wire.rs": "af68d28b53749ed37d8a6a3a67c39cefc3f90c65ded63985865152eb19aceb85",
+    "support/local_wire_non_merkle.rs": "b8cb2acfc0075fc77fb3599a23d9bb20a5e362af6ffee54b20282d55d0cf85ae",
+    "support/event_wire.rs": "521185deb1f24dbac00654bb05bef6f498c1431d69b4ae52444a509c96492f69"
+  },
+  "run_cpu": 8,
+  "virtual_memory_limit_KiB": 16777216,
+  "peak_RSS_KiB": 4305412,
+  "warm_runs": [
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 1647,
+      "prepare_s": 0.015373888,
+      "prove_s": 1.5008029999999999,
+      "ready_s": 1.5170122689999999,
+      "verify_s": 0.699775063,
+      "analytic_proof_bytes": 130924,
+      "public_bytes": 99096,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 12,
+      "prepare_s": 0.0153124,
+      "prove_s": 1.466926659,
+      "ready_s": 1.482582248,
+      "verify_s": 0.695330661,
+      "analytic_proof_bytes": 130717,
+      "public_bytes": 99096,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10035-s3/sha_r.batch",
+      "messages": 1647,
+      "prepare_s": 0.01556116,
+      "prove_s": 1.4891410299999999,
+      "ready_s": 1.505673188,
+      "verify_s": 0.718991236,
+      "analytic_proof_bytes": 130924,
+      "public_bytes": 99096,
+      "negative_checks": 6
+    },
+    {
+      "path": "/data/illia/pq-tail-architecture-20261024/corpus-hash-export/00-h10012-s1/sha_r.batch",
+      "messages": 12,
+      "prepare_s": 0.015229932,
+      "prove_s": 1.478664223,
+      "ready_s": 1.494360377,
+      "verify_s": 0.717854731,
+      "analytic_proof_bytes": 130717,
+      "public_bytes": 99096,
+      "negative_checks": 6
+    }
+  ],
+  "fresh_verification": {
+    "large": "LOCAL_WIRE_VERIFY bytes=225985 decode_s=0.000613049 verify_s=0.664056901 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true",
+    "small": "LOCAL_WIRE_VERIFY bytes=158950 decode_s=0.000203054 verify_s=0.656226365 backend_byte_roundtrip=true wrong_root_rejected=true wrong_tape_rejected=true no_witness_loaded=true"
+  },
+  "packet_sha256": {
+    "00-h10012-s1.packet": "ac2871c1233bff1a51a408e5ca59c600745b50337c5caca3c8558d853a0be0ac",
+    "00-h10035-s3.packet": "93ea2b87536233249b9584469a71442ac4ac088b02e40c753fcc760d2ddc139b"
+  },
+  "limitations": [
+    "Four timing observations are not p95; original witness export excluded.",
+    "Only backend scalar model audited for new geometry; no composed PQ128 claim.",
+    "Job root not linked by proof to final NEAR claim; execution/history open."
+  ]
+}

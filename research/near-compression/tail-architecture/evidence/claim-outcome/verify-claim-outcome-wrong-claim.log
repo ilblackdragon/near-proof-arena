@@ -1,0 +1,5 @@
+TEMPLATE_SETUP {"message_slots":1056,"nominal_blocks":3232,"constructed_sha_blocks":3232,"root_bytes":50712,"witness_log_elems":20,"circuit_s":3.316612699,"setup_s":1.146863322}
+
+thread 'main' (967178) panicked at crates/binius/src/bin/near-hash-claim-outcome.rs:51:76:
+outcomes bound to caller claim: "claim outcome root mismatch"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

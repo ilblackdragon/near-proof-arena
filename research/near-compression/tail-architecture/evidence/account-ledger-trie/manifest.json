@@ -1,0 +1,166 @@
+{
+  "status": "IN_CIRCUIT_TRIE_MEMBERSHIP_FOR_ACCOUNT_TABLE_NOT_FULL_STATE_VALIDITY",
+  "base_lane_commit": "3e18aa43b",
+  "relation": {
+    "packet_version": "NPMULT03",
+    "statement_head": "prev_state_root[4] public words, claim-derived",
+    "chain_profile": "5 shared nodes, roles [Branch,Branch,Branch,Ext,Branch] + per-row leaf",
+    "trie_fixture": "NPMTRIE01 binary, 2,057 B per case",
+    "witness_log": 23,
+    "public_words": 11935,
+    "private_words": 10890969,
+    "and_constraints": 4191241,
+    "circuit_s": 18.0,
+    "note": "16 slots / 5-node shared chain / 331 B max node are explicit profile bounds, not universal"
+  },
+  "prover_verifier_binary_sha256": "3513de35bf5283709684215a03dc39afd8a60612d6462c32786f9123bc44664f",
+  "cases": [
+    {
+      "case": "00-h10035-s3",
+      "counts": [
+        1,
+        9,
+        804
+      ],
+      "accounts": 10,
+      "packet_bytes": 250126,
+      "envelope_bytes": 250352,
+      "warm_ready_s": 3.082143362,
+      "fresh_verify_s": 1.521309349,
+      "peak_rss_kib": 13323076,
+      "prev_state_root": "7156f54529bf89bbf47349de72f8b992341c7e1ef5e9f0f54940fadc71d6d55b",
+      "host_mutations_rejected": 141,
+      "in_proof_table_mutations_rejected": 112,
+      "in_proof_root_mutation_rejected": true
+    },
+    {
+      "case": "00-h10036-s3",
+      "counts": [
+        0,
+        0,
+        711
+      ],
+      "accounts": 10,
+      "packet_bytes": 250126,
+      "envelope_bytes": 250352,
+      "warm_ready_s": 2.983031085,
+      "fresh_verify_s": 1.476946846,
+      "peak_rss_kib": 13317596,
+      "prev_state_root": "2ee62d9e7cd2584fb4b72405739a5b23cd5293e59c5b24a115b8c8d37499f556",
+      "host_mutations_rejected": 141,
+      "in_proof_table_mutations_rejected": 112,
+      "in_proof_root_mutation_rejected": true
+    }
+  ],
+  "baseline_comparison": {
+    "baseline": "NPMULT02 post-padding-fix (commit 3e18aa43b)",
+    "packet_bytes_delta": 32,
+    "and_delta": 103449,
+    "private_delta": 195129,
+    "warm_delta_s": [
+      -0.008,
+      -0.15
+    ],
+    "verify_delta_s": [
+      0.01,
+      -0.025
+    ],
+    "rss_delta_kib": [
+      208804,
+      292856
+    ],
+    "note": "Single observations; the in-circuit trie adds ~2.5% AND, +32 B statement root words, negligible latency change within run noise."
+  },
+  "outlier_note": "One prove run of 00-h10036-s3 produced a 295,038 B packet (LaBRADOR terminal tail block appeared when the deepest reduction crossed rank 13). Three repeat runs and both final runs measured 250,126 B. The backend export size is witness-shape dependent and occasionally crosses the tail threshold; both sizes are under 300,000 B. Not a p95 claim.",
+  "in_circuit_constraints": [
+    "each shared node + per-row leaf/value hashed in-circuit via tight_sha over reconstructed node_ser",
+    "chain top hash == public prev_state_root",
+    "branch child at rank(key nibble) == next node hash; ext child == next node hash",
+    "leaf value_ref == u32le(72)||sha256(72B initial value)",
+    "value balance/locked/storage == public table row words; storage high word zero",
+    "key-path correspondence: key=nibbles(0x00||name) from public name wires; branch nibble consumption; ext/leaf fragment equality; path end == 2*(1+name_len)",
+    "walked nibbles must be set bitmap bits",
+    "empty table: shared witness zeroed, constraints gated on has-accounts (root host-checked only there)"
+  ],
+  "rejection_evidence": {
+    "prior_rejections": {
+      "forged_repeat_balance": ".list-1.slot-4.account-bind.before-balance-0-0",
+      "boundary_padding_exploit": ".account-table.account-0.name-padding-0-5",
+      "forged_receiver_padding": ".list-1.slot-0.account-bind.exactly-one-match",
+      "dup_name": ".account-table.distinct-names-0-11",
+      "wrong_initial": ".trie-constraints.r0-vref-hash-0 (trie value binding)",
+      "wrong_final": ".account-finalize.final-balance-0-0",
+      "wrong_locked": ".trie-constraints.r0-vref-hash-0",
+      "nonzero_inactive_row": ".account-table.account-10.inactive-zero-10-1",
+      "inert_uncovered_row": ".trie-constraints.leaf10-hp-len-range"
+    },
+    "trie_negatives": {
+      "wrong_root_word": ".trie-constraints.trie-root-0",
+      "mutated_node_byte": ".trie-constraints.link-b1-0",
+      "mutated_leaf_vref": ".trie-constraints.r0-leaf-link-0 + r0-vref-hash",
+      "swapped_chain": ".trie-constraints.r0-leaf-link-0",
+      "duplicate_initial_swap": ".trie-constraints.r0-leaf-link-0 (key-nibble selection rejects despite identical value hashes)",
+      "corrupted_branch_bitmap": ".trie-constraints.branch-3-kids-overflow + hash-branch-3.len_check"
+    }
+  },
+  "trust_boundary": {
+    "in_circuit": "node hash chains, root binding, child links, leaf value binding, key-path correspondence",
+    "trusted_local_export": "NPMTRIE01 witness fixture (native partial-trie walk); verification of it is in-circuit",
+    "host_audited_only": "empty-table prev_state_root (no accounts to bind); native claim parsing and source/order derivation remain trusted",
+    "python_reference": "audit_account_paths.py re-verifies the same relation host-side incl. key-path correspondence; multi_statement.py checks statement root against claim-derived value"
+  },
+  "open_obligations": [
+    "variable-depth/variable-shape trie chains (current profile: fixed 5-node shared chain, roles asserted)",
+    "post-state root and full state-transition semantics",
+    "access keys, routing/domain predicates, general actions/Wasm, scheduling",
+    "recursive bounded history, composed PQ security, zero knowledge",
+    "hostile C decoder safety",
+    "the 1-2 second deadline"
+  ],
+  "evidence_sha256": {
+    "account-trie-path-export.rs": "ed9ded81c26ece086bc1063dd24dbb7b028c7816e9c25bbfdb96124209a71ea5",
+    "audit_account_paths.py": "1bd8dec67c1907bf5aca83033b30212b3bc04acf8dd44d2bd4dbc0764bf81b37",
+    "audit_multi_statement.py": "87362de273276043fb0d245a18e2930f14a89cb4b3eb69b84e3badba5aa00b40",
+    "empty-trie.bin": "22d8af32627500d60ac10e21350a187d36005ad997ce92cbc584a17c899f9ade",
+    "multi711-audit.json": "df14c97f5be0c2220935644795874d40a59e713ae1362660d08c73851f943b61",
+    "multi711.envelope": "9be9ea85489346c9ab78041bf5d39b29aa56fae474d21c533e5ef006fe102435",
+    "multi804-audit.json": "1313a82c50633c176c63a07d46be2fc7ca7b3b82a1be1812de9f27101187eb2e",
+    "multi804.envelope": "c5e6be739d38648c1182bf45a4f1e5f2137ff91f8fb7bd052845b41148c15018",
+    "multi_statement.py": "2feb677b3e586f13def769a783675778aaf28d4b17d008d0daf8772be2a05b4c",
+    "near-receipt-multi.rs": "882ecb01dace387bc0b93c09d9c561e15954735c42606540f8b10eefaaf67574",
+    "paths-00-h10035-s3-audit.json": "c08dd0ef412f52a0fb53f22a5a71795a84aa1fdfb6d8d86c62333b7349fc1327",
+    "paths-00-h10036-s3-audit.json": "df75123285f8e42157ea9294951f8cdc2745958d2fff51e14bfad3120866449a",
+    "prove711.log": "8febe3684900817ff66bb870bfe1ce2c16cb1efabe030fd2f15314d9bc6e0a9d",
+    "prove804.log": "914bb552ca7f721b10a8ebd0e127d9ebda9c0944a107879d6e51557a9310d52f",
+    "receipt_account_ledger.rs": "539aa5451ef7dea7dac689a8589e6aff129d7b0b681c7aa6c3e24047069162bd",
+    "receipt_account_trie.rs": "6f1dc89865858edd63042e463cecf8bb79ee5922fa7ea9e49ea6744b3a8f010a",
+    "receipt_multi_wire.rs": "e8d1e47b55ba9b60b6be3b454d0ba5f9374a57e7abb32662e0dff2f82801f5a7",
+    "reject-boundary.log": "3ad0cc8c8e5b27ab61c90158dfb2da9496a07625ad3e74c6802c460ae9c07b4c",
+    "reject-dup-name.log": "7d56eb07f6e2adf0b9595bed878818f35a6c8a4dd28dadacd905001b89ada348",
+    "reject-forged.log": "a0d9355bee02a515ebc50ce5d4e19637badbbb9dcff5da0ca23146b174e0af2f",
+    "reject-inert-account.log": "910c53a990beec565a2a00e7e372d4acef71cea2c23a9371d8f872f818ff6168",
+    "reject-nonzero-inactive.log": "061fdd345bf7a958be02f2e77bd4bf705e57e8d30622300fe6b050d4c330cd9b",
+    "reject-recvpad.log": "7673e7b543af235ca83abd2383d699c30a00c4f89d6a9149c2d111d162be2b00",
+    "reject-trie-bad-bitmap.log": "9f9039ceec138b808b790764da9501e1b21cfe76b16d175b8e179972a3aea5dd",
+    "reject-trie-bad-node.log": "47644d0f0f610470fe775636bb05eb446932f01c2b22e7140462cfd3617d9e0a",
+    "reject-trie-bad-root.log": "3a9ec18fc54417c1403be4c6924661c02ec37005a16d5957912c1c5e68f01d8e",
+    "reject-trie-bad-vref.log": "e944e7b83de4a465d1bd4f9d0e8eb86c17c51166a583e362b195d263637135ca",
+    "reject-trie-dup-init-swap.log": "0c9bc4bc3a4954c27476dc5f42b9531f4bac9bcb9477ea0c3e4f0d5fe594ebfe",
+    "reject-trie-swap-leaf.log": "0c9bc4bc3a4954c27476dc5f42b9531f4bac9bcb9477ea0c3e4f0d5fe594ebfe",
+    "reject-wrong-final.log": "fcabf848d94831497e18c0901cc8771c339eb69c3f7a57668147307e42ce19aa",
+    "reject-wrong-initial.log": "1d9ad82fa9383345d690363d6ad75694ad8af694d5be383e349fd7eef2b52f99",
+    "reject-wrong-locked.log": "312dd78999b4dc3fb58f1974a235f2614d8930674c7def9b6ecd0aff3028d68f",
+    "trie-00-h10035-s3.bin": "7a45811f1e9ac2fabe1d0995a0a62d08f82d34cd607497cf3d3b49122aef4d3e",
+    "trie-00-h10035-s3.json": "7d5b47c284a0e8f658b7870d9ad37d94106a937e9e148c5f0974e565d9e6c7f5",
+    "trie-00-h10036-s3.bin": "58b51ecfcbf89ee64bc26cbe328e66d89e30f201c1f20a547b8fa7449d341188",
+    "trie-00-h10036-s3.json": "2e00df1b63c338d326e5a64e1663699687abfebc912cd02b5186b0392a07bf4a",
+    "trie-bad-bitmap.bin": "2b464cab02184bde50ee3ad4a350e8e639b0f0a60ee9baf9d996f86e4558ed77",
+    "trie-bad-node.bin": "ad4f6b2fda96ead7d5a7be05bbf27fe6388caa415a5a26569c462c445bc15780",
+    "trie-bad-root.bin": "88cc3bcf1ccc1aa348fb8db98f8fcebc4db57449dd31036f1662e54e84b92d64",
+    "trie-bad-vref.bin": "1793505b5184ba25b948f8619d0071f26355aa9846c8adf2fd4d8c8748d43936",
+    "trie-dup-init-swap.bin": "1e2a5a82b1a8daa7da5ec0763cd84ac2f70181ec46ca4af8ad07217045bdf60d",
+    "trie-swap-leaf.bin": "1f0effb73a0c7327aa0ef34b25248ecc44e77a810dcdc4279d740ecfa74e1626",
+    "verify711.log": "b7e989d9358900e45f55dc2432311fbd1787fd8390e7b34caed6d10e264b2f97",
+    "verify804.log": "a3febb5b8682a2ea2c48c0fe9506776679bb5ddb2da115baf541727cdd0088e3"
+  }
+}

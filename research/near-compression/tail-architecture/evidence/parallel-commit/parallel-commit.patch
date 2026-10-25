@@ -1,0 +1,79 @@
+--- a/crates/pcs/src/key.rs
++++ b/crates/pcs/src/key.rs
+@@ -233,6 +233,59 @@
+         VerticallyAlignedMatrix::new(4, r, data)
+     }
+ 
++    /// Deterministic column-group parallelism. Workers share only immutable key
++    /// and witness data; each owns disjoint auxiliary batches and scratch space.
++    /// Joining in column order preserves exactly the serial commitment/fold input.
++    pub fn commit_into_aux_parallel(
++        &self, witness: &[F162], r: usize, aux: &mut AuxData, workers: usize,
++    ) -> VerticallyAlignedMatrix<PowerOfThreeRingElementWithLimbs> {
++        self.check_witness(witness, r);
++        assert!((1..=32).contains(&workers), "worker count must be 1..=32");
++        let g = cm::GROUP.min(r);
++        if workers == 1 || r == g { return self.commit_into_aux(witness, r, aux); }
++        let bpc = self.a[0].len();
++        assert!(aux.chunks == r && aux.batches.len() == r*bpc && aux.raw.len() == self.limbs());
++        for v in &mut aux.raw { v.clear(); }
++        let limbs = self.limb_list();
++        let nl = limbs.len();
++        let per_worker = (r/g).div_ceil(workers.min(r/g))*g;
++        let outputs = std::thread::scope(|scope| {
++            let mut jobs = Vec::new();
++            for (worker, batches) in aux.batches.chunks_mut(per_worker*bpc).enumerate() {
++                let count = batches.len()/bpc;
++                let offset = worker*per_worker;
++                let input = &witness[offset*self.len_f162..(offset+count)*self.len_f162];
++                let limbs = &limbs;
++                jobs.push(scope.spawn(move || {
++                    let mut st = cm::Scratch::with_group(limbs, g);
++                    let mut raw = vec![[0u32; N]; g*nl];
++                    let mut data = Vec::with_capacity(4*count);
++                    let mut kept: Vec<Vec<[u32; N]>> = (0..nl).map(|_|Vec::with_capacity(count)).collect();
++                    let mut chunks: [&[F162]; cm::GROUP] = [&[]; cm::GROUP];
++                    for c0 in (0..count).step_by(g) {
++                        for (i, chunk) in chunks[..g].iter_mut().enumerate() {
++                            *chunk = &input[(c0+i)*self.len_f162..(c0+i+1)*self.len_f162];
++                        }
++                        cm::commit_limbs_group(&chunks[..g],limbs,
++                            Some(&mut batches[c0*bpc..(c0+g)*bpc]), &mut st, &mut raw);
++                        for y in raw.chunks_exact(nl) {
++                            data.extend(self.components(y));
++                            for (k,v) in y.iter().enumerate() { kept[k].push(*v); }
++                        }
++                    }
++                    (data, kept)
++                }));
++            }
++            jobs.into_iter().map(|j|j.join().expect("commit worker panicked")).collect::<Vec<_>>()
++        });
++        let mut data = Vec::with_capacity(4*r);
++        for (part, kept) in outputs {
++            data.extend(part);
++            for (out, rows) in aux.raw.iter_mut().zip(kept) { out.extend(rows); }
++        }
++        VerticallyAlignedMatrix::new(4,r,data)
++    }
++
+     fn check_witness(&self, witness: &[F162], r: usize) {
+         assert!(r.is_power_of_two(), "r must be a power of two");
+         assert_eq!(
+--- a/crates/pcs/src/scheme/prover.rs
++++ b/crates/pcs/src/scheme/prover.rs
+@@ -60,9 +60,11 @@
+         let mut aux = self.workspace.take().unwrap_or_else(|| {
+             AuxData::new(self.key.len_ring(), self.params.columns(), self.key.limbs())
+         });
+-        let matrix = self
+-            .key
+-            .commit_into_aux(&witness.elements, self.params.columns(), &mut aux);
++        let workers = std::env::var("LABINIUS_COMMIT_THREADS").ok()
++            .map(|s|s.parse::<usize>().expect("invalid commit worker count")).unwrap_or(1);
++        assert!((1..=32).contains(&workers), "commit workers must be 1..=32");
++        let matrix = self.key.commit_into_aux_parallel(
++            &witness.elements, self.params.columns(), &mut aux, workers);
+         let columns = matrix.cols();
+         let primes = self.params.primes();
+         let (value, residues) = match &self.setup {

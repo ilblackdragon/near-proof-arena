@@ -1,0 +1,112 @@
+{
+  "status": "EXPORT_STRUCTURE_ONLY_NOT_VERIFIED_FROM_BYTES",
+  "packets": [
+    {
+      "file": "/data/illia/pq-tail-architecture-20261024/exported-proofs/00-h10035-s3.packet",
+      "bytes": 165950,
+      "sha256": "e5a2e45cec63d52275a1749bc7da4afaba6dd8b264490dd16520aaef18a750fe",
+      "sections": {
+        "public_root": 64,
+        "tape": 28249,
+        "claimed_f162": 21,
+        "left_rns": 4096,
+        "opening_rns": 9216,
+        "norms": 192,
+        "labrador": 124048
+      },
+      "backend": {
+        "levels": [
+          {
+            "multiplicity": 51,
+            "tail": 0,
+            "u1_polys": 6,
+            "u2_polys": 6,
+            "bytes": 7736
+          },
+          {
+            "multiplicity": 3,
+            "tail": 0,
+            "u1_polys": 4,
+            "u2_polys": 4,
+            "bytes": 5432
+          },
+          {
+            "multiplicity": 3,
+            "tail": 0,
+            "u1_polys": 5,
+            "u2_polys": 5,
+            "bytes": 6200
+          },
+          {
+            "multiplicity": 2,
+            "tail": 1,
+            "u1_polys": 70,
+            "u2_polys": 9,
+            "bytes": 32680
+          }
+        ],
+        "terminal_parts": 2,
+        "terminal_polys": 542,
+        "terminal_coefficient_bytes": 69376
+      },
+      "framing_mutants_rejected": 3
+    },
+    {
+      "file": "/data/illia/pq-tail-architecture-20261024/exported-proofs/00-h10012-s1.packet",
+      "bytes": 165950,
+      "sha256": "7e8c09f7c9766e57711dac13c8d3d8cacd565efdb470cb9ab26c60545d14d22a",
+      "sections": {
+        "public_root": 64,
+        "tape": 28249,
+        "claimed_f162": 21,
+        "left_rns": 4096,
+        "opening_rns": 9216,
+        "norms": 192,
+        "labrador": 124048
+      },
+      "backend": {
+        "levels": [
+          {
+            "multiplicity": 51,
+            "tail": 0,
+            "u1_polys": 6,
+            "u2_polys": 6,
+            "bytes": 7736
+          },
+          {
+            "multiplicity": 3,
+            "tail": 0,
+            "u1_polys": 4,
+            "u2_polys": 4,
+            "bytes": 5432
+          },
+          {
+            "multiplicity": 3,
+            "tail": 0,
+            "u1_polys": 5,
+            "u2_polys": 5,
+            "bytes": 6200
+          },
+          {
+            "multiplicity": 2,
+            "tail": 1,
+            "u1_polys": 70,
+            "u2_polys": 9,
+            "bytes": 32680
+          }
+        ],
+        "terminal_parts": 2,
+        "terminal_polys": 542,
+        "terminal_coefficient_bytes": 69376
+      },
+      "framing_mutants_rejected": 3
+    }
+  ],
+  "cryptographic_verification_from_bytes": false,
+  "limitations": [
+    "No native decoder or fresh-process proof verification yet.",
+    "RNS images are implementation-specific; no portable canonical codec claim.",
+    "Statement, capacity policy and setup identity are external pinned context.",
+    "No full NEAR relation, recursive history or composed PQ claim."
+  ]
+}

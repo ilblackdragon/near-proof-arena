@@ -1,0 +1,32 @@
+{
+  "status": "HOST_SOURCE_MEMBERSHIP_WITH_TRUSTED_NATIVE_CLAIM_DERIVATION",
+  "base_lane_commit": "b4c5b9439",
+  "claim_corpus": "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0",
+  "binary_sha256": {
+    "source-auth-export": "2e0ac4c9afcefa7f92e8c6e54048eaa1c15c0d9787b948c221c2b528f6296a03",
+    "source-roots-export": "4aeb0db4eba2c0f33b7383aa05b9f102eca4d9620f563f4ae5d65a0bf50ef5c3"
+  },
+  "native_source_sha256": {
+    "v3/d0.rs": "3117616bfae2c74edbbe8469bb20e8d47da234e0613609bd2e8b8d3edd1b80f0",
+    "v3/hint.rs": "ca98426343c70e94059c6d87d05ae6f4e7f2e595bc85de4f2304d631e49d0afd",
+    "near/spec.rs": "f685d5ef64ac1bc8d3540a0281b14c7293f87c9657a1720f32b56445180925d2"
+  },
+  "export_lock_sha256": "db5ff65e031e58d3e7759efe4d92e04c9ff794c6274c890a6d42dbd23a4073b1",
+  "evidence_sha256": {
+    "source-membership-audit.json": "2170440c58040faf515b49e0df8a1d8249a9be2daafc897ef029b86d47375744",
+    "source-roots.json": "056fb2520f9099aabfba9f16c964507efbcae10e5eb1108d672daacfe5fe2c24",
+    "Cargo.toml": "36e73832a24be0bfc77cf905624d120f388756dd0bd872ab93302c1a52952c2a",
+    "source-roots-export.rs": "314088590f20fbc1aeca62706dc8214642ecda3978cf2edbf04ed4637da9506e",
+    "source-auth-export.rs": "25b3d74c74c3910c4a8ece09512dac8888107da7897ec7d22b8bc279bb294b7c",
+    "source-auth.json": "92b9c1ef124d600915a0db04313191e664725471af9a92900b154dca3ac084c4",
+    "source-envelope-audit.json": "cd2e9006c7c2aa9fd20838a29c1a9ec53b7be6cb882326ad935774f932cdba6a",
+    "build-source-roots-export.log": "7cd7202f447c70a0ed4c15312e3271b7fe8a7aaa4b51a7e3852ea9c2e6b9c4fe",
+    "build-source-auth-export.log": "d4cd12eee62afbf474c25d63442d0a56671f136fbacb56f85b1a051aa9ad022d"
+  },
+  "limits": [
+    "Claim-only native prep is trusted, not proved inside this packet.",
+    "Source membership does not establish complete ordered execution or full NEAR.",
+    "Inner packet hash links to fresh old-verifier result in parallel-jl evidence.",
+    "Full final system latency, recursion and composed PQ remain unestablished."
+  ]
+}

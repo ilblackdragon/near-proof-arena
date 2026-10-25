@@ -1,0 +1,30 @@
+{
+  "canonical_roundtrip": true,
+  "captured_endpoint_context_read": false,
+  "changed_column_evaluation_rejected": true,
+  "changed_column_leaf_rejected": true,
+  "changed_column_root_rejected": true,
+  "changed_endpoint_proof_rejected": true,
+  "changed_point_rejected": true,
+  "changed_trace_evaluation_rejected": true,
+  "entire_component_statement_checked_against_live_derivation": true,
+  "fixed_public_tape_values_bound": 43,
+  "limitations": [
+    "Packet assembled from saved components; live single-pass prover remains.",
+    "External expected claim, AIR and verifying key are required; cross-chunk setup reuse remains unestablished.",
+    "No zero knowledge or concrete complete protocol security bound."
+  ],
+  "native_compile_s": 0.225423165,
+  "no_witness_oracle": true,
+  "packet_bytes": 258788,
+  "public_data_regenerated_from_claim_and_packet_hint": true,
+  "public_preparation_s": 0.02859759,
+  "shape_mutations_rejected": 17,
+  "stacking_context_derived_and_checked": true,
+  "statement_sidecar_read": false,
+  "status": "COMPACT_PACKET_VERIFIED_FROM_EXPECTED_CLAIM",
+  "supplied_sparse_circuit_read": false,
+  "verification_including_native_compilation_s": 0.768156408,
+  "wire_mutations_rejected": 9,
+  "wire_preflight_s": 5.3e-6
+}

@@ -1,0 +1,16 @@
+diff --git a/crates/pcs/src/labrador/mod.rs b/crates/pcs/src/labrador/mod.rs
+index b5b6e9b..ff2e3cb 100644
+--- a/crates/pcs/src/labrador/mod.rs
++++ b/crates/pcs/src/labrador/mod.rs
+@@ -680,0 +681,11 @@ impl ProofHandle {
++    /// Experimental export-only encoding. No receiver/decoder is established.
++    pub fn export_bytes(&self) -> Vec<u8> {
++        let _guard = labrador_lock();
++        let n = unsafe { ffi::bn_export_proof(self.composite,self.commitment,std::ptr::null_mut(),0) };
++        assert!(n > 0 && n < 16*1024*1024);
++        let mut bytes = vec![0;n];
++        let written = unsafe { ffi::bn_export_proof(self.composite,self.commitment,bytes.as_mut_ptr(),n) };
++        assert_eq!(n,written);
++        bytes
++    }
++

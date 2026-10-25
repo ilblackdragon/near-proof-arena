@@ -1,0 +1,60 @@
+{
+  "status": "BACKEND_PROFILE_ONLY_NO_NEW_SPEEDUP_OR_FULL_NEAR_CLAIM",
+  "base_lane_commit": "ebcb164f3",
+  "backend_source_sha256": {
+    "chihuahua.c": "7659343fe34fc8e26c52d404deda3b3d1485f9f25cc22bef08e2ebd2ec647719",
+    "labrador.c": "01a215be63213067f926df48964e00ecf0d3ba4efcc05d8a6dac580eb46064a0",
+    "dachshund.c": "5b5e3447959c4dd20cd988c8d329f513fe13c3f00d98cc5d54dd5ce8b985248d",
+    "np_profile.h": "3c8405590245cb32f9c5bae753219f644a0f27421278d645c1e4a17c2f3d1364",
+    "Makefile": "2df91c6e52a84ec90a2f3ef602cb87c48dadf5663d671b3780589d6726b5ca43"
+  },
+  "rust_source_sha256": "b428424f2fe0c25b6041f790390f999b5b6a4b57a4fbd670b2dd3162c409a2d6",
+  "prover_binary_sha256": "ad0caab876f4b93e9cff54852e649137bfe61ed7cbec39e288a26e5d89148b11",
+  "old_verifier_binary_sha256": "b638d284498aeb743fcac01f196ad202b9d471e76b59935c7f3798ea6cb50c3f",
+  "packet": {
+    "bytes": 244814,
+    "sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+    "public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8"
+  },
+  "timings": {
+    "c_stage_totals_ms": {
+      "simple/setup": 0.045061,
+      "simple/commit": 213.999748,
+      "simple/project": 170.134544,
+      "simple/constraints_eval": 33.115864,
+      "simple_detail/lift_jl": 157.18722400000001,
+      "simple_detail/lift_scalars": 36.396026,
+      "simple_detail/lift_simple": 77.38566399999999,
+      "simple_detail/lift_aggregate": 182.46269199999998,
+      "simple/constraints_lifts": 453.484058,
+      "simple/constraints_apply": 92.109203,
+      "simple/aggregate": 128.269434,
+      "simple/amortize": 211.348534,
+      "simple/refresh": 13.79776,
+      "recursive/setup": 0.705481,
+      "recursive/commit": 20.909786,
+      "recursive/project": 20.383596999999998,
+      "recursive/constraints": 66.36285899999999,
+      "recursive/aggregate": 12.979030999999999,
+      "recursive/amortize": 15.088559,
+      "recursive/refresh": 3.2224649999999997
+    },
+    "rust_boundary_ms": {
+      "checks": 10.761571,
+      "raw_statement": 0.272632,
+      "raw_witness": 1.960173,
+      "composite_prove": 1456.23102
+    },
+    "note": "simple_detail phases are nested within simple/constraints_lifts; do not add them twice."
+  },
+  "validation": [
+    "RECEIPT_LIST_VERIFY bytes=244814 seconds=1.585731725 no_witness_loaded=true backend_roundtrip=true negative_checks=4"
+  ],
+  "notes": [
+    "C timing uses timespec_get/TIME_UTC phase intervals; Rust uses Instant.",
+    "simple_detail phases nest within constraints_lifts and must not be double-counted.",
+    "First trace covered recursive rounds only because entry is simple_prove, not principle_prove.",
+    "Original include-order compile failure preserved; _DEFAULT_SOURCE precedes headers in successful build.",
+    "No arithmetic/transcript/security parameter changes. Full NEAR/PQ history goal remains open."
+  ]
+}

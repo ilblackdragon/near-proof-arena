@@ -1,0 +1,45 @@
+{
+  "status": "HONEST_COMPONENT_EXPORTS_VERIFIED_IN_FRESH_PROCESSES",
+  "packet_bytes": 165950,
+  "honest_fresh_processes": 2,
+  "witness_loaded": false,
+  "expected_root_source": "Independent Python SHA256/SHA512 calculation from exported message JSON; no proof read",
+  "backend_reencoding_byte_identical": true,
+  "decoded_proof_mutations_rejected": {
+    "public_root": 2,
+    "tape": 2
+  },
+  "decoder_scope": "unsafe research API, trusted local metadata/RNS only; not adversarial-safe",
+  "verification_s": [
+    0.647661838,
+    0.649066497
+  ],
+  "decode_s": [
+    5.881e-05,
+    5.9722e-05
+  ],
+  "security_established": false,
+  "full_near": false,
+  "full_recursion": false,
+  "serialized_proof_ready_s": [
+    1.672274009,
+    1.728091695
+  ],
+  "serialization_and_write_s": [
+    0.000235403,
+    0.000169549
+  ],
+  "timed_exports_identical_to_fresh_verified_files": true,
+  "final_harness_binary_sha256": "a99686f2435d28f475d57d4f400b7abb8153c6f5c5cde768c3d6334ef89d1ae1",
+  "packets": {
+    "00-h10035-s3": "e5a2e45cec63d52275a1749bc7da4afaba6dd8b264490dd16520aaef18a750fe",
+    "00-h10012-s1": "7e8c09f7c9766e57711dac13c8d3d8cacd565efdb470cb9ab26c60545d14d22a"
+  },
+  "limitations": [
+    "Timing starts from exported hash requests; native chunk-to-request export excluded.",
+    "Circuit/setup cold construction remains ~13 seconds.",
+    "Only two training-corpus shapes measured; no p95 claim.",
+    "Unsafe research decoder accepts only locally trusted metadata/RNS; not hardened for arbitrary submissions.",
+    "No receipt/hash bridge, full NEAR semantics, recursive history or composed PQ bound."
+  ]
+}

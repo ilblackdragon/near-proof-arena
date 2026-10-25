@@ -1,0 +1,246 @@
+{
+  "SINGLE_PASS_COMPACT_EVIDENCE.json": {
+    "status": "SINGLE_PASS_PREPARED_TRACE_TO_COMPACT_PACKET_VERIFIED",
+    "packet_bytes": 258788,
+    "prover_s": 10.636618256,
+    "verification_s": 1.026698756,
+    "previous_prover_s": 16.380244855,
+    "speedup_vs_redundant_path": 1.5399861554456074,
+    "profiles": {
+      "single-pass-compact-prover": {
+        "command": [
+          "/data/illia/pq-tail-architecture-20261023/target/release/single-pass-compact-prover",
+          "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+          "/data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8/dump",
+          "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/calc/dkt_certs_o2.json",
+          "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_COMPACT_BENCHMARK.json"
+        ],
+        "cpu_affinity": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "executable_sha256": "15d2208577c3e08f2e76ecb3c431063d059ad3b4a1996b6594ea2ddfd54e2e61",
+        "observed_process_wall_s": 10.734095892868936,
+        "child_exit_code": 0,
+        "profiler_exit_codes": [
+          0,
+          -2
+        ],
+        "directory": "/data/illia/nearproof-deps/pq-realtime-kernels/single-pass-compact-prover-profile",
+        "sampled_peak_rss_kb": 1345440
+      },
+      "single-pass-independent-verifier": {
+        "command": [
+          "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+          "verify",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_COMPACT_BENCHMARK.json.packet",
+          "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+          "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+          "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+          "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_PACKET_VERIFICATION.json"
+        ],
+        "cpu_affinity": [
+          8
+        ],
+        "executable_sha256": "f62ecaddd2524ffbd624828e488819cd056202b9b0abaac763559e97bc0d0800",
+        "observed_process_wall_s": 1.1689487658441067,
+        "child_exit_code": 0,
+        "profiler_exit_codes": [
+          0,
+          -2
+        ],
+        "directory": "/data/illia/nearproof-deps/pq-realtime-kernels/single-pass-independent-verifier-profile",
+        "sampled_peak_rss_kb": 171144
+      }
+    },
+    "sources": {
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/single_pass_compact_driver.rs": "79e08411994ab9ada943b6654db3d3535d55c40d051fe9583020b1d9935babea",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/compact_frontend_prove.rs": "d9d659e07976a6fb77d77910fbaa8ed1b04b477b2087447c28cbb1dd55d6b8c5",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/retained_shared_prove.rs": "d466ca86398900f9ec0b244b991c8b67738866701716e73e0030440961c55da6",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_COMPACT_BENCHMARK.json": "6ccabca5c16ab572096923696860e0dd4bf98a129048bfa57bf37eb19b8b2202",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_COMPACT_BENCHMARK.json.packet": "01569fb95a40b004b248ce0c1c1bda2eff50ed08e5071b0256dbcf29d68200a6",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_PACKET_VERIFICATION.json": "e853ffc10f0f4b8830a073a1790c5121bd8a5a07a1438dcbb5bc3c360471822e",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/record_single_pass.py": "f9c051a35ad8f2069916b5579cd97aed1e811a5a464587b0606e634af501aa09",
+      "/data/illia/nearproof-deps/public-tape-protocol/Cargo.toml": "e61821177bdcd5817d0b215bcdc19f7404fa40e4d1b432f301cb037e1d900faa",
+      "/data/illia/nearproof-deps/public-tape-protocol/Cargo.lock": "25edf82c12736012c42a5db8f260e4e6f80d48460b9ca76e6b8f6ce52ed1b435",
+      "/data/illia/nearproof-deps/public-tape-protocol/backend/crates/cpu-backend/src/device.rs": "90d1e4a31d6cbfba1727d21736094f46d9cb33330c420158fe8df54bccb13668",
+      "/data/illia/nearproof-deps/public-tape-protocol/state/chunk_bridge.rs": "ae8b5a4bf6eb12a46a7fcbe0ad87e99cc4ad6814703211fef282db06882ff840"
+    },
+    "checks": [
+      "Packet byte-identical to independently checked reference.",
+      "Separate packet verifier accepts from expected claim and verifier configuration.",
+      "Profile shows exactly one adaptive-column commitment and one WHIR invocation.",
+      "Explicit PartialChunk type contains frontend, columns and stacking; no incomplete full Proof object or dummy WHIR used."
+    ],
+    "implementation": [
+      "New CPU stacking-only method retains original PCS state and returns stacking messages without running old WHIR.",
+      "Explicit base-context callback supplies same configured AIR/key/trace to partial coordinator; regular full-proof entry point preserved.",
+      "Compact driver uses verified frontend/stacking context, native endpoint and shared-functional opening over retained trees."
+    ],
+    "limitations": [
+      "Prepared trace input excludes original chunk execution and trace generation.",
+      "D0a fixture only; full D3 execution/state/join absent.",
+      "Zero knowledge and full concrete post-quantum bound unestablished.",
+      "Verifying key/AIR treated as external configuration; reuse and varying setup accounting across chunks not established.",
+      "Single-run latency measurement; hardware8Rayon threads on9950X3D."
+    ]
+  },
+  "COMPACT_PACKET_EVIDENCE.json": {
+    "status": "D0A_COMPONENT_PACKET_VERIFIED_REFERENCE_CLAIM_BEHAVIOR_CHECKED",
+    "packet_bytes": 258788,
+    "remaining_bytes_to_300000": 41212,
+    "verification_s": 1.029473836,
+    "profiles": {
+      "compact-packet-verifier": {
+        "command": [
+          "/data/illia/nearproof-deps/pq-chunk-e2e/target/release/compact-packet-verifier",
+          "verify",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_CHUNK_PACKET.bin",
+          "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+          "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+          "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+          "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_PACKET_VERIFICATION.json"
+        ],
+        "cpu_affinity": [
+          8
+        ],
+        "executable_sha256": "07723d0d98c07ae2539a9947051616b85c60e2c91c0561e5d12b87aedf868cfe",
+        "observed_process_wall_s": 1.1899950071237981,
+        "child_exit_code": 0,
+        "profiler_exit_codes": [
+          0,
+          -2
+        ],
+        "perf_command": [
+          "sudo",
+          "-n",
+          "perf"
+        ],
+        "directory": "/data/illia/nearproof-deps/pq-realtime-kernels/compact-packet-verifier-profile"
+      },
+      "compact-packet-negative-audit": {
+        "command": [
+          "python3",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/check_compact_packet.py"
+        ],
+        "cpu_affinity": [
+          8
+        ],
+        "executable_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+        "observed_process_wall_s": 3.8610308161005378,
+        "child_exit_code": 0,
+        "profiler_exit_codes": [
+          0,
+          -2
+        ],
+        "perf_command": [
+          "sudo",
+          "-n",
+          "perf"
+        ],
+        "directory": "/data/illia/nearproof-deps/pq-realtime-kernels/compact-packet-negative-audit-profile"
+      },
+      "compact-packet-codec": {
+        "command": [
+          "/data/illia/nearproof-deps/pq-realtime-kernels/packet-codec-test",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_CHUNK_PACKET.bin",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_PACKET_CODEC_CHECK.json"
+        ],
+        "cpu_affinity": [
+          8
+        ],
+        "executable_sha256": null,
+        "observed_process_wall_s": 0.03436471102759242,
+        "child_exit_code": 0,
+        "profiler_exit_codes": [],
+        "perf_command": null,
+        "directory": "/data/illia/nearproof-deps/pq-realtime-kernels/compact-packet-codec-profile"
+      },
+      "claim-semantics": {
+        "command": [
+          "python3",
+          "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/check_packet_claim_semantics.py"
+        ],
+        "cpu_affinity": [
+          8
+        ],
+        "executable_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+        "observed_process_wall_s": 4.314631754066795,
+        "child_exit_code": 0,
+        "profiler_exit_codes": [
+          0,
+          -2
+        ],
+        "directory": "/data/illia/nearproof-deps/pq-realtime-kernels/packet-claim-semantics-profile"
+      }
+    },
+    "sections": {
+      "hint": 16,
+      "column_root": 42,
+      "frontend": 32192,
+      "stacking": 2320,
+      "endpoint": 21216,
+      "shared_sumcheck": 2208,
+      "whir": 200758
+    },
+    "framing_bytes": 36,
+    "sources": {
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/compact_packet.rs": "78da637d0d90a4f05b9dbe440e0421a0f578f3197f364bab477862e7de272a5e",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/compact_packet_verifier.rs": "db775a0f6c1d9f81c2762434ce365ff4fe67c3c0f3480246146ce086c019726b",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/assemble_compact_packet.py": "2c5d2289e30374634dac37358366cf6453d854357e3e2b21d20f6cbc49f4fcd0",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/check_compact_packet.py": "e55b32c7dcf0ed6b191305e2169b7688bef3bc73675faadb291ccbd1c42dd0db",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/packet_codec_test.rs": "6330d05372facce98d0c9c534c730517afd7250fa3e2d8cb726011077c0f429a",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_CHUNK_PACKET.bin": "01569fb95a40b004b248ce0c1c1bda2eff50ed08e5071b0256dbcf29d68200a6",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_PACKET_ASSEMBLY.json": "bb9a11994de4357b1cb335af1d75caa2e17235ec09006b0845b03e15db9ccd27",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_PACKET_VERIFICATION.json": "c55658ff74c6c7ed28492a5782f3f51b058d9aceb2f90f1f35334952c9995acb",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_PACKET_MUTATION_CHECK.json": "f3d910c424007ae05dc7d601e9a1043d8989d2d6026dc5c0ab90f5dce4bb69ad",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_PACKET_CODEC_CHECK.json": "5e31e0e2c26923b7cd72ebe31dc73002e9ca7295a30563fcf114f164be89b1ea",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/record_compact_packet.py": "a323a126bfbceacbdd7f8dabcb77fca5a229cd3b3c20078943fad2963273d100",
+      "/data/illia/nearproof-deps/public-tape-protocol/Cargo.toml": "d066d15d9109bdf6452c507ed3e7da93e252402587d84a850e330dcaf8f09368",
+      "/data/illia/nearproof-deps/public-tape-protocol/Cargo.lock": "25edf82c12736012c42a5db8f260e4e6f80d48460b9ca76e6b8f6ce52ed1b435",
+      "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/COMPACT_PACKET_CLAIM_SEMANTICS_CHECK.json": "c5ec4c5eaaa84d562f4c60b8771d43c2971e1e05853093a464931fa97af66ea4"
+    },
+    "checks": [
+      "Verifier reads packet, expected claim, AIR, key and trusted public-preparation executable; no statement JSON, captured context, column vector, public-message file or sparse circuit supplied.",
+      "Public messages regenerate in a fresh temporary directory from expected claim and packet hint; entire batching statement reconstructs from verified frontend/stacking and native circuit.",
+      "All seven changed packet sections reject; trailing/truncated packet reject.",
+      "Packet codec rejects every258788 truncated prefix and21 length mutations plus header/trailing/oversize tests."
+    ],
+    "limitations": [
+      "D0a relation only. height_created is intentionally unchecked by the reference validator; its acceptance is not a soundness defect. Full D3 requires additional execution/state obligations.",
+      "Packet assembled from saved components; no live end-to-end proving time.",
+      "Key and AIR excluded as external verifier configuration; reuse across chunks and any varying setup accounting remain open.",
+      "No ZK masking, complete concrete PQ bound or full D3."
+    ],
+    "claim_semantics": {
+      "height_created_acceptance": "Expected by reference validator; prior gap interpretation withdrawn.",
+      "required_field_mutations_rejected": [
+        "prev_state_root",
+        "prev_outcome_root",
+        "encoded_merkle_root",
+        "tx_root",
+        "prev_gas_used"
+      ],
+      "full_D3_not_established": true
+    },
+    "correction_evidence": "COMPACT_PACKET_CLAIM_SEMANTICS_CHECK.json"
+  },
+  "audit_build": "Isolated source snapshot rebuilt offline; shared external path dependencies. Original executable hashes retained in input-manifest.json."
+}

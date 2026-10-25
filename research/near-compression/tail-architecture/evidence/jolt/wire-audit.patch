@@ -1,0 +1,35 @@
+diff --git a/crates/jolt-prover/src/profile.rs b/crates/jolt-prover/src/profile.rs
+index 0d5cea6..a9cbecf 100644
+--- a/crates/jolt-prover/src/profile.rs
++++ b/crates/jolt-prover/src/profile.rs
+@@ -1015,9 +1015,27 @@ fn prove_workload(
+         .joint_opening_proof
+         .unframed_payload_size()
+         .expect("Akita opening component lengths must fit usize");
+-    let proof_size = bincode::serde::encode_to_vec(&proof, bincode::config::standard())
+-        .expect("serialize Akita proof")
+-        .len();
++    let proof_bytes = bincode::serde::encode_to_vec(&proof, bincode::config::standard())
++        .expect("serialize Akita proof");
++    let proof_size = proof_bytes.len();
++    let (proof, consumed): (jolt_verifier::JoltProof<AkitaScheme, AkitaVc>, usize) =
++        bincode::serde::decode_from_slice(&proof_bytes, bincode::config::standard().with_limit::<1000000>())
++            .expect("roundtrip decode Akita proof");
++    assert_eq!(consumed, proof_bytes.len(), "proof codec consumed all bytes");
++    if let Ok(path) = std::env::var("NEAR_AKITA_PROOF_OUT") {
++        std::fs::write(path, &proof_bytes).expect("write proof audit artifact");
++    }
++    let mut mutant_bytes = proof_bytes.clone();
++    let mutation = mutant_bytes.len()/2;
++    mutant_bytes[mutation] ^= 1;
++    if let Ok((mutant, used)) = bincode::serde::decode_from_slice::<jolt_verifier::JoltProof<AkitaScheme, AkitaVc>, _>(
++        &mutant_bytes, bincode::config::standard().with_limit::<1000000>()) {
++        assert_eq!(used, mutant_bytes.len());
++        assert!(jolt_verifier::verify::<AkitaField, AkitaScheme, AkitaVc, AkitaTranscript>(
++            &prover_preprocessing.verifier, &public_io, &mutant, None).is_err(),
++            "midpoint byte mutant must reject");
++    }
++    println!("AKITA_WIRE_AUDIT roundtrip_decode=true midpoint_mutant_rejected=true");
+     tracing::info!(
+         akita_proof_body_size,
+         akita_opening_unframed_size,

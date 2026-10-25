@@ -1,0 +1,209 @@
+--- a/chihuahua.c
++++ b/chihuahua.c
+@@ -1,3 +1,4 @@
++#include "np_profile.h"
+ #include <stdlib.h>
+ #include <stddef.h>
+ #include <stdint.h>
+@@ -919,6 +920,7 @@
+ }
+ 
+ int principle_prove(statement *ost, witness *owt, proof *pi, const prncplstmnt *ist, const witness *iwt, int tail) {
++  double np_last=np_profile_clock();
+   int ret;
+   size_t i;
+   constraint cnst[1] = {};
+@@ -932,13 +934,16 @@
+   init_statement(ost,pi,ist->h);
+   init_witness(owt,ost);
+   printf("Predicted witness norm: %.2f\n\n",sqrt(pi->normsq));
++    np_profile_mark("principle","setup",ost->r,ost->n,tail,&np_last);
+ 
+   {
+     buf = _aligned_alloc(64,ost->r*ost->n*(sizeof(polx)+256*N/8));
+     polx (*sx)[ost->n] = (polx(*)[ost->n])buf;
+     uint8_t (*jlmat)[ost->n][256*N/8] = (uint8_t(*)[ost->n][256*N/8])sx[ost->r];
+ commit(ost,owt,pi,sx,iwt);
++    np_profile_mark("principle","commit",ost->r,ost->n,tail,&np_last);
+ ret = project(ost,pi,jlmat,iwt);
++    np_profile_mark("principle","project",ost->r,ost->n,tail,&np_last);
+     if(ret) {
+       ret += 10;
+       goto err;
+@@ -962,15 +967,19 @@
+     zqbuf = NULL;
+     zqs = NULL;
+     free_constraint(cnst);
++    np_profile_mark("principle","constraints",ost->r,ost->n,tail,&np_last);
+ 
+ aggregate_sparsecnst(ost,pi,ist->cnst,ist->k);
++    np_profile_mark("principle","aggregate",ost->r,ost->n,tail,&np_last);
+     amortize(ost,owt,pi,sx);
++    np_profile_mark("principle","amortize",ost->r,ost->n,tail,&np_last);
+     free(buf);
+     buf = NULL;
+   }
+ 
+   polx_refresh(ost->cnst->b);
+   polxvec_refresh(ost->cnst->phi,ost->n);
++    np_profile_mark("principle","refresh",ost->r,ost->n,tail,&np_last);
+   return 0;
+ 
+ err:
+--- a/labrador.c
++++ b/labrador.c
+@@ -1,4 +1,5 @@
+ #define _DEFAULT_SOURCE
++#include "np_profile.h"
+ #include <stdint.h>
+ #include <stddef.h>
+ #include <stdlib.h>
+@@ -1151,6 +1152,7 @@
+ 
+ 
+ int prove(statement *ost, witness *owt, proof *pi, const statement *ist, const witness *iwt, int tail) {
++  double np_last=np_profile_clock();
+   int ret;
+   size_t i;
+   constraint cnst[1] = {};
+@@ -1162,13 +1164,16 @@
+   init_statement(ost,pi,ist->h);
+   init_witness(owt,ost);
+   printf("Predicted witness norm: %.2f\n\n",sqrt(pi->normsq));
++    np_profile_mark("recursive","setup",ost->r,ost->n,tail,&np_last);
+ 
+   {
+     buf = _aligned_alloc(64,ost->r*ost->n*(sizeof(polx)+256*N/8));
+     polx (*sx)[ost->n] = (polx(*)[ost->n])buf;
+     uint8_t (*jlmat)[ost->n][256*N/8] = (uint8_t(*)[ost->n][256*N/8])sx[ost->r];
+     commit(ost,owt,pi,sx,iwt);
++    np_profile_mark("recursive","commit",ost->r,ost->n,tail,&np_last);
+     ret = project(ost,pi,jlmat,iwt);
++    np_profile_mark("recursive","project",ost->r,ost->n,tail,&np_last);
+     if(ret) {
+       ret += 10;
+       goto err;
+@@ -1180,15 +1185,19 @@
+       lift_aggregate_zqcnst(ost,pi,i,cnst,sx,NULL);
+     }
+     free_constraint(cnst);
++    np_profile_mark("recursive","constraints",ost->r,ost->n,tail,&np_last);
+ 
+     aggregate(ost,pi,ist);
++    np_profile_mark("recursive","aggregate",ost->r,ost->n,tail,&np_last);
+     amortize(ost,owt,pi,sx);
++    np_profile_mark("recursive","amortize",ost->r,ost->n,tail,&np_last);
+     free(buf);
+     buf = NULL;
+   }
+ 
+   polx_refresh(ost->cnst->b);
+   polxvec_refresh(ost->cnst->phi,ost->n);
++    np_profile_mark("recursive","refresh",ost->r,ost->n,tail,&np_last);
+   return 0;
+ 
+ err:
+--- a/dachshund.c
++++ b/dachshund.c
+@@ -1,3 +1,4 @@
++#include "np_profile.h"
+ #include <stdlib.h>
+ #include <stdint.h>
+ #include <string.h>
+@@ -427,6 +428,7 @@
+ int simple_prove(statement *ost, witness *owt, proof *pi, commitment *com,
+                   const smplstmnt *ist, const witness *iwt, int tail)
+ {
++  double np_last=np_profile_clock();
+   int ret;
+   size_t i;
+   witness ewt[1];
+@@ -449,6 +451,7 @@
+   init_statement(ost,pi,ist->h);
+   init_witness(owt,ost);
+   printf("Predicted witness norm: %.2f\n\n",sqrt(pi->normsq));
++    np_profile_mark("simple","setup",ost->r,ost->n,tail,&np_last);
+ 
+   {
+     const size_t s1 = pi->nu[ist->r];
+@@ -456,7 +459,9 @@
+     polx (*sx)[ost->n] = (polx(*)[ost->n])buf;
+     uint8_t (*jlmat)[ost->n][256*N/8] = (uint8_t(*)[ost->n][256*N/8])sx[ost->r];
+ simple_commit(ost,owt,pi,com,sx,ist,ewt);
++    np_profile_mark("simple","commit",ost->r,ost->n,tail,&np_last);
+ ret = project(ost,pi,jlmat,ewt);
++    np_profile_mark("simple","project",ost->r,ost->n,tail,&np_last);
+     if(ret) {
+       ret += 20;
+       goto err;
+@@ -472,14 +477,23 @@
+     zqdefer df = {k0,zqs,&zqbuf[k0],zqbuf};
+     polxvec_setzero(zqbuf,2*MAX(k0,1));
+ collaps_sparsecnst_eval(&zqbuf[k0],ost,pi,ist->cnst,ist->k,*sx);
++    np_profile_mark("simple","constraints_eval",ost->r,ost->n,tail,&np_last);
+     for(i=0;i<LIFTS;i++) {
++      double np_lift=np_profile_clock();
+ collaps_jlproj_raw(cnst,s1,ost->n,ost->h,pi->p,jlmat);
++      np_profile_mark("simple_detail","lift_jl",ost->r,ost->n,tail,&np_lift);
+       polxvec_setzero(&cnst->phi[s1*ost->n],(ost->r-s1)*ost->n);
+ collaps_sparsecnst_scalars(cnst,ost,ist->cnst,ist->k,zqs);
++      np_profile_mark("simple_detail","lift_scalars",ost->r,ost->n,tail,&np_lift);
+       simple_collaps(cnst,ost,pi,com,ist);
++      np_profile_mark("simple_detail","lift_simple",ost->r,ost->n,tail,&np_lift);
+       lift_aggregate_zqcnst(ost,pi,i,cnst,sx,&df);
+-    }
++      np_profile_mark("simple_detail","lift_aggregate",ost->r,ost->n,tail,&np_lift);
++    }
++
++    np_profile_mark("simple","constraints_lifts",ost->r,ost->n,tail,&np_last);
+ collaps_sparsecnst_apply(ost,pi,ist->cnst,ist->k,zqbuf);
++    np_profile_mark("simple","constraints_apply",ost->r,ost->n,tail,&np_last);
+     free(zqbuf);
+     free(zqs);
+     zqbuf = NULL;
+@@ -488,13 +502,16 @@
+ 
+ simple_aggregate(ost,pi,com,ist);
+     aggregate_sparsecnst(ost,pi,ist->cnst,ist->k);
++    np_profile_mark("simple","aggregate",ost->r,ost->n,tail,&np_last);
+ amortize(ost,owt,pi,sx);
++    np_profile_mark("simple","amortize",ost->r,ost->n,tail,&np_last);
+     free(buf);
+     buf = NULL;
+   }
+ 
+   polx_refresh(ost->cnst->b);
+   polxvec_refresh(ost->cnst->phi,ost->n);
++    np_profile_mark("simple","refresh",ost->r,ost->n,tail,&np_last);
+   return 0;
+ 
+ err:
+--- a/Makefile
++++ b/Makefile
+@@ -97,3 +97,6 @@
+ 	-$(RM) -rf test_off
+ 	-$(RM) -rf test_binary
+ 	-$(RM) -rf test_mixed
++
++# Local opt-in phase instrumentation dependency.
++libobj/chihuahua.o libobj/labrador.o libobj/dachshund.o: np_profile.h
+--- /dev/null
++++ b/np_profile.h
+@@ -0,0 +1,17 @@
++#ifndef NP_PROFILE_H
++#define NP_PROFILE_H
++#include <time.h>
++#include <stdlib.h>
++#include <stdio.h>
++static inline double np_profile_clock(void) {
++  struct timespec t;
++  timespec_get(&t, TIME_UTC);
++  return (double)t.tv_sec + 1e-9*(double)t.tv_nsec;
++}
++static inline void np_profile_mark(const char *kind,const char *phase,size_t r,size_t n,int tail,double *last) {
++  const double now=np_profile_clock();
++  if(getenv("LABRADOR_PROFILE"))
++    fprintf(stderr,"LABRADOR_PHASE kind=%s phase=%s r=%zu n=%zu tail=%d ms=%.6f\n",kind,phase,r,n,tail,1000.0*(now-*last));
++  *last=now;
++}
++#endif

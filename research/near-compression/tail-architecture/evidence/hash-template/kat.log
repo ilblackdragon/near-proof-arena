@@ -1,0 +1,1 @@
+TIGHT_SHA_KAT checks=44 honest_digest_parity=true overbound_lengths_rejected=true

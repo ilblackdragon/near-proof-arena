@@ -1,0 +1,50 @@
+{
+  "status": "KERNEL_PARALLELISM_NO_FULL_NEAR_OR_PQ_HISTORY_CLAIM",
+  "base_commit": "74867de4c",
+  "packet_bytes": 244814,
+  "packet_sha256": "06c41c1b38f4ac4cd4aa4f4e25cda7f4f998dd721603dde275dc228931a6c9ea",
+  "independent_public_sha256": "67ad4aa8b2aea39a908b0d30c6ce6b70035a2093ce132b55f8f91747b7c4f7e8",
+  "prover_sha256": "ee2de9661a987000ecae9e6e52ba5b37ed25cb9d2621e1a3c97fe2014e11b8da",
+  "old_verifier_sha256": "b638d284498aeb743fcac01f196ad202b9d471e76b59935c7f3798ea6cb50c3f",
+  "backend_source_sha256": {
+    "labrador.c": "64fb70cdf674f450ae20aa65754c031a50a034ab01cc4713ae6828acd76529eb",
+    "np_pairs.h": "1c15e57567379c36437b94d9313d4d1e105fe3dc8dde87684f0a361639531c6d",
+    "Makefile": "a583363e354e0843122daa138308218eaac9578575e82baf768a2215b0138fbf",
+    "test_np_pairs.c": "7bc7637669638cb517a47dbf56ecd1676fb76cecb62cefa598f16e9f8f88d104"
+  },
+  "parity_cases": 540,
+  "cold_cache_parity": true,
+  "large_parity_runs": 3,
+  "initial_failure": "Standalone harness initially compiled LOGQ=32 against LOGQ=48 static library; corrected to 48. Initial invalid-size crash retained.",
+  "timings": {
+    "parallel": {
+      "ready_s": [
+        3.34420964,
+        3.146633816
+      ],
+      "initial_pair_ms": [
+        44.465542,
+        57.166338
+      ],
+      "max_rss_kib": 12869656
+    },
+    "serial": {
+      "ready_s": [
+        3.5582064559999997,
+        3.51486403
+      ],
+      "initial_pair_ms": [
+        152.776957,
+        156.042576
+      ],
+      "max_rss_kib": 12799640
+    }
+  },
+  "fresh_old_verifier": {
+    "seconds": 1.512951245,
+    "negative_checks": 4,
+    "no_witness_loaded": true,
+    "backend_roundtrip": true
+  },
+  "final_test_binary_sha256": "ce8b0e8b0289f79da9e977b2d1bf694fc327eefde4b55ce14a5dad81f08b1d30"
+}

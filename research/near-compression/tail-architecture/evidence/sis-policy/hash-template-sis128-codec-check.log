@@ -1,0 +1,3 @@
+TEMPLATE_SETUP {"message_slots":3088,"nominal_blocks":7296,"constructed_sha_blocks":7296,"root_bytes":148248,"witness_log_elems":22,"circuit_s":10.369728107,"setup_s":3.396338781}
+EXPORT_ROUNDTRIP_MISMATCH offset=72488 poly=54
+timeout: the monitored command dumped core

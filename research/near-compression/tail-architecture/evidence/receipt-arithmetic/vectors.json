@@ -1,0 +1,15 @@
+{
+  "status": "ARITHMETIC_EXPECTATIONS_NOT_NEAR_CLAIM_FIXTURES",
+  "cases": 2910,
+  "accepted": 2699,
+  "rejected": 211,
+  "positive_burns": 173,
+  "kinds": {
+    "balance-edge": 324,
+    "corpus": 2138,
+    "gas-edge": 162,
+    "seeded": 256,
+    "storage-edge": 30
+  },
+  "sha256": "71322ff1e7cf69433aeb666e16cb50157826d383f1ec4617f89937acd367345e"
+}

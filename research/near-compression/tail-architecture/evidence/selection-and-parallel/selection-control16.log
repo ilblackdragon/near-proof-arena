@@ -1,0 +1,5 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=185 private=112734 constants=816 and=55594 zero=13897
+RECEIPT_LIST_CIRCUIT cap=16 mode=1 source_budget=2048 log=16 circuit_s=0.137386599

@@ -1,0 +1,433 @@
+{
+  "status": "CONDITIONAL_MODEL_SCREEN_NOT_CERTIFICATION",
+  "setup_log_sha256": "9d91af1f895209be9cb34bd1b90b06bf808798a1cb38c6b2b2030e253b71e3e7",
+  "bridge_commitments": [
+    {
+      "modulus_count": 3,
+      "role": "Y",
+      "rank": 11,
+      "columns": 36864,
+      "normsq_cap": 7836416409604,
+      "group": [
+        2,
+        3,
+        4,
+        5,
+        8,
+        9,
+        10,
+        11,
+        14,
+        15,
+        16,
+        17
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 732,
+        "dimension": 3014,
+        "quantum_bits": 193.98000000000002
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 362,
+        "dimension": 2345,
+        "quantum_bits": 95.93
+      },
+      "selected_rank": 14,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 512,
+        "dimension": 2985,
+        "quantum_bits": 135.68
+      }
+    },
+    {
+      "modulus_count": 3,
+      "role": "u",
+      "rank": 4,
+      "columns": 3072,
+      "normsq_cap": 165888,
+      "group": [
+        1
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 1760,
+        "dimension": 2541,
+        "quantum_bits": 466.40000000000003
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 454,
+        "dimension": 1530,
+        "quantum_bits": 120.31
+      },
+      "selected_rank": 5,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 620,
+        "dimension": 1912,
+        "quantum_bits": 164.3
+      }
+    },
+    {
+      "modulus_count": 3,
+      "role": "R",
+      "rank": 9,
+      "columns": 13536,
+      "normsq_cap": 88275419139,
+      "group": [
+        0,
+        6,
+        7,
+        12,
+        13,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 850,
+        "dimension": 2882,
+        "quantum_bits": 225.25
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 383,
+        "dimension": 2162,
+        "quantum_bits": 101.495
+      },
+      "selected_rank": 11,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 510,
+        "dimension": 2642,
+        "quantum_bits": 135.15
+      }
+    },
+    {
+      "modulus_count": 4,
+      "role": "Y",
+      "rank": 12,
+      "columns": 49152,
+      "normsq_cap": 23509249228804,
+      "group": [
+        2,
+        3,
+        4,
+        5,
+        8,
+        9,
+        10,
+        11,
+        14,
+        15,
+        16,
+        17,
+        20,
+        21,
+        22,
+        23
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 750,
+        "dimension": 3176,
+        "quantum_bits": 198.75
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 380,
+        "dimension": 2490,
+        "quantum_bits": 100.7
+      },
+      "selected_rank": 15,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 522,
+        "dimension": 3113,
+        "quantum_bits": 138.33
+      }
+    },
+    {
+      "modulus_count": 4,
+      "role": "u",
+      "rank": 4,
+      "columns": 3072,
+      "normsq_cap": 165888,
+      "group": [
+        1
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 1760,
+        "dimension": 2541,
+        "quantum_bits": 466.40000000000003
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 454,
+        "dimension": 1530,
+        "quantum_bits": 120.31
+      },
+      "selected_rank": 5,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 620,
+        "dimension": 1912,
+        "quantum_bits": 164.3
+      }
+    },
+    {
+      "modulus_count": 4,
+      "role": "R",
+      "rank": 9,
+      "columns": 13984,
+      "normsq_cap": 88715427843,
+      "group": [
+        0,
+        6,
+        7,
+        12,
+        13,
+        18,
+        19,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 850,
+        "dimension": 2882,
+        "quantum_bits": 225.25
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 383,
+        "dimension": 2161,
+        "quantum_bits": 101.495
+      },
+      "selected_rank": 11,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 509,
+        "dimension": 2642,
+        "quantum_bits": 134.88500000000002
+      }
+    },
+    {
+      "modulus_count": 5,
+      "role": "Y",
+      "rank": 12,
+      "columns": 61440,
+      "normsq_cap": 49996336693252,
+      "group": [
+        2,
+        3,
+        4,
+        5,
+        8,
+        9,
+        10,
+        11,
+        14,
+        15,
+        16,
+        17,
+        20,
+        21,
+        22,
+        23,
+        26,
+        27,
+        28,
+        29
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 704,
+        "dimension": 3103,
+        "quantum_bits": 186.56
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 360,
+        "dimension": 2445,
+        "quantum_bits": 95.4
+      },
+      "selected_rank": 15,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 496,
+        "dimension": 3057,
+        "quantum_bits": 131.44
+      }
+    },
+    {
+      "modulus_count": 5,
+      "role": "u",
+      "rank": 4,
+      "columns": 3072,
+      "normsq_cap": 165888,
+      "group": [
+        1
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 1760,
+        "dimension": 2541,
+        "quantum_bits": 466.40000000000003
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 454,
+        "dimension": 1530,
+        "quantum_bits": 120.31
+      },
+      "selected_rank": 5,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 620,
+        "dimension": 1912,
+        "quantum_bits": 164.3
+      }
+    },
+    {
+      "modulus_count": 5,
+      "role": "R",
+      "rank": 9,
+      "columns": 14432,
+      "normsq_cap": 89155436547,
+      "group": [
+        0,
+        6,
+        7,
+        12,
+        13,
+        18,
+        19,
+        24,
+        25,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 850,
+        "dimension": 2881,
+        "quantum_bits": 225.25
+      },
+      "legacy_extraction_factor_model": {
+        "kind": "finite",
+        "beta": 382,
+        "dimension": 2161,
+        "quantum_bits": 101.23
+      },
+      "selected_rank": 11,
+      "selected_rank_model": {
+        "kind": "finite",
+        "beta": 509,
+        "dimension": 2642,
+        "quantum_bits": 134.88500000000002
+      }
+    }
+  ],
+  "ring648_commitment": [
+    {
+      "primes": [
+        3889,
+        2917,
+        4861
+      ],
+      "n": 648,
+      "m": 663552,
+      "q": 55144219393,
+      "fold_normsq_cap": 73383542784,
+      "extraction_factor": 166.27687752661222,
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 681,
+        "dimension": 2427,
+        "quantum_bits": 180.465
+      },
+      "notebook_extraction_model": {
+        "kind": "finite",
+        "beta": 299,
+        "dimension": 1818,
+        "quantum_bits": 79.235
+      }
+    },
+    {
+      "primes": [
+        3889,
+        2917,
+        4861,
+        9721
+      ],
+      "n": 648,
+      "m": 663552,
+      "q": 536056956719353,
+      "fold_normsq_cap": 73383542784,
+      "extraction_factor": 166.27687752661222,
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 1039,
+        "dimension": 3329,
+        "quantum_bits": 275.33500000000004
+      },
+      "notebook_extraction_model": {
+        "kind": "finite",
+        "beta": 474,
+        "dimension": 2494,
+        "quantum_bits": 125.61
+      }
+    },
+    {
+      "primes": [
+        3889,
+        2917,
+        4861,
+        9721,
+        12637
+      ],
+      "n": 648,
+      "m": 663552,
+      "q": 6774151762062463861,
+      "fold_normsq_cap": 73383542784,
+      "extraction_factor": 166.27687752661222,
+      "direct_two_opening_model": {
+        "kind": "finite",
+        "beta": 1430,
+        "dimension": 4256,
+        "quantum_bits": 378.95000000000005
+      },
+      "notebook_extraction_model": {
+        "kind": "finite",
+        "beta": 666,
+        "dimension": 3188,
+        "quantum_bits": 176.49
+      }
+    }
+  ],
+  "short_challenge_support_log2_upper_bound": 103.99681738544588,
+  "limitations": [
+    "Extraction factors need protocol-specific justification; direct and extraction bounds are not interchangeable.",
+    "Ring-648 screen uses enforced fold cap and notebook factor, not a newly verified extraction theorem.",
+    "No structured/module/CRT attacks or Fiat-Shamir/QROM loss accounted for.",
+    "Support of one challenge is not the soundness of the entire protocol.",
+    "Increasing moduli and ranks alone does not establish PQ128."
+  ]
+}

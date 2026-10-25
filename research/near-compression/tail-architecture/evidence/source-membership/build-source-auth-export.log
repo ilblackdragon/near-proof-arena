@@ -1,0 +1,219 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling crossbeam-utils v0.8.23
+   Compiling crossbeam-epoch v0.9.21
+   Compiling crossbeam-deque v0.8.8
+   Compiling rayon-core v1.13.0
+   Compiling serde_core v1.0.229
+   Compiling autocfg v1.5.1
+   Compiling either v1.19.0
+   Compiling num-traits v0.2.19
+   Compiling serde v1.0.229
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling rayon v1.12.0
+   Compiling serde_derive v1.0.229
+   Compiling paste v1.0.15
+   Compiling num-integer v0.1.47
+   Compiling pin-project-lite v0.2.17
+   Compiling tracing-core v0.1.36
+   Compiling rand_core v0.10.1
+   Compiling rand v0.10.3
+   Compiling p3-maybe-rayon v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling num-bigint v0.5.1
+   Compiling tracing-attributes v0.1.31
+   Compiling itertools v0.15.0
+   Compiling p3-util v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling tracing v0.1.44
+   Compiling thiserror v2.0.21
+   Compiling scopeguard v1.2.0
+   Compiling lock_api v0.4.14
+   Compiling thiserror-impl v2.0.21
+   Compiling version_check v0.9.5
+   Compiling generic-array v0.14.9
+   Compiling spin v0.12.3
+   Compiling typenum v1.20.1
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling itoa v1.0.18
+   Compiling p3-field v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling cfg-if v1.0.5
+   Compiling memchr v2.8.3
+   Compiling cpufeatures v0.2.17
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.6
+   Compiling digest v0.10.7
+   Compiling p3-matrix v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling p3-symmetric v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling sha2 v0.10.9
+   Compiling p3-dft v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling p3-mds v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling p3-poseidon1 v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling p3-poseidon2 v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling p3-monty-31 v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling p3-baby-bear v0.8.0 (https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d#3acc8b70)
+   Compiling np-udr-stark v0.1.0 (/data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source)
+warning: unused import: `NODE_WIDTH`
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/sample.rs:332:24
+    |
+332 | use super::node::{Kid, NODE_WIDTH, NodeS3, NodeV3, Slot};
+    |                        ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated struct `sha2::digest::generic_array::GenericArray`: please upgrade to generic-array 1.x
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lmcommit.rs:202:42
+    |
+202 |         use sha2::digest::generic_array::GenericArray;
+    |                                          ^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated struct `sha2::digest::generic_array::GenericArray`: please upgrade to generic-array 1.x
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lmcommit.rs:205:34
+    |
+205 |         sha2::compress256(sa, &[*GenericArray::from_slice(&blk)]);
+    |                                  ^^^^^^^^^^^^
+
+warning: use of deprecated struct `sha2::digest::generic_array::GenericArray`: please upgrade to generic-array 1.x
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lmcommit.rs:207:34
+    |
+207 |         sha2::compress256(sb, &[*GenericArray::from_slice(&blk)]);
+    |                                  ^^^^^^^^^^^^
+
+warning: use of deprecated struct `sha2::digest::generic_array::GenericArray`: please upgrade to generic-array 1.x
+  --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lowmem.rs:21:34
+   |
+21 | use sha2::digest::generic_array::GenericArray;
+   |                                  ^^^^^^^^^^^^
+
+warning: use of deprecated struct `sha2::digest::generic_array::GenericArray`: please upgrade to generic-array 1.x
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lowmem.rs:315:29
+    |
+315 |     sha2::compress256(s, &[*GenericArray::from_slice(block)]);
+    |                             ^^^^^^^^^^^^
+
+warning: use of deprecated struct `sha2::digest::generic_array::GenericArray`: please upgrade to generic-array 1.x
+  --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/sha2x.rs:23:17
+   |
+23 |         let g = GenericArray::from_slice(blk);
+   |                 ^^^^^^^^^^^^
+
+warning: use of deprecated struct `sha2::digest::generic_array::GenericArray`: please upgrade to generic-array 1.x
+  --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/sha2x.rs:21:38
+   |
+21 |     use sha2::digest::generic_array::GenericArray;
+   |                                      ^^^^^^^^^^^^
+
+warning: use of deprecated associated function `sha2::digest::generic_array::GenericArray::<T, N>::from_slice`: please upgrade to generic-array 1.x
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lmcommit.rs:205:48
+    |
+205 |         sha2::compress256(sa, &[*GenericArray::from_slice(&blk)]);
+    |                                                ^^^^^^^^^^
+
+warning: use of deprecated associated function `sha2::digest::generic_array::GenericArray::<T, N>::from_slice`: please upgrade to generic-array 1.x
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lmcommit.rs:207:48
+    |
+207 |         sha2::compress256(sb, &[*GenericArray::from_slice(&blk)]);
+    |                                                ^^^^^^^^^^
+
+warning: use of deprecated associated function `sha2::digest::generic_array::GenericArray::<T, N>::from_slice`: please upgrade to generic-array 1.x
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/lowmem.rs:315:43
+    |
+315 |     sha2::compress256(s, &[*GenericArray::from_slice(block)]);
+    |                                           ^^^^^^^^^^
+
+warning: use of deprecated associated function `sha2::digest::generic_array::GenericArray::<T, N>::from_slice`: please upgrade to generic-array 1.x
+  --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/sha2x.rs:23:31
+   |
+23 |         let g = GenericArray::from_slice(blk);
+   |                               ^^^^^^^^^^
+
+warning: unused variable: `r`
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:971:9
+    |
+971 |     let r = recs.len() as u64;
+    |         ^
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+help: you might have meant to pattern match on the similarly named constant `P`
+    |
+971 -     let r = recs.len() as u64;
+971 +     let near::info::P = recs.len() as u64;
+    |
+help: if this is intentional, prefix it with an underscore
+    |
+971 |     let _r = recs.len() as u64;
+    |         +
+
+warning: field `b2` is never read
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/chacha.rs:247:5
+    |
+235 | struct Qw {
+    |        -- field in this struct
+...
+247 |     b2: u64,
+    |     ^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `SYM_END` is never used
+  --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/d1/unread.rs:24:7
+   |
+24 | const SYM_END: u64 = 16;
+   |       ^^^^^^^
+
+warning: method `h` is never used
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:146:8
+    |
+120 | impl Slot {
+    | --------- method in this implementation
+...
+146 |     fn h(&self) -> Option<&[u64]> {
+    |        ^
+
+warning: method `mem` is never used
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:215:8
+    |
+186 | impl NodeV3 {
+    | ----------- method in this implementation
+...
+215 |     fn mem(&self) -> &[u64] {
+    |        ^^^
+
+warning: structure field `lenB` should have a snake case name
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:108:11
+    |
+108 |     Ref { lenB: Vec<u64>, h: Vec<u64> },
+    |           ^^^^ help: convert the identifier to snake case: `len_b`
+    |
+    = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: structure field `lenB` should have a snake case name
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:111:9
+    |
+111 |         lenB: Vec<u64>,
+    |         ^^^^ help: convert the identifier to snake case: `len_b`
+
+warning: structure field `memB` should have a snake case name
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:160:9
+    |
+160 |         memB: Vec<u64>,
+    |         ^^^^ help: convert the identifier to snake case: `mem_b`
+
+warning: structure field `memB` should have a snake case name
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:166:9
+    |
+166 |         memB: Vec<u64>,
+    |         ^^^^ help: convert the identifier to snake case: `mem_b`
+
+warning: structure field `memB` should have a snake case name
+   --> /data/illia/nearproof-wt/pq-tail-architecture/examples/np-udr-stark-v2/source/src/v3/node.rs:172:9
+    |
+172 |         memB: Vec<u64>,
+    |         ^^^^ help: convert the identifier to snake case: `mem_b`
+
+warning: `np-udr-stark` (lib) generated 22 warnings (run `cargo fix --lib -p np-udr-stark` to apply 2 suggestions)
+   Compiling near-hash-export v0.1.0 (/data/illia/pq-tail-architecture-20261024/export)
+    Finished `release` profile [optimized] target(s) in 17.09s

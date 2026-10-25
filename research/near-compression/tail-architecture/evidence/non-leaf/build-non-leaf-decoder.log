@@ -1,0 +1,27 @@
+   Compiling labinius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/pcs)
+   Compiling labinius-bench v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/bench)
+   Compiling labinius-binius v0.1.0 (/data/illia/pq-tail-architecture-20261024/labinius/crates/binius)
+warning: use of deprecated method `sha2::digest::generic_array::GenericArray::<T, N>::as_slice`: please upgrade to generic-array 1.x
+  --> crates/binius/src/bin/near-hash-non-leaf.rs:20:308
+   |
+20 | ...xact(&mut bytes).unwrap();assert_eq!(Sha256::digest(&bytes).as_slice(),&digest);out.push(Message{id,flag:flag[0],bytes});}
+   |                                                                ^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: function `compact` is never used
+  --> crates/binius/src/bin/support/event_wire.rs:28:8
+   |
+28 | pub fn compact(dense:&[u8])->Result<Vec<u8>,String>{
+   |        ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `compact` is never used
+  --> crates/binius/src/bin/support/non_merkle_wire.rs:28:8
+   |
+28 | pub fn compact(dense:&[u8])->Result<Vec<u8>,String>{
+   |        ^^^^^^^
+
+warning: `labinius-binius` (bin "near-hash-non-leaf") generated 3 warnings
+    Finished `release` profile [optimized + debuginfo] target(s) in 46.06s

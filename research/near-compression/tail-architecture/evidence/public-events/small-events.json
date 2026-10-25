@@ -1,0 +1,35 @@
+{
+  "status": "PUBLIC_EVENTS_MATCH_SOURCE_MESSAGES_NOT_FULL_NEAR_PROOF",
+  "packet_bytes": 157766,
+  "packet_sha256": "2c4470df7e70f720bb3fd3e0677a29e61bb4f3551cda3e8599a68b3eec391aa9",
+  "messages": 12,
+  "sections": {
+    "public_events": 504,
+    "tape": 32297,
+    "claim": 21,
+    "left_rns": 5120,
+    "opening_rns": 11264,
+    "norms": 288,
+    "backend": 108208
+  },
+  "framing_bytes": 64,
+  "dense_public_bytes": 148248,
+  "root_hex": "bc344de7741c3450e0e49c33baa03bd645eeb6d8d251dcc41c59b6ae0951589894d9739a6f54797b7ba30dac1a9c144a131a7f83bc50f1c8dd1e54436e47e1c4",
+  "source_sha256": "cd0ac56c5864dbcd40d7670933fc5513580496cc2151338f4d62ff0d2bccaf33",
+  "job_kind_counts": {
+    "1": 4,
+    "3": 1,
+    "4": 1,
+    "10": 1,
+    "11": 1,
+    "12": 4
+  },
+  "digest_consumer_jobs": 12,
+  "same_canonical_public_vector": true,
+  "no_private_bytes_in_public_records": true,
+  "limitations": [
+    "Metadata/digests are public; no zero-knowledge claim.",
+    "Expected root is a job-interface root, not yet derived by a proof from the NEAR chunk claim.",
+    "Receipt byte-bus binding, other SHA bin and all execution semantics remain required."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "jolt_revision": "7931b223ddefe3cfa35671d0fa8321df4578ff96",
+  "akita_revision": "dfdbd7674cab5cfbe95243e947d1b10a982f232b",
+  "profile": "ci (opt-level 3, no LTO, no debuginfo)",
+  "rustflags": "-C target-cpu=native -C link-arg=-fuse-ld=mold",
+  "rayon_threads": 8,
+  "affinity": "8-15,24-31",
+  "host": "AMD Ryzen 9 9950X3D",
+  "binary_sha256_before_wire_audit_rebuild": "57f171e7033d12c62abef2f9a2a8fe025d0deca72b2271a182ea482812faba64",
+  "original_proofs_roundtrip_decoded": false,
+  "security_established": false,
+  "full_near": false,
+  "wire_audit": {
+    "binary_sha256": "6ee0023073d66d71da5d384e3206b2ddff66efed6eb56d75b5d491b28adf0714",
+    "proof_sha256": "c193e323e21f1d4abd2d52161da7ae355c5fe6d5fcc602b256c0c8422ba6e1e1",
+    "proof_bytes": 97998,
+    "roundtrip_decoded": true,
+    "midpoint_byte_mutation_rejected": true,
+    "independent_process_verification": false
+  }
+}

@@ -1,0 +1,3 @@
+benchmark_name,scale,prover_time_s,trace_length,proving_hz,proof_size,proof_size_compressed,backend,setup_time_s,verifier_parallel_time_s,verifier_single_thread_time_s,verifier_parallel_threads
+sha2-chain_akita,18,1.99,262144,131902.16,97998,97998,optimized,0.112443,0.010778,0.019819,16
+sha2-chain_akita,20,7.46,1048576,140502.47,99490,99490,optimized,0.126106,0.012907,0.028960,16

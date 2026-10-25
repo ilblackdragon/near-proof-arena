@@ -1,0 +1,1 @@
+CLAIM_OUTCOME_CHECK cases=64 rejected_mutations=304 unrelated_state_changes_not_checked=64 full_near_validity=false

@@ -1,0 +1,19 @@
+RECEIPT_SOURCE cases=2170 accepted=2158 rejected=12 mutations=56108 log=13 same_source_outcome_wires=true
+SIS_POLICY inner rank=21 width=1495 source=311444057806 target=13650446198 bound=26825344468.341122 bits=142.835 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1495 source=13650446198 target=212745636 bound=421471350.45747411 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1495 source=212745636 target=22879234 bound=35357593.481533445 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=11 width=748 source=22879234 target=1677098434 bound=18346671.744421002 bits=158.735 finite=1 tail=0
+SIS_POLICY inner rank=12 width=374 source=1677098434 target=35632276 bound=43456341.497627251 bits=155.820 finite=1 tail=1
+RECEIPT_SOURCE_PROOF example=0 honest=true public_mutations_rejected=4 full_near=false
+SIS_POLICY inner rank=21 width=1495 source=311385752210 target=13630332670 bound=26805574007.749718 bits=142.835 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1495 source=13630332670 target=213545429 bound=422262844.05407023 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1495 source=213545429 target=23261846 bound=35652012.189380616 bits=160.855 finite=1 tail=0
+SIS_POLICY inner rank=11 width=748 source=23261846 target=1690368250 bound=18419111.521677695 bits=158.735 finite=1 tail=0
+SIS_POLICY inner rank=12 width=374 source=1690368250 target=33523038 bound=42150532.347043969 bits=156.615 finite=1 tail=1
+RECEIPT_SOURCE_PROOF example=1 honest=true public_mutations_rejected=4 full_near=false
+SIS_POLICY inner rank=21 width=1495 source=311692974854 target=13805940758 bound=26977697862.294502 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=15 width=1495 source=13805940758 target=214344489 bound=423052133.47924984 bits=151.580 finite=1 tail=0
+SIS_POLICY inner rank=12 width=1495 source=214344489 target=23711215 bound=35994725.211644001 bits=160.590 finite=1 tail=0
+SIS_POLICY inner rank=11 width=748 source=23711215 target=1683458038 bound=18381424.3751335 bits=158.735 finite=1 tail=0
+SIS_POLICY inner rank=12 width=374 source=1683458038 target=33180371 bound=41934551.081493646 bits=156.615 finite=1 tail=1
+RECEIPT_SOURCE_PROOF example=2 honest=true public_mutations_rejected=4 full_near=false

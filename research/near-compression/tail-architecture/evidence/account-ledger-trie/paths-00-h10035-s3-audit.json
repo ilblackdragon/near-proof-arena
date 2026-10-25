@@ -1,0 +1,6 @@
+{
+  "accounts": 10,
+  "root": "7156f54529bf89bbf47349de72f8b992341c7e1ef5e9f0f54940fadc71d6d55b",
+  "negative_checks": 4,
+  "status": "REFERENCE_MODEL_FOR_IN_CIRCUIT_TRIE_MEMBERSHIP"
+}

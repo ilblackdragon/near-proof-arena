@@ -1,0 +1,24 @@
+diff --git a/crates/binius/src/circuit.rs b/crates/binius/src/circuit.rs
+index c55eada..2d75ed6 100644
+--- a/crates/binius/src/circuit.rs
++++ b/crates/binius/src/circuit.rs
+@@ -81,10 +81,18 @@ pub struct Circuit {
+ 
+ impl Circuit {
+     pub fn new(hash: Hash, len_bytes: usize) -> Circuit {
++        Self::with_visibility(hash, len_bytes, false)
++    }
++
++    pub fn new_private(hash: Hash, len_bytes: usize) -> Circuit {
++        Self::with_visibility(hash, len_bytes, true)
++    }
++
++    fn with_visibility(hash: Hash, len_bytes: usize, private: bool) -> Circuit {
+         let builder = CircuitBuilder::new();
+         let (width, _) = hash.word();
+         let message: Vec<Wire> = (0..len_bytes.div_ceil(width))
+-            .map(|_| builder.add_inout())
++            .map(|_| if private { builder.add_witness() } else { builder.add_inout() })
+             .collect();
+         let computed: Vec<Wire> = match hash {
+             Hash::Keccak256 => keccak256(&builder, &message, len_bytes).to_vec(),

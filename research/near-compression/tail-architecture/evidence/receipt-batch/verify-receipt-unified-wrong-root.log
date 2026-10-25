@@ -1,0 +1,5 @@
+RECEIPT_BATCH_SETUP log=21 public_bytes=90136 left_rank=5 opening_rank=11 norms=36 binary_rank=3072 circuit_s=5.129086006 setup_s=1.21001467
+
+thread 'main' (1182621) panicked at crates/binius/src/bin/near-receipt-batch-unified.rs:36:69:
+called `Result::unwrap()` on an `Err` value: "wrong outcome root"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

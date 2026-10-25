@@ -1,0 +1,503 @@
+{
+  "status": "PREPARED_TRACE_REPLAY_AND_MUTATION_AUDIT",
+  "manifest_sha256": "869984a84639173db4828b9e6e5ad68e2472ef6c0b5aa5918231f099e3d19b0a",
+  "inputs_sha256": {
+    "/data/illia/pq-tail-architecture-20261023/target/release/single-pass-compact-prover": "15d2208577c3e08f2e76ecb3c431063d059ad3b4a1996b6594ea2ddfd54e2e61",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json": "fa599b3b0c2dc786c295959ce92cfbbe73d74c4414b77979b436512a8ae3b452",
+    "/data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8/dump": "ae1a9110105b9b7cc204638aae1b603bb0ed0deea6891e808ff491b65f36e5af",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/calc/dkt_certs_o2.json": "67f7c96596e79dd3ee35de07f4cf597328e2263712329e24fcc141dcdb9dc07d",
+    "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys": "250ac4bf22d7dad71ee46f90f3e916b33fb6ba7860e9f0882276f94c09179f63",
+    "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier": "f62ecaddd2524ffbd624828e488819cd056202b9b0abaac763559e97bc0d0800",
+    "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json": "46e48ef8f4ab3c48ee42296e3e6896e694cd18d5ae0a09e0ccc4d2670f81ce15",
+    "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin": "af6a3ae6b675b74f6fbfa2f6e6acfb93cc3a9e318815cfc27ea29fbbe497b875",
+    "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic": "70d4bca0c0092ab17f05654ba500bd0fba0f5548c7880e80abd8af96bd23cd72"
+  },
+  "source_pin_checks": {
+    "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/single_pass_compact_driver.rs": {
+      "expected": "79e08411994ab9ada943b6654db3d3535d55c40d051fe9583020b1d9935babea",
+      "actual": "ce2f43b8db0968c36db8318553cbbd84fb64fe7280729cdb321468ed0181fcc7",
+      "matches": false
+    },
+    "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/compact_frontend_prove.rs": {
+      "expected": "d9d659e07976a6fb77d77910fbaa8ed1b04b477b2087447c28cbb1dd55d6b8c5",
+      "actual": "d9d659e07976a6fb77d77910fbaa8ed1b04b477b2087447c28cbb1dd55d6b8c5",
+      "matches": true
+    },
+    "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/retained_shared_prove.rs": {
+      "expected": "d466ca86398900f9ec0b244b991c8b67738866701716e73e0030440961c55da6",
+      "actual": "59d55018f216f23ca23a21b0a51d12d1103704f0daff42b573705a6ca22a233b",
+      "matches": false
+    },
+    "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_COMPACT_BENCHMARK.json": {
+      "expected": "6ccabca5c16ab572096923696860e0dd4bf98a129048bfa57bf37eb19b8b2202",
+      "actual": "6ccabca5c16ab572096923696860e0dd4bf98a129048bfa57bf37eb19b8b2202",
+      "matches": true
+    },
+    "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_COMPACT_BENCHMARK.json.packet": {
+      "expected": "01569fb95a40b004b248ce0c1c1bda2eff50ed08e5071b0256dbcf29d68200a6",
+      "actual": "01569fb95a40b004b248ce0c1c1bda2eff50ed08e5071b0256dbcf29d68200a6",
+      "matches": true
+    },
+    "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/SINGLE_PASS_PACKET_VERIFICATION.json": {
+      "expected": "e853ffc10f0f4b8830a073a1790c5121bd8a5a07a1438dcbb5bc3c360471822e",
+      "actual": "e853ffc10f0f4b8830a073a1790c5121bd8a5a07a1438dcbb5bc3c360471822e",
+      "matches": true
+    },
+    "/data/illia/nearproof/research/near-compression/results/pq-realtime-hypothesis/record_single_pass.py": {
+      "expected": "f9c051a35ad8f2069916b5579cd97aed1e811a5a464587b0606e634af501aa09",
+      "actual": "f9c051a35ad8f2069916b5579cd97aed1e811a5a464587b0606e634af501aa09",
+      "matches": true
+    },
+    "/data/illia/nearproof-deps/public-tape-protocol/Cargo.toml": {
+      "expected": "e61821177bdcd5817d0b215bcdc19f7404fa40e4d1b432f301cb037e1d900faa",
+      "actual": "65b04d0a80daf65b5710b9ca3652c53c808e967348a2a4f3e1cebd12804e9a79",
+      "matches": false
+    },
+    "/data/illia/nearproof-deps/public-tape-protocol/Cargo.lock": {
+      "expected": "25edf82c12736012c42a5db8f260e4e6f80d48460b9ca76e6b8f6ce52ed1b435",
+      "actual": "25edf82c12736012c42a5db8f260e4e6f80d48460b9ca76e6b8f6ce52ed1b435",
+      "matches": true
+    },
+    "/data/illia/nearproof-deps/public-tape-protocol/backend/crates/cpu-backend/src/device.rs": {
+      "expected": "90d1e4a31d6cbfba1727d21736094f46d9cb33330c420158fe8df54bccb13668",
+      "actual": "90d1e4a31d6cbfba1727d21736094f46d9cb33330c420158fe8df54bccb13668",
+      "matches": true
+    },
+    "/data/illia/nearproof-deps/public-tape-protocol/state/chunk_bridge.rs": {
+      "expected": "ae8b5a4bf6eb12a46a7fcbe0ad87e99cc4ad6814703211fef282db06882ff840",
+      "actual": "2d1c59867469e930cf8707cfd0bbff6baa1d69eb71c3485d7349c8d993df07bc",
+      "matches": false
+    }
+  },
+  "runs": [
+    {
+      "name": "prove-0",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/single-pass-compact-prover",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8/dump",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/calc/dkt_certs_o2.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/prove-0.json"
+      ],
+      "cpus": "8-15,24-31",
+      "wall_s": 29.092536339070648,
+      "returncode": 0,
+      "stdout_sha256": "ba57d104a6f75e8c715f06a0f9988898d4ed03fdc32ceee6047d248522652100",
+      "stderr_sha256": "eadf4a6729c9ad9ad95f3859cd3940ad314d2780358e10f8af069e51508532ca",
+      "expected_acceptance": true,
+      "expectation_met": true
+    },
+    {
+      "name": "verify-0",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/prove-0.json.packet",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/verify-0.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.8650285638868809,
+      "returncode": 0,
+      "stdout_sha256": "3fc153526f7a203b78d213e4a07ab96c1edddbb24d8c10e70b811aa461a547cc",
+      "stderr_sha256": "cbd849c519356d401fa9266970ab0f8ce2700aca4691ee88bd027c2fab8230de",
+      "expected_acceptance": true,
+      "expectation_met": true
+    },
+    {
+      "name": "prove-1",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/single-pass-compact-prover",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8/dump",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/calc/dkt_certs_o2.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/prove-1.json"
+      ],
+      "cpus": "8-15,24-31",
+      "wall_s": 29.816221373155713,
+      "returncode": 0,
+      "stdout_sha256": "c0d8c479606a663d075ebd7073ac0615f74fb22957a0cb39e555d4b43639d959",
+      "stderr_sha256": "f803b0ad872f3816c76d575bb2ece4a049f0067abb0df7955b2192ff80931228",
+      "expected_acceptance": true,
+      "expectation_met": true
+    },
+    {
+      "name": "verify-1",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/prove-1.json.packet",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/verify-1.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.8638754999265075,
+      "returncode": 0,
+      "stdout_sha256": "d87cb6fb143080704973aeb5e16950bd3b5f0fae8f7d2e3a24343538c33dc8fb",
+      "stderr_sha256": "216fe671852760feaaf6dc489f3566fdac655d723eefbe3905d369f57a733152",
+      "expected_acceptance": true,
+      "expectation_met": true
+    },
+    {
+      "name": "prove-2",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/single-pass-compact-prover",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/runs/opt-baseline-8/dump",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/calc/dkt_certs_o2.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/prove-2.json"
+      ],
+      "cpus": "8-15,24-31",
+      "wall_s": 29.98305996414274,
+      "returncode": 0,
+      "stdout_sha256": "6c5fb189aead334043bb7942b4a2e86aefa82ed90bbc3261529c5fff2bdaa1e3",
+      "stderr_sha256": "3527eac49afcef75f1041cbdfb8aba1d5a5403bbe56ccf54454975de11d4d025",
+      "expected_acceptance": true,
+      "expectation_met": true
+    },
+    {
+      "name": "verify-2",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/prove-2.json.packet",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/verify-2.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.8616746664047241,
+      "returncode": 0,
+      "stdout_sha256": "549fb2df6b05d10fd08c22f2293c2113f5ce1f8f6101d892f4c44b8877739ab7",
+      "stderr_sha256": "382bdfdfd52419d11691e5b7fcd0e59a26f0398a3196e917de90b2b0cdea3d41",
+      "expected_acceptance": true,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-hint",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/hint.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/hint.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.029417590238153934,
+      "returncode": 101,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ff3fccadf189c4d6291974e46e33821d13d1f9fb40275fb13a76d4343c2cee6b",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-column_root",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/column_root.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/column_root.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.21465013222768903,
+      "returncode": 101,
+      "stdout_sha256": "1fb08e344b16aa228e8b7f95d9dc1f5dcde7c6d59c9ada785b19afa02d748828",
+      "stderr_sha256": "61bd8ba4f71f25cd577a3d842f4acbf1fa7215beee280127c760da644eb025c5",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-frontend",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/frontend.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/frontend.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.17055379319936037,
+      "returncode": 101,
+      "stdout_sha256": "1fb08e344b16aa228e8b7f95d9dc1f5dcde7c6d59c9ada785b19afa02d748828",
+      "stderr_sha256": "20593df4f6e5831eb0f25d4eb472ece984a69b708aaa391e212c9907905f995c",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-stacking",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/stacking.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/stacking.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.2151823127642274,
+      "returncode": 101,
+      "stdout_sha256": "1fb08e344b16aa228e8b7f95d9dc1f5dcde7c6d59c9ada785b19afa02d748828",
+      "stderr_sha256": "889f41962c5d47277e0fe2c40d5725f1bf8c0a1b2b83e23853e179b2ddeac81c",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-endpoint",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/endpoint.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/endpoint.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.7264532810077071,
+      "returncode": 101,
+      "stdout_sha256": "1fb08e344b16aa228e8b7f95d9dc1f5dcde7c6d59c9ada785b19afa02d748828",
+      "stderr_sha256": "e838def762bffd81f07fc0a061c893055b9d9b0e4c81820cc1291536d4488b9d",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-shared_sumcheck",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/shared_sumcheck.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/shared_sumcheck.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.7831770251505077,
+      "returncode": 101,
+      "stdout_sha256": "1fb08e344b16aa228e8b7f95d9dc1f5dcde7c6d59c9ada785b19afa02d748828",
+      "stderr_sha256": "c637046a689544e0b68a11896bffa66e938c7d2fa390fc4065b6782129df985e",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-whir",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/whir.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/whir.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.7840176792815328,
+      "returncode": 101,
+      "stdout_sha256": "1fb08e344b16aa228e8b7f95d9dc1f5dcde7c6d59c9ada785b19afa02d748828",
+      "stderr_sha256": "4653fd6cc5f2ddab6014f0e7c56529462333e21ebfc4073106146cb45a8f8443",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-trailing",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/trailing.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/trailing.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.0037115481682121754,
+      "returncode": 101,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5f7431e472b4faa8e7bc9898f854eb65b06c09fecd869535ac2a8c023110c48a",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-truncated",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/truncated.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/truncated.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.000929598230868578,
+      "returncode": 101,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "372eca63252b2a6e41dd3adfe273594ef6923780c1fbc11d67811886335fa5ad",
+      "expected_acceptance": false,
+      "expectation_met": true
+    },
+    {
+      "name": "reject-oversized_length",
+      "argv": [
+        "/data/illia/pq-tail-architecture-20261023/target/release/compact-packet-verifier",
+        "verify",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/oversized_length.bin",
+        "/data/illia/nearproof-deps/pq-realtime-kernels/adaptive-base-output/BASE.vk.json",
+        "/data/illia/nearproof-wt/pq-chunk-e2e/examples/np-udr-stark-v2/source/near-air-v3.json",
+        "/data/illia/nearproof/oracle/fixtures/v3/public-d0a/d0/00-h10004-s3/claim.bin",
+        "/data/illia/nearproof-deps/pq-chunk-e2e/target-classical/release/examples/statepublic",
+        "/data/illia/nearproof-wt/pq-tail-architecture/research/near-compression/tail-architecture/evidence/replay/tail-mutations-q4vq03nj/oversized_length.json"
+      ],
+      "cpus": "8",
+      "wall_s": 0.0008270549587905407,
+      "returncode": 101,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5536f98aac7251b86d28b81d166abf04bf7e98fdc371bf56081f497490a99442",
+      "expected_acceptance": false,
+      "expectation_met": true
+    }
+  ],
+  "packets": [
+    {
+      "sha256": "01569fb95a40b004b248ce0c1c1bda2eff50ed08e5071b0256dbcf29d68200a6",
+      "bytes": 258788,
+      "sections": {
+        "hint": {
+          "offset": 36,
+          "bytes": 16
+        },
+        "column_root": {
+          "offset": 52,
+          "bytes": 42
+        },
+        "frontend": {
+          "offset": 94,
+          "bytes": 32192
+        },
+        "stacking": {
+          "offset": 32286,
+          "bytes": 2320
+        },
+        "endpoint": {
+          "offset": 34606,
+          "bytes": 21216
+        },
+        "shared_sumcheck": {
+          "offset": 55822,
+          "bytes": 2208
+        },
+        "whir": {
+          "offset": 58030,
+          "bytes": 200758
+        }
+      }
+    },
+    {
+      "sha256": "01569fb95a40b004b248ce0c1c1bda2eff50ed08e5071b0256dbcf29d68200a6",
+      "bytes": 258788,
+      "sections": {
+        "hint": {
+          "offset": 36,
+          "bytes": 16
+        },
+        "column_root": {
+          "offset": 52,
+          "bytes": 42
+        },
+        "frontend": {
+          "offset": 94,
+          "bytes": 32192
+        },
+        "stacking": {
+          "offset": 32286,
+          "bytes": 2320
+        },
+        "endpoint": {
+          "offset": 34606,
+          "bytes": 21216
+        },
+        "shared_sumcheck": {
+          "offset": 55822,
+          "bytes": 2208
+        },
+        "whir": {
+          "offset": 58030,
+          "bytes": 200758
+        }
+      }
+    },
+    {
+      "sha256": "01569fb95a40b004b248ce0c1c1bda2eff50ed08e5071b0256dbcf29d68200a6",
+      "bytes": 258788,
+      "sections": {
+        "hint": {
+          "offset": 36,
+          "bytes": 16
+        },
+        "column_root": {
+          "offset": 52,
+          "bytes": 42
+        },
+        "frontend": {
+          "offset": 94,
+          "bytes": 32192
+        },
+        "stacking": {
+          "offset": 32286,
+          "bytes": 2320
+        },
+        "endpoint": {
+          "offset": 34606,
+          "bytes": 21216
+        },
+        "shared_sumcheck": {
+          "offset": 55822,
+          "bytes": 2208
+        },
+        "whir": {
+          "offset": 58030,
+          "bytes": 200758
+        }
+      }
+    }
+  ],
+  "all_packets_identical": true,
+  "median_prove_process_s": 29.816221373155713,
+  "median_verify_process_s": 0.8638754999265075,
+  "negative_cases": 10,
+  "limitations": [
+    "Pinned snapshot binaries rebuilt offline; external path dependencies shared.",
+    "Prepared D0a trace only; execution/trace generation excluded.",
+    "One fixture; no scaling or cross-chunk setup result.",
+    "No concrete PQ composition proof or zero knowledge.",
+    "Negative controls do not establish cryptographic soundness."
+  ]
+}

@@ -1,0 +1,2509 @@
+{
+  "status": "GEOMETRY_ONLY",
+  "cases": [
+    {
+      "case": "00-h10004-s3",
+      "claim_sha256": "af6a3ae6b675b74f6fbfa2f6e6acfb93cc3a9e318815cfc27ea29fbbe497b875",
+      "witness_sha256": "b8ce4bbf8bc72973de06dea53392a558030302d17b055b14390bb5a473bfb341",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 16,
+          "blocks": 30,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 7,
+            "2": 8,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 112,
+          "pow2_count_per_exact_block_class": 31,
+          "pow2_block_stream_capacity": 32
+        },
+        "sha_r": {
+          "messages": 8,
+          "blocks": 16,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 56,
+          "pow2_count_per_exact_block_class": 19,
+          "pow2_block_stream_capacity": 16
+        }
+      }
+    },
+    {
+      "case": "00-h10006-s3",
+      "claim_sha256": "3a2de47b2da6ab0e28a9269c1c1b34fa7b674fbdc6f10fc981d02b9e63fcda64",
+      "witness_sha256": "9dde73c6fd80829f193ae51c4ba4d5ba885a6e53143131640e702fdb2f63735f",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 27,
+          "blocks": 58,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 14,
+            "2": 9,
+            "6": 2,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 189,
+          "pow2_count_per_exact_block_class": 74,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 16,
+          "blocks": 37,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 6,
+            "2": 7,
+            "3": 1,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 112,
+          "pow2_count_per_exact_block_class": 41,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10007-s3",
+      "claim_sha256": "753450e4876059ebf3583dc0299eb72772f72aac996979a9d3380b2ba05fed6c",
+      "witness_sha256": "733894dafd5b71daeeb98e46bfd983efd546a9d363d2dcf3d718658fee546e76",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 35,
+          "blocks": 68,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 15,
+            "2": 17,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 245,
+          "pow2_count_per_exact_block_class": 99,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 16,
+          "blocks": 29,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 9,
+            "2": 5,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 112,
+          "pow2_count_per_exact_block_class": 42,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10008-s3",
+      "claim_sha256": "912758c9f6e6b4ef4e1b69e9fde98383a75c6922dac3bd6d4352763a5bba0ddc",
+      "witness_sha256": "89591b4418e76ac0128a0de3b947eddaa280a9faf96b6cbf762e17002a0475c9",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 29,
+          "blocks": 56,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 15,
+            "2": 11,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 203,
+          "pow2_count_per_exact_block_class": 67,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 26,
+          "blocks": 56,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 8,
+            "2": 16,
+            "7": 1,
+            "9": 1
+          },
+          "max_blocks_per_message": 9,
+          "uniform_message_capacity_blocks": 234,
+          "pow2_count_per_exact_block_class": 56,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10011-s1",
+      "claim_sha256": "c087e5cfd0551b8a58a2f6ae5201e57c3f9dd9b8e1a8861e2e7b92b3ff77d670",
+      "witness_sha256": "1b92cc37a78e300283fb367bbc6001e8cf4c292ba19673b031b5de0a75b1039e",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 46,
+          "blocks": 95,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 20,
+            "2": 19,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 322,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 16,
+          "blocks": 35,
+          "length_classes": 12,
+          "block_histogram": {
+            "1": 6,
+            "2": 7,
+            "3": 1,
+            "5": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 112,
+          "pow2_count_per_exact_block_class": 39,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10011-s3",
+      "claim_sha256": "cc1fc06c9a658ce92afe4ec7d4c0f08a4c5571946442ace912ea0a62ca4ee77d",
+      "witness_sha256": "1c304e8fe9e67e197bc7f5497a4b17fd5df47802250f7333535be75370a3571e",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 26,
+          "blocks": 53,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 12,
+            "2": 11,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 182,
+          "pow2_count_per_exact_block_class": 67,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 13,
+          "blocks": 26,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 6,
+            "2": 5,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 91,
+          "pow2_count_per_exact_block_class": 34,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10012-s0",
+      "claim_sha256": "4f99e7376bc1e0d8cf77aad3f937f270abaa02e1f57dbd5c0b2467b26b14a8d3",
+      "witness_sha256": "af550856e507d70b65458068c4de53eb4478fd7b9b4dae13f12d1f58dab4c781",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 49,
+          "blocks": 101,
+          "length_classes": 15,
+          "block_histogram": {
+            "1": 20,
+            "2": 22,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 343,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 12,
+          "blocks": 26,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 5,
+            "2": 4,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 84,
+          "pow2_count_per_exact_block_class": 29,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10012-s1",
+      "claim_sha256": "9cff7bbb8ea43ea4b277d29516aa2e212e5832ee90ac70e0dce3978146dd98ab",
+      "witness_sha256": "931a1866a08afb1220f845ee99a35b10b906d95883c7d772fdc7af42f9debae5",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 46,
+          "blocks": 95,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 20,
+            "2": 19,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 322,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 12,
+          "blocks": 26,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 5,
+            "2": 4,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 84,
+          "pow2_count_per_exact_block_class": 29,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10012-s3",
+      "claim_sha256": "f1aeb26b1bdec16e3fd68e500fb45e2c2d6f1dca59453ec410249e0da9c6fe70",
+      "witness_sha256": "943c1ad6ccb1c526f1683d6aa2f04070c561fade963419f3c4804058a0c83b84",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 42,
+          "blocks": 85,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 20,
+            "2": 17,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 294,
+          "pow2_count_per_exact_block_class": 127,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 24,
+          "blocks": 51,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 8,
+            "2": 13,
+            "3": 1,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 168,
+          "pow2_count_per_exact_block_class": 57,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10013-s1",
+      "claim_sha256": "78005a0cfb4ae1e89c78973beacba7da23829643e8197cb9635346e9cdf67007",
+      "witness_sha256": "377da8b512a7d17b84c4f24718daa5f39eba800e5ab59383aea04a6b7bd26a46",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 32,
+          "blocks": 58,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 13,
+            "2": 16,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 224,
+          "pow2_count_per_exact_block_class": 61,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 9,
+          "blocks": 19,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 63,
+          "pow2_count_per_exact_block_class": 22,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10013-s2",
+      "claim_sha256": "fea11d2bcc24c6748a5200a4f445115c14a36f3c6c124b930e7fb5df319df7d0",
+      "witness_sha256": "d9e63162fd49c9fd83b27f75fa456035d432ac46053fa8aff3dc02f8837a4025",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 39,
+          "blocks": 81,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 18,
+            "2": 16,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 273,
+          "pow2_count_per_exact_block_class": 95,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 16,
+          "blocks": 33,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 7,
+            "2": 7,
+            "5": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 112,
+          "pow2_count_per_exact_block_class": 36,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10014-s1",
+      "claim_sha256": "b95df46ef795536ccacb564b22d569456cc8ea7dea528f62ed323b33c8e78406",
+      "witness_sha256": "70efb125d07f8a0353f6af368c4f564d5b66a9c7edae717cf9a7fe0d3a337355",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 32,
+          "blocks": 58,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 13,
+            "2": 16,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 224,
+          "pow2_count_per_exact_block_class": 61,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 9,
+          "blocks": 19,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 63,
+          "pow2_count_per_exact_block_class": 22,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10015-s0",
+      "claim_sha256": "e578b994b2eb62d4ed712b8b4a195fc3446126c75fc94f95df5c2cb756175c59",
+      "witness_sha256": "2722426371519aac1681a173db516e29c5d682bedc825beca7e294bb511612fe",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 32,
+          "blocks": 59,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 12,
+            "2": 17,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 224,
+          "pow2_count_per_exact_block_class": 93,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 8,
+          "blocks": 18,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 4,
+            "2": 2,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 56,
+          "pow2_count_per_exact_block_class": 18,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10016-s0",
+      "claim_sha256": "1d2fa1580c2655d762f7b014b0f6ebbdc298925f542a5334dc592b902008f2a3",
+      "witness_sha256": "38e5288b8e4f12456357959e3d6d6ece586e905bf8b808145e453ec44789584c",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 52,
+          "blocks": 105,
+          "length_classes": 15,
+          "block_histogram": {
+            "1": 22,
+            "2": 23,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 364,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 15,
+          "blocks": 34,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 5,
+            "2": 7,
+            "3": 1,
+            "5": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 105,
+          "pow2_count_per_exact_block_class": 39,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10017-s0",
+      "claim_sha256": "d6b9832c81bc876e942f3b7bc20ea9e801d3688e569aca0c96b4212ca8dd0ff7",
+      "witness_sha256": "d50f3c03205cbc98b5603f8e67fdeea71012e4882f2ab85a081abc65d99f7096",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 39,
+          "blocks": 77,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 16,
+            "2": 18,
+            "3": 2,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 273,
+          "pow2_count_per_exact_block_class": 105,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 12,
+          "blocks": 27,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 4,
+            "2": 5,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 84,
+          "pow2_count_per_exact_block_class": 33,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10018-s0",
+      "claim_sha256": "3fea772acb3db7c97e41a87b782bfb68740e0d1100be1fd8c1764c7939a71f7f",
+      "witness_sha256": "40ce25fc7739e7d70d0737d2f86f7db57e7198b58211c604c7e64d9762770ac5",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 35,
+          "blocks": 64,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 13,
+            "2": 19,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 245,
+          "pow2_count_per_exact_block_class": 93,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 9,
+          "blocks": 19,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 63,
+          "pow2_count_per_exact_block_class": 22,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10019-s0",
+      "claim_sha256": "f674b4ac4a776006bee83d25c8b3adc5d0d946cd551822cabe99205910c22e0d",
+      "witness_sha256": "3ef29fd5c6e47be67a3c1053ee0fe125c750dee5b38dbce2350571b473e0626b",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 55,
+          "blocks": 110,
+          "length_classes": 15,
+          "block_histogram": {
+            "1": 23,
+            "2": 25,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 385,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 16,
+          "blocks": 35,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 6,
+            "2": 7,
+            "3": 1,
+            "5": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 112,
+          "pow2_count_per_exact_block_class": 39,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10019-s1",
+      "claim_sha256": "a47cf71d0572ab8cafdedf511e43970678b8c61dc12eac0908b39cb7b48a5dec",
+      "witness_sha256": "e555c3eac57a70dbaafd1cfbfe5796f14aed4b81dfc92a557d6dbf5fe2876d80",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 42,
+          "blocks": 80,
+          "length_classes": 12,
+          "block_histogram": {
+            "1": 19,
+            "2": 18,
+            "3": 2,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 294,
+          "pow2_count_per_exact_block_class": 121,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 18,
+          "blocks": 39,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 6,
+            "2": 9,
+            "3": 1,
+            "5": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 126,
+          "pow2_count_per_exact_block_class": 55,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10020-s1",
+      "claim_sha256": "c80075076d907fc416d756a20fa8a37345349e76bf38d81832c792ed7e547aff",
+      "witness_sha256": "e286d60af2b83d1040a8a425171523039fada8cb76f722c7006912f87de81947",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 64,
+          "blocks": 122,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 29,
+            "2": 28,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 448,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 24,
+          "blocks": 54,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 8,
+            "2": 13,
+            "3": 1,
+            "7": 1,
+            "10": 1
+          },
+          "max_blocks_per_message": 10,
+          "uniform_message_capacity_blocks": 240,
+          "pow2_count_per_exact_block_class": 60,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10021-s1",
+      "claim_sha256": "6e126588b3d910c464f856f40f3e3fde7fb568624a8895d5e638dbcfd5f535e5",
+      "witness_sha256": "d43d808b3b170fa268b3d93ffe174334f5a997509b3f04c1664e05ff9d2963a1",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 39,
+          "blocks": 76,
+          "length_classes": 12,
+          "block_histogram": {
+            "1": 17,
+            "2": 17,
+            "3": 2,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 273,
+          "pow2_count_per_exact_block_class": 121,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 13,
+          "blocks": 28,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 5,
+            "2": 5,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 91,
+          "pow2_count_per_exact_block_class": 37,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10022-s1",
+      "claim_sha256": "c644fcb79ffc040b4477d61bb6e8c0a132ba2d1b084a6360fc4ffc493c428c4a",
+      "witness_sha256": "4de8c744bccf1e2ddbd3a61578fee1bd4ab25189dc438493835e46cd05472f72",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 39,
+          "blocks": 76,
+          "length_classes": 12,
+          "block_histogram": {
+            "1": 17,
+            "2": 17,
+            "3": 2,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 273,
+          "pow2_count_per_exact_block_class": 121,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 13,
+          "blocks": 28,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 5,
+            "2": 5,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 91,
+          "pow2_count_per_exact_block_class": 37,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10023-s1",
+      "claim_sha256": "7bd666ac5e42b3e9741900401d56532ec335b6efaed53e5d101d135ea379187b",
+      "witness_sha256": "7186987e5d32aac92e995f05c21c59ad80c3e1d1dd0f5ea8a1555b3f5ede5e95",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 29,
+          "blocks": 53,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 12,
+            "2": 14,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 203,
+          "pow2_count_per_exact_block_class": 61,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 8,
+          "blocks": 18,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 4,
+            "2": 2,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 56,
+          "pow2_count_per_exact_block_class": 18,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10023-s2",
+      "claim_sha256": "42c06777446c4858ce6ccdf45fd07462d29d1bb79ad4be1dbbbe3a6ca73c35a9",
+      "witness_sha256": "e3735be984fdac6340b09eb5c3a183e84b81dd0ee655df0ce27fc61dcd2b99c7",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 58,
+          "blocks": 121,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 25,
+            "2": 23,
+            "3": 4,
+            "6": 4,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 406,
+          "pow2_count_per_exact_block_class": 146,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 28,
+          "blocks": 66,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 7,
+            "2": 14,
+            "3": 4,
+            "5": 1,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 196,
+          "pow2_count_per_exact_block_class": 71,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "00-h10023-s3",
+      "claim_sha256": "ed28701c2811cb67e10666dfe5f860365a233098e34b87ad9078c5bf6b9fe891",
+      "witness_sha256": "6e2ca508e78cb368690d45c0178767a5ed525a88f739e0506729b17224bf42ea",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 34,
+          "blocks": 75,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 14,
+            "2": 15,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 238,
+          "pow2_count_per_exact_block_class": 79,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 11,
+          "blocks": 23,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 5,
+            "2": 4,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 77,
+          "pow2_count_per_exact_block_class": 26,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10024-s0",
+      "claim_sha256": "24117d1fbfdf548f549a9cba0047bb758dd45b2975286cd18717932cc06a5f43",
+      "witness_sha256": "9eea7543dbd9a9a379875da038e62e7927336bf2df20e08772ea04784459c089",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 68,
+          "blocks": 137,
+          "length_classes": 15,
+          "block_histogram": {
+            "1": 29,
+            "2": 29,
+            "3": 4,
+            "6": 4,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 476,
+          "pow2_count_per_exact_block_class": 146,
+          "pow2_block_stream_capacity": 256
+        },
+        "sha_r": {
+          "messages": 33,
+          "blocks": 78,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 8,
+            "2": 19,
+            "3": 3,
+            "7": 2,
+            "9": 1
+          },
+          "max_blocks_per_message": 9,
+          "uniform_message_capacity_blocks": 297,
+          "pow2_count_per_exact_block_class": 107,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "00-h10024-s3",
+      "claim_sha256": "8176eaeb28869ee63ffc539e4891ed63fe26ba7401cf91b107037776ac95dab4",
+      "witness_sha256": "1e456ab1b9c4315b0cd3cadee24fc7d64bea6e2ca3e51bd7b47b404979bce4e1",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 16,
+          "blocks": 30,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 7,
+            "2": 8,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 112,
+          "pow2_count_per_exact_block_class": 31,
+          "pow2_block_stream_capacity": 32
+        },
+        "sha_r": {
+          "messages": 8,
+          "blocks": 16,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 56,
+          "pow2_count_per_exact_block_class": 19,
+          "pow2_block_stream_capacity": 16
+        }
+      }
+    },
+    {
+      "case": "00-h10025-s2",
+      "claim_sha256": "9e8bfd363eb2eddb8ea7f18439141d6bc6994bdfbe48453b99bc44cfd84ea505",
+      "witness_sha256": "b961132f0902037dcc70b184dec6bbc805191744f3c051527906a688632abc0e",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 64,
+          "blocks": 131,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 27,
+            "2": 27,
+            "3": 4,
+            "6": 4,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 448,
+          "pow2_count_per_exact_block_class": 146,
+          "pow2_block_stream_capacity": 256
+        },
+        "sha_r": {
+          "messages": 30,
+          "blocks": 68,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 9,
+            "2": 14,
+            "3": 4,
+            "5": 1,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 210,
+          "pow2_count_per_exact_block_class": 79,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "00-h10034-s1",
+      "claim_sha256": "009c1f16a4ed7563f0945359ee3a4d9cd435e3845dcd3d60881f8caef57eed4b",
+      "witness_sha256": "dc45c09e31ae26cea00ae7d426bbfa44e679935eb62ae17f57a220ff3b0d4ea4",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 61,
+          "blocks": 117,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 28,
+            "2": 26,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 427,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 33,
+          "blocks": 73,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 8,
+            "2": 20,
+            "3": 2,
+            "5": 1,
+            "7": 2
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 231,
+          "pow2_count_per_exact_block_class": 97,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "00-h10035-s1",
+      "claim_sha256": "7808af59ad544dcdfe3fcef2a3031631a8b432cfa334a0b98169f738355914e3",
+      "witness_sha256": "1be19ddb090351618eeaeaee07ae28a364a542672208472ed464b7b3c2f82e2f",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 49,
+          "blocks": 99,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 22,
+            "2": 20,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 343,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 19,
+          "blocks": 43,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 5,
+            "2": 10,
+            "3": 2,
+            "5": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 133,
+          "pow2_count_per_exact_block_class": 58,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "00-h10035-s3",
+      "claim_sha256": "edea3dafa08506e8b4af109dd8ccdea1a0384fa993d75ccf040bba3ba5e8b173",
+      "witness_sha256": "cb61541c399626eff67f47364d414acf30405b58ca6c40e7ce925b8f130aa6c3",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 94,
+          "blocks": 168,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 43,
+            "2": 44,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 658,
+          "pow2_count_per_exact_block_class": 229,
+          "pow2_block_stream_capacity": 256
+        },
+        "sha_r": {
+          "messages": 2460,
+          "blocks": 5875,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 815,
+            "2": 1640,
+            "3": 2,
+            "7": 1,
+            "20": 1,
+            "1747": 1
+          },
+          "max_blocks_per_message": 1747,
+          "uniform_message_capacity_blocks": 4297620,
+          "pow2_count_per_exact_block_class": 6900,
+          "pow2_block_stream_capacity": 8192
+        }
+      }
+    },
+    {
+      "case": "00-h10036-s3",
+      "claim_sha256": "22c25e89f43d7fd45fa9267b5339a5a70348ec2358a15101a6d5e2bb6656705e",
+      "witness_sha256": "93ac1d8b3739a1e13b0e25d75157e7c276deea87d6483ee36f22f832b6a69ef3",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 94,
+          "blocks": 168,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 43,
+            "2": 44,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 658,
+          "pow2_count_per_exact_block_class": 229,
+          "pow2_block_stream_capacity": 256
+        },
+        "sha_r": {
+          "messages": 2150,
+          "blocks": 5135,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 714,
+            "2": 1433,
+            "3": 1,
+            "7": 1,
+            "1545": 1
+          },
+          "max_blocks_per_message": 1545,
+          "uniform_message_capacity_blocks": 3321750,
+          "pow2_count_per_exact_block_class": 6675,
+          "pow2_block_stream_capacity": 8192
+        }
+      }
+    },
+    {
+      "case": "00-h10037-s3",
+      "claim_sha256": "80dd2ff479da410bee51cf8429c10b719659cd29d9d54d86a1272581232af964",
+      "witness_sha256": "1f0d626a7cf41bd153b4210eb0e7f29fcb6193e4e26f62f81e09a982fe61cc58",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 25,
+          "blocks": 47,
+          "length_classes": 9,
+          "block_histogram": {
+            "1": 10,
+            "2": 12,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 175,
+          "pow2_count_per_exact_block_class": 61,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 9,
+          "blocks": 19,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 63,
+          "pow2_count_per_exact_block_class": 22,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10038-s0",
+      "claim_sha256": "be586ab295187ae588bf24f7d032662e388cdc255cbd05941a2a45f9eb47cbc0",
+      "witness_sha256": "53733b5fd6ca4bff79c40aee1622f811a6fd8344ad2091324c63c7bc6b08c399",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 42,
+          "blocks": 82,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 17,
+            "2": 20,
+            "3": 2,
+            "6": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 294,
+          "pow2_count_per_exact_block_class": 121,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 13,
+          "blocks": 28,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 5,
+            "2": 5,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 91,
+          "pow2_count_per_exact_block_class": 37,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10039-s1",
+      "claim_sha256": "b72367728096c2900372d97348be761179a53ffc57a6ddd17973305a0c4ae555",
+      "witness_sha256": "11e5d73b59b3253fc17b1b62aee063df81df8114f52a016931dffe002a0b9b64",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 43,
+          "blocks": 90,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 19,
+            "2": 17,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 301,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 11,
+          "blocks": 25,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 4,
+            "2": 4,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 77,
+          "pow2_count_per_exact_block_class": 25,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10040-s1",
+      "claim_sha256": "25a38f59f8c794c0dac019a897f5b85e758d9aa0f86860bcf4025aa1dacc0c09",
+      "witness_sha256": "4c7e81a8b66fb177d33069c27af357c090790179772e0c921785ced699cb11f5",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 29,
+          "blocks": 53,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 12,
+            "2": 14,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 203,
+          "pow2_count_per_exact_block_class": 61,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 8,
+          "blocks": 18,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 4,
+            "2": 2,
+            "3": 1,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 56,
+          "pow2_count_per_exact_block_class": 18,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "00-h10041-s1",
+      "claim_sha256": "895bcf242ad1b7d156d93792bbb5da2cb6a6908f48661b4f2c9e885f35672684",
+      "witness_sha256": "f0fc6ac087c3266e9d81a4609644ad856aea317e62730b75f4e287dac8d65d67",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 46,
+          "blocks": 95,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 20,
+            "2": 19,
+            "3": 2,
+            "6": 4,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 322,
+          "pow2_count_per_exact_block_class": 133,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 12,
+          "blocks": 26,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 5,
+            "2": 4,
+            "3": 2,
+            "7": 1
+          },
+          "max_blocks_per_message": 7,
+          "uniform_message_capacity_blocks": 84,
+          "pow2_count_per_exact_block_class": 29,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10004-s0",
+      "claim_sha256": "f424e5721ff1aef6ea8055f4d4570b1d90ab0d2bd5cee704a1502d2da9af1ec2",
+      "witness_sha256": "04aa22d202c0194580b6d53c7f5cb8c4333ee7e4aabd22825582c9c4ed029c4a",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 34,
+          "blocks": 72,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 13,
+            "2": 18,
+            "6": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 374,
+          "pow2_count_per_exact_block_class": 103,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 14,
+          "blocks": 31,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 7,
+            "2": 5,
+            "3": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 154,
+          "pow2_count_per_exact_block_class": 38,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10005-s2",
+      "claim_sha256": "534599c64e4e92a10574f47d3441fcf657257d1200d668d7c5e35b68f59a40c6",
+      "witness_sha256": "365c42bd4acd243788eae1447a927caac81faecbe8ee9c0d6e51b03a82fec0c5",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 30,
+          "blocks": 65,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 12,
+            "2": 15,
+            "6": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 330,
+          "pow2_count_per_exact_block_class": 71,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 17,
+          "blocks": 39,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 6,
+            "2": 8,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 187,
+          "pow2_count_per_exact_block_class": 41,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10005-s3",
+      "claim_sha256": "149a69e5a3b15d1e94521277547024f995453587b55c9930a7d0138139cea0ae",
+      "witness_sha256": "fa646645ab906a797a31e4d21c9289de5ed2a5b18958b3fc30797fa0e7c25b32",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 43,
+          "blocks": 92,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 19,
+            "2": 19,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 473,
+          "pow2_count_per_exact_block_class": 131,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 26,
+          "blocks": 59,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 8,
+            "2": 15,
+            "5": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 286,
+          "pow2_count_per_exact_block_class": 61,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10006-s2",
+      "claim_sha256": "ce4a0f41faf65a64cc8936b8c3ef7c56d859a6475b8df57ceb0c462dc8038669",
+      "witness_sha256": "fb70d1daa121ec9859498c66b62bdac784dec7041bf35890d303fdcd31ee4086",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 56,
+          "blocks": 113,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 24,
+            "2": 27,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 616,
+          "pow2_count_per_exact_block_class": 131,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 29,
+          "blocks": 65,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 9,
+            "2": 16,
+            "3": 1,
+            "5": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 319,
+          "pow2_count_per_exact_block_class": 72,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "01-h10007-s0",
+      "claim_sha256": "6fad53590ce116a206dbdf5c47d0b869243da8322acbf313e81f3a45f6ff2ff9",
+      "witness_sha256": "254aebfcc035774bc04c87b9d12f31e1bb91e580869272fdb30dc605bec72b9a",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 43,
+          "blocks": 84,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 19,
+            "2": 21,
+            "6": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 473,
+          "pow2_count_per_exact_block_class": 119,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 29,
+          "blocks": 64,
+          "length_classes": 12,
+          "block_histogram": {
+            "1": 8,
+            "2": 17,
+            "3": 2,
+            "5": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 319,
+          "pow2_count_per_exact_block_class": 94,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10007-s1",
+      "claim_sha256": "f74e823ae2cf3ac0252a0e96adea01caf1d4b384f895c2598793f5f138b981ad",
+      "witness_sha256": "10798d78a9b26f57675e410e5f1481e9e50deea8fb59458bbdfe8168cc23212b",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 37,
+          "blocks": 79,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 20,
+            "2": 12,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 407,
+          "pow2_count_per_exact_block_class": 99,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 23,
+          "blocks": 51,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 8,
+            "2": 12,
+            "3": 1,
+            "5": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 253,
+          "pow2_count_per_exact_block_class": 59,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10007-s2",
+      "claim_sha256": "31212b4e0859b3866f11f283689798bb0a13718bb7fca2efd51f72134c66cb23",
+      "witness_sha256": "d75070050ebb4e30847d18994acd44ba2f2026959a300e66e32b6e318aea2bb0",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 37,
+          "blocks": 76,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 15,
+            "2": 19,
+            "6": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 407,
+          "pow2_count_per_exact_block_class": 103,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 19,
+          "blocks": 42,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 7,
+            "2": 9,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 209,
+          "pow2_count_per_exact_block_class": 57,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10008-s0",
+      "claim_sha256": "288adc900fc90d38eb0a29660267c3268d2bc723aad65d5b3bee9bad9ef4ca80",
+      "witness_sha256": "f6e7e0c472f4d2d40fccabae3085352cd7993db0dc7943880c76eacec3450941",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 62,
+          "blocks": 121,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 28,
+            "2": 29,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 682,
+          "pow2_count_per_exact_block_class": 131,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 39,
+          "blocks": 87,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 11,
+            "2": 24,
+            "5": 2,
+            "7": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 429,
+          "pow2_count_per_exact_block_class": 108,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "01-h10008-s3",
+      "claim_sha256": "1a4e5db7c279958eb841af3c08189fa26cec0ea6540b8f91b9834e1c6816ff47",
+      "witness_sha256": "f814e99f5d17c9292341c823415eb4fc5c83f77425d20acf4011c7e2eab4e14c",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 27,
+          "blocks": 54,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 9,
+            "2": 17,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 297,
+          "pow2_count_per_exact_block_class": 91,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 10,
+          "blocks": 22,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 7,
+            "2": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 110,
+          "pow2_count_per_exact_block_class": 23,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10009-s0",
+      "claim_sha256": "4fb75a5c67bf127df5dad522a01291576cbda13b1a89e48cb86b52a70177fc02",
+      "witness_sha256": "a7894ade296241aad10e2a8b8b1bcd08b011fc6d7720b983661f39455d052e90",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 30,
+          "blocks": 65,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 12,
+            "2": 15,
+            "6": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 330,
+          "pow2_count_per_exact_block_class": 71,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 13,
+          "blocks": 30,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 6,
+            "2": 5,
+            "3": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 143,
+          "pow2_count_per_exact_block_class": 38,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10009-s1",
+      "claim_sha256": "10c2d092198ac3758b5a3c162869d2d639e0831e2ccd875ff15ac9f43b73110c",
+      "witness_sha256": "a0461461756f1c2ef1c00b1c3f1476c460d233da997aadb165056b61a652497a",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 50,
+          "blocks": 108,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 26,
+            "2": 18,
+            "6": 4,
+            "11": 2
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 550,
+          "pow2_count_per_exact_block_class": 142,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 33,
+          "blocks": 80,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 10,
+            "2": 17,
+            "3": 3,
+            "5": 1,
+            "11": 2
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 363,
+          "pow2_count_per_exact_block_class": 119,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "01-h10010-s1",
+      "claim_sha256": "f7d46333c15faf344ff7f26c88a80364c4e91edbd03ef651bb57472c947070ce",
+      "witness_sha256": "199e3a58e8fbb9a4228dc8ff4c7b2b4053eb6ddf8ca52bd1df1a8b36ed16703f",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 25,
+          "blocks": 46,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 13,
+            "2": 11,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 275,
+          "pow2_count_per_exact_block_class": 59,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 14,
+          "blocks": 26,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 11,
+            "2": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 154,
+          "pow2_count_per_exact_block_class": 31,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10011-s4",
+      "claim_sha256": "297d17bede0494e12da6ed7a6ffb7096f2b6b1036cbfe7a4fe9d827472030efe",
+      "witness_sha256": "72731f4a49785de2bbcafc13643f8d6ab7af8bd9a59e8a60fb5ac68a159376be",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 19,
+          "blocks": 40,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 7,
+            "2": 11,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 209,
+          "pow2_count_per_exact_block_class": 51,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 8,
+          "blocks": 20,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 88,
+          "pow2_count_per_exact_block_class": 23,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10012-s2",
+      "claim_sha256": "503036c84ad33ad16edd66d6fbf50ef4940106fea63178a62f013888d9149e3a",
+      "witness_sha256": "6237debc5fa8994f7bfef790fec22c71384f92dfbb706a61c4410e775647807f",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 41,
+          "blocks": 91,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 16,
+            "2": 20,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 451,
+          "pow2_count_per_exact_block_class": 115,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 13,
+          "blocks": 29,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 7,
+            "2": 4,
+            "3": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 143,
+          "pow2_count_per_exact_block_class": 30,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10013-s2",
+      "claim_sha256": "dec8db4d27f89294ede22e009fbe2db38cefb8f5354949df25af95d3a45c4df4",
+      "witness_sha256": "015a64dbd0ad08db1759d58aef9244aaec9fbb05488b97f6454f2cff080df977",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 44,
+          "blocks": 95,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 18,
+            "2": 21,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 484,
+          "pow2_count_per_exact_block_class": 131,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 22,
+          "blocks": 49,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 8,
+            "2": 11,
+            "3": 1,
+            "5": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 242,
+          "pow2_count_per_exact_block_class": 59,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10015-s0",
+      "claim_sha256": "61e941afd555b93e20ef2973ed4f6b2955741482ab20c6beefa000bd28c0274c",
+      "witness_sha256": "1a5dc7fd25bf7b1fa4f85fb274212b39ea672abb9c588eff12583d97942ef3e8",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 52,
+          "blocks": 109,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 20,
+            "2": 27,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 572,
+          "pow2_count_per_exact_block_class": 131,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 20,
+          "blocks": 42,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 9,
+            "2": 8,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 220,
+          "pow2_count_per_exact_block_class": 49,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10017-s1",
+      "claim_sha256": "f6b990900f8bf6611642cdb34e3df5547c81a29d40d410346a643ceb3c7ecc2f",
+      "witness_sha256": "70bce0d27948613ed404e4408f889198df94e1e673b8b28ef9e1e640c0a8f1c4",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 46,
+          "blocks": 92,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 25,
+            "2": 16,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 506,
+          "pow2_count_per_exact_block_class": 99,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 44,
+          "blocks": 98,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 12,
+            "2": 28,
+            "5": 1,
+            "7": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 484,
+          "pow2_count_per_exact_block_class": 110,
+          "pow2_block_stream_capacity": 128
+        }
+      }
+    },
+    {
+      "case": "01-h10018-s2",
+      "claim_sha256": "10471ed611b60966fbd5d3bf8c6e8d6dc612f7a4d94092b78b903391624fac46",
+      "witness_sha256": "9c3a1ae833f9b48017011b61a0620fd2a3e0613992920e0d3c3d9d4c825de4ac",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 56,
+          "blocks": 115,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 24,
+            "2": 25,
+            "3": 2,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 616,
+          "pow2_count_per_exact_block_class": 137,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 28,
+          "blocks": 64,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 6,
+            "2": 16,
+            "3": 5,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 308,
+          "pow2_count_per_exact_block_class": 75,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10018-s4",
+      "claim_sha256": "1618ac7018835313b29481d85fe47b6c09974ca259277e99fd78931afbc6b5a9",
+      "witness_sha256": "8617ecd2cdbd651960cc11a385bcf61cbfdcc7038e1894d8cc1c8ebf6041c4c7",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 34,
+          "blocks": 72,
+          "length_classes": 8,
+          "block_histogram": {
+            "1": 13,
+            "2": 18,
+            "6": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 374,
+          "pow2_count_per_exact_block_class": 103,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 14,
+          "blocks": 31,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 7,
+            "2": 5,
+            "3": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 154,
+          "pow2_count_per_exact_block_class": 38,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10019-s2",
+      "claim_sha256": "1d4f095c39e6ab61d89cdb8359f319ec53dc3ff8c2e31ba0ded50b5730235ab6",
+      "witness_sha256": "a0efdb2943ae528eb68a645815bfd01cdca730b969573c9fa3dc1c9634e7c104",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 39,
+          "blocks": 89,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 16,
+            "2": 16,
+            "3": 2,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 429,
+          "pow2_count_per_exact_block_class": 89,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 11,
+          "blocks": 29,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 4,
+            "2": 4,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 121,
+          "pow2_count_per_exact_block_class": 29,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10022-s0",
+      "claim_sha256": "006b306030e45265ac8d9ae10533107cbae82f620e188e150d271bfb7cce3e9c",
+      "witness_sha256": "4aff1eb8cde8fca12576c824be41cf9d946d64974ce64d82edfcb735cd023501",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 43,
+          "blocks": 94,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 17,
+            "2": 21,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 473,
+          "pow2_count_per_exact_block_class": 131,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 15,
+          "blocks": 36,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 5,
+            "2": 7,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 165,
+          "pow2_count_per_exact_block_class": 41,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10024-s0",
+      "claim_sha256": "44a7f9c005b4bcf914c5acf45e6f4afd2fe4fe83f8bf1d2123cfc77d915f7883",
+      "witness_sha256": "6e1160b985b590d5f9a276dace6953735b1076a76c328fd6ad4c034ea3720e58",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 23,
+          "blocks": 47,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 8,
+            "2": 14,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 253,
+          "pow2_count_per_exact_block_class": 51,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 9,
+          "blocks": 21,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 6,
+            "2": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 99,
+          "pow2_count_per_exact_block_class": 23,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10024-s1",
+      "claim_sha256": "a4201bdac7bf5335a618edefc5cb665a5b4f6b982fb47b112a7d1ca6053c8c0e",
+      "witness_sha256": "246a8c18f8d6d4d49c0c53bbcbeffbf22fb6544e53a132abd5ffb2c862f1379e",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 46,
+          "blocks": 96,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 23,
+            "2": 16,
+            "3": 2,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 506,
+          "pow2_count_per_exact_block_class": 105,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 21,
+          "blocks": 45,
+          "length_classes": 12,
+          "block_histogram": {
+            "1": 10,
+            "2": 8,
+            "3": 1,
+            "5": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 231,
+          "pow2_count_per_exact_block_class": 51,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10025-s1",
+      "claim_sha256": "6afaeed47a0679ca168e578087e7bfb8dc20f36cf985215fed4128143989f0b1",
+      "witness_sha256": "6dc928b8cfd6c7c6bce059755288347879de83ef221d747209bcb2bc327ec60f",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 91,
+          "blocks": 164,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 45,
+            "2": 39,
+            "3": 2,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 1001,
+          "pow2_count_per_exact_block_class": 233,
+          "pow2_block_stream_capacity": 256
+        },
+        "sha_r": {
+          "messages": 1509,
+          "blocks": 3603,
+          "length_classes": 13,
+          "block_histogram": {
+            "1": 500,
+            "2": 1005,
+            "3": 1,
+            "9": 1,
+            "11": 1,
+            "1070": 1
+          },
+          "max_blocks_per_message": 1070,
+          "uniform_message_capacity_blocks": 1614630,
+          "pow2_count_per_exact_block_class": 3653,
+          "pow2_block_stream_capacity": 4096
+        }
+      }
+    },
+    {
+      "case": "01-h10025-s2",
+      "claim_sha256": "e6380ae1fc324fc86b178ebc73ca6405ee1b003e51ac598f840b28aa85d828bb",
+      "witness_sha256": "68b52eb78f5ffaf9d6428e5f85d00da2993ed67a4f9aeffe6039d32050831b06",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 66,
+          "blocks": 132,
+          "length_classes": 14,
+          "block_histogram": {
+            "1": 27,
+            "2": 32,
+            "3": 2,
+            "6": 4,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 726,
+          "pow2_count_per_exact_block_class": 137,
+          "pow2_block_stream_capacity": 256
+        },
+        "sha_r": {
+          "messages": 21,
+          "blocks": 49,
+          "length_classes": 11,
+          "block_histogram": {
+            "1": 7,
+            "2": 10,
+            "3": 2,
+            "5": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 231,
+          "pow2_count_per_exact_block_class": 62,
+          "pow2_block_stream_capacity": 64
+        }
+      }
+    },
+    {
+      "case": "01-h10026-s1",
+      "claim_sha256": "adebabb93f2a62a96a1af9a3b0f14313b741b2572aa67a2b694130e202c273df",
+      "witness_sha256": "4654880e3cfddc975d4e3c40d07db6f3e71258e7982c078075e41b85a09a5410",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 21,
+          "blocks": 43,
+          "length_classes": 9,
+          "block_histogram": {
+            "1": 10,
+            "2": 8,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 231,
+          "pow2_count_per_exact_block_class": 49,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 9,
+          "blocks": 23,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "3": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 99,
+          "pow2_count_per_exact_block_class": 26,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10033-s3",
+      "claim_sha256": "7dff4c45dddfa0f263373d9f935ffb49bf0b10ce6a5e7e0bf6538da6bf437146",
+      "witness_sha256": "7b02028837353b4582bf2e699d901c8bf64679abdbd6e97611c82663ec02b1c3",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 36,
+          "blocks": 70,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 13,
+            "2": 20,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 396,
+          "pow2_count_per_exact_block_class": 97,
+          "pow2_block_stream_capacity": 128
+        },
+        "sha_r": {
+          "messages": 9,
+          "blocks": 23,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 5,
+            "2": 2,
+            "3": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 99,
+          "pow2_count_per_exact_block_class": 26,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    },
+    {
+      "case": "01-h10034-s3",
+      "claim_sha256": "74b61c8a7ec7b798f61017f62e2411a546b5c4c173e0ada87f150b722e833ccd",
+      "witness_sha256": "1c496c8a73893ebdb3f138d454a2cba85ae0de5f7094311a4cf15a5211aeb34f",
+      "export_returncode": 0,
+      "families": {
+        "sha_t": {
+          "messages": 32,
+          "blocks": 63,
+          "length_classes": 10,
+          "block_histogram": {
+            "1": 12,
+            "2": 17,
+            "3": 2,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 352,
+          "pow2_count_per_exact_block_class": 97,
+          "pow2_block_stream_capacity": 64
+        },
+        "sha_r": {
+          "messages": 8,
+          "blocks": 22,
+          "length_classes": 6,
+          "block_histogram": {
+            "1": 4,
+            "2": 2,
+            "3": 1,
+            "11": 1
+          },
+          "max_blocks_per_message": 11,
+          "uniform_message_capacity_blocks": 88,
+          "pow2_count_per_exact_block_class": 22,
+          "pow2_block_stream_capacity": 32
+        }
+      }
+    }
+  ],
+  "exporter_sha256": "d66005a56f56495d565dd2b69f629b727a42e9118b72c75f336e31a55fc96f24",
+  "limitations": [
+    "D0a corpus only; not full NEAR coverage.",
+    "Capacity figures exclude mask, padding, chaining and bus proof overhead.",
+    "Per-case buckets are not yet a fixed public capacity policy.",
+    "No proving latency, proof size or security claim."
+  ],
+  "candidate_reusable_policy": {
+    "sha_t": {
+      "block_capacity_to_message_slots": {
+        "1": 64,
+        "2": 64,
+        "4": 4,
+        "8": 8,
+        "16": 2
+      },
+      "total_message_slots": 142,
+      "total_compression_slots": 304,
+      "selection": "Corpus-derived candidate; freeze before independent held-out evaluation."
+    },
+    "sha_r": {
+      "block_capacity_to_message_slots": {
+        "1": 1024,
+        "2": 2048,
+        "4": 8,
+        "8": 4,
+        "16": 2,
+        "32": 1,
+        "2048": 1
+      },
+      "total_message_slots": 3088,
+      "total_compression_slots": 7296,
+      "selection": "Corpus-derived candidate; freeze before independent held-out evaluation."
+    }
+  }
+}

@@ -1,0 +1,30 @@
+AKITA_WIRE_AUDIT roundtrip_decode=true midpoint_mutant_rejected=true
+modular sha2-chain (2^18, optimized): Prover completed in 1.96s (75.3 kHz / padded 133.9 kHz)
+modular sha2-chain (2^18, optimized): Proof size 97998 bytes
+modular sha2-chain (2^18, optimized): PCS setup 0.112s
+modular sha2-chain (2^18, optimized): Verifier 10.586ms parallel (16 threads), 19.584ms single-threaded
+modular sha2-chain (2^18, optimized): Peak RSS 426.75 MiB
+modular sha2-chain (2^18, optimized): Peak footprint 426.75 MiB
+	Command being timed: "timeout 180 /data/illia/pq-tail-architecture-20261024/jolt-target/ci/jolt-prover profile --name sha2-chain --scale 18 --backend optimized --format none"
+	User time (seconds): 12.34
+	System time (seconds): 0.31
+	Percent of CPU this job got: 544%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.32
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 436992
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 189112
+	Voluntary context switches: 11440
+	Involuntary context switches: 247
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 240
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

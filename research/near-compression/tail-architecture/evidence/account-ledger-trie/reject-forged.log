@@ -1,0 +1,3 @@
+RECEIPT_LEDGER_REJECT path=multi-lists/forged-repeat-balance.multi error=circuit not satisfied: 2 assertion(s) failed
+  .list-1.slot-4.account-bind.before-balance-0-0: conditional assert: Word(0xe1b14706136c69c8) != Word(0xe1b14706136c69c7)
+  .list-1.slot-8.account-bind.before-balance-0-0: conditional assert: Word(0x56ce1b834fb061c7) != Word(0x56ce1b834fb061c8)

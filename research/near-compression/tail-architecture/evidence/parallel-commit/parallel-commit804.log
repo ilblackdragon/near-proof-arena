@@ -1,0 +1,47 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11273 private=10074314 constants=44536 and=3530668 zero=880973
+RECEIPT_LIST_CIRCUIT cap=1024 mode=1 source_budget=131072 log=23 circuit_s=16.946438549
+RECEIPT_LIST_SETUP setup_s=2.673981848
+RECEIPT_LIST_PROVER_MS pack=41.005162999999996 commit=247.585758 bitand=744.729388 shift=255.378634 switch=209.79208699999998 opening=1738.4785940000002 total=3243.8944890000002
+RECEIPT_OPENING_STAGES OpeningTimings { fold: 72.864339ms, encoding: 52.970806ms, witness: 4.03556ms, t_r: 6.333094ms, masks: 48.242836ms, phi: 10.482117ms, statement: 116.013058ms, labrador: 1.399744717s }
+SIS_POLICY inner rank=25 width=9567 source=18796463511276 target=289832688122 bound=247094830256.3006 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=289832688122 target=1792684871 bound=2437435422.6952996 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1792684871 target=72650317 bound=124102386.12521195 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72650317 target=13084337 bound=26738547.941441547 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13084337 target=1017303669 bound=14289048.79909702 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=1017303669 target=60383808194 bound=55043782.209638752 bits=150.255 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.048939144 prove_s=3.249684873 ready_s=3.298814145 verify_s=1.093007607 mutations=7 full_near=false
+RECEIPT_LIST_PROVER_MS pack=39.068787 commit=217.812792 bitand=710.771939 shift=252.92825499999998 switch=124.604254 opening=1722.6169009999999 total=3074.792164
+RECEIPT_OPENING_STAGES OpeningTimings { fold: 73.038676ms, encoding: 41.179912ms, witness: 2.884257ms, t_r: 5.175671ms, masks: 48.994859ms, phi: 10.650543ms, statement: 118.720333ms, labrador: 1.39058561s }
+SIS_POLICY inner rank=25 width=9567 source=18796463511276 target=289832688122 bound=247094830256.3006 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=289832688122 target=1792684871 bound=2437435422.6952996 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1792684871 target=72650317 bound=124102386.12521195 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72650317 target=13084337 bound=26738547.941441547 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13084337 target=1017303669 bound=14289048.79909702 bits=144.955 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=1017303669 target=60383808194 bound=55043782.209638752 bits=150.255 finite=1 tail=1
+RECEIPT_LIST_RESULT path=/data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list cap=1024 mode=1 source_budget=131072 count=804 bytes=244814 prepare_s=0.04873961 prove_s=3.081311518 ready_s=3.13028089 verify_s=1.108185114 mutations=7 full_near=false
+	Command being timed: "/data/illia/pq-tail-architecture-20261024/target/release/near-receipt-list-stages 1024 compact /data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list /data/illia/pq-tail-architecture-20261024/receipt-lists/00-h10035-s3-list2.list"
+	User time (seconds): 29.17
+	System time (seconds): 7.85
+	Percent of CPU this job got: 116%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:31.84
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 12590880
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 10992817
+	Voluntary context switches: 1013
+	Involuntary context switches: 1891
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 976
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

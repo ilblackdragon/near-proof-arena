@@ -1,0 +1,10 @@
+{
+  "wrong-root": {
+    "returncode": -6,
+    "expected_error": "wrong outcome root"
+  },
+  "wrong-context": {
+    "returncode": -6,
+    "expected_error": "public/context shape"
+  }
+}

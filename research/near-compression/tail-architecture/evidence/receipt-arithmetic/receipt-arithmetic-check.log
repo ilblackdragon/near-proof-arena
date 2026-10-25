@@ -1,0 +1,6 @@
+
+thread 'main' (1026930) panicked at crates/binius/src/liop.rs:57:9:
+assertion `left == right` failed: the IntMul reduction is bounded on an IOP channel, which this pipeline has no oracle for
+  left: 6
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

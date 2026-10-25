@@ -1,0 +1,17 @@
+{
+  "status": "TWO_CASES_NOT_P95_DEADLINE_NOT_ESTABLISHED",
+  "repeat_ready_seconds": [
+    2.032641497,
+    1.9653270919999999,
+    2.002463349,
+    2.001701849
+  ],
+  "median_ready_seconds": 2.002082599,
+  "all_repeated_packets_match_fresh_verified_packets": true,
+  "limitations": [
+    "Four alternating warm observations, not representative p95.",
+    "No own build or fresh-verifier process overlapped repeat run.",
+    "Other host activity is not controlled.",
+    "Original witness-to-batch export excluded."
+  ]
+}
