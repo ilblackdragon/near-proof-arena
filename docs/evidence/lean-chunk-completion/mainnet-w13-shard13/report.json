@@ -1,0 +1,28 @@
+{
+  "scope": "single-shard diagnostic; not the all-shard W13 gate",
+  "shard": 13,
+  "native_cache_policy": "fresh transition cache per case; existing node compiled-code cache",
+  "w13_gate_pass": false,
+  "diagnostic_pass": true,
+  "expected_chunks": 1223,
+  "counts": {
+    "match": 1223
+  },
+  "mismatch_percent": 0.0,
+  "replay_coverage_percent": 100.0,
+  "verified_match_percent": 100.0,
+  "height_range": [
+    221489407,
+    221490629
+  ],
+  "consecutive_heights": true,
+  "reasons": {},
+  "identities": {
+    "lean_binary_sha256": "a70481ea8114eb17acabf8b5efa9c79fbe30bfd516f32cac6ae890fde6bd2952",
+    "native_binary_sha256": "ceab62907131bfff8b40169128dff35d131edaf8fd1b69ae3e7a9d64f70eb3ef",
+    "harness_sha256": "a47f58380e559739ea2e33bd83845048477b3c66fcded648ae1868d4faed775c",
+    "tier": "allFeatures"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 161.0376425483264
+}

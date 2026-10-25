@@ -1,0 +1,15 @@
+{
+  "cases_with_accessed_code": 279,
+  "distinct_accessed_code": 8,
+  "missing_code_cases": 0,
+  "witness_bytes_total": 15215689,
+  "evidence_sha256": {
+    "working-tree.patch": "3afed7f605b4a98ad361c30012ec2c7f53a570a904dfb8d291c160001027398e",
+    "source-hashes.json": "f1d3ffa1c306b26b1d373377cd808b10913ff44217f40b5db34c6dbeac1b1bd3",
+    "report.json": "590b32844ac85f2da4afd69552291f70ad8ad1229c25d807299e5bcae6554988",
+    "inputs.json.gz": "d008c4c8a08dc58cc514d0dc5ddb3a98cc49524c886cb781bdd653379718bc70",
+    "git-head.txt": "e5183df2f5dbb7bb63b21e2fa79ce329df5c44d7d535862ccd0297ad5a4cde11",
+    "results.jsonl.gz": "0624aa62e566269e79f0fccdff5acb586a731eaa816a6d8dc6c8c83333ec1730",
+    "build.txt": "3810567236a763fb33fe3a47eaad1367b0c148bb4d511404127c57f7202889fd"
+  }
+}

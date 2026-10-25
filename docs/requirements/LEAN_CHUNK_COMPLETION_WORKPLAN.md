@@ -296,10 +296,9 @@ points; individual adapters and sampled verdict agreement are insufficient.
 
 Owner: L7. Acquisition can proceed now; accepted final replay depends on W12.
 
-- Finish shard-state sync and acquire actual witnesses; measure whether download tuning prevents
-  stale-target resets. Expand from the shard-13 pilot to the required all-shard window.
-- Authenticate and convert native database/epoch/chain context into successor claims, supply complete
-  code closure, and implement the cold native validator adapter with trusted-fact verification.
+- Expand acquisition and replay from the shard-13 diagnostic to the required all-shard window.
+- Complete and validate the cold native adapter that independently verifies supplied claim facts;
+  establish complete code closure and the intended cache/environment invariant for final replay.
 - Resolve/document the external authentication boundary; independent finality-proof verification
   remains unimplemented. Raw witness packaging or RPC chunk payloads alone do not close acquisition.
 - Execute at least **1,000 consecutive PV86 blocks across all shards**, plus targeted native fixtures

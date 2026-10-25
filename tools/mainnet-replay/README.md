@@ -91,8 +91,9 @@ and the raw witness bytes preserved. This packaging step does not claim successf
 The companion `claim.bin` must be exported from the **same native mainnet chain/epoch context**
 using [claim-v3](../../spec/claim-v3.md), including the authenticated block segment and trusted facts.
 `oracle/v3/src/enc.rs` defines the matching encoder. The generated-chain oracle is not a mainnet
-exporter. **A turnkey native database-to-claim exporter/validation adapter is not yet included**;
-implementing and validating that against the available node/export is an outstanding W13 step.
+exporter. **A diagnostic database-to-claim exporter and synchronous native replay are available** in
+[native/README.md](native/README.md). The cold validator adapter that independently verifies supplied
+claims for the full gate remains an outstanding W13 step.
 Neither raw witness packaging nor public RPC metadata supplies those facts by itself.
 
 Import an exported pair and independently capture its segment headers:
@@ -174,7 +175,10 @@ one final dump cannot guarantee the roughly 10,000+ witnesses needed for 1,000 a
 `view-state state-witness generate` can replay recorded state in a node database, but its current
 command only validates/logs results; it does not automatically supply the W13 claim/native adapter.
 
-At inspection on 2026-10-24 this host had approximately **7 GB free on `/data` and 94 GB on `/tmp`**,
-no `neard` executable on PATH, and no configured FastNear environment variable. A full node was not
-started: storage and a suitable node dataset are concrete missing prerequisites. The target remains
-**PV86**; a live node on a later protocol must not silently be treated as a pinned PV86 replay.
+## Captured single-shard diagnostic
+
+The node acquired 1,223 witnesses/full chunks for shard 13 at heights 221489407–221490629.
+[The diagnostic replay](../../docs/evidence/lean-chunk-completion/mainnet-w13-shard13/README.md)
+reports 1,223 native/Lean matches, 0% mismatch and 100% coverage of that captured shard population.
+Use [the native exporter and diagnostic runner](native/README.md) to reproduce it. This retains the
+native compiled-code cache and covers one shard; it does not pass or weaken the full W13 gate.

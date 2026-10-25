@@ -1,0 +1,2 @@
+Rust 1.93.0; nearcore 44f7ae6cd7ef08bab604e20a473bf77e35d4c993; --release --locked --no-default-features --features json_rpc,shadow_chunk_validation; LTO=false; codegen-units=16; jobs=8
+Lean: lake build nearspec-v3-check-successor; current working tree with recorded patch, not clean HEAD.
