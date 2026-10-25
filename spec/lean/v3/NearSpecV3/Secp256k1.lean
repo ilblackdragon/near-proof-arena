@@ -215,7 +215,12 @@ byte 64 and `RecoverableSignature::from_compact` on bytes `0..64` (both failures
 verifies the *standard* signature against the public key's uncompressed 65-byte form. It never
 uses the recovery id's implied key: the supplied key is authoritative. So verification is
 plain ECDSA: `u1 = z·s⁻¹`, `u2 = r·s⁻¹`, `R = u1·G + u2·Q`, accept iff `R ≠ ∞` and
-`R.x ≡ r (mod n)`.
+`R.x ≡ r (mod n)`, with one libsecp256k1 rule on top: `secp256k1_ecdsa_verify` rejects a
+signature whose `s` is in the upper half (`secp256k1_scalar_is_high`, `s > ⌊n/2⌋`), and
+`to_standard()` does not normalize it. So the high-`s` twin `(r, n - s)` of a valid signature
+verifies in textbook ECDSA but not in nearcore; `s < nHalfOne` is that rule (`nHalfOne = ⌊n/2⌋+1`).
+Measured on a whole chunk: `docs/evidence/lean-chunk-completion/key-family-fixtures/`
+(`secp-tx-high-s`, `deleg-secp-high-s`).
 
 `sig` is the 65-byte `r ‖ s ‖ rec_id`; `hash` is the 32-byte message digest; `pk` is the 64-byte
 `X ‖ Y` key data as nearcore stores it. -/
@@ -230,6 +235,8 @@ def verify (pk : Bytes) (sig : Bytes) (hash : Bytes) : Bool :=
     | none => false
     | some (qx, qy) =>
       if r = 0 ∨ s = 0 ∨ ¬ (r < n ∧ s < n) ∨ ¬ (recId < 4) then false
+      -- libsecp256k1 verification accepts only lower-`s` signatures
+      else if ¬ (s < nHalfOne) then false
       else
         let z := Bytes.beToNat hash % n
         let sinv := N.inv s
