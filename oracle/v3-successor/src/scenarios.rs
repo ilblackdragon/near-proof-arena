@@ -247,6 +247,7 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
         Some(Scenario::StorageLimits) => vec![
             ("slim", slim_wasm().to_vec()),
             ("slimlarge", slim_large_wasm().to_vec()),
+            ("yieldc", yield_wasm().to_vec()),
         ],
         _ => vec![],
     }
@@ -310,6 +311,8 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
             add(&mut records, "s2zmisc", Some(slim), misc);
             add(&mut records, "s3zsrc", None, vec![]);
             add(&mut records, "s3zcode", Some(slim), vec![(b"big".to_vec(), vec![0xB3; BIG_CODE])]);
+            // yields on the soft-lane shard whose timeouts the soft limit can defer
+            add(&mut records, "s1zyield", Some(yield_wasm()), vec![]);
         }
         _ => {}
     }
@@ -399,10 +402,14 @@ fn run_tx(label: String, signer: &str, receiver: &str, prog: Prog) -> Sched {
 }
 
 fn yield_tx(label: &str, signer: &str, method: &str, args: Vec<u8>) -> Sched {
+    yield_tx_to(label, signer, "s0yield", method, args)
+}
+
+fn yield_tx_to(label: &str, signer: &str, receiver: &str, method: &str, args: Vec<u8>) -> Sched {
     Sched {
         label: label.to_string(),
         signer: acct(signer),
-        receiver: acct("s0yield"),
+        receiver: acct(receiver),
         describe: format!("{method}({})", hex::encode(&args[..args.len().min(48)])),
         actions: vec![fc(method, args, 100)],
     }
@@ -468,6 +475,11 @@ fn yield_schedule() -> Vec<(u64, Sched)> {
     // resolves slot 14 (created in the chunk at offset 31, expiring at offset 231).
     v.push((230, yield_tx("successor.yield.32.resume-at-timeout", y, "resume", with(14, b"race"))));
     v.push((240, yield_tx("successor.yield.33.resume-after-timeout", y, "resume", with(4, b"late"))));
+    // Created with slot 14 (same chunk). The local resume runs in the chunk after the timeout loop
+    // emitted the timeout resume, before that incoming receipt: nearcore cancels the timeout
+    // (status ResumeInitiated) and the callback receives the payload one chunk later.
+    v.push((30, yield_tx("successor.yield.34.create-race-cancel", y, "create", vec![16])));
+    v.push((231, yield_tx("successor.yield.35.resume-after-timeout-fired", y, "resume", with(16, b"cancel"))));
     v
 }
 
@@ -491,7 +503,10 @@ fn storage_misc_schedule() -> Vec<(u64, Sched)> {
     for i in 1..30 {
         removals = removals.d(format!("r{i:02}").as_bytes());
     }
-    vec![
+    let mut v: Vec<(u64, Sched)> = (0..ANCHORS)
+        .map(|i| (2 * i + 1, yield_tx_to(&format!("{ANCHOR_PREFIX}{i:02}"), "s1zyield", "s1zyield", "create", vec![i as u8])))
+        .collect();
+    v.extend([
         (0, c("call-small-code-near-limit", Prog::default().r(b"big"))),
         (3, deploy("successor.storage-limits.code.deploy-large", None)),
         (6, c("call-large-code-near-limit", Prog::default().r(b"big"))),
@@ -511,8 +526,13 @@ fn storage_misc_schedule() -> Vec<(u64, Sched)> {
         (12, m("repeated-shared-reads", Prog::default().r(b"big").r(b"big").r(b"a").r(b"a").h(b"big"))),
         (15, m("delete-big-reinsert", Prog::default().d(b"big").w(b"big", 0xB5, 1_000_000))),
         (18, m("read-reinserted-big", Prog::default().r(b"big"))),
-    ]
+    ]);
+    v
 }
+
+/// Yield-timeout anchors of the storage-limits scenario (labels `ANCHOR_PREFIX<NN>`).
+const ANCHORS: u64 = 8;
+const ANCHOR_PREFIX: &str = "successor.storage-limits.soft.yield-anchor.";
 
 // ---------------------------------------------------------------------------------------------
 // searches
@@ -527,10 +547,16 @@ struct Probe {
     set: Option<Sched>,
     b: Vec<Sched>,
     a: Vec<Sched>,
+    /// align the probe chunk with the expiry of an unused yield anchor:
+    /// (anchor label, create transaction, expiry height) once chosen
+    timeout: bool,
+    anchor: Option<(String, CryptoHash, u64)>,
 }
 
 #[derive(Clone, Debug, Default)]
 struct Observed {
+    /// execution height of the anchor's timeout callback (timeout probes)
+    cb: Option<u64>,
     /// per probe transaction: (success, status, execution height of its receipt)
     a: Vec<(bool, String, u64)>,
     /// per source transaction: execution height of its receipt on the probe shard
@@ -567,6 +593,8 @@ struct Lane {
     rm_at: Option<u32>,
     start: u64,
     current: Option<(Probe, Vec<CryptoHash>, Vec<CryptoHash>)>,
+    pending: Option<Probe>,
+    anchors_used: Vec<String>,
     log: Vec<serde_json::Value>,
     iterations: u32,
 }
@@ -580,7 +608,7 @@ impl Lane {
     fn new(kind: LaneKind, start: u64) -> Self {
         let hi = if kind == LaneKind::Receipt { RECEIPT_RANGE } else { SOFT_RANGE };
         Lane { kind, phase: Phase::Search, lo: 0, hi, lo_seen: false, hi_seen: false, at: None, rm_lo: 0, rm_hi: 0,
-               rm_at: None, start, current: None, log: vec![], iterations: 0 }
+               rm_at: None, start, current: None, pending: None, anchors_used: vec![], log: vec![], iterations: 0 }
     }
 
     fn acct(&self) -> &'static str {
@@ -617,7 +645,7 @@ impl Lane {
             .enumerate()
             .map(|(i, p)| run_tx(format!("successor.storage-limits.{lane}.{label}.probe{i}.t{t}"), me, me, p))
             .collect();
-        Probe { label: label.into(), t, set, b, a }
+        Probe { label: label.into(), t, set, b, a, timeout: false, anchor: None }
     }
 
     /// The next probe, or None when finished.
@@ -665,6 +693,15 @@ impl Lane {
                             vec![self.base(at + 1), Prog::default().w(b"b", 0x51, 16)], 2),
                         (LaneKind::Soft, 3) => self.probe("multi-at", at,
                             vec![self.base(at), Prog::default().w(b"b", 0x52, 16)], 2),
+                        // a yield timeout due in the probe chunk: resolved there iff the soft limit
+                        // is not exceeded after the probe receipt (no incoming receipt here). The
+                        // anchors add yield state to this shard, so the margin is 256 bytes.
+                        (LaneKind::Soft, 4 | 5) => {
+                            let t = if i == 4 { at - 256 } else { at + 256 };
+                            let mut p = self.probe(if i == 4 { "timeout-below" } else { "timeout-above" }, t, vec![self.base(t)], 0);
+                            p.timeout = true;
+                            p
+                        }
                         (LaneKind::Soft, _) => {
                             self.phase = Phase::Done;
                             continue;
@@ -697,9 +734,11 @@ impl Lane {
         let a0 = &o.a[0];
         // Receipt lane: pass = the probe receipt succeeded. Soft lane: pass = the incoming receipt
         // executed in the probe receipt's chunk (not delayed).
-        let pass = match self.kind {
-            LaneKind::Receipt => a0.0,
-            LaneKind::Soft => o.b.first().is_some_and(|b| b.2 == a0.2),
+        let pass = match (self.kind, &p.anchor) {
+            // the timeout was resolved in the probe chunk (callback in the next one)
+            (_, Some((_, _, e))) => o.cb == Some(e + 1) && a0.2 == *e,
+            (LaneKind::Receipt, None) => a0.0,
+            (LaneKind::Soft, None) => o.b.first().is_some_and(|b| b.2 == a0.2),
         };
         let deferred: Vec<bool> = o.b.iter().map(|b| b.2 > a0.2).collect();
         self.log.push(json!({
@@ -708,6 +747,7 @@ impl Lane {
             "a": o.a.iter().zip(&p.a).map(|(x, s)| json!({"label": s.label, "program": s.describe, "ok": x.0, "status": x.1, "height": x.2})).collect::<Vec<_>>(),
             "b": o.b.iter().zip(&p.b).map(|(x, s)| json!({"label": s.label, "ok": x.0, "status": x.1, "height": x.2})).collect::<Vec<_>>(),
             "incoming_deferred": deferred,
+            "anchor": p.anchor.as_ref().map(|(l, _, e)| json!({"label": l, "expiry_height": e, "callback_height": o.cb})),
         }));
         self.iterations += 1;
         match self.phase {
@@ -823,9 +863,11 @@ impl Driver {
                 }
                 let a: Option<Vec<_>> = a_h.iter().map(|h| outcome_of_tx(s, h)).collect();
                 let b: Option<Vec<_>> = b_h.iter().map(|h| outcome_of_tx(s, h)).collect();
+                let cb = p.anchor.as_ref().and_then(|(_, tx, _)| timeout_callback_height(s, tx));
                 match (a, b) {
-                    (Some(a), Some(b)) if a.len() == p.a.len() && b.len() == p.b.len() => {
-                        let o = Observed { a, b };
+                    (Some(a), Some(b)) if a.len() == p.a.len() && b.len() == p.b.len()
+                        && (p.anchor.is_none() || cb.is_some()) => {
+                        let o = Observed { a, b, cb };
                         self.lanes[li].feed(&p, &o);
                     }
                     _ => {
@@ -837,8 +879,28 @@ impl Driver {
                     }
                 }
             }
-            // start the next probe
-            let Some(p) = self.lanes[li].next_probe() else { continue };
+            // start the next probe (a timeout probe waits until its chunk is an anchor's expiry)
+            let p = match self.lanes[li].pending.take() {
+                Some(p) => Some(p),
+                None => self.lanes[li].next_probe(),
+            };
+            let Some(mut p) = p else { continue };
+            if p.timeout && p.anchor.is_none() {
+                match self.choose_anchor(s, li, height) {
+                    Some(a) => p.anchor = Some(a),
+                    None => {
+                        eprintln!("WARNING: no yield anchor left for {}; lane stopped", p.label);
+                        self.lanes[li].phase = Phase::Done;
+                        continue;
+                    }
+                }
+            }
+            if let Some((_, _, e)) = &p.anchor {
+                if height + 4 < *e {
+                    self.lanes[li].pending = Some(p);
+                    continue;
+                }
+            }
             self.lanes[li].start = height;
             if let Some(set) = &p.set {
                 let set = set.clone();
@@ -847,6 +909,28 @@ impl Driver {
             self.lanes[li].current = Some((p, vec![], vec![]));
         }
         out
+    }
+
+    /// The unused anchor with the earliest expiry E = create height + 200 such that a probe
+    /// started now or later executes in chunk E (probe chunk = start + 4).
+    fn choose_anchor(&mut self, s: &Setup, li: usize, height: u64) -> Option<(String, CryptoHash, u64)> {
+        let mut best: Option<(String, CryptoHash, u64)> = None;
+        for x in &self.submitted {
+            let label = x["label"].as_str().unwrap();
+            if !label.starts_with(ANCHOR_PREFIX) || self.lanes[li].anchors_used.iter().any(|u| u == label) {
+                continue;
+            }
+            let tx: CryptoHash = x["tx"].as_str().unwrap().parse().unwrap();
+            let Some((true, _, created)) = outcome_of_tx(s, &tx) else { continue };
+            let e = created + 200;
+            if e >= height + 4 && best.as_ref().is_none_or(|b| e < b.2) {
+                best = Some((label.to_string(), tx, e));
+            }
+        }
+        if let Some((l, _, _)) = &best {
+            self.lanes[li].anchors_used.push(l.clone());
+        }
+        best
     }
 
     pub fn finish(&self, s: &Setup, out: &std::path::Path, chain_idx: usize) {
@@ -950,10 +1034,19 @@ fn shard_map(s: &Setup) -> serde_json::Value {
     let c = &s.env.clients[0];
     let tip = c.chain.head().unwrap();
     let layout = c.epoch_manager.get_shard_layout(&tip.epoch_id).unwrap();
-    let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode"];
+    let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s1zyield", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode"];
     let mut m = serde_json::Map::new();
     for n in names {
         m.insert(n.into(), json!(layout.account_id_to_shard_id(&acct(n)).to_string()));
     }
     json!(m)
+}
+
+/// Execution height of the timeout callback of a yield created by `tx` (a callback whose return
+/// starts with status byte 2 = PromiseResult::Failed).
+fn timeout_callback_height(s: &Setup, tx: &CryptoHash) -> Option<u64> {
+    outcome_tree(s, tx).into_iter().find_map(|o| {
+        let v = o.get("status")?.get("SuccessValue")?.as_str()?;
+        if v.starts_with("02") { o.get("height")?.as_u64() } else { None }
+    })
 }
