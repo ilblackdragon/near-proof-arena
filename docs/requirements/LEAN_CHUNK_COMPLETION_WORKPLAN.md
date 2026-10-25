@@ -65,6 +65,15 @@ same 3,138 cases under `--tier signed` with the delegate SECP256K1 arm restored 
 **2,403 / 735**: **35 verdicts move `out_of_domain → accept`**, all 35 inside the 41-case SECP256K1
 delegate set (6 of those 41 stay out-of-domain for unrelated reasons).
 
+The population is reproducible without the two run JSONs: the 3,138 cases are exactly
+`nearcore == "ok" ∧ expected_rel_d3 == false` over `d3c7`–`d3c10` (898 / 1,376 / 429 / 435 by corpus),
+and both censuses contain exactly that set. Rebuild the reverted-arm binary, then run
+`python3 tools/d3/replay_successor.py --tier signed --cases-file <list> --out <dir>` on the reverted
+and the widened trees; the two `results.jsonl` files differ on exactly those 35 cases, all
+`out_of_domain → accept` with the before-side reason
+`out of domain (e.secp): SECP256K1 delegate signature verification`. Re-checked in this session against
+the recorded rows: 2,438/700 and 2,403/735 reproduce, and all 35 moves carry that one reason.
+
 The mechanism is not subtle, and it is why the "additive only" framing was wrong: `D2.actDelegate` is
 *shared* by both layers. `checkD3` is `checkD2Core (d3Hooks …)`, and `checkD2Core` reaches
 `applyAction … .delegate d => actDelegate …`, so replacing that arm's `throw "out of domain (e.secp)…"`
@@ -211,12 +220,17 @@ mistaken for package closure:
   constraints; `WasmBase/RipemdVectors.lean`) is differentially tested: 320 rows satisfy all 2,625
   constraints, 17 tampers are rejected, 13 digests match the spec, and the RIPEMD-160 KATs pass.
   Cost is **128,640 committed cells per block** (1,608 × 80), 13.8× SHA-256's 9,333; the earlier
-  "≈9–11 k" figure was wrong and is retracted. Three obligations remain open and the file states
-  them: `round_agrees` itself (the two computed next words `bl'`/`br'` need the four-addition chain
-  composed with the `f` column, selected message word and rotated `t3`), the general rotation bridge
-  (`rotl32n_is_rot` is only a `decide` over 80 offsets × 8 values), and the feed-forward row family
-  plus digest bus. The AIR proves "digest follows from message columns"; two message columns are
-  still free, which is a named gap, not a fix. No gate depends on this AIR.
+  "≈9–11 k" figure was wrong and is retracted. Four obligations remain open and the two source files
+  state them: `round_agrees` itself (the two computed next words `bl'`/`br'` need the four-addition
+  chain composed with the `f` column, selected message word and rotated `t3`), the general rotation
+  bridge (`rotl32n_is_rot` is only a `decide` over 80 offsets × 8 values, not a proof for arbitrary
+  `v`), the feed-forward row family plus the block-boundary/digest rows (both absent from
+  `RipemdAir`), and the `X`-column message-word binding — that the 512 message columns are the
+  block's bytes at the call's `(ptr, len)`. The `X` columns carry no interaction at all, so this is
+  the same stated join obligation `Sha.HashInputLink` carries (`HOSTB`/memory ↔ bytes) and needs the
+  same kind of link proof; it is *not* closed by the AIR's own constraints. The AIR proves "digest
+  follows from message columns"; two message columns are still free, which is a named gap, not a
+  fix. No gate depends on this AIR.
   *Correction to an earlier count:* the earlier "8 of the 10 next words exist" wording overstates the
   file. `RipemdRound.lean` has **zero** per-word instance theorems; what exists is the generic
   `nxtWord_eq_cur` (per-bit shift → word identity) plus the AIR's ten shift constraints
