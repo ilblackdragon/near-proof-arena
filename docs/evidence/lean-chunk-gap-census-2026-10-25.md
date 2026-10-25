@@ -4,6 +4,14 @@ Measured, not asserted. Every figure below was recomputed from the pinned corpor
 session against the built `nearspec-v3-check-successor` binary on `main` at `705ee41b5`
 (binary mtime 2026-10-24 23:58, newer than every `.lean` source in `spec/lean/v3`).
 
+> **Scope note.** This census is a snapshot at `705ee41b5`. Its §2/§3 figures (2,581 accept / 8
+> reject / 549 out-of-domain) are **superseded** for current work by the remeasurement in
+> [LEAN_CHUNK_COMPLETION_WORKPLAN.md §Status](../../requirements/LEAN_CHUNK_COMPLETION_WORKPLAN.md):
+> 2,743 / 8 / 387 on the binary `3ad82706…` committed with the status table. The 162-case difference
+> is 73 gas-key promise hosts, 86 warm-cache pre-state contracts now served by the deploy tracker,
+> and 3 `c.segment` cases. The §3.1 argument (that `c.segment` is a prover size bound and a Gate B
+> violation) and §6's open items still stand and are not affected by the remeasurement.
+
 ## 1. Selection predicate and totals
 
 The plan's gap set is: a case where the pinned validator says the chunk is valid, but Lean
