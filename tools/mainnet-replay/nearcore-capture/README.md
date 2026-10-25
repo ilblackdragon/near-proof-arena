@@ -1,5 +1,8 @@
 # Mainnet witness acquisition pilot
 
+See the [capture and all-shard runbook](RUNBOOK.md) for exact build/configuration/service
+commands, restart behaviour, observed timings and all-shard completeness checks.
+
 This runs nearcore **2.13.4**, commit
 `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, with Rust **1.93.0** and
 `json_rpc,shadow_chunk_validation`. It tracks shard **13** on mainnet PV86.

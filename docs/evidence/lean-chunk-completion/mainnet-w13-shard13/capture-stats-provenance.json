@@ -1,0 +1,7 @@
+{
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "decoder_binary_sha256": "c9574df7ab23fadb49aec22d9ce5efde37e17939d0f6812ec80450c9ce708595",
+  "decoder_source_sha256": "f1a5d55b9fb85b10a551ab723201e4e86f88c9344c6556dd9797e693b1fe476d",
+  "summary_source_sha256": "b55555fd5940fd502e06828eb1c10da2ccb3691e406eeaf389b32525873dfaa6",
+  "input_manifest": "capture-stats-inputs.json.gz"
+}

@@ -1,0 +1,382 @@
+{
+  "scope": "captured payload contents; source receipt proofs may be a superset of applied receipts",
+  "chunks": 1223,
+  "distinct_chunks": 1223,
+  "witnesses_per_chunk": {
+    "1": 1223
+  },
+  "shards": {
+    "13": 1223
+  },
+  "heights": [
+    221489407,
+    221490629
+  ],
+  "witness_bytes": {
+    "total": 15215689,
+    "min": 6677,
+    "median": 7359,
+    "mean": 12441.28,
+    "p95": 27591,
+    "max": 80414
+  },
+  "chunk_bytes": {
+    "total": 961004,
+    "min": 417,
+    "median": 417,
+    "mean": 785.78,
+    "p95": 2147,
+    "max": 10624
+  },
+  "main_proof_entries": {
+    "total": 75250,
+    "min": 33,
+    "median": 33,
+    "mean": 61.53,
+    "p95": 138,
+    "max": 310
+  },
+  "source_receipt_proofs": {
+    "total": 12230,
+    "min": 10,
+    "median": 10,
+    "mean": 10,
+    "p95": 10,
+    "max": 10
+  },
+  "implicit_transitions": {
+    "total": 0,
+    "min": 0,
+    "median": 0,
+    "mean": 0,
+    "p95": 0,
+    "max": 0
+  },
+  "chunk_transactions": {
+    "count": 147,
+    "chunks_nonempty": 132,
+    "per_chunk": {
+      "total": 147,
+      "min": 0,
+      "median": 0,
+      "mean": 0.12,
+      "p95": 1,
+      "max": 3
+    },
+    "actions": {
+      "FunctionCall": 144,
+      "Transfer": 3
+    },
+    "actions_chunks": {
+      "FunctionCall": 129,
+      "Transfer": 3
+    },
+    "function_methods": {
+      "ft_transfer_call": 53,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 14,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "update_gas_token_price": 3,
+      "b": 3,
+      "propose_execution": 3,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    },
+    "function_methods_chunks": {
+      "ft_transfer_call": 47,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 14,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "update_gas_token_price": 3,
+      "b": 3,
+      "propose_execution": 3,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    }
+  },
+  "witness_transactions": {
+    "count": 148,
+    "chunks_nonempty": 133,
+    "per_chunk": {
+      "total": 148,
+      "min": 0,
+      "median": 0,
+      "mean": 0.12,
+      "p95": 1,
+      "max": 3
+    },
+    "actions": {
+      "FunctionCall": 145,
+      "Transfer": 3
+    },
+    "actions_chunks": {
+      "FunctionCall": 130,
+      "Transfer": 3
+    },
+    "function_methods": {
+      "ft_transfer_call": 53,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 15,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "update_gas_token_price": 3,
+      "b": 3,
+      "propose_execution": 3,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    },
+    "function_methods_chunks": {
+      "ft_transfer_call": 47,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 15,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "update_gas_token_price": 3,
+      "b": 3,
+      "propose_execution": 3,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    }
+  },
+  "witness_new_transactions": {
+    "count": 147,
+    "chunks_nonempty": 132,
+    "per_chunk": {
+      "total": 147,
+      "min": 0,
+      "median": 0,
+      "mean": 0.12,
+      "p95": 1,
+      "max": 3
+    },
+    "actions": {
+      "FunctionCall": 144,
+      "Transfer": 3
+    },
+    "actions_chunks": {
+      "FunctionCall": 129,
+      "Transfer": 3
+    },
+    "function_methods": {
+      "ft_transfer_call": 53,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 14,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "update_gas_token_price": 3,
+      "b": 3,
+      "propose_execution": 3,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    },
+    "function_methods_chunks": {
+      "ft_transfer_call": 47,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 14,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "update_gas_token_price": 3,
+      "b": 3,
+      "propose_execution": 3,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    }
+  },
+  "witness_source_receipts": {
+    "count": 1053,
+    "chunks_nonempty": 530,
+    "per_chunk": {
+      "total": 1053,
+      "min": 0,
+      "median": 0,
+      "mean": 0.86,
+      "p95": 3,
+      "max": 13
+    },
+    "actions": {
+      "Transfer": 463,
+      "FunctionCall": 451,
+      "Delegate": 18,
+      "AddKey": 1,
+      "CreateAccount": 1
+    },
+    "actions_chunks": {
+      "Transfer": 318,
+      "FunctionCall": 273,
+      "Delegate": 18,
+      "AddKey": 1,
+      "CreateAccount": 1
+    },
+    "types": {
+      "Action": 641,
+      "ActionV2": 282,
+      "Data": 130
+    },
+    "types_chunks": {
+      "Action": 430,
+      "ActionV2": 179,
+      "Data": 82
+    },
+    "function_methods": {
+      "ft_resolve_transfer": 113,
+      "ft_transfer_call": 110,
+      "ft_transfer": 75,
+      "unstake": 38,
+      "near_withdraw": 36,
+      "near_deposit": 15,
+      "storage_deposit": 12,
+      "submit_blocks": 11,
+      "sign_btc_transaction": 8,
+      "sign_btc_transaction_callback": 8,
+      "verify_deposit_v2": 3,
+      "verify_safe_deposit_callback": 3,
+      "verify_transaction_inclusion_with_heights": 3,
+      "safe_mint": 3,
+      "safe_mint_callback": 3,
+      "move_player": 2,
+      "ft_on_transfer": 2,
+      "ft_on_transfer_callback": 2,
+      "get_last_block_height": 2,
+      "ft_balance_of": 1,
+      "storage_balance_of": 1
+    },
+    "function_methods_chunks": {
+      "ft_resolve_transfer": 70,
+      "ft_transfer_call": 67,
+      "ft_transfer": 50,
+      "unstake": 38,
+      "near_withdraw": 34,
+      "near_deposit": 14,
+      "storage_deposit": 12,
+      "submit_blocks": 11,
+      "sign_btc_transaction": 5,
+      "sign_btc_transaction_callback": 5,
+      "verify_deposit_v2": 3,
+      "verify_safe_deposit_callback": 3,
+      "verify_transaction_inclusion_with_heights": 3,
+      "safe_mint": 3,
+      "safe_mint_callback": 3,
+      "move_player": 2,
+      "ft_on_transfer": 2,
+      "ft_on_transfer_callback": 2,
+      "get_last_block_height": 2,
+      "ft_balance_of": 1,
+      "storage_balance_of": 1
+    },
+    "delegate_inner_actions": {
+      "FunctionCall": 18
+    },
+    "delegate_inner_actions_chunks": {
+      "FunctionCall": 18
+    },
+    "delegate_inner_methods": {
+      "l2_claim": 10,
+      "harvest": 4,
+      "recruit_tinkers": 2,
+      "upgrade_tinker": 2
+    },
+    "delegate_inner_methods_chunks": {
+      "l2_claim": 10,
+      "harvest": 4,
+      "recruit_tinkers": 2,
+      "upgrade_tinker": 2
+    }
+  },
+  "chunk_prev_outgoing_receipts": {
+    "count": 1112,
+    "chunks_nonempty": 394,
+    "per_chunk": {
+      "total": 1112,
+      "min": 0,
+      "median": 0,
+      "mean": 0.91,
+      "p95": 4,
+      "max": 25
+    },
+    "actions": {
+      "Transfer": 585,
+      "FunctionCall": 424
+    },
+    "actions_chunks": {
+      "Transfer": 304,
+      "FunctionCall": 211
+    },
+    "types": {
+      "Action": 687,
+      "ActionV2": 322,
+      "Data": 103
+    },
+    "types_chunks": {
+      "Action": 394,
+      "ActionV2": 131,
+      "Data": 75
+    },
+    "function_methods": {
+      "ft_on_transfer": 113,
+      "ft_resolve_transfer": 113,
+      "ft_transfer_call": 59,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 25,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "sign": 8,
+      "sign_btc_transaction_callback": 8,
+      "harvest": 4,
+      "update_gas_token_price": 3,
+      "verify_safe_deposit_callback": 3,
+      "verify_transaction_inclusion_with_heights": 3,
+      "safe_mint": 3,
+      "safe_mint_callback": 3,
+      "propose_execution": 3,
+      "ft_on_transfer_callback": 2,
+      "get_last_block_height": 2,
+      "recruit_tinkers": 2,
+      "upgrade_tinker": 2,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    },
+    "function_methods_chunks": {
+      "ft_on_transfer": 70,
+      "ft_resolve_transfer": 70,
+      "ft_transfer_call": 49,
+      "batch_update_degen_token_price": 35,
+      "l2_claim": 25,
+      "submit_blocks": 11,
+      "swap": 11,
+      "update_token_rate": 8,
+      "sign": 5,
+      "sign_btc_transaction_callback": 5,
+      "harvest": 4,
+      "update_gas_token_price": 3,
+      "verify_safe_deposit_callback": 3,
+      "verify_transaction_inclusion_with_heights": 3,
+      "safe_mint": 3,
+      "safe_mint_callback": 3,
+      "propose_execution": 3,
+      "ft_on_transfer_callback": 2,
+      "get_last_block_height": 2,
+      "recruit_tinkers": 2,
+      "upgrade_tinker": 2,
+      "buy_asset": 1,
+      "epoch_stake": 1,
+      "epoch_unstake": 1
+    }
+  },
+  "decoded_jsonl_sha256": "b40283508dbc8cef9d6df53dee3827d3d2447220f83f4f698bbd019e9ac825d0"
+}

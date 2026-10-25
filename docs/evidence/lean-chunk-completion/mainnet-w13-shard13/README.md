@@ -37,3 +37,6 @@ from reporting a full W13 pass. No artifact changed during the run.
 Remaining: all-shard representative coverage, independently validating supplied claim facts in the
 cold native adapter, rare-feature fixtures, finality/authentication closure, and frozen-package
 validation. The all-shard `make w13-gate` requirements were not weakened.
+
+See [decoded action, receipt and witness statistics](CAPTURE_STATS.md) and the
+[capture/all-shard runbook](../../../../tools/mainnet-replay/nearcore-capture/RUNBOOK.md).
