@@ -99,6 +99,8 @@ pub enum Mode {
 pub struct KeysWorld {
     next_step: usize,
     next_height: u64,
+    /// heights a step has waited for its prerequisite state (a key added by an earlier step)
+    waited: u64,
     used: HashMap<(AccountId, PublicKey, Option<u16>), u64>,
     /// injected steps waiting for the producer of their shard: (shard index, labelled txs)
     pending: VecDeque<(usize, Vec<(String, SignedTransaction)>)>,
@@ -200,7 +202,7 @@ fn with_sig(tx: Transaction, sig: Signature) -> SignedTransaction {
 
 impl KeysWorld {
     pub fn new() -> Self {
-        Self { next_step: 0, next_height: FIRST_HEIGHT, used: HashMap::new(), pending: VecDeque::new() }
+        Self { next_step: 0, next_height: FIRST_HEIGHT, waited: 0, used: HashMap::new(), pending: VecDeque::new() }
     }
 
     fn cur(&self, s: &Setup, bh: &CryptoHash, a: &AccountId, pk: &PublicKey, idx: Option<u16>) -> Option<u64> {
@@ -236,10 +238,18 @@ impl KeysWorld {
                 if i >= N_STEPS {
                     return vec![];
                 }
+                // a pool transaction of an earlier step can land a few blocks late: wait for it
+                if self.waited < 2 * GAP {
+                    self.waited += 1;
+                    eprintln!("keys scenario: step {i} waits for its prerequisite state at height {height}");
+                    return vec![];
+                }
                 eprintln!("keys scenario: step {i} could not be built at height {height}; skipped");
+                self.waited = 0;
                 self.next_step += 1;
                 continue;
             };
+            self.waited = 0;
             self.next_step += 1;
             self.next_height = height + GAP;
             let label = format!("{LABEL_PREFIX}{i:02}.{name}");
