@@ -86,3 +86,43 @@ is unchanged and still correct for signed configurations.
   out, key deletion with balance — are separate from this translation work. Nothing here claims them.
 - `promise_yield_resume*`'s result-tag mismatch noted in the earlier handover is unrelated and still
   open.
+
+## Rebase onto main and a base regression this lane had to repair
+
+Rebased onto `main` at `4d82b3374` (main had moved 8 commits since this lane's base `5bf2ee8f4`;
+zero file overlap, so the rebase was textually clean). Three findings:
+
+1. **A base regression, not a lane one.** W11 (`4d264c005`) added `splitMap`/`lastSplit`/`ancestorMap`
+   to `Layout` and did not update `TestGlobalActions.lean` and `TestStorageResolution.lean`, which
+   build a `Layout` with the anonymous constructor `⟨boundaries, shardIds, idToIndex⟩`. An anonymous
+   constructor does not fill structure defaults, so both files stopped compiling
+   (`Layout.mk has 6 explicit field, but only 3 were provided`). W11's "full build green (250 jobs)"
+   missed it because neither file is in v3's `defaultTargets`. On main, `make d3-drivers` and
+   `make d3-smoke` both exited 2. Fixed in `cf3aedd3d` with named fields (values unchanged, layouts
+   stay empty-split); verified `make d3-drivers` and `make d3-smoke` both exit 0 afterwards. This is
+   a repair of main's state, unrelated to the gas-key change.
+2. **The coverage inventory needed regeneration for W11, not for this lane.** Rebasing moved
+   `Layout.lean`'s hash. Regeneration changes exactly one field, `source_sha256.Layout.lean`; all 222
+   rows are byte-identical and no row status changes (`529c858a9`).
+3. **The gas-key work itself needed no change.** Its three commits are textually untouched by the
+   rebase, and its source hashes were already recorded.
+
+Full verification on the rebased tip (`cf3aedd3d`), each run in this worktree:
+
+| gate | result |
+|---|---|
+| `lake build` in `spec/lean/v3` | **246 jobs green** |
+| `lake build NearSpecV3.Successor.PromiseActionsTests` | green; "gas-key actions" line |
+| `make pin-check` | exit 0 |
+| `lean_chunk_coverage.py --check` | exit 0, "matches pinned sources" |
+| `make d3-drivers` | exit 0, 9 binaries |
+| `make d3-smoke` | exit 0 end to end (was exit 2 on main) |
+| `nearspec-v3-test-global-actions` | exit 0, passed |
+| `nearspec-v3-test-storage-resolution` | exit 0, passed |
+| `smoke_successor.py` | exit 0, 49 configuration comparisons + policy check |
+| `check_runtime_golden.py` | exit 0, 1030 allocation + 6 phase cases |
+| `check_float_golden.py` | exit 0, 2050 operator cases + 32 bundles |
+
+The claims in the sections above are unchanged by the rebase. The two limits still stand: the
+gas-key fixture has no pinned-nearcore whole-chunk replay, and gas-key execution semantics are out
+of scope here.
