@@ -197,6 +197,49 @@ def checkSigValues (sig : Bytes) (rejectUpper : Bool) : Bool :=
     r < n && s < (if rejectUpper then nHalfOne else n)
   else false
 
+/-- `PublicKey::from_slice` on the 65-byte `0x04 ‖ X ‖ Y` form (`signature.rs:1119-1122`).
+libsecp256k1 accepts only the uncompressed 65-byte encoding whose coordinates satisfy the curve
+equation; both coordinates are already reduced by construction of the encoding, so an
+out-of-range coordinate cannot decode. -/
+def decodePubkey (pk : Bytes) : Option (Nat × Nat) :=
+  if pk.length = 65 ∧ pk.getD 0 0 == 4 then
+    let x := Bytes.beToNat (pk.drop 1 |>.take 32)
+    let y := Bytes.beToNat (pk.drop 33 |>.take 32)
+    if onCurve x y then some (x, y) else none
+  else none
+
+/-- ECDSA verification (`SECP256K1.verify_ecdsa`, `signature.rs:1094-1123`).
+
+nearcore's `Signature::verify` for `(SECP256K1, SECP256K1)` first parses the recovery id from
+byte 64 and `RecoverableSignature::from_compact` on bytes `0..64` (both failures ⇒ `false`), then
+verifies the *standard* signature against the public key's uncompressed 65-byte form. It never
+uses the recovery id's implied key: the supplied key is authoritative. So verification is
+plain ECDSA: `u1 = z·s⁻¹`, `u2 = r·s⁻¹`, `R = u1·G + u2·Q`, accept iff `R ≠ ∞` and
+`R.x ≡ r (mod n)`.
+
+`sig` is the 65-byte `r ‖ s ‖ rec_id`; `hash` is the 32-byte message digest; `pk` is the 64-byte
+`X ‖ Y` key data as nearcore stores it. -/
+def verify (pk : Bytes) (sig : Bytes) (hash : Bytes) : Bool :=
+  if sig.length = 65 ∧ hash.length = 32 then
+    let r := Bytes.beToNat (sig.take 32)
+    let s := Bytes.beToNat (sig.drop 32 |>.take 32)
+    -- `RecoveryId::from_i32`: only 0..=3 are valid encodings.
+    let recId := (sig.getD 64 255).toNat
+    let pdata := [4] ++ pk
+    match decodePubkey pdata with
+    | none => false
+    | some (qx, qy) =>
+      if r = 0 ∨ s = 0 ∨ ¬ (r < n ∧ s < n) ∨ ¬ (recId < 4) then false
+      else
+        let z := Bytes.beToNat hash % n
+        let sinv := N.inv s
+        let u1 := N.mul z sinv
+        let u2 := N.mul r sinv
+        let R := J.add (J.smul u1 (J.ofAffine Gx Gy)) (J.smul u2 (J.ofAffine qx qy))
+        if R.isInf then false
+        else (R.affine).1 % n == r
+  else false
+
 /-- `Secp256K1Signature::recover` for an already length-checked 64-byte `r ‖ s` and 32-byte
 hash, `v < 4`. `some pk` with `pk = X ‖ Y` (64 bytes, big-endian), as nearcore returns. -/
 def recover (sig : Bytes) (v : Nat) (hash : Bytes) : Option Bytes :=

@@ -77,6 +77,33 @@ def keccak (rate outLen : Nat) (m : ByteArray) : ByteArray := Id.run do
     out := out.push ((st[i / 8]! >>> (8 * (i % 8)).toUInt64).toUInt8)
   out
 
+/-- The sponge with an explicit domain-separation pad byte. Original Keccak uses `0x01`
+(`keccak256`); SHA-3 uses `0x06` (`sha3_256`). The permutation, rate and output length are
+identical, so only this byte differs. -/
+def keccakPad (pad rate outLen : Nat) (m : ByteArray) : ByteArray := Id.run do
+  let padLen := rate - m.size % rate
+  let mut p := m
+  for i in [0:padLen] do
+    let v : UInt8 := (if i = 0 then pad.toUInt8 else 0) ||| (if i = padLen - 1 then 0x80 else 0)
+    p := p.push v
+  let mut st := Array.replicate 25 (0 : UInt64)
+  for blk in [0:p.size / rate] do
+    for w in [0:rate / 8] do
+      let mut lane : UInt64 := 0
+      for k in [0:8] do
+        lane := lane ||| ((p.get! (blk * rate + 8 * w + k)).toUInt64 <<< (8 * k).toUInt64)
+      st := st.set! w (st[w]! ^^^ lane)
+    st := keccakF st
+  let mut out := ByteArray.empty
+  for i in [0:outLen] do
+    out := out.push ((st[i / 8]! >>> (8 * (i % 8)).toUInt64).toUInt8)
+  out
+
+/-- `sha3::Sha3_256` (FIPS 202): the same sponge as `keccak256` with pad byte `0x06`.
+nearcore uses it for the ML-DSA-65 public-key handle (`HashDomainTag::MlDsa65PubkeyV1`,
+`core/crypto/src/signature.rs:166-174`). -/
+def sha3_256 (m : ByteArray) : ByteArray := keccakPad 0x06 136 32 m
+
 def keccak256 (m : ByteArray) : ByteArray := keccak 136 32 m
 def keccak512 (m : ByteArray) : ByteArray := keccak 72 64 m
 
