@@ -1,0 +1,32 @@
+{
+  "base": "00-h10032-s0",
+  "case": "00-h10032-s0-hdr2.congestion.buffered_gas",
+  "codes": [
+    {
+      "hash": "4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4",
+      "len": 958,
+      "name": "d2program"
+    },
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 2341710486252,
+    "fc_gas_burnt_for_function_call": 2341710486252
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "hdr2.congestion.buffered_gas",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 6111246534368, receipt_bytes: 339, allowed_shard: 1 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 6111246534369, receipt_bytes: 339, allowed_shard: 1 })\")",
+  "verdict_source": "nearcore(cold)"
+}

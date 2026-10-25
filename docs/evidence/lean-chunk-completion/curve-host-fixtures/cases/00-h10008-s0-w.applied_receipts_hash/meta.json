@@ -1,0 +1,27 @@
+{
+  "base": "00-h10008-s0",
+  "case": "00-h10008-s0-w.applied_receipts_hash",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 131288833924,
+    "fc_gas_burnt_for_function_call": 131288833924
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "w.applied_receipts_hash",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipts hash y3yWzzWK2zCyo4omw3LHrvSCzfRZ7V7kytgobFpwdGW does not match expected receipts hash 22xPAVibCsUvPVBnHSJnBnffU1ECG4b2LrCaJnZpfRvr\")",
+  "verdict_source": "nearcore(cold)"
+}

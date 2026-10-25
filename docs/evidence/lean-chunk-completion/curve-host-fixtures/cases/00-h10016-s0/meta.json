@@ -1,0 +1,215 @@
+{
+  "action_results": [
+    "local:[FunctionCall] => fail:FunctionCallError",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[CreateAccount,Transfer,AddKey(full),AddKey(fc),DeployContract] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[Transfer] => ok",
+    "incoming:[FunctionCall] => fail:FunctionCallError"
+  ],
+  "case": "00-h10016-s0",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "r.shape",
+    "w.tx_shape",
+    "r.success"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s2curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 3732,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1915,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "4331f3f9900b9d59a1f6af567958baf5dcf7110f8194a17f4bd851395f3ec484",
+        "ext_profile": {
+          "alt_bn128_g1_multiexp_base": 713000000000,
+          "alt_bn128_g1_multiexp_element": 640000000000,
+          "base": 794304333,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 2609863200,
+          "read_memory_byte": 729855936,
+          "read_register_base": 2517165186,
+          "read_register_byte": 18923904,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 522964224,
+          "write_register_base": 2865522486
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 2256541808372,
+        "method": "alt_bn128_g1_multiexp",
+        "receipt_id": "3QSdvwzRxycL1dqPjysuuycagk81BGDczadH1mDJ9t5i",
+        "receiver": "s2curvehosts",
+        "status": "Failure(Action #0: ExecutionError(\"AltBn128 invalid input: invalid g1: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]\"))",
+        "value_hex": null
+      },
+      {
+        "args_sha256": "5296dab04b36e888c6e5d0cb88f19149d1d5fb3cdea5f916c5ab8384d450e25a",
+        "ext_profile": {
+          "alt_bn128_g1_multiexp_base": 713000000000,
+          "alt_bn128_g1_multiexp_element": 320000000000,
+          "base": 794304333,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 2609863200,
+          "read_memory_byte": 364927968,
+          "read_register_base": 2517165186,
+          "read_register_byte": 9461952,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 261482112,
+          "write_register_base": 2865522486
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1935691286676,
+        "method": "alt_bn128_g1_multiexp",
+        "receipt_id": "8HoS9bDmY76Dyp95uCZucrm6qe1cLeL2qn4KmGX3aUKG",
+        "receiver": "s2curvehosts",
+        "status": "Failure(Action #0: ExecutionError(\"AltBn128 invalid input: invalid fq: [48, FD, 7C, D8, 16, 8C, 20, 3C, 8D, CA, 71, 68, 91, 6A, 81, 97, 5D, 58, 81, 81, B6, 45, 50, B8, 29, A0, 31, E1, 72, 4E, 64, 30]\"))",
+        "value_hex": null
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 1,
+    "ed25519_import": false,
+    "executed_receipts": 8,
+    "fc_failure_kinds": {
+      "FunctionCallError:ExecutionError:AltBn128_invalid_input": 2
+    },
+    "fc_gas_burnt": 4192233095048,
+    "fc_gas_burnt_for_function_call": 2415376236828,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 2,
+    "n_function_calls": 2,
+    "n_function_calls_with_code": 2,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 2,
+    "n_outcomes_tokens_burnt_nonzero": 6,
+    "n_promises": 2,
+    "n_receipts": 7,
+    "n_receipts_with_receiver_reward": 2,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "72461287104800000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "7502955182679900000000",
+    "tokens_burnt_txs": "62236498345700000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 8039,
+    "yield_queue_pre": 0
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "d3.delegate_call",
+    "d3.call",
+    "successor.curve-hosts.025.alt_bn128_g1_multiexp.neg.memory_oob"
+  ],
+  "receipt_classes": {
+    "incoming_action": 3,
+    "incoming_refund": 4,
+    "local": 1,
+    "out_action": 1,
+    "out_refund": 4
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "successor.curve-hosts.023.alt_bn128_g1_multiexp.neg.second_bad",
+    "successor.curve-hosts.024.alt_bn128_g1_multiexp.pos.register_input"
+  ],
+  "tx_results": [
+    "success_local",
+    "success"
+  ]
+}

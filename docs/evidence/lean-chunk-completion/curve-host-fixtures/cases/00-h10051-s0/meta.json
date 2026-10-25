@@ -1,0 +1,254 @@
+{
+  "action_results": [
+    "local:[FunctionCall] => ok",
+    "local:[FunctionCall] => ok",
+    "incoming:[FunctionCall] => fail:FunctionCallError",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10051-s0",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s2curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 5051,
+    "buffered_post": 0,
+    "buffered_pre": 1,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1915,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ext_profile": {
+          "base": 1853376777,
+          "bls12381_p2_decompress_base": 15000000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 10439452800,
+          "read_memory_byte": 64622661,
+          "read_register_base": 5034330372,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 6423461400,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 248148312,
+          "touching_trie_node": 20520000000,
+          "write_memory_base": 5607589722,
+          "write_register_base": 8596567458,
+          "write_register_byte": 760312800
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1029098696745,
+        "method": "bls12381_p2_decompress",
+        "receipt_id": "FLmaWT5FDc1U1A2eQPLVzU9NrMMtuiEGuepMD1ys6K9S",
+        "receiver": "s2curvehosts",
+        "status": "SuccessValue(AAAAAAAAAAA=)",
+        "value_hex": "0000000000000000"
+      },
+      {
+        "args_sha256": "67c71c659626cc293441e17af3a95887303642104babd9cff656f0d219e318c3",
+        "ext_profile": {
+          "base": 1853376777,
+          "bls12381_p2_decompress_base": 15000000000,
+          "bls12381_p2_decompress_element": 495000000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 10439452800,
+          "read_memory_byte": 5538542181,
+          "read_register_base": 5034330372,
+          "read_register_byte": 85157568,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 256938456,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 18114826776,
+          "write_memory_base": 5607589722,
+          "write_memory_byte": 2353339008,
+          "write_register_base": 8596567458,
+          "write_register_byte": 2220113376
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1525295017929,
+        "method": "bls12381_p2_decompress",
+        "receipt_id": "DxX7JNrbqznLgVgpovfhNsjAzpNZFC7imSj2XewMzEJ1",
+        "receiver": "s2curvehosts",
+        "status": "SuccessValue((584)AAAAAAAAAAAKTt75we1/cp9SDkdzChJP1wZiqQS6EHRygRTRAx4VcsbIhva1fscqYXgojEfDNXcWOFM5V9VAqdI3DxfMftWGO8C5lbiCXg7h6h4eTQDbroHx…)",
+        "value_hex": "00000000000000000a4edef9c1ed7f729f520e47730a124fd70662a904ba1074728114d1031e1572c6c886f6b57ec72a6178288c47c335771638533957d540a9d2370f17cc7ed5863bc0b995b8825e0ee1ea1e1e4d00dbae81f14b0bf3611b78c952aacab827a0530f6d4552fa65dd2638b361543f887136a43253d9c66c411697003f7a13c308f5422e1aa0a59c8967acdefd8b6e36ccf30468fb440d82b0630aeb8dca2b5256789a66da69bf91009cbfe6bd221e47aa8ae88dece9764bf3bd999d95d71e4c989913e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e024aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb813fa4d4a0ad8b1ce186ed5061789213d993923066dddaf1040bc3ff59f825c78df74f2d75467e25e0f55f8a00fa030ed0d1b3cc2c7027888be51d9ef691d77bcb679afda66c73f17f9ee3837a55024f78c71363275a75d75d86bab79f74782aa400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "args_sha256": "57db2ac32ee5e3c95ffb6f56e2365a67e89e291aa3e4c7b9096fed6707d657b6",
+        "ext_profile": {
+          "base": 794304333,
+          "bls12381_g2_multiexp_base": 18600000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 2609863200,
+          "read_memory_byte": 847697259,
+          "read_register_base": 2517165186,
+          "read_register_byte": 21979326,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 607401156,
+          "write_register_base": 2865522486
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 922414220069,
+        "method": "bls12381_g2_multiexp",
+        "receipt_id": "812kcfNxdm7KuEEBgMNUMQKsD8r9padkJqkrTTcaMDrM",
+        "receiver": "s2curvehosts",
+        "status": "Failure(Action #0: ExecutionError(\"BLS12-381 invalid input: Incorrect input length for bls12381_p2_multiexp: 223 is not divisible by 224\"))",
+        "value_hex": null
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 9,
+    "fc_failure_kinds": {
+      "FunctionCallError:ExecutionError:BLS12-381_invalid_input": 1
+    },
+    "fc_gas_burnt": 3476807934743,
+    "fc_gas_burnt_for_function_call": 811343772693,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 1,
+    "n_function_calls": 3,
+    "n_function_calls_with_code": 3,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 3,
+    "n_outcomes_tokens_burnt_nonzero": 7,
+    "n_promises": 3,
+    "n_receipts": 7,
+    "n_receipts_with_receiver_reward": 3,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "24340313180700000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "347680793474300000000",
+    "tokens_burnt_txs": "218983763345800000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 9209,
+    "yield_queue_pre": 0
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "h.create_implicit"
+  ],
+  "receipt_classes": {
+    "buffered_forwarded": 1,
+    "incoming_action": 1,
+    "incoming_refund": 6,
+    "local": 2,
+    "out_action": 2,
+    "out_data": 1,
+    "out_refund": 3
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "h.transfer_batch",
+    "successor.curve-hosts.101.bls12381_p2_decompress.pos.empty",
+    "successor.curve-hosts.102.bls12381_p2_decompress.pos.b",
+    "successor.curve-hosts.103.bls12381_p2_decompress.pos.2b,neg_b,inf"
+  ],
+  "tx_results": [
+    "success",
+    "success_local",
+    "success",
+    "success_local"
+  ]
+}

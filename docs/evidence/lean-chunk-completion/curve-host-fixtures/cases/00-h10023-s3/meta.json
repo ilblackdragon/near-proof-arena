@@ -1,0 +1,250 @@
+{
+  "action_results": [
+    "local:[FunctionCall] => ok",
+    "local:[Stake] => fail:TriesToStake",
+    "local:[FunctionCall] => ok",
+    "incoming:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10023-s3",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    },
+    {
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "len": 1055,
+      "name": "ttn2"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+    "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+    "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "e.queues_empty",
+    "r.shape",
+    "r.refunds"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "e.queues_empty",
+    "r.shape",
+    "r.refunds",
+    "w.tx_shape",
+    "r.success"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s0k30.s0a01",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "name": "ttn2",
+      "ood_family_imports": [],
+      "source": "state"
+    },
+    {
+      "account": "s0curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    },
+    {
+      "account": "s0ctr",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "name": "ttn2",
+      "ood_family_imports": [],
+      "source": "state"
+    },
+    {
+      "account": "s0rc",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "name": "d3rich",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 7751,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 3,
+    "code_bytes": 8573,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts",
+      "d3rich",
+      "ttn2"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "623c5c125d6dd85fdc35c3b963b5eb568b6a1a0ff9b741f4a918a0c87ce9b597",
+        "ext_profile": {
+          "base": 1853376777,
+          "bls12381_p1_sum_base": 16500000000,
+          "bls12381_p1_sum_element": 18000000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_cached_trie_node": 11400000000,
+          "read_memory_base": 10439452800,
+          "read_memory_byte": 1900666500,
+          "read_register_base": 5034330372,
+          "read_register_byte": 38143494,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 256938456,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 3225928056,
+          "touching_trie_node": 9120000000,
+          "write_memory_base": 5607589722,
+          "write_memory_byte": 1054099764,
+          "write_register_base": 8596567458,
+          "write_register_byte": 395362656
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1048608295754,
+        "method": "bls12381_p1_sum",
+        "receipt_id": "Dqq9XyfX5L6hPq3mi3WPbpoKuYjbEdvFuwncSiFD7AbT",
+        "receiver": "s0curvehosts",
+        "status": "SuccessValue((104)AAAAAAAAAAAFcsvqkE1nRogIyOtQqUUMlyHbMJEoASVDkC0Kw1imKuKPdbuPHHxCw5qMVSm/D04Wap2Mq8ZzoyL9pnN3nY44Iro+y4Zw5GH3O7kCHV/XakxW…)",
+        "value_hex": "00000000000000000572cbea904d67468808c8eb50a9450c9721db309128012543902d0ac358a62ae28f75bb8f1c7c42c39a8c5529bf0f4e166a9d8cabc673a322fda673779d8e3822ba3ecb8670e461f73bb9021d5fd76a4c56d9d4cd16bd1bba86881979749d28"
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 9,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 4781837017130,
+    "fc_gas_burnt_for_function_call": 1228680048256,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 4,
+    "n_function_calls_with_code": 4,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 9,
+    "n_promises": 5,
+    "n_receipts": 6,
+    "n_receipts_with_receiver_reward": 4,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "36860401447600000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "499211414213000000000",
+    "tokens_burnt_txs": "143514578484200000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 12296,
+    "yield_queue_pre": 1
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "h.create_existing",
+    "h.fc_key_call",
+    "successor.curve-hosts.044.bls12381_p1_sum.edge.corner_0_2",
+    "successor.curve-hosts.045.bls12381_p1_sum.neg.sign2"
+  ],
+  "receipt_classes": {
+    "incoming_action": 2,
+    "incoming_refund": 4,
+    "local": 3,
+    "out_action": 2,
+    "out_refund": 5
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "h.transfer_multi",
+    "d3.redeploy_call",
+    "h.stake_too_much",
+    "successor.curve-hosts.040.bls12381_p1_sum.pos.a+2a-a"
+  ],
+  "tx_results": [
+    "success",
+    "success_local",
+    "success_local",
+    "success_local"
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "action_results": [
+    "local:[FunctionCall] => ok",
+    "postponed:[Transfer,Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10039-s0",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s2curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 4397,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1915,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "3a90ef634633791d32f29ff9c43ba5e93479f408dc9b0861fe83afd499e44678",
+        "ext_profile": {
+          "base": 1853376777,
+          "bls12381_map_fp_to_g1_base": 1500000000,
+          "bls12381_map_fp_to_g1_element": 756000000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 10439452800,
+          "read_memory_byte": 2801582421,
+          "read_register_base": 5034330372,
+          "read_register_byte": 42578784,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 256938456,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 9181487544,
+          "touching_trie_node": 20520000000,
+          "write_memory_base": 5607589722,
+          "write_memory_byte": 1176669504,
+          "write_register_base": 8596567458,
+          "write_register_byte": 1125262944
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1779006409787,
+        "method": "bls12381_map_fp_to_g1",
+        "receipt_id": "mGPH7be9qbkH2XTR61fvzEPVdQ1inVYmEwjabffv5aT",
+        "receiver": "s2curvehosts",
+        "status": "SuccessValue((296)AAAAAAAAAAAI7mi6/iPgeajqmh9d7kyDeSfzlLfdw6BQCytHKm+pbKgXGWfqlKhMfBf/6pAJKiEQtWRRZ4ep8p8pq0VvCrzF5wnpiX3CrzVqYbY/qgO9dxVW…)",
+        "value_hex": "000000000000000008ee68bafe23e079a8ea9a1f5dee4c837927f394b7ddc3a0500b2b472a6fa96ca8171967ea94a84c7c17ffea90092a2110b564516787a9f29f29ab456f0abcc5e709e9897dc2af356a61b63faa03bd7715562527d19976caaf027fcbfae63ac511a9a0372b8f332d5c30de9ad14e50372a73fa4c45d5f2fa5097f2d6fb93bcac592f2e1711ac43db0519870c7d0ea415092c0f994164a0719f51c24ba3788de240ff926b55f58c445116e8bc6a47cd63392fd4e8e22bdf9feaa96ee7732221331073311196f8ef19477219ccee3a48035ff432295aa9419eed45d186027d88b90832e14c4f0e2aa4d15f54d1c3ed0f9316b3a3b2e3dddf6a11459ddaf657fde21c4f10282a56029d9b55ab3ce1f41e1cf39ad27e0ea35823c7d3250e81ff3d66"
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 4,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 1779006409787,
+    "fc_gas_burnt_for_function_call": 890577980677,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 1,
+    "n_function_calls_with_code": 1,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 3,
+    "n_promises": 1,
+    "n_receipts": 3,
+    "n_receipts_with_receiver_reward": 1,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 1,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "26717339420300000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "211731203478700000000",
+    "tokens_burnt_txs": "30842842911000000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 6367,
+    "yield_queue_pre": 0
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [],
+  "receipt_classes": {
+    "incoming_data": 1,
+    "incoming_refund": 2,
+    "local": 1,
+    "out_refund": 2,
+    "postponed_executed": 1
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "successor.curve-hosts.077.bls12381_map_fp_to_g1.pos.three"
+  ],
+  "tx_results": [
+    "success_local"
+  ]
+}

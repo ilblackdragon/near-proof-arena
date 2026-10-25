@@ -1,0 +1,89 @@
+{
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "protocol_version": 86,
+  "scenario": "NEAR_SUCCESSOR_SCENARIO=curve-hosts",
+  "oracle_binary_sha256": "d3566f5cb78f809cf2dad493769d47c5a6e297cde09b3a680b3c2143ce756633",
+  "lean_checker_sha256": "63bf3b66d94dea0733b46592b4bae6db144805a91f6f63d0efe0bcecec21c9e3",
+  "lean_checker_prefix_control_sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "generator_sources": {
+    "oracle/v3-successor/src/curve_hosts.rs": "56012b045f9acd5b50ad96bffb137e3c931acdadc5291593ba00fd69999791d4",
+    "oracle/v3-successor/contracts/curvehosts.wat": "b74d8c8aecb480eb62b1e84f1d7a947404fbb55d049db27628b487547ac3aea0",
+    "oracle/v3-successor/src/d3gen.rs": "6e351bdbafd368dc76979b89e30f43f1792a3b06e83456e07edd7ae734765160",
+    "oracle/v3-successor/src/d3.rs": "66aeaaf56e55ad2fa72e08d6fc0ad7c8fc8f72d470e55bcbd1c9cc011167295b",
+    "oracle/v3-successor/src/d3contracts.rs": "0bc2cc2b991ba7170f4b4f264475bbf091617edddcf0ab88a5a99da2e805c507",
+    "tools/d3/collect_curve_hosts.py": "0228fdfe2177edd58aa054df5bc14b158143f8beb78366bfb40d04fa9b877979"
+  },
+  "contract": {
+    "contract_hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+    "contract_sha256": "89853c511d3ddf0f14fd2214473ab79233b418f6b7de78dca1cf79df8c333915",
+    "contract_len": 1915
+  },
+  "steps_sha256": "ab7fdf1813adfeaddde978deee6fa16c47f912e89fd3f19467e9b2009de61709",
+  "runs": {
+    "4242": {
+      "gen_args": "--seed 4242 --chains 1 --blocks 100 --mutate-every 8 --code-mutant-p 0.2 --ood-cap 5000 --min-gas-price 100000000",
+      "chain_params": [
+        "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }"
+      ],
+      "honest": 358,
+      "cold_accepted": 358,
+      "mutants_generated": 3523,
+      "selected": {
+        "honest": 87,
+        "mutant": 24
+      },
+      "verdict": {
+        "cases": 111,
+        "agree": 111,
+        "accept": 93,
+        "nearcore_accept": 93
+      },
+      "blind": {
+        "graded": 87,
+        "counts": {
+          "match": 87
+        },
+        "pass": true
+      },
+      "prefix_control_honest": {
+        "cases": 87,
+        "agree": 85,
+        "accept": 85,
+        "nearcore_accept": 87
+      }
+    },
+    "31337": {
+      "gen_args": "--seed 31337 --first-chain 1 --chains 1 --blocks 100 --mutate-every 8 --code-mutant-p 0.2 --ood-cap 5000",
+      "chain_params": [
+        "D3Params { base: ChainParams { seed: 31337094012, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 0 }"
+      ],
+      "honest": 441,
+      "cold_accepted": 441,
+      "mutants_generated": 4348,
+      "selected": {
+        "honest": 94,
+        "mutant": 24
+      },
+      "verdict": {
+        "cases": 118,
+        "agree": 118,
+        "accept": 99,
+        "nearcore_accept": 99
+      },
+      "blind": {
+        "graded": 94,
+        "counts": {
+          "match": 94
+        },
+        "pass": true
+      },
+      "prefix_control_honest": {
+        "cases": 94,
+        "agree": 92,
+        "accept": 92,
+        "nearcore_accept": 94
+      }
+    }
+  },
+  "committed_cases": "seed 4242 selection (cases/)"
+}

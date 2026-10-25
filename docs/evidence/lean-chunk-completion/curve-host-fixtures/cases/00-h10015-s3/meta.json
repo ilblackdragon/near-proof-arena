@@ -1,0 +1,216 @@
+{
+  "action_results": [
+    "local:[FunctionCall] => fail:FunctionCallError",
+    "local:[FunctionCall] => fail:FunctionCallError",
+    "incoming:[Delegate[Transfer]] => fail:DelegateActionInvalidSignature",
+    "incoming:[TransferToGasKey] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10015-s3",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "e.queues_empty",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "e.queues_empty",
+    "r.shape",
+    "w.tx_shape",
+    "r.success"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s0curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 4725,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1915,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "0eb96175668315b9f4ea1c438af96f6af0960942247471a5d6b917573b35c517",
+        "ext_profile": {
+          "alt_bn128_g1_multiexp_base": 713000000000,
+          "alt_bn128_g1_multiexp_element": 320000000000,
+          "base": 794304333,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 2609863200,
+          "read_memory_byte": 364927968,
+          "read_register_base": 2517165186,
+          "read_register_byte": 9461952,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 261482112,
+          "write_register_base": 2865522486
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1935691286676,
+        "method": "alt_bn128_g1_multiexp",
+        "receipt_id": "9Q938Nk2uQqLme9wpqvbw2mTpBWAYZ4fEuhhMSyMo9dE",
+        "receiver": "s0curvehosts",
+        "status": "Failure(Action #0: ExecutionError(\"AltBn128 invalid input: invalid g1: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]\"))",
+        "value_hex": null
+      },
+      {
+        "args_sha256": "00ddd6e82d1e1c96fcd47ef5886359789e3ecb0ed9a3417b0ea2fb619937b465",
+        "ext_profile": {
+          "alt_bn128_g1_multiexp_base": 713000000000,
+          "base": 794304333,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 2609863200,
+          "read_memory_byte": 361126635,
+          "read_register_base": 2517165186,
+          "read_register_byte": 9363390,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 258758340,
+          "write_register_base": 2865522486
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1615682427075,
+        "method": "alt_bn128_g1_multiexp",
+        "receipt_id": "GgzxS8BqeQnxbQwhJmqFuhG2NjMXdNdWR9vEVxwj15Gz",
+        "receiver": "s0curvehosts",
+        "status": "Failure(Action #0: ExecutionError(\"AltBn128 invalid input: slice of size 95 cannot be precisely split into chunks of size 96\"))",
+        "value_hex": null
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 6,
+    "fc_failure_kinds": {
+      "FunctionCallError:ExecutionError:AltBn128_invalid_input": 2
+    },
+    "fc_gas_burnt": 3551373713751,
+    "fc_gas_burnt_for_function_call": 1774733741129,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 2,
+    "n_function_calls": 2,
+    "n_function_calls_with_code": 2,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 2,
+    "n_outcomes_tokens_burnt_nonzero": 9,
+    "n_promises": 2,
+    "n_receipts": 4,
+    "n_receipts_with_receiver_reward": 2,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "53242012233800000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "420996552980100000000",
+    "tokens_burnt_txs": "166190199949700000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 8179,
+    "yield_queue_pre": 1
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [],
+  "receipt_classes": {
+    "incoming_action": 2,
+    "incoming_refund": 2,
+    "local": 2,
+    "out_action": 3,
+    "out_refund": 5
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "h.delegate_v2",
+    "d3.call_created",
+    "successor.curve-hosts.020.alt_bn128_g1_multiexp.neg.off_curve",
+    "successor.curve-hosts.021.alt_bn128_g1_multiexp.neg.x_noncanonical",
+    "successor.curve-hosts.022.alt_bn128_g1_multiexp.neg.len95"
+  ],
+  "tx_results": [
+    "success",
+    "success",
+    "success_local",
+    "success",
+    "success_local"
+  ]
+}

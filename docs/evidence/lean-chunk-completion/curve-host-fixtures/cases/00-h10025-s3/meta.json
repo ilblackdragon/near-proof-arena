@@ -1,0 +1,222 @@
+{
+  "action_results": [
+    "local:[DeployContract,FunctionCall] => ok",
+    "local:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[FunctionCall] => ok"
+  ],
+  "case": "00-h10025-s3",
+  "chain_params": "D3Params { base: ChainParams { seed: 4242012726, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 100, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "len": 1915,
+      "name": "curvehosts"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "contract_accesses": [
+    "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+    "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "e.queues_empty",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "e.queues_empty",
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s0k14.s3a00",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4",
+      "name": "d2program",
+      "ood_family_imports": [],
+      "source": "deployed_in_chunk"
+    },
+    {
+      "account": "s0curvehosts",
+      "curve_imports": [
+        "alt_bn128_g1_multiexp",
+        "alt_bn128_g1_sum",
+        "alt_bn128_pairing_check",
+        "bls12381_p1_sum",
+        "bls12381_p2_sum",
+        "bls12381_g1_multiexp",
+        "bls12381_g2_multiexp",
+        "bls12381_map_fp_to_g1",
+        "bls12381_map_fp2_to_g2",
+        "bls12381_pairing_check",
+        "bls12381_p1_decompress",
+        "bls12381_p2_decompress",
+        "p256_verify",
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg",
+      "name": "curvehosts",
+      "ood_family_imports": [],
+      "source": "state"
+    },
+    {
+      "account": "s0rc",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "name": "d3rich",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 6222,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 2,
+    "code_bytes": 7518,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "curvehosts",
+      "d2program",
+      "d3rich"
+    ],
+    "curve_calls": [
+      {
+        "args_sha256": "16c3cd085f311237edca478ee0f27da4afdd1bd7513ea188c5a4fbe35920b40e",
+        "ext_profile": {
+          "base": 1588608666,
+          "bls12381_p1_sum_base": 16500000000,
+          "bls12381_p1_sum_element": 6000000000,
+          "contract_loading_base": 35445963,
+          "contract_loading_bytes": 2085999925,
+          "read_memory_base": 10439452800,
+          "read_memory_byte": 433351962,
+          "read_register_base": 2517165186,
+          "read_register_byte": 9560514,
+          "storage_write_base": 64196736000,
+          "storage_write_evicted_byte": 3340199928,
+          "storage_write_key_byte": 70482867,
+          "storage_write_value_byte": 248148312,
+          "touching_trie_node": 20520000000,
+          "write_memory_base": 2803794861,
+          "write_memory_byte": 264205884,
+          "write_register_base": 5731044972,
+          "write_register_byte": 395362656
+        },
+        "gas": 100000000000000,
+        "gas_burnt": 1025542141488,
+        "method": "bls12381_p1_sum",
+        "receipt_id": "7am9BkypFTr1AEXRsSGw4WxSChCdvvTW2dLjTaPMLgh6",
+        "receiver": "s0curvehosts",
+        "status": "SuccessValue(AQAAAAAAAAA=)",
+        "value_hex": "0100000000000000"
+      }
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 1,
+    "ed25519_import": false,
+    "executed_receipts": 5,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 3176050797041,
+    "fc_gas_burnt_for_function_call": 264968410873,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 3,
+    "n_function_calls_with_code": 3,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 5,
+    "n_promises": 3,
+    "n_receipts": 3,
+    "n_receipts_with_receiver_reward": 3,
+    "n_shards": 4,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 1,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "7949052326100000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "317605079704100000000",
+    "tokens_burnt_txs": "80767767918800000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 16331,
+    "yield_queue_pre": 1
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: AFpgxGr3AcfQb5F1qaz1kHuXGhfGo8QzJVuqEmqBXYNg }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "d3.redeploy_call",
+    "h.create_bundle",
+    "successor.curve-hosts.050.bls12381_p1_sum.neg.infinity_nonzero",
+    "successor.curve-hosts.051.bls12381_p1_sum.neg.len96"
+  ],
+  "receipt_classes": {
+    "incoming_action": 1,
+    "incoming_refund": 2,
+    "local": 2,
+    "out_data": 1,
+    "out_refund": 3
+  },
+  "successor_scenario": "curve-hosts",
+  "tx_labels": [
+    "d3.redeploy_call",
+    "successor.curve-hosts.046.bls12381_p1_sum.neg.off_curve"
+  ],
+  "tx_results": [
+    "success_local",
+    "success_local"
+  ]
+}
