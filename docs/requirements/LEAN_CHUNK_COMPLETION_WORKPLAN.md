@@ -1,7 +1,8 @@
 # Full Lean chunk transition — open work
 
-Reviewed: 2026-10-25, against main at `7cdc8eed7` (status table) and re-verified on the working tree
-that widens the D3 smoke fixture to seven cases.
+Reviewed: 2026-10-25, against main at `a035df4a2` (status table) and re-verified on the working tree
+that widens the D3 smoke fixture to seven cases and carries the W06 key widening. Every "verified"
+claim below was re-run on that tree; nothing here is taken from a commit message.
 Target: nearcore 2.13.4, commit `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86,
 pinned mainnet runtime parameters.
 
@@ -9,6 +10,17 @@ This document lists remaining obligations; the status table records only what ea
 already build on, so open items are not re-done. Package IDs are stable: a package stays here
 while any implementation, proof, validation or admission criterion is open. Detailed historical
 results belong in lane logs and evidence directories, not this backlog.
+
+**Re-verified on this tree (measured, not copied from a commit message):** `lake build` in
+`spec/lean/v3` → 247 jobs green (246 on the committed tree; 247 after this tree adds
+`NearSpecV3.Examples.SecpVerifyVector` to `defaultTargets` so the secp pin actually compiles);
+`lake build` in `zk-formal` → 3,077 jobs green, 0 errors;
+`make d3-smoke` → exit 0; `make pin-check` → all `ok`; corpus-manifest schema → ok;
+`lake build WasmBase.RipemdVectors` → 18 jobs, "320 rows satisfy all 2625 constraints … RIPEMD-160
+KATs ok"; the differential suite `pytest oracle/tools` → 86 passed / 1 skipped / 17 subtests; the
+promise-encoding axiom audit → the four documented axiom closures; and the four breakage controls
+below, each of which reproduces its documented failure count. The one claim in the previous draft
+that did **not** reproduce is "the signed tier is bit-identical" — see the correction below.
 The [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md) defines the authoritative gates:
 
 - **Gate A:** restricted reference independently checked and admitted live with signed evidence.
@@ -28,13 +40,52 @@ Measured gap set ([census](../evidence/lean-chunk-gap-census-2026-10-25.md) pred
 ∧ `expected_rel_d3` false, 3,138 cases) under `allFeatures`: **2,581 accept / 8 reject / 549
 out-of-domain at `705ee41b5`** → **2,743 / 8 / 387** on the source committed with this table
 (binary `3ad82706…`). The +162 are 73 gas-key promise hosts, 86 warm-cache pre-state contracts
-served by the deploy tracker and 3 `c.segment` cases. Remaining 387: 266 ML-DSA-65 keys, 80
-non-ED25519 transaction keys, 41 SECP256K1 delegate signatures; the 8 rejects are
+served by the deploy tracker and 3 `c.segment` cases. The 387 were 266 ML-DSA-65 keys, 80
+non-ED25519 transaction keys and 41 SECP256K1 delegate signatures; the 8 rejects are
 `MissingTrieValue (contract code)` disagreements with recorded `nearcore(cold)` verdicts.
 Same source: `lake build` 246 jobs, `make d3-drivers`, `make d3-smoke`, coverage drift check and
 the differential harness reports 87 tests: 86 pass, 1 skipped.
 
+**W06 key-substream widening measured on the working tree: 3,130 accept / 8 reject / 0
+out-of-domain.** All 387 closed — 266/266 ML-DSA-65 keys, 80/80 non-ED25519 transaction keys,
+41/41 SECP256K1 delegate signatures — with zero regressions against the 2,743-accept baseline
+(the 2,743 accepts and the 8 rejects are the same case set before and after; only the 387
+out-of-domain rows moved, all to `accept`).
+
+**Correction — the signed statement did move.** An earlier draft of this table claimed "zero
+verdict drift on the `signed` tier … bit-identical before and after". That claim is **false** and has
+been withdrawn. It was based on comparing two *post-widening* signed censuses against each other
+(`census-signed-after.json` and `census-signed-final.json` are byte-identical, which proves nothing
+about the widening); neither has a pre-widening counterpart. Re-measured against a real baseline — the
+same 3,138 cases under `--tier signed` with the delegate SECP256K1 arm restored to the pre-widening
+`throw`, rebuilt and re-run — the signed tier goes from **2,438 out-of-domain / 700 accept** to
+**2,403 / 735**: **35 verdicts move `out_of_domain → accept`**, all 35 inside the 41-case SECP256K1
+delegate set (6 of those 41 stay out-of-domain for unrelated reasons).
+
+The mechanism is not subtle, and it is why the "additive only" framing was wrong: `D2.actDelegate` is
+*shared* by both layers. `checkD3` is `checkD2Core (d3Hooks …)`, and `checkD2Core` reaches
+`applyAction … .delegate d => actDelegate …`, so replacing that arm's `throw "out of domain (e.secp)…"`
+with `pure (Secp256k1.verify …)` widens the **signed** relation too. The signed exclusion list
+(`Successor.lean:88`, ten features) never named `e.secp`, so nothing kept the signed layer's old
+behaviour in place: the exclusion *was* the throw. The 35 moved cases are real signed-tier changes and
+belong in the signed-statement review, not in a "successor only" column. Whether to accept them as a
+strengthening or to re-isolate the signed layer behind its own decoder (`D2.pTxD2`-style, as the tx
+key path already does with `pTxD2Global`) is an **open decision** — see the W06 row below.
+
+Deliberate-breakage controls: dropping the
+`near:ml-dsa-65-pubkey-hash:v1` domain tag from the key handle fails 73/266 ML-DSA cases on a
+state-root mismatch; forcing the SECP256K1 tx check to `false` fails 34/80 tx-key cases; forcing the
+delegate check to `false` fails 30/41 delegate cases — so all three wirings are load-bearing rather
+than vacuously accepting. `Secp256k1.verify` is additionally pinned against an independent
+`python-cryptography`/OpenSSL vector in `NearSpecV3/Examples/SecpVerifyVector.lean`
+(`verify_accepts_known_good`), which the workplan's "Python reference only" note had left unchecked
+in-tree.
+
 ### CI state at `7cdc8eed7` (measured on the GitHub run for that push)
+
+`d3-smoke` is **not** a red CI job and has not been one on any recent run. The `d3 successor drivers
+(build + smoke)` job passed on every measured run (`40116447922`, `40148396532`, `40166878067`,
+`40172718660`, `40181642479`), including the newest. The red jobs on those runs are the ones below.
 
 The run had 18 jobs: 15 ran and 3 were skipped (corpus-content gate without corpora, firecracker and
 hostile-submission e2e without KVM). Four of the 15 failed, and all four are repaired on the working
@@ -43,12 +94,56 @@ tree; each fix is verified locally, not inferred from the commit message:
 | Failing job | Cause | Repair (verified) |
 |---|---|---|
 | `rust (fmt, clippy, test, build)` | `umask_0077_trees_…` built its scratch dir under `deps()`, which does not exist on a hosted runner; `create_dir_all` failed with EACCES | `work_base()` falls back to the system temp dir when the deps tree is absent (`cargo test -p arena-firecracker --test umask` → 1 passed) |
-| `lean (zk-formal)` | `ZkFormal.PQ.Join.RunCallFold.d3_only_execution` matched 10 `Act` constructors; the type now has 13 | three added `rfl` arms (`lake build ZkFormal.PQ.Join.RunCallFold` → 117 jobs green) |
+| `lean (zk-formal)` | `Base` gained `deployGlobal`/`useGlobal`/`stateInit`, so `ZkFormal.PQ.Join.Fold.patchArm_eq_d3` and `.applyAction_congr` matched 10 constructors of 13, and `ZkFormal.PQ.Join.Coverage.patchArm_noncall` likewise. This is the *second* occurrence of the same 10-vs-13 bug: `RunCallFold` was fixed first, and the same three arms were missed in `Fold`/`Coverage` | three `rfl` arms added in `Fold` and three in `Coverage`; `applyAction_congr`'s `rcases` widened to 13 alternatives (`lake build` → 3,077 jobs green, 0 errors) |
 | `lean (research/near-compression/wasm-base-lean)` | `RipemdVectors.lean` wrote a diagnostic to `/tmp/opencode/ripemd_diag.txt`, which is absent on CI | diagnostic write removed; the differential still runs and still fails the build on mismatch (`lake build WasmBase.RipemdVectors` → 18 jobs, "320 rows satisfy all 2625 constraints … RIPEMD-160 KATs ok") |
 | `formal-checker (corpus, native csimp, NEAR spec)` | `near-chunk-v3.json`'s trusted import closure omitted 9 modules that the changed sources now import | nine modules added to the challenge closure (`cargo test -p arena-formal-checker --lib` → 16 passed) |
 
 `d3-drivers` itself passed on that push at five cases, so the seven-case widening is a strengthening,
 not a repair: it makes each widening driver answer for its own family instead of only being executed.
+
+### `make d3-smoke` was red locally, not in CI — the stale exclusion table
+
+CI's smoke job was green because CI ran the committed sources. The target is red on the working tree
+that carries the W06 key widening, and the cause is `tools/d3/smoke_successor.py`, not a spec
+regression: its global-action block hard-coded two "key exclusion" expectations left over from before
+the widening.
+
+```
+AssertionError: {'case': '.../global-cache-fixtures/cases/00-h10011-s0',
+                 'reason': '', 'tier': 'globalActions', 'verdict': 'accept'}
+```
+
+The table asserted `00-h10011-s0` → `out of domain (w.shape): non-ED25519 transaction key` and
+`00-h10021-s2` → `out of domain (w.shape): ML-DSA-65 public key`. Both now decode and **accept**,
+because the widening implements what those exclusions stood for:
+
+- `TxD2.sigTag` keeps the outer signature discriminant and `TxD2.sigOk` dispatches on it, so a
+  SECP256K1 transaction key is verified with `Secp256k1.verify` instead of rejected
+  (`00-h10011-s0` carries `ood_secp256k1_multi`).
+- `PublicKey.handle` maps an ML-DSA-65 key (tag 2) to the 32-byte `SHA3-256("near:ml-dsa-65-pubkey-
+  hash:v1" ‖ key)` handle under tag 3, so a 1,952-byte key never lands in state and the case's
+  access-key lookups resolve (`00-h10021-s2`).
+
+Measured, not assumed: all 28 global-cache fixtures plus the 3 promise controls accept in **both**
+`globalActions` and `completeCodeGlobal`, and all 28 record `nearcore = ok`, so accepting them agrees
+with nearcore rather than loosening the relation. Tampering each fixture's claim or witness is still
+rejected (`invalid: chunk slots do not match chunk_headers_root` / `decode: truncated
+predecessor_id` for `00-h10011-s0`; `invalid: segment is not hash-linked` / `invalid: receipt proof
+merkle path` for `00-h10021-s2`), so the accepts are load-bearing.
+
+The repair keeps the split the table was trying to express instead of deleting the check: successor
+tiers must **accept** both fixtures, and the `signed` tier must still **exclude** them — so "dropping
+the widening" and "leaking the widening into the signed statement" both fail the smoke. The `signed`
+tier currently reaches an earlier exclusion on these fixtures (`GlobalContractDistribution receipt`,
+verified per case), so the assertion is on the verdict split, not on which exclusion fires first. Note
+the limit of that guard: these two fixtures are excluded by a *different* feature, so the smoke does
+**not** catch the delegate-arm leak measured above — that leak shows up only on the 41 SECP256K1
+delegate cases. `make d3-smoke` is green end to end: 7-case fixture, 13 tiers, storage resolution,
+global actions, code-witness policy, float goldens, runtime golden.
+
+Two guard failures were also checked deliberately: removing the source stamp or corrupting it makes
+`run_smoke.py` exit 1 with a "binaries are stale" message rather than reporting a green result against
+old binaries.
 
 ### Remaining open work — prioritized
 
@@ -59,9 +154,23 @@ actually blocks the three gates:
    full-corpus rerun proving it changes no other verdict. The `w.size` 4,000,000-byte storage-proof
    bound (`ChunkValidationD2.lean:236`, `Successor/RuntimeCore.lean:55`) has **no lift at all**; it
    shows zero failures today only because no corpus case reaches it. Gate B forbids both.
-2. **W06 — key families.** 266 ML-DSA-65 keys and 80 non-ED25519 transaction keys are unimplemented,
-   plus 41 SECP256K1 delegate signatures. `Secp256k1.verify` and `sha3_256` exist but are called by no
-   action path. This is the single largest exclusion block in the 387.
+2. **W06 — key families.** The 387-case exclusion block is closed on the widening tree (266 ML-DSA-65
+   keys, 80 non-ED25519 transaction keys, 41 SECP256K1 delegate signatures), so what remains is the
+   part the widening deliberately does not admit: **ML-DSA-65 signatures** (FIPS-204 verification plus
+   the `ml_dsa_65_verification_cost` burnt-gas term) and ML-DSA transaction keys/signatures, still
+   excluded as `e.mldsa_tx`. The newly wired secp paths are covered by Python-reference vectors but not
+   yet by pinned-nearcore whole-chunk replay. Nothing in this package is a Gate-B exclusion any more;
+   it is a proof/evidence gap.
+   *Open decision from the corrected measurement above:* the SECP256K1 delegate widening moved **35
+   signed-tier verdicts** `out_of_domain → accept` (2,438/700 → 2,403/735), because `actDelegate` is
+   shared with `checkD3` and the `e.secp` exclusion *was* the throw, not an entry in
+   `signedExclusions`. So the signed statement is **not** unchanged. Before this branch can land
+   without flagging it, decide between (a) accepting the 35 as a signed-statement strengthening and
+   recording the change against UQ-010's "named statement of record", or (b) re-isolating the signed
+   layer behind its own decoder so the widening stays successor-only — the pattern the tx-key path
+   already uses (`D2.pTxD2` excludes, `pTxD2Global` admits). Option (a) is the honest description of
+   what the tree does today; option (b) is what the "additive only" claim assumed. This must be
+   settled before merge, since it decides whether `checkD3`'s meaning changed.
 3. **W08 — the 8 `MissingTrieValue` disagreements.** Lean rejects 8 mutants whose recorded
    `nearcore(cold)` verdict accepts. These are disagreements, not exclusions, and they need a base/
    mutant witness diff at the code lookup, not a tier change. Separately,
@@ -103,7 +212,7 @@ mistaken for package closure:
 | W03 | — | Everything listed |
 | W04 | Float tiers with 2,050 operator / 1,284 chunk / 350 mutant comparisons | Overlap/range proofs; preparation negatives; composition |
 | W05 | Curve host code and `curveHosts` tier (`5bf2ee8f4`); three alt_bn128 rows moved missing→partial | Whole-chunk parity for every curve host, p256 |
-| W06 | `Secp256k1.recover` (161 nearcore vectors); `Secp256k1.verify` (ECDSA) and `Wasm.Crypto.sha3_256` primitives, checked only against Python references (24 ECDSA vectors, 5 FIPS-202 digests), **not yet called** by any action path | Wire verify into delegate (41) and transaction (80) paths with nearcore vectors; ML-DSA-65 entirely (266) |
+| W06 | `Secp256k1.recover` (161 nearcore vectors); `Secp256k1.verify` (ECDSA) and `Wasm.Crypto.sha3_256`, checked against Python references (24 ECDSA vectors, 5 FIPS-202 digests). On the widening working tree verify is **now called** by the delegate arm (`actDelegate`/`actDelegateL`) and the transaction path (`TxD2.sigOk` dispatching on `TxD2.sigTag`), and ML-DSA-65 keys are admitted in key-storage positions (`pPkGlobal`, `pBaseGlobalKeyed`) with the `SHA3-256` handle in `PublicKey.handle`. **Not successor-only:** because `actDelegate` is shared, the delegate arm moved 35 `signed`-tier verdicts `out_of_domain → accept` (measured against a reverted-arm rebuild), so the signed statement changed | ML-DSA-65 **signatures** (verification + the `ml_dsa_65_verification_cost` burnt-gas term, `85.yaml:15`, `runtime/src/config.rs:660-690`); ML-DSA tx keys/signatures stay excluded as `e.mldsa_tx`; nearcore whole-chunk vectors for the newly wired secp paths; decide whether the 35 signed-tier moves are accepted or the signed layer is re-isolated (see item 2 above) |
 | W07 | Global actions, distribution receipts and 10 promise hosts incl. gas-key lift (`628551b85`); 72/72 gas-key gap cases accept | Pinned-nearcore gas-key whole-chunk replay; target-side gas-key execution; obsolete-layout routing (UQ-006) |
 | W08 | `completeCodeGlobal` policy; cold-partial resolution consults the deploy tracker before trie (`ContractStorage::get` order), so only rolled-back deploys stay cache-excluded | The 8 `MissingTrieValue` disagreements; historical cache coherence; `completeCodeGlobal` rejects 86 valid chunks |
 | W09 | `storageResolution` tier | Independent exact-limit fixtures and bounds |
@@ -298,14 +407,30 @@ and reachable dispatch alone do not close the package. W06 key verification is s
 
 Owner: L3 key substream.
 
-- Implement secp256k1 transaction/delegate verification, distinct from ecrecover. `Secp256k1.verify`
-  (ECDSA over the existing arithmetic) is landed but uncalled and checked only against a Python
-  reference: validate it on nearcore vectors, then wire the delegate path (`D2/Actions.lean`) and
-  the transaction-key paths (`D2/TxD2.lean`, `Successor/GlobalCodecs.lean`, `TxD1.lean`).
+- Implement secp256k1 transaction/delegate verification, distinct from ecrecover. On the widening
+  working tree this is **wired**, not merely landed: `Secp256k1.verify` (ECDSA over the existing
+  arithmetic) is called at `D2.actDelegate` / `Logged.actDelegateL` (tag pair `1,1`) and at the new
+  `TxD2.sigOk` dispatch consumed by `TxD2.valid`, and is admitted by the successor decoders
+  `pTxD2Global` (outer signature tag 1, 65-byte `r ‖ s ‖ rec_id`) and `pBaseGlobalKeyed` (key
+  positions). It is pinned against an independent OpenSSL vector in
+  `NearSpecV3/Examples/SecpVerifyVector.lean` (`verify_accepts_known_good`, a `decide +kernel`
+  evaluation), and this tree adds that module to `defaultTargets` so the pin compiles in the default
+  build instead of sitting unbuilt next to it — the previous draft cited it as in-tree evidence while
+  nothing compiled it. Still open: nearcore's own signing vectors as
+  whole-chunk fixtures (the current pin is a unit vector, not a replayed chunk), and `TxD1.lean`'s
+  path, which still rejects non-ED25519 keys by design so the signed statement does not move.
 - Implement ML-DSA-65 key/signature codecs, executable verification, key handles and trie integration,
   including the pinned SHA3-based public-key handle where required. Only `Wasm.Crypto.sha3_256`
   exists (matches FIPS 202 on Python-reference digests); update the stale exclusion text at
   `D2/Types.lean:20` ("SHA3-256 … not formalized") when the handle is wired.
+  *Done on the working tree:* the handle is wired — `NearSpec.PublicKey.handle` hashes tag 2 as
+  `[3] ‖ SHA3-256("near:ml-dsa-65-pubkey-hash:v1" ‖ raw)` and `trieIdLen` returns 33, matching
+  `core/crypto/src/signature.rs:156-174, 262-274, 323-331`; the exclusion text at `D2/Types.lean:20`
+  is updated. Still open: **ML-DSA-65 executable signature verification (FIPS 204)**, which no
+  corpus case requires — 0/266 ML-DSA cases carry an ML-DSA signature, so the signed and successor
+  layers name it as its own exclusion (`oodMlDsaSig`, `e.mldsa_sig`, `e.mldsa_tx`) rather than
+  implementing it. Its `ml_dsa_65_verification_cost` burnt-gas term (`85.yaml`, `runtime/src/config.rs`)
+  is likewise unmodelled, which is why an ML-DSA *transaction key* stays excluded.
 - Cover keys in actions, access-key state and receipts; integrate nonce/gas-key interactions.
 - Generate valid/invalid and malformed key/signature chunks, replay/nonce negatives and algorithm
   boundaries, comparing fees, nonce changes, failures and roots.

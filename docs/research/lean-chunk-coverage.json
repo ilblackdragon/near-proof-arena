@@ -26,9 +26,9 @@
       "owner": "L2"
     },
     {
-      "classification": "unimplemented",
+      "classification": "implemented on the widening tree",
       "exclusion": "e.secp",
-      "justification": "SECP256K1 is a live key type and Delegate signature scheme at PV86 (`core/crypto/src/signature.rs:250-257`; `KeyType::SECP256K1`). Lean throws at `D2/Actions.lean:399`; 41 protocol-valid cases excluded.",
+      "justification": "SECP256K1 is a live key type and Delegate signature scheme at PV86 (`core/crypto/src/signature.rs:250-257`; `KeyType::SECP256K1`). The W06 widening replaces the `D2/actDelegate` throw with `Secp256k1.verify`, so all 41 protocol-valid cases decide: 41/41 accept at `allFeatures`, 35 accept at `signed` (6 excluded for unrelated guards). Note this is NOT successor-only: `actDelegate` is shared with `checkD3`, so the signed tier moved 35 verdicts `out_of_domain \u2192 accept`.",
       "owner": "L3"
     },
     {
@@ -476,11 +476,12 @@
         "d3c9": 8
       },
       "lean_guards": [
-        "D2/Actions.lean:399 `out of domain (e.secp): SECP256K1 delegate signature verification`"
+        "Signed layer: `D2/actDelegate` verifies with `Secp256k1.verify` (W06 widening); no longer a throw",
+        "Successor `pBaseGlobalKeyed`/`pTxD2Global` admit the key families"
       ],
       "mapping": "mapped",
       "nearcore_fact": "SECP256K1 delegate signature verification",
-      "note": "38 exact; 3 pre-empted. No accept.",
+      "note": "0 on the widening tree: the 41 signed exclusions are gone and all 41 accept at `allFeatures` (35 signed-accept after the widening, 6 out-of-domain for unrelated guards). Pre-widening text said `D2/Actions.lean:399` threw and `No accept` \u2014 both false now.",
       "tag": "e.secp",
       "total": 41
     },
@@ -3636,11 +3637,11 @@
     "ChunkValidationD1a.lean": "5c3ee8da7e308d42fd91c47dc28f62d3de69e41cd9ec753abe30561936cd38ec",
     "ChunkValidationD2.lean": "c58af4b97f334b49fdcf6fdc002dbdae66fab1ba3856fb26454b599c67844f9e",
     "ChunkValidationV0.lean": "14e583273dc7726c40f0b2862cf90742f1a78dcce9e8f9267e33b993d66a2b15",
-    "D2/Actions.lean": "87a77f58e1b50add496c070988bf2663d770301726cba57ebb5292bec2d7eb88",
+    "D2/Actions.lean": "ccefd9238105445965feba3c161228b7f019aca9a8abb5bb86c3467c5b3d611b",
     "D2/Queues.lean": "893be7c979194d0f5b4717d600a8820e9173b10f8943c97fd65cbf993e879e67",
     "D2/Receipts.lean": "3f90a42ee805df998cb894b38ff94634b8e38bc19a5fcbf25360c21e6fac5c15",
-    "D2/TxD2.lean": "a41bc15733d0f87efbde16553c369ea21228e35ba7a981ccb75a393767b2285e",
-    "D2/Types.lean": "2c46f94221a3f55b7512fa87ab3aa4539e5fe79ea830d46c083291ba0e7eb9c3",
+    "D2/TxD2.lean": "e21795223c38b693a5e9aadedc8dbbbab77b0466032374876ac3b4be1f25e4e4",
+    "D2/Types.lean": "0b57594e24d9f842a5ea91afa7b62451fcdbbe49cd70664ed1283020c30fb5c1",
     "D3/FunctionCall.lean": "c0b4ca0d9a6aa7e92bd12743ad13ab9068e5d75016b73918eb520b44c7d3a85a",
     "Layout.lean": "c4c55ba251242e13a4c83d97508a977a78da49ea52f2f4cf144fecd873352728",
     "Wasm/CryptoHost.lean": "fd50912abbd3b9fef62f074287e49c63205008f218952e1119b8180c6230a06e",

@@ -1,4 +1,5 @@
 import NearSpecV3.D2.Queues
+import NearSpecV3.Secp256k1
 
 /-!
 # D2 actions (`Runtime::apply_action`, `runtime/runtime/src/lib.rs:523-774`)
@@ -398,7 +399,8 @@ def actDelegate (c : ActCtx) (st : ActSt) (res : AR) (d : Delegate) : Except Str
   let recv := c.r.recv
   let sigOk ← match d.sigTag, d.pk.tag with
     | 0, 0 => pure (Ed25519.verify d.pk.data d.sig d.signedHash)
-    | 1, 1 => throw "out of domain (e.secp): SECP256K1 delegate signature verification"
+    | 1, 1 => pure (Secp256k1.verify d.pk.data d.sig d.signedHash)
+    | 2, 2 => throw "out of domain (e.mldsa_sig): ML-DSA-65 delegate signature verification"
     | _, _ => pure false
   if !sigOk then return (st, res.fail)
   let h := c.env.ctx.height

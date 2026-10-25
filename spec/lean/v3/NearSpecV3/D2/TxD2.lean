@@ -28,6 +28,10 @@ structure TxD2 where
   blockHash : Bytes
   actions : List Act
   strict : Bool
+  /-- The outer `Signature` borsh discriminant: 0 ED25519, 1 SECP256K1, 2 ML-DSA-65
+  (`core/crypto/src/signature.rs:1168-1196`). Kept so verification can dispatch on it; the signed
+  layer rejects everything but 0, the successor admits 0 and 1. -/
+  sigTag : Nat
   sig : Bytes
   deriving Repr
 
@@ -60,13 +64,23 @@ def pTxD2 : P TxD2 := fun bs => do
     else throw "decode: unknown signature tag"
   let (sig, bs) ← pTake 64 "ed25519 signature" bs
   if (sig.getD 63 0).toNat / 32 != 0 then throw "decode: ed25519 signature high bits"
-  pure (⟨consumed start bs, body, signer, pk, nonce, ni, recv, bh, acts, strict, sig⟩, bs)
+  pure (⟨consumed start bs, body, signer, pk, nonce, ni, recv, bh, acts, strict, 0, sig⟩, bs)
 
 def TxD2.sizeOk (t : TxD2) : Bool := t.body.length + 65 ≤ TxParams.maxTransactionSize
 
-/-- `validate_transaction`. -/
+/-- `Signature::verify` dispatch (`core/crypto/src/signature.rs:1086-1140`). ED25519 and
+SECP256K1 are implemented; ML-DSA-65 needs FIPS-204 verification and stays excluded by the caller.
+A key/signature tag mismatch is `false`, as in nearcore's catch-all arm. -/
+def TxD2.sigOk (t : TxD2) : Bool :=
+  match t.sigTag, t.pk.tag with
+  | 0, 0 => Ed25519.verify t.pk.data t.sig t.hash
+  | 1, 1 => Secp256k1.verify t.pk.data t.sig t.hash
+  | _, _ => false
+
+/-- `validate_transaction`. The signed layer only ever builds `sigTag = 0` / `pk.tag = 0`
+(`pTxD2` rejects anything else), so this reduces to the ED25519 check there. -/
 def TxD2.valid (t : TxD2) : Bool :=
-  validActs true t.actions && validActReceivers t.receiver t.actions && t.sizeOk && Ed25519.verify t.pk.data t.sig t.hash
+  validActs true t.actions && validActReceivers t.receiver t.actions && t.sizeOk && t.sigOk
 
 /-- `verify_nonce` (`verifier.rs:212-238`). -/
 def nonceOk (strict : Bool) (txNonce cur height : Nat) : Bool :=

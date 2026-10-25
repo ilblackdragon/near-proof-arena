@@ -441,8 +441,9 @@ ORACLE = [
    "Wasm/Exec.lean:78 `host function {name} not modelled in D3α` (curve families absent from hostCall)"],
   "mapped","458 exact; 22 pre-empted. 244 curve calls, 214 state-init/global/gas-key calls. 192 import-only contracts are in-domain and accepted (P3).")
 ,("e.secp", [("d3c7",10),("d3c8",19),("d3c9",8),("d3c10",4)], 41,
-  "SECP256K1 delegate signature verification", ["D2/Actions.lean:399 `out of domain (e.secp): SECP256K1 delegate signature verification`"],
-  "mapped","38 exact; 3 pre-empted. No accept.")
+  "SECP256K1 delegate signature verification", ["Signed layer: `D2/actDelegate` verifies with `Secp256k1.verify` (W06 widening); no longer a throw",
+   "Successor `pBaseGlobalKeyed`/`pTxD2Global` admit the key families"],
+  "mapped","0 on the widening tree: the 41 signed exclusions are gone and all 41 accept at `allFeatures` (35 signed-accept after the widening, 6 out-of-domain for unrelated guards). Pre-widening text said `D2/Actions.lean:399` threw and `No accept` — both false now.")
 ,("w.shape", [("d3c7",77),("d3c8",155),("d3c9",34),("d3c10",51)], 317,
   "out-of-domain action/receipt shape", ["D2/Types.lean:36-39 (DeployGlobalContract/UseGlobalContract/DeterministicStateInit/GlobalContractDistribution)",
    "D2/Types.lean:34-35,46 (ML-DSA keys)", "D2/TxD2.lean:46,59 (non-ED25519 tx key/signature)", "D3/FunctionCall.lean:248 (global contract identifier)"],
@@ -452,7 +453,7 @@ ORACLE = [
 # ---------------------------------------------------------------- exclusion classification
 EXCL = [
  ("e.float","unimplemented","PV86 contracts may contain floats: wasmparser features enable MVP floats and saturating float-to-int (`runtime/near-vm-runner/src/features.rs:47-59`, `SATURATING_FLOAT_TO_INT=true`). Lean rejects them at preparation (`Wasm/Prepare.lean:205,234,315`). 160 protocol-valid cases excluded.","L2"),
- ("e.secp","unimplemented","SECP256K1 is a live key type and Delegate signature scheme at PV86 (`core/crypto/src/signature.rs:250-257`; `KeyType::SECP256K1`). Lean throws at `D2/Actions.lean:399`; 41 protocol-valid cases excluded.","L3"),
+ ("e.secp","implemented on the widening tree","SECP256K1 is a live key type and Delegate signature scheme at PV86 (`core/crypto/src/signature.rs:250-257`; `KeyType::SECP256K1`). The W06 widening replaces the `D2/actDelegate` throw with `Secp256k1.verify`, so all 41 protocol-valid cases decide: 41/41 accept at `allFeatures`, 35 accept at `signed` (6 excluded for unrelated guards). Note this is NOT successor-only: `actDelegate` is shared with `checkD3`, so the signed tier moved 35 verdicts `out_of_domain → accept`.","L3"),
  ("e.mldsa_key","unimplemented","ML-DSA-65 is enabled at PV85 (`core/primitives-core/src/version.rs:414,567`; `85.yaml` adds `ml_dsa_65_verification_cost`). Lean treats ML-DSA keys/signatures as `w.shape` (`D2/Types.lean:34-35,46`); 118 protocol-valid cases excluded.","L3"),
  ("w.shape","unimplemented","Global contracts, deterministic state init and gas keys are live at PV83/85 (`Action` tags 9-11, `core/primitives/src/action/mod.rs:349-370`; `version.rs:553-562`; `GlobalContractDistributionNonce`, `GasKeys`). Lean rejects them at `D2/Types.lean:36-39,300-302` and `D3/FunctionCall.lean:248`; 317 protocol-valid cases excluded.","L4"),
  ("e.eth_implicit_local","unimplemented","Legacy ETH-wallet resolution is deterministic given `chain_id` (`runtime/runtime/src/contract_code.rs:56-76`, `eth_wallet_global_contract_hash`), not random. Lean conservatively excludes it (`D3/FunctionCall.lean:236-239`); 223 protocol-valid cases excluded.","L4"),

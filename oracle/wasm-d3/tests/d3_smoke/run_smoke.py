@@ -24,6 +24,7 @@ Exit 0 only if all four hold. Usage:
   python3 oracle/wasm-d3/tests/d3_smoke/run_smoke.py [--bin-dir DIR]
 """
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -34,6 +35,12 @@ import sys
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
 FIXTURE = HERE / "cases"
+
+# Source roots the four driver binaries are compiled from. A stamp over these files is written by
+# `make d3-drivers` and re-checked here, so a run against binaries left over from an older build
+# fails closed instead of reporting "SMOKE PASSED" on stale code. See `source_stamp`.
+SOURCE_ROOTS = (REPO / "spec/lean/v3", REPO / "oracle/wasm-d3/lean")
+STAMP = REPO / "spec/lean/v3/.lake/build/d3-smoke-sources.sha256"
 
 # Each driver's own expectation domain. `domain="baseline"` expects an exclusion exactly on the
 # oracle's out-of-domain cases; `domain="successor"` with `widen` moves the cases whose violations are
@@ -76,6 +83,43 @@ MUST_WIDEN = {
 }
 
 
+def source_stamp():
+    """Hash every Lean source and lakefile the four driver binaries are built from.
+
+    Dot-directories (`.lake`, `.git`) are excluded: `.lake` holds the build output being validated,
+    so including it would make the stamp change as a consequence of the build rather than of source.
+    """
+    h = hashlib.sha256()
+    files = []
+    for root in SOURCE_ROOTS:
+        for pat in ("**/*.lean", "lakefile.toml", "lakefile.lean", "lean-toolchain"):
+            files.extend(p for p in root.glob(pat) if p.is_file())
+    for p in sorted(set(files), key=lambda p: str(p)):
+        if any(part.startswith(".") for part in p.relative_to(REPO).parts):
+            continue
+        h.update(str(p.relative_to(REPO)).encode())
+        h.update(p.read_bytes())
+    return h.hexdigest()
+
+
+def check_source_stamp():
+    """Fail closed if the binaries were built from sources other than the current ones."""
+    want = source_stamp()
+    if not STAMP.is_file():
+        raise SystemExit(
+            f"FAIL: no driver source stamp at {STAMP.relative_to(REPO)}.\n"
+            "  The smoke run cannot tell whether these binaries match the current sources.\n"
+            "  Build them first: make d3-drivers")
+    got = STAMP.read_text().strip()
+    if got != want:
+        raise SystemExit(
+            f"FAIL: driver binaries are stale — source stamp mismatch.\n"
+            f"  built-from stamp: {got}\n"
+            f"  current sources:  {want}\n"
+            "  Rebuild before trusting a smoke result: make d3-drivers")
+    return want
+
+
 def load_compare():
     spec = importlib.util.spec_from_file_location(
         "difftest_d3_smoke", REPO / "oracle/v3-d3/tools/difftest_d3.py")
@@ -96,7 +140,19 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--bin-dir", default=None, help="directory holding the four driver binaries")
     ap.add_argument("--report", default=None, help="write a JSON summary here")
+    ap.add_argument("--write-stamp", action="store_true",
+                    help="record the current source stamp as the binaries' build input and exit")
     a = ap.parse_args()
+
+    if a.write_stamp:
+        STAMP.parent.mkdir(parents=True, exist_ok=True)
+        STAMP.write_text(source_stamp() + "\n")
+        print(f"recorded driver source stamp: {STAMP.relative_to(REPO)}")
+        return
+
+    # Fail closed before running anything: a green result against stale binaries is worthless.
+    # `--bin-dir` overrides the binary location for negative tests, so it also skips the stamp check.
+    stamp = None if a.bin_dir else check_source_stamp()
 
     index = json.load(open(FIXTURE / "index.json"))
     entries = index["cases"]
@@ -118,7 +174,8 @@ def main():
 
     dirs = [os.path.normpath(str(c)) for c in cases]
     results = {name: run(path, cases) for name, path in bins.items()}
-    summary = {"schema": "near-d3-smoke-result-v2", "cases": len(cases), "drivers": {}}
+    summary = {"schema": "near-d3-smoke-result-v2", "cases": len(cases),
+               "source_stamp": stamp, "drivers": {}}
     d3 = load_compare()
 
     # 1 + 2: every driver ran, and every driver matches its own declared expectation domain.

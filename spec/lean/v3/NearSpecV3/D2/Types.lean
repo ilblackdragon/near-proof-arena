@@ -17,8 +17,11 @@ nearcore 2.13.4 (`44f7ae6c…`, PV 86) borsh layouts used by domain D2
   `GlobalContractDistribution`: `out of domain (w.shape)`) (`receipt.rs:57-80, 565-660`);
 * `ReceiptOrStateStoredReceipt` (`receipt.rs:150-330`).
 
-ML-DSA-65 public keys anywhere in an action or a receipt are `out of domain (w.shape)`: their
-trie handle is a SHA3-256 hash, which is not formalized. Every decoder is strict (truncation,
+ML-DSA-65 public keys anywhere in an action or a receipt are `out of domain (w.shape)` at this
+signed layer; the successor layer (`Successor/GlobalCodecs.lean`: `pPkGlobal`,
+`pBaseGlobalKeyed`) admits them in key-storage positions. Their trie handle is
+`SHA3-256("near:ml-dsa-65-pubkey-hash:v1" ‖ pubkey)` (`Wasm.Crypto.sha3_256`, FIPS 202), so a full
+1952-byte key never lands in state. Every decoder is strict (truncation,
 unknown tags, invalid account ids, non-UTF-8 strings fail like nearcore's
 `BorshDeserialize`). Encoders are the exact nearcore borsh; actions are kept with their raw
 bytes (`raw`) so that re-encoding a receipt never needs an action encoder.
@@ -51,12 +54,30 @@ def pPk (w : String) : P PublicKey := fun bs => do
   if pk.tag == 2 then throw oodMlDsaKey
   pure (pk, bs)
 
-/-- `PublicKeyHandle` borsh = trie id of the key (`trie_key.rs:324-335`) for ED25519 /
-SECP256K1: the `PublicKey` borsh itself. -/
-def _root_.NearSpec.PublicKey.handle (k : PublicKey) : Bytes := k.encode
+/-- The `HashDomainTag::MlDsa65PubkeyV1` prefix nearcore hashes into an ML-DSA-65 key handle
+(`core/crypto/src/hash_domain.rs:6-18`). -/
+def mlDsa65PubkeyDomain : Bytes := "near:ml-dsa-65-pubkey-hash:v1".toUTF8.toList
 
-/-- `trie_id_len` (33 / 65). -/
-def _root_.NearSpec.PublicKey.trieIdLen (k : PublicKey) : Nat := 1 + k.data.length
+/-- Local `Bytes → ByteArray` coercion (`D2/GlobalTypes.lean:181` has one inside `D3.L4`). -/
+def toBA' (b : Bytes) : ByteArray := ⟨b.toArray⟩
+
+/-- The on-trie `MlDsa65PublicKeyHandle`: `SHA3-256(domain tag ‖ raw pubkey)`, 32 bytes
+(`core/crypto/src/signature.rs:160-174`). This is the handle-storage fix for the ML-DSA-65 key
+family: a full key on the wire becomes a 32-byte digest in state. -/
+def mlDsa65PubkeyHandle (raw : Bytes) : Bytes :=
+  (NearSpecV3.Wasm.Crypto.sha3_256 (toBA' (mlDsa65PubkeyDomain ++ raw))).toList
+
+/-- `PublicKeyHandle` borsh = trie id of the key (`core/primitives-core/src/trie_key.rs:324-335`;
+`signature.rs:660-700`). ED25519 / SECP256K1 store the `PublicKey` borsh itself; ML-DSA-65 (tag 2)
+stores the 32-byte SHA3 handle under tag 3, so the two lengths diverge: 1953 wire vs 33 on-trie
+(`signature.rs:262-274, 323-331`). -/
+def _root_.NearSpec.PublicKey.handle (k : PublicKey) : Bytes :=
+  if k.tag == 2 then [3] ++ mlDsa65PubkeyHandle k.data else k.encode
+
+/-- `trie_id_len`: 33 for ED25519 and for the ML-DSA-65 handle, 65 for SECP256K1
+(`signature.rs:323-331, 536-544`; `signature.rs:1706-1714` asserts 33/65/33). -/
+def _root_.NearSpec.PublicKey.trieIdLen (k : PublicKey) : Nat :=
+  if k.tag == 2 then 1 + 32 else 1 + k.data.length
 
 /-! ## Account -/
 

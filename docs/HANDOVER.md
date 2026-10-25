@@ -41,6 +41,36 @@ Both are detailed under "Merged since the last checkpoint" below. Re-run those t
 trusting a green build on main: neither test file is in v3's `defaultTargets`, so a plain
 `lake build` does not reach them.
 
+**W06 key widening is on the working tree but not on main, and it changes the signed statement.**
+The tree carries a SECP256K1/ML-DSA-65 widening: `Secp256k1.verify` is called at `D2.actDelegate`
+and `D2.actDelegateL`, `TxD2.sigOk` dispatches on the new `TxD2.sigTag`, `PublicKey.handle` maps an
+ML-DSA-65 key to its 33-byte `SHA3-256` handle, and the successor decoders `pTxD2Global` /
+`pPkGlobal` / `pBaseGlobalKeyed` admit what the signed decoders still refuse. Measured on that tree
+against the 3,138-case gap census under `allFeatures`: **3,130 accept / 8 reject / 0 out-of-domain**
+(from 2,743/8/387); the 2,743 accepts and the 8 rejects are the same case set, so all 387 moves are
+`out_of_domain → accept`.
+
+**The earlier "signed tier is bit-identical" note is withdrawn — it is false.** `D2.actDelegate` is
+shared: `checkD3` is `checkD2Core (d3Hooks …)`, which reaches `applyAction … .delegate d =>
+actDelegate …`, and the pre-widening `e.secp` exclusion *was* that arm's `throw`, not an entry in
+`signedExclusions` (ten features, none named secp). Re-measured against a real baseline — same 3,138
+cases, `--tier signed`, delegate arm restored to the `throw` and rebuilt — the signed tier moves
+**2,438 out-of-domain / 700 accept → 2,403 / 735**: **35 verdicts change, all `out_of_domain →
+accept`, all within the 41-case SECP256K1 delegate set.** So the widening is *not* successor-only and
+the signed statement moved. Two candidate resolutions, and this is an **open decision**:
+(a) accept the 35 as a signed-statement strengthening and record it against UQ-010's named statement
+of record; or (b) re-isolate the signed layer behind its own decoder so the widening stays
+successor-only — the pattern the tx-key path already uses (`D2.pTxD2` excludes, `pTxD2Global` admits).
+Do not merge this branch while claiming "signed unchanged"; the smoke does not catch it either, because
+the two widened smoke fixtures are excluded at `signed` by `GlobalContractDistribution receipt`, not by
+the delegate arm.
+
+Deliberate-breakage controls all reproduce on the tree (measured, not copied): dropping the
+`near:ml-dsa-65-pubkey-hash:v1` domain tag fails **73/266** ML-DSA cases (72 on a state-root
+mismatch, 1 on `MissingTrieValue (access key)`); forcing `TxD2.sigOk`'s secp arm to `false` fails
+**34/80** tx-key cases; forcing the delegate secp arm to `false` fails **30/41** delegate cases
+(27 signed rejects + 3 more at `allFeatures`).
+
 **Distance to completion:** no Gate A/B/C closure. Inventory: **222 rows, 147 implemented /
 36 validated / 2 missing / 26 partial / 11 impossible-at-boundary** (recounted from the merged
 `docs/research/lean-chunk-coverage.json`, not carried over). The earlier "5 missing / 23 partial"

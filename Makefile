@@ -183,15 +183,21 @@ D3_DRIVERS := spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3g \
 .PHONY: d3-drivers
 d3-drivers: ## Build the named D3 successor drivers (genesis, protocol-gas, D3alpha, floats)
 	$(call require_cmd,$(LAKE),install elan: https://github.com/leanprover/elan)
+	$(call require_cmd,$(PYTHON),install python3)
 	@cd spec/lean/v3 && $(LAKE) build nearspec-v3-check-d3g nearspec-v3-check-d3proto nearspec-v3-check-successor nearspec-v3-runtime nearspec-v3-test-storage-resolution nearspec-v3-test-global-actions nearspec-v3-test-global-codecs NearSpecV3.Successor.CodeResolutionTests NearSpecV3.Successor.PromiseActionsTests
 	@cd oracle/wasm-d3/lean && $(LAKE) build nearspec-v3-check-d3 nearspec-v3-check-d3f
 	@for b in $(D3_DRIVERS); do \
 	  [ -x "$$b" ] || { echo "make: *** MISSING BINARY: '$$b' was not built" >&2; exit 2; }; \
 	done
+	@$(PYTHON) oracle/wasm-d3/tests/d3_smoke/run_smoke.py --write-stamp
 	@echo "d3 drivers built: $(D3_DRIVERS)"
 
+# Depends on `d3-drivers` so the binaries it runs are rebuilt from current sources first. Without that
+# prerequisite the recipe executed whatever happened to sit in `.lake/build/bin`: a green smoke could
+# mean "the stale binaries from a previous build still pass", which is exactly the failure mode this
+# target exists to prevent. The prerequisite is cheap when up to date (lake is incremental).
 .PHONY: d3-smoke
-d3-smoke: ## Run the D3 drivers + comparison contract against the committed 7-case fixture
+d3-smoke: d3-drivers ## Run the D3 drivers + comparison contract against the committed 7-case fixture
 	$(call require_cmd,$(PYTHON),install python3)
 	@$(PYTHON) oracle/wasm-d3/tests/d3_smoke/run_smoke.py
 	@spec/lean/v3/.lake/build/bin/nearspec-v3-test-storage-resolution tools/d3/storage-fixtures/record.wasm tools/d3/storage-fixtures/exhaust.wasm

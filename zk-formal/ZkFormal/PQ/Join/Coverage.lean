@@ -142,6 +142,9 @@ theorem patchArm_noncall (cfg : Wasm.NearCfg) (sa : StateArm) (c : ActCtx) (st :
   | deleteAccount _ => rfl
   | toGasKey _ _ => rfl
   | fromGasKey _ _ => rfl
+  | deployGlobal _ => rfl
+  | useGlobal _ => rfl
+  | stateInit _ => rfl
 
 /-- **The first premise is inhabited**: the D3 hook agrees with itself, so `coverage` is not
 vacuous by contradiction. -/

@@ -27,10 +27,22 @@ def initial : St := {
     { text := "RT@0:bob" }] }
 
 def runTests : IO Unit := do
-  assertTest "decoder preserves unsupported key domain" (match finishActsGlobal
-      { recv := [], acts := [([6, 2] ++ zeros 1952, none)] } with
-    | .error e => e == oodMlDsaKey
+  -- The signed layer still excludes ML-DSA-65 key material as `w.shape`; the successor admits it in
+  -- key-*storage* positions only. `NearSpec.PublicKey.handle` then stores the 33-byte tag-3 SHA3
+  -- handle instead of the 1952-byte key (`signature.rs:156-174, 262-274, 323-331`), so a full
+  -- post-quantum key never lands in state. Assert both halves of that split: dropping the signed
+  -- rejection would lose the exclusion, dropping the successor admission would lose the widening.
+  let mlDsaDelKey : Bytes := [6, 2] ++ zeros 1952
+  assertTest "signed decoder preserves unsupported key domain" (match finishActs
+      { recv := [], acts := [(mlDsaDelKey, none)] } with
+    | .error e => e == oodMlDsaKey && isShapeOOD e
     | .ok _ => false)
+  assertTest "successor decoder admits the key and stores the 33-byte handle" (match finishActsGlobal
+      { recv := [], acts := [(mlDsaDelKey, none)] } with
+    | .ok [.base ⟨_, .deleteKey pk⟩] =>
+      pk.tag == 2 && pk.data.length == 1952 &&
+      (NearSpec.PublicKey.handle pk).length == 33 && pk.trieIdLen == 33
+    | _ => false)
   let s ← stepH (writeMemH 0 ⟨Array.replicate 32 7⟩) initial
   let s ← stepH (writeMemH 96 "provider".toUTF8) s
   let s ← stepH (stateInitH false #v[0, 32, 0, 64]) s

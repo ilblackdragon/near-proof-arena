@@ -5,6 +5,45 @@ import Std.Data.HashMap
 namespace NearSpecV3.Successor.GlobalCodecs
 open NearSpec NearSpecV3 NearSpecV3.D2
 
+/-! ## Key widening for action positions
+
+`D2.pPk` excludes ML-DSA-65 (tag 2) as `w.shape` so the signed statement stays as it was. The
+successor admits tag 2 wherever a key only needs to be *stored*: `Stake`/`AddKey`/`DeleteKey` and the
+two gas-key actions carry a key but never verify a signature with it. The stored form is the 33-byte
+tag-3 handle `NearSpec.PublicKey.handle` computes, so a 1952-byte key never lands in state.
+
+A tag-2 key in a *signing* position stays excluded, and is named separately: the delegate arm in
+`D2.actDelegate` and the transaction key in `pTxD2Global` below both report their own message. -/
+
+/-- `PublicKey` with ML-DSA-65 admitted. Identical to `D2.pPk` on tags 0/1. -/
+def pPkGlobal (w : String) : P PublicKey := fun bs => do
+  let (pk, bs) ← pPublicKey w bs
+  if pk.tag > 2 then throw s!"decode: unknown PublicKey tag ({w})"
+  pure (pk, bs)
+
+/-- `NonDelegateAction` with the key positions widened. Identical to `D2.pBase` except that tags 4–6,
+12 and 13 accept an ML-DSA-65 key; the body layouts are the pinned ones. -/
+def pBaseGlobalKeyed (tag : Nat) : P Base := fun bs =>
+  match tag with
+  | 4 => do
+    let (s, bs) ← pU128 "stake" bs
+    let (pk, bs) ← pPkGlobal "stake key" bs
+    pure (.stake s pk, bs)
+  | 5 => do
+    let (pk, bs) ← pPkGlobal "add key" bs
+    let (ak, bs) ← pAK bs
+    pure (.addKey pk ak, bs)
+  | 6 => do let (pk, bs) ← pPkGlobal "delete key" bs; pure (.deleteKey pk, bs)
+  | 12 => do
+    let (pk, bs) ← pPkGlobal "gas key" bs
+    let (d, bs) ← pU128 "deposit" bs
+    pure (.toGasKey pk d, bs)
+  | 13 => do
+    let (pk, bs) ← pPkGlobal "gas key" bs
+    let (a, bs) ← pU128 "amount" bs
+    pure (.fromGasKey pk a, bs)
+  | _ => pBase tag bs
+
 /-- Pinned borsh 1.5.7 has no de_strict_order feature: BTreeMap decoding sorts
 keys and keeps the last occurrence, rather than rejecting noncanonical input order. -/
 def pDsiGlobal : P D3.L4.Dsi := fun bs => do
@@ -35,6 +74,8 @@ def pBaseGlobal (tag : Nat) : P Base := fun bs => do
   | 9 => let (d, bs) ← D3.L4.pDeployGlobal bs; pure (.deployGlobal d, bs)
   | 10 => let (u, bs) ← D3.L4.pUseGlobal bs; pure (.useGlobal u, bs)
   | 11 => let (d, bs) ← pDsiGlobal bs; pure (.stateInit d, bs)
+  -- Key positions admit ML-DSA-65 (tag 2); these actions store the key but never sign with it.
+  | 4 | 5 | 6 | 12 | 13 => pBaseGlobalKeyed tag bs
   | _ => pBase tag bs
 
 def pBaseActGlobal : P BaseAct := fun bs => do
@@ -147,7 +188,14 @@ def pTxD2Global : P TxD2 := fun bs => do
     else throw "decode: invalid transaction version tag"
   let (signer, bs) ← pAccountId "signer_id" bs
   let (pk, bs) ← pPublicKey "tx public_key" bs
-  if pk.tag != 0 then throw "out of domain (w.shape): non-ED25519 transaction key"
+  -- The signed layer (`D2.pTxD2`) excludes non-ED25519 keys; the successor admits SECP256K1 so the
+  -- transaction-key family can be verified. ML-DSA-65 keys are also representable but their outer
+  -- signature needs FIPS-204 verification *and* the `ml_dsa_65_verification_cost` burnt-gas term
+  -- (`85.yaml:15`, `runtime/src/config.rs:660-690`), neither of which exists here, so admitting one
+  -- would mis-state its fee. It stays excluded with a precise message.
+  if pk.tag != 0 && pk.tag != 1 then
+    if pk.tag == 2 then throw "out of domain (e.mldsa_tx): ML-DSA-65 transaction key"
+    else throw "out of domain (w.shape): non-ED25519 transaction key"
   let ((nonce, ni), bs) ← if v1 then pTxNonce bs else (do let (n, bs) ← pU64 "nonce" bs; pure ((n, none), bs))
   let (recv, bs) ← pAccountId "receiver_id" bs
   let (bh, bs) ← pHash "block_hash" bs
@@ -161,12 +209,18 @@ def pTxD2Global : P TxD2 := fun bs => do
   let body := rawPrefix ++ u32 acts.length ++ concatAll (acts.map Act.raw) ++
     (if v1 then [if strict then 1 else 0] else [])
   let (st, bs) ← pU8 "signature type" bs
-  if st != 0 then
-    if st == 1 || st == 2 then throw "out of domain (w.shape): non-ED25519 transaction signature"
-    else throw "decode: unknown signature tag"
-  let (sig, bs) ← pTake 64 "ed25519 signature" bs
-  if (sig.getD 63 0).toNat / 32 != 0 then throw "decode: ed25519 signature high bits"
-  pure (⟨body ++ [0] ++ sig, body, signer, pk, nonce, ni, recv, bh, acts, strict, sig⟩, bs)
+  -- Signature/key tags must agree, as nearcore's `Signature::verify` requires (its catch-all arm
+  -- returns `false`, but the pair is refused here so the failure is a decode exclusion, not a
+  -- silent reject). ED25519 64 B with the high-bit check; SECP256K1 65 B `r ‖ s ‖ rec_id`.
+  if st != pk.tag then
+    if st == 2 then throw "out of domain (e.mldsa_tx): ML-DSA-65 transaction signature"
+    else throw "out of domain (w.shape): non-ED25519 transaction signature"
+  let (sig, bs) ← match st with
+    | 0 => pTake 64 "ed25519 signature" bs
+    | 1 => pTake 65 "secp256k1 signature" bs
+    | _ => throw "decode: unknown signature tag"
+  if st == 0 && (sig.getD 63 0).toNat / 32 != 0 then throw "decode: ed25519 signature high bits"
+  pure (⟨body ++ [UInt8.ofNat st] ++ sig, body, signer, pk, nonce, ni, recv, bh, acts, strict, st, sig⟩, bs)
 
 def decodeStoredRcptGlobal (b : Bytes) (what : String) : Except String Rcpt :=
   match decodeRcptGlobal b with

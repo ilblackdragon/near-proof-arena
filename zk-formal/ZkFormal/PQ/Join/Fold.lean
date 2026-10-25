@@ -38,7 +38,7 @@ receipt kind, the queues, transactions, yield timeouts, the scheduler, the heade
 
 This is strictly stronger than `RunCallFold.d3_only_execution`, which had to assume the *whole*
 action was non-`fcall`: here only `.fcall` is constrained.  `applyAction_congr` records why (the
-other nine base arms and the delegate arm never read the hook), and `actionLoop_congr` is the
+other twelve base arms and the delegate arm never read the hook), and `actionLoop_congr` is the
 deliverable's action-list induction, stated at the level the hook is consumed.
 
 A first draft of this file proved one `*_congr` per pipeline layer (for `actionLoop`,
@@ -98,7 +98,7 @@ def patchArm (cfg : NearCfg) (f : ActCtx → ActSt → AR → Base → Except St
     (patchArm cfg f).functionCall c st ar (.fcall m a g d) = f c st ar (.fcall m a g d) := rfl
 
 /-- **A patch that answers `.fcall` like the D3 hooks *is* the D3 hooks.**  `ActionHooks` has one
-field, so this is record ext; the `.fcall` case is the hypothesis and the other nine base arms are
+field, so this is record ext; the `.fcall` case is the hypothesis and the other twelve base arms are
 `rfl` because the patch copied the spec's arm there. -/
 theorem patchArm_eq_d3 (cfg : NearCfg)
     {f : ActCtx → ActSt → AR → Base → Except String (ActSt × AR)}
@@ -120,6 +120,9 @@ theorem patchArm_eq_d3 (cfg : NearCfg)
     | deleteAccount ben => rfl
     | toGasKey pk dep => rfl
     | fromGasKey pk amt => rfl
+    | deployGlobal d => rfl
+    | useGlobal u => rfl
+    | stateInit d => rfl
   revert e
   rw [show patchArm cfg f = ⟨(patchArm cfg f).functionCall⟩ from rfl,
       show NearSpecV3.D3.d3Hooks cfg
@@ -127,7 +130,7 @@ theorem patchArm_eq_d3 (cfg : NearCfg)
   intro e
   rw [e]
 
-/-- **`applyAction` reads the hook only in the `.fcall` arm.**  The other nine base arms and the
+/-- **`applyAction` reads the hook only in the `.fcall` arm.**  The other twelve base arms and the
 delegate arm are hook-free — this is *why* `hooks_ext` needs only `.fcall` agreement and not
 agreement on all of `Base`. -/
 theorem applyAction_congr {h1 h2 : ActionHooks}
@@ -137,8 +140,8 @@ theorem applyAction_congr {h1 h2 : ActionHooks}
     applyAction h1 c st act = applyAction h2 c st act := by
   unfold applyAction
   rcases act with ⟨raw, ba⟩ | raw
-  · rcases ba with _ | _ | ⟨m, a, g, d⟩ | _ | _ | _ | _ | _ | _ | _
-    all_goals simp only [h]
+  · rcases ba with _ | _ | ⟨m, a, g, d⟩ | _ | _ | _ | _ | _ | _ | _ | _ | _ | _
+    all_goals first | rfl | simp only [h]
   · rfl
 
 /-- **The action-list induction.**  The deliverable's "induction over the receipt/action list", at
