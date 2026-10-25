@@ -191,7 +191,7 @@ d3-drivers: ## Build the named D3 successor drivers (genesis, protocol-gas, D3al
 	@echo "d3 drivers built: $(D3_DRIVERS)"
 
 .PHONY: d3-smoke
-d3-smoke: ## Run the D3 drivers + comparison contract against the committed 5-case fixture
+d3-smoke: ## Run the D3 drivers + comparison contract against the committed 7-case fixture
 	$(call require_cmd,$(PYTHON),install python3)
 	@$(PYTHON) oracle/wasm-d3/tests/d3_smoke/run_smoke.py
 	@spec/lean/v3/.lake/build/bin/nearspec-v3-test-storage-resolution tools/d3/storage-fixtures/record.wasm tools/d3/storage-fixtures/exhaust.wasm

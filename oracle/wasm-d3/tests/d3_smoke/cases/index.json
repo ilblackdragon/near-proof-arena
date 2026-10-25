@@ -46,8 +46,28 @@
    "in_d3": false,
    "source": "d3c7/ood/00-h10006-s2",
    "why": "e.ood_host exclusion"
+  },
+  {
+   "case_dir": "d3c9-ood-00-h10072-s3",
+   "d3_violations": [
+    "e.float"
+   ],
+   "expected_rel": true,
+   "in_d3": false,
+   "source": "d3c9/ood/00-h10072-s3",
+   "why": "e.float exclusion: baseline/float-absent drivers exclude, d3f accepts"
+  },
+  {
+   "case_dir": "d3c7-ood-00-h10007-s1",
+   "d3_violations": [
+    "e.g_alpha"
+   ],
+   "expected_rel": true,
+   "in_d3": false,
+   "source": "d3c7/ood/00-h10007-s1",
+   "why": "e.g_alpha band exclusion: d3/d3f/d3g exclude, d3proto accepts"
   }
  ],
- "note": "Five real D3 cases copied from the L7 corpora. Expected verdicts come from the oracle's meta.json. Run by CI to exercise the drivers and the comparison contract; not a substitute for the full 115,284-case sweep.",
- "schema": "near-d3-smoke-fixture-v1"
+ "note": "Seven real D3 cases copied from the L7 corpora. Expected verdicts come from the oracle's meta.json; each driver is compared against its own declared expectation domain, so a driver that stops widening (or widens wrongly) fails. Run by CI to exercise the drivers and the comparison contract; not a substitute for the full 115,284-case sweep.",
+ "schema": "near-d3-smoke-fixture-v2"
 }

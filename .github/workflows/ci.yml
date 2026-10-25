@@ -241,8 +241,11 @@ jobs:
   # NOT in LEAN_PROJECTS and whose default target does not include checkD3; the genesis and protocol
   # drivers in spec/lean/v3 are named executables outside its defaultTargets. Before this job nothing
   # built or ran them in CI. `make d3-drivers` builds each by name and fails if a binary is absent;
-  # `make d3-smoke` then runs all four against a committed five-case fixture and checks the
-  # comparison contract, including a controlled breakage.
+  # `make d3-smoke` then runs all four against a committed seven-case fixture. Every driver is
+  # compared against its OWN declared expectation domain (baseline as `domain=baseline`; d3f/d3g/
+  # d3proto as `domain=successor` with the family each lifts), so a driver that stops widening or
+  # returns a wrong verdict fails — not just the baseline. Each widening family has a case the
+  # baseline excludes and the lifting driver accepts, and a controlled breakage is applied per driver.
   d3-drivers:
     name: d3 successor drivers (build + smoke)
     runs-on: ubuntu-24.04
@@ -275,8 +278,8 @@ jobs:
       # fails here rather than passing because the default target happened to cover something else.
       - name: Build named D3 drivers
         run: make d3-drivers
-      # Runs all four drivers on five committed real cases and checks the comparison contract,
-      # including the baseline-vs-genesis expectation split and a deliberate wrong verdict.
+      # Runs all four drivers on seven committed real cases and checks each driver's own expectation
+      # domain, the per-family baseline-vs-widening split, and a deliberate wrong verdict per driver.
       - name: D3 drivers + comparison contract smoke
         run: make d3-smoke
 

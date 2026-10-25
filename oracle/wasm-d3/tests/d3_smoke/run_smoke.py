@@ -3,18 +3,21 @@
 
 This is the CI-runnable check for W01's "required successor modules and drivers are actually built by
 CI; CI definitions are exercised, not accepted solely because YAML contains a command" criterion. It
-does not need the 8.5 GiB corpora: the five cases under `cases/` are committed real D3 cases.
+does not need the 8.5 GiB corpora: the seven cases under `cases/` are committed real D3 cases.
 
 What it asserts:
 
   1. Every driver binary exists and exits 0 on every fixture case, emitting one JSON verdict line per
      case in the documented format. A missing binary or a crash is a failure.
-  2. The baseline driver `nearspec-v3-check-d3` produces the oracle's baseline expectation for each
-     case: accept/reject where `in_d3`, and an *asserted* out-of-domain exclusion where not.
-  3. The genesis driver `nearspec-v3-check-d3g` accepts the `c.not_genesis` case that the baseline
-     excludes — the successor/baseline expectation split, measured rather than asserted.
-  4. `difftest_d3.compare()` partitions every case exactly once and reports zero disagreements, and a
-     deliberately wrong verdict makes it fail (the controlled-breakage control).
+  2. Every driver is compared against **its own** declared expectation domain, using the difftest
+     comparison contract (`difftest_d3.compare`): the baseline driver as `domain=baseline`, and each
+     widening driver as `domain=successor` with the exclusion family that driver lifts. A driver that
+     stops widening, widens wrongly, or returns a wrong accept/reject fails its own comparison. This
+     replaces the earlier check that only compared the baseline and merely *ran* the other three.
+  3. Each widening driver decides the cases its tier widens: the case the baseline excludes for
+     `c.not_genesis` / `e.float` / `e.g_alpha` must come back `accept` from the driver that lifts
+     that family — the successor/baseline expectation split, measured per driver.
+  4. A deliberately wrong verdict fails the comparison for every driver, not just the baseline.
 
 Exit 0 only if all four hold. Usage:
 
@@ -31,11 +34,45 @@ import sys
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
 FIXTURE = HERE / "cases"
-DEFAULT_BIN = {
-    "baseline": REPO / "oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3",
-    "float": REPO / "oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3f",
-    "genesis": REPO / "spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3g",
-    "proto": REPO / "spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3proto",
+
+# Each driver's own expectation domain. `domain="baseline"` expects an exclusion exactly on the
+# oracle's out-of-domain cases; `domain="successor"` with `widen` moves the cases whose violations are
+# a subset of `widen` into the driver's domain and expects a nearcore-matching verdict there. The
+# widen sets are the tiers these binaries implement (`checkD3F` = floats, `checkD3G` = genesis,
+# `checkD3Proto` = protocol-gas band); see spec/lean/v3/MainD3G.lean and MainD3Proto.lean.
+DRIVERS = {
+    "baseline": {
+        "path": REPO / "oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3",
+        "domain": "baseline",
+        "widen": (),
+        "note": "checkD3 (D3alpha)",
+    },
+    "float": {
+        "path": REPO / "oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3f",
+        "domain": "successor",
+        "widen": ("e.float",),
+        "note": "checkD3F (float types/operators)",
+    },
+    "genesis": {
+        "path": REPO / "spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3g",
+        "domain": "successor",
+        "widen": ("c.not_genesis",),
+        "note": "checkD3G (genesis chunks)",
+    },
+    "proto": {
+        "path": REPO / "spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3proto",
+        "domain": "successor",
+        "widen": ("e.g_alpha",),
+        "note": "checkD3Proto (protocol-gas band)",
+    },
+}
+
+# Cases each widening driver must decide, and the verdict it must give. The baseline must exclude
+# every one of them; that is what makes these a measured widening rather than a restatement.
+MUST_WIDEN = {
+    "float": [("d3c9-ood-00-h10072-s3", "e.float", "accept")],
+    "genesis": [("d3c7-ood-00-h10002-s0", "c.not_genesis", "accept")],
+    "proto": [("d3c7-ood-00-h10007-s1", "e.g_alpha", "accept")],
 }
 
 
@@ -69,73 +106,92 @@ def main():
         m = json.load(open(c / "meta.json"))
         metas[os.path.normpath(str(c))] = m
 
-    bins = dict(DEFAULT_BIN)
-    if a.bin_dir:
-        for k in bins:
-            bins[k] = Path(a.bin_dir) / bins[k].name
-    for name, path in bins.items():
-        if not Path(path).is_file():
+    bins = {}
+    for name, spec in DRIVERS.items():
+        path = Path(spec["path"])
+        if a.bin_dir:
+            path = Path(a.bin_dir) / path.name
+        if not path.is_file():
             raise SystemExit(f"FAIL: {name} driver missing: {path} "
                              f"(build it: see docs/logs/lean-chunk-L7-2026-10-24.md §4)")
+        bins[name] = path
 
     dirs = [os.path.normpath(str(c)) for c in cases]
     results = {name: run(path, cases) for name, path in bins.items()}
-    summary = {"schema": "near-d3-smoke-result-v1", "cases": len(cases), "drivers": {}}
-
-    # 1 + 2: every driver ran; the baseline matches the oracle's baseline expectation.
+    summary = {"schema": "near-d3-smoke-result-v2", "cases": len(cases), "drivers": {}}
     d3 = load_compare()
+
+    # 1 + 2: every driver ran, and every driver matches its own declared expectation domain.
     for name, got in results.items():
+        spec = DRIVERS[name]
         summary["drivers"][name] = {
             "binary": str(bins[name]),
+            "note": spec["note"],
+            "domain": spec["domain"],
+            "widen": list(spec["widen"]),
             "verdicts": {k: sum(1 for d in dirs if got[d]["verdict"] == k)
                          for k in ("accept", "reject", "out_of_domain")},
         }
+        _, bad, partition, _ = d3.compare(name, dirs, metas, got,
+                                         domain=spec["domain"], widen=spec["widen"])
+        summary["drivers"][name]["partition"] = dict(sorted(partition.items()))
+        if bad:
+            for b in bad:
+                print(f"DISAGREE ({name})", *b, sep="\n  ")
+            raise SystemExit(f"FAIL: {name} driver has {len(bad)} disagreement(s) against its own "
+                             f"domain {spec['domain']} widen={spec['widen']}")
+        if sum(partition.values()) != len(dirs):
+            raise SystemExit(f"FAIL: {name} partition covers {sum(partition.values())} "
+                             f"of {len(dirs)}")
 
-    _, bad, partition, records = d3.compare("baseline", dirs, metas, results["baseline"])
-    if bad:
-        for b in bad:
-            print("DISAGREE", *b, sep="\n  ")
-        raise SystemExit(f"FAIL: baseline driver has {len(bad)} disagreement(s) on the smoke fixture")
-    if sum(partition.values()) != len(dirs):
-        raise SystemExit(f"FAIL: partition covers {sum(partition.values())} of {len(dirs)}")
-    summary["baseline_partition"] = dict(sorted(partition.items()))
-    summary["baseline_records"] = records
+    # 3: each widening driver decides the family its tier lifts; the baseline excludes those cases.
+    summary["successor_widening"] = []
+    for name, wanted in MUST_WIDEN.items():
+        for case_dir, family, expected in wanted:
+            d = os.path.normpath(str(FIXTURE / case_dir))
+            if d not in metas:
+                raise SystemExit(f"FAIL: widening case {case_dir} missing from the fixture")
+            base_v = results["baseline"][d]["verdict"]
+            got_v = results[name][d]["verdict"]
+            if base_v != "out_of_domain":
+                raise SystemExit(f"FAIL: baseline did not exclude {case_dir} (got {base_v})")
+            if got_v != expected:
+                raise SystemExit(f"FAIL: {name} did not {expected} {case_dir} (got {got_v})")
+            summary["successor_widening"].append(
+                {"case": case_dir, "driver": name, "widens": family,
+                 "baseline": base_v, "driver_verdict": got_v,
+                 "d3_violations": metas[d].get("d3_violations")})
+    # Every widening family the fixture claims must be exercised by at least one driver.
+    covered = {w["widens"] for w in summary["successor_widening"]}
+    if covered != {"c.not_genesis", "e.float", "e.g_alpha"}:
+        raise SystemExit(f"FAIL: fixture does not exercise every widening family: {sorted(covered)}")
 
-    # 3: the genesis driver accepts the c.not_genesis case the baseline excludes.
-    genesis_only = [d for d in dirs if "c.not_genesis" in (metas[d].get("d3_violations") or [])]
-    if not genesis_only:
-        raise SystemExit("FAIL: smoke fixture has no c.not_genesis case")
-    for d in genesis_only:
-        base_v = results["baseline"][d]["verdict"]
-        gen_v = results["genesis"][d]["verdict"]
-        if base_v != "out_of_domain":
-            raise SystemExit(f"FAIL: baseline did not exclude {os.path.basename(d)} (got {base_v})")
-        if gen_v != "accept":
-            raise SystemExit(f"FAIL: genesis driver did not accept {os.path.basename(d)} (got {gen_v})")
-        summary.setdefault("successor_widening", []).append(
-            {"case": os.path.basename(d), "baseline": base_v, "genesis": gen_v,
-             "d3_violations": metas[d].get("d3_violations")})
+    # 4: the controlled-breakage control, per driver. One flipped verdict must make compare() fail.
+    summary["controlled_breakage"] = []
+    for name, got in results.items():
+        spec = DRIVERS[name]
+        broken = {d: dict(got[d]) for d in dirs}
+        target = next(d for d in dirs if broken[d]["verdict"] == "accept")
+        broken[target]["verdict"] = "reject"
+        _, broken_bad, _, _ = d3.compare(name, dirs, metas, broken,
+                                        domain=spec["domain"], widen=spec["widen"])
+        if not broken_bad:
+            raise SystemExit(f"FAIL: controlled breakage did not fail {name} "
+                             f"({os.path.basename(target)})")
+        summary["controlled_breakage"].append(
+            {"driver": name, "case": os.path.basename(target), "flipped_to": "reject",
+             "disagreements": len(broken_bad)})
 
-    # 4: the controlled-breakage control. One flipped verdict must make compare() fail.
-    broken = {d: dict(results["baseline"][d]) for d in dirs}
-    target = next(d for d in dirs if results["baseline"][d]["verdict"] == "accept")
-    broken[target]["verdict"] = "reject"
-    _, broken_bad, broken_part, _ = d3.compare("baseline", dirs, metas, broken)
-    if not broken_bad:
-        raise SystemExit(f"FAIL: controlled breakage did not fail ({os.path.basename(target)})")
-    summary["controlled_breakage"] = {
-        "case": os.path.basename(target), "flipped_to": "reject",
-        "disagreements": len(broken_bad),
-        "partition": dict(sorted(broken_part.items())),
-    }
-
-    print(f"smoke: {len(cases)} cases, 4 drivers built and run, baseline partition "
-          f"{json.dumps(summary['baseline_partition'], sort_keys=True)}")
+    print(f"smoke: {len(cases)} cases, {len(bins)} drivers built and run")
     for name, d in summary["drivers"].items():
-        print(f"  {name:9s} {d['verdicts']}")
-    print(f"  successor widening: {summary['successor_widening']}")
-    print(f"  controlled breakage: {summary['controlled_breakage']['disagreements']} disagreement(s) "
-          f"from flipping {summary['controlled_breakage']['case']}")
+        print(f"  {name:9s} domain={d['domain']:9s} widen={','.join(d['widen']) or '-':14s} "
+              f"{d['verdicts']} partition={json.dumps(d['partition'], sort_keys=True)}")
+    for w in summary["successor_widening"]:
+        print(f"  widening: {w['driver']} lifts {w['widens']} on {w['case']} "
+              f"({w['baseline']} -> {w['driver_verdict']})")
+    print(f"  controlled breakage: "
+          f"{sum(c['disagreements'] for c in summary['controlled_breakage'])} disagreement(s) "
+          f"from flipping one verdict per driver ({len(summary['controlled_breakage'])} drivers)")
     if a.report:
         with open(a.report, "w") as f:
             json.dump(summary, f, indent=1, sort_keys=True)

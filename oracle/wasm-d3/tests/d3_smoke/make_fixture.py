@@ -4,7 +4,8 @@
 The committed fixture is a tiny, self-contained set of case directories (claim.bin, witness.bin,
 meta.json) copied verbatim from the L7 regression corpora. It exists so CI can *run* the D3 drivers
 (checkD3, checkD3F, checkD3G, checkD3Proto) and the difftest's comparison contract without the
-8.5 GiB corpora. It is NOT a substitute for the full sweep: five cases, one per verdict/domain class.
+8.5 GiB corpora. It is NOT a substitute for the full sweep: seven cases, covering every verdict/domain
+class and each widening family a driver lifts.
 
   python3 oracle/wasm-d3/tests/d3_smoke/make_fixture.py --corpora /data/illia/nearproof-deps/corpora \
       --out oracle/wasm-d3/tests/d3_smoke/cases
@@ -24,6 +25,10 @@ SELECTION = [
     ("d3c7", "mutants", "00-h10153-s0-code.drop.1", "code-cache exclusion"),
     ("d3c7", "ood", "00-h10002-s0", "c.not_genesis exclusion (successor d3g accepts)"),
     ("d3c7", "ood", "00-h10006-s2", "e.ood_host exclusion"),
+    ("d3c9", "ood", "00-h10072-s3",
+     "e.float exclusion: baseline/float-absent drivers exclude, d3f accepts"),
+    ("d3c7", "ood", "00-h10007-s1",
+     "e.g_alpha band exclusion: d3/d3f/d3g exclude, d3proto accepts"),
 ]
 
 
@@ -54,10 +59,12 @@ def main():
         })
     with open(os.path.join(a.out, "index.json"), "w") as f:
         json.dump({
-            "schema": "near-d3-smoke-fixture-v1",
-            "note": ("Five real D3 cases copied from the L7 corpora. Expected verdicts come from the "
-                     "oracle's meta.json. Run by CI to exercise the drivers and the comparison "
-                     "contract; not a substitute for the full 115,284-case sweep."),
+            "schema": "near-d3-smoke-fixture-v2",
+            "note": ("Seven real D3 cases copied from the L7 corpora. Expected verdicts come from the "
+                     "oracle's meta.json; each driver is compared against its own declared "
+                     "expectation domain, so a driver that stops widening (or widens wrongly) fails. "
+                     "Run by CI to exercise the drivers and the comparison contract; not a "
+                     "substitute for the full 115,284-case sweep."),
             "cases": index,
         }, f, indent=1, sort_keys=True)
         f.write("\n")
