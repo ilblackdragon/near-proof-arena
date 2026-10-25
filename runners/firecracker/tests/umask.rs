@@ -21,6 +21,20 @@ fn deps() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("/data/illia/nearproof-deps/firecracker"))
 }
 
+/// Scratch base for the image-normalization half of this test.  That half is
+/// ungated (it only needs `mkfs.ext4`/`debugfs`, not a VM), so it must not
+/// require the Firecracker deps tree to exist: on a hosted runner with no
+/// `ARENA_FC_DEPS` the default path is absent and `create_dir_all` fails with
+/// EACCES.  Prefer the deps tree when it is there (the gated VM half needs its
+/// images), otherwise fall back to the system temp dir.
+fn work_base() -> PathBuf {
+    let d = deps();
+    if d.is_dir() {
+        return d.join("work-tests");
+    }
+    std::env::temp_dir().join("arena-umask-tests")
+}
+
 /// A tree as written under umask 0077: dirs 0700, files 0600/0700.
 fn hostile_modes_tree(root: &Path) {
     fs::create_dir_all(root.join("sub/deeper")).unwrap();
@@ -59,7 +73,7 @@ fn mode_owner(stat: &str) -> (String, String, String) {
 #[test]
 fn umask_0077_trees_give_normalized_images_and_readable_guests() {
     unsafe { libc::umask(0o077) };
-    let base = deps().join("work-tests");
+    let base = work_base();
     fs::create_dir_all(&base).unwrap();
     let t = tempfile::tempdir_in(&base).unwrap();
     let src = t.path().join("src");

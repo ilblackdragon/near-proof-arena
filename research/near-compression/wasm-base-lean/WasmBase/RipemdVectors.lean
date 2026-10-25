@@ -327,7 +327,6 @@ terms each).  The differential runs at build time and **fails the build**. -/
     else
       s!"RipemdVectors: FAILED rows {bad} digests {fs} tampers {tampered} \
         freeInputsNowConstrained {leaked} kat {katOk}"
-  IO.FS.writeFile "/tmp/opencode/ripemd_diag.txt" msg
   IO.println msg
   if !(fs.isEmpty && bad.isEmpty && tampered.isEmpty && leaked.isEmpty && katOk) then
     IO.Process.exit 1)

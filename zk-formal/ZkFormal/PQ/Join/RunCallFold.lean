@@ -52,10 +52,13 @@ theorem d3_only_execution (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b
       = applyAction NearSpecV3.D2.d2Hooks c st act := by
   unfold applyAction
   rcases act with ⟨raw, ba⟩ | raw
-  · rcases ba with _ | _ | ⟨m, a, g, d⟩ | _ | _ | _ | _ | _ | _ | _
+  · rcases ba with _ | _ | ⟨m, a, g, d⟩ | _ | _ | _ | _ | _ | _ | _ | _ | _ | _
     · rfl
     · rfl
     · simp [ZkFormal.PQ.Join.Act.isFcall] at hfc
+    · rfl
+    · rfl
+    · rfl
     · rfl
     · rfl
     · rfl
