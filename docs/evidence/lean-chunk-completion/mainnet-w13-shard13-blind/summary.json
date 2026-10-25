@@ -1,0 +1,20 @@
+{
+  "cases": 1223,
+  "categories": {
+    "match": 1223
+  },
+  "control_verdicts": {
+    "reject": 1223
+  },
+  "field_diffs": 0,
+  "nonzero_gas_used": 581,
+  "nonzero_balance_burnt": 394,
+  "distinct_state_roots": 1223,
+  "distinct_outgoing_roots": 395,
+  "nonempty_chunk_bodies": 471,
+  "receipts_emitted": 1112,
+  "with_proposals": 0,
+  "with_bw_requests": 0,
+  "with_nonzero_congestion": 0,
+  "implicit_transitions": 0
+}

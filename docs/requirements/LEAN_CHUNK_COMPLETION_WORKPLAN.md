@@ -357,7 +357,7 @@ successor).
 | Package | Landed on main | Still open (headline) |
 |---|---|---|
 | W00 | Successor interfaces (7 contracts) and owner map for all 28 open rows / 17 UQs (`be3ebbca8`); `checkD3`/`RelD3` named statement of record (UQ-010) | All 17 UQs; fact authentication; versioned schema |
-| W01 | CI split into schema / corpus-content / `d3-drivers` jobs; 1,259 unasserted exclusions asserted; comparator compares widened `e.code_cache` cases against nearcore; smoke fixture widened to seven cases so each of the four drivers is compared against its **own** declared expectation domain (baseline as `domain=baseline`; d3f/d3g/d3proto as `domain=successor` with the family each lifts), with a per-driver controlled breakage | Computed-observable export and comparison; corpus gate on a provisioned runner |
+| W01 | CI split into schema / corpus-content / `d3-drivers` jobs; 1,259 unasserted exclusions asserted; comparator compares widened `e.code_cache` cases against nearcore; smoke fixture widened to seven cases so each of the four drivers is compared against its **own** declared expectation domain (baseline as `domain=baseline`; d3f/d3g/d3proto as `domain=successor` with the family each lifts), with a per-driver controlled breakage; **computed outputs emitted** by the D1/D2/D3 out-drivers (`work/lean-chunk-full` merge: 115,284 cases, 0 field mismatches; 1,440 header mutants) and by the successor (`--emit`/`--blind`, `checkD2CoreWithObs`) | Refunds, return data, per-receipt bodies, writes and rollback are not emitted; corpus gate on a provisioned runner |
 | W02 | `protoGas` tier and `checkD3Proto` driver (846 band chunks); opt-in `segmentUnbounded` lifts `c.segment` on `allFeatures` only (signed unchanged) | Full-corpus proof the lift changes no other verdict; `w.size` 4 MB bound; fuel/termination; checker/overlap/tier proofs; stress |
 | W03 | — | Everything listed |
 | W04 | Float tiers with 2,050 operator / 1,284 chunk / 350 mutant comparisons | Overlap/range proofs; preparation negatives; composition |
@@ -369,7 +369,7 @@ successor).
 | W10 | Genesis checker soundness fix: 137 genesis accepts, zero non-genesis changes | Overlap proof; transaction-bearing genesis cases; fact authentication |
 | W11 | Resharding semantics and `resharding` tier (`4d264c005`); Layout driver repair | Real split fixtures; earlier-epoch/V2 layouts |
 | W12 | `allFeatures` tier: config-level theorems that it sets every wide tier's features, that the named wide tiers are not cumulative and that `completeCodeGlobal` is not in the join; rank order corrected | Semantic composition/refinement proofs (`relSuccessor_*_mono`); cross-family tests |
-| W13 | Shard-13 diagnostic: 1,223 consecutive chunks, 0% mismatch, native + Lean `allFeatures` (`12b4734e0`); capture runbook and payload stats | Rerun on committed source (diagnostic used an earlier `working-tree.patch`); all shards; cold native adapter (warm compiled cache used); finality/authentication |
+| W13 | Shard-13 diagnostic rerun on committed source: 1,223 consecutive chunks, verdict 1,223/1,223 and **blind** 1,223/1,223 — Lean computes state/outcome/outgoing roots, gas used, balance burnt, congestion, bandwidth, proposals and encoding from inputs with those values removed, compared against the canonical chunk header ([evidence](../evidence/lean-chunk-completion/mainnet-w13-shard13-blind/README.md)); capture runbook and payload stats | All shards; a window with proposals, bandwidth requests, congestion and missing chunks; cold native adapter (warm compiled cache used); finality/authentication |
 | W14–W16 | — | Everything listed |
 
 ## Dependency tree for parallel work
@@ -477,7 +477,9 @@ no unresolved boundary assumption is relabelled complete to close Gate B.
 Owner: L7 + integration.
 
 - Emit per-case **computed** roots, outcomes, gas/compute, refunds, logs, return data, receipts,
-  writes and rollback from the Lean driver; compare with independent expected results.
+  writes and rollback from the Lean driver; compare with independent expected results. Header-level
+  outputs are emitted and compared (out-drivers; successor `--emit`/`--blind`); refunds, return
+  data, per-receipt bodies, writes and rollback are still only covered through the roots.
 - Add wrong-observable controls alongside existing process/verdict controls. Ensure final combined
   outputs and manifests bind every input and actual driver, including all remaining configurations.
 - Obtain evidence that the pinned-corpus content gate actually runs on a provisioned runner;
@@ -690,7 +692,10 @@ points; individual adapters and sampled verdict agreement are insufficient.
 
 Owner: L7. Acquisition can proceed now; accepted final replay depends on W12.
 
-- Expand acquisition and replay from the shard-13 diagnostic to the required all-shard window.
+- Expand acquisition and replay from the shard-13 diagnostic to the required all-shard window. Run
+  the final replay with `shard_replay.py --blind` so the checker never receives the outputs it is
+  graded on; the shard-13 window lacks proposals, bandwidth requests, congestion and implicit
+  transitions, so those blinded fields are so far compared only at empty/zero values.
 - Complete and validate the cold native adapter that independently verifies supplied claim facts;
   establish complete code closure and the intended cache/environment invariant for final replay.
 - Resolve/document the external authentication boundary; independent finality-proof verification

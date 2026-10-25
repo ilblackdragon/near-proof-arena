@@ -61,3 +61,12 @@ Contiguous captured heights do not establish all-shard coverage or independently
 capture slots against a full block archive.
 
 Run offline report controls with `python3 tools/mainnet-replay/test_shard_replay.py`.
+
+## Blind replay
+
+Add `--blind` to the runner to grade computed outputs instead of verdicts. Each case is copied with
+every produced value removed (`../blind_inputs.py`), the checker runs `--blind` and emits what it
+computed, and every field must equal the canonical `chunk.borsh` header (hash-checked against the
+captured chunk hash and found in the captured block). The same blinded inputs are rerun with
+comparisons on as a control and must not accept. See
+`docs/evidence/lean-chunk-completion/mainnet-w13-shard13-blind/README.md`.
