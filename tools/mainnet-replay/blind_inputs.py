@@ -130,6 +130,11 @@ def expected_from_chunk(capture_dir):
         raise BlindError('chunk header does not hash to the captured chunk hash')
     if (capture_dir / 'block.borsh').read_bytes().count(v['raw']) < 1:
         raise BlindError('chunk header is not in the captured block')
+    return expected_values(v), v
+
+
+def expected_values(v):
+    """The graded outputs of a parsed chunk header inner, in the checker's emitted JSON form."""
     c = v['congestion_info']
     return {
         'stateRoot': v['prev_state_root'].hex(),
@@ -144,7 +149,30 @@ def expected_from_chunk(capture_dir):
         'congestion': {'delayedReceiptsGas': str(c[0]), 'bufferedReceiptsGas': str(c[1]),
                        'receiptBytes': str(c[2]), 'allowedShard': str(c[3])},
         'bwRequests': [{'toShard': str(s), 'bitmap': m.hex()} for s, m in v['bandwidth_requests']],
-    }, v
+    }
+
+
+def expected_from_witness(case_dir):
+    """Expected outputs from the chunk header that the validator-generated witness endorses.
+
+    For generator corpora there is no separate canonical chunk: nearcore produced this header when
+    it applied the chunk, so its `prev_*` fields are the transition outputs. The checker never sees
+    them; they are removed from both the claim and the witness before it runs."""
+    sw = state_witness(case_dir)
+    r = R(sw)
+    if r.u8() != 1:
+        raise BlindError('ChunkStateWitness tag')
+    r.hash()
+    if r.u8() != 2:
+        raise BlindError('witness chunk header is not V3')
+    v, _, _ = parse_inner(sw, r.i)
+    return expected_values(v), v
+
+
+def state_witness(case_dir):
+    r = R((case_dir / 'witness.bin').read_bytes())
+    r.bytes()                      # format tag
+    return r.bytes()
 
 
 def post_root_spans(sw):
@@ -212,8 +240,14 @@ def replace_once(buf, old, new, what):
 
 
 def blind_case(case_dir, capture_dir, out_dir):
-    """Write blinded claim/witness to `out_dir`; return (expected outputs, secondary facts)."""
-    expected, real = expected_from_chunk(capture_dir)
+    """Write blinded claim/witness to `out_dir`; return (expected outputs, secondary facts).
+
+    Expected values come from the canonical captured chunk, or, with `capture_dir=None`, from the
+    nearcore-produced header in the case's own witness (`expected_from_witness`)."""
+    if capture_dir is None:
+        expected, real = expected_from_witness(case_dir)
+    else:
+        expected, real = expected_from_chunk(capture_dir)
     inner = real['raw']
     blinded = blind_inner(inner)
     claim = (case_dir / 'claim.bin').read_bytes()
@@ -252,6 +286,7 @@ def blind_case(case_dir, capture_dir, out_dir):
     (out_dir / 'claim.bin').write_bytes(claim)
     (out_dir / 'witness.bin').write_bytes(wit)
     return expected, {'witness_post_state_roots': [p.hex() for p in post_roots],
+                      'implicit_transitions': len(post_roots) - 1,
                       'blinded_fields': ['prev_state_root', 'prev_outcome_root',
                                          'encoded_merkle_root', 'encoded_length', 'prev_gas_used',
                                          'prev_balance_burnt', 'prev_outgoing_receipts_root',
