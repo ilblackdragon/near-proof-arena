@@ -18,7 +18,9 @@ results belong in lane logs and evidence directories, not this backlog.
 `NearSpecV3.Examples.SecpVerifyVector` to `defaultTargets` so the secp pin actually compiles);
 `lake build` in `zk-formal` → 3,077 jobs green, 0 errors;
 `make d3-smoke` → exit 0; `make pin-check` → all `ok`; corpus-manifest schema → ok;
-`tools/d3/lean_chunk_coverage.py --check` → "matches pinned sources";
+`python3 tools/d3/lean_chunk_coverage.py --repo . --nearcore <deps>/nearcore --check
+docs/research/lean-chunk-coverage.json` → "matches pinned sources" (both path arguments are required;
+the bare `--check` form exits on argument parsing);
 `lake build WasmBase.RipemdVectors` → 18 jobs, "320 rows satisfy all 2625 constraints … RIPEMD-160
 KATs ok"; the differential suite `pytest oracle/tools` → 86 passed / 1 skipped / 17 subtests; the
 promise-encoding axiom audit → the four documented axiom closures; and the four breakage controls
