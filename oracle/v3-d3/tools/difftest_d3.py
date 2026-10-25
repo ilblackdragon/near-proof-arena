@@ -79,11 +79,20 @@ EXCLUSION_LICENSES = {
     "code_cache": frozenset({"e.code_cache"}),
 }
 
-# Observable fields the current checker does not emit. Listed in the report so a consumer cannot
-# mistake verdict-level agreement for the full observable contract (workplan W01 criterion 4/5).
+# Observable fields a checker emits. The default driver (`nearspec-v3-check-d3`) prints only the verdict
+# and reason; the observable driver (`nearspec-v3-check-d3-out`, `--lean-out`) additionally prints the
+# consensus outputs of an accepted case. A consumer must not mistake verdict-level agreement for the full
+# observable contract (workplan W01 criterion 4/5), so the unavailable list stays explicit and the report
+# records which driver produced the lines.
 OBSERVABLES_UNAVAILABLE = [
-    "gas_burnt", "gas_used", "refunds", "logs", "return_data", "emitted_receipts",
-    "state_root", "outcome_root", "validator_rewards", "tx_results", "action_results",
+    "refunds", "return_data", "validator_rewards", "tx_results", "action_results",
+]
+# Emitted by `nearspec-v3-check-d3-out` for accepted cases: the endorsed header's consensus fields, which
+# the signed checker proved equal to the values it computed (`NearSpecV3.accepted_observable_agrees`).
+OBSERVABLES_EMITTED_BY_OUT_DRIVER = [
+    "stateRoot", "outcomeRoot", "gasBurnt", "balanceBurnt", "outgoingReceiptsRoot",
+    "proposals", "txRoot", "encodedMerkleRoot", "encodedLength", "congestion", "bwRequests",
+    "logs", "receiptCount", "wasmGas",
 ]
 OBSERVABLES_CHECKED = ["verdict", "domain_exclusion_reason"]
 
@@ -442,6 +451,11 @@ def main():
             "observables": {
                 "checked": OBSERVABLES_CHECKED,
                 "unavailable": OBSERVABLES_UNAVAILABLE,
+                "emitted_by_out_driver": OBSERVABLES_EMITTED_BY_OUT_DRIVER,
+                "note": "the out driver's outputs are the endorsed header's fields; the signed checker "
+                        "proved they equal the computed transition values on acceptance. Per-field "
+                        "agreement against an independent claim decode is measured by "
+                        "tools/d3/check_outputs.py, not by this verdict-level script.",
                 "oracle_meta_fields": ["expected_rel", "expected_rel_d3", "in_d3", "d3_violations",
                                        "features", "action_results", "tx_results", "receipt_classes"],
             },

@@ -1,5 +1,6 @@
 import NearSpecV3.ChunkValidationD1
 import NearSpecV3.D2.RuntimeD2
+import NearSpecV3.Observable
 
 /-!
 # `NearSpecV3.ChunkValidationD2` — `Rel_D2(claim, witness)`
@@ -111,8 +112,8 @@ def envOf (c : Claim) (ctx : ApplyCtx) (b : Blk) (minStake : Nat) (sched : Sched
 the partial-witness tracker does (`pwt.rs:693-696`): the main trie is revealed from, and
 `Env.codeOf` looks up, the merged list `w.main.values ++ codes` (E2). The hooks reach the merged
 storage, the pre-state root and the block / epoch facts through `ActCtx.env`. -/
-def checkD2Core (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
-    (gasCap : Option Nat := none) : Except String Unit := do
+def checkD2CoreObs (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : Except String Observable := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
@@ -268,6 +269,47 @@ def checkD2Core (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessByt
   | some (emr, len) =>
     check (H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     check (H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
+    -- The consensus outputs this checker computed and compared against the endorsed header. Every
+    -- field is a computed value, not a read-back of the header, so emitting them makes a report's
+    -- comparison a measurement rather than a restatement.
+    return { stateRoot := root
+             outcomeRoot := outcomeRootD1 out.outcomes
+             gasBurnt := out.gasUsed
+             balanceBurnt := out.balanceBurnt
+             outgoingReceiptsRoot := outgoingReceiptsRootD2 L out.outgoing
+             proposals := out.proposals.map Proposal.encode
+             txRoot := merklizeBorsh (w.newTxs.map TxD2.raw)
+             encodedMerkleRoot := emr
+             encodedLength := len
+             congestion := out.congestion
+             bwRequests := out.bwRequests
+             logs := out.outcomes.map (fun o => o.logs) |>.flatten
+             receiptCount := out.outgoing.length
+             wasmGas := out.wasmGas }
+
+/-- The signed D2 checker: the observable checker projected to its verdict. Definitionally the same
+computation, so every downstream proof and relation is unchanged. -/
+def checkD2Core (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : Except String Unit :=
+  (checkD2CoreObs hooks allowCodes claimBytes witnessBytes gasCap).map fun _ => ()
+
+/-- The signed checker accepts iff the observable checker does. -/
+theorem checkD2CoreObs_agrees (hooks : ActionHooks) (allowCodes : Bool) (cb wb : Bytes)
+    (gasCap : Option Nat) :
+    (∃ o, checkD2CoreObs hooks allowCodes cb wb gasCap = .ok o) ↔
+      checkD2Core hooks allowCodes cb wb gasCap = .ok () := by
+  unfold checkD2Core
+  rw [Except.map.eq_def]
+  cases checkD2CoreObs hooks allowCodes cb wb gasCap <;> simp
+
+/-- A rejection carries the signed checker's error string verbatim. -/
+theorem checkD2CoreObs_reject (hooks : ActionHooks) (allowCodes : Bool) (cb wb : Bytes)
+    (gasCap : Option Nat) (e : String)
+    (h : checkD2CoreObs hooks allowCodes cb wb gasCap = .error e) :
+    checkD2Core hooks allowCodes cb wb gasCap = .error e := by
+  unfold checkD2Core
+  rw [h]
+  rfl
 
 /-- The D2 checker: `checkD2Core` with `d2Hooks` (FunctionCall ⇒ out of domain) and `w.no_code`. -/
 def checkD2 (claimBytes witnessBytes : Bytes) : Except String Unit :=
