@@ -1,10 +1,11 @@
 # Full Lean chunk transition — open work
 
-Reviewed: 2026-10-25, against main `705ee41b5`.
+Reviewed: 2026-10-25, against main at the commit that adds the status table.
 Target: nearcore 2.13.4, commit `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, PV86,
 pinned mainnet runtime parameters.
 
-This document contains only remaining obligations. Package IDs are stable: a package stays here
+This document lists remaining obligations; the status table records only what each package can
+already build on, so open items are not re-done. Package IDs are stable: a package stays here
 while any implementation, proof, validation or admission criterion is open. Detailed historical
 results belong in lane logs and evidence directories, not this backlog.
 The [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md) defines the authoritative gates:
@@ -17,6 +18,38 @@ The [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md) defines the authoritative g
 All three gates remain open. AIR/PQ implementation, GPU proving and succinctness are not
 prerequisites. Nearcore correspondence is tested unless a refinement proof is actually supplied;
 candidate-to-Lean soundness and the stated checker/tier facts remain proof obligations.
+
+## Status — done vs open (2026-10-25)
+
+"Landed" means on main and reusable by the package; no package below is closed by it.
+
+Measured gap set ([census](../evidence/lean-chunk-gap-census-2026-10-25.md) predicate: nearcore ok
+∧ `expected_rel_d3` false, 3,138 cases) under `allFeatures`: **2,581 accept / 8 reject / 549
+out-of-domain at `705ee41b5`** → **2,743 / 8 / 387** on the source committed with this table
+(binary `3ad82706…`). The +162 are 73 gas-key promise hosts, 86 warm-cache pre-state contracts
+served by the deploy tracker and 3 `c.segment` cases. Remaining 387: 266 ML-DSA-65 keys, 80
+non-ED25519 transaction keys, 41 SECP256K1 delegate signatures; the 8 rejects are
+`MissingTrieValue (contract code)` disagreements with recorded `nearcore(cold)` verdicts.
+Same source: `lake build` 246 jobs, `make d3-drivers`, `make d3-smoke`, coverage drift check and
+86 harness tests pass.
+
+| Package | Landed on main | Still open (headline) |
+|---|---|---|
+| W00 | Successor interfaces (7 contracts) and owner map for all 28 open rows / 17 UQs (`be3ebbca8`); `checkD3`/`RelD3` named statement of record (UQ-010) | All 17 UQs; fact authentication; versioned schema |
+| W01 | CI split into schema / corpus-content / `d3-drivers` jobs; 1,259 unasserted exclusions asserted; comparator compares widened `e.code_cache` cases against nearcore | Computed-observable export and comparison; corpus gate on a provisioned runner |
+| W02 | `protoGas` tier and `checkD3Proto` driver (846 band chunks); opt-in `segmentUnbounded` lifts `c.segment` on `allFeatures` only (signed unchanged) | Full-corpus proof the lift changes no other verdict; `w.size` 4 MB bound; fuel/termination; checker/overlap/tier proofs; stress |
+| W03 | — | Everything listed |
+| W04 | Float tiers with 2,050 operator / 1,284 chunk / 350 mutant comparisons | Overlap/range proofs; preparation negatives; composition |
+| W05 | Curve host code and `curveHosts` tier (`5bf2ee8f4`); three alt_bn128 rows moved missing→partial | Whole-chunk parity for every curve host, p256 |
+| W06 | `Secp256k1.recover` (161 nearcore vectors); `Secp256k1.verify` (ECDSA) and `Wasm.Crypto.sha3_256` primitives, checked only against Python references (24 ECDSA vectors, 5 FIPS-202 digests), **not yet called** by any action path | Wire verify into delegate (41) and transaction (80) paths with nearcore vectors; ML-DSA-65 entirely (266) |
+| W07 | Global actions, distribution receipts and 10 promise hosts incl. gas-key lift (`628551b85`); 72/72 gas-key gap cases accept | Pinned-nearcore gas-key whole-chunk replay; target-side gas-key execution; obsolete-layout routing (UQ-006) |
+| W08 | `completeCodeGlobal` policy; cold-partial resolution consults the deploy tracker before trie (`ContractStorage::get` order), so only rolled-back deploys stay cache-excluded | The 8 `MissingTrieValue` disagreements; historical cache coherence; `completeCodeGlobal` rejects 86 valid chunks |
+| W09 | `storageResolution` tier | Independent exact-limit fixtures and bounds |
+| W10 | Genesis checker soundness fix: 137 genesis accepts, zero non-genesis changes | Overlap proof; transaction-bearing genesis cases; fact authentication |
+| W11 | Resharding semantics and `resharding` tier (`4d264c005`); Layout driver repair | Real split fixtures; earlier-epoch/V2 layouts |
+| W12 | `allFeatures` tier: config-level theorems that it sets every wide tier's features, that the named wide tiers are not cumulative and that `completeCodeGlobal` is not in the join; rank order corrected | Semantic composition/refinement proofs (`relSuccessor_*_mono`); cross-family tests |
+| W13 | Shard-13 diagnostic: 1,223 consecutive chunks, 0% mismatch, native + Lean `allFeatures` (`12b4734e0`); capture runbook and payload stats | Rerun on committed source (diagnostic used an earlier `working-tree.patch`); all shards; cold native adapter (warm compiled cache used); finality/authentication |
+| W14–W16 | — | Everything listed |
 
 ## Dependency tree for parallel work
 
@@ -142,6 +175,10 @@ Owner: L1.
   allowances and protocol-scale stack/memory use, or replace the evaluator strategy accordingly.
 - Remove or justify arena-only 32-block segment and claim/witness-size limits. Versioned encodings
   must represent every valid target case; candidate budgets remain separate from validity.
+  The `c.segment` lift is landed on `allFeatures` only; establish on a full-corpus rerun that it
+  changes no other verdict. The `w.size` 4,000,000-byte storage-proof bound (`ChunkValidationD2.lean:236`,
+  `Successor/RuntimeCore.lean:55`) is the same prover-derived class and has no lift yet, though no
+  corpus case currently exceeds it.
 - Complete below/at/above protocol-limit, overflow and out-of-gas stress comparisons; record maximum
   runtime/memory and scaling for W16 budgets.
 - Prove whole-checker characterization, declared overlap agreement and tier inclusion/nesting with
@@ -194,9 +231,14 @@ and reachable dispatch alone do not close the package. W06 key verification is s
 
 Owner: L3 key substream.
 
-- Implement secp256k1 transaction/delegate verification, distinct from ecrecover.
+- Implement secp256k1 transaction/delegate verification, distinct from ecrecover. `Secp256k1.verify`
+  (ECDSA over the existing arithmetic) is landed but uncalled and checked only against a Python
+  reference: validate it on nearcore vectors, then wire the delegate path (`D2/Actions.lean`) and
+  the transaction-key paths (`D2/TxD2.lean`, `Successor/GlobalCodecs.lean`, `TxD1.lean`).
 - Implement ML-DSA-65 key/signature codecs, executable verification, key handles and trie integration,
-  including the pinned SHA3-based public-key handle where required.
+  including the pinned SHA3-based public-key handle where required. Only `Wasm.Crypto.sha3_256`
+  exists (matches FIPS 202 on Python-reference digests); update the stale exclusion text at
+  `D2/Types.lean:20` ("SHA3-256 … not formalized") when the handle is wired.
 - Cover keys in actions, access-key state and receipts; integrate nonce/gas-key interactions.
 - Generate valid/invalid and malformed key/signature chunks, replay/nonce negatives and algorithm
   boundaries, comparing fees, nonce changes, failures and roots.
@@ -208,7 +250,10 @@ encoding/trie parity and explicit inventory coverage.
 
 Owner: L4.
 
-- Finish gas-key promise-host/action-log translation and coordinate required verification with W06.
+- Gas-key promise-host translation is landed (`628551b85`); its fixture is a serialization control.
+  Still needed: pinned-nearcore whole-chunk replay of gas-key chunks, and target-side gas-key
+  execution (funding, nonce indices, withdraw/transfer out, deletion with balance), coordinating
+  key verification with W06.
 - Resolve ancestor-shard routing for distribution receipts targeting obsolete layouts with W11.
   Close UQ-006: non-instant distribution alone does not prove source-receipt-proof exclusion.
 - Resolve mismatched distribution code identities together with W08's cache/environment contract.
@@ -224,6 +269,9 @@ Owner: L1 + L4.
 
 - Close historical compiled-cache coherence and mismatched `CodeHash` distribution semantics.
   Complete raw code alone does not establish equivalence with arbitrary warmed/poisoned caches.
+- Diff the 8 base/mutant witness pairs where Lean rejects with `MissingTrieValue (contract code)`
+  but the recorded `nearcore(cold)` verdict accepts; decide which side is wrong. These are
+  disagreements, not exclusions, and persist on every deciding tier.
 - Specify and authenticate any necessary environment invariant, including its semantic scope.
   Remove unexplained valid-input cache exclusions; distinguish witness admission from native
   protocol rejection when code is incomplete.
@@ -281,7 +329,11 @@ layout/split exclusion remains. Ordinary corpus cases labelled `c.no_resharding`
 Owner: integration + L1.
 
 - Integrate remaining W02–W11 work into one executable canonical relation; every required family
-  must be reachable and each tier a predicate/restriction of that relation.
+  must be reachable and each tier a predicate/restriction of that relation. The named wide tiers
+  are not cumulative (`curveHosts`/`resharding` omit `globalActions`); `allFeatures` is
+  the candidate union, with configuration-level theorems only; its domain inclusion over the other
+  wide tiers is measured, not proved. `completeCodeGlobal` is not an ancestor of it: it rejects 86
+  nearcore-valid warm-cache chunks.
 - Prove checker characterization, tier inclusion/nesting and old-domain agreement. For actual
   semantic corrections, provide counterexamples and explicit successor migration rather than
   asserting false inclusion.
