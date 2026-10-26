@@ -91,7 +91,35 @@ pub struct ReshardParams {
     /// burst probability per shard and height while the split is scheduled (hot window)
     pub p_burst_hot: f64,
     pub min_gas_price: u128,
+    /// a second forced split: this shard id is added to `force_split_shards` (a child of the
+    /// first split, so the child splits again once `min_epochs_between_resharding` allows)
+    pub second_split: Option<u64>,
+    /// `max_number_of_shards` (default: one split, or two with `second_split`)
+    pub max_shards: Option<u64>,
+    /// force the split of the shard of `s{split_k}a00` (`false`: thresholds decide)
+    pub force: bool,
+    pub mem_threshold: u64,
+    pub min_child: u64,
+    /// `(shard id, epochs)`: from the first block of the first post-split epoch, that shard's
+    /// chunks are not produced for this many epochs (a boundary walk across several epochs)
+    pub starve: Option<(u64, u64)>,
+    /// storage-limit composition: the parent's chunk of the resharding block runs a receipt
+    /// above `per_receipt_storage_proof_size_limit` and one past the chunk soft limit
+    pub zlim: bool,
+    /// per hot height: probability of a global-contract deployment (distribution receipts
+    /// through congested shards across the split)
+    pub p_global_hot: f64,
 }
+
+/// The storage-limit composition account of the split shard (`zlim`).
+fn zlim_acct(k: usize) -> AccountId {
+    format!("s{k}zlim").parse().unwrap()
+}
+
+/// `zlim` value sizes: `big` alone stays below the per-receipt limit (4,000,000 B), `big` and
+/// `pad2` together exceed it.
+const ZLIM_BIG: usize = 3_950_000;
+const ZLIM_PAD2: usize = 100_000;
 
 /// `chaind3::setup_d3` with the genesis at PV85 (static layout), a PV86 epoch config that forces
 /// a split of the shard of `s{split_k}a00`, memtries loaded for tracked shards, and every client
@@ -146,6 +174,18 @@ pub fn setup_reshard(rp: &ReshardParams) -> Setup {
     let (extra3, supply3) = crate::d3gen::genesis_records(&accounts);
     records.extend(extra3);
     genesis_config.total_supply = genesis_config.total_supply.checked_add(supply3).unwrap();
+    if rp.zlim {
+        let a = zlim_acct(rp.split_k);
+        let slim = crate::scenarios::slim_wasm();
+        let amount = Balance::from_near(1_000_000);
+        records.push(StateRecord::Account { account_id: a.clone(), account: Account::new(amount, Balance::ZERO, AccountContract::Local(CryptoHash::hash_bytes(slim)), 0) });
+        records.push(StateRecord::access_key(a.clone(), &create_test_signer(a.as_str()).public_key(), AccessKey::full_access()));
+        records.push(StateRecord::Contract { account_id: a.clone(), code: slim.to_vec() });
+        for (k, v) in [(b"big".to_vec(), vec![0xB1u8; ZLIM_BIG]), (b"pad2".to_vec(), vec![0xC1; ZLIM_PAD2]), (b"x".to_vec(), vec![0x58; 100])] {
+            records.push(StateRecord::Data { account_id: a.clone(), data_key: k.into(), value: v.into() });
+        }
+        genesis_config.total_supply = genesis_config.total_supply.checked_add(amount).unwrap();
+    }
     let genesis = Genesis::new(genesis_config, GenesisRecords(records)).unwrap();
     let mut clients = validators.clone();
     clients.extend(crate::chaind2::stakers_of());
@@ -155,14 +195,23 @@ pub fn setup_reshard(rp: &ReshardParams) -> Setup {
     base.block_producer_kickout_threshold = 0;
     base.chunk_producer_kickout_threshold = 0;
     let parent = shard_layout.account_id_to_shard_id(&accounts[rp.split_k][0]);
+    let mut force_split_shards = if rp.force { vec![parent] } else { vec![] };
+    force_split_shards.extend(rp.second_split.map(ShardId::new));
+    let max_number_of_shards = rp.max_shards.unwrap_or(p.n_shards as u64 + if rp.second_split.is_some() { 2 } else { 1 });
     let mut dynamic = base.clone();
+    if rp.second_split.is_some() {
+        // keep each shard's chunk producers from epoch to epoch, so the producers of a re-split
+        // child are among the producers of its parent and hold its state (TestEnv has no state
+        // sync); the split itself distributes them (StickyReshardingValidatorAssignment)
+        dynamic.chunk_producer_assignment_changes_limit = 0;
+    }
     dynamic.shard_layout_config = ShardLayoutConfig::Dynamic {
         dynamic_resharding_config: DynamicReshardingConfig {
-            memory_usage_threshold: u64::MAX,
-            min_child_memory_usage: u64::MAX,
-            max_number_of_shards: p.n_shards as u64 + 1,
+            memory_usage_threshold: rp.mem_threshold,
+            min_child_memory_usage: rp.min_child,
+            max_number_of_shards,
             min_epochs_between_resharding: 1.try_into().unwrap(),
-            force_split_shards: vec![parent],
+            force_split_shards,
             block_split_shards: vec![],
         },
     };
@@ -187,12 +236,37 @@ pub fn setup_reshard(rp: &ReshardParams) -> Setup {
     let wasm_config = RuntimeConfigStore::new(None).get_config(PROTOCOL_VERSION).wasm_config.clone();
     for c in &env.clients {
         let cache = c.runtime_adapter.compiled_contract_cache();
-        for (_, code) in crate::d3contracts::all() {
+        for (_, code) in crate::d3contracts::all().into_iter().chain(extra_codes(rp)) {
             let code = near_vm_runner::ContractCode::new(code, None);
             near_vm_runner::precompile_contract(&code, Arc::clone(&wasm_config), Some(cache)).expect("cache").expect("compile");
         }
     }
     Setup { clock, env, ems, genesis, accounts }
+}
+
+/// `process_shards_manager_responses_and_finish_processing_blocks`, optionally without producing the
+/// next chunks. A client tracking every shard often finishes a block only here (once the requested
+/// parts arrive), so a forced or random missing chunk must also be honoured here.
+fn finish_processing(env: &mut TestEnv, j: usize, produce: bool) {
+    if produce {
+        env.process_shards_manager_responses_and_finish_processing_blocks(j);
+        return;
+    }
+    loop {
+        env.process_shards_manager_responses(j);
+        let mut accepted = Vec::new();
+        while near_chain::test_utils::wait_for_all_blocks_in_processing(&env.clients[j].chain) {
+            accepted.extend(env.clients[j].postprocess_ready_blocks(None, false).0);
+        }
+        if accepted.is_empty() {
+            return;
+        }
+    }
+}
+
+/// Contracts of the reshard-only compositions (appended as witness code blobs like the registry's).
+fn extra_codes(rp: &ReshardParams) -> Vec<(&'static str, Vec<u8>)> {
+    if rp.zlim { vec![("slim", crate::scenarios::slim_wasm().to_vec())] } else { vec![] }
 }
 
 #[derive(Default)]
@@ -250,6 +324,11 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
     let reg = crate::d3contracts::registry();
     let tip0 = s.env.clients[0].chain.head().unwrap();
     let mut height = tip0.height;
+    let mut starve_from: Option<u64> = None;
+    let track_all = std::env::var("RESHARD_TRACK_ALL").is_ok();
+    let mut tracked: Vec<(String, CryptoHash)> = Vec::new();
+    let mut zlim_sent = false;
+    let extra: HashMap<CryptoHash, Vec<u8>> = extra_codes(rp).into_iter().map(|(_, c)| (CryptoHash::hash_bytes(&c), c)).collect();
     for round in 0..p.blocks {
         height += 1;
         s.clock.advance(near_time::Duration::milliseconds(1100));
@@ -266,17 +345,18 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
             world.minimum_stake = em.minimum_stake(&tip.last_block_hash).map(|b| b.as_yoctonear()).unwrap_or(0);
         }
         let split_scheduled = next_layout != cur_layout;
-        // hot window: the epoch before the split and the first blocks after it
-        let after_split = cur_layout.num_shards() as usize == p.n_shards + 1 && height < epoch_start + 4;
+        // hot window: the epoch before a split and the first blocks of every post-split epoch
+        let after_split = cur_layout.num_shards() as usize > p.n_shards && height < epoch_start + 4;
         let hot = split_scheduled || (after_split && cur_pv == 86 && round > 0);
         if std::env::var("D3_TRACE").is_ok() {
             eprintln!("round {round} height {height} pv {cur_pv} shards {} next {} hot {hot}", cur_layout.num_shards(), next_layout.num_shards());
         }
-        let parent_sid = if split_scheduled || cur_layout.num_shards() as usize == p.n_shards {
-            Some(cur_layout.account_id_to_shard_id(&s.accounts[rp.split_k][0]))
-        } else {
-            None
-        };
+        // the shard the scheduled split removes
+        let parent_sid = if split_scheduled { cur_layout.shard_ids().find(|x| !next_layout.shard_ids().any(|y| y == *x)) } else { None };
+        let last_of_epoch = epoch_start + p.epoch_length - 1;
+        if split_scheduled && height == last_of_epoch && starve_from.is_none() {
+            starve_from = Some(height + 1);
+        }
         // ---- honest transactions: D2 + D3 traffic; in the hot window, every shard bursts into a
         // sink shard `T = split_k + 1` (congesting it, so that senders, the parent among them,
         // buffer outgoing receipts) and `T` bursts into the parent (delayed receipts)
@@ -287,7 +367,10 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
             if !rng.gen_bool(p.p_tx_shard.max(if hot { 0.9 } else { 0.0 })) {
                 continue;
             }
-            if rng.gen_bool(p_burst) {
+            // zlim: the parent's own chunks around the resharding block stay below the gas limit,
+            // so the storage-limit receipts run in the parent's last chunk
+            let zlim_quiet = rp.zlim && split_scheduled && k == rp.split_k && height + 4 >= last_of_epoch;
+            if rng.gen_bool(p_burst) && !zlim_quiet {
                 let n = rng.gen_range(300..700);
                 let tgt = if !hot { (k + rng.gen_range(1..p.n_shards)) % p.n_shards } else if k == sink { rp.split_k } else { sink };
                 for _ in 0..n {
@@ -309,7 +392,47 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
                 }
             }
         }
+        // ---- global-contract deployments in the hot window: their distribution receipts walk
+        // every shard and are buffered/delayed by the congestion the bursts cause
+        if rp.p_global_hot > 0.0 && hot && rng.gen_bool(rp.p_global_hot) {
+            let k = rng.gen_range(0..p.n_shards);
+            let signer_id = s.accounts[k][rng.gen_range(0..crate::d2gen::HONEST)].clone();
+            let deploy = Action::DeployGlobalContract(near_primitives::action::DeployGlobalContractAction {
+                code: crate::d3contracts::TINY.to_vec().into(),
+                deploy_mode: near_primitives::action::GlobalContractDeployMode::CodeHash,
+            });
+            if let Some(t) = world.plain_tx(&s, &tip.last_block_hash, &signer_id, &signer_id, vec![deploy]) {
+                txs.push(("h.reshard_global_deploy".into(), t));
+            }
+        }
+        // ---- storage-limit composition: in the parent's chunk of the resharding block, a receipt
+        // above the per-receipt storage-proof limit, then one the chunk soft limit postpones
+        if rp.zlim && split_scheduled && height + 1 == last_of_epoch && !zlim_sent {
+            zlim_sent = true;
+            let a = zlim_acct(rp.split_k);
+            let run = |prog: crate::scenarios::Prog| {
+                Action::FunctionCall(Box::new(near_primitives::action::FunctionCallAction {
+                    method_name: "run".into(),
+                    args: prog.0,
+                    gas: Gas::from_teragas(300),
+                    deposit: Balance::ZERO,
+                }))
+            };
+            let progs = [
+                ("h.zlim_above_receipt_limit", crate::scenarios::Prog::default().r(b"big").r(b"pad2")),
+                ("h.zlim_past_soft_limit", crate::scenarios::Prog::default().r(b"x")),
+            ];
+            for (l, prog) in progs {
+                if let Some(t) = world.plain_tx(&s, &tip.last_block_hash, &a, &a, vec![run(prog)]) {
+                    txs.push((l.into(), t));
+                }
+            }
+            eprintln!("  zlim: storage-limit receipts for the chunk at height {}", height + 1);
+        }
         for (l, tx) in txs {
+            if l.starts_with("h.zlim") || l == "h.reshard_global_deploy" {
+                tracked.push((l.clone(), tx.get_hash()));
+            }
             labels.insert(tx.get_hash(), l);
             for h in &s.env.rpc_handlers {
                 let _ = h.process_tx(tx.clone(), false, false);
@@ -318,7 +441,23 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
         // ---- forced missing chunks at the boundary (variants 1 and 2). The chunks produced after
         // block `height` are those of height `height + 1` (offset 2 from the tip).
         let mut force_skip: Vec<AccountId> = Vec::new();
-        let last_of_epoch = epoch_start + p.epoch_length - 1;
+        if let (Some((sid, epochs)), Some(from)) = (rp.starve, starve_from) {
+            let next = height + 1;
+            if next >= from && next < from + epochs * p.epoch_length {
+                // the producer of shard `sid` at height+1, in the epoch of height+1
+                let em = &s.env.clients[0].epoch_manager;
+                let eid = if height == last_of_epoch {
+                    em.get_next_epoch_id_from_prev_block(&tip.last_block_hash).unwrap()
+                } else {
+                    em.get_epoch_id_from_prev_block(&tip.last_block_hash).unwrap()
+                };
+                let key = near_primitives::stateless_validation::ChunkProductionKey { epoch_id: eid, height_created: next, shard_id: ShardId::new(sid) };
+                if let Ok(info) = em.get_chunk_producer_info(&key) {
+                    force_skip.push(info.take_account_id());
+                    eprintln!("  starve: skipping shard {sid} chunk at height {next}");
+                }
+            }
+        }
         if split_scheduled && rp.variant == 1 && height + 1 == last_of_epoch {
             let sid = parent_sid.unwrap();
             force_skip.push(s.env.get_chunk_producer_at_offset(&tip, 2, sid));
@@ -345,8 +484,10 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
         if let Some(split) = block.header().shard_split() {
             eprintln!("  block {height} carries shard_split {split:?}");
         }
+        let mut skipped = vec![false; s.env.clients.len()];
         for i in 0..s.env.clients.len() {
             let skip = force_skip.contains(&s.env.get_client_id(i)) || rng.gen_bool(p.p_missing);
+            skipped[i] = skip;
             let r = if skip {
                 s.env.clients[i].process_block_test_no_produce_chunk(block.clone().into(), Provenance::NONE)
             } else {
@@ -358,20 +499,29 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
                 Err(e) => panic!("process_block: {e:?}"),
             }
         }
+        if track_all {
+            // a client tracking every shard fetches the parts it does not own by request
+            // (the TestEnv pattern of integration-tests/src/tests/features/in_memory_tries.rs:357-370)
+            s.clock.advance(near_chunks::shards_manager_actor::CHUNK_REQUEST_SWITCH_TO_FULL_FETCH);
+            for i in 0..s.env.clients.len() {
+                near_async::messaging::CanSend::send(&s.env.shards_manager_adapters[i], near_chunks::test_utils::ShardsManagerResendChunkRequests);
+            }
+        }
         for _ in 0..4 {
             s.env.process_partial_encoded_chunks();
             for j in 0..s.env.clients.len() {
-                s.env.process_shards_manager_responses_and_finish_processing_blocks(j);
+                finish_processing(&mut s.env, j, !(track_all && skipped[j]));
             }
         }
-        for _ in 0..8 {
+        // waiting only (no state change): a loaded machine can take longer than 8 rounds
+        for _ in 0..400 {
             if s.env.clients.iter().all(|c| c.chain.head().unwrap().last_block_hash == *block.hash()) {
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(50));
             s.env.process_partial_encoded_chunks();
             for j in 0..s.env.clients.len() {
-                s.env.process_shards_manager_responses_and_finish_processing_blocks(j);
+                finish_processing(&mut s.env, j, !(track_all && skipped[j]));
             }
         }
         for (ci, c) in s.env.clients.iter().enumerate() {
@@ -425,7 +575,7 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
                     continue;
                 }
             };
-            let codes: Vec<Vec<u8>> = accesses.iter().filter_map(|h| reg.by_hash.get(h).map(|x| x.1.clone())).collect();
+            let codes: Vec<Vec<u8>> = accesses.iter().filter_map(|h| reg.by_hash.get(h).map(|x| x.1.clone()).or_else(|| extra.get(h).cloned())).collect();
             let wb = borsh::to_vec(&sw).unwrap();
             let rs = (built.claim.rs_data_parts, built.claim.rs_total_parts);
             if let Some(c) = obs.as_mut() {
@@ -441,6 +591,34 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
         }
     }
     let _ = std::fs::remove_dir_all(&cold_home);
+    if !tracked.is_empty() {
+        // nearcore's stored outcome tree of every composition transaction
+        let v: Vec<serde_json::Value> = tracked.iter().map(|(l, h)| json!({"label": l, "tx": h.to_string(), "outcomes": outcome_tree(&s, h)})).collect();
+        std::fs::write(out.join(format!("reshard-outcomes-{chain_idx:02}.json")), serde_json::to_string_pretty(&v).unwrap()).unwrap();
+    }
+}
+
+/// The outcome tree of a transaction (BFS over receipt ids) from whichever client stored it.
+fn outcome_tree(s: &Setup, id: &CryptoHash) -> Vec<serde_json::Value> {
+    let mut out = Vec::new();
+    let mut queue = std::collections::VecDeque::from([*id]);
+    while let Some(id) = queue.pop_front() {
+        let found = s.env.clients.iter().find_map(|c| {
+            let o = c.chain.get_execution_outcome(&id).ok()?;
+            let h = c.chain.get_block_header(&o.block_hash).ok()?.height();
+            Some((o, h))
+        });
+        let Some((o, h)) = found else {
+            out.push(json!({"id": id.to_string(), "executed": false}));
+            continue;
+        };
+        let oc = &o.outcome_with_id.outcome;
+        out.push(json!({"id": id.to_string(), "executed": true, "height": h, "executor": oc.executor_id.to_string(),
+                        "status": format!("{:?}", oc.status), "gas_burnt": oc.gas_burnt.as_gas(),
+                        "receipt_ids": oc.receipt_ids.iter().map(|r| r.to_string()).collect::<Vec<_>>()}));
+        queue.extend(oc.receipt_ids.iter().copied());
+    }
+    out
 }
 
 fn vstr(r: &Result<(), String>) -> String {
@@ -475,6 +653,7 @@ fn write_case(
     let name = format!("{chain_idx:02}-h{}-s{}", key.height_created, key.shard_id);
     // nearcore's own reading of the witness's implicit transitions
     let mut main_out: Option<usize> = None;
+    let mut main_block: Option<(CryptoHash, ShardId)> = None;
     let (kinds, main_shard, main_height): (Vec<serde_json::Value>, Option<u64>, Option<u64>) = match crate::judge::pre_validate(client, sw) {
         Ok(pre) => {
             let ks = pre
@@ -490,6 +669,7 @@ fn write_case(
                 .collect();
             let (ms, mh) = match &pre.main_transition_params {
                 MainTransition::NewChunk { block_hash, shard_id, .. } => {
+                    main_block = Some((*block_hash, *shard_id));
                     let h = client.chain.get_block_header(block_hash).map(|h| h.height()).ok();
                     // the receipts the main transition produced (nearcore's own store)
                     main_out = client.chain.chain_store().get_outgoing_receipts(block_hash, *shard_id).ok().map(|r| r.len());
@@ -508,7 +688,29 @@ fn write_case(
     let proposed = header.proposed_split().is_some();
     let wl = em.get_shard_layout(&key.epoch_id).unwrap();
     let next_differs = em.get_next_epoch_id_from_prev_block(header.prev_block_hash()).ok().and_then(|n| em.get_shard_layout(&n).ok()).is_some_and(|n| n != wl);
-    let shape = shape_of(&kinds, &pvs, layouts_differ, gate, proposed, next_differs);
+    let mut distinct_layouts: Vec<&Vec<u8>> = Vec::new();
+    for e in &built.claim.epochs {
+        if !distinct_layouts.contains(&&e.shard_layout) {
+            distinct_layouts.push(&e.shard_layout);
+        }
+    }
+    let n_layouts = distinct_layouts.len();
+    let mut shape = shape_of(&kinds, &pvs, layouts_differ, gate, proposed, next_differs);
+    if n_layouts >= 3 && shape != "pv85" {
+        // a boundary walk across two layout changes
+        shape = format!("cross2.{shape}");
+    }
+    // nearcore's own split-gate inputs on the main transition's pre-state trie
+    let gate_probe = if gate { main_block.and_then(|(bh, sid)| probe_gate(client, &bh, sid)) } else { None };
+    let vu: Vec<serde_json::Value> = built
+        .claim
+        .apply_facts
+        .iter()
+        .map(|f| match &f.validator_update {
+            Some(v) => json!({"stake_info": v.stake_info.len(), "nonzero_rewards": v.validator_rewards.iter().filter(|r| r.1 > 0).count()}),
+            None => serde_json::Value::Null,
+        })
+        .collect();
     *st.shapes.entry(shape.clone()).or_default() += 1;
     let ci_h = header.congestion_info();
     let ChunkStateWitness::V2(v2) = sw;
@@ -548,6 +750,9 @@ fn write_case(
         "main_base_state_values": vals.len(),
         "witness_bytes": wb.len(),
         "code_blobs": codes.len(),
+        "claim_distinct_layouts": n_layouts,
+        "validator_updates": vu,
+        "gate_probe": gate_probe.as_ref().map(|g| g.0.clone()),
     });
     let dir = out.join("cases").join(&name);
     write_dir(&dir, &built.claim, wb, codes, &meta);
@@ -555,11 +760,12 @@ fn write_case(
     if std::env::var("RESHARD_DEBUG_IMPLICIT").is_ok() && !v2.implicit_transitions.is_empty() {
         debug_implicit(client, &name, sw, &kinds);
     }
-    if shape.starts_with("split.") || shape.starts_with("gate.") || shape == "cross_layout.no_split" {
+    if shape.starts_with("split.") || shape.starts_with("gate.") || shape.starts_with("cross") {
         st.boundary.push(json!({"case": name, "shape": shape, "nearcore": vstr(verdict), "main_outgoing_receipts": main_out,
             "implicit_transitions": kinds, "proposed_split": meta["proposed_split"], "header_congestion": meta["header_congestion"],
-            "n_source_receipts": n_receipts}));
+            "n_source_receipts": n_receipts, "gate_probe": meta["gate_probe"], "validator_updates": meta["validator_updates"]}));
     }
+    let shape = shape.strip_prefix("cross2.").map(str::to_string).unwrap_or(shape);
     // ---- split-gate header mutants: the endorsed header's `proposed_split` changed and re-signed
     // (nearcore's own `chunk_header_proposed_split_validation` test construction,
     // integration-tests/src/tests/features/shard_split_validation.rs:96-121)
@@ -572,6 +778,13 @@ fn write_case(
         } else if *forged < 2 {
             *forged += 1;
             variants.push(("h.proposed_split_forged", Some(TrieSplit::new("s0a05".parse().unwrap(), 500_000, 500_000))));
+        }
+        // a threshold gate that did not split: the split nearcore's own `find_trie_split` gives on
+        // this trie (correct boundary and memory), which only the thresholds rule out
+        if header.proposed_split().is_none() && rp.mem_threshold != u64::MAX {
+            if let Some((_, Some(sp))) = &gate_probe {
+                variants.push(("h.proposed_split_unmet_threshold", Some(sp.clone())));
+            }
         }
         let producer = em.get_chunk_producer_info(&key).map(|v| v.take_account_id()).unwrap_or_else(|_| "s0a00".parse().unwrap());
         let signer = create_test_signer(producer.as_str());
@@ -653,6 +866,27 @@ fn write_case(
     }
 }
 
+/// `check_dynamic_resharding`'s inputs on the pre-state trie of the main transition, read from the
+/// client's store: `total_mem_usage` and `find_trie_split` (nearcore's functions,
+/// core/store/src/trie/split.rs:590-620).
+fn probe_gate(client: &near_client::Client, block_hash: &CryptoHash, shard_id: ShardId) -> Option<(serde_json::Value, Option<TrieSplit>)> {
+    let block = client.chain.get_block(block_hash).ok()?;
+    let layout = client.epoch_manager.get_shard_layout(block.header().epoch_id()).ok()?;
+    let chunks = block.chunks();
+    let root = chunks.iter().find(|c| c.shard_id() == shard_id)?.prev_state_root();
+    let uid = near_primitives::shard_layout::ShardUId::from_shard_id_and_layout(shard_id, &layout);
+    let trie = client.runtime_adapter.get_tries().get_view_trie_for_shard(uid, root);
+    let mem = near_store::trie::total_mem_usage(&trie);
+    let split = near_store::trie::find_trie_split(&trie);
+    let v = json!({
+        "shard_id": sid64(shard_id), "pre_state_root": format!("{root}"), "num_shards": layout.num_shards(),
+        "total_mem_usage": mem.as_ref().ok(), "total_mem_usage_error": mem.as_ref().err().map(|e| format!("{e:?}")),
+        "find_trie_split": split.as_ref().ok().map(|s| json!({"boundary_account": s.boundary_account.to_string(), "left_memory": s.left_memory, "right_memory": s.right_memory})),
+        "find_trie_split_error": split.as_ref().err().map(|e| format!("{e:?}")),
+    });
+    Some((v, split.ok()))
+}
+
 pub fn cmd_reshard(args: &[String]) -> i32 {
     let arg = |name: &str| args.iter().position(|a| a == name).and_then(|i| args.get(i + 1).cloned());
     let num = |n: &str, d: u64| -> u64 { arg(n).map(|v| v.parse().unwrap_or_else(|_| panic!("{n}: not a number"))).unwrap_or(d) };
@@ -698,6 +932,17 @@ pub fn cmd_reshard(args: &[String]) -> i32 {
             p_contract: 0.04,
             p_burst_hot,
             min_gas_price,
+            second_split: arg("--second-split").map(|v| v.parse().expect("--second-split")),
+            max_shards: arg("--max-shards").map(|v| v.parse().expect("--max-shards")),
+            force: !args.iter().any(|a| a == "--no-force"),
+            mem_threshold: num("--mem-threshold", u64::MAX),
+            min_child: num("--min-child", u64::MAX),
+            starve: arg("--starve").map(|v| {
+                let (a, b) = v.split_once(':').expect("--starve SHARD:EPOCHS");
+                (a.parse().expect("--starve shard"), b.parse().expect("--starve epochs"))
+            }),
+            zlim: args.iter().any(|a| a == "--zlim"),
+            p_global_hot: arg("--p-global-hot").map(|s| s.parse().expect("--p-global-hot")).unwrap_or(0.0),
         };
         eprintln!("chain {i}: {rp:?}");
         params.push(format!("{rp:?}"));

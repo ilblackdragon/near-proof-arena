@@ -233,10 +233,18 @@ def getAcctR (o : Ovl) (k : Bytes) := logged (o.getAcctL k)
 def getIndicesR (o : Ovl) (k : Bytes) (what : String) := logged (o.getIndicesL k what)
 def containsR (o : Ovl) (k : Bytes) (what : String) := logged (o.containsL k what)
 def finalizeR (o : Ovl) := logged o.finalizeL
+/-- `receiver_shard_id` with its error: a distribution target that is neither in the layout nor in
+its split history is `EpochError::ShardingError` (`receipt.rs:448-458`), which fails the chunk
+application. A V2 layout's static split history is not decoded (`decodeLayout`), so an obsolete
+target under a V2 layout stays out of domain: a PV86 claim's V2 layouts never change between its
+epochs (`Successor.LayoutReach`), and a distribution receipt would have to outlive the static layout
+change of an earlier protocol version in a receipt queue. -/
 def globalTarget (layout : Layout) (r : Rcpt) : Except String Nat := do
-  let target := r.targetShard layout
+  let target := r.routedShard layout
   if !layout.shardIds.contains target then
-    throw "out of domain (c.same_layout): distribution target requires shard ancestry"
+    if layout.lastSplit.isNone then
+      throw "out of domain (c.layout): distribution target outside a V2 layout"
+    throw "invalid: ShardingError: distribution target is not in the shard layout or its split history"
   pure target
 
 def globalQueuePolicy : QueuePolicy := ⟨GlobalCodecs.decodeStoredGlobal, globalTarget⟩
@@ -291,11 +299,17 @@ def forwardFromBufferV3L (globals : Bool) (env : Env) (rs : RS) : LM RS := do
   let parents := match l.lastSplit with
     | some p => if l.shardIds.contains p then [] else [p]
     | none => []
-  if rs.bufIdx.any (fun (s, f, n) => !l.shardIds.contains s && !parents.contains s && f < n) then
-    throw "out of domain (c.same_layout): outgoing buffer to a shard outside the layout"
-  (parents ++ l.shardIds).foldlM (fun rs s =>
+  -- `forward_from_buffer` (`congestion_control.rs:236-289`) forwards the buffers of the last split's
+  -- parent (`get_split_parent_shard_ids`, the recent split only) and of the layout's shards. A buffer
+  -- to an older ancestor is not forwarded; when every forwarded buffer is empty, nearcore requires
+  -- that no buffered gas is left (`:281-284`).
+  let rs ← (parents ++ l.shardIds).foldlM (fun rs s =>
     if globals then forwardFromBufferToShardLWith globalQueuePolicy env rs s
     else forwardFromBufferToShardL env rs s) rs
+  let allEmpty := (parents ++ l.shardIds).all fun s => let (f, n) := bufGet rs.bufIdx s; n ≤ f
+  if allEmpty && rs.cong.bufferedGas != 0 then
+    throw "invalid: buffered receipts gas left with empty outgoing buffers"
+  pure rs
 
 def forwardFromBufferR (env : Env) (rs : RS) : M RS := do
   if env.ctx.layout.lastSplit.isSome then logged (forwardFromBufferV3L (← get).globalActions env rs)

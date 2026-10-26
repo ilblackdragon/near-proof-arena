@@ -214,6 +214,9 @@ All changes are in `spec/lean/v3`. Each one is root-caused against these fixture
 
 ## Not covered
 
+Each item below is addressed, with fixtures or a source-backed disposition, in
+[part 2](../resharding-fixtures-2/README.md).
+
 * Static (V2) resharding across a protocol-version change, and any witness whose epochs include a
   PV85 epoch. These stay excluded.
 * Two consecutive splits in one chain. The V3 split-history rule is covered only by a Lean unit

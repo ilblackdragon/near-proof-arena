@@ -32,7 +32,8 @@
 //!       (src/mainnet_obs.rs, workplan W01).
 //!   reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N] [--shards n]
 //!       [--epoch-length L] [--gas-limit-tgas G] [--split-k k] [--variant v] [--p-missing P]
-//!       [--p-burst-hot B] [--min-gas-price P]
+//!       [--p-burst-hot B] [--min-gas-price P] [--second-split SID] [--max-shards M] [--no-force]
+//!       [--mem-threshold T] [--min-child C] [--starve SID:EPOCHS] [--zlim] [--p-global-hot P]
 //!       Real shard-split chains (src/reshard.rs, workplan W11): PV85 genesis, PV86 dynamic
 //!       resharding forcing a split of the shard of `s{k}a00`; every witness in DIR/cases/<case>,
 //!       split/layout mutants in DIR/mutants/<case>-<mutation>, DIR/summary.json.

@@ -1,5 +1,6 @@
 import NearSpecV3.Successor.RuntimeCore
 import NearSpecV3.Successor.TrieSplit
+import NearSpecV3.Successor.LayoutReach
 
 /-!
 # `NearSpecV3.Successor.ReshardCore` — the validator's walk across a shard-layout boundary
@@ -40,9 +41,32 @@ The split gate is decided: the main transition's `proposed_split` is recomputed 
 split-gate fact and the pre-state trie (`TrieSplit.expectedProposedSplit`, a transcription of
 `check_dynamic_resharding` and `find_trie_split`) and compared with the chunk header.
 
-Only dynamic (V3) layout changes are decided; a V2 layout change is static resharding, which at PV86
-needs a protocol-version change the checker already excludes (`c.pv86`). Genesis segments keep the
-signed genesis path and its `c.same_layout` exclusion.
+Only dynamic (V3) layout changes are decided; a V2 layout change is static resharding. Genesis
+segments keep the signed genesis path and its `c.same_layout` exclusion.
+
+## Why the remaining layout and protocol-version exclusions meet no honest PV86 claim (UQ-009)
+
+* **V2 layout change.** `LayoutReach.no_v2_change_of_dynamic`: a layout change between two PV86 epochs
+  is a `derive_v3` result when `config(86)` is dynamic, and the mainnet store's entry for 86 is
+  `epoch_configs/mainnet/85.json`, which is dynamic (no `shard_layout`). V2 layouts themselves are
+  decided: the parent layout of mainnet's first dynamic split is the static V2 layout of `81.json`
+  (`next_next_shard_layout` keeps the previous layout while dynamic resharding is not yet enabled,
+  `lib.rs:699-701`), and the fixtures' parent layout is V2 too.
+* **Genesis segment with a layout change.** `LayoutReach.genesis_segment_one_layout`.
+* **A PV85 (or older) epoch in a PV86 witness.** Every claim epoch must be PV86 (`c.pv86`). The
+  pinned mainnet upgrade schedule has one entry, PV86 from 2026-07-20 (`core/primitives/src/
+  version.rs:58-66`); before that date a 2.13.4 node votes for the next epoch's version, and from it
+  for 86 (`upgrade_schedule.rs:127-158`); the voted version is adopted as soon as it holds the stake
+  threshold, without intermediate steps (`chain/epoch-manager/src/lib.rs:567-579`). The previous
+  release (2.12.0) had `STABLE_PROTOCOL_VERSION = 84`. So mainnet went from PV84 directly to PV86 and
+  never had a PV85 epoch (archival RPC: block 207,762,733 is in a PV84 epoch with the static
+  9-shard V2 layout, block 207,762,734 in a PV86 epoch with the same layout). A 2.13.4 node votes 86
+  for ever after (`upgrade_schedule.rs:134-136`), so every later mainnet epoch is PV86. A PV86
+  witness can reference the last PV84 epoch only when its segment reaches that epoch: the chunks at
+  the start of the first PV86 epoch, which are finalized history validated by the PV84 rules for their
+  main transition, not a witness the pinned binary can still be asked to validate. PV85→PV86 segments
+  exist only on other networks (testnet schedules PV86 for 2026-12-31) and in the generator's local
+  chains, whose genesis is PV85; they are not part of the pinned mainnet target.
 -/
 set_option maxRecDepth 10000
 set_option maxHeartbeats 2000000
@@ -115,7 +139,8 @@ def walkSegment (c : Claim) (blks : List Blk) (afterEpochs : List Bytes) (shard0
     check (b.slots.length == lOwn.numShards) "invalid: slot count"
     let boundary := c.epochStartAfter.getD i 0 == 1 && lbAfter != lbOwn
     if boundary then
-      -- a layout change is decided only for a V3 (dynamic resharding) layout
+      -- a layout change is decided only for a V3 (dynamic resharding) layout; a V2 change between
+      -- PV86 epochs is unreachable under the mainnet configs (`LayoutReach.no_v2_change_of_dynamic`)
       check lAfter.lastSplit.isSome "out of domain (c.layout): V2 layout change (static resharding)"
     -- get_resharding_transition: only before the first new chunk, only at a layout boundary
     if seen == 0 && boundary then

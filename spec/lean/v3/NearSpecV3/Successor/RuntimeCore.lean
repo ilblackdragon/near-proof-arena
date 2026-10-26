@@ -103,14 +103,14 @@ def recorderDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
   decodeWitness := if globals then
     decodeStateWitnessWith GlobalCodecs.pRcptGlobal GlobalCodecs.pTxD2Global
     else decodeStateWitnessD2,
-  receiptShard := if globals then fun l r => r.targetShard l else fun l r => l.shardOf r.recv,
+  receiptShard := if globals then fun l r => r.routedShard l else fun l r => l.shardOf r.recv,
   validateRouting := if globals then fun l rs => do
     for r in rs do
       let _ ← StorageExecution.globalTarget l r
     else fun _ _ => pure (),
   outgoingRoot := if globals then fun l rs =>
     merklizeBorsh (l.shardIds.map fun shard =>
-      sha256 (u64 shard ++ encodeRcpts (rs.filter fun r => r.targetShard l == shard)))
+      sha256 (u64 shard ++ encodeRcpts (rs.filter fun r => r.routedShard l == shard)))
     else outgoingReceiptsRootD2 }
 
 /-- The resharding tiers' driver: `recorderDriver` with `resharding := true`. A non-genesis segment is

@@ -93,8 +93,10 @@ def applyDistributionL (env : Env) (rs : RS) (r : Rcpt) (d : Distribution) :
   if let .codeHash h := d.id then
     if h != sha256 d.code then
       throw "out of domain (w.shape): global_code_identity: distribution hash differs from code bytes"
-  if !(env.ctx.layout.shardIds.contains d.target) then
-    throw "out of domain (c.same_layout): distribution targets an obsolete shard"
+  -- No target check: a distribution whose target was split since was routed here by
+  -- `resolve_to_current_shard` (`Rcpt.routedShard`); `apply_distribution_current_shard`
+  -- (`runtime/runtime/src/global_contracts.rs:222-266`) does not read the target, and the forward
+  -- uses this shard and the current layout (`:317-353`).
   let stored := (← rs.o.getU64L (kGlobalContractNonce d.id) "global contract nonce").getD 0
   let nonce := if d.v2 then d.nonce else 0
   let fresh := nonce ≥ stored

@@ -1,0 +1,26 @@
+{
+ "checker_sha256": "e85f57fedfa5de35022007fc32726dc8034145848ff894eca622978a287935eb",
+ "tiers": {
+  "allFeatures": {
+   "cases": 22,
+   "agree": 22,
+   "out_of_domain": [],
+   "disagree": []
+  },
+  "resharding": {
+   "cases": 22,
+   "agree": 20,
+   "out_of_domain": [
+    [
+     "seed67-01-h10068-s4",
+     "out of domain (w.shape): GlobalContractDistribution receipt"
+    ],
+    [
+     "seed67-01-h10074-s4",
+     "out of domain (w.shape): GlobalContractDistribution receipt"
+    ]
+   ],
+   "disagree": []
+  }
+ }
+}

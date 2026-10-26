@@ -231,6 +231,24 @@ and PV86 enables dynamic resharding with a forced split of the shard of `s{k}a00
 used. Commands, seeds and results are in
 `docs/evidence/lean-chunk-completion/resharding-fixtures/README.md`.
 
+Further options (all off by default; with none of them the output is unchanged):
+
+* `--second-split SID` also forces the split of `SID` (a child of the first split), so a child splits
+  again; `--max-shards M` overrides `max_number_of_shards`.
+* `--no-force --mem-threshold T --min-child C`: no forced split; nearcore's thresholds decide.
+  Every split-gate case records nearcore's own `total_mem_usage` and `find_trie_split` on the main
+  transition's pre-state trie (`gate_probe`), and a gate that did not split gets the mutant
+  `h.proposed_split_unmet_threshold` (the split `find_trie_split` would give).
+* `--starve SID:E`: from the first post-split epoch, shard `SID`'s chunks are not produced for `E`
+  epochs, so the next witness walks back across several epoch starts (and layout changes).
+* `--zlim`: the split shard holds `s{k}zlim` (the storage-limit contract); the parent's chunk of
+  the resharding block runs a receipt above the per-receipt storage-proof limit and one the chunk
+  soft limit postpones.
+* `--p-global-hot P`: global-contract deployments in the hot window, whose distribution receipts
+  cross the split buffered and delayed.
+
+Evidence: `docs/evidence/lean-chunk-completion/resharding-fixtures-2/README.md`.
+
 ## Fuel-stress scenario (W02)
 
 Set `NEAR_SUCCESSOR_SCENARIO=fuel-stress` for a quiet chain with the `fuelc` contract

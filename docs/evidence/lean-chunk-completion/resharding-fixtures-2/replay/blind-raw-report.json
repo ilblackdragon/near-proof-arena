@@ -1,0 +1,48 @@
+{
+  "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+  "cases": 1833,
+  "graded": 1833,
+  "counts": {
+    "match": 1832,
+    "blind_error": 1
+  },
+  "mismatch_percent": 0.0,
+  "verified_match_percent": 99.9454446262957,
+  "matched_cases_exercising": {
+    "balance_burnt": 359,
+    "bandwidth_requests": 75,
+    "congestion_buffered_gas": 216,
+    "congestion_delayed_gas": 785,
+    "congestion_receipt_bytes": 897,
+    "gas_used": 1688,
+    "implicit_transitions": 107,
+    "proposals": 43
+  },
+  "field_diffs": {},
+  "reasons": {
+    "prev_outcome_root still present in blinded claim.bin": 1
+  },
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "identities": {
+    "lean_binary_sha256": "e85f57fedfa5de35022007fc32726dc8034145848ff894eca622978a287935eb",
+    "harness_sha256": "11c263d1d71d4716b026224db6d2afa1bedd677d5308d6cb84128ddbefbfc250",
+    "blind_inputs_sha256": "8464ecd8cb2114b3fcc7c378a45c46cdd96f175ea0900f95e9d78bb64232c590",
+    "tier": "allFeatures",
+    "cases_list_sha256": "17766b9d61a92225e865400f40aeb3386129c8bf0c28cb910456c122abf5bd82"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 1155.956908965949,
+  "pass": false
+}
