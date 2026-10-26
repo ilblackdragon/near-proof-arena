@@ -1,0 +1,59 @@
+{
+  "bandwidth_requests_nonempty": false,
+  "case": "01-h10061-s4",
+  "chain_params": "ReshardParams { base: ChainParams { seed: 23000070, n_shards: 4, seats: 8, gas_limit_tgas: 60, epoch_length: 12, blocks: 80, p_missing: 0.05, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, split_k: 2, variant: 1, max_txs: 4, max_d3: 2, p_contract: 0.04, p_burst_hot: 0.5, min_gas_price: 0 }",
+  "claim_epoch_protocol_versions": [
+    86,
+    86
+  ],
+  "claim_layouts_differ": true,
+  "code_blobs": 0,
+  "epoch_id": "ab886435c7cce2c24415a073e267725bd6ff27c23d5fac93b539ae89b4365b59",
+  "expected_rel": true,
+  "generator": "reshard",
+  "header_congestion": {
+    "allowed_shard": 4,
+    "buffered_receipts_gas": "0",
+    "delayed_receipts_gas": "723131315467840",
+    "receipt_bytes": 191516
+  },
+  "height_created": 10061,
+  "implicit_transitions": [
+    {
+      "apply_old_chunk": {
+        "height": 10060,
+        "shard_uid": "s4.v3"
+      }
+    },
+    {
+      "resharding": {
+        "boundary_account": "s2ctr-0",
+        "child_shard_uid": "s4.v3",
+        "retain": "left"
+      }
+    }
+  ],
+  "kind": "honest",
+  "main_base_state_values": 1105,
+  "main_outgoing_receipts": 264,
+  "main_transition_height": 10059,
+  "main_transition_shard": 0,
+  "n_implicit_blocks": 1,
+  "n_new_transactions": 2,
+  "n_source_receipts": 3,
+  "n_transactions": 4,
+  "nearcore": "ok",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "proposed_split": null,
+  "shape": "split.left",
+  "shard_id": 4,
+  "split_gate_in_apply_facts": false,
+  "tx_labels": [
+    "h.delegate_multi_self",
+    "h.transfer_multi",
+    "h.create_not_sub",
+    "h.add_key"
+  ],
+  "witness_bytes": 160363,
+  "witness_layout": "V3(ShardLayoutV3 { boundary_accounts: [AccountId(\"s1\"), AccountId(\"s2\"), AccountId(\"s2ctr-0\"), AccountId(\"s3\")], shard_ids: [3, 1, 4, 5, 2], id_to_index_map: {1: 1, 2: 4, 3: 0, 4: 2, 5: 3}, shards_split_map: {0: [4, 5]}, last_split: 0, shards_ancestor_map: {1: [], 2: [], 3: [], 4: [0], 5: [0]} })"
+}

@@ -1,0 +1,7 @@
+{
+ "scope": "4,625 prior case dirs (combined-1788 list, 2,000 sampled d3c7 mutants, 837 d3c7 ood) x tiers allFeatures,resharding",
+ "base_checker": "fb435a61d (pre-change)",
+ "new_checker_sha256": "cb504793fa26f24c31b0b60563625329bd0fa438c363b6072b6c4dd72700efdc",
+ "runs": 9250,
+ "verdict_or_reason_changes": 0
+}

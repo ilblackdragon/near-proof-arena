@@ -1,0 +1,10 @@
+{
+  "base": "00-h10048-s3",
+  "case": "00-h10048-s3-h.proposed_split_forged",
+  "expected_rel": false,
+  "kind": "mutant",
+  "mutation": "h.proposed_split_forged",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0a05\\\"), left_memory: 500000, right_memory: 500000 }), expected None (prev block hash: EJzmZeDW4uT7icN9J1t8bQvJZNES3Tg1mCPuTBUNcG6f height created: 10048)\")",
+  "shape": "gate.no_split",
+  "verdict_source": "nearcore(cold)"
+}

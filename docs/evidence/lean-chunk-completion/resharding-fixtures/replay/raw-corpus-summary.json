@@ -1,0 +1,69 @@
+{
+ "scope": "raw runs fa0-fa2 (seed 11), fb0-fb2 (seed 23 --split-k 2); PV86 honest witnesses and all mutants; PV85 witnesses excluded",
+ "checker_sha256": "bfcaaf5216d57a652b85b1587520bc16087cf2334c7c5f5e9203c023b3027dc7",
+ "generator_sha256": "23c373d76ef1ba618f827924b98db5a03784a9a67da12c6770f9b18c92edc621",
+ "tiers": {
+  "allFeatures": {
+   "honest|cross_layout.no_split|nearcore_ok|accept|": 48,
+   "honest|gate.no_split|nearcore_ok|accept|": 92,
+   "honest|gate.proposed_split|nearcore_ok|accept|": 13,
+   "honest|plain|nearcore_ok|accept|": 675,
+   "honest|pre_split|nearcore_ok|accept|": 247,
+   "honest|split.left|nearcore_ok|accept|": 6,
+   "honest|split.right|nearcore_ok|accept|": 6,
+   "mutant|gate.no_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 12,
+   "mutant|gate.proposed_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 26,
+   "mutant|split.left|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 12,
+   "mutant|split.left|nearcore_reject|reject|invalid: implicit transition post state root": 6,
+   "mutant|split.left|nearcore_reject|reject|invalid: shard not in layout": 6,
+   "mutant|split.right|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 12,
+   "mutant|split.right|nearcore_reject|reject|invalid: implicit transition post state root": 6,
+   "mutant|split.right|nearcore_reject|reject|invalid: shard not in layout": 6
+  },
+  "resharding": {
+   "honest|cross_layout.no_split|nearcore_ok|accept|": 48,
+   "honest|gate.no_split|nearcore_ok|accept|": 91,
+   "honest|gate.no_split|nearcore_ok|out_of_domain|out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_g": 1,
+   "honest|gate.proposed_split|nearcore_ok|accept|": 13,
+   "honest|plain|nearcore_ok|accept|": 669,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state": 1,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (w.shape): ML-DSA-65 public key": 5,
+   "honest|pre_split|nearcore_ok|accept|": 247,
+   "honest|split.left|nearcore_ok|accept|": 6,
+   "honest|split.right|nearcore_ok|accept|": 6,
+   "mutant|gate.no_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 12,
+   "mutant|gate.proposed_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 26,
+   "mutant|split.left|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 12,
+   "mutant|split.left|nearcore_reject|reject|invalid: implicit transition post state root": 6,
+   "mutant|split.left|nearcore_reject|reject|invalid: shard not in layout": 6,
+   "mutant|split.right|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 12,
+   "mutant|split.right|nearcore_reject|reject|invalid: implicit transition post state root": 6,
+   "mutant|split.right|nearcore_reject|reject|invalid: shard not in layout": 6
+  }
+ },
+ "blind_allFeatures": {
+  "cases": 1087,
+  "graded": 1087,
+  "counts": {
+   "match": 1084,
+   "blind_error": 3
+  },
+  "mismatch_percent": 0.0,
+  "field_diffs": {},
+  "reasons": {
+   "prev_outcome_root still present in blinded claim.bin": 1,
+   "w.shape: ML-DSA-65 public key in a transaction or receipt": 2
+  },
+  "matched_cases_exercising": {
+   "balance_burnt": 220,
+   "bandwidth_requests": 3,
+   "congestion_buffered_gas": 65,
+   "congestion_delayed_gas": 490,
+   "congestion_receipt_bytes": 523,
+   "gas_used": 1037,
+   "implicit_transitions": 54,
+   "proposals": 20
+  },
+  "note": "run with checker sha256 cb504793...; the final checker differs only in one error string (missing node in a split)"
+ }
+}

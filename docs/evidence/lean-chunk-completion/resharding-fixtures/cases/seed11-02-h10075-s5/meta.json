@@ -1,0 +1,47 @@
+{
+  "bandwidth_requests_nonempty": false,
+  "case": "02-h10075-s5",
+  "chain_params": "ReshardParams { base: ChainParams { seed: 11000035, n_shards: 4, seats: 8, gas_limit_tgas: 60, epoch_length: 12, blocks: 80, p_missing: 0.05, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, split_k: 0, variant: 2, max_txs: 4, max_d3: 2, p_contract: 0.04, p_burst_hot: 0.5, min_gas_price: 0 }",
+  "claim_epoch_protocol_versions": [
+    86,
+    86
+  ],
+  "claim_layouts_differ": false,
+  "code_blobs": 1,
+  "epoch_id": "7997c8475142f663de0bc5d6efab393c6dfdbfc946430cb7d1fa78d9639ac684",
+  "expected_rel": true,
+  "generator": "reshard",
+  "header_congestion": {
+    "allowed_shard": 2,
+    "buffered_receipts_gas": "0",
+    "delayed_receipts_gas": "0",
+    "receipt_bytes": 0
+  },
+  "height_created": 10075,
+  "implicit_transitions": [
+    {
+      "apply_old_chunk": {
+        "height": 10074,
+        "shard_uid": "s5.v3"
+      }
+    }
+  ],
+  "kind": "honest",
+  "main_base_state_values": 39,
+  "main_outgoing_receipts": 7,
+  "main_transition_height": 10073,
+  "main_transition_shard": 5,
+  "n_implicit_blocks": 1,
+  "n_new_transactions": 0,
+  "n_source_receipts": 3,
+  "n_transactions": 0,
+  "nearcore": "ok",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "proposed_split": null,
+  "shape": "plain",
+  "shard_id": 5,
+  "split_gate_in_apply_facts": false,
+  "tx_labels": [],
+  "witness_bytes": 6942,
+  "witness_layout": "V3(ShardLayoutV3 { boundary_accounts: [AccountId(\"s0ctr-0\"), AccountId(\"s1\"), AccountId(\"s2\"), AccountId(\"s3\")], shard_ids: [4, 5, 1, 0, 2], id_to_index_map: {0: 3, 1: 2, 2: 4, 4: 0, 5: 1}, shards_split_map: {3: [4, 5]}, last_split: 3, shards_ancestor_map: {0: [], 1: [], 2: [], 4: [3], 5: [3]} })"
+}

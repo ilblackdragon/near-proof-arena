@@ -306,8 +306,7 @@ is not the validator's whenever a descended subtree loses a child. Validator-gen
 follows `resharding.rs:150-246` and `squash.rs:29-178` node by node:
 
 * `RetainAll` keeps the subtree as it is; `DiscardAll` makes it empty;
-* `Descend` reads the node (an unrevealed node is a missing trie value: the validator's `unwrap`
-  panics on it, `resharding.rs:325`); a leaf is kept iff its full key is in a range; a branch drops
+* `Descend` reads the node (an unrevealed node is a missing trie value, a rejection); a leaf is kept iff its full key is in a range; a branch drops
   its value outside every range, recomputes `memory_usage` as the retained children's sum plus its own
   direct cost, and is squashed (`squashBranch`: no child → empty or a value leaf, one child and no
   value → `extend_child`); an extension recurses into its child and is squashed with it
@@ -356,7 +355,7 @@ trie value. -/
 def splitRootE (parentTrie : PTrie) (boundaryAccount : Bytes) (mode : RetainMode) : Except String Bytes :=
   match retainSplit parentTrie [] (intervalsToNibbles (boundaryAccountToIntervals boundaryAccount mode)) with
   | some t => .ok (NearSpecV3.D2.rootHash t)
-  | none => .error "invalid: nearcore panics (retain_split_shard: MissingTrieValue)"
+  | none => .error "invalid: MissingTrieValue (retain_split_shard)"
 
 /-! ## What the split guarantees
 
