@@ -806,7 +806,8 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         // In opt-in global traffic, also produce independently judged mutants of global shapes.
         // This changes fixture generation only, never the baseline classification or expectation.
         let scenario = crate::d3gen::scenario();
-        let global_scenario = scenario == Some(crate::d3gen::Scenario::GlobalCache);
+        // The keys scenario does the same for its key shapes (secp256k1 / ML-DSA keys, gas keys).
+        let global_scenario = matches!(scenario, Some(crate::d3gen::Scenario::GlobalCache | crate::d3gen::Scenario::Keys));
         // Opt-in curve traffic likewise mutates its `e.ood_host` chunks (independently judged).
         let curve_scenario = scenario == Some(crate::d3gen::Scenario::CurveHosts);
         if viol3.iter().any(|v| {

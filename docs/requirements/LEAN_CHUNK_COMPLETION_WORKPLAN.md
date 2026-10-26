@@ -583,6 +583,14 @@ Owner: L3 key substream.
   layers name it as its own exclusion (`oodMlDsaSig`, `e.mldsa_sig`, `e.mldsa_tx`) rather than
   implementing it. Its `ml_dsa_65_verification_cost` burnt-gas term (`85.yaml`, `runtime/src/config.rs`)
   is likewise unmodelled, which is why an ML-DSA *transaction key* stays excluded.
+- *Whole-chunk vectors (2026-10-26):* `docs/evidence/lean-chunk-completion/key-family-fixtures/`
+  replays two pinned-nearcore `keys`-scenario runs (60 steps each: secp256k1 tx keys, secp256k1
+  delegates, ML-DSA-65 key storage, gas keys, gas-key hosts; 2,925 selected honest+mutant cases).
+  They found that `Secp256k1.verify` accepted high-s signatures, which libsecp256k1 rejects. That
+  is fixed in `Secp256k1.lean`. The 3,138-case signed census is unchanged; two high-s delegate
+  fixtures move reject → accept at `signed`, matching nearcore. After the fix, nothing
+  disagrees at `allFeatures`. Open domain questions: secp key with an ED25519 signature
+  (`pTxD2Global` refuses the pair), and ML-DSA signer keys in receipts (`oodMlDsaKey`).
 - Cover keys in actions, access-key state and receipts; integrate nonce/gas-key interactions.
 - Generate valid/invalid and malformed key/signature chunks, replay/nonce negatives and algorithm
   boundaries, comparing fees, nonce changes, failures and roots.
@@ -595,7 +603,10 @@ encoding/trie parity and explicit inventory coverage.
 Owner: L4.
 
 - Gas-key promise-host translation is landed (`628551b85`); its fixture is a serialization control.
-  Still needed: pinned-nearcore whole-chunk replay of gas-key chunks, and target-side gas-key
+  Pinned-nearcore whole-chunk replay of gas-key chunks is now in
+  `docs/evidence/lean-chunk-completion/key-family-fixtures/` (steps 27–59: funding, nonce indices,
+  withdraw, deletion with/without balance, invalid nonces/balances, all three hosts; 0
+  disagreements at `allFeatures`). Still needed: target-side gas-key
   execution (funding, nonce indices, withdraw/transfer out, deletion with balance), coordinating
   key verification with W06.
 - Resolve ancestor-shard routing for distribution receipts targeting obsolete layouts with W11.

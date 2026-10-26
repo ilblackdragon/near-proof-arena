@@ -25,6 +25,9 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
     if crate::d3gen::scenario() == Some(crate::d3gen::Scenario::CurveHosts) {
         contracts.push((crate::curve_hosts::CODE_NAME, crate::curve_hosts::code().to_vec()));
     }
+    if crate::keys::enabled() {
+        contracts.push(("kgashost", crate::keys::host_code()));
+    }
     contracts
 }
 

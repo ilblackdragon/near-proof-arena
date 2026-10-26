@@ -1,0 +1,1714 @@
+[
+ {
+  "step": 0,
+  "name": "secp-tx-transfer",
+  "family": "secp256k1 tx key",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10006-s3",
+   "00-h10007-s3",
+   "00-h10008-s3",
+   "00-h10010-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10006-s3": "accept",
+    "00-h10007-s3": "accept",
+    "00-h10008-s3": "accept",
+    "00-h10010-s3": "accept"
+   },
+   "fix": {
+    "00-h10006-s3": "accept",
+    "00-h10007-s3": "accept",
+    "00-h10008-s3": "accept",
+    "00-h10010-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 1,
+  "name": "secp-tx-recid-flip",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10010-s3",
+   "00-h10011-s3",
+   "00-h10012-s3",
+   "00-h10013-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10010-s3": "accept",
+    "00-h10011-s3": "accept",
+    "00-h10012-s3": "accept",
+    "00-h10013-s3": "accept"
+   },
+   "fix": {
+    "00-h10010-s3": "accept",
+    "00-h10011-s3": "accept",
+    "00-h10012-s3": "accept",
+    "00-h10013-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 2,
+  "name": "secp-tx-bad-sig",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidSignature (Transaction is not signed with the given public key)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10013-s3",
+   "00-h10014-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10013-s3": "accept",
+    "00-h10014-s3": "accept"
+   },
+   "fix": {
+    "00-h10013-s3": "accept",
+    "00-h10014-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 3,
+  "name": "secp-tx-high-s",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidSignature (Transaction is not signed with the given public key)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10017-s3",
+   "00-h10019-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10017-s3": "accept",
+    "00-h10019-s3": "reject"
+   },
+   "fix": {
+    "00-h10017-s3": "accept",
+    "00-h10019-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 4,
+  "name": "secp-tx-recid-4",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidSignature (Transaction is not signed with the given public key)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10021-s3",
+   "00-h10022-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10021-s3": "accept",
+    "00-h10022-s3": "accept"
+   },
+   "fix": {
+    "00-h10021-s3": "accept",
+    "00-h10022-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 5,
+  "name": "secp-tx-stale-nonce",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidNonce (Transaction nonce 2 must be larger than nonce of the used access key 2)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10026-s3",
+   "00-h10027-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10026-s3": "accept",
+    "00-h10027-s3": "accept"
+   },
+   "fix": {
+    "00-h10026-s3": "accept",
+    "00-h10027-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 6,
+  "name": "secp-tx-ed25519-sig",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidSignature (Transaction is not signed with the given public key)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10029-s3",
+   "00-h10030-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10029-s3": "out_of_domain",
+    "00-h10030-s3": "out_of_domain"
+   },
+   "fix": {
+    "00-h10029-s3": "out_of_domain",
+    "00-h10030-s3": "out_of_domain"
+   }
+  }
+ },
+ {
+  "step": 7,
+  "name": "secp-add-keys",
+  "family": "secp256k1 tx key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10033-s3",
+   "00-h10034-s3",
+   "00-h10035-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10033-s3": "accept",
+    "00-h10034-s3": "accept",
+    "00-h10035-s3": "accept"
+   },
+   "fix": {
+    "00-h10033-s3": "accept",
+    "00-h10034-s3": "accept",
+    "00-h10035-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 8,
+  "name": "secp-new-key-multi-action",
+  "family": "secp256k1 tx key",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10037-s3",
+   "00-h10039-s3",
+   "00-h10040-s3",
+   "00-h10041-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10037-s3": "accept",
+    "00-h10039-s3": "accept",
+    "00-h10040-s3": "accept",
+    "00-h10041-s3": "accept"
+   },
+   "fix": {
+    "00-h10037-s3": "accept",
+    "00-h10039-s3": "accept",
+    "00-h10040-s3": "accept",
+    "00-h10041-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 9,
+  "name": "secp-fc-key-call",
+  "family": "secp256k1 tx key",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "MethodResolveError(MethodNotFound",
+   "ok"
+  ],
+  "cases": [
+   "00-h10041-s3",
+   "00-h10042-s3",
+   "00-h10043-s3",
+   "00-h10044-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10041-s3": "accept",
+    "00-h10042-s3": "accept",
+    "00-h10043-s3": "accept",
+    "00-h10044-s3": "accept"
+   },
+   "fix": {
+    "00-h10041-s3": "accept",
+    "00-h10042-s3": "accept",
+    "00-h10043-s3": "accept",
+    "00-h10044-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 10,
+  "name": "secp-signed-delete-key",
+  "family": "secp256k1 tx key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10045-s3",
+   "00-h10046-s3",
+   "00-h10047-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10045-s3": "accept",
+    "00-h10046-s3": "accept",
+    "00-h10047-s3": "accept"
+   },
+   "fix": {
+    "00-h10045-s3": "accept",
+    "00-h10046-s3": "accept",
+    "00-h10047-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 11,
+  "name": "secp-deleted-key-tx",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidAccessKeyError (Signer AccountId(\"s0ksecp\") doesn't have access key with the given pub)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10049-s3",
+   "00-h10050-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10049-s3": "accept",
+    "00-h10050-s3": "accept"
+   },
+   "fix": {
+    "00-h10049-s3": "accept",
+    "00-h10050-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 12,
+  "name": "secp-add-off-curve-key",
+  "family": "secp256k1 tx key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10053-s3",
+   "00-h10054-s3",
+   "00-h10055-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10053-s3": "accept",
+    "00-h10054-s3": "accept",
+    "00-h10055-s3": "accept"
+   },
+   "fix": {
+    "00-h10053-s3": "accept",
+    "00-h10054-s3": "accept",
+    "00-h10055-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 13,
+  "name": "secp-off-curve-key-tx",
+  "family": "secp256k1 tx key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidSignature (Transaction is not signed with the given public key)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10057-s3",
+   "00-h10058-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10057-s3": "accept",
+    "00-h10058-s3": "accept"
+   },
+   "fix": {
+    "00-h10057-s3": "accept",
+    "00-h10058-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 14,
+  "name": "secp-delete-off-curve-key",
+  "family": "secp256k1 tx key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10061-s3",
+   "00-h10062-s3",
+   "00-h10063-s3"
+  ],
+  "lean": {
+   "main": {
+    "00-h10061-s3": "accept",
+    "00-h10062-s3": "accept",
+    "00-h10063-s3": "accept"
+   },
+   "fix": {
+    "00-h10061-s3": "accept",
+    "00-h10062-s3": "accept",
+    "00-h10063-s3": "accept"
+   }
+  }
+ },
+ {
+  "step": 15,
+  "name": "deleg-secp-valid",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10065-s1",
+   "00-h10066-s1",
+   "00-h10067-s1",
+   "00-h10068-s1",
+   "00-h10069-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10065-s1": "accept",
+    "00-h10066-s1": "accept",
+    "00-h10067-s1": "accept",
+    "00-h10068-s1": "accept",
+    "00-h10069-s1": "accept"
+   },
+   "fix": {
+    "00-h10065-s1": "accept",
+    "00-h10066-s1": "accept",
+    "00-h10067-s1": "accept",
+    "00-h10068-s1": "accept",
+    "00-h10069-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 16,
+  "name": "deleg-secp-bad-sig",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "DelegateAction is not signed with the given public key",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10069-s1",
+   "00-h10070-s1",
+   "00-h10071-s1",
+   "00-h10072-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10069-s1": "accept",
+    "00-h10070-s1": "accept",
+    "00-h10071-s1": "accept",
+    "00-h10072-s1": "accept"
+   },
+   "fix": {
+    "00-h10069-s1": "accept",
+    "00-h10070-s1": "accept",
+    "00-h10071-s1": "accept",
+    "00-h10072-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 17,
+  "name": "deleg-secp-high-s",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "DelegateAction is not signed with the given public key",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10073-s1",
+   "00-h10074-s1",
+   "00-h10075-s1",
+   "00-h10076-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10073-s1": "accept",
+    "00-h10074-s1": "accept",
+    "00-h10075-s1": "accept",
+    "00-h10076-s1": "accept"
+   },
+   "fix": {
+    "00-h10073-s1": "accept",
+    "00-h10074-s1": "accept",
+    "00-h10075-s1": "accept",
+    "00-h10076-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 18,
+  "name": "deleg-secp-stale-nonce",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "DelegateAction nonce 1 must be larger than nonce of the used access ke",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10077-s1",
+   "00-h10078-s1",
+   "00-h10079-s1",
+   "00-h10080-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10077-s1": "reject",
+    "00-h10078-s1": "accept",
+    "00-h10079-s1": "accept",
+    "00-h10080-s1": "accept"
+   },
+   "fix": {
+    "00-h10077-s1": "accept",
+    "00-h10078-s1": "accept",
+    "00-h10079-s1": "accept",
+    "00-h10080-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 19,
+  "name": "deleg-secp-recid-flip",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10081-s1",
+   "00-h10083-s1",
+   "00-h10084-s1",
+   "00-h10085-s1",
+   "00-h10086-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10081-s1": "accept",
+    "00-h10083-s1": "accept",
+    "00-h10084-s1": "accept",
+    "00-h10085-s1": "accept",
+    "00-h10086-s1": "accept"
+   },
+   "fix": {
+    "00-h10081-s1": "accept",
+    "00-h10083-s1": "accept",
+    "00-h10084-s1": "accept",
+    "00-h10085-s1": "accept",
+    "00-h10086-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 20,
+  "name": "deleg-secp-inner-add-key",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10085-s1",
+   "00-h10086-s1",
+   "00-h10087-s1",
+   "00-h10088-s1",
+   "00-h10090-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10085-s1": "accept",
+    "00-h10086-s1": "accept",
+    "00-h10087-s1": "accept",
+    "00-h10088-s1": "accept",
+    "00-h10090-s1": "accept"
+   },
+   "fix": {
+    "00-h10085-s1": "accept",
+    "00-h10086-s1": "accept",
+    "00-h10087-s1": "accept",
+    "00-h10088-s1": "accept",
+    "00-h10090-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 21,
+  "name": "deleg-v2-secp",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10090-s1",
+   "00-h10091-s1",
+   "00-h10092-s1",
+   "00-h10093-s1",
+   "00-h10094-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10090-s1": "accept",
+    "00-h10091-s1": "accept",
+    "00-h10092-s1": "accept",
+    "00-h10093-s1": "accept",
+    "00-h10094-s1": "accept"
+   },
+   "fix": {
+    "00-h10090-s1": "accept",
+    "00-h10091-s1": "accept",
+    "00-h10092-s1": "accept",
+    "00-h10093-s1": "accept",
+    "00-h10094-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 22,
+  "name": "deleg-secp-key-ed25519-sig",
+  "family": "secp256k1 delegate",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "DelegateAction is not signed with the given public key",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10093-s1",
+   "00-h10094-s1",
+   "00-h10099-s1",
+   "00-h10100-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10093-s1": "accept",
+    "00-h10094-s1": "accept",
+    "00-h10099-s1": "accept",
+    "00-h10100-s1": "accept"
+   },
+   "fix": {
+    "00-h10093-s1": "accept",
+    "00-h10094-s1": "accept",
+    "00-h10099-s1": "accept",
+    "00-h10100-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 23,
+  "name": "mldsa-add-keys",
+  "family": "ML-DSA-65 key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10097-s0",
+   "00-h10098-s0",
+   "00-h10099-s0"
+  ],
+  "lean": {
+   "main": {
+    "00-h10097-s0": "accept",
+    "00-h10098-s0": "accept",
+    "00-h10099-s0": "accept"
+   },
+   "fix": {
+    "00-h10097-s0": "accept",
+    "00-h10098-s0": "accept",
+    "00-h10099-s0": "accept"
+   }
+  }
+ },
+ {
+  "step": 24,
+  "name": "mldsa-delete-key",
+  "family": "ML-DSA-65 key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10101-s0",
+   "00-h10102-s0",
+   "00-h10103-s0"
+  ],
+  "lean": {
+   "main": {
+    "00-h10101-s0": "accept",
+    "00-h10102-s0": "accept",
+    "00-h10103-s0": "accept"
+   },
+   "fix": {
+    "00-h10101-s0": "accept",
+    "00-h10102-s0": "accept",
+    "00-h10103-s0": "accept"
+   }
+  }
+ },
+ {
+  "step": 25,
+  "name": "mldsa-signed-tx",
+  "family": "ML-DSA-65 key",
+  "mode": "inject",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10105-s0",
+   "00-h10106-s0",
+   "00-h10107-s0",
+   "00-h10108-s0"
+  ],
+  "lean": {
+   "main": {
+    "00-h10105-s0": "accept",
+    "00-h10106-s0": "out_of_domain",
+    "00-h10107-s0": "out_of_domain",
+    "00-h10108-s0": "out_of_domain"
+   },
+   "fix": {
+    "00-h10105-s0": "accept",
+    "00-h10106-s0": "out_of_domain",
+    "00-h10107-s0": "out_of_domain",
+    "00-h10108-s0": "out_of_domain"
+   }
+  }
+ },
+ {
+  "step": 26,
+  "name": "mldsa-add-gas-key",
+  "family": "ML-DSA-65 key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10109-s0",
+   "00-h10110-s0",
+   "00-h10111-s0"
+  ],
+  "lean": {
+   "main": {
+    "00-h10109-s0": "out_of_domain",
+    "00-h10110-s0": "out_of_domain",
+    "00-h10111-s0": "accept"
+   },
+   "fix": {
+    "00-h10109-s0": "out_of_domain",
+    "00-h10110-s0": "out_of_domain",
+    "00-h10111-s0": "accept"
+   }
+  }
+ },
+ {
+  "step": 27,
+  "name": "gas-add-key",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10113-s2",
+   "00-h10114-s2",
+   "00-h10115-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10113-s2": "accept",
+    "00-h10114-s2": "accept",
+    "00-h10115-s2": "accept"
+   },
+   "fix": {
+    "00-h10113-s2": "accept",
+    "00-h10114-s2": "accept",
+    "00-h10115-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 28,
+  "name": "gas-fund",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10117-s2",
+   "00-h10118-s2",
+   "00-h10119-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10117-s2": "accept",
+    "00-h10118-s2": "accept",
+    "00-h10119-s2": "accept"
+   },
+   "fix": {
+    "00-h10117-s2": "accept",
+    "00-h10118-s2": "accept",
+    "00-h10119-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 29,
+  "name": "gas-tx-index0",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10122-s2",
+   "00-h10123-s2",
+   "00-h10124-s2",
+   "00-h10126-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10122-s2": "accept",
+    "00-h10123-s2": "accept",
+    "00-h10124-s2": "accept",
+    "00-h10126-s2": "accept"
+   },
+   "fix": {
+    "00-h10122-s2": "accept",
+    "00-h10123-s2": "accept",
+    "00-h10124-s2": "accept",
+    "00-h10126-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 30,
+  "name": "gas-tx-index2-strict",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10126-s2",
+   "00-h10127-s2",
+   "00-h10128-s2",
+   "00-h10129-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10126-s2": "accept",
+    "00-h10127-s2": "accept",
+    "00-h10128-s2": "accept",
+    "00-h10129-s2": "accept"
+   },
+   "fix": {
+    "00-h10126-s2": "accept",
+    "00-h10127-s2": "accept",
+    "00-h10128-s2": "accept",
+    "00-h10129-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 31,
+  "name": "gas-tx-stale-nonce",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidNonce (Transaction nonce 10112000001 must be larger than nonce of the used ac)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10129-s2",
+   "00-h10130-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10129-s2": "accept",
+    "00-h10130-s2": "accept"
+   },
+   "fix": {
+    "00-h10129-s2": "accept",
+    "00-h10130-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 32,
+  "name": "gas-tx-index-out-of-range",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidNonceIndex (Invalid nonce_index Some(3) for key with 3 nonces)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10133-s2",
+   "00-h10134-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10133-s2": "accept",
+    "00-h10134-s2": "accept"
+   },
+   "fix": {
+    "00-h10133-s2": "accept",
+    "00-h10134-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 33,
+  "name": "gas-tx-bad-sig",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidSignature (Transaction is not signed with the given public key)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10137-s2",
+   "00-h10138-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10137-s2": "accept",
+    "00-h10138-s2": "accept"
+   },
+   "fix": {
+    "00-h10137-s2": "accept",
+    "00-h10138-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 34,
+  "name": "gas-key-plain-nonce-tx",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidNonceIndex (Invalid nonce_index None for key with 3 nonces)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10141-s2",
+   "00-h10142-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10141-s2": "accept",
+    "00-h10142-s2": "accept"
+   },
+   "fix": {
+    "00-h10141-s2": "accept",
+    "00-h10142-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 35,
+  "name": "gas-withdraw",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10145-s2",
+   "00-h10146-s2",
+   "00-h10147-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10145-s2": "accept",
+    "00-h10146-s2": "accept",
+    "00-h10147-s2": "accept"
+   },
+   "fix": {
+    "00-h10145-s2": "accept",
+    "00-h10146-s2": "accept",
+    "00-h10147-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 36,
+  "name": "gas-withdraw-too-much",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "Gas key <key> for account s3kgas has insufficient balance: 4.00 NEAR a",
+   "ok"
+  ],
+  "cases": [
+   "00-h10149-s2",
+   "00-h10150-s2",
+   "00-h10151-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10149-s2": "accept",
+    "00-h10150-s2": "accept",
+    "00-h10151-s2": "accept"
+   },
+   "fix": {
+    "00-h10149-s2": "accept",
+    "00-h10150-s2": "accept",
+    "00-h10151-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 37,
+  "name": "gas-add-secp-key-underfunded",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10153-s2",
+   "00-h10154-s2",
+   "00-h10155-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10153-s2": "accept",
+    "00-h10154-s2": "accept",
+    "00-h10155-s2": "accept"
+   },
+   "fix": {
+    "00-h10153-s2": "accept",
+    "00-h10154-s2": "accept",
+    "00-h10155-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 38,
+  "name": "gas-tx-insufficient-balance",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "NotEnoughGasKeyBalance (Gas key for AccountId(\"s3kgas\") does not have enough balance <0.001 NE)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10157-s2",
+   "00-h10158-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10157-s2": "accept",
+    "00-h10158-s2": "accept"
+   },
+   "fix": {
+    "00-h10157-s2": "accept",
+    "00-h10158-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 39,
+  "name": "gas-fund-secp-key",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10161-s2",
+   "00-h10162-s2",
+   "00-h10163-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10161-s2": "accept",
+    "00-h10162-s2": "accept",
+    "00-h10163-s2": "accept"
+   },
+   "fix": {
+    "00-h10161-s2": "accept",
+    "00-h10162-s2": "accept",
+    "00-h10163-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 40,
+  "name": "gas-secp-key-tx",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10165-s2",
+   "00-h10166-s2",
+   "00-h10167-s2",
+   "00-h10168-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10165-s2": "accept",
+    "00-h10166-s2": "accept",
+    "00-h10167-s2": "accept",
+    "00-h10168-s2": "accept"
+   },
+   "fix": {
+    "00-h10165-s2": "accept",
+    "00-h10166-s2": "accept",
+    "00-h10167-s2": "accept",
+    "00-h10168-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 41,
+  "name": "gas-delegate-v2-gas-key-nonce",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10169-s1",
+   "00-h10170-s1",
+   "00-h10171-s2",
+   "00-h10172-s1",
+   "00-h10172-s2",
+   "00-h10173-s1"
+  ],
+  "lean": {
+   "main": {
+    "00-h10169-s1": "accept",
+    "00-h10170-s1": "accept",
+    "00-h10171-s2": "accept",
+    "00-h10172-s1": "accept",
+    "00-h10172-s2": "accept",
+    "00-h10173-s1": "accept"
+   },
+   "fix": {
+    "00-h10169-s1": "accept",
+    "00-h10170-s1": "accept",
+    "00-h10171-s2": "accept",
+    "00-h10172-s1": "accept",
+    "00-h10172-s2": "accept",
+    "00-h10173-s1": "accept"
+   }
+  }
+ },
+ {
+  "step": 42,
+  "name": "gas-delete-key-with-balance",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "Gas key <key> for account s3kgas has balance 4.00 NEAR which is too hi",
+   "ok"
+  ],
+  "cases": [
+   "00-h10173-s2",
+   "00-h10174-s2",
+   "00-h10175-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10173-s2": "accept",
+    "00-h10174-s2": "accept",
+    "00-h10175-s2": "accept"
+   },
+   "fix": {
+    "00-h10173-s2": "accept",
+    "00-h10174-s2": "accept",
+    "00-h10175-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 43,
+  "name": "gas-deleted-key-tx",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10177-s2",
+   "00-h10178-s2",
+   "00-h10179-s2",
+   "00-h10180-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10177-s2": "accept",
+    "00-h10178-s2": "accept",
+    "00-h10179-s2": "accept",
+    "00-h10180-s2": "accept"
+   },
+   "fix": {
+    "00-h10177-s2": "accept",
+    "00-h10178-s2": "accept",
+    "00-h10179-s2": "accept",
+    "00-h10180-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 44,
+  "name": "gas-add-key-zero-nonces",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "ActionsValidation (Transaction actions validation error: gas key requested invalid number)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10182-s2",
+   "00-h10183-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10182-s2": "accept",
+    "00-h10183-s2": "accept"
+   },
+   "fix": {
+    "00-h10182-s2": "accept",
+    "00-h10183-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 45,
+  "name": "gas-fund-missing-key",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "Gas key <key> does not exist for account s3kgas",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10186-s2",
+   "00-h10188-s2",
+   "00-h10189-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10186-s2": "accept",
+    "00-h10188-s2": "accept",
+    "00-h10189-s2": "accept"
+   },
+   "fix": {
+    "00-h10186-s2": "accept",
+    "00-h10188-s2": "accept",
+    "00-h10189-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 46,
+  "name": "gas-fund-regular-key",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "Gas key <key> does not exist for account s3kgas",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10189-s2",
+   "00-h10190-s2",
+   "00-h10191-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10189-s2": "accept",
+    "00-h10190-s2": "accept",
+    "00-h10191-s2": "accept"
+   },
+   "fix": {
+    "00-h10189-s2": "accept",
+    "00-h10190-s2": "accept",
+    "00-h10191-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 47,
+  "name": "host-add-gas-key-full",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10193-s2",
+   "00-h10194-s2",
+   "00-h10195-s2",
+   "00-h10196-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10193-s2": "accept",
+    "00-h10194-s2": "accept",
+    "00-h10195-s2": "accept",
+    "00-h10196-s2": "accept"
+   },
+   "fix": {
+    "00-h10193-s2": "accept",
+    "00-h10194-s2": "accept",
+    "00-h10195-s2": "accept",
+    "00-h10196-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 48,
+  "name": "host-add-gas-key-function-call",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "An new action receipt created during a FunctionCall is not valid: Gas ",
+   "ok"
+  ],
+  "cases": [
+   "00-h10197-s2",
+   "00-h10198-s2",
+   "00-h10199-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10197-s2": "accept",
+    "00-h10198-s2": "accept",
+    "00-h10199-s2": "accept"
+   },
+   "fix": {
+    "00-h10197-s2": "accept",
+    "00-h10198-s2": "accept",
+    "00-h10199-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 49,
+  "name": "host-fund-gas-key",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10201-s2",
+   "00-h10202-s2",
+   "00-h10203-s2",
+   "00-h10204-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10201-s2": "accept",
+    "00-h10202-s2": "accept",
+    "00-h10203-s2": "accept",
+    "00-h10204-s2": "accept"
+   },
+   "fix": {
+    "00-h10201-s2": "accept",
+    "00-h10202-s2": "accept",
+    "00-h10203-s2": "accept",
+    "00-h10204-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 50,
+  "name": "host-add-and-fund-secp-gas-key",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10205-s2",
+   "00-h10206-s2",
+   "00-h10208-s2",
+   "00-h10209-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10205-s2": "accept",
+    "00-h10206-s2": "accept",
+    "00-h10208-s2": "accept",
+    "00-h10209-s2": "accept"
+   },
+   "fix": {
+    "00-h10205-s2": "accept",
+    "00-h10206-s2": "accept",
+    "00-h10208-s2": "accept",
+    "00-h10209-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 51,
+  "name": "host-fund-other-account-gas-key",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10209-s2",
+   "00-h10210-s2",
+   "00-h10211-s2",
+   "00-h10212-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10209-s2": "accept",
+    "00-h10210-s2": "accept",
+    "00-h10211-s2": "accept",
+    "00-h10212-s2": "accept"
+   },
+   "fix": {
+    "00-h10209-s2": "accept",
+    "00-h10210-s2": "accept",
+    "00-h10211-s2": "accept",
+    "00-h10212-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 52,
+  "name": "host-fund-missing-gas-key",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "Gas key <key> does not exist for account s3kgashost",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10213-s2",
+   "00-h10214-s2",
+   "00-h10215-s2",
+   "00-h10216-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10213-s2": "accept",
+    "00-h10214-s2": "accept",
+    "00-h10215-s2": "accept",
+    "00-h10216-s2": "accept"
+   },
+   "fix": {
+    "00-h10213-s2": "accept",
+    "00-h10214-s2": "accept",
+    "00-h10215-s2": "accept",
+    "00-h10216-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 53,
+  "name": "host-malformed-key",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ExecutionError(\"VM Logic provided an invalid public key\"",
+   "ok"
+  ],
+  "cases": [
+   "00-h10217-s2",
+   "00-h10218-s2",
+   "00-h10219-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10217-s2": "accept",
+    "00-h10218-s2": "accept",
+    "00-h10219-s2": "accept"
+   },
+   "fix": {
+    "00-h10217-s2": "accept",
+    "00-h10218-s2": "accept",
+    "00-h10219-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 54,
+  "name": "host-add-mldsa-gas-key",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10221-s2",
+   "00-h10222-s2",
+   "00-h10224-s2",
+   "00-h10225-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10221-s2": "accept",
+    "00-h10222-s2": "accept",
+    "00-h10224-s2": "accept",
+    "00-h10225-s2": "accept"
+   },
+   "fix": {
+    "00-h10221-s2": "accept",
+    "00-h10222-s2": "accept",
+    "00-h10224-s2": "accept",
+    "00-h10225-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 55,
+  "name": "host-gas-key-tx",
+  "family": "gas-key host",
+  "mode": "pool",
+  "nearcore_tx": "success",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10225-s2",
+   "00-h10226-s2",
+   "00-h10227-s2",
+   "00-h10228-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10225-s2": "accept",
+    "00-h10226-s2": "accept",
+    "00-h10227-s2": "accept",
+    "00-h10228-s2": "accept"
+   },
+   "fix": {
+    "00-h10225-s2": "accept",
+    "00-h10226-s2": "accept",
+    "00-h10227-s2": "accept",
+    "00-h10228-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 56,
+  "name": "gas-withdraw-all",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10229-s2",
+   "00-h10230-s2",
+   "00-h10231-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10229-s2": "accept",
+    "00-h10230-s2": "accept",
+    "00-h10231-s2": "accept"
+   },
+   "fix": {
+    "00-h10229-s2": "accept",
+    "00-h10230-s2": "accept",
+    "00-h10231-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 57,
+  "name": "gas-delete-empty-key",
+  "family": "gas key",
+  "mode": "pool",
+  "nearcore_tx": "success_local",
+  "nearcore_receipts": [
+   "ok",
+   "ok"
+  ],
+  "cases": [
+   "00-h10234-s2",
+   "00-h10235-s2",
+   "00-h10236-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10234-s2": "accept",
+    "00-h10235-s2": "accept",
+    "00-h10236-s2": "accept"
+   },
+   "fix": {
+    "00-h10234-s2": "accept",
+    "00-h10235-s2": "accept",
+    "00-h10236-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 58,
+  "name": "gas-removed-key-tx",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidAccessKeyError (Signer AccountId(\"s3kgas\") doesn't have access key with the given publ)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10237-s2",
+   "00-h10238-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10237-s2": "accept",
+    "00-h10238-s2": "accept"
+   },
+   "fix": {
+    "00-h10237-s2": "accept",
+    "00-h10238-s2": "accept"
+   }
+  }
+ },
+ {
+  "step": 59,
+  "name": "gas-nonce-index-on-regular-key",
+  "family": "gas key",
+  "mode": "inject",
+  "nearcore_tx": "InvalidNonceIndex (Invalid nonce_index Some(0) for key with 0 nonces)",
+  "nearcore_receipts": [],
+  "cases": [
+   "00-h10242-s2",
+   "00-h10243-s2"
+  ],
+  "lean": {
+   "main": {
+    "00-h10242-s2": "accept",
+    "00-h10243-s2": "accept"
+   },
+   "fix": {
+    "00-h10242-s2": "accept",
+    "00-h10243-s2": "accept"
+   }
+  }
+ }
+]

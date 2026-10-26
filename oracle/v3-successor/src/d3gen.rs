@@ -125,7 +125,7 @@ pub fn genesis_records(
             ("s0cacheleft", crate::d3contracts::TINY),
             ("s0cacheright", crate::d3contracts::TINY),
         ],
-        Some(Scenario::CurveHosts) => &[],
+        Some(Scenario::CurveHosts) | Some(Scenario::Keys) => &[],
     };
     let curve: Vec<(&str, &[u8])> = if scenario() == Some(Scenario::CurveHosts) {
         let code = crate::curve_hosts::code();
@@ -158,6 +158,11 @@ pub fn genesis_records(
             supply = supply.checked_add(amount).unwrap();
         }
     }
+    if crate::keys::enabled() {
+        let (extra, amount) = crate::keys::genesis_records();
+        records.extend(extra);
+        supply = supply.checked_add(amount).unwrap();
+    }
     (records, supply)
 }
 
@@ -165,6 +170,8 @@ pub fn genesis_records(
 pub enum Scenario {
     GlobalCache,
     CurveHosts,
+    /// `keys` (src/keys.rs): secp256k1 / ML-DSA-65 / gas-key steps.
+    Keys,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -173,6 +180,7 @@ pub fn scenario() -> Option<Scenario> {
         Err(std::env::VarError::NotPresent) => None,
         Ok(value) if value == "global-cache" => Some(Scenario::GlobalCache),
         Ok(value) if value == "curve-hosts" => Some(Scenario::CurveHosts),
+        Ok(value) if value == crate::keys::SCENARIO => Some(Scenario::Keys),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

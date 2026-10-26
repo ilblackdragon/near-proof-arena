@@ -51,4 +51,14 @@ theorem lengths : pk.length = 64 ∧ sig.length = 65 ∧ msgHash.length = 32 := 
 nearcore's curve library on a *valid* signature, which is the defect behind the tx-key gap. -/
 theorem verify_accepts_known_good : Secp256k1.verify pk sig msgHash = true := by decide +kernel
 
+/-- The high-`s` twin `(r, n - s)` of `sig`: valid in textbook ECDSA, rejected by libsecp256k1's
+`secp256k1_ecdsa_verify` (lower-`s` only), hence by nearcore's `Signature::verify`. A whole-chunk
+instance is `secp-tx-high-s` in `docs/evidence/lean-chunk-completion/key-family-fixtures/`. -/
+def sigHighS : Bytes :=
+  hex "e168e7ffb9aa740d27fc3a465e5e5bd3019f5c4453ab9820b322eb4355f0d7c8" ++
+  hex "856d9332e76dc66311dce51666f69c2610924fad816ba63f3e94c0e7bbe5686d" ++
+  [1]
+
+theorem verify_rejects_high_s : Secp256k1.verify pk sigHighS msgHash = false := by decide +kernel
+
 end NearSpecV3.Examples.SecpVerifyVector

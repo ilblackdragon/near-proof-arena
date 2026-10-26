@@ -1,0 +1,138 @@
+{
+ "lean_binaries": {
+  "fix (high-s rejection)": "6e0a9ffc67243446818fec96304ae64b851e3f2d509ff56e4a6b3e37e14542d3",
+  "main (412502762, before the fix)": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f"
+ },
+ "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "oracle_binary_sha256": "807a083fd5f45851e1c2c6c071cb9c2b324f3b1e5c9d4beed49a206e51841c99",
+ "protocol_version": 86,
+ "runs": {
+  "1618": {
+   "blind": {
+    "blind_error": 13,
+    "match": 160,
+    "unsupported": 2
+   },
+   "command": "NEAR_SUCCESSOR_SCENARIO=keys near-arena-oracle-v3-successor gen --domain d3 --seed 1618 --chains 1 --blocks 280 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --out k1618",
+   "honest_accepted_by_nearcore": 963,
+   "honest_witnesses": 963,
+   "keys_outcomes_sha256": "81d71cd83ab1b3228753a29a3b6769b4991d38c7c435158573daf32ab9ce21f1",
+   "manifest_sha256": "2fbeb752ef3e936348be87d7636fb4561d72b79684edb64c2f4d8950cd4cb120",
+   "min_gas_price": 0,
+   "mutants": 7849,
+   "selected": {
+    "honest": 175,
+    "mutant": 1122
+   },
+   "verdicts_allFeatures_fix": {
+    "honest/nearcore_valid/agree": 169,
+    "honest/nearcore_valid/out_of_domain": 6,
+    "mutant/nearcore_invalid/agree": 892,
+    "mutant/nearcore_valid/agree": 230
+   },
+   "verdicts_allFeatures_main": {
+    "honest/nearcore_valid/DISAGREE": 2,
+    "honest/nearcore_valid/agree": 167,
+    "honest/nearcore_valid/out_of_domain": 6,
+    "mutant/nearcore_invalid/agree": 892,
+    "mutant/nearcore_valid/agree": 230
+   },
+   "verdicts_signed_fix": {
+    "honest/nearcore_valid/agree": 105,
+    "honest/nearcore_valid/out_of_domain": 70,
+    "mutant/nearcore_invalid/agree": 799,
+    "mutant/nearcore_invalid/out_of_domain": 93,
+    "mutant/nearcore_valid/agree": 182,
+    "mutant/nearcore_valid/out_of_domain": 48
+   },
+   "verdicts_signed_main": {
+    "honest/nearcore_valid/DISAGREE": 1,
+    "honest/nearcore_valid/agree": 104,
+    "honest/nearcore_valid/out_of_domain": 70,
+    "mutant/nearcore_invalid/agree": 799,
+    "mutant/nearcore_invalid/out_of_domain": 93,
+    "mutant/nearcore_valid/agree": 182,
+    "mutant/nearcore_valid/out_of_domain": 48
+   }
+  },
+  "6151": {
+   "blind": {
+    "blind_error": 15,
+    "match": 165,
+    "unsupported": 2
+   },
+   "command": "NEAR_SUCCESSOR_SCENARIO=keys near-arena-oracle-v3-successor gen --domain d3 --seed 6151 --chains 1 --blocks 280 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 100000000 --out k6151",
+   "honest_accepted_by_nearcore": 977,
+   "honest_witnesses": 977,
+   "keys_outcomes_sha256": "2dcfc59bdc107c8a4be6c8f6c16f02bb7fc7f16092d0a7e619ec8ede9a314e1e",
+   "manifest_sha256": "4df32d116cb97e0a0a9b3aa6c58e2b63494515a97fbb29496cb2f84de3bb9704",
+   "min_gas_price": 100000000,
+   "mutants": 8115,
+   "selected": {
+    "honest": 182,
+    "mutant": 1446
+   },
+   "verdicts_allFeatures_fix": {
+    "honest/nearcore_valid/agree": 176,
+    "honest/nearcore_valid/out_of_domain": 6,
+    "mutant/nearcore_invalid/agree": 1072,
+    "mutant/nearcore_invalid/out_of_domain": 100,
+    "mutant/nearcore_valid/agree": 255,
+    "mutant/nearcore_valid/out_of_domain": 19
+   },
+   "verdicts_allFeatures_main": {
+    "honest/nearcore_valid/DISAGREE": 2,
+    "honest/nearcore_valid/agree": 174,
+    "honest/nearcore_valid/out_of_domain": 6,
+    "mutant/nearcore_invalid/agree": 1072,
+    "mutant/nearcore_invalid/out_of_domain": 100,
+    "mutant/nearcore_valid/agree": 255,
+    "mutant/nearcore_valid/out_of_domain": 19
+   },
+   "verdicts_signed_fix": {
+    "honest/nearcore_valid/agree": 114,
+    "honest/nearcore_valid/out_of_domain": 68,
+    "mutant/nearcore_invalid/agree": 916,
+    "mutant/nearcore_invalid/out_of_domain": 256,
+    "mutant/nearcore_valid/agree": 173,
+    "mutant/nearcore_valid/out_of_domain": 101
+   },
+   "verdicts_signed_main": {
+    "honest/nearcore_valid/DISAGREE": 1,
+    "honest/nearcore_valid/agree": 113,
+    "honest/nearcore_valid/out_of_domain": 68,
+    "mutant/nearcore_invalid/agree": 916,
+    "mutant/nearcore_invalid/out_of_domain": 256,
+    "mutant/nearcore_valid/agree": 173,
+    "mutant/nearcore_valid/out_of_domain": 101
+   }
+  }
+ },
+ "rustc": "1.93.0",
+ "signed_gap_census": {
+  "after": {
+   "accept": 735,
+   "out_of_domain": 2403
+  },
+  "before": {
+   "accept": 735,
+   "out_of_domain": 2403
+  },
+  "population": "nearcore == ok and expected_rel_d3 == false over d3c7-d3c10 (3,138)",
+  "results_identical": true
+ },
+ "sources_sha256": {
+  "oracle/v3-successor/contracts/kgashost.wat": "0367386ac6dd5c307a0e17e402eac6a1f904f36668db3535e3306dab6739455a",
+  "oracle/v3-successor/src/chaind3.rs": "e16218d30da32b624b89a73478345d6b0af6fd15b65f86b2d4142d1d8a441b95",
+  "oracle/v3-successor/src/codec_probe.rs": "79676368ceb71d1b312d57ce8802ee574c3339bd16a4f77716955d61ea78a2a4",
+  "oracle/v3-successor/src/d3.rs": "724d028476c336a9583fa56305a03c77d4fee47dc427e7fc697bd2ef02eb541c",
+  "oracle/v3-successor/src/d3contracts.rs": "a58248380b6196784379b45ac42421e2bc1e2430c108a2addd91ac69c9571f48",
+  "oracle/v3-successor/src/d3gen.rs": "50d7af08ed1084d03a71eaee4629c49176874f0da75e23f9291b3a0640732423",
+  "oracle/v3-successor/src/keys.rs": "b0572bbd2660417f5176daf961c324cdd02a92b22cbeef4bac14efb5bf725a66",
+  "oracle/v3-successor/src/main.rs": "e7a6242e5fc7c1d98685539a0a141acbae0474aefb5a152b26821b701c482f1f",
+  "spec/lean/v3/NearSpecV3/Secp256k1.lean": "66fed023a5d69157e23f63ec7ed0f847e99421d2d726f5c499cb84a49c3d8505",
+  "tools/d3/collect_keys.py": "88a1e1a9076e0ae073b1c486f9de03ee67819797aba002acfc59300ff579a0a8",
+  "tools/d3/keys_fixture_table.py": "fb1aa7d07b2ad433b5ce255f1920d4f2dc637d93cacc30160a52dbe335f7da1b",
+  "tools/d3/select_keys_fixtures.py": "de87a56519fd6b793e3f350f67102a7837158732ecbbe03b62b4da330221d11b"
+ }
+}

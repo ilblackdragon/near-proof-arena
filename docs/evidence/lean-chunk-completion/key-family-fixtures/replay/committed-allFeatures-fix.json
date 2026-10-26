@@ -1,0 +1,46 @@
+{
+ "cases": 79,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "disagreements": [
+  [
+   "/data/illia/nearproof/.claude/worktrees/agent-ab9df4efef9610a33/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10106-s0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ]
+ ],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+ },
+ "inputs_sha256": "cc59d04fd271d2138e0df825ab2ceea1152db5ba155ac232ad1fa0e7105a52c3",
+ "output_sha256": "3037cb26f405d3fbc2e93247c85474bbfafeb3af43467612e4e157901e46793b",
+ "package": {
+  "binary": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/lean-fix",
+  "sha256": "6e0a9ffc67243446818fec96304ae64b851e3f2d509ff56e4a6b3e37e14542d3",
+  "tier": "allFeatures"
+ },
+ "partition": {
+  "domain_exclusion_asserted": 2,
+  "domain_exclusion_unasserted": 1,
+  "verdict_agree_outside_domain": 33,
+  "verdict_compared_agree": 43
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "fail",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 76,
+  "out_of_domain": 3
+ }
+}
