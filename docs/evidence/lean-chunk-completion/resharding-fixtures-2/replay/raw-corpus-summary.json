@@ -1,0 +1,124 @@
+{
+ "scope": "raw runs c31b, c31c, c37, c41, g61, g67, t1, t2, t3; PV86 honest witnesses and all mutants; PV85 witnesses excluded",
+ "checker_sha256": "e85f57fedfa5de35022007fc32726dc8034145848ff894eca622978a287935eb",
+ "base_checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+ "generator_sha256": "1629f6785c9d6de2c32d3aa0e71e049c629ac560b88c56aaab2525acb7c4b269",
+ "honest": 1833,
+ "mutants": 182,
+ "disagreements": {
+  "allFeatures": 0,
+  "resharding": 89,
+  "base_allFeatures": 3
+ },
+ "tiers": {
+  "allFeatures": {
+   "honest|cross2.cross_layout.no_split|nearcore_ok|accept|": 1,
+   "honest|cross2.gate.no_split|nearcore_ok|accept|": 1,
+   "honest|cross_layout.no_split|nearcore_ok|accept|": 92,
+   "honest|gate.no_split|nearcore_ok|accept|": 154,
+   "honest|gate.proposed_split|nearcore_ok|accept|": 24,
+   "honest|plain|nearcore_ok|accept|": 1058,
+   "honest|pre_split|nearcore_ok|accept|": 481,
+   "honest|split.left|nearcore_ok|accept|": 11,
+   "honest|split.right|nearcore_ok|accept|": 11,
+   "mutant|gate.no_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 48,
+   "mutant|gate.proposed_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 48,
+   "mutant|split.left|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 21,
+   "mutant|split.left|nearcore_reject|reject|invalid: implicit transition post state root": 11,
+   "mutant|split.left|nearcore_reject|reject|invalid: shard not in layout": 11,
+   "mutant|split.right|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 21,
+   "mutant|split.right|nearcore_reject|reject|invalid: implicit transition post state root": 11,
+   "mutant|split.right|nearcore_reject|reject|invalid: shard not in layout": 11
+  },
+  "resharding": {
+   "honest|cross2.cross_layout.no_split|nearcore_ok|accept|": 1,
+   "honest|cross2.gate.no_split|nearcore_ok|accept|": 1,
+   "honest|cross_layout.no_split|nearcore_ok|accept|": 83,
+   "honest|cross_layout.no_split|nearcore_ok|out_of_domain|out of domain (w.shape): DeployGlobalContract action": 4,
+   "honest|cross_layout.no_split|nearcore_ok|out_of_domain|out of domain (w.shape): GlobalContractDistribution receipt": 4,
+   "honest|cross_layout.no_split|nearcore_ok|out_of_domain|out of domain (w.shape): ML-DSA-65 public key": 1,
+   "honest|gate.no_split|nearcore_ok|accept|": 153,
+   "honest|gate.no_split|nearcore_ok|out_of_domain|out of domain (w.shape): UseGlobalContract action": 1,
+   "honest|gate.proposed_split|nearcore_ok|accept|": 24,
+   "honest|plain|nearcore_ok|accept|": 1018,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_wit": 3,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_cont": 1,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (w.shape): DeployGlobalContract action": 7,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (w.shape): GlobalContractDistribution receipt": 25,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (w.shape): ML-DSA-65 public key": 4,
+   "honest|pre_split|nearcore_ok|accept|": 442,
+   "honest|pre_split|nearcore_ok|out_of_domain|out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init call": 1,
+   "honest|pre_split|nearcore_ok|out_of_domain|out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_cont": 1,
+   "honest|pre_split|nearcore_ok|out_of_domain|out of domain (w.shape): DeployGlobalContract action": 20,
+   "honest|pre_split|nearcore_ok|out_of_domain|out of domain (w.shape): GlobalContractDistribution receipt": 14,
+   "honest|pre_split|nearcore_ok|out_of_domain|out of domain (w.shape): ML-DSA-65 public key": 1,
+   "honest|pre_split|nearcore_ok|out_of_domain|out of domain (w.shape): UseGlobalContract action": 2,
+   "honest|split.left|nearcore_ok|accept|": 11,
+   "honest|split.right|nearcore_ok|accept|": 11,
+   "mutant|gate.no_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 48,
+   "mutant|gate.proposed_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 48,
+   "mutant|split.left|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 21,
+   "mutant|split.left|nearcore_reject|reject|invalid: implicit transition post state root": 11,
+   "mutant|split.left|nearcore_reject|reject|invalid: shard not in layout": 11,
+   "mutant|split.right|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 21,
+   "mutant|split.right|nearcore_reject|reject|invalid: implicit transition post state root": 11,
+   "mutant|split.right|nearcore_reject|reject|invalid: shard not in layout": 11
+  },
+  "base_allFeatures": {
+   "honest|cross2.cross_layout.no_split|nearcore_ok|accept|": 1,
+   "honest|cross2.gate.no_split|nearcore_ok|accept|": 1,
+   "honest|cross_layout.no_split|nearcore_ok|accept|": 91,
+   "honest|cross_layout.no_split|nearcore_ok|out_of_domain|out of domain (c.same_layout): distribution target requires shard ancestry": 1,
+   "honest|gate.no_split|nearcore_ok|accept|": 154,
+   "honest|gate.proposed_split|nearcore_ok|accept|": 24,
+   "honest|plain|nearcore_ok|accept|": 1056,
+   "honest|plain|nearcore_ok|out_of_domain|out of domain (c.same_layout): distribution target requires shard ancestry": 2,
+   "honest|pre_split|nearcore_ok|accept|": 481,
+   "honest|split.left|nearcore_ok|accept|": 11,
+   "honest|split.right|nearcore_ok|accept|": 11,
+   "mutant|gate.no_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 48,
+   "mutant|gate.proposed_split|nearcore_reject|reject|invalid: InvalidChunkHeaderShardSplit": 48,
+   "mutant|split.left|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 21,
+   "mutant|split.left|nearcore_reject|reject|invalid: implicit transition post state root": 11,
+   "mutant|split.left|nearcore_reject|reject|invalid: shard not in layout": 11,
+   "mutant|split.right|nearcore_reject|reject|invalid: MissingTrieValue (retain_split_shard)": 21,
+   "mutant|split.right|nearcore_reject|reject|invalid: implicit transition post state root": 11,
+   "mutant|split.right|nearcore_reject|reject|invalid: shard not in layout": 11
+  }
+ },
+ "moved_base_to_new_allFeatures": [
+  {
+   "case": "g67/cases/01-h10062-s5",
+   "base": [
+    "out_of_domain",
+    "out of domain (c.same_layout): distribution target requires shard ancestry"
+   ],
+   "new": [
+    "accept",
+    ""
+   ]
+  },
+  {
+   "case": "g67/cases/01-h10068-s4",
+   "base": [
+    "out_of_domain",
+    "out of domain (c.same_layout): distribution target requires shard ancestry"
+   ],
+   "new": [
+    "accept",
+    ""
+   ]
+  },
+  {
+   "case": "g67/cases/01-h10074-s4",
+   "base": [
+    "out_of_domain",
+    "out of domain (c.same_layout): distribution target requires shard ancestry"
+   ],
+   "new": [
+    "accept",
+    ""
+   ]
+  }
+ ]
+}

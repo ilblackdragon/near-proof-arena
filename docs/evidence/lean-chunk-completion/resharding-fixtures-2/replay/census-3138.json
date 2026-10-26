@@ -1,0 +1,14 @@
+{
+ "population": "meta.json nearcore == ok and expected_rel_d3 == false over d3c7..d3c10",
+ "cases": 3138,
+ "tier": "allFeatures",
+ "base_checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+ "checker_sha256": "e85f57fedfa5de35022007fc32726dc8034145848ff894eca622978a287935eb",
+ "base": {
+  "accept": 3138
+ },
+ "new": {
+  "accept": 3138
+ },
+ "moved": []
+}

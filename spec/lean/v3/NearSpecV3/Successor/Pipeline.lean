@@ -1,4 +1,5 @@
 import NearSpecV3.D2.Receipts
+import NearSpecV3.Successor.Routing
 
 /-!
 # The receipt preparation pipeline, as far as it decides code availability
@@ -158,7 +159,7 @@ def peekDelayed (decodeStored : Bytes → Except String Stored) (layout : Layout
     | some (some b) => match decodeStored b with
       | .ok st =>
         let (p, rest) := peekDelayed decodeStored layout own o p fuel (i + 1) next
-        (p, if st.r.targetShard layout == own then st.r :: rest else rest)
+        (p, if st.r.routedShard layout == own then st.r :: rest else rest)
       | .error _ => ({ p with uncertain := true }, [])
     | _ => (p, [])
 

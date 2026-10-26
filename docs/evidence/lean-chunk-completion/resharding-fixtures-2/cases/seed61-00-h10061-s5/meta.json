@@ -1,0 +1,57 @@
+{
+  "bandwidth_requests_nonempty": false,
+  "case": "00-h10061-s5",
+  "chain_params": "ReshardParams { base: ChainParams { seed: 61000183, n_shards: 4, seats: 8, gas_limit_tgas: 60, epoch_length: 12, blocks: 76, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, split_k: 0, variant: 0, max_txs: 4, max_d3: 2, p_contract: 0.04, p_burst_hot: 0.5, min_gas_price: 0, second_split: None, max_shards: None, force: true, mem_threshold: 18446744073709551615, min_child: 18446744073709551615, starve: None, zlim: true, p_global_hot: 0.5 }",
+  "claim_distinct_layouts": 2,
+  "claim_epoch_protocol_versions": [
+    86,
+    86
+  ],
+  "claim_layouts_differ": true,
+  "code_blobs": 1,
+  "epoch_id": "c29bf52ed3a453d3082be2e937d8d6b0d7a177ff4791741f85ac2b57449ec71a",
+  "expected_rel": true,
+  "gate_probe": null,
+  "generator": "reshard",
+  "header_congestion": {
+    "allowed_shard": 5,
+    "buffered_receipts_gas": "0",
+    "delayed_receipts_gas": "1228258581671560",
+    "receipt_bytes": 188820
+  },
+  "height_created": 10061,
+  "implicit_transitions": [
+    {
+      "resharding": {
+        "boundary_account": "s0z",
+        "child_shard_uid": "s5.v3",
+        "retain": "right"
+      }
+    }
+  ],
+  "kind": "honest",
+  "main_base_state_values": 53,
+  "main_outgoing_receipts": 2,
+  "main_transition_height": 10060,
+  "main_transition_shard": 3,
+  "n_implicit_blocks": 0,
+  "n_new_transactions": 0,
+  "n_source_receipts": 3,
+  "n_transactions": 3,
+  "nearcore": "ok",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "proposed_split": null,
+  "shape": "split.right",
+  "shard_id": 5,
+  "split_gate_in_apply_facts": false,
+  "tx_labels": [
+    "h.implicit_eth",
+    "h.zlim_above_receipt_limit",
+    "h.zlim_past_soft_limit"
+  ],
+  "validator_updates": [
+    null
+  ],
+  "witness_bytes": 4072351,
+  "witness_layout": "V3(ShardLayoutV3 { boundary_accounts: [AccountId(\"s0z\"), AccountId(\"s1\"), AccountId(\"s2\"), AccountId(\"s3\")], shard_ids: [4, 5, 1, 0, 2], id_to_index_map: {0: 3, 1: 2, 2: 4, 4: 0, 5: 1}, shards_split_map: {3: [4, 5]}, last_split: 3, shards_ancestor_map: {0: [], 1: [], 2: [], 4: [3], 5: [3]} })"
+}

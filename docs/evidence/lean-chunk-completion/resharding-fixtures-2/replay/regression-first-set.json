@@ -1,0 +1,14 @@
+{
+ "scope": "resharding-fixtures/cases (38): verdict and reason against the committed replay",
+ "checker_sha256": "e85f57fedfa5de35022007fc32726dc8034145848ff894eca622978a287935eb",
+ "allFeatures": {
+  "cases": 38,
+  "identical": 38,
+  "changed": []
+ },
+ "resharding": {
+  "cases": 38,
+  "identical": 38,
+  "changed": []
+ }
+}

@@ -21,6 +21,8 @@ integration-tests = { path = "../vendor/nearcore/integration-tests" }
 near-chain = { path = "../vendor/nearcore/chain/chain" }
 near-chain-configs = { path = "../vendor/nearcore/core/chain-configs" }
 near-client = { path = "../vendor/nearcore/chain/client" }
+near-chunks = { path = "../vendor/nearcore/chain/chunks" }
+near-async = { path = "../vendor/nearcore/core/async" }
 near-epoch-manager = { path = "../vendor/nearcore/chain/epoch-manager" }
 near-primitives = { path = "../vendor/nearcore/core/primitives", features = ["test_utils", "solomon", "clock", "rand"] }
 near-primitives-core = { path = "../vendor/nearcore/core/primitives-core" }
