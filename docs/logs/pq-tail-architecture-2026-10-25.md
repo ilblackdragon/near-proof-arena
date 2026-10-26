@@ -61,3 +61,23 @@ general actions/Wasm, full state-transition semantics, recursive history,
 composed PQ security, zero knowledge, hostile decoder safety, the 1–2 s
 deadline. See ACCOUNT_LEDGER_HANDOFF.md and evidence/account-ledger-trie
 under research/near-compression/tail-architecture.
+
+## PQ verify phase attribution (2026-10-26)
+
+Full serial attribution of the 1.47 s NPMULT03 fresh verify. The serial
+bottleneck is NOT the IOP sumcheck (3.1 ms): it is the C composite's
+lifts+aggregate poly-matrix kernels (579 ms — the same op families the
+prover already parallelizes via np_pairs/np_jl pthread workers, first
+round r=31 n=9567 dominating at 647 ms of 726 ms), the Rust
+constraint-wiring replay (520 ms, data-parallel across constraints), and
+the Rust statement build (116 ms). Ideal 4-way bounds serial verify near
+340 ms; 16-way near 100 ms — under the 200 ms target, but these are
+estimates: parallel verify kernels are NOT implemented and the 16-thread
+number must be measured. Instrumentation only; no parameter/rank/norm/
+transcript change; the committed packet verifies fresh in the
+instrumented run with all four codec negative checks. See
+PQ_VERIFY_ATTRIBUTION.md and evidence/pq-verify-attribution. Next:
+port the two C verify kernels to the existing pthread-worker pattern
+(retaining per-output accumulation order and the sprod chunk-cache
+warmup discipline), then parallelize the wiring replay; then measure
+16-thread and folded-aggregate verify.
