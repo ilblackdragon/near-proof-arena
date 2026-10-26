@@ -140,7 +140,8 @@ pub fn genesis_records(
             ("s0cacheleft", crate::d3contracts::TINY),
             ("s0cacheright", crate::d3contracts::TINY),
         ],
-        Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Yield | Scenario::StorageLimits) => &[],
+        Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Yield | Scenario::StorageLimits
+             | Scenario::FuelStress) => &[],
     };
     let curve: Vec<(&str, &[u8])> = if scenario() == Some(Scenario::CurveHosts) {
         let code = crate::curve_hosts::code();
@@ -193,6 +194,8 @@ pub enum Scenario {
     /// `yield` / `storage-limits` (src/scenarios.rs).
     Yield,
     StorageLimits,
+    /// `fuel-stress` (src/scenarios.rs, W02): interpreter-step and non-metered-work maxima.
+    FuelStress,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -204,6 +207,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == crate::keys::SCENARIO => Some(Scenario::Keys),
         Ok(value) if value == "yield" => Some(Scenario::Yield),
         Ok(value) if value == "storage-limits" => Some(Scenario::StorageLimits),
+        Ok(value) if value == "fuel-stress" => Some(Scenario::FuelStress),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

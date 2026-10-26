@@ -150,3 +150,22 @@ and PV86 enables dynamic resharding with a forced split of the shard of `s{k}a00
 `meta.json`. Split, layout and split-gate mutants go to `DIR/mutants/`. The D3 classifier is not
 used. Commands, seeds and results are in
 `docs/evidence/lean-chunk-completion/resharding-fixtures/README.md`.
+
+## Fuel-stress scenario (W02)
+
+Set `NEAR_SUCCESSOR_SCENARIO=fuel-stress` for a quiet chain with the `fuelc` contract
+(`scenarios::fuel_wat`) on `s0fuel` and `s1fuel`, and 16 FunctionCalls (`fuel_schedule`): the
+cheapest instruction burning 300 Tgas (`nops`, `spin`), loops of 200 and 4,999 empty `block`s
+(zero finite-wasm fee, so the most interpreter steps per unit of gas), recursion to the stack
+limit (empty frames and 1,000-local frames), 2,048 pages with 128 MiB fill and 64 MiB copy, a
+64 MiB fill loop, loops of `sha256(64 KiB)`, `used_gas` and `memory.grow(0)`, a 10^7-iteration
+counted loop that succeeds, and three 300 Tgas calls in one chunk. `scenario-<chain>.json` holds
+nearcore's outcome tree for every call. `tools/d3/collect_fuel_stress.py --source RUN --out
+MANIFEST` maps each call to the case that validates it.
+
+```
+NEAR_SUCCESSOR_SCENARIO=fuel-stress $B gen --domain d3 --seed 2026 --chains 1 --blocks 45 \
+  --p-missing 0 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --out RUN
+```
+
+Evidence: `docs/evidence/lean-chunk-completion/fuel-termination/`.

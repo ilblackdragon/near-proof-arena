@@ -1,0 +1,44 @@
+{
+  "chains": [
+    "D3Params { base: ChainParams { seed: 2026006078, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 45, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+  ],
+  "crafted_transactions": 0,
+  "d0_cases_among_d3": 136,
+  "d1_cases_among_d3": 136,
+  "d3": {
+    "check.fc_profile_exceeds_gas_burnt": 0,
+    "check.ood_host_profile_unmarked": 0,
+    "d3.multi_shard_receipts": 0,
+    "d3.with_codes": 4,
+    "fail.FunctionCallError:ExecutionError:Accessed_memory_outside_the_bounds.": 2,
+    "fail.FunctionCallError:GasExceeded": 13,
+    "honest_cold_no_codes_reject": 14,
+    "honest_over_g_alpha": 10,
+    "honest_warm_no_codes_ok": 180,
+    "honest_with_executed_code": 14,
+    "honest_with_function_calls": 14,
+    "honest_with_receiver_reward": 0,
+    "honest_with_tokens_burnt": 0,
+    "ran.fuelc.state": 14,
+    "sum.n_callbacks": 0,
+    "sum.n_fc_failures": 15,
+    "sum.n_function_calls": 16,
+    "sum.n_function_calls_with_code": 16,
+    "sum.n_logs": 0,
+    "sum.n_promises": 16,
+    "sum.ran_deployed_in_chunk": 0
+  },
+  "d3_cases": 166,
+  "d3_violation_counts": {
+    "c.not_genesis": 4,
+    "e.g_alpha": 10
+  },
+  "domain": "D3alpha",
+  "honest_accepted_by_nearcore": 180,
+  "honest_witnesses": 180,
+  "mutants": 0,
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "ood_cases_written": 14,
+  "protocol_version": 86,
+  "seed": 2026
+}

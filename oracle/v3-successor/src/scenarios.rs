@@ -10,6 +10,11 @@
 //!   (`per_receipt_storage_proof_size_limit`, shard 0) and the chunk soft limit
 //!   (`main_storage_proof_size_soft_limit`, `check_proof_size_limit_exceed`, shard 1), followed by
 //!   below/at/above probes and boundary variants; fixed misc cases on shards 2 and 3.
+//! * `fuel-stress` — a quiet chain (W02) running Wasm workloads that maximise interpreter steps
+//!   per unit of gas or non-metered work per step: the cheapest instruction burning the full
+//!   300 Tgas, zero-fee control-flow loops (`block`/`end` chains up to `max_blocks_per_function`),
+//!   recursion to the stack limit, maximal memory with bulk fills/copies, and long loops of host
+//!   calls. Three 300 Tgas calls share one chunk (900 Tgas of the 1 Pgas chunk limit).
 //!
 //! The searches use only nearcore's own outcomes (success/failure of the probe receipt, the
 //! execution height of a receipt that follows it in the same chunk). The probe's only knob is the
@@ -34,6 +39,7 @@ pub enum Scenario {
     GlobalCache,
     Yield,
     StorageLimits,
+    FuelStress,
 }
 
 pub fn scenario() -> Option<Scenario> {
@@ -43,13 +49,14 @@ pub fn scenario() -> Option<Scenario> {
         Some(crate::d3gen::Scenario::GlobalCache) => Some(Scenario::GlobalCache),
         Some(crate::d3gen::Scenario::Yield) => Some(Scenario::Yield),
         Some(crate::d3gen::Scenario::StorageLimits) => Some(Scenario::StorageLimits),
+        Some(crate::d3gen::Scenario::FuelStress) => Some(Scenario::FuelStress),
         _ => None,
     }
 }
 
 /// Quiet scenarios suppress baseline D2/D3 traffic and crafted injections.
 pub fn quiet() -> bool {
-    scenario() == Some(Scenario::StorageLimits)
+    matches!(scenario(), Some(Scenario::StorageLimits | Scenario::FuelStress))
 }
 
 fn acct(s: &str) -> AccountId {
@@ -218,6 +225,56 @@ const SLIM_WAT_HEAD: &str = r#"(module
       (br $next))))
 "#;
 
+/// Fuel-stress contract (W02). Every method takes no input.
+///   nops / spin          infinite loop of `nop`s / of a bare `br` (out of gas at the attached gas)
+///   blocks200 / blocks4999  infinite loop whose body is k empty `block`s (zero finite-wasm fee each)
+///   recurse / recurse_big   unbounded recursion (empty frame / 1,000 i64 locals) to the stack limit
+///   memmax               grow to 2,048 pages, fill 128 MiB, copy 64 MiB, return sha256 of 8 KiB
+///   memfill_loop         infinite loop of 64 MiB `memory.fill`
+///   sha_loop / host_loop / grow_loop  infinite loops of sha256(64 KiB) / used_gas / memory.grow(0)
+///   count                10,000,000 iterations, then returns the counter (succeeds)
+pub fn fuel_wat() -> String {
+    let locals = vec!["i64"; 1000].join(" ");
+    format!(r#"(module
+  (import "env" "sha256" (func $sha (param i64 i64 i64)))
+  (import "env" "used_gas" (func $ug (result i64)))
+  (import "env" "read_register" (func $rr (param i64 i64)))
+  (import "env" "value_return" (func $vr (param i64 i64)))
+  (memory 1)
+  (func (export "nops") (loop $l nop nop nop nop nop nop nop nop br $l))
+  (func (export "spin") (loop $l br $l))
+  (func (export "blocks200") (loop $l {b200} br $l))
+  (func (export "blocks4999") (loop $l {b4999} br $l))
+  (func $rec (call $rec))
+  (func (export "recurse") (call $rec))
+  (func $recbig (local {locals}) (call $recbig))
+  (func (export "recurse_big") (call $recbig))
+  (func (export "memmax")
+    (drop (memory.grow (i32.const 1024)))
+    (memory.fill (i32.const 0) (i32.const 171) (i32.const 134217728))
+    (i32.store (i32.const 4096) (memory.size))
+    (memory.copy (i32.const 67108864) (i32.const 0) (i32.const 67108864))
+    (call $sha (i64.const 67104768) (i64.const 8192) (i64.const 0))
+    (call $rr (i64.const 0) (i64.const 0))
+    (call $vr (i64.const 32) (i64.const 0)))
+  (func (export "memfill_loop") (loop $l (memory.fill (i32.const 0) (i32.const 7) (i32.const 67108864)) br $l))
+  (func (export "sha_loop") (loop $l (call $sha (i64.const 0) (i64.const 65536) (i64.const 0)) br $l))
+  (func (export "host_loop") (loop $l (drop (call $ug)) br $l))
+  (func (export "grow_loop") (loop $l (drop (memory.grow (i32.const 0))) br $l))
+  (func (export "count") (local $i i32)
+    (loop $l
+      (local.set $i (i32.add (local.get $i) (i32.const 1)))
+      (br_if $l (i32.lt_u (local.get $i) (i32.const 10000000))))
+    (i32.store (i32.const 0) (local.get $i))
+    (call $vr (i64.const 4) (i64.const 0)))
+)"#, b200 = "(block)".repeat(200), b4999 = "(block)".repeat(4999))
+}
+
+pub fn fuel_wasm() -> &'static [u8] {
+    static W: OnceLock<Vec<u8>> = OnceLock::new();
+    W.get_or_init(|| wat::parse_str(fuel_wat()).expect("fuel wat"))
+}
+
 /// Data-segment bytes of the large-code contract: the deploy transaction stays under
 /// `max_transaction_size` (1,572,864 B).
 pub const LARGE_PAD: usize = 1_500_000;
@@ -249,6 +306,7 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
             ("slimlarge", slim_large_wasm().to_vec()),
             ("yieldc", yield_wasm().to_vec()),
         ],
+        Some(Scenario::FuelStress) => vec![("fuelc", fuel_wasm().to_vec())],
         _ => vec![],
     }
 }
@@ -314,6 +372,11 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
             // yields on the soft-lane shard whose timeouts the soft limit can defer
             add(&mut records, "s1zyield", Some(yield_wasm()), vec![]);
         }
+        Some(Scenario::FuelStress) => {
+            assert!(n_shards >= 2, "the fuel-stress scenario needs at least 2 shards");
+            add(&mut records, "s0fuel", Some(fuel_wasm()), vec![]);
+            add(&mut records, "s1fuel", Some(fuel_wasm()), vec![]);
+        }
         _ => {}
     }
     (records, supply)
@@ -324,10 +387,14 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
 // ---------------------------------------------------------------------------------------------
 
 fn fc(method: &str, args: Vec<u8>, tgas: u64) -> Action {
+    fc_gas(method, args, Gas::from_teragas(tgas))
+}
+
+fn fc_gas(method: &str, args: Vec<u8>, gas: Gas) -> Action {
     Action::FunctionCall(Box::new(FunctionCallAction {
         method_name: method.into(),
         args,
-        gas: Gas::from_teragas(tgas),
+        gas,
         deposit: Balance::ZERO,
     }))
 }
@@ -481,6 +548,41 @@ fn yield_schedule() -> Vec<(u64, Sched)> {
     v.push((30, yield_tx("successor.yield.34.create-race-cancel", y, "create", vec![16])));
     v.push((231, yield_tx("successor.yield.35.resume-after-timeout-fired", y, "resume", with(16, b"cancel"))));
     v
+}
+
+/// The fuel-stress schedule (W02). Gas is chosen so the Lean evaluator finishes in minutes:
+/// `blocks4999` runs ~10,000 interpreter steps per 2 `regular_op_cost` of gas, so it gets 0.3 Tgas
+/// and `blocks200` 5 Tgas; every other method gets the 300 Tgas maximum.
+fn fuel_schedule() -> Vec<(u64, Sched)> {
+    let call = |label: &str, signer: &str, method: &str, gas: Gas| Sched {
+        label: format!("successor.fuel-stress.{label}"),
+        signer: acct(signer),
+        receiver: acct(signer),
+        describe: format!("{method} gas={}", gas.as_gas()),
+        actions: vec![fc_gas(method, vec![], gas)],
+    };
+    let t = Gas::from_teragas;
+    let a = "s0fuel";
+    let b = "s1fuel";
+    vec![
+        (0, call("00.nops-300T", a, "nops", t(300))),
+        (0, call("01.spin-300T", b, "spin", t(300))),
+        (3, call("02.blocks200-5T", a, "blocks200", t(5))),
+        (3, call("03.blocks4999-0.3T", b, "blocks4999", Gas::from_gas(300_000_000_000))),
+        (6, call("04.recurse-300T", a, "recurse", t(300))),
+        (6, call("05.recurse-big-300T", b, "recurse_big", t(300))),
+        (9, call("06.memmax-300T", a, "memmax", t(300))),
+        (9, call("07.memfill-loop-300T", b, "memfill_loop", t(300))),
+        (12, call("08.sha-loop-300T", a, "sha_loop", t(300))),
+        (12, call("09.host-loop-300T", b, "host_loop", t(300))),
+        (15, call("10.grow-loop-300T", a, "grow_loop", t(300))),
+        (15, call("11.count-300T", b, "count", t(300))),
+        // three 300 Tgas receipts of one shard: 900 Tgas of the 1 Pgas chunk gas limit
+        (18, call("12.chunk-nops-a", a, "nops", t(300))),
+        (18, call("13.chunk-nops-b", a, "nops", t(300))),
+        (18, call("14.chunk-nops-c", a, "nops", t(300))),
+        (21, call("15.blocks200-1T", b, "blocks200", t(1))),
+    ]
 }
 
 /// Fixed storage-limit misc schedule on shards 2 and 3.
@@ -807,6 +909,7 @@ impl Driver {
     pub fn new() -> Self {
         let (fixed, lanes) = match scenario() {
             Some(Scenario::Yield) => (yield_schedule(), vec![]),
+            Some(Scenario::FuelStress) => (fuel_schedule(), vec![]),
             Some(Scenario::StorageLimits) => (storage_misc_schedule(),
                 vec![Lane::new(LaneKind::Receipt, START), Lane::new(LaneKind::Soft, START)]),
             _ => (vec![], vec![]),
@@ -1034,7 +1137,8 @@ fn shard_map(s: &Setup) -> serde_json::Value {
     let c = &s.env.clients[0];
     let tip = c.chain.head().unwrap();
     let layout = c.epoch_manager.get_shard_layout(&tip.epoch_id).unwrap();
-    let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s1zyield", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode"];
+    let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s1zyield", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode",
+                 "s0fuel", "s1fuel"];
     let mut m = serde_json::Map::new();
     for n in names {
         m.insert(n.into(), json!(layout.account_id_to_shard_id(&acct(n)).to_string()));
