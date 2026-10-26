@@ -411,7 +411,9 @@ named tiers are not cumulative: `.curveHosts` and `.resharding` omit `globalActi
 `.globalActions` (its complete-code policy rejects 76 valid warm-cache chunks), so it cannot be an
 ancestor of any widest tier. `.allFeatures` is the first tier that actually composes every
 implemented feature; only for it does "higher rank" mean "wider domain" among the wide tiers.
-The rank remains a *declaration*: no refinement theorem is proved. -/
+The rank remains a *declaration*. The refinement theorems that are proved (gas bound, genesis
+main transition, `c.segment`, the resharding driver on genesis segments) and the obligations that
+remain are in `Successor/TierMono.lean`. -/
 def Tier.rank : Tier → Nat
   | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
   | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7
