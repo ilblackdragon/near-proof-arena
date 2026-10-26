@@ -1,4 +1,5 @@
 import NearSpecV3.Logged.LazyTrieSpec
+import NearSpecV3.Logged.LazyTrieKernel
 import NearSpecV3.D2.State
 
 /-!
@@ -547,7 +548,8 @@ theorem rootHashL_spec {s : HStore} (hs : HInv s) (t : Option LT) : rootHashL t 
 theorem applyChangeL_spec (s : HStore) (t : Option LT) (k : Bytes) (v : Option Bytes) :
     ∃ o, SM.run (hGet s) (applyChangeL t k v) = .ok o ∧
       o.map (Option.map (·.force s)) = applyChange (t.map (·.force s)) k v := by
-  unfold applyChangeL applyChange
+  rw [applyChangeL_eq]
+  unfold applyChange
   match v, t with
   | some x, none => exact ⟨_, rfl, by simp [newLeafL, newLeaf, LT.force]⟩
   | some x, some t =>

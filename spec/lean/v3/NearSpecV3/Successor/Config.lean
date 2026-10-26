@@ -30,11 +30,15 @@ configuration of the same root. Nothing here widens `checkD3`.
   configurations is UQ-009 (owner L9 + L6) and is **not** done here.
 * `floats` — `NearCfg.floats` (`Wasm.floatPv86` when true). L2 owns the float kernel and its tests.
 * `gasCap` — the per-chunk function-call gas bound. `some D3.gAlpha` is the signed prover-capacity
-  bound; `some maxGasBurnt` is the protocol bound from L1's `ChallengeChunkV3Gas`; `none` disables the
-  bound (documented as "no per-chunk gas condition" — **not** an accepted configuration, see UQ-012).
+  bound; `some maxGasBurnt` is the bound the narrower successor tiers inherit from
+  `ChallengeChunkV3Gas`; `none` is nearcore's behaviour — `max_gas_burnt` (1 Pgas at PV86,
+  `runtime_configs/83.yaml:7`) bounds one function call, not a chunk, and a chunk whose last receipt
+  starts below the gas limit can burn more than 1 Pgas of function-call gas. `.allFeatures` (the
+  Gate-B tier) uses `none`; UQ-012 asks whether a stated `G_α` contract is acceptable for any other.
 * `genesisMainTransition` — use L6's genesis-aware validation pipeline.
 * `storageResolution` — use the recorder-backed main transition and runtime identifier resolution.
-  The legacy merged-value overestimate is disabled; the serialized witness cap remains.
+  The legacy merged-value overestimate is disabled; the 8 MiB serialized witness cap remains
+  unless `witnessUnbounded` (set on `.allFeatures`).
 
 `ProtocolCfg.wasm` is the derived `NearCfg`. It is deliberately a *function* of `floats` and `loadingLimits`, so a
 configuration cannot carry an arbitrary `NearCfg` that drifts from the declared protocol version.
@@ -75,8 +79,8 @@ structure ProtocolCfg where
   protocolVersion : Nat := 86
   /-- `NearCfg.floats`: decide float contracts instead of excluding them (L2's `floatPv86`). -/
   floats : Bool := false
-  /-- Per-chunk function-call gas bound: `some D3.gAlpha` (signed), `some maxGasBurnt` (protocol),
-  or `none` (no bound; not an accepted configuration, UQ-012). -/
+  /-- Per-chunk function-call gas bound: `some D3.gAlpha` (signed), `some maxGasBurnt` (narrower
+  successor tiers), or `none` (nearcore's behaviour: no per-chunk bound; `.allFeatures`). -/
   gasCap : Option Nat := some D3.gAlpha
   /-- Use L6's genesis-aware pipeline (`checkD2CoreG`) instead of `checkD2Core`. -/
   genesisMainTransition : Bool := false
@@ -103,6 +107,13 @@ structure ProtocolCfg where
   condition; the pipeline already walks an arbitrary `c.blocks` list. The signed configuration keeps
   this `false`, so the bound stays in force there and `checkSuccessor_signed` remains `rfl`. -/
   segmentUnbounded : Bool := false
+  /-- Opt-in lift of the `|state_witness| ≤ 8 MiB` witness bound (`w.size`), the D0 witness-capacity
+  choice. nearcore's own 64 MiB decode bound is kept by the witness decoder on every configuration.
+  The signed configuration keeps this `false`. -/
+  witnessUnbounded : Bool := false
+  /-- Opt-in lift of the `numShards ≤ 64` half of `c.layout`, the D0 routing-table size. nearcore
+  has no such limit. The signed configuration keeps this `false`. -/
+  layoutUnbounded : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
@@ -186,7 +197,9 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
       if cfg.resharding then reshardingDriver cfg.wasm cfg.globalActions codePolicy
       else recorderDriver cfg.wasm cfg.globalActions codePolicy
     let mkDriver : ExecutionDriver :=
-      { baseDriver with segmentUnbounded := cfg.segmentUnbounded }
+      { baseDriver with segmentUnbounded := cfg.segmentUnbounded,
+                        witnessUnbounded := cfg.witnessUnbounded,
+                        layoutUnbounded := cfg.layoutUnbounded }
     if cfg.resharding && !segmentHasGenesis claimBytes then
       -- the resharding tiers read a segment across layout boundaries (`ReshardCore`)
       checkReshardCore mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
@@ -208,7 +221,9 @@ def successorDriver (cfg : ProtocolCfg) : ExecutionDriver :=
   let baseDriver : ExecutionDriver :=
     if cfg.resharding then reshardingDriver cfg.wasm cfg.globalActions codePolicy
     else recorderDriver cfg.wasm cfg.globalActions codePolicy
-  { baseDriver with segmentUnbounded := cfg.segmentUnbounded }
+  { baseDriver with segmentUnbounded := cfg.segmentUnbounded,
+                    witnessUnbounded := cfg.witnessUnbounded,
+                    layoutUnbounded := cfg.layoutUnbounded }
 
 /-- The computed outputs of a wide configuration's non-genesis transition. With `blind = false` it
 runs every check `checkSuccessor` runs on a non-genesis claim (the genesis-capable path delegates
@@ -336,10 +351,17 @@ def Tier.cfg : Tier → ProtocolCfg
   -- Every implemented feature at once. This is the only tier whose domain is the union of the
   -- other wide tiers': the named tiers are not cumulative (`curveHosts`/`resharding` omit
   -- `globalActions`), and `completeCodeGlobal` is narrower than `globalActions`.
+  -- It is also the Gate-B tier: no arena-derived cap remains. `gasCap := none` because nearcore has
+  -- no per-chunk function-call gas limit (`max_gas_burnt` is per function call,
+  -- `gas_counter.rs:87-101`, and a chunk's last receipt may start below the chunk gas limit and
+  -- burn up to `max_total_prepaid_gas`, `runtime/src/lib.rs` `process_receipts`); the 32-block
+  -- segment, the 8 MiB witness and the 64-shard layout bounds are lifted (docs/evidence/
+  -- lean-chunk-completion/gate-b-caps/README.md).
   | .allFeatures =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+    { signedCfg with floats := true, gasCap := none, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, globalActions := true,
-                     curveHosts := true, resharding := true, segmentUnbounded := true }
+                     curveHosts := true, resharding := true, segmentUnbounded := true,
+                     witnessUnbounded := true, layoutUnbounded := true }
 
 /-- The tier's checker: the root at the tier's configuration. -/
 def Tier.checker (t : Tier) : Bytes → Bytes → Except String Unit := checkSuccessor t.cfg
@@ -365,14 +387,15 @@ decides it. Measured on 3,138 nearcore-valid cases: `.globalActions` decides 222
 `.curveHosts` and `.resharding` exclude, and `.resharding` decides 237 that `.globalActions`
 excludes. Neither is wider. `.allFeatures` is the join of both. -/
 
-/-- `.allFeatures` sets every field `.globalActions` sets. -/
+/-- `.allFeatures` sets every feature field `.globalActions` sets; its gas bound is wider (`none` in
+place of `some maxGasBurnt`: nearcore has no per-chunk function-call gas limit). -/
 theorem allFeatures_sets_globalActions :
     (Tier.cfg .allFeatures).globalActions = true ∧
       (Tier.cfg .allFeatures).storageResolution = true ∧
       (Tier.cfg .allFeatures).floats = true ∧
       (Tier.cfg .allFeatures).genesisMainTransition = true ∧
       (Tier.cfg .allFeatures).loadingLimits = true ∧
-      (Tier.cfg .allFeatures).gasCap = some maxGasBurnt := ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+      (Tier.cfg .allFeatures).gasCap = none := ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
 
 /-- `.allFeatures` sets every field `.curveHosts` sets. -/
 theorem allFeatures_sets_curveHosts : (Tier.cfg .allFeatures).curveHosts = true := rfl
@@ -383,6 +406,15 @@ theorem allFeatures_sets_resharding : (Tier.cfg .allFeatures).resharding = true 
 /-- `.allFeatures` lifts the prover-capacity `c.segment` bound; the signed configuration does not. -/
 theorem allFeatures_lifts_segment :
     (Tier.cfg .allFeatures).segmentUnbounded = true ∧ signedCfg.segmentUnbounded = false := ⟨rfl, rfl⟩
+
+/-- `.allFeatures` carries no arena-derived cap: no per-chunk function-call gas bound, and the
+8 MiB witness and 64-shard layout bounds are lifted; the signed configuration keeps all of them. -/
+theorem allFeatures_lifts_arena_caps :
+    (Tier.cfg .allFeatures).gasCap = none ∧
+      (Tier.cfg .allFeatures).witnessUnbounded = true ∧
+      (Tier.cfg .allFeatures).layoutUnbounded = true ∧
+      signedCfg.gasCap = some D3.gAlpha ∧ signedCfg.witnessUnbounded = false ∧
+      signedCfg.layoutUnbounded = false := ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
 
 /-- The `c.segment` lift is additive: at the signed configuration the segment bound is still
 enforced, so `checkSuccessor_signed` is untouched. -/

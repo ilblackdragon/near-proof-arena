@@ -236,6 +236,64 @@ that it is not proved equal to the `DomainD3` predicates. The two `DomainD3`-der
 supplies the direction each must be discharged in. It does **not** change either row's status, and it
 does **not** edit `Wasm.DomainD3`, `checkD3`, `RelD3`, `gAlpha` or the oracle pins.
 
+### 3.2 UQ-010 decision record — the SECP256K1 delegate strengthening (2026-10-26)
+
+**Decision (user, recorded 2026-10-26): accepted.** The statement of record `D3.checkD3` / `D3.RelD3`
+(§3.1) now verifies SECP256K1 delegate signatures, and the user accepts the resulting verdict moves
+as a **strengthening of the signed statement**. Of the two options in the HANDOVER/workplan, this is
+option (a). Option (b), re-isolating the signed layer behind its own delegate decoder, is not
+pursued. Accepting the moves does not edit `checkD3`, `RelD3`, the oracle pins or any challenge. It
+records that the term already on main (`4ae27c76e` and the high-s fix after it) *is* the signed
+statement.
+
+Why it moved: `D2.actDelegate` is shared by the signed and successor checkers (`checkD3 =
+checkD2Core (d3Hooks …)` reaches `applyAction … .delegate d => actDelegate …`). The pre-widening
+`e.secp` exclusion was that arm's `throw`, not an entry in `signedExclusions`. So verifying the secp
+pair in that arm changes `checkD3`'s meaning.
+
+**Population: 37 signed-tier verdict moves, all toward nearcore.**
+
+| Moves | Population | Before → after (`--tier signed`) | nearcore |
+|---|---|---|---|
+| 35 `out_of_domain → accept` | the 3,138-case gap census: `nearcore == "ok" ∧ expected_rel_d3 == false` over `d3c7`–`d3c10` (898 / 1,376 / 429 / 435, from `d3/`, `mutants/` and `ood/`). All 35 lie in the 41-case SECP256K1 delegate set. | 2,438 OOD / 700 accept → **2,403 / 735** | `ok` for all 35 (it is the population filter) |
+| 2 `reject → accept` | the two high-s secp256k1 delegate chunks of the key-family fixtures: `k6151 00-h10075-s1` (committed as `docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10075-s1`) and `k1618 00-h10077-s1`. They moved with the `s < n/2` fix in `Secp256k1.verify`. | `reject` (`invalid: MissingTrieValue (access key)`) → `accept`. Over the 2,925 selected key-family cases, signed went 572 / 636 / 1,717 → 574 / 636 / 1,715 (accept / OOD / reject): 2 moves, 0 other changes (`replay/full-signed-{main,fix}.json`). | cold nearcore accepts both |
+
+**Reason: nearcore accepts all 37.** Every move goes from "not accepted" to "accepted" on a chunk the
+pinned nearcore 2.13.4 validator accepts. None goes in the unsound direction (Lean accepts, nearcore
+rejects), and no verdict on either population moves the other way.
+
+**Reproduce the 35** (pinned corpora, read-only; run from the repository root after
+`lake build nearspec-v3-check-successor` in `spec/lean/v3`):
+
+```sh
+python3 - <<'PY' > /tmp/gap3138.txt
+import json, os
+R = '/data/illia/nearproof-deps/corpora'
+for c in ['d3c7', 'd3c8', 'd3c9', 'd3c10']:
+    for sub in ['d3', 'mutants', 'ood']:
+        for x in sorted(os.listdir(f'{R}/{c}/{sub}')):
+            try: m = json.load(open(f'{R}/{c}/{sub}/{x}/meta.json'))
+            except Exception: continue
+            if m.get('nearcore') == 'ok' and m.get('expected_rel_d3') is False:
+                print(f'{R}/{c}/{sub}/{x}')
+PY
+wc -l /tmp/gap3138.txt     # 3138
+python3 tools/d3/replay_successor.py --tier signed --cases-file /tmp/gap3138.txt \
+  --out /tmp/gap3138-signed --jobs 4
+# current tree: {"verdicts": {"accept": 735, "out_of_domain": 2403}}
+```
+
+The "before" side (2,438 / 700) is the same command on a tree whose `actDelegate` secp arm is
+restored to the `throw` and rebuilt. The committed pair is
+`key-family-fixtures/replay/signed-gap3138-{before,after}.json`; across the high-s fix both read
+2,403 / 735. **Reproduce the 2:** regenerate the `k6151`/`k1618` runs and select the cases as in
+`key-family-fixtures/README.md` ("Generation"), then run `replay_successor.py --tier signed` over the
+2,925 selected cases. Alternatively, replay the committed
+`key-family-fixtures/cases/00-h10075-s1` alone.
+
+Consequence: wherever a document says the widening is "successor-only" or "the signed tier is
+unchanged", read it as superseded by this record.
+
 ## 4. The schema decision W00 owes
 
 The workplan asks for "a schema decision states which existing claim fields suffice, which need a

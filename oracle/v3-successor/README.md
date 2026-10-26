@@ -97,6 +97,34 @@ The collector fails if a step is missing. A nonzero gas price is what makes the
 insufficient-gas-key-balance step reachable; with the default zero price, that step is valid.
 Evidence: `docs/evidence/lean-chunk-completion/key-family-fixtures/`.
 
+## ML-DSA-65 scenario
+
+Set `NEAR_SUCCESSOR_SCENARIO=mldsa` for the 47-step `mldsa` table (`src/keys/mldsa.rs`, labels
+`successor.mldsa.NN.name`). It reuses the `keys` driver and accounts and adds three genesis accounts
+and keys (ML-DSA-65 keys for `s1kdeleg` and `s1krelay`, `s2kmlpoor` with 1 NEAR, `s2kmlpk` with the
+`kmlpk` contract whose `pk` method returns `signer_account_pk`). Steps: ML-DSA-signed transfers; bad
+`z`/`c̃`; every malformed hint class (unordered, non-zero padding, count over ω, decreasing count);
+an all-zero signature; wrong ML-DSA key; ED25519 and secp256k1 signatures on an ML-DSA key and an
+ML-DSA signature on an ED25519 key; stale, too-large and strict-gap nonces; AddKey of ML-DSA full
+and function-call keys then used to sign (including a call reading `signer_account_pk` and a
+refund into the function-call allowance); ML-DSA-signed AddKey/DeleteKey; an ML-DSA gas key funded
+exactly `gas_cost − verification cost`, then `gas_cost − 1`, then `gas_cost`; an account whose
+balance is short by the verification cost, short by one, and exact; delegates with an ML-DSA
+inner key (valid, bad signature, malformed hints, stale nonce, type mismatches, wrong key, V2,
+inner AddKey of an ML-DSA key then used, an ML-DSA relayer); a Stake with an ML-DSA key. Boundary
+amounts come from nearcore's `tx_cost` at PV86 and the tip gas price; the verification share is the
+cost difference against the same transaction with an ED25519 key. aws-lc's ML-DSA signing is
+randomized, so two runs of a seed differ in signature bytes (and everything hashed over them).
+
+```
+NEAR_SUCCESSOR_SCENARIO=mldsa near-arena-oracle-v3-successor gen --domain d3 --seed 6151 --chains 1 \
+  --blocks 300 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 100000000 --out RUN
+python3 tools/d3/collect_keys.py --scenario mldsa --source RUN --binary PATH_TO_ORACLE --out COLLECTED
+near-arena-oracle-v3-successor mldsa-vectors > crate-vectors.json   # the Lean unit pin's crate verdicts
+```
+
+Evidence: `docs/evidence/lean-chunk-completion/mldsa-fixtures/`.
+
 ## Yield and storage-limit scenarios
 
 `src/chaind3.rs` is a versioned copy of the signed D3 loop with one per-height hook for scenario
@@ -128,6 +156,58 @@ intended semantics against those outcomes and maps steps to cases; `select_succe
 copies the mapped cases. Commands, seeds and results:
 `docs/evidence/lean-chunk-completion/{yield,storage-limit}-fixtures/`.
 
+## Cross-family scenarios
+
+`src/xfam.rs` adds five opt-in scenarios on dedicated genesis accounts, next to the unchanged
+baseline traffic. Contracts are `xfam` (WAT in `xfam.rs`: yields, a gas-heavy `burn` made of
+empty-input `sha256` calls, promise emission with optional rollback, init methods) and `xcurve`
+(generated from `CURVE_HOSTS`: every curve host with memory, register, out-of-bounds,
+promise-result-memory and promise-result-register input, plus `then`/`then2`/`thenx`/`yield`
+dispatchers). Labels are `successor.<scenario>.NN.name` and say what was submitted.
+
+* `yield-congestion`: yields created, resumed and timed out while the yield shard's delayed queue is
+  non-empty. Two floods of `burn` receipts (offsets 4–13 and 194–205) exhaust the chunk gas
+  limit, so run it on the low-gas-limit chain shapes (`--first-chain 3|4|8|9`). It includes a 200 KB
+  cross-shard resume trigger that the bandwidth scheduler buffers, a resume after 360 KB of
+  own-shard receipts, and a resume whose yield's timeout is due but deferred. Needs 235 blocks.
+* `curve-callbacks`: the `curve-hosts` inputs (first pos/neg/edge and the gas-exhaustion input of
+  each host), called from `promise_then` callbacks (callback arguments, promise result in memory and
+  in a register), a three-promise chain, a callback after a cross-shard promise, yield callbacks
+  resumed in the same receipt or by a later cross-shard transaction, and register/out-of-bounds
+  input for the BLS writers.
+* `genesis-tx`: transactions submitted before the first block at three heights, so that the first
+  chunks after genesis carry them. Every genesis-B2 case gets the full mutant set plus
+  `g.*` mutants (`xfam::genesis_mutants`): a transaction placed into the genesis chunk's empty
+  list, inconsistent `tx_valid` flags, `genesis_chunk_extra` removed (claim discipline) or altered
+  (derived expectation).
+* `gaskey-target`: gas-key funding, nonce-index transactions, withdrawal, transfer out and deletion
+  with a balance, by receipts on a shard other than the signer's (including CreateAccount receipts
+  that add, fund and delete a gas key, or delete the account), with ordinary receipts in the same
+  chunks.
+* `rollback-refund`: four rounds, each submitted at one height from one shard, so that one chunk
+  of the target shard applies all of these together: a failed deterministic state init (missing
+  global code, and insufficient deposit), a state init that then emits receipts, a CreateAccount
+  with UseGlobalContract whose init fails, local deploy+init success and failure, emitted receipts
+  that are rolled back by a panic, emitted receipts to a failing callee, and deposit refunds.
+
+Without `NEAR_SUCCESSOR_SCENARIO` none of this code changes the output (the hooks return early and
+use no RNG). Relevant chunks get the full mutant set. `NEAR_XFAM_MUTATE_EVERY=k` keeps one in k of
+them (genesis-B2 chunks always), and drop-each-node mutants for every second kept chunk. Each run
+writes `xfam-<chain>.json`: every scenario transaction with nearcore's outcome tree, the
+shard map and every chunk header's congestion info and bandwidth-request count.
+
+```
+NEAR_SUCCESSOR_SCENARIO=yield-congestion NEAR_XFAM_MUTATE_EVERY=4 near-arena-oracle-v3-successor gen --domain d3 \
+  --seed 101 --first-chain 3 --chains 1 --blocks 235 --p-missing 0 --mutate-every 0 --code-mutant-p 0 \
+  --ood-cap 100000 --drop-cap 12 --out RUN
+python3 tools/d3/collect_xfam.py --source RUN --out COLLECTED
+```
+
+The collector fails if a planned step was never submitted, an honest witness was rejected, or a
+family's defining condition fails, for example no yield receipt applied while the delayed queue
+was non-empty. Evidence and the other commands:
+`docs/evidence/lean-chunk-completion/cross-family-fixtures/`.
+
 ## Codec normalization probes
 
 `codec-roundtrip KIND HEX` decodes and re-encodes actual pinned-nearcore types. Supported kinds:
@@ -150,3 +230,43 @@ and PV86 enables dynamic resharding with a forced split of the shard of `s{k}a00
 `meta.json`. Split, layout and split-gate mutants go to `DIR/mutants/`. The D3 classifier is not
 used. Commands, seeds and results are in
 `docs/evidence/lean-chunk-completion/resharding-fixtures/README.md`.
+
+## Fuel-stress scenario (W02)
+
+Set `NEAR_SUCCESSOR_SCENARIO=fuel-stress` for a quiet chain with the `fuelc` contract
+(`scenarios::fuel_wat`) on `s0fuel` and `s1fuel`, and 16 FunctionCalls (`fuel_schedule`): the
+cheapest instruction burning 300 Tgas (`nops`, `spin`), loops of 200 and 4,999 empty `block`s
+(zero finite-wasm fee, so the most interpreter steps per unit of gas), recursion to the stack
+limit (empty frames and 1,000-local frames), 2,048 pages with 128 MiB fill and 64 MiB copy, a
+64 MiB fill loop, loops of `sha256(64 KiB)`, `used_gas` and `memory.grow(0)`, a 10^7-iteration
+counted loop that succeeds, and three 300 Tgas calls in one chunk. `scenario-<chain>.json` holds
+nearcore's outcome tree for every call. `tools/d3/collect_fuel_stress.py --source RUN --out
+MANIFEST` maps each call to the case that validates it.
+
+```
+NEAR_SUCCESSOR_SCENARIO=fuel-stress $B gen --domain d3 --seed 2026 --chains 1 --blocks 45 \
+  --p-missing 0 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --out RUN
+```
+
+Evidence: `docs/evidence/lean-chunk-completion/fuel-termination/`.
+
+## Per-outcome nearcore observables (`NEAR_SUCCESSOR_OBSERVABLES=1`, W01)
+
+With `NEAR_SUCCESSOR_OBSERVABLES=1`, `gen` and `reshard` also write
+`nearcore-observables-<chain>.jsonl`: one record per honest witness, keyed by the sha256 of the
+case's `claim.bin` and `witness.bin`. Each record comes from a separate cold validator runtime
+(`src/observables.rs`). It pre-validates the witness with the needed code blobs and runs
+`apply_new_chunk` as the stateless validator does. The record holds the execution outcomes (id,
+executor, status with return value or receipt id or failure, gas, tokens, compute, logs, receipt
+ids), the outgoing receipts the header root commits to (reassigned across a split as the validator
+does), and the committed state changes with each change's cause. It also holds the outcome root
+and the producer's stored outcome ids. The variable never touches the RNG, so the cases are
+byte-identical with and without it (checked on seed 7, 30 blocks, `--mutate-every 10`).
+
+`mainnet-observables --home HOME --exports EXPORTS --cases CASES --out FILE` reads the same fields
+from a stopped node's database opened read-only (`src/mainnet_obs.rs`): stored outcomes, outgoing
+receipts and state changes of each captured witness's main-transition block. `compute_usage` is not
+persisted by nearcore, so it is reported as unknown.
+
+`tools/mainnet-replay/full_observables.py` compares these records with the checker's
+`--blind-full` output. Results: `docs/evidence/lean-chunk-completion/full-observables/`.

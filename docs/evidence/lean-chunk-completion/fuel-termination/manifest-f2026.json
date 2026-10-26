@@ -1,0 +1,190 @@
+{
+ "run": "f2026 (seed 2026)",
+ "scenario": "FuelStress",
+ "contracts": [
+  {
+   "hash": "HcWRUkAFNkQpcQidfdWcVLcGuRCYYQ826FjKCMwVb7G6",
+   "len": 16189,
+   "name": "fuelc"
+  }
+ ],
+ "shards": {
+  "s0fuel": "3",
+  "s0yield": "3",
+  "s0zlim": "3",
+  "s1fuel": "1",
+  "s1ycall": "1",
+  "s1zsoft": "1",
+  "s1zyield": "1",
+  "s2ynote": "0",
+  "s2zmisc": "0",
+  "s2zsrc": "0",
+  "s3zcode": "2",
+  "s3zsrc": "2"
+ },
+ "steps": [
+  {
+   "label": "00.nops-300T",
+   "call": "nops gas=300000000000000",
+   "height": 10005,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888068443736,
+   "case": "ood/00-h10006-s3"
+  },
+  {
+   "label": "01.spin-300T",
+   "call": "spin gas=300000000000000",
+   "height": 10005,
+   "shard": "1",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888068443736,
+   "case": "ood/00-h10006-s1"
+  },
+  {
+   "label": "02.blocks200-5T",
+   "call": "blocks200 gas=5000000000000",
+   "height": 10008,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 5888079623406,
+   "case": "ood/00-h10009-s3"
+  },
+  {
+   "label": "03.blocks4999-0.3T",
+   "call": "blocks4999 gas=300000000000",
+   "height": 10008,
+   "shard": "1",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 1188081859340,
+   "case": "d3/00-h10009-s1"
+  },
+  {
+   "label": "04.recurse-300T",
+   "call": "recurse gas=300000000000000",
+   "height": 10011,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Accessed memory outside the bounds.\"))",
+   "status_class": "failure",
+   "gas_burnt": 936075271440,
+   "case": "d3/00-h10012-s3"
+  },
+  {
+   "label": "05.recurse-big-300T",
+   "call": "recurse_big gas=300000000000000",
+   "height": 10011,
+   "shard": "1",
+   "status": "Failure(Action #0: ExecutionError(\"Accessed memory outside the bounds.\"))",
+   "status_class": "failure",
+   "gas_burnt": 932326688524,
+   "case": "d3/00-h10012-s1"
+  },
+  {
+   "label": "06.memmax-300T",
+   "call": "memmax gas=300000000000000",
+   "height": 10014,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888072915604,
+   "case": "ood/00-h10015-s3"
+  },
+  {
+   "label": "07.memfill-loop-300T",
+   "call": "memfill_loop gas=300000000000000",
+   "height": 10014,
+   "shard": "1",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888086331208,
+   "case": "ood/00-h10015-s1"
+  },
+  {
+   "label": "08.sha-loop-300T",
+   "call": "sha_loop gas=300000000000000",
+   "height": 10017,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888077387472,
+   "case": "ood/00-h10018-s3"
+  },
+  {
+   "label": "09.host-loop-300T",
+   "call": "host_loop gas=300000000000000",
+   "height": 10017,
+   "shard": "1",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888079623406,
+   "case": "ood/00-h10018-s1"
+  },
+  {
+   "label": "10.grow-loop-300T",
+   "call": "grow_loop gas=300000000000000",
+   "height": 10020,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888079623406,
+   "case": "ood/00-h10021-s3"
+  },
+  {
+   "label": "11.count-300T",
+   "call": "count gas=300000000000000",
+   "height": 10020,
+   "shard": "1",
+   "status": {
+    "SuccessValue": "80969800"
+   },
+   "status_class": "value",
+   "gas_burnt": 74956682900371,
+   "case": "ood/00-h10021-s1"
+  },
+  {
+   "label": "12.chunk-nops-a",
+   "call": "nops gas=300000000000000",
+   "height": 10023,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888068443736,
+   "case": "ood/00-h10024-s3"
+  },
+  {
+   "label": "13.chunk-nops-b",
+   "call": "nops gas=300000000000000",
+   "height": 10023,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888068443736,
+   "case": "ood/00-h10024-s3"
+  },
+  {
+   "label": "14.chunk-nops-c",
+   "call": "nops gas=300000000000000",
+   "height": 10023,
+   "shard": "3",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 300888068443736,
+   "case": "ood/00-h10024-s3"
+  },
+  {
+   "label": "15.blocks200-1T",
+   "call": "blocks200 gas=1000000000000",
+   "height": 10026,
+   "shard": "1",
+   "status": "Failure(Action #0: ExecutionError(\"Exceeded the prepaid gas.\"))",
+   "status_class": "gas",
+   "gas_burnt": 1888079623406,
+   "case": "d3/00-h10027-s1"
+  }
+ ],
+ "problems": []
+}

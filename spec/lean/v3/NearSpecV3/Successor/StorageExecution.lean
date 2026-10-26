@@ -7,6 +7,7 @@ import NearSpecV3.Successor.GlobalCodecs
 import NearSpecV3.Successor.GlobalExecution
 import NearSpecV3.Successor.QueueExecution
 import NearSpecV3.Successor.PromiseActions
+import NearSpecV3.Wasm.Fuel
 
 /-! Chunk-scoped protocol recorder over the existing read-logging D2 operations.
 Reads are executed against the authenticated witness store; recorder state is computed locally.
@@ -133,7 +134,10 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
                                 root := toBA env.preRoot, overlay := ovl, pfx,
                                 recd := recording.recorder, acct := recording.cache,
                                 recBefore := recording.receiptStart }
-  let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
+  -- W02: the legacy `(gas / regular + 2) · 64 + 10⁶` budget is exhausted by valid zero-fee
+  -- control-flow loops (`Wasm/Fuel.lean`); `wasmFuel` changes only fuel-exhausted results
+  -- (`Wasm.successorFuel_moves_only_exhausted`).
+  let fuel := wasmFuel cfg gas
   match runCallWithLimits cfg codeB (strOf method) ctx fuel true false (some real) with
   | .line l =>
     let (burnt, used) ← liftE (lineOutcome l)
@@ -683,7 +687,8 @@ def applyNewChunkD2 (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
   let burnt := burnt - rs.subsidized
   pure { root, outcomes := rs.outcomes, outgoing := rs.outgoing, gasUsed, balanceBurnt := burnt,
          congestion := cong, bwRequests := bw, proposals := dedupProposals rs.proposals,
-         cdRemovals := o.cdRemovals, wasmGas := rs.wasmGas }
+         cdRemovals := o.cdRemovals, wasmGas := rs.wasmGas,
+         committed := some (sortKV o.committed), compute := some rs.compute }
 
 /-- Execute the recorder-aware main transition. Limits are protocol constants; the initial
 recorder is empty regardless of unused values included in the witness. -/

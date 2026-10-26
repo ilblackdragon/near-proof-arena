@@ -22,8 +22,14 @@
 //!       The same conversion of an existing corpus (public fixtures).
 //!   contracts
 //!       Print the code registry (name, hash, length, D3α facts).
+//!   mldsa-vectors
+//!       Print ML-DSA-65 verify verdicts of the pinned crate (src/mldsa_vectors.rs) as JSON.
 //!   curve-steps
 //!       Print the curve-hosts scenario steps (label, method, args, gas) and contract hash as JSON.
+//!   mainnet-observables --home HOME --exports EXPORTS --cases CASES --out FILE
+//!       nearcore's stored outcomes, outgoing receipts and state changes of each captured mainnet
+//!       witness's main transition, from a stopped node's database opened read-only
+//!       (src/mainnet_obs.rs, workplan W01).
 //!   reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N] [--shards n]
 //!       [--epoch-length L] [--gas-limit-tgas G] [--split-k k] [--variant v] [--p-missing P]
 //!       [--p-burst-hot B] [--min-gas-price P]
@@ -70,12 +76,16 @@ mod arena;
 mod chaind3;
 mod keys;
 mod scenarios;
+mod xfam;
 mod d3;
 mod d3contracts;
 mod d3gen;
 mod codec_probe;
 mod curve_hosts;
+mod mldsa_vectors;
 mod reshard;
+mod observables;
+mod mainnet_obs;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
@@ -89,7 +99,10 @@ fn arg(args: &[String], name: &str) -> Option<String> {
 }
 
 /// D3 chain parameters of chain `i` (the D2 generator's parameter rotation).
-fn chain_params_d3(seed: u64, i: usize, blocks: u64, p_missing: f64, drop_cap: usize, max_d3: usize, code_mutant_p: f64, min_gas_price: u128) -> chaind3::D3Params {
+/// `long_skip`: `--long-skip START:LEN:K` overrides the rotation's long run of missing chunks
+/// (rounds `START..START+LEN` skip the chunk of the shard of account group `K`) on every chain;
+/// absent, the rotation is unchanged.
+fn chain_params_d3(seed: u64, i: usize, blocks: u64, p_missing: f64, drop_cap: usize, max_d3: usize, code_mutant_p: f64, min_gas_price: u128, long_skip: Option<(u64, u64, usize)>) -> chaind3::D3Params {
     chaind3::D3Params {
         base: chaingen::ChainParams {
             seed: seed.wrapping_mul(1_000_003).wrapping_add(i as u64),
@@ -104,7 +117,7 @@ fn chain_params_d3(seed: u64, i: usize, blocks: u64, p_missing: f64, drop_cap: u
             p_fail: 0.0,
             p_implicit: 0.0,
             p_two: 0.0,
-            long_skip: if i % 8 == 5 { Some((60, 40, 0)) } else { None },
+            long_skip: long_skip.or(if i % 8 == 5 { Some((60, 40, 0)) } else { None }),
         },
         max_txs: 4,
         p_contract: 0.04,
@@ -137,6 +150,11 @@ fn cmd_gen(args: &[String]) -> i32 {
     let max_d3 = num("--max-d3", 4) as usize;
     let code_mutant_p: f64 = arg(args, "--code-mutant-p").map(|s| s.parse().expect("--code-mutant-p")).unwrap_or(0.25);
     let min_gas_price: u128 = arg(args, "--min-gas-price").map(|s| s.parse().expect("--min-gas-price")).unwrap_or(0);
+    let long_skip: Option<(u64, u64, usize)> = arg(args, "--long-skip").map(|s| {
+        let v: Vec<&str> = s.split(':').collect();
+        assert_eq!(v.len(), 3, "--long-skip START:LEN:K");
+        (v[0].parse().expect("--long-skip START"), v[1].parse().expect("--long-skip LEN"), v[2].parse().expect("--long-skip K"))
+    });
     let opts = chaingen::GenOpts {
         ood_cap: num("--ood-cap", 25) as usize,
         mutate_every: num("--mutate-every", 20) as usize,
@@ -158,7 +176,7 @@ fn cmd_gen(args: &[String]) -> i32 {
     let mut d3s = d3::D3Stats::default();
     let mut params = Vec::new();
     for i in first..first + chains {
-        let p = chain_params_d3(seed, i, blocks, p_missing, drop_cap, max_d3, code_mutant_p, min_gas_price);
+        let p = chain_params_d3(seed, i, blocks, p_missing, drop_cap, max_d3, code_mutant_p, min_gas_price, long_skip);
         let pstr = format!("{p:?}");
         eprintln!("chain {i}: {pstr}");
         params.push(pstr);
@@ -207,7 +225,9 @@ fn main() {
         Some("contracts") => cmd_contracts(),
         Some("codec-roundtrip") => codec_probe::command(&args),
         Some("curve-steps") => curve_hosts::print_steps(),
+        Some("mldsa-vectors") => mldsa_vectors::command(&args),
         Some("reshard") => reshard::cmd_reshard(&args),
+        Some("mainnet-observables") => mainnet_obs::cmd(&args),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-successor gen --domain d3 ... | contracts (see src/main.rs)");

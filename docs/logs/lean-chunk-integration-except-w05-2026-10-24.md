@@ -46,4 +46,4 @@ revert earlier merged BLS progress. Reconcile lane bases against this integratio
 
 No full combined successor replay, new global positive fixtures, release axiom audit or admission
 was performed. Gates A/B/C remain open. See
-[remaining work](../requirements/LEAN_CHUNK_COMPLETION_WORKPLAN.md#remaining-work-by-package).
+[remaining work](../requirements/LEAN_CHUNK_COMPLETION_WORKPLAN.md#open-work-by-what-blocks-gate-b).

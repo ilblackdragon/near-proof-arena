@@ -1,0 +1,2 @@
+docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success
+docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/child-action-failure

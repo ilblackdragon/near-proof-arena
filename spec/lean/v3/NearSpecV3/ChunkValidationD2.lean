@@ -285,7 +285,11 @@ def checkD2CoreObs (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witness
              bwRequests := out.bwRequests
              logs := out.outcomes.map (fun o => o.logs) |>.flatten
              receiptCount := out.outgoing.length
-             wasmGas := out.wasmGas }
+             wasmGas := out.wasmGas
+             outcomes := out.outcomes
+             outgoing := out.outgoing
+             stateChanges := out.committed
+             computeUsage := out.compute }
 
 /-- The signed D2 checker: the observable checker projected to its verdict. Definitionally the same
 computation, so every downstream proof and relation is unchanged. -/

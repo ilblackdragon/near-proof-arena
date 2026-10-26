@@ -743,6 +743,11 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     for (k, v) in an2.features.iter().chain(an3.features.iter()) {
         features[k] = v.clone();
     }
+    // the last new chunk of the shard is the genesis chunk (the main transition is `MainTransition::Genesis`)
+    let b2_genesis = built.blocks.last().is_some_and(|b| b.header().is_genesis() && sw.main_state_transition().block_hash == *b.hash());
+    if let Some(x) = crate::xfam::features(sw, b2_genesis) {
+        features["xfam"] = x;
+    }
     let meta = json!({
         "case": name, "kind": "honest", "chain_params": params,
         "successor_scenario": std::env::var("NEAR_SUCCESSOR_SCENARIO").ok(),
@@ -807,13 +812,14 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         // This changes fixture generation only, never the baseline classification or expectation.
         let scenario = crate::d3gen::scenario();
         // The keys scenario does the same for its key shapes (secp256k1 / ML-DSA keys, gas keys).
-        let global_scenario = matches!(scenario, Some(crate::d3gen::Scenario::GlobalCache | crate::d3gen::Scenario::Keys));
+        let global_scenario = matches!(scenario, Some(crate::d3gen::Scenario::GlobalCache | crate::d3gen::Scenario::Keys | crate::d3gen::Scenario::Mldsa));
         // Opt-in curve traffic likewise mutates its `e.ood_host` chunks (independently judged).
         let curve_scenario = scenario == Some(crate::d3gen::Scenario::CurveHosts);
         // The yield / storage-limits scenarios mutate every sampled chunk: their shapes (yield
         // hosts, large proofs) are what the fixtures are for.
         let any_scenario = matches!(scenario,
-            Some(crate::d3gen::Scenario::Yield | crate::d3gen::Scenario::StorageLimits));
+            Some(crate::d3gen::Scenario::Yield | crate::d3gen::Scenario::StorageLimits))
+            || crate::xfam::kind().is_some();
         if !any_scenario && viol3.iter().any(|v| {
             !matches!(*v, "e.float" | "e.g_alpha")
                 && !(global_scenario && *v == "w.shape")
@@ -838,6 +844,9 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     // Opt-in yield / storage-limits scenarios: also the full set for every chunk that ran a
     // scenario contract (yield) or contains a final boundary probe (storage-limits).
     let (forced, forced_drop) = crate::scenarios::force_full_mutants(&executed_meta, &tx_labels);
+    // cross-family scenarios (src/xfam.rs): every chunk with scenario activity, and genesis-B2 chunks
+    let (xf, xd) = crate::xfam::force_full_mutants(&executed_meta, &tx_labels, &new_tx_labels, b2_genesis, key.height_created);
+    let (forced, forced_drop) = (forced || xf, forced_drop || xd);
     let full = forced || (me > 0 && *d3_seen % me == 0);
     let code_only = !full && !codes.is_empty() && rng.gen_bool(code_mutant_p);
     if !(verdict.is_ok() && (full || code_only)) {
@@ -873,6 +882,11 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         }
         ms.extend(crate::d1::mutants(client, &built.claim, sw, rng).into_iter().map(|(m, f)| (m, f, None, codes.to_vec())));
         ms.extend(header_mutants(&built.claim, sw, rng).into_iter().map(|m| (m, None, None, codes.to_vec())));
+        if b2_genesis {
+            for (m, derived) in crate::xfam::genesis_mutants(&built.claim, sw) {
+                ms.push((m, None, derived, codes.to_vec()));
+            }
+        }
         for (m, how) in fact_mutants(built, &an2) {
             let mut m = m;
             m.witness = wb.to_vec();

@@ -197,7 +197,11 @@ def checkReshardCoreObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowC
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
-  check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
+  if !driver.witnessUnbounded then
+    check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
+  else
+    check (lenT swBytes ≤ compressedSafeWitnessBytes)
+      "out of domain (w.compressed_size): witness may exceed MAX_COMPRESSED_STATE_WITNESS_SIZE once compressed"
   let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"
@@ -219,7 +223,10 @@ def checkReshardCoreObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowC
   let L ← decodeLayout ep.shardLayout
   for e in c.epochs do
     let l ← decodeLayout e.shardLayout
-    check (1 ≤ l.numShards && l.numShards ≤ 64) "out of domain (c.layout)"
+    if !driver.layoutUnbounded then
+      check (1 ≤ l.numShards && l.numShards ≤ 64) "out of domain (c.layout)"
+    else
+      check (1 ≤ l.numShards) "out of domain (c.layout)"
   check (rsGenesisParamsOk c.rsDataParts c.rsTotalParts) "invalid: Reed-Solomon parameters"
   if !driver.segmentUnbounded then
     check (c.blocks.length ≤ 32) "out of domain (c.segment)"
@@ -382,7 +389,11 @@ def checkReshardCoreObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowC
              bwRequests := out.bwRequests
              logs := out.outcomes.map (fun o => o.logs) |>.flatten
              receiptCount := outgoing.length
-             wasmGas := out.wasmGas }
+             wasmGas := out.wasmGas
+             outcomes := out.outcomes
+             outgoing := outgoing
+             stateChanges := out.committed
+             computeUsage := out.compute }
 
 def checkReshardCore (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool)
     (claimBytes witnessBytes : Bytes) (gasCap : Option Nat := none) : Except String Unit :=

@@ -20,6 +20,8 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
     let mut contracts = baseline::all();
     // opt-in yield / storage-limits scenario contracts (none for the baseline and global-cache)
     contracts.extend(crate::scenarios::contracts());
+    // opt-in cross-family scenario contracts (src/xfam.rs)
+    contracts.extend(crate::xfam::contracts());
     if let Some(code) = code {
         let entry = contracts.iter_mut().find(|(name, _)| *name == "d3float").unwrap();
         entry.1 = code.clone();
@@ -30,13 +32,16 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
     if crate::keys::enabled() {
         contracts.push(("kgashost", crate::keys::host_code()));
     }
+    if crate::keys::mldsa_mode() {
+        contracts.push(("kmlpk", crate::keys::mlpk_code()));
+    }
     contracts
 }
 
 /// Baseline call marks, plus `e.ood_host` for every method of the curve-hosts scenario contract
 /// (each one calls a curve host unconditionally).
 pub fn ood_call(name: &str, method: &str) -> Option<&'static str> {
-    if name == crate::curve_hosts::CODE_NAME {
+    if name == crate::curve_hosts::CODE_NAME || name == "xcurve" {
         return Some("e.ood_host");
     }
     baseline::ood_call(name, method)

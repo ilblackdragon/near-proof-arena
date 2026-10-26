@@ -1,0 +1,240 @@
+{
+ "label": "pin_d3c9",
+ "cases": 100,
+ "categories": {
+  "match": 81,
+  "nearcore_genesis": 19
+ },
+ "graded": 81,
+ "per_field": {
+  "chunk.balanceBurnt": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  },
+  "chunk.gasUsed": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  },
+  "chunk.outcomeRoot": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  },
+  "computeUsage": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  },
+  "outcome.executor": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.gasBurnt": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.id": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.logs": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.receiptIds": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.returnData": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.status": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.statusReceiptId": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcome.tokensBurnt": {
+   "compared": 1636,
+   "matched": 1636,
+   "mismatched": 0
+  },
+  "outcomes.count": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  },
+  "receipt.bodyHash": {
+   "compared": 942,
+   "matched": 942,
+   "mismatched": 0
+  },
+  "receipt.id": {
+   "compared": 942,
+   "matched": 942,
+   "mismatched": 0
+  },
+  "receipt.kind": {
+   "compared": 942,
+   "matched": 942,
+   "mismatched": 0
+  },
+  "receipt.predecessor": {
+   "compared": 942,
+   "matched": 942,
+   "mismatched": 0
+  },
+  "receipt.receiver": {
+   "compared": 942,
+   "matched": 942,
+   "mismatched": 0
+  },
+  "receipt.refund": {
+   "compared": 942,
+   "matched": 942,
+   "mismatched": 0
+  },
+  "receipts.count": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  },
+  "refunds.count": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  },
+  "stateChange.value": {
+   "compared": 2691,
+   "matched": 2691,
+   "mismatched": 0
+  },
+  "stateChanges.keys": {
+   "compared": 81,
+   "matched": 81,
+   "mismatched": 0
+  }
+ },
+ "header_diffs": {},
+ "recompute_failures": {},
+ "controls": {
+  "total": 1296,
+  "detected": 1296,
+  "cases": 81,
+  "by_control": {
+   "computeUsage+1": {
+    "detected": 78,
+    "missed": 0
+   },
+   "outcome.executor": {
+    "detected": 78,
+    "missed": 0
+   },
+   "outcome.extra_log": {
+    "detected": 78,
+    "missed": 0
+   },
+   "outcome.failure->value": {
+    "detected": 38,
+    "missed": 0
+   },
+   "outcome.gasBurnt+1": {
+    "detected": 78,
+    "missed": 0
+   },
+   "outcome.id": {
+    "detected": 78,
+    "missed": 0
+   },
+   "outcome.log_byte": {
+    "detected": 9,
+    "missed": 0
+   },
+   "outcome.receiptIds": {
+    "detected": 78,
+    "missed": 0
+   },
+   "outcome.returnData": {
+    "detected": 59,
+    "missed": 0
+   },
+   "outcome.tokensBurnt+1": {
+    "detected": 78,
+    "missed": 0
+   },
+   "outcome.value->failure": {
+    "detected": 28,
+    "missed": 0
+   },
+   "outcomes.drop_last": {
+    "detected": 78,
+    "missed": 0
+   },
+   "receipt.bodyHash": {
+    "detected": 77,
+    "missed": 0
+   },
+   "receipt.receiver": {
+    "detected": 77,
+    "missed": 0
+   },
+   "receipts.drop_last": {
+    "detected": 77,
+    "missed": 0
+   },
+   "refund.unmark": {
+    "detected": 64,
+    "missed": 0
+   },
+   "stateChange.value": {
+    "detected": 81,
+    "missed": 0
+   },
+   "stateChange.write->delete": {
+    "detected": 81,
+    "missed": 0
+   },
+   "stateChanges.drop": {
+    "detected": 81,
+    "missed": 0
+   }
+  }
+ },
+ "matched_cases_exercising": {
+  "n_receipts": 77,
+  "n_changes": 81,
+  "n_refunds": 64,
+  "n_logs": 9,
+  "n_failures": 38,
+  "n_return": 4
+ },
+ "totals": {
+  "outcomes": 1636,
+  "receipts": 942,
+  "state_changes": 2691
+ },
+ "identities": {
+  "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+  "harness_sha256": "3c7ebcf6f84e56027c9bea60553bf15d8cab48b3daa7ddea27a8503b09486aff",
+  "expected": [
+   "bound/pin_d3c9.jsonl.gz"
+  ],
+  "tier": "allFeatures",
+  "cases_list_sha256": "59f92c3f2a4d7dca68237d776577bbd065410ac198605312da4c2d29e37cf4ab"
+ },
+ "elapsed_seconds": 16.77371372608468,
+ "pass": true
+}

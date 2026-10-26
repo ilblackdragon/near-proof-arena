@@ -17,9 +17,10 @@ nearcore 2.13.4 (`44f7ae6c…`, PV 86) borsh layouts used by domain D2
   `GlobalContractDistribution`: `out of domain (w.shape)`) (`receipt.rs:57-80, 565-660`);
 * `ReceiptOrStateStoredReceipt` (`receipt.rs:150-330`).
 
-ML-DSA-65 public keys anywhere in an action or a receipt are `out of domain (w.shape)` at this
-signed layer; the successor layer (`Successor/GlobalCodecs.lean`: `pPkGlobal`,
-`pBaseGlobalKeyed`) admits them in key-storage positions. Their trie handle is
+ML-DSA-65 public keys and signatures anywhere in an action or a receipt are `out of domain
+(w.shape)` at this signed layer; the successor layer (`Successor/GlobalCodecs.lean`: `pPkGlobal`,
+`pBaseGlobalKeyed`, `pSigGlobal`, `pTxD2Global`) admits them in key-storage and signing positions,
+verified by `MlDsa65.verify` (FIPS 204). Their trie handle is
 `SHA3-256("near:ml-dsa-65-pubkey-hash:v1" ‖ pubkey)` (`Wasm.Crypto.sha3_256`, FIPS 202), so a full
 1952-byte key never lands in state. Every decoder is strict (truncation,
 unknown tags, invalid account ids, non-UTF-8 strings fail like nearcore's

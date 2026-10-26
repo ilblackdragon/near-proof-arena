@@ -36,8 +36,9 @@ This module is additive: it defines successor decoders/encoders in a new file an
 * **The distribution receipt's semantics are not implemented.** Only its representation is. Whether a
   `GlobalContractDistribution` receipt can appear in a chunk witness is UQ-006 (owner L4); this module
   does not decide that and does not admit the receipt into `checkD3`.
-* **ML-DSA verification is not implemented.** Only key/signature *shapes* are represented; the
-  signature scheme is W05/W06's obligation (UQ-005).
+* **ML-DSA verification is not here.** This module represents key/signature *shapes* only; the
+  FIPS 204 verification is `NearSpecV3.MlDsa65.verify`, called from `D2.TxD2.sigOk` and
+  `D2.actDelegate` and admitted by `Successor/GlobalCodecs.lean` (W06).
 * **The action dispatch table is a naming device, not a handler proof.** It records which codec each
   tag uses; it does not execute the action.
 -/

@@ -116,6 +116,12 @@ Signed tier (`--tier signed`):
 
 ### Remaining out-of-domain (domain questions, not fixed here)
 
+All three are settled on the successor tier by `../mldsa-fixtures/` (W06 ML-DSA-65): the mismatched
+pair now decodes and fails `TxD2.sigOk` as in nearcore, and ML-DSA transactions and receipt signer
+keys are verified and charged. The 79 committed `cases/` there replay 79/79 accept
+(`../mldsa-fixtures/replay/keyfamily-committed-*.jsonl`). The text below is the state at the time
+of this run.
+
 1. **Mismatched signature and key types** in a transaction (step 06: secp key, ED25519 signature).
    `pTxD2Global` refuses the pair as `w.shape` by design (`Successor/GlobalCodecs.lean`). nearcore
    returns `InvalidSignature` and drops the transaction, and `TxD2.sigOk` already returns `false`

@@ -455,6 +455,249 @@ def LK.bitmap : LK → Nat → Nat
   | .some _ r, i => 2 ^ i + r.bitmap (i + 1)
 end
 
+/-! ## Kernel-reducible forms of the lazy operations
+
+The operations above recurse on the lexicographic measure `(mf, sizeOf)`. Lean compiles a
+non-`Nat` well-founded measure through `WellFounded.fix` applied to `Lean.opaqueId wf`, and the
+kernel does not reduce `opaqueId`. So a closed `decide +kernel` evaluation of any checker that
+reads the trie through these functions gets stuck: an application type mismatch, not a verdict.
+
+The `…N` forms below compute the same functions by **structural** recursion, which the kernel
+reduces. There are two nested levels: an outer recursion on an explicit fuel `n` for each lazy
+expansion `lz h (f+1) ↦ toLT f r`, and an inner structural recursion on the `LT`/`LK` tree
+(`…At rec`, where `rec` is the level below). `LazyTrieKernel.lean` proves each `…N n` equal to the
+well-founded original whenever `n ≥ mf`. So the call sites that use them (`trieFindL`,
+`trieFindRefL`, `triePrefixL`, `applyChangeL`) compute exactly what they computed before. -/
+
+mutual
+def findAt (rec : LT → List Nat → TM (Option (Option Bytes))) :
+    LT → List Nat → TM (Option (Option Bytes))
+  | .lz _ 0, _ => pure none
+  | .lz h (f + 1), key => do
+    match ← getDec h with
+    | none => pure none
+    | some r => rec (toLT f r) key
+  | .leaf k v _, key =>
+    if k = key then do pure ((← slotGetL v).map some) else pure (some none)
+  | .ext k c _, key => if isPrefix k key then findAt rec c (key.drop k.length) else pure (some none)
+  | .branch v _ _, [] =>
+    match v with
+    | none => pure (some none)
+    | some s => do pure ((← slotGetL s).map some)
+  | .branch _ cs _, n :: rest => findAtK rec cs n rest
+def findAtK (rec : LT → List Nat → TM (Option (Option Bytes))) :
+    LK → Nat → List Nat → TM (Option (Option Bytes))
+  | .nil, _, _ => pure (some none)
+  | .none _, 0, _ => pure (some none)
+  | .some c _, 0, key => findAt rec c key
+  | .none r, i + 1, key => findAtK rec r i key
+  | .some _ r, i + 1, key => findAtK rec r i key
+end
+
+def findN : Nat → LT → List Nat → TM (Option (Option Bytes))
+  | 0 => findAt fun _ _ => pure none
+  | n + 1 => findAt (findN n)
+
+mutual
+def findRefAt (rec : LT → List Nat → TM (Option (Option Nat))) :
+    LT → List Nat → TM (Option (Option Nat))
+  | .lz _ 0, _ => pure none
+  | .lz h (f + 1), key => do
+    match ← getDec h with
+    | none => pure none
+    | some r => rec (toLT f r) key
+  | .leaf k v _, key => pure (if k = key then some (some v.len) else some none)
+  | .ext k c _, key => if isPrefix k key then findRefAt rec c (key.drop k.length) else pure (some none)
+  | .branch v _ _, [] => pure (some (v.map Slot.len))
+  | .branch _ cs _, n :: rest => findRefAtK rec cs n rest
+def findRefAtK (rec : LT → List Nat → TM (Option (Option Nat))) :
+    LK → Nat → List Nat → TM (Option (Option Nat))
+  | .nil, _, _ => pure (some none)
+  | .none _, 0, _ => pure (some none)
+  | .some c _, 0, key => findRefAt rec c key
+  | .none r, i + 1, key => findRefAtK rec r i key
+  | .some _ r, i + 1, key => findRefAtK rec r i key
+end
+
+def findRefN : Nat → LT → List Nat → TM (Option (Option Nat))
+  | 0 => findRefAt fun _ _ => pure none
+  | n + 1 => findRefAt (findRefN n)
+
+mutual
+def allKeysAt (rec : LT → List Nat → TM (Option (List (List Nat)))) :
+    LT → List Nat → TM (Option (List (List Nat)))
+  | .lz _ 0, _ => pure none
+  | .lz h (f + 1), acc => do
+    match ← getDec h with
+    | none => pure none
+    | some r => rec (toLT f r) acc
+  | .leaf k v _, acc => do pure (if ← slotHasL v then some [acc ++ k] else none)
+  | .ext k c _, acc => allKeysAt rec c (acc ++ k)
+  | .branch v cs _, acc => do
+    let here ← match v with
+      | none => pure (some [])
+      | some s => do pure (if ← slotHasL s then some [acc] else none)
+    match here with
+    | none => pure none
+    | some here =>
+      match ← allKeysAtK rec cs 0 acc with
+      | none => pure none
+      | some kids => pure (some (here ++ kids))
+def allKeysAtK (rec : LT → List Nat → TM (Option (List (List Nat)))) :
+    LK → Nat → List Nat → TM (Option (List (List Nat)))
+  | .nil, _, _ => pure (some [])
+  | .none r, i, acc => allKeysAtK rec r (i + 1) acc
+  | .some c r, i, acc => do
+    match ← allKeysAt rec c (acc ++ [i]) with
+    | none => pure none
+    | some a =>
+      match ← allKeysAtK rec r (i + 1) acc with
+      | none => pure none
+      | some b => pure (some (a ++ b))
+end
+
+def allKeysN : Nat → LT → List Nat → TM (Option (List (List Nat)))
+  | 0 => allKeysAt fun _ _ => pure none
+  | n + 1 => allKeysAt (allKeysN n)
+
+mutual
+/-- `all` is `allKeys` at the same fuel level, `rec` is `prefixKeys` one level down. -/
+def prefixKeysAt (all : LT → List Nat → TM (Option (List (List Nat))))
+    (rec : LT → List Nat → List Nat → TM (Option (List (List Nat)))) :
+    LT → List Nat → List Nat → TM (Option (List (List Nat)))
+  | .lz _ 0, _, _ => pure none
+  | .lz h (f + 1), pre, acc => do
+    match ← getDec h with
+    | none => pure none
+    | some r => rec (toLT f r) pre acc
+  | .leaf k v m, pre, acc => if isPrefix pre k then all (.leaf k v m) acc else pure (some [])
+  | .ext k c m, pre, acc =>
+    if isPrefix k pre then prefixKeysAt all rec c (pre.drop k.length) (acc ++ k)
+    else if isPrefix pre k then all (.ext k c m) acc
+    else pure (some [])
+  | .branch v cs m, [], acc => all (.branch v cs m) acc
+  | .branch _ cs _, n :: rest, acc => prefixKeysAtK all rec cs n rest (acc ++ [n])
+def prefixKeysAtK (all : LT → List Nat → TM (Option (List (List Nat))))
+    (rec : LT → List Nat → List Nat → TM (Option (List (List Nat)))) :
+    LK → Nat → List Nat → List Nat → TM (Option (List (List Nat)))
+  | .nil, _, _, _ => pure (some [])
+  | .none _, 0, _, _ => pure (some [])
+  | .some c _, 0, rest, acc => prefixKeysAt all rec c rest acc
+  | .none r, i + 1, rest, acc => prefixKeysAtK all rec r i rest acc
+  | .some _ r, i + 1, rest, acc => prefixKeysAtK all rec r i rest acc
+end
+
+def prefixKeysN : Nat → LT → List Nat → List Nat → TM (Option (List (List Nat)))
+  | 0 => prefixKeysAt (allKeysN 0) fun _ _ _ => pure none
+  | n + 1 => prefixKeysAt (allKeysN (n + 1)) (prefixKeysN n)
+
+mutual
+def upsertAt (rec : LT → List Nat → Bytes → TM (Option (Nat × LT))) :
+    LT → List Nat → Bytes → TM (Option (Nat × LT))
+  | .lz _ 0, _, _ => pure none
+  | .lz h (f + 1), key, v => do
+    match ← getDec h with
+    | none => pure none
+    | some r => rec (toLT f r) key v
+  | .leaf k s m, key, v => pure (some (m, if k = key then newLeafL k v else splitLeafL k s key v))
+  | .ext k c m, key, v =>
+    if isPrefix k key then do
+      match ← upsertAt rec c (key.drop k.length) v with
+      | some (cm, c') => pure (some (m, .ext k c' (m + memDL c' - cm)))
+      | none => pure none
+    else pure (some (m, splitExtL k c m key v))
+  | .branch bv cs m, [], v =>
+    pure (some (m, .branch (some (.val v)) cs
+      (m + valueMem v.length - (match bv with | some s => valueMem s.len | none => 0))))
+  | .branch bv cs m, n :: rest, v => do
+    match ← upsertAtK rec cs n rest v with
+    | some (cs', a, b) => pure (some (m, .branch bv cs' (m + b - a)))
+    | none => pure none
+def upsertAtK (rec : LT → List Nat → Bytes → TM (Option (Nat × LT))) :
+    LK → Nat → List Nat → Bytes → TM (Option (LK × Nat × Nat))
+  | .nil, _, _, _ => pure none
+  | .none r, 0, key, v => pure (some (.some (newLeafL key v) r, 0, leafMem key v.length))
+  | .some c r, 0, key, v => do
+    match ← upsertAt rec c key v with
+    | some (cm, c') => pure (some (.some c' r, cm, memDL c'))
+    | none => pure none
+  | .none r, i + 1, key, v => do
+    match ← upsertAtK rec r i key v with
+    | some (x, a, b) => pure (some (.none x, a, b))
+    | none => pure none
+  | .some c r, i + 1, key, v => do
+    match ← upsertAtK rec r i key v with
+    | some (x, a, b) => pure (some (.some c x, a, b))
+    | none => pure none
+end
+
+def upsertN : Nat → LT → List Nat → Bytes → TM (Option (Nat × LT))
+  | 0 => upsertAt fun _ _ _ => pure none
+  | n + 1 => upsertAt (upsertN n)
+
+mutual
+def delAt (rec : LT → List Nat → TM (Option (Nat × Bool × Option LT))) :
+    LT → List Nat → TM (Option (Nat × Bool × Option LT))
+  | .lz _ 0, _ => pure none
+  | .lz h (f + 1), key => do
+    match ← getDec h with
+    | none => pure none
+    | some r => rec (toLT f r) key
+  | .leaf k s m, key =>
+    pure (some (m, if k = key then (true, none) else (false, some (.leaf k s m))))
+  | .ext k c m, key =>
+    if isPrefix k key then do
+      match ← delAt rec c (key.drop k.length) with
+      | some (_, true, c') =>
+        match c' with
+        | none => pure (some (m, true, none))
+        | some c' => do
+          match ← extendChildL k c' with
+          | some r => pure (some (m, true, r))
+          | none => pure none
+      | some (_, false, _) => pure (some (m, false, some (.ext k c m)))
+      | none => pure none
+    else pure (some (m, false, some (.ext k c m)))
+  | .branch v cs m, [] =>
+    match v with
+    | none => pure (some (m, false, some (.branch v cs m)))
+    | some s => do
+      match ← squashBranchL none cs (m - valueMem s.len) with
+      | some r => pure (some (m, true, r))
+      | none => pure none
+  | .branch v cs m, n :: rest => do
+    match ← delAtAtK rec cs n rest with
+    | none => pure none
+    | some none => pure (some (m, false, some (.branch v cs m)))
+    | some (some (cs', old, new)) => do
+      match ← squashBranchL v cs' (m - old + new) with
+      | some r => pure (some (m, true, r))
+      | none => pure none
+def delAtAtK (rec : LT → List Nat → TM (Option (Nat × Bool × Option LT))) :
+    LK → Nat → List Nat → TM (Option (Option (LK × Nat × Nat)))
+  | .nil, _, _ => pure (some none)
+  | .none _, 0, _ => pure (some none)
+  | .some c r, 0, key => do
+    match ← delAt rec c key with
+    | some (cm, true, c') =>
+      pure (some (some ((match c' with | some c' => .some c' r | none => .none r), cm,
+                        (match c' with | some c' => memDL c' | none => 0))))
+    | some (_, false, _) => pure (some none)
+    | none => pure none
+  | .none r, i + 1, key => do
+    match ← delAtAtK rec r i key with
+    | none => pure none
+    | some o => pure (some (o.map fun (k, a, b) => (.none k, a, b)))
+  | .some c r, i + 1, key => do
+    match ← delAtAtK rec r i key with
+    | none => pure none
+    | some o => pure (some (o.map fun (k, a, b) => (.some c k, a, b)))
+end
+
+def delN : Nat → LT → List Nat → TM (Option (Nat × Bool × Option LT))
+  | 0 => delAt fun _ _ => pure none
+  | n + 1 => delAt (delN n)
+
 /-! ## `finalize`: apply the committed changes, hash -/
 
 def applyChangeL (t : Option LT) (k : Bytes) (v : Option Bytes) : TM (Option (Option LT)) :=
@@ -462,12 +705,12 @@ def applyChangeL (t : Option LT) (k : Bytes) (v : Option Bytes) : TM (Option (Op
   match v, t with
   | some x, none => pure (some (some (newLeafL key x)))
   | some x, some t => do
-    match ← upsertL t key x with
+    match ← upsertN t.mf t key x with
     | some (_, t') => pure (some (some t'))
     | none => pure none
   | none, none => pure (some none)
   | none, some t => do
-    match ← delL t key with
+    match ← delN t.mf t key with
     | some (_, _, r) => pure (some r)
     | none => pure none
 

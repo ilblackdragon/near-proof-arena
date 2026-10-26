@@ -40,3 +40,7 @@ root = "MainD3F"
 [[lean_exe]]
 name = "nearspec-v3-check-d3-out"
 root = "MainD3Out"
+
+[[lean_exe]]
+name = "nearspec-v3-fuel-probe"
+root = "FuelProbe"
