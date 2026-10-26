@@ -48,7 +48,7 @@ breakage control (agreement with nearcore at `allFeatures`; out-of-domain counts
 | Gate-B boundaries: 8 MiB+ witnesses, 1.8 Pgas chunks, segments to 71 blocks | 1,324 | 0 | [gate-b-caps](../evidence/lean-chunk-completion/gate-b-caps/README.md) |
 | Fuel stress: 300 Tgas burns, stack and memory maxima | 180 | 0 | [fuel-termination](../evidence/lean-chunk-completion/fuel-termination/README.md) |
 
-Proved in this round: fuel monotonicity (more fuel changes only fuel-exhausted runs), curve loop
+Proved in this round: tier lifts and genesis overlap (`TierProofs`, `GenesisOverlap`, `TierMono`), fuel monotonicity (more fuel changes only fuel-exhausted runs), curve loop
 bounds, layout reachability at PV86 (`LayoutReach`), and kernel non-vacuity of `RelD3` with its
 negation on real cases (`Examples/RealCaseD3`, run on demand: ~21 GB).
 
@@ -69,7 +69,7 @@ negation on real cases (`Examples/RealCaseD3`, run on demand: ~21 GB).
 | 1 | W13 | 1,000-block all-shard window (hardware pending); the cold native adapter, without which `make w13-gate` cannot pass; finality/authentication boundary |
 | 2 | W02 | Fuel sufficiency theorem: obligations O-W1b–O-W4 (`Wasm/Fuel.lean`; finite-wasm charges before execution is the largest). Evaluation time: a 300 Tgas receipt of zero-fee control loops needs ~55 h — bulk-skip such runs. Memory: ~106 B per witness byte |
 | 3 | W02 | `w.compressed_size` approximates nearcore's 48 MiB compressed-witness limit (needs a zstd model or an authenticated length); total contract-code size (64 MiB) unmodelled; narrower tiers keep the old caps (UQ-012 tier design) |
-| 4 | W12 | Tier refinement: segment/gas/genesis lifts and genesis overlap proved (proof lane, merging); open O1–O7 (floats, curve hosts, global actions, storage resolution, loading limits, resharding on non-genesis segments, complete-code). Signed `checkD3` rejects valid post-split V3 chunks (`InvalidBandwidthRequests`): a stated restriction of the signed statement |
+| 4 | W12 | Tier refinement: segment, gas, witness-size, layout and genesis lifts proved for all three shells, the W10 genesis overlap proved, four named tier pairs proved ([tier-proofs](../evidence/lean-chunk-completion/tier-proofs/README.md)); 60 flag-contained tier pairs differ on no case except the two below. Open O1–O7 (floats, curve hosts, global actions, storage resolution, loading limits, resharding on non-genesis segments, complete-code). Signed `checkD3` rejects valid post-split V3 chunks (`InvalidBandwidthRequests`): a stated restriction of the signed statement |
 | 5 | W08 | Historical/warm compiled-cache coherence; `completeCodeGlobal` rejects valid warm-cache chunks (178 on the tier census) and refines no tier; signed D3 tiers keep the pre-state code rule; generator labels race mutants `e.code_cache` |
 | 6 | W00 | Open UQs: 001–004, 007, 010 (`DomainD3` reconciliation), 013–016, 017 (header set); fact authentication; versioned claim/witness schema |
 | 7 | W01 | Failure kinds, per-receipt storage attribution and per-outcome compute are not compared; d1run/d2corpus.v2 lack expected per-outcome values |
@@ -223,7 +223,7 @@ the accounting.
 
 Landed: post-genesis chunks with transactions and implicit transitions; nearcore never builds a
 genesis chunk with transactions (zero tx root), so `tx_valid` on genesis is reachable only empty.
-The genesis/non-genesis overlap theorem is in the tier-proof merge. Open: genesis fact
+The genesis/non-genesis overlap is proved (`checkD2CoreGWith_overlap`, `checkD2CoreG_overlap`). Open: genesis fact
 authentication; the UQ-017 header comparison set. **Success:** overlap theorem and transaction-bearing cases pass.
 
 ### W11 Resharding boundary validation (L6 resharding substream)

@@ -279,6 +279,14 @@ theorem targetShard_of_not_distribution (r : Rcpt) (l : Layout) (h : rcptIsDistr
   · rename_i d hd; rw [hd] at h; cases h
   · rfl
 
+theorem routedShard_of_not_distribution (r : Rcpt) (l : Layout) (h : rcptIsDistribution r = false) :
+    r.routedShard l = l.shardOf r.recv := by
+  unfold Rcpt.routedShard
+  unfold rcptIsDistribution at h
+  split
+  · rename_i d hd; rw [hd] at h; cases h
+  · rfl
+
 theorem recorderDriver_outgoingRoot_globals (cfg : Wasm.NearCfg) (policy : CodeWitnessPolicy)
     (l : Layout) (rs : List Rcpt) (h : ∀ r ∈ rs, rcptIsDistribution r = false) :
     (recorderDriver cfg true policy).outgoingRoot l rs = outgoingReceiptsRootD2 l rs := by
@@ -289,13 +297,13 @@ theorem recorderDriver_outgoingRoot_globals (cfg : Wasm.NearCfg) (policy : CodeW
   congr 3
   apply List.filter_congr
   intro r hr
-  rw [targetShard_of_not_distribution r l (h r hr)]
+  rw [routedShard_of_not_distribution r l (h r hr)]
 
 theorem recorderDriver_receiptShard_globals (cfg : Wasm.NearCfg) (policy : CodeWitnessPolicy)
     (l : Layout) (r : Rcpt) (h : rcptIsDistribution r = false) :
     (recorderDriver cfg true policy).receiptShard l r = (recorderDriver cfg false policy).receiptShard l r := by
   simp only [recorderDriver, ↓reduceIte, Bool.false_eq_true]
-  exact targetShard_of_not_distribution r l h
+  exact routedShard_of_not_distribution r l h
 
 /-! ## Composition: the wide tiers into `.allFeatures`, reduced to named obligations
 
