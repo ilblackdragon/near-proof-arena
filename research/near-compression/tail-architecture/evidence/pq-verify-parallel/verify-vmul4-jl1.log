@@ -1,0 +1,22 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11935 private=10891022 constants=44542 and=4191295 zero=921597
+RECEIPT_LIST_CIRCUIT cap=1056 mode=1 lists=3 log=23 circuit_s=17.386212075 accounts=10
+RECEIPT_LIST_SETUP setup_s=3.6229152129999997
+SIS_POLICY inner rank=25 width=9567 source=20319939987304 target=292281948973 bound=248136683914.40082 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=292281948973 target=1795096771 bound=2439074549.1672535 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1795096771 target=72926845 bound=124338346.49130574 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72926845 target=13047113 bound=26700486.226210039 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13047113 target=999484058 bound=14163348.769864844 bits=145.220 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=999484058 target=65981973298 bound=57538782.505371526 bits=149.195 finite=1 tail=1
+LABRADOR_BRIDGE check_ms=5.304 build_raw_ms=0.231 composite_ms=681.520
+OPENING_PHASES rebuild_ms=203.316 layout_ms=13.318 bound_ms=9.389 phi_ms=11.247 statement_ms=119.557 labrador_ms=687.095
+RECEIPT_VERIFY_PHASES decode_s=0.000055 commitment_ms=0.010 reduce_ms=2.996 wiring_ms=519.799 switch_ms=0.306 decode_opening_ms=0.000 opening_ms=903.866 total_ms=1427.044
+RECEIPT_LIST_VERIFY bytes=250126 seconds=1.4271165909999999 no_witness_loaded=true backend_roundtrip=true negative_checks=4

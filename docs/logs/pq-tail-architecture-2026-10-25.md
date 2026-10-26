@@ -81,3 +81,20 @@ port the two C verify kernels to the existing pthread-worker pattern
 (retaining per-output accumulation order and the sprod chunk-cache
 warmup discipline), then parallelize the wiring replay; then measure
 16-thread and folded-aggregate verify.
+
+### Parallel PQ verify kernels (2026-10-26, later)
+
+Implemented np_vmul.h (pthread-worker kernel for the lift chain's
+polxvec_polx_mul/mul_add over r*n elements, np_pairs/np_jl discipline,
+16-polx block splits, gated npe>=1024, LABRADOR_VMUL_THREADS). First
+version had an unoffset vector operand — rejected by the C verifier's own
+"Linear garbage" check; fixed and proven by standalone byte-identical
+parity (296,577 elements) plus gate bisection. Serial verify 1.483 s ->
+1.306 s (4 C threads) -> 0.905 s (8 C + 8 Rust threads; the Rust wiring
+replay parallelizes with RAYON=8: 517 -> 132 ms). Fresh prove with the
+kernels: 3.181 s ready, 250,126 B, all mutations reject; cross-verify
+passes. No parameter change. Remaining to <200 ms: aggregate_sparsecnst
+(~225 ms, needs destination-run-parallel design preserving accumulation
+order), Rust statement rebuild (~200 ms), project/amortize residue, then
+folding for per-block aggregate verify. See PQ_VERIFY_PARALLEL.md and
+evidence/pq-verify-parallel.
