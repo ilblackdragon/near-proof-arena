@@ -1,0 +1,82 @@
+{
+ "allFeatures/s99": {
+  "status": "pass",
+  "cases": 1399,
+  "verdicts": {
+   "accept": 1244,
+   "reject": 155
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 274,
+   "verdict_compared_agree": 1125
+  },
+  "disagreements": [],
+  "checker_sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "results_sha256": "c9e1e728ed6686cbe152c725eeeca1eddaec6f247d68c99d94c576973d88c529",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+  },
+  "out_of_domain_reasons": {}
+ },
+ "allFeatures/s101": {
+  "status": "pass",
+  "cases": 1699,
+  "verdicts": {
+   "accept": 1544,
+   "reject": 155
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 274,
+   "verdict_compared_agree": 1425
+  },
+  "disagreements": [],
+  "checker_sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "results_sha256": "bdadc80b1a0db1af760efc35511ea0017ba8bd490ab1a519a4d1cb0a2df10092",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+  },
+  "out_of_domain_reasons": {}
+ },
+ "storageResolution/s99": {
+  "status": "pass",
+  "cases": 1399,
+  "verdicts": {
+   "accept": 1244,
+   "reject": 155
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 274,
+   "verdict_compared_agree": 1125
+  },
+  "disagreements": [],
+  "checker_sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "results_sha256": "2bcc8ff8b1518603932bfb245e278dc27a480813ed2545ce7fa685c609731b61",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+  },
+  "out_of_domain_reasons": {}
+ },
+ "storageResolution/s101": {
+  "status": "pass",
+  "cases": 1699,
+  "verdicts": {
+   "accept": 1544,
+   "reject": 155
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 274,
+   "verdict_compared_agree": 1425
+  },
+  "disagreements": [],
+  "checker_sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "results_sha256": "270ff6bc2f1b573a974b46c76c93fd8234b107520f44710b751fbbfb718c7579",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+  },
+  "out_of_domain_reasons": {}
+ }
+}
