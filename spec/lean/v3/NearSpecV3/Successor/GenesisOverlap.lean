@@ -97,7 +97,7 @@ theorem checkD2CoreGWith_overlap (d : ExecutionDriver) (hd : d.resharding = fals
   have key : ∀ W, W = checkD2CoreWithObs d h a c w g →
       Overlap W (checkD2CoreGWith d h a c w g) (checkD2CoreWithObs d h a c w g) := by
     intro W hWfull
-    obtain ⟨ap, so, dw, rsh, vr, ogr, rs, seg, bl, ik, sa⟩ := d
+    obtain ⟨ap, so, dw, rsh, vr, ogr, rs, seg, wu, lu, bl, ik, sa⟩ := d
     cases hd
     unfold checkD2CoreGWith checkD2CoreWithObs
     dsimp only

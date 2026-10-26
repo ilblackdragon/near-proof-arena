@@ -67,7 +67,7 @@ theorem checkD2CoreWithObs_resharding_mono (d : ExecutionDriver) (hr : d.reshard
     (h : ActionHooks) (a : Bool) (c w : Bytes) (g : Option Nat) :
     Refines (checkD2CoreWithObs d h a c w g)
       (checkD2CoreWithObs { d with resharding := true, splitApply := sa' } h a c w g) := by
-  obtain ⟨ap, so, dw, rsh, vr, ogr, rs, seg, bl, ik, sa⟩ := d
+  obtain ⟨ap, so, dw, rsh, vr, ogr, rs, seg, wu, lu, bl, ik, sa⟩ := d
   dsimp only at hr hik
   subst hr hik
   unfold checkD2CoreWithObs
@@ -90,7 +90,7 @@ theorem checkD2CoreGWith_resharding_mono (d : ExecutionDriver) (hr : d.reshardin
     Refines (checkD2CoreGWith d h a c w g)
       (checkD2CoreGWith { d with resharding := true, splitApply := sa' } h a c w g) := by
   have hW := checkD2CoreWith_resharding_mono d hr hik sa' h a c w g
-  obtain ⟨ap, so, dw, rsh, vr, ogr, rs, seg, bl, ik, sa⟩ := d
+  obtain ⟨ap, so, dw, rsh, vr, ogr, rs, seg, wu, lu, bl, ik, sa⟩ := d
   dsimp only at hr hik hW
   subst hr hik
   unfold checkD2CoreGWith
@@ -131,6 +131,37 @@ theorem checkSuccessor_segment_mono (cfg : ProtocolCfg) (c w : Bytes) :
       · exact Refines.refl _
   · exact Refines.refl _
 
+/-- Lifting the serialized-witness bound to the compressed-size bound (Gate B) never changes a
+decided verdict, at any configuration. -/
+theorem checkSuccessor_witness_mono (cfg : ProtocolCfg) (c w : Bytes) :
+    Refines (checkSuccessor cfg c w) (checkSuccessor { cfg with witnessUnbounded := true } c w) := by
+  unfold checkSuccessor
+  dsimp only
+  split
+  · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+    · exact Refines.map _ (checkReshardCoreObs_witness_mono _ _ _ _ _ _)
+    · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+      · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+        · exact checkD2CoreGWith_witness_mono _ _ _ _ _ _
+        · exact checkD2CoreWith_witness_mono _ _ _ _ _ _
+      · exact Refines.refl _
+  · exact Refines.refl _
+
+/-- Lifting the `numShards ≤ 64` layout bound (Gate B) never changes a decided verdict. -/
+theorem checkSuccessor_layout_mono (cfg : ProtocolCfg) (c w : Bytes) :
+    Refines (checkSuccessor cfg c w) (checkSuccessor { cfg with layoutUnbounded := true } c w) := by
+  unfold checkSuccessor
+  dsimp only
+  split
+  · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+    · exact Refines.map _ (checkReshardCoreObs_layout_mono _ _ _ _ _ _)
+    · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+      · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+        · exact checkD2CoreGWith_layout_mono _ _ _ _ _ _
+        · exact checkD2CoreWith_layout_mono _ _ _ _ _ _
+      · exact Refines.refl _
+  · exact Refines.refl _
+
 /-- Weakening the per-chunk gas bound never changes a decided verdict, at any configuration. -/
 theorem checkSuccessor_gas_mono (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe cfg.gasCap g)
     (c w : Bytes) :
@@ -156,7 +187,7 @@ statement is restricted; every named tier with resharding already sets the genes
 theorem checkSuccessor_genesis_mono (cfg : ProtocolCfg) (hr : cfg.resharding = false) (c w : Bytes) :
     Refines (checkSuccessor cfg c w)
       (checkSuccessor { cfg with genesisMainTransition := true } c w) := by
-  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg⟩ := cfg
+  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu⟩ := cfg
   dsimp only at hr
   subst hr
   cases gen
@@ -272,7 +303,8 @@ theorem recorderDriver_receiptShard_globals (cfg : Wasm.NearCfg) (policy : CodeW
 reach `.allFeatures` by adding the features they lack; `c.segment` is proved
 (`checkSuccessor_segment_mono`), the others are the open obligations listed below. Each theorem
 reduces `relSuccessor_*_mono` for a wide tier to exactly those obligations at exactly those
-configurations. -/
+configurations. The Gate-B steps `.allFeatures` adds (`c.segment`, no gas bound, the compressed
+witness bound, the layout bound) are discharged by `Lift.gateB`. -/
 
 /-- One configuration step refines. -/
 def Lift (cfg cfg' : ProtocolCfg) : Prop := ∀ c w, Refines (checkSuccessor cfg c w) (checkSuccessor cfg' c w)
@@ -283,11 +315,30 @@ theorem Lift.trans {a b c : ProtocolCfg} (h₁ : Lift a b) (h₂ : Lift b c) : L
 theorem Lift.segment (cfg : ProtocolCfg) : Lift cfg { cfg with segmentUnbounded := true } :=
   fun c w => checkSuccessor_segment_mono cfg c w
 
+theorem Lift.witness (cfg : ProtocolCfg) : Lift cfg { cfg with witnessUnbounded := true } :=
+  fun c w => checkSuccessor_witness_mono cfg c w
+
+theorem Lift.layout (cfg : ProtocolCfg) : Lift cfg { cfg with layoutUnbounded := true } :=
+  fun c w => checkSuccessor_layout_mono cfg c w
+
+theorem Lift.gas (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe cfg.gasCap g) :
+    Lift cfg { cfg with gasCap := g } :=
+  fun c w => checkSuccessor_gas_mono cfg g hg c w
+
+/-- The Gate-B lifts `.allFeatures` adds on top of the named features: `c.segment`, the protocol
+gas bound removed (`gasCap := none`), the compressed witness bound and the layout bound. All four
+are proved, at any configuration whose gas bound is `some _` or `none`. -/
+theorem Lift.gateB (cfg : ProtocolCfg) :
+    Lift cfg { cfg with segmentUnbounded := true, gasCap := none, witnessUnbounded := true,
+                        layoutUnbounded := true } :=
+  (((Lift.segment cfg).trans (Lift.gas _ none (by cases h : cfg.gasCap <;> simp [CapLe, h]))).trans
+    (Lift.witness _)).trans (Lift.layout _)
+
 /-- `.resharding ⊑ .allFeatures`, given the global-action lift at the resharding configuration. -/
 theorem relSuccessor_resharding_allFeatures_of
     (hGA : Lift (Tier.cfg .resharding) { Tier.cfg .resharding with globalActions := true }) (c w : Bytes) :
     Refines (Tier.checker .resharding c w) (Tier.checker .allFeatures c w) :=
-  (hGA.trans (Lift.segment _)) c w
+  (hGA.trans (Lift.gateB _)) c w
 
 /-- Verdict-level refinement: where `x` accepts, `y` accepts; where `x` rejects, `y` rejects (with
 any reason). The resharding step needs this weaker form: `ReshardCore` checks a malformed layout in a
@@ -327,7 +378,7 @@ theorem relSuccessor_curveHosts_allFeatures_of
     (hR : VLift (Tier.cfg .curveHosts) (Tier.cfg .resharding))
     (hGA : Lift (Tier.cfg .resharding) { Tier.cfg .resharding with globalActions := true }) (c w : Bytes) :
     VRefines (Tier.checker .curveHosts c w) (Tier.checker .allFeatures c w) :=
-  ((hR.trans hGA.toV).trans (Lift.segment _).toV) c w
+  ((hR.trans hGA.toV).trans (Lift.gateB _).toV) c w
 
 /-- `.globalActions ⊑ .allFeatures` at verdict level, given the curve-host lift and the
 resharding lift (verdict level) at the global-action configurations. -/
@@ -336,11 +387,12 @@ theorem relSuccessor_globalActions_allFeatures_of
     (hR : VLift { Tier.cfg .globalActions with curveHosts := true }
       { Tier.cfg .globalActions with curveHosts := true, resharding := true }) (c w : Bytes) :
     VRefines (Tier.checker .globalActions c w) (Tier.checker .allFeatures c w) :=
-  ((hC.toV.trans hR).trans (Lift.segment _).toV) c w
+  ((hC.toV.trans hR).trans (Lift.gateB _).toV) c w
 
 /-! ## Remaining obligations (W12)
 
-Proved here, with no premise: `c.segment` (all configurations), the gas bound (all configurations),
+Proved here, with no premise: `c.segment`, the gas bound (including its removal), the Gate-B witness
+and layout lifts (all configurations; composed as `Lift.gateB`),
 the genesis main transition (all configurations without resharding; W10 overlap including the common
 prefix), the resharding driver on the whole-state shells, and the named pairs
 `.signed ⊑ .protoGas`, `.floats ⊑ .floatsProtoGas`, `.signed ⊑ .genesis`,
@@ -385,6 +437,9 @@ Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs
 
 #print axioms checkSuccessor_segment_mono
 #print axioms checkSuccessor_gas_mono
+#print axioms checkSuccessor_witness_mono
+#print axioms checkSuccessor_layout_mono
+#print axioms Lift.gateB
 #print axioms checkSuccessor_genesis_mono
 #print axioms relSuccessor_protoGas_mono
 #print axioms relSuccessor_floatsProtoGas_mono

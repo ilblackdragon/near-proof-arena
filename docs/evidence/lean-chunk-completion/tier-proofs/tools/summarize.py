@@ -8,6 +8,8 @@ Populations:
   FULL   — every case of the six corpora (235,716), for the tiers run on all of them.
   FX     — the 461 cases of the committed fixture sets (docs/evidence/lean-chunk-completion/*-fixtures).
   MAINNET — the 1,223 mainnet shard-13 chunks of mainnet-w13-shard13 (heights 221489407-221490629).
+  SANITY_MERGED — 5,765 cases (3,000 seeded random, 1,000 of P2, W08, FX, MAINNET) on the checker
+           built after merging main f68a56f5c (allFeatures: no gas bound, witness/layout lifts).
   W08    — the 103 code mutants whose allFeatures verdict changed with the W08 pipeline rule; all 13 tiers.
 For every ordered tier pair (lo, hi): cases where lo decides (accept/reject) and hi's result
 differs (verdict, or reason string for the same verdict).
@@ -30,7 +32,8 @@ CFG = {
     'curveHosts': {'floats', 'gas', 'genesis', 'loadingLimits', 'storageResolution', 'curveHosts'},
     'resharding': {'floats', 'gas', 'genesis', 'loadingLimits', 'storageResolution', 'curveHosts', 'resharding'},
     'allFeatures': {'floats', 'gas', 'genesis', 'loadingLimits', 'storageResolution', 'globalActions',
-                    'curveHosts', 'resharding', 'segmentUnbounded'},
+                    'curveHosts', 'resharding', 'segmentUnbounded', 'witnessUnbounded', 'layoutUnbounded',
+                    'gasNone'},
 }
 PROVED = {('signed', 'protoGas'): 'relSuccessor_protoGas_mono',
           ('floats', 'floatsProtoGas'): 'relSuccessor_floatsProtoGas_mono',
@@ -90,14 +93,19 @@ def pop(name, d, cases, tiers):
     return res, viols
 
 
+import sys as _s
+ONLY = _s.argv[3].split(',') if len(_s.argv) > 3 else None
 p2 = open(W + 'p2.txt').read().split()
 strat = open(W + 'strat.txt').read().split()
 w08 = open(W + 'w08.txt').read().split()
-full = open(W + 'all_cases.txt').read().split()
+full = open(W + 'all_cases.txt').read().split() if os.path.exists(W + 'all_cases.txt') else []
 fx = open(W + 'fixtures.txt').read().split()
 mn = open(W + 'mainnet.txt').read().split()
+san = open(W + 'sanity.txt').read().split()
 summary, allv = {}, []
-for name, d, cases in [('P2', 'strat-out', p2), ('STRAT', 'strat-out', strat), ('W08', 'w08-out', w08), ('FULL', 'full-out', full), ('FX', 'fx-out', fx), ('MAINNET', 'mn-out', mn)]:
+for name, d, cases in [('P2', 'strat-out', p2), ('STRAT', 'strat-out', strat), ('W08', 'w08-out', w08), ('FULL', 'full-out', full), ('FX', 'fx-out', fx), ('MAINNET', 'mn-out', mn), ('SANITY_MERGED', 'sanity-out', san)]:
+    if ONLY and name not in ONLY:
+        continue
     r, v = pop(name, d, cases, TIERS)
     summary[name] = r
     allv += v

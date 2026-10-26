@@ -7,9 +7,39 @@ audit is `axioms.txt` (`#print axioms` output from the build log: only `propext`
 terms. Doc comments only in `GenesisD3.lean` (the overlap obligation is now a theorem) and
 `Config.lean` (pointer from `Tier.rank`).
 
-Census binary: `nearspec-v3-check-successor` sha256 `29bf5217f43a23d3…` (the `5c60547b3` checker of
+Census binary for §2–§4 (pre-merge): `nearspec-v3-check-successor` sha256 `29bf5217f43a23d3…` (the `5c60547b3` checker of
 `corpus-blind-and-pipeline/`). The binary rebuilt from this branch gives byte-identical rows on a
 seeded 3,000-case sample for `signed` and `allFeatures` (0 of 6,000 rows differ).
+
+## 0. After merging main `f68a56f5c`
+
+Main added the Gate-B caps (`.allFeatures`: `gasCap := none`, `witnessUnbounded`,
+`layoutUnbounded`, the `w.compressed_size` exclusion), W01 observables, W02 fuel, LazyTrie and
+ML-DSA. Every theorem below was re-checked against the merged definitions (all build, no `sorry`,
+`axioms.txt` regenerated from the merged build). Changes on this branch:
+
+* **Gas lemmas** for the whole-state shells are split into one declaration per case
+  (`*_gas_mono_some`, `*_gas_mono_none`): the merged shells exceeded one declaration's heartbeat
+  budget with the three cases together. `maxHeartbeats` is unchanged.
+* **`refines_lockstep` no longer walks the rest of a checker once per flag guard.** The elaborated
+  `if flag then check A else check B` inlines the continuation into both branches, so every
+  configuration-flag guard doubled the walk (the two new flags made it 16×). `ite_bind_join` and
+  `ite_bind_skip` walk the shared continuation once; `TierProofs.lean` checks in about 25 s.
+* **New lifts, proved**: `*_witness_mono` (8 MiB → `compressedSafeWitnessBytes` = 50,000,000) and
+  `*_layout_mono` (`1 ≤ n ∧ n ≤ 64` → `1 ≤ n`) for all three shells (`check_and_left`, and
+  `forIn_congr` for the per-epoch layout loop in `ReshardCore`), and at configuration level
+  `checkSuccessor_witness_mono`, `checkSuccessor_layout_mono`. `Lift.gateB` composes `c.segment`,
+  no gas bound, the witness bound and the layout bound; the `relSuccessor_*_allFeatures_of`
+  reductions now discharge all four Gate-B steps.
+* **Unchanged statements**: the four named pairs, the W10 overlap (re-proved against the merged
+  prefix, which now carries the witness and layout guards), the resharding-driver lemmas. Only
+  `.allFeatures` carries caps flags, so the set of flag-contained tier pairs is unchanged (60 not
+  involving `completeCodeGlobal`).
+
+Merged-checker census sanity (`census-summary-merged.json`, binary sha256 `34bd3242581a9132…`):
+5,765 cases (the seeded 3,000-case sample, 1,000 seeded P2 cases, W08, FX, MAINNET), all 13 tiers.
+The 60 contained pairs differ only on the same two fixture cases as before (Findings 1 and 2);
+zero differences elsewhere, including every pair into `.allFeatures` with its Gate-B lifts.
 
 ## 1. The relation
 
@@ -34,7 +64,9 @@ so the walk tracks that the non-genesis checker's full result still equals its r
 | lemma | statement |
 |---|---|
 | `checkD2CoreWithObs_segment_mono`, `checkD2CoreWith_segment_mono`, `checkD2CoreGWith_segment_mono`, `checkReshardCoreObs_segment_mono` | any driver `d`: shell at `d` ⊑ shell at `{d with segmentUnbounded := true}` |
-| `checkD2CoreObs_gas_mono`, `checkD2Core_gas_mono`, `checkD2CoreWithObs_gas_mono`, `checkD2CoreWith_gas_mono`, `checkD2CoreGWith_gas_mono`, `checkD2CoreG_gas_mono`, `checkReshardCoreObs_gas_mono` | `CapLe g₁ g₂` (larger bound or no bound): shell at `g₁` ⊑ shell at `g₂` |
+| `checkD2CoreObs_gas_mono`, `checkD2Core_gas_mono`, `checkD2CoreWithObs_gas_mono`, `checkD2CoreWith_gas_mono`, `checkD2CoreGWith_gas_mono`, `checkD2CoreG_gas_mono`, `checkReshardCoreObs_gas_mono` (with `*_some`/`*_none` cases) | `CapLe g₁ g₂` (larger bound or no bound): shell at `g₁` ⊑ shell at `g₂` |
+| `checkD2CoreWithObs_witness_mono`, `checkD2CoreWith_witness_mono`, `checkD2CoreGWith_witness_mono`, `checkReshardCoreObs_witness_mono` | any driver: shell at `d` ⊑ shell at `{d with witnessUnbounded := true}` |
+| `checkD2CoreWithObs_layout_mono`, `checkD2CoreWith_layout_mono`, `checkD2CoreGWith_layout_mono`, `checkReshardCoreObs_layout_mono` | any driver: shell at `d` ⊑ shell at `{d with layoutUnbounded := true}` |
 
 ### W10 overlap (`GenesisOverlap.lean`)
 
@@ -54,6 +86,8 @@ them. No named tier is affected (every resharding tier also sets the genesis fla
 |---|---|
 | `checkSuccessor_segment_mono` | every `cfg`: `cfg` ⊑ `{cfg with segmentUnbounded := true}` |
 | `checkSuccessor_gas_mono` | every `cfg`, `CapLe cfg.gasCap g`: `cfg` ⊑ `{cfg with gasCap := g}` |
+| `checkSuccessor_witness_mono`, `checkSuccessor_layout_mono` | every `cfg`: the Gate-B witness and layout lifts |
+| `Lift.gateB` | every `cfg`: `cfg` ⊑ `{cfg with segmentUnbounded, gasCap := none, witnessUnbounded, layoutUnbounded}` |
 | `checkSuccessor_genesis_mono` | every `cfg` with `resharding = false`: `cfg` ⊑ `{cfg with genesisMainTransition := true}` |
 | `checkD2CoreWith_refines_GWith`, `checkD2Core_refines_G` | the overlap as a refinement |
 | `checkD2CoreWithObs_resharding_mono`, `checkD2CoreGWith_resharding_mono`, `checkD2CoreGWith_reshardingDriver_mono` | the resharding driver (guards lifted, `splitApply` unreachable on these shells) refines the recorder driver |
@@ -236,6 +270,6 @@ carry the scratch paths they were run with; the case lists are regenerated by `t
 `docs/evidence/lean-chunk-completion/*-fixtures/`, MAINNET is
 `/data/illia/nearproof-deps/mainnet-w13/replay-cases/`.
 
-Files: `census-summary.json` (per-population verdict counts and all-pairs table),
+Files: `census-summary-merged.json` (the merged-checker sanity run, §0), `census-summary.json` (per-population verdict counts and all-pairs table),
 `violations.jsonl.gz` (every difference row of a flag-contained pair, ≤ 200 per pair and population),
 `ccg.json`, `axioms.txt`.
