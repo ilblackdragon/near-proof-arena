@@ -50,7 +50,9 @@ use near_primitives::epoch_manager::{DynamicReshardingConfig, EpochConfig, Epoch
 use near_primitives::hash::CryptoHash;
 use near_primitives::num_rational::Rational32;
 use near_primitives::shard_layout::ShardLayout;
+use near_primitives::sharding::{ShardChunkHeader, ShardChunkHeaderV3};
 use near_primitives::state::PartialState;
+use near_primitives::trie_split::TrieSplit;
 use near_primitives::state_record::StateRecord;
 use near_primitives::stateless_validation::state_witness::ChunkStateWitness;
 use near_primitives::test_utils::create_test_signer;
@@ -200,6 +202,8 @@ pub struct ReshardStats {
     pub mutants: usize,
     pub shapes: BTreeMap<String, usize>,
     pub boundary: Vec<serde_json::Value>,
+    /// gate.no_split cases given a forged proposed split so far, per chain
+    pub forged_gate: BTreeMap<usize, usize>,
 }
 
 fn hex32(h: &[u8]) -> String {
@@ -549,6 +553,44 @@ fn write_case(
         st.boundary.push(json!({"case": name, "shape": shape, "nearcore": vstr(verdict), "main_outgoing_receipts": main_out,
             "implicit_transitions": kinds, "proposed_split": meta["proposed_split"], "header_congestion": meta["header_congestion"],
             "n_source_receipts": n_receipts}));
+    }
+    // ---- split-gate header mutants: the endorsed header's `proposed_split` changed and re-signed
+    // (nearcore's own `chunk_header_proposed_split_validation` test construction,
+    // integration-tests/src/tests/features/shard_split_validation.rs:96-121)
+    if verdict.is_ok() && (shape == "gate.proposed_split" || shape == "gate.no_split") {
+        let forged = st.forged_gate.entry(chain_idx).or_default();
+        let mut variants: Vec<(&str, Option<TrieSplit>)> = Vec::new();
+        if let Some(sp) = header.proposed_split() {
+            variants.push(("h.proposed_split_none", None));
+            variants.push(("h.proposed_split_left_memory", Some(TrieSplit::new(sp.boundary_account.clone(), sp.left_memory + 1, sp.right_memory))));
+        } else if *forged < 2 {
+            *forged += 1;
+            variants.push(("h.proposed_split_forged", Some(TrieSplit::new("s0a05".parse().unwrap(), 500_000, 500_000))));
+        }
+        let producer = em.get_chunk_producer_info(&key).map(|v| v.take_account_id()).unwrap_or_else(|_| "s0a00".parse().unwrap());
+        let signer = create_test_signer(producer.as_str());
+        let rs = (built.claim.rs_data_parts, built.claim.rs_total_parts);
+        for (mname, split) in variants {
+            let h = sw.chunk_header();
+            let nh = ShardChunkHeaderV3::new(
+                *h.prev_block_hash(), h.prev_state_root(), *h.prev_outcome_root(), *h.encoded_merkle_root(),
+                h.encoded_length(), h.height_created(), h.shard_id(), h.prev_gas_used(), h.gas_limit(),
+                h.prev_balance_burnt(), *h.prev_outgoing_receipts_root(), *h.tx_root(),
+                h.prev_validator_proposals().collect(), h.congestion_info(),
+                h.bandwidth_requests().cloned().unwrap_or_else(near_primitives::bandwidth_scheduler::BandwidthRequests::empty),
+                split, &signer, PROTOCOL_VERSION);
+            let mut c = built.claim.clone();
+            c.chunk_inner = borsh::to_vec(&nh.inner).unwrap();
+            let mut w = sw.clone();
+            let ChunkStateWitness::V2(x) = &mut w;
+            x.chunk_header = ShardChunkHeader::V3(nh);
+            let b = borsh::to_vec(&w).unwrap();
+            let exp = judge.judge(ci, client, &b, codes, rs, None);
+            let m = json!({"case": format!("{name}-{mname}"), "kind": "mutant", "mutation": mname, "base": name,
+                           "verdict_source": "nearcore(cold)", "nearcore": vstr(&exp), "expected_rel": exp.is_ok(), "shape": shape});
+            write_dir(&out.join("mutants").join(format!("{name}-{mname}")), &c, &b, codes, &m);
+            st.mutants += 1;
+        }
     }
     // ---- mutants of the split transition and of the layout facts
     let Some(k) = split_idx.filter(|_| verdict.is_ok()) else { return };
