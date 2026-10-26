@@ -1,0 +1,240 @@
+{
+ "label": "regen_g2718",
+ "cases": 477,
+ "categories": {
+  "match": 473,
+  "nearcore_genesis": 4
+ },
+ "graded": 473,
+ "per_field": {
+  "chunk.balanceBurnt": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  },
+  "chunk.gasUsed": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  },
+  "chunk.outcomeRoot": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  },
+  "computeUsage": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  },
+  "outcome.executor": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.gasBurnt": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.id": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.logs": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.receiptIds": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.returnData": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.status": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.statusReceiptId": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcome.tokensBurnt": {
+   "compared": 23210,
+   "matched": 23210,
+   "mismatched": 0
+  },
+  "outcomes.count": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  },
+  "receipt.bodyHash": {
+   "compared": 15820,
+   "matched": 15820,
+   "mismatched": 0
+  },
+  "receipt.id": {
+   "compared": 15820,
+   "matched": 15820,
+   "mismatched": 0
+  },
+  "receipt.kind": {
+   "compared": 15820,
+   "matched": 15820,
+   "mismatched": 0
+  },
+  "receipt.predecessor": {
+   "compared": 15820,
+   "matched": 15820,
+   "mismatched": 0
+  },
+  "receipt.receiver": {
+   "compared": 15820,
+   "matched": 15820,
+   "mismatched": 0
+  },
+  "receipt.refund": {
+   "compared": 15820,
+   "matched": 15820,
+   "mismatched": 0
+  },
+  "receipts.count": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  },
+  "refunds.count": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  },
+  "stateChange.value": {
+   "compared": 18905,
+   "matched": 18905,
+   "mismatched": 0
+  },
+  "stateChanges.keys": {
+   "compared": 473,
+   "matched": 473,
+   "mismatched": 0
+  }
+ },
+ "header_diffs": {},
+ "recompute_failures": {},
+ "controls": {
+  "total": 1708,
+  "detected": 1708,
+  "cases": 100,
+  "by_control": {
+   "computeUsage+1": {
+    "detected": 99,
+    "missed": 0
+   },
+   "outcome.executor": {
+    "detected": 99,
+    "missed": 0
+   },
+   "outcome.extra_log": {
+    "detected": 99,
+    "missed": 0
+   },
+   "outcome.failure->value": {
+    "detected": 56,
+    "missed": 0
+   },
+   "outcome.gasBurnt+1": {
+    "detected": 99,
+    "missed": 0
+   },
+   "outcome.id": {
+    "detected": 99,
+    "missed": 0
+   },
+   "outcome.log_byte": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.receiptIds": {
+    "detected": 98,
+    "missed": 0
+   },
+   "outcome.returnData": {
+    "detected": 97,
+    "missed": 0
+   },
+   "outcome.tokensBurnt+1": {
+    "detected": 99,
+    "missed": 0
+   },
+   "outcome.value->failure": {
+    "detected": 42,
+    "missed": 0
+   },
+   "outcomes.drop_last": {
+    "detected": 99,
+    "missed": 0
+   },
+   "receipt.bodyHash": {
+    "detected": 98,
+    "missed": 0
+   },
+   "receipt.receiver": {
+    "detected": 98,
+    "missed": 0
+   },
+   "receipts.drop_last": {
+    "detected": 98,
+    "missed": 0
+   },
+   "refund.unmark": {
+    "detected": 92,
+    "missed": 0
+   },
+   "stateChange.value": {
+    "detected": 100,
+    "missed": 0
+   },
+   "stateChange.write->delete": {
+    "detected": 100,
+    "missed": 0
+   },
+   "stateChanges.drop": {
+    "detected": 100,
+    "missed": 0
+   }
+  }
+ },
+ "matched_cases_exercising": {
+  "n_changes": 473,
+  "n_receipts": 461,
+  "n_refunds": 440,
+  "n_failures": 287,
+  "n_logs": 171,
+  "n_return": 74
+ },
+ "totals": {
+  "outcomes": 23210,
+  "receipts": 15820,
+  "state_changes": 18905
+ },
+ "identities": {
+  "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+  "harness_sha256": "3c7ebcf6f84e56027c9bea60553bf15d8cab48b3daa7ddea27a8503b09486aff",
+  "expected": [
+   "bound/regen_g2718.jsonl.gz"
+  ],
+  "tier": "allFeatures",
+  "cases_list_sha256": "35afb1f7bdc3d3e84b38e3b93ee9a9f56c67ff97cbacd2e3ef0947307a9245cb"
+ },
+ "elapsed_seconds": 124.06807218585163,
+ "pass": true
+}

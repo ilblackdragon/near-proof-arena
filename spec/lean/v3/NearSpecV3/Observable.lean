@@ -85,6 +85,16 @@ structure Observable where
   receiptCount : Nat
   /-- Σ `gas_burnt_for_function_call` of the chunk (the D3 cap's measured quantity). -/
   wasmGas : Nat
+  /-- Every executed outcome, in execution order: the list `outcomeRoot` merklizes (W01). Empty when
+  a checker does not report it (the D1/D2 out-drivers). -/
+  outcomes : List OutD1 := []
+  /-- The outgoing receipts, in order: the list `outgoingReceiptsRoot` commits to. -/
+  outgoing : List D2.Rcpt := []
+  /-- The main transition's committed storage changes at `finalize` (ascending raw trie key,
+  `none` = deleted), rollbacks applied. `none` when the driver does not report it. -/
+  stateChanges : Option (List (Bytes × Option Bytes)) := none
+  /-- Σ compute usage of the main transition's outcomes, when reported. -/
+  computeUsage : Option Nat := none
   deriving Repr
 
 /-- The outputs a D2-domain chunk reports: the D3-only fields are `0`. -/

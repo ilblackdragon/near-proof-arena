@@ -139,6 +139,12 @@ structure MainOutD2 where
   cdRemovals : Nat
   /-- D3: Σ `gas_burnt_for_function_call` of the chunk (0 in D2) -/
   wasmGas : Nat := 0
+  /-- Observation only (W01): the main transition's committed `TrieUpdate` overlay at `finalize`,
+  ascending raw key, `none` = removed. Rolled-back (prospective) changes are not in it. `none` when
+  the driver does not report it (the D2 runtime); never read by any check. -/
+  committed : Option (List (Bytes × Option Bytes)) := none
+  /-- Observation only (W01): Σ compute usage of the chunk's outcomes. `none` when not reported. -/
+  compute : Option Nat := none
 
 def decodeBufIdx (b : Bytes) : Option (List (Nat × Nat × Nat)) :=
   match pVec "shard_buffers" (fun bs => do

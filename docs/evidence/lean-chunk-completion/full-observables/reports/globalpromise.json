@@ -1,0 +1,233 @@
+{
+ "label": "globalpromise",
+ "cases": 2,
+ "categories": {
+  "match": 2
+ },
+ "graded": 2,
+ "per_field": {
+  "chunk.balanceBurnt": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  },
+  "chunk.gasUsed": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  },
+  "chunk.outcomeRoot": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  },
+  "computeUsage": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  },
+  "outcome.executor": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.gasBurnt": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.id": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.logs": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.receiptIds": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.returnData": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.status": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.statusReceiptId": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcome.tokensBurnt": {
+   "compared": 14,
+   "matched": 14,
+   "mismatched": 0
+  },
+  "outcomes.count": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  },
+  "receipt.bodyHash": {
+   "compared": 17,
+   "matched": 17,
+   "mismatched": 0
+  },
+  "receipt.id": {
+   "compared": 17,
+   "matched": 17,
+   "mismatched": 0
+  },
+  "receipt.kind": {
+   "compared": 17,
+   "matched": 17,
+   "mismatched": 0
+  },
+  "receipt.predecessor": {
+   "compared": 17,
+   "matched": 17,
+   "mismatched": 0
+  },
+  "receipt.receiver": {
+   "compared": 17,
+   "matched": 17,
+   "mismatched": 0
+  },
+  "receipt.refund": {
+   "compared": 17,
+   "matched": 17,
+   "mismatched": 0
+  },
+  "receipts.count": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  },
+  "refunds.count": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  },
+  "stateChange.value": {
+   "compared": 37,
+   "matched": 37,
+   "mismatched": 0
+  },
+  "stateChanges.keys": {
+   "compared": 2,
+   "matched": 2,
+   "mismatched": 0
+  }
+ },
+ "header_diffs": {},
+ "recompute_failures": {},
+ "controls": {
+  "total": 34,
+  "detected": 34,
+  "cases": 2,
+  "by_control": {
+   "computeUsage+1": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.executor": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.extra_log": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.failure->value": {
+    "detected": 1,
+    "missed": 0
+   },
+   "outcome.gasBurnt+1": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.id": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.receiptIds": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.returnData": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.tokensBurnt+1": {
+    "detected": 2,
+    "missed": 0
+   },
+   "outcome.value->failure": {
+    "detected": 1,
+    "missed": 0
+   },
+   "outcomes.drop_last": {
+    "detected": 2,
+    "missed": 0
+   },
+   "receipt.bodyHash": {
+    "detected": 2,
+    "missed": 0
+   },
+   "receipt.receiver": {
+    "detected": 2,
+    "missed": 0
+   },
+   "receipts.drop_last": {
+    "detected": 2,
+    "missed": 0
+   },
+   "refund.unmark": {
+    "detected": 2,
+    "missed": 0
+   },
+   "stateChange.value": {
+    "detected": 2,
+    "missed": 0
+   },
+   "stateChange.write->delete": {
+    "detected": 2,
+    "missed": 0
+   },
+   "stateChanges.drop": {
+    "detected": 2,
+    "missed": 0
+   }
+  }
+ },
+ "matched_cases_exercising": {
+  "n_refunds": 2,
+  "n_receipts": 2,
+  "n_changes": 2,
+  "n_failures": 1
+ },
+ "totals": {
+  "outcomes": 14,
+  "receipts": 17,
+  "state_changes": 37
+ },
+ "identities": {
+  "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+  "harness_sha256": "3c7ebcf6f84e56027c9bea60553bf15d8cab48b3daa7ddea27a8503b09486aff",
+  "expected": [
+   "bound/globalpromise.jsonl.gz"
+  ],
+  "tier": "allFeatures",
+  "cases_list_sha256": "e98599f22e47296c321852c6d5feb891437cf6cdc7d40aed851a998e1fc8e0fb"
+ },
+ "elapsed_seconds": 0.8761757262982428,
+ "pass": true
+}

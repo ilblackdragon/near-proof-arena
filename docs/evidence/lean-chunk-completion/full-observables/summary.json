@@ -1,0 +1,1061 @@
+{
+ "populations": {
+  "curve": {
+   "cases_bound": 87,
+   "cases_unbound": 24,
+   "expected_records": 799,
+   "categories": {
+    "match": 87
+   },
+   "graded": 87,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1496,
+    "detected": 1496
+   },
+   "matched_cases_exercising": {
+    "n_return": 71,
+    "n_refunds": 87,
+    "n_receipts": 87,
+    "n_changes": 87,
+    "n_failures": 68,
+    "n_logs": 17
+   },
+   "totals": {
+    "outcomes": 3855,
+    "receipts": 2406,
+    "state_changes": 1826
+   },
+   "expected_sha256": "336497e04ec0fd111de27611b52239ff2e561d4042bbcfed0f62611a85c2b76f",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "globalcache": {
+   "cases_bound": 28,
+   "cases_unbound": 0,
+   "expected_records": 977,
+   "categories": {
+    "match": 28
+   },
+   "graded": 28,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 490,
+    "detected": 490
+   },
+   "matched_cases_exercising": {
+    "n_refunds": 28,
+    "n_receipts": 28,
+    "n_changes": 28,
+    "n_failures": 23,
+    "n_logs": 14,
+    "n_return": 10
+   },
+   "totals": {
+    "outcomes": 2457,
+    "receipts": 1353,
+    "state_changes": 1572
+   },
+   "expected_sha256": "6d752ca6ea549105092c3c4a4f45135fd08f08c8bbe815172c2b326f7613a234",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "globalpromise": {
+   "cases_bound": 2,
+   "cases_unbound": 1,
+   "expected_records": 211,
+   "categories": {
+    "match": 2
+   },
+   "graded": 2,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 34,
+    "detected": 34
+   },
+   "matched_cases_exercising": {
+    "n_refunds": 2,
+    "n_receipts": 2,
+    "n_changes": 2,
+    "n_failures": 1
+   },
+   "totals": {
+    "outcomes": 14,
+    "receipts": 17,
+    "state_changes": 37
+   },
+   "expected_sha256": "172d1b6200960e11783ea209dee8e5ea5a60243047fb893855241b49c810c638",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "keys": {
+   "cases_bound": 37,
+   "cases_unbound": 42,
+   "expected_records": 1940,
+   "categories": {
+    "match": 36,
+    "lean_out_of_domain": 1
+   },
+   "graded": 36,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 623,
+    "detected": 623
+   },
+   "matched_cases_exercising": {
+    "n_failures": 26,
+    "n_refunds": 35,
+    "n_receipts": 36,
+    "n_changes": 36,
+    "n_logs": 12,
+    "n_return": 5
+   },
+   "totals": {
+    "outcomes": 2825,
+    "receipts": 970,
+    "state_changes": 1248
+   },
+   "expected_sha256": "1ecd6dcbda3fee869afd326fb1075a3c5a3967c8a093245512f9ffe47e793689",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "mainnet": {
+   "cases_bound": 1223,
+   "cases_unbound": 0,
+   "expected_records": 1223,
+   "categories": {
+    "match": 1223
+   },
+   "graded": 1223,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 723,
+    "detected": 723
+   },
+   "matched_cases_exercising": {
+    "n_return": 98,
+    "n_refunds": 301,
+    "n_receipts": 394,
+    "n_changes": 1223,
+    "n_logs": 199,
+    "n_failures": 42
+   },
+   "totals": {
+    "outcomes": 1075,
+    "receipts": 1112,
+    "state_changes": 3905
+   },
+   "expected_sha256": "13fa7dbc5f40ef1c1cecf904a7d769a275468f271500df0fec16c1c90e9c0926",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "pin_d3c10": {
+   "cases_bound": 102,
+   "cases_unbound": 3096,
+   "expected_records": 3378,
+   "categories": {
+    "match": 83,
+    "nearcore_genesis": 19
+   },
+   "graded": 83,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1328,
+    "detected": 1328
+   },
+   "matched_cases_exercising": {
+    "n_return": 10,
+    "n_refunds": 65,
+    "n_receipts": 78,
+    "n_changes": 83,
+    "n_failures": 44,
+    "n_logs": 14
+   },
+   "totals": {
+    "outcomes": 826,
+    "receipts": 405,
+    "state_changes": 1226
+   },
+   "expected_sha256": "1c825ed53d892543109b5318633c7dea094b17fa87136b7b06b83c487f81d901",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "pin_d3c9": {
+   "cases_bound": 100,
+   "cases_unbound": 2967,
+   "expected_records": 3362,
+   "categories": {
+    "match": 81,
+    "nearcore_genesis": 19
+   },
+   "graded": 81,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1296,
+    "detected": 1296
+   },
+   "matched_cases_exercising": {
+    "n_receipts": 77,
+    "n_changes": 81,
+    "n_refunds": 64,
+    "n_logs": 9,
+    "n_failures": 38,
+    "n_return": 4
+   },
+   "totals": {
+    "outcomes": 1636,
+    "receipts": 942,
+    "state_changes": 2691
+   },
+   "expected_sha256": "83038e75171652c4a6cd33f140f2ad578c32a6e99e512f8145f7778bde4c8e6e",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_c31337": {
+   "cases_bound": 441,
+   "cases_unbound": 0,
+   "expected_records": 441,
+   "categories": {
+    "match": 436,
+    "nearcore_genesis": 5
+   },
+   "graded": 436,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1708,
+    "detected": 1708
+   },
+   "matched_cases_exercising": {
+    "n_failures": 259,
+    "n_refunds": 408,
+    "n_receipts": 425,
+    "n_changes": 436,
+    "n_logs": 117,
+    "n_return": 113
+   },
+   "totals": {
+    "outcomes": 17211,
+    "receipts": 11489,
+    "state_changes": 11846
+   },
+   "expected_sha256": "8b46ca15ac18a05b6f5bc00dd080500d0ad5bb1fcbe61cd60281c611dd6539a7",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_c4242": {
+   "cases_bound": 358,
+   "cases_unbound": 0,
+   "expected_records": 358,
+   "categories": {
+    "match": 354,
+    "nearcore_genesis": 4
+   },
+   "graded": 354,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1678,
+    "detected": 1678
+   },
+   "matched_cases_exercising": {
+    "n_refunds": 324,
+    "n_receipts": 340,
+    "n_changes": 354,
+    "n_failures": 206,
+    "n_logs": 80,
+    "n_return": 94
+   },
+   "totals": {
+    "outcomes": 11831,
+    "receipts": 7909,
+    "state_changes": 8111
+   },
+   "expected_sha256": "7c96666d2e96e11b2c62e20d6ccf434af11bfe5f5390223c8914979e9fa2e29f",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_d3c10": {
+   "cases_bound": 3226,
+   "cases_unbound": 0,
+   "expected_records": 3378,
+   "categories": {
+    "match": 3207,
+    "nearcore_genesis": 19
+   },
+   "graded": 3207,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1703,
+    "detected": 1703
+   },
+   "matched_cases_exercising": {
+    "n_receipts": 3122,
+    "n_changes": 3207,
+    "n_failures": 1805,
+    "n_refunds": 2939,
+    "n_return": 445,
+    "n_logs": 985
+   },
+   "totals": {
+    "outcomes": 94338,
+    "receipts": 66079,
+    "state_changes": 103911
+   },
+   "expected_sha256": "9c670345400a7b09957784a520255e7ce250e8ab466a339e405cce694393cbfb",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_d3c9": {
+   "cases_bound": 3228,
+   "cases_unbound": 0,
+   "expected_records": 3362,
+   "categories": {
+    "match": 3209,
+    "nearcore_genesis": 19
+   },
+   "graded": 3209,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1705,
+    "detected": 1705
+   },
+   "matched_cases_exercising": {
+    "n_receipts": 3131,
+    "n_changes": 3209,
+    "n_refunds": 2949,
+    "n_failures": 1919,
+    "n_logs": 1054,
+    "n_return": 463
+   },
+   "totals": {
+    "outcomes": 98421,
+    "receipts": 71702,
+    "state_changes": 102144
+   },
+   "expected_sha256": "6774232c4eb234fb038638735210a979bbcf717404f89e0c099da64a8efbc04c",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_fa0": {
+   "cases_bound": 309,
+   "cases_unbound": 0,
+   "expected_records": 309,
+   "categories": {
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 136,
+    "match": 169
+   },
+   "graded": 169,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1635,
+    "detected": 1635
+   },
+   "matched_cases_exercising": {
+    "n_logs": 29,
+    "n_failures": 70,
+    "n_refunds": 125,
+    "n_receipts": 158,
+    "n_changes": 169,
+    "n_return": 12
+   },
+   "totals": {
+    "outcomes": 21864,
+    "receipts": 18415,
+    "state_changes": 23621
+   },
+   "expected_sha256": "a79c79052f83c6f01a72feae8e40d1341856b26019744a1139c204b9e6b9f275",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_fa1": {
+   "cases_bound": 323,
+   "cases_unbound": 0,
+   "expected_records": 323,
+   "categories": {
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 135,
+    "match": 183,
+    "error": 1
+   },
+   "graded": 183,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1567,
+    "detected": 1567
+   },
+   "matched_cases_exercising": {
+    "n_changes": 183,
+    "n_receipts": 169,
+    "n_logs": 32,
+    "n_return": 11,
+    "n_failures": 69,
+    "n_refunds": 130
+   },
+   "totals": {
+    "outcomes": 28175,
+    "receipts": 23764,
+    "state_changes": 39329
+   },
+   "expected_sha256": "7be8abf3fa2498aee956dfb7d925b2b59a03fb91554d8a7d7e3ae73fba5b8237",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": false
+  },
+  "regen_fa2": {
+   "cases_bound": 325,
+   "cases_unbound": 0,
+   "expected_records": 325,
+   "categories": {
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 137,
+    "match": 184
+   },
+   "graded": 184,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1532,
+    "detected": 1532
+   },
+   "matched_cases_exercising": {
+    "n_receipts": 164,
+    "n_changes": 184,
+    "n_logs": 32,
+    "n_return": 15,
+    "n_refunds": 119,
+    "n_failures": 59
+   },
+   "totals": {
+    "outcomes": 29857,
+    "receipts": 24565,
+    "state_changes": 37865
+   },
+   "expected_sha256": "a5668942df684a1c794ed8871752f64b9637be2247bc02a0640b7722614d3592",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_fb0": {
+   "cases_bound": 328,
+   "cases_unbound": 0,
+   "expected_records": 328,
+   "categories": {
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 139,
+    "match": 185
+   },
+   "graded": 185,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1563,
+    "detected": 1563
+   },
+   "matched_cases_exercising": {
+    "n_failures": 62,
+    "n_refunds": 130,
+    "n_receipts": 173,
+    "n_changes": 185,
+    "n_logs": 23,
+    "n_return": 5
+   },
+   "totals": {
+    "outcomes": 37995,
+    "receipts": 33766,
+    "state_changes": 52623
+   },
+   "expected_sha256": "00d1e034ddf51a25ffcb06789d486498764452c0ab9cfdec473a04d89c424c5f",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_fb1": {
+   "cases_bound": 324,
+   "cases_unbound": 0,
+   "expected_records": 324,
+   "categories": {
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 139,
+    "match": 181
+   },
+   "graded": 181,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1564,
+    "detected": 1564
+   },
+   "matched_cases_exercising": {
+    "n_logs": 23,
+    "n_failures": 58,
+    "n_refunds": 127,
+    "n_receipts": 166,
+    "n_changes": 181,
+    "n_return": 9
+   },
+   "totals": {
+    "outcomes": 29213,
+    "receipts": 23086,
+    "state_changes": 39124
+   },
+   "expected_sha256": "46a73da201b5d2eb9cd49d82db0332e6d50fd1b031cbc344c2b4cb4273eec84e",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_fb2": {
+   "cases_bound": 324,
+   "cases_unbound": 0,
+   "expected_records": 324,
+   "categories": {
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 136,
+    "match": 184
+   },
+   "graded": 184,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1560,
+    "detected": 1560
+   },
+   "matched_cases_exercising": {
+    "n_failures": 57,
+    "n_refunds": 129,
+    "n_receipts": 169,
+    "n_changes": 184,
+    "n_logs": 23,
+    "n_return": 7
+   },
+   "totals": {
+    "outcomes": 35162,
+    "receipts": 28289,
+    "state_changes": 43339
+   },
+   "expected_sha256": "29d9eb1378b4129137d48aac4a760013a18d47c7a42668216544dbc181f6e11b",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_g2718": {
+   "cases_bound": 477,
+   "cases_unbound": 0,
+   "expected_records": 477,
+   "categories": {
+    "match": 473,
+    "nearcore_genesis": 4
+   },
+   "graded": 473,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1708,
+    "detected": 1708
+   },
+   "matched_cases_exercising": {
+    "n_changes": 473,
+    "n_receipts": 461,
+    "n_refunds": 440,
+    "n_failures": 287,
+    "n_logs": 171,
+    "n_return": 74
+   },
+   "totals": {
+    "outcomes": 23210,
+    "receipts": 15820,
+    "state_changes": 18905
+   },
+   "expected_sha256": "f6ace5d7a8ea4aadbe8b2c6bbe9f0c3dbd9dc325a4d79b8645e5a6dd52210580",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_g31415": {
+   "cases_bound": 501,
+   "cases_unbound": 0,
+   "expected_records": 501,
+   "categories": {
+    "match": 497,
+    "nearcore_genesis": 4
+   },
+   "graded": 497,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1728,
+    "detected": 1728
+   },
+   "matched_cases_exercising": {
+    "n_failures": 358,
+    "n_receipts": 489,
+    "n_changes": 497,
+    "n_refunds": 474,
+    "n_logs": 261,
+    "n_return": 134
+   },
+   "totals": {
+    "outcomes": 15793,
+    "receipts": 10869,
+    "state_changes": 13189
+   },
+   "expected_sha256": "d02ecfc207ed4750eccc79b21dc1a02d848656f789d409c1e0204b3cd20f47d0",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_k1618": {
+   "cases_bound": 974,
+   "cases_unbound": 0,
+   "expected_records": 974,
+   "categories": {
+    "match": 964,
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 6
+   },
+   "graded": 964,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1702,
+    "detected": 1702
+   },
+   "matched_cases_exercising": {
+    "n_receipts": 936,
+    "n_changes": 964,
+    "n_failures": 605,
+    "n_refunds": 887,
+    "n_logs": 326,
+    "n_return": 131
+   },
+   "totals": {
+    "outcomes": 29300,
+    "receipts": 20480,
+    "state_changes": 25752
+   },
+   "expected_sha256": "67ab87c799e788adb3a4232d7c46fa9d13e3cb5d944ad08bbbb056b40d2ecf17",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_k6151": {
+   "cases_bound": 966,
+   "cases_unbound": 0,
+   "expected_records": 966,
+   "categories": {
+    "match": 956,
+    "nearcore_genesis": 4,
+    "lean_out_of_domain": 6
+   },
+   "graded": 956,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1715,
+    "detected": 1715
+   },
+   "matched_cases_exercising": {
+    "n_changes": 956,
+    "n_receipts": 943,
+    "n_refunds": 895,
+    "n_logs": 331,
+    "n_failures": 604,
+    "n_return": 124
+   },
+   "totals": {
+    "outcomes": 48285,
+    "receipts": 33034,
+    "state_changes": 33840
+   },
+   "expected_sha256": "97cf5764170b63ba5c2c2d3ceea6f0d43b69fa27407dd7e93f32af7e51219e12",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_p1618": {
+   "cases_bound": 211,
+   "cases_unbound": 0,
+   "expected_records": 211,
+   "categories": {
+    "match": 207,
+    "nearcore_genesis": 4
+   },
+   "graded": 207,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1703,
+    "detected": 1703
+   },
+   "matched_cases_exercising": {
+    "n_changes": 207,
+    "n_receipts": 201,
+    "n_refunds": 180,
+    "n_failures": 116,
+    "n_logs": 38,
+    "n_return": 18
+   },
+   "totals": {
+    "outcomes": 2118,
+    "receipts": 1605,
+    "state_changes": 2500
+   },
+   "expected_sha256": "fa4b821ecfa11918b04ccc1072aca9345be05a89c273f35f9e3e19cf9707d500",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_s101": {
+   "cases_bound": 1500,
+   "cases_unbound": 0,
+   "expected_records": 1500,
+   "categories": {
+    "match": 1495,
+    "nearcore_genesis": 5
+   },
+   "graded": 1495,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 590,
+    "detected": 590
+   },
+   "matched_cases_exercising": {
+    "n_changes": 1495,
+    "n_refunds": 177,
+    "n_receipts": 213,
+    "n_return": 16,
+    "n_failures": 26
+   },
+   "totals": {
+    "outcomes": 601,
+    "receipts": 243,
+    "state_changes": 2478
+   },
+   "expected_sha256": "58adb847eb60b32e579de66ca3c7280beccea70c1394b1cfb25812ca72775ff1",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_s99": {
+   "cases_bound": 1200,
+   "cases_unbound": 0,
+   "expected_records": 1200,
+   "categories": {
+    "match": 1196,
+    "nearcore_genesis": 4
+   },
+   "graded": 1196,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 668,
+    "detected": 668
+   },
+   "matched_cases_exercising": {
+    "n_changes": 1196,
+    "n_refunds": 180,
+    "n_receipts": 216,
+    "n_return": 16,
+    "n_failures": 26
+   },
+   "totals": {
+    "outcomes": 601,
+    "receipts": 243,
+    "state_changes": 2191
+   },
+   "expected_sha256": "62b2b0cc155366ea961368c518612eb8a236c3d8d746372b4ff4d026e136c09e",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_y1729": {
+   "cases_bound": 1074,
+   "cases_unbound": 0,
+   "expected_records": 1074,
+   "categories": {
+    "match": 1069,
+    "nearcore_genesis": 5
+   },
+   "graded": 1069,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1711,
+    "detected": 1711
+   },
+   "matched_cases_exercising": {
+    "n_failures": 624,
+    "n_receipts": 1025,
+    "n_changes": 1069,
+    "n_refunds": 972,
+    "n_logs": 300,
+    "n_return": 162
+   },
+   "totals": {
+    "outcomes": 37255,
+    "receipts": 25985,
+    "state_changes": 30280
+   },
+   "expected_sha256": "219999e07502d3e65b4d99d29b61d8f6cc2c0706e80d3ce1dd7f36b48ab12828",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "regen_y4242": {
+   "cases_bound": 970,
+   "cases_unbound": 0,
+   "expected_records": 970,
+   "categories": {
+    "match": 966,
+    "nearcore_genesis": 4
+   },
+   "graded": 966,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1703,
+    "detected": 1703
+   },
+   "matched_cases_exercising": {
+    "n_refunds": 889,
+    "n_receipts": 935,
+    "n_changes": 966,
+    "n_failures": 563,
+    "n_logs": 324,
+    "n_return": 164
+   },
+   "totals": {
+    "outcomes": 30540,
+    "receipts": 21097,
+    "state_changes": 22350
+   },
+   "expected_sha256": "8165145121ea2b5df5028015e670bb5cd5458656e912a1974a2a1b9e30f6c7eb",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "resharding": {
+   "cases_bound": 20,
+   "cases_unbound": 18,
+   "expected_records": 1931,
+   "categories": {
+    "match": 19,
+    "error": 1
+   },
+   "graded": 19,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 267,
+    "detected": 267
+   },
+   "matched_cases_exercising": {
+    "n_changes": 19,
+    "n_failures": 4,
+    "n_refunds": 9,
+    "n_receipts": 11,
+    "n_logs": 1
+   },
+   "totals": {
+    "outcomes": 3912,
+    "receipts": 1544,
+    "state_changes": 4421
+   },
+   "expected_sha256": "04ee851960bb4e8c254c6d414bf0089c296093ddb05a576f4af618d9c7d78bee",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": false
+  },
+  "storage": {
+   "cases_bound": 64,
+   "cases_unbound": 24,
+   "expected_records": 2700,
+   "categories": {
+    "match": 64
+   },
+   "graded": 64,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1072,
+    "detected": 1072
+   },
+   "matched_cases_exercising": {
+    "n_refunds": 62,
+    "n_receipts": 64,
+    "n_changes": 64,
+    "n_failures": 16
+   },
+   "totals": {
+    "outcomes": 142,
+    "receipts": 76,
+    "state_changes": 334
+   },
+   "expected_sha256": "f09803d6032c2c9b410801dc3e4dd28db4f8cf686fa68b628048a3fb0270059a",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  },
+  "yield": {
+   "cases_bound": 74,
+   "cases_unbound": 128,
+   "expected_records": 2044,
+   "categories": {
+    "match": 74
+   },
+   "graded": 74,
+   "mismatched_cases": 0,
+   "header_diffs": {},
+   "recompute_failures": {},
+   "controls": {
+    "total": 1289,
+    "detected": 1289
+   },
+   "matched_cases_exercising": {
+    "n_logs": 33,
+    "n_return": 60,
+    "n_failures": 55,
+    "n_refunds": 73,
+    "n_receipts": 74,
+    "n_changes": 74
+   },
+   "totals": {
+    "outcomes": 3982,
+    "receipts": 2749,
+    "state_changes": 2163
+   },
+   "expected_sha256": "c8f655b09f82ec26a23621b4611014d8b051f2a5599098578ceea5532ba9b3b6",
+   "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+   "pass_": true
+  }
+ },
+ "per_field_total": {
+  "chunk.balanceBurnt": {
+   "compared": 17812,
+   "mismatched": 0
+  },
+  "chunk.gasUsed": {
+   "compared": 17812,
+   "mismatched": 0
+  },
+  "chunk.outcomeRoot": {
+   "compared": 17812,
+   "mismatched": 0
+  },
+  "computeUsage": {
+   "compared": 16589,
+   "mismatched": 0
+  },
+  "outcome.executor": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.gasBurnt": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.id": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.logs": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.receiptIds": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.returnData": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.status": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.statusReceiptId": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcome.tokensBurnt": {
+   "compared": 612494,
+   "mismatched": 0
+  },
+  "outcomes.count": {
+   "compared": 17812,
+   "mismatched": 0
+  },
+  "receipt.bodyHash": {
+   "compared": 450014,
+   "mismatched": 0
+  },
+  "receipt.id": {
+   "compared": 450014,
+   "mismatched": 0
+  },
+  "receipt.kind": {
+   "compared": 450014,
+   "mismatched": 0
+  },
+  "receipt.predecessor": {
+   "compared": 450014,
+   "mismatched": 0
+  },
+  "receipt.receiver": {
+   "compared": 450014,
+   "mismatched": 0
+  },
+  "receipt.refund": {
+   "compared": 450014,
+   "mismatched": 0
+  },
+  "receipts.count": {
+   "compared": 17812,
+   "mismatched": 0
+  },
+  "refunds.count": {
+   "compared": 17812,
+   "mismatched": 0
+  },
+  "stateChange.value": {
+   "compared": 632821,
+   "mismatched": 0
+  },
+  "stateChanges.keys": {
+   "compared": 17812,
+   "mismatched": 0
+  }
+ },
+ "graded_cases": 17812,
+ "mismatched_cases": 0,
+ "controls": {
+  "total": 38061,
+  "detected": 38061
+ }
+}

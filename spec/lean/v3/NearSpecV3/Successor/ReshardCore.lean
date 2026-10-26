@@ -382,7 +382,11 @@ def checkReshardCoreObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowC
              bwRequests := out.bwRequests
              logs := out.outcomes.map (fun o => o.logs) |>.flatten
              receiptCount := outgoing.length
-             wasmGas := out.wasmGas }
+             wasmGas := out.wasmGas
+             outcomes := out.outcomes
+             outgoing := outgoing
+             stateChanges := out.committed
+             computeUsage := out.compute }
 
 def checkReshardCore (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool)
     (claimBytes witnessBytes : Bytes) (gasCap : Option Nat := none) : Except String Unit :=
