@@ -1,0 +1,60 @@
+{
+ "cases": 79,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "disagreements": [
+  [
+   "/data/illia/nearproof/.claude/worktrees/agent-ab9df4efef9610a33/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10019-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof/.claude/worktrees/agent-ab9df4efef9610a33/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10075-s1",
+   "allFeatures reject vs nearcore True",
+   "invalid: MissingTrieValue (access key)",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof/.claude/worktrees/agent-ab9df4efef9610a33/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10106-s0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ]
+ ],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+ },
+ "inputs_sha256": "cc59d04fd271d2138e0df825ab2ceea1152db5ba155ac232ad1fa0e7105a52c3",
+ "output_sha256": "c63bc0ea1c642d8edd480504e8a618f99a749a8938abf691b9072bc4c12eff62",
+ "package": {
+  "binary": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/lean-main",
+  "sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "tier": "allFeatures"
+ },
+ "partition": {
+  "domain_exclusion_asserted": 2,
+  "domain_exclusion_unasserted": 1,
+  "verdict_agree_outside_domain": 31,
+  "verdict_compared_agree": 43,
+  "verdict_compared_disagree": 2
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "fail",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 74,
+  "out_of_domain": 3,
+  "reject": 2
+ }
+}

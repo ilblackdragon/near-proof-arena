@@ -1,0 +1,60 @@
+{
+  "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+  "cases": 79,
+  "graded": 79,
+  "counts": {
+    "match": 72,
+    "unsupported": 1,
+    "blind_error": 6
+  },
+  "mismatch_percent": 0.0,
+  "verified_match_percent": 91.13924050632912,
+  "matched_cases_exercising": {
+    "balance_burnt": 71,
+    "congestion_buffered_gas": 25,
+    "congestion_receipt_bytes": 25,
+    "gas_used": 72,
+    "implicit_transitions": 5,
+    "proposals": 1
+  },
+  "field_diffs": {
+    "stateRoot": 1,
+    "outcomeRoot": 1,
+    "gasUsed": 1,
+    "balanceBurnt": 1,
+    "outgoingReceiptsRoot": 1,
+    "proposals": 1,
+    "txRoot": 1,
+    "encodedMerkleRoot": 1,
+    "encodedLength": 1,
+    "congestion": 1,
+    "bwRequests": 1
+  },
+  "reasons": {
+    "out of domain (w.shape): non-ED25519 transaction signature": 1,
+    "w.shape: ML-DSA-65 public key in a transaction or receipt": 6
+  },
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "identities": {
+    "lean_binary_sha256": "6e0a9ffc67243446818fec96304ae64b851e3f2d509ff56e4a6b3e37e14542d3",
+    "harness_sha256": "61e6490cf8d7ca611651ca384c79635f1d58dfde8b95bd98fafca77ce7ae9c3c",
+    "blind_inputs_sha256": "f18f9114aae725cee41865ca7f3d14067f595820af083b500d70d8e13a24036b",
+    "tier": "allFeatures",
+    "cases_list_sha256": "c78bb3ef3d72dae27a46d5f4ed2ae5c528d48134b551d71f5a82d78ae34338b0"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 6.321648385841399,
+  "pass": false
+}

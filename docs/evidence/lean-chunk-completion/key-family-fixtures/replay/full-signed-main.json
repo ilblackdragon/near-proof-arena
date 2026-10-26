@@ -1,0 +1,72 @@
+{
+ "cases": 2925,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "disagreements": [
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/ood/00-h10075-s1",
+   "signed reject vs nearcore True",
+   "invalid: MissingTrieValue (access key)",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10166-s2-code.drop.0",
+   "code cache: oracle True, signed out_of_domain",
+   "out of domain (w.shape): non-ED25519 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10166-s2-code.flip.0",
+   "code cache: oracle True, signed out_of_domain",
+   "out of domain (w.shape): non-ED25519 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10166-s2-code.truncate.0",
+   "code cache: oracle True, signed out_of_domain",
+   "out of domain (w.shape): non-ED25519 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k1618/ood/00-h10077-s1",
+   "signed reject vs nearcore True",
+   "invalid: MissingTrieValue (access key)",
+   "ok"
+  ]
+ ],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+ },
+ "inputs_sha256": "7a9af7d327ac83eb60a1c10d08d29c66d47fe02bad120d5be745e5ef6e72a8d7",
+ "output_sha256": "3dc1a4ca2e38baf80a21bffa12a6dd520c08b5b813a845c31a3cca0404d61d30",
+ "package": {
+  "binary": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/lean-main",
+  "sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "tier": "signed"
+ },
+ "partition": {
+  "domain_exclusion_asserted": 633,
+  "missing_code_cache_exclusion": 3,
+  "verdict_agree_outside_domain": 118,
+  "verdict_compared_agree": 2169,
+  "verdict_compared_disagree": 2
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "fail",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 572,
+  "out_of_domain": 636,
+  "reject": 1717
+ }
+}

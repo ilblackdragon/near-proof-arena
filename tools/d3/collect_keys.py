@@ -6,7 +6,8 @@ transaction-stage result in the chunk that applied the transaction (`tx_results`
 case whose `tx_labels` carry the step label) and the step's outcome tree (`keys-outcomes-*.json`,
 written by the generator from nearcore's stored execution outcomes, receipts included). A label
 alone never establishes an outcome. Selected honest cases are those that carry a step's
-transaction (new or applied) or execute one of its receipts; selected mutants are the mutants of
+transaction (new or applied) or validate the application of one of its receipts (the next chunk
+of the executing shard after the block that stored the outcome); selected mutants are the mutants of
 selected honest cases. This is a collector, not a Lean differential result.
 """
 import argparse
@@ -43,6 +44,23 @@ def collect(source, binary):
             honest[meta["case"]] = (meta_path.parent, meta)
         else:
             mutants.append((meta_path.parent, meta))
+    # An outcome stored at block h comes from applying the chunk included at h; stateless validation
+    # checks that application in the witness of the next chunk of the same shard (its main
+    # transition). So the honest case that validates an outcome is the first case of that shard
+    # above h (a missing chunk in between leaves the transition to the next produced chunk).
+    by_shard = collections.defaultdict(list)
+    for name in honest:
+        m = re.match(r"(\d\d)-h(\d+)-s(\d+)$", name)
+        by_shard[(m.group(1), m.group(3))].append((int(m.group(2)), name))
+    for v in by_shard.values():
+        v.sort()
+
+    def validating_case(height, shard):
+        for h, name in by_shard.get(("00", str(shard)), []):
+            if h > height:
+                return name
+        return None
+
     steps = {}
     selected = {}
     for label in sorted(outcomes):
@@ -64,8 +82,8 @@ def collect(source, binary):
                 if o.get("outcome") is None and "status" not in o:
                     tree.append({"id": o["id"], "outcome": None})
                     continue
-                case = f"00-h{o['block_height']}-s{o['shard_id']}"
-                present = case in honest
+                case = validating_case(o["block_height"], o["shard_id"])
+                present = case is not None
                 if present and o["id"] != row["tx_hash"]:
                     receipt_cases.append(case)
                     selected.setdefault(case, "executes_receipt")

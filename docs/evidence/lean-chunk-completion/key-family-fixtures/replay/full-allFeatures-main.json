@@ -1,0 +1,126 @@
+{
+ "cases": 2925,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "disagreements": [
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/ood/00-h10019-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/ood/00-h10075-s1",
+   "allFeatures reject vs nearcore True",
+   "invalid: MissingTrieValue (access key)",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/ood/00-h10105-s0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/ood/00-h10106-s0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10106-s0-code.drop.0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10106-s0-code.duplicate",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10106-s0-code.extra_garbage",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10106-s0-code.extra_unneeded",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10106-s0-code.flip.0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k6151/mutants/00-h10106-s0-code.truncate.0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k1618/ood/00-h10018-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k1618/ood/00-h10077-s1",
+   "allFeatures reject vs nearcore True",
+   "invalid: MissingTrieValue (access key)",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k1618/ood/00-h10107-s0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ],
+  [
+   "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/k1618/ood/00-h10108-s0",
+   "allFeatures out_of_domain without an oracle-asserted reason: ['e.mldsa_tx']",
+   "out of domain (e.mldsa_tx): ML-DSA-65 transaction key",
+   "ok"
+  ]
+ ],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+ },
+ "inputs_sha256": "7a9af7d327ac83eb60a1c10d08d29c66d47fe02bad120d5be745e5ef6e72a8d7",
+ "output_sha256": "4bd1a2783d17f56d31a8141df9197f5db70dfb8b180cdae958f0abbdcf1a41ec",
+ "package": {
+  "binary": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/lean-main",
+  "sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "tier": "allFeatures"
+ },
+ "partition": {
+  "domain_exclusion_asserted": 121,
+  "domain_exclusion_unasserted": 10,
+  "verdict_agree_outside_domain": 447,
+  "verdict_compared_agree": 2343,
+  "verdict_compared_disagree": 4
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "fail",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 826,
+  "out_of_domain": 131,
+  "reject": 1968
+ }
+}

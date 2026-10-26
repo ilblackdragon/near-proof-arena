@@ -1,0 +1,38 @@
+{
+ "cases": 79,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "disagreements": [],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe"
+ },
+ "inputs_sha256": "cc59d04fd271d2138e0df825ab2ceea1152db5ba155ac232ad1fa0e7105a52c3",
+ "output_sha256": "cb924fcf0dc82e1ce7f658a24d134ba1ff49a8c36e518dad25d8f0f88eeee798",
+ "package": {
+  "binary": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06k/lean-fix",
+  "sha256": "6e0a9ffc67243446818fec96304ae64b851e3f2d509ff56e4a6b3e37e14542d3",
+  "tier": "signed"
+ },
+ "partition": {
+  "domain_exclusion_asserted": 31,
+  "verdict_agree_outside_domain": 8,
+  "verdict_compared_agree": 40
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "pass",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 48,
+  "out_of_domain": 31
+ }
+}

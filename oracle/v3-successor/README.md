@@ -47,6 +47,30 @@ A complete-code successor policy can reject an incomplete witness that a warm or
 nearcore cache happens to accept. These are different contracts: retain raw cold observations and
 complete-code witness-policy expectations separately. No mutation expectation is rewritten here.
 
+## Key-family and gas-key scenario
+
+Set `NEAR_SUCCESSOR_SCENARIO=keys` for 60 labelled steps (`src/keys.rs`, `successor.keys.NN.name`)
+on six dedicated genesis accounts: secp256k1 transaction keys, delegate actions with a secp256k1
+inner key, ML-DSA-65 keys in key storage (and one ML-DSA-signed transaction), gas keys, and the
+three gas-key promise host functions through `contracts/kgashost.wat`. Steps the transaction pool
+refuses (bad signatures, stale nonces, invalid nonce indices, insufficient gas-key balance, invalid
+AddKey) are injected into the next chunk of the account's shard. An injection that misses every
+produced chunk is retried, and a step whose prerequisite key has not landed waits up to eight
+blocks. `src/chaind3.rs` is a versioned copy of the signed `oracle/v3-d3/src/chaind3.rs` that
+carries only this hook. With the scenario off it behaves exactly like the signed file: a 25-block
+seed-77 run is byte-identical to the unmodified binary. The run also writes
+`keys-outcomes-NN.json`, nearcore's stored outcome tree for every step.
+
+```
+NEAR_SUCCESSOR_SCENARIO=keys near-arena-oracle-v3-successor gen --domain d3 --seed 6151 --chains 1 \
+  --blocks 280 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 100000000 --out RUN
+python3 tools/d3/collect_keys.py --source RUN --binary PATH_TO_ORACLE --out COLLECTED
+```
+
+The collector fails if a step is missing. A nonzero gas price is what makes the
+insufficient-gas-key-balance step reachable; with the default zero price, that step is valid.
+Evidence: `docs/evidence/lean-chunk-completion/key-family-fixtures/`.
+
 ## Codec normalization probes
 
 `codec-roundtrip KIND HEX` decodes and re-encodes actual pinned-nearcore types. Supported kinds:
