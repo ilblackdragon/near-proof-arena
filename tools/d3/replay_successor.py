@@ -29,8 +29,11 @@ TIERS = {
     "resharding": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
     # The genuinely cumulative tier: global actions and curve hosts and resharding together. The
     # named wide tiers are NOT cumulative (`curveHosts`/`resharding` omit `globalActions`), so this
-    # is the only tier whose domain contains every other wide tier's decided cases.
-    "allFeatures": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
+    # is the only tier whose domain contains every other wide tier's decided cases. It is also the
+    # Gate-B tier: the arena-only `c.segment`, `w.size` (8 MiB) and `c.layout` (64 shards) bounds
+    # and the per-chunk gas bound are lifted (docs/evidence/lean-chunk-completion/gate-b-caps).
+    "allFeatures": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache",
+                    "c.segment", "w.size", "c.layout"),
     "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
     "signed": (),

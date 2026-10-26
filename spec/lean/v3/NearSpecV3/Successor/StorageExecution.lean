@@ -76,6 +76,28 @@ def resolveCode (c : ActCtx) (st : ActSt) (acct : D2.Acct) : M (Option Bytes × 
 
 open NearSpecV3.D3
 
+/-- The evaluator step budget of one Wasm entry with `gas` prepaid. Sufficient by the following
+counting argument, so fuel exhaustion (`unmodeled fuel exhausted`, an exclusion) is unreachable for a
+prepared contract; the former `(gas / regular + 2) · 64 + 10^6` was not (a loop over `K` nested
+`block … end` pairs executes `2K` zero-fee instructions per `br`, `K` up to ~65,000):
+
+* finite-wasm charges every instruction except `block`, `end` and `else` at least
+  `regular_op_cost` (`FiniteWasm.gInstr`; nearcore `prepare_v3.rs:525-538`; linear operators charge
+  `linear_op_base_cost` ≥ `regular_op_cost`), and charges never exceed the prepaid gas, so at most
+  `P = gas / regular_op_cost (+2)` charged instructions execute;
+* a zero-fee instruction never moves the program counter backwards and never pushes a frame, so
+  within one function activation, between two charged backward branches (`br*` to a `loop`), each
+  zero-fee instruction executes at most once: at most `max_function_body_size + 1` of them
+  (`Prepare.lean:335`, one byte per instruction at least);
+* activations are at most `1 + P` (each further one starts with a charged `call`) and backward
+  branches at most `P`.
+
+Hence at most `P + (2P + 1)(F + 1)` steps, plus the final step that observes the empty frame stack.
+A larger budget changes no result of a run that did not exhaust the smaller one. -/
+def wasmFuel (cfg : NearCfg) (gas : Nat) : Nat :=
+  let paid := gas / cfg.regularOpCost + 2
+  paid + (2 * paid + 1) * (cfg.maxFunctionBodySize + 1) + 1000000
+
 def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
     M (ActSt × AR) := do
   let .fcall method args gas deposit := b | throw "unmodeled: functionCall hook on a non-FunctionCall"
@@ -133,7 +155,7 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
                                 root := toBA env.preRoot, overlay := ovl, pfx,
                                 recd := recording.recorder, acct := recording.cache,
                                 recBefore := recording.receiptStart }
-  let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
+  let fuel := wasmFuel pv86 gas
   match runCallWithLimits cfg codeB (strOf method) ctx fuel true false (some real) with
   | .line l =>
     let (burnt, used) ← liftE (lineOutcome l)

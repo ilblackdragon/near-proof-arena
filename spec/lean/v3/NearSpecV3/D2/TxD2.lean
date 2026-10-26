@@ -66,7 +66,18 @@ def pTxD2 : P TxD2 := fun bs => do
   if (sig.getD 63 0).toNat / 32 != 0 then throw "decode: ed25519 signature high bits"
   pure (⟨consumed start bs, body, signer, pk, nonce, ni, recv, bh, acts, strict, 0, sig⟩, bs)
 
-def TxD2.sizeOk (t : TxD2) : Bool := t.body.length + 65 ≤ TxParams.maxTransactionSize
+/-- `check_valid_for_config`'s size gate (`core/primitives/src/transaction.rs:331-337`). From
+`PostQuantumSignatures` (PV85, `core/primitives-core/src/version.rs:567-575`) the gated size is
+`size_for_limits = wire_size` = the transaction body plus the borsh `Signature` (tag byte + signature
+bytes, `transaction.rs:448-466`): 65 bytes for ED25519, 66 for SECP256K1. Using the signature's own
+length (not a fixed 65) is what makes a SECP256K1 transaction one byte larger, as in nearcore; on an
+ED25519 transaction the value is unchanged (`TxD2.sizeOk_ed25519`). -/
+def TxD2.sizeOk (t : TxD2) : Bool := t.body.length + 1 + t.sig.length ≤ TxParams.maxTransactionSize
+
+/-- On a 64-byte (ED25519) signature the gate is the former `body + 65` bound. -/
+theorem TxD2.sizeOk_ed25519 (t : TxD2) (h : t.sig.length = 64) :
+    t.sizeOk = decide (t.body.length + 65 ≤ TxParams.maxTransactionSize) := by
+  simp [TxD2.sizeOk, h]
 
 /-- `Signature::verify` dispatch (`core/crypto/src/signature.rs:1086-1140`). ED25519 and
 SECP256K1 are implemented; ML-DSA-65 needs FIPS-204 verification and stays excluded by the caller.

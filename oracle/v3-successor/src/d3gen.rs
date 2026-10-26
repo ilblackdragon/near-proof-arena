@@ -140,7 +140,7 @@ pub fn genesis_records(
             ("s0cacheleft", crate::d3contracts::TINY),
             ("s0cacheright", crate::d3contracts::TINY),
         ],
-        Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Yield | Scenario::StorageLimits) => &[],
+        Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Yield | Scenario::StorageLimits | Scenario::GateBCaps) => &[],
     };
     let curve: Vec<(&str, &[u8])> = if scenario() == Some(Scenario::CurveHosts) {
         let code = crate::curve_hosts::code();
@@ -193,6 +193,9 @@ pub enum Scenario {
     /// `yield` / `storage-limits` (src/scenarios.rs).
     Yield,
     StorageLimits,
+    /// `gate-b-caps` (src/scenarios.rs): witnesses above 8 MiB, chunk function-call gas above
+    /// 1 Pgas and a zero-fee-instruction loop (W02 Gate-B caps).
+    GateBCaps,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -204,6 +207,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == crate::keys::SCENARIO => Some(Scenario::Keys),
         Ok(value) if value == "yield" => Some(Scenario::Yield),
         Ok(value) if value == "storage-limits" => Some(Scenario::StorageLimits),
+        Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }
