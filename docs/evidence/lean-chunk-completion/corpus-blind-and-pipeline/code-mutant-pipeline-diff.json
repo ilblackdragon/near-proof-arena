@@ -1,0 +1,842 @@
+{
+ "cases": 27270,
+ "tier": "allFeatures",
+ "old_checker": "a603a893 (c27a6fb67 tree)",
+ "new_checker": "29bf5217 (5c60547b3 tree)",
+ "changes": {
+  "accept->out_of_domain (nearcore reject)": 89,
+  "reject->accept (nearcore accept)": 8,
+  "reject->out_of_domain (nearcore reject)": 6
+ },
+ "new_vs_nearcore": {
+  "reject/nearcore:reject": 14260,
+  "accept/nearcore:accept": 12915,
+  "out_of_domain/nearcore:reject": 95
+ },
+ "changed_cases": [
+  {
+   "case": "d3c10/mutants/00-h10098-s2-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/00-h10098-s2-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/00-h10098-s2-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10021-s3-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10021-s3-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10021-s3-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10071-s5-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10071-s5-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10071-s5-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10148-s5-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10148-s5-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10148-s5-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10192-s0-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10192-s0-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c10/mutants/02-h10192-s0-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/00-h10158-s1-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/00-h10158-s1-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/00-h10158-s1-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10030-s2-code.drop.2",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10030-s2-code.flip.2",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10106-s3-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10106-s3-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10106-s3-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10133-s0-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10133-s0-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/02-h10133-s0-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/04-h10038-s1-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/04-h10038-s1-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/04-h10038-s1-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/05-h10051-s4-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/05-h10051-s4-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/05-h10051-s4-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/05-h10093-s4-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/05-h10093-s4-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/05-h10093-s4-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/06-h10141-s1-code.drop.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c7/mutants/06-h10141-s1-code.flip.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c7/mutants/06-h10141-s1-code.truncate.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c7/mutants/07-h10153-s0-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/07-h10153-s0-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c7/mutants/07-h10153-s0-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/01-h10019-s1-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/01-h10019-s1-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/01-h10019-s1-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/01-h10158-s2-code.drop.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/01-h10158-s2-code.flip.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/01-h10158-s2-code.truncate.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/01-h10185-s2-code.drop.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c8/mutants/01-h10185-s2-code.flip.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c8/mutants/01-h10185-s2-code.truncate.0",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c8/mutants/02-h10021-s0-code.drop.1",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/02-h10021-s0-code.flip.1",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/02-h10085-s4-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/02-h10085-s4-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/02-h10085-s4-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/02-h10148-s3-code.drop.1",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c8/mutants/02-h10148-s3-code.flip.1",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "accept",
+   "new_reason": "",
+   "nearcore": "accept"
+  },
+  {
+   "case": "d3c8/mutants/04-h10070-s3-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10070-s3-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10070-s3-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10087-s3-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10087-s3-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10087-s3-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10089-s1-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10089-s1-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10089-s1-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10153-s3-code.drop.1",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10153-s3-code.flip.1",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/04-h10153-s3-code.none",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/05-h10137-s2-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/05-h10137-s2-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/05-h10137-s2-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/06-h10076-s3-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/06-h10076-s3-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/06-h10076-s3-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/09-h10082-s3-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/09-h10082-s3-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/09-h10082-s3-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10016-s4-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10016-s4-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10016-s4-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10063-s4-code.drop.1",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10063-s4-code.flip.1",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10117-s2-code.drop.1",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10117-s2-code.flip.1",
+   "old": "reject",
+   "old_reason": "invalid: MissingTrieValue (contract code)",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10155-s1-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10155-s1-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/10-h10155-s1-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/11-h10004-s0-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/11-h10004-s0-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c8/mutants/11-h10004-s0-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/00-h10052-s0-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/00-h10052-s0-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/00-h10052-s0-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/00-h10180-s0-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/00-h10180-s0-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/00-h10180-s0-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/01-h10180-s0-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/01-h10180-s0-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/01-h10180-s0-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/02-h10037-s4-code.drop.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/02-h10037-s4-code.flip.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  },
+  {
+   "case": "d3c9/mutants/02-h10037-s4-code.truncate.0",
+   "old": "accept",
+   "old_reason": "",
+   "new": "out_of_domain",
+   "new_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+   "nearcore": "reject"
+  }
+ ]
+}

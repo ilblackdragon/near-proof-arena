@@ -1,0 +1,65 @@
+{
+  "curve-host-fixtures": {
+    "verdict": {
+      "agree": 111
+    },
+    "blind": {
+      "match": 93,
+      "nearcore_reject": 18
+    }
+  },
+  "key-family-fixtures": {
+    "verdict": {
+      "agree": 76,
+      "out_of_domain": 3
+    },
+    "blind": {
+      "match": 76,
+      "unsupported": 3
+    }
+  },
+  "yield-fixtures": {
+    "verdict": {
+      "agree": 202
+    },
+    "blind": {
+      "match": 74,
+      "nearcore_reject": 128
+    }
+  },
+  "resharding-fixtures": {
+    "verdict": {
+      "agree": 38
+    },
+    "blind": {
+      "nearcore_reject": 18,
+      "match": 19,
+      "blind_error": 1
+    }
+  },
+  "global-cache-fixtures": {
+    "verdict": {
+      "agree": 28
+    },
+    "blind": {
+      "match": 28
+    }
+  },
+  "global-promise-fixtures": {
+    "verdict": {
+      "agree": 3
+    },
+    "blind": {
+      "match": 3
+    }
+  },
+  "storage-limit-fixtures": {
+    "verdict": {
+      "agree": 88
+    },
+    "blind": {
+      "match": 64,
+      "nearcore_reject": 24
+    }
+  }
+}

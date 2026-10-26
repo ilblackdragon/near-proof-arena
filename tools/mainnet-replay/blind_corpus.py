@@ -58,7 +58,7 @@ def features(expected, facts):
 
 
 def classify(lean, diffs, control, reason=''):
-    if lean == 'out_of_domain' and reason == 'out of domain (c.not_genesis)':
+    if lean == 'out_of_domain' and reason.startswith('out of domain (c.not_genesis)'):
         return 'genesis'
     if lean != 'accept':
         return {'reject': 'mismatch', 'out_of_domain': 'unsupported'}.get(lean, 'error')

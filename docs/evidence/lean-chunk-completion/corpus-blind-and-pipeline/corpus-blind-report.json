@@ -1,0 +1,61 @@
+{
+  "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+  "cases": 39942,
+  "graded": 39676,
+  "counts": {
+    "match": 39452,
+    "genesis": 266,
+    "mismatch": 224
+  },
+  "mismatch_percent": 0.5645730416372619,
+  "verified_match_percent": 99.43542695836274,
+  "matched_cases_exercising": {
+    "balance_burnt": 12364,
+    "bandwidth_requests": 528,
+    "congestion_buffered_gas": 8463,
+    "congestion_delayed_gas": 5783,
+    "congestion_receipt_bytes": 13101,
+    "gas_used": 38269,
+    "implicit_transitions": 3978,
+    "proposals": 1152
+  },
+  "field_diffs": {
+    "stateRoot": 490,
+    "outcomeRoot": 490,
+    "gasUsed": 490,
+    "balanceBurnt": 490,
+    "outgoingReceiptsRoot": 490,
+    "proposals": 490,
+    "txRoot": 490,
+    "encodedMerkleRoot": 490,
+    "encodedLength": 490,
+    "congestion": 490,
+    "bwRequests": 490
+  },
+  "reasons": {
+    "invalid: MissingTrieValue (contract code)": 224
+  },
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "identities": {
+    "lean_binary_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+    "harness_sha256": "fda179fd554f98e7cef9dd6ffaa89cad260bdee67a88e064e84ceebd347c67fe",
+    "blind_inputs_sha256": "8464ecd8cb2114b3fcc7c378a45c46cdd96f175ea0900f95e9d78bb64232c590",
+    "tier": "allFeatures",
+    "cases_list_sha256": "533005937164927b802ce634b22674ba5aa2f1953c8fbf17867c38d8a86b32bc"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 1658.9800013857894,
+  "pass": false
+}

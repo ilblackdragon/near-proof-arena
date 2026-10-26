@@ -49,7 +49,7 @@ def read_sig(r):
     if t not in SIG_LEN:
         raise DecodeError("Signature tag")
     s = r.take(SIG_LEN[t])
-    if t == 2:
+    if t == 2 and not LENIENT:
         raise OOD("w.shape: ML-DSA-65 signature")
     if t == 0 and s[63] & 0xE0:
         raise DecodeError("ed25519 signature high bits")
@@ -416,7 +416,19 @@ def read_receipt(r):
         x.data_id = r.hash()
         x.data = r.option(r.bytes)
     elif x.kind == K_GCD:
-        raise OOD("w.shape: GlobalContractDistribution receipt")
+        if not LENIENT:
+            raise OOD("w.shape: GlobalContractDistribution receipt")
+        # GlobalContractDistributionReceipt V1/V2 (receipt.rs:876-1044), skipped: id,
+        # target_shard, already_delivered_shards, code, and the V2 nonce
+        v = r.u8()
+        if v > 1:
+            raise DecodeError("GlobalContractDistributionReceipt tag")
+        read_gci(r)
+        r.u64()
+        r.vec(r.u64)
+        r.bytes()
+        if v == 1:
+            r.u64()
     else:
         raise DecodeError("ReceiptEnum tag")
     x.raw = r.b[start:r.i]
