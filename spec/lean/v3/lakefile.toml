@@ -81,6 +81,10 @@ root = "MainSuccessor"
 [[lean_exe]]
 name = "nearspec-v3-runtime"
 root = "MainRuntime"
+
+[[lean_exe]]
+name = "nearspec-v3-test-gate-b-caps"
+root = "TestGateBCaps"
 [[lean_exe]]
 name = "nearspec-v3-test-storage-resolution"
 root = "TestStorageResolution"

@@ -30,6 +30,21 @@ def implicitKindOf (l : Layout) (shardId : Nat) (numNewChunksSeen : Nat) :
   | some (bd, mode) => pure (.resharding bd mode)
   | none => pure .applyOldChunk
 
+/-- The largest borsh `ChunkStateWitness` whose zstd encoding is certainly within
+`MAX_COMPRESSED_STATE_WITNESS_SIZE` = 48 MiB = 50,331,648 B
+(`core/primitives/src/stateless_validation/partial_witness.rs:18-19`). Validators drop every part of a
+witness whose `encoded_length` exceeds it (`chain/client/src/stateless_validation/validate.rs:82-88`),
+so such a chunk is never endorsed. The encoded length is a function of the producer's zstd encoder
+(level 1, 4 workers, `state_witness.rs:21-22`), which is not formalized; zstd never expands its input
+by more than `n/256 + 64 KiB` (raw-block fallback, 3-byte block headers, frame header and checksum),
+so `n ≤ 50,000,000` is safe: `50,000,000 + 195,313 + 65,536 < 50,331,648`. A larger witness (up to
+the 64 MiB decode bound) is an explicit exclusion, `w.compressed_size`, on the tiers that lift the
+8 MiB `w.size` bound: its verdict depends on how well it compresses. -/
+def compressedSafeWitnessBytes : Nat := 50000000
+
+theorem compressedSafeWitnessBytes_ok :
+    compressedSafeWitnessBytes + compressedSafeWitnessBytes / 256 + 65536 < 50331648 := by decide
+
 structure ExecutionDriver where
   apply : ActionHooks → Prims → Env → PTrie → Option ValidatorUpdateFacts →
     List (Bytes × Nat) → List Rcpt → List (TxD2 × Bool) → Congestion → Except String MainOutD2
@@ -48,6 +63,19 @@ structure ExecutionDriver where
   walks an arbitrary `c.blocks` list, so lifting it adds no semantics. `false` keeps the signed and
   D2 behaviour exactly. -/
   segmentUnbounded : Bool := false
+  /-- Lift the `|state_witness| ≤ 8 MiB` bound (`out of domain (w.size)`). That bound is the D0
+  design's witness-capacity choice, not a nearcore condition: the pinned validator decodes a
+  `ChunkStateWitness` of up to `MAX_UNCOMPRESSED_STATE_WITNESS_SIZE` = 64 MiB
+  (`core/primitives/src/stateless_validation/state_witness.rs:19-20`, enforced by
+  `CompressedData::decode`, `core/primitives/src/utils/compression.rs:44-47`), and that bound is
+  kept exactly by the witness decoder (`decodeStateWitnessWith`, `lenT bs > MAX_WITNESS` ⇒ reject).
+  `false` keeps the signed and D2 behaviour exactly. -/
+  witnessUnbounded : Bool := false
+  /-- Lift the `numShards ≤ 64` half of `c.layout`. nearcore's validator has no shard-count limit
+  (the pinned mainnet epoch config bounds dynamic resharding at `max_number_of_shards = 10`,
+  `core/primitives/res/epoch_configs/mainnet/85.json:26`); the 64 is the D0 design's routing-table
+  size. `1 ≤ numShards` stays. `false` keeps the signed and D2 behaviour exactly. -/
+  layoutUnbounded : Bool := false
   /-- Blind replay: skip every comparison against a value the transition *produces* — the main and
   implicit `post_state_root`s and the endorsed header's output fields (state/outcome/outgoing-receipt
   roots, gas used, balance burnt, proposals, congestion, bandwidth requests, encoded merkle root and
@@ -105,7 +133,11 @@ def checkD2CoreWithObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowCo
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
-  check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
+  if !driver.witnessUnbounded then
+    check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
+  else
+    check (lenT swBytes ≤ compressedSafeWitnessBytes)
+      "out of domain (w.compressed_size): witness may exceed MAX_COMPRESSED_STATE_WITNESS_SIZE once compressed"
   let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"
@@ -133,7 +165,10 @@ def checkD2CoreWithObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowCo
   if !driver.resharding then
     check (c.epochs.all (·.shardLayout == ep.shardLayout)) "out of domain (c.same_layout): resharding"
   let L ← decodeLayout ep.shardLayout
-  check (1 ≤ L.numShards && L.numShards ≤ 64) "out of domain (c.layout)"
+  if !driver.layoutUnbounded then
+    check (1 ≤ L.numShards && L.numShards ≤ 64) "out of domain (c.layout)"
+  else
+    check (1 ≤ L.numShards) "out of domain (c.layout)"
   check (rsGenesisParamsOk c.rsDataParts c.rsTotalParts) "invalid: Reed-Solomon parameters"
   if !driver.segmentUnbounded then
     check (c.blocks.length ≤ 32) "out of domain (c.segment)"
@@ -312,7 +347,11 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
-  check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
+  if !driver.witnessUnbounded then
+    check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
+  else
+    check (lenT swBytes ≤ compressedSafeWitnessBytes)
+      "out of domain (w.compressed_size): witness may exceed MAX_COMPRESSED_STATE_WITNESS_SIZE once compressed"
   let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"
@@ -333,7 +372,10 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
   check (c.epochs.all (·.protocolVersion == 86)) "out of domain (c.pv86): epoch protocol version"
   check (c.epochs.all (·.shardLayout == ep.shardLayout)) "out of domain (c.same_layout): resharding"
   let L ← decodeLayout ep.shardLayout
-  check (1 ≤ L.numShards && L.numShards ≤ 64) "out of domain (c.layout)"
+  if !driver.layoutUnbounded then
+    check (1 ≤ L.numShards && L.numShards ≤ 64) "out of domain (c.layout)"
+  else
+    check (1 ≤ L.numShards) "out of domain (c.layout)"
   check (rsGenesisParamsOk c.rsDataParts c.rsTotalParts) "invalid: Reed-Solomon parameters"
   if !driver.segmentUnbounded then
     check (c.blocks.length ≤ 32) "out of domain (c.segment)"

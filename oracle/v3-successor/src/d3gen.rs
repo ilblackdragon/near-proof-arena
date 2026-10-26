@@ -147,7 +147,8 @@ pub fn genesis_records(
             ("s0cacheright", crate::d3contracts::TINY),
         ],
         Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Mldsa | Scenario::Yield
-             | Scenario::StorageLimits | Scenario::FuelStress) => &[],
+             | Scenario::StorageLimits | Scenario::FuelStress
+             | Scenario::GateBCaps) => &[],
         Some(_) => &[],
     };
     let curve: Vec<(&str, &[u8])> = if scenario() == Some(Scenario::CurveHosts) {
@@ -215,6 +216,9 @@ pub enum Scenario {
     GenesisTx,
     GasKeyTarget,
     RollbackRefund,
+    /// `gate-b-caps` (src/scenarios.rs): witnesses above 8 MiB, chunk function-call gas above
+    /// 1 Pgas and a zero-fee-instruction loop (W02 Gate-B caps).
+    GateBCaps,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -233,6 +237,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "genesis-tx" => Some(Scenario::GenesisTx),
         Ok(value) if value == "gaskey-target" => Some(Scenario::GasKeyTarget),
         Ok(value) if value == "rollback-refund" => Some(Scenario::RollbackRefund),
+        Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

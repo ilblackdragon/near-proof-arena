@@ -74,6 +74,11 @@ on, the transaction body plus the Borsh signature (`transaction.rs:446-465`): 1 
 (ED25519), 65 (SECP256K1) or 3,309 (ML-DSA-65) bytes. -/
 def TxD2.sizeOk (t : TxD2) : Bool := t.body.length + 1 + t.sig.length ≤ TxParams.maxTransactionSize
 
+/-- On a 64-byte (ED25519) signature the gate is the former `body + 65` bound. -/
+theorem TxD2.sizeOk_ed25519 (t : TxD2) (h : t.sig.length = 64) :
+    t.sizeOk = decide (t.body.length + 65 ≤ TxParams.maxTransactionSize) := by
+  simp [TxD2.sizeOk, h]
+
 /-- `Signature::verify` dispatch (`core/crypto/src/signature.rs:1086-1130`): ED25519, SECP256K1 and
 ML-DSA-65 (FIPS 204 pure, empty context, `MlDsa65.verify`). A key/signature tag mismatch is
 `false`, nearcore's catch-all arm. -/

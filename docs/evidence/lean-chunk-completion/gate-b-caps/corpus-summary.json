@@ -1,0 +1,123 @@
+{
+ "before": {
+  "total": 236293,
+  "verdicts": {
+   "accept": 76591,
+   "reject": 159604,
+   "out_of_domain": 98
+  },
+  "by_corpus": {
+   "corpora/accept": 76207,
+   "corpora/out_of_domain": 95,
+   "corpora/reject": 159414,
+   "fixtures/accept": 384,
+   "fixtures/out_of_domain": 3,
+   "fixtures/reject": 190
+  },
+  "ood_reasons": {
+   "out of domain (e.wasm-\u03b1)": 95,
+   "out of domain (w.shape)": 2,
+   "out of domain (e.mldsa_tx)": 1
+  }
+ },
+ "after": {
+  "total": 236293,
+  "verdicts": {
+   "accept": 76591,
+   "reject": 159604,
+   "out_of_domain": 98
+  },
+  "by_corpus": {
+   "corpora/accept": 76207,
+   "corpora/out_of_domain": 95,
+   "corpora/reject": 159414,
+   "fixtures/accept": 384,
+   "fixtures/out_of_domain": 3,
+   "fixtures/reject": 190
+  },
+  "ood_reasons": {
+   "out of domain (e.wasm-\u03b1)": 95,
+   "out of domain (w.shape)": 2,
+   "out of domain (e.mldsa_tx)": 1
+  }
+ },
+ "nolift": {
+  "total": 236293,
+  "verdicts": {
+   "accept": 76584,
+   "reject": 159604,
+   "out_of_domain": 105
+  },
+  "by_corpus": {
+   "corpora/accept": 76200,
+   "corpora/out_of_domain": 102,
+   "corpora/reject": 159414,
+   "fixtures/accept": 384,
+   "fixtures/out_of_domain": 3,
+   "fixtures/reject": 190
+  },
+  "ood_reasons": {
+   "out of domain (c.segment)": 7,
+   "out of domain (e.wasm-\u03b1)": 95,
+   "out of domain (w.shape)": 2,
+   "out of domain (e.mldsa_tx)": 1
+  }
+ },
+ "census": {
+  "cases": 3138,
+  "before": {
+   "accept": 3138
+  },
+  "after": {
+   "accept": 3138
+  },
+  "nolift": {
+   "accept": 3135,
+   "out_of_domain": 3
+  },
+  "moved_before_after": 0
+ },
+ "lift_diff": [
+  {
+   "case": "/data/illia/nearproof-deps/corpora/d1run/ood/05-h10082-s0",
+   "with_lift": "accept ",
+   "without_lift": "out_of_domain out of domain (c.segment)"
+  },
+  {
+   "case": "/data/illia/nearproof-deps/corpora/d2corpus.v2/ood/05-h10102-s0",
+   "with_lift": "accept ",
+   "without_lift": "out_of_domain out of domain (c.segment)"
+  },
+  {
+   "case": "/data/illia/nearproof-deps/corpora/d2corpus.v2/ood/05-h10103-s0",
+   "with_lift": "accept ",
+   "without_lift": "out_of_domain out of domain (c.segment)"
+  },
+  {
+   "case": "/data/illia/nearproof-deps/corpora/d2corpus.v2/ood/13-h10102-s0",
+   "with_lift": "accept ",
+   "without_lift": "out_of_domain out of domain (c.segment)"
+  },
+  {
+   "case": "/data/illia/nearproof-deps/corpora/d3c7/ood/05-h10102-s0",
+   "with_lift": "accept ",
+   "without_lift": "out_of_domain out of domain (c.segment)"
+  },
+  {
+   "case": "/data/illia/nearproof-deps/corpora/d3c8/ood/05-h10102-s0",
+   "with_lift": "accept ",
+   "without_lift": "out_of_domain out of domain (c.segment)"
+  },
+  {
+   "case": "/data/illia/nearproof-deps/corpora/d3c8/ood/05-h10103-s0",
+   "with_lift": "accept ",
+   "without_lift": "out_of_domain out of domain (c.segment)"
+  }
+ ],
+ "binaries": {
+  "before": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+  "after": "35d887727d3b8da0bd322836241646e818e63df77d8e6c2f77a4a7247731bbc4",
+  "after_without_segment_lift": "e3c9ff28d98a56eedda290079f120929f7436b1ec1bec3b4e2661d18b853e827"
+ },
+ "population": "corpora d1run, d2corpus.v2, d3c7-d3c10 (families d1/d2/d3/mutants/ood) + every fixture case dir under docs/evidence/lean-chunk-completion (storage-limit cases extracted from cases.tar.gz)"
+}

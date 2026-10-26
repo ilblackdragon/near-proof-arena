@@ -184,7 +184,7 @@ D3_DRIVERS := spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3g \
 d3-drivers: ## Build the named D3 successor drivers (genesis, protocol-gas, D3alpha, floats)
 	$(call require_cmd,$(LAKE),install elan: https://github.com/leanprover/elan)
 	$(call require_cmd,$(PYTHON),install python3)
-	@cd spec/lean/v3 && $(LAKE) build nearspec-v3-check-d3g nearspec-v3-check-d3proto nearspec-v3-check-successor nearspec-v3-runtime nearspec-v3-test-storage-resolution nearspec-v3-test-global-actions nearspec-v3-test-global-codecs NearSpecV3.Successor.CodeResolutionTests NearSpecV3.Successor.PromiseActionsTests
+	@cd spec/lean/v3 && $(LAKE) build nearspec-v3-check-d3g nearspec-v3-check-d3proto nearspec-v3-check-successor nearspec-v3-runtime nearspec-v3-test-storage-resolution nearspec-v3-test-global-actions nearspec-v3-test-global-codecs nearspec-v3-test-gate-b-caps NearSpecV3.Successor.CodeResolutionTests NearSpecV3.Successor.PromiseActionsTests
 	@cd oracle/wasm-d3/lean && $(LAKE) build nearspec-v3-check-d3 nearspec-v3-check-d3f
 	@for b in $(D3_DRIVERS); do \
 	  [ -x "$$b" ] || { echo "make: *** MISSING BINARY: '$$b' was not built" >&2; exit 2; }; \
@@ -203,6 +203,7 @@ d3-smoke: d3-drivers ## Run the D3 drivers + comparison contract against the com
 	@spec/lean/v3/.lake/build/bin/nearspec-v3-test-storage-resolution tools/d3/storage-fixtures/record.wasm tools/d3/storage-fixtures/exhaust.wasm
 	@spec/lean/v3/.lake/build/bin/nearspec-v3-test-global-actions
 	@spec/lean/v3/.lake/build/bin/nearspec-v3-test-global-codecs docs/evidence/lean-chunk-completion/global-cache-fixtures/codec-vectors.json
+	@spec/lean/v3/.lake/build/bin/nearspec-v3-test-gate-b-caps
 	@$(PYTHON) tools/d3/smoke_successor.py
 	@$(PYTHON) tools/d3/check_runtime_golden.py
 	@$(PYTHON) tools/d3/check_float_golden.py
