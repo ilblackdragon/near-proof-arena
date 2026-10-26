@@ -25,11 +25,11 @@ open NearSpec NearSpecV3 NearSpecV3.Logged
 
 @[reducible] def Env.ws (e : Env) (st : HStore) : Env := { e with store := st }
 
-def trieFindL (k : Bytes) : LM (Option (Option Bytes)) := fun root => findL (.lz root revealFuel) (nibbles k)
+def trieFindL (k : Bytes) : LM (Option (Option Bytes)) := fun root => findN revealFuel (.lz root revealFuel) (nibbles k)
 def trieFindRefL (k : Bytes) : LM (Option (Option Nat)) :=
-  fun root => findRefL (.lz root revealFuel) (nibbles k)
+  fun root => findRefN revealFuel (.lz root revealFuel) (nibbles k)
 def triePrefixL (pre : Bytes) : LM (Option (List (List Nat))) :=
-  fun root => prefixKeysL (.lz root revealFuel) (nibbles pre) []
+  fun root => prefixKeysN revealFuel (.lz root revealFuel) (nibbles pre) []
 
 def Ovl.getL (o : Ovl) (k : Bytes) (what : String) : LM (Option Bytes) :=
   match o.lookup k with
@@ -109,15 +109,19 @@ section
 variable {s : HStore} {root : Bytes}
 
 theorem ev_trieFindL (k : Bytes) :
-    LM.ev s root (trieFindL k) = .ok ((preT s root).find (nibbles k)) := (findL_spec s).1 _ _
+    LM.ev s root (trieFindL k) = .ok ((preT s root).find (nibbles k)) := by
+  show SM.run (hGet s) (findN revealFuel (.lz root revealFuel) (nibbles k)) = _
+  rw [findN_lz]; exact (findL_spec s).1 _ _
 
 theorem ev_trieFindRefL (k : Bytes) :
-    LM.ev s root (trieFindRefL k) = .ok (((preT s root).findRef (nibbles k)).map (·.map Slot.len)) :=
-  (findRefL_spec s).1 _ _
+    LM.ev s root (trieFindRefL k) = .ok (((preT s root).findRef (nibbles k)).map (·.map Slot.len)) := by
+  show SM.run (hGet s) (findRefN revealFuel (.lz root revealFuel) (nibbles k)) = _
+  rw [findRefN_lz]; exact (findRefL_spec s).1 _ _
 
 theorem ev_triePrefixL (pre : Bytes) :
-    LM.ev s root (triePrefixL pre) = .ok ((preT s root).prefixKeys (nibbles pre) []) :=
-  (prefixKeysL_spec s).1 _ _ _
+    LM.ev s root (triePrefixL pre) = .ok ((preT s root).prefixKeys (nibbles pre) []) := by
+  show SM.run (hGet s) (prefixKeysN revealFuel (.lz root revealFuel) (nibbles pre) []) = _
+  rw [prefixKeysN_lz]; exact (prefixKeysL_spec s).1 _ _ _
 
 theorem R_get (o : Ovl) (k : Bytes) (what : String) :
     R s root (o.getL k what) ((o.wt (preT s root)).get k what) id := by

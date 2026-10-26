@@ -63,6 +63,9 @@ Capture does not fetch trie witnesses: public block data does not contain them.
 
 ## Obtain witnesses and context
 
+For a full all-shard capture (node sizing, `tracked_shards_config = "AllShards"`, window audit and
+the `make w13-gate` invocation), follow [ALL_SHARDS_RUNBOOK.md](ALL_SHARDS_RUNBOOK.md).
+
 At pinned nearcore `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`,
 `tools/state-viewer/src/latest_witnesses.rs` supports:
 
