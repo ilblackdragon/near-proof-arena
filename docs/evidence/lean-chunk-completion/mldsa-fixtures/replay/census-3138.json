@@ -1,0 +1,30 @@
+{
+ "all": {
+  "after": {
+   "accept": 3138
+  },
+  "before": {
+   "accept": 3138
+  },
+  "cases": 3138,
+  "reason_changes": 0,
+  "same_case_set": true,
+  "verdict_moves": 0
+ },
+ "cases_list_sha256": "cd6a89a81db8f79018b16726ca6204b564cb13f3a407979b8f28834a4b79b577",
+ "population": "nearcore == ok and expected_rel_d3 == false over d3c7-d3c10",
+ "signed": {
+  "after": {
+   "accept": 735,
+   "out_of_domain": 2403
+  },
+  "before": {
+   "accept": 735,
+   "out_of_domain": 2403
+  },
+  "cases": 3138,
+  "reason_changes": 0,
+  "same_case_set": true,
+  "verdict_moves": 0
+ }
+}

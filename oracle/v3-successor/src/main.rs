@@ -22,6 +22,8 @@
 //!       The same conversion of an existing corpus (public fixtures).
 //!   contracts
 //!       Print the code registry (name, hash, length, D3α facts).
+//!   mldsa-vectors
+//!       Print ML-DSA-65 verify verdicts of the pinned crate (src/mldsa_vectors.rs) as JSON.
 //!   curve-steps
 //!       Print the curve-hosts scenario steps (label, method, args, gas) and contract hash as JSON.
 //!   mainnet-observables --home HOME --exports EXPORTS --cases CASES --out FILE
@@ -80,6 +82,7 @@ mod d3contracts;
 mod d3gen;
 mod codec_probe;
 mod curve_hosts;
+mod mldsa_vectors;
 mod reshard;
 mod observables;
 mod mainnet_obs;
@@ -214,6 +217,7 @@ fn main() {
         Some("contracts") => cmd_contracts(),
         Some("codec-roundtrip") => codec_probe::command(&args),
         Some("curve-steps") => curve_hosts::print_steps(),
+        Some("mldsa-vectors") => mldsa_vectors::command(&args),
         Some("reshard") => reshard::cmd_reshard(&args),
         Some("mainnet-observables") => mainnet_obs::cmd(&args),
         Some("arena-layout") => arena::cmd_arena_layout(&args),

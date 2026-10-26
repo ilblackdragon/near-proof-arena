@@ -12,14 +12,24 @@ successor admits tag 2 wherever a key only needs to be *stored*: `Stake`/`AddKey
 two gas-key actions carry a key but never verify a signature with it. The stored form is the 33-byte
 tag-3 handle `NearSpec.PublicKey.handle` computes, so a 1952-byte key never lands in state.
 
-A tag-2 key in a *signing* position stays excluded, and is named separately: the delegate arm in
-`D2.actDelegate` and the transaction key in `pTxD2Global` below both report their own message. -/
+Signing positions admit ML-DSA-65 too (W06): the transaction key and signature (`pTxD2Global`), the
+delegate key and signature (`pDelegateBodyGlobal`, `pSigGlobal`) and the receipt signer key
+(`pActionRGlobal`). Verification is `MlDsa65.verify` (FIPS 204, pure, empty context) in
+`TxD2.sigOk` / `D2.actDelegate`, and the `ml_dsa_65_verification_cost` burnt-gas term is
+`D2.txSigVerifyCost`. -/
 
 /-- `PublicKey` with ML-DSA-65 admitted. Identical to `D2.pPk` on tags 0/1. -/
 def pPkGlobal (w : String) : P PublicKey := fun bs => do
   let (pk, bs) ← pPublicKey w bs
   if pk.tag > 2 then throw s!"decode: unknown PublicKey tag ({w})"
   pure (pk, bs)
+
+/-- `Signature` borsh with ML-DSA-65 admitted (`signature.rs:1168-1196`): tag 2 reads exactly 3,309
+bytes, with no further check at decode time (`read_exact`). Identical to `D2.pSig` on tags 0/1. -/
+def pSigGlobal (w : String) : P (Nat × Bytes) := fun bs => do
+  let (t, rest) ← pU8 (w ++ " signature type") bs
+  if t == 2 then do let (d, rest) ← pTake 3309 w rest; pure ((2, d), rest)
+  else pSig w bs
 
 /-- `NonDelegateAction` with the key positions widened. Identical to `D2.pBase` except that tags 4–6,
 12 and 13 accept an ML-DSA-65 key; the body layouts are the pinned ones. -/
@@ -93,7 +103,7 @@ def pDelegateBodyGlobal (v2 : Bool) : P (Bytes × Bytes × List BaseAct × (Nat 
     let (acts, bs) ← pVec "delegate actions" pBaseActGlobal bs
     let (n, bs) ← if v2 then pTxNonce bs else (do let (n, bs) ← pU64 "nonce" bs; pure ((n, none), bs))
     let (mh, bs) ← pU64 "max_block_height" bs
-    let (pk, bs) ← pPk "delegate public key" bs
+    let (pk, bs) ← pPkGlobal "delegate public key" bs
     pure ((s, r, acts, n, mh, pk), bs)
 
 
@@ -108,7 +118,7 @@ def pActGlobal : P Act := fun bs => do
     let ((s, r, acts, (n, ni), mh, pk), bs) ← pDelegateBodyGlobal (t == 14) bs
     let payload := (if t == 14 then [0] else []) ++ borshBytes s ++ borshBytes r ++
       u32 acts.length ++ concatAll (acts.map (·.raw)) ++ nonceBytes (t == 14) n ni ++ u64 mh ++ pk.encode
-    let ((st, sig), bs) ← pSig "delegate" bs
+    let ((st, sig), bs) ← pSigGlobal "delegate" bs
     pure (.delegate ([UInt8.ofNat t] ++ payload ++ [UInt8.ofNat st] ++ sig)
       ⟨t == 14, s, r, acts, n, ni, mh, pk, payload, st, sig⟩, bs)
   else
@@ -119,7 +129,9 @@ def pActGlobal : P Act := fun bs => do
 def pActionRGlobal (v2 : Bool) : P ActionR := fun bs => do
   let (s, bs) ← pAccountId "signer_id" bs
   let (rt, bs) ← if v2 then pOption "refund_to" (pAccountId "refund_to") bs else pure (none, bs)
-  let (pk, bs) ← pPk "signer_public_key" bs
+  -- An ML-DSA-65 signer key is carried in full (1,953 bytes) by the receipts of an ML-DSA-signed
+  -- transaction; refunds and allowance updates address its access key by `PublicKey.handle`.
+  let (pk, bs) ← pPkGlobal "signer_public_key" bs
   let (gp, bs) ← pU128 "gas_price" bs
   let (outs, bs) ← pVec "output_data_receivers" (fun bs => do
       let (d, bs) ← pHash "data_id" bs
@@ -187,15 +199,10 @@ def pTxD2Global : P TxD2 := fun bs => do
     else if u1 == 1 then pure (true, r1)
     else throw "decode: invalid transaction version tag"
   let (signer, bs) ← pAccountId "signer_id" bs
-  let (pk, bs) ← pPublicKey "tx public_key" bs
-  -- The signed layer (`D2.pTxD2`) excludes non-ED25519 keys; the successor admits SECP256K1 so the
-  -- transaction-key family can be verified. ML-DSA-65 keys are also representable but their outer
-  -- signature needs FIPS-204 verification *and* the `ml_dsa_65_verification_cost` burnt-gas term
-  -- (`85.yaml:15`, `runtime/src/config.rs:660-690`), neither of which exists here, so admitting one
-  -- would mis-state its fee. It stays excluded with a precise message.
-  if pk.tag != 0 && pk.tag != 1 then
-    if pk.tag == 2 then throw "out of domain (e.mldsa_tx): ML-DSA-65 transaction key"
-    else throw "out of domain (w.shape): non-ED25519 transaction key"
+  -- The signed layer (`D2.pTxD2`) excludes non-ED25519 keys; the successor admits all three
+  -- families. ML-DSA-65 is verified by `MlDsa65.verify` and charged `ml_dsa_65_verification_cost`
+  -- (`85.yaml:15`, `runtime/src/config.rs:426-441, 512-526`) through `D2.txCostD2`.
+  let (pk, bs) ← pPkGlobal "tx public_key" bs
   let ((nonce, ni), bs) ← if v1 then pTxNonce bs else (do let (n, bs) ← pU64 "nonce" bs; pure ((n, none), bs))
   let (recv, bs) ← pAccountId "receiver_id" bs
   let (bh, bs) ← pHash "block_hash" bs
@@ -208,16 +215,15 @@ def pTxD2Global : P TxD2 := fun bs => do
     else pure (false, bs)
   let body := rawPrefix ++ u32 acts.length ++ concatAll (acts.map Act.raw) ++
     (if v1 then [if strict then 1 else 0] else [])
+  -- `Signature` borsh decodes independently of the key (`signature.rs:1168-1196`): ED25519 64 B with
+  -- the high-bit check, SECP256K1 65 B `r ‖ s ‖ rec_id`, ML-DSA-65 3,309 B. A key/signature type
+  -- mismatch decodes, and `Signature::verify`'s catch-all arm returns `false`
+  -- (`signature.rs:1129`), so the transaction is dropped as `InvalidSignature` by `TxD2.sigOk`.
   let (st, bs) ← pU8 "signature type" bs
-  -- Signature/key tags must agree, as nearcore's `Signature::verify` requires (its catch-all arm
-  -- returns `false`, but the pair is refused here so the failure is a decode exclusion, not a
-  -- silent reject). ED25519 64 B with the high-bit check; SECP256K1 65 B `r ‖ s ‖ rec_id`.
-  if st != pk.tag then
-    if st == 2 then throw "out of domain (e.mldsa_tx): ML-DSA-65 transaction signature"
-    else throw "out of domain (w.shape): non-ED25519 transaction signature"
   let (sig, bs) ← match st with
     | 0 => pTake 64 "ed25519 signature" bs
     | 1 => pTake 65 "secp256k1 signature" bs
+    | 2 => pTake 3309 "ml-dsa-65 signature" bs
     | _ => throw "decode: unknown signature tag"
   if st == 0 && (sig.getD 63 0).toNat / 32 != 0 then throw "decode: ed25519 signature high bits"
   pure (⟨body ++ [UInt8.ofNat st] ++ sig, body, signer, pk, nonce, ni, recv, bh, acts, strict, st, sig⟩, bs)

@@ -1,0 +1,73 @@
+{
+ "acvp_sha256": "47cdd6314c7f746d02421ffcba89d4dbc7bb875ac49e07a029fdfc26fba55437",
+ "acvp_source": "usnistgov/ACVP-Server gen-val/json-files/ML-DSA-sigVer-FIPS204/internalProjection.json",
+ "baseline_identity": "NEAR_SUCCESSOR_SCENARIO unset, seed 77, 25 blocks: 1,147 files, byte-identical between the two binaries",
+ "baseline_oracle_binary_sha256 (sources at ad55805ea)": "93ed54c6279b9dbfe74fbe2cf4367e21822bf5d40db7bad443a31939f37ce253",
+ "control_edits": [
+  "D2.sigVerifyCost returns 0 for every key (no ml_dsa_65_verification_cost)",
+  "MlDsa65.hintUnpack without the in-polynomial ordering check and without the unused-slot zero check"
+ ],
+ "crate_vectors_sha256": "66c7a6ca1ed806c47a9559ee64a375bf37e892b60620a953ce28e8bd2cf55622",
+ "lean_checker_after_sha256": "23bfc8c370bf992b54257952428150a408e5dfd31dba8ccfb5c77f58e74487d3",
+ "lean_checker_before_sha256 (ad55805ea)": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+ "lean_checker_control_sha256": "6f3f709cfe7a1618ed7c4615e501527f980041218c153859811ae498f4776d4f",
+ "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "oracle_binary_sha256": "9167cdc966a9989347bb82cf840b8bd466af792f006e08d140f1d5bcf4384475",
+ "protocol_version": 86,
+ "runs": {
+  "1618": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=mldsa near-arena-oracle-v3-successor gen --domain d3 --seed 1618 --chains 1 --blocks 300 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 0 --out m1618",
+   "crafted_transactions": 366,
+   "honest_accepted_by_nearcore": 1075,
+   "honest_witnesses": 1075,
+   "min_gas_price": 0,
+   "mutants": 8696
+  },
+  "2718": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=mldsa near-arena-oracle-v3-successor gen --domain d3 --seed 2718 --chains 1 --blocks 300 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 100000000 --out m2718",
+   "crafted_transactions": 295,
+   "honest_accepted_by_nearcore": 1051,
+   "honest_witnesses": 1051,
+   "min_gas_price": 100000000,
+   "mutants": 8600
+  },
+  "31415": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=mldsa near-arena-oracle-v3-successor gen --domain d3 --seed 31415 --chains 1 --blocks 300 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 100000000 --out m31415",
+   "crafted_transactions": 271,
+   "honest_accepted_by_nearcore": 1045,
+   "honest_witnesses": 1045,
+   "min_gas_price": 100000000,
+   "mutants": 8806
+  },
+  "6151": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=mldsa near-arena-oracle-v3-successor gen --domain d3 --seed 6151 --chains 1 --blocks 300 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 100000000 --out m6151",
+   "crafted_transactions": 290,
+   "honest_accepted_by_nearcore": 1046,
+   "honest_witnesses": 1046,
+   "min_gas_price": 100000000,
+   "mutants": 8576
+  }
+ },
+ "rustc": "1.93.0",
+ "source_sha256": {
+  "oracle/v3-successor/src/d3.rs": "83461243f53bd52795e436198a34b67b0993af20a5193d10293809a3c041cf50",
+  "oracle/v3-successor/src/d3contracts.rs": "ab3c860d55358434d93b2065f8e59502f5de3817af504c880295c01d2bf17d53",
+  "oracle/v3-successor/src/d3gen.rs": "b966989d77ac810c9c0910170ee18369bab7087bf4110455cd3d124772ce6ab2",
+  "oracle/v3-successor/src/keys.rs": "ef913fa2d5df30880dab47cbafc68d82d71b9d9c31e9b12765da8d4fffde50fa",
+  "oracle/v3-successor/src/keys/mldsa.rs": "d0ed68cc84311ada78287af9b9430f37060df255a8969fc219e39e43273644b1",
+  "oracle/v3-successor/src/main.rs": "6212c49069e978187e5017fc757e310f20f0ae8833b713be12ac88962e863e44",
+  "oracle/v3-successor/src/mldsa_vectors.rs": "4398cea47facc34be6338fff6256228db7b5075ad5aa5626319a0ec984d9c2bf",
+  "spec/lean/v3/NearSpecV3/D2/Actions.lean": "f2c5dd0b17aff11363b254d91ff7646c4e911e6cbd463948e9c4d98419e1fd99",
+  "spec/lean/v3/NearSpecV3/D2/Fees.lean": "47d37ea73559e73ec3ebbb007db1cac3f4b7acdadf97b1205a2091b71918c00a",
+  "spec/lean/v3/NearSpecV3/D2/TxD2.lean": "ecf9f7021c32b2d66200141fa6ce59012d752ad2262963631a8e5bbff05deafd",
+  "spec/lean/v3/NearSpecV3/Examples/MlDsaAcvp.lean": "0795a5b7bd9179ca2ce1e557559b60ea3ceba622afb9c2284b2c1738a7b929fe",
+  "spec/lean/v3/NearSpecV3/Examples/MlDsaCrate.lean": "02d7ef05537c2fd632f4c8ca0d7b4feaa8c1e6f37f0779cbb7ed0adf336af163",
+  "spec/lean/v3/NearSpecV3/Examples/MlDsaVectors.lean": "3cd1af1b2e309617760bf1a5138dabfab12a514533fac15b7c4b0e99dbcb2f63",
+  "spec/lean/v3/NearSpecV3/Logged/D2Actions.lean": "52e9354d93dba06b017c5dbcbeabef448e2d02d46b03c22a6505b05df7995dd0",
+  "spec/lean/v3/NearSpecV3/MlDsa65.lean": "28bc2d4610b78448352994004eb68f37aa25afbefcd78023e9ab148f46a4af76",
+  "spec/lean/v3/NearSpecV3/Successor/GlobalCodecs.lean": "3d9e61d6d1e7106be91c4c02dd65fb21e4a1c79d15cec423dae537db9cafe214",
+  "tools/d3/collect_keys.py": "3a50631a4f01c7475185deeb295c9ef5f4c361a17a1324814a8a5801c0e9857c",
+  "tools/d3/mldsa_vectors_to_lean.py": "1e9b5b62bb95a109ae7ecb508cb3d75e7500f9d379825ac88c0978f21191d7ca",
+  "tools/d3/select_keys_fixtures.py": "de87a56519fd6b793e3f350f67102a7837158732ecbbe03b62b4da330221d11b"
+ }
+}

@@ -146,8 +146,8 @@ pub fn genesis_records(
             ("s0cacheleft", crate::d3contracts::TINY),
             ("s0cacheright", crate::d3contracts::TINY),
         ],
-        Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Yield | Scenario::StorageLimits
-             | Scenario::FuelStress) => &[],
+        Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Mldsa | Scenario::Yield
+             | Scenario::StorageLimits | Scenario::FuelStress) => &[],
         Some(_) => &[],
     };
     let curve: Vec<(&str, &[u8])> = if scenario() == Some(Scenario::CurveHosts) {
@@ -201,6 +201,9 @@ pub enum Scenario {
     CurveHosts,
     /// `keys` (src/keys.rs): secp256k1 / ML-DSA-65 / gas-key steps.
     Keys,
+    /// `mldsa` (src/keys.rs, `step_mldsa`): ML-DSA-65 transaction, delegate, gas-key and
+    /// receipt-signer steps, malformed signatures and verification-cost balance boundaries.
+    Mldsa,
     /// `yield` / `storage-limits` (src/scenarios.rs).
     Yield,
     StorageLimits,
@@ -221,6 +224,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "global-cache" => Some(Scenario::GlobalCache),
         Ok(value) if value == "curve-hosts" => Some(Scenario::CurveHosts),
         Ok(value) if value == crate::keys::SCENARIO => Some(Scenario::Keys),
+        Ok(value) if value == crate::keys::SCENARIO_MLDSA => Some(Scenario::Mldsa),
         Ok(value) if value == "yield" => Some(Scenario::Yield),
         Ok(value) if value == "storage-limits" => Some(Scenario::StorageLimits),
         Ok(value) if value == "fuel-stress" => Some(Scenario::FuelStress),

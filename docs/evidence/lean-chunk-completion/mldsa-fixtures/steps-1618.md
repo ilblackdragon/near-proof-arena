@@ -1,0 +1,51 @@
+Seed 1618, min gas price 0. Lean cells: `allFeatures` verdicts of the step's selected honest chunks (transaction-applying chunk and receipt-validating chunks).
+
+| # | step | family | mode | nearcore tx | nearcore receipts | Lean before | Lean after |
+|---|---|---|---|---|---|---|---|
+| 00 | mldsa-tx-transfer | ML-DSA tx signature | pool | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 01 | mldsa-tx-bad-z | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 02 | mldsa-tx-bad-ctilde | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 03 | mldsa-tx-hint-unordered | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 04 | mldsa-tx-hint-padding | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 05 | mldsa-tx-hint-count-over-omega | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 06 | mldsa-tx-hint-count-decreasing | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 07 | mldsa-tx-zero-sig | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 08 | mldsa-tx-wrong-key | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 09 | mldsa-key-ed25519-sig | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 10 | mldsa-key-secp-sig | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 11 | ed25519-key-mldsa-sig | ML-DSA tx signature | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction signature) | accept 1 |
+| 12 | mldsa-tx-stale-nonce | ML-DSA tx signature | inject | InvalidNonce (Transaction nonce 1 must be larger than nonce of the used access key 1) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 13 | mldsa-tx-nonce-too-large | ML-DSA tx signature | inject | NonceTooLarge (Transaction nonce 10058000000 must be smaller than the access key nonce upper bo) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 14 | mldsa-add-keys | ML-DSA keys | pool | success_local | ok; ok | accept 2 | accept 2 |
+| 15 | mldsa-new-key-multi-action | ML-DSA keys | pool | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 16 | mldsa-fc-key-call-signer-pk | ML-DSA keys | pool | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 17 | mldsa-signed-add-mldsa-key | ML-DSA keys | pool | success_local | ok; ok | out_of_domain 2 (out of domain (w.shape): ML-DSA-65 public key) | accept 2 |
+| 18 | mldsa-added-key-tx | ML-DSA keys | pool | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 19 | mldsa-signed-delete-key | ML-DSA keys | pool | success_local | ok; ok | out_of_domain 2 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 2 |
+| 20 | mldsa-deleted-key-tx | ML-DSA keys | inject | InvalidAccessKeyError (Signer AccountId("s2kmldsa") doesn't have access key with the given public_key m) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 21 | mldsa-v1-strict-nonce | ML-DSA tx signature | pool | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 22 | mldsa-v1-strict-nonce-gap | ML-DSA tx signature | inject | InvalidNonce (Transaction nonce 6 must be larger than nonce of the used access key 4) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 23 | mldsa-full-key-call-signer-pk | ML-DSA keys | pool | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 24 | mldsa-gas-key-add-fund-short-by-verify | ML-DSA gas key | pool | success_local | ok; ok | accept 1 out_of_domain 1 (out of domain (w.shape): ML-DSA-65 public key) | accept 2 |
+| 25 | mldsa-gas-key-tx-short-by-verify | ML-DSA gas key | inject | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 26 | mldsa-gas-key-topup-verify-minus-one | ML-DSA gas key | pool | success_local | ok; ok | accept 2 | accept 2 |
+| 27 | mldsa-gas-key-tx-short-by-one | ML-DSA gas key | inject | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 28 | mldsa-gas-key-topup-one | ML-DSA gas key | pool | success_local | ok; ok | accept 2 | accept 2 |
+| 29 | mldsa-gas-key-tx-exact | ML-DSA gas key | inject | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 30 | mldsa-gas-key-bad-sig | ML-DSA gas key | inject | InvalidSignature (Transaction is not signed with the given public key) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 31 | mldsa-balance-short-by-verify | balance boundary | inject | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 32 | mldsa-balance-short-by-one | balance boundary | inject | NotEnoughBalance (Sender AccountId("s2kmlpoor") does not have enough balance <0.001 NEAR for opera) | - | out_of_domain 1 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key) | accept 1 |
+| 33 | mldsa-balance-exact | balance boundary | inject | success | ok; ok | out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 34 | deleg-mldsa-valid | delegate | pool | success | ok; ok; ok; ok | accept 1 out_of_domain 3 (out of domain (w.shape): ML-DSA-65 public key) | accept 4 |
+| 35 | deleg-mldsa-bad-z | delegate | pool | success | Action #0: DelegateAction is not signed with the given public key); ok; ok | accept 1 out_of_domain 2 (out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 36 | deleg-mldsa-hint-unordered | delegate | pool | success | Action #0: DelegateAction is not signed with the given public key); ok; ok | accept 1 out_of_domain 2 (out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 37 | deleg-mldsa-hint-padding | delegate | pool | success | Action #0: DelegateAction is not signed with the given public key); ok; ok | accept 1 out_of_domain 2 (out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 38 | deleg-mldsa-stale-nonce | delegate | pool | success | Action #0: DelegateAction nonce 1 must be larger than nonce of the use; ok; ok | accept 1 out_of_domain 2 (out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 39 | deleg-mldsa-key-ed25519-sig | delegate | pool | success | Action #0: DelegateAction is not signed with the given public key); ok; ok | accept 1 out_of_domain 2 (out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 40 | deleg-ed25519-key-mldsa-sig | delegate | pool | success | Action #0: DelegateAction is not signed with the given public key); ok; ok | accept 1 out_of_domain 2 (out of domain (w.shape): ML-DSA-65 signature) | accept 3 |
+| 41 | deleg-mldsa-wrong-key | delegate | pool | success | Action #0: DelegateAction is not signed with the given public key); ok; ok | out_of_domain 3 (out of domain (w.shape): ML-DSA-65 public key) | accept 3 |
+| 42 | deleg-v2-mldsa | delegate | pool | success | ok; ok; ok; ok | accept 1 out_of_domain 3 (out of domain (w.shape): ML-DSA-65 public key) | accept 4 |
+| 43 | deleg-mldsa-inner-add-mldsa-key | delegate | pool | success | ok; ok; ok; ok | accept 1 out_of_domain 3 (out of domain (w.shape): ML-DSA-65 public key) | accept 4 |
+| 44 | deleg-mldsa-added-key | delegate | pool | success | ok; ok; ok; ok | accept 1 out_of_domain 3 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 4 |
+| 45 | deleg-mldsa-relayer-mldsa | delegate | pool | success | ok; ok; ok; ok | out_of_domain 4 (out of domain (e.mldsa_tx): ML-DSA-65 transaction key; out of domain (w.shape): ML-DSA-65 public key) | accept 4 |
+| 46 | mldsa-stake-key | ML-DSA keys | inject | ActionsValidation (Transaction actions validation error: The staking key must be ristretto compatib) | - | accept 1 | accept 1 |

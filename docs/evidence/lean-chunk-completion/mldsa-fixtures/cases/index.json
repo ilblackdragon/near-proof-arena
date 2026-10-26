@@ -1,0 +1,1031 @@
+[
+ {
+  "case": "00-h10007-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10007-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.00.mldsa-tx-transfer",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "da44b0d8b33e77ebbd0b022dce621324c293a14f01010a08705ee95a2a940346",
+   "witness.bin": "a71e0343c9536665399b47e1547d66d8389d1b75d21cc378fc8769e2872c809f",
+   "meta.json": "f641d1a7d62c56764cb90159be7da1abde5f5e696ab15278f7c86891442aeda6"
+  }
+ },
+ {
+  "case": "00-h10010-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10010-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.00.mldsa-tx-transfer",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "d76787e086654d62af19d695fd1d48ab04c47a5446c30f613314ce7316e4b4d7",
+   "witness.bin": "ef5faf57ae991a70c0aaa1fc65b060c1e0db33c5a26723e1f6f428bd56b360ce",
+   "meta.json": "b0a5ab8a43448aa8a8d2cb7f81d4fc6527683562fc7595349f8f446cdbea12c6"
+  }
+ },
+ {
+  "case": "00-h10011-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10011-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.01.mldsa-tx-bad-z",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "1521dfe22e8db2b3753abd94b5ecc99fb92981c41e9f294addec5262e5a9ca3e",
+   "witness.bin": "98982af9200934ddabbfb344982bf80dd972413fcc5db3d181db078ecd331788",
+   "meta.json": "7ff9b3985c6ed0bcc77e07a188e0753a1300d63225f7b809e6b455e6604f9d36"
+  }
+ },
+ {
+  "case": "00-h10014-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10014-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.02.mldsa-tx-bad-ctilde",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "f58b248ca5d01c8b6b1e66d1a65a16a66606b4f5a06227be3eee332bf3821c35",
+   "witness.bin": "02ed9b4017efae87e476f741613053f3a336d4b06d882f0600788f83f35d19f9",
+   "meta.json": "953a53df1b5d1c987336d56a0b1c93a4a70272b5057a10c9f4ceef3eb463733c"
+  }
+ },
+ {
+  "case": "00-h10019-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10019-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.03.mldsa-tx-hint-unordered",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "f6497204a09b2f0caeb406de27b853f6e8027f5c54165bb889aa4076ced4f902",
+   "witness.bin": "8e4c83b6854e39efd22a193f5cd5beaa78145dc6a2ef74ec1915f2ab9cf8952f",
+   "meta.json": "2b99739e384ff4d8b6a130cda88b8f36799ce6ee6713434b500595e7e0930a07"
+  }
+ },
+ {
+  "case": "00-h10023-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10023-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.04.mldsa-tx-hint-padding",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "cbaca3f3c296e31cff0e819f9b70dcb0741ec4c227ddf594bcd5ace3f6f6b61c",
+   "witness.bin": "d32b85c17f6725d8f46ee40f568dc6918e4e91a8b03db6720c0d3a6505af6267",
+   "meta.json": "b4831c67baf9fc06626b64d92be9f38d0a06c21c8cada340dd5eec9d9f27fe03"
+  }
+ },
+ {
+  "case": "00-h10026-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10026-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.05.mldsa-tx-hint-count-over-omega",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "a3731248db81f6ef823595923b88ec6fd514ee98eb249ab3403793c24a5cb61b",
+   "witness.bin": "9bf61e17e69916abd644e9204b41be6d5981a8b47fe49fb4e417417627cffe8c",
+   "meta.json": "a50f889e76e44ef8bef39c9dc556f19ce58943cc919080cd9925147e8db1d6a1"
+  }
+ },
+ {
+  "case": "00-h10030-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10030-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.06.mldsa-tx-hint-count-decreasing",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "31203b7cf72260aa2e2abf0f32cbb99f9761bea3e6a3b7aa9fe8a253f9a6576b",
+   "witness.bin": "056116f9951e4f8bc242470376b8fef69b66f733a3bd77a4324af0d1dd9f4427",
+   "meta.json": "535b6325f2e8683790b37ee3249338f985eade744a3bdcc819d08df271626d24"
+  }
+ },
+ {
+  "case": "00-h10034-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10034-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.07.mldsa-tx-zero-sig",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "c301a9af8d46e075b8212440fa27d7a815dbfd3548f106d2fa4ffcaed4019e81",
+   "witness.bin": "ab0ef39043b2a77518f5d2199e5385365aecc03c7ebba3f4545c856893d325a1",
+   "meta.json": "805ea84a3d72035741aa0bf7748750da56f7fa26c2cee2472f8ff9618f292bda"
+  }
+ },
+ {
+  "case": "00-h10038-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10038-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.08.mldsa-tx-wrong-key",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "0497097eb842a8cc20d6242cfc29e1955c40c63a504aae7df8873a761fc326df",
+   "witness.bin": "1595571152fa0f04c41e62078ae9b75b9db1ea982af1a6050c9dd8a354ab11b1",
+   "meta.json": "4b238231c312854a627d99dc2913726b64886d7cf576199adec9dd3aff9dff6a"
+  }
+ },
+ {
+  "case": "00-h10043-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10043-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.09.mldsa-key-ed25519-sig",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "543b9c5263c42161c150c615ea1463d1a83a1002c621f706345b8db4219410a5",
+   "witness.bin": "e78bb8ca8f89901e0ec97b5cdf32a980b314291f8de78d772d38a4cd9893f945",
+   "meta.json": "4953b0b8d749c872fc6222b9a67c873e7d02b29b5c52ffd83fe468d147246a55"
+  }
+ },
+ {
+  "case": "00-h10046-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10046-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.10.mldsa-key-secp-sig",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "02c8d57d9b1c8766f10f1b49f469d6a641fac2f64c839b124e875674e180aaeb",
+   "witness.bin": "399ac7af4c5353d13b3e4e8bfb1d398fc7efcbd1515b29857771bd4b0cb386ef",
+   "meta.json": "c3cfae5459dfc5517da25618b6ee530ccf17650bf1ce96faf8aa68bca7de9858"
+  }
+ },
+ {
+  "case": "00-h10050-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10050-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.11.ed25519-key-mldsa-sig",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "f290fac7c321e48eb8ec5f075ba3a155bfb604dec2b007434d0ca69dbda1e967",
+   "witness.bin": "50f388f1be7ef0f273d7d3ecbeb2df46bb1a248d03af6dffabf7f813bc5d9442",
+   "meta.json": "ca15ec885b59e3013e06a0aed03afbaec9995f03ed457db32f38e1e2f61c1e1d"
+  }
+ },
+ {
+  "case": "00-h10054-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10054-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.12.mldsa-tx-stale-nonce",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "cb5a885fe292db501dd7187cd3dcd7ea87e01e0ddf320a1ff6a299d14c447b6e",
+   "witness.bin": "7f333e7d45875c3ee2b62b1bdcbb9f79a1ac43e97aa740a9c92d8dbb03a6c608",
+   "meta.json": "68c31d90f570598523c9890a429dbeb5b89b42c7f5dca3518101678113f70def"
+  }
+ },
+ {
+  "case": "00-h10058-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10058-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.13.mldsa-tx-nonce-too-large",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "b9a274dfe6fd7fe63f665e8013f4bffb2193fdb0c829d4163d141285ac0917ba",
+   "witness.bin": "16579fc6495fc3a44c26a0736cd3e5cd90d543fe186b36aa04be58cf066c41d7",
+   "meta.json": "c8747261077b03a5ef66fd29e8f27cf66948f6f8a1c15f9a6338285d2b367173"
+  }
+ },
+ {
+  "case": "00-h10065-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10065-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.14.mldsa-add-keys",
+    "why": "applies_tx"
+   },
+   {
+    "label": "successor.mldsa.14.mldsa-add-keys",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "662256f394ba3582a3dc652ca53c68bfd5b243d8d2ebc3cc0d0e8d96e1fbe120",
+   "witness.bin": "ae914de3658c861b88a48e16e67e97b97b1968f44091b31832c0edcc3993fa87",
+   "meta.json": "4f8eeb31b0c11323ab27a5fb024f0e31eeaa2faa33c81ee3f8d52554f32d8d44"
+  }
+ },
+ {
+  "case": "00-h10066-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10066-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.15.mldsa-new-key-multi-action",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "ae40157a4430c9784b8a3cedadce0153cd00bbd71570ce3942f756766e739331",
+   "witness.bin": "11764c252b9214008aab2096f6d09587cf457c5e1b7b9882d11b820795b720c2",
+   "meta.json": "0089a0e6e651f424da54c32450a1bcef5563eb87787845ef85aa5a60ba3c17b3"
+  }
+ },
+ {
+  "case": "00-h10067-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10067-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.15.mldsa-new-key-multi-action",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "74bb86023a3e349f9db848c871f5b2b8a40656083309c914ce7bb960842893c3",
+   "witness.bin": "ea96305906475285d00ef058ab34b548d6a50bdc821d84ce693acde16aa8fcfa",
+   "meta.json": "4d45f383c3a6fb8ca84fbce4ee22bcb2f64d83c8ccac906ba969568967443603"
+  }
+ },
+ {
+  "case": "00-h10070-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10070-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.16.mldsa-fc-key-call-signer-pk",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "2ca213f8cadf33c403c97c078eb948ccf71810692a1bd346f017b5ca58804443",
+   "witness.bin": "73f3317c047c5c04120d2f7f2f71978289f4d12c0c5917927070acc960045784",
+   "meta.json": "5cf8a6480f768504f715a7b67e13951b2c88fef425e8e43c2354f732fd6a2923"
+  }
+ },
+ {
+  "case": "00-h10071-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10071-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.16.mldsa-fc-key-call-signer-pk",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "ed669ee970b0b7684a05e7d8f5260fb700ec003cf382baf899d1405433c075b1",
+   "witness.bin": "bc707b9e5cf0ccbeb1ba7ea166c4e5e4d10e97576ec988491c33f618dedab356",
+   "meta.json": "3d6405d20651240aff5c098f4527dcd4fcadcf3e651c4b3d5ac1dfbc43d65b0a"
+  }
+ },
+ {
+  "case": "00-h10074-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10074-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.17.mldsa-signed-add-mldsa-key",
+    "why": "applies_tx"
+   },
+   {
+    "label": "successor.mldsa.17.mldsa-signed-add-mldsa-key",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "bc7f9d27a89ad809c247939db3ebc2db2ff9397df52a85a90f431166e3f4c025",
+   "witness.bin": "67d59c260367397ec59d5ee40af0d42e052ab8c252931e3f13938dd96aceee5f",
+   "meta.json": "8a30e4822349352f2c31b611bfc390e413d759dc3f6c8e0311f5938978f18b1e"
+  }
+ },
+ {
+  "case": "00-h10078-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10078-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.18.mldsa-added-key-tx",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "925d215d97504f754b2123394471a26ff26bdbb793448e863e738df976e3ee01",
+   "witness.bin": "3bf7bcce30a019f81b19456f5a305f2b42deb7aa65da46563afdbc350d5c86e9",
+   "meta.json": "0e0378e9c184de233a33827906be1194e330d75e71d9c507e318159c52107c54"
+  }
+ },
+ {
+  "case": "00-h10079-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10079-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.18.mldsa-added-key-tx",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "f47290845b4e0b57a73d8e4bae9fc97e106272cf9bed70a7f8bc9d9be29fea6a",
+   "witness.bin": "2c4993dae935add60b177a44bb16c3b741f421ab88f39ce18c7e9387ff1468a2",
+   "meta.json": "a604d9cd184dfe69da374c5a8c03cf0c5e1519023a7360efceb5de8d35616fde"
+  }
+ },
+ {
+  "case": "00-h10082-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10082-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.19.mldsa-signed-delete-key",
+    "why": "applies_tx"
+   },
+   {
+    "label": "successor.mldsa.19.mldsa-signed-delete-key",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "4df5cda6886245a2341868713da60dd2d1443e2a178c08ad89ff11d1cfbd6253",
+   "witness.bin": "b4d1f19bd684f72c12085673c3b7ae804f115cee97907cde201c77af5f610065",
+   "meta.json": "0a80ee5c37e29e06ae4c0ad9c71451e5bb72b67dd8ddc6aff6d93f621741e945"
+  }
+ },
+ {
+  "case": "00-h10086-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10086-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.20.mldsa-deleted-key-tx",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "bf6faa113ff4afa618170c705ec48f1ca9bae132a33060e43ae2024b162aaa30",
+   "witness.bin": "897d3ce0a8712fe0559790d9cf85b7ed8b6ee68e4e3d91cf3d8d486c7850ed30",
+   "meta.json": "11b590bf855469649a7eabd07097ec1000f7dbb2b96b4a27de7ecdf93461bb72"
+  }
+ },
+ {
+  "case": "00-h10090-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10090-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.21.mldsa-v1-strict-nonce",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "a04fa1193f609b0c24c0f33059aa6be913925a20cd406a9fa8349ceb3e61ed18",
+   "witness.bin": "17a1f4979ad9299ca15d8d4e0b3db3d408d544c884638b4d0c7264b99870d5ef",
+   "meta.json": "65445dc5631a5424c29e1c8269ac5388455da68544cdc8d24ab6766000cc73d4"
+  }
+ },
+ {
+  "case": "00-h10091-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10091-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.21.mldsa-v1-strict-nonce",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "5dc8cf4536b59327132ac3b257fd2c1c54c040f73b523251a68131bac205eb5b",
+   "witness.bin": "ee5ca284178a16fae0c91441d1cfb17c8dcf91b171638894ba7b18e3589174d9",
+   "meta.json": "34aefc7d65f8dfb590a138b525e4beeddbf1a269394d991a02d0782b8eb9f4cb"
+  }
+ },
+ {
+  "case": "00-h10094-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10094-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.22.mldsa-v1-strict-nonce-gap",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "3a80c8f0992702f1a2079b2fa6b54d194c5b7e05d26bf71b53aa7c2288966e27",
+   "witness.bin": "ad3f44f8cc9ed42291e6dfaa5add265b5b2fddfa2ea30849ba90af3a3f8cea9d",
+   "meta.json": "cfd2a4fc40225189169832b7bd1023a8114f0db055fddf6d6a794b1b7f99f9c2"
+  }
+ },
+ {
+  "case": "00-h10098-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10098-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.23.mldsa-full-key-call-signer-pk",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "f68432278524020f74e4f1600012def9591b56e97a4238c0e35ba4c0db1eba96",
+   "witness.bin": "08d0b294d0f7ce144a2acf0bb54d698cd4340a3556d177159cdd577cb666412c",
+   "meta.json": "ef4979e53632c11c1f7f77947a4f84279088cc9ad66bea00f376e15342ea6795"
+  }
+ },
+ {
+  "case": "00-h10099-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10099-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.23.mldsa-full-key-call-signer-pk",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "960283552859ff71c81570382588969a59df8b70189ba55e6249de7cde463ac5",
+   "witness.bin": "59304e6b86730125569f0c737bae25388d5334c44f2c6bbd9b9ccb9907fd8899",
+   "meta.json": "4f609a8736f61af3f82ef619bee79cfccc9e8cb1b9bb393c7665773078890396"
+  }
+ },
+ {
+  "case": "00-h10102-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10102-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.24.mldsa-gas-key-add-fund-short-by-verify",
+    "why": "applies_tx"
+   },
+   {
+    "label": "successor.mldsa.24.mldsa-gas-key-add-fund-short-by-verify",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "a25f2fac156f51b18f24d123f2ce919f6d0c66250b864a277930d047baf4bb86",
+   "witness.bin": "3b10a400211b67e4fded170f5b5bbc0c99457c2de3e6080c377323c1c38d4dba",
+   "meta.json": "9fcbbf7df3d816867ff9ed97b6e80554156a7ceb65573e1a353c624068135aaa"
+  }
+ },
+ {
+  "case": "00-h10106-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10106-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.25.mldsa-gas-key-tx-short-by-verify",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "3cbb7e891d817eb1ad382a81abac0a2f9c06398cd041ed554080655e4f1e69c1",
+   "witness.bin": "db8962085a6ecbd0608a7369c589a32f54d5246345fd14dc04aee7fe5bb2be1b",
+   "meta.json": "130468cd6fef9bcdcccc7510d45f85f249fe9ecc83b837966fff4788eeaf9e6e"
+  }
+ },
+ {
+  "case": "00-h10111-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10111-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.26.mldsa-gas-key-topup-verify-minus-one",
+    "why": "applies_tx"
+   },
+   {
+    "label": "successor.mldsa.26.mldsa-gas-key-topup-verify-minus-one",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "2b9eface316c16bf1a9ae72342d8b6fb885d091059cb3e5640573c47fa6cfc64",
+   "witness.bin": "0e154c1a9258372282cb90639621f57cd6c2b2cc3aeb96f03b05b26594d85d8a",
+   "meta.json": "fd8ed1b2f81f307ce29b93240c6a957b1db4cc3ec8cbe93027fe75e85d039206"
+  }
+ },
+ {
+  "case": "00-h10114-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10114-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.27.mldsa-gas-key-tx-short-by-one",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "7ce29c27f9bd0cad691793411a0208cc55b6d0abad31f52164f73354a89d4771",
+   "witness.bin": "6fac9fa26bbf08fef60e51b03e867787bb84234f207457b1d4ea42fdbda458e3",
+   "meta.json": "1e09f806866349b59c2829b2063dda144bb722c33bb17fc42bd9beecd32d26d5"
+  }
+ },
+ {
+  "case": "00-h10118-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10118-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.28.mldsa-gas-key-topup-one",
+    "why": "applies_tx"
+   },
+   {
+    "label": "successor.mldsa.28.mldsa-gas-key-topup-one",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "f082f02f4e95280ac0e3979905d457c2e5cb12e8fa3e29a44fbdfdae92edb0c4",
+   "witness.bin": "39abe08fa852a79fc0ad3769c65f99386a6b4af2d28b185580eb1f5eb996ec39",
+   "meta.json": "481b15795790b22f236e62014db88962a7c0a5058c8c0b55d5cda7d244f62ce7"
+  }
+ },
+ {
+  "case": "00-h10124-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10124-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.29.mldsa-gas-key-tx-exact",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "990c440ec1c3c9c65f51079ce92eb5ba66d55a710161bf9198641cb6c80df94b",
+   "witness.bin": "290bbfe7b79f27dd1caa8b9fbc354da171e9b3cb6922ed1d728e1175ae03459a",
+   "meta.json": "859eb14b81742115ceaea150e1f10ab5e0cf6084a0b116b497884ec6693d4cc1"
+  }
+ },
+ {
+  "case": "00-h10125-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10125-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.29.mldsa-gas-key-tx-exact",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "de4089afe5e6506bd8e4936fc40980df74e2411e0411e8f5ed4386f57084a756",
+   "witness.bin": "a11aeca36f3924356cf7b68efcb7292efeca38bad9f0f1e40413f3a3009bae41",
+   "meta.json": "bf965989a89703fef82870db85fb3c29be224100906e42158b3cba0f0b9f959a"
+  }
+ },
+ {
+  "case": "00-h10126-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10126-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.30.mldsa-gas-key-bad-sig",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "9e0aa3689be988d871363ebfaa94f0a7e2bd261e5cf36af66a3ff88fc4171b0b",
+   "witness.bin": "d3f1cd2c4b7b6ea6f2d15ae1002e83cb17e26c4c9a1f940b2795079fce8368ba",
+   "meta.json": "137dfabb4eda15748036d43df1ae843bccdf1e9d76768f52aeba5c517e7c352b"
+  }
+ },
+ {
+  "case": "00-h10130-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10130-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.31.mldsa-balance-short-by-verify",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "99c8abee70931cbaa953979116dec5de6fd40117d85bb3c2cc7ac87c73f846c9",
+   "witness.bin": "7f7d04beac5628e8cd79831e2c7e5316f362e06de8633da8ec9b2b11af03b260",
+   "meta.json": "3f0c8612ba0b2d6b893ee1d1c09549b7d80f281f778a86964c89df5f1fbbb6f9"
+  }
+ },
+ {
+  "case": "00-h10134-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10134-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.32.mldsa-balance-short-by-one",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "17dd9c12eccf695b75edd92174705707b20017040a072c8e53e217d8b8c1352a",
+   "witness.bin": "22a4368521269833ac9bff9f9a3fd31c2fbab90179cb0d8529fcd8d3d173961a",
+   "meta.json": "00cb573f23a14b389f98cd8731fa8ac4a4f4c2b407b5172d2b898db3d221e05d"
+  }
+ },
+ {
+  "case": "00-h10138-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10138-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.33.mldsa-balance-exact",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "a8c4820312dbb09d1bdee737d8ccce6c6a78be48124ab1a2600ba117ea537e8a",
+   "witness.bin": "2df647cbedda959203687921ea9b49237939163684c7977f79d7799178cabc27",
+   "meta.json": "6ecbd24ce3223236d05d1cb3238cd19a7ed1ce7dfb03b76930c86a7507cb111c"
+  }
+ },
+ {
+  "case": "00-h10139-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10139-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.33.mldsa-balance-exact",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "71ca0f7b8152a4973da7a3fef6480104ee239a15e6da7c6b9b51bd5e77d077c2",
+   "witness.bin": "e094c4bfeabd656cd1525e5cea509dcfabaa4357633ec30ad0b89a92697ec153",
+   "meta.json": "fb12b7131a526d35b1d4babc94ed341b44a96c1da0d2eaa1a39400c8ea0a0ad4"
+  }
+ },
+ {
+  "case": "00-h10142-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10142-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.34.deleg-mldsa-valid",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "aac5b35fa0a2d1d3ae3f7619ce9287c70c49ac4da68e82ea61686bf11c79f82a",
+   "witness.bin": "adf3f9a2e371bb6f4e55676cfa68d1cce371e49a496abe0cce99aa403a9b0268",
+   "meta.json": "b7be322745ad995667fef8a9e0af3376788073e75d441f4066afbe6944bd7c22"
+  }
+ },
+ {
+  "case": "00-h10143-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10143-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.34.deleg-mldsa-valid",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "71af5e9bafeee122ec582243683bd81aad566cabbe7c6e9a47b662272d52f22a",
+   "witness.bin": "86a7677e989a95208d8bfed17cedfd6c5fbf6df4e13f90a6874416a9f93d8a9a",
+   "meta.json": "66d4c328e1ce3bbf1988803124ab84f3abc5d278408b7bc75f7cac6079a88208"
+  }
+ },
+ {
+  "case": "00-h10146-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10146-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.35.deleg-mldsa-bad-z",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "c94642e140cfbc73b70eacfbe3bcf59bba01db01be085281a47d0d2c60ebb4aa",
+   "witness.bin": "7977049b9cc02f3a1abbd57c60038cffb58133407ee95cd608ffa2db3a79a8f3",
+   "meta.json": "2811b3a3ac27e55dc69c4bd1c629289152391f26847ba6c8270c2d5b9eaa9433"
+  }
+ },
+ {
+  "case": "00-h10148-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10148-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.35.deleg-mldsa-bad-z",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "d4ac5ce0f22fd3d1c6bf9a6f9bfac4e12489a5704a741d86e7e7b610fc576443",
+   "witness.bin": "d6afc8f851da110cc1456737b9dcb89bd592e867ab683290c42e737f3acfe27d",
+   "meta.json": "8d8d75dd43aeb3f4388529e224da632fa907ebc34c9fc58470972e265813102e"
+  }
+ },
+ {
+  "case": "00-h10150-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10150-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.36.deleg-mldsa-hint-unordered",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "bf31ce61b51203f4a7a2384e285f84718745c1aa6b55b87abb68870aa47af61d",
+   "witness.bin": "87cad1b15d88a8a8a69a60eb707cb7f95c7fafc2d0d993176e2b298873e8259e",
+   "meta.json": "ae46882a0b207a89339c5a0a96bb556745064174b96d7e2484ede282eec9eaa4"
+  }
+ },
+ {
+  "case": "00-h10151-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10151-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.36.deleg-mldsa-hint-unordered",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "ea61c4f2b4777ea10b99f109404f9bdf3632744c9f43e2009899772b42081f7f",
+   "witness.bin": "43c2b1fa22188a3afc34716baa0e898466fcf36c987be24d375b96ddd715049a",
+   "meta.json": "864c6eafee56d2a91edd3e0992ef8c4d168bc601dd144dfe8e848be37de3ff42"
+  }
+ },
+ {
+  "case": "00-h10156-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10156-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.37.deleg-mldsa-hint-padding",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "cb3cb072bcb13280f77b96c7a61368593943b0fffff1bfd51ccae3433f7c32db",
+   "witness.bin": "dd56b47e62f45e467dc7ce4f4f72136c3ec134dcf79cd77a319b1f8cba929903",
+   "meta.json": "0b6810269537ab86afc879f5e5a4ba0da397151716e17da19c8931ec69267b9f"
+  }
+ },
+ {
+  "case": "00-h10157-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10157-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.37.deleg-mldsa-hint-padding",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "d3e7947811e4a4fc7b8d36ff73375c5164f2f576c4235a700300feed05568957",
+   "witness.bin": "d965e6c08df7fb38a92bc0501436416bb49dd81fc935cbd5a7118bfbe3dc3302",
+   "meta.json": "cce23305d083212352ffa70cffe0c46a8561ae98a89631e238b1149861e8d093"
+  }
+ },
+ {
+  "case": "00-h10158-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10158-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.38.deleg-mldsa-stale-nonce",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "05b56bcd0f720864938875f19510de6725e47a9fab6651d6adb606185221bfaa",
+   "witness.bin": "3f6b1c4941a20554ea5a89ef3e09e18f93e6e30758484137819973bdee9f5cc3",
+   "meta.json": "c7b5035724a3e4da8f8bea653a13a9707a3bd648a2fd381f5afd661c19c8c65d"
+  }
+ },
+ {
+  "case": "00-h10159-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10159-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.38.deleg-mldsa-stale-nonce",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "75261d70f95a24de05ff6eddb50bb6fd6e8a0765f0b9adf2703e95183d89ce2c",
+   "witness.bin": "dd3da543d38a42d8bd8fa835d34afc641fe176d8c7ba9e0aa29f2ed97e5c3087",
+   "meta.json": "5ef20e869a6f145bbfc4b69a9a18b24016de4394abf217052f029210177ed863"
+  }
+ },
+ {
+  "case": "00-h10164-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10164-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.39.deleg-mldsa-key-ed25519-sig",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "59b55df03df0976c27bea728cfb85fb9fe447b6f4e712e25ca3e67c26a9e268a",
+   "witness.bin": "bc04bed7d9b00d33baf886dbc05d7224965c12a437d8f1bfbaf2d12888ba1e0c",
+   "meta.json": "938e91e52dc7f9a660924473b2949cc4fe15507198e396f2cf20e6976c9e0c2f"
+  }
+ },
+ {
+  "case": "00-h10165-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10165-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.39.deleg-mldsa-key-ed25519-sig",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "6ad24be1399bcc5a3a5d5bf8e3bdc243bb0fb803cca20aa3722be51f862a11b4",
+   "witness.bin": "ae6cb3f34fff58d041e2f78fa9e72fc509268785bc333cf4c70e916802604a3a",
+   "meta.json": "ea76a2e726b3e71a9590cd113fabf43ec3d57437edcb9aa6e11ed9d8ea787c8d"
+  }
+ },
+ {
+  "case": "00-h10166-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10166-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.40.deleg-ed25519-key-mldsa-sig",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "3ef670093616cc9443ffdfb280722b16fffc9aa2312e4ce85aa9300796d954d1",
+   "witness.bin": "0b9bccb183d3cfa3d4d6a4c2859d49ff88c1f8afc0fc02b3d8e0aba0781d35e0",
+   "meta.json": "85a5c05ba440ee99f91c0a1f34288483bc3d04ec3ac718a3afb63793e6ec0409"
+  }
+ },
+ {
+  "case": "00-h10167-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10167-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.40.deleg-ed25519-key-mldsa-sig",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "14f49b50bdf171425772c68b00d3d6d078019efcca2ee960d942506b3a1862e4",
+   "witness.bin": "b1e54bd776f59804516a1945c30e6629615d38fcdbba874fd3682b3a6d2838be",
+   "meta.json": "effe4f99dcee705b17c2316e3594a18d16d6c33330c6c73e75ffd2fb42fdadb3"
+  }
+ },
+ {
+  "case": "00-h10171-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10171-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.41.deleg-mldsa-wrong-key",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "141c1a881360f1a45ae1dfe11a653c576908c7e38ed81a4a8db03be69b5edc9d",
+   "witness.bin": "de81aeff26c1280e7c92de807b84e99fffdbce8a7d2a51dba60ce0c9817845ad",
+   "meta.json": "407e7e8440c49ad54635b66d9b7baef17b8bf227127fa47366a94f4b9fbb5b95"
+  }
+ },
+ {
+  "case": "00-h10172-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10172-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.41.deleg-mldsa-wrong-key",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "210e360db8e9ba91b13f1dfae395e4161ad14fdccbc9369b1392bde3fa87e882",
+   "witness.bin": "23cd872b4b22ba8ef48a30e3d0c39223658f59a62faf28527c8c87364db2ecc5",
+   "meta.json": "7eaec1e5cf16f1a50f14da892ba13fcc4d7e4ba490b53a2e60171894f2912c60"
+  }
+ },
+ {
+  "case": "00-h10174-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10174-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.42.deleg-v2-mldsa",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "9b96e0cc52d97ea61c12d8179d377d4c6a18fe90f84bd18da6133f7844339daf",
+   "witness.bin": "58cccdf8d0bba189e7c5f856b39c1d61589e686601fc05fbc54e1b203f2dc476",
+   "meta.json": "efe221cab971a54fcd0f0cb9980e3a5b5b377297bf72accfd3c9b75380bd8f5b"
+  }
+ },
+ {
+  "case": "00-h10175-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10175-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.42.deleg-v2-mldsa",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "bf416743c17bae396be5b0ff6e16c89fe3bfc6e0ebfbc40d00a9b9a7c23949a8",
+   "witness.bin": "7ba8941df9a06c6259691536be10bdf2c71e78fdfdff988330f4c682c5e25968",
+   "meta.json": "119c8ee85ca545a22726216310df2d04967707dd8777df404caf18c47b1e7cef"
+  }
+ },
+ {
+  "case": "00-h10178-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10178-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.43.deleg-mldsa-inner-add-mldsa-key",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "9bb7fcadd5b0c11cb734c8c21ca1a7c5e79af64e887d8095e61aea041291b134",
+   "witness.bin": "a3c10cec10f2649ed59d2a40ea99aeb427d75fc7481e091b9e9b3a7efeecb0b1",
+   "meta.json": "07c9e703c2210063d621593388fe20fb76a32deb7234322b6cd95ce5acde6aea"
+  }
+ },
+ {
+  "case": "00-h10179-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10179-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.43.deleg-mldsa-inner-add-mldsa-key",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "34b5da82488416f60df28f98adf0826130e1439dfadaff11cd0d40c6c2d80f28",
+   "witness.bin": "ea752859796ee387bf7c6c689c4595089d9063a12fcbdeb76cfa3eaf1c8e5d08",
+   "meta.json": "baf8cffeee8ccfe8dd604c3acdea79471f3bd1c9b8cd2bc5b63e24dd46fd0d52"
+  }
+ },
+ {
+  "case": "00-h10182-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10182-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.44.deleg-mldsa-added-key",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "1726dc06d6cdebd03cae5045081a3f6be2e43b813511d49d8b45844cb33e9227",
+   "witness.bin": "9f4f64865ff4f2bf6b700453a908ee9c5934cc4d59acdedc7591ab6be1ae12bb",
+   "meta.json": "56c4ec73dfffbd0d22fa607a5a88e20c0907371478b737d51f8112abdc9aedf6"
+  }
+ },
+ {
+  "case": "00-h10183-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10183-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.44.deleg-mldsa-added-key",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "eff99cd4d56209f3537d0088e8ad8c20f5224ca96cb38a4396f81e20736af790",
+   "witness.bin": "6d160714e6beae7d7fcc4b383b0beb25ed9ac05071c81df848c7e2ea4e94ea9a",
+   "meta.json": "7343d95e3fb95c4f2d6506878d54fa645e4362bde1367f64510d71e72b6411a1"
+  }
+ },
+ {
+  "case": "00-h10186-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10186-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.45.deleg-mldsa-relayer-mldsa",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "ba54bbf5aadfd8bbc062ed293ef8b3ba1d0416fef0be5088cfcb497e1b6edb94",
+   "witness.bin": "999a1eedb623b114f8c072a2f2a37b1bdd54b9742ddd84be82f36ac024bf7937",
+   "meta.json": "fad10e63cabf74c7af36d57401e52c2885eedc6fa31db5ffefa6cee2b45f2219"
+  }
+ },
+ {
+  "case": "00-h10187-s1",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10187-s1",
+  "steps": [
+   {
+    "label": "successor.mldsa.45.deleg-mldsa-relayer-mldsa",
+    "why": "executes_first_receipt"
+   }
+  ],
+  "files": {
+   "claim.bin": "5087cf7c7879f986409e98dd9d797a67b2781d6dc4dcf64b67bea8455e105989",
+   "witness.bin": "69389a58d0a608cc8d5aa7249d3eeae4b5b402167f21dc78ea1ac512257b0f6c",
+   "meta.json": "c16429d9919c04364335b843929ebe4bd47be98e28666666600c625c47d3000d"
+  }
+ },
+ {
+  "case": "00-h10191-s0",
+  "origin": "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/runs/m6151/ood/00-h10191-s0",
+  "steps": [
+   {
+    "label": "successor.mldsa.46.mldsa-stake-key",
+    "why": "applies_tx"
+   }
+  ],
+  "files": {
+   "claim.bin": "607d265938ef41fb9ee07bbe0aa0f0ac5816293b91528f5d7783fce533ad9a68",
+   "witness.bin": "8d5f3324dd435a0d654d6a81af07fe84eb31c935e69cc46f6d46e5dd278a478d",
+   "meta.json": "387408ee53a6173e7c0e83a9f12354c2782aee86086ddf6a528f44217968b4d7"
+  }
+ }
+]

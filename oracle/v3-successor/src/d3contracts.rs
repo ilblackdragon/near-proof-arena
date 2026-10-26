@@ -32,6 +32,9 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
     if crate::keys::enabled() {
         contracts.push(("kgashost", crate::keys::host_code()));
     }
+    if crate::keys::mldsa_mode() {
+        contracts.push(("kmlpk", crate::keys::mlpk_code()));
+    }
     contracts
 }
 
