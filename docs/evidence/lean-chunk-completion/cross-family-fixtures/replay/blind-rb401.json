@@ -1,0 +1,35 @@
+{
+ "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+ "cases": 57,
+ "graded": 57,
+ "counts": {
+  "match": 57
+ },
+ "mismatch_percent": 0.0,
+ "verified_match_percent": 100.0,
+ "matched_cases_exercising": {
+  "balance_burnt": 56,
+  "congestion_buffered_gas": 6,
+  "congestion_receipt_bytes": 6,
+  "gas_used": 57,
+  "implicit_transitions": 6
+ },
+ "field_diffs": {},
+ "reasons": {},
+ "compared_outputs": [
+  "stateRoot",
+  "outcomeRoot",
+  "gasUsed",
+  "balanceBurnt",
+  "outgoingReceiptsRoot",
+  "proposals",
+  "txRoot",
+  "encodedMerkleRoot",
+  "encodedLength",
+  "congestion",
+  "bwRequests"
+ ],
+ "changed_artifacts": [],
+ "elapsed_seconds": 10.239325277972966,
+ "pass": true
+}

@@ -1,0 +1,49 @@
+{
+ "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+ "cases": 66,
+ "graded": 51,
+ "counts": {
+  "match": 51,
+  "genesis": 15
+ },
+ "mismatch_percent": 0.0,
+ "verified_match_percent": 100.0,
+ "matched_cases_exercising": {
+  "balance_burnt": 13,
+  "congestion_buffered_gas": 33,
+  "congestion_receipt_bytes": 33,
+  "gas_used": 51,
+  "implicit_transitions": 11,
+  "proposals": 2
+ },
+ "field_diffs": {
+  "stateRoot": 15,
+  "outcomeRoot": 15,
+  "gasUsed": 15,
+  "balanceBurnt": 15,
+  "outgoingReceiptsRoot": 15,
+  "proposals": 15,
+  "txRoot": 15,
+  "encodedMerkleRoot": 15,
+  "encodedLength": 15,
+  "congestion": 15,
+  "bwRequests": 15
+ },
+ "reasons": {},
+ "compared_outputs": [
+  "stateRoot",
+  "outcomeRoot",
+  "gasUsed",
+  "balanceBurnt",
+  "outgoingReceiptsRoot",
+  "proposals",
+  "txRoot",
+  "encodedMerkleRoot",
+  "encodedLength",
+  "congestion",
+  "bwRequests"
+ ],
+ "changed_artifacts": [],
+ "elapsed_seconds": 10.074904256965965,
+ "pass": true
+}

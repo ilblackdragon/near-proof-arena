@@ -1,0 +1,358 @@
+{
+ "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "protocol_version": 86,
+ "generator_tree": "worktree branch head (this commit's parent sources)",
+ "oracle_binary_sha256": "93cb5d86b8fb65a0548154f807589b2e9e388a6fdfb52249b53ef42c487d27db",
+ "baseline_oracle_binary_sha256": "2c2cbe64b5635d0b29d84268c0320373e4aef0db09ae51bfe483ecea558b59d8",
+ "baseline_identity": {
+  "command": "gen --domain d3 --seed 7 --chains 2 --blocks 40 --mutate-every 10 (no NEAR_SUCCESSOR_SCENARIO)",
+  "files": 8545,
+  "result": "byte-identical (diff -r) between the base tree binary and this tree's binary"
+ },
+ "lean_checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+ "control_checkers": {
+  "ctl-c1-yield-compute": "549109db967957a8bb4dd47fe51f9c96a1d0996270b89fd1e54a0d2cb5f1c134",
+  "ctl-c2-bls-writer-charge": "0565df5590d272d6ab819a99371c247fdf8abfa5bf850c73660b83620ad7ff62",
+  "ctl-c3-genesis-txroot": "2ef1babeca0c7468d5b0c8a1698acd661e6d94f4a648859aa0b4499e49e6cfcb",
+  "ctl-c4-gaskey-refund": "8efe348a59165b31b195fdc0017835ec42cf98c1460f4ad380c7e751780b087a",
+  "ctl-c5-rollback-receipts": "733ea41a2b719231e20b3caf7848b55c29d23592f0caae852fbdef5a514d0fb0"
+ },
+ "contracts": {
+  "xcurve": {
+   "hash": "GKTHSTQKQdHNnZUP4osGuyRBXPKF1XBoRZ1Z2PwPnvSW",
+   "len": 5399
+  },
+  "xfam": {
+   "hash": "EJmApWdhLnGAvcN3acCyK1UwZT8ujkctykyTb1LkNYSV",
+   "len": 1771
+  }
+ },
+ "sources": {
+  "oracle/v3-successor/src/xfam.rs": "111ee2227cca66efc58be651c5e4eadac2fdf9408669055b850f7c172ecf6be5",
+  "oracle/v3-successor/src/d3gen.rs": "fd7f474f60964cd9cc9e82922d3a814a30f0cdbcbaf2f4278fb7cc99dcd583fd",
+  "oracle/v3-successor/src/d3.rs": "49610d87743d8ea375e6271a9680af47c86f6f7e01cc941ebda16751c5009224",
+  "oracle/v3-successor/src/d3contracts.rs": "53dcb93e9f26b4827caeec9e80c674290e0f5d4fbf0592506bc2569dfc828a7b",
+  "oracle/v3-successor/src/main.rs": "0069cfda94e70b6c2ef49d32ff6643af2b719c6c4a741c7db51c94a02915a5f5",
+  "oracle/v3-successor/src/chaind3.rs": "3849528f87709fd53fae745bc88843147723e2c5e6058d37f7c277c4ffa82298",
+  "oracle/v3-successor/src/scenarios.rs": "cbe35293f832a0a552ab2d0c2f4c0da9cbdcf30cff47446ab87e0d3584261378",
+  "oracle/v3-successor/src/curve_hosts.rs": "56012b045f9acd5b50ad96bffb137e3c931acdadc5291593ba00fd69999791d4",
+  "tools/d3/collect_xfam.py": "908b1b6da5a6c69025e80cec5781d1dd3225e3ebbe56f11c4871798ad749b988",
+  "tools/d3/summarize_xfam.py": "791383e1945cabaa1dcf88f4f1880cf22984ab785c51a8c4af9c462dd6704af5",
+  "tools/d3/select_xfam_fixtures.py": "14a3363c8f8253ead191a16a684a8cb92cde0cc8fa0f67926809d68539668738",
+  "tools/d3/xfam_tables.py": "c9e101749db6614cd585a0a3d8e3dbab159255e966618ceac64b1eacd033b6ba",
+  "tools/d3/replay_successor.py": "540cf750b1f25a211e18427842c6d096447104e2c5b208880b127ea34cb780fe",
+  "tools/mainnet-replay/blind_corpus.py": "11c263d1d71d4716b026224db6d2afa1bedd677d5308d6cb84128ddbefbfc250",
+  "tools/mainnet-replay/blind_inputs.py": "8464ecd8cb2114b3fcc7c378a45c46cdd96f175ea0900f95e9d78bb64232c590"
+ },
+ "runs": {
+  "cc201": {
+   "scenario": "CurveCallbacks",
+   "seed": 201,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 201000603, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 318,
+   "cold_accepted": 318,
+   "mutants": 5009,
+   "rc": 0,
+   "seconds": 353
+  },
+  "cc202": {
+   "scenario": "CurveCallbacks",
+   "seed": 202,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 202000607, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 396,
+   "cold_accepted": 396,
+   "mutants": 4984,
+   "rc": 0,
+   "seconds": 314
+  },
+  "cc203": {
+   "scenario": "CurveCallbacks",
+   "seed": 203,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 203000611, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 490,
+   "cold_accepted": 490,
+   "mutants": 5130,
+   "rc": 0,
+   "seconds": 341
+  },
+  "cc204": {
+   "scenario": "CurveCallbacks",
+   "seed": 204,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 204000618, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 340,
+   "cold_accepted": 340,
+   "mutants": 5278,
+   "rc": 0,
+   "seconds": 318
+  },
+  "cc211": {
+   "scenario": "CurveCallbacks",
+   "seed": 211,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 211000633, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 408,
+   "cold_accepted": 408,
+   "mutants": 5287,
+   "rc": 0,
+   "seconds": 233
+  },
+  "cc212": {
+   "scenario": "CurveCallbacks",
+   "seed": 212,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 212000637, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 489,
+   "cold_accepted": 489,
+   "mutants": 4986,
+   "rc": 0,
+   "seconds": 264
+  },
+  "cc213": {
+   "scenario": "CurveCallbacks",
+   "seed": 213,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 213000641, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 614,
+   "cold_accepted": 614,
+   "mutants": 5405,
+   "rc": 0,
+   "seconds": 238
+  },
+  "cc214": {
+   "scenario": "CurveCallbacks",
+   "seed": 214,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 214000648, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 389,
+   "cold_accepted": 389,
+   "mutants": 5021,
+   "rc": 0,
+   "seconds": 222
+  },
+  "gk301": {
+   "scenario": "GasKeyTarget",
+   "seed": 301,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 301000903, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 180,
+   "cold_accepted": 180,
+   "mutants": 894,
+   "rc": 0,
+   "seconds": 44
+  },
+  "gk302": {
+   "scenario": "GasKeyTarget",
+   "seed": 302,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 302000907, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 219,
+   "cold_accepted": 219,
+   "mutants": 925,
+   "rc": 0,
+   "seconds": 67
+  },
+  "gk303": {
+   "scenario": "GasKeyTarget",
+   "seed": 303,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 303000911, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 270,
+   "cold_accepted": 270,
+   "mutants": 925,
+   "rc": 0,
+   "seconds": 75
+  },
+  "gk304": {
+   "scenario": "GasKeyTarget",
+   "seed": 304,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 304000918, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 185,
+   "cold_accepted": 185,
+   "mutants": 953,
+   "rc": 0,
+   "seconds": 52
+  },
+  "gx501": {
+   "scenario": "GenesisTx",
+   "seed": 501,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 501001503, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 501001504, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 501001505, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 86,
+   "cold_accepted": 86,
+   "mutants": 2025,
+   "rc": 0,
+   "seconds": 46
+  },
+  "gx502": {
+   "scenario": "GenesisTx",
+   "seed": 502,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 502001506, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 502001507, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 502001508, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 83,
+   "cold_accepted": 83,
+   "mutants": 1976,
+   "rc": 0,
+   "seconds": 48
+  },
+  "gx503": {
+   "scenario": "GenesisTx",
+   "seed": 503,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 503001509, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 503001510, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 503001511, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 77,
+   "cold_accepted": 77,
+   "mutants": 1914,
+   "rc": 0,
+   "seconds": 52
+  },
+  "gx504": {
+   "scenario": "GenesisTx",
+   "seed": 504,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 504001512, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 504001513, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 504001514, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 83,
+   "cold_accepted": 83,
+   "mutants": 1967,
+   "rc": 0,
+   "seconds": 40
+  },
+  "rb401": {
+   "scenario": "RollbackRefund",
+   "seed": 401,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 401001203, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 181,
+   "cold_accepted": 181,
+   "mutants": 1149,
+   "rc": 0,
+   "seconds": 57
+  },
+  "rb402": {
+   "scenario": "RollbackRefund",
+   "seed": 402,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 402001207, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 230,
+   "cold_accepted": 230,
+   "mutants": 1182,
+   "rc": 0,
+   "seconds": 66
+  },
+  "rb403": {
+   "scenario": "RollbackRefund",
+   "seed": 403,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 403001211, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 266,
+   "cold_accepted": 266,
+   "mutants": 1121,
+   "rc": 0,
+   "seconds": 81
+  },
+  "rb404": {
+   "scenario": "RollbackRefund",
+   "seed": 404,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 404001218, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 166,
+   "cold_accepted": 166,
+   "mutants": 1098,
+   "rc": 0,
+   "seconds": 54
+  },
+  "yc101": {
+   "scenario": "YieldCongestion",
+   "seed": 101,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 101000306, n_shards: 4, seats: 3, gas_limit_tgas: 10, epoch_length: 20, blocks: 235, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 937,
+   "cold_accepted": 937,
+   "mutants": 1218,
+   "rc": 0,
+   "seconds": 189
+  },
+  "yc102": {
+   "scenario": "YieldCongestion",
+   "seed": 102,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 102000310, n_shards: 5, seats: 8, gas_limit_tgas: 60, epoch_length: 20, blocks: 260, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 1145,
+   "cold_accepted": 1145,
+   "mutants": 1206,
+   "rc": 0,
+   "seconds": 245
+  },
+  "yc103": {
+   "scenario": "YieldCongestion",
+   "seed": 103,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 103000318, n_shards: 4, seats: 100, gas_limit_tgas: 60, epoch_length: 30, blocks: 260, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 1003,
+   "cold_accepted": 1003,
+   "mutants": 1228,
+   "rc": 0,
+   "seconds": 225
+  },
+  "yc104": {
+   "scenario": "YieldCongestion",
+   "seed": 104,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 104000326, n_shards: 6, seats: 16, gas_limit_tgas: 60, epoch_length: 20, blocks: 260, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 1366,
+   "cold_accepted": 1366,
+   "mutants": 1106,
+   "rc": 0,
+   "seconds": 286
+  },
+  "yc105": {
+   "scenario": "YieldCongestion",
+   "seed": 105,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 105000334, n_shards: 5, seats: 3, gas_limit_tgas: 60, epoch_length: 30, blocks: 260, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 1285,
+   "cold_accepted": 1285,
+   "mutants": 1247,
+   "rc": 0,
+   "seconds": 269
+  }
+ },
+ "run_script": "#!/bin/bash\n# final runs, one binary (bin/oracle-final), plus the baseline byte-identity check against bin/oracle-base\nX=$SCRATCH\ncd $X\nrm -rf runs && mkdir runs\nexport BIN=$X/bin/oracle-final\n# baseline identity (no scenario): seed 7, two chains, 40 blocks, --mutate-every 10\n( cd runs && $X/bin/oracle-base gen --domain d3 --seed 7 --chains 2 --blocks 40 --mutate-every 10 --out $X/runs/bl-base > bl-base.log 2>&1; echo \"rc=$?\" >> bl-base.log ) &\n( cd runs && $X/bin/oracle-final gen --domain d3 --seed 7 --chains 2 --blocks 40 --mutate-every 10 --out $X/runs/bl-final > bl-final.log 2>&1; echo \"rc=$?\" >> bl-final.log ) &\ni=0\nfor c in 3 4 9 14 19; do\n  s=$((101+i)); pm=0; [ $((i%2)) -eq 1 ] && pm=0.1; b=260; [ $c -eq 3 ] && b=235\n  NEAR_XFAM_MUTATE_EVERY=4 nohup ./gen.sh yield-congestion yc$s --seed $s --first-chain $c --chains 1 --blocks $b \\\n    --p-missing $pm --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 > /dev/null 2>&1 &\n  i=$((i+1))\ndone\ni=0\nfor c in 0 1 2 6; do\n  gp=0; [ $((i%2)) -eq 0 ] && gp=100000000\n  NEAR_XFAM_MUTATE_EVERY=3 nohup ./gen.sh curve-callbacks cc$((201+i)) --seed $((201+i)) --first-chain $c --chains 1 --blocks 95 \\\n    --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price $gp > /dev/null 2>&1 &\n  NEAR_XFAM_MUTATE_EVERY=2 nohup ./gen.sh gaskey-target gk$((301+i)) --seed $((301+i)) --first-chain $c --chains 1 --blocks 52 \\\n    --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price $gp > /dev/null 2>&1 &\n  NEAR_XFAM_MUTATE_EVERY=2 nohup ./gen.sh rollback-refund rb$((401+i)) --seed $((401+i)) --first-chain $c --chains 1 --blocks 50 \\\n    --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price $gp > /dev/null 2>&1 &\n  NEAR_XFAM_MUTATE_EVERY=2 nohup ./gen.sh genesis-tx gx$((501+i)) --seed $((501+i)) --chains 3 --blocks 8 --p-missing 0.3 \\\n    --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price $gp > /dev/null 2>&1 &\n  i=$((i+1))\ndone\nwait\n"
+}
