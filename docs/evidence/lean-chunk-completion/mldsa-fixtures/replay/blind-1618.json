@@ -1,0 +1,52 @@
+{
+  "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+  "cases": 138,
+  "graded": 138,
+  "counts": {
+    "match": 130,
+    "error": 8
+  },
+  "mismatch_percent": 0.0,
+  "verified_match_percent": 94.20289855072464,
+  "matched_cases_exercising": {
+    "balance_burnt": 39,
+    "congestion_buffered_gas": 23,
+    "congestion_receipt_bytes": 23,
+    "gas_used": 129,
+    "implicit_transitions": 13
+  },
+  "field_diffs": {},
+  "reasons": {
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '--blind', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__ood__00-h10171-s1']' timed out after 3600 seconds": 1,
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__ood__00-h10176-s1']' timed out after 3600 seconds": 1,
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__ood__00-h10181-s1']' timed out after 3600 seconds": 1,
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__ood__00-h10182-s1']' timed out after 3600 seconds": 1,
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '--blind', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__ood__00-h10183-s1']' timed out after 3600 seconds": 1,
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '--blind', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__ood__00-h10184-s1']' timed out after 3600 seconds": 1,
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__d3__00-h10185-s1']' timed out after 3600 seconds": 1,
+    "Command '['/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w06/blind-m1618/checker', '--tier', 'allFeatures', '--blind', '/tmp/blind-g4ukaf3w/__tmp__claude-1002__-data-illia-nearproof__0e65db12-f071-4aee-abe1-6a3d8ed8412f__scratchpad__w06__runs__m1618__ood__00-h10186-s1']' timed out after 3600 seconds": 1
+  },
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "identities": {
+    "lean_binary_sha256": "23bfc8c370bf992b54257952428150a408e5dfd31dba8ccfb5c77f58e74487d3",
+    "harness_sha256": "11c263d1d71d4716b026224db6d2afa1bedd677d5308d6cb84128ddbefbfc250",
+    "blind_inputs_sha256": "8464ecd8cb2114b3fcc7c378a45c46cdd96f175ea0900f95e9d78bb64232c590",
+    "tier": "allFeatures",
+    "cases_list_sha256": "ddc3d899257fa4ff66ac5e04472285432bdb6b80ad52a25618e3782dd30aadfa"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 7221.4794384199195,
+  "pass": false
+}

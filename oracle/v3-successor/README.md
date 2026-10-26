@@ -97,6 +97,34 @@ The collector fails if a step is missing. A nonzero gas price is what makes the
 insufficient-gas-key-balance step reachable; with the default zero price, that step is valid.
 Evidence: `docs/evidence/lean-chunk-completion/key-family-fixtures/`.
 
+## ML-DSA-65 scenario
+
+Set `NEAR_SUCCESSOR_SCENARIO=mldsa` for the 47-step `mldsa` table (`src/keys/mldsa.rs`, labels
+`successor.mldsa.NN.name`). It reuses the `keys` driver and accounts and adds three genesis accounts
+and keys (ML-DSA-65 keys for `s1kdeleg` and `s1krelay`, `s2kmlpoor` with 1 NEAR, `s2kmlpk` with the
+`kmlpk` contract whose `pk` method returns `signer_account_pk`). Steps: ML-DSA-signed transfers; bad
+`z`/`c̃`; every malformed hint class (unordered, non-zero padding, count over ω, decreasing count);
+an all-zero signature; wrong ML-DSA key; ED25519 and secp256k1 signatures on an ML-DSA key and an
+ML-DSA signature on an ED25519 key; stale, too-large and strict-gap nonces; AddKey of ML-DSA full
+and function-call keys then used to sign (including a call reading `signer_account_pk` and a
+refund into the function-call allowance); ML-DSA-signed AddKey/DeleteKey; an ML-DSA gas key funded
+exactly `gas_cost − verification cost`, then `gas_cost − 1`, then `gas_cost`; an account whose
+balance is short by the verification cost, short by one, and exact; delegates with an ML-DSA
+inner key (valid, bad signature, malformed hints, stale nonce, type mismatches, wrong key, V2,
+inner AddKey of an ML-DSA key then used, an ML-DSA relayer); a Stake with an ML-DSA key. Boundary
+amounts come from nearcore's `tx_cost` at PV86 and the tip gas price; the verification share is the
+cost difference against the same transaction with an ED25519 key. aws-lc's ML-DSA signing is
+randomized, so two runs of a seed differ in signature bytes (and everything hashed over them).
+
+```
+NEAR_SUCCESSOR_SCENARIO=mldsa near-arena-oracle-v3-successor gen --domain d3 --seed 6151 --chains 1 \
+  --blocks 300 --mutate-every 10 --code-mutant-p 0.2 --ood-cap 2000 --min-gas-price 100000000 --out RUN
+python3 tools/d3/collect_keys.py --scenario mldsa --source RUN --binary PATH_TO_ORACLE --out COLLECTED
+near-arena-oracle-v3-successor mldsa-vectors > crate-vectors.json   # the Lean unit pin's crate verdicts
+```
+
+Evidence: `docs/evidence/lean-chunk-completion/mldsa-fixtures/`.
+
 ## Yield and storage-limit scenarios
 
 `src/chaind3.rs` is a versioned copy of the signed D3 loop with one per-height hook for scenario

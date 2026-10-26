@@ -58,7 +58,7 @@ def processTxD2L (env : Env) (rsSeen : RS × List Bytes) (tf : TxD2 × Bool) : L
   let fail := ({ rs with outcomes := rs.outcomes ++ [failedOutcomeD2 t 0 0] }, seen)
   if !flag then return fail
   if !t.valid then return fail
-  let some c := txCostD2 t.signer t.receiver t.actions env.ctx.gasPrice | return fail
+  let some c := txCostD2 t.pk t.signer t.receiver t.actions env.ctx.gasPrice | return fail
   let some a ← rs.o.getAcctL t.signer | return fail
   let some k ← rs.o.getAKL t.signer t.pk | return fail
   let verdict ← match t.nonceIdx with

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bind an opt-in nearcore `keys` scenario run (oracle/v3-successor/src/keys.rs) to exact bytes.
+"""Bind an opt-in nearcore `keys` or `mldsa` scenario run (oracle/v3-successor/src/keys.rs) to exact bytes.
 
 For every scenario step it records what nearcore did, from two independent sources: the
 transaction-stage result in the chunk that applied the transaction (`tx_results` of the honest
@@ -9,6 +9,8 @@ alone never establishes an outcome. Selected honest cases are those that carry a
 transaction (new or applied) or validate the application of one of its receipts (the next chunk
 of the executing shard after the block that stored the outcome); selected mutants are the mutants of
 selected honest cases. This is a collector, not a Lean differential result.
+
+`--scenario mldsa` selects the `mldsa` step table (labels `successor.mldsa.NN.name`, 47 steps).
 """
 import argparse
 import collections
@@ -18,8 +20,8 @@ from pathlib import Path
 import re
 import sys
 
-PREFIX = "successor.keys."
-N_STEPS = 60
+SCENARIOS = {"keys": ("successor.keys.", 60), "mldsa": ("successor.mldsa.", 47)}
+PREFIX, N_STEPS = SCENARIOS["keys"]
 FILES = ("claim.bin", "witness.bin", "meta.json")
 
 
@@ -27,7 +29,9 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def collect(source, binary):
+def collect(source, binary, scenario="keys"):
+    global PREFIX, N_STEPS
+    PREFIX, N_STEPS = SCENARIOS[scenario]
     outcomes = {}
     for path in sorted(source.glob("keys-outcomes-*.json")):
         for row in json.loads(path.read_text()):
@@ -127,12 +131,13 @@ def main():
     p.add_argument("--source", required=True, type=Path)
     p.add_argument("--binary", required=True, type=Path)
     p.add_argument("--out", required=True, type=Path)
+    p.add_argument("--scenario", choices=sorted(SCENARIOS), default="keys")
     a = p.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     manifest = a.out / "manifest.json"
     manifest.write_text(json.dumps({"status": "collecting"}) + "\n")
     try:
-        report = collect(a.source, a.binary)
+        report = collect(a.source, a.binary, a.scenario)
     except (OSError, ValueError, KeyError, TypeError) as e:
         manifest.write_text(json.dumps({"status": "failed", "error": str(e)}) + "\n")
         print(f"FAIL: {e}", file=sys.stderr)

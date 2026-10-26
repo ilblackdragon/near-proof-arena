@@ -1,0 +1,67 @@
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10007-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10010-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10011-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10014-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10019-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10023-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10026-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10030-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10034-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10038-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10043-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10046-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10050-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction signature", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10054-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10058-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10065-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10066-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10067-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10070-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10071-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10074-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10078-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10079-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10082-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10086-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10090-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10091-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10094-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10098-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10099-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10102-s0", "reason": "", "tier": "allFeatures", "verdict": "accept"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10106-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10111-s0", "reason": "", "tier": "allFeatures", "verdict": "accept"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10114-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10118-s0", "reason": "", "tier": "allFeatures", "verdict": "accept"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10124-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10125-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10126-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10130-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10134-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10138-s0", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10139-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10142-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10143-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10146-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10148-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10150-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10151-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10156-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10157-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10158-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10159-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10164-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10165-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10166-s1", "reason": "out of domain (w.shape): ML-DSA-65 signature", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10167-s1", "reason": "out of domain (w.shape): ML-DSA-65 signature", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10171-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10172-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10174-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10175-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10178-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10179-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10182-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10183-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10186-s1", "reason": "out of domain (e.mldsa_tx): ML-DSA-65 transaction key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10187-s1", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "allFeatures", "verdict": "out_of_domain"}
+{"case": "docs/evidence/lean-chunk-completion/mldsa-fixtures/cases/00-h10191-s0", "reason": "", "tier": "allFeatures", "verdict": "accept"}

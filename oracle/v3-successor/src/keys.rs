@@ -9,6 +9,13 @@
 //! transaction pool (`Pool`, nearcore admits it first) or injected into the next chunk of the
 //! account's shard (`Inject`, for transactions the pool refuses). Labels are
 //! `successor.keys.NN.name`; a label says what was submitted, never what nearcore did with it.
+//!
+//! `NEAR_SUCCESSOR_SCENARIO=mldsa` runs a second step table (`step_mldsa`, labels
+//! `successor.mldsa.NN.name`) on the same accounts plus three: ML-DSA-65-signed transactions
+//! (valid, every malformed-signature class, type mismatches, nonces), ML-DSA keys added and then
+//! used, an FC call reading `signer_account_pk`, ML-DSA gas keys and delegates, and balance /
+//! gas-key-balance boundaries at exactly the `ml_dsa_65_verification_cost` term. With `keys` the
+//! behaviour is unchanged.
 use crate::chaingen::Setup;
 use crate::d2gen::{view_gk_nonce, view_key};
 use near_crypto::{InMemorySigner, KeyType, PublicKey, Secp256K1PublicKey, Secp256K1Signature, Signature, Signer};
@@ -28,14 +35,29 @@ use near_primitives::types::{AccountId, Balance, Gas};
 use near_primitives_core::account::Account;
 use std::collections::{HashMap, VecDeque};
 
+mod mldsa;
+use mldsa::N_STEPS_MLDSA;
+
 pub const SCENARIO: &str = "keys";
+pub const SCENARIO_MLDSA: &str = "mldsa";
 pub const LABEL_PREFIX: &str = "successor.keys.";
+pub const LABEL_PREFIX_MLDSA: &str = "successor.mldsa.";
 /// Blocks between steps (receipt delivery across shards and the next chunk of every shard).
 const GAP: u64 = 4;
 const FIRST_HEIGHT: u64 = 10004;
 
 pub fn enabled() -> bool {
-    std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok(SCENARIO)
+    std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok(SCENARIO) || mldsa_mode()
+}
+/// The `mldsa` step table instead of the `keys` one (same accounts, same driver).
+pub fn mldsa_mode() -> bool {
+    std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok(SCENARIO_MLDSA)
+}
+fn label_prefix() -> &'static str {
+    if mldsa_mode() { LABEL_PREFIX_MLDSA } else { LABEL_PREFIX }
+}
+fn n_steps() -> usize {
+    if mldsa_mode() { N_STEPS_MLDSA } else { N_STEPS }
 }
 
 fn acct(s: &str) -> AccountId {
@@ -87,7 +109,47 @@ pub fn genesis_records() -> (Vec<StateRecord>, Balance) {
     r.push(StateRecord::access_key(a_secp(), &sk(&a_secp(), "main", KeyType::SECP256K1).public_key(), AccessKey::full_access()));
     r.push(StateRecord::access_key(a_deleg(), &sk(&a_deleg(), "main", KeyType::SECP256K1).public_key(), AccessKey::full_access()));
     r.push(StateRecord::access_key(a_mldsa(), &sk(&a_mldsa(), "main", KeyType::MLDSA65).public_key(), AccessKey::full_access()));
+    if mldsa_mode() {
+        // ML-DSA keys for the delegate sender and the relayer; a poor account (1 NEAR) for the
+        // balance boundary; the `kmlpk` contract account
+        r.push(StateRecord::access_key(a_deleg(), &sk(&a_deleg(), "main", KeyType::MLDSA65).public_key(), AccessKey::full_access()));
+        r.push(StateRecord::access_key(a_relay(), &sk(&a_relay(), "main", KeyType::MLDSA65).public_key(), AccessKey::full_access()));
+        let code = mlpk_code();
+        for (a, amount, contract) in [
+            (a_poor(), Balance::from_near(1), AccountContract::None),
+            (a_mlpk(), Balance::from_near(1_000_000), AccountContract::Local(CryptoHash::hash_bytes(&code))),
+        ] {
+            r.push(StateRecord::Account { account_id: a.clone(), account: Account::new(amount, Balance::ZERO, contract, 0) });
+            r.push(StateRecord::access_key(a.clone(), &ed(&a).public_key(), AccessKey::full_access()));
+            supply = supply.checked_add(amount).unwrap();
+        }
+        r.push(StateRecord::access_key(a_poor(), &sk(&a_poor(), "main", KeyType::MLDSA65).public_key(), AccessKey::full_access()));
+        r.push(StateRecord::Contract { account_id: a_mlpk(), code });
+    }
     (r, supply)
+}
+
+pub fn a_poor() -> AccountId {
+    acct("s2kmlpoor")
+}
+pub fn a_mlpk() -> AccountId {
+    acct("s2kmlpk")
+}
+/// `kmlpk` (mldsa scenario only): method `pk` returns `signer_account_pk` (the Borsh signer key,
+/// 1,953 bytes for an ML-DSA-65 signer).
+pub fn mlpk_code() -> Vec<u8> {
+    wat::parse_str(
+        r#"(module
+  (import "env" "signer_account_pk" (func $spk (param i64)))
+  (import "env" "register_len" (func $rlen (param i64) (result i64)))
+  (import "env" "read_register" (func $rr (param i64 i64)))
+  (import "env" "value_return" (func $vr (param i64 i64)))
+  (memory 1)
+  (func $pk (call $spk (i64.const 0)) (call $rr (i64.const 0) (i64.const 0))
+    (call $vr (call $rlen (i64.const 0)) (i64.const 0)))
+  (export "pk" (func $pk)))"#,
+    )
+    .expect("kmlpk")
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -234,8 +296,9 @@ impl KeysWorld {
         }
         loop {
             let i = self.next_step;
-            let Some((name, mode, k, txs)) = self.step(i, s, bh) else {
-                if i >= N_STEPS {
+            let built = if mldsa_mode() { self.step_mldsa(i, s, bh) } else { self.step(i, s, bh) };
+            let Some((name, mode, k, txs)) = built else {
+                if i >= n_steps() {
                     return vec![];
                 }
                 // a pool transaction of an earlier step can land a few blocks late: wait for it
@@ -252,7 +315,7 @@ impl KeysWorld {
             self.waited = 0;
             self.next_step += 1;
             self.next_height = height + GAP;
-            let label = format!("{LABEL_PREFIX}{i:02}.{name}");
+            let label = format!("{}{i:02}.{name}", label_prefix());
             let txs: Vec<(String, SignedTransaction)> = txs.into_iter().map(|t| (label.clone(), t)).collect();
             eprintln!("keys scenario: step {label} ({mode:?}, shard index {k}) at height {height}");
             return match mode {
@@ -603,7 +666,7 @@ pub fn write_outcomes(s: &Setup, labels: &HashMap<CryptoHash, String>, path: &st
     };
     let mut rows: Vec<(String, serde_json::Value)> = Vec::new();
     for (hash, label) in labels {
-        if !label.starts_with(LABEL_PREFIX) {
+        if !label.starts_with(label_prefix()) {
             continue;
         }
         let mut outcomes = Vec::new();

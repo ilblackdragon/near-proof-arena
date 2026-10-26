@@ -1,0 +1,955 @@
+[
+ {
+  "step": 0,
+  "name": "mldsa-tx-transfer",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10007-s0",
+   "00-h10010-s0",
+   "00-h10011-s0"
+  ],
+  "before": {
+   "00-h10007-s0": "out_of_domain",
+   "00-h10010-s0": "out_of_domain",
+   "00-h10011-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10007-s0": "accept",
+   "00-h10010-s0": "accept",
+   "00-h10011-s0": "accept"
+  }
+ },
+ {
+  "step": 1,
+  "name": "mldsa-tx-bad-z",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10011-s0"
+  ],
+  "before": {
+   "00-h10011-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10011-s0": "accept"
+  }
+ },
+ {
+  "step": 2,
+  "name": "mldsa-tx-bad-ctilde",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10014-s0"
+  ],
+  "before": {
+   "00-h10014-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10014-s0": "accept"
+  }
+ },
+ {
+  "step": 3,
+  "name": "mldsa-tx-hint-unordered",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10019-s0"
+  ],
+  "before": {
+   "00-h10019-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10019-s0": "accept"
+  }
+ },
+ {
+  "step": 4,
+  "name": "mldsa-tx-hint-padding",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10023-s0"
+  ],
+  "before": {
+   "00-h10023-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10023-s0": "accept"
+  }
+ },
+ {
+  "step": 5,
+  "name": "mldsa-tx-hint-count-over-omega",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10026-s0"
+  ],
+  "before": {
+   "00-h10026-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10026-s0": "accept"
+  }
+ },
+ {
+  "step": 6,
+  "name": "mldsa-tx-hint-count-decreasing",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10030-s0"
+  ],
+  "before": {
+   "00-h10030-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10030-s0": "accept"
+  }
+ },
+ {
+  "step": 7,
+  "name": "mldsa-tx-zero-sig",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10034-s0"
+  ],
+  "before": {
+   "00-h10034-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10034-s0": "accept"
+  }
+ },
+ {
+  "step": 8,
+  "name": "mldsa-tx-wrong-key",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10038-s0"
+  ],
+  "before": {
+   "00-h10038-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10038-s0": "accept"
+  }
+ },
+ {
+  "step": 9,
+  "name": "mldsa-key-ed25519-sig",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10043-s0"
+  ],
+  "before": {
+   "00-h10043-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10043-s0": "accept"
+  }
+ },
+ {
+  "step": 10,
+  "name": "mldsa-key-secp-sig",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10046-s0"
+  ],
+  "before": {
+   "00-h10046-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10046-s0": "accept"
+  }
+ },
+ {
+  "step": 11,
+  "name": "ed25519-key-mldsa-sig",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10050-s0"
+  ],
+  "before": {
+   "00-h10050-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10050-s0": "accept"
+  }
+ },
+ {
+  "step": 12,
+  "name": "mldsa-tx-stale-nonce",
+  "tx_result": "InvalidNonce",
+  "receipts": [],
+  "cases": [
+   "00-h10054-s0"
+  ],
+  "before": {
+   "00-h10054-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10054-s0": "accept"
+  }
+ },
+ {
+  "step": 13,
+  "name": "mldsa-tx-nonce-too-large",
+  "tx_result": "NonceTooLarge",
+  "receipts": [],
+  "cases": [
+   "00-h10058-s0"
+  ],
+  "before": {
+   "00-h10058-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10058-s0": "accept"
+  }
+ },
+ {
+  "step": 14,
+  "name": "mldsa-add-keys",
+  "tx_result": "success_local",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10065-s0",
+   "00-h10066-s0"
+  ],
+  "before": {
+   "00-h10065-s0": "out_of_domain",
+   "00-h10066-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10065-s0": "accept",
+   "00-h10066-s0": "accept"
+  }
+ },
+ {
+  "step": 15,
+  "name": "mldsa-new-key-multi-action",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10066-s0",
+   "00-h10067-s0",
+   "00-h10068-s0"
+  ],
+  "before": {
+   "00-h10066-s0": "out_of_domain",
+   "00-h10067-s0": "out_of_domain",
+   "00-h10068-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10066-s0": "accept",
+   "00-h10067-s0": "accept",
+   "00-h10068-s0": "accept"
+  }
+ },
+ {
+  "step": 16,
+  "name": "mldsa-fc-key-call-signer-pk",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue((1953)AouT5utSjreJwh0GHSHRPmLAXJg9t5MLWzNNNPFyRQsEsEXEuWc9+QEIwA0xoYhg7e/TbxQ5EYw8jiqfkPV6L6xDPFPHnEWOiMhvcK1Gqhcg1sc/2xEUYcRf\u2026)",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10070-s0",
+   "00-h10071-s0",
+   "00-h10072-s0"
+  ],
+  "before": {
+   "00-h10070-s0": "out_of_domain",
+   "00-h10071-s0": "out_of_domain",
+   "00-h10072-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10070-s0": "accept",
+   "00-h10071-s0": "accept",
+   "00-h10072-s0": "accept"
+  }
+ },
+ {
+  "step": 17,
+  "name": "mldsa-signed-add-mldsa-key",
+  "tx_result": "success_local",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10074-s0",
+   "00-h10075-s0"
+  ],
+  "before": {
+   "00-h10074-s0": "out_of_domain",
+   "00-h10075-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10074-s0": "accept",
+   "00-h10075-s0": "accept"
+  }
+ },
+ {
+  "step": 18,
+  "name": "mldsa-added-key-tx",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10078-s0",
+   "00-h10079-s0",
+   "00-h10080-s0"
+  ],
+  "before": {
+   "00-h10078-s0": "out_of_domain",
+   "00-h10079-s0": "out_of_domain",
+   "00-h10080-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10078-s0": "accept",
+   "00-h10079-s0": "accept",
+   "00-h10080-s0": "accept"
+  }
+ },
+ {
+  "step": 19,
+  "name": "mldsa-signed-delete-key",
+  "tx_result": "success_local",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10082-s0",
+   "00-h10083-s0"
+  ],
+  "before": {
+   "00-h10082-s0": "out_of_domain",
+   "00-h10083-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10082-s0": "accept",
+   "00-h10083-s0": "accept"
+  }
+ },
+ {
+  "step": 20,
+  "name": "mldsa-deleted-key-tx",
+  "tx_result": "InvalidAccessKeyError",
+  "receipts": [],
+  "cases": [
+   "00-h10086-s0"
+  ],
+  "before": {
+   "00-h10086-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10086-s0": "accept"
+  }
+ },
+ {
+  "step": 21,
+  "name": "mldsa-v1-strict-nonce",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10090-s0",
+   "00-h10091-s0",
+   "00-h10092-s0"
+  ],
+  "before": {
+   "00-h10090-s0": "out_of_domain",
+   "00-h10091-s0": "out_of_domain",
+   "00-h10092-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10090-s0": "accept",
+   "00-h10091-s0": "accept",
+   "00-h10092-s0": "accept"
+  }
+ },
+ {
+  "step": 22,
+  "name": "mldsa-v1-strict-nonce-gap",
+  "tx_result": "InvalidNonce",
+  "receipts": [],
+  "cases": [
+   "00-h10094-s0"
+  ],
+  "before": {
+   "00-h10094-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10094-s0": "accept"
+  }
+ },
+ {
+  "step": 23,
+  "name": "mldsa-full-key-call-signer-pk",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue((1953)An5LuTY8m0wtMy1T700nWpE39CWJ0aNg3piB5qBjJRMcG58JUfgJaYzTcVpyoZrNCxx9MY8p8gsOR1EXc79VTE9k/U278Q03GAK3Y6vr45hv8Vc4E4ZZVN/d\u2026)",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10098-s0",
+   "00-h10099-s0",
+   "00-h10100-s0"
+  ],
+  "before": {
+   "00-h10098-s0": "out_of_domain",
+   "00-h10099-s0": "out_of_domain",
+   "00-h10100-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10098-s0": "accept",
+   "00-h10099-s0": "accept",
+   "00-h10100-s0": "accept"
+  }
+ },
+ {
+  "step": 24,
+  "name": "mldsa-gas-key-add-fund-short-by-verify",
+  "tx_result": "success_local",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10102-s0",
+   "00-h10103-s0"
+  ],
+  "before": {
+   "00-h10102-s0": "accept",
+   "00-h10103-s0": "accept"
+  },
+  "after": {
+   "00-h10102-s0": "accept",
+   "00-h10103-s0": "accept"
+  }
+ },
+ {
+  "step": 25,
+  "name": "mldsa-gas-key-tx-short-by-verify",
+  "tx_result": "NotEnoughGasKeyBalance",
+  "receipts": [],
+  "cases": [
+   "00-h10106-s0"
+  ],
+  "before": {
+   "00-h10106-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10106-s0": "accept"
+  }
+ },
+ {
+  "step": 26,
+  "name": "mldsa-gas-key-topup-verify-minus-one",
+  "tx_result": "success_local",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10111-s0",
+   "00-h10112-s0"
+  ],
+  "before": {
+   "00-h10111-s0": "accept",
+   "00-h10112-s0": "accept"
+  },
+  "after": {
+   "00-h10111-s0": "accept",
+   "00-h10112-s0": "accept"
+  }
+ },
+ {
+  "step": 27,
+  "name": "mldsa-gas-key-tx-short-by-one",
+  "tx_result": "NotEnoughGasKeyBalance",
+  "receipts": [],
+  "cases": [
+   "00-h10114-s0"
+  ],
+  "before": {
+   "00-h10114-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10114-s0": "accept"
+  }
+ },
+ {
+  "step": 28,
+  "name": "mldsa-gas-key-topup-one",
+  "tx_result": "success_local",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10118-s0",
+   "00-h10119-s0"
+  ],
+  "before": {
+   "00-h10118-s0": "accept",
+   "00-h10119-s0": "accept"
+  },
+  "after": {
+   "00-h10118-s0": "accept",
+   "00-h10119-s0": "accept"
+  }
+ },
+ {
+  "step": 29,
+  "name": "mldsa-gas-key-tx-exact",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10124-s0",
+   "00-h10125-s0",
+   "00-h10126-s0"
+  ],
+  "before": {
+   "00-h10124-s0": "out_of_domain",
+   "00-h10125-s0": "out_of_domain",
+   "00-h10126-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10124-s0": "accept",
+   "00-h10125-s0": "accept",
+   "00-h10126-s0": "accept"
+  }
+ },
+ {
+  "step": 30,
+  "name": "mldsa-gas-key-bad-sig",
+  "tx_result": "InvalidSignature",
+  "receipts": [],
+  "cases": [
+   "00-h10126-s0"
+  ],
+  "before": {
+   "00-h10126-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10126-s0": "accept"
+  }
+ },
+ {
+  "step": 31,
+  "name": "mldsa-balance-short-by-verify",
+  "tx_result": "NotEnoughBalance",
+  "receipts": [],
+  "cases": [
+   "00-h10130-s0"
+  ],
+  "before": {
+   "00-h10130-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10130-s0": "accept"
+  }
+ },
+ {
+  "step": 32,
+  "name": "mldsa-balance-short-by-one",
+  "tx_result": "NotEnoughBalance",
+  "receipts": [],
+  "cases": [
+   "00-h10134-s0"
+  ],
+  "before": {
+   "00-h10134-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10134-s0": "accept"
+  }
+ },
+ {
+  "step": 33,
+  "name": "mldsa-balance-exact",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10138-s0",
+   "00-h10139-s0",
+   "00-h10140-s0"
+  ],
+  "before": {
+   "00-h10138-s0": "out_of_domain",
+   "00-h10139-s0": "out_of_domain",
+   "00-h10140-s0": "out_of_domain"
+  },
+  "after": {
+   "00-h10138-s0": "accept",
+   "00-h10139-s0": "accept",
+   "00-h10140-s0": "accept"
+  }
+ },
+ {
+  "step": 34,
+  "name": "deleg-mldsa-valid",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10142-s1",
+   "00-h10143-s1",
+   "00-h10144-s1",
+   "00-h10145-s1"
+  ],
+  "before": {
+   "00-h10142-s1": "out_of_domain",
+   "00-h10143-s1": "out_of_domain",
+   "00-h10144-s1": "accept",
+   "00-h10145-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10142-s1": "accept",
+   "00-h10143-s1": "accept",
+   "00-h10144-s1": "accept",
+   "00-h10145-s1": "accept"
+  }
+ },
+ {
+  "step": 35,
+  "name": "deleg-mldsa-bad-z",
+  "tx_result": "success",
+  "receipts": [
+   "Failure(Action #0: DelegateAction is not signed with the given public key)",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10146-s1",
+   "00-h10148-s1",
+   "00-h10149-s1"
+  ],
+  "before": {
+   "00-h10146-s1": "out_of_domain",
+   "00-h10148-s1": "out_of_domain",
+   "00-h10149-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10146-s1": "accept",
+   "00-h10148-s1": "accept",
+   "00-h10149-s1": "accept"
+  }
+ },
+ {
+  "step": 36,
+  "name": "deleg-mldsa-hint-unordered",
+  "tx_result": "success",
+  "receipts": [
+   "Failure(Action #0: DelegateAction is not signed with the given public key)",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10150-s1",
+   "00-h10151-s1",
+   "00-h10152-s1"
+  ],
+  "before": {
+   "00-h10150-s1": "out_of_domain",
+   "00-h10151-s1": "out_of_domain",
+   "00-h10152-s1": "accept"
+  },
+  "after": {
+   "00-h10150-s1": "accept",
+   "00-h10151-s1": "accept",
+   "00-h10152-s1": "accept"
+  }
+ },
+ {
+  "step": 37,
+  "name": "deleg-mldsa-hint-padding",
+  "tx_result": "success",
+  "receipts": [
+   "Failure(Action #0: DelegateAction is not signed with the given public key)",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10156-s1",
+   "00-h10157-s1",
+   "00-h10158-s1"
+  ],
+  "before": {
+   "00-h10156-s1": "out_of_domain",
+   "00-h10157-s1": "out_of_domain",
+   "00-h10158-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10156-s1": "accept",
+   "00-h10157-s1": "accept",
+   "00-h10158-s1": "accept"
+  }
+ },
+ {
+  "step": 38,
+  "name": "deleg-mldsa-stale-nonce",
+  "tx_result": "success",
+  "receipts": [
+   "Failure(Action #0: DelegateAction nonce 1 must be larger than nonce of the used access key 1)",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10158-s1",
+   "00-h10159-s1",
+   "00-h10163-s1"
+  ],
+  "before": {
+   "00-h10158-s1": "out_of_domain",
+   "00-h10159-s1": "out_of_domain",
+   "00-h10163-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10158-s1": "accept",
+   "00-h10159-s1": "accept",
+   "00-h10163-s1": "accept"
+  }
+ },
+ {
+  "step": 39,
+  "name": "deleg-mldsa-key-ed25519-sig",
+  "tx_result": "success",
+  "receipts": [
+   "Failure(Action #0: DelegateAction is not signed with the given public key)",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10164-s1",
+   "00-h10165-s1",
+   "00-h10166-s1"
+  ],
+  "before": {
+   "00-h10164-s1": "out_of_domain",
+   "00-h10165-s1": "out_of_domain",
+   "00-h10166-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10164-s1": "accept",
+   "00-h10165-s1": "accept",
+   "00-h10166-s1": "accept"
+  }
+ },
+ {
+  "step": 40,
+  "name": "deleg-ed25519-key-mldsa-sig",
+  "tx_result": "success",
+  "receipts": [
+   "Failure(Action #0: DelegateAction is not signed with the given public key)",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10166-s1",
+   "00-h10167-s1",
+   "00-h10168-s1"
+  ],
+  "before": {
+   "00-h10166-s1": "out_of_domain",
+   "00-h10167-s1": "out_of_domain",
+   "00-h10168-s1": "accept"
+  },
+  "after": {
+   "00-h10166-s1": "accept",
+   "00-h10167-s1": "accept",
+   "00-h10168-s1": "accept"
+  }
+ },
+ {
+  "step": 41,
+  "name": "deleg-mldsa-wrong-key",
+  "tx_result": "success",
+  "receipts": [
+   "Failure(Action #0: DelegateAction is not signed with the given public key)",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10171-s1",
+   "00-h10172-s1",
+   "00-h10173-s1"
+  ],
+  "before": {
+   "00-h10171-s1": "out_of_domain",
+   "00-h10172-s1": "out_of_domain",
+   "00-h10173-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10171-s1": "accept",
+   "00-h10172-s1": "accept",
+   "00-h10173-s1": "accept"
+  }
+ },
+ {
+  "step": 42,
+  "name": "deleg-v2-mldsa",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10174-s1",
+   "00-h10175-s1",
+   "00-h10176-s1",
+   "00-h10177-s1"
+  ],
+  "before": {
+   "00-h10174-s1": "out_of_domain",
+   "00-h10175-s1": "out_of_domain",
+   "00-h10176-s1": "accept",
+   "00-h10177-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10174-s1": "accept",
+   "00-h10175-s1": "accept",
+   "00-h10176-s1": "accept",
+   "00-h10177-s1": "accept"
+  }
+ },
+ {
+  "step": 43,
+  "name": "deleg-mldsa-inner-add-mldsa-key",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10178-s1",
+   "00-h10179-s1",
+   "00-h10180-s1",
+   "00-h10181-s1"
+  ],
+  "before": {
+   "00-h10178-s1": "out_of_domain",
+   "00-h10179-s1": "out_of_domain",
+   "00-h10180-s1": "accept",
+   "00-h10181-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10178-s1": "accept",
+   "00-h10179-s1": "accept",
+   "00-h10180-s1": "accept",
+   "00-h10181-s1": "accept"
+  }
+ },
+ {
+  "step": 44,
+  "name": "deleg-mldsa-added-key",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10182-s1",
+   "00-h10183-s1",
+   "00-h10184-s1",
+   "00-h10185-s1"
+  ],
+  "before": {
+   "00-h10182-s1": "out_of_domain",
+   "00-h10183-s1": "out_of_domain",
+   "00-h10184-s1": "accept",
+   "00-h10185-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10182-s1": "accept",
+   "00-h10183-s1": "accept",
+   "00-h10184-s1": "accept",
+   "00-h10185-s1": "accept"
+  }
+ },
+ {
+  "step": 45,
+  "name": "deleg-mldsa-relayer-mldsa",
+  "tx_result": "success",
+  "receipts": [
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')",
+   "SuccessValue('')"
+  ],
+  "cases": [
+   "00-h10186-s1",
+   "00-h10187-s1",
+   "00-h10188-s1",
+   "00-h10189-s1"
+  ],
+  "before": {
+   "00-h10186-s1": "out_of_domain",
+   "00-h10187-s1": "out_of_domain",
+   "00-h10188-s1": "out_of_domain",
+   "00-h10189-s1": "out_of_domain"
+  },
+  "after": {
+   "00-h10186-s1": "accept",
+   "00-h10187-s1": "accept",
+   "00-h10188-s1": "accept",
+   "00-h10189-s1": "accept"
+  }
+ },
+ {
+  "step": 46,
+  "name": "mldsa-stake-key",
+  "tx_result": "ActionsValidation",
+  "receipts": [],
+  "cases": [
+   "00-h10191-s0"
+  ],
+  "before": {
+   "00-h10191-s0": "accept"
+  },
+  "after": {
+   "00-h10191-s0": "accept"
+  }
+ }
+]

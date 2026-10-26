@@ -1,14 +1,17 @@
 import NearSpecV3.D2.Receipts
+import NearSpecV3.MlDsa65
 
 /-!
 # D2 transactions (spec/near-chunk-validation-d2.md §5)
 
 `SignedTransaction` of any action list (`transaction.rs:233-268, 440-450`), V0 or V1, plain or
-gas-key nonce (`TransactionNonce`), monotonic or strict `NonceMode`; ED25519 key and signature
-only (other key / signature types: `out of domain (w.shape)`, as in D1).
+gas-key nonce (`TransactionNonce`), monotonic or strict `NonceMode`; `pTxD2` (the signed layer)
+admits an ED25519 key and signature only (other key / signature types: `out of domain (w.shape)`, as
+in D1). The successor decoder `Successor.GlobalCodecs.pTxD2Global` admits all three families and
+mismatched key/signature pairs; `TxD2.sigOk` verifies each.
 
 `validate_transaction` (`verifier.rs:109-121`) = `validate_actions(NewReceipt)` ∧
-`check_valid_for_config` (size) ∧ `Ed25519.verify`; `tx_cost` (`D2/Fees`); the two charging
+`check_valid_for_config` (size) ∧ `TxD2.sigOk`; `tx_cost` (`D2/Fees`); the two charging
 paths `verify_and_charge_tx_ephemeral` (`verifier.rs:272-378`) and
 `verify_and_charge_gas_key_tx_ephemeral` (`verifier.rs:383-538`, with `DepositFailed`).
 -/
@@ -66,15 +69,19 @@ def pTxD2 : P TxD2 := fun bs => do
   if (sig.getD 63 0).toNat / 32 != 0 then throw "decode: ed25519 signature high bits"
   pure (⟨consumed start bs, body, signer, pk, nonce, ni, recv, bh, acts, strict, 0, sig⟩, bs)
 
-def TxD2.sizeOk (t : TxD2) : Bool := t.body.length + 65 ≤ TxParams.maxTransactionSize
+/-- `check_valid_for_config`: `size_for_limits` is `wire_size` from `PostQuantumSignatures` (PV85)
+on, the transaction body plus the Borsh signature (`transaction.rs:446-465`): 1 tag byte and 64
+(ED25519), 65 (SECP256K1) or 3,309 (ML-DSA-65) bytes. -/
+def TxD2.sizeOk (t : TxD2) : Bool := t.body.length + 1 + t.sig.length ≤ TxParams.maxTransactionSize
 
-/-- `Signature::verify` dispatch (`core/crypto/src/signature.rs:1086-1140`). ED25519 and
-SECP256K1 are implemented; ML-DSA-65 needs FIPS-204 verification and stays excluded by the caller.
-A key/signature tag mismatch is `false`, as in nearcore's catch-all arm. -/
+/-- `Signature::verify` dispatch (`core/crypto/src/signature.rs:1086-1130`): ED25519, SECP256K1 and
+ML-DSA-65 (FIPS 204 pure, empty context, `MlDsa65.verify`). A key/signature tag mismatch is
+`false`, nearcore's catch-all arm. -/
 def TxD2.sigOk (t : TxD2) : Bool :=
   match t.sigTag, t.pk.tag with
   | 0, 0 => Ed25519.verify t.pk.data t.sig t.hash
   | 1, 1 => Secp256k1.verify t.pk.data t.sig t.hash
+  | 2, 2 => MlDsa65.verify t.pk.data t.sig t.hash
   | _, _ => false
 
 /-- `validate_transaction`. The signed layer only ever builds `sigTag = 0` / `pk.tag = 0`

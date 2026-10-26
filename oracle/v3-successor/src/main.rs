@@ -22,6 +22,8 @@
 //!       The same conversion of an existing corpus (public fixtures).
 //!   contracts
 //!       Print the code registry (name, hash, length, D3α facts).
+//!   mldsa-vectors
+//!       Print ML-DSA-65 verify verdicts of the pinned crate (src/mldsa_vectors.rs) as JSON.
 //!   curve-steps
 //!       Print the curve-hosts scenario steps (label, method, args, gas) and contract hash as JSON.
 //!   reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N] [--shards n]
@@ -75,6 +77,7 @@ mod d3contracts;
 mod d3gen;
 mod codec_probe;
 mod curve_hosts;
+mod mldsa_vectors;
 mod reshard;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
@@ -207,6 +210,7 @@ fn main() {
         Some("contracts") => cmd_contracts(),
         Some("codec-roundtrip") => codec_probe::command(&args),
         Some("curve-steps") => curve_hosts::print_steps(),
+        Some("mldsa-vectors") => mldsa_vectors::command(&args),
         Some("reshard") => reshard::cmd_reshard(&args),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {

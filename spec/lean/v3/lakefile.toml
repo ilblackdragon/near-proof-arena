@@ -1,6 +1,6 @@
 name = "NearSpecV3"
 version = "0.1.0"
-defaultTargets = ["NearSpecV3", "NearSpecV3.Successor", "NearSpecV3.Successor.PromiseActionsTests", "nearspec-v3-check", "nearspec-v3-leaftest", "NearSpecV3.Examples.SecpVerifyVector"]
+defaultTargets = ["NearSpecV3", "NearSpecV3.Successor", "NearSpecV3.Successor.PromiseActionsTests", "nearspec-v3-check", "nearspec-v3-leaftest", "NearSpecV3.Examples.SecpVerifyVector", "NearSpecV3.Examples.MlDsaVectors"]
 
 # v3 statement near/pv86/chunk-validation/v0 (spec/near-chunk-validation-v0.md).
 # A separate Lake package so that no file of the pinned v1/v2 package
@@ -108,3 +108,7 @@ root = "TestResharding"
 [[lean_exe]]
 name = "probe-h10011"
 root = "ProbeH10011"
+
+[[lean_exe]]
+name = "nearspec-v3-bench-mldsa"
+root = "BenchMlDsa"

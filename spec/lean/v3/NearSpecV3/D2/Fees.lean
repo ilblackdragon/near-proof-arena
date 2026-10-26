@@ -44,6 +44,9 @@ def delegate : Fee := .mk3 200000000000 200000000000 200000000000
 def gkTransfer : Fee := .mk3 115123062500 115123062500 235676644250
 def gkByte : Fee := .mk3 59357464 59357464 101435400
 def gkNonceWrite : Fee := .mk3 0 0 64196736000
+/-- `ml_dsa_65_verification_cost` (`85.yaml:15`: 100 Ggas, gas = compute since the value is a plain
+number); ED25519 / SECP256K1 cost 0 (`parameter_table.rs:434-442`). -/
+def mlDsa65Verify : Nat := 100000000000
 end Fees
 
 namespace Lim
@@ -343,11 +346,27 @@ structure TxCostD2 where
   totalCost : Nat
   deriving Repr
 
-/-- `none` ⇔ `CostOverflow`. Signature verification costs 0 for ED25519 / SECP256K1 keys
-(`85.yaml`, ML-DSA keys are out of domain). -/
-def txCostD2 (signer receiver : Bytes) (acts : List Act) (gasPrice : Nat) : Option TxCostD2 := do
+/-- `signature_verification_costs[kind]` (`runtime/src/config.rs:485-490`): only ML-DSA-65 (tag 2)
+is non-zero. -/
+def sigVerifyCost (pk : PublicKey) : Cost :=
+  if pk.tag == 2 then ⟨Fees.mlDsa65Verify, Fees.mlDsa65Verify⟩ else Cost.zero
+
+/-- `signature_verification_cost` (`config.rs:512-526`): the signer's own key, plus the inner signer
+key of each top-level `Delegate` / `DelegateV2` action (not nested further: a delegate cannot carry
+one). Checked addition, `IntegerOverflowError` ⇒ `none`. -/
+def txSigVerifyCost (pk : PublicKey) (acts : List Act) : Option Cost :=
+  acts.foldl (fun acc a => match acc, a with
+    | some c, .delegate _ d => Cost.add c (sigVerifyCost d.pk)
+    | acc, _ => acc) (some (sigVerifyCost pk))
+
+/-- `none` ⇔ `CostOverflow`. The signature-verification cost is burnt at conversion, on top of
+`new_action_receipt` and the send fees (`config.rs:426-441`); it never enters `gas_remaining`. It is
+0 for ED25519 / SECP256K1 keys, so the signed layer (which admits neither ML-DSA keys nor
+signatures) is unaffected. -/
+def txCostD2 (pk : PublicKey) (signer receiver : Bytes) (acts : List Act) (gasPrice : Nat) : Option TxCostD2 := do
   let sir := receiver == signer
   let burnt ← Cost.add (Fees.nar.send sir) (← totalSend sir receiver acts)
+  let burnt ← Cost.add burnt (← txSigVerifyCost pk acts)
   let pg ← totalPrepaidGas acts
   let ps ← prepaidSend acts
   let pe ← prepaidExec receiver acts

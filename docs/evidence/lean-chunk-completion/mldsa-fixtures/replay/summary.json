@@ -1,0 +1,282 @@
+{
+ "seeds": [
+  {
+   "allFeatures_after": {
+    "honest/valid/agree": 128,
+    "mutant/invalid/agree": 851,
+    "mutant/valid/agree": 229
+   },
+   "allFeatures_before": {
+    "honest/valid/agree": 18,
+    "honest/valid/ood": 110,
+    "mutant/invalid/agree": 96,
+    "mutant/invalid/ood": 755,
+    "mutant/valid/agree": 20,
+    "mutant/valid/ood": 209
+   },
+   "blind": {
+    "graded": 128,
+    "match": 128
+   },
+   "labels_without_chunk": [],
+   "lean_binary_sha256": "23bfc8c370bf992b54257952428150a408e5dfd31dba8ccfb5c77f58e74487d3",
+   "manifest_sha256": "a864f873a935761d883c5faeaa7d0a6f08d369a2266176f28bb5625c75f85868",
+   "min_gas_price": 100000000,
+   "missing_steps": [],
+   "moves": {
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 156,
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction signature]": 12,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 public key]": 149,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 signature]": 2,
+    "all: out_of_domain -> reject [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 345,
+    "all: out_of_domain -> reject [out of domain (e.mldsa_tx): ML-DSA-65 transaction signature]": 34,
+    "all: out_of_domain -> reject [out of domain (w.shape): ML-DSA-65 public key]": 376
+   },
+   "population": {
+    "honest": 128,
+    "mutant": 1080
+   },
+   "replay_report_sha256": {
+    "all-after": "91be5c1ab8f1ce07f469e97a433b9446616fbe4f6d6de09dcaf610c1456bc009",
+    "all-before": "ca663bb3f9623cb063634df67a87784ded010e11af5e0137953a5f3b45a4d14e",
+    "signed-after": "918e935aa9a10f5f40c3c2a4303691b61e9a9cf143376421d12f09548136aa1b",
+    "signed-before": "c9d70561e92df451db63ea1f489e3f174de893f051048267d0df8eb2d1f41f3a"
+   },
+   "run": {
+    "chains": [
+     "D3Params { base: ChainParams { seed: 6151018453, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }"
+    ],
+    "honest_accepted_by_nearcore": 1046,
+    "honest_witnesses": 1046,
+    "mutants": 8576,
+    "seed": 6151
+   },
+   "seed": 6151,
+   "signed_after": {
+    "honest/valid/agree": 7,
+    "honest/valid/ood": 121,
+    "mutant/invalid/agree": 92,
+    "mutant/invalid/ood": 759,
+    "mutant/valid/agree": 17,
+    "mutant/valid/ood": 212
+   },
+   "signed_before": {
+    "honest/valid/agree": 7,
+    "honest/valid/ood": 121,
+    "mutant/invalid/agree": 92,
+    "mutant/invalid/ood": 759,
+    "mutant/valid/agree": 17,
+    "mutant/valid/ood": 212
+   }
+  },
+  {
+   "allFeatures_after": {
+    "honest/valid/agree": 138,
+    "mutant/invalid/agree": 786,
+    "mutant/valid/agree": 229
+   },
+   "allFeatures_before": {
+    "honest/valid/agree": 21,
+    "honest/valid/ood": 117,
+    "mutant/invalid/agree": 24,
+    "mutant/invalid/ood": 762,
+    "mutant/valid/agree": 16,
+    "mutant/valid/ood": 213
+   },
+   "blind": {
+    "graded": 138,
+    "match": 138,
+    "retry_match": 8,
+    "timeouts_retried": 8
+   },
+   "labels_without_chunk": [],
+   "lean_binary_sha256": "23bfc8c370bf992b54257952428150a408e5dfd31dba8ccfb5c77f58e74487d3",
+   "manifest_sha256": "d7b0dbc1855555e285057a46de5014a06ce30fc5278d66f7cdb6863f689720cd",
+   "min_gas_price": 0,
+   "missing_steps": [],
+   "moves": {
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 187,
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction signature]": 2,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 public key]": 134,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 signature]": 7,
+    "all: out_of_domain -> reject [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 399,
+    "all: out_of_domain -> reject [out of domain (w.shape): ML-DSA-65 public key]": 357,
+    "all: out_of_domain -> reject [out of domain (w.shape): ML-DSA-65 signature]": 6
+   },
+   "population": {
+    "honest": 138,
+    "mutant": 1015
+   },
+   "replay_report_sha256": {
+    "all-after": "875cdc78600fdeaac39983f13848b5221e0fdb04d8d236bbaa8b638635c1d589",
+    "all-before": "00fc3afb79586cb8881ed7add570f9f7270ebfbf230b2a7ebf0fa1d95096a283",
+    "signed-after": "fb7be6db5ee982a86bca8c8274b7d9b0e901bce30c347f496638adc5a9a852c4",
+    "signed-before": "2479a1f069f7e1601b71e4b9c61df0130c33483c16fc0ddeb2f2eac7f8c324f1"
+   },
+   "run": {
+    "chains": [
+     "D3Params { base: ChainParams { seed: 1618004854, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 0 }"
+    ],
+    "honest_accepted_by_nearcore": 1075,
+    "honest_witnesses": 1075,
+    "mutants": 8696,
+    "seed": 1618
+   },
+   "seed": 1618,
+   "signed_after": {
+    "honest/valid/agree": 12,
+    "honest/valid/ood": 126,
+    "mutant/invalid/agree": 21,
+    "mutant/invalid/ood": 765,
+    "mutant/valid/agree": 13,
+    "mutant/valid/ood": 216
+   },
+   "signed_before": {
+    "honest/valid/agree": 12,
+    "honest/valid/ood": 126,
+    "mutant/invalid/agree": 21,
+    "mutant/invalid/ood": 765,
+    "mutant/valid/agree": 13,
+    "mutant/valid/ood": 216
+   }
+  },
+  {
+   "allFeatures_after": {
+    "honest/valid/agree": 132,
+    "mutant/invalid/agree": 1056,
+    "mutant/valid/agree": 250
+   },
+   "allFeatures_before": {
+    "honest/valid/agree": 23,
+    "honest/valid/ood": 109,
+    "mutant/invalid/agree": 289,
+    "mutant/invalid/ood": 767,
+    "mutant/valid/agree": 64,
+    "mutant/valid/ood": 186
+   },
+   "blind": {
+    "graded": 132,
+    "match": 132
+   },
+   "labels_without_chunk": [],
+   "lean_binary_sha256": "23bfc8c370bf992b54257952428150a408e5dfd31dba8ccfb5c77f58e74487d3",
+   "manifest_sha256": "035eea41edeb26415f52ee3c54b9a7977073490deaaf28c375a3f129eb61e42c",
+   "min_gas_price": 100000000,
+   "missing_steps": [],
+   "moves": {
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 180,
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction signature]": 2,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 public key]": 98,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 signature]": 15,
+    "all: out_of_domain -> reject [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 423,
+    "all: out_of_domain -> reject [out of domain (w.shape): ML-DSA-65 public key]": 256,
+    "all: out_of_domain -> reject [out of domain (w.shape): ML-DSA-65 signature]": 88
+   },
+   "population": {
+    "honest": 132,
+    "mutant": 1306
+   },
+   "replay_report_sha256": {
+    "all-after": "e91555fec5e3edf89ac1397e9431f061fb7366e0ea14b05b8cc7c285fc6e2ccf",
+    "all-before": "ee7161dab9869310dc6c3742792f1321d83fff69a972eeb9589c48e87a794800",
+    "signed-after": "a10f632901df7d5da2f45a073b7c7ea6695d5acb26a626f4aa84859a24b6d65f",
+    "signed-before": "c506f74123b16a24b237afc17a8ecd2d501f404f990bad5206f6428b0401e22c"
+   },
+   "run": {
+    "chains": [
+     "D3Params { base: ChainParams { seed: 2718008154, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }"
+    ],
+    "honest_accepted_by_nearcore": 1051,
+    "honest_witnesses": 1051,
+    "mutants": 8600,
+    "seed": 2718
+   },
+   "seed": 2718,
+   "signed_after": {
+    "honest/valid/agree": 12,
+    "honest/valid/ood": 120,
+    "mutant/invalid/agree": 19,
+    "mutant/invalid/ood": 1037,
+    "mutant/valid/agree": 5,
+    "mutant/valid/ood": 245
+   },
+   "signed_before": {
+    "honest/valid/agree": 12,
+    "honest/valid/ood": 120,
+    "mutant/invalid/agree": 19,
+    "mutant/invalid/ood": 1037,
+    "mutant/valid/agree": 5,
+    "mutant/valid/ood": 245
+   }
+  },
+  {
+   "allFeatures_after": {
+    "honest/valid/agree": 135,
+    "mutant/invalid/agree": 352,
+    "mutant/valid/agree": 133
+   },
+   "allFeatures_before": {
+    "honest/valid/agree": 21,
+    "honest/valid/ood": 114,
+    "mutant/invalid/agree": 137,
+    "mutant/invalid/ood": 215,
+    "mutant/valid/agree": 44,
+    "mutant/valid/ood": 89
+   },
+   "blind": {
+    "graded": 135,
+    "match": 135
+   },
+   "labels_without_chunk": [],
+   "lean_binary_sha256": "23bfc8c370bf992b54257952428150a408e5dfd31dba8ccfb5c77f58e74487d3",
+   "manifest_sha256": "929b247100808d939d61f2b5885cf72c50e8989b49f304764bc79d07cf689c6f",
+   "min_gas_price": 100000000,
+   "missing_steps": [],
+   "moves": {
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 114,
+    "all: out_of_domain -> accept [out of domain (e.mldsa_tx): ML-DSA-65 transaction signature]": 6,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 public key]": 80,
+    "all: out_of_domain -> accept [out of domain (w.shape): ML-DSA-65 signature]": 3,
+    "all: out_of_domain -> reject [out of domain (e.mldsa_tx): ML-DSA-65 transaction key]": 166,
+    "all: out_of_domain -> reject [out of domain (e.mldsa_tx): ML-DSA-65 transaction signature]": 6,
+    "all: out_of_domain -> reject [out of domain (w.shape): ML-DSA-65 public key]": 43
+   },
+   "population": {
+    "honest": 135,
+    "mutant": 485
+   },
+   "replay_report_sha256": {
+    "all-after": "9aa54252868a42437c6385b7bc4e63839606117c8bd5c4f8694d24d278ac3ae2",
+    "all-before": "077f3c624b1d308b48d9a7bcb04f49a75879a958fbda35dfcf653b1936986b8a",
+    "signed-after": "e2279713705ad0f3625595b910a2231faac44a14a182077144352eb2e586ac0e",
+    "signed-before": "86042b5ea65de7bcdc493ffaed19a3a3cd1e3a3b971a4b3a704b43b14359eb06"
+   },
+   "run": {
+    "chains": [
+     "D3Params { base: ChainParams { seed: 31415094245, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.2, min_gas_price: 100000000 }"
+    ],
+    "honest_accepted_by_nearcore": 1045,
+    "honest_witnesses": 1045,
+    "mutants": 8806,
+    "seed": 31415
+   },
+   "seed": 31415,
+   "signed_after": {
+    "honest/valid/agree": 9,
+    "honest/valid/ood": 126,
+    "mutant/invalid/agree": 96,
+    "mutant/invalid/ood": 256,
+    "mutant/valid/agree": 29,
+    "mutant/valid/ood": 104
+   },
+   "signed_before": {
+    "honest/valid/agree": 9,
+    "honest/valid/ood": 126,
+    "mutant/invalid/agree": 96,
+    "mutant/invalid/ood": 256,
+    "mutant/valid/agree": 29,
+    "mutant/valid/ood": 104
+   }
+  }
+ ]
+}
