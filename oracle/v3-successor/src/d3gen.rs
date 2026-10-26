@@ -15,6 +15,8 @@ pub struct D3World {
     /// curve-hosts: (height, steps submitted at it)
     curve_at: (u64, usize),
     driver: crate::scenarios::Driver,
+    /// cross-family scenarios (src/xfam.rs)
+    xfam: crate::xfam::Driver,
 }
 
 /// Curve-hosts steps submitted per block height; later steps wait for the next height.
@@ -27,6 +29,7 @@ impl D3World {
             next_height: 10004,
             curve_at: (0, 0),
             driver: crate::scenarios::Driver::new(),
+            xfam: crate::xfam::Driver::new(),
         }
     }
     /// Scheduled transactions of the opt-in `yield` / `storage-limits` scenarios (none otherwise).
@@ -37,10 +40,13 @@ impl D3World {
         bh: &CryptoHash,
         height: u64,
     ) -> Vec<(String, SignedTransaction)> {
-        self.driver.txs(w, s, bh, height)
+        let mut txs = self.driver.txs(w, s, bh, height);
+        txs.extend(self.xfam.txs(w, s, bh, height));
+        txs
     }
     pub fn finish(&self, s: &crate::chaingen::Setup, out: &std::path::Path, chain_idx: usize) {
         self.driver.finish(s, out, chain_idx);
+        self.xfam.finish(s, out, chain_idx);
     }
     pub fn one(
         &mut self,
@@ -141,6 +147,7 @@ pub fn genesis_records(
             ("s0cacheright", crate::d3contracts::TINY),
         ],
         Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Yield | Scenario::StorageLimits) => &[],
+        Some(_) => &[],
     };
     let curve: Vec<(&str, &[u8])> = if scenario() == Some(Scenario::CurveHosts) {
         let code = crate::curve_hosts::code();
@@ -178,6 +185,9 @@ pub fn genesis_records(
         records.extend(extra);
         supply = supply.checked_add(amount).unwrap();
     }
+    let (extra, extra_supply) = crate::xfam::genesis_records(accounts.len());
+    records.extend(extra);
+    supply = supply.checked_add(extra_supply).unwrap();
     let (extra, extra_supply) = crate::scenarios::genesis_records(accounts.len());
     records.extend(extra);
     supply = supply.checked_add(extra_supply).unwrap();
@@ -193,6 +203,12 @@ pub enum Scenario {
     /// `yield` / `storage-limits` (src/scenarios.rs).
     Yield,
     StorageLimits,
+    /// cross-family scenarios (src/xfam.rs)
+    YieldCongestion,
+    CurveCallbacks,
+    GenesisTx,
+    GasKeyTarget,
+    RollbackRefund,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -204,6 +220,11 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == crate::keys::SCENARIO => Some(Scenario::Keys),
         Ok(value) if value == "yield" => Some(Scenario::Yield),
         Ok(value) if value == "storage-limits" => Some(Scenario::StorageLimits),
+        Ok(value) if value == "yield-congestion" => Some(Scenario::YieldCongestion),
+        Ok(value) if value == "curve-callbacks" => Some(Scenario::CurveCallbacks),
+        Ok(value) if value == "genesis-tx" => Some(Scenario::GenesisTx),
+        Ok(value) if value == "gaskey-target" => Some(Scenario::GasKeyTarget),
+        Ok(value) if value == "rollback-refund" => Some(Scenario::RollbackRefund),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

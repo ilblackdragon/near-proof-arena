@@ -128,6 +128,58 @@ intended semantics against those outcomes and maps steps to cases; `select_succe
 copies the mapped cases. Commands, seeds and results:
 `docs/evidence/lean-chunk-completion/{yield,storage-limit}-fixtures/`.
 
+## Cross-family scenarios
+
+`src/xfam.rs` adds five opt-in scenarios on dedicated genesis accounts, next to the unchanged
+baseline traffic. Contracts are `xfam` (WAT in `xfam.rs`: yields, a gas-heavy `burn` made of
+empty-input `sha256` calls, promise emission with optional rollback, init methods) and `xcurve`
+(generated from `CURVE_HOSTS`: every curve host with memory, register, out-of-bounds,
+promise-result-memory and promise-result-register input, plus `then`/`then2`/`thenx`/`yield`
+dispatchers). Labels are `successor.<scenario>.NN.name` and say what was submitted.
+
+* `yield-congestion`: yields created, resumed and timed out while the yield shard's delayed queue is
+  non-empty. Two floods of `burn` receipts (offsets 4–13 and 194–205) exhaust the chunk gas
+  limit, so run it on the low-gas-limit chain shapes (`--first-chain 3|4|8|9`). It includes a 200 KB
+  cross-shard resume trigger that the bandwidth scheduler buffers, a resume after 360 KB of
+  own-shard receipts, and a resume whose yield's timeout is due but deferred. Needs 235 blocks.
+* `curve-callbacks`: the `curve-hosts` inputs (first pos/neg/edge and the gas-exhaustion input of
+  each host), called from `promise_then` callbacks (callback arguments, promise result in memory and
+  in a register), a three-promise chain, a callback after a cross-shard promise, yield callbacks
+  resumed in the same receipt or by a later cross-shard transaction, and register/out-of-bounds
+  input for the BLS writers.
+* `genesis-tx`: transactions submitted before the first block at three heights, so that the first
+  chunks after genesis carry them. Every genesis-B2 case gets the full mutant set plus
+  `g.*` mutants (`xfam::genesis_mutants`): a transaction placed into the genesis chunk's empty
+  list, inconsistent `tx_valid` flags, `genesis_chunk_extra` removed (claim discipline) or altered
+  (derived expectation).
+* `gaskey-target`: gas-key funding, nonce-index transactions, withdrawal, transfer out and deletion
+  with a balance, by receipts on a shard other than the signer's (including CreateAccount receipts
+  that add, fund and delete a gas key, or delete the account), with ordinary receipts in the same
+  chunks.
+* `rollback-refund`: four rounds, each submitted at one height from one shard, so that one chunk
+  of the target shard applies all of these together: a failed deterministic state init (missing
+  global code, and insufficient deposit), a state init that then emits receipts, a CreateAccount
+  with UseGlobalContract whose init fails, local deploy+init success and failure, emitted receipts
+  that are rolled back by a panic, emitted receipts to a failing callee, and deposit refunds.
+
+Without `NEAR_SUCCESSOR_SCENARIO` none of this code changes the output (the hooks return early and
+use no RNG). Relevant chunks get the full mutant set. `NEAR_XFAM_MUTATE_EVERY=k` keeps one in k of
+them (genesis-B2 chunks always), and drop-each-node mutants for every second kept chunk. Each run
+writes `xfam-<chain>.json`: every scenario transaction with nearcore's outcome tree, the
+shard map and every chunk header's congestion info and bandwidth-request count.
+
+```
+NEAR_SUCCESSOR_SCENARIO=yield-congestion NEAR_XFAM_MUTATE_EVERY=4 near-arena-oracle-v3-successor gen --domain d3 \
+  --seed 101 --first-chain 3 --chains 1 --blocks 235 --p-missing 0 --mutate-every 0 --code-mutant-p 0 \
+  --ood-cap 100000 --drop-cap 12 --out RUN
+python3 tools/d3/collect_xfam.py --source RUN --out COLLECTED
+```
+
+The collector fails if a planned step was never submitted, an honest witness was rejected, or a
+family's defining condition fails, for example no yield receipt applied while the delayed queue
+was non-empty. Evidence and the other commands:
+`docs/evidence/lean-chunk-completion/cross-family-fixtures/`.
+
 ## Codec normalization probes
 
 `codec-roundtrip KIND HEX` decodes and re-encodes actual pinned-nearcore types. Supported kinds:

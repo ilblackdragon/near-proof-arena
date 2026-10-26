@@ -70,6 +70,7 @@ mod arena;
 mod chaind3;
 mod keys;
 mod scenarios;
+mod xfam;
 mod d3;
 mod d3contracts;
 mod d3gen;

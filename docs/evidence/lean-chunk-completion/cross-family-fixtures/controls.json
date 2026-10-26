@@ -1,0 +1,326 @@
+{
+ "c1": {
+  "checker": "ctl-c1-yield-compute",
+  "checker_sha256": "549109db967957a8bb4dd47fe51f9c96a1d0996270b89fd1e54a0d2cb5f1c134",
+  "breakage": "Successor/StorageExecution.lean yieldLoop: the compute-limit check of the yield-timeout loop removed",
+  "family": "yield-congestion",
+  "runs": {
+   "yc101": {
+    "cases": 1359,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_compared_agree": 1011,
+     "verdict_compared_disagree": 348
+    },
+    "disagreements": 348,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 122,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 54,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 36,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 36,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 100
+    }
+   },
+   "yc102": {
+    "cases": 1340,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 58,
+     "verdict_compared_agree": 1006,
+     "verdict_compared_disagree": 276
+    },
+    "disagreements": 276,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 77,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 51,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 30,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 29,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 89
+    }
+   },
+   "yc103": {
+    "cases": 1367,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 60,
+     "verdict_compared_agree": 1017,
+     "verdict_compared_disagree": 290
+    },
+    "disagreements": 290,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 83,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 54,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 32,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 29,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 92
+    }
+   },
+   "yc104": {
+    "cases": 1234,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_compared_agree": 971,
+     "verdict_compared_disagree": 263
+    },
+    "disagreements": 263,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 72,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 49,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 30,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 26,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 86
+    }
+   },
+   "yc105": {
+    "cases": 1390,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 1,
+     "verdict_compared_agree": 1106,
+     "verdict_compared_disagree": 283
+    },
+    "disagreements": 283,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 77,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 51,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 32,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 29,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: MissingTrieValue (promise yield timeout)": 94
+    }
+   }
+  }
+ },
+ "c2": {
+  "checker": "ctl-c2-bls-writer-charge",
+  "checker_sha256": "0565df5590d272d6ab819a99371c247fdf8abfa5bf850c73660b83620ad7ff62",
+  "breakage": "Wasm/CryptoHost.lean blsWriter: the per-element charge computed from the bytes read, after the read",
+  "family": "curve-callbacks",
+  "runs": {
+   "cc201": {
+    "cases": 233,
+    "population": "honest only",
+    "partition": {
+     "verdict_agree_outside_domain": 105,
+     "verdict_compared_agree": 83,
+     "verdict_compared_disagree": 45
+    },
+    "disagreements": 45,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 35,
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: StorageInconsistentState(MissingTrieValue)": 10
+    }
+   },
+   "cc202": {
+    "cases": 231,
+    "population": "honest only",
+    "partition": {
+     "verdict_agree_outside_domain": 113,
+     "verdict_compared_agree": 73,
+     "verdict_compared_disagree": 45
+    },
+    "disagreements": 45,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: InvalidOutcomesProof": 31,
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: StorageInconsistentState(MissingTrieValue)": 10,
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 4
+    }
+   }
+  }
+ },
+ "c3": {
+  "checker": "ctl-c3-genesis-txroot",
+  "checker_sha256": "2ef1babeca0c7468d5b0c8a1698acd661e6d94f4a648859aa0b4499e49e6cfcb",
+  "breakage": "Successor/RuntimeCore.lean + GenesisD3.lean: the last-chunk transaction root not checked for a genesis B2",
+  "family": "genesis-tx",
+  "runs": {
+   "gx501": {
+    "cases": 2095,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 690,
+     "verdict_compared_agree": 1390,
+     "verdict_compared_disagree": 15
+    },
+    "disagreements": 15,
+    "detected": {
+     "mutant g.tx_in_genesis_chunk: allFeatures accept vs nearcore False \u2014 ": 15
+    }
+   },
+   "gx502": {
+    "cases": 2041,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 614,
+     "verdict_compared_agree": 1412,
+     "verdict_compared_disagree": 15
+    },
+    "disagreements": 15,
+    "detected": {
+     "mutant g.tx_in_genesis_chunk: allFeatures accept vs nearcore False \u2014 ": 15
+    }
+   },
+   "gx503": {
+    "cases": 1980,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 541,
+     "verdict_compared_agree": 1424,
+     "verdict_compared_disagree": 15
+    },
+    "disagreements": 15,
+    "detected": {
+     "mutant g.tx_in_genesis_chunk: allFeatures accept vs nearcore False \u2014 ": 15
+    }
+   },
+   "gx504": {
+    "cases": 2033,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 780,
+     "verdict_compared_agree": 1238,
+     "verdict_compared_disagree": 15
+    },
+    "disagreements": 15,
+    "detected": {
+     "mutant g.tx_in_genesis_chunk: allFeatures accept vs nearcore False \u2014 ": 15
+    }
+   }
+  }
+ },
+ "c4": {
+  "checker": "ctl-c4-gaskey-refund",
+  "checker_sha256": "8efe348a59165b31b195fdc0017835ec42cf98c1460f4ad380c7e751780b087a",
+  "breakage": "D2/Actions.lean + Logged/D2Actions.lean actTransfer: a refund never credited to the signer's gas key",
+  "family": "gaskey-target",
+  "runs": {
+   "gk301": {
+    "cases": 953,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_compared_agree": 922,
+     "verdict_compared_disagree": 31
+    },
+    "disagreements": 31,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 6,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 6,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 4,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 3,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 12
+    }
+   },
+   "gk302": {
+    "cases": 978,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_agree_outside_domain": 68,
+     "verdict_compared_agree": 879,
+     "verdict_compared_disagree": 31
+    },
+    "disagreements": 31,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 6,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 7,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 4,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 2,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 12
+    }
+   },
+   "gk303": {
+    "cases": 980,
+    "population": "honest + all mutants",
+    "partition": {
+     "domain_exclusion_where_in_domain": 3,
+     "verdict_agree_outside_domain": 151,
+     "verdict_compared_agree": 793,
+     "verdict_compared_disagree": 33
+    },
+    "disagreements": 36,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 8,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 5,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 4,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 4,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 12,
+     "mutant code: allFeatures out_of_domain on an in-domain case \u2014 out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk dep": 3
+    }
+   },
+   "gk304": {
+    "cases": 1010,
+    "population": "honest + all mutants",
+    "partition": {
+     "verdict_compared_agree": 977,
+     "verdict_compared_disagree": 33
+    },
+    "disagreements": 33,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 8,
+     "mutant code: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 6,
+     "mutant hdr: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 4,
+     "mutant t: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 3,
+     "mutant w: allFeatures reject vs nearcore True \u2014 invalid: main transition post state root": 12
+    }
+   }
+  }
+ },
+ "c5": {
+  "checker": "ctl-c5-rollback-receipts",
+  "checker_sha256": "733ea41a2b719231e20b3caf7848b55c29d23592f0caae852fbdef5a514d0fb0",
+  "breakage": "D2/Actions.lean AR.fail: a failed action result keeps its emitted receipts",
+  "family": "rollback-refund",
+  "runs": {
+   "rb401": {
+    "cases": 57,
+    "population": "honest only",
+    "partition": {
+     "verdict_agree_outside_domain": 26,
+     "verdict_compared_agree": 26,
+     "verdict_compared_disagree": 5
+    },
+    "disagreements": 5,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: InvalidOutcomesProof": 5
+    }
+   },
+   "rb402": {
+    "cases": 58,
+    "population": "honest only",
+    "partition": {
+     "verdict_agree_outside_domain": 23,
+     "verdict_compared_agree": 28,
+     "verdict_compared_disagree": 7
+    },
+    "disagreements": 7,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: InvalidOutcomesProof": 7
+    }
+   },
+   "rb403": {
+    "cases": 57,
+    "population": "honest only",
+    "partition": {
+     "verdict_agree_outside_domain": 26,
+     "verdict_compared_agree": 27,
+     "verdict_compared_disagree": 4
+    },
+    "disagreements": 4,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: InvalidOutcomesProof": 4
+    }
+   },
+   "rb404": {
+    "cases": 57,
+    "population": "honest only",
+    "partition": {
+     "verdict_agree_outside_domain": 22,
+     "verdict_compared_agree": 29,
+     "verdict_compared_disagree": 6
+    },
+    "disagreements": 6,
+    "detected": {
+     "honest: allFeatures reject vs nearcore True \u2014 invalid: InvalidOutcomesProof": 6
+    }
+   }
+  }
+ }
+}

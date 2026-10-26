@@ -1,0 +1,64 @@
+{
+ "allFeatures": {
+  "status": "pass",
+  "cases": 160,
+  "verdicts": {
+   "accept": 40,
+   "reject": 120
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 72,
+   "verdict_compared_agree": 88
+  },
+  "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+  "disagreements": []
+ },
+ "storageResolution": {
+  "status": "pass",
+  "cases": 160,
+  "verdicts": {
+   "accept": 23,
+   "out_of_domain": 47,
+   "reject": 90
+  },
+  "partition": {
+   "domain_exclusion_asserted": 47,
+   "verdict_agree_outside_domain": 25,
+   "verdict_compared_agree": 88
+  },
+  "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+  "disagreements": []
+ },
+ "blind": {
+  "cases": 40,
+  "graded": 32,
+  "counts": {
+   "match": 32,
+   "genesis": 8
+  },
+  "pass": true,
+  "matched_cases_exercising": {
+   "balance_burnt": 25,
+   "congestion_buffered_gas": 8,
+   "congestion_delayed_gas": 4,
+   "congestion_receipt_bytes": 12,
+   "gas_used": 32,
+   "implicit_transitions": 5
+  },
+  "field_diffs": {
+   "stateRoot": 8,
+   "outcomeRoot": 8,
+   "gasUsed": 8,
+   "balanceBurnt": 8,
+   "outgoingReceiptsRoot": 8,
+   "proposals": 8,
+   "txRoot": 8,
+   "encodedMerkleRoot": 8,
+   "encodedLength": 8,
+   "congestion": 8,
+   "bwRequests": 8
+  },
+  "reasons": {},
+  "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+ }
+}

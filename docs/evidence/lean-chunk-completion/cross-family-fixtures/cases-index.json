@@ -1,0 +1,2907 @@
+[
+ {
+  "case_dir": "yc102-04-h10005-s0",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/d3/04-h10005-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.00.create-resumed-cross-shard-buffered:included",
+   "successor.yield-congestion.01.create-timeout-under-congestion:included",
+   "successor.yield-congestion.02.create-timeout-under-congestion-note:included",
+   "successor.yield-congestion.03.create-resumed-locally-under-congestion:included",
+   "successor.yield-congestion.04.create-resumed-after-own-shard-flood:included",
+   "successor.yield-congestion.05.create-resumed-cross-shard-small:included",
+   "successor.yield-congestion.06.create-resume-races-deferred-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "1221a49a5a49ce5a85d25c2d980d567b29533924d868088f78186a2b54fc55f2",
+   "meta.json": "616c42169932889f0debff033bd0433c08cab32a66d722f806e1af050dfdbc31",
+   "witness.bin": "c980ef53126f6416f3acbb9cad454ed39f112375785bfdb11c37bdfca2749148"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10005-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10005-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4a433913a71c79e8a389cfbe5071038611c62eb6dd3e13efc393f674175826af",
+   "meta.json": "01d7135309cc749dff9466f9ed11d9fde67f32ea73960fa90cead88c2cce4f69",
+   "witness.bin": "c980ef53126f6416f3acbb9cad454ed39f112375785bfdb11c37bdfca2749148"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10005-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10005-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5857145fa83311e219fe8ea26f37bc3133cbf14f6aa25111970b54b0be2e8fd3",
+   "meta.json": "35529f751fc6e8bff76e828a8b010b82098d0d5ace8c0dcd594f7ae15e3c7e39",
+   "witness.bin": "c980ef53126f6416f3acbb9cad454ed39f112375785bfdb11c37bdfca2749148"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10005-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10005-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "113bbd3d0457187a149925fe85e43936ab08594cf47f1255dcb5daa9ea2ee2e7",
+   "meta.json": "8d584edd16ed724d9a35fd484faf5faf08c24f3bc0957a97313b201222dce6ef",
+   "witness.bin": "c980ef53126f6416f3acbb9cad454ed39f112375785bfdb11c37bdfca2749148"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10012-s4",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/d3/04-h10012-s4",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.09.resume-cross-shard-buffered:included"
+  ],
+  "files": {
+   "claim.bin": "36ffeb925acc0babec17cdb779310aaca2f52e5bc48da18049ed35068df8cc00",
+   "meta.json": "860cd04971e503a14f45e54c6965efebbad79e0906ef1c5a9a6386b347c2d76b",
+   "witness.bin": "c290e0b495c59a514739390cb8d6fc7b48027d7acadfc4c0a2080457048cdca3"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10012-s4-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10012-s4-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "27826b1ba0957832a19224344c141d30ef98af0c142c8085640494c3df72a3cf",
+   "meta.json": "b14e006f80f8b4c882694076e610feab1c91468218b853fa1f947dea6ec9f5ca",
+   "witness.bin": "c290e0b495c59a514739390cb8d6fc7b48027d7acadfc4c0a2080457048cdca3"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10012-s4-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10012-s4-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "eb017f8423d49bc165b97249d09268d0b6553efc5ebab9cf172fbf9b7899afc1",
+   "meta.json": "09b4a01f820d49ce49553167be902de6b844433710b47b978b89d4735baafdef",
+   "witness.bin": "c290e0b495c59a514739390cb8d6fc7b48027d7acadfc4c0a2080457048cdca3"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10012-s4-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10012-s4-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2de64f8818997596206ac18b56763c0bdcca3cb0120fcdae2c180a4e629e9d41",
+   "meta.json": "4b7cb2f2766fd5972e78e9f222f1e173b79e3d665fdf29ef205f403c44c2a686",
+   "witness.bin": "c290e0b495c59a514739390cb8d6fc7b48027d7acadfc4c0a2080457048cdca3"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10022-s4",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/d3/04-h10022-s4",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.13.create-cross-shard-under-congestion-note:included"
+  ],
+  "files": {
+   "claim.bin": "4246721b155330946049b54e21eee2ee4b280250ae14cdc39440dd37ac365369",
+   "meta.json": "0a4f81a8a2a9ef76d6e2f16fa3c605bdbcdcb4359712d1274f56741de58ac124",
+   "witness.bin": "783c7fb1e71e0614dc454fd4edf5fe8cfb8c1946d872c45af4c9d8c1982b056a"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10022-s4-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10022-s4-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b14b3e5a9edf9e06719183ed6e589954c0200fd5c074c6aca183010b3c336e5c",
+   "meta.json": "4329edef8222e4669946e1c80366c17add43a9034a12b2b7d9fe8477fdae4bf2",
+   "witness.bin": "783c7fb1e71e0614dc454fd4edf5fe8cfb8c1946d872c45af4c9d8c1982b056a"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10022-s4-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10022-s4-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f26f68c38605b829ca43c2f74d2b515e2cbd12ca79414b6ed41ec75726617e4d",
+   "meta.json": "a1a35ee343ec41d0062441bf86c59e5b54df1c09e856b7e70756d3161da56c57",
+   "witness.bin": "783c7fb1e71e0614dc454fd4edf5fe8cfb8c1946d872c45af4c9d8c1982b056a"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10022-s4-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10022-s4-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c8d266764b68e58423ab2a6fa805bd39209fc4287a2dc40d0fb5b52f9e005980",
+   "meta.json": "10a2c7fb08fccd9ab3830f6c7a7d140f6592441688019cbe42497a9ff5c8a719",
+   "witness.bin": "783c7fb1e71e0614dc454fd4edf5fe8cfb8c1946d872c45af4c9d8c1982b056a"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10047-s0",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/d3/04-h10047-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.00.create-resumed-cross-shard-buffered:applied",
+   "successor.yield-congestion.03.create-resumed-locally-under-congestion:applied"
+  ],
+  "files": {
+   "claim.bin": "cf63386eaffa2c6a71aabb1e23ab82e42f0aa913f7e6d6c38ced2b40cffeac08",
+   "meta.json": "0635e3c25bf6be2864e19bddd9494f2f9a6e0a854b7050e991f16b71db1cc7bc",
+   "witness.bin": "e042d19bbaf0f15f1c3fa426f269dd4f10dbe6260a3b90a44865674be22ae0db"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10047-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10047-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f78e54f159bd80289a234a4fad391560d8b58101d0370883953e05ed45a8058c",
+   "meta.json": "3fa62354e34adde82ac300212d23b7a626861ea84d3ee6f59df898282578fbaa",
+   "witness.bin": "e042d19bbaf0f15f1c3fa426f269dd4f10dbe6260a3b90a44865674be22ae0db"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10047-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10047-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7aba547b63f7596d0e0d7afc1c32b4fe8b1ca8c4549e676f08d789ab4c80e70d",
+   "meta.json": "febba1e66d8ac7880b345827eb3d17082acbe3d32b298abad21b65096d827044",
+   "witness.bin": "e042d19bbaf0f15f1c3fa426f269dd4f10dbe6260a3b90a44865674be22ae0db"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10047-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10047-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b41c7c3e316e616e9e8c2e5a0e92f23863f1cab9c54474abbccd9fcf942d581d",
+   "meta.json": "b2096c405c22a1e6de44a6262b03d88a404899f89acbfbfb89386e557c6f0602",
+   "witness.bin": "e042d19bbaf0f15f1c3fa426f269dd4f10dbe6260a3b90a44865674be22ae0db"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10245-s0",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/d3/04-h10245-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.13.create-cross-shard-under-congestion-note:applied"
+  ],
+  "files": {
+   "claim.bin": "31aaf2d8a658b88e7ca2f68a6e3110e519e4d205d6ecabb93e385fc67fa06217",
+   "meta.json": "0e91d017f9b2da5ee0a1f1e2957dc4887b51698873fa042eddf5de4ddb880084",
+   "witness.bin": "77fa64f6ca8ae2463660921725b86ac2110f0673c797b9065ee39fc1e83e02a6"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10245-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10245-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2315ebf66a229d9e78845d3aa0deb37bdda4a141dcbb66363aeb422009fa4748",
+   "meta.json": "72043de0259865ac917ed507d986db4cd6cb5cb22dc31dfef3a906cc3f544c65",
+   "witness.bin": "77fa64f6ca8ae2463660921725b86ac2110f0673c797b9065ee39fc1e83e02a6"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10245-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10245-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c57fb8498eea77401fa62f8e736400605574b6be8d81a9f83b65d41310e2ee95",
+   "meta.json": "74e70500d1a6498caecbc8510d88f1c1259dfeffd734b89c88c4a6138af7356c",
+   "witness.bin": "77fa64f6ca8ae2463660921725b86ac2110f0673c797b9065ee39fc1e83e02a6"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10245-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10245-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "97958e974e57bcfb2403a8f0859ee2f919c8eb53830f008a39265c51b1b726b1",
+   "meta.json": "ef3bc852baf02b6b11f5b5411526b9aedf6d63b50434b58715f61552adb87482",
+   "witness.bin": "77fa64f6ca8ae2463660921725b86ac2110f0673c797b9065ee39fc1e83e02a6"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10015-s0",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/ood/04-h10015-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.11.resume-created-under-congestion:applied",
+   "successor.yield-congestion.11.resume-created-under-congestion:included"
+  ],
+  "files": {
+   "claim.bin": "086fdabc315455d471e19159478c5ff5384ab00882f50c9f2007c70708a4b7d0",
+   "meta.json": "7c20e81ba71348537af8cea3bfec92fdbdfd4c6d8463f2d481922797506cec48",
+   "witness.bin": "f0a35643cf169ecb564bd30278feff5af76ecd937af5bceb95887500607d18af"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10015-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10015-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d4723df6a31e49c7635039f46ca77a8034c46983626241daf769ae1c4a1670f7",
+   "meta.json": "dd3207a7afb4ba4c254b66461cb0d0d68ee98fbc800032e6e019b1503f458d7c",
+   "witness.bin": "f0a35643cf169ecb564bd30278feff5af76ecd937af5bceb95887500607d18af"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10015-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10015-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0d94bec13966a5ec4a8cd1c05c0004451400fdbe3f6e1ff2a82ff10a81853240",
+   "meta.json": "bdaa7b5a74190914e019ebdfd766d98e377fa4d0664c8cf174fd3a7c39e3d285",
+   "witness.bin": "f0a35643cf169ecb564bd30278feff5af76ecd937af5bceb95887500607d18af"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10015-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10015-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9aa36c92de655949c20f1c58fe3eee5f98e8c40ab507c085a7dea1ed271f42c5",
+   "meta.json": "97a2e83740228de7703a7b066acb2076284b07cbb664b17d9a131c61119b3a2d",
+   "witness.bin": "f0a35643cf169ecb564bd30278feff5af76ecd937af5bceb95887500607d18af"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10029-s0",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/ood/04-h10029-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.03.create-resumed-locally-under-congestion:applied",
+   "successor.yield-congestion.07.resume-local-under-congestion:applied",
+   "successor.yield-congestion.08.create-under-congestion:applied"
+  ],
+  "files": {
+   "claim.bin": "474148baf9cc1c7b0f95238c0b77acba827a838d7cce491ffb48e30bf4e587d1",
+   "meta.json": "fd80dfdb0603334c5b4f378c5e2969f2b81ff19d55afe1c40469904588d37806",
+   "witness.bin": "5ab096c2a920d641f2eff32c9c6513eb04daca252918126d375d2dca9097911e"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10029-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10029-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8226cb9fb77c48ffe14fa59b967c10d521ab471a0d3e425413c3000b6676c3d0",
+   "meta.json": "f47bf346dd28158cc48959db8b7562b5a961eceaecb4fd06038404f5c5601036",
+   "witness.bin": "5ab096c2a920d641f2eff32c9c6513eb04daca252918126d375d2dca9097911e"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10029-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10029-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "e4e3c769d67f35f68fa2985302f3d9c2acc6ca63cb0f02c390ee518ce4595ad6",
+   "meta.json": "740eeb4e997803ec78b1099a558f92618132f4850851209697786ed8820ea97a",
+   "witness.bin": "5ab096c2a920d641f2eff32c9c6513eb04daca252918126d375d2dca9097911e"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10029-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10029-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "010d510b52b646aacbf561147126762b2623a20156c096cc23797ff4f3183101",
+   "meta.json": "f8765f11a474d8bf84b78dd95ba817c526eeb1d656e934f03501fab77d07b964",
+   "witness.bin": "5ab096c2a920d641f2eff32c9c6513eb04daca252918126d375d2dca9097911e"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10034-s0",
+  "kind": "honest",
+  "scenario": "YieldCongestion",
+  "source": "yc102/ood/04-h10034-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield-congestion.08.create-under-congestion:applied",
+   "successor.yield-congestion.11.resume-created-under-congestion:applied"
+  ],
+  "files": {
+   "claim.bin": "a527393bbe8d774e058839d089ef982ba59e01a13391f27d414ad000db478a53",
+   "meta.json": "34b7748830115e6ece397181fa0b5af96adbec62ebdf4988373b0a4ec599feb4",
+   "witness.bin": "48e4781e857b77f53d9c11c877f8226be771696d9c44a60b1ab9f1e40978b200"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10034-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10034-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "34212fbcaa2f01789af63f5045d5193201b422fdfb852b67eb3fbef47625a0c9",
+   "meta.json": "32f8adab6de7ba31d07d02cc8fb973df412261c19f7a8799e388e410775407af",
+   "witness.bin": "48e4781e857b77f53d9c11c877f8226be771696d9c44a60b1ab9f1e40978b200"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10034-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10034-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9ef5bad17595003ffffd7afa1bce0bd1349d9721ac1cf0e799c82cce61247690",
+   "meta.json": "6cb332c322516e20f72a91774cc5207a9009437fce5ab1a29ce1a00865519a39",
+   "witness.bin": "48e4781e857b77f53d9c11c877f8226be771696d9c44a60b1ab9f1e40978b200"
+  }
+ },
+ {
+  "case_dir": "yc102-04-h10034-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "YieldCongestion",
+  "source": "yc102/mutants/04-h10034-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "07bbe55d940272f9a8dead95a4469e25ed1ce211f1db51e72c815cb94e01cf24",
+   "meta.json": "c5b607246f2638cf1309a3c7da51360fc8e9cc0429ef7101654c6499bdae5579",
+   "witness.bin": "48e4781e857b77f53d9c11c877f8226be771696d9c44a60b1ab9f1e40978b200"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10018-s3",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10018-s3",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.025.alt_bn128_g1_sum.then-result-memory.pos.g+2g-g:applied",
+   "successor.curve-callbacks.027.alt_bn128_g1_sum.chain3-result-memory.pos.g+2g-g:applied",
+   "successor.curve-callbacks.029.alt_bn128_g1_sum.yield-payload-memory.pos.g+2g-g:applied",
+   "successor.curve-callbacks.033.alt_bn128_g1_sum.then-result-memory.neg.len64:applied",
+   "successor.curve-callbacks.035.alt_bn128_g1_sum.chain3-result-memory.neg.len64:applied",
+   "successor.curve-callbacks.037.alt_bn128_g1_sum.yield-payload-memory.neg.len64:applied",
+   "successor.curve-callbacks.039.alt_bn128_g1_sum.then-after-cross-shard-promise.neg.len64:applied",
+   "successor.curve-callbacks.041.alt_bn128_pairing_check.then-result-memory.pos.e(5g,q)e(-g,5q):applied",
+   "successor.curve-callbacks.043.alt_bn128_pairing_check.chain3-result-memory.pos.e(5g,q)e(-g,5q):applied",
+   "successor.curve-callbacks.045.alt_bn128_pairing_check.yield-payload-memory.pos.e(5g,q)e(-g,5q):applied",
+   "successor.curve-callbacks.047.alt_bn128_pairing_check.then-after-cross-shard-promise.pos.e(5g,q)e(-g,5q):applied",
+   "successor.curve-callbacks.049.alt_bn128_pairing_check.then-result-memory.neg.g2_not_in_subgroup:applied",
+   "successor.curve-callbacks.049.alt_bn128_pairing_check.then-result-memory.neg.g2_not_in_subgroup:included",
+   "successor.curve-callbacks.051.alt_bn128_pairing_check.chain3-result-memory.neg.g2_not_in_subgroup:applied",
+   "successor.curve-callbacks.051.alt_bn128_pairing_check.chain3-result-memory.neg.g2_not_in_subgroup:included",
+   "successor.curve-callbacks.055.alt_bn128_pairing_check.then-after-cross-shard-promise.neg.g2_not_in_subgroup:included"
+  ],
+  "files": {
+   "claim.bin": "3977d072b19b2c5d1bb0560a1e54d48827e6b958940ae11b79ce22ca90763984",
+   "meta.json": "d45978234c608f7e1b0f65799a7f4a36a1074a3178d8ce14a4fa905c439f3dc8",
+   "witness.bin": "40bc733767c716de82b56825b86d54233a71f59fd439720160a59c10a7df27d6"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10018-s3-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10018-s3-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8035676d0e524dcf3d3d18fec2c242cf8192a370b4214fc9171bd26634a42df8",
+   "meta.json": "72e9c201a596543ce61f1550e145a6248854286c27a339f937dedc83d1357445",
+   "witness.bin": "40bc733767c716de82b56825b86d54233a71f59fd439720160a59c10a7df27d6"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10018-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10018-s3-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bacb6053f785478c93cb5928a2672a0f024d0a2ecf7f49ef3b77d9c76cf15a6e",
+   "meta.json": "50c8ed71dfe21337892e9c90e6e10a587a75a9f2deb21742d53eac6fbad9c0fd",
+   "witness.bin": "40bc733767c716de82b56825b86d54233a71f59fd439720160a59c10a7df27d6"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10018-s3-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10018-s3-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d511e8f02304439faa8ba948e48e0348b36b941a50a1ba8e4405a2ea9aa626d8",
+   "meta.json": "c550fd3f523e36b316cad3d748874d7de989c66a16a466de471bee90de6435d3",
+   "witness.bin": "40bc733767c716de82b56825b86d54233a71f59fd439720160a59c10a7df27d6"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10019-s3",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10019-s3",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.027.alt_bn128_g1_sum.chain3-result-memory.pos.g+2g-g:applied",
+   "successor.curve-callbacks.031.alt_bn128_g1_sum.then-after-cross-shard-promise.pos.g+2g-g:applied",
+   "successor.curve-callbacks.033.alt_bn128_g1_sum.then-result-memory.neg.len64:applied",
+   "successor.curve-callbacks.035.alt_bn128_g1_sum.chain3-result-memory.neg.len64:applied",
+   "successor.curve-callbacks.037.alt_bn128_g1_sum.yield-payload-memory.neg.len64:applied",
+   "successor.curve-callbacks.041.alt_bn128_pairing_check.then-result-memory.pos.e(5g,q)e(-g,5q):applied",
+   "successor.curve-callbacks.043.alt_bn128_pairing_check.chain3-result-memory.pos.e(5g,q)e(-g,5q):applied",
+   "successor.curve-callbacks.045.alt_bn128_pairing_check.yield-payload-memory.pos.e(5g,q)e(-g,5q):applied",
+   "successor.curve-callbacks.049.alt_bn128_pairing_check.then-result-memory.neg.g2_not_in_subgroup:applied",
+   "successor.curve-callbacks.051.alt_bn128_pairing_check.chain3-result-memory.neg.g2_not_in_subgroup:applied",
+   "successor.curve-callbacks.055.alt_bn128_pairing_check.then-after-cross-shard-promise.neg.g2_not_in_subgroup:applied",
+   "successor.curve-callbacks.055.alt_bn128_pairing_check.then-after-cross-shard-promise.neg.g2_not_in_subgroup:included",
+   "successor.curve-callbacks.057.alt_bn128_pairing_check.then-result-memory.neg.gas_at_element_charge:included"
+  ],
+  "files": {
+   "claim.bin": "8a1c896578280b00099947aea7a7bd04c224446620a3a162a8416ab8c329c0ae",
+   "meta.json": "de4119c1042ac88e2fdd152b4f84524641e8f769d51fe437c8a59eadace3055d",
+   "witness.bin": "343e01010d2621d60077086dbee356f2d940aa839ba87c700c8046fd63cf2a43"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10019-s3-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10019-s3-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9624f314d8e153f34bf8c196ab890bb72bc3079f7349248f04f9ca74d9906b06",
+   "meta.json": "d29e18caad4ff5979977728503643371fb6bdc680f7bcd482d3b1f20b4afdbee",
+   "witness.bin": "343e01010d2621d60077086dbee356f2d940aa839ba87c700c8046fd63cf2a43"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10019-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10019-s3-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5e350ee66e35067baee6e6f4b8828929748f23433f9d1a87750cc34fa018600b",
+   "meta.json": "8a5fc71a187ce4def725b9ac93101000227fc970a4669b7b4e051c0e9b492460",
+   "witness.bin": "343e01010d2621d60077086dbee356f2d940aa839ba87c700c8046fd63cf2a43"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10019-s3-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10019-s3-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "872cc3d906f95d5529b8c0e4769e27a9deae0e475fc77ef25eba0d28a5a1f72a",
+   "meta.json": "ecfca7a8daa92c6e7b189bde44440a5670a4c712aad54d97886e09511e1c47a7",
+   "witness.bin": "343e01010d2621d60077086dbee356f2d940aa839ba87c700c8046fd63cf2a43"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10025-s0",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10025-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.056.alt_bn128_pairing_check.then-args.neg.gas_at_element_charge:applied",
+   "successor.curve-callbacks.062.alt_bn128_pairing_check.yield-payload-register.neg.gas_at_element_charge:applied",
+   "successor.curve-callbacks.064.bls12381_p1_sum.then-args.pos.a+2a-a:applied",
+   "successor.curve-callbacks.066.bls12381_p1_sum.then-result-register.pos.a+2a-a:applied",
+   "successor.curve-callbacks.068.bls12381_p1_sum.yield-args.pos.a+2a-a:applied",
+   "successor.curve-callbacks.070.bls12381_p1_sum.yield-payload-register.pos.a+2a-a:applied",
+   "successor.curve-callbacks.072.bls12381_p1_sum.then-args.neg.sign2:applied",
+   "successor.curve-callbacks.074.bls12381_p1_sum.then-result-register.neg.sign2:applied",
+   "successor.curve-callbacks.076.bls12381_p1_sum.yield-args.neg.sign2:applied",
+   "successor.curve-callbacks.076.bls12381_p1_sum.yield-args.neg.sign2:included",
+   "successor.curve-callbacks.078.bls12381_p1_sum.yield-payload-register.neg.sign2:applied",
+   "successor.curve-callbacks.078.bls12381_p1_sum.yield-payload-register.neg.sign2:included",
+   "successor.curve-callbacks.082.bls12381_p1_sum.then-result-register.edge.not_in_subgroup:included"
+  ],
+  "files": {
+   "claim.bin": "a24ed062227fb60cdd14e9765aa72ac59f8dca0302809d7f3955cd9ed56bd192",
+   "meta.json": "97c6aa0182a3a22bd28711a964aaa9732df91a1301c115f6a23ed0f98ecf69fc",
+   "witness.bin": "534ca7586e3a9ddd4ccd0191b506e817c11d80c1ecca69d9ed9bba343a1ac725"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10025-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10025-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "e1598e97ba72168f8ad4b574dbe015c5d01e046b6caf6e815ba27933baf6ca95",
+   "meta.json": "6c6a73e3b65bea9adf898a6dc5eb32c75a908ef37502504c9730efd7cfbf349d",
+   "witness.bin": "534ca7586e3a9ddd4ccd0191b506e817c11d80c1ecca69d9ed9bba343a1ac725"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10025-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10025-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "69adce2eef73e72bef4343acc36e0735d9070ad97bb12a4f6d68b884613db929",
+   "meta.json": "abc9815ad35d14c487dccf69a3022fe1a67adf178adf464d45983cd66a9478f0",
+   "witness.bin": "534ca7586e3a9ddd4ccd0191b506e817c11d80c1ecca69d9ed9bba343a1ac725"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10025-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10025-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "413fe5d67d1ac1b14791e2382e24ea8dbcab2ac48acade1b2e35207a453540a7",
+   "meta.json": "663c72be8695abd10992347d97772c931d7030395ed9ab4b2a8ad06d2067e279",
+   "witness.bin": "534ca7586e3a9ddd4ccd0191b506e817c11d80c1ecca69d9ed9bba343a1ac725"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10030-s3",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10030-s3",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.075.bls12381_p1_sum.chain3-result-memory.neg.sign2:applied",
+   "successor.curve-callbacks.079.bls12381_p1_sum.then-after-cross-shard-promise.neg.sign2:applied",
+   "successor.curve-callbacks.081.bls12381_p1_sum.then-result-memory.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.083.bls12381_p1_sum.chain3-result-memory.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.085.bls12381_p1_sum.yield-payload-memory.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.087.bls12381_p1_sum.then-after-cross-shard-promise.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.089.bls12381_p2_sum.then-result-memory.pos.b+2b-b:applied",
+   "successor.curve-callbacks.091.bls12381_p2_sum.chain3-result-memory.pos.b+2b-b:applied",
+   "successor.curve-callbacks.093.bls12381_p2_sum.yield-payload-memory.pos.b+2b-b:applied",
+   "successor.curve-callbacks.093.bls12381_p2_sum.yield-payload-memory.pos.b+2b-b:included",
+   "successor.curve-callbacks.097.bls12381_p2_sum.then-result-memory.neg.sign255:included",
+   "successor.curve-callbacks.099.bls12381_p2_sum.chain3-result-memory.neg.sign255:included",
+   "successor.curve-callbacks.103.bls12381_p2_sum.then-after-cross-shard-promise.neg.sign255:included"
+  ],
+  "files": {
+   "claim.bin": "a3cc6eb7467e9edb408f7fd364b03306d00dfdf8282ccb1bac4f67a3caa93d56",
+   "meta.json": "020987e78c5a0ea552f14f2e9ab672aba5fdef8afd8e5e05cd555c8f7b25e103",
+   "witness.bin": "5ef612ed954ee19daff77a7a6af7cd84c94af736d106d3a57ac9ca38ecf635e1"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10030-s3-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10030-s3-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "66a0fcad32152ee2a736f4f46af4af60143dd7e6d4435da6a92739ebd9b80c84",
+   "meta.json": "bf3b2bb9ec17a48ed3bc41d261c41ae90632ff414860e92180fae376e49c61a2",
+   "witness.bin": "5ef612ed954ee19daff77a7a6af7cd84c94af736d106d3a57ac9ca38ecf635e1"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10030-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10030-s3-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7fd3f3da0636a292d8f1047e8e7cb52d448ffea9990e21d669dd0a1c15801ca7",
+   "meta.json": "df91efb8a2a459bb0e85e4e37f0421e682463267bab8e37eacdc92af847e1f69",
+   "witness.bin": "5ef612ed954ee19daff77a7a6af7cd84c94af736d106d3a57ac9ca38ecf635e1"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10030-s3-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10030-s3-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7ab9408bf263846017aab06a43a30f6a11e5e7e1bbcc380bfe47ef7800e37620",
+   "meta.json": "07093e47643479ed4ed0ca29e66c9b88d534961e63dfaac5b3132d2bddd7fcfa",
+   "witness.bin": "5ef612ed954ee19daff77a7a6af7cd84c94af736d106d3a57ac9ca38ecf635e1"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10072-s0",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10072-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.239.bls12381_p1_decompress.then-after-cross-shard-promise.pos.a:applied",
+   "successor.curve-callbacks.240.bls12381_p1_decompress.then-args.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.242.bls12381_p1_decompress.then-result-register.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.244.bls12381_p1_decompress.yield-args.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.246.bls12381_p1_decompress.yield-payload-register.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.247.bls12381_p1_decompress.then-after-cross-shard-promise.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.248.bls12381_p1_decompress.then-args.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.250.bls12381_p1_decompress.then-result-register.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.252.bls12381_p1_decompress.yield-args.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.252.bls12381_p1_decompress.yield-args.edge.not_in_subgroup:included",
+   "successor.curve-callbacks.256.bls12381_p2_decompress.then-args.pos.b:included",
+   "successor.curve-callbacks.258.bls12381_p2_decompress.then-result-register.pos.b:included",
+   "successor.curve-callbacks.262.bls12381_p2_decompress.yield-payload-register.pos.b:included",
+   "successor.curve-callbacks.264.bls12381_p2_decompress.then-args.neg.no_compression_flag:included",
+   "successor.curve-callbacks.268.bls12381_p2_decompress.yield-args.neg.no_compression_flag:included",
+   "successor.curve-callbacks.270.bls12381_p2_decompress.yield-payload-register.neg.no_compression_flag:included"
+  ],
+  "files": {
+   "claim.bin": "e0f55b699d72352213ec1129780d7f0370010d0f1d7153409701c1b194998751",
+   "meta.json": "6fe94fede168685582088b6517209b96abab504adaafe59fa9955102753a1872",
+   "witness.bin": "2a024892d6a70e4fb8b53c2e155a45ffd7533d6077935a1517dc30417649aeaa"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10072-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10072-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d8783c11cc4cf23bff023de94d8621ec6b3c27b88fbec3723169f9576342dd75",
+   "meta.json": "98dd2657a9bc92cf96aaa0e0c252bb0533daaff51a65ba507bcb4e1e123852e0",
+   "witness.bin": "2a024892d6a70e4fb8b53c2e155a45ffd7533d6077935a1517dc30417649aeaa"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10072-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10072-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8f9caf8dc3ce9559f748e07b370ddcf21585f0d20b7d3be5fb7bb9ac021069f8",
+   "meta.json": "4c1772e75d2fa510a456aa429c38b27fc2a1c76aeb1c94c56505c72dd12026f8",
+   "witness.bin": "2a024892d6a70e4fb8b53c2e155a45ffd7533d6077935a1517dc30417649aeaa"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10072-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10072-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f3d264a9aec1124cdaf5a537572ee2424d7ab99226f333434fcc7162022e4bd5",
+   "meta.json": "e9d6e6275c9ef673aef22af5244c5f000b9458ae6696f38a2450bb19b9896300",
+   "witness.bin": "2a024892d6a70e4fb8b53c2e155a45ffd7533d6077935a1517dc30417649aeaa"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10075-s0",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10075-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.256.bls12381_p2_decompress.then-args.pos.b:applied",
+   "successor.curve-callbacks.258.bls12381_p2_decompress.then-result-register.pos.b:applied",
+   "successor.curve-callbacks.260.bls12381_p2_decompress.yield-args.pos.b:applied",
+   "successor.curve-callbacks.262.bls12381_p2_decompress.yield-payload-register.pos.b:applied",
+   "successor.curve-callbacks.263.bls12381_p2_decompress.then-after-cross-shard-promise.pos.b:applied",
+   "successor.curve-callbacks.264.bls12381_p2_decompress.then-args.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.266.bls12381_p2_decompress.then-result-register.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.268.bls12381_p2_decompress.yield-args.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.270.bls12381_p2_decompress.yield-payload-register.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.271.bls12381_p2_decompress.then-after-cross-shard-promise.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.272.bls12381_p2_decompress.then-args.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.274.bls12381_p2_decompress.then-result-register.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.276.bls12381_p2_decompress.yield-args.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.276.bls12381_p2_decompress.yield-args.edge.not_in_subgroup:included",
+   "successor.curve-callbacks.280.p256_verify.then-args.pos.valid:included",
+   "successor.curve-callbacks.282.p256_verify.chain3-result-memory.pos.valid:included"
+  ],
+  "files": {
+   "claim.bin": "85e1e6779f70b51f525dcd047ceb615fd1f193b9c6d5027efa65f05e95b91273",
+   "meta.json": "406c1fd9593d4b246c63f5e0c9f44be8b398adf4d2a2128672e816abe536454f",
+   "witness.bin": "2d1deaf040467259b3eb6297a9ef2fc5162b724ba8e972f41daab3cb55da12cd"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10075-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10075-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b3e97dc4346302d62dee9d02c4d196b99ad97b870ee8216fa5067e8ba9adef66",
+   "meta.json": "4f3f8b95b02079531056d85a88def641cbe0e64ef785c53e5b15aaa683973ef2",
+   "witness.bin": "2d1deaf040467259b3eb6297a9ef2fc5162b724ba8e972f41daab3cb55da12cd"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10075-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10075-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4bc6cba1d2b91aaa6ee67a0711e93b36603c8d3067cf95c996589730bcde40f0",
+   "meta.json": "8c813953a22a973a2c568fccfc2f2c4e436bc4bf59b04ca3228a78f00aadbf70",
+   "witness.bin": "2d1deaf040467259b3eb6297a9ef2fc5162b724ba8e972f41daab3cb55da12cd"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10075-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10075-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "fe9a506a04bf43c7734f27a6c89a44b42a68d7b2c00059e411df243c5329fb26",
+   "meta.json": "285e550554d03641c9d3f674948ba707526fad82666d99b227dd59a265bf8d3f",
+   "witness.bin": "2d1deaf040467259b3eb6297a9ef2fc5162b724ba8e972f41daab3cb55da12cd"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10076-s0",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10076-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.256.bls12381_p2_decompress.then-args.pos.b:applied",
+   "successor.curve-callbacks.258.bls12381_p2_decompress.then-result-register.pos.b:applied",
+   "successor.curve-callbacks.264.bls12381_p2_decompress.then-args.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.266.bls12381_p2_decompress.then-result-register.neg.no_compression_flag:applied",
+   "successor.curve-callbacks.272.bls12381_p2_decompress.then-args.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.274.bls12381_p2_decompress.then-result-register.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.276.bls12381_p2_decompress.yield-args.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.278.bls12381_p2_decompress.yield-payload-register.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.279.bls12381_p2_decompress.then-after-cross-shard-promise.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.280.p256_verify.then-args.pos.valid:applied",
+   "successor.curve-callbacks.280.p256_verify.then-args.pos.valid:included",
+   "successor.curve-callbacks.282.p256_verify.chain3-result-memory.pos.valid:applied",
+   "successor.curve-callbacks.282.p256_verify.chain3-result-memory.pos.valid:included",
+   "successor.curve-callbacks.286.p256_verify.then-args.neg.wrong_message:included"
+  ],
+  "files": {
+   "claim.bin": "37a77528dede0b083e4c7730853b1b0900e1f4869357c2fdf21adc1af1f23562",
+   "meta.json": "7f4c132e3bd7eceb7005f5618662778bb3a9c4c5134da5e0d4ea54e29f7946bb",
+   "witness.bin": "c36a6b1f2d163ee7ef9053fc4a9eb7736293d344e32672f9d3a5cec3847a9a3f"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10076-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10076-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "48d6d001ad2a684a6107a7a25f53ef32430bed33988031b96918750dfcfad08c",
+   "meta.json": "8da54988fb952b0bd0c36888ac3f82d19e96b0acaa5f0a8a2fcd26da7edae62a",
+   "witness.bin": "c36a6b1f2d163ee7ef9053fc4a9eb7736293d344e32672f9d3a5cec3847a9a3f"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10076-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10076-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "08ac46fab7bba01a7609d17096cc06d987d358c80b736567f49eed8ab96376da",
+   "meta.json": "983ec49a57cb23f2800eac043cf7b9a7e282c87da6127c2669ea36498152103b",
+   "witness.bin": "c36a6b1f2d163ee7ef9053fc4a9eb7736293d344e32672f9d3a5cec3847a9a3f"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10076-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10076-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "97e66a98fd65b810c612cfa99da74f889e25b34422831ba52f1949ca5ebc1c94",
+   "meta.json": "bd8c67b5f1f6c0d0ed31741076c0230c1f20703882947ee182a0135444a8e8f1",
+   "witness.bin": "c36a6b1f2d163ee7ef9053fc4a9eb7736293d344e32672f9d3a5cec3847a9a3f"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10087-s0",
+  "kind": "honest",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/ood/01-h10087-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.curve-callbacks.290.p256_verify.yield-payload-memory.neg.wrong_message:applied",
+   "successor.curve-callbacks.296.p256_verify.yield-payload-memory.edge.empty_message:applied",
+   "successor.curve-callbacks.300.ecrecover.chain3-result-memory.pos.valid:applied",
+   "successor.curve-callbacks.302.ecrecover.yield-payload-memory.pos.valid:applied",
+   "successor.curve-callbacks.304.ecrecover.then-args.neg.wrong_v:applied",
+   "successor.curve-callbacks.306.ecrecover.chain3-result-memory.neg.wrong_v:applied",
+   "successor.curve-callbacks.308.ecrecover.yield-payload-memory.neg.wrong_v:applied",
+   "successor.curve-callbacks.309.ecrecover.then-after-cross-shard-promise.neg.wrong_v:applied",
+   "successor.curve-callbacks.312.bls12381_p2_sum.register-input.edge.not_in_subgroup:applied",
+   "successor.curve-callbacks.314.bls12381_p2_sum.direct-register-without-promise.neg.no_promise_result:applied",
+   "successor.curve-callbacks.316.bls12381_g1_multiexp.register-input.neg.not_in_subgroup:applied",
+   "successor.curve-callbacks.316.bls12381_g1_multiexp.register-input.neg.not_in_subgroup:included",
+   "successor.curve-callbacks.318.bls12381_g1_multiexp.memory-oob.neg.memory_oob:applied",
+   "successor.curve-callbacks.318.bls12381_g1_multiexp.memory-oob.neg.memory_oob:included",
+   "successor.curve-callbacks.322.bls12381_g2_multiexp.register-input.edge.scalar_r:included",
+   "successor.curve-callbacks.324.bls12381_g2_multiexp.direct-register-without-promise.neg.no_promise_result:included",
+   "successor.curve-callbacks.328.bls12381_map_fp_to_g1.direct-register-without-promise.neg.no_promise_result:included",
+   "successor.curve-callbacks.330.bls12381_map_fp2_to_g2.register-input.neg.c1_is_p:included"
+  ],
+  "files": {
+   "claim.bin": "903e831137477f9f6c7793a33d271e1befb77f9d24ec9eaa0c9e99faabed0c84",
+   "meta.json": "e4c5d9389938a40ea05eb9fef7393478a74cb572f6cba98d41b070f0cbdd8a21",
+   "witness.bin": "6ee4743ba54a12ea565ecb074d7610ee1aec0efa12b5f76b3e24a67aa56d0488"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10087-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10087-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1b6059ef471205d411f2a2addc3ad50a32f472c94e5028033bfa51e17a5735f7",
+   "meta.json": "916832b38f216ccf250eb09f0b185cfcfe414f8d8b0575ba44c21d000a3d53d0",
+   "witness.bin": "6ee4743ba54a12ea565ecb074d7610ee1aec0efa12b5f76b3e24a67aa56d0488"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10087-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10087-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "42bbdf139e64902df81ea1b1f0fb8123a30292bf73070d1119070fbe7dccfae8",
+   "meta.json": "77a0d2b35ca55edecfed19b9c762f589c7073edd43d6e2e71fabe55b64a8bf4e",
+   "witness.bin": "6ee4743ba54a12ea565ecb074d7610ee1aec0efa12b5f76b3e24a67aa56d0488"
+  }
+ },
+ {
+  "case_dir": "cc202-01-h10087-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "CurveCallbacks",
+  "source": "cc202/mutants/01-h10087-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "260b2a608c8855520ae94f55c8c281a9e27fc8088a638d0407f7d1bf5eb5fb2e",
+   "meta.json": "cb87e7ae47ce5ff1be3792ec532828865baf43542470dcbf823fece88430de7a",
+   "witness.bin": "6ee4743ba54a12ea565ecb074d7610ee1aec0efa12b5f76b3e24a67aa56d0488"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s1",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/00-h10002-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.01.emit-then-panic:included",
+   "successor.genesis-tx.06.create-sub-account-other-shard:included",
+   "successor.genesis-tx.10.burn-cross-shard:included"
+  ],
+  "files": {
+   "claim.bin": "f7148251f23a8214a81758ff75e2034ea4c2be83f1a9b6407b5fbc150ec711d8",
+   "meta.json": "00e17d6e1f1252ec18e15f7798bf459ab355091d30bdafb626ac1b480576843e",
+   "witness.bin": "e1663083a85c4400a302ae75ca11f5512d8b705523847858d0d55e4716489753"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s1-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s1-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "03a1efd327ffcb3cf54dabbc1072b85c278bd77c9db25bbc2983352a21e47fc5",
+   "meta.json": "61e609223c59be9fc0c8e795455c9c65ee484ebce18b2bda5c3c2b36663ff070",
+   "witness.bin": "e1663083a85c4400a302ae75ca11f5512d8b705523847858d0d55e4716489753"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s1-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s1-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root NE32t7vbQUV8jAWimonbxfcggYu9KdbwzPWRA2hB1hr does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "108f969e2cd09ef6cd35f21356e0b4cdaa286fa48c351a528a7dd262c256b3e4",
+   "meta.json": "b5593f4cba53bc21a72b9d6bd99cb2f4eb5703b00d244f09eb12373ec16ec505",
+   "witness.bin": "de4479e022297df1385d66a0c87a313ffc4be40a9796826b5605b17975b85a61"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s1-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s1-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6e8f6b9aade9d2d61a8b4dfd0eab545cb6992416dec54debd3202cf923c30896",
+   "meta.json": "b89f6141c4fe35609a3bc1f493eb4138f6e72b95a2867ab0ed829634a8afd63b",
+   "witness.bin": "e1663083a85c4400a302ae75ca11f5512d8b705523847858d0d55e4716489753"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s2",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/00-h10002-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.03.cross-shard-call-with-deposit:included",
+   "successor.genesis-tx.04.cross-shard-failing-call-refund:included",
+   "successor.genesis-tx.07.deploy-and-call:included",
+   "successor.genesis-tx.08.add-and-fund-gas-key:included"
+  ],
+  "files": {
+   "claim.bin": "6bd16830f5e070fe9cf697328e78cbf8e66fa3da468c6a32d3902b6042e5b4d2",
+   "meta.json": "69f310d9cdbf9ceccc353cf0c73bfb1de3095b7f954fcd932f848e0380ed4fd5",
+   "witness.bin": "ece820349ff91ca6a6eb038030c16df9ed0d72ea0c1e383e81193358e5f2e19a"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s2-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s2-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "25854664ad36d477a5a3a2d57f209112304469fb30473583992b35ce9100a503",
+   "meta.json": "ee204158e33f624029c6e0b4e3bdd1bb26ade35b511146f750ce66ad082b5f86",
+   "witness.bin": "ece820349ff91ca6a6eb038030c16df9ed0d72ea0c1e383e81193358e5f2e19a"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s2-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s2-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root CGdpp6ijCEKGDegVRXiFfadXQiNMK6wVUnzyq7xSrPFk does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "b965353abb0bc93d17c1efd93d93d83d254352897dabafdc9abd4a031b63a6e2",
+   "meta.json": "99ace10624895a5f5971ebdc4ed4ca431138ec21af487fc3610be3f1c57f9fda",
+   "witness.bin": "0455ea703d6654a9aae68dd708cc620b044819399fff72d85737cbe88aa3f987"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s2-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s2-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "995682ac2b22c7c747c22efc7736a5161515d2fbccc4df054894a2d21e19c38b",
+   "meta.json": "b87f1443159f5c2f42d2f64a499c69c0f64e54acda65dcc7e04d81772ad2d01f",
+   "witness.bin": "ece820349ff91ca6a6eb038030c16df9ed0d72ea0c1e383e81193358e5f2e19a"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s3",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/00-h10002-s3",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.00.emit-cross-shard-then:included",
+   "successor.genesis-tx.05.transfers-multi-action:included",
+   "successor.genesis-tx.11.delete-missing-key:included"
+  ],
+  "files": {
+   "claim.bin": "98b74b6d6fb726a9e2b28b2892a49d613a3e42a15e0aa670b99350953662a8e1",
+   "meta.json": "5a803dd9644962ac3f929c3b62deef666128b0d1a58c433f39ac788cdb8099d4",
+   "witness.bin": "15e405d2e287bbb8e659675d830bee3f75058f2fcca544567b0b73be17d52a57"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s3-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s3-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "82695d0693c236efce96816bdf7d89c5fc7da514bff6850933314ca8b578daf1",
+   "meta.json": "cacb502fd60347067ea90574e10e192d0b51da43344ad4dcbe4eefa047b5bc6a",
+   "witness.bin": "15e405d2e287bbb8e659675d830bee3f75058f2fcca544567b0b73be17d52a57"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s3-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s3-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root E4TxLWdU1ybo3rXeciKPxnYwcUDDHv8LRJMyAa1Cyrfy does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "a24607263d92d853acaa045ddaedbd23a693b90d370c19b33d3d0455816dc450",
+   "meta.json": "13329c0a3c69dae263de63a39d8aced13d112adf2c2d2cb6c4646cba45737b48",
+   "witness.bin": "bf465fafeaafe92e466a29f695474a43130a3ca7d54b969a0fea5d862f5cfcd8"
+  }
+ },
+ {
+  "case_dir": "gx501-00-h10002-s3-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/00-h10002-s3-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6f3eb3d219c8d5153c383fff35c0fb669a9e05b11a80037c93886b9056eead39",
+   "meta.json": "b90385d3e5ff7263654d0016481dd94794365f3dd25f0d5e5a2db72c0efe3c32",
+   "witness.bin": "15e405d2e287bbb8e659675d830bee3f75058f2fcca544567b0b73be17d52a57"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s0",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/01-h10002-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.00.emit-cross-shard-then:included",
+   "successor.genesis-tx.05.transfers-multi-action:included",
+   "successor.genesis-tx.11.delete-missing-key:included"
+  ],
+  "files": {
+   "claim.bin": "f37b17caaa1eb15bd806f2ac09086ae6812e8cb76f47eee54b712c2d319c2a33",
+   "meta.json": "8d48970a5a36e07ab9c38bc60cf3b3bd4115edab0bc8fa5c93df022ad2f29e86",
+   "witness.bin": "735d98a41edb4970c5526a883cb81a1078a9cf767097880831c9bbf0a9a86f13"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s0-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10002-s0-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "ff59a1217a0d9ccb76914050835da7fd4f8907d347a408064b4f879b47834223",
+   "meta.json": "a6dc314c3beb7d708e065a8bf80ed7a9a3f18ce0d3f45a9b843fa99bb47e60bb",
+   "witness.bin": "735d98a41edb4970c5526a883cb81a1078a9cf767097880831c9bbf0a9a86f13"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s0-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10002-s0-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root 3KYsZZ23fEumdof114yT6xBV9eJaRcG7RJV1kSqi1Qzi does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "6eb4ad9cca27de42972e548430dd8d24b97e5fd991978562ab6919e4b4fdd567",
+   "meta.json": "7bf894b6d0f5171e2481ff584944e5edea27d86f3ffa5ea2c1994da3b9e13655",
+   "witness.bin": "e41891401ec99722c11e669f898709728d78c1064a50e9e974434a0c28802eba"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s0-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10002-s0-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2962a2b566d15d867d1abc2414ba96c2c93ce795a9b49ea0b58a9045957f8690",
+   "meta.json": "e5fa73a51f1e88e852905a11a695d3bf81aeda74aed722780e0f4d75c89d5ac5",
+   "witness.bin": "735d98a41edb4970c5526a883cb81a1078a9cf767097880831c9bbf0a9a86f13"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s4",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/01-h10002-s4",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.01.emit-then-panic:included",
+   "successor.genesis-tx.06.create-sub-account-other-shard:included",
+   "successor.genesis-tx.10.burn-cross-shard:included"
+  ],
+  "files": {
+   "claim.bin": "dcc82cfc4fe952607971c77551e1b434d8936096799070884f754c85d54beb2b",
+   "meta.json": "484f5a23b03cf947b87ee04f7aa552e9a9e645fa88b67063749781b136a4d2c1",
+   "witness.bin": "57b60ff336b95394a5b15efeb29aa4462d6ab07a6d00b5d52f1f75fdab661437"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s4-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10002-s4-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "20331fec52befcdc425c9f4e4f8586c5ee4625b3b20cdabe4322623ab884c87f",
+   "meta.json": "1662cd7f5db772dec72cc0eaea02422aa98e5cc25dc46c1759023a2ca5b54277",
+   "witness.bin": "57b60ff336b95394a5b15efeb29aa4462d6ab07a6d00b5d52f1f75fdab661437"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s4-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10002-s4-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root EGvmwmZPfdb2dtBEMTC5nVt69jPLdHqx9KBNnxdh2Mbd does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "64bd00febd75a15dc5145105ae0697f4afc49994b7f4d276718762552356d748",
+   "meta.json": "a59faee768eeaa6fb0414069c19f865c0dfe3327c8e83e1064dac09a499859af",
+   "witness.bin": "5d914239bd3e7b1a329a228bafab54ebb1356a9bae530ad0a2965348270a7067"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10002-s4-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10002-s4-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "734b514d9297a5887882dba5ecf112eabf15ddc555b8826ea9a29f1abf3a703e",
+   "meta.json": "27c1ee045cf204b82fdd90aee7438b8e5de8da46448430e18344919c5e20f675",
+   "witness.bin": "57b60ff336b95394a5b15efeb29aa4462d6ab07a6d00b5d52f1f75fdab661437"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s2",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/01-h10004-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.03.cross-shard-call-with-deposit:included",
+   "successor.genesis-tx.04.cross-shard-failing-call-refund:included",
+   "successor.genesis-tx.07.deploy-and-call:included",
+   "successor.genesis-tx.08.add-and-fund-gas-key:included",
+   "successor.genesis-tx.23.cross-shard-call-with-deposit:included",
+   "successor.genesis-tx.24.cross-shard-failing-call-refund:included",
+   "successor.genesis-tx.27.deploy-and-call:included",
+   "successor.genesis-tx.28.add-and-fund-gas-key:included",
+   "successor.genesis-tx.43.cross-shard-call-with-deposit:included",
+   "successor.genesis-tx.44.cross-shard-failing-call-refund:included",
+   "successor.genesis-tx.47.deploy-and-call:included",
+   "successor.genesis-tx.48.add-and-fund-gas-key:included"
+  ],
+  "files": {
+   "claim.bin": "cc32aaa822dac58b371f71bd7aaad7ec62d6d7f92afcf1c64c020a2bd5f1b074",
+   "meta.json": "8cae9636cc47e4e48c6b579dd82955a56a3d45d626a63ce15e93983561a977c7",
+   "witness.bin": "1eb594f26bd21ba4b0ba7c757a7061918c82cc868044c8471b9d9190cc20df42"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s2-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10004-s2-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "4e52c7a8a5ead23a7a8a3ea1626460ed1b1851500f3d4ee045a506e4ead22098",
+   "meta.json": "642c5e942118c862056b2b3a595fd7d15ea71bef5af6c5bcc653b0db779c89f6",
+   "witness.bin": "1eb594f26bd21ba4b0ba7c757a7061918c82cc868044c8471b9d9190cc20df42"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s2-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10004-s2-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root 8raUuaAvJDv5FLrXRJ7mKyVQPgMcjGAenU5kjqdCzea6 does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "a7b8643c9bbedb12aa3024973aa629348b4698b1eaf4fb2ccce5a95deb558b38",
+   "meta.json": "e31f7d4e5b55fa572684b112a89f719aa1bbab57f7984f47b67a97ad54cdc17d",
+   "witness.bin": "b828b75a35dedf61b31418fed9d780dfaedc539eeb6b666387ed369c66b5ffdd"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s2-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10004-s2-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "206f8d9b81fbcae56ad807445ea1437f03b1b7e0c207b21f9684e30a19ef6c95",
+   "meta.json": "5f482a838b982f37f37249b9c9696f402ac2b27ea0f85ce784f9509b663e20cc",
+   "witness.bin": "1eb594f26bd21ba4b0ba7c757a7061918c82cc868044c8471b9d9190cc20df42"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s3",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/01-h10004-s3",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.02.yield-create:included",
+   "successor.genesis-tx.09.state-init-missing-code:included",
+   "successor.genesis-tx.22.yield-create:included",
+   "successor.genesis-tx.29.state-init-missing-code:included",
+   "successor.genesis-tx.42.yield-create:included",
+   "successor.genesis-tx.49.state-init-missing-code:included"
+  ],
+  "files": {
+   "claim.bin": "fd433f9c1b0d914c7aaf447fea3050033672d26e8600fc588f787e19add99df0",
+   "meta.json": "9414f31e908d95a491d281c71dce9539a2d1977b88e563719a58d7487528333c",
+   "witness.bin": "5d45aa7bd4f5845f377735e47973f15f927cc2bf825acc6ac32cdacb12359338"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s3-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10004-s3-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "20fe89e63e9a2d43aff6680ff290e94c053004422be0c036ca7c0fb88a5caf50",
+   "meta.json": "82459b50531402f4c27f31579a6bbbda4151b46096688217fd0c9fbcf07253eb",
+   "witness.bin": "5d45aa7bd4f5845f377735e47973f15f927cc2bf825acc6ac32cdacb12359338"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s3-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10004-s3-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root EMREkB6PSyaGZNAbmeAdVoYSxeudrRddHhzyev8uFZhS does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "11928f9a14aa5eb41b35bef5792e5a3e55fe718ab0300a17566eeec9543031f6",
+   "meta.json": "40a95996ea0d1543be7dddd782d3432b51a754c3653bd2f526c67aa384838e58",
+   "witness.bin": "45a46785797a6a07fc4a2eec085acec49780519f2b1b3f08599d1ff4b80c2b9b"
+  }
+ },
+ {
+  "case_dir": "gx501-01-h10004-s3-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/01-h10004-s3-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "29ce96797c583af11a3a6608120dbd532c5842ef29e8ac6939229381b92b3aa6",
+   "meta.json": "a8e77ca3a1061133217644a16f385f1869d06acdaffa69f14e181eede4e20b51",
+   "witness.bin": "5d45aa7bd4f5845f377735e47973f15f927cc2bf825acc6ac32cdacb12359338"
+  }
+ },
+ {
+  "case_dir": "gx501-02-h10003-s2",
+  "kind": "honest",
+  "scenario": "GenesisTx",
+  "source": "gx501/ood/02-h10003-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "genesis-b2",
+   "successor.genesis-tx.03.cross-shard-call-with-deposit:included",
+   "successor.genesis-tx.04.cross-shard-failing-call-refund:included",
+   "successor.genesis-tx.07.deploy-and-call:included",
+   "successor.genesis-tx.08.add-and-fund-gas-key:included",
+   "successor.genesis-tx.23.cross-shard-call-with-deposit:included",
+   "successor.genesis-tx.24.cross-shard-failing-call-refund:included",
+   "successor.genesis-tx.27.deploy-and-call:included",
+   "successor.genesis-tx.28.add-and-fund-gas-key:included"
+  ],
+  "files": {
+   "claim.bin": "632e274f83d041201a064a95c8334274dce1fb5de3e8c5a6ee3d6f04912fb760",
+   "meta.json": "08fc2f81e4bf967c18c82ddf910ab13a4567dd37e15de634c7e0c8f29d708879",
+   "witness.bin": "22af782286da043d0fa45629e6ece0b8a3a2c20c6bc1ebe58c60b68f37dc3cf2"
+  }
+ },
+ {
+  "case_dir": "gx501-02-h10003-s2-g.genesis_extra.balance_burnt",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/02-h10003-s2-g.genesis_extra.balance_burnt",
+  "nearcore": "derived: the changed trusted fact changes the main transition",
+  "expected_rel": false,
+  "mutation": "g.genesis_extra.balance_burnt",
+  "verdict_source": "derived",
+  "steps": [],
+  "files": {
+   "claim.bin": "678fa3d6816a7559ee6f92f0ff81c41798da24d3bfb3f5bec44af23ee90f87fe",
+   "meta.json": "fcca5cf903901e42d61570c0426b5f98fa14e52ea77be2e35de73b8de44e46d1",
+   "witness.bin": "22af782286da043d0fa45629e6ece0b8a3a2c20c6bc1ebe58c60b68f37dc3cf2"
+  }
+ },
+ {
+  "case_dir": "gx501-02-h10003-s2-g.tx_in_genesis_chunk",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/02-h10003-s2-g.tx_in_genesis_chunk",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root J2cqgwnCSaKb42gPkE2vQjVvewsKQimdNrvy1B853UPR does not match expected transaction root 11111111111111111111111111111111\")",
+  "expected_rel": false,
+  "mutation": "g.tx_in_genesis_chunk",
+  "verdict_source": "nearcore(cold)",
+  "steps": [],
+  "files": {
+   "claim.bin": "b5826ced2822c5a100f1f6471d187815cee4c242b817b0e7f53b90ec242f765b",
+   "meta.json": "15674dfddb8b3978aec6623ad41c182094b0da9a80c9b519c4b13b505aea76a4",
+   "witness.bin": "78e2e6778a6a092411e1643d420983884aa41ca8ccc4a532c643ca1a742d3cdd"
+  }
+ },
+ {
+  "case_dir": "gx501-02-h10003-s2-g.tx_valid_extra_flag0",
+  "kind": "mutant",
+  "scenario": "GenesisTx",
+  "source": "gx501/mutants/02-h10003-s2-g.tx_valid_extra_flag0",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "g.tx_valid_extra_flag0",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6e446d5b537a8fc544b516651bdbb62d86fd2a76960f0c7e41839603bff2740a",
+   "meta.json": "28609f1e9097f7746c8e86e6681a95f677b36b2f06f2028941346f3299156fb9",
+   "witness.bin": "22af782286da043d0fa45629e6ece0b8a3a2c20c6bc1ebe58c60b68f37dc3cf2"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10009-s3",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10009-s3",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.01.fund-cross-shard:included",
+   "successor.gaskey-target.02.transfer-and-fund-cross-shard:included",
+   "successor.gaskey-target.03.fund-missing-key-cross-shard:included",
+   "successor.gaskey-target.04.fund-regular-key-cross-shard:included",
+   "successor.gaskey-target.05.ordinary-transfer-same-chunk:included",
+   "successor.gaskey-target.06.ordinary-call-same-chunk:included"
+  ],
+  "files": {
+   "claim.bin": "1186dcac93df640c860f2fc7721bd3eb58bd0471ab75a78c583305951728655f",
+   "meta.json": "1e8d394fc4dff962698556c6aa56f6c62d8220da5fc298a594679d1402a57674",
+   "witness.bin": "0289370fa6e0a922fdfa1f1653aa3822691e92a59af8b772891aa758ded59aea"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10009-s3-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10009-s3-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9524b78ae347a0da862a825fed2cf66312412e038f5f04b5af804609fa069747",
+   "meta.json": "c31469d7b6de944fc55c052a215317b5533589035bfc0c7683f74df05f19385e",
+   "witness.bin": "0289370fa6e0a922fdfa1f1653aa3822691e92a59af8b772891aa758ded59aea"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10009-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10009-s3-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "e7a71e11cdc4c6d191c192ec8e34e537cd02408a72b71ec0a88445134a5d9565",
+   "meta.json": "91da7889083550b5e917c73efdf54b756026f5893f6a19a0297c771eb64135ed",
+   "witness.bin": "0289370fa6e0a922fdfa1f1653aa3822691e92a59af8b772891aa758ded59aea"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10009-s3-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10009-s3-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "273715982b21b979b9c49851403a3d5a46a6d90ec32b4c57458f0d9cc771ab73",
+   "meta.json": "443be972669082e7c43df263e6e6f471890d18bc39a5e825c1a1445c39266a76",
+   "witness.bin": "0289370fa6e0a922fdfa1f1653aa3822691e92a59af8b772891aa758ded59aea"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10016-s0",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10016-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.07.gas-key-transfer-out-index0:included",
+   "successor.gaskey-target.08.gas-key-call-index1:included",
+   "successor.gaskey-target.09.gas-key-failing-call-deposit-index2:included",
+   "successor.gaskey-target.10.gas-key-transfer-out-index0-second:included"
+  ],
+  "files": {
+   "claim.bin": "118bb6bddfa5af61765e8834e25e76c73c9ec6944064bbc2e82610e80cbdebb5",
+   "meta.json": "56821fa5e52acbfa56746f9697bfa9d36425d84b14f6a8f2de2cef8655573b62",
+   "witness.bin": "77071f71c032fc010405a7370ad3e679d61a5a033267e96162d5676982467ca8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10016-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10016-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "dd0e0aaceaefa8a987ea43a90fb1c14b1a8d759dde2c1ba6d7fa465558ef85e6",
+   "meta.json": "ee518a269ed82b9213a0b946a3f5dcea153f74334089461df6473018ea5384da",
+   "witness.bin": "77071f71c032fc010405a7370ad3e679d61a5a033267e96162d5676982467ca8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10016-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10016-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2310f0b1addf7f9c7aae301477314a1a831162f066d0fcbf4bc8ee011a5f6eca",
+   "meta.json": "7ff352a4fbb1e85e6248c7e2f0acf1c5b375e6a4e480045f0ea76d8f733dd103",
+   "witness.bin": "77071f71c032fc010405a7370ad3e679d61a5a033267e96162d5676982467ca8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10016-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10016-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c8f02920752654b72d63d0b94c60d0f68cc24bc070ad34adf0bf02bff1fa3701",
+   "meta.json": "f3280326007ac5ccf9e885edc1b1db86f4f72c0037065f7d199850e393779304",
+   "witness.bin": "77071f71c032fc010405a7370ad3e679d61a5a033267e96162d5676982467ca8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10017-s0",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10017-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.07.gas-key-transfer-out-index0:included",
+   "successor.gaskey-target.08.gas-key-call-index1:included",
+   "successor.gaskey-target.09.gas-key-failing-call-deposit-index2:included",
+   "successor.gaskey-target.10.gas-key-transfer-out-index0-second:included"
+  ],
+  "files": {
+   "claim.bin": "9cc6de3f9787a56a124ec53e913ce221a4a200754dda034a1082f52ae27cef53",
+   "meta.json": "ab563b25c4e9a2f52e8014e42117f174b533fe239f5528f8b90fae3d96208310",
+   "witness.bin": "fb58478d46dbf5adb0bdd61602331fd9e1e685e1eafaa386e41e62b20c584c93"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10017-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10017-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8f6157f15268b259d7341bbbf8d05921de0b3f3d6113e6f2be5eea2c3e898760",
+   "meta.json": "a534356cbbe9b2c6d94ffec75c180fb2e9a6d234f4e8e573f1f262b0c67804e3",
+   "witness.bin": "fb58478d46dbf5adb0bdd61602331fd9e1e685e1eafaa386e41e62b20c584c93"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10017-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10017-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "15aee44cabd8ba31fd459aeb0c1a7a35c2ca132bfa461ecefa60c4f600eae542",
+   "meta.json": "53351f946cec18d9f96662c0dfb8d38b9fd02e2fc987a18dd262c43b0bb28d84",
+   "witness.bin": "fb58478d46dbf5adb0bdd61602331fd9e1e685e1eafaa386e41e62b20c584c93"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10017-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10017-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "67845b0cce37328801bbc41e2c5fc993aaab43f5363b9c2fe89ca3b47de63525",
+   "meta.json": "a9b19c0199acdfd3e7f5c62e666353912f6fa7131bf326b0b4a03f3673de75c8",
+   "witness.bin": "fb58478d46dbf5adb0bdd61602331fd9e1e685e1eafaa386e41e62b20c584c93"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10020-s0",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10020-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.13.fund-and-spend-same-chunk-spend:included",
+   "successor.gaskey-target.14.withdraw-partial:included"
+  ],
+  "files": {
+   "claim.bin": "149ad59a0b396228e61c37b6c7457326d4f1b79f8a46b99e8022e19c578beeba",
+   "meta.json": "eeb930629ec00f59e35afc56e070558eadf5aa80c9d225a37679ce34e06473ad",
+   "witness.bin": "63ebe3645751bb8b2ff6d7636dcf4b7a92ef2862db2ef7c33d49a2359ba5c775"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10020-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10020-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0c1581071e3c1521b4cf76c905509d95c96ff75e61e8517b587be92520899055",
+   "meta.json": "fe52e681c5e5d4d957b5876673c7c98331eeb5223bdbc5a493b8c0d4a6d1bf6c",
+   "witness.bin": "63ebe3645751bb8b2ff6d7636dcf4b7a92ef2862db2ef7c33d49a2359ba5c775"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10020-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10020-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d8098caed76588959766418c23b782ec3dde0ac15e711b37ff9fef607d8ca8e2",
+   "meta.json": "4189cf118161f8944cbefcac09787845b8697bf8903f7f93955d3266801b2621",
+   "witness.bin": "63ebe3645751bb8b2ff6d7636dcf4b7a92ef2862db2ef7c33d49a2359ba5c775"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10020-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10020-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7fd670e76040dbe2df7d89507805c8fd85139b7d624f5d2ec4b502e93c940c82",
+   "meta.json": "3e8f19cdc268bb7f3414f2150c738c0b3d2467269c03eb4600bc4088e6841e7b",
+   "witness.bin": "63ebe3645751bb8b2ff6d7636dcf4b7a92ef2862db2ef7c33d49a2359ba5c775"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10021-s1",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10021-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.08.gas-key-call-index1:applied",
+   "successor.gaskey-target.09.gas-key-failing-call-deposit-index2:applied"
+  ],
+  "files": {
+   "claim.bin": "7c33f9eabbf223bb5cd5b6f575dd1af74ffbcc7001419a19d8506e591a7a7609",
+   "meta.json": "46a079af72f2a29a776121387d17992f05ff0574c75a986666adfd080833d621",
+   "witness.bin": "fb15767c169f2d8d9582d296b03b3053523b6a0b525fa645914cadc50de2ddd8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10021-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10021-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "19af5a9f966f1f08b2789ba1846c3728e0f84e819a83c69d4b8c49b54ea68ae3",
+   "meta.json": "839bf051d664d883a09b17a29467577c9928285bc1b2eec3c4a24cae7ace58fa",
+   "witness.bin": "fb15767c169f2d8d9582d296b03b3053523b6a0b525fa645914cadc50de2ddd8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10021-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10021-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7605d3ae5383875c3610d185e9e3e9158ade8aca1c74068eef24b162aecbda83",
+   "meta.json": "63cc8a63779ef577a1bdf4556178dde3d3c4dae3cb8f6628197ae4f21e49348d",
+   "witness.bin": "fb15767c169f2d8d9582d296b03b3053523b6a0b525fa645914cadc50de2ddd8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10021-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10021-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8aa36c5cadf7bc76675bb2734b8d76ccbcc9b676f717f4d80e2129ab6a115336",
+   "meta.json": "bbd620641ca648f0fafa72a785e3e4e5c54659391af3fcc03c1d041784316665",
+   "witness.bin": "fb15767c169f2d8d9582d296b03b3053523b6a0b525fa645914cadc50de2ddd8"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10025-s0",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10025-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.13.fund-and-spend-same-chunk-spend:applied",
+   "successor.gaskey-target.15.withdraw-too-much:applied",
+   "successor.gaskey-target.15.withdraw-too-much:included",
+   "successor.gaskey-target.16.delete-gas-key-small-balance:applied",
+   "successor.gaskey-target.16.delete-gas-key-small-balance:included",
+   "successor.gaskey-target.17.refund-to-deleted-gas-key-call:included",
+   "successor.gaskey-target.18.refund-to-deleted-gas-key-delete:applied",
+   "successor.gaskey-target.18.refund-to-deleted-gas-key-delete:included"
+  ],
+  "files": {
+   "claim.bin": "1c8bfd6b21cd865624e607884085a69a0405ccdfa0f7a6e7ddde30dfe82ab6fd",
+   "meta.json": "4c279ef0de0c9a7a95487dd2f4581cfaa67787432e774cdc510e4420dfbee80d",
+   "witness.bin": "8c2abad99eec326fcf0f91a581ca4b0864d9c862ae23be271332e3a0997eb24d"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10025-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10025-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1e07e0fdbd1297c4541767ba52cd403f82973a50a999ef0e6195cb5acaf6d410",
+   "meta.json": "286b2d52841c8f2aa375493767d63baa65ef1a3ba9c5473159d54d3e7387c54c",
+   "witness.bin": "8c2abad99eec326fcf0f91a581ca4b0864d9c862ae23be271332e3a0997eb24d"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10025-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10025-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8b46ff36bbc523df53013b360c01257ecb9274cc15be27f72b3bdd7a78860cda",
+   "meta.json": "06b3c69032e0da417624f64d8098f03dbf1d9ff897e270545f88a2df3307f2d2",
+   "witness.bin": "8c2abad99eec326fcf0f91a581ca4b0864d9c862ae23be271332e3a0997eb24d"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10025-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10025-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b1ed0210dde3600bf72824037eec7e80fb0601bc5d0834c8086abc53ad9f2029",
+   "meta.json": "1b26e752451e01337e269502ff3d6573e9c6dbe1202a81182840698cbdd92c92",
+   "witness.bin": "8c2abad99eec326fcf0f91a581ca4b0864d9c862ae23be271332e3a0997eb24d"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10028-s3",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10028-s3",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.19.create-fund-delete-small-cross-shard:included",
+   "successor.gaskey-target.20.create-fund-withdraw-cross-shard:included",
+   "successor.gaskey-target.21.create-fund-delete-too-much-cross-shard:included",
+   "successor.gaskey-target.22.create-fund-delete-account-cross-shard:included",
+   "successor.gaskey-target.23.create-fund-delete-account-too-much-cross-shard:included"
+  ],
+  "files": {
+   "claim.bin": "3845feff0fa3745cf77ea641cc93e2a1529be6ed5561108fac2286b7bf269e12",
+   "meta.json": "47ae058be8a0b5bbd93c33cf19532c45e722d1d307ce941f22d9c8878dfc70ab",
+   "witness.bin": "2092f7735a02af4f5a25dc74e26513013868ebaf6c48465b33fa9e3d73033a91"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10028-s3-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10028-s3-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "470687c0812976f5cc04035b61579bf770a5680ac5b6ecd9d0bc7eb9d5d64e76",
+   "meta.json": "19b57b966b3f8fd51e42c80910f4cfcd1305b41e0cd9693479a54ffa2a5599f5",
+   "witness.bin": "2092f7735a02af4f5a25dc74e26513013868ebaf6c48465b33fa9e3d73033a91"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10028-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10028-s3-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "3ae7efbc01a895fdfba8a411a0f424d631af5d820aaa20ee3bbb80ec110eebe6",
+   "meta.json": "b12d45fc8e3e17e4e1bf75ff6b318f2cec05f548f4518a58850306b0c934c529",
+   "witness.bin": "2092f7735a02af4f5a25dc74e26513013868ebaf6c48465b33fa9e3d73033a91"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10028-s3-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10028-s3-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4720b7ff38f38ebe45805ff2296ac8734fc05a162be5bd01ea901fe081d33442",
+   "meta.json": "048a4cb8d6ba62bf70d76edf85bd774aba25e717768b3d67d8e43390e7496577",
+   "witness.bin": "2092f7735a02af4f5a25dc74e26513013868ebaf6c48465b33fa9e3d73033a91"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10038-s0",
+  "kind": "honest",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/d3/00-h10038-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.gaskey-target.26.withdraw-zero-then-delete-funded:applied",
+   "successor.gaskey-target.26.withdraw-zero-then-delete-funded:included",
+   "successor.gaskey-target.27.gas-key-call-emits-before-delete:included"
+  ],
+  "files": {
+   "claim.bin": "9024afa9dccc9d47882494fc92ec1f1be2417d1a0efc6013477bc0a1fb3184e9",
+   "meta.json": "5a6d9b696ed8d22c5b8d11096cddb9a89847c7944b91e748d317d216a8e9430a",
+   "witness.bin": "7b6d0fb13075dcf426162a2676078d6bc8c467d537de2fe2d2081f2f10105b53"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10038-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10038-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4813c2c71531178e6ffe59d4b3e8d950882a0080d8acc335d9675342ef9b0a90",
+   "meta.json": "4d8718be109b5c5f65b2d6fb6f56f6023dc0f423b3a15bb74d0213a5ea485d47",
+   "witness.bin": "7b6d0fb13075dcf426162a2676078d6bc8c467d537de2fe2d2081f2f10105b53"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10038-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10038-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "32a8862f38d2539b5fc0f592a9c77d6a2b7878dd501838632f4ba031d38f5359",
+   "meta.json": "f4ccf3949cb6c57f466474b1194ed37e9613dc735b746c1fc521dca9901c6441",
+   "witness.bin": "7b6d0fb13075dcf426162a2676078d6bc8c467d537de2fe2d2081f2f10105b53"
+  }
+ },
+ {
+  "case_dir": "gk301-00-h10038-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "GasKeyTarget",
+  "source": "gk301/mutants/00-h10038-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bc6e5933afde457923add776151a4c64138935eed09cc42ca3428199d9fee76e",
+   "meta.json": "d2e9ec8bdeb7fccba060eb83724eb7cf699194adae0699bbd74dff3a9c5f7b9b",
+   "witness.bin": "7b6d0fb13075dcf426162a2676078d6bc8c467d537de2fe2d2081f2f10105b53"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10020-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10020-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.03.r0.state-init-missing-global-code:included",
+   "successor.rollback-refund.04.r0.state-init-then-emit:included",
+   "successor.rollback-refund.05.r0.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.06.r0.create-use-global-init-fail:included",
+   "successor.rollback-refund.07.r0.emit-then-panic:included",
+   "successor.rollback-refund.08.r0.emit-to-failing-callee:included",
+   "successor.rollback-refund.09.r0.create-deploy-init-ok:included",
+   "successor.rollback-refund.10.r0.create-deploy-init-fail:included",
+   "successor.rollback-refund.11.r0.call-fail-deposit-refund:included",
+   "successor.rollback-refund.12.r0.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "f5848941bb69081b49d380b4690a392de7bad29880e137b73bfc5b912fda26fe",
+   "meta.json": "077dd0a054e6c61c2d18ae9e2dd18ec7d71a0fa06e38015cf36ca147ed052a1e",
+   "witness.bin": "6c6d3d6361aeea1b684e7bd40ec4bf2e5953e06c8af4eaaa4632c0272f3bad3f"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10020-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10020-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "99ff23ed9f262d4a3c8b08a7bee0e205bfde3d1177bd63689029b24f0eae0eb0",
+   "meta.json": "79c9a09da3518c4fe4d1026532adf580d34c71ef6880579ce7e1ef2020033b2f",
+   "witness.bin": "6c6d3d6361aeea1b684e7bd40ec4bf2e5953e06c8af4eaaa4632c0272f3bad3f"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10020-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10020-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2e2ea3701a645ff2fe8ab0b09a25b5349f8a416351f8ed2e3e6c73657bf063d2",
+   "meta.json": "3d4ef26512ef201f1a82edea065b41e18a21bf0233eab99aa00bb9f7360861dc",
+   "witness.bin": "6c6d3d6361aeea1b684e7bd40ec4bf2e5953e06c8af4eaaa4632c0272f3bad3f"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10020-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10020-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "fc915e70e8bbd73cbdc0714fd0a2520b6531208312ae33acc0fdb53542638dc8",
+   "meta.json": "70bc5cf04daaf54b2b6b2fcaea9b0d02276f343aa0649c16481bac5c9c068333",
+   "witness.bin": "6c6d3d6361aeea1b684e7bd40ec4bf2e5953e06c8af4eaaa4632c0272f3bad3f"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10021-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10021-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.03.r0.state-init-missing-global-code:included",
+   "successor.rollback-refund.04.r0.state-init-then-emit:included",
+   "successor.rollback-refund.05.r0.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.06.r0.create-use-global-init-fail:included",
+   "successor.rollback-refund.07.r0.emit-then-panic:included",
+   "successor.rollback-refund.08.r0.emit-to-failing-callee:included",
+   "successor.rollback-refund.09.r0.create-deploy-init-ok:included",
+   "successor.rollback-refund.10.r0.create-deploy-init-fail:included",
+   "successor.rollback-refund.11.r0.call-fail-deposit-refund:included",
+   "successor.rollback-refund.12.r0.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "4f5cb4d0f0831c1a667195ff6a422b6d7ca0eee55a73e60612e20fd916fffdf7",
+   "meta.json": "e415afcd71c7186773278f39b8fa6758f1761c7d2932c9ccebcd9f8f74a540e8",
+   "witness.bin": "35ad8693387da4eeaeca84a509644c3f65811f4c59869f830ec7cf48ddee76bd"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10021-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10021-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8a26ff4b2b54fa7d1519f79520657a26d50be4f543a21c6c4e0830a5b665a4a0",
+   "meta.json": "51d2ca4126f268b0a0b7b01359c8662946b42acf36d1f69acb07f210a1e7fce4",
+   "witness.bin": "35ad8693387da4eeaeca84a509644c3f65811f4c59869f830ec7cf48ddee76bd"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10021-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10021-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ea92228e057bf12b73fa4edc147d71e34af98417d85a5d315aeec0d46029d70f",
+   "meta.json": "4eb4439b36bf11fe5a384f5eb81e05a109b8902dea8de7e6d88d8cd2ecd8ae94",
+   "witness.bin": "35ad8693387da4eeaeca84a509644c3f65811f4c59869f830ec7cf48ddee76bd"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10021-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10021-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "672a1967d72b64e102c8a7aa6359f4c3ebfaa7056cd5b8f3e9363e9e39b2d696",
+   "meta.json": "b50e7e58f7af10eed34957028b444f033bcff64f32e2bf95d6ea047b7d9ca708",
+   "witness.bin": "35ad8693387da4eeaeca84a509644c3f65811f4c59869f830ec7cf48ddee76bd"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10026-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10026-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.08.r0.emit-to-failing-callee:applied",
+   "successor.rollback-refund.15.r1.state-init-missing-global-code:included",
+   "successor.rollback-refund.16.r1.state-init-then-emit:included",
+   "successor.rollback-refund.17.r1.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.18.r1.create-use-global-init-fail:included",
+   "successor.rollback-refund.19.r1.emit-then-panic:included",
+   "successor.rollback-refund.20.r1.emit-to-failing-callee:included",
+   "successor.rollback-refund.21.r1.create-deploy-init-ok:included",
+   "successor.rollback-refund.22.r1.create-deploy-init-fail:included",
+   "successor.rollback-refund.23.r1.call-fail-deposit-refund:included",
+   "successor.rollback-refund.24.r1.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "38bc06ec83e7bfdae2b732d03a746cd35ac327fedcb03f59d429368a672cad49",
+   "meta.json": "d5614c704dc6621ff88b1352a7df5b11bf1a07d97038af24b3a622e869193049",
+   "witness.bin": "42ee528c10a1d9196aace1b7a978332366897aae6861c71c11ca4b353eee99c1"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10026-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10026-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "34453c8bf3110e3130303fae9dc6fc6519206e65649501de241a88dea2d28288",
+   "meta.json": "3e2f5ff00936f10a4fb97d1d713525f0ddbc7299b6866b85d95531b498128ad2",
+   "witness.bin": "42ee528c10a1d9196aace1b7a978332366897aae6861c71c11ca4b353eee99c1"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10026-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10026-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ee00d2a5b9f54850aebf3312023e95599ed3316ebeecc30f7665e2402c7b6330",
+   "meta.json": "865302c369408994dfb4ff7febb4e40f1f5a1254ee97f45a22721f0ab0fdc4a5",
+   "witness.bin": "42ee528c10a1d9196aace1b7a978332366897aae6861c71c11ca4b353eee99c1"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10026-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10026-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9d5062c44b66e3ef10595bd214d4cd87d86fea4a21641f174bec2b7e4653e78e",
+   "meta.json": "bd2cddea3a56641283e80bcf3e1852ebb25e25f266c6e17d23162e0ab0342212",
+   "witness.bin": "42ee528c10a1d9196aace1b7a978332366897aae6861c71c11ca4b353eee99c1"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10027-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10027-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.15.r1.state-init-missing-global-code:included",
+   "successor.rollback-refund.16.r1.state-init-then-emit:included",
+   "successor.rollback-refund.17.r1.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.18.r1.create-use-global-init-fail:included",
+   "successor.rollback-refund.19.r1.emit-then-panic:included",
+   "successor.rollback-refund.20.r1.emit-to-failing-callee:included",
+   "successor.rollback-refund.21.r1.create-deploy-init-ok:included",
+   "successor.rollback-refund.22.r1.create-deploy-init-fail:included",
+   "successor.rollback-refund.23.r1.call-fail-deposit-refund:included",
+   "successor.rollback-refund.24.r1.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "604eb9d563d75633442fe180b74fcbe9d25ce7506ef01b00f1a2343f87837e60",
+   "meta.json": "c64677057b7d526f9fe2a13119c00f00e98d449ffb6d934ccaa1ad975ffe6e00",
+   "witness.bin": "33784457e292ca2925abacd18a6ee68c45aad53a53ff8667caaef6752c863fc8"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10027-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10027-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "21c510d0a0a29cdd29a726b5b3f7901801d94d5d1f62e5afe0611aacafddf0bb",
+   "meta.json": "9e18c086a0c91548a25bed98e9c1f67316ffe4c1d103ea7587aac0d6d3f0afab",
+   "witness.bin": "33784457e292ca2925abacd18a6ee68c45aad53a53ff8667caaef6752c863fc8"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10027-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10027-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "36e70996413b5e4544c7d1b0c651087bc77443cbfba774d5a2fddeb5cdfc970f",
+   "meta.json": "a31f5fe5a4c9cdb3155d5b053ea843a0ec461e81200134f2eb9cb955e6d21048",
+   "witness.bin": "33784457e292ca2925abacd18a6ee68c45aad53a53ff8667caaef6752c863fc8"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10027-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10027-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2ced4ec266f15097630cc2eae60e3e6db4bcd599c40277d604ad080b2421f195",
+   "meta.json": "ab8ffb25be995717c7ec393b37cd77b16692c9fcb0448ed378613c427420f29c",
+   "witness.bin": "33784457e292ca2925abacd18a6ee68c45aad53a53ff8667caaef6752c863fc8"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10032-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10032-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.20.r1.emit-to-failing-callee:applied",
+   "successor.rollback-refund.27.r2.state-init-missing-global-code:included",
+   "successor.rollback-refund.28.r2.state-init-then-emit:included",
+   "successor.rollback-refund.29.r2.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.30.r2.create-use-global-init-fail:included",
+   "successor.rollback-refund.31.r2.emit-then-panic:included",
+   "successor.rollback-refund.32.r2.emit-to-failing-callee:included",
+   "successor.rollback-refund.33.r2.create-deploy-init-ok:included",
+   "successor.rollback-refund.34.r2.create-deploy-init-fail:included",
+   "successor.rollback-refund.35.r2.call-fail-deposit-refund:included",
+   "successor.rollback-refund.36.r2.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "7bce3afc771d69bb27544693bd640c8e26a25d90e21d34e6ab5f309498a3a30c",
+   "meta.json": "a745627422f8d0edb551643905a77a2139e0e70a0887913f5807af3e9a06691b",
+   "witness.bin": "959f5df30ae0da249ac7bf03ea8831d7f92bcf92b842515f88c6ebb369f866da"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10032-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10032-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0c0f8b411f34abf152e54927560df6418d49580329351e8ed3bb778dc2151f47",
+   "meta.json": "bb58e76aae1aebcac3b65dc746ea3dae2b6af7333bd261b7f099c28dd4a10733",
+   "witness.bin": "959f5df30ae0da249ac7bf03ea8831d7f92bcf92b842515f88c6ebb369f866da"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10032-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10032-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "72e3dfbdc493012d9d0b2603ea5351e1e053a54094b9d64c7ffdc25600116c8e",
+   "meta.json": "f934f5ae64dcd726d72c428c25b1d3402a5d2a070f9bf64e98d040f145a8f4b5",
+   "witness.bin": "959f5df30ae0da249ac7bf03ea8831d7f92bcf92b842515f88c6ebb369f866da"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10032-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10032-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c0fbc947089d5b51323c45caf359751bfd145ba4eb8a25616ef51bc5eae36592",
+   "meta.json": "3da3890110b5f5ca6d95f1e42c0883cc2e52a93da40c8c59704c01cf7857e1cf",
+   "witness.bin": "959f5df30ae0da249ac7bf03ea8831d7f92bcf92b842515f88c6ebb369f866da"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10033-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10033-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.27.r2.state-init-missing-global-code:included",
+   "successor.rollback-refund.28.r2.state-init-then-emit:included",
+   "successor.rollback-refund.29.r2.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.30.r2.create-use-global-init-fail:included",
+   "successor.rollback-refund.31.r2.emit-then-panic:included",
+   "successor.rollback-refund.32.r2.emit-to-failing-callee:included",
+   "successor.rollback-refund.33.r2.create-deploy-init-ok:included",
+   "successor.rollback-refund.34.r2.create-deploy-init-fail:included",
+   "successor.rollback-refund.35.r2.call-fail-deposit-refund:included",
+   "successor.rollback-refund.36.r2.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "67cb470967cb085de0420baa011d264b63b17818f6150cf72e1b3cf29146a263",
+   "meta.json": "cc21e274c5855ebacf3ecf72d032c3ce92f989db0ec33e777ef7adaf891e01b8",
+   "witness.bin": "0518a4cd7ad281adb4e8f8877c5c2cdc36dfa3308355b383eae99ac3bbae4db5"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10033-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10033-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "51bdfd6468b4b6a559208dc83c9ae00dae337eeafe47f9de3c5829f7690237a9",
+   "meta.json": "484d8e6ab05375c1c984283613e2dccdf4bdd8095ac77f422afcca6418a6f1b8",
+   "witness.bin": "0518a4cd7ad281adb4e8f8877c5c2cdc36dfa3308355b383eae99ac3bbae4db5"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10033-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10033-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b04ff5d474f700b748e8cd0f1cb9ae4bc512b54af3ebcd9e24fe74bc148e7a43",
+   "meta.json": "42353813fe124de1e2e10e4dd786ac304a538c848a10fd6f296404c0f02f97ef",
+   "witness.bin": "0518a4cd7ad281adb4e8f8877c5c2cdc36dfa3308355b383eae99ac3bbae4db5"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10033-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10033-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0a9844f31018f8e7b346c105f7b40410f7371c2b6c0006daa147984a7816e2f3",
+   "meta.json": "009f5b74137656a3a6ef3192e9957f59cf12756d0def17c85391b041e6e86441",
+   "witness.bin": "0518a4cd7ad281adb4e8f8877c5c2cdc36dfa3308355b383eae99ac3bbae4db5"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10038-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10038-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.32.r2.emit-to-failing-callee:applied",
+   "successor.rollback-refund.39.r3.state-init-missing-global-code:included",
+   "successor.rollback-refund.40.r3.state-init-then-emit:included",
+   "successor.rollback-refund.41.r3.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.42.r3.create-use-global-init-fail:included",
+   "successor.rollback-refund.43.r3.emit-then-panic:included",
+   "successor.rollback-refund.44.r3.emit-to-failing-callee:included",
+   "successor.rollback-refund.45.r3.create-deploy-init-ok:included",
+   "successor.rollback-refund.46.r3.create-deploy-init-fail:included",
+   "successor.rollback-refund.47.r3.call-fail-deposit-refund:included",
+   "successor.rollback-refund.48.r3.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "fc7babca15ca31c3b4138bcd36d098c7c578c5e5731b3af0682de0e29e61d412",
+   "meta.json": "9874866a2c918e1d7d14d190d29e6b4338d8c60e1e2dbf11b37e2efaddf3e174",
+   "witness.bin": "2a2e1b74f38c90d445d29b50c1ddbddeb53a4dc7ced9d408e78dcfb20978d941"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10038-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10038-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "3952e62c627f6cb0830e9a9ee4acb7d0e5b1aba023187b7ec8035716f19c3e75",
+   "meta.json": "4912653ea62daecba02a56c11b95b3481d99bef95ed5db4da428b35a0ffc1668",
+   "witness.bin": "2a2e1b74f38c90d445d29b50c1ddbddeb53a4dc7ced9d408e78dcfb20978d941"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10038-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10038-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4f712db8eb889eca3727061aa2f398ab12730d1f0e061b41932fef073703b2f4",
+   "meta.json": "dd6179c7e7fbc39289fdb134e50934c52624941622f1e993b444a97383fd661c",
+   "witness.bin": "2a2e1b74f38c90d445d29b50c1ddbddeb53a4dc7ced9d408e78dcfb20978d941"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10038-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10038-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2a0b44993dc56cadf6efdfa87dc0e8d3f8a442a2d25f2a46a375e5ac4caa5ed7",
+   "meta.json": "ea76a3fd7b4249aa2ea2b28e6719fef4ba5011f9cfa708d74ec25d2d1daee8f2",
+   "witness.bin": "2a2e1b74f38c90d445d29b50c1ddbddeb53a4dc7ced9d408e78dcfb20978d941"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10039-s1",
+  "kind": "honest",
+  "scenario": "RollbackRefund",
+  "source": "rb401/ood/00-h10039-s1",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.rollback-refund.39.r3.state-init-missing-global-code:included",
+   "successor.rollback-refund.40.r3.state-init-then-emit:included",
+   "successor.rollback-refund.41.r3.state-init-insufficient-deposit:included",
+   "successor.rollback-refund.42.r3.create-use-global-init-fail:included",
+   "successor.rollback-refund.43.r3.emit-then-panic:included",
+   "successor.rollback-refund.44.r3.emit-to-failing-callee:included",
+   "successor.rollback-refund.45.r3.create-deploy-init-ok:included",
+   "successor.rollback-refund.46.r3.create-deploy-init-fail:included",
+   "successor.rollback-refund.47.r3.call-fail-deposit-refund:included",
+   "successor.rollback-refund.48.r3.ordinary-transfer:included"
+  ],
+  "files": {
+   "claim.bin": "c68700a94ada3b3bc762585334e27fa778dcfa311055226b6dbbcf0cb600f098",
+   "meta.json": "fc7125e59ec724b70da8ae37040edabcd0e2e1eb48e1dcaf4ba7dbef3474e2ce",
+   "witness.bin": "b9353029c8f917736301d2bfb52f493603ee1b99195a1bad5062cd6add37135f"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10039-s1-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10039-s1-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "de2e5574d3793790639bcc4289575244577edda839776d31c35760daf95fc276",
+   "meta.json": "fd5170441b6d692096af90a8bbbc570daee23e3441ea7dc2193959042e0a4a82",
+   "witness.bin": "b9353029c8f917736301d2bfb52f493603ee1b99195a1bad5062cd6add37135f"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10039-s1-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10039-s1-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5775ed123b03f9aa9f0afeab1e5821179a9b7b0ae241f7950a995f8936b92d1b",
+   "meta.json": "1a0bd1b9b3ccaea2f6d9d59c5f81ff90daf830bef7e4811ec52e9e0f518c6047",
+   "witness.bin": "b9353029c8f917736301d2bfb52f493603ee1b99195a1bad5062cd6add37135f"
+  }
+ },
+ {
+  "case_dir": "rb401-00-h10039-s1-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RollbackRefund",
+  "source": "rb401/mutants/00-h10039-s1-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "56ea7d0ba9a322f4959c1be4245ffe0c0ed3141fc76988494c085c68adbc0ca0",
+   "meta.json": "0baad4b2f8fc29fffc0585283497a527a0a80c71a6a0903260679f2c37183081",
+   "witness.bin": "b9353029c8f917736301d2bfb52f493603ee1b99195a1bad5062cd6add37135f"
+  }
+ }
+]

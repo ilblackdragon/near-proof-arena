@@ -1,0 +1,3826 @@
+{
+ "totals": {
+  "YieldCongestion": {
+   "runs": 5,
+   "honest": 685,
+   "mutants": 6005,
+   "allFeatures.cases": 6690,
+   "allFeatures.disagreements": 0,
+   "allFeatures.verdict_compared_agree": 6550,
+   "storageResolution.cases": 6690,
+   "storageResolution.disagreements": 0,
+   "storageResolution.verdict_compared_agree": 6550,
+   "blind.match": 685,
+   "allFeatures.verdict_agree_outside_domain": 140,
+   "storageResolution.domain_exclusion_asserted": 117,
+   "storageResolution.verdict_agree_outside_domain": 23
+  },
+  "CurveCallbacks": {
+   "runs": 8,
+   "honest": 1944,
+   "mutants": 41100,
+   "allFeatures.cases": 9643,
+   "allFeatures.disagreements": 4,
+   "allFeatures.domain_exclusion_asserted": 2,
+   "allFeatures.domain_exclusion_where_in_domain": 4,
+   "allFeatures.verdict_agree_outside_domain": 5977,
+   "allFeatures.verdict_compared_agree": 3660,
+   "blind.match": 1943,
+   "blind.genesis": 1
+  },
+  "GenesisTx": {
+   "runs": 4,
+   "honest": 267,
+   "mutants": 7882,
+   "allFeatures.cases": 8149,
+   "allFeatures.disagreements": 0,
+   "allFeatures.verdict_agree_outside_domain": 2637,
+   "allFeatures.verdict_compared_agree": 5512,
+   "blind.match": 207,
+   "blind.genesis": 60
+  },
+  "GasKeyTarget": {
+   "runs": 4,
+   "honest": 224,
+   "mutants": 3697,
+   "allFeatures.cases": 3921,
+   "allFeatures.disagreements": 3,
+   "allFeatures.verdict_compared_agree": 3699,
+   "blind.match": 224,
+   "allFeatures.verdict_agree_outside_domain": 219,
+   "allFeatures.domain_exclusion_where_in_domain": 3
+  },
+  "RollbackRefund": {
+   "runs": 4,
+   "honest": 229,
+   "mutants": 4550,
+   "allFeatures.cases": 4779,
+   "allFeatures.disagreements": 2,
+   "allFeatures.verdict_agree_outside_domain": 2862,
+   "allFeatures.verdict_compared_agree": 1915,
+   "blind.match": 229,
+   "allFeatures.domain_exclusion_unasserted": 2
+  }
+ },
+ "runs": [
+  {
+   "run": "yc101",
+   "scenario": "YieldCongestion",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 101000306, n_shards: 4, seats: 3, gas_limit_tgas: 10, epoch_length: 20, blocks: 235, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 141,
+    "mutants": 1218,
+    "honest_nearcore": {
+     "ok": 141
+    }
+   },
+   "facts": {
+    "yield_shard_headers_with_delayed_gas": 232,
+    "max_delayed_receipts_gas": 11873894717806531,
+    "headers_with_buffered_gas": 6,
+    "caller_shard_headers_with_buffered_gas": 1,
+    "max_buffered_receipts_gas": 159888495507130,
+    "yield_receipts_applied_with_delayed_queue": 46,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1359,
+     "verdicts": {
+      "accept": 391,
+      "reject": 968
+     },
+     "partition": {
+      "verdict_compared_agree": 1359
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_compared_agree": 141,
+      "mutant accept verdict_compared_agree": 250,
+      "mutant reject verdict_compared_agree": 968
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 20,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 20,
+      "c.extra_block lean=reject nearcore_ok=False": 20,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 20,
+      "code.drop lean=reject nearcore_ok=False": 18,
+      "code.duplicate lean=accept nearcore_ok=True": 18,
+      "code.extra_garbage lean=accept nearcore_ok=True": 20,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 20,
+      "code.flip lean=reject nearcore_ok=False": 18,
+      "code.truncate lean=reject nearcore_ok=False": 18,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 19,
+      "hdr.congestion lean=reject nearcore_ok=False": 57,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 20,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 20,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 20,
+      "hdr.height_created lean=accept nearcore_ok=True": 20,
+      "hdr.height_included lean=accept nearcore_ok=True": 20,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 20,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 20,
+      "hdr.proposals lean=reject nearcore_ok=False": 19,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 19,
+      "hdr.tx_root lean=reject nearcore_ok=False": 20,
+      "hdr2.congestion lean=reject nearcore_ok=False": 20,
+      "hdr2.proposals lean=reject nearcore_ok=False": 2,
+      "t.chain_id lean=accept nearcore_ok=True": 20,
+      "t.minimum_stake lean=accept nearcore_ok=True": 20,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 20,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 67,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 20,
+      "w.base_state lean=accept nearcore_ok=True": 20,
+      "w.base_state lean=reject nearcore_ok=False": 20,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 20,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 20,
+      "w.epoch_id lean=reject nearcore_ok=False": 20,
+      "w.extra_proof lean=reject nearcore_ok=False": 20,
+      "w.main_block_hash lean=accept nearcore_ok=True": 20,
+      "w.main_post_root lean=reject nearcore_ok=False": 20,
+      "w.new_tx lean=accept nearcore_ok=True": 32,
+      "w.new_tx lean=reject nearcore_ok=False": 16,
+      "w.trailing_byte lean=reject nearcore_ok=False": 20,
+      "w.tx lean=reject nearcore_ok=False": 74,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 20
+     }
+    },
+    "storageResolution": {
+     "status": "pass",
+     "cases": 1359,
+     "verdicts": {
+      "accept": 391,
+      "reject": 968
+     },
+     "partition": {
+      "verdict_compared_agree": 1359
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_compared_agree": 141,
+      "mutant accept verdict_compared_agree": 250,
+      "mutant reject verdict_compared_agree": 968
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 20,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 20,
+      "c.extra_block lean=reject nearcore_ok=False": 20,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 20,
+      "code.drop lean=reject nearcore_ok=False": 18,
+      "code.duplicate lean=accept nearcore_ok=True": 18,
+      "code.extra_garbage lean=accept nearcore_ok=True": 20,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 20,
+      "code.flip lean=reject nearcore_ok=False": 18,
+      "code.truncate lean=reject nearcore_ok=False": 18,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 19,
+      "hdr.congestion lean=reject nearcore_ok=False": 57,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 20,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 20,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 20,
+      "hdr.height_created lean=accept nearcore_ok=True": 20,
+      "hdr.height_included lean=accept nearcore_ok=True": 20,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 20,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 20,
+      "hdr.proposals lean=reject nearcore_ok=False": 19,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 19,
+      "hdr.tx_root lean=reject nearcore_ok=False": 20,
+      "hdr2.congestion lean=reject nearcore_ok=False": 20,
+      "hdr2.proposals lean=reject nearcore_ok=False": 2,
+      "t.chain_id lean=accept nearcore_ok=True": 20,
+      "t.minimum_stake lean=accept nearcore_ok=True": 20,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 20,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 67,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 20,
+      "w.base_state lean=accept nearcore_ok=True": 20,
+      "w.base_state lean=reject nearcore_ok=False": 20,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 20,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 20,
+      "w.epoch_id lean=reject nearcore_ok=False": 20,
+      "w.extra_proof lean=reject nearcore_ok=False": 20,
+      "w.main_block_hash lean=accept nearcore_ok=True": 20,
+      "w.main_post_root lean=reject nearcore_ok=False": 20,
+      "w.new_tx lean=accept nearcore_ok=True": 32,
+      "w.new_tx lean=reject nearcore_ok=False": 16,
+      "w.trailing_byte lean=reject nearcore_ok=False": 20,
+      "w.tx lean=reject nearcore_ok=False": 74,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 20
+     }
+    }
+   },
+   "blind": {
+    "cases": 141,
+    "graded": 141,
+    "counts": {
+     "match": 141
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 41,
+     "congestion_buffered_gas": 2,
+     "congestion_delayed_gas": 123,
+     "congestion_receipt_bytes": 123,
+     "gas_used": 141,
+     "proposals": 2
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "yc102",
+   "scenario": "YieldCongestion",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 102000310, n_shards: 5, seats: 8, gas_limit_tgas: 60, epoch_length: 20, blocks: 260, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 134,
+    "mutants": 1206,
+    "honest_nearcore": {
+     "ok": 134
+    }
+   },
+   "facts": {
+    "yield_shard_headers_with_delayed_gas": 108,
+    "max_delayed_receipts_gas": 6114947313776463,
+    "headers_with_buffered_gas": 335,
+    "caller_shard_headers_with_buffered_gas": 60,
+    "max_buffered_receipts_gas": 558876081436520,
+    "yield_receipts_applied_with_delayed_queue": 37,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1340,
+     "verdicts": {
+      "accept": 382,
+      "reject": 958
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 76,
+      "verdict_compared_agree": 1264
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 5,
+      "honest accept verdict_compared_agree": 129,
+      "mutant accept verdict_agree_outside_domain": 13,
+      "mutant accept verdict_compared_agree": 235,
+      "mutant reject verdict_agree_outside_domain": 58,
+      "mutant reject verdict_compared_agree": 900
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 19,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 19,
+      "c.extra_block lean=reject nearcore_ok=False": 19,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 19,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 19,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 19,
+      "code.drop lean=reject nearcore_ok=False": 25,
+      "code.duplicate lean=accept nearcore_ok=True": 17,
+      "code.extra_garbage lean=accept nearcore_ok=True": 19,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 19,
+      "code.flip lean=reject nearcore_ok=False": 25,
+      "code.none lean=reject nearcore_ok=False": 7,
+      "code.reorder lean=accept nearcore_ok=True": 7,
+      "code.truncate lean=reject nearcore_ok=False": 17,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 19,
+      "hdr.congestion lean=reject nearcore_ok=False": 57,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 19,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 19,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 19,
+      "hdr.height_created lean=accept nearcore_ok=True": 19,
+      "hdr.height_included lean=accept nearcore_ok=True": 19,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 19,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 19,
+      "hdr.proposals lean=reject nearcore_ok=False": 19,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 19,
+      "hdr.tx_root lean=reject nearcore_ok=False": 19,
+      "hdr2.congestion lean=reject nearcore_ok=False": 18,
+      "t.chain_id lean=accept nearcore_ok=True": 12,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 19,
+      "t.rs_params lean=reject nearcore_ok=False": 19,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 4,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 43,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 19,
+      "w.base_state lean=accept nearcore_ok=True": 19,
+      "w.base_state lean=reject nearcore_ok=False": 19,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 19,
+      "w.drop_node lean=accept nearcore_ok=True": 1,
+      "w.drop_node lean=reject nearcore_ok=False": 153,
+      "w.drop_proof lean=reject nearcore_ok=False": 19,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 19,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 19,
+      "w.epoch_id lean=reject nearcore_ok=False": 19,
+      "w.extra_proof lean=reject nearcore_ok=False": 19,
+      "w.implicit lean=reject nearcore_ok=False": 9,
+      "w.main_block_hash lean=accept nearcore_ok=True": 19,
+      "w.main_post_root lean=reject nearcore_ok=False": 19,
+      "w.new_tx lean=accept nearcore_ok=True": 36,
+      "w.new_tx lean=reject nearcore_ok=False": 18,
+      "w.trailing_byte lean=reject nearcore_ok=False": 19,
+      "w.tx lean=reject nearcore_ok=False": 53,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 19
+     }
+    },
+    "storageResolution": {
+     "status": "pass",
+     "cases": 1340,
+     "verdicts": {
+      "accept": 364,
+      "out_of_domain": 75,
+      "reject": 901
+     },
+     "partition": {
+      "domain_exclusion_asserted": 75,
+      "verdict_agree_outside_domain": 1,
+      "verdict_compared_agree": 1264
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_compared_agree": 129,
+      "honest out_of_domain domain_exclusion_asserted": 5,
+      "mutant accept verdict_compared_agree": 235,
+      "mutant out_of_domain domain_exclusion_asserted": 70,
+      "mutant reject verdict_agree_outside_domain": 1,
+      "mutant reject verdict_compared_agree": 900
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=out_of_domain nearcore_ok=False": 1,
+      "c.drop_last_block lean=reject nearcore_ok=False": 18,
+      "c.epoch_start_flip lean=out_of_domain nearcore_ok=False": 1,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 18,
+      "c.extra_block lean=out_of_domain nearcore_ok=False": 1,
+      "c.extra_block lean=reject nearcore_ok=False": 18,
+      "c.inner_rest_flip lean=out_of_domain nearcore_ok=False": 1,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_height_flip lean=out_of_domain nearcore_ok=False": 1,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_inner_flip lean=out_of_domain nearcore_ok=False": 1,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 18,
+      "code.drop lean=out_of_domain nearcore_ok=False": 1,
+      "code.drop lean=reject nearcore_ok=False": 24,
+      "code.duplicate lean=accept nearcore_ok=True": 16,
+      "code.duplicate lean=out_of_domain nearcore_ok=True": 1,
+      "code.extra_garbage lean=accept nearcore_ok=True": 18,
+      "code.extra_garbage lean=out_of_domain nearcore_ok=True": 1,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 18,
+      "code.extra_unneeded lean=out_of_domain nearcore_ok=True": 1,
+      "code.flip lean=out_of_domain nearcore_ok=False": 1,
+      "code.flip lean=reject nearcore_ok=False": 24,
+      "code.none lean=reject nearcore_ok=False": 7,
+      "code.reorder lean=accept nearcore_ok=True": 7,
+      "code.truncate lean=out_of_domain nearcore_ok=False": 1,
+      "code.truncate lean=reject nearcore_ok=False": 16,
+      "hdr.bandwidth_requests lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 18,
+      "hdr.congestion lean=out_of_domain nearcore_ok=False": 3,
+      "hdr.congestion lean=reject nearcore_ok=False": 54,
+      "hdr.encoded_length lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 18,
+      "hdr.encoded_merkle_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 18,
+      "hdr.gas_limit lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 18,
+      "hdr.height_created lean=accept nearcore_ok=True": 18,
+      "hdr.height_created lean=out_of_domain nearcore_ok=True": 1,
+      "hdr.height_included lean=accept nearcore_ok=True": 18,
+      "hdr.height_included lean=out_of_domain nearcore_ok=True": 1,
+      "hdr.prev_balance_burnt lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 18,
+      "hdr.prev_gas_used lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outcome_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outgoing_receipts_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_state_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 18,
+      "hdr.proposals lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.proposals lean=reject nearcore_ok=False": 18,
+      "hdr.proposed_split lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 18,
+      "hdr.tx_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.tx_root lean=reject nearcore_ok=False": 18,
+      "hdr2.congestion lean=out_of_domain nearcore_ok=False": 1,
+      "hdr2.congestion lean=reject nearcore_ok=False": 17,
+      "t.chain_id lean=accept nearcore_ok=True": 11,
+      "t.chain_id lean=out_of_domain nearcore_ok=True": 1,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 18,
+      "t.minimum_stake lean=out_of_domain nearcore_ok=True": 1,
+      "t.rs_params lean=out_of_domain nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 18,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 4,
+      "t.tx_valid_flip lean=out_of_domain nearcore_ok=False": 6,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 37,
+      "w.applied_receipts_hash lean=out_of_domain nearcore_ok=False": 1,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 18,
+      "w.base_state lean=accept nearcore_ok=True": 18,
+      "w.base_state lean=out_of_domain nearcore_ok=False": 1,
+      "w.base_state lean=out_of_domain nearcore_ok=True": 1,
+      "w.base_state lean=reject nearcore_ok=False": 18,
+      "w.corrupt_proof lean=out_of_domain nearcore_ok=False": 1,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 18,
+      "w.drop_node lean=accept nearcore_ok=True": 1,
+      "w.drop_node lean=out_of_domain nearcore_ok=False": 12,
+      "w.drop_node lean=reject nearcore_ok=False": 141,
+      "w.drop_proof lean=out_of_domain nearcore_ok=False": 1,
+      "w.drop_proof lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_bad lean=out_of_domain nearcore_ok=False": 1,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 18,
+      "w.dup_key_last_good lean=out_of_domain nearcore_ok=True": 1,
+      "w.epoch_id lean=out_of_domain nearcore_ok=False": 1,
+      "w.epoch_id lean=reject nearcore_ok=False": 18,
+      "w.extra_proof lean=out_of_domain nearcore_ok=False": 1,
+      "w.extra_proof lean=reject nearcore_ok=False": 18,
+      "w.implicit lean=reject nearcore_ok=False": 9,
+      "w.main_block_hash lean=accept nearcore_ok=True": 18,
+      "w.main_block_hash lean=out_of_domain nearcore_ok=True": 1,
+      "w.main_post_root lean=out_of_domain nearcore_ok=False": 1,
+      "w.main_post_root lean=reject nearcore_ok=False": 18,
+      "w.new_tx lean=accept nearcore_ok=True": 34,
+      "w.new_tx lean=out_of_domain nearcore_ok=False": 1,
+      "w.new_tx lean=out_of_domain nearcore_ok=True": 2,
+      "w.new_tx lean=reject nearcore_ok=False": 17,
+      "w.trailing_byte lean=out_of_domain nearcore_ok=False": 1,
+      "w.trailing_byte lean=reject nearcore_ok=False": 18,
+      "w.tx lean=out_of_domain nearcore_ok=False": 3,
+      "w.tx lean=reject nearcore_ok=False": 50,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 18,
+      "w.unsorted_keys lean=out_of_domain nearcore_ok=True": 1
+     }
+    }
+   },
+   "blind": {
+    "cases": 134,
+    "graded": 134,
+    "counts": {
+     "match": 134
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 37,
+     "congestion_buffered_gas": 29,
+     "congestion_delayed_gas": 77,
+     "congestion_receipt_bytes": 88,
+     "gas_used": 134,
+     "implicit_transitions": 12,
+     "proposals": 6
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "yc103",
+   "scenario": "YieldCongestion",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 103000318, n_shards: 4, seats: 100, gas_limit_tgas: 60, epoch_length: 30, blocks: 260, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 139,
+    "mutants": 1228,
+    "honest_nearcore": {
+     "ok": 139
+    }
+   },
+   "facts": {
+    "yield_shard_headers_with_delayed_gas": 91,
+    "max_delayed_receipts_gas": 6110424575224226,
+    "headers_with_buffered_gas": 88,
+    "caller_shard_headers_with_buffered_gas": 19,
+    "max_buffered_receipts_gas": 412355463555844,
+    "yield_receipts_applied_with_delayed_queue": 37,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1367,
+     "verdicts": {
+      "accept": 394,
+      "reject": 973
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 62,
+      "verdict_compared_agree": 1305
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 3,
+      "honest accept verdict_compared_agree": 136,
+      "mutant accept verdict_agree_outside_domain": 13,
+      "mutant accept verdict_compared_agree": 242,
+      "mutant reject verdict_agree_outside_domain": 46,
+      "mutant reject verdict_compared_agree": 927
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 20,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 20,
+      "c.extra_block lean=reject nearcore_ok=False": 20,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 20,
+      "code.drop lean=reject nearcore_ok=False": 28,
+      "code.duplicate lean=accept nearcore_ok=True": 19,
+      "code.extra_garbage lean=accept nearcore_ok=True": 20,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 20,
+      "code.flip lean=reject nearcore_ok=False": 28,
+      "code.none lean=reject nearcore_ok=False": 8,
+      "code.reorder lean=accept nearcore_ok=True": 8,
+      "code.truncate lean=reject nearcore_ok=False": 19,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 20,
+      "hdr.congestion lean=reject nearcore_ok=False": 60,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 20,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 20,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 20,
+      "hdr.height_created lean=accept nearcore_ok=True": 20,
+      "hdr.height_included lean=accept nearcore_ok=True": 20,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 20,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 20,
+      "hdr.proposals lean=reject nearcore_ok=False": 20,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 20,
+      "hdr.tx_root lean=reject nearcore_ok=False": 20,
+      "hdr2.congestion lean=reject nearcore_ok=False": 16,
+      "t.chain_id lean=accept nearcore_ok=True": 13,
+      "t.minimum_stake lean=accept nearcore_ok=True": 20,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 20,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 1,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 57,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 20,
+      "w.base_state lean=accept nearcore_ok=True": 20,
+      "w.base_state lean=reject nearcore_ok=False": 20,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 20,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 20,
+      "w.epoch_id lean=reject nearcore_ok=False": 20,
+      "w.extra_proof lean=reject nearcore_ok=False": 20,
+      "w.main_block_hash lean=accept nearcore_ok=True": 20,
+      "w.main_post_root lean=reject nearcore_ok=False": 20,
+      "w.new_tx lean=accept nearcore_ok=True": 34,
+      "w.new_tx lean=reject nearcore_ok=False": 17,
+      "w.trailing_byte lean=reject nearcore_ok=False": 20,
+      "w.tx lean=reject nearcore_ok=False": 59,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 20
+     }
+    },
+    "storageResolution": {
+     "status": "pass",
+     "cases": 1367,
+     "verdicts": {
+      "accept": 378,
+      "out_of_domain": 41,
+      "reject": 948
+     },
+     "partition": {
+      "domain_exclusion_asserted": 41,
+      "verdict_agree_outside_domain": 21,
+      "verdict_compared_agree": 1305
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_compared_agree": 136,
+      "honest out_of_domain domain_exclusion_asserted": 3,
+      "mutant accept verdict_compared_agree": 242,
+      "mutant out_of_domain domain_exclusion_asserted": 38,
+      "mutant reject verdict_agree_outside_domain": 21,
+      "mutant reject verdict_compared_agree": 927
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 20,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 20,
+      "c.extra_block lean=reject nearcore_ok=False": 20,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 20,
+      "code.drop lean=out_of_domain nearcore_ok=False": 1,
+      "code.drop lean=reject nearcore_ok=False": 27,
+      "code.duplicate lean=accept nearcore_ok=True": 18,
+      "code.duplicate lean=out_of_domain nearcore_ok=True": 1,
+      "code.extra_garbage lean=accept nearcore_ok=True": 19,
+      "code.extra_garbage lean=out_of_domain nearcore_ok=True": 1,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 19,
+      "code.extra_unneeded lean=out_of_domain nearcore_ok=True": 1,
+      "code.flip lean=out_of_domain nearcore_ok=False": 1,
+      "code.flip lean=reject nearcore_ok=False": 27,
+      "code.none lean=reject nearcore_ok=False": 8,
+      "code.reorder lean=accept nearcore_ok=True": 7,
+      "code.reorder lean=out_of_domain nearcore_ok=True": 1,
+      "code.truncate lean=reject nearcore_ok=False": 19,
+      "hdr.bandwidth_requests lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 19,
+      "hdr.congestion lean=out_of_domain nearcore_ok=False": 3,
+      "hdr.congestion lean=reject nearcore_ok=False": 57,
+      "hdr.encoded_length lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 19,
+      "hdr.encoded_merkle_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 19,
+      "hdr.gas_limit lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 19,
+      "hdr.height_created lean=accept nearcore_ok=True": 19,
+      "hdr.height_created lean=out_of_domain nearcore_ok=True": 1,
+      "hdr.height_included lean=accept nearcore_ok=True": 19,
+      "hdr.height_included lean=out_of_domain nearcore_ok=True": 1,
+      "hdr.prev_balance_burnt lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 19,
+      "hdr.prev_gas_used lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outcome_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outgoing_receipts_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_state_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 19,
+      "hdr.proposals lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.proposals lean=reject nearcore_ok=False": 19,
+      "hdr.proposed_split lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 19,
+      "hdr.tx_root lean=out_of_domain nearcore_ok=False": 1,
+      "hdr.tx_root lean=reject nearcore_ok=False": 19,
+      "hdr2.congestion lean=reject nearcore_ok=False": 16,
+      "t.chain_id lean=accept nearcore_ok=True": 13,
+      "t.minimum_stake lean=accept nearcore_ok=True": 19,
+      "t.minimum_stake lean=out_of_domain nearcore_ok=True": 1,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=out_of_domain nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 19,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 1,
+      "t.tx_valid_flip lean=out_of_domain nearcore_ok=False": 4,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 53,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 20,
+      "w.base_state lean=accept nearcore_ok=True": 19,
+      "w.base_state lean=out_of_domain nearcore_ok=False": 1,
+      "w.base_state lean=out_of_domain nearcore_ok=True": 1,
+      "w.base_state lean=reject nearcore_ok=False": 19,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 20,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 19,
+      "w.dup_key_last_good lean=out_of_domain nearcore_ok=True": 1,
+      "w.epoch_id lean=reject nearcore_ok=False": 20,
+      "w.extra_proof lean=reject nearcore_ok=False": 20,
+      "w.main_block_hash lean=accept nearcore_ok=True": 19,
+      "w.main_block_hash lean=out_of_domain nearcore_ok=True": 1,
+      "w.main_post_root lean=out_of_domain nearcore_ok=False": 1,
+      "w.main_post_root lean=reject nearcore_ok=False": 19,
+      "w.new_tx lean=accept nearcore_ok=True": 32,
+      "w.new_tx lean=out_of_domain nearcore_ok=False": 1,
+      "w.new_tx lean=out_of_domain nearcore_ok=True": 2,
+      "w.new_tx lean=reject nearcore_ok=False": 16,
+      "w.trailing_byte lean=reject nearcore_ok=False": 20,
+      "w.tx lean=reject nearcore_ok=False": 59,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 19,
+      "w.unsorted_keys lean=out_of_domain nearcore_ok=True": 1
+     }
+    }
+   },
+   "blind": {
+    "cases": 139,
+    "graded": 139,
+    "counts": {
+     "match": 139
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 45,
+     "congestion_buffered_gas": 14,
+     "congestion_delayed_gas": 82,
+     "congestion_receipt_bytes": 85,
+     "gas_used": 139,
+     "implicit_transitions": 1,
+     "proposals": 6
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "yc104",
+   "scenario": "YieldCongestion",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 104000326, n_shards: 6, seats: 16, gas_limit_tgas: 60, epoch_length: 20, blocks: 260, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 128,
+    "mutants": 1106,
+    "honest_nearcore": {
+     "ok": 128
+    }
+   },
+   "facts": {
+    "yield_shard_headers_with_delayed_gas": 103,
+    "max_delayed_receipts_gas": 5389797982678021,
+    "headers_with_buffered_gas": 415,
+    "caller_shard_headers_with_buffered_gas": 50,
+    "max_buffered_receipts_gas": 523831540061233,
+    "yield_receipts_applied_with_delayed_queue": 37,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1234,
+     "verdicts": {
+      "accept": 355,
+      "reject": 879
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 1,
+      "verdict_compared_agree": 1233
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 1,
+      "honest accept verdict_compared_agree": 127,
+      "mutant accept verdict_compared_agree": 227,
+      "mutant reject verdict_compared_agree": 879
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 18,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 18,
+      "c.extra_block lean=reject nearcore_ok=False": 18,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 18,
+      "code.drop lean=reject nearcore_ok=False": 23,
+      "code.duplicate lean=accept nearcore_ok=True": 18,
+      "code.extra_garbage lean=accept nearcore_ok=True": 18,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 18,
+      "code.flip lean=reject nearcore_ok=False": 23,
+      "code.none lean=reject nearcore_ok=False": 4,
+      "code.reorder lean=accept nearcore_ok=True": 4,
+      "code.truncate lean=reject nearcore_ok=False": 18,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 18,
+      "hdr.congestion lean=reject nearcore_ok=False": 54,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 18,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 18,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 18,
+      "hdr.height_created lean=accept nearcore_ok=True": 18,
+      "hdr.height_included lean=accept nearcore_ok=True": 18,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 18,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 18,
+      "hdr.proposals lean=reject nearcore_ok=False": 18,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 18,
+      "hdr.tx_root lean=reject nearcore_ok=False": 18,
+      "hdr2.congestion lean=reject nearcore_ok=False": 16,
+      "t.chain_id lean=accept nearcore_ok=True": 11,
+      "t.chain_id lean=reject nearcore_ok=False": 2,
+      "t.minimum_stake lean=accept nearcore_ok=True": 18,
+      "t.rs_params lean=reject nearcore_ok=False": 18,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 48,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 18,
+      "w.base_state lean=accept nearcore_ok=True": 18,
+      "w.base_state lean=reject nearcore_ok=False": 18,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 18,
+      "w.drop_node lean=reject nearcore_ok=False": 112,
+      "w.drop_proof lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 18,
+      "w.epoch_id lean=reject nearcore_ok=False": 18,
+      "w.extra_proof lean=reject nearcore_ok=False": 18,
+      "w.implicit lean=reject nearcore_ok=False": 6,
+      "w.main_block_hash lean=accept nearcore_ok=True": 18,
+      "w.main_post_root lean=reject nearcore_ok=False": 18,
+      "w.new_tx lean=accept nearcore_ok=True": 32,
+      "w.new_tx lean=reject nearcore_ok=False": 16,
+      "w.trailing_byte lean=reject nearcore_ok=False": 18,
+      "w.tx lean=reject nearcore_ok=False": 53,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 18
+     }
+    },
+    "storageResolution": {
+     "status": "pass",
+     "cases": 1234,
+     "verdicts": {
+      "accept": 355,
+      "reject": 879
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 1,
+      "verdict_compared_agree": 1233
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 1,
+      "honest accept verdict_compared_agree": 127,
+      "mutant accept verdict_compared_agree": 227,
+      "mutant reject verdict_compared_agree": 879
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 18,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 18,
+      "c.extra_block lean=reject nearcore_ok=False": 18,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 18,
+      "code.drop lean=reject nearcore_ok=False": 23,
+      "code.duplicate lean=accept nearcore_ok=True": 18,
+      "code.extra_garbage lean=accept nearcore_ok=True": 18,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 18,
+      "code.flip lean=reject nearcore_ok=False": 23,
+      "code.none lean=reject nearcore_ok=False": 4,
+      "code.reorder lean=accept nearcore_ok=True": 4,
+      "code.truncate lean=reject nearcore_ok=False": 18,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 18,
+      "hdr.congestion lean=reject nearcore_ok=False": 54,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 18,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 18,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 18,
+      "hdr.height_created lean=accept nearcore_ok=True": 18,
+      "hdr.height_included lean=accept nearcore_ok=True": 18,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 18,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 18,
+      "hdr.proposals lean=reject nearcore_ok=False": 18,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 18,
+      "hdr.tx_root lean=reject nearcore_ok=False": 18,
+      "hdr2.congestion lean=reject nearcore_ok=False": 16,
+      "t.chain_id lean=accept nearcore_ok=True": 11,
+      "t.chain_id lean=reject nearcore_ok=False": 2,
+      "t.minimum_stake lean=accept nearcore_ok=True": 18,
+      "t.rs_params lean=reject nearcore_ok=False": 18,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 48,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 18,
+      "w.base_state lean=accept nearcore_ok=True": 18,
+      "w.base_state lean=reject nearcore_ok=False": 18,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 18,
+      "w.drop_node lean=reject nearcore_ok=False": 112,
+      "w.drop_proof lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 18,
+      "w.epoch_id lean=reject nearcore_ok=False": 18,
+      "w.extra_proof lean=reject nearcore_ok=False": 18,
+      "w.implicit lean=reject nearcore_ok=False": 6,
+      "w.main_block_hash lean=accept nearcore_ok=True": 18,
+      "w.main_post_root lean=reject nearcore_ok=False": 18,
+      "w.new_tx lean=accept nearcore_ok=True": 32,
+      "w.new_tx lean=reject nearcore_ok=False": 16,
+      "w.trailing_byte lean=reject nearcore_ok=False": 18,
+      "w.tx lean=reject nearcore_ok=False": 53,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 18
+     }
+    }
+   },
+   "blind": {
+    "cases": 128,
+    "graded": 128,
+    "counts": {
+     "match": 128
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 47,
+     "congestion_buffered_gas": 42,
+     "congestion_delayed_gas": 73,
+     "congestion_receipt_bytes": 86,
+     "gas_used": 128,
+     "implicit_transitions": 13,
+     "proposals": 5
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "yc105",
+   "scenario": "YieldCongestion",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 105000334, n_shards: 5, seats: 3, gas_limit_tgas: 60, epoch_length: 30, blocks: 260, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 143,
+    "mutants": 1247,
+    "honest_nearcore": {
+     "ok": 143
+    }
+   },
+   "facts": {
+    "yield_shard_headers_with_delayed_gas": 103,
+    "max_delayed_receipts_gas": 5190737639172724,
+    "headers_with_buffered_gas": 45,
+    "caller_shard_headers_with_buffered_gas": 12,
+    "max_buffered_receipts_gas": 463435964628043,
+    "yield_receipts_applied_with_delayed_queue": 38,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1390,
+     "verdicts": {
+      "accept": 401,
+      "reject": 989
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 1,
+      "verdict_compared_agree": 1389
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 1,
+      "honest accept verdict_compared_agree": 142,
+      "mutant accept verdict_compared_agree": 258,
+      "mutant reject verdict_compared_agree": 989
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 20,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 20,
+      "c.extra_block lean=reject nearcore_ok=False": 20,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 20,
+      "code.drop lean=reject nearcore_ok=False": 29,
+      "code.duplicate lean=accept nearcore_ok=True": 20,
+      "code.extra_garbage lean=accept nearcore_ok=True": 20,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 20,
+      "code.flip lean=reject nearcore_ok=False": 29,
+      "code.none lean=reject nearcore_ok=False": 6,
+      "code.reorder lean=accept nearcore_ok=True": 6,
+      "code.truncate lean=reject nearcore_ok=False": 20,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 19,
+      "hdr.congestion lean=reject nearcore_ok=False": 57,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 20,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 20,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 20,
+      "hdr.height_created lean=accept nearcore_ok=True": 20,
+      "hdr.height_included lean=accept nearcore_ok=True": 20,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 20,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 20,
+      "hdr.proposals lean=reject nearcore_ok=False": 19,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 19,
+      "hdr.tx_root lean=reject nearcore_ok=False": 20,
+      "hdr2.congestion lean=reject nearcore_ok=False": 16,
+      "hdr2.proposals lean=reject nearcore_ok=False": 2,
+      "t.chain_id lean=accept nearcore_ok=True": 14,
+      "t.chain_id lean=reject nearcore_ok=False": 2,
+      "t.minimum_stake lean=accept nearcore_ok=True": 20,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 20,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 63,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 20,
+      "w.base_state lean=accept nearcore_ok=True": 20,
+      "w.base_state lean=reject nearcore_ok=False": 20,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 20,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 20,
+      "w.epoch_id lean=reject nearcore_ok=False": 20,
+      "w.extra_proof lean=reject nearcore_ok=False": 20,
+      "w.main_block_hash lean=accept nearcore_ok=True": 20,
+      "w.main_post_root lean=reject nearcore_ok=False": 20,
+      "w.new_tx lean=accept nearcore_ok=True": 38,
+      "w.new_tx lean=reject nearcore_ok=False": 19,
+      "w.trailing_byte lean=reject nearcore_ok=False": 20,
+      "w.tx lean=reject nearcore_ok=False": 68,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 20
+     }
+    },
+    "storageResolution": {
+     "status": "pass",
+     "cases": 1390,
+     "verdicts": {
+      "accept": 400,
+      "out_of_domain": 1,
+      "reject": 989
+     },
+     "partition": {
+      "domain_exclusion_asserted": 1,
+      "verdict_compared_agree": 1389
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_compared_agree": 142,
+      "honest out_of_domain domain_exclusion_asserted": 1,
+      "mutant accept verdict_compared_agree": 258,
+      "mutant reject verdict_compared_agree": 989
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 20,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 20,
+      "c.extra_block lean=reject nearcore_ok=False": 20,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 20,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 20,
+      "code.drop lean=reject nearcore_ok=False": 29,
+      "code.duplicate lean=accept nearcore_ok=True": 20,
+      "code.extra_garbage lean=accept nearcore_ok=True": 20,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 20,
+      "code.flip lean=reject nearcore_ok=False": 29,
+      "code.none lean=reject nearcore_ok=False": 6,
+      "code.reorder lean=accept nearcore_ok=True": 6,
+      "code.truncate lean=reject nearcore_ok=False": 20,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 19,
+      "hdr.congestion lean=reject nearcore_ok=False": 57,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 20,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 20,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 20,
+      "hdr.height_created lean=accept nearcore_ok=True": 20,
+      "hdr.height_included lean=accept nearcore_ok=True": 20,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 20,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 20,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 20,
+      "hdr.proposals lean=reject nearcore_ok=False": 19,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 19,
+      "hdr.tx_root lean=reject nearcore_ok=False": 20,
+      "hdr2.congestion lean=reject nearcore_ok=False": 16,
+      "hdr2.proposals lean=reject nearcore_ok=False": 2,
+      "t.chain_id lean=accept nearcore_ok=True": 14,
+      "t.chain_id lean=reject nearcore_ok=False": 2,
+      "t.minimum_stake lean=accept nearcore_ok=True": 20,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 20,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 63,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 20,
+      "w.base_state lean=accept nearcore_ok=True": 20,
+      "w.base_state lean=reject nearcore_ok=False": 20,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 20,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 20,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 20,
+      "w.epoch_id lean=reject nearcore_ok=False": 20,
+      "w.extra_proof lean=reject nearcore_ok=False": 20,
+      "w.main_block_hash lean=accept nearcore_ok=True": 20,
+      "w.main_post_root lean=reject nearcore_ok=False": 20,
+      "w.new_tx lean=accept nearcore_ok=True": 38,
+      "w.new_tx lean=reject nearcore_ok=False": 19,
+      "w.trailing_byte lean=reject nearcore_ok=False": 20,
+      "w.tx lean=reject nearcore_ok=False": 68,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 20
+     }
+    }
+   },
+   "blind": {
+    "cases": 143,
+    "graded": 143,
+    "counts": {
+     "match": 143
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 49,
+     "bandwidth_requests": 1,
+     "congestion_buffered_gas": 3,
+     "congestion_delayed_gas": 78,
+     "congestion_receipt_bytes": 81,
+     "gas_used": 143,
+     "implicit_transitions": 1,
+     "proposals": 5
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc201",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 201000603, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 233,
+    "mutants": 5009,
+    "honest_nearcore": {
+     "ok": 233
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1653,
+     "failure": 141
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "fail",
+     "cases": 5242,
+     "verdicts": {
+      "accept": 1233,
+      "out_of_domain": 5,
+      "reject": 4004
+     },
+     "partition": {
+      "domain_exclusion_asserted": 2,
+      "domain_exclusion_where_in_domain": 3,
+      "verdict_agree_outside_domain": 3051,
+      "verdict_compared_agree": 2186
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [
+      [
+       "runs/cc201/mutants/00-h10021-s1-code.drop.0",
+       "allFeatures out_of_domain on an in-domain case (successor)",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "ok"
+      ],
+      [
+       "runs/cc201/mutants/00-h10021-s1-code.flip.0",
+       "allFeatures out_of_domain on an in-domain case (successor)",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))"
+      ],
+      [
+       "runs/cc201/mutants/00-h10021-s1-code.truncate.0",
+       "allFeatures out_of_domain on an in-domain case (successor)",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))"
+      ]
+     ],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 150,
+      "honest accept verdict_compared_agree": 83,
+      "mutant accept verdict_agree_outside_domain": 569,
+      "mutant accept verdict_compared_agree": 431,
+      "mutant out_of_domain domain_exclusion_asserted": 2,
+      "mutant out_of_domain domain_exclusion_where_in_domain": 3,
+      "mutant reject verdict_agree_outside_domain": 2332,
+      "mutant reject verdict_compared_agree": 1672
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 77,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 77,
+      "c.extra_block lean=reject nearcore_ok=False": 77,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 77,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 77,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 77,
+      "code.drop lean=accept nearcore_ok=True": 2,
+      "code.drop lean=out_of_domain nearcore_ok=False": 1,
+      "code.drop lean=out_of_domain nearcore_ok=True": 1,
+      "code.drop lean=reject nearcore_ok=False": 133,
+      "code.duplicate lean=accept nearcore_ok=True": 70,
+      "code.extra_garbage lean=accept nearcore_ok=True": 77,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 77,
+      "code.flip lean=accept nearcore_ok=True": 2,
+      "code.flip lean=out_of_domain nearcore_ok=False": 2,
+      "code.flip lean=reject nearcore_ok=False": 133,
+      "code.none lean=reject nearcore_ok=False": 49,
+      "code.reorder lean=accept nearcore_ok=True": 49,
+      "code.truncate lean=accept nearcore_ok=True": 1,
+      "code.truncate lean=out_of_domain nearcore_ok=False": 1,
+      "code.truncate lean=reject nearcore_ok=False": 68,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 75,
+      "hdr.congestion lean=reject nearcore_ok=False": 225,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 77,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 77,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 77,
+      "hdr.height_created lean=accept nearcore_ok=True": 77,
+      "hdr.height_included lean=accept nearcore_ok=True": 77,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 77,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 77,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 77,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 77,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 77,
+      "hdr.proposals lean=reject nearcore_ok=False": 75,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 75,
+      "hdr.tx_root lean=reject nearcore_ok=False": 77,
+      "hdr2.congestion lean=reject nearcore_ok=False": 25,
+      "hdr2.proposals lean=reject nearcore_ok=False": 4,
+      "t.chain_id lean=accept nearcore_ok=True": 21,
+      "t.chain_id lean=reject nearcore_ok=False": 3,
+      "t.minimum_stake lean=accept nearcore_ok=True": 77,
+      "t.minimum_stake lean=reject nearcore_ok=False": 3,
+      "t.rs_params lean=reject nearcore_ok=False": 77,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 6,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 274,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 77,
+      "w.base_state lean=accept nearcore_ok=True": 77,
+      "w.base_state lean=reject nearcore_ok=False": 77,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 77,
+      "w.drop_node lean=accept nearcore_ok=True": 2,
+      "w.drop_node lean=reject nearcore_ok=False": 514,
+      "w.drop_proof lean=reject nearcore_ok=False": 77,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 77,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 77,
+      "w.epoch_id lean=reject nearcore_ok=False": 77,
+      "w.extra_proof lean=reject nearcore_ok=False": 77,
+      "w.implicit lean=reject nearcore_ok=False": 45,
+      "w.main_block_hash lean=accept nearcore_ok=True": 77,
+      "w.main_post_root lean=reject nearcore_ok=False": 77,
+      "w.new_tx lean=accept nearcore_ok=True": 154,
+      "w.new_tx lean=reject nearcore_ok=False": 77,
+      "w.trailing_byte lean=reject nearcore_ok=False": 77,
+      "w.tx lean=reject nearcore_ok=False": 301,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 77
+     }
+    }
+   },
+   "blind": {
+    "cases": 233,
+    "graded": 233,
+    "counts": {
+     "match": 233
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 233,
+     "congestion_buffered_gas": 96,
+     "congestion_receipt_bytes": 96,
+     "gas_used": 233,
+     "implicit_transitions": 28,
+     "proposals": 8
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc202",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 202000607, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 231,
+    "mutants": 4984,
+    "honest_nearcore": {
+     "ok": 231
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1661,
+     "failure": 142
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 543,
+     "verdicts": {
+      "accept": 280,
+      "reject": 263
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 348,
+      "verdict_compared_agree": 195
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "sampled",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 158,
+      "honest accept verdict_compared_agree": 73,
+      "mutant accept verdict_agree_outside_domain": 31,
+      "mutant accept verdict_compared_agree": 18,
+      "mutant reject verdict_agree_outside_domain": 159,
+      "mutant reject verdict_compared_agree": 104
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 4,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 8,
+      "c.extra_block lean=reject nearcore_ok=False": 1,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 4,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 9,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 2,
+      "code.drop lean=reject nearcore_ok=False": 8,
+      "code.duplicate lean=accept nearcore_ok=True": 1,
+      "code.extra_garbage lean=accept nearcore_ok=True": 3,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 4,
+      "code.flip lean=reject nearcore_ok=False": 13,
+      "code.none lean=reject nearcore_ok=False": 3,
+      "code.reorder lean=accept nearcore_ok=True": 3,
+      "code.truncate lean=reject nearcore_ok=False": 4,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 3,
+      "hdr.congestion lean=reject nearcore_ok=False": 12,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 8,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 4,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 5,
+      "hdr.height_created lean=accept nearcore_ok=True": 4,
+      "hdr.height_included lean=accept nearcore_ok=True": 4,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 6,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 3,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 3,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 10,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 4,
+      "hdr.proposals lean=reject nearcore_ok=False": 6,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 4,
+      "hdr.tx_root lean=reject nearcore_ok=False": 3,
+      "hdr2.congestion lean=reject nearcore_ok=False": 1,
+      "hdr2.proposals lean=reject nearcore_ok=False": 1,
+      "t.chain_id lean=accept nearcore_ok=True": 4,
+      "t.minimum_stake lean=accept nearcore_ok=True": 5,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 4,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 17,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 4,
+      "w.base_state lean=accept nearcore_ok=True": 4,
+      "w.base_state lean=reject nearcore_ok=False": 4,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 3,
+      "w.drop_node lean=reject nearcore_ok=False": 37,
+      "w.drop_proof lean=reject nearcore_ok=False": 4,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 10,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 2,
+      "w.epoch_id lean=reject nearcore_ok=False": 3,
+      "w.extra_proof lean=reject nearcore_ok=False": 8,
+      "w.implicit lean=reject nearcore_ok=False": 2,
+      "w.main_block_hash lean=accept nearcore_ok=True": 4,
+      "w.main_post_root lean=reject nearcore_ok=False": 3,
+      "w.new_tx lean=accept nearcore_ok=True": 7,
+      "w.new_tx lean=reject nearcore_ok=False": 4,
+      "w.trailing_byte lean=reject nearcore_ok=False": 4,
+      "w.tx lean=reject nearcore_ok=False": 26,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 4
+     }
+    }
+   },
+   "blind": {
+    "cases": 231,
+    "graded": 230,
+    "counts": {
+     "match": 230,
+     "genesis": 1
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 101,
+     "bandwidth_requests": 4,
+     "congestion_buffered_gas": 92,
+     "congestion_receipt_bytes": 92,
+     "gas_used": 230,
+     "implicit_transitions": 37,
+     "proposals": 13
+    },
+    "field_diffs": {
+     "stateRoot": 1,
+     "outcomeRoot": 1,
+     "gasUsed": 1,
+     "balanceBurnt": 1,
+     "outgoingReceiptsRoot": 1,
+     "proposals": 1,
+     "txRoot": 1,
+     "encodedMerkleRoot": 1,
+     "encodedLength": 1,
+     "congestion": 1,
+     "bwRequests": 1
+    },
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc203",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 203000611, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 236,
+    "mutants": 5130,
+    "honest_nearcore": {
+     "ok": 236
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1653,
+     "failure": 142
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "fail",
+     "cases": 557,
+     "verdicts": {
+      "accept": 298,
+      "out_of_domain": 1,
+      "reject": 258
+     },
+     "partition": {
+      "domain_exclusion_where_in_domain": 1,
+      "verdict_agree_outside_domain": 386,
+      "verdict_compared_agree": 170
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [
+      [
+       "runs/cc203/mutants/02-h10073-s4-code.drop.0",
+       "allFeatures out_of_domain on an in-domain case (successor)",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))"
+      ]
+     ],
+     "mutants_replayed": "sampled",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 157,
+      "honest accept verdict_compared_agree": 79,
+      "mutant accept verdict_agree_outside_domain": 48,
+      "mutant accept verdict_compared_agree": 14,
+      "mutant out_of_domain domain_exclusion_where_in_domain": 1,
+      "mutant reject verdict_agree_outside_domain": 181,
+      "mutant reject verdict_compared_agree": 77
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 5,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 4,
+      "c.extra_block lean=reject nearcore_ok=False": 3,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 7,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 3,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 3,
+      "code.drop lean=out_of_domain nearcore_ok=False": 1,
+      "code.drop lean=reject nearcore_ok=False": 10,
+      "code.duplicate lean=accept nearcore_ok=True": 6,
+      "code.extra_garbage lean=accept nearcore_ok=True": 3,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 6,
+      "code.flip lean=reject nearcore_ok=False": 4,
+      "code.none lean=reject nearcore_ok=False": 2,
+      "code.reorder lean=accept nearcore_ok=True": 4,
+      "code.truncate lean=reject nearcore_ok=False": 6,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 2,
+      "hdr.congestion lean=reject nearcore_ok=False": 19,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 9,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 2,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 7,
+      "hdr.height_created lean=accept nearcore_ok=True": 5,
+      "hdr.height_included lean=accept nearcore_ok=True": 4,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 3,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 6,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 4,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 3,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 4,
+      "hdr.proposals lean=reject nearcore_ok=False": 5,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 5,
+      "hdr.tx_root lean=reject nearcore_ok=False": 2,
+      "hdr2.congestion lean=reject nearcore_ok=False": 4,
+      "t.chain_id lean=accept nearcore_ok=True": 2,
+      "t.minimum_stake lean=accept nearcore_ok=True": 4,
+      "t.rs_params lean=reject nearcore_ok=False": 6,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 1,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 24,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 5,
+      "w.base_state lean=accept nearcore_ok=True": 5,
+      "w.base_state lean=reject nearcore_ok=False": 2,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 8,
+      "w.drop_node lean=reject nearcore_ok=False": 31,
+      "w.drop_proof lean=reject nearcore_ok=False": 6,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 3,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 4,
+      "w.epoch_id lean=reject nearcore_ok=False": 5,
+      "w.extra_proof lean=reject nearcore_ok=False": 4,
+      "w.implicit lean=reject nearcore_ok=False": 3,
+      "w.main_block_hash lean=accept nearcore_ok=True": 2,
+      "w.main_post_root lean=reject nearcore_ok=False": 11,
+      "w.new_tx lean=accept nearcore_ok=True": 7,
+      "w.new_tx lean=reject nearcore_ok=False": 5,
+      "w.trailing_byte lean=reject nearcore_ok=False": 5,
+      "w.tx lean=reject nearcore_ok=False": 18,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 9
+     }
+    }
+   },
+   "blind": {
+    "cases": 236,
+    "graded": 236,
+    "counts": {
+     "match": 236
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 236,
+     "bandwidth_requests": 11,
+     "congestion_buffered_gas": 91,
+     "congestion_receipt_bytes": 92,
+     "gas_used": 236,
+     "implicit_transitions": 33,
+     "proposals": 6
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc204",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 204000618, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 95, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 249,
+    "mutants": 5278,
+    "honest_nearcore": {
+     "ok": 249
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1658,
+     "failure": 141
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 579,
+     "verdicts": {
+      "accept": 311,
+      "reject": 268
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 413,
+      "verdict_compared_agree": 166
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "sampled",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 167,
+      "honest accept verdict_compared_agree": 82,
+      "mutant accept verdict_agree_outside_domain": 47,
+      "mutant accept verdict_compared_agree": 15,
+      "mutant reject verdict_agree_outside_domain": 199,
+      "mutant reject verdict_compared_agree": 69
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 6,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 5,
+      "c.extra_block lean=reject nearcore_ok=False": 6,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 5,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 4,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 7,
+      "code.drop lean=reject nearcore_ok=False": 5,
+      "code.duplicate lean=accept nearcore_ok=True": 1,
+      "code.extra_garbage lean=accept nearcore_ok=True": 6,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 7,
+      "code.flip lean=reject nearcore_ok=False": 10,
+      "code.none lean=reject nearcore_ok=False": 3,
+      "code.reorder lean=accept nearcore_ok=True": 1,
+      "code.truncate lean=reject nearcore_ok=False": 4,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 4,
+      "hdr.congestion lean=reject nearcore_ok=False": 16,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 7,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 8,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 4,
+      "hdr.height_created lean=accept nearcore_ok=True": 3,
+      "hdr.height_included lean=accept nearcore_ok=True": 4,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 5,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 6,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 7,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 7,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 6,
+      "hdr.proposals lean=reject nearcore_ok=False": 2,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 4,
+      "hdr.tx_root lean=reject nearcore_ok=False": 4,
+      "hdr2.congestion lean=reject nearcore_ok=False": 1,
+      "t.chain_id lean=accept nearcore_ok=True": 4,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 5,
+      "t.rs_params lean=reject nearcore_ok=False": 4,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 22,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 3,
+      "w.base_state lean=accept nearcore_ok=True": 8,
+      "w.base_state lean=reject nearcore_ok=False": 3,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 7,
+      "w.drop_node lean=reject nearcore_ok=False": 35,
+      "w.drop_proof lean=reject nearcore_ok=False": 4,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 4,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 6,
+      "w.epoch_id lean=reject nearcore_ok=False": 7,
+      "w.extra_proof lean=reject nearcore_ok=False": 4,
+      "w.implicit lean=reject nearcore_ok=False": 1,
+      "w.main_block_hash lean=accept nearcore_ok=True": 4,
+      "w.main_post_root lean=reject nearcore_ok=False": 4,
+      "w.new_tx lean=accept nearcore_ok=True": 7,
+      "w.new_tx lean=reject nearcore_ok=False": 2,
+      "w.trailing_byte lean=reject nearcore_ok=False": 6,
+      "w.tx lean=reject nearcore_ok=False": 25,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 6
+     }
+    }
+   },
+   "blind": {
+    "cases": 249,
+    "graded": 249,
+    "counts": {
+     "match": 249
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 90,
+     "congestion_buffered_gas": 67,
+     "congestion_receipt_bytes": 67,
+     "gas_used": 249,
+     "implicit_transitions": 21,
+     "proposals": 7
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc211",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 211000633, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 256,
+    "mutants": 5287,
+    "honest_nearcore": {
+     "ok": 256
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1692,
+     "failure": 144
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 697,
+     "verdicts": {
+      "accept": 350,
+      "reject": 347
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 475,
+      "verdict_compared_agree": 222
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "sampled",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 169,
+      "honest accept verdict_compared_agree": 87,
+      "mutant accept verdict_agree_outside_domain": 68,
+      "mutant accept verdict_compared_agree": 26,
+      "mutant reject verdict_agree_outside_domain": 238,
+      "mutant reject verdict_compared_agree": 109
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 12,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 8,
+      "c.extra_block lean=reject nearcore_ok=False": 7,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 10,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 5,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 2,
+      "code.drop lean=reject nearcore_ok=False": 3,
+      "code.duplicate lean=accept nearcore_ok=True": 7,
+      "code.extra_garbage lean=accept nearcore_ok=True": 12,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 11,
+      "code.flip lean=reject nearcore_ok=False": 11,
+      "code.none lean=reject nearcore_ok=False": 2,
+      "code.reorder lean=accept nearcore_ok=True": 7,
+      "code.truncate lean=reject nearcore_ok=False": 6,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 7,
+      "hdr.congestion lean=reject nearcore_ok=False": 16,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 4,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 9,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 10,
+      "hdr.height_created lean=accept nearcore_ok=True": 3,
+      "hdr.height_included lean=accept nearcore_ok=True": 12,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 7,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 8,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 6,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 7,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 6,
+      "hdr.proposals lean=reject nearcore_ok=False": 1,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 9,
+      "hdr.tx_root lean=reject nearcore_ok=False": 5,
+      "t.chain_id lean=accept nearcore_ok=True": 3,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 9,
+      "t.rs_params lean=reject nearcore_ok=False": 10,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 33,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 6,
+      "w.base_state lean=accept nearcore_ok=True": 3,
+      "w.base_state lean=reject nearcore_ok=False": 2,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 2,
+      "w.drop_node lean=reject nearcore_ok=False": 43,
+      "w.drop_proof lean=reject nearcore_ok=False": 7,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 12,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 4,
+      "w.epoch_id lean=reject nearcore_ok=False": 8,
+      "w.extra_proof lean=reject nearcore_ok=False": 12,
+      "w.implicit lean=reject nearcore_ok=False": 3,
+      "w.main_block_hash lean=accept nearcore_ok=True": 7,
+      "w.main_post_root lean=reject nearcore_ok=False": 9,
+      "w.new_tx lean=accept nearcore_ok=True": 8,
+      "w.new_tx lean=reject nearcore_ok=False": 8,
+      "w.trailing_byte lean=reject nearcore_ok=False": 3,
+      "w.tx lean=reject nearcore_ok=False": 27,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 8
+     }
+    }
+   },
+   "blind": {
+    "cases": 256,
+    "graded": 256,
+    "counts": {
+     "match": 256
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 255,
+     "congestion_buffered_gas": 61,
+     "congestion_receipt_bytes": 62,
+     "gas_used": 255,
+     "implicit_transitions": 26,
+     "proposals": 10
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc212",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 212000637, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 238,
+    "mutants": 4986,
+    "honest_nearcore": {
+     "ok": 238
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1692,
+     "failure": 144
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 654,
+     "verdicts": {
+      "accept": 322,
+      "reject": 332
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 429,
+      "verdict_compared_agree": 225
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "sampled",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 155,
+      "honest accept verdict_compared_agree": 83,
+      "mutant accept verdict_agree_outside_domain": 56,
+      "mutant accept verdict_compared_agree": 28,
+      "mutant reject verdict_agree_outside_domain": 218,
+      "mutant reject verdict_compared_agree": 114
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 6,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 8,
+      "c.extra_block lean=reject nearcore_ok=False": 6,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 6,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 11,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 4,
+      "code.drop lean=reject nearcore_ok=False": 10,
+      "code.duplicate lean=accept nearcore_ok=True": 5,
+      "code.extra_garbage lean=accept nearcore_ok=True": 7,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 4,
+      "code.flip lean=accept nearcore_ok=True": 1,
+      "code.flip lean=reject nearcore_ok=False": 13,
+      "code.none lean=reject nearcore_ok=False": 2,
+      "code.reorder lean=accept nearcore_ok=True": 4,
+      "code.truncate lean=reject nearcore_ok=False": 5,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 6,
+      "hdr.congestion lean=reject nearcore_ok=False": 21,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 8,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 2,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 5,
+      "hdr.height_created lean=accept nearcore_ok=True": 8,
+      "hdr.height_included lean=accept nearcore_ok=True": 7,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 4,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 8,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 6,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 8,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 7,
+      "hdr.proposals lean=reject nearcore_ok=False": 7,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 7,
+      "hdr.tx_root lean=reject nearcore_ok=False": 8,
+      "hdr2.congestion lean=reject nearcore_ok=False": 1,
+      "t.chain_id lean=accept nearcore_ok=True": 1,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 4,
+      "t.rs_params lean=reject nearcore_ok=False": 4,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 28,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 10,
+      "w.base_state lean=accept nearcore_ok=True": 5,
+      "w.base_state lean=reject nearcore_ok=False": 5,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 5,
+      "w.drop_node lean=reject nearcore_ok=False": 42,
+      "w.drop_proof lean=reject nearcore_ok=False": 7,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 3,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 11,
+      "w.epoch_id lean=reject nearcore_ok=False": 7,
+      "w.extra_proof lean=reject nearcore_ok=False": 4,
+      "w.implicit lean=reject nearcore_ok=False": 2,
+      "w.main_block_hash lean=accept nearcore_ok=True": 8,
+      "w.main_post_root lean=reject nearcore_ok=False": 8,
+      "w.new_tx lean=accept nearcore_ok=True": 13,
+      "w.new_tx lean=reject nearcore_ok=False": 7,
+      "w.trailing_byte lean=reject nearcore_ok=False": 4,
+      "w.tx lean=reject nearcore_ok=False": 26,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 6
+     }
+    }
+   },
+   "blind": {
+    "cases": 238,
+    "graded": 238,
+    "counts": {
+     "match": 238
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 92,
+     "bandwidth_requests": 8,
+     "congestion_buffered_gas": 88,
+     "congestion_receipt_bytes": 88,
+     "gas_used": 238,
+     "implicit_transitions": 32,
+     "proposals": 14
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc213",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 213000641, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 259,
+    "mutants": 5405,
+    "honest_nearcore": {
+     "ok": 259
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1692,
+     "failure": 144
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 710,
+     "verdicts": {
+      "accept": 330,
+      "reject": 380
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 483,
+      "verdict_compared_agree": 227
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "sampled",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 174,
+      "honest accept verdict_compared_agree": 85,
+      "mutant accept verdict_agree_outside_domain": 44,
+      "mutant accept verdict_compared_agree": 27,
+      "mutant reject verdict_agree_outside_domain": 265,
+      "mutant reject verdict_compared_agree": 115
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 10,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 5,
+      "c.extra_block lean=reject nearcore_ok=False": 8,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 10,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 7,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 4,
+      "code.drop lean=accept nearcore_ok=True": 1,
+      "code.drop lean=reject nearcore_ok=False": 17,
+      "code.duplicate lean=accept nearcore_ok=True": 5,
+      "code.extra_garbage lean=accept nearcore_ok=True": 6,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 7,
+      "code.flip lean=reject nearcore_ok=False": 8,
+      "code.none lean=reject nearcore_ok=False": 3,
+      "code.reorder lean=accept nearcore_ok=True": 3,
+      "code.truncate lean=reject nearcore_ok=False": 9,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 7,
+      "hdr.congestion lean=reject nearcore_ok=False": 26,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 7,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 4,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 5,
+      "hdr.height_created lean=accept nearcore_ok=True": 3,
+      "hdr.height_included lean=accept nearcore_ok=True": 8,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 9,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 7,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 8,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 7,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 7,
+      "hdr.proposals lean=reject nearcore_ok=False": 9,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 10,
+      "hdr.tx_root lean=reject nearcore_ok=False": 7,
+      "hdr2.congestion lean=reject nearcore_ok=False": 2,
+      "hdr2.proposals lean=reject nearcore_ok=False": 1,
+      "t.chain_id lean=accept nearcore_ok=True": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 5,
+      "t.rs_params lean=reject nearcore_ok=False": 5,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 2,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 22,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 9,
+      "w.base_state lean=accept nearcore_ok=True": 9,
+      "w.base_state lean=reject nearcore_ok=False": 6,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 12,
+      "w.drop_node lean=reject nearcore_ok=False": 43,
+      "w.drop_proof lean=reject nearcore_ok=False": 7,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 6,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 3,
+      "w.epoch_id lean=reject nearcore_ok=False": 5,
+      "w.extra_proof lean=reject nearcore_ok=False": 9,
+      "w.implicit lean=reject nearcore_ok=False": 3,
+      "w.main_block_hash lean=accept nearcore_ok=True": 5,
+      "w.main_post_root lean=reject nearcore_ok=False": 8,
+      "w.new_tx lean=accept nearcore_ok=True": 11,
+      "w.new_tx lean=reject nearcore_ok=False": 8,
+      "w.trailing_byte lean=reject nearcore_ok=False": 8,
+      "w.tx lean=reject nearcore_ok=False": 32,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 2
+     }
+    }
+   },
+   "blind": {
+    "cases": 259,
+    "graded": 259,
+    "counts": {
+     "match": 259
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 258,
+     "congestion_buffered_gas": 70,
+     "congestion_receipt_bytes": 71,
+     "gas_used": 258,
+     "implicit_transitions": 25,
+     "proposals": 14
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "cc214",
+   "scenario": "CurveCallbacks",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 214000648, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 115, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 242,
+    "mutants": 5021,
+    "honest_nearcore": {
+     "ok": 242
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 1692,
+     "failure": 144
+    },
+    "cross_shard_steps": 127,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 661,
+     "verdicts": {
+      "accept": 329,
+      "reject": 332
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 392,
+      "verdict_compared_agree": 269
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "sampled",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 156,
+      "honest accept verdict_compared_agree": 86,
+      "mutant accept verdict_agree_outside_domain": 46,
+      "mutant accept verdict_compared_agree": 41,
+      "mutant reject verdict_agree_outside_domain": 190,
+      "mutant reject verdict_compared_agree": 142
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 10,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 7,
+      "c.extra_block lean=reject nearcore_ok=False": 5,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 10,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 8,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 6,
+      "code.drop lean=reject nearcore_ok=False": 8,
+      "code.duplicate lean=accept nearcore_ok=True": 4,
+      "code.extra_garbage lean=accept nearcore_ok=True": 7,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 7,
+      "code.flip lean=reject nearcore_ok=False": 13,
+      "code.none lean=reject nearcore_ok=False": 4,
+      "code.reorder lean=accept nearcore_ok=True": 3,
+      "code.truncate lean=reject nearcore_ok=False": 4,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 9,
+      "hdr.congestion lean=reject nearcore_ok=False": 17,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 5,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 5,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 3,
+      "hdr.height_created lean=accept nearcore_ok=True": 11,
+      "hdr.height_included lean=accept nearcore_ok=True": 12,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 6,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 4,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 7,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 9,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 4,
+      "hdr.proposals lean=reject nearcore_ok=False": 7,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 6,
+      "hdr.tx_root lean=reject nearcore_ok=False": 5,
+      "hdr2.congestion lean=reject nearcore_ok=False": 3,
+      "t.chain_id lean=accept nearcore_ok=True": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 4,
+      "t.rs_params lean=reject nearcore_ok=False": 10,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 1,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 26,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 10,
+      "w.base_state lean=accept nearcore_ok=True": 5,
+      "w.base_state lean=reject nearcore_ok=False": 5,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 9,
+      "w.drop_node lean=reject nearcore_ok=False": 40,
+      "w.drop_proof lean=reject nearcore_ok=False": 6,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 3,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 6,
+      "w.epoch_id lean=reject nearcore_ok=False": 7,
+      "w.extra_proof lean=reject nearcore_ok=False": 7,
+      "w.main_block_hash lean=accept nearcore_ok=True": 7,
+      "w.main_post_root lean=reject nearcore_ok=False": 7,
+      "w.new_tx lean=accept nearcore_ok=True": 14,
+      "w.new_tx lean=reject nearcore_ok=False": 10,
+      "w.trailing_byte lean=reject nearcore_ok=False": 4,
+      "w.tx lean=reject nearcore_ok=False": 23,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 5
+     }
+    }
+   },
+   "blind": {
+    "cases": 242,
+    "graded": 242,
+    "counts": {
+     "match": 242
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 88,
+     "bandwidth_requests": 2,
+     "congestion_buffered_gas": 77,
+     "congestion_receipt_bytes": 77,
+     "gas_used": 242,
+     "implicit_transitions": 28,
+     "proposals": 4
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gx501",
+   "scenario": "GenesisTx",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 501001503, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 501001504, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 501001505, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 70,
+    "mutants": 2025,
+    "honest_nearcore": {
+     "ok": 70
+    }
+   },
+   "facts": {
+    "genesis_b2_cases": 15,
+    "genesis_b2_with_new_transactions": 15,
+    "genesis_b2_with_main_transactions": 0,
+    "genesis_b2_n_implicit": {
+     "1": 12,
+     "3": 2,
+     "2": 1
+    },
+    "genesis_b2_nearcore": {
+     "ok": 15
+    },
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 2095,
+     "verdicts": {
+      "accept": 449,
+      "reject": 1646
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 693,
+      "verdict_compared_agree": 1402
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 18,
+      "honest accept verdict_compared_agree": 52,
+      "mutant accept verdict_agree_outside_domain": 127,
+      "mutant accept verdict_compared_agree": 252,
+      "mutant reject verdict_agree_outside_domain": 548,
+      "mutant reject verdict_compared_agree": 1098
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 32,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 32,
+      "c.extra_block lean=reject nearcore_ok=False": 11,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 32,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 32,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 32,
+      "code.drop lean=accept nearcore_ok=True": 2,
+      "code.drop lean=reject nearcore_ok=False": 24,
+      "code.duplicate lean=accept nearcore_ok=True": 15,
+      "code.extra_garbage lean=accept nearcore_ok=True": 32,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 32,
+      "code.flip lean=accept nearcore_ok=True": 2,
+      "code.flip lean=reject nearcore_ok=False": 24,
+      "code.none lean=reject nearcore_ok=False": 10,
+      "code.reorder lean=accept nearcore_ok=True": 10,
+      "code.truncate lean=accept nearcore_ok=True": 2,
+      "code.truncate lean=reject nearcore_ok=False": 13,
+      "g.genesis_extra lean=reject nearcore_ok=False": 105,
+      "g.tx_in_genesis_chunk lean=reject nearcore_ok=False": 30,
+      "g.tx_valid_extra_flag0 lean=reject nearcore_ok=False": 15,
+      "g.tx_valid_extra_flag1 lean=reject nearcore_ok=False": 15,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 32,
+      "hdr.congestion lean=reject nearcore_ok=False": 96,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 32,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 32,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 32,
+      "hdr.height_created lean=accept nearcore_ok=True": 32,
+      "hdr.height_included lean=accept nearcore_ok=True": 32,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 32,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 32,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 32,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 32,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 32,
+      "hdr.proposals lean=reject nearcore_ok=False": 32,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 32,
+      "hdr.tx_root lean=reject nearcore_ok=False": 32,
+      "hdr2.congestion lean=reject nearcore_ok=False": 10,
+      "t.chain_id lean=accept nearcore_ok=True": 26,
+      "t.minimum_stake lean=accept nearcore_ok=True": 32,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 32,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 2,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 71,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 32,
+      "w.base_state lean=accept nearcore_ok=True": 32,
+      "w.base_state lean=reject nearcore_ok=False": 17,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 17,
+      "w.drop_node lean=accept nearcore_ok=True": 2,
+      "w.drop_node lean=reject nearcore_ok=False": 281,
+      "w.drop_proof lean=reject nearcore_ok=False": 17,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 17,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 17,
+      "w.epoch_id lean=reject nearcore_ok=False": 32,
+      "w.extra_proof lean=reject nearcore_ok=False": 17,
+      "w.implicit lean=reject nearcore_ok=False": 54,
+      "w.main_block_hash lean=accept nearcore_ok=True": 32,
+      "w.main_post_root lean=reject nearcore_ok=False": 32,
+      "w.new_tx lean=accept nearcore_ok=True": 60,
+      "w.new_tx lean=reject nearcore_ok=False": 30,
+      "w.trailing_byte lean=reject nearcore_ok=False": 32,
+      "w.tx lean=reject nearcore_ok=False": 67,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 17
+     }
+    }
+   },
+   "blind": {
+    "cases": 70,
+    "graded": 55,
+    "counts": {
+     "match": 55,
+     "genesis": 15
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 55,
+     "congestion_buffered_gas": 33,
+     "congestion_receipt_bytes": 33,
+     "gas_used": 55,
+     "implicit_transitions": 14,
+     "proposals": 1
+    },
+    "field_diffs": {
+     "stateRoot": 15,
+     "outcomeRoot": 15,
+     "gasUsed": 15,
+     "balanceBurnt": 15,
+     "outgoingReceiptsRoot": 15,
+     "proposals": 15,
+     "txRoot": 15,
+     "encodedMerkleRoot": 15,
+     "encodedLength": 15,
+     "congestion": 15,
+     "bwRequests": 15
+    },
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gx502",
+   "scenario": "GenesisTx",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 502001506, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 502001507, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 502001508, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 65,
+    "mutants": 1976,
+    "honest_nearcore": {
+     "ok": 65
+    }
+   },
+   "facts": {
+    "genesis_b2_cases": 15,
+    "genesis_b2_with_new_transactions": 15,
+    "genesis_b2_with_main_transactions": 0,
+    "genesis_b2_n_implicit": {
+     "1": 9,
+     "2": 4,
+     "3": 1,
+     "6": 1
+    },
+    "genesis_b2_nearcore": {
+     "ok": 15
+    },
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 2041,
+     "verdicts": {
+      "accept": 430,
+      "reject": 1611
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 617,
+      "verdict_compared_agree": 1424
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 16,
+      "honest accept verdict_compared_agree": 49,
+      "mutant accept verdict_agree_outside_domain": 108,
+      "mutant accept verdict_compared_agree": 257,
+      "mutant reject verdict_agree_outside_domain": 493,
+      "mutant reject verdict_compared_agree": 1118
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 31,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 31,
+      "c.extra_block lean=reject nearcore_ok=False": 9,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 31,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 31,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 31,
+      "code.drop lean=accept nearcore_ok=True": 3,
+      "code.drop lean=reject nearcore_ok=False": 15,
+      "code.duplicate lean=accept nearcore_ok=True": 11,
+      "code.extra_garbage lean=accept nearcore_ok=True": 31,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 31,
+      "code.flip lean=accept nearcore_ok=True": 3,
+      "code.flip lean=reject nearcore_ok=False": 15,
+      "code.none lean=reject nearcore_ok=False": 5,
+      "code.reorder lean=accept nearcore_ok=True": 5,
+      "code.truncate lean=accept nearcore_ok=True": 3,
+      "code.truncate lean=reject nearcore_ok=False": 8,
+      "g.genesis_extra lean=reject nearcore_ok=False": 105,
+      "g.tx_in_genesis_chunk lean=reject nearcore_ok=False": 30,
+      "g.tx_valid_extra_flag0 lean=reject nearcore_ok=False": 15,
+      "g.tx_valid_extra_flag1 lean=reject nearcore_ok=False": 15,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 30,
+      "hdr.congestion lean=reject nearcore_ok=False": 90,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 31,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 31,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 31,
+      "hdr.height_created lean=accept nearcore_ok=True": 31,
+      "hdr.height_included lean=accept nearcore_ok=True": 31,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 31,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 31,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 31,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 31,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 31,
+      "hdr.proposals lean=reject nearcore_ok=False": 30,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 30,
+      "hdr.tx_root lean=reject nearcore_ok=False": 31,
+      "hdr2.congestion lean=reject nearcore_ok=False": 10,
+      "hdr2.proposals lean=reject nearcore_ok=False": 2,
+      "t.chain_id lean=accept nearcore_ok=True": 27,
+      "t.minimum_stake lean=accept nearcore_ok=True": 31,
+      "t.minimum_stake lean=reject nearcore_ok=False": 2,
+      "t.rs_params lean=reject nearcore_ok=False": 31,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 2,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 87,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 31,
+      "w.base_state lean=accept nearcore_ok=True": 31,
+      "w.base_state lean=reject nearcore_ok=False": 16,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 16,
+      "w.drop_node lean=reject nearcore_ok=False": 295,
+      "w.drop_proof lean=reject nearcore_ok=False": 16,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 16,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 16,
+      "w.epoch_id lean=reject nearcore_ok=False": 31,
+      "w.extra_proof lean=reject nearcore_ok=False": 16,
+      "w.implicit lean=reject nearcore_ok=False": 54,
+      "w.main_block_hash lean=accept nearcore_ok=True": 31,
+      "w.main_post_root lean=reject nearcore_ok=False": 31,
+      "w.new_tx lean=accept nearcore_ok=True": 62,
+      "w.new_tx lean=reject nearcore_ok=False": 31,
+      "w.trailing_byte lean=reject nearcore_ok=False": 31,
+      "w.tx lean=reject nearcore_ok=False": 64,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 16
+     }
+    }
+   },
+   "blind": {
+    "cases": 65,
+    "graded": 50,
+    "counts": {
+     "match": 50,
+     "genesis": 15
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 18,
+     "bandwidth_requests": 1,
+     "congestion_buffered_gas": 33,
+     "congestion_receipt_bytes": 33,
+     "gas_used": 50,
+     "implicit_transitions": 8,
+     "proposals": 2
+    },
+    "field_diffs": {
+     "stateRoot": 15,
+     "outcomeRoot": 15,
+     "gasUsed": 15,
+     "balanceBurnt": 15,
+     "outgoingReceiptsRoot": 15,
+     "proposals": 15,
+     "txRoot": 15,
+     "encodedMerkleRoot": 15,
+     "encodedLength": 15,
+     "congestion": 15,
+     "bwRequests": 15
+    },
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gx503",
+   "scenario": "GenesisTx",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 503001509, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 503001510, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }",
+    "D3Params { base: ChainParams { seed: 503001511, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 66,
+    "mutants": 1914,
+    "honest_nearcore": {
+     "ok": 66
+    }
+   },
+   "facts": {
+    "genesis_b2_cases": 15,
+    "genesis_b2_with_new_transactions": 15,
+    "genesis_b2_with_main_transactions": 0,
+    "genesis_b2_n_implicit": {
+     "1": 10,
+     "3": 3,
+     "2": 2
+    },
+    "genesis_b2_nearcore": {
+     "ok": 15
+    },
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1980,
+     "verdicts": {
+      "accept": 417,
+      "reject": 1563
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 544,
+      "verdict_compared_agree": 1436
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 18,
+      "honest accept verdict_compared_agree": 48,
+      "mutant accept verdict_agree_outside_domain": 102,
+      "mutant accept verdict_compared_agree": 249,
+      "mutant reject verdict_agree_outside_domain": 424,
+      "mutant reject verdict_compared_agree": 1139
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 30,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 30,
+      "c.extra_block lean=reject nearcore_ok=False": 9,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 30,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 30,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 30,
+      "code.drop lean=accept nearcore_ok=True": 3,
+      "code.drop lean=reject nearcore_ok=False": 15,
+      "code.duplicate lean=accept nearcore_ok=True": 13,
+      "code.extra_garbage lean=accept nearcore_ok=True": 30,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 30,
+      "code.flip lean=accept nearcore_ok=True": 3,
+      "code.flip lean=reject nearcore_ok=False": 15,
+      "code.none lean=reject nearcore_ok=False": 5,
+      "code.reorder lean=accept nearcore_ok=True": 5,
+      "code.truncate lean=accept nearcore_ok=True": 3,
+      "code.truncate lean=reject nearcore_ok=False": 10,
+      "g.genesis_extra lean=reject nearcore_ok=False": 105,
+      "g.tx_in_genesis_chunk lean=reject nearcore_ok=False": 30,
+      "g.tx_valid_extra_flag0 lean=reject nearcore_ok=False": 15,
+      "g.tx_valid_extra_flag1 lean=reject nearcore_ok=False": 15,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 30,
+      "hdr.congestion lean=reject nearcore_ok=False": 90,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 30,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 30,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 30,
+      "hdr.height_created lean=accept nearcore_ok=True": 30,
+      "hdr.height_included lean=accept nearcore_ok=True": 30,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 30,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 30,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 30,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 30,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 30,
+      "hdr.proposals lean=reject nearcore_ok=False": 30,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 30,
+      "hdr.tx_root lean=reject nearcore_ok=False": 30,
+      "hdr2.congestion lean=reject nearcore_ok=False": 12,
+      "t.chain_id lean=accept nearcore_ok=True": 28,
+      "t.minimum_stake lean=accept nearcore_ok=True": 30,
+      "t.rs_params lean=reject nearcore_ok=False": 30,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 77,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 30,
+      "w.base_state lean=accept nearcore_ok=True": 30,
+      "w.base_state lean=reject nearcore_ok=False": 15,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 15,
+      "w.drop_node lean=reject nearcore_ok=False": 279,
+      "w.drop_proof lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 15,
+      "w.epoch_id lean=reject nearcore_ok=False": 30,
+      "w.extra_proof lean=reject nearcore_ok=False": 15,
+      "w.implicit lean=reject nearcore_ok=False": 63,
+      "w.main_block_hash lean=accept nearcore_ok=True": 30,
+      "w.main_post_root lean=reject nearcore_ok=False": 30,
+      "w.new_tx lean=accept nearcore_ok=True": 56,
+      "w.new_tx lean=reject nearcore_ok=False": 28,
+      "w.trailing_byte lean=reject nearcore_ok=False": 30,
+      "w.tx lean=reject nearcore_ok=False": 60,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 15
+     }
+    }
+   },
+   "blind": {
+    "cases": 66,
+    "graded": 51,
+    "counts": {
+     "match": 51,
+     "genesis": 15
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 51,
+     "congestion_buffered_gas": 32,
+     "congestion_receipt_bytes": 32,
+     "gas_used": 51,
+     "implicit_transitions": 18,
+     "proposals": 2
+    },
+    "field_diffs": {
+     "stateRoot": 15,
+     "outcomeRoot": 15,
+     "gasUsed": 15,
+     "balanceBurnt": 15,
+     "outgoingReceiptsRoot": 15,
+     "proposals": 15,
+     "txRoot": 15,
+     "encodedMerkleRoot": 15,
+     "encodedLength": 15,
+     "congestion": 15,
+     "bwRequests": 15
+    },
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gx504",
+   "scenario": "GenesisTx",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 504001512, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 504001513, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 504001514, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 8, p_missing: 0.3, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 66,
+    "mutants": 1967,
+    "honest_nearcore": {
+     "ok": 66
+    }
+   },
+   "facts": {
+    "genesis_b2_cases": 15,
+    "genesis_b2_with_new_transactions": 15,
+    "genesis_b2_with_main_transactions": 0,
+    "genesis_b2_n_implicit": {
+     "1": 9,
+     "2": 3,
+     "3": 3
+    },
+    "genesis_b2_nearcore": {
+     "ok": 15
+    },
+    "unexecuted_transactions": [
+     "successor.genesis-tx.43.cross-shard-call-with-deposit",
+     "successor.genesis-tx.44.cross-shard-failing-call-refund",
+     "successor.genesis-tx.47.deploy-and-call",
+     "successor.genesis-tx.48.add-and-fund-gas-key"
+    ]
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 2033,
+     "verdicts": {
+      "accept": 431,
+      "reject": 1602
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 783,
+      "verdict_compared_agree": 1250
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 19,
+      "honest accept verdict_compared_agree": 47,
+      "mutant accept verdict_agree_outside_domain": 148,
+      "mutant accept verdict_compared_agree": 217,
+      "mutant reject verdict_agree_outside_domain": 616,
+      "mutant reject verdict_compared_agree": 986
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 31,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 31,
+      "c.extra_block lean=reject nearcore_ok=False": 9,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 31,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 31,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 31,
+      "code.drop lean=accept nearcore_ok=True": 2,
+      "code.drop lean=reject nearcore_ok=False": 18,
+      "code.duplicate lean=accept nearcore_ok=True": 15,
+      "code.extra_garbage lean=accept nearcore_ok=True": 31,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 31,
+      "code.flip lean=accept nearcore_ok=True": 2,
+      "code.flip lean=reject nearcore_ok=False": 18,
+      "code.none lean=reject nearcore_ok=False": 5,
+      "code.reorder lean=accept nearcore_ok=True": 5,
+      "code.truncate lean=accept nearcore_ok=True": 2,
+      "code.truncate lean=reject nearcore_ok=False": 13,
+      "g.genesis_extra lean=reject nearcore_ok=False": 105,
+      "g.tx_in_genesis_chunk lean=reject nearcore_ok=False": 30,
+      "g.tx_valid_extra_flag0 lean=reject nearcore_ok=False": 15,
+      "g.tx_valid_extra_flag1 lean=reject nearcore_ok=False": 15,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 31,
+      "hdr.congestion lean=reject nearcore_ok=False": 93,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 31,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 31,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 31,
+      "hdr.height_created lean=accept nearcore_ok=True": 31,
+      "hdr.height_included lean=accept nearcore_ok=True": 31,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 31,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 31,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 31,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 31,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 31,
+      "hdr.proposals lean=reject nearcore_ok=False": 31,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 31,
+      "hdr.tx_root lean=reject nearcore_ok=False": 31,
+      "hdr2.congestion lean=reject nearcore_ok=False": 7,
+      "t.chain_id lean=accept nearcore_ok=True": 26,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 31,
+      "t.rs_params lean=reject nearcore_ok=False": 31,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 2,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 76,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 31,
+      "w.base_state lean=accept nearcore_ok=True": 31,
+      "w.base_state lean=reject nearcore_ok=False": 16,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 16,
+      "w.drop_node lean=reject nearcore_ok=False": 283,
+      "w.drop_proof lean=reject nearcore_ok=False": 16,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 16,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 16,
+      "w.epoch_id lean=reject nearcore_ok=False": 31,
+      "w.extra_proof lean=reject nearcore_ok=False": 16,
+      "w.implicit lean=reject nearcore_ok=False": 57,
+      "w.main_block_hash lean=accept nearcore_ok=True": 31,
+      "w.main_post_root lean=reject nearcore_ok=False": 31,
+      "w.new_tx lean=accept nearcore_ok=True": 62,
+      "w.new_tx lean=reject nearcore_ok=False": 31,
+      "w.trailing_byte lean=reject nearcore_ok=False": 31,
+      "w.tx lean=reject nearcore_ok=False": 64,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 16
+     }
+    }
+   },
+   "blind": {
+    "cases": 66,
+    "graded": 51,
+    "counts": {
+     "match": 51,
+     "genesis": 15
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 13,
+     "congestion_buffered_gas": 33,
+     "congestion_receipt_bytes": 33,
+     "gas_used": 51,
+     "implicit_transitions": 11,
+     "proposals": 2
+    },
+    "field_diffs": {
+     "stateRoot": 15,
+     "outcomeRoot": 15,
+     "gasUsed": 15,
+     "balanceBurnt": 15,
+     "outgoingReceiptsRoot": 15,
+     "proposals": 15,
+     "txRoot": 15,
+     "encodedMerkleRoot": 15,
+     "encodedLength": 15,
+     "congestion": 15,
+     "bwRequests": 15
+    },
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gk301",
+   "scenario": "GasKeyTarget",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 301000903, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 59,
+    "mutants": 894,
+    "honest_nearcore": {
+     "ok": 59
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 65,
+     "failure": 12
+    },
+    "cross_shard_steps": 23,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 953,
+     "verdicts": {
+      "accept": 244,
+      "reject": 709
+     },
+     "partition": {
+      "verdict_compared_agree": 953
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_compared_agree": 59,
+      "mutant accept verdict_compared_agree": 185,
+      "mutant reject verdict_compared_agree": 709
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 15,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 15,
+      "c.extra_block lean=reject nearcore_ok=False": 15,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 15,
+      "code.drop lean=reject nearcore_ok=False": 14,
+      "code.duplicate lean=accept nearcore_ok=True": 11,
+      "code.extra_garbage lean=accept nearcore_ok=True": 15,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 15,
+      "code.flip lean=reject nearcore_ok=False": 14,
+      "code.none lean=reject nearcore_ok=False": 3,
+      "code.reorder lean=accept nearcore_ok=True": 3,
+      "code.truncate lean=reject nearcore_ok=False": 11,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 15,
+      "hdr.congestion lean=reject nearcore_ok=False": 45,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 15,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 15,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 15,
+      "hdr.height_created lean=accept nearcore_ok=True": 15,
+      "hdr.height_included lean=accept nearcore_ok=True": 15,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 15,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 15,
+      "hdr.proposals lean=reject nearcore_ok=False": 15,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 15,
+      "hdr.tx_root lean=reject nearcore_ok=False": 15,
+      "hdr2.congestion lean=reject nearcore_ok=False": 2,
+      "t.chain_id lean=accept nearcore_ok=True": 10,
+      "t.minimum_stake lean=accept nearcore_ok=True": 15,
+      "t.rs_params lean=reject nearcore_ok=False": 15,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 30,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 15,
+      "w.base_state lean=accept nearcore_ok=True": 15,
+      "w.base_state lean=reject nearcore_ok=False": 15,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 15,
+      "w.drop_node lean=reject nearcore_ok=False": 108,
+      "w.drop_proof lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 15,
+      "w.epoch_id lean=reject nearcore_ok=False": 15,
+      "w.extra_proof lean=reject nearcore_ok=False": 15,
+      "w.implicit lean=reject nearcore_ok=False": 9,
+      "w.main_block_hash lean=accept nearcore_ok=True": 15,
+      "w.main_post_root lean=reject nearcore_ok=False": 15,
+      "w.new_tx lean=accept nearcore_ok=True": 26,
+      "w.new_tx lean=reject nearcore_ok=False": 13,
+      "w.trailing_byte lean=reject nearcore_ok=False": 15,
+      "w.tx lean=reject nearcore_ok=False": 40,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 15
+     }
+    }
+   },
+   "blind": {
+    "cases": 59,
+    "graded": 59,
+    "counts": {
+     "match": 59
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 59,
+     "congestion_buffered_gas": 13,
+     "congestion_receipt_bytes": 13,
+     "gas_used": 59,
+     "implicit_transitions": 9,
+     "proposals": 2
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gk302",
+   "scenario": "GasKeyTarget",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 302000907, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 53,
+    "mutants": 925,
+    "honest_nearcore": {
+     "ok": 53
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 65,
+     "failure": 12
+    },
+    "cross_shard_steps": 23,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 978,
+     "verdicts": {
+      "accept": 245,
+      "reject": 733
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 68,
+      "verdict_compared_agree": 910
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 2,
+      "honest accept verdict_compared_agree": 51,
+      "mutant accept verdict_agree_outside_domain": 13,
+      "mutant accept verdict_compared_agree": 179,
+      "mutant reject verdict_agree_outside_domain": 53,
+      "mutant reject verdict_compared_agree": 680
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 15,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 15,
+      "c.extra_block lean=reject nearcore_ok=False": 15,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 15,
+      "code.drop lean=reject nearcore_ok=False": 23,
+      "code.duplicate lean=accept nearcore_ok=True": 12,
+      "code.extra_garbage lean=accept nearcore_ok=True": 15,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 15,
+      "code.flip lean=reject nearcore_ok=False": 23,
+      "code.none lean=reject nearcore_ok=False": 8,
+      "code.reorder lean=accept nearcore_ok=True": 8,
+      "code.truncate lean=reject nearcore_ok=False": 12,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 12,
+      "hdr.congestion lean=reject nearcore_ok=False": 36,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 15,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 15,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 15,
+      "hdr.height_created lean=accept nearcore_ok=True": 15,
+      "hdr.height_included lean=accept nearcore_ok=True": 15,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 15,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 15,
+      "hdr.proposals lean=reject nearcore_ok=False": 12,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 12,
+      "hdr.tx_root lean=reject nearcore_ok=False": 15,
+      "hdr2.congestion lean=reject nearcore_ok=False": 6,
+      "hdr2.proposals lean=reject nearcore_ok=False": 6,
+      "t.chain_id lean=accept nearcore_ok=True": 4,
+      "t.minimum_stake lean=accept nearcore_ok=True": 15,
+      "t.minimum_stake lean=reject nearcore_ok=False": 3,
+      "t.rs_params lean=reject nearcore_ok=False": 15,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 3,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 33,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 15,
+      "w.base_state lean=accept nearcore_ok=True": 15,
+      "w.base_state lean=reject nearcore_ok=False": 15,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 15,
+      "w.drop_node lean=reject nearcore_ok=False": 104,
+      "w.drop_proof lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 15,
+      "w.epoch_id lean=reject nearcore_ok=False": 15,
+      "w.extra_proof lean=reject nearcore_ok=False": 15,
+      "w.implicit lean=reject nearcore_ok=False": 12,
+      "w.main_block_hash lean=accept nearcore_ok=True": 15,
+      "w.main_post_root lean=reject nearcore_ok=False": 15,
+      "w.new_tx lean=accept nearcore_ok=True": 30,
+      "w.new_tx lean=reject nearcore_ok=False": 15,
+      "w.trailing_byte lean=reject nearcore_ok=False": 15,
+      "w.tx lean=reject nearcore_ok=False": 41,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 15
+     }
+    }
+   },
+   "blind": {
+    "cases": 53,
+    "graded": 53,
+    "counts": {
+     "match": 53
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 25,
+     "congestion_buffered_gas": 21,
+     "congestion_receipt_bytes": 21,
+     "gas_used": 53,
+     "implicit_transitions": 10,
+     "proposals": 6
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gk303",
+   "scenario": "GasKeyTarget",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 303000911, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 55,
+    "mutants": 925,
+    "honest_nearcore": {
+     "ok": 55
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 65,
+     "failure": 12
+    },
+    "cross_shard_steps": 23,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "fail",
+     "cases": 980,
+     "verdicts": {
+      "accept": 239,
+      "out_of_domain": 3,
+      "reject": 738
+     },
+     "partition": {
+      "domain_exclusion_where_in_domain": 3,
+      "verdict_agree_outside_domain": 151,
+      "verdict_compared_agree": 826
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [
+      [
+       "runs/gk303/mutants/02-h10037-s5-code.drop.0",
+       "allFeatures out_of_domain on an in-domain case (successor)",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+      ],
+      [
+       "runs/gk303/mutants/02-h10037-s5-code.flip.0",
+       "allFeatures out_of_domain on an in-domain case (successor)",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+      ],
+      [
+       "runs/gk303/mutants/02-h10037-s5-code.truncate.0",
+       "allFeatures out_of_domain on an in-domain case (successor)",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+      ]
+     ],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 4,
+      "honest accept verdict_compared_agree": 51,
+      "mutant accept verdict_agree_outside_domain": 26,
+      "mutant accept verdict_compared_agree": 158,
+      "mutant out_of_domain domain_exclusion_where_in_domain": 3,
+      "mutant reject verdict_agree_outside_domain": 121,
+      "mutant reject verdict_compared_agree": 617
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 15,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 15,
+      "c.extra_block lean=reject nearcore_ok=False": 15,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 15,
+      "code.drop lean=out_of_domain nearcore_ok=False": 1,
+      "code.drop lean=reject nearcore_ok=False": 20,
+      "code.duplicate lean=accept nearcore_ok=True": 13,
+      "code.extra_garbage lean=accept nearcore_ok=True": 15,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 15,
+      "code.flip lean=out_of_domain nearcore_ok=False": 1,
+      "code.flip lean=reject nearcore_ok=False": 20,
+      "code.none lean=reject nearcore_ok=False": 5,
+      "code.reorder lean=accept nearcore_ok=True": 5,
+      "code.truncate lean=out_of_domain nearcore_ok=False": 1,
+      "code.truncate lean=reject nearcore_ok=False": 12,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 15,
+      "hdr.congestion lean=reject nearcore_ok=False": 45,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 15,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 15,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 15,
+      "hdr.height_created lean=accept nearcore_ok=True": 15,
+      "hdr.height_included lean=accept nearcore_ok=True": 15,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 15,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 15,
+      "hdr.proposals lean=reject nearcore_ok=False": 15,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 15,
+      "hdr.tx_root lean=reject nearcore_ok=False": 15,
+      "hdr2.congestion lean=reject nearcore_ok=False": 8,
+      "t.chain_id lean=accept nearcore_ok=True": 5,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 15,
+      "t.rs_params lean=reject nearcore_ok=False": 15,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 2,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 42,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 15,
+      "w.base_state lean=accept nearcore_ok=True": 15,
+      "w.base_state lean=reject nearcore_ok=False": 15,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 15,
+      "w.drop_node lean=reject nearcore_ok=False": 100,
+      "w.drop_proof lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 15,
+      "w.epoch_id lean=reject nearcore_ok=False": 15,
+      "w.extra_proof lean=reject nearcore_ok=False": 15,
+      "w.implicit lean=reject nearcore_ok=False": 6,
+      "w.main_block_hash lean=accept nearcore_ok=True": 15,
+      "w.main_post_root lean=reject nearcore_ok=False": 15,
+      "w.new_tx lean=accept nearcore_ok=True": 24,
+      "w.new_tx lean=reject nearcore_ok=False": 12,
+      "w.trailing_byte lean=reject nearcore_ok=False": 15,
+      "w.tx lean=reject nearcore_ok=False": 47,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 15
+     }
+    }
+   },
+   "blind": {
+    "cases": 55,
+    "graded": 55,
+    "counts": {
+     "match": 55
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 55,
+     "congestion_buffered_gas": 20,
+     "congestion_receipt_bytes": 20,
+     "gas_used": 55,
+     "implicit_transitions": 8,
+     "proposals": 2
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "gk304",
+   "scenario": "GasKeyTarget",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 304000918, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 52, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 57,
+    "mutants": 953,
+    "honest_nearcore": {
+     "ok": 57
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 65,
+     "failure": 12
+    },
+    "cross_shard_steps": 23,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1010,
+     "verdicts": {
+      "accept": 255,
+      "reject": 755
+     },
+     "partition": {
+      "verdict_compared_agree": 1010
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_compared_agree": 57,
+      "mutant accept verdict_compared_agree": 198,
+      "mutant reject verdict_compared_agree": 755
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 15,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 15,
+      "c.extra_block lean=reject nearcore_ok=False": 15,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 15,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 15,
+      "code.drop lean=reject nearcore_ok=False": 22,
+      "code.duplicate lean=accept nearcore_ok=True": 12,
+      "code.extra_garbage lean=accept nearcore_ok=True": 15,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 15,
+      "code.flip lean=reject nearcore_ok=False": 22,
+      "code.none lean=reject nearcore_ok=False": 8,
+      "code.reorder lean=accept nearcore_ok=True": 8,
+      "code.truncate lean=reject nearcore_ok=False": 12,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 15,
+      "hdr.congestion lean=reject nearcore_ok=False": 45,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 15,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 15,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 15,
+      "hdr.height_created lean=accept nearcore_ok=True": 15,
+      "hdr.height_included lean=accept nearcore_ok=True": 15,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 15,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 15,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 15,
+      "hdr.proposals lean=reject nearcore_ok=False": 15,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 15,
+      "hdr.tx_root lean=reject nearcore_ok=False": 15,
+      "hdr2.congestion lean=reject nearcore_ok=False": 1,
+      "t.chain_id lean=accept nearcore_ok=True": 5,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 15,
+      "t.rs_params lean=reject nearcore_ok=False": 15,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 8,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 25,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 15,
+      "w.base_state lean=accept nearcore_ok=True": 15,
+      "w.base_state lean=reject nearcore_ok=False": 15,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 15,
+      "w.drop_node lean=reject nearcore_ok=False": 132,
+      "w.drop_proof lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 15,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 15,
+      "w.epoch_id lean=reject nearcore_ok=False": 15,
+      "w.extra_proof lean=reject nearcore_ok=False": 15,
+      "w.implicit lean=reject nearcore_ok=False": 9,
+      "w.main_block_hash lean=accept nearcore_ok=True": 15,
+      "w.main_post_root lean=reject nearcore_ok=False": 15,
+      "w.new_tx lean=accept nearcore_ok=True": 30,
+      "w.new_tx lean=reject nearcore_ok=False": 15,
+      "w.trailing_byte lean=reject nearcore_ok=False": 15,
+      "w.tx lean=reject nearcore_ok=False": 43,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 15
+     }
+    }
+   },
+   "blind": {
+    "cases": 57,
+    "graded": 57,
+    "counts": {
+     "match": 57
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 23,
+     "congestion_buffered_gas": 10,
+     "congestion_receipt_bytes": 10,
+     "gas_used": 57,
+     "implicit_transitions": 9,
+     "proposals": 2
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "rb401",
+   "scenario": "RollbackRefund",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 401001203, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 57,
+    "mutants": 1149,
+    "honest_nearcore": {
+     "ok": 57
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 138,
+     "failure": 40
+    },
+    "cross_shard_steps": 40,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1206,
+     "verdicts": {
+      "accept": 303,
+      "reject": 903
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 777,
+      "verdict_compared_agree": 429
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 31,
+      "honest accept verdict_compared_agree": 26,
+      "mutant accept verdict_agree_outside_domain": 154,
+      "mutant accept verdict_compared_agree": 92,
+      "mutant reject verdict_agree_outside_domain": 592,
+      "mutant reject verdict_compared_agree": 311
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 19,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 19,
+      "c.extra_block lean=reject nearcore_ok=False": 19,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 19,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 19,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 19,
+      "code.drop lean=accept nearcore_ok=True": 2,
+      "code.drop lean=reject nearcore_ok=False": 25,
+      "code.duplicate lean=accept nearcore_ok=True": 17,
+      "code.extra_garbage lean=accept nearcore_ok=True": 19,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 19,
+      "code.flip lean=accept nearcore_ok=True": 2,
+      "code.flip lean=reject nearcore_ok=False": 25,
+      "code.none lean=reject nearcore_ok=False": 8,
+      "code.reorder lean=accept nearcore_ok=True": 8,
+      "code.truncate lean=accept nearcore_ok=True": 2,
+      "code.truncate lean=reject nearcore_ok=False": 15,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 19,
+      "hdr.congestion lean=reject nearcore_ok=False": 57,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 19,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 19,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 19,
+      "hdr.height_created lean=accept nearcore_ok=True": 19,
+      "hdr.height_included lean=accept nearcore_ok=True": 19,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 19,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 19,
+      "hdr.proposals lean=reject nearcore_ok=False": 19,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 19,
+      "hdr.tx_root lean=reject nearcore_ok=False": 19,
+      "hdr2.congestion lean=reject nearcore_ok=False": 1,
+      "t.chain_id lean=accept nearcore_ok=True": 7,
+      "t.chain_id lean=reject nearcore_ok=False": 1,
+      "t.minimum_stake lean=accept nearcore_ok=True": 19,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 19,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 5,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 51,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 19,
+      "w.base_state lean=accept nearcore_ok=True": 19,
+      "w.base_state lean=reject nearcore_ok=False": 19,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 19,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 19,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 19,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 19,
+      "w.epoch_id lean=reject nearcore_ok=False": 19,
+      "w.extra_proof lean=reject nearcore_ok=False": 19,
+      "w.main_block_hash lean=accept nearcore_ok=True": 19,
+      "w.main_post_root lean=reject nearcore_ok=False": 19,
+      "w.new_tx lean=accept nearcore_ok=True": 32,
+      "w.new_tx lean=reject nearcore_ok=False": 16,
+      "w.trailing_byte lean=reject nearcore_ok=False": 19,
+      "w.tx lean=reject nearcore_ok=False": 51,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 19
+     }
+    }
+   },
+   "blind": {
+    "cases": 57,
+    "graded": 57,
+    "counts": {
+     "match": 57
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 56,
+     "congestion_buffered_gas": 6,
+     "congestion_receipt_bytes": 6,
+     "gas_used": 57,
+     "implicit_transitions": 6
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "rb402",
+   "scenario": "RollbackRefund",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 402001207, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 58,
+    "mutants": 1182,
+    "honest_nearcore": {
+     "ok": 58
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 138,
+     "failure": 40
+    },
+    "cross_shard_steps": 40,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "fail",
+     "cases": 1240,
+     "verdicts": {
+      "accept": 301,
+      "out_of_domain": 2,
+      "reject": 937
+     },
+     "partition": {
+      "domain_exclusion_unasserted": 2,
+      "verdict_agree_outside_domain": 712,
+      "verdict_compared_agree": 526
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [
+      [
+       "runs/rb402/mutants/01-h10028-s0-code.drop.1",
+       "allFeatures out_of_domain without an oracle-asserted reason: ['e.wasm-\u03b1']",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "ok"
+      ],
+      [
+       "runs/rb402/mutants/01-h10028-s0-code.flip.1",
+       "allFeatures out_of_domain without an oracle-asserted reason: ['e.wasm-\u03b1']",
+       "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code",
+       "ok"
+      ]
+     ],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 30,
+      "honest accept verdict_compared_agree": 28,
+      "mutant accept verdict_agree_outside_domain": 140,
+      "mutant accept verdict_compared_agree": 103,
+      "mutant out_of_domain domain_exclusion_unasserted": 2,
+      "mutant reject verdict_agree_outside_domain": 542,
+      "mutant reject verdict_compared_agree": 395
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 19,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 19,
+      "c.extra_block lean=reject nearcore_ok=False": 19,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 19,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 19,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 19,
+      "code.drop lean=out_of_domain nearcore_ok=True": 1,
+      "code.drop lean=reject nearcore_ok=False": 28,
+      "code.duplicate lean=accept nearcore_ok=True": 17,
+      "code.extra_garbage lean=accept nearcore_ok=True": 19,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 19,
+      "code.flip lean=out_of_domain nearcore_ok=True": 1,
+      "code.flip lean=reject nearcore_ok=False": 28,
+      "code.none lean=reject nearcore_ok=False": 9,
+      "code.reorder lean=accept nearcore_ok=True": 9,
+      "code.truncate lean=reject nearcore_ok=False": 17,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 18,
+      "hdr.congestion lean=reject nearcore_ok=False": 54,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 19,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 19,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 19,
+      "hdr.height_created lean=accept nearcore_ok=True": 19,
+      "hdr.height_included lean=accept nearcore_ok=True": 19,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 19,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 19,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 19,
+      "hdr.proposals lean=reject nearcore_ok=False": 18,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 18,
+      "hdr.tx_root lean=reject nearcore_ok=False": 19,
+      "hdr2.congestion lean=reject nearcore_ok=False": 1,
+      "hdr2.proposals lean=reject nearcore_ok=False": 2,
+      "t.chain_id lean=accept nearcore_ok=True": 7,
+      "t.chain_id lean=reject nearcore_ok=False": 3,
+      "t.minimum_stake lean=accept nearcore_ok=True": 19,
+      "t.minimum_stake lean=reject nearcore_ok=False": 1,
+      "t.rs_params lean=reject nearcore_ok=False": 19,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 5,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 57,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 19,
+      "w.base_state lean=accept nearcore_ok=True": 19,
+      "w.base_state lean=reject nearcore_ok=False": 19,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 19,
+      "w.drop_node lean=reject nearcore_ok=False": 120,
+      "w.drop_proof lean=reject nearcore_ok=False": 19,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 19,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 19,
+      "w.epoch_id lean=reject nearcore_ok=False": 19,
+      "w.extra_proof lean=reject nearcore_ok=False": 19,
+      "w.implicit lean=reject nearcore_ok=False": 9,
+      "w.main_block_hash lean=accept nearcore_ok=True": 19,
+      "w.main_post_root lean=reject nearcore_ok=False": 19,
+      "w.new_tx lean=accept nearcore_ok=True": 34,
+      "w.new_tx lean=reject nearcore_ok=False": 17,
+      "w.trailing_byte lean=reject nearcore_ok=False": 19,
+      "w.tx lean=reject nearcore_ok=False": 62,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 19
+     }
+    }
+   },
+   "blind": {
+    "cases": 58,
+    "graded": 58,
+    "counts": {
+     "match": 58
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 28,
+     "congestion_buffered_gas": 7,
+     "congestion_receipt_bytes": 7,
+     "gas_used": 57,
+     "implicit_transitions": 7,
+     "proposals": 4
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "rb403",
+   "scenario": "RollbackRefund",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 403001211, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "population": {
+    "honest": 57,
+    "mutants": 1121,
+    "honest_nearcore": {
+     "ok": 57
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 138,
+     "failure": 40
+    },
+    "cross_shard_steps": 40,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1178,
+     "verdicts": {
+      "accept": 284,
+      "reject": 894
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 735,
+      "verdict_compared_agree": 443
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 30,
+      "honest accept verdict_compared_agree": 27,
+      "mutant accept verdict_agree_outside_domain": 141,
+      "mutant accept verdict_compared_agree": 86,
+      "mutant reject verdict_agree_outside_domain": 564,
+      "mutant reject verdict_compared_agree": 330
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 18,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 18,
+      "c.extra_block lean=reject nearcore_ok=False": 18,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 18,
+      "code.drop lean=accept nearcore_ok=True": 1,
+      "code.drop lean=reject nearcore_ok=False": 28,
+      "code.duplicate lean=accept nearcore_ok=True": 15,
+      "code.extra_garbage lean=accept nearcore_ok=True": 18,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 18,
+      "code.flip lean=accept nearcore_ok=True": 1,
+      "code.flip lean=reject nearcore_ok=False": 28,
+      "code.none lean=reject nearcore_ok=False": 10,
+      "code.reorder lean=accept nearcore_ok=True": 10,
+      "code.truncate lean=accept nearcore_ok=True": 1,
+      "code.truncate lean=reject nearcore_ok=False": 14,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 18,
+      "hdr.congestion lean=reject nearcore_ok=False": 54,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 18,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 18,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 18,
+      "hdr.height_created lean=accept nearcore_ok=True": 18,
+      "hdr.height_included lean=accept nearcore_ok=True": 18,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 18,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 18,
+      "hdr.proposals lean=reject nearcore_ok=False": 18,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 18,
+      "hdr.tx_root lean=reject nearcore_ok=False": 18,
+      "hdr2.congestion lean=reject nearcore_ok=False": 4,
+      "t.chain_id lean=accept nearcore_ok=True": 5,
+      "t.chain_id lean=reject nearcore_ok=False": 3,
+      "t.minimum_stake lean=accept nearcore_ok=True": 18,
+      "t.rs_params lean=reject nearcore_ok=False": 18,
+      "t.tx_valid_flip lean=accept nearcore_ok=True": 2,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 63,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 18,
+      "w.base_state lean=accept nearcore_ok=True": 18,
+      "w.base_state lean=reject nearcore_ok=False": 18,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 18,
+      "w.drop_node lean=reject nearcore_ok=False": 108,
+      "w.drop_proof lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 18,
+      "w.epoch_id lean=reject nearcore_ok=False": 18,
+      "w.extra_proof lean=reject nearcore_ok=False": 18,
+      "w.implicit lean=reject nearcore_ok=False": 6,
+      "w.main_block_hash lean=accept nearcore_ok=True": 18,
+      "w.main_post_root lean=reject nearcore_ok=False": 18,
+      "w.new_tx lean=accept nearcore_ok=True": 30,
+      "w.new_tx lean=reject nearcore_ok=False": 15,
+      "w.trailing_byte lean=reject nearcore_ok=False": 18,
+      "w.tx lean=reject nearcore_ok=False": 57,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 18
+     }
+    }
+   },
+   "blind": {
+    "cases": 57,
+    "graded": 57,
+    "counts": {
+     "match": 57
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 57,
+     "congestion_buffered_gas": 14,
+     "congestion_receipt_bytes": 14,
+     "gas_used": 57,
+     "implicit_transitions": 3,
+     "proposals": 1
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  },
+  {
+   "run": "rb404",
+   "scenario": "RollbackRefund",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 404001218, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 50, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 57,
+    "mutants": 1098,
+    "honest_nearcore": {
+     "ok": 57
+    }
+   },
+   "facts": {
+    "receipt_status_counts": {
+     "value": 138,
+     "failure": 40
+    },
+    "cross_shard_steps": 40,
+    "unexecuted_transactions": []
+   },
+   "problems": [],
+   "tiers": {
+    "allFeatures": {
+     "status": "pass",
+     "cases": 1155,
+     "verdicts": {
+      "accept": 279,
+      "reject": 876
+     },
+     "partition": {
+      "verdict_agree_outside_domain": 638,
+      "verdict_compared_agree": 517
+     },
+     "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5",
+     "disagreements": [],
+     "mutants_replayed": "all",
+     "split": {
+      "honest accept verdict_agree_outside_domain": 27,
+      "honest accept verdict_compared_agree": 30,
+      "mutant accept verdict_agree_outside_domain": 120,
+      "mutant accept verdict_compared_agree": 102,
+      "mutant reject verdict_agree_outside_domain": 491,
+      "mutant reject verdict_compared_agree": 385
+     },
+     "mutant_families": {
+      "c.drop_last_block lean=reject nearcore_ok=False": 18,
+      "c.epoch_start_flip lean=reject nearcore_ok=False": 18,
+      "c.extra_block lean=reject nearcore_ok=False": 18,
+      "c.inner_rest_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_height_flip lean=reject nearcore_ok=False": 18,
+      "c.slot_inner_flip lean=reject nearcore_ok=False": 18,
+      "code.drop lean=reject nearcore_ok=False": 20,
+      "code.duplicate lean=accept nearcore_ok=True": 12,
+      "code.extra_garbage lean=accept nearcore_ok=True": 18,
+      "code.extra_unneeded lean=accept nearcore_ok=True": 18,
+      "code.flip lean=reject nearcore_ok=False": 20,
+      "code.none lean=reject nearcore_ok=False": 6,
+      "code.reorder lean=accept nearcore_ok=True": 6,
+      "code.truncate lean=reject nearcore_ok=False": 12,
+      "hdr.bandwidth_requests lean=reject nearcore_ok=False": 16,
+      "hdr.congestion lean=reject nearcore_ok=False": 48,
+      "hdr.encoded_length lean=reject nearcore_ok=False": 18,
+      "hdr.encoded_merkle_root lean=reject nearcore_ok=False": 18,
+      "hdr.gas_limit lean=reject nearcore_ok=False": 18,
+      "hdr.height_created lean=accept nearcore_ok=True": 18,
+      "hdr.height_included lean=accept nearcore_ok=True": 18,
+      "hdr.prev_balance_burnt lean=reject nearcore_ok=False": 18,
+      "hdr.prev_gas_used lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outcome_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_outgoing_receipts_root lean=reject nearcore_ok=False": 18,
+      "hdr.prev_state_root lean=reject nearcore_ok=False": 18,
+      "hdr.proposals lean=reject nearcore_ok=False": 16,
+      "hdr.proposed_split lean=reject nearcore_ok=False": 16,
+      "hdr.tx_root lean=reject nearcore_ok=False": 18,
+      "hdr2.congestion lean=reject nearcore_ok=False": 4,
+      "hdr2.proposals lean=reject nearcore_ok=False": 4,
+      "t.chain_id lean=accept nearcore_ok=True": 10,
+      "t.minimum_stake lean=accept nearcore_ok=True": 18,
+      "t.minimum_stake lean=reject nearcore_ok=False": 3,
+      "t.rs_params lean=reject nearcore_ok=False": 18,
+      "t.tx_valid_flip lean=reject nearcore_ok=False": 45,
+      "w.applied_receipts_hash lean=reject nearcore_ok=False": 18,
+      "w.base_state lean=accept nearcore_ok=True": 18,
+      "w.base_state lean=reject nearcore_ok=False": 18,
+      "w.corrupt_proof lean=reject nearcore_ok=False": 18,
+      "w.drop_node lean=reject nearcore_ok=False": 124,
+      "w.drop_proof lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_bad lean=reject nearcore_ok=False": 18,
+      "w.dup_key_last_good lean=accept nearcore_ok=True": 18,
+      "w.epoch_id lean=reject nearcore_ok=False": 18,
+      "w.extra_proof lean=reject nearcore_ok=False": 18,
+      "w.implicit lean=reject nearcore_ok=False": 18,
+      "w.main_block_hash lean=accept nearcore_ok=True": 18,
+      "w.main_post_root lean=reject nearcore_ok=False": 18,
+      "w.new_tx lean=accept nearcore_ok=True": 32,
+      "w.new_tx lean=reject nearcore_ok=False": 16,
+      "w.trailing_byte lean=reject nearcore_ok=False": 18,
+      "w.tx lean=reject nearcore_ok=False": 58,
+      "w.unsorted_keys lean=accept nearcore_ok=True": 18
+     }
+    }
+   },
+   "blind": {
+    "cases": 57,
+    "graded": 57,
+    "counts": {
+     "match": 57
+    },
+    "pass": true,
+    "matched_cases_exercising": {
+     "balance_burnt": 16,
+     "congestion_buffered_gas": 17,
+     "congestion_receipt_bytes": 17,
+     "gas_used": 57,
+     "implicit_transitions": 7,
+     "proposals": 4
+    },
+    "field_diffs": {},
+    "reasons": {},
+    "checker_sha256": "29bf5217f43a23d306e3a2c08ef108e73cdb5a85983f225bce47421b4200fdf5"
+   }
+  }
+ ]
+}

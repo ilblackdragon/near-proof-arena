@@ -1,0 +1,160 @@
+{"case": "cases/yc102-04-h10005-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/yc102-04-h10005-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10005-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10005-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10012-s4", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/yc102-04-h10012-s4-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10012-s4-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10012-s4-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10022-s4", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/yc102-04-h10022-s4-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10022-s4-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10022-s4-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10047-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/yc102-04-h10047-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10047-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10047-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10245-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/yc102-04-h10245-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10245-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10245-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10015-s0", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/yc102-04-h10015-s0-c.drop_last_block", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/yc102-04-h10015-s0-c.epoch_start_flip", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/yc102-04-h10015-s0-c.extra_block", "reason": "out of domain (w.shape): ML-DSA-65 public key", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/yc102-04-h10029-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/yc102-04-h10029-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10029-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10029-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10034-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/yc102-04-h10034-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10034-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/yc102-04-h10034-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10018-s3", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bn128_g1_sum not modelled in D3\u03b1", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/cc202-01-h10018-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10018-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10018-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10019-s3", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bn128_g1_sum not modelled in D3\u03b1", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/cc202-01-h10019-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10019-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10019-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10025-s0", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bn128_pairing_check not modelled in D3\u03b1", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/cc202-01-h10025-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10025-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10025-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10030-s3", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function bls12381_p1_sum not modelled in D3\u03b1", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/cc202-01-h10030-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10030-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10030-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10072-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/cc202-01-h10072-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10072-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10072-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10075-s0", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function bls12381_p2_decompress not modelled in D3\u03b1", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/cc202-01-h10075-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10075-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10075-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10076-s0", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function bls12381_p2_decompress not modelled in D3\u03b1", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/cc202-01-h10076-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10076-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10076-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10087-s0", "reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function bls12381_g1_multiexp not modelled in D3\u03b1", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/cc202-01-h10087-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10087-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/cc202-01-h10087-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s1", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gx501-00-h10002-s1-g.genesis_extra.balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s1-g.tx_in_genesis_chunk", "reason": "invalid: transaction root of the last chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s1-g.tx_valid_extra_flag0", "reason": "invalid: tx_valid length", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s2", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gx501-00-h10002-s2-g.genesis_extra.balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s2-g.tx_in_genesis_chunk", "reason": "invalid: transaction root of the last chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s2-g.tx_valid_extra_flag0", "reason": "invalid: tx_valid length", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s3", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gx501-00-h10002-s3-g.genesis_extra.balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s3-g.tx_in_genesis_chunk", "reason": "invalid: transaction root of the last chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-00-h10002-s3-g.tx_valid_extra_flag0", "reason": "invalid: tx_valid length", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10002-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gx501-01-h10002-s0-g.genesis_extra.balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10002-s0-g.tx_in_genesis_chunk", "reason": "invalid: transaction root of the last chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10002-s0-g.tx_valid_extra_flag0", "reason": "invalid: tx_valid length", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10002-s4", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gx501-01-h10002-s4-g.genesis_extra.balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10002-s4-g.tx_in_genesis_chunk", "reason": "invalid: transaction root of the last chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10002-s4-g.tx_valid_extra_flag0", "reason": "invalid: tx_valid length", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10004-s2", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gx501-01-h10004-s2-g.genesis_extra.balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10004-s2-g.tx_in_genesis_chunk", "reason": "invalid: transaction root of the last chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10004-s2-g.tx_valid_extra_flag0", "reason": "invalid: tx_valid length", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-01-h10004-s3", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/gx501-01-h10004-s3-g.genesis_extra.balance_burnt", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/gx501-01-h10004-s3-g.tx_in_genesis_chunk", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/gx501-01-h10004-s3-g.tx_valid_extra_flag0", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/gx501-02-h10003-s2", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gx501-02-h10003-s2-g.genesis_extra.balance_burnt", "reason": "invalid: InvalidBalanceBurnt", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-02-h10003-s2-g.tx_in_genesis_chunk", "reason": "invalid: transaction root of the last chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gx501-02-h10003-s2-g.tx_valid_extra_flag0", "reason": "invalid: tx_valid length", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10009-s3", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10009-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10009-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10009-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10016-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10016-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10016-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10016-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10017-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10017-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10017-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10017-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10020-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10020-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10020-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10020-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10021-s1", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10021-s1-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10021-s1-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10021-s1-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10025-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10025-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10025-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10025-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10028-s3", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10028-s3-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10028-s3-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10028-s3-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10038-s0", "reason": "", "tier": "storageResolution", "verdict": "accept"}
+{"case": "cases/gk301-00-h10038-s0-c.drop_last_block", "reason": "invalid: segment does not reach the last-but-one new chunk", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10038-s0-c.epoch_start_flip", "reason": "invalid: epoch_start_after inconsistent with the headers", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/gk301-00-h10038-s0-c.extra_block", "reason": "invalid: segment is not exactly the blocks the validator reads", "tier": "storageResolution", "verdict": "reject"}
+{"case": "cases/rb401-00-h10020-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10020-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10020-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10020-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10021-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10021-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10021-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10021-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10026-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10026-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10026-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10026-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10027-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10027-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10027-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10027-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10032-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10032-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10032-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10032-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10033-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10033-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10033-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10033-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10038-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10038-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10038-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10038-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10039-s1", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10039-s1-c.drop_last_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10039-s1-c.epoch_start_flip", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
+{"case": "cases/rb401-00-h10039-s1-c.extra_block", "reason": "out of domain (w.shape): DeterministicStateInit action", "tier": "storageResolution", "verdict": "out_of_domain"}
