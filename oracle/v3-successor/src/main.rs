@@ -24,6 +24,10 @@
 //!       Print the code registry (name, hash, length, D3α facts).
 //!   curve-steps
 //!       Print the curve-hosts scenario steps (label, method, args, gas) and contract hash as JSON.
+//!   mainnet-observables --home HOME --exports EXPORTS --cases CASES --out FILE
+//!       nearcore's stored outcomes, outgoing receipts and state changes of each captured mainnet
+//!       witness's main transition, from a stopped node's database opened read-only
+//!       (src/mainnet_obs.rs, workplan W01).
 //!   reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N] [--shards n]
 //!       [--epoch-length L] [--gas-limit-tgas G] [--split-k k] [--variant v] [--p-missing P]
 //!       [--p-burst-hot B] [--min-gas-price P]
@@ -76,6 +80,8 @@ mod d3gen;
 mod codec_probe;
 mod curve_hosts;
 mod reshard;
+mod observables;
+mod mainnet_obs;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
@@ -208,6 +214,7 @@ fn main() {
         Some("codec-roundtrip") => codec_probe::command(&args),
         Some("curve-steps") => curve_hosts::print_steps(),
         Some("reshard") => reshard::cmd_reshard(&args),
+        Some("mainnet-observables") => mainnet_obs::cmd(&args),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-successor gen --domain d3 ... | contracts (see src/main.rs)");

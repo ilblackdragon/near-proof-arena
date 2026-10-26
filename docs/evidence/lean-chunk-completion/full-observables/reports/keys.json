@@ -1,0 +1,240 @@
+{
+ "label": "keys",
+ "cases": 37,
+ "categories": {
+  "match": 36,
+  "lean_out_of_domain": 1
+ },
+ "graded": 36,
+ "per_field": {
+  "chunk.balanceBurnt": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  },
+  "chunk.gasUsed": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  },
+  "chunk.outcomeRoot": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  },
+  "computeUsage": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  },
+  "outcome.executor": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.gasBurnt": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.id": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.logs": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.receiptIds": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.returnData": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.status": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.statusReceiptId": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcome.tokensBurnt": {
+   "compared": 2825,
+   "matched": 2825,
+   "mismatched": 0
+  },
+  "outcomes.count": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  },
+  "receipt.bodyHash": {
+   "compared": 970,
+   "matched": 970,
+   "mismatched": 0
+  },
+  "receipt.id": {
+   "compared": 970,
+   "matched": 970,
+   "mismatched": 0
+  },
+  "receipt.kind": {
+   "compared": 970,
+   "matched": 970,
+   "mismatched": 0
+  },
+  "receipt.predecessor": {
+   "compared": 970,
+   "matched": 970,
+   "mismatched": 0
+  },
+  "receipt.receiver": {
+   "compared": 970,
+   "matched": 970,
+   "mismatched": 0
+  },
+  "receipt.refund": {
+   "compared": 970,
+   "matched": 970,
+   "mismatched": 0
+  },
+  "receipts.count": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  },
+  "refunds.count": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  },
+  "stateChange.value": {
+   "compared": 1248,
+   "matched": 1248,
+   "mismatched": 0
+  },
+  "stateChanges.keys": {
+   "compared": 36,
+   "matched": 36,
+   "mismatched": 0
+  }
+ },
+ "header_diffs": {},
+ "recompute_failures": {},
+ "controls": {
+  "total": 623,
+  "detected": 623,
+  "cases": 36,
+  "by_control": {
+   "computeUsage+1": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.executor": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.extra_log": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.failure->value": {
+    "detected": 26,
+    "missed": 0
+   },
+   "outcome.gasBurnt+1": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.id": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.log_byte": {
+    "detected": 12,
+    "missed": 0
+   },
+   "outcome.receiptIds": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.returnData": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.tokensBurnt+1": {
+    "detected": 36,
+    "missed": 0
+   },
+   "outcome.value->failure": {
+    "detected": 10,
+    "missed": 0
+   },
+   "outcomes.drop_last": {
+    "detected": 36,
+    "missed": 0
+   },
+   "receipt.bodyHash": {
+    "detected": 36,
+    "missed": 0
+   },
+   "receipt.receiver": {
+    "detected": 36,
+    "missed": 0
+   },
+   "receipts.drop_last": {
+    "detected": 36,
+    "missed": 0
+   },
+   "refund.unmark": {
+    "detected": 35,
+    "missed": 0
+   },
+   "stateChange.value": {
+    "detected": 36,
+    "missed": 0
+   },
+   "stateChange.write->delete": {
+    "detected": 36,
+    "missed": 0
+   },
+   "stateChanges.drop": {
+    "detected": 36,
+    "missed": 0
+   }
+  }
+ },
+ "matched_cases_exercising": {
+  "n_failures": 26,
+  "n_refunds": 35,
+  "n_receipts": 36,
+  "n_changes": 36,
+  "n_logs": 12,
+  "n_return": 5
+ },
+ "totals": {
+  "outcomes": 2825,
+  "receipts": 970,
+  "state_changes": 1248
+ },
+ "identities": {
+  "lean_binary_sha256": "09cf9944d47a078ddfb0f6447f4f844e509c083747998f03487397fc881c318a",
+  "harness_sha256": "3c7ebcf6f84e56027c9bea60553bf15d8cab48b3daa7ddea27a8503b09486aff",
+  "expected": [
+   "bound/keys.jsonl.gz"
+  ],
+  "tier": "allFeatures",
+  "cases_list_sha256": "3a80a7fcdc22807b650acd83b4d8072a98d87c87ea69ae01d68bbe76e2da9ad4"
+ },
+ "elapsed_seconds": 14.618147217668593,
+ "pass": true
+}

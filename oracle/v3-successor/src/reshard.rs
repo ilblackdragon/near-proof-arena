@@ -240,6 +240,9 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
     let mut s = setup_reshard(rp);
     let cold_home = out.join(format!(".cold-{chain_idx}"));
     let judge = ColdJudge::new(&s.env.clients, &s.ems, &s.genesis, &cold_home);
+    // W01 (opt-in): nearcore's per-outcome observables of every honest witness; no RNG use
+    let mut obs = crate::observables::enabled()
+        .then(|| crate::observables::Collector::new(&s.env.clients, &s.ems, &s.genesis, &cold_home, out, chain_idx));
     let mut world = crate::d2gen::World::new(&s.accounts, crate::chaind2::validators_of(p.n_shards), crate::chaind2::stakers_of());
     let mut w3 = crate::d3gen::D3World::new(p.n_shards);
     let mut labels: HashMap<CryptoHash, String> = HashMap::new();
@@ -425,6 +428,9 @@ pub fn run_chain_reshard(chain_idx: usize, rp: &ReshardParams, out: &Path, st: &
             let codes: Vec<Vec<u8>> = accesses.iter().filter_map(|h| reg.by_hash.get(h).map(|x| x.1.clone())).collect();
             let wb = borsh::to_vec(&sw).unwrap();
             let rs = (built.claim.rs_data_parts, built.claim.rs_total_parts);
+            if let Some(c) = obs.as_mut() {
+                c.record(ci, client, &wb, &codes, &built.claim.encode(), chain_idx);
+            }
             let verdict = judge.judge(ci, client, &wb, &codes, rs, None);
             if verdict.is_ok() {
                 st.honest_ok += 1;

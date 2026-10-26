@@ -687,7 +687,8 @@ def applyNewChunkD2 (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
   let burnt := burnt - rs.subsidized
   pure { root, outcomes := rs.outcomes, outgoing := rs.outgoing, gasUsed, balanceBurnt := burnt,
          congestion := cong, bwRequests := bw, proposals := dedupProposals rs.proposals,
-         cdRemovals := o.cdRemovals, wasmGas := rs.wasmGas }
+         cdRemovals := o.cdRemovals, wasmGas := rs.wasmGas,
+         committed := some (sortKV o.committed), compute := some rs.compute }
 
 /-- Execute the recorder-aware main transition. Limits are protocol constants; the initial
 recorder is empty regardless of unused values included in the witness. -/

@@ -216,7 +216,11 @@ def checkD2CoreLObs (hooks : ActionHooksL) (allowCodes : Bool) (claimBytes witne
              bwRequests := out.bwRequests
              logs := out.outcomes.map (fun o => o.logs) |>.flatten
              receiptCount := out.outgoing.length
-             wasmGas := out.wasmGas }
+             wasmGas := out.wasmGas
+             outcomes := out.outcomes
+             outgoing := out.outgoing
+             stateChanges := out.committed
+             computeUsage := out.compute }
 
 
 /-- The signed logged checker: the observable logged checker projected to its verdict. -/

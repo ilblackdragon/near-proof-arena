@@ -292,7 +292,11 @@ def checkD2CoreWithObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowCo
              bwRequests := out.bwRequests
              logs := out.outcomes.map (fun o => o.logs) |>.flatten
              receiptCount := out.outgoing.length
-             wasmGas := out.wasmGas }
+             wasmGas := out.wasmGas
+             outcomes := out.outcomes
+             outgoing := out.outgoing
+             stateChanges := out.committed
+             computeUsage := out.compute }
 
 /-- The successor's whole-state checker: the observable checker projected to its verdict, the same
 shape as `checkD2Core`, so `checkD2CoreWith_legacy` stays `rfl`. -/

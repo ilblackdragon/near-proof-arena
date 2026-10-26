@@ -153,6 +153,9 @@ pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, st
     let mut s = setup_d3(p, dp.min_gas_price);
     let cold_home = out.join(format!(".cold-{chain_idx}"));
     let judge = crate::d3judge::ColdJudge::new(&s.env.clients, &s.ems, &s.genesis, &cold_home);
+    // W01 (opt-in): nearcore's per-outcome observables of every honest witness; no RNG use
+    let mut obs = crate::observables::enabled()
+        .then(|| crate::observables::Collector::new(&s.env.clients, &s.ems, &s.genesis, &cold_home, out, chain_idx));
     let mut world = crate::d2gen::World::new(&s.accounts, crate::chaind2::validators_of(p.n_shards), crate::chaind2::stakers_of());
     let mut w3 = crate::d3gen::D3World::new(p.n_shards);
     let mut keys = crate::keys::KeysWorld::new();
@@ -385,6 +388,9 @@ pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, st
             let wb = borsh::to_vec(&sw).unwrap();
             let rs = (built.claim.rs_data_parts, built.claim.rs_total_parts);
             let verdict = judge.judge(ci, client, &wb, &codes, rs, None);
+            if let Some(c) = obs.as_mut() {
+                c.record(ci, client, &wb, &codes, &built.claim.encode(), chain_idx);
+            }
             if verdict.is_ok() {
                 stats.honest_ok += 1;
             } else {

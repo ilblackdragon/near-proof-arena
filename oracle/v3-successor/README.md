@@ -169,3 +169,24 @@ NEAR_SUCCESSOR_SCENARIO=fuel-stress $B gen --domain d3 --seed 2026 --chains 1 --
 ```
 
 Evidence: `docs/evidence/lean-chunk-completion/fuel-termination/`.
+
+## Per-outcome nearcore observables (`NEAR_SUCCESSOR_OBSERVABLES=1`, W01)
+
+With `NEAR_SUCCESSOR_OBSERVABLES=1`, `gen` and `reshard` also write
+`nearcore-observables-<chain>.jsonl`: one record per honest witness, keyed by the sha256 of the
+case's `claim.bin` and `witness.bin`. Each record comes from a separate cold validator runtime
+(`src/observables.rs`). It pre-validates the witness with the needed code blobs and runs
+`apply_new_chunk` as the stateless validator does. The record holds the execution outcomes (id,
+executor, status with return value or receipt id or failure, gas, tokens, compute, logs, receipt
+ids), the outgoing receipts the header root commits to (reassigned across a split as the validator
+does), and the committed state changes with each change's cause. It also holds the outcome root
+and the producer's stored outcome ids. The variable never touches the RNG, so the cases are
+byte-identical with and without it (checked on seed 7, 30 blocks, `--mutate-every 10`).
+
+`mainnet-observables --home HOME --exports EXPORTS --cases CASES --out FILE` reads the same fields
+from a stopped node's database opened read-only (`src/mainnet_obs.rs`): stored outcomes, outgoing
+receipts and state changes of each captured witness's main-transition block. `compute_usage` is not
+persisted by nearcore, so it is reported as unknown.
+
+`tools/mainnet-replay/full_observables.py` compares these records with the checker's
+`--blind-full` output. Results: `docs/evidence/lean-chunk-completion/full-observables/`.
