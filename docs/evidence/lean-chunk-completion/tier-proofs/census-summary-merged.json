@@ -1,0 +1,6152 @@
+{
+ "SANITY_MERGED": {
+  "cases": 5765,
+  "tiers": [
+   "signed",
+   "floats",
+   "protoGas",
+   "floatsProtoGas",
+   "genesis",
+   "genesisFloatsProtoGas",
+   "runtimeLimits",
+   "storageResolution",
+   "globalActions",
+   "completeCodeGlobal",
+   "curveHosts",
+   "resharding",
+   "allFeatures"
+  ],
+  "verdicts": {
+   "signed": {
+    "reject": 2223,
+    "accept": 2562,
+    "out_of_domain": 980
+   },
+   "floats": {
+    "reject": 2223,
+    "accept": 2811,
+    "out_of_domain": 731
+   },
+   "protoGas": {
+    "reject": 2223,
+    "accept": 2697,
+    "out_of_domain": 845
+   },
+   "floatsProtoGas": {
+    "reject": 2223,
+    "accept": 3004,
+    "out_of_domain": 538
+   },
+   "genesis": {
+    "reject": 2223,
+    "accept": 2599,
+    "out_of_domain": 943
+   },
+   "genesisFloatsProtoGas": {
+    "reject": 2223,
+    "accept": 3041,
+    "out_of_domain": 501
+   },
+   "runtimeLimits": {
+    "reject": 2223,
+    "accept": 3041,
+    "out_of_domain": 501
+   },
+   "storageResolution": {
+    "reject": 2222,
+    "accept": 3119,
+    "out_of_domain": 424
+   },
+   "globalActions": {
+    "reject": 2224,
+    "accept": 3276,
+    "out_of_domain": 265
+   },
+   "completeCodeGlobal": {
+    "reject": 2360,
+    "accept": 3235,
+    "out_of_domain": 170
+   },
+   "curveHosts": {
+    "reject": 2231,
+    "accept": 3241,
+    "out_of_domain": 293
+   },
+   "resharding": {
+    "reject": 2248,
+    "accept": 3258,
+    "out_of_domain": 259
+   },
+   "allFeatures": {
+    "reject": 2250,
+    "accept": 3420,
+    "out_of_domain": 95
+   }
+  },
+  "pairs": [
+   {
+    "lo": "signed",
+    "hi": "floats",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "signed",
+    "hi": "protoGas",
+    "flags_contained": true,
+    "proved": "relSuccessor_protoGas_mono",
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "signed",
+    "hi": "floatsProtoGas",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "signed",
+    "hi": "genesis",
+    "flags_contained": true,
+    "proved": "relSuccessor_genesis_mono",
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "signed",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "signed",
+    "hi": "runtimeLimits",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "signed",
+    "hi": "storageResolution",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "signed",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "signed",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 2,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "signed",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "signed",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "signed",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 249,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 249,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 249,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 249,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "floatsProtoGas",
+    "flags_contained": true,
+    "proved": "relSuccessor_floatsProtoGas_mono",
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "floats",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 249,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 249,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "floats",
+    "hi": "runtimeLimits",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "floats",
+    "hi": "storageResolution",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 2,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floats",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 135,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 135,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "floatsProtoGas",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "protoGas",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 135,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "protoGas",
+    "hi": "runtimeLimits",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "protoGas",
+    "hi": "storageResolution",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 2,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "protoGas",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 442,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 193,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 307,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 442,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": true,
+    "proved": "relSuccessor_genesisFloatsProtoGas_mono",
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "runtimeLimits",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "storageResolution",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 2,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "floatsProtoGas",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 37,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 37,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 37,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 37,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "genesis",
+    "hi": "runtimeLimits",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "genesis",
+    "hi": "storageResolution",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 2,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesis",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 479,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 230,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 344,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 37,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 442,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "runtimeLimits",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "storageResolution",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 2,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "genesisFloatsProtoGas",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 479,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 230,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 344,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 37,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 442,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "storageResolution",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 2,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "runtimeLimits",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 1,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid: InvalidBandwidthRequests",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 557,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid: InvalidBandwidthRequests"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 308,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid: InvalidBandwidthRequests"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 422,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid: InvalidBandwidthRequests"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 115,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid: InvalidBandwidthRequests"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 520,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid: InvalidBandwidthRequests"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 78,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid: InvalidBandwidthRequests"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "runtimeLimits",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 78,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 1,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid: InvalidBandwidthRequests"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "globalActions",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 41,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 41,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     }
+    ]
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "curveHosts",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 1,
+    "classes": []
+   },
+   {
+    "lo": "storageResolution",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 1,
+    "classes": []
+   },
+   {
+    "lo": "globalActions",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 716,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 467,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 581,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 274,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 679,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 237,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "runtimeLimits",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 237,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "storageResolution",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 159,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     },
+     {
+      "n": 3,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeployGlobalContract action"
+     },
+     {
+      "n": 2,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_transfer_to_gas_key called"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "completeCodeGlobal",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 41,
+    "reason_only": 225,
+    "classes": [
+     {
+      "n": 41,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "curveHosts",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 159,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     },
+     {
+      "n": 3,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeployGlobalContract action"
+     },
+     {
+      "n": 2,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_transfer_to_gas_key called"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "resharding",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 159,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     },
+     {
+      "n": 3,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeployGlobalContract action"
+     },
+     {
+      "n": 2,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_transfer_to_gas_key called"
+     }
+    ]
+   },
+   {
+    "lo": "globalActions",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 1,
+    "classes": []
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 812,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 563,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 135,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 677,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 370,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 135,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 775,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 333,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 135,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "runtimeLimits",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 333,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 135,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "storageResolution",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 295,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 95,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 41,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": ""
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "globalActions",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 136,
+    "reason_only": 225,
+    "classes": [
+     {
+      "n": 95,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code"
+     },
+     {
+      "n": 41,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "curveHosts",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 295,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 95,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 41,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": ""
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "resharding",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 295,
+    "reason_only": 224,
+    "classes": [
+     {
+      "n": 95,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 41,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": ""
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "completeCodeGlobal",
+    "hi": "allFeatures",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 136,
+    "reason_only": 226,
+    "classes": [
+     {
+      "n": 95,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its code"
+     },
+     {
+      "n": 41,
+      "lo": "reject",
+      "hi": "accept",
+      "lo_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution",
+      "hi_reason": ""
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 688,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 439,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 553,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 246,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 651,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 209,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "runtimeLimits",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 209,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "storageResolution",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 131,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_map_fp_to_gN not modelled in DN\u03b1"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pairing_check not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "globalActions",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 131,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_map_fp_to_gN not modelled in DN\u03b1"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pairing_check not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "completeCodeGlobal",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 172,
+    "reason_only": 223,
+    "classes": [
+     {
+      "n": 41,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_map_fp_to_gN not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "resharding",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 1,
+    "classes": []
+   },
+   {
+    "lo": "curveHosts",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 1,
+    "classes": []
+   },
+   {
+    "lo": "resharding",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 722,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 473,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 587,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 280,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 685,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 243,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "runtimeLimits",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 243,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "storageResolution",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 165,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "globalActions",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 165,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "completeCodeGlobal",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 206,
+    "reason_only": 224,
+    "classes": [
+     {
+      "n": 41,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 33,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "curveHosts",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 34,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 2,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: implicit transition post state root",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 1,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: MissingTrieValue (retain_split_shard)",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     }
+    ]
+   },
+   {
+    "lo": "resharding",
+    "hi": "allFeatures",
+    "flags_contained": true,
+    "proved": null,
+    "verdict_violations": 0,
+    "reason_only": 0,
+    "classes": []
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "signed",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 886,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "floats",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 637,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 193,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "protoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 751,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "floatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 444,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.not_genesis)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 14,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "genesis",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 849,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 307,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): float type or operator in a function body"
+     },
+     {
+      "n": 135,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.g_alpha): chunk function-call gas N > G_\u03b1 N"
+     },
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "genesisFloatsProtoGas",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 407,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 14,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "runtimeLimits",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 407,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 40,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chunk compiled-contract cache"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): ETH-implicit account with a local contract (legacy wallet resolution)"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 14,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "storageResolution",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 329,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 34,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 14,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "globalActions",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 170,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function pN_verify not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "completeCodeGlobal",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 211,
+    "reason_only": 226,
+    "classes": [
+     {
+      "n": 41,
+      "lo": "accept",
+      "hi": "reject",
+      "lo_reason": "",
+      "hi_reason": "invalid witness (w.code_complete): raw contract code is required for pre-state or unresolved-origin execution"
+     },
+     {
+      "n": 36,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function ecrecover not modelled in DN\u03b1"
+     },
+     {
+      "n": 17,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 13,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_sum not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_pN_decompress not modelled in DN\u03b1"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 11,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function blsN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 9,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_gN_multiexp not modelled in DN\u03b1"
+     },
+     {
+      "n": 7,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled host function alt_bnN_pairing_check not modelled in DN\u03b1"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "curveHosts",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 198,
+    "reason_only": 1,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 14,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 14,
+      "lo": "reject",
+      "hi": "out_of_domain",
+      "lo_reason": "invalid: InvalidChunkHeaderShardSplit",
+      "hi_reason": "out of domain (c.no_split_gate)"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (c.same_layout): resharding"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     }
+    ]
+   },
+   {
+    "lo": "allFeatures",
+    "hi": "resharding",
+    "flags_contained": false,
+    "proved": null,
+    "verdict_violations": 164,
+    "reason_only": 0,
+    "classes": [
+     {
+      "n": 44,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): ML-DSA-N public key"
+     },
+     {
+      "n": 37,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): non-EDN transaction key"
+     },
+     {
+      "n": 16,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"
+     },
+     {
+      "n": 15,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_state_init called"
+     },
+     {
+      "n": 14,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): UseGlobalContract action"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_use_global_contract called"
+     },
+     {
+      "n": 12,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): GlobalContractDistribution receipt"
+     },
+     {
+      "n": 5,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeterministicStateInit action"
+     },
+     {
+      "n": 3,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (w.shape): DeployGlobalContract action"
+     },
+     {
+      "n": 3,
+      "lo": "accept",
+      "hi": "out_of_domain",
+      "lo_reason": "",
+      "hi_reason": "out of domain (e.wasm-\u03b1): unmodeled unmodeled out-of-domain host function promise_batch_action_transfer_to_gas_key called"
+     }
+    ]
+   }
+  ]
+ }
+}

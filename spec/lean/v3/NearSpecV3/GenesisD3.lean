@@ -191,11 +191,11 @@ otherwise. For a non-genesis `B2` this function *returns `checkD2Core`'s own res
 non-genesis relation cannot drift; for a genesis `B2` it checks the genesis main transition instead
 of applying a chunk.
 
-**Open obligation.** That the delegation makes `checkD2CoreG` agree with `checkD2Core` on *every*
-non-genesis input is argued by construction (the delegate's result is returned verbatim once the
-shared prefix succeeds, and the prefix's checks are identical and idempotent), but it is **not** a
-proved theorem: reifying the prefix so the equation becomes `rfl` is real work and is not done here.
-What *is* established is empirical and total over the corpus: over all 115 284 recorded cases the
+**Overlap (proved).** `Successor.checkD2CoreG_overlap` (`Successor/GenesisOverlap.lean`): either
+`checkD2CoreG = checkD2Core`, or `checkD2Core` reports `out of domain (c.not_genesis)`. The common
+prefix before the delegation is covered: both fail there with the same error or both reach `B2`.
+The successor shells' form is `checkD2CoreGWith_overlap` (any driver without resharding).
+Empirically, over the corpus: over all 115 284 recorded cases the
 `d3g` binary's verdict on every non-genesis claim equals the recorded `checkD3` baseline's, and in
 particular the 307 header mutants the first draft wrongly accepted are now rejected. -/
 def checkD2CoreG (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)

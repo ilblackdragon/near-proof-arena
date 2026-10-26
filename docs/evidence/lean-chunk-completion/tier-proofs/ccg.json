@@ -1,0 +1,78 @@
+{
+ "strat-out": [
+  {
+   "globalActions": "reject",
+   "completeCodeGlobal": "reject",
+   "ccg_reason_is_w.code_complete": true,
+   "nearcore": "err",
+   "n": 704,
+   "examples": [
+    "d3c10/mutants/02-h10025-s3-code.none",
+    "d3c10/mutants/00-h10013-s1-code.truncate.0",
+    "d3c10/mutants/00-h10015-s0-code.flip.0"
+   ]
+  },
+  {
+   "globalActions": "reject",
+   "completeCodeGlobal": "reject",
+   "ccg_reason_is_w.code_complete": true,
+   "nearcore": "ok",
+   "n": 224,
+   "examples": [
+    "d2corpus.v2/ood/00-h10010-s1",
+    "d2corpus.v2/ood/00-h10010-s3",
+    "d2corpus.v2/ood/00-h10013-s1"
+   ]
+  },
+  {
+   "globalActions": "accept",
+   "completeCodeGlobal": "reject",
+   "ccg_reason_is_w.code_complete": true,
+   "nearcore": "ok",
+   "n": 178,
+   "examples": [
+    "d2corpus.v2/ood/06-h10032-s0",
+    "d2corpus.v2/ood/07-h10015-s1",
+    "d3c10/mutants/01-h10163-s0-code.drop.0"
+   ]
+  },
+  {
+   "globalActions": "out_of_domain",
+   "completeCodeGlobal": "reject",
+   "ccg_reason_is_w.code_complete": true,
+   "nearcore": "err",
+   "n": 4,
+   "examples": [
+    "d3c7/mutants/05-h10051-s4-code.drop.0",
+    "d3c7/mutants/04-h10038-s1-code.drop.0",
+    "d3c8/mutants/10-h10016-s4-code.drop.0"
+   ]
+  }
+ ],
+ "w08-out": [
+  {
+   "globalActions": "out_of_domain",
+   "completeCodeGlobal": "reject",
+   "ccg_reason_is_w.code_complete": true,
+   "nearcore": "err",
+   "n": 95,
+   "examples": [
+    "d3c8/mutants/04-h10089-s1-code.truncate.0",
+    "d3c8/mutants/04-h10153-s3-code.drop.1",
+    "d3c8/mutants/04-h10153-s3-code.flip.1"
+   ]
+  },
+  {
+   "globalActions": "accept",
+   "completeCodeGlobal": "reject",
+   "ccg_reason_is_w.code_complete": true,
+   "nearcore": "ok",
+   "n": 8,
+   "examples": [
+    "d3c8/mutants/02-h10148-s3-code.drop.1",
+    "d3c8/mutants/02-h10148-s3-code.flip.1",
+    "d3c8/mutants/01-h10185-s2-code.drop.0"
+   ]
+  }
+ ]
+}
