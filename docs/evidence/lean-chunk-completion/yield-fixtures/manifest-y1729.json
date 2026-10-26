@@ -1,0 +1,1134 @@
+{
+ "run": "runs/y1729",
+ "scenario": "Yield",
+ "scenario_json_sha256": "d6c81802812fcff9675b739e9ed534cd3b84c887d3b049477885f1388ccb52c1",
+ "chain_params": [
+  "D3Params { base: ChainParams { seed: 1729005188, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 250, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+ ],
+ "honest": 1074,
+ "honest_accepted_by_nearcore": 1074,
+ "mutants": 3246,
+ "shards": {
+  "s0yield": "0",
+  "s0zlim": "0",
+  "s1ycall": "4",
+  "s1zsoft": "4",
+  "s1zyield": "4",
+  "s2ynote": "3",
+  "s2zmisc": "3",
+  "s2zsrc": "3",
+  "s3zcode": "2",
+  "s3zsrc": "2"
+ },
+ "contracts": [
+  {
+   "hash": "CjReRexqUtavGUWat7rkTNsTtypxpvg14hS7cfJL4PJd",
+   "len": 1436,
+   "name": "yieldc"
+  }
+ ],
+ "steps": [
+  {
+   "label": "successor.yield.00.create-later",
+   "call": "create(01)",
+   "submitted_height": 10004,
+   "nearcore": {
+    "tx_height": 10006,
+    "fc_height": 10006,
+    "fc_status": "value",
+    "fc_value": "d6ad2e3768f2e949a71935532d03935aabdae7dfe16fd2eb4d30607b6412e228",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10010,
+      "status": "value",
+      "value": "016c617465722d6368756e6b",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "016c617465722d6368756e6b"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10007-s0"
+    ],
+    "fc": "d3/01-h10007-s0",
+    "callbacks": [
+     "d3/01-h10011-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.01.create-timeout",
+   "call": "create(04)",
+   "submitted_height": 10004,
+   "nearcore": {
+    "tx_height": 10006,
+    "fc_height": 10006,
+    "fc_status": "value",
+    "fc_value": "7fb31d9af993f0ff0d9ea9a37e51708142bb1a6d133133b0ae14616f0bcb6a22",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10207,
+      "status": "value",
+      "value": "02",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "02",
+    "cb_delay": 201
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10007-s0"
+    ],
+    "fc": "d3/01-h10007-s0",
+    "callbacks": [
+     "d3/01-h10208-s0"
+    ],
+    "notes": [],
+    "timeout": "d3/01-h10207-s0"
+   }
+  },
+  {
+   "label": "successor.yield.02.create-resume-same-receipt",
+   "call": "create_resume(0273616d652d72656365697074)",
+   "submitted_height": 10006,
+   "nearcore": {
+    "tx_height": 10007,
+    "fc_height": 10007,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10008,
+      "status": "value",
+      "value": "0173616d652d72656365697074",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01",
+    "cb": "0173616d652d72656365697074",
+    "cb_delay": 1
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10008-s0"
+    ],
+    "fc": "ood/01-h10008-s0",
+    "callbacks": [
+     "d3/01-h10009-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.03.create-same-chunk",
+   "call": "create(03)",
+   "submitted_height": 10006,
+   "nearcore": {
+    "tx_height": 10007,
+    "fc_height": 10007,
+    "fc_status": "value",
+    "fc_value": "2e8bdc376e387953769b9c029ed884cc79f61f8393f3fc4ae21ff27c0a2c2096",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10008,
+      "status": "value",
+      "value": "0173616d652d6368756e6b",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "0173616d652d6368756e6b",
+    "cb_delay": 1
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10008-s0"
+    ],
+    "fc": "ood/01-h10008-s0",
+    "callbacks": [
+     "d3/01-h10009-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.04.resume-same-chunk",
+   "call": "resume(0373616d652d6368756e6b)",
+   "submitted_height": 10006,
+   "nearcore": {
+    "tx_height": 10007,
+    "fc_height": 10007,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01",
+    "same_height_as": "03.create-same-chunk"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10008-s0"
+    ],
+    "fc": "ood/01-h10008-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.05.resume-later-chunk",
+   "call": "resume(016c617465722d6368756e6b)",
+   "submitted_height": 10008,
+   "nearcore": {
+    "tx_height": 10009,
+    "fc_height": 10009,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10010-s0"
+    ],
+    "fc": "d3/01-h10010-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.06.create-dup-same-receipt",
+   "call": "create(05)",
+   "submitted_height": 10008,
+   "nearcore": {
+    "tx_height": 10009,
+    "fc_height": 10009,
+    "fc_status": "value",
+    "fc_value": "6b294825e60cd2de4e2a7312bb9376da949c5713398ff9deb0b6e67569453219",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10012,
+      "status": "value",
+      "value": "017477696365",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "017477696365"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10010-s0"
+    ],
+    "fc": "d3/01-h10010-s0",
+    "callbacks": [
+     "ood/01-h10013-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.07.resume-twice-same-receipt",
+   "call": "resume2(057477696365)",
+   "submitted_height": 10010,
+   "nearcore": {
+    "tx_height": 10011,
+    "fc_height": 10011,
+    "fc_status": "value",
+    "fc_value": "0101",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "0101"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10012-s0"
+    ],
+    "fc": "d3/01-h10012-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.08.create-dup-separate",
+   "call": "create(06)",
+   "submitted_height": 10010,
+   "nearcore": {
+    "tx_height": 10011,
+    "fc_height": 10011,
+    "fc_status": "value",
+    "fc_value": "27e99d82f797686c7ef88b3abb13c18e0e27864dec31244b6e1f62bfb81e8a3b",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10014,
+      "status": "value",
+      "value": "016669727374",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "016669727374"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10012-s0"
+    ],
+    "fc": "d3/01-h10012-s0",
+    "callbacks": [
+     "d3/01-h10015-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.09.resume-dup-first",
+   "call": "resume(066669727374)",
+   "submitted_height": 10012,
+   "nearcore": {
+    "tx_height": 10013,
+    "fc_height": 10013,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10014-s0"
+    ],
+    "fc": "d3/01-h10014-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.10.resume-dup-second-same-chunk",
+   "call": "resume(067365636f6e64)",
+   "submitted_height": 10012,
+   "nearcore": {
+    "tx_height": 10013,
+    "fc_height": 10013,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01",
+    "same_height_as": "09.resume-dup-first"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10014-s0"
+    ],
+    "fc": "d3/01-h10014-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.11.resume-after-completion",
+   "call": "resume(01616761696e)",
+   "submitted_height": 10014,
+   "nearcore": {
+    "tx_height": 10015,
+    "fc_height": 10015,
+    "fc_status": "value",
+    "fc_value": "00",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "00"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10019-s0"
+    ],
+    "fc": "ood/01-h10019-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.12.resume-wrong-data-id",
+   "call": "resume_raw(20c8a824b42fab376c04ade29ac8b5258921bbc7792165d9416c2af16e12c98ffb77726f6e67)",
+   "submitted_height": 10014,
+   "nearcore": {
+    "tx_height": 10015,
+    "fc_height": 10015,
+    "fc_status": "value",
+    "fc_value": "00",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "00"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10019-s0"
+    ],
+    "fc": "ood/01-h10019-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.13.resume-malformed-data-id",
+   "call": "resume_raw(1f0707070707070707070707070707070707070707070707070707070707070773686f7274)",
+   "submitted_height": 10014,
+   "nearcore": {
+    "tx_height": 10015,
+    "fc_height": 10015,
+    "fc_status": "failure",
+    "fc_value": null,
+    "fc_failure": "Failure(Action #0: ExecutionError(\"yield resumption token is malformed\"))",
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "fail": "malformed"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10019-s0"
+    ],
+    "fc": "ood/01-h10019-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.14.create-payload-max",
+   "call": "create(07)",
+   "submitted_height": 10016,
+   "nearcore": {
+    "tx_height": 10019,
+    "fc_height": 10019,
+    "fc_status": "value",
+    "fc_value": "455d509c0115c3dcee1f21f449bba8d12fdbaa4755cbc6aac641bc33efeff36b",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10020,
+      "status": "value",
+      "value": "0177777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "0177777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10020-s0"
+    ],
+    "fc": "ood/01-h10020-s0",
+    "callbacks": [
+     "d3/01-h10021-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.15.create-payload-over",
+   "call": "create(09)",
+   "submitted_height": 10016,
+   "nearcore": {
+    "tx_height": 10019,
+    "fc_height": 10019,
+    "fc_status": "value",
+    "fc_value": "faf627cce324c0b6199be961871d1b25c9c19725db6da2c10e131ea15e032c01",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10220,
+      "status": "value",
+      "value": "02",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "02",
+    "cb_delay": 201
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10020-s0"
+    ],
+    "fc": "ood/01-h10020-s0",
+    "callbacks": [
+     "d3/01-h10221-s0"
+    ],
+    "notes": [],
+    "timeout": "d3/01-h10220-s0"
+   }
+  },
+  {
+   "label": "successor.yield.16.resume-payload-1024",
+   "call": "resume(077777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777)",
+   "submitted_height": 10018,
+   "nearcore": {
+    "tx_height": 10019,
+    "fc_height": 10019,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10020-s0"
+    ],
+    "fc": "ood/01-h10020-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.17.resume-payload-1025",
+   "call": "resume(099999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999)",
+   "submitted_height": 10018,
+   "nearcore": {
+    "tx_height": 10019,
+    "fc_height": 10019,
+    "fc_status": "failure",
+    "fc_value": null,
+    "fc_failure": "Failure(Action #0: ExecutionError(\"Yield resume payload is 1025 bytes which exceeds the 1024 byte limit\"))",
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "fail": "1024 byte limit"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10020-s0"
+    ],
+    "fc": "ood/01-h10020-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.18.cross-shard-create",
+   "call": "create(87)",
+   "submitted_height": 10020,
+   "nearcore": {
+    "tx_height": 10021,
+    "fc_height": 10022,
+    "fc_status": "value",
+    "fc_value": "207cd9892ef20ad85669c607244547859ae28626fb9497a5b740524a2b5a24a6",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10030,
+      "status": "value",
+      "value": "0166726f6d2d73686172642d31",
+      "failure": null
+     }
+    ],
+    "notes": [
+     10031
+    ]
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "0166726f6d2d73686172642d31",
+    "note": true,
+    "cross": true
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10022-s4"
+    ],
+    "fc": "d3/01-h10023-s0",
+    "callbacks": [
+     "d3/01-h10031-s0"
+    ],
+    "notes": [
+     "d3/01-h10032-s3"
+    ]
+   }
+  },
+  {
+   "label": "successor.yield.19.cross-shard-create-timeout",
+   "call": "create(88)",
+   "submitted_height": 10020,
+   "nearcore": {
+    "tx_height": 10021,
+    "fc_height": 10022,
+    "fc_status": "value",
+    "fc_value": "9fa8ba0aa9f9ce25221eca56bcfbc3f57b85f4cc6eea77fc65e37dd447d74a68",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10223,
+      "status": "value",
+      "value": "02",
+      "failure": null
+     }
+    ],
+    "notes": [
+     10224
+    ]
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "02",
+    "cb_delay": 201,
+    "note": true,
+    "cross": true
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10022-s4"
+    ],
+    "fc": "d3/01-h10023-s0",
+    "callbacks": [
+     "ood/01-h10224-s0"
+    ],
+    "notes": [
+     "d3/01-h10225-s3"
+    ],
+    "timeout": "d3/01-h10223-s0"
+   }
+  },
+  {
+   "label": "successor.yield.20.cross-shard-resume",
+   "call": "resume(8766726f6d2d73686172642d31)",
+   "submitted_height": 10024,
+   "nearcore": {
+    "tx_height": 10026,
+    "fc_height": 10029,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01",
+    "cross": true
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10027-s4"
+    ],
+    "fc": "ood/01-h10030-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.21.create-then-fail",
+   "call": "create_fail(0a)",
+   "submitted_height": 10024,
+   "nearcore": {
+    "tx_height": 10028,
+    "fc_height": 10028,
+    "fc_status": "failure",
+    "fc_value": null,
+    "fc_failure": "Failure(Action #0: ExecutionError(\"Smart contract panicked: explicit guest panic\"))",
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "fail": "panicked",
+    "no_cb": true
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10029-s0"
+    ],
+    "fc": "d3/01-h10029-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.22.createid",
+   "call": "createid(0ba5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5)",
+   "submitted_height": 10026,
+   "nearcore": {
+    "tx_height": 10028,
+    "fc_height": 10028,
+    "fc_status": "value",
+    "fc_value": "0000000000000000",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10030,
+      "status": "value",
+      "value": "0162792d6964",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "0000000000000000",
+    "cb": "0162792d6964"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10029-s0"
+    ],
+    "fc": "d3/01-h10029-s0",
+    "callbacks": [
+     "d3/01-h10031-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.23.createid-duplicate",
+   "call": "createid(0ca5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5)",
+   "submitted_height": 10026,
+   "nearcore": {
+    "tx_height": 10028,
+    "fc_height": 10028,
+    "fc_status": "value",
+    "fc_value": "ffffffffffffffff",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "ffffffffffffffff",
+    "same_height_as": "22.createid",
+    "no_cb": true
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10029-s0"
+    ],
+    "fc": "d3/01-h10029-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.24.resumeid",
+   "call": "resumeid(0ba5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a562792d6964)",
+   "submitted_height": 10028,
+   "nearcore": {
+    "tx_height": 10029,
+    "fc_height": 10029,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10030-s0"
+    ],
+    "fc": "ood/01-h10030-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.25.resumeid-unknown",
+   "call": "resumeid(0c5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a6e6f6e65)",
+   "submitted_height": 10028,
+   "nearcore": {
+    "tx_height": 10029,
+    "fc_height": 10029,
+    "fc_status": "value",
+    "fc_value": "00",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "00"
+   },
+   "cases": {
+    "included": [
+     "ood/01-h10030-s0"
+    ],
+    "fc": "ood/01-h10030-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.26.create-returned",
+   "call": "create_ret(0d)",
+   "submitted_height": 10030,
+   "nearcore": {
+    "tx_height": 10031,
+    "fc_height": 10031,
+    "fc_status": "receipt",
+    "fc_value": "5ujKBeKoUBTahJz3BaUocLewWs3v8yvQ31ZXWceSkAfH",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10034,
+      "status": "value",
+      "value": "0172657475726e6564",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_receipt": true,
+    "cb": "0172657475726e6564"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10032-s0"
+    ],
+    "fc": "d3/01-h10032-s0",
+    "callbacks": [
+     "d3/01-h10036-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.27.resume-returned",
+   "call": "resume(0d72657475726e6564)",
+   "submitted_height": 10032,
+   "nearcore": {
+    "tx_height": 10033,
+    "fc_height": 10033,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10034-s0"
+    ],
+    "fc": "d3/01-h10034-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.28.create-callback-panics",
+   "call": "create(4e)",
+   "submitted_height": 10032,
+   "nearcore": {
+    "tx_height": 10033,
+    "fc_height": 10033,
+    "fc_status": "value",
+    "fc_value": "d1bc40eea703f26e8f8dc26e7c933637af5943f07d42f5b05ffc277275dc63c1",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10037,
+      "status": "failure",
+      "value": null,
+      "failure": "Failure(Action #0: ExecutionError(\"Smart contract panicked: explicit guest panic\"))"
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb_fail": "panicked"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10034-s0"
+    ],
+    "fc": "d3/01-h10034-s0",
+    "callbacks": [
+     "d3/01-h10038-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.29.resume-callback-panics",
+   "call": "resume(4e70616e6963)",
+   "submitted_height": 10034,
+   "nearcore": {
+    "tx_height": 10036,
+    "fc_height": 10036,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10037-s0"
+    ],
+    "fc": "d3/01-h10037-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.30.create-race",
+   "call": "create(0e)",
+   "submitted_height": 10034,
+   "nearcore": {
+    "tx_height": 10036,
+    "fc_height": 10036,
+    "fc_status": "value",
+    "fc_value": "06b0d40f25e113f0da54f89cd8d5ead51324547e57019936f9891d76ec8fd272",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10236,
+      "status": "value",
+      "value": "0172616365",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "0172616365",
+    "cb_delay": 201
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10037-s0"
+    ],
+    "fc": "d3/01-h10037-s0",
+    "callbacks": [
+     "d3/01-h10237-s0"
+    ],
+    "notes": [],
+    "timeout": "d3/01-h10236-s0"
+   }
+  },
+  {
+   "label": "successor.yield.34.create-race-cancel",
+   "call": "create(10)",
+   "submitted_height": 10034,
+   "nearcore": {
+    "tx_height": 10036,
+    "fc_height": 10036,
+    "fc_status": "value",
+    "fc_value": "ac5d9b155ef57aae90e057d73e7a2af2e668ceb8d346020833edf1c7fddd9a0d",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10237,
+      "status": "value",
+      "value": "0163616e63656c",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret_len": 32,
+    "cb": "0163616e63656c",
+    "cb_delay": 202
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10037-s0"
+    ],
+    "fc": "d3/01-h10037-s0",
+    "callbacks": [
+     "d3/01-h10238-s0"
+    ],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.31.createid-timeout",
+   "call": "createid(0f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a)",
+   "submitted_height": 10036,
+   "nearcore": {
+    "tx_height": 10037,
+    "fc_height": 10037,
+    "fc_status": "value",
+    "fc_value": "0000000000000000",
+    "fc_failure": null,
+    "callbacks": [
+     {
+      "height": 10238,
+      "status": "value",
+      "value": "02",
+      "failure": null
+     }
+    ],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "0000000000000000",
+    "cb": "02",
+    "cb_delay": 201
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10038-s0"
+    ],
+    "fc": "d3/01-h10038-s0",
+    "callbacks": [
+     "d3/01-h10239-s0"
+    ],
+    "notes": [],
+    "timeout": "d3/01-h10238-s0"
+   }
+  },
+  {
+   "label": "successor.yield.32.resume-at-timeout",
+   "call": "resume(0e72616365)",
+   "submitted_height": 10234,
+   "nearcore": {
+    "tx_height": 10235,
+    "fc_height": 10235,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01",
+    "height_after": "30.create-race",
+    "delay": 200
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10236-s0"
+    ],
+    "fc": "d3/01-h10236-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.35.resume-after-timeout-fired",
+   "call": "resume(1063616e63656c)",
+   "submitted_height": 10235,
+   "nearcore": {
+    "tx_height": 10236,
+    "fc_height": 10236,
+    "fc_status": "value",
+    "fc_value": "01",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "01",
+    "height_after": "34.create-race-cancel",
+    "delay": 201
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10237-s0"
+    ],
+    "fc": "d3/01-h10237-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  },
+  {
+   "label": "successor.yield.33.resume-after-timeout",
+   "call": "resume(046c617465)",
+   "submitted_height": 10244,
+   "nearcore": {
+    "tx_height": 10245,
+    "fc_height": 10245,
+    "fc_status": "value",
+    "fc_value": "00",
+    "fc_failure": null,
+    "callbacks": [],
+    "notes": []
+   },
+   "expectation": {
+    "ret": "00"
+   },
+   "cases": {
+    "included": [
+     "d3/01-h10246-s0"
+    ],
+    "fc": "d3/01-h10246-s0",
+    "callbacks": [],
+    "notes": []
+   }
+  }
+ ],
+ "timing_deviations": [
+  "successor.yield.30.create-race: cb_delay",
+  "successor.yield.34.create-race-cancel: cb_delay",
+  "successor.yield.32.resume-at-timeout: height_after",
+  "successor.yield.35.resume-after-timeout-fired: height_after"
+ ],
+ "problems": []
+}

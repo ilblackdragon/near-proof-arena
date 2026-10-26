@@ -1,0 +1,32 @@
+{
+  "base": "01-h10224-s0",
+  "case": "01-h10224-s0-c.drop_last_block",
+  "codes": [
+    {
+      "hash": "CjReRexqUtavGUWat7rkTNsTtypxpvg14hS7cfJL4PJd",
+      "len": 1436,
+      "name": "yieldc"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [
+    "e.g_alpha"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 4093242474702,
+    "fc_gas_burnt_for_function_call": 4093242474702
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "verdict_source": "claim-v3"
+}

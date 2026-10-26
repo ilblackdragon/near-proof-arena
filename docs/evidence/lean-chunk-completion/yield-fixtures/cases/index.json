@@ -1,0 +1,3296 @@
+[
+ {
+  "case_dir": "y4242-00-h10011-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10011-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.00.create-later:callback"
+  ],
+  "files": {
+   "claim.bin": "454aa5a06688b596392ab86be1e20938d77546a61efcd8275767a4fc6af57116",
+   "meta.json": "033a5b7cb02fc439b01b2cc24f2c3ae23ff925b56bf4ecf98eebfd5761f6141c",
+   "witness.bin": "45803a3049301166b43fccc648cf742bdf3be151e1d71b1d903594dbb919dd37"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10011-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10011-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "e2f3fd2b6a5084daa469b65e513f58c81518daa42f5c6cc835bad31e9be03237",
+   "meta.json": "249639473a5c86ea423417103044e6ade652018c5b2430860a709648b8c0f2e8",
+   "witness.bin": "45803a3049301166b43fccc648cf742bdf3be151e1d71b1d903594dbb919dd37"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10011-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10011-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6cfb12a01c019a577dbab07fc2fc717d9675ea5ce3c97f3d6088bd3f111d15b3",
+   "meta.json": "5b1594b3631b61515a431652ffaceb7eb08186bc59a447962b68a7152ef19fbe",
+   "witness.bin": "45803a3049301166b43fccc648cf742bdf3be151e1d71b1d903594dbb919dd37"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10013-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10013-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.06.create-dup-same-receipt:callback"
+  ],
+  "files": {
+   "claim.bin": "2e06ce73173fe4463ee733ec1f5fa373a17f46b43b28f26f6ef47d5bbf86712c",
+   "meta.json": "9672bb869f60e6b4526c6a02c0286daac3412dd81c461f023f0f0ef3dca2ed1f",
+   "witness.bin": "31551f9ab796b786fa2b64bd6081d56d9c84caf387ddaa9747892f25c884063b"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10013-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10013-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bdf3020fa2987406d604244a95c54a5222c733c63575503e854f169fa22a5192",
+   "meta.json": "4e0ac9b849b07c48238cf7b1d7c2cedabdb48c18287449c1639c6df679c45b24",
+   "witness.bin": "31551f9ab796b786fa2b64bd6081d56d9c84caf387ddaa9747892f25c884063b"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10013-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10013-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7fd3e0344102069a4868977eb83c9d381f744998bd337e97438670655460545d",
+   "meta.json": "f40e528b5c73b5b6a67c5fdc60bd418c75c1714b5531418592f27b95e8488c8d",
+   "witness.bin": "31551f9ab796b786fa2b64bd6081d56d9c84caf387ddaa9747892f25c884063b"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10014-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10014-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.09.resume-dup-first:executed",
+   "successor.yield.09.resume-dup-first:included",
+   "successor.yield.10.resume-dup-second-same-chunk:executed",
+   "successor.yield.10.resume-dup-second-same-chunk:included"
+  ],
+  "files": {
+   "claim.bin": "3ba3a03761bc7468806b841657bfd163a431a30b36c996caa9a3c33de305fcae",
+   "meta.json": "97af995228ed6104984cac106bc890b22082c62041db28aa89e80494da1cfe26",
+   "witness.bin": "fd85e455bdce9910dc28b1d4f1663a4c273f2bcec7bcb550923a2f13d33f2486"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10014-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10014-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9ec09f6573ad35521befd75fa7de06b1ecc3f960b3449cf5808332140a07e870",
+   "meta.json": "342bd1f630c87956a88ec208346fdb26d35f6235f7dbec1b8721472f55891e35",
+   "witness.bin": "fd85e455bdce9910dc28b1d4f1663a4c273f2bcec7bcb550923a2f13d33f2486"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10014-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10014-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "319b57584d4c4a37d6504b94b51710fefdb7a341bbe6ecafe414fb8737cd1536",
+   "meta.json": "839fec25b794e81aa466a20ac153229f33a95a528b29f2966c4fce73f01d2838",
+   "witness.bin": "fd85e455bdce9910dc28b1d4f1663a4c273f2bcec7bcb550923a2f13d33f2486"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10015-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10015-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.08.create-dup-separate:callback"
+  ],
+  "files": {
+   "claim.bin": "6baeaee10eb3de447f01e637d815d6ef5682778a066acc8a6022d71a94e7e4bc",
+   "meta.json": "d2692bbe7758b52e29dae06a538a2144536df2eea1e265ed1f76e27732f93880",
+   "witness.bin": "b8b768e4fa4fae2d95777bb286f8b376b2be2d5c0b56d95d2016f258442db7f1"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10015-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10015-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bfffe8c37c38c118f2a12817ab2d97bb3ea6e6a0e102c4c5073f633fd409311a",
+   "meta.json": "15d6501bb85252d80d6dc1102e6467a65c30e792ce0d9f39f3ba879cd1ddc10f",
+   "witness.bin": "b8b768e4fa4fae2d95777bb286f8b376b2be2d5c0b56d95d2016f258442db7f1"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10015-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10015-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f26d2248ca59b7e6b2ac0dc2201a2cc97fc46aeaefe5e1e069b3a87623bcf1ab",
+   "meta.json": "461aeb8fc52e153d6c75b68b193d2985edbf73528e1dbb9f7d6ab39d21961457",
+   "witness.bin": "b8b768e4fa4fae2d95777bb286f8b376b2be2d5c0b56d95d2016f258442db7f1"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10021-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10021-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.14.create-payload-max:callback"
+  ],
+  "files": {
+   "claim.bin": "8b5e68c2e314415f56169e65c1d91fb9ef2490ce170c6f46f7dad232d17cc9c1",
+   "meta.json": "c9a0aeddcff85dfb66cd79756843694f5f4a73c650d1a2181a8ee6fafb7555ef",
+   "witness.bin": "8179ce71fb2b5b97e7050a06ae540ef654c4cb9fd5f94fe39c200cb2b67dad18"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10021-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10021-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c050e3661ddb33103e75a1e58d47b20d96fa94f2611b98b92f64811101487673",
+   "meta.json": "83d5b769104f2ee02a413ee73c93a41f2315b627fdf18cd0f6101ae71b18feca",
+   "witness.bin": "8179ce71fb2b5b97e7050a06ae540ef654c4cb9fd5f94fe39c200cb2b67dad18"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10021-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10021-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "67f0a7663d9d6fabcd1d6ff8a71d532db67983533374cfd94fbd46c98563a305",
+   "meta.json": "7aee06d32a7ac4cd6bab7f51732f8002040297cb8c8d196103efa892efffbae0",
+   "witness.bin": "8179ce71fb2b5b97e7050a06ae540ef654c4cb9fd5f94fe39c200cb2b67dad18"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10022-s1",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10022-s1",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:included",
+   "successor.yield.19.cross-shard-create-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "589690907190753de93055ba5a19fdce70ff6045aa5becd1462fd12d528d48b8",
+   "meta.json": "f51d09472cf02574f9a960f8de5299d47980675df415beb3e334fa09cc5ece73",
+   "witness.bin": "f238e8cd29da6bf012377682cd646711ab13868222a42270dcb0ced70edb3758"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10026-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10026-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.21.create-then-fail:executed",
+   "successor.yield.21.create-then-fail:included"
+  ],
+  "files": {
+   "claim.bin": "b80c0544389c7e4c232f4ccfbca9081cf28ec54e16d50f43413e5dff07772c3c",
+   "meta.json": "5a082dd03f425899d640b86b0a724d630ae956a99e143cf1586a15dfdc5fe804",
+   "witness.bin": "5d7a48b725793357500422be7abc0d5412f8a853e84f22a8295f0b0d2449e54f"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10026-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10026-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5d8debb9632d24decf8344c37e404eb111490981bf8a80e9edd5d6c0846f29b6",
+   "meta.json": "f29065d37de3e29eb61c55e523a90372495e8b10da520443c683edf8d414a496",
+   "witness.bin": "5d7a48b725793357500422be7abc0d5412f8a853e84f22a8295f0b0d2449e54f"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10026-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10026-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "25144b3c7536a942e0db53179ceb7c3c54f2eb2173d36e6eeea8743b36926fe3",
+   "meta.json": "7172d1ddae41bcc49961c6a1557cec2e7109556c4adeee26a53f0b401aa7b11b",
+   "witness.bin": "5d7a48b725793357500422be7abc0d5412f8a853e84f22a8295f0b0d2449e54f"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10028-s1",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10028-s1",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.20.cross-shard-resume:included"
+  ],
+  "files": {
+   "claim.bin": "257c0aa45cac48f121f72ccf20b45415aea5c79a5af946ac91adbe02827b2925",
+   "meta.json": "2d32558e04f489ed0dee7f6ac1cee4c3284bed404faa495d785c28f964e2db38",
+   "witness.bin": "23c4ed7d4c9b388506ac4ca095fbdce99a73fa7073d054805452f9c0f63accd9"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10029-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10029-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.20.cross-shard-resume:executed"
+  ],
+  "files": {
+   "claim.bin": "b97207526ecb05f24b51c43fdfc56b577c0d63f50a5838ab46f37c38c0d1f3c4",
+   "meta.json": "8a1511eca09b953cbd1777d32711ec102d7eb4ee2fea103ee934431b5b3a36b7",
+   "witness.bin": "be496bbf8f824dc97755af480e399876565d9f009e2c6491cadf1892cf201f68"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10029-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10029-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "cf345607ad8060aba601658b5f33dde708673c2a6a128e95e894d8c9b06157b6",
+   "meta.json": "3f6a4af0398b5a5dd94ba058c2317326b5e4fd068ab9436d43d76cb74df74540",
+   "witness.bin": "be496bbf8f824dc97755af480e399876565d9f009e2c6491cadf1892cf201f68"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10029-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10029-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "3300ce658d57dde458cc20e57b5c0233c974b5d4c4e8e5219b8ea3ebe10730f3",
+   "meta.json": "b1ad2705a49d34d9c9ab356db77ceca2393cef149e62f72a002e05d501940b89",
+   "witness.bin": "be496bbf8f824dc97755af480e399876565d9f009e2c6491cadf1892cf201f68"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10031-s0",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10031-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:cross-shard-note"
+  ],
+  "files": {
+   "claim.bin": "9695ce92b8a75a3a99eb31d8397af18cca9bd9ad5fcb4d8f0c7432fc69f41934",
+   "meta.json": "c72f51b9837b43ff0eee3a8458c053a7f7240c4457019b8b5a33faeafc242278",
+   "witness.bin": "56337501c8e3444eed3b81073a53dcfb9add1e12ec80de9652cbf93a75203f12"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10031-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10031-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "97cc6f1c1ec3742085bbe6879ba86f2d7d29a9976ebb44afaa7bd8525a39114a",
+   "meta.json": "8119fba99a3fea3fe828fdf130045c32f0560bf1fb1bc0163a35f5f70dd869aa",
+   "witness.bin": "56337501c8e3444eed3b81073a53dcfb9add1e12ec80de9652cbf93a75203f12"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10031-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10031-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c45371a12664babece2043ae0a703ec14116d1ff87cfb26bbe3d8d67d56a2993",
+   "meta.json": "2794b88d0a56f12c042c98416b1e4e874d7643b2679fe5eb46ddbb49dffdbae6",
+   "witness.bin": "56337501c8e3444eed3b81073a53dcfb9add1e12ec80de9652cbf93a75203f12"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10031-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10031-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.22.createid:callback"
+  ],
+  "files": {
+   "claim.bin": "e3f5ba9b6348b43dd26b431038230f8ca42c5b0f6c7b70f3ddbe8d5a34eece39",
+   "meta.json": "bbdbba81ea1e0e448a005dcc6102b8fd1a73da583fb27a45abd80e34541ac450",
+   "witness.bin": "73f36b40d78e3bf7189f11cebfce98a7b6115687ecc0353ab1e773e1fd34089f"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10031-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10031-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6f913054b3ea5c28ad8f3c0594e72244ef031e5d18ad4d30e567dfe9f5d6e84e",
+   "meta.json": "e07612d63ff95e17ad41f16c2958e66eb8fbf55bd278d8bb33f6f380a1024fd0",
+   "witness.bin": "73f36b40d78e3bf7189f11cebfce98a7b6115687ecc0353ab1e773e1fd34089f"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10031-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10031-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4eb9ea11f495de1d4041bb4b24d3016a485d2798842789791227219358a9ad9c",
+   "meta.json": "f802484dc034cc7072c7993b11e4896a0293cf0571254fede64b00bc4795c199",
+   "witness.bin": "73f36b40d78e3bf7189f11cebfce98a7b6115687ecc0353ab1e773e1fd34089f"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10034-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10034-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.27.resume-returned:executed",
+   "successor.yield.27.resume-returned:included",
+   "successor.yield.28.create-callback-panics:executed",
+   "successor.yield.28.create-callback-panics:included"
+  ],
+  "files": {
+   "claim.bin": "c2b0ae5f32a5d608e64e01bc32ea953d415980ee063336a2b18087c9865b5973",
+   "meta.json": "4cb0b08b363270c6151436723d86bf5183f260c7c75ad87457ef74e8bc6b30b5",
+   "witness.bin": "a5fea77d0818cd37e9e78c6685ac48c8a371f57d61a34916479a3b3c35d62254"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10034-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10034-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9660f7c3835978e6f1011fc7938bd899cad2536ea1a5077dbcc148ffedcbee9e",
+   "meta.json": "c4a4afe3bb9dbc2406d97acf2269090528439bff837dd0ed88272b824adb6c9c",
+   "witness.bin": "a5fea77d0818cd37e9e78c6685ac48c8a371f57d61a34916479a3b3c35d62254"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10034-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10034-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "befa456686598b03de918f8de4bc760e6e263f2d4c897ec59ff0a69701f6fca2",
+   "meta.json": "14f0ad3f22289ced78217a672710969e03b267030352ae4d2996e04baf79f1e4",
+   "witness.bin": "a5fea77d0818cd37e9e78c6685ac48c8a371f57d61a34916479a3b3c35d62254"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10035-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10035-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.26.create-returned:callback"
+  ],
+  "files": {
+   "claim.bin": "6e9cbeb65929c550e663c13ae0fb69227ba914375ce27a69df1612922f1b0385",
+   "meta.json": "0932d909fd6022f7a151de05faadc3e75393a0d6d657e0a92d2f5a75372199c9",
+   "witness.bin": "0c698be4c0738665fa78872624a1b61f9b9050d12bd1a5e516add6f51d7cc6ba"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10035-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10035-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5918f6b7a978f276173cd1f5137099dd8539bb018fba323c27d3f7d4b68491ad",
+   "meta.json": "543e4869a7d92561e092089c90092cb3f9297ea7624440ffd6ecf10be0e267ce",
+   "witness.bin": "0c698be4c0738665fa78872624a1b61f9b9050d12bd1a5e516add6f51d7cc6ba"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10035-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10035-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ce36e5b89c168109d5a762a42bf87ace5ba94bc70e59ff36c872d54df1b81857",
+   "meta.json": "9adec2c4e00914b70623e7593f1bbab883df9432e94cffa239d4765d8fc2bb43",
+   "witness.bin": "0c698be4c0738665fa78872624a1b61f9b9050d12bd1a5e516add6f51d7cc6ba"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10036-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10036-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.29.resume-callback-panics:executed",
+   "successor.yield.29.resume-callback-panics:included",
+   "successor.yield.30.create-race:executed",
+   "successor.yield.30.create-race:included",
+   "successor.yield.34.create-race-cancel:executed",
+   "successor.yield.34.create-race-cancel:included"
+  ],
+  "files": {
+   "claim.bin": "eb0309abd282bef516503bfabe0441e612448eb9f9822f349073010ad3705650",
+   "meta.json": "ff91dbf451c9bd7e1c1672e9521d7d41a9ccce4562ad84610b3c8958078c9480",
+   "witness.bin": "03e768b244aa9510e0f4a0899abbc73c112faea0fa8477b32dba724f798a9566"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10036-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10036-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b291c1e2f07e405f9e0b2fff854fa311eb4576fe2f6cd907117e3337c5d87794",
+   "meta.json": "6276f9a3d10f367400ca9c8337514f7e32d51c18d834da94b3b8c73de66330e1",
+   "witness.bin": "03e768b244aa9510e0f4a0899abbc73c112faea0fa8477b32dba724f798a9566"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10036-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10036-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "377bc4527f78f97b4500c0aa8744fa6cbd6578faa096d0822d0b02f710f6c5d7",
+   "meta.json": "696c6ee19aee133ad459aad1240d516a5ea5733ada1056573dbf6d2f4d189ec0",
+   "witness.bin": "03e768b244aa9510e0f4a0899abbc73c112faea0fa8477b32dba724f798a9566"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10037-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10037-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.28.create-callback-panics:callback"
+  ],
+  "files": {
+   "claim.bin": "bf44cd218ddc5e0a8bd6a27aac553ea828ec8db1eaba123d95ee97e87dfeaa48",
+   "meta.json": "0bf6b1bf80db8710df3d3850aa3c4fe736a2050be7f6f9c89af12a1987315ced",
+   "witness.bin": "448490a894db1c80b7eaccb17f32c39dd67b9ec5cc8d0515e5926e5e2680bb57"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10037-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10037-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c9f01b063a2378df230b26a3a37a3bd133452f3985680a1caaafceee4b41ead1",
+   "meta.json": "91651f3b9dbed6765716225582f8006d8a935b0977b1d66bd02d78fa9f30f3eb",
+   "witness.bin": "448490a894db1c80b7eaccb17f32c39dd67b9ec5cc8d0515e5926e5e2680bb57"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10037-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10037-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "540acc8ab014d70b382080ff71ad45c02128e1aea2697412dc82765d4774113f",
+   "meta.json": "61431a2a6ab0016d0cad2fa7504f7d57400d06589b59f62036a6bb416f06a666",
+   "witness.bin": "448490a894db1c80b7eaccb17f32c39dd67b9ec5cc8d0515e5926e5e2680bb57"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10038-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10038-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.31.createid-timeout:executed",
+   "successor.yield.31.createid-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "b7f2fa29b2cd74898b06846a3800918ab792bd7ed1aaf359129fb59fa45628fa",
+   "meta.json": "3dc4f7116eb5343b33577dca53d33f46212db133abcc40a5a5613f2b92222435",
+   "witness.bin": "b3dabc676d1d935825bbd166e5fcf037def60cf35078941491ee584eb2f343ca"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10038-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10038-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "78cb17f531e99ae17c94f61bab67428a1b6b0ca4ca7958486295865bb7c1239d",
+   "meta.json": "759d7279935af0d358f9f634c9e78c20677fe5427cd7bddeea612b00e1e49d3f",
+   "witness.bin": "b3dabc676d1d935825bbd166e5fcf037def60cf35078941491ee584eb2f343ca"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10038-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10038-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "cf783cb703b90617c0442dd6c7139c9b172709ffee51232fa430fb51af17fd9b",
+   "meta.json": "7fdf79230a76526883dbf4584a3536d3639dd28e4323bc3fd8a525f8e5cddee8",
+   "witness.bin": "b3dabc676d1d935825bbd166e5fcf037def60cf35078941491ee584eb2f343ca"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10209-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10209-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.01.create-timeout:timeout-loop"
+  ],
+  "files": {
+   "claim.bin": "949ad4e6993e644f264726e6b5b30f08a24a8fe0599edeb63eca3c185e8887a5",
+   "meta.json": "4eba22526ef985f8bff9d4836ffbbb063ded34a3bd18e5255f03bfa6065559bf",
+   "witness.bin": "56660692bb9a2b98b02b0ebbbfd0ac8933b288201cb9ac5975f2a10ca220ba9d"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10210-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10210-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.01.create-timeout:callback"
+  ],
+  "files": {
+   "claim.bin": "ad198230a2a0be8a512ab4617ec3638f907574d32d666efeffd5bd1d1b3efdc5",
+   "meta.json": "f346834648c75ccf110b7c2b96779d1e3b95961ce2ce8b62df6ae23ea5ee4424",
+   "witness.bin": "4e0de38b3e355ca921fc535145a139ef255da94d557466592d10ea7afb7074e0"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10210-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10210-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "81b35fc37997180b6daba697acca6700d8fa5f791af48f21d1cb3a5115c237ab",
+   "meta.json": "a93d48e00cf9a1e8c032a0f30de546e0e89daf03e909be57174f3286d441a52b",
+   "witness.bin": "4e0de38b3e355ca921fc535145a139ef255da94d557466592d10ea7afb7074e0"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10210-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10210-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "31fea019cf89e7f4e8336b98b93cbb9e6f1b4bacd8672390e188f29eee0decb9",
+   "meta.json": "9c7160eac71f6c43e8eb15d04ba893e8332e30d1e47d95eb861dec5fcda76ec3",
+   "witness.bin": "4e0de38b3e355ca921fc535145a139ef255da94d557466592d10ea7afb7074e0"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10218-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10218-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.15.create-payload-over:timeout-loop"
+  ],
+  "files": {
+   "claim.bin": "3ac1353feed54d8c18396e82f3853edadc5b69737bcde6015aa06d52d9ad2100",
+   "meta.json": "2391eeeeb7d4970d03f8784f051066942ac317e507a91b3488082656148ba590",
+   "witness.bin": "b872c20819ffb6988bbb078ccaec6e3bd6b4ac9612de1c222e3bf8b843d715ae"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10219-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10219-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.15.create-payload-over:callback"
+  ],
+  "files": {
+   "claim.bin": "ca9e1433425b7306134b33653468322853f820f9d3b00d9d16a3dcfd0f9ed989",
+   "meta.json": "b393af805e7a402561e09ce08b25dbc74112bb5d97686fa5bfd7b63049883e7a",
+   "witness.bin": "86d171793e5c0e492d66bf18062f02164e4d7456136c849baa652096cc652ca5"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10219-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10219-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "955383733f1fb1e445b323f4adfa9aa830d290f645dc05e431c7af2aa394c8d9",
+   "meta.json": "d66699609f4c8da5841a960e96aa6971f3752e724a62bbea1e8463472125fda4",
+   "witness.bin": "86d171793e5c0e492d66bf18062f02164e4d7456136c849baa652096cc652ca5"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10219-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10219-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f5ce6f1ab692aed1f014bd97c84b3d829dc0f69f8a7f2243e3dc1eb2e338580e",
+   "meta.json": "94712216fec460317fad956f4e3e5a7fc197f922ef293a9e18be74a7549eeb86",
+   "witness.bin": "86d171793e5c0e492d66bf18062f02164e4d7456136c849baa652096cc652ca5"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10223-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10223-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.19.cross-shard-create-timeout:timeout-loop"
+  ],
+  "files": {
+   "claim.bin": "3bf105391c7c05d77b57508a9054e480cf9b95bd1580d8a4753d968bb09ca69b",
+   "meta.json": "0b34db6e906bd25079811f560d3de4d161bbaea941306c77e075d453d38a77a7",
+   "witness.bin": "0bcd541549716d21f56c804b3ecf9e9b677ce89c16eb79ed5484a67b428d25e1"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10224-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10224-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.19.cross-shard-create-timeout:callback"
+  ],
+  "files": {
+   "claim.bin": "6c8265f41f70f90aa9eba84fabe2e2a90c7880ea20d2da72b236f17598552486",
+   "meta.json": "b0615f5ad880de694923b4634dfbd397236c7ec638961eecc3ffe1dfcf4934e2",
+   "witness.bin": "afad5bedaa717b4999b320561bfb081e4e56b69bcf0b715d1a6801687b38aad2"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10224-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10224-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "133e23a36adfea6261a8cf274ac7fb21b30806d12e4eb37b87394b2afb5b57a8",
+   "meta.json": "d9ae2df75b5b5ceb9cda64580b6d26c4ee6c19556d2973d99c7d7ef71bf8a381",
+   "witness.bin": "afad5bedaa717b4999b320561bfb081e4e56b69bcf0b715d1a6801687b38aad2"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10224-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10224-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ecc1cce2187c3973769054b16ad904ac34cd96174159199d14138f35e41dea55",
+   "meta.json": "7e0498cad359b21cb97b2cc8d46a7d0ad58cd8b41349703e8d7da7b5ce046013",
+   "witness.bin": "afad5bedaa717b4999b320561bfb081e4e56b69bcf0b715d1a6801687b38aad2"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10225-s0",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10225-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.19.cross-shard-create-timeout:cross-shard-note"
+  ],
+  "files": {
+   "claim.bin": "31c5356a40448a738e41861ca2bfb96647e95589973820446ce03aae4c2c8518",
+   "meta.json": "4c470089664914d044187f58e551bb06559d5e93cebb4c96ab2c376afac0da2b",
+   "witness.bin": "15d6c5e5517d5334b436aae0ef49ad43c46fc72da35b98975bd53aa1e5b6bad5"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10225-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10225-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "cb5ff50d58c5820db00ef47924ae5fb48e4851e7f4f29e8404b059e9b568e8a2",
+   "meta.json": "6b1fa7d7eaa4983ec34734566665e0244e801254bc35a6b2e354b652471cc97c",
+   "witness.bin": "15d6c5e5517d5334b436aae0ef49ad43c46fc72da35b98975bd53aa1e5b6bad5"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10225-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10225-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6a077b8906d2f3b6852ca325d70c5441d6e6a1d377162bc576a99826d160ed87",
+   "meta.json": "278e2bb8664ff0fdff51a43e733f3e11471876fc634828f3eec697298ee65812",
+   "witness.bin": "15d6c5e5517d5334b436aae0ef49ad43c46fc72da35b98975bd53aa1e5b6bad5"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10236-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10236-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.30.create-race:timeout-loop",
+   "successor.yield.32.resume-at-timeout:executed",
+   "successor.yield.32.resume-at-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "4e9ccc466400017b108873e7abb2c712d59332add8ee4149a8cdd7da44647dc0",
+   "meta.json": "cffa7fda6741a579af08d6233c44ba82bbe32a2059285436003b30c407a3f932",
+   "witness.bin": "a44b700ae95f41c8ee9ec5745e7d40e54afe389710de17fc5e8949d7fec87f80"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10236-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10236-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "10275b1207ab25589f533982f90bf4d9aa409c3b90a51e5faf411f4cf524d729",
+   "meta.json": "186fe472c0f925646e9d16eb206f3132cb5092822b0a3cb505fc742e89a2641e",
+   "witness.bin": "a44b700ae95f41c8ee9ec5745e7d40e54afe389710de17fc5e8949d7fec87f80"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10236-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10236-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7f576f8f35b1f5d2ec82649226a775f8b9482f51436a9fdf6b57cc78132d1ef5",
+   "meta.json": "c5c6990e5e182feec945607b0aeaeb5e000a3f7bf7ad29ec37447862c76b046c",
+   "witness.bin": "a44b700ae95f41c8ee9ec5745e7d40e54afe389710de17fc5e8949d7fec87f80"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10237-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10237-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.30.create-race:callback",
+   "successor.yield.35.resume-after-timeout-fired:executed",
+   "successor.yield.35.resume-after-timeout-fired:included"
+  ],
+  "files": {
+   "claim.bin": "a0fb9e61675b6076ef36c79c21b080e317e4e6b04e6e8dd805bd13feb4a52ae1",
+   "meta.json": "a50ba49876304d901556a2a4cba91ee8d25835a48432d6465a756ec153b2140e",
+   "witness.bin": "ff9bbe2618bd26f03cb63233c8188b2c094b8c908e1407f4e521b6452df8ab07"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10237-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10237-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "36fb19d8d8d3ba247a77b221cb7115f374907ecee1cdb3d5148b3f59a1c24043",
+   "meta.json": "983ae2e6be40646e25a991f3b9c3c9f92b9b9f0cd6e3070c03986272f67718a1",
+   "witness.bin": "ff9bbe2618bd26f03cb63233c8188b2c094b8c908e1407f4e521b6452df8ab07"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10237-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10237-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ea73bef35d955c88dd7a80dc0a99d21aaaa9180f35b7505102f7b6960668e46b",
+   "meta.json": "df27cb470acceca03564a6d786bfec9700b98e5045d08ea9b49d7143ae103a86",
+   "witness.bin": "ff9bbe2618bd26f03cb63233c8188b2c094b8c908e1407f4e521b6452df8ab07"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10239-s3",
+  "kind": "honest",
+  "source": "runs/y4242/d3/00-h10239-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.31.createid-timeout:callback"
+  ],
+  "files": {
+   "claim.bin": "dd532f2cf3ccafacedb7bfdec7f541b0580f840675cd33eed5f4cc973d58c71a",
+   "meta.json": "e854f24fbd8b0bc9e80f3319c7d77f236fadf34dff2524eb55dd7a211027fabc",
+   "witness.bin": "5400a42be7682b024fc476ae611e20d83da6aa9e7a018c255887212d9d085268"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10239-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10239-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "14216ea8dd43cbcc7e3d51eeb1157c83942b61947e2146169a468271a68ffa5a",
+   "meta.json": "0e06e38d8d4552ac1f332dac0ed2da0c675d3ccee469245a3e63011e401a1059",
+   "witness.bin": "5400a42be7682b024fc476ae611e20d83da6aa9e7a018c255887212d9d085268"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10239-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10239-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "09167d51a740027628b03afd04b64fe1ddda7f5132c6651f21732ba0b479421d",
+   "meta.json": "581dabc6ddaf8196f6fc7147a2fe18c06c74ee64d919c9070d0f88b76a2a6610",
+   "witness.bin": "5400a42be7682b024fc476ae611e20d83da6aa9e7a018c255887212d9d085268"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10009-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10009-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.00.create-later:executed",
+   "successor.yield.00.create-later:included",
+   "successor.yield.01.create-timeout:executed",
+   "successor.yield.01.create-timeout:included",
+   "successor.yield.02.create-resume-same-receipt:executed",
+   "successor.yield.02.create-resume-same-receipt:included",
+   "successor.yield.03.create-same-chunk:executed",
+   "successor.yield.03.create-same-chunk:included",
+   "successor.yield.04.resume-same-chunk:executed",
+   "successor.yield.04.resume-same-chunk:included"
+  ],
+  "files": {
+   "claim.bin": "9a33f9948921b2c546ae38184d4291cd52c0ebfd38b25446696ef5bba40a0168",
+   "meta.json": "a74bfb12aae001b2d32f790bb3c451b9e9c93f8e8e130db96459c5ea3dbc7558",
+   "witness.bin": "89f8e2c4e15874b329eae67bb349a1c6d9ed262394c1cd415d3bfc5842684c5d"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10009-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10009-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "828978a02364747fee2a90d89139dfbcbb46f68eedfe12b410eb9c152024034a",
+   "meta.json": "dc93a0f22bebf0fe0e151499026d0ac6bf55f2d135a8c6d4214874eeb223786d",
+   "witness.bin": "89f8e2c4e15874b329eae67bb349a1c6d9ed262394c1cd415d3bfc5842684c5d"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10009-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10009-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "366f1f7a87b5ead8f0e37ce3de3f721465419fae89b20477c50d454c188e92e0",
+   "meta.json": "af2c7ccc6e8eca6b5885eaf317bfcbadbfe67ee2313b452a2fe2190205f97453",
+   "witness.bin": "89f8e2c4e15874b329eae67bb349a1c6d9ed262394c1cd415d3bfc5842684c5d"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10010-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10010-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.02.create-resume-same-receipt:callback",
+   "successor.yield.03.create-same-chunk:callback",
+   "successor.yield.05.resume-later-chunk:executed",
+   "successor.yield.05.resume-later-chunk:included",
+   "successor.yield.06.create-dup-same-receipt:executed",
+   "successor.yield.06.create-dup-same-receipt:included"
+  ],
+  "files": {
+   "claim.bin": "a70a5c16a1b3cc41122bd26672429bd5e1e87909118d46d3192f1366d81a95ae",
+   "meta.json": "999390c8c070a6e8d52c0cd9abd3b299193ccab82cf6b25c4bb7c86266a06ef0",
+   "witness.bin": "40484e88ef056870743cef64460d2586a06c2c2a4894db279cf612bd1621c7ad"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10010-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10010-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d356c920b41b9518642ae152f8b487d88cbacf46ca9ea945b8d29eb51e4e4d2e",
+   "meta.json": "e4bb6b738df31ee8b0f35d5072550e835e25f84a54f0a3c1b199a46aa6d17f26",
+   "witness.bin": "40484e88ef056870743cef64460d2586a06c2c2a4894db279cf612bd1621c7ad"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10010-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10010-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8a1cc62330dab3f6ce85850a511fc6b17582482c5ce4db937f288f3a7b0a6e40",
+   "meta.json": "1c4f14c8fec50991e3abdf63ced890b561c9af6109b5c815f8da604de5d38805",
+   "witness.bin": "40484e88ef056870743cef64460d2586a06c2c2a4894db279cf612bd1621c7ad"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10012-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10012-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.07.resume-twice-same-receipt:executed",
+   "successor.yield.07.resume-twice-same-receipt:included",
+   "successor.yield.08.create-dup-separate:executed",
+   "successor.yield.08.create-dup-separate:included"
+  ],
+  "files": {
+   "claim.bin": "0f3a415575be4acfd0e23c23eabb895e60bbe2b78c3b47449f265eeea31de582",
+   "meta.json": "ac999e09a86c8fbafd335dd195c8dbc3f2d88a7436ada386a89077c5b68a6819",
+   "witness.bin": "d0117c88e7324de6fd76a20fbf7495f9b571026ef338df9412eba54c83997148"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10012-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10012-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7977a9e7079dd7742ce0afc5f41e8f30394d24aa394ad423ae7b12ac53d7458a",
+   "meta.json": "e850258801c46510cae92b51cf5c6955a42eefb6a23551bc302c86ccbdf2823b",
+   "witness.bin": "d0117c88e7324de6fd76a20fbf7495f9b571026ef338df9412eba54c83997148"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10012-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10012-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "919d4ae1060ce69adfa99e1652a96f3cac7f2b16687ec4279c3eb62eb9325ca7",
+   "meta.json": "3e3fcef780bdd3470d1b7753f47f611a6735f049d9ffefd282f7a4c83bf06137",
+   "witness.bin": "d0117c88e7324de6fd76a20fbf7495f9b571026ef338df9412eba54c83997148"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10016-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10016-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.11.resume-after-completion:executed",
+   "successor.yield.11.resume-after-completion:included",
+   "successor.yield.12.resume-wrong-data-id:executed",
+   "successor.yield.12.resume-wrong-data-id:included",
+   "successor.yield.13.resume-malformed-data-id:executed",
+   "successor.yield.13.resume-malformed-data-id:included"
+  ],
+  "files": {
+   "claim.bin": "17fb408e6cf432ecf1f35d6565b27a0c9a069cb5f6ce4b4f778f29603266f05e",
+   "meta.json": "018b543144fd4a26be56aba21c8f5f09d8502b76368295fc3202465a091bcb9d",
+   "witness.bin": "fb6c61e367756acf5c0253945937d1eb2a5b696bdc0d395259eb3223ab701ba3"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10016-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10016-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "fff2cc288d4618323eb64fd09c469893628daf6256a41decb3cfff2df7a90ece",
+   "meta.json": "af086bb7943939877ff7fb936d2b1e65b0642667da3860af680ffdc341668482",
+   "witness.bin": "fb6c61e367756acf5c0253945937d1eb2a5b696bdc0d395259eb3223ab701ba3"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10016-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10016-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1ab628c84ed6ca323ca245f5d99db44fcccd7de18cef7380a9a59fed38da2277",
+   "meta.json": "d9cf507044ac8c7c99d88e086c0e97130b611dbc09b11fa31f20ecf55cbfbae2",
+   "witness.bin": "fb6c61e367756acf5c0253945937d1eb2a5b696bdc0d395259eb3223ab701ba3"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10018-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10018-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.14.create-payload-max:executed",
+   "successor.yield.14.create-payload-max:included",
+   "successor.yield.15.create-payload-over:executed",
+   "successor.yield.15.create-payload-over:included"
+  ],
+  "files": {
+   "claim.bin": "48b9b628e7fc415009b84a2f91f7ac48c26321c51eb4dbccba7aa35255ab18fb",
+   "meta.json": "161159e5b99e077b613c8c6e37e5d61914074896f60b2b1971e9dd186dcd7556",
+   "witness.bin": "3301881aa52362e67b84ebb2ac7d2a595deea0763738e6eb406d58821417e0b7"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10018-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10018-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "09e44efd001d47286b8440d80a698817c0a76e264170c4cc473b7b1990e94372",
+   "meta.json": "a4aebe0c2ae164221586e0d8bba6a9d41f0411ba743e71aab92234d9ccab21fc",
+   "witness.bin": "3301881aa52362e67b84ebb2ac7d2a595deea0763738e6eb406d58821417e0b7"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10018-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10018-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1dc6486aebb3911d7498bc30dc4c2a9c75a1247a072217a7a0ed34fd34295c8a",
+   "meta.json": "4750473b43c51814748e2f4d6c149f25973e46114688855076cd0ccd9ff60bd5",
+   "witness.bin": "3301881aa52362e67b84ebb2ac7d2a595deea0763738e6eb406d58821417e0b7"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10020-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10020-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.16.resume-payload-1024:executed",
+   "successor.yield.16.resume-payload-1024:included",
+   "successor.yield.17.resume-payload-1025:executed",
+   "successor.yield.17.resume-payload-1025:included"
+  ],
+  "files": {
+   "claim.bin": "e7c4873a66545e35cf0bdf74bc7d804eda3d0108af4bd6015d487c319bf82961",
+   "meta.json": "d6d375441689e66a0fa0e93bb6750a8c6793e1b79ca45e04f2828c1347a0e89a",
+   "witness.bin": "11b44aecd8b48f02609f951993dc8a9e6b27965bd0f1c27e52484e0b669fb901"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10020-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10020-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "25a566b855e6af5793c7c6ea866f715f7b72eb66fcea8697afb3f59a2c816c16",
+   "meta.json": "9ca118eba49276f68145a61c02d8970476b161cedf8a382fa06c8803b9db8682",
+   "witness.bin": "11b44aecd8b48f02609f951993dc8a9e6b27965bd0f1c27e52484e0b669fb901"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10020-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10020-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6387442146bca37cca08a79c47aaef83aeebede668ca12fb118bf9ed1d0d202c",
+   "meta.json": "145396ec016a7c77af1748762a37909ef6d4ffb709da40674e3124047d195212",
+   "witness.bin": "11b44aecd8b48f02609f951993dc8a9e6b27965bd0f1c27e52484e0b669fb901"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10023-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10023-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:executed",
+   "successor.yield.19.cross-shard-create-timeout:executed"
+  ],
+  "files": {
+   "claim.bin": "33fffe6135f3962a729bc65b503b83b5f7b6963b3a17caca32ec8b95e6b959b9",
+   "meta.json": "8bb996bd92432494e9c8b2ce8d38f39400b1a48fb4eb8ca939a8cf9d2958acfc",
+   "witness.bin": "62cc107a2daeed728b567a72b04a5bb294db1d13b6f7c20cb310fb8273eae049"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10023-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10023-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "62bba7957be276ce852443e0e24f2623a08b1f6adffb1c30c13a5bfdea5e575b",
+   "meta.json": "5200f26cf3951005b2271c3c5e957c9c075cdd70549b535aa56fb3f9b596c081",
+   "witness.bin": "62cc107a2daeed728b567a72b04a5bb294db1d13b6f7c20cb310fb8273eae049"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10023-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10023-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c95fe2308fe2597ab5c1d95b01df27de53038f6e78f79ff58aa154d90241986c",
+   "meta.json": "8b67e495fd60f06bd07291b99d84825b9ec246849c491bb337ab19ad0350f43d",
+   "witness.bin": "62cc107a2daeed728b567a72b04a5bb294db1d13b6f7c20cb310fb8273eae049"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10028-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10028-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.22.createid:executed",
+   "successor.yield.22.createid:included",
+   "successor.yield.23.createid-duplicate:executed",
+   "successor.yield.23.createid-duplicate:included"
+  ],
+  "files": {
+   "claim.bin": "0e940c4fc1edfb71433cd888e2da6d861c4291b93985da5ac1a0e12fd4306b8c",
+   "meta.json": "cbdbdeb153e044c9d84e53a2f2041a0243f3c12aa8867d5acdbcee1d3b23becf",
+   "witness.bin": "f107b1d9d2da8ec36cf1738060a3961125f2bd8e092f02cdf7eefed223918313"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10028-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10028-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5d56b8e3c7dcb539825de6393f206c0fa7fe6b7a4604d80bb652deb11f8b21a9",
+   "meta.json": "218f0e9ec8f9f1c32da6ee3bf2c3a9ffe5815140be3d04eeac457c470f7772d2",
+   "witness.bin": "f107b1d9d2da8ec36cf1738060a3961125f2bd8e092f02cdf7eefed223918313"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10028-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10028-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bb6509aa4817072556e315a2e4b529ef90e68bbdc6a71353940a4037f2c09cd6",
+   "meta.json": "aa36f0e66869c9e93bfc74e470b69052689664988ce64c9dd6be9062bce416cf",
+   "witness.bin": "f107b1d9d2da8ec36cf1738060a3961125f2bd8e092f02cdf7eefed223918313"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10030-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10030-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:callback",
+   "successor.yield.24.resumeid:executed",
+   "successor.yield.24.resumeid:included",
+   "successor.yield.25.resumeid-unknown:executed",
+   "successor.yield.25.resumeid-unknown:included"
+  ],
+  "files": {
+   "claim.bin": "1d8587331f6e328c258c19d0c6ce0798d34b1bc28b8330b4c5909b89834fc555",
+   "meta.json": "44936cba3fe9bcca94d92889d153abf84f30f7acff5f4d1ec532d2b8bf3981e2",
+   "witness.bin": "45eec045bdf62cdb31f6bd7e6c7adcbfe3a051633c07ff96bc26eb0a65bb67b0"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10030-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10030-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9c4d51d2a4ad181ffec1c233753ae1575f1f7be1f7025c524da68e9863f63b7a",
+   "meta.json": "f1bb583838410bc0d8b517b078b7dead998eeb23387c442dd7992309680d02d5",
+   "witness.bin": "45eec045bdf62cdb31f6bd7e6c7adcbfe3a051633c07ff96bc26eb0a65bb67b0"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10030-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10030-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2fbbd2e974eb1df5a1f5d8e17ba97701e00e0e36bc9e4348636749aa21c5245c",
+   "meta.json": "3d90567745cbe7302658a36640cee2197b8718c87ff65459726838930bd56b8e",
+   "witness.bin": "45eec045bdf62cdb31f6bd7e6c7adcbfe3a051633c07ff96bc26eb0a65bb67b0"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10032-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10032-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.26.create-returned:executed",
+   "successor.yield.26.create-returned:included"
+  ],
+  "files": {
+   "claim.bin": "10a97d66036e4565a6f578190ea32f0c5ce712d0af57778af96747a26c720c86",
+   "meta.json": "f6d980de3fdb559e55970b112c1403bc6d057aa716491343670a73605c50b1d0",
+   "witness.bin": "f7a8025168a76f31705649801a78fb41819e6090c2dc7d2f15a5309c7bfc6028"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10032-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10032-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "500517b74eac5a43d951a83c7a554687df148495d54030be1e68d89c9f4e63e1",
+   "meta.json": "f188c0ad7529f4aa2366f3f97dfa98b5f277897c9289f550ea2d73db2d1527f8",
+   "witness.bin": "f7a8025168a76f31705649801a78fb41819e6090c2dc7d2f15a5309c7bfc6028"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10032-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10032-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0f9d0bbcde6ebc45f429485edd726ab7bc0a4bf29fad0c7ccd4c55fa830d765f",
+   "meta.json": "abfc12223b413f6922d8940e7761fa91013edd3d04b64b30e0ff7f02ad49c45b",
+   "witness.bin": "f7a8025168a76f31705649801a78fb41819e6090c2dc7d2f15a5309c7bfc6028"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10238-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10238-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.31.createid-timeout:timeout-loop",
+   "successor.yield.34.create-race-cancel:callback"
+  ],
+  "files": {
+   "claim.bin": "a112fb9f606c23e26b4d9bbb041c1ee181839a1e2f2d0e6c22f33f8f88024bdb",
+   "meta.json": "412fe4c0b5e7ef339688b615665d3b516d241bca7c700df4c2e8ba33789372e4",
+   "witness.bin": "f69437dc86a9fd550707388bac6c510e4f68a5086fa7995e86d02c2ccf698471"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10238-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10238-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5cccf21f362352d4b987bcd0858cf67b59dfcd7841b2ee22d3f2c3ab8341b81f",
+   "meta.json": "c205e1fa3db0a2ff2ac27dc4091baaa9c32c0b690e684641575dd841f68739aa",
+   "witness.bin": "f69437dc86a9fd550707388bac6c510e4f68a5086fa7995e86d02c2ccf698471"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10238-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10238-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b427ffa3f75cd4be6501cdf22b6f29804ca5cf74f49d70304d9501880201ecbf",
+   "meta.json": "c24461ad75c9f2dea6e239c6c8dbb07d2225084e2326484e8aafeac3a8c70622",
+   "witness.bin": "f69437dc86a9fd550707388bac6c510e4f68a5086fa7995e86d02c2ccf698471"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10246-s3",
+  "kind": "honest",
+  "source": "runs/y4242/ood/00-h10246-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.33.resume-after-timeout:executed",
+   "successor.yield.33.resume-after-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "3a852479091d717c482f68456396b25362d0d931049da79e37764467d13b5616",
+   "meta.json": "42335829f002e85a1296b25ac2589a173c9c812903ab7bb845cc23aaaf892524",
+   "witness.bin": "b4a55437400ed03b611697aa22fdfaa95afbc5e9301a2645cf7832d531049f2c"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10246-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10246-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7baa0d888436cd740e659786be7ccc6fbf577929f37aa697277d8cb5c653f8ad",
+   "meta.json": "21b80f8f4d49eec87eeece599ec72b53578f12e0853f89583c6689ed226cb4fd",
+   "witness.bin": "b4a55437400ed03b611697aa22fdfaa95afbc5e9301a2645cf7832d531049f2c"
+  }
+ },
+ {
+  "case_dir": "y4242-00-h10246-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y4242/mutants/00-h10246-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "cfdf5dc43079a7bf0c87a6ec97adb98769df60bcf0e59e9d5765f9e7c3fdf203",
+   "meta.json": "8f201245173443f10693b2140be073f4b3b5887f3526862f3053b7ddec8df1d7",
+   "witness.bin": "b4a55437400ed03b611697aa22fdfaa95afbc5e9301a2645cf7832d531049f2c"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10007-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10007-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.00.create-later:executed",
+   "successor.yield.00.create-later:included",
+   "successor.yield.01.create-timeout:executed",
+   "successor.yield.01.create-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "d22170259b11bb2279c2bf5b19974cf14e477efdc12f8bd0e7b85e55bac50a60",
+   "meta.json": "ef42151cf8ac4e1d33d9eb5f87825eab17c0b944eab8a3a927a25cb88d7f4dbb",
+   "witness.bin": "0dd6bdd7b4189194f99542d56374cda38c55c8e333f74f58932b5ff1c1f00664"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10007-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10007-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ae34330c496c30dc8e78c7b4b756d59d94d919b7288f06176475120492c45cec",
+   "meta.json": "9b4711ccf4036e49de353b453f9f7a5c4b0b7b3d9b7ef23ceb590af736a5f752",
+   "witness.bin": "0dd6bdd7b4189194f99542d56374cda38c55c8e333f74f58932b5ff1c1f00664"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10007-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10007-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "471130703345055f028aeaa8f0f7b537f7c724067f7bbe632b924dd2aebb38d2",
+   "meta.json": "f0e8a260859bc88b3f4b297ea7fc0518537985955ec310494259ed66b5023ddc",
+   "witness.bin": "0dd6bdd7b4189194f99542d56374cda38c55c8e333f74f58932b5ff1c1f00664"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10009-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10009-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.02.create-resume-same-receipt:callback",
+   "successor.yield.03.create-same-chunk:callback"
+  ],
+  "files": {
+   "claim.bin": "6ded2492ea6f9bed8d55bdbe3ad85491d3385da0a9fa040b26cefa57ca836bd4",
+   "meta.json": "e19ec09c2bba32d06c5f55e1ce283265e3691e1be27732aaa1201e586e03a619",
+   "witness.bin": "d95a4a1060ff05e3415e084267780a6a248c612988c30bef233b9e3a69576349"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10009-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10009-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "56bf5b8ba549d2d273b99c6ffc0e4ca5f2ddf48b7d5e7188a92ccce0adb278f1",
+   "meta.json": "63d2b5d77a0f3d475668a40bd7497056ac6044042136247283152ca41a2d4b42",
+   "witness.bin": "d95a4a1060ff05e3415e084267780a6a248c612988c30bef233b9e3a69576349"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10009-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10009-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f5e6654839e14433a93abef702fc9e3591eb729651bce0afe90d8c1f117a5e6b",
+   "meta.json": "5a453afc283adbf10c24be5844abf3658f7d99e09ea2aac36b9ebf2b8c9bae49",
+   "witness.bin": "d95a4a1060ff05e3415e084267780a6a248c612988c30bef233b9e3a69576349"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10010-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10010-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.05.resume-later-chunk:executed",
+   "successor.yield.05.resume-later-chunk:included",
+   "successor.yield.06.create-dup-same-receipt:executed",
+   "successor.yield.06.create-dup-same-receipt:included"
+  ],
+  "files": {
+   "claim.bin": "e6f4d320ace94edfe920e4d6a32e68d68125550ee57eaef144c6b4fbc6c415fb",
+   "meta.json": "2e6694f419186910cb26d56b586322b9189a197422a24fdefc59d287a5b6ad95",
+   "witness.bin": "35c37b1343ecebf2dbf5f0d794489abb92ada11a8bab4f196335f2805f71197a"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10010-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10010-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "87363d8f721593d2a95ab549bba4db1579ee310626ed4f2107780b009b5f38b8",
+   "meta.json": "222596db2b7cde1e66a372e1820a339de0848853565b0971b49b7b149a9a602c",
+   "witness.bin": "35c37b1343ecebf2dbf5f0d794489abb92ada11a8bab4f196335f2805f71197a"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10010-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10010-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2bd0e7fe42515c2dfbb01d57085b658391367ae268c084ea842dae126ea6730e",
+   "meta.json": "788f784e3b556d2432231613033f81310fddb4c4d4e01ee57ac1620d347cbd8c",
+   "witness.bin": "35c37b1343ecebf2dbf5f0d794489abb92ada11a8bab4f196335f2805f71197a"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10011-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10011-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.00.create-later:callback"
+  ],
+  "files": {
+   "claim.bin": "452249cc4aecbd8465e18b7151960361e8dffab6d7699e59c243659be5c99fcf",
+   "meta.json": "863999fd1f672b5ca90c2e8984c1bd7d84022935a189c1e480de3e77d017fd51",
+   "witness.bin": "bdbe337aa54f5a70a7793b217bfbcaf62f9183ac5714c5c90cc462f2f95f8598"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10011-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10011-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "549e9a49fa75dbc06a9ef8ed98fee418e34370c87f13c47f51180c92ab1e7422",
+   "meta.json": "507669fc2df24407b320926f99adde843efb06e2833fa53bcbd5ce37fafdc077",
+   "witness.bin": "bdbe337aa54f5a70a7793b217bfbcaf62f9183ac5714c5c90cc462f2f95f8598"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10011-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10011-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "46a516cb0690fb1208c900d47417f528dfbe7d721b2ba2b5ce68ffb1c0fe0eda",
+   "meta.json": "65d19423b005b904055eb6a2ddab7360e9c52504f1d49de7dab4fcc9d503417b",
+   "witness.bin": "bdbe337aa54f5a70a7793b217bfbcaf62f9183ac5714c5c90cc462f2f95f8598"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10012-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10012-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.07.resume-twice-same-receipt:executed",
+   "successor.yield.07.resume-twice-same-receipt:included",
+   "successor.yield.08.create-dup-separate:executed",
+   "successor.yield.08.create-dup-separate:included"
+  ],
+  "files": {
+   "claim.bin": "b8dde232bfd9628565863f8d83923b4ecddad549df6c60d1b49b08717699d950",
+   "meta.json": "2d1901f3a86f6269f6c88c50baf9defb2b2702ba2766e09c520ee824b19849b6",
+   "witness.bin": "7f18614fd0096683a03504a48250b1d9c020d9d19526b85346039f4972942300"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10012-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10012-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8b5942d7c2d1818601e4aa231619d2096ec809513c7ebef386eae39976c56633",
+   "meta.json": "5b68224f43b1d31f99fcbe733d922de36fc0c44575c777ec89a77e0c3512f14a",
+   "witness.bin": "7f18614fd0096683a03504a48250b1d9c020d9d19526b85346039f4972942300"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10012-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10012-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "35ad5b23344f5c24e9cc6417de52c4bb640d22c4340830a5e337b5751a14d07f",
+   "meta.json": "2927052d266a9f9f36a915c0100898b07678381e6c997ee91994fcb5cde0d246",
+   "witness.bin": "7f18614fd0096683a03504a48250b1d9c020d9d19526b85346039f4972942300"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10014-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10014-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.09.resume-dup-first:executed",
+   "successor.yield.09.resume-dup-first:included",
+   "successor.yield.10.resume-dup-second-same-chunk:executed",
+   "successor.yield.10.resume-dup-second-same-chunk:included"
+  ],
+  "files": {
+   "claim.bin": "072afd40cab82d490a01109a0b1d92cb82c6297bac14acd0f13d034ca3d83421",
+   "meta.json": "f1ffe97ea191dde645f261ff2c8f0ad4e25881c0a7a0c717fcc1ea708761e74e",
+   "witness.bin": "2f3e428c6769693f9783612e5b966f7f2d2e353ec4fa5ba995beec870dc42d0f"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10014-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10014-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4374b0ac2999f37cd349a49d74c14cde3de2b31af680d84ffa4fe0987181b52f",
+   "meta.json": "083020aa295094062efffde2c7da4c8b03ddb218160cc1b62c7f6817f0677d1e",
+   "witness.bin": "2f3e428c6769693f9783612e5b966f7f2d2e353ec4fa5ba995beec870dc42d0f"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10014-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10014-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "3c36033ce99f6fe9abdaa4dc5f72dcc3a6061d743ff8d3665bd4528d0e4c1581",
+   "meta.json": "e7586ecc7107fa7831aad9380fbf3cc55a04e6d6acb8994105bf0f3fe0f8beef",
+   "witness.bin": "2f3e428c6769693f9783612e5b966f7f2d2e353ec4fa5ba995beec870dc42d0f"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10015-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10015-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.08.create-dup-separate:callback"
+  ],
+  "files": {
+   "claim.bin": "79698e8668ffadc0308b40415ed190d23fb39363a95005ad5f6c352972b84eb2",
+   "meta.json": "4be678470bdb6ba0ba9452ecfaefb2342433449aa39b790ee475c389ca6b08f0",
+   "witness.bin": "7c2965cdc8563d4b1ac44a9c7e334b78fa2cc16b9da6c9cc6423de9fe383036d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10015-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10015-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bf46d51fc8e0bc9d4b0977103bbf259091056e4da33e6ce1e2a569272fadf96a",
+   "meta.json": "228a29e9b7b3d7b08647d10ec48b8743312e0706fabf7e80c909d2ad810ac018",
+   "witness.bin": "7c2965cdc8563d4b1ac44a9c7e334b78fa2cc16b9da6c9cc6423de9fe383036d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10015-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10015-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bb97f9e4465d66c1a594e2c187316adfd7a2dc7e2aa424ada4a5605c4208a7c0",
+   "meta.json": "8bc6035ece99bac21f6a07b99ece755d4c9541903bab47c42c1eedeb4d2b5f69",
+   "witness.bin": "7c2965cdc8563d4b1ac44a9c7e334b78fa2cc16b9da6c9cc6423de9fe383036d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10021-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10021-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.14.create-payload-max:callback"
+  ],
+  "files": {
+   "claim.bin": "b54a810ead908605995c0398ce29fe6c26e3c1088f7c43acb210dde9831f6d39",
+   "meta.json": "faef2cc112e7fc4be129fc3f09a3be0a8ce1ea4021cae1af54eb115a94f73e49",
+   "witness.bin": "0b95396766fe214c18bbc7d346030288d63ad6491252e426683eb80edcc93cb8"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10021-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10021-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2f75613367e94ed4d18be52e38c74addaee561d7e226e14e2dd26197a4f26660",
+   "meta.json": "78549ca245831871425e96829aa967efc010cc8fdcebcaf06994e6d82bd0fa1c",
+   "witness.bin": "0b95396766fe214c18bbc7d346030288d63ad6491252e426683eb80edcc93cb8"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10021-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10021-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2490e19c930b18d68a89ad004e127f040f566d6a62aa3c130d2d00ffc411fa2b",
+   "meta.json": "ac4a09af8c65a7a9543e081addf660aee87fc10747de2660f983a4eb7e89697b",
+   "witness.bin": "0b95396766fe214c18bbc7d346030288d63ad6491252e426683eb80edcc93cb8"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10022-s4",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10022-s4",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:included",
+   "successor.yield.19.cross-shard-create-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "2902a812d8c40e78b0b5c6b3ff799831e41e06183f6bff47f3fb9270ff285859",
+   "meta.json": "60f60080fa9dc3fc797f91e04cc9fb979cc10225249fc7688d59edd1174ce81c",
+   "witness.bin": "352eac769b6ca735fdc8ce9e5025fa22335e0b89c6f0173ad9d0363972b02249"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10023-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10023-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:executed",
+   "successor.yield.19.cross-shard-create-timeout:executed"
+  ],
+  "files": {
+   "claim.bin": "ed5d2c2bbe98608f76759969e18b4aee394e9c5e22062ad37de14bfacac5ecb5",
+   "meta.json": "2eebdbb498f46701dde3fcb843c0ebb7e40a9d614867649c8ef5c96fd3fb1b05",
+   "witness.bin": "ce1d3309417dd872c3f100ed65f7581093507bdcdc9a3f34164efd297855e111"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10023-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10023-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2985ff8dd7d315a6b8369d8e49fe462886c0bd492419f4862ce7d0e9c1aae3c4",
+   "meta.json": "c0ab4ac87de2b92f87146cc47197f4511e02ebb916cd5bfb23a5b1267a9fd741",
+   "witness.bin": "ce1d3309417dd872c3f100ed65f7581093507bdcdc9a3f34164efd297855e111"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10023-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10023-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0b1f5a6cd75327127709915b8379844f8d2ab0c5f415d6053cce7dfc7833fbf3",
+   "meta.json": "48d0404489629448f2913ce55fc2f4c2cbcbcc77a6230e2fff8ccb1d5c94fc0e",
+   "witness.bin": "ce1d3309417dd872c3f100ed65f7581093507bdcdc9a3f34164efd297855e111"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10027-s4",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10027-s4",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.20.cross-shard-resume:included"
+  ],
+  "files": {
+   "claim.bin": "67e582d46db9e6844a82e7b3ae8634f266dc3fa88c70d0bb7faaa015a063bb80",
+   "meta.json": "a27a743a0e2e8ce7e334be4d0cfb3a467d0ccc4d85c3d57a0951f9bc73ef15b1",
+   "witness.bin": "8efbd2beb94326461177d34f9d216f7d9f1c7b37a8d020b8e0128d778fa6ba68"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10029-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10029-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.21.create-then-fail:executed",
+   "successor.yield.21.create-then-fail:included",
+   "successor.yield.22.createid:executed",
+   "successor.yield.22.createid:included",
+   "successor.yield.23.createid-duplicate:executed",
+   "successor.yield.23.createid-duplicate:included"
+  ],
+  "files": {
+   "claim.bin": "aca45b6df857440c75201987c4be8149ca34a16b8c17cb948dbc66f7f715a1bc",
+   "meta.json": "47d035f4eef363f3bb78ff5631838d4a50952b43e052563cbbe3b51b097198fb",
+   "witness.bin": "2c131e90ac66c410c4734b675d2016022d23d96901b9865dd24c8c9b2e1b96eb"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10029-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10029-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f4523a8a263de3b12257794b12eb464677c61a0221ea64823c4a0bd9f4f6b8d2",
+   "meta.json": "fd99f6489ca214e83d3a8bbe64f7a0808b1844d994f52800fadbaaa6376f9ab1",
+   "witness.bin": "2c131e90ac66c410c4734b675d2016022d23d96901b9865dd24c8c9b2e1b96eb"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10029-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10029-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "14b2c49c4b53abff1b58977381c7649b4c7478f16e590b47b2ecdbc271011fce",
+   "meta.json": "5606116dfe022c9665aa5c58e42a2e8274d317ed64a40d72f46eb048a846b986",
+   "witness.bin": "2c131e90ac66c410c4734b675d2016022d23d96901b9865dd24c8c9b2e1b96eb"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10031-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10031-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:callback",
+   "successor.yield.22.createid:callback"
+  ],
+  "files": {
+   "claim.bin": "8a9431568bc7289f1b60a6b3d92b6eaa86b35b75f84a5a210681ee70e2324e31",
+   "meta.json": "a3c002070db5ac4922cf381f413ae4611825169fc4fa36f27496fcd9a5bb1532",
+   "witness.bin": "ace909bbf9e90aee159f242ae2bf0fc9a57496afff259e6f2e24ff36c5754fbc"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10031-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10031-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d5fd65726f5ba46ae832f2dc84b030c224bd0d2c56aa01a91569111d77eaa729",
+   "meta.json": "38379645f684f51ed65631a607cc80807860bef464bf4cd3d826cedcaf2aeea1",
+   "witness.bin": "ace909bbf9e90aee159f242ae2bf0fc9a57496afff259e6f2e24ff36c5754fbc"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10031-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10031-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "efe15729da505f3cf136fb464fd8e40d7e16352e7dbd811481792ca8e9941436",
+   "meta.json": "bf5e063bb6b186e1445e4f04be58bd2942be5ec56d58a94992575742639fe0f5",
+   "witness.bin": "ace909bbf9e90aee159f242ae2bf0fc9a57496afff259e6f2e24ff36c5754fbc"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10032-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10032-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.26.create-returned:executed",
+   "successor.yield.26.create-returned:included"
+  ],
+  "files": {
+   "claim.bin": "186d81413ab317c8c69e27b49515e6d78207f270afb56df801108da42a4109e9",
+   "meta.json": "6da8fb5211db7def52820062ad061019fd0d1921ddc0434de1abcde64f6ab6de",
+   "witness.bin": "e831b97e2ea5d69a7ff8790b0e424082f38671f1ad1f7f8147f41d0bec4b2193"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10032-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10032-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1cfe1269d6f91e93363b0fa9a96299731f7266eb0de1697c0659c8df83783436",
+   "meta.json": "2f82daf1b9f7a20ccc801f2fa79d6d3439b4766d7687f96f91df4be5a97beacb",
+   "witness.bin": "e831b97e2ea5d69a7ff8790b0e424082f38671f1ad1f7f8147f41d0bec4b2193"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10032-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10032-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "264f4d49c9160a6cbd827b39a7a6ede82058b956332d263de490ee4ccd17e6ae",
+   "meta.json": "4eccef41fedd598576d4fac2b5384a0fec11385dd76325b805aa48f5eacfe376",
+   "witness.bin": "e831b97e2ea5d69a7ff8790b0e424082f38671f1ad1f7f8147f41d0bec4b2193"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10032-s3",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10032-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.18.cross-shard-create:cross-shard-note"
+  ],
+  "files": {
+   "claim.bin": "5f975b63d87b320f14e4c663c6816fa6968f134735042e65eeb2a1a4682c3f19",
+   "meta.json": "c3c392fe475b45f916593b2e26a73385d351b7500e0db2967ff7e8bba8173b37",
+   "witness.bin": "b4a2847c161455e6aa35f68dbe0517874043b73ca6d62e69f31163a5ba323c1d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10032-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10032-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "3977f2c5e4d4c8dfdd36f72ad109cd34b77e77365608618f199b9071ebc744d2",
+   "meta.json": "e88a3a800489a90066262774c2f0a1099afe2020f9052cba753779301917b39e",
+   "witness.bin": "b4a2847c161455e6aa35f68dbe0517874043b73ca6d62e69f31163a5ba323c1d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10032-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10032-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "e0304b90ba57ac7930c478ecaa2604a64268c22b7719d042c8ee688ed4c029c8",
+   "meta.json": "6cdf8247cf24b8bb63e62a25599d990ed026dfadd5af6aab421ab7b23ae4e44c",
+   "witness.bin": "b4a2847c161455e6aa35f68dbe0517874043b73ca6d62e69f31163a5ba323c1d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10034-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10034-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.27.resume-returned:executed",
+   "successor.yield.27.resume-returned:included",
+   "successor.yield.28.create-callback-panics:executed",
+   "successor.yield.28.create-callback-panics:included"
+  ],
+  "files": {
+   "claim.bin": "05fd264e78a443f34f3ed7260b644b7f779b428c2a94f0f100fa657e77ad5601",
+   "meta.json": "87a4f5297e033d607a197bdbfbfd4451b23e91308add854dd38699cfc288280f",
+   "witness.bin": "5363b0b5a37a9204d28127b0c7bbc0efe03da80b83cb2150c0e5cd6f6b3a9833"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10034-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10034-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f45fd059aa627840e88ff5d2a5ed2a848feec46a8703cf7347e9a3462451bc79",
+   "meta.json": "dbeeba5af3a565d9e9da2348ec1c93957bc5174040a5f882a8a834a09f34da3b",
+   "witness.bin": "5363b0b5a37a9204d28127b0c7bbc0efe03da80b83cb2150c0e5cd6f6b3a9833"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10034-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10034-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9b624c4fbeb6a2a18c9fa8cc18ac714ae2ebf74a33a69baaa0281d738f687655",
+   "meta.json": "256a412d795682b8c4b2c163231025cac47828ffc9762b5f060d07579fee9444",
+   "witness.bin": "5363b0b5a37a9204d28127b0c7bbc0efe03da80b83cb2150c0e5cd6f6b3a9833"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10036-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10036-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.26.create-returned:callback"
+  ],
+  "files": {
+   "claim.bin": "6fad4984d0cfb002a71006761bfb38b3666af5717ccbaa272bf9b7d8c5435965",
+   "meta.json": "0114dac51b463b348b962ccfe05f8a85530da54731faac53998391271e37cdd5",
+   "witness.bin": "1def55510d603e904a68e4677cbaf26605898b226a9b0365f16c0a2ba1600aa7"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10036-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10036-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "3ae60efed3795e9a07590cb3560a5af2c9decc13a6e6e82479923475751c03e4",
+   "meta.json": "b9973601694cb727dc196156624fdfddb1c67092e7294661d5d51d83e70f96fb",
+   "witness.bin": "1def55510d603e904a68e4677cbaf26605898b226a9b0365f16c0a2ba1600aa7"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10036-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10036-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "763f9444bd1926075bcb563401cb6bc98fa595b1a83c374d4fcd2edac5f7d38d",
+   "meta.json": "34624f260d3f7364591b48a973abc3febb25138d8602226b216b851289270427",
+   "witness.bin": "1def55510d603e904a68e4677cbaf26605898b226a9b0365f16c0a2ba1600aa7"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10037-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10037-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.29.resume-callback-panics:executed",
+   "successor.yield.29.resume-callback-panics:included",
+   "successor.yield.30.create-race:executed",
+   "successor.yield.30.create-race:included",
+   "successor.yield.34.create-race-cancel:executed",
+   "successor.yield.34.create-race-cancel:included"
+  ],
+  "files": {
+   "claim.bin": "7cb9af29e05a912960b31de2aa5c8f90783715fc553a9dba78a329b85f5eeb89",
+   "meta.json": "c6f8c2f016bb13223dc330d46a31ab36d015b901cde0f252cee6b2e744a5beb1",
+   "witness.bin": "725d15b3285e82fa2bdf364d48ed4a09be7217e48b14c89615a0df96dbfbea10"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10037-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10037-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "11307c3baadd15c95b31ec4bed7b838accda3588347a54b646707ab00e38ed74",
+   "meta.json": "381b168f2e9b62bdc7b6f22cc72aa5f04e7814de0e3f7616214d49cc0440f3f4",
+   "witness.bin": "725d15b3285e82fa2bdf364d48ed4a09be7217e48b14c89615a0df96dbfbea10"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10037-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10037-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "17bec21e42f5fe9c2764cf405890ff456ca803060e07260c8a1363e0453b4a1a",
+   "meta.json": "3caa4b2abe701eecca664be9ea8d32892072c2b2e1858ab362e1633cf794f414",
+   "witness.bin": "725d15b3285e82fa2bdf364d48ed4a09be7217e48b14c89615a0df96dbfbea10"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10038-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10038-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.28.create-callback-panics:callback",
+   "successor.yield.31.createid-timeout:executed",
+   "successor.yield.31.createid-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "caeda5f9465fffec6c954ef2906588a67df4c80372e74e1419a0ba784f79ff97",
+   "meta.json": "50a89782330eb571d227609fdb21e5046ba644f3d503968eed8c5384bb805ca3",
+   "witness.bin": "f5535ae730f356366a366c23f5ef25f33d278454094c1e3da608836808b5c2e0"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10038-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10038-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0b16ad315735562a437921fd29817a5f1c980511a89580fa614fe2be07f6e0df",
+   "meta.json": "31572636f45d47cd75bc74200050d01765ba980481b6e288e114067b8b7e5eba",
+   "witness.bin": "f5535ae730f356366a366c23f5ef25f33d278454094c1e3da608836808b5c2e0"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10038-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10038-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2669e3d8a9e5baeaa581dc1539d9b8db0a8ca47c29a6036b9c1eb62b1cec0cf6",
+   "meta.json": "8d0371c21385c27c08892606e0578e7b02b9e7a96dcea54008edb1fae9908467",
+   "witness.bin": "f5535ae730f356366a366c23f5ef25f33d278454094c1e3da608836808b5c2e0"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10207-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10207-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.01.create-timeout:timeout-loop"
+  ],
+  "files": {
+   "claim.bin": "1a7f9bb7c28fae06e07f841f47f759ea11f10dcad5f1d5932842a87ca09e5ab1",
+   "meta.json": "fe2086403a0f7308e12e9590d3fe06dfc77048550a78d630c0a2c0a72700b6d4",
+   "witness.bin": "cf63b08f63c67a15c48bfbc0355ac4ad0ec6eb07b60aec6ffef10f53216a299a"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10208-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10208-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.01.create-timeout:callback"
+  ],
+  "files": {
+   "claim.bin": "01c007eefbf412a61a06201e1f2c1042e4fe3a5a7797572819fafaf6c38db2e0",
+   "meta.json": "679276d221c1ed0e0f62260f410675cae2dd04e38ebdf05ef076a8694e38d90b",
+   "witness.bin": "e7220b73a8434e5e68ba2da7a57e725b65dafe25ed4ac50d9d540d2b9ea3523c"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10208-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10208-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5c67ab0d08382cacc6694cd8fe92633722695de3ae53ebd42a515158f807f351",
+   "meta.json": "becc63ea1fe2bd551072f919ef306bfc329c85a87c06cbdd7f67959c9ff3e223",
+   "witness.bin": "e7220b73a8434e5e68ba2da7a57e725b65dafe25ed4ac50d9d540d2b9ea3523c"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10208-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10208-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "53cdef102cb289db96ef68c6f40c38f1c2b54b848dff07468b249d4db476e27a",
+   "meta.json": "fc1bd61e9b916ca139f93e17389fe900da7f28778e5fccfa984df2d8826feb3b",
+   "witness.bin": "e7220b73a8434e5e68ba2da7a57e725b65dafe25ed4ac50d9d540d2b9ea3523c"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10220-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10220-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.15.create-payload-over:timeout-loop"
+  ],
+  "files": {
+   "claim.bin": "b76d35c15b9f705a11c966084ed7fbb9e5afe72dca6bb416d61ac28e5c952273",
+   "meta.json": "d5cfa64b06799987be4074152b3acdb24a3e486b56d2c8e5bf44ddaabd11078e",
+   "witness.bin": "289bfe1f6313fbe185cbdb63233a284dc84e02dcb8c2683e9dc98ab31085cf2a"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10221-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10221-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.15.create-payload-over:callback"
+  ],
+  "files": {
+   "claim.bin": "7212b1fa15bf4cf2a64753a9f020fbd93bd79eeb64dd8a31dbfc8146aa13ac48",
+   "meta.json": "076d94bb20af9633c7694640ea827676b2768021f4c0e9dbb296fa1a730ba942",
+   "witness.bin": "cb81d1b594edee4ea6072284c6420590ffd39077dd3031dda5a38473b945f52d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10221-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10221-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9db3ccaf9a10a1c81d1742fe2d0f47e0a904073a7aeb26b7b028fb2a8c72e90a",
+   "meta.json": "0d24803f809cf2fffc92b938c1c648a8426dbf3a1c70b54ade1051fea488521e",
+   "witness.bin": "cb81d1b594edee4ea6072284c6420590ffd39077dd3031dda5a38473b945f52d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10221-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10221-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9f77b87c703b54a9daedd06676585576df2fa041a5977ac41ed2e43c9bb2b177",
+   "meta.json": "679f542855e17fd3fab657243b7512032e67f7c81d8c1c28d514e642d5579e61",
+   "witness.bin": "cb81d1b594edee4ea6072284c6420590ffd39077dd3031dda5a38473b945f52d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10223-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10223-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.19.cross-shard-create-timeout:timeout-loop"
+  ],
+  "files": {
+   "claim.bin": "3b0d1e36adf689294f46347a8adc16352c700212c27aba1a9c1bc8f27fe2e66f",
+   "meta.json": "3374c41d43dc600d191c1aff10469112846a0ac1667ca214d4ab79eff60cba0d",
+   "witness.bin": "f18c35ce692784a40e76e2d02c594a8595b9b2d4bfd4977127839f5dbca5d0f7"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10225-s3",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10225-s3",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.19.cross-shard-create-timeout:cross-shard-note"
+  ],
+  "files": {
+   "claim.bin": "3e54b2f064c36897680c20f2811f8a24a5d96d0a279029356c1d6b4d8e06b078",
+   "meta.json": "fc80728250462f8434a3f8cf44a5759a5c46f49f941bc0ba4bf4544f0302676a",
+   "witness.bin": "1b0f1bfbe3042def262182c91b8c7bd9aff4cc6345965f8e6c7818b84e9af003"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10225-s3-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10225-s3-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ac4429e1d5891a12690d212ce3432ccbc658441be83d4fb2a3932381cc19dcc0",
+   "meta.json": "9e48deba775d18c4e19320e8f3d99165e633eb2138f097121af7cd558f8ff588",
+   "witness.bin": "1b0f1bfbe3042def262182c91b8c7bd9aff4cc6345965f8e6c7818b84e9af003"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10225-s3-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10225-s3-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7630a7a961162209e2f28f81c13ae5214df47433841606028eb229a212619315",
+   "meta.json": "7c9f8f3078989d44f9e6f45fd24e0497b1543707a159bd7e573fe5fee23ed637",
+   "witness.bin": "1b0f1bfbe3042def262182c91b8c7bd9aff4cc6345965f8e6c7818b84e9af003"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10236-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10236-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.30.create-race:timeout-loop",
+   "successor.yield.32.resume-at-timeout:executed",
+   "successor.yield.32.resume-at-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "eeef78d4a7e7784f423f91bff1df770db1d326d27a8174f397034b5d02e0ab64",
+   "meta.json": "ee77813252938e87d51a2eea1b0e815f01a16c5e39c3cb0ddd606e89abf31251",
+   "witness.bin": "1d167fc9a9fbdab8285954e6bdd7a9515b06c585e15ed6c51d844efd7c1b644e"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10236-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10236-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f879aaa7f6eb17e2276dba20d8ea2f7cf95d24b59ff19c2d8e86ccad7c7c88cb",
+   "meta.json": "f229510797c4ea7a10f6a7b1163ca8892f3dd457f6cf229ef5e24dda512131a6",
+   "witness.bin": "1d167fc9a9fbdab8285954e6bdd7a9515b06c585e15ed6c51d844efd7c1b644e"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10236-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10236-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8f517430aba96054cc537402447fd700a0469bfe565df0d3bd41954c0424adf3",
+   "meta.json": "4cf9025dfa37d743bddf201b97277ae540e47b834861e8767096c684567717e9",
+   "witness.bin": "1d167fc9a9fbdab8285954e6bdd7a9515b06c585e15ed6c51d844efd7c1b644e"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10237-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10237-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.30.create-race:callback",
+   "successor.yield.35.resume-after-timeout-fired:executed",
+   "successor.yield.35.resume-after-timeout-fired:included"
+  ],
+  "files": {
+   "claim.bin": "6973f5529cfb7e311384d4127cec4054690232ff3f67caa45b08b5c607d6d107",
+   "meta.json": "8ca20714b8858896c7e17b2ed5b05e186e00a8af65e9d302eb1cba9555fa4b8c",
+   "witness.bin": "2700117c06fdab4f4925137ed901222f5ffd4ec814f27acc8e4cb7ed97658f36"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10237-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10237-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "39c76b0312f5ff93158315b840653fbfbe6716c9b3e12d8959da90885c842776",
+   "meta.json": "4c6c832836cf1739095e1f671006cdadf1a0a9435eeeac410332d8835386a550",
+   "witness.bin": "2700117c06fdab4f4925137ed901222f5ffd4ec814f27acc8e4cb7ed97658f36"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10237-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10237-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f8f32f6f27018f3d7f0abc0569dca5c86c40ed09eb96730aed96179f0174d535",
+   "meta.json": "d94df8cf1ca378d379934f20dc66a6196127d7c6a6dde33425bb5dd3c798e71c",
+   "witness.bin": "2700117c06fdab4f4925137ed901222f5ffd4ec814f27acc8e4cb7ed97658f36"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10238-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10238-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.31.createid-timeout:timeout-loop",
+   "successor.yield.34.create-race-cancel:callback"
+  ],
+  "files": {
+   "claim.bin": "91778c38d21a9c73d36e052f34c0cad5af67932f77568a1bdd4a3b64c3d500d2",
+   "meta.json": "ca85ee34bd7843d1446afe92c1c77eb18b506ed7f9a519b5006804660a320d33",
+   "witness.bin": "6532e946e96a36b08ac00991359ae232a85f3821409fa5ea834ac2b2c6a8099d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10238-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10238-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c7562e4e4e73e3b205e75441bd4be76e5804b3d4fac3e0d37bde0fca65187300",
+   "meta.json": "df917b6773a916174d880553ac360cdd990f7a22232db296ef334418c0848aad",
+   "witness.bin": "6532e946e96a36b08ac00991359ae232a85f3821409fa5ea834ac2b2c6a8099d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10238-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10238-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2f36e15a1bb37fced7603b9c5fb2f091e69f9c7837b056acc81b2f618a3b5ae1",
+   "meta.json": "d0bfc72190edd4f95eeedeb7a22c0ad713f3c53a51f0c2a05535fdf6fbdfa99f",
+   "witness.bin": "6532e946e96a36b08ac00991359ae232a85f3821409fa5ea834ac2b2c6a8099d"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10239-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10239-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.31.createid-timeout:callback"
+  ],
+  "files": {
+   "claim.bin": "26d7b19065e18166e9d710718937b780d48c2c2bb6219f67959b413756b26632",
+   "meta.json": "8212eccdc7e5cb8c69d693f4ef63c597f28848089dbca54564480159102a0968",
+   "witness.bin": "6811941f021d6e7d4f1f5a8551ab8e1e8f21fafa426212bcb6ed07f71d803c03"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10239-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10239-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "999d1c21ec7d5515493451de83a4a50444b630554b6e472bf50e44fb8ae956c5",
+   "meta.json": "3e8c99e8bcd70bf5f40c00f76f52bef09220039c655e9d8c4db634c01244a008",
+   "witness.bin": "6811941f021d6e7d4f1f5a8551ab8e1e8f21fafa426212bcb6ed07f71d803c03"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10239-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10239-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "bc5d8d0ae91dd69689860d6e750818b78d381b184765b80bc8537f5d5629e4fc",
+   "meta.json": "c0a8a0c7c00c8796591d587fd5c371b20d7008ef4e7feb5df683b8973c274ba3",
+   "witness.bin": "6811941f021d6e7d4f1f5a8551ab8e1e8f21fafa426212bcb6ed07f71d803c03"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10246-s0",
+  "kind": "honest",
+  "source": "runs/y1729/d3/01-h10246-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.33.resume-after-timeout:executed",
+   "successor.yield.33.resume-after-timeout:included"
+  ],
+  "files": {
+   "claim.bin": "ea11286cc52305bbab8b7944e0d9d2ad6b39af663f5bc4993c4d9e503c5f708f",
+   "meta.json": "095e1f33d0e556f00fead2b986fb6f9d220a04081b8193be0a115fc637d053c1",
+   "witness.bin": "8b534de300763c48176e0bc39f7d78bf9e7c5e42f88acdd3524682312cec0c75"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10246-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10246-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "14e0cb89d4ffc546824af92f0678ecf81b924bac3aeff97395dd675cdbe8aa24",
+   "meta.json": "c5547a7b8e87158cae96f11d491733af6a2f3ab3732bcfa651a3e899984c9a6e",
+   "witness.bin": "8b534de300763c48176e0bc39f7d78bf9e7c5e42f88acdd3524682312cec0c75"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10246-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10246-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8c794e802a2278ed3da49c22ba2b2e151315a474d02a244653ba21e162233baf",
+   "meta.json": "20d39f34916cc3a83907ff7f957964d7928e4c605b2ead8fa2bc7082505037a7",
+   "witness.bin": "8b534de300763c48176e0bc39f7d78bf9e7c5e42f88acdd3524682312cec0c75"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10008-s0",
+  "kind": "honest",
+  "source": "runs/y1729/ood/01-h10008-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.02.create-resume-same-receipt:executed",
+   "successor.yield.02.create-resume-same-receipt:included",
+   "successor.yield.03.create-same-chunk:executed",
+   "successor.yield.03.create-same-chunk:included",
+   "successor.yield.04.resume-same-chunk:executed",
+   "successor.yield.04.resume-same-chunk:included"
+  ],
+  "files": {
+   "claim.bin": "72bd326ed37627f63d1bb63960c67cbba66a8f7e6b85548c60273c62254130de",
+   "meta.json": "cd2924c2d9b90913f0dbd3d99ebe6b5b04b3cca37fbafc4494a2dea02425858a",
+   "witness.bin": "56f829dcad8e4cfc339fb3f34a79d131d9b534d24543d1888c873de0dcd6da80"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10008-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10008-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "035f6edbe68aabc7a23d78611ff88bdb0311cb4bc15376b217e73e825fb8ff1c",
+   "meta.json": "25713582c06e659eae23c61c4ed2b20a9a059542bac9709f37e44f3000dc5c45",
+   "witness.bin": "56f829dcad8e4cfc339fb3f34a79d131d9b534d24543d1888c873de0dcd6da80"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10008-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10008-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6b83fe33348c3d643819a0a484d65e1d30a60d334248dcf7e6a1cf1a4649813a",
+   "meta.json": "a0a7fc64ba53bb0a8064792760b22d02f569630421d1c2b7560ba9c9014dd238",
+   "witness.bin": "56f829dcad8e4cfc339fb3f34a79d131d9b534d24543d1888c873de0dcd6da80"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10013-s0",
+  "kind": "honest",
+  "source": "runs/y1729/ood/01-h10013-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.06.create-dup-same-receipt:callback"
+  ],
+  "files": {
+   "claim.bin": "facfa55ee915630e0dbb459ed3341e7c68fad9408e880734ecb8b19b1f2014e7",
+   "meta.json": "2e4de2f1311cbbdf58b3a5814b67c57314547147bdd46d8aee9988900c682b6a",
+   "witness.bin": "7cb4ded9f233d66bd20ad56bc0633e5365c4f4fd043e7a6164bf4f22e66d9a84"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10013-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10013-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c5d4dec4cb7102442e525b6eab0aa47b1c9d6b707b2dc08a2a5bb65321241d26",
+   "meta.json": "ca370bf93cc5392a9c6f8f397175bfb40496aeb2a0e93550f640aa151d592358",
+   "witness.bin": "7cb4ded9f233d66bd20ad56bc0633e5365c4f4fd043e7a6164bf4f22e66d9a84"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10013-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10013-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c0f70926ef69e9af72c7ca1c884eef3da1b7f29952eec35aec7abe028e24a766",
+   "meta.json": "2610b823f401c657e9b4ec448f199dbe948c32795491b6c927d177c884bb2744",
+   "witness.bin": "7cb4ded9f233d66bd20ad56bc0633e5365c4f4fd043e7a6164bf4f22e66d9a84"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10019-s0",
+  "kind": "honest",
+  "source": "runs/y1729/ood/01-h10019-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.11.resume-after-completion:executed",
+   "successor.yield.11.resume-after-completion:included",
+   "successor.yield.12.resume-wrong-data-id:executed",
+   "successor.yield.12.resume-wrong-data-id:included",
+   "successor.yield.13.resume-malformed-data-id:executed",
+   "successor.yield.13.resume-malformed-data-id:included"
+  ],
+  "files": {
+   "claim.bin": "d6950a012557ce976a017669c2d45c68f73f78763c113ef6f5eea5c438de0543",
+   "meta.json": "722f51bed04e908e37f4b5ac99c8ee27a156237eba0ed20496b960d768b2914e",
+   "witness.bin": "346a361db4d05e7a6015b185b66f8f345893ea3b8121edd8ec11408f54ee706b"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10019-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10019-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "91288db255ea436f10d4f46d1dcb6448eecabe9ebd7430c003062010983b3714",
+   "meta.json": "64900a7bbc83b84a7ca46941fb1099fab0d8f7113783708f7646fb7b4aa95e2e",
+   "witness.bin": "346a361db4d05e7a6015b185b66f8f345893ea3b8121edd8ec11408f54ee706b"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10019-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10019-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "67a6f7bcbd83944f4188276046f66187f0494cf241db54e122baaf5d87a43c70",
+   "meta.json": "c2e17b3c781d3821b32b68044a7a2274dcd0d2bfb1dc7c26d0aa573ed1b9280d",
+   "witness.bin": "346a361db4d05e7a6015b185b66f8f345893ea3b8121edd8ec11408f54ee706b"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10020-s0",
+  "kind": "honest",
+  "source": "runs/y1729/ood/01-h10020-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.14.create-payload-max:executed",
+   "successor.yield.14.create-payload-max:included",
+   "successor.yield.15.create-payload-over:executed",
+   "successor.yield.15.create-payload-over:included",
+   "successor.yield.16.resume-payload-1024:executed",
+   "successor.yield.16.resume-payload-1024:included",
+   "successor.yield.17.resume-payload-1025:executed",
+   "successor.yield.17.resume-payload-1025:included"
+  ],
+  "files": {
+   "claim.bin": "2df2f34e9c8c00ca7b3832bd0a83b29ceee889eef793601c3c7f1ad3c735ecad",
+   "meta.json": "f8e4f3e186a89a0260ba9760d1170b6fabe7d3ffe9ee8d6b3792ab2ea9d68eb3",
+   "witness.bin": "c7f2d5ff5ac9f81a18c3411d4554c2462aad6c687b40ca03e7b9a1bf71b7568b"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10020-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10020-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b62025edbaa8580df638fbb0c883353cefa68c26122387f29df4d1d56a8e0f2c",
+   "meta.json": "499244d26c98260c31c6cea2cecb879c5d22b8f9c1dbee424db7a7d696f720a8",
+   "witness.bin": "c7f2d5ff5ac9f81a18c3411d4554c2462aad6c687b40ca03e7b9a1bf71b7568b"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10020-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10020-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "20b2f0c9cbfb025ea42731adc54a5e3e55cb928ab97377bb5352bf57bd959a93",
+   "meta.json": "04fb111519123b20951867f69a916bc57490e58509229d94bf6ba1761c522301",
+   "witness.bin": "c7f2d5ff5ac9f81a18c3411d4554c2462aad6c687b40ca03e7b9a1bf71b7568b"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10030-s0",
+  "kind": "honest",
+  "source": "runs/y1729/ood/01-h10030-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.20.cross-shard-resume:executed",
+   "successor.yield.24.resumeid:executed",
+   "successor.yield.24.resumeid:included",
+   "successor.yield.25.resumeid-unknown:executed",
+   "successor.yield.25.resumeid-unknown:included"
+  ],
+  "files": {
+   "claim.bin": "55801fe4f4ed41e04d35d7686a75acbe7b13199aa6e87179fff308cbf4e481fb",
+   "meta.json": "dfb87f01de94499745be6432ae4d23f064696c7c371e0f8a80591aaebc5a4ebd",
+   "witness.bin": "9231b6a144c50e6b1033a79affb5ee965e4f13ebc9281cdcb1f8daf1f52eb9c3"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10030-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10030-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "628fce1e2b910c2210426d245540650132ed551b499f783b960ef3641b1ee0ca",
+   "meta.json": "5f03ba6f0ff47a05e0b776bd0823da6fd71828f797d3e8e701e4e60c6bb41512",
+   "witness.bin": "9231b6a144c50e6b1033a79affb5ee965e4f13ebc9281cdcb1f8daf1f52eb9c3"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10030-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10030-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8b5cb7d1cb355cedcebc075acffbe025dbc7f3907182a28008f1336628fe72c2",
+   "meta.json": "5e76a95f1b73bf404922128fe8e67ff1c6b3035f0c8d0dd5a5395b49438cabf8",
+   "witness.bin": "9231b6a144c50e6b1033a79affb5ee965e4f13ebc9281cdcb1f8daf1f52eb9c3"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10224-s0",
+  "kind": "honest",
+  "source": "runs/y1729/ood/01-h10224-s0",
+  "expected_rel": true,
+  "nearcore": "ok",
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.yield.19.cross-shard-create-timeout:callback"
+  ],
+  "files": {
+   "claim.bin": "67ed471d3ccae7a7349dc8433ef4b3ed68938cae0b59543898e28559dd816a22",
+   "meta.json": "b824e2e83f4e679277b9114ee7acc32cbe7b184d05bab129e79993ecc3d44185",
+   "witness.bin": "2e1a185deb37cc5cb32823a09e08c9df4dec49699ad00cf17619766bdac3b473"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10224-s0-c.drop_last_block",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10224-s0-c.drop_last_block",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "7d2fd0449d47a36bd18533f312173760e1523ecc245faee9d20dc8512d7a0c34",
+   "meta.json": "85339bc331a1b93919b8ba9532d825a626ef646f277723bab308884c8e8b5c63",
+   "witness.bin": "2e1a185deb37cc5cb32823a09e08c9df4dec49699ad00cf17619766bdac3b473"
+  }
+ },
+ {
+  "case_dir": "y1729-01-h10224-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "source": "runs/y1729/mutants/01-h10224-s0-c.epoch_start_flip",
+  "expected_rel": false,
+  "nearcore": "claim-v3 discipline",
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "5340f461877bc6fbb4ef27055d46cd14cfe056fa7b396f02c4ba4c02a7783a48",
+   "meta.json": "5b5fe3221d3fb06ea09fce4868605f36dd1866f87a37edf86dd05a66def8ba3c",
+   "witness.bin": "2e1a185deb37cc5cb32823a09e08c9df4dec49699ad00cf17619766bdac3b473"
+  }
+ }
+]

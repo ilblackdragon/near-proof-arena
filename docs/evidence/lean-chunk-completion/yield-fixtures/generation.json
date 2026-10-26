@@ -1,0 +1,25 @@
+{
+  "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "protocol_version": 86,
+  "generator_commit": "5175116c0",
+  "oracle_binary_sha256": "f209bad72f6ef9e8a7bc8f0af4a3231fbe4b232adf1189aad0f725954b20f00a",
+  "lean_checker_sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "lean_source_commit": "257ad1c5237e263c8e4a2ffee1631d66591156bf",
+  "generator_sources": {
+    "oracle/v3-successor/src/chaind3.rs": "4ce66cc8d3537268720a0ac53cb99e08367e7a54e22420e663dd26b1c467036d",
+    "oracle/v3-successor/src/d3.rs": "0085b8736d5f110089bf0a516d50b6d02cae2f062eeeacfe4da0ac131ec52be3",
+    "oracle/v3-successor/src/d3contracts.rs": "f67a27fa44c60290344e5c6e7ee7f0a0073f09d1452fff5e24ffce627a299a6d",
+    "oracle/v3-successor/src/d3gen.rs": "398048349919fc09874bb43b9aefa378d58956e3591b8113f148aa70e472eb6b",
+    "oracle/v3-successor/src/main.rs": "ffed7f2f8c7c581cd1bca62fe980f70f4aaaa11f39e08a843ccd3b7ca093d05d",
+    "oracle/v3-successor/src/scenarios.rs": "cde132325b7700c2f915f41d7eaaf522dbc9183ab211fd82871d61dff70d20d6",
+    "tools/d3/collect_successor_scenarios.py": "06c3c0d00864e9befbd0e8f4ba3426dbe82c2728ebd2ecf58542e562d67f62dd",
+    "tools/d3/select_successor_fixtures.py": "f38a927df30a6934dbdcd5054482189ae2e38f18db20989180d5ba4373bc53f3"
+  },
+  "runs": {
+    "y4242": {"args": "--seed 4242 --chains 1 --blocks 250 --p-missing 0 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000",
+              "chain": 0, "shards": 4, "honest": 970, "cold_accepted": 970, "mutants": 3544},
+    "y1729": {"args": "--seed 1729 --first-chain 1 --chains 1 --blocks 250 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000",
+              "chain": 1, "shards": 5, "p_missing": 0.1, "honest": 1074, "cold_accepted": 1074, "mutants": 3246}
+  },
+  "committed": {"honest": 74, "mutants": 128}
+}

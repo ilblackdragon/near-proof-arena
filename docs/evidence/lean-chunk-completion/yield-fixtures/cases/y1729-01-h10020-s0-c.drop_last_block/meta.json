@@ -1,0 +1,37 @@
+{
+  "base": "01-h10020-s0",
+  "case": "01-h10020-s0-c.drop_last_block",
+  "codes": [
+    {
+      "hash": "CjReRexqUtavGUWat7rkTNsTtypxpvg14hS7cfJL4PJd",
+      "len": 1436,
+      "name": "yieldc"
+    },
+    {
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "len": 1055,
+      "name": "ttn2"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [
+    "e.g_alpha"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 7109786674564,
+    "fc_gas_burnt_for_function_call": 7109786674564
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "verdict_source": "claim-v3"
+}
