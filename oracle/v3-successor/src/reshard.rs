@@ -542,6 +542,9 @@ fn write_case(
     let dir = out.join("cases").join(&name);
     write_dir(&dir, &built.claim, wb, codes, &meta);
     let split_idx = kinds.iter().position(|k| k.get("resharding").is_some());
+    if std::env::var("RESHARD_DEBUG_IMPLICIT").is_ok() && !v2.implicit_transitions.is_empty() {
+        debug_implicit(client, &name, sw, &kinds);
+    }
     if shape.starts_with("split.") || shape.starts_with("gate.") || shape == "cross_layout.no_split" {
         st.boundary.push(json!({"case": name, "shape": shape, "nearcore": vstr(verdict), "main_outgoing_receipts": main_out,
             "implicit_transitions": kinds, "proposed_split": meta["proposed_split"], "header_congestion": meta["header_congestion"],
@@ -668,4 +671,36 @@ pub fn cmd_reshard(args: &[String]) -> i32 {
 
 fn sid64(s: ShardId) -> u64 {
     s.into()
+}
+
+/// Debug aid (`RESHARD_DEBUG_IMPLICIT`): the trie key/value differences of every implicit
+/// transition, read from the client's own store (pre root = the previous transition's post root).
+fn debug_implicit(client: &near_client::Client, name: &str, sw: &ChunkStateWitness, kinds: &[serde_json::Value]) {
+    let ChunkStateWitness::V2(v2) = sw;
+    let tries = client.runtime_adapter.get_tries();
+    let mut pre = v2.main_state_transition.post_state_root;
+    for (i, t) in v2.implicit_transitions.iter().enumerate() {
+        let uid_s = kinds.get(i).and_then(|k| k.get("apply_old_chunk").or_else(|| k.get("resharding"))).and_then(|k| k.get("shard_uid").or_else(|| k.get("child_shard_uid"))).and_then(|x| x.as_str()).unwrap_or("");
+        let Ok(uid) = uid_s.parse::<near_primitives::shard_layout::ShardUId>() else { eprintln!("DEBUG {name} #{i}: uid {uid_s}"); continue };
+        let dump = |root: CryptoHash, uid| -> BTreeMap<Vec<u8>, Vec<u8>> {
+            let trie = tries.get_trie_for_shard(uid, root);
+            match trie.disk_iter() {
+                Ok(it) => it.filter_map(|x| x.ok()).map(|(k, v)| (k, v)).collect(),
+                Err(e) => { eprintln!("DEBUG {name}: iter {e:?}"); BTreeMap::new() }
+            }
+        };
+        let a = dump(pre, uid);
+        let b = dump(t.post_state_root, uid);
+        for (k, v) in &b {
+            if a.get(k) != Some(v) {
+                eprintln!("DEBUG {name} #{i} {uid_s} set {} = {}", hex::encode(k), hex::encode(&v[..v.len().min(400)]));
+            }
+        }
+        for k in a.keys() {
+            if !b.contains_key(k) {
+                eprintln!("DEBUG {name} #{i} {uid_s} del {}", hex::encode(k));
+            }
+        }
+        pre = t.post_state_root;
+    }
 }
