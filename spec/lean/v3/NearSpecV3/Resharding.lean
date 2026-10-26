@@ -297,6 +297,67 @@ def retainRanges (t : PTrie) (key : List Nat) (ranges : List (List Nat × List N
 
 end
 
+/-! ## The split with squashing and memory usage (`retain_multi_range_recursive` + `squash_node`)
+
+`retainRanges` above is the structural surgery only: it keeps each descended node's stored
+`memory_usage` and never squashes. The node hash commits to both (`RawTrieNodeWithSize`), so its root
+is not the validator's whenever a descended subtree loses a child. Validator-generated split fixtures
+(`docs/evidence/lean-chunk-completion/resharding-fixtures/`) reject on exactly that. `retainSplit`
+follows `resharding.rs:150-246` and `squash.rs:29-178` node by node:
+
+* `RetainAll` keeps the subtree as it is; `DiscardAll` makes it empty;
+* `Descend` reads the node (an unrevealed node is a missing trie value: the validator's `unwrap`
+  panics on it, `resharding.rs:325`); a leaf is kept iff its full key is in a range; a branch drops
+  its value outside every range, recomputes `memory_usage` as the retained children's sum plus its own
+  direct cost, and is squashed (`squashBranch`: no child → empty or a value leaf, one child and no
+  value → `extend_child`); an extension recurses into its child and is squashed with it
+  (`extendChild`: empty child → empty, leaf/extension child → merged, branch child → kept).
+
+The outer `none` is a missing node. -/
+
+mutual
+def retainSplitKids (key : List Nat) (ranges : List (List Nat × List Nat)) :
+    Nat → Kids → Option (Kids × Nat)
+  | _, .nil => some (.nil, 0)
+  | i, .none rest => do
+    let (k, m) ← retainSplitKids key ranges (i + 1) rest
+    pure (.none k, m)
+  | _, .some (.hash _) _ => none   -- `ensure_updated` reads every child of a descended branch
+  | i, .some c rest => do
+    let c' ← retainSplit c (key ++ [i]) ranges
+    let (k, m) ← retainSplitKids key ranges (i + 1) rest
+    match c' with
+    | some c' => pure (.some c' k, c'.memD + m)
+    | none => pure (.none k, m)
+
+def retainSplit (t : PTrie) (key : List Nat) (ranges : List (List Nat × List Nat)) :
+    Option (Option PTrie) :=
+  match retainDecision key ranges with
+  | .retainAll => some (some t)
+  | .discardAll => some none
+  | .descend =>
+    match t with
+    | .hash _ => none
+    | .leaf k v m => some (if ranges.any fun r => inRange (key ++ k) r then some (.leaf k v m) else none)
+    | .ext _ (.hash _) _ => none     -- the child is read (`ensure_updated`, then `extend_child`)
+    | .ext k c _ => do
+      match ← retainSplit c (key ++ k) ranges with
+      | none => some none
+      | some c' => NearSpec.extendChild k c'
+    | .branch v cs _ => do
+      let v := if ranges.any fun r => inRange key r then v else none
+      let (cs', m) ← retainSplitKids key ranges 0 cs
+      let own := 50 + (match v with | some s => NearSpec.valueMem s.len | none => 0)
+      NearSpec.squashBranch v cs' (m + own)
+end
+
+/-- The child's state root after the split (`trie_changes.new_root`), or the validator's missing
+trie value. -/
+def splitRootE (parentTrie : PTrie) (boundaryAccount : Bytes) (mode : RetainMode) : Except String Bytes :=
+  match retainSplit parentTrie [] (intervalsToNibbles (boundaryAccountToIntervals boundaryAccount mode)) with
+  | some t => .ok (NearSpecV3.D2.rootHash t)
+  | none => .error "invalid: nearcore panics (retain_split_shard: MissingTrieValue)"
+
 /-! ## What the split guarantees
 
 The split's purpose is that a child shard keeps exactly the keys its ranges select. The theorem below

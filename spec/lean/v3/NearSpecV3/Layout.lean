@@ -94,4 +94,26 @@ def Layout.index (l : Layout) (s : Nat) : Option Nat :=
 
 def Layout.numShards (l : Layout) : Nat := l.shardIds.length
 
+/-! ## V3 layout relations (`core/primitives/src/shard_layout/v3.rs:299-354`) -/
+
+/-- The children of the layout's most recent split (`last_split_children`). -/
+def Layout.lastSplitChildren (l : Layout) : List Nat :=
+  match l.lastSplit with
+  | some p => ((l.splitMap.find? (·.1 == p)).map (·.2)).getD []
+  | none => []
+
+/-- `ShardLayoutV3::get_children_shards_ids`: the split's children for the split parent, the shard
+itself for any other shard of the layout, `none` otherwise. -/
+def Layout.childrenV3 (l : Layout) (s : Nat) : Option (List Nat) :=
+  if l.lastSplit == some s then some l.lastSplitChildren
+  else if l.shardIds.contains s && !l.lastSplitChildren.contains s then some [s]
+  else none
+
+/-- `ShardLayoutV3::try_get_parent_shard_id`: the split parent for a child of the most recent split,
+the shard itself otherwise; `none` if the shard is not in the layout. -/
+def Layout.parentV3 (l : Layout) (s : Nat) : Option Nat :=
+  if !l.shardIds.contains s then none
+  else if l.lastSplitChildren.contains s then l.lastSplit
+  else some s
+
 end NearSpecV3

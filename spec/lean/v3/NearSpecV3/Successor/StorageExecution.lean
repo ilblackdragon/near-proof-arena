@@ -241,9 +241,59 @@ def forwardOrBufferR (env : Env) (rs : RS) (r : Rcpt) : M RS := do
 def delayPopR (env : Env) (fuel : Nat) (rs : RS) : M (RS × Option Rcpt) := do
   if (← get).globalActions then logged (delayPopLWith globalQueuePolicy env fuel rs)
   else logged (delayPopL env fuel rs)
-def bandwidthRequestsR (env : Env) (rs : RS) := logged (bandwidthRequestsL env rs)
+/-- The receipt-group sizes of the outgoing buffer to `s`: none for an empty buffer, the groups when
+the metadata covers the whole buffer, else the basic request `[max_receipt_size]`
+(`get_receipt_group_sizes_for_buffer_to_shard`, `congestion_control.rs:565-610`). -/
+def bufferSizesL (env : Env) (rs : RS) (s : Nat) : LM (List Nat) := do
+  let (f, n) := bufGet rs.bufIdx s
+  if n ≤ f then return []
+  let len := n - f
+  match metaGet rs.metas s with
+  | some m => if m.totalNum == len then groupSizesL rs.o s (m.next - m.first) m.first
+              else pure [env.sched.maxReceiptSize]
+  | none => pure [env.sched.maxReceiptSize]
+
+/-- `generate_bandwidth_requests` (`congestion_control.rs:503-560`). The request to `to_shard` chains
+the buffer to `shard_layout.get_parent_shard_id(to_shard)` before the shard's own buffer whenever
+that call succeeds. For a V2 layout without a parent map it fails (`NoParent`), so the request is the
+shard's own buffer, as `bandwidthRequestsL` computes it. For a V3 layout it always succeeds
+(`try_get_parent_shard_id`, `shard_layout/v3.rs:344-354`): a child of the latest split chains its
+parent's buffer, and **every other shard chains its own buffer a second time**. That is the pinned
+validator's behaviour; validator-generated post-split fixtures reject without it
+(`InvalidBandwidthRequests`). -/
+def bandwidthRequestsV3L (env : Env) (rs : RS) : LM (List BwRequest) := do
+  let l := env.ctx.layout
+  let reqs ← l.shardIds.mapM fun s => do
+    let own ← bufferSizesL env rs s
+    let parent ← match l.lastSplit, l.parentV3 s with
+      | some _, some p => bufferSizesL env rs p
+      | _, _ => pure []
+    let bm := makeRequest env.sched (parent ++ own)
+    if bm.all (· == 0) then return none
+    pure (some (⟨s, bm⟩ : BwRequest))
+  pure reqs.reduceOption
+
+def bandwidthRequestsR (env : Env) (rs : RS) :=
+  if env.ctx.layout.lastSplit.isSome then logged (bandwidthRequestsV3L env rs)
+  else logged (bandwidthRequestsL env rs)
+/-- `forward_from_buffer` (`congestion_control.rs:236-286`) for a V3 layout: the buffers to
+`get_split_parent_shard_ids()` = `{last_split}` (`shard_layout/mod.rs:402-408`) are forwarded first,
+each receipt to its shard in the current layout (a child), then the layout's own shards. Buffers to
+other shards outside the layout are still excluded. A V2 layout keeps `forwardFromBufferL(With)`. -/
+def forwardFromBufferV3L (globals : Bool) (env : Env) (rs : RS) : LM RS := do
+  let l := env.ctx.layout
+  let parents := match l.lastSplit with
+    | some p => if l.shardIds.contains p then [] else [p]
+    | none => []
+  if rs.bufIdx.any (fun (s, f, n) => !l.shardIds.contains s && !parents.contains s && f < n) then
+    throw "out of domain (c.same_layout): outgoing buffer to a shard outside the layout"
+  (parents ++ l.shardIds).foldlM (fun rs s =>
+    if globals then forwardFromBufferToShardLWith globalQueuePolicy env rs s
+    else forwardFromBufferToShardL env rs s) rs
+
 def forwardFromBufferR (env : Env) (rs : RS) : M RS := do
-  if (← get).globalActions then logged (forwardFromBufferLWith globalQueuePolicy env rs)
+  if env.ctx.layout.lastSplit.isSome then logged (forwardFromBufferV3L (← get).globalActions env rs)
+  else if (← get).globalActions then logged (forwardFromBufferLWith globalQueuePolicy env rs)
   else logged (forwardFromBufferL env rs)
 def decodeStoredRcptR (b : Bytes) (what : String) : M Rcpt := do
   if (← get).globalActions then liftE (GlobalCodecs.decodeStoredRcptGlobal b what)

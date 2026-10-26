@@ -85,15 +85,18 @@ def recorderDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
       sha256 (u64 shard ++ encodeRcpts (rs.filter fun r => r.targetShard l == shard)))
     else outgoingReceiptsRootD2 }
 
-/-- The driver that decides resharding implicit transitions. It is `recorderDriver` plus the split
-policy: `implicitKind` consults the layout's split map and `splitApply` runs the split's retention.
-Kept as a separate definition so `recorderDriver` stays byte-identical to what the signed tiers use. -/
+/-- The resharding tiers' driver: `recorderDriver` with `resharding := true`. A non-genesis segment is
+checked by `ReshardCore.checkReshardCoreObs`, which walks the segment across layout boundaries and
+places split transitions itself (`checkSuccessor` dispatches there). A segment reaching genesis still
+goes through `checkD2CoreGWith`, whose prefix keeps `c.same_layout`, so no split can occur on that
+path; `implicitKind` therefore stays the signed `applyOldChunk`. (It used to be `implicitKindOf`, which
+decided a split from the witness layout's split map alone and the block *index*: every post-split
+child witness with an old-chunk implicit transition was then mistaken for a split.) -/
 def reshardingDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
     (codePolicy : CodeWitnessPolicy := .coldPartial) : ExecutionDriver :=
   { recorderDriver cfg globals codePolicy with
     resharding := true
-    implicitKind := implicitKindOf
-    splitApply := fun t bd mode => .ok (splitRoot t bd mode) }
+    splitApply := splitRootE }
 
 
 def checkD2CoreWithObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
