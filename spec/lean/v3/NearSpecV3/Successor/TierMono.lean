@@ -228,6 +228,44 @@ theorem runCallWithLimits_eq_of_fits (cfg : Wasm.NearCfg) (code : ByteArray) (me
       simp only [hfit p hp, ↓reduceIte]
     · rfl
 
+/-! ## Global actions: the routing part of O3
+
+With `globals = true` the recorder driver routes receipts by `Rcpt.targetShard` and builds the
+outgoing-receipts root from it. On receipts that are not distribution receipts this is the D2
+routing, so on such lists the two drivers' outgoing roots coincide. -/
+
+/-- A distribution receipt (the only receipt body whose target is not its receiver's shard). -/
+def rcptIsDistribution (r : Rcpt) : Bool :=
+  match r.body with
+  | .distribution _ => true
+  | _ => false
+
+theorem targetShard_of_not_distribution (r : Rcpt) (l : Layout) (h : rcptIsDistribution r = false) :
+    r.targetShard l = l.shardOf r.recv := by
+  unfold Rcpt.targetShard
+  unfold rcptIsDistribution at h
+  split
+  · rename_i d hd; rw [hd] at h; cases h
+  · rfl
+
+theorem recorderDriver_outgoingRoot_globals (cfg : Wasm.NearCfg) (policy : CodeWitnessPolicy)
+    (l : Layout) (rs : List Rcpt) (h : ∀ r ∈ rs, rcptIsDistribution r = false) :
+    (recorderDriver cfg true policy).outgoingRoot l rs = outgoingReceiptsRootD2 l rs := by
+  simp only [recorderDriver, ↓reduceIte, outgoingReceiptsRootD2]
+  congr 1
+  apply List.map_congr_left
+  intro shard _
+  congr 3
+  apply List.filter_congr
+  intro r hr
+  rw [targetShard_of_not_distribution r l (h r hr)]
+
+theorem recorderDriver_receiptShard_globals (cfg : Wasm.NearCfg) (policy : CodeWitnessPolicy)
+    (l : Layout) (r : Rcpt) (h : rcptIsDistribution r = false) :
+    (recorderDriver cfg true policy).receiptShard l r = (recorderDriver cfg false policy).receiptShard l r := by
+  simp only [recorderDriver, ↓reduceIte, Bool.false_eq_true]
+  exact targetShard_of_not_distribution r l h
+
 /-! ## Composition: the wide tiers into `.allFeatures`, reduced to named obligations
 
 `Lift cfg cfg'` is the refinement statement for one configuration step. The three named wide tiers
@@ -251,21 +289,54 @@ theorem relSuccessor_resharding_allFeatures_of
     Refines (Tier.checker .resharding c w) (Tier.checker .allFeatures c w) :=
   (hGA.trans (Lift.segment _)) c w
 
-/-- `.curveHosts ⊑ .allFeatures`, given the global-action and resharding lifts. -/
-theorem relSuccessor_curveHosts_allFeatures_of
-    (hR : Lift (Tier.cfg .curveHosts) (Tier.cfg .resharding))
-    (hGA : Lift (Tier.cfg .resharding) { Tier.cfg .resharding with globalActions := true }) (c w : Bytes) :
-    Refines (Tier.checker .curveHosts c w) (Tier.checker .allFeatures c w) :=
-  ((hR.trans hGA).trans (Lift.segment _)) c w
+/-- Verdict-level refinement: where `x` accepts, `y` accepts; where `x` rejects, `y` rejects (with
+any reason). The resharding step needs this weaker form: `ReshardCore` checks a malformed layout in a
+different order from `checkD2CoreWithObs`, so a reject can carry a different error string (fixture
+`resharding-fixtures/cases/seed23-02-h10062-s5-c.child_layout_is_parent`: `slot count` vs
+`shard not in layout`). -/
+def VRefines (x y : Except String Unit) : Prop :=
+  (x = .ok () → y = .ok ()) ∧
+    (∀ e, x = .error e → isExclusion e = false → ∃ e', y = .error e' ∧ isExclusion e' = false)
 
-/-- `.globalActions ⊑ .allFeatures`, given the curve-host and resharding lifts at the
-global-action configurations. -/
+theorem Refines.toV {x y : Except String Unit} (h : Refines x y) : VRefines x y := by
+  rcases h with rfl | ⟨e, rfl, he⟩
+  · exact ⟨id, fun e hx hne => ⟨e, hx, hne⟩⟩
+  · refine ⟨fun h => (by cases h), fun e' hx hne => ?_⟩
+    cases hx
+    rw [he] at hne
+    cases hne
+
+theorem VRefines.trans {x y z : Except String Unit} (h₁ : VRefines x y) (h₂ : VRefines y z) :
+    VRefines x z := by
+  refine ⟨fun hx => h₂.1 (h₁.1 hx), fun e hx hne => ?_⟩
+  obtain ⟨e', hy, hne'⟩ := h₁.2 e hx hne
+  exact h₂.2 e' hy hne'
+
+/-- One configuration step refines at verdict level. -/
+def VLift (cfg cfg' : ProtocolCfg) : Prop :=
+  ∀ c w, VRefines (checkSuccessor cfg c w) (checkSuccessor cfg' c w)
+
+theorem VLift.trans {a b c : ProtocolCfg} (h₁ : VLift a b) (h₂ : VLift b c) : VLift a c :=
+  fun x y => VRefines.trans (h₁ x y) (h₂ x y)
+
+theorem Lift.toV {a b : ProtocolCfg} (h : Lift a b) : VLift a b := fun c w => (h c w).toV
+
+/-- `.curveHosts ⊑ .allFeatures` at verdict level, given the resharding lift (verdict level, see
+`VRefines`) and the global-action lift. -/
+theorem relSuccessor_curveHosts_allFeatures_of
+    (hR : VLift (Tier.cfg .curveHosts) (Tier.cfg .resharding))
+    (hGA : Lift (Tier.cfg .resharding) { Tier.cfg .resharding with globalActions := true }) (c w : Bytes) :
+    VRefines (Tier.checker .curveHosts c w) (Tier.checker .allFeatures c w) :=
+  ((hR.trans hGA.toV).trans (Lift.segment _).toV) c w
+
+/-- `.globalActions ⊑ .allFeatures` at verdict level, given the curve-host lift and the
+resharding lift (verdict level) at the global-action configurations. -/
 theorem relSuccessor_globalActions_allFeatures_of
     (hC : Lift (Tier.cfg .globalActions) { Tier.cfg .globalActions with curveHosts := true })
-    (hR : Lift { Tier.cfg .globalActions with curveHosts := true }
+    (hR : VLift { Tier.cfg .globalActions with curveHosts := true }
       { Tier.cfg .globalActions with curveHosts := true, resharding := true }) (c w : Bytes) :
-    Refines (Tier.checker .globalActions c w) (Tier.checker .allFeatures c w) :=
-  ((hC.trans hR).trans (Lift.segment _)) c w
+    VRefines (Tier.checker .globalActions c w) (Tier.checker .allFeatures c w) :=
+  ((hC.toV.trans hR).trans (Lift.segment _).toV) c w
 
 /-! ## Remaining obligations (W12)
 
@@ -285,20 +356,28 @@ Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs
   (`Wasm/Exec.lean`) is the host-table step; missing is its propagation through `runCall`, `St`
   and the trie-backed runtime.
 * **O3 global actions** — `Lift cfg { cfg with globalActions := true }` on whole-state
-  configurations. Missing: the global codecs (`pRcptGlobal`, `pTxD2Global`) decode every witness the
-  D2 codecs decode to the same value; `targetShard = shardOf ∘ recv` on non-global receipts (so
-  routing and the outgoing-receipts root agree); `StorageExecution.run` monotone in `globals`.
+  configurations. Proved: routing and the outgoing-receipts root agree on lists without
+  distribution receipts (`recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals`).
+  Missing: the global codecs (`pRcptGlobal`, `pTxD2Global`) decode every witness the D2 codecs decode
+  to the same value; `validateRouting`'s `globalTarget` never excludes a non-distribution receipt
+  (`shardOf` lands in `shardIds`); `StorageExecution.run` monotone in `globals`.
 * **O4 storage resolution** — the step from the legacy main transition (`applyNewChunkD2`, merged
   value size bound) to `recorderDriver` (`StorageExecution.run`, W08 pipeline code rule). This is a
   change of engine, not a guard: the refinement needs an agreement theorem between the two runtimes
-  on the legacy domain.
+  on the legacy domain. **It is false without a layout restriction**: on the honest, nearcore-valid
+  fixture `resharding-fixtures/cases/seed11-02-h10077-s2` (a V3 layout after a split, one layout
+  across the claim's epochs, non-empty outgoing buffers) every legacy-engine tier, `.signed`
+  included, rejects with `InvalidBandwidthRequests` and every recorder-engine tier accepts. The
+  legacy `bandwidthRequests` (`D2/Queues.lean`) lacks the V3 parent chaining of
+  `bandwidthRequestsV3L` (and the legacy buffer forwarding lacks `forwardFromBufferV3L`). The
+  statement to prove is therefore O4 on witnesses whose layout has `lastSplit = none`.
 * **O5 loading limits** — not a lift (a semantic correction). The restricted statement is
   `runCallWithLimits_eq_of_fits`; the chunk-level form (every executed module fits ⇒ the flag is
   inert) needs the same propagation as O2.
-* **O6 resharding, non-genesis** — `Refines (checkD2CoreWith recorderDriver …)
+* **O6 resharding, non-genesis** — `VRefines (checkD2CoreWith recorderDriver …)
   (checkReshardCore reshardingDriver …)` on segments without a genesis block: `ReshardCore` walks the
   segment per block layout and must reduce to `checkD2CoreWithObs` when every epoch has one layout
-  and no split gate is set.
+  and no split gate is set. Only the verdict-level form can hold (see `VRefines`).
 * **O7 complete-code witness** — not a lift, and not in the join: on warm-cache chunks it rejects
   (`w.code_complete`) where every other whole-state tier excludes or accepts; the counterexample
   family is in the evidence.
@@ -318,5 +397,8 @@ Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs
 #print axioms relSuccessor_curveHosts_allFeatures_of
 #print axioms relSuccessor_globalActions_allFeatures_of
 #print axioms checkD2CoreG_overlap
+#print axioms Refines.toV
+#print axioms recorderDriver_outgoingRoot_globals
+#print axioms recorderDriver_receiptShard_globals
 
 end NearSpecV3.Successor
