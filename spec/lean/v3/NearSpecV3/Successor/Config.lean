@@ -2,6 +2,7 @@ import NearSpecV3.ChallengeChunkV3Gas
 import NearSpecV3.ChallengeChunkV3Float
 import NearSpecV3.GenesisD3
 import NearSpecV3.Successor.RuntimeCore
+import NearSpecV3.Successor.ReshardCore
 
 /-!
 # W00 interface 1/7 — the canonical checker and its tiers
@@ -186,7 +187,10 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
       else recorderDriver cfg.wasm cfg.globalActions codePolicy
     let mkDriver : ExecutionDriver :=
       { baseDriver with segmentUnbounded := cfg.segmentUnbounded }
-    if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness || cfg.resharding then
+    if cfg.resharding && !segmentHasGenesis claimBytes then
+      -- the resharding tiers read a segment across layout boundaries (`ReshardCore`)
+      checkReshardCore mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+    else if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness || cfg.resharding then
       if cfg.genesisMainTransition then
         checkD2CoreGWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
       else
@@ -216,7 +220,10 @@ def checkSuccessorObs (cfg : ProtocolCfg) (blind : Bool) (claimBytes witnessByte
     Except String Observable :=
   match cfg.protocolVersion with
   | 86 =>
-    if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness || cfg.resharding then
+    if cfg.resharding then
+      checkReshardCoreObs { successorDriver cfg with blindOutputs := blind } (D3.d3Hooks cfg.wasm) true
+        claimBytes witnessBytes cfg.gasCap
+    else if cfg.storageResolution || cfg.globalActions || cfg.completeCodeWitness || cfg.resharding then
       checkD2CoreWithObs { successorDriver cfg with blindOutputs := blind } (D3.d3Hooks cfg.wasm) true
         claimBytes witnessBytes cfg.gasCap
     else .error "out of domain (outputs): only whole-state successor tiers emit outputs"

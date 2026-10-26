@@ -1,0 +1,10 @@
+{
+  "base": "02-h10062-s5",
+  "case": "02-h10062-s5-c.child_layout_boundary(s2a00)",
+  "expected_rel": false,
+  "kind": "mutant",
+  "mutation": "c.child_layout_boundary(s2a00)",
+  "nearcore": "claim-v3: the witness epoch's shard layout fact differs from the chain",
+  "shape": "split.right",
+  "verdict_source": "claim-v3"
+}

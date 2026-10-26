@@ -24,6 +24,12 @@
 //!       Print the code registry (name, hash, length, D3α facts).
 //!   curve-steps
 //!       Print the curve-hosts scenario steps (label, method, args, gas) and contract hash as JSON.
+//!   reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N] [--shards n]
+//!       [--epoch-length L] [--gas-limit-tgas G] [--split-k k] [--variant v] [--p-missing P]
+//!       [--p-burst-hot B] [--min-gas-price P]
+//!       Real shard-split chains (src/reshard.rs, workplan W11): PV85 genesis, PV86 dynamic
+//!       resharding forcing a split of the shard of `s{k}a00`; every witness in DIR/cases/<case>,
+//!       split/layout mutants in DIR/mutants/<case>-<mutation>, DIR/summary.json.
 
 // Shared, unmodified, with the D0 oracle (oracle/v3/src, pinned by the signed D0 challenge).
 #[path = "../../v3/src/claim.rs"]
@@ -69,6 +75,7 @@ mod d3contracts;
 mod d3gen;
 mod codec_probe;
 mod curve_hosts;
+mod reshard;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
@@ -200,6 +207,7 @@ fn main() {
         Some("contracts") => cmd_contracts(),
         Some("codec-roundtrip") => codec_probe::command(&args),
         Some("curve-steps") => curve_hosts::print_steps(),
+        Some("reshard") => reshard::cmd_reshard(&args),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-successor gen --domain d3 ... | contracts (see src/main.rs)");

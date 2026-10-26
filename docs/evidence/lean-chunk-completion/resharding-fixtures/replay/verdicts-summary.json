@@ -1,0 +1,15 @@
+{
+ "checker_sha256": "bfcaaf5216d57a652b85b1587520bc16087cf2334c7c5f5e9203c023b3027dc7",
+ "tiers": {
+  "resharding": {
+   "cases": 38,
+   "agree": 38,
+   "disagree": []
+  },
+  "allFeatures": {
+   "cases": 38,
+   "agree": 38,
+   "disagree": []
+  }
+ }
+}

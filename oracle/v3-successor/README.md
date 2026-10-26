@@ -139,3 +139,14 @@ These are codec probes; zero placeholder signatures are not asserted cryptograph
 independent vectors covering reversed and duplicate StateInit map entries (last value wins, sorted
 canonical encoding), stable derived hashes, and malformed/trailing input. Expected byte layouts are
 also independently constructed in Python and compared with Rust output.
+
+## Shard-split fixtures (`reshard`)
+
+`near-arena-oracle-v3-successor reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N]
+[--split-k k] [--variant v] ...` runs `src/reshard.rs`. The genesis is PV85 with a static layout,
+and PV86 enables dynamic resharding with a forced split of the shard of `s{k}a00`. nearcore's own
+`proposed_split` → `shard_split` → `split_shard` path then runs. Every witness goes to
+`DIR/cases/<case>`, with nearcore's pre-validated implicit transitions and the boundary shape in
+`meta.json`. Split, layout and split-gate mutants go to `DIR/mutants/`. The D3 classifier is not
+used. Commands, seeds and results are in
+`docs/evidence/lean-chunk-completion/resharding-fixtures/README.md`.

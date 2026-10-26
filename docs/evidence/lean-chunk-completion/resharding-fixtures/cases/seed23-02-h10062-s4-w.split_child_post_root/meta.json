@@ -1,0 +1,10 @@
+{
+  "base": "02-h10062-s4",
+  "case": "02-h10062-s4-w.split_child_post_root",
+  "expected_rel": false,
+  "kind": "mutant",
+  "mutation": "w.split_child_post_root",
+  "nearcore": "validate: InvalidChunkStateWitness(\"Post state root CcSj8AdrXhaR9XP6ETwN2WjgB3qPsaCHm4VwPqwB7Lmb for implicit transition at block GEyanV7yv4ajPEEmgDoWc7ULZHedFAKgPrgtYeSYmDWy to shard s4.v3, does not match expected state root CgM8mfMwRY58ZDW4jyCovSUuS4QAaXJCLvopu3FAq9Rw\")",
+  "shape": "split.left",
+  "verdict_source": "nearcore(cold)"
+}

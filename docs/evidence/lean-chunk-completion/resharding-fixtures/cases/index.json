@@ -1,0 +1,938 @@
+[
+ {
+  "case": "seed11-00-h10073-s4",
+  "origin": "fa0/cases/00-h10073-s4",
+  "seed": 11,
+  "chain": 0,
+  "kind": "honest",
+  "shape": "split.left",
+  "nearcore": "ok",
+  "why": "split, left child, first chunk; parent buffered receipts inherited",
+  "implicit_transitions": [
+   {
+    "resharding": {
+     "boundary_account": "s0ctr-0",
+     "child_shard_uid": "s4.v3",
+     "retain": "left"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 4,
+   "buffered_receipts_gas": "400334104501314",
+   "delayed_receipts_gas": "231153875312500",
+   "receipt_bytes": 218763
+  },
+  "main_outgoing_receipts": 1,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "c5c2b55ca850ba8fbe8e9e30af2f4d731ae6a4e4436ce9d7836ff8877399b550",
+   "witness.bin": "80bf9b583f18f61aa2287241da94f352683d6c4ce2ee37b7f160c694214bc4bc",
+   "meta.json": "7a2b5d78225027649c5e85de1a4d62ebf474a09aa1b967d7cea0c64fd868e919"
+  }
+ },
+ {
+  "case": "seed11-00-h10073-s5",
+  "origin": "fa0/cases/00-h10073-s5",
+  "seed": 11,
+  "chain": 0,
+  "kind": "honest",
+  "shape": "split.right",
+  "nearcore": "ok",
+  "why": "split, right child, first chunk; buffered gas subtracted",
+  "implicit_transitions": [
+   {
+    "resharding": {
+     "boundary_account": "s0ctr-0",
+     "child_shard_uid": "s5.v3",
+     "retain": "right"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 5,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "231153875312500",
+   "receipt_bytes": 138499
+  },
+  "main_outgoing_receipts": 1,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "4a054f6a1fa07c4c859c2cd3fe39aba830ca98d1175bd34b2690f7cde267b88c",
+   "witness.bin": "086659733ca646ead0e4382b60859e101cdb30b7813bc36e6b8dec6369e74f6d",
+   "meta.json": "fb314766a2545f5845bbbf79e5744f7871f7119d70b86224797dc441c389a29e"
+  }
+ },
+ {
+  "case": "seed23-01-h10061-s4",
+  "origin": "fb1/cases/01-h10061-s4",
+  "seed": 23,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "split.left",
+  "nearcore": "ok",
+  "why": "parent chunk missing at the resharding block: old chunk, then split (left)",
+  "implicit_transitions": [
+   {
+    "apply_old_chunk": {
+     "height": 10060,
+     "shard_uid": "s4.v3"
+    }
+   },
+   {
+    "resharding": {
+     "boundary_account": "s2ctr-0",
+     "child_shard_uid": "s4.v3",
+     "retain": "left"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 4,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "723131315467840",
+   "receipt_bytes": 191516
+  },
+  "main_outgoing_receipts": 264,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "ee7f6a1b92bdab92d28bd5f683d025bffad1dd29b720e55aaadfb091e3327428",
+   "witness.bin": "92d79c7a53bf1187760f1795a299b428d6ffc7efeb329dcc01e4e0e4bfc5b0cf",
+   "meta.json": "afee049b738a1321a45200185bad6354c872b65fcfbc5b3b98c21f37bcdcd846"
+  }
+ },
+ {
+  "case": "seed23-01-h10061-s5",
+  "origin": "fb1/cases/01-h10061-s5",
+  "seed": 23,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "split.right",
+  "nearcore": "ok",
+  "why": "parent chunk missing at the resharding block: old chunk, then split (right)",
+  "implicit_transitions": [
+   {
+    "apply_old_chunk": {
+     "height": 10060,
+     "shard_uid": "s5.v3"
+    }
+   },
+   {
+    "resharding": {
+     "boundary_account": "s2ctr-0",
+     "child_shard_uid": "s5.v3",
+     "retain": "right"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 5,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "723131315467840",
+   "receipt_bytes": 191516
+  },
+  "main_outgoing_receipts": 264,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "a38ee2defb6abd3b727056d74c11a1afcb574f4b11aa8a577abd41ad41cb063b",
+   "witness.bin": "dab0e2cf22b20ba8bf312a566cba782345ec54ab3591abe13278f3e67d64bd40",
+   "meta.json": "6825c7d56afb411de533df5f022bd741312099c0c36a67aec39a31b30803ef17"
+  }
+ },
+ {
+  "case": "seed11-01-h10062-s5",
+  "origin": "fa1/cases/01-h10062-s5",
+  "seed": 11,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "split.right",
+  "nearcore": "ok",
+  "why": "old chunk (parent), split (right), old chunk (child)",
+  "implicit_transitions": [
+   {
+    "apply_old_chunk": {
+     "height": 10060,
+     "shard_uid": "s5.v3"
+    }
+   },
+   {
+    "resharding": {
+     "boundary_account": "s0ctr-0",
+     "child_shard_uid": "s5.v3",
+     "retain": "right"
+    }
+   },
+   {
+    "apply_old_chunk": {
+     "height": 10061,
+     "shard_uid": "s5.v3"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 5,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "1184106107215569",
+   "receipt_bytes": 265048
+  },
+  "main_outgoing_receipts": 329,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "d26349eff628d52c5dbea7480e979c249822cf7924ee8ffe32c1bb732b03f1d7",
+   "witness.bin": "1399f25fc945f4d30ad43bb4f1fb69c9c4fd46a78dc08f943545b6a45293dea5",
+   "meta.json": "45920ab16bc55de6e316a0222064796b11291e136dfc7ba7dd97d616a5c79231"
+  }
+ },
+ {
+  "case": "seed23-02-h10062-s4",
+  "origin": "fb2/cases/02-h10062-s4",
+  "seed": 23,
+  "chain": 2,
+  "kind": "honest",
+  "shape": "split.left",
+  "nearcore": "ok",
+  "why": "split then child old chunk (left); buffered receipts",
+  "implicit_transitions": [
+   {
+    "resharding": {
+     "boundary_account": "s2ctr-0",
+     "child_shard_uid": "s4.v3",
+     "retain": "left"
+    }
+   },
+   {
+    "apply_old_chunk": {
+     "height": 10061,
+     "shard_uid": "s4.v3"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 4,
+   "buffered_receipts_gas": "57134736000000",
+   "delayed_receipts_gas": "191758621250000",
+   "receipt_bytes": 149743
+  },
+  "main_outgoing_receipts": 6,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "0ef5be7102a4696af7f70bd4966f51f77861ea2bee2ec5520b825579c9d6ba26",
+   "witness.bin": "9ba55c2a3db22d98a4ec1b420bad3e757c323463bf546897fa2213c1b28cac15",
+   "meta.json": "c6e0ae19096d216f66aeddf675097d68018af4f889e93a464d37c218212a5c7c"
+  }
+ },
+ {
+  "case": "seed23-02-h10062-s5",
+  "origin": "fb2/cases/02-h10062-s5",
+  "seed": 23,
+  "chain": 2,
+  "kind": "honest",
+  "shape": "split.right",
+  "nearcore": "ok",
+  "why": "split then child old chunk (right)",
+  "implicit_transitions": [
+   {
+    "resharding": {
+     "boundary_account": "s2ctr-0",
+     "child_shard_uid": "s5.v3",
+     "retain": "right"
+    }
+   },
+   {
+    "apply_old_chunk": {
+     "height": 10061,
+     "shard_uid": "s5.v3"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 5,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "191758621250000",
+   "receipt_bytes": 114159
+  },
+  "main_outgoing_receipts": 6,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "ad032e3e612a369838a8d3523a5df9828e416d1d571c4d6a1d8581af8a54ed13",
+   "witness.bin": "32aa155095b6fa6d1cfa7761f07d95c07c497ddf8ff33e4d68aa3a4ee929355b",
+   "meta.json": "6a1110b328c2060b95ae2f4107999bc99bfe12c4dd8476509ab6383290cea4d1"
+  }
+ },
+ {
+  "case": "seed23-00-h10061-s4",
+  "origin": "fb0/cases/00-h10061-s4",
+  "seed": 23,
+  "chain": 0,
+  "kind": "honest",
+  "shape": "split.left",
+  "nearcore": "ok",
+  "why": "split (left) whose main transition produced 253 outgoing receipts",
+  "implicit_transitions": [
+   {
+    "resharding": {
+     "boundary_account": "s2ctr-0",
+     "child_shard_uid": "s4.v3",
+     "retain": "left"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 4,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "1105358863576577",
+   "receipt_bytes": 432917
+  },
+  "main_outgoing_receipts": 253,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "18ca310b9c1d80166881bfe2425bbe97ea0f82126dd0d130c82a3927ab63f1cc",
+   "witness.bin": "ab3139bbbe3f0bf394418c450497572222e41f3d37439939e531c846b4e37a8e",
+   "meta.json": "0c95612f06f24b774ca5ec10a580ffb6f477c8aaf0145620fe63ef911105ee93"
+  }
+ },
+ {
+  "case": "seed11-00-h10073-s0",
+  "origin": "fa0/cases/00-h10073-s0",
+  "seed": 11,
+  "chain": 0,
+  "kind": "honest",
+  "shape": "cross_layout.no_split",
+  "nearcore": "ok",
+  "why": "non-split shard, first chunk after the boundary (cross-layout segment)",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 0,
+   "buffered_receipts_gas": "223182562500",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 139
+  },
+  "main_outgoing_receipts": 0,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "e89d46db14e2612f14b151a8813ea60df3ff2a901648eb6624259e65dcc831d5",
+   "witness.bin": "8a50083d30e533bb7ff1ff635ce18c36a09186dac0f2ec26d6986a81ed9f5b96",
+   "meta.json": "ef18346275fd0cd4346c82fd99fbdf0d840e9c56fc56bd26996f1b14f0d21a71"
+  }
+ },
+ {
+  "case": "seed11-01-h10062-s2",
+  "origin": "fa1/cases/01-h10062-s2",
+  "seed": 11,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "cross_layout.no_split",
+  "nearcore": "ok",
+  "why": "non-split shard, first chunk after the boundary",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 4,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 3,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "5659b99a8f9f196a32db6b8660d1ff989df3476a175799ef71d275e5f845e5d6",
+   "witness.bin": "6d9c7086bb9aa53490c3f2dca0d2643fada5d56541d6e048559e7fabead47899",
+   "meta.json": "b4c7c08ee2b95a33b496d81c77f4db84ddb32497195ab96523acb6072a1d3e33"
+  }
+ },
+ {
+  "case": "seed11-01-h10062-s4",
+  "origin": "fa1/cases/01-h10062-s4",
+  "seed": 11,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "cross_layout.no_split",
+  "nearcore": "ok",
+  "why": "second chunk of the left child (segment reaches the resharding block)",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 5,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "1184106107215569",
+   "receipt_bytes": 265048
+  },
+  "main_outgoing_receipts": 691,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "93d6618d92b4c99ec73e0faa2c12af750dbf967923d46c8af127ecd7dd0711d9",
+   "witness.bin": "1e5a5656c4eab238bcb3696713215f8ba68fdcfa373a579af5aed46be53ad58a",
+   "meta.json": "7ee2878dcc7fda3765fb8f2d6f25b379be03b5e8097c87287fc0eace59af9000"
+  }
+ },
+ {
+  "case": "seed23-01-h10062-s3",
+  "origin": "fb1/cases/01-h10062-s3",
+  "seed": 23,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "cross_layout.no_split",
+  "nearcore": "ok",
+  "why": "non-split shard forwarding its outgoing buffer to the split parent",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 1,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "445455505955368",
+   "receipt_bytes": 94382
+  },
+  "main_outgoing_receipts": 307,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "d8a74567c4dfe24c6ee892106442496455926862cbfef11c5e87657e4af75bae",
+   "witness.bin": "941dd12e2cad0bec0b4bd969f38a9a76df489483c50f26748531bb653c3ffb0f",
+   "meta.json": "81eb2f719c75704beebe809f93fc026ca2644446de0ae90f23a0e41adaaa9b0b"
+  }
+ },
+ {
+  "case": "seed11-00-h10060-s3",
+  "origin": "fa0/cases/00-h10060-s3",
+  "seed": 11,
+  "chain": 0,
+  "kind": "honest",
+  "shape": "gate.proposed_split",
+  "nearcore": "ok",
+  "why": "split gate: forced shard, proposed_split = find_trie_split",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 2,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 3,
+  "proposed_split": "TrieSplit { boundary_account: AccountId(\"s0ctr-0\"), left_memory: 100882, right_memory: 106491 }",
+  "sha256": {
+   "claim.bin": "6ba127fc57bed201d901b90329676cd3ec63e33d1ac4d3c8be94eba242f570de",
+   "witness.bin": "948a57e906472e8cfa082de1920e02e5afda55c8976de35c2074fbe8a2ec28fd",
+   "meta.json": "c17b39663e9b44a08099b9a19d82f4f95504b7b9b1e14a3b3009fff636273f12"
+  }
+ },
+ {
+  "case": "seed11-01-h10049-s3",
+  "origin": "fa1/cases/01-h10049-s3",
+  "seed": 11,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "gate.proposed_split",
+  "nearcore": "ok",
+  "why": "split gate: forced shard, proposed_split recomputed",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 3,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 0,
+  "proposed_split": "TrieSplit { boundary_account: AccountId(\"s0ctr-0\"), left_memory: 91705, right_memory: 107922 }",
+  "sha256": {
+   "claim.bin": "2d4ec4684d638939890cff1ba5faa5d7d19ddd8b04b3b15a758060d01c7a04af",
+   "witness.bin": "a15478d00ac2ec33ca1ca8f8888a25a7759b1c9791be31d8896aef3f62662781",
+   "meta.json": "06bb1ab1e518a2efb1f578990109f20ca94410034477930c9e832c4a181614cd"
+  }
+ },
+ {
+  "case": "seed23-00-h10048-s0",
+  "origin": "fb0/cases/00-h10048-s0",
+  "seed": 23,
+  "chain": 0,
+  "kind": "honest",
+  "shape": "gate.proposed_split",
+  "nearcore": "ok",
+  "why": "split gate: forced shard (seed 23 parent)",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 1,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 8,
+  "proposed_split": "TrieSplit { boundary_account: AccountId(\"s2ctr-0\"), left_memory: 71392, right_memory: 111168 }",
+  "sha256": {
+   "claim.bin": "13051c9ffc40ea489c7d70c038b7694f13e9496360746f79959fe1635845bb83",
+   "witness.bin": "046284ffaf874c48f2e49e5a3a8b0ea65094d3ce3225e0b0228c975da19f508f",
+   "meta.json": "a9d4e92a6bf7024a2912f9b8ac12a49c88993d10b0ea7c3083b4a439194a49d4"
+  }
+ },
+ {
+  "case": "seed11-00-h10048-s2",
+  "origin": "fa0/cases/00-h10048-s2",
+  "seed": 11,
+  "chain": 0,
+  "kind": "honest",
+  "shape": "gate.no_split",
+  "nearcore": "ok",
+  "why": "split gate present, shard not forced: no split",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 0,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 0,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "ee107381bd512b7d941c7dd1a398c307401ab1f225b44e6f6ca9516ce0ab262f",
+   "witness.bin": "d5aef78075c374a78f868b857810c75ee4476f20ec6f75be73723f94ab52ba24",
+   "meta.json": "9c4cc42c5645274901f3da3b4218fc89a2a4c0cba0a4edf2ba066a20e1a84286"
+  }
+ },
+ {
+  "case": "seed11-01-h10072-s5",
+  "origin": "fa1/cases/01-h10072-s5",
+  "seed": 11,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "gate.no_split",
+  "nearcore": "ok",
+  "why": "post-split gate: max_number_of_shards reached, no split",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 1,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 1,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "2fef650e7f0c792b70fc8b39d503fa28e65a29d693f1efdd6cb4f27ac705057f",
+   "witness.bin": "590bf195cb67866aa1e342e3a18571923c826e3dafdbfd49e1ecf36a9f38bbc5",
+   "meta.json": "76b4cf6d760bea4c214924c553281d02f0718b34e28d849057da9ffed52d1cb5"
+  }
+ },
+ {
+  "case": "seed11-02-h10075-s5",
+  "origin": "fa2/cases/02-h10075-s5",
+  "seed": 11,
+  "chain": 2,
+  "kind": "honest",
+  "shape": "plain",
+  "nearcore": "ok",
+  "why": "post-split child with an old-chunk implicit transition (no split)",
+  "implicit_transitions": [
+   {
+    "apply_old_chunk": {
+     "height": 10074,
+     "shard_uid": "s5.v3"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 2,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 7,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "fd1f4a573b06338b4806e3d66033648f13a987ce87d7f3b71b1173dde82d81a3",
+   "witness.bin": "a3adff4e6329f42f49bf2e8b9f1d82ee4cad00631723acb0eae69ab42d53aa63",
+   "meta.json": "3d28a7b85b9d05b424aa375e8a9ebb218e96ab74114c1b41a1f31f5e3a297721"
+  }
+ },
+ {
+  "case": "seed11-02-h10077-s2",
+  "origin": "fa2/cases/02-h10077-s2",
+  "seed": 11,
+  "chain": 2,
+  "kind": "honest",
+  "shape": "plain",
+  "nearcore": "ok",
+  "why": "post-split V3 bandwidth requests (parent-buffer chaining)",
+  "implicit_transitions": [],
+  "header_congestion": {
+   "allowed_shard": 4,
+   "buffered_receipts_gas": "100490311125000",
+   "delayed_receipts_gas": "222502885640955",
+   "receipt_bytes": 58365
+  },
+  "main_outgoing_receipts": 0,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "b8dcec90df7e532a8d4bc31ac93804c2e5dc9403856e755d1a055d4ae7516ae3",
+   "witness.bin": "62f21f6033dba0d448350046a5b20bb2710c3d5a45a2e246b62e565df5c0386a",
+   "meta.json": "9d7dab72f1e80094f12186b3c1fd79cc18b4d4434fbf4101011dfec8cfd707e1"
+  }
+ },
+ {
+  "case": "seed11-01-h10051-s0",
+  "origin": "fa1/cases/01-h10051-s0",
+  "seed": 11,
+  "chain": 1,
+  "kind": "honest",
+  "shape": "pre_split",
+  "nearcore": "ok",
+  "why": "epoch before the split (dynamic config, no gate)",
+  "implicit_transitions": [
+   {
+    "apply_old_chunk": {
+     "height": 10050,
+     "shard_uid": "s0.v3"
+    }
+   }
+  ],
+  "header_congestion": {
+   "allowed_shard": 2,
+   "buffered_receipts_gas": "0",
+   "delayed_receipts_gas": "0",
+   "receipt_bytes": 0
+  },
+  "main_outgoing_receipts": 0,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "33b65be4ceccc55ba2eadbf6689f863678545b14094efeb1bb3738e142f70d91",
+   "witness.bin": "7ceb5fd683299d2a16fde6790b3d3eb0669c93da456b731bbd4cd6c6dad46164",
+   "meta.json": "e8ca104f65188c2f0fbd091186a59b17d74575bce046f5a8b16f93f6a7484f5f"
+  }
+ },
+ {
+  "case": "seed23-02-h10062-s5-w.split_child_post_root",
+  "origin": "fb2/mutants/02-h10062-s5-w.split_child_post_root",
+  "seed": 23,
+  "chain": 2,
+  "kind": "mutant",
+  "shape": "split.right",
+  "nearcore": "validate: InvalidChunkStateWitness(\"Post state root 2ryQFhhPT58waWM78cA6suGW75jshreR5h9sJNed7JPs for implicit transition at block GEyanV7yv4ajPEEmgDoWc7ULZHedFAKgPrgtYeSYmDWy to shard s5.v3, does not match expected state root 2o4zcCyJZEeEApE8d6teyyXGr5B6zuYWVpqyoBLdPVjX\")",
+  "why": "corrupt child post-state root",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "ad032e3e612a369838a8d3523a5df9828e416d1d571c4d6a1d8581af8a54ed13",
+   "witness.bin": "4e6de6317fc9da05a2ac9f46c11198c484c5faebae6ef24c8fa5666bf051d9f2",
+   "meta.json": "4b61279a767cfa94ba23004fd6182b457d1f0bcd74c530527a46c7322134f666"
+  }
+ },
+ {
+  "case": "seed23-02-h10062-s5-c.child_layout_is_parent",
+  "origin": "fb2/mutants/02-h10062-s5-c.child_layout_is_parent",
+  "seed": 23,
+  "chain": 2,
+  "kind": "mutant",
+  "shape": "split.right",
+  "nearcore": "claim-v3: the witness epoch's shard layout fact differs from the chain",
+  "why": "claim: child epoch layout replaced by the parent layout",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "cc9171264bb7c114d27102cdce460be332c132629ba9f5874e3f0b42273d9e83",
+   "witness.bin": "32aa155095b6fa6d1cfa7761f07d95c07c497ddf8ff33e4d68aa3a4ee929355b",
+   "meta.json": "9e0b1a644a9c7bf314039ab317a67f9e319ca3e4db8fc6f5c970cbf17adac3c0"
+  }
+ },
+ {
+  "case": "seed23-02-h10062-s5-c.child_layout_boundary_s2a00",
+  "origin": "fb2/mutants/02-h10062-s5-c.child_layout_boundary(s2a00)",
+  "seed": 23,
+  "chain": 2,
+  "kind": "mutant",
+  "shape": "split.right",
+  "nearcore": "claim-v3: the witness epoch's shard layout fact differs from the chain",
+  "why": "claim: child layout derived with another boundary",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "72bef83eef76acaa61f595b8098f5d28c04300155c027089dc20fa657c63629e",
+   "witness.bin": "32aa155095b6fa6d1cfa7761f07d95c07c497ddf8ff33e4d68aa3a4ee929355b",
+   "meta.json": "613da00e646ac497caf970157a4586f334be5fe7a84f5e0794faa864ba8d930d"
+  }
+ },
+ {
+  "case": "seed23-02-h10062-s4-w.split_child_post_root",
+  "origin": "fb2/mutants/02-h10062-s4-w.split_child_post_root",
+  "seed": 23,
+  "chain": 2,
+  "kind": "mutant",
+  "shape": "split.left",
+  "nearcore": "validate: InvalidChunkStateWitness(\"Post state root CcSj8AdrXhaR9XP6ETwN2WjgB3qPsaCHm4VwPqwB7Lmb for implicit transition at block GEyanV7yv4ajPEEmgDoWc7ULZHedFAKgPrgtYeSYmDWy to shard s4.v3, does not match expected state root CgM8mfMwRY58ZDW4jyCovSUuS4QAaXJCLvopu3FAq9Rw\")",
+  "why": "corrupt child post-state root (left)",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "0ef5be7102a4696af7f70bd4966f51f77861ea2bee2ec5520b825579c9d6ba26",
+   "witness.bin": "df72e77f6ae4875a8a888d63b95f177cb3dd8ef03c3c4cdc1e32dfae541cc7e6",
+   "meta.json": "b61c26d385fde7e99776a282f2abf6e092cdffdcadb4dc5ffc3516d9c0475e2e"
+  }
+ },
+ {
+  "case": "seed11-00-h10048-s0-h.proposed_split_forged",
+  "origin": "fa0/mutants/00-h10048-s0-h.proposed_split_forged",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.no_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0a05\\\"), left_memory: 500000, right_memory: 500000 }), expected None (prev block hash: ER2QbV9PaPdFi8wocUaURUs3JRAZuzTNyr7vT71VyrXK height created: 10048)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "094a3070071db69d670a7ebd28957aeb6e2410098c1a3ab611d05e8dab878497",
+   "witness.bin": "01e0337b3b91e5c651e66fa52f4964a682a5b04ece2fdd7dbc63e95a97d553e5",
+   "meta.json": "e4ad4b09cf22506338d7dff980ce792989127adb0bd635cb5e72e071e63446f6"
+  }
+ },
+ {
+  "case": "seed11-00-h10048-s2-h.proposed_split_forged",
+  "origin": "fa0/mutants/00-h10048-s2-h.proposed_split_forged",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.no_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0a05\\\"), left_memory: 500000, right_memory: 500000 }), expected None (prev block hash: ER2QbV9PaPdFi8wocUaURUs3JRAZuzTNyr7vT71VyrXK height created: 10048)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "af5e304e7efa048c4147ef63404ebba9324aacfdb3ec80bb4a5188ac35207db3",
+   "witness.bin": "15b7c4add7860042b4ebd43b67aef618e82064df09165c64f97371f8d6943cee",
+   "meta.json": "6ce2e35603253858cefcaa4697eaf2b13eba8d5dc1884f690ba016727f4c1396"
+  }
+ },
+ {
+  "case": "seed11-00-h10049-s3-h.proposed_split_left_memory",
+  "origin": "fa0/mutants/00-h10049-s3-h.proposed_split_left_memory",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 95605, right_memory: 112025 }), expected Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 95604, right_memory: 112025 }) (prev block hash: 4DSCaR7KVbURSBRC8EtT9yqvF5gAcoAKaihb27DtsKJh height created: 10049)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "ae9930c5f1282c4b8e9e5011c3bc93066a2dc969aec01fe382c81de99fc08b43",
+   "witness.bin": "624a4eaa444777047731bafd85243fcf8cccb16ee5fee31aed8a98a5d1c66bb8",
+   "meta.json": "4b4392b8baac14071f92c7704ada5b0e1a5cd48ee8dc213e50e61068236f970a"
+  }
+ },
+ {
+  "case": "seed11-00-h10049-s3-h.proposed_split_none",
+  "origin": "fa0/mutants/00-h10049-s3-h.proposed_split_none",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has None, expected Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 95604, right_memory: 112025 }) (prev block hash: 4DSCaR7KVbURSBRC8EtT9yqvF5gAcoAKaihb27DtsKJh height created: 10049)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "5c23d7cb2e4becf93ebad5687768fba7cf6306dd4aad61020d965bc7f26c768b",
+   "witness.bin": "f414c980cacb66ccc1d8fc2bf45b675c2397ac2e1cdf34d391c8f8aeb51e3c44",
+   "meta.json": "2b55d116d8008bbf46cea605ffb35dc6c45ceab656bc3bc47fcf30cdae5332ed"
+  }
+ },
+ {
+  "case": "seed11-00-h10060-s3-h.proposed_split_left_memory",
+  "origin": "fa0/mutants/00-h10060-s3-h.proposed_split_left_memory",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 100883, right_memory: 106491 }), expected Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 100882, right_memory: 106491 }) (prev block hash: HPrmrK9i2WMx6aG6Zn1g53BxinLTZ6h6x3QAFL7yKshn height created: 10060)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "cd804a5a17d083dfa45e713564086d995828f53aed7eddf8fadda5e8f446cfd4",
+   "witness.bin": "c937e275283306217167db12ca5ef79ae917b32167bbdfb63b7429765efab33b",
+   "meta.json": "aa4f755497868a399b52ed2bdc06c8519ade3db4f634c1d3997e3f28733e4f3f"
+  }
+ },
+ {
+  "case": "seed11-00-h10060-s3-h.proposed_split_none",
+  "origin": "fa0/mutants/00-h10060-s3-h.proposed_split_none",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has None, expected Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 100882, right_memory: 106491 }) (prev block hash: HPrmrK9i2WMx6aG6Zn1g53BxinLTZ6h6x3QAFL7yKshn height created: 10060)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "8aed87bd4e4773f21bb69f1044c1f47cf65f6dc3060a9c8f04b5483daeb9b5bb",
+   "witness.bin": "4731c8d055f68c396f27e5c27be9e0f61059854f802f3d1c8512a6251fe4aa0f",
+   "meta.json": "0e56ee993a6d9cc3b3336cd4226ab68b31d18cb545d663b82a59f7a09df01346"
+  }
+ },
+ {
+  "case": "seed11-00-h10061-s3-h.proposed_split_left_memory",
+  "origin": "fa0/mutants/00-h10061-s3-h.proposed_split_left_memory",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 101896, right_memory: 106491 }), expected Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 101895, right_memory: 106491 }) (prev block hash: A3tPuJDNbHNuhNYhyPFMRhgK8Gzt1LAgPkJn7GstQbvn height created: 10061)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "6384d92c6e201ec57a54159b614f76418bf172f954459128347b8ed55f964248",
+   "witness.bin": "71c385443bbb536009724c7e57d31702399985ce0d89902c7a5f38c66f14ad51",
+   "meta.json": "c04c7f37e013520fab08e123fd8cd7c6956e9bd13f935aaf9cf8ae7e7e108040"
+  }
+ },
+ {
+  "case": "seed11-00-h10061-s3-h.proposed_split_none",
+  "origin": "fa0/mutants/00-h10061-s3-h.proposed_split_none",
+  "seed": 11,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has None, expected Some(TrieSplit { boundary_account: AccountId(\\\"s0ctr-0\\\"), left_memory: 101895, right_memory: 106491 }) (prev block hash: A3tPuJDNbHNuhNYhyPFMRhgK8Gzt1LAgPkJn7GstQbvn height created: 10061)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "b2d7cc453d368eb621db5e1ed837ca412715a832e39ee95ac2764e1f81fad1a5",
+   "witness.bin": "d8de10d151d9e5f7fed026fa1d9d1767999b0fbc7266a1043e0de809566528f8",
+   "meta.json": "fa857481b07b20991691e8d8e5f8b0580b3c62577a58e3f0ec497ae78035e403"
+  }
+ },
+ {
+  "case": "seed23-00-h10048-s0-h.proposed_split_left_memory",
+  "origin": "fb0/mutants/00-h10048-s0-h.proposed_split_left_memory",
+  "seed": 23,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s2ctr-0\\\"), left_memory: 71393, right_memory: 111168 }), expected Some(TrieSplit { boundary_account: AccountId(\\\"s2ctr-0\\\"), left_memory: 71392, right_memory: 111168 }) (prev block hash: EJzmZeDW4uT7icN9J1t8bQvJZNES3Tg1mCPuTBUNcG6f height created: 10048)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "72aa5ea5e36c9d2418485f743bd510bd3b66ac7dc2903308f0d43672c02f0c8d",
+   "witness.bin": "c86199e52a7901d4ff0a53439ceda9b75937430a564d15e011a20ea8061cb4b7",
+   "meta.json": "01f4bcd074cf7a96942316e0f9f2355c255377a38b5d8d2c71e69e3859bfbae2"
+  }
+ },
+ {
+  "case": "seed23-00-h10048-s0-h.proposed_split_none",
+  "origin": "fb0/mutants/00-h10048-s0-h.proposed_split_none",
+  "seed": 23,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has None, expected Some(TrieSplit { boundary_account: AccountId(\\\"s2ctr-0\\\"), left_memory: 71392, right_memory: 111168 }) (prev block hash: EJzmZeDW4uT7icN9J1t8bQvJZNES3Tg1mCPuTBUNcG6f height created: 10048)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "cd722681cf95bfc0d2d107bf87afbd73b3e4bab9b3074e86be63d811bf1da7fe",
+   "witness.bin": "e1e527179daea96d09ac28108a3700eaeadf4d477f54d019637c8c8c4cfe96e6",
+   "meta.json": "07b89bed90260af1290985d3394d5fb299917c642eec54274ed0148762271c33"
+  }
+ },
+ {
+  "case": "seed23-00-h10048-s1-h.proposed_split_forged",
+  "origin": "fb0/mutants/00-h10048-s1-h.proposed_split_forged",
+  "seed": 23,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.no_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0a05\\\"), left_memory: 500000, right_memory: 500000 }), expected None (prev block hash: EJzmZeDW4uT7icN9J1t8bQvJZNES3Tg1mCPuTBUNcG6f height created: 10048)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "96df7353d5cec48214bb2ac320e86f8592ea01b24b2ed006028debb3786a874d",
+   "witness.bin": "213c6eeda7339ee8928609e774421b5f6b7771de5f3d45e78a28618840d894bf",
+   "meta.json": "c88c137c4bf6a07fd23e3cd2d237601aaaf9bd79fdfbe457e6363df362a20512"
+  }
+ },
+ {
+  "case": "seed23-00-h10048-s3-h.proposed_split_forged",
+  "origin": "fb0/mutants/00-h10048-s3-h.proposed_split_forged",
+  "seed": 23,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.no_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s0a05\\\"), left_memory: 500000, right_memory: 500000 }), expected None (prev block hash: EJzmZeDW4uT7icN9J1t8bQvJZNES3Tg1mCPuTBUNcG6f height created: 10048)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "c16ccd7d38cc23c4790866097253c18f054846bf237b4a4d3ea05b7972a0dc9a",
+   "witness.bin": "2f23d449ecac8e610cddd6b51c055eae7b6737dddde836974797e9c178bb1211",
+   "meta.json": "8ac9b59176c55eb3f584a9c916088bc8fe58255f29457592028623d6b39ba7ac"
+  }
+ },
+ {
+  "case": "seed23-00-h10049-s0-h.proposed_split_left_memory",
+  "origin": "fb0/mutants/00-h10049-s0-h.proposed_split_left_memory",
+  "seed": 23,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s2ctr-0\\\"), left_memory: 71393, right_memory: 111506 }), expected Some(TrieSplit { boundary_account: AccountId(\\\"s2ctr-0\\\"), left_memory: 71392, right_memory: 111506 }) (prev block hash: 8aSw9j7oErkcufFgY8fHNM43oDN7GELSxo9wnd9GVN4n height created: 10049)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "d6ed8f744886e0252e654d6854895b4d55de068ef4b287962f11460f3b1cc240",
+   "witness.bin": "f0fc4dfccbe708c6595fa0acec69dea22ede32001a0635764852b030edd76877",
+   "meta.json": "d0e0367ab86c3fd6b6213515acbc4d95cce4a8b54f56cb7fd38573d6d69f902f"
+  }
+ },
+ {
+  "case": "seed23-00-h10049-s0-h.proposed_split_none",
+  "origin": "fb0/mutants/00-h10049-s0-h.proposed_split_none",
+  "seed": 23,
+  "chain": 0,
+  "kind": "mutant",
+  "shape": "gate.proposed_split",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has None, expected Some(TrieSplit { boundary_account: AccountId(\\\"s2ctr-0\\\"), left_memory: 71392, right_memory: 111506 }) (prev block hash: 8aSw9j7oErkcufFgY8fHNM43oDN7GELSxo9wnd9GVN4n height created: 10049)\")",
+  "why": "split-gate header mutant",
+  "implicit_transitions": null,
+  "header_congestion": null,
+  "main_outgoing_receipts": null,
+  "proposed_split": null,
+  "sha256": {
+   "claim.bin": "bfa2f8bb56d536ab4382ffeba4bfb554ae2633d0345ef7dd0013608e2f2c99cc",
+   "witness.bin": "3a21609d1ae4b452cd9190df9c17e3844832e49848da693ebf7731f0f290dc53",
+   "meta.json": "134312d0446bca241e834dda472293dcdfee6361c5720188e0d269a1e69dcd8f"
+  }
+ }
+]
