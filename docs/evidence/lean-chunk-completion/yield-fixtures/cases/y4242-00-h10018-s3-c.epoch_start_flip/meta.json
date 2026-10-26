@@ -1,0 +1,43 @@
+{
+  "base": "00-h10018-s3",
+  "case": "00-h10018-s3-c.epoch_start_flip",
+  "codes": [
+    {
+      "hash": "9ejMtnR8xqaEf8i1gaAYyVkaAzANWwzAQ3oGYJvLGsLG",
+      "len": 228,
+      "name": "d3float"
+    },
+    {
+      "hash": "CjReRexqUtavGUWat7rkTNsTtypxpvg14hS7cfJL4PJd",
+      "len": 1436,
+      "name": "yieldc"
+    },
+    {
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "len": 1055,
+      "name": "ttn2"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [
+    "e.float",
+    "e.g_alpha"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 3797727565146,
+    "fc_gas_burnt_for_function_call": 3797727565146
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "verdict_source": "claim-v3"
+}

@@ -18,6 +18,8 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
         })
     });
     let mut contracts = baseline::all();
+    // opt-in yield / storage-limits scenario contracts (none for the baseline and global-cache)
+    contracts.extend(crate::scenarios::contracts());
     if let Some(code) = code {
         let entry = contracts.iter_mut().find(|(name, _)| *name == "d3float").unwrap();
         entry.1 = code.clone();

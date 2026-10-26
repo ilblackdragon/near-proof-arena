@@ -60,10 +60,10 @@ mod d2;
 mod d2gen;
 #[path = "../../v3-d1/src/arena.rs"]
 mod arena;
-// D3 (this crate)
-// versioned copy of ../../v3-d3/src/chaind3.rs with the opt-in keys scenario hook
+// D3 (this crate). `chaind3.rs` is a versioned copy of the signed loop with scenario hooks.
 mod chaind3;
 mod keys;
+mod scenarios;
 mod d3;
 mod d3contracts;
 mod d3gen;
@@ -101,7 +101,8 @@ fn chain_params_d3(seed: u64, i: usize, blocks: u64, p_missing: f64, drop_cap: u
         },
         max_txs: 4,
         p_contract: 0.04,
-        p_adv: 0.3,
+        // quiet scenarios (storage-limits) run only their own transactions: no crafted injections
+        p_adv: if scenarios::quiet() { 0.0 } else { 0.3 },
         drop_cap,
         max_d3,
         code_mutant_p,

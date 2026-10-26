@@ -97,6 +97,37 @@ The collector fails if a step is missing. A nonzero gas price is what makes the
 insufficient-gas-key-balance step reachable; with the default zero price, that step is valid.
 Evidence: `docs/evidence/lean-chunk-completion/key-family-fixtures/`.
 
+## Yield and storage-limit scenarios
+
+`src/chaind3.rs` is a versioned copy of the signed D3 loop with one per-height hook for scenario
+transactions (`src/scenarios.rs`); quiet scenarios also skip baseline traffic. Without
+`NEAR_SUCCESSOR_SCENARIO` (and with `global-cache`) the output is byte-identical to the previous
+sources (checked on seed 7, two chains, 40 blocks, `--mutate-every 10`).
+
+* `NEAR_SUCCESSOR_SCENARIO=yield`: 36 scheduled `promise_yield_*` steps on `s0yield` / `s1ycall` /
+  `s2ynote` with the `yieldc` contract (WAT in `scenarios.rs`), on top of baseline traffic: resume in
+  the same receipt, same chunk and a later chunk; timeouts; duplicate resumes (same receipt, same
+  chunk, after completion, after timeout); wrong and malformed data ids; 1,024/1,025-byte payloads;
+  cross-shard triggers and callback-emitted cross-shard receipts; `_with_id` create/duplicate/resume;
+  a returned yield; a panicking callback; create-then-fail rollback; a resume in the chunk whose
+  timeout loop resolves the same yield, and one in the next chunk (timeout cancelled). Every chunk
+  that ran `yieldc` gets the full mutant set. Needs at least 250 blocks for the timeouts.
+* `NEAR_SUCCESSOR_SCENARIO=storage-limits`: a quiet chain (no baseline transactions or injections).
+  Shard of `s0zlim`: nearcore-driven binary search over one value length (`pad`) for the exact
+  `per_receipt_storage_proof_size_limit` flip, then below/at/above, repeated-read, panic and
+  removal+reinsertion variants (second search). Shard of `s1zsoft`: the same for the chunk soft
+  limit (an incoming receipt in the probe chunk is executed or delayed), failed receipts, several
+  delayed local/incoming receipts, and yield-timeout resolution 256 B below/above the soft boundary.
+  Shards of `s2zmisc` / `s3zcode`: deletion/reinsertion, 29 removals, rollback, repeated reads and a
+  1.5 MB contract deployed and called next to a 3.99 MB read. Needs about 300 blocks; use
+  `--p-missing 0`. Only the final at/above chunks get (non-drop) mutants.
+
+Both write `scenario-<chain>.json` with nearcore's outcome tree of every scenario transaction and
+every search probe. `tools/d3/collect_successor_scenarios.py --source RUN --out MANIFEST` checks the
+intended semantics against those outcomes and maps steps to cases; `select_successor_fixtures.py`
+copies the mapped cases. Commands, seeds and results:
+`docs/evidence/lean-chunk-completion/{yield,storage-limit}-fixtures/`.
+
 ## Codec normalization probes
 
 `codec-roundtrip KIND HEX` decodes and re-encodes actual pinned-nearcore types. Supported kinds:

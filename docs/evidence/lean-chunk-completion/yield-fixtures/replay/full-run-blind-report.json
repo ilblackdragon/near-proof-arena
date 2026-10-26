@@ -1,0 +1,54 @@
+{
+ "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+ "identities": {
+  "lean_binary_sha256": "a603a893450b3b727a55c04e009a1b1163ac2e207a5b11c686a5bf3ce2c9f76f",
+  "harness_sha256": "61e6490cf8d7ca611651ca384c79635f1d58dfde8b95bd98fafca77ce7ae9c3c",
+  "blind_inputs_sha256": "f18f9114aae725cee41865ca7f3d14067f595820af083b500d70d8e13a24036b",
+  "tier": "allFeatures",
+  "cases_list_sha256": "678c7e1b3fe5226ea2a1ea16c0e9cd0a3f7e56c680f732f058ba5e24d96bae90"
+ },
+ "runs": [
+  "y4242",
+  "y1729"
+ ],
+ "counts": {
+  "match": 2011,
+  "blind_error": 33
+ },
+ "reasons": {
+  "post_state_root[0] still present in blinded claim.bin": 8,
+  "w.shape: ML-DSA-65 public key in a transaction or receipt": 21,
+  "w.shape: UseGlobalContract action": 4
+ },
+ "combined_report_all_four_runs": {
+  "cases": 4744,
+  "counts": {
+   "match": 4702,
+   "blind_error": 42
+  },
+  "field_diffs": {},
+  "matched_cases_exercising": {
+   "balance_burnt": 625,
+   "bandwidth_requests": 5,
+   "congestion_buffered_gas": 327,
+   "congestion_delayed_gas": 29,
+   "congestion_receipt_bytes": 360,
+   "gas_used": 2762,
+   "implicit_transitions": 127,
+   "proposals": 70
+  },
+  "compared_outputs": [
+   "stateRoot",
+   "outcomeRoot",
+   "gasUsed",
+   "balanceBurnt",
+   "outgoingReceiptsRoot",
+   "proposals",
+   "txRoot",
+   "encodedMerkleRoot",
+   "encodedLength",
+   "congestion",
+   "bwRequests"
+  ]
+ }
+}

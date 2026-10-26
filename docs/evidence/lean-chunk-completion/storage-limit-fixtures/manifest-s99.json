@@ -1,0 +1,2021 @@
+{
+ "run": "runs/s99",
+ "scenario": "StorageLimits",
+ "scenario_json_sha256": "5b8015d5bd770e67a3a5c1caa5f1f0b1f439c5569d4c472b242ef05c0b08e2ec",
+ "chain_params": [
+  "D3Params { base: ChainParams { seed: 99000297, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+ ],
+ "honest": 1200,
+ "honest_accepted_by_nearcore": 1200,
+ "mutants": 199,
+ "shards": {
+  "s0yield": "3",
+  "s0zlim": "3",
+  "s1ycall": "1",
+  "s1zsoft": "1",
+  "s1zyield": "1",
+  "s2ynote": "0",
+  "s2zmisc": "0",
+  "s2zsrc": "0",
+  "s3zcode": "2",
+  "s3zsrc": "2"
+ },
+ "contracts": [
+  {
+   "hash": "8jy3RaAJwuee9NgKUWLZdAgntYUewX1Q7V9eDjfw2F5a",
+   "len": 574,
+   "name": "slim"
+  },
+  {
+   "hash": "6k7brxv881wq1KgMshm8urjaea1tYnDTy5tbXszjovMD",
+   "len": 1500589,
+   "name": "slimlarge"
+  },
+  {
+   "hash": "CjReRexqUtavGUWat7rkTNsTtypxpvg14hS7cfJL4PJd",
+   "len": 1436,
+   "name": "yieldc"
+  }
+ ],
+ "sizes": {
+  "big_code": 3990000,
+  "big_receipt": 3950000,
+  "big_soft": 3900000,
+  "large_pad": 1500000
+ },
+ "lanes": [
+  {
+   "kind": "Receipt",
+   "account": "s0zlim",
+   "shard": "3",
+   "boundary_pad": 49330,
+   "removal_boundary_pad": 47180,
+   "iterations": 42,
+   "probes": [
+    {
+     "label": "search",
+     "pad": 0,
+     "pass_": true,
+     "probe_height": 10008,
+     "probes": [
+      {
+       "program": "W m 0x01 8; R big; R pad",
+       "ok": true,
+       "height": 10008,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10009-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3952273,
+     "witness_bytes": 3953627,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 65536,
+     "pass_": false,
+     "probe_height": 10014,
+     "probes": [
+      {
+       "program": "W m 0x1a 8; R big; R pad",
+       "ok": false,
+       "height": 10014,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10015-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4017809,
+     "witness_bytes": 4019163,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 32768,
+     "pass_": true,
+     "probe_height": 10020,
+     "probes": [
+      {
+       "program": "W m 0x8b 8; R big; R pad",
+       "ok": true,
+       "height": 10020,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10021-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3985041,
+     "witness_bytes": 3986395,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49152,
+     "pass_": true,
+     "probe_height": 10026,
+     "probes": [
+      {
+       "program": "W m 0xd0 8; R big; R pad",
+       "ok": true,
+       "height": 10026,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10027-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001425,
+     "witness_bytes": 4002779,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 57344,
+     "pass_": false,
+     "probe_height": 10032,
+     "probes": [
+      {
+       "program": "W m 0x75 8; R big; R pad",
+       "ok": false,
+       "height": 10032,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10033-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4009617,
+     "witness_bytes": 4010971,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 53248,
+     "pass_": false,
+     "probe_height": 10038,
+     "probes": [
+      {
+       "program": "W m 0x25 8; R big; R pad",
+       "ok": false,
+       "height": 10038,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10039-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4005521,
+     "witness_bytes": 4006875,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 51200,
+     "pass_": false,
+     "probe_height": 10044,
+     "probes": [
+      {
+       "program": "W m 0xf8 8; R big; R pad",
+       "ok": false,
+       "height": 10044,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10045-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4003473,
+     "witness_bytes": 4004827,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 50176,
+     "pass_": false,
+     "probe_height": 10050,
+     "probes": [
+      {
+       "program": "W m 0xe4 8; R big; R pad",
+       "ok": false,
+       "height": 10050,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10051-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4002449,
+     "witness_bytes": 4003803,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49664,
+     "pass_": false,
+     "probe_height": 10056,
+     "probes": [
+      {
+       "program": "W m 0xda 8; R big; R pad",
+       "ok": false,
+       "height": 10056,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10057-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001937,
+     "witness_bytes": 4003291,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49408,
+     "pass_": false,
+     "probe_height": 10062,
+     "probes": [
+      {
+       "program": "W m 0xd5 8; R big; R pad",
+       "ok": false,
+       "height": 10062,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10063-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001681,
+     "witness_bytes": 4003035,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49280,
+     "pass_": true,
+     "probe_height": 10068,
+     "probes": [
+      {
+       "program": "W m 0x55 8; R big; R pad",
+       "ok": true,
+       "height": 10068,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10069-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001553,
+     "witness_bytes": 4002907,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49344,
+     "pass_": false,
+     "probe_height": 10074,
+     "probes": [
+      {
+       "program": "W m 0x95 8; R big; R pad",
+       "ok": false,
+       "height": 10074,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10075-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001617,
+     "witness_bytes": 4002971,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49312,
+     "pass_": true,
+     "probe_height": 10080,
+     "probes": [
+      {
+       "program": "W m 0x75 8; R big; R pad",
+       "ok": true,
+       "height": 10080,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10081-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001585,
+     "witness_bytes": 4002939,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49328,
+     "pass_": true,
+     "probe_height": 10086,
+     "probes": [
+      {
+       "program": "W m 0x85 8; R big; R pad",
+       "ok": true,
+       "height": 10086,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10087-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001601,
+     "witness_bytes": 4002955,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49336,
+     "pass_": false,
+     "probe_height": 10092,
+     "probes": [
+      {
+       "program": "W m 0x8d 8; R big; R pad",
+       "ok": false,
+       "height": 10092,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10093-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001609,
+     "witness_bytes": 4002963,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49332,
+     "pass_": false,
+     "probe_height": 10098,
+     "probes": [
+      {
+       "program": "W m 0x89 8; R big; R pad",
+       "ok": false,
+       "height": 10098,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10099-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001605,
+     "witness_bytes": 4002959,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49330,
+     "pass_": true,
+     "probe_height": 10104,
+     "probes": [
+      {
+       "program": "W m 0x87 8; R big; R pad",
+       "ok": true,
+       "height": 10104,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10105-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001603,
+     "witness_bytes": 4002957,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 49331,
+     "pass_": false,
+     "probe_height": 10110,
+     "probes": [
+      {
+       "program": "W m 0x88 8; R big; R pad",
+       "ok": false,
+       "height": 10110,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10111-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001604,
+     "witness_bytes": 4002958,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "final-below",
+     "pad": 49329,
+     "pass_": true,
+     "probe_height": 10116,
+     "probes": [
+      {
+       "program": "W m 0x86 8; R big; R pad",
+       "ok": true,
+       "height": 10116,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10117
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10117-s3",
+     "deferred_case": [
+      "ood/00-h10117-s3"
+     ],
+     "base_state_bytes": 4001602,
+     "witness_bytes": 4003124,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "final-at",
+     "pad": 49330,
+     "pass_": true,
+     "probe_height": 10122,
+     "probes": [
+      {
+       "program": "W m 0x87 8; R big; R pad",
+       "ok": true,
+       "height": 10122,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10123
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10123-s3",
+     "deferred_case": [
+      "ood/00-h10123-s3"
+     ],
+     "base_state_bytes": 4001701,
+     "witness_bytes": 4003231,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "final-above",
+     "pad": 49331,
+     "pass_": false,
+     "probe_height": 10128,
+     "probes": [
+      {
+       "program": "W m 0x88 8; R big; R pad",
+       "ok": false,
+       "height": 10128,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10129
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10129-s3",
+     "deferred_case": [
+      "ood/00-h10129-s3"
+     ],
+     "base_state_bytes": 4001702,
+     "witness_bytes": 4003232,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "dup-read-at",
+     "pad": 49330,
+     "pass_": true,
+     "probe_height": 10134,
+     "probes": [
+      {
+       "program": "W m 0x87 8; R big; R pad; R big; R pad",
+       "ok": true,
+       "height": 10134,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10135-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001701,
+     "witness_bytes": 4003073,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "dup-read-above",
+     "pad": 49331,
+     "pass_": false,
+     "probe_height": 10140,
+     "probes": [
+      {
+       "program": "W m 0x88 8; R big; R pad; R big",
+       "ok": false,
+       "height": 10140,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10141-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001702,
+     "witness_bytes": 4003069,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "panic-at",
+     "pad": 49330,
+     "pass_": false,
+     "probe_height": 10146,
+     "probes": [
+      {
+       "program": "W m 0x87 8; R big; R pad; P",
+       "ok": false,
+       "height": 10146,
+       "status": "Failure(Action #0: ExecutionError(\"Smart contract panicked: explicit guest panic\"))"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10147
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10147-s3",
+     "deferred_case": [
+      "ood/00-h10147-s3"
+     ],
+     "base_state_bytes": 4001701,
+     "witness_bytes": 4003232,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 41138,
+     "pass_": true,
+     "probe_height": 10152,
+     "probes": [
+      {
+       "program": "W m 0xe2 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10152,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10153-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3993659,
+     "witness_bytes": 3995040,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 49330,
+     "pass_": false,
+     "probe_height": 10158,
+     "probes": [
+      {
+       "program": "W m 0x87 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": false,
+       "height": 10158,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10159-s3",
+     "deferred_case": [],
+     "base_state_bytes": 4001851,
+     "witness_bytes": 4003232,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 45234,
+     "pass_": true,
+     "probe_height": 10164,
+     "probes": [
+      {
+       "program": "W m 0x37 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10164,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10165-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3997755,
+     "witness_bytes": 3999136,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47282,
+     "pass_": false,
+     "probe_height": 10170,
+     "probes": [
+      {
+       "program": "W m 0x5f 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": false,
+       "height": 10170,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10171-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999803,
+     "witness_bytes": 4001184,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 46258,
+     "pass_": true,
+     "probe_height": 10176,
+     "probes": [
+      {
+       "program": "W m 0x4b 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10176,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10177-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3998779,
+     "witness_bytes": 4000160,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 46770,
+     "pass_": true,
+     "probe_height": 10182,
+     "probes": [
+      {
+       "program": "W m 0x55 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10182,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10183-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999291,
+     "witness_bytes": 4000672,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47026,
+     "pass_": true,
+     "probe_height": 10188,
+     "probes": [
+      {
+       "program": "W m 0x5a 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10188,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10189-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999547,
+     "witness_bytes": 4000928,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47154,
+     "pass_": true,
+     "probe_height": 10194,
+     "probes": [
+      {
+       "program": "W m 0xda 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10194,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10195-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999675,
+     "witness_bytes": 4001056,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47218,
+     "pass_": false,
+     "probe_height": 10200,
+     "probes": [
+      {
+       "program": "W m 0x1f 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": false,
+       "height": 10200,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10201-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999739,
+     "witness_bytes": 4001120,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47186,
+     "pass_": false,
+     "probe_height": 10206,
+     "probes": [
+      {
+       "program": "W m 0xfa 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": false,
+       "height": 10206,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10207-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999707,
+     "witness_bytes": 4001088,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47170,
+     "pass_": true,
+     "probe_height": 10212,
+     "probes": [
+      {
+       "program": "W m 0xea 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10212,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10213-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999691,
+     "witness_bytes": 4001072,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47178,
+     "pass_": true,
+     "probe_height": 10218,
+     "probes": [
+      {
+       "program": "W m 0xf2 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10218,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10219-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999699,
+     "witness_bytes": 4001080,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47182,
+     "pass_": false,
+     "probe_height": 10224,
+     "probes": [
+      {
+       "program": "W m 0xf6 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": false,
+       "height": 10224,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10225-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999703,
+     "witness_bytes": 4001084,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47180,
+     "pass_": true,
+     "probe_height": 10230,
+     "probes": [
+      {
+       "program": "W m 0xf4 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10230,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10231-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999701,
+     "witness_bytes": 4001082,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-search",
+     "pad": 47181,
+     "pass_": false,
+     "probe_height": 10236,
+     "probes": [
+      {
+       "program": "W m 0xf5 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": false,
+       "height": 10236,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10237-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999702,
+     "witness_bytes": 4001083,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-final-below",
+     "pad": 47179,
+     "pass_": true,
+     "probe_height": 10242,
+     "probes": [
+      {
+       "program": "W m 0xf3 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10242,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10243-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999700,
+     "witness_bytes": 4001081,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-final-at",
+     "pad": 47180,
+     "pass_": true,
+     "probe_height": 10248,
+     "probes": [
+      {
+       "program": "W m 0xf4 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": true,
+       "height": 10248,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10249-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999701,
+     "witness_bytes": 4001082,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "removal-final-above",
+     "pad": 47181,
+     "pass_": false,
+     "probe_height": 10254,
+     "probes": [
+      {
+       "program": "W m 0xf5 8; R big; R pad; D k; W k 0x4b 100",
+       "ok": false,
+       "height": 10254,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10255-s3",
+     "deferred_case": [],
+     "base_state_bytes": 3999702,
+     "witness_bytes": 4001083,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    }
+   ],
+   "removal_shift_bytes": 2150,
+   "fixed_overhead_bytes": 670
+  },
+  {
+   "kind": "Soft",
+   "account": "s1zsoft",
+   "shard": "1",
+   "boundary_pad": 97492,
+   "removal_boundary_pad": null,
+   "iterations": 28,
+   "probes": [
+    {
+     "label": "search",
+     "pad": 0,
+     "pass_": true,
+     "probe_height": 10008,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10008,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10008
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10009-s1",
+     "deferred_case": [],
+     "base_state_bytes": 3902989,
+     "witness_bytes": 3904756,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 131072,
+     "pass_": false,
+     "probe_height": 10014,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": false,
+       "height": 10014,
+       "status": "Failure(Action #0: ExecutionError(\"Size of the recorded trie storage proof has exceeded the allowed limit (4.0 MB)\"))"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10015
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10015-s1",
+     "deferred_case": [
+      "ood/00-h10015-s1"
+     ],
+     "base_state_bytes": 4034405,
+     "witness_bytes": 4036184,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 65536,
+     "pass_": true,
+     "probe_height": 10020,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10020,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10020
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10021-s1",
+     "deferred_case": [],
+     "base_state_bytes": 3969348,
+     "witness_bytes": 3971147,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 98304,
+     "pass_": false,
+     "probe_height": 10026,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10026,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10027
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10027-s1",
+     "deferred_case": [
+      "ood/00-h10027-s1"
+     ],
+     "base_state_bytes": 4000812,
+     "witness_bytes": 4002345,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 81920,
+     "pass_": true,
+     "probe_height": 10032,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10032,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10032
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10033-s1",
+     "deferred_case": [],
+     "base_state_bytes": 3984866,
+     "witness_bytes": 3986419,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 90112,
+     "pass_": true,
+     "probe_height": 10038,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10038,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10038
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10039-s1",
+     "deferred_case": [],
+     "base_state_bytes": 3993058,
+     "witness_bytes": 3994611,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 94208,
+     "pass_": true,
+     "probe_height": 10044,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10044,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10044
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10045-s1",
+     "deferred_case": [],
+     "base_state_bytes": 3997154,
+     "witness_bytes": 3998707,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 96256,
+     "pass_": true,
+     "probe_height": 10050,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10050,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10050
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10051-s1",
+     "deferred_case": [],
+     "base_state_bytes": 3999202,
+     "witness_bytes": 4000755,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97280,
+     "pass_": true,
+     "probe_height": 10056,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10056,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10056
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10057-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000226,
+     "witness_bytes": 4001779,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97792,
+     "pass_": false,
+     "probe_height": 10062,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10062,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10063
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10063-s1",
+     "deferred_case": [
+      "ood/00-h10063-s1"
+     ],
+     "base_state_bytes": 4000300,
+     "witness_bytes": 4001833,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97536,
+     "pass_": false,
+     "probe_height": 10068,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10068,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10069
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10069-s1",
+     "deferred_case": [
+      "ood/00-h10069-s1"
+     ],
+     "base_state_bytes": 4000044,
+     "witness_bytes": 4001577,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97408,
+     "pass_": true,
+     "probe_height": 10074,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10074,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10074
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10075-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000354,
+     "witness_bytes": 4001907,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97472,
+     "pass_": true,
+     "probe_height": 10080,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10080,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10080
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10081-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000418,
+     "witness_bytes": 4001971,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97504,
+     "pass_": false,
+     "probe_height": 10086,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10086,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10087
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10087-s1",
+     "deferred_case": [
+      "ood/00-h10087-s1"
+     ],
+     "base_state_bytes": 4000012,
+     "witness_bytes": 4001545,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97488,
+     "pass_": true,
+     "probe_height": 10092,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10092,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10092
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10093-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000012,
+     "witness_bytes": 4001549,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97496,
+     "pass_": false,
+     "probe_height": 10098,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10098,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10099
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10099-s1",
+     "deferred_case": [
+      "ood/00-h10099-s1"
+     ],
+     "base_state_bytes": 4000004,
+     "witness_bytes": 4001537,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97492,
+     "pass_": true,
+     "probe_height": 10104,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10104,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10104
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10105-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000016,
+     "witness_bytes": 4001553,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97494,
+     "pass_": false,
+     "probe_height": 10110,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10110,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10111
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10111-s1",
+     "deferred_case": [
+      "ood/00-h10111-s1"
+     ],
+     "base_state_bytes": 4000002,
+     "witness_bytes": 4001535,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "search",
+     "pad": 97493,
+     "pass_": false,
+     "probe_height": 10116,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10116,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10117
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10117-s1",
+     "deferred_case": [
+      "ood/00-h10117-s1"
+     ],
+     "base_state_bytes": 4000001,
+     "witness_bytes": 4001534,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "final-below",
+     "pad": 97491,
+     "pass_": true,
+     "probe_height": 10122,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10122,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10122
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10123-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000015,
+     "witness_bytes": 4001552,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "final-at",
+     "pad": 97492,
+     "pass_": true,
+     "probe_height": 10128,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10128,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10128
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10129-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000016,
+     "witness_bytes": 4001553,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "final-above",
+     "pad": 97493,
+     "pass_": false,
+     "probe_height": 10134,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10134,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10135
+      }
+     ],
+     "incoming_deferred": [
+      true
+     ],
+     "case": "ood/00-h10135-s1",
+     "deferred_case": [
+      "ood/00-h10135-s1"
+     ],
+     "base_state_bytes": 4000001,
+     "witness_bytes": 4001534,
+     "delayed_queue_post": 1,
+     "nearcore": "ok"
+    },
+    {
+     "label": "panic-at",
+     "pad": 97492,
+     "pass_": true,
+     "probe_height": 10140,
+     "probes": [
+      {
+       "program": "R big; R pad; P",
+       "ok": false,
+       "height": 10140,
+       "status": "Failure(Action #0: ExecutionError(\"Smart contract panicked: explicit guest panic\"))"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10140
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10141-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000016,
+     "witness_bytes": 4001554,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "panic-above",
+     "pad": 97493,
+     "pass_": true,
+     "probe_height": 10146,
+     "probes": [
+      {
+       "program": "R big; R pad; P",
+       "ok": false,
+       "height": 10146,
+       "status": "Failure(Action #0: ExecutionError(\"Smart contract panicked: explicit guest panic\"))"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10146
+      }
+     ],
+     "incoming_deferred": [
+      false
+     ],
+     "case": "ood/00-h10147-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000017,
+     "witness_bytes": 4001555,
+     "delayed_queue_post": 0,
+     "nearcore": "ok"
+    },
+    {
+     "label": "multi-above",
+     "pad": 97493,
+     "pass_": false,
+     "probe_height": 10152,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10152,
+       "status": "SuccessValue('')"
+      },
+      {
+       "program": "W b 0x51 16",
+       "ok": true,
+       "height": 10153,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10153
+      },
+      {
+       "ok": true,
+       "height": 10153
+      }
+     ],
+     "incoming_deferred": [
+      true,
+      true
+     ],
+     "case": "ood/00-h10153-s1",
+     "deferred_case": [
+      "ood/00-h10153-s1",
+      "ood/00-h10153-s1"
+     ],
+     "base_state_bytes": 4000001,
+     "witness_bytes": 4001911,
+     "delayed_queue_post": 3,
+     "nearcore": "ok"
+    },
+    {
+     "label": "multi-at",
+     "pad": 97492,
+     "pass_": false,
+     "probe_height": 10158,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10158,
+       "status": "SuccessValue('')"
+      },
+      {
+       "program": "W b 0x52 16",
+       "ok": true,
+       "height": 10158,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [
+      {
+       "ok": true,
+       "height": 10159
+      },
+      {
+       "ok": true,
+       "height": 10159
+      }
+     ],
+     "incoming_deferred": [
+      true,
+      true
+     ],
+     "case": "ood/00-h10159-s1",
+     "deferred_case": [
+      "ood/00-h10159-s1",
+      "ood/00-h10159-s1"
+     ],
+     "base_state_bytes": 4000016,
+     "witness_bytes": 4001930,
+     "delayed_queue_post": 2,
+     "nearcore": "ok"
+    },
+    {
+     "label": "timeout-below",
+     "pad": 97236,
+     "pass_": true,
+     "probe_height": 10206,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10206,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10207-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000625,
+     "witness_bytes": 4002025,
+     "delayed_queue_post": 0,
+     "nearcore": "ok",
+     "anchor": {
+      "callback_height": 10207,
+      "expiry_height": 10206,
+      "label": "successor.storage-limits.soft.yield-anchor.00",
+      "callback_case": "ood/00-h10207-s1"
+     }
+    },
+    {
+     "label": "timeout-above",
+     "pad": 97748,
+     "pass_": false,
+     "probe_height": 10212,
+     "probes": [
+      {
+       "program": "R big; R pad",
+       "ok": true,
+       "height": 10212,
+       "status": "SuccessValue('')"
+      }
+     ],
+     "incoming": [],
+     "incoming_deferred": [],
+     "case": "ood/00-h10213-s1",
+     "deferred_case": [],
+     "base_state_bytes": 4000256,
+     "witness_bytes": 4001765,
+     "delayed_queue_post": 1,
+     "nearcore": "ok",
+     "anchor": {
+      "callback_height": 10214,
+      "expiry_height": 10212,
+      "label": "successor.storage-limits.soft.yield-anchor.03",
+      "callback_case": "d3/00-h10214-s1"
+     }
+    }
+   ],
+   "deferral_chunk_recorded_bytes": 4000001,
+   "at_chunk_recorded_bytes": 4000016
+  }
+ ],
+ "misc": [
+  {
+   "label": "successor.storage-limits.code.call-small-code-near-limit",
+   "call": "R big",
+   "status": "value",
+   "failure": null,
+   "height": 10005,
+   "cases": [
+    "ood/00-h10006-s2"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.misc.delete-reinsert",
+   "call": "R a; D a; W a 0xa2 300; H a",
+   "status": "value",
+   "failure": null,
+   "height": 10005,
+   "cases": [
+    "d3/00-h10006-s0"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.code.deploy-large",
+   "call": "DeployContract(slimlarge)",
+   "status": "value",
+   "failure": null,
+   "height": 10008,
+   "cases": [
+    "d3/00-h10009-s2"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.misc.delete-missing",
+   "call": "D absent; D absent",
+   "status": "value",
+   "failure": null,
+   "height": 10008,
+   "cases": [
+    "d3/00-h10009-s0"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.code.call-large-code-near-limit",
+   "call": "R big",
+   "status": "value",
+   "failure": null,
+   "height": 10011,
+   "cases": [
+    "ood/00-h10012-s2"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.misc.delete-29",
+   "call": "D r01; D r02; D r03; D r04; D r05; D r06; D r07; D r08; D r09; D r10; D r11; D r12; D r13; D r14; D r15; D r16; D r17; D r18; D r19; D r20; D r21; D r22; D r23; D r24; D r25; D r26; D r27; D r28; D r29",
+   "status": "value",
+   "failure": null,
+   "height": 10011,
+   "cases": [
+    "d3/00-h10012-s0"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.code.call-large-code-repeated-read",
+   "call": "R big; R big; H big",
+   "status": "value",
+   "failure": null,
+   "height": 10014,
+   "cases": [
+    "ood/00-h10015-s2"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.misc.reinsert-29-then-fail",
+   "call": "W r01 0x01 40; W r02 0x02 40; W r03 0x03 40; W r04 0x04 40; W r05 0x05 40; W r06 0x06 40; W r07 0x07 40; W r08 0x08 40; W r09 0x09 40; W r10 0x0a 40; W r11 0x0b 40; W r12 0x0c 40; W r13 0x0d 40; W r14 0x0e 40; W r15 0x0f 40; W r16 0x10 40; W r17 0x11 40; W r18 0x12 40; W r19 0x13 40; W r20 0x14 40; W r21 0x15 40; W r22 0x16 40; W r23 0x17 40; W r24 0x18 40; W r25 0x19 40; W r26 0x1a 40; W r27 0x1b 40; W r28 0x1c 40; W r29 0x1d 40; P",
+   "status": "failure",
+   "failure": "Failure(Action #0: ExecutionError(\"Smart contract panicked: explicit guest panic\"))",
+   "height": 10014,
+   "cases": [
+    "d3/00-h10015-s0"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.code.deploy-and-call-same-receipt",
+   "call": "DeployContract(slimlarge) + run(R big)",
+   "status": "value",
+   "failure": null,
+   "height": 10017,
+   "cases": [
+    "ood/00-h10018-s2"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.misc.repeated-shared-reads",
+   "call": "R big; R big; R a; R a; H big",
+   "status": "value",
+   "failure": null,
+   "height": 10017,
+   "cases": [
+    "ood/00-h10018-s0"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.code.call-large-code-read-then-fail",
+   "call": "R big; W x 0x58 64; P",
+   "status": "failure",
+   "failure": "Failure(Action #0: ExecutionError(\"Smart contract panicked: explicit guest panic\"))",
+   "height": 10020,
+   "cases": [
+    "ood/00-h10021-s2"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.misc.delete-big-reinsert",
+   "call": "D big; W big 0xb5 1000000",
+   "status": "value",
+   "failure": null,
+   "height": 10020,
+   "cases": [
+    "ood/00-h10021-s0"
+   ]
+  },
+  {
+   "label": "successor.storage-limits.misc.read-reinserted-big",
+   "call": "R big",
+   "status": "value",
+   "failure": null,
+   "height": 10023,
+   "cases": [
+    "ood/00-h10024-s0"
+   ]
+  }
+ ],
+ "problems": []
+}

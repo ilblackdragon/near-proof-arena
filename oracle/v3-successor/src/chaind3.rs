@@ -1,7 +1,10 @@
-//! Versioned copy of oracle/v3-d3/src/chaind3.rs (signed, unchanged there). The only change is
-//! the opt-in `keys` scenario hook (src/keys.rs): its pool transactions join the honest traffic,
-//! and its injected steps force the injector of their shard and replace the crafted D2 batch.
-//! With the scenario off the control flow and the RNG stream are exactly the signed file's.
+//! Versioned copy of oracle/v3-d3/src/chaind3.rs (signed, unchanged there) with the opt-in
+//! successor scenario hooks; with no scenario the control flow and the RNG stream are exactly the
+//! signed file's.
+//! * `keys` (src/keys.rs): its pool transactions join the honest traffic, and its injected steps
+//!   force the injector of their shard and replace the crafted D2 batch.
+//! * `yield` / `storage-limits` (src/scenarios.rs): a per-height hook for scenario transactions
+//!   (which may observe earlier outcomes); quiet scenarios suppress the baseline D2/D3 traffic.
 //!
 //! Domain-D3 chain generation (`gen --domain d3`): the D2 chain loop (oracle/v3-d1/src/
 //! chaind2.rs, unchanged there) with the D3 genesis contracts (src/d3gen.rs), D3 honest
@@ -173,8 +176,12 @@ pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, st
             world.minimum_stake = em.minimum_stake(&tip.last_block_hash).map(|b| b.as_yoctonear()).unwrap_or(0);
         }
         // ---- honest transactions: D2 traffic + D3 traffic
-        let mut txs: Vec<(String, SignedTransaction)> = Vec::new();
+        let mut txs: Vec<(String, SignedTransaction)> = w3.scenario_txs(&mut world, &s, &tip.last_block_hash, height);
+        let quiet = crate::scenarios::quiet();
         for k in 0..p.n_shards {
+            if quiet {
+                break;
+            }
             if !rng.gen_bool(p.p_tx_shard) {
                 continue;
             }
@@ -427,6 +434,7 @@ pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, st
     if crate::keys::enabled() {
         crate::keys::write_outcomes(&s, &labels, &out.join(format!("keys-outcomes-{chain_idx:02}.json")));
     }
+    w3.finish(&s, out, chain_idx);
     let _ = std::fs::remove_dir_all(&cold_home);
 }
 
