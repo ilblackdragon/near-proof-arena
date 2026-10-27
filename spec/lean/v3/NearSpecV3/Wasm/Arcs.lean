@@ -6,13 +6,18 @@ import NearSpecV3.Wasm.Segment
 
 > **Status: in-progress formalization — not imported by `NearSpecV3` and not reachable from
 > any checker.** The performance mechanism is validated (prototype: `research/lean-arcs/`,
-> 1,474× on `blocks4999`, 9,375/9,375 A/B parity) and the core correspondence theorem
-> `step_sim` (all four `exec` arms, including the guard case that excludes `exec .end_`'s
-> singleton return arm) is **proved with no `sorry`**. The remaining declarations carry
-> explicit `sorry`s (see *Open proofs* below); until they are discharged and the module is
-> imported, nothing here affects any verdict. Per the repo's axiom gate, the successor may
-> switch to `runCallWithLimitsFast` only after `runFast_eq_run` (and its call-level
-> consequences) are proved and audited (`propext`, `Classical.choice`, `Quot.sound` only).
+> 1,474× on `blocks4999`, 9,375/9,375 A/B parity). **Proved with no `sorry`**: the one-step
+> correspondence `step_sim` (all four `exec` arms, including the guard case that excludes
+> `exec .end_`'s singleton return arm), the walk facts (`simStep_pc`, `simNext_inv`,
+> `runSteps_peel`, `runFrom_steps`, `runFrom_end`, `walk_pc_chain`, the guard
+> monotonicity chain), the run correspondence `step_walk`, `arc_seg` (a valid arc's whole
+> run single-stepped is one jump), `runFast_eq_run` (strong induction over the fuel; the
+> fire path substitutes `arc_seg` + `run_seg`), and the entry equality
+> `callEntryFast_eq_callEntry` (via `callEntryWith` parameterization + `funext`).
+> **Two named obligations remain** (below), both stated as theorems with explicit `sorry`:
+> `arcsFor_valid` (the builder's rows satisfy `ArcsOK`) and `runCallFast_eq_runCall` (the
+> control-flow congruence over the shared spine). Until they are discharged and the module
+> is imported, nothing here affects any verdict.
 
 `wasmFuel` (`Wasm/Fuel.lean`) made the step budget non-binding for valid runs and moved the
 binding limit to *evaluation time*: a loop of `k` zero-fee `block`s and one `br` executes
@@ -77,12 +82,18 @@ committed module keeps the same mechanism with a simpler, theorem-friendly run s
 
 ## Open proofs (the remaining `sorry`s)
 
-* `step_walk` — the walk/interpreter correspondence over a whole arc run (the successor case
-  of the induction; `step_sim` is the one-step core, proved).
-* `simWalk_stall`, `arc_walk_advances` — the walk's stall/advance facts.
-* After those: `arc_seg` (seg over a valid arc = one jump), `runFast_eq_run`,
-  `callEntryFast_eq_callEntry`, `runCallFast_eq_runCall`, `runCallWithLimitsFast_eq`,
-  the fuel-transfer theorems, and `arcsFor_valid` (the builder's contract).
+* `arcsFor_valid` — the builder's rows satisfy `ArcsOK`. The proof skeleton: an induction
+  over `buildFrom`'s `left` (the array slot equation `Array.getElem?_setIfInBounds` for
+  the emitted write, `Array.getElem?_replicate` for the base table), with each emitted
+  arc's walk facts from `runFrom_steps` (every prefix advances) and `runFrom_end` (the
+  landing pc = pc0 + len, hence `runEnd`), plus the `runSteps` landing's sim/grd.
+* `runCallFast_eq_runCall` — the control-flow congruence: both sides share the identical
+  prepare/link/resolve/instantiate spine; the two entry calls differ and agree by
+  `callEntryFast_eq_callEntry` (the table validity comes from `arcsFor_valid`).
+* After those: `runCallWithLimitsFast` (a wrapper like `runCallWithLimits`, with the
+  loading-limits preflight — definitional once `runCallFast_eq_runCall` holds), the
+  fuel-transfer theorems (`runCallFast_fuel_le` etc., the same proofs as `Fuel.lean`'s
+  with the fast layer), and the successor wiring.
 -/
 
 namespace NearSpecV3.Wasm
