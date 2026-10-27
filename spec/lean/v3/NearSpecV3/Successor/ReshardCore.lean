@@ -220,13 +220,14 @@ def checkReshardCoreObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowC
     (claimBytes witnessBytes : Bytes) (gasCap : Option Nat := none) : Except String Observable := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
-  let (swBytes, codes) ← decodeWitnessFile witnessBytes
+  let (swBytes, codes) ←
+    (if driver.compressedWitness then decodeWitnessFileV witnessBytes else decodeWitnessFile witnessBytes)
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
+  if driver.codeResponseCap then
+    check (codeResponseBytes codes ≤ maxContractCodeResponseBytes)
+      "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE"
   if !driver.witnessUnbounded then
     check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
-  else
-    check (lenT swBytes ≤ compressedSafeWitnessBytes)
-      "out of domain (w.compressed_size): witness may exceed MAX_COMPRESSED_STATE_WITNESS_SIZE once compressed"
   let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"

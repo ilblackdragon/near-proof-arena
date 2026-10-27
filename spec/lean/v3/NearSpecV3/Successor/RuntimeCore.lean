@@ -1,5 +1,6 @@
 import NearSpecV3.Successor.StorageExecution
 import NearSpecV3.Successor.WitnessCodec
+import NearSpecV3.Successor.ZstdFrame
 import NearSpecV3.GenesisD3
 import NearSpecV3.Resharding
 
@@ -30,20 +31,57 @@ def implicitKindOf (l : Layout) (shardId : Nat) (numNewChunksSeen : Nat) :
   | some (bd, mode) => pure (.resharding bd mode)
   | none => pure .applyOldChunk
 
-/-- The largest borsh `ChunkStateWitness` whose zstd encoding is certainly within
-`MAX_COMPRESSED_STATE_WITNESS_SIZE` = 48 MiB = 50,331,648 B
-(`core/primitives/src/stateless_validation/partial_witness.rs:18-19`). Validators drop every part of a
-witness whose `encoded_length` exceeds it (`chain/client/src/stateless_validation/validate.rs:82-88`),
-so such a chunk is never endorsed. The encoded length is a function of the producer's zstd encoder
-(level 1, 4 workers, `state_witness.rs:21-22`), which is not formalized; zstd never expands its input
-by more than `n/256 + 64 KiB` (raw-block fallback, 3-byte block headers, frame header and checksum),
-so `n ≤ 50,000,000` is safe: `50,000,000 + 195,313 + 65,536 < 50,331,648`. A larger witness (up to
-the 64 MiB decode bound) is an explicit exclusion, `w.compressed_size`, on the tiers that lift the
-8 MiB `w.size` bound: its verdict depends on how well it compresses. -/
+/-- Historical constant from the superseded `w.compressed_size` approximation: the largest borsh
+witness whose zstd encoding certainly stayed within `MAX_COMPRESSED_STATE_WITNESS_SIZE` = 48 MiB.
+The 48 MiB cap is now enforced exactly on the distributed compressed bytes by `decodeWitnessFileV`
+(the `near-arena-cwitness-v3` format), so this is no longer part of any relation; it is retained only
+for `TierProofs.witnessBound_le`. -/
 def compressedSafeWitnessBytes : Nat := 50000000
 
 theorem compressedSafeWitnessBytes_ok :
     compressedSafeWitnessBytes + compressedSafeWitnessBytes / 256 + 65536 < 50331648 := by decide
+
+/-- `MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE` = 64 MiB
+(`core/primitives/src/stateless_validation/contract_distribution.rs:371`). -/
+def maxContractCodeResponseBytes : Nat := 67108864
+
+/-- The borsh size of the `Vec<CodeBytes>` a `ContractCodeResponse` carries: a 4-byte vector length
+prefix and, per code, a 4-byte length prefix and the bytes. The `codes` of `witness.bin` are exactly
+those the cold validator must fetch. -/
+def codeResponseBytes (codes : List Bytes) : Nat :=
+  codes.foldl (fun acc c => acc + 4 + lenT c) 4
+
+/-- `MAX_COMPRESSED_STATE_WITNESS_SIZE` = 48 MiB (`partial_witness.rs:18`), the cap on a distributed
+`EncodedChunkStateWitness`'s `encoded_length` (`validate.rs:82-88`). -/
+def maxCompressedWitnessBytes : Nat := 50331648
+
+/-- `"near-arena-cwitness-v3"`: the versioned `witness.bin` tag whose state-witness field carries the
+distributed zstd `EncodedChunkStateWitness` bytes rather than the decoded witness. Spelled as an
+explicit byte list (not `String.toUTF8`) so it is kernel-reducible on the `decide +kernel` path. -/
+def witnessTagC : Bytes :=
+  [110, 101, 97, 114, 45, 97, 114, 101, 110, 97, 45, 99, 119, 105, 116, 110, 101, 115, 115, 45, 118, 51]
+
+/-- Versioned `witness.bin` decoder. The original `near-arena-witness-v3` format (state witness in the
+clear) decodes exactly as `decodeWitnessFile`. The `near-arena-cwitness-v3` format carries the
+compressed `EncodedChunkStateWitness`: its `encoded_length` must be `≤ MAX_COMPRESSED_STATE_WITNESS_SIZE`
+(nearcore rejects otherwise, `validate.rs:82-88`), then it is zstd-decoded under the 64 MiB
+`CountingRead` cut-off (`Zstd.decompressBytesCapped`) exactly as `CompressedData::decode` does; the
+resulting borsh state witness feeds the same pipeline. -/
+def decodeWitnessFileV (bs : Bytes) : Except String (Bytes × List Bytes) :=
+  -- The tag is a borsh byte string: 4-byte LE length then the bytes. The `c`-format tag is 22 bytes
+  -- (`[22,0,0,0]` prefix), distinct from the 21-byte original, so the prefix disambiguates.
+  if bs.take (witnessTagC.length + 4) == ([22, 0, 0, 0] ++ witnessTagC) then
+    (do
+      let ((), bs) ← dTag witnessTagC "compressed witness format" bs
+      let (enc, bs) ← pBytes "encoded_state_witness" bs
+      let (codes, bs) ← pVec "contract_code" (pBytes "code") bs
+      if !bs.isEmpty then throw "decode: trailing bytes in witness.bin"
+      if lenT enc > maxCompressedWitnessBytes then
+        throw "invalid: encoded_length exceeds MAX_COMPRESSED_STATE_WITNESS_SIZE"
+      let sw ← Zstd.decompressBytesCapped enc
+      pure (sw, codes))
+  else
+    decodeWitnessFile bs
 
 structure ExecutionDriver where
   apply : ActionHooks → Prims → Env → PTrie → Option ValidatorUpdateFacts →
@@ -76,6 +114,26 @@ structure ExecutionDriver where
   `core/primitives/res/epoch_configs/mainnet/85.json:26`); the 64 is the D0 design's routing-table
   size. `1 ≤ numShards` stays. `false` keeps the signed and D2 behaviour exactly. -/
   layoutUnbounded : Bool := false
+  /-- Exclude (out of domain) a chunk whose cold-fetched contract code cannot be delivered within
+  nearcore's one `ContractCodeResponse`. A cold validator requests the chunk's accessed pre-state
+  contract codes (`record_contract_call`, `runtime/runtime/src/function_call.rs:355-392`: a call is
+  recorded only when the code is present in the pre-state with that hash) that are missing from its
+  compiled cache — for a cold validator, all of them — and the producer answers with a single
+  `ContractCodeResponse` carrying `Vec<CodeBytes>`, decoded under
+  `MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE` = 64 MiB on the borsh-serialized vector
+  (`core/primitives/src/stateless_validation/contract_distribution.rs:371-399`). The fetched codes
+  are exactly the `codes` appended to `witness.bin` (the oracle's cold judge appends the response
+  contents, `partial_witness_tracker.rs:693-696`). When their borsh size
+  `4 + Σ (4 + |code|)` exceeds 64 MiB the response cannot be decoded, so the verdict depends on the
+  validator's compiled-contract cache rather than the witness; this is excluded with
+  `w.code_response_size`. `false` keeps the signed and D2 behaviour exactly (no such guard). -/
+  codeResponseCap : Bool := false
+  /-- Decode `witness.bin` with the versioned dispatcher `decodeWitnessFileV`, which accepts both the
+  original `near-arena-witness-v3` format (the state witness in the clear) and the
+  `near-arena-cwitness-v3` format carrying the distributed `EncodedChunkStateWitness` zstd bytes
+  (rejects `encoded_length > MAX_COMPRESSED_STATE_WITNESS_SIZE` = 50,331,648, then zstd-decodes under
+  the 64 MiB cut-off). `false` keeps the signed and D2 behaviour exactly (`decodeWitnessFile`). -/
+  compressedWitness : Bool := false
   /-- Blind replay: skip every comparison against a value the transition *produces* — the main and
   implicit `post_state_root`s and the endorsed header's output fields (state/outcome/outgoing-receipt
   roots, gas used, balance burnt, proposals, congestion, bandwidth requests, encoded merkle root and
@@ -100,6 +158,8 @@ def recorderDriver (cfg : Wasm.NearCfg) (globals : Bool := false)
   apply := fun _ p e t vu props incoming txs congestion =>
     StorageExecution.run cfg p e t vu props incoming txs congestion globals codePolicy,
   sizeOk := fun _ _ => true,
+  codeResponseCap := true,
+  compressedWitness := true,
   decodeWitness := if globals then
     decodeStateWitnessWith GlobalCodecs.pRcptGlobal GlobalCodecs.pTxD2Global
     else decodeStateWitnessD2,
@@ -131,13 +191,14 @@ def checkD2CoreWithObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowCo
     (gasCap : Option Nat := none) : Except String Observable := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
-  let (swBytes, codes) ← decodeWitnessFile witnessBytes
+  let (swBytes, codes) ←
+    (if driver.compressedWitness then decodeWitnessFileV witnessBytes else decodeWitnessFile witnessBytes)
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
+  if driver.codeResponseCap then
+    check (codeResponseBytes codes ≤ maxContractCodeResponseBytes)
+      "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE"
   if !driver.witnessUnbounded then
     check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
-  else
-    check (lenT swBytes ≤ compressedSafeWitnessBytes)
-      "out of domain (w.compressed_size): witness may exceed MAX_COMPRESSED_STATE_WITNESS_SIZE once compressed"
   let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"
@@ -345,13 +406,14 @@ def checkD2CoreGWith (driver : ExecutionDriver) (hooks : ActionHooks) (allowCode
     (gasCap : Option Nat := none) : Except String Unit := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
-  let (swBytes, codes) ← decodeWitnessFile witnessBytes
+  let (swBytes, codes) ←
+    (if driver.compressedWitness then decodeWitnessFileV witnessBytes else decodeWitnessFile witnessBytes)
   if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
+  if driver.codeResponseCap then
+    check (codeResponseBytes codes ≤ maxContractCodeResponseBytes)
+      "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE"
   if !driver.witnessUnbounded then
     check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
-  else
-    check (lenT swBytes ≤ compressedSafeWitnessBytes)
-      "out of domain (w.compressed_size): witness may exceed MAX_COMPRESSED_STATE_WITNESS_SIZE once compressed"
   let w ← driver.decodeWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"

@@ -46,6 +46,23 @@ def txOf (body sig : Nat) (tag : Nat) : TxD2 :=
     nonceIdx := none, receiver := [], blockHash := [], actions := [], strict := false,
     sigTag := tag, sig := List.replicate sig 0 }
 
+/-- 4-byte little-endian length, as the witness wire format uses. -/
+def encU32 (n : Nat) : List UInt8 :=
+  [UInt8.ofNat (n % 256), UInt8.ofNat (n / 256 % 256), UInt8.ofNat (n / 65536 % 256),
+   UInt8.ofNat (n / 16777216 % 256)]
+/-- A borsh byte string: 4-byte length then the bytes. -/
+def encBytes (b : List UInt8) : List UInt8 := encU32 b.length ++ b
+
+-- Small zstd frames produced by the vendored codec (`zref encode`, zstd 1.5.6) and their plaintext.
+def frame_raw : List UInt8 := [40,181,47,253,0,88,1,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
+def plain_raw : List UInt8 := [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
+def frame_rle : List UInt8 := [40,181,47,253,0,88,69,0,0,16,81,81,1,0,31,128,5]
+def plain_rle : List UInt8 := List.replicate 40 81
+def frame_huf : List UInt8 := [40,181,47,253,0,88,173,1,0,180,2,116,104,101,32,113,117,105,99,107,32,98,114,111,119,110,32,102,111,120,32,106,117,109,112,115,32,111,118,101,114,32,116,104,101,32,108,97,122,121,32,100,111,103,2,0,241,212,128,65,59,203]
+def plain_huf : List UInt8 := (List.replicate 3 "the quick brown fox jumps over the lazy dog ").foldl (· ++ ·.toUTF8.toList) []
+def frame_seq : List UInt8 := [40,181,47,253,0,88,85,0,0,24,97,98,99,1,0,210,212,13,1]
+def plain_seq : List UInt8 := (List.replicate 40 "abc").foldl (· ++ ·.toUTF8.toList) []
+
 def runTests : IO Unit := do
   let code := nestModule 500
   let gas := 30 * 10 ^ 9
@@ -70,7 +87,41 @@ def runTests : IO Unit := do
   assertTest "signed keeps the caps"
     ((Tier.cfg .signed).gasCap == some D3.gAlpha && !(Tier.cfg .signed).witnessUnbounded &&
       !(Tier.cfg .signed).layoutUnbounded && !(Tier.cfg .signed).segmentUnbounded)
-  IO.println s!"Gate-B cap tests passed: fuel ({old} → {new}), wire size, tier caps"
+  -- W02 size limits: the zstd decoder (vendored zstd 1.5.6), the versioned witness format, and the
+  -- two new caps. The frames below were produced by nearcore's `EncodedChunkStateWitness::encode`
+  -- codec (`zref encode`, zstd level 3) on the paired plaintext.
+  let okEq (r : Except String (List UInt8)) (exp : List UInt8) : Bool :=
+    match r with | .ok v => v == exp | _ => false
+  assertTest "zstd raw block" (okEq (Zstd.decompressList frame_raw) plain_raw)
+  assertTest "zstd rle block" (okEq (Zstd.decompressList frame_rle) plain_rle)
+  assertTest "zstd huffman literals" (okEq (Zstd.decompressList frame_huf) plain_huf)
+  assertTest "zstd sequences" (okEq (Zstd.decompressList frame_seq) plain_seq)
+  -- versioned witness.bin: the `near-arena-cwitness-v3` format carrying the compressed state
+  -- witness decodes to the same `(swBytes, codes)` the in-the-clear format would.
+  let cwit := encU32 witnessTagC.length ++ witnessTagC ++ encBytes frame_seq ++ encU32 0
+  assertTest "decodeWitnessFileV compressed format"
+    (match decodeWitnessFileV cwit with
+     | .ok (sw, cs) => sw == plain_seq && cs.isEmpty
+     | _ => false)
+  let owit := encU32 witnessTag.length ++ witnessTag ++ encBytes plain_seq ++ encU32 0
+  assertTest "decodeWitnessFileV old format falls through"
+    (match decodeWitnessFileV owit, decodeWitnessFile owit with
+     | .ok (a, _), .ok (b, _) => a == b
+     | .error e1, .error e2 => e1 == e2
+     | _, _ => false)
+  -- encoded-length cap (`MAX_COMPRESSED_STATE_WITNESS_SIZE` = 48 MiB) and its reason
+  let overEnc := encU32 witnessTagC.length ++ witnessTagC ++
+    encBytes (List.replicate (maxCompressedWitnessBytes + 1) 0) ++ encU32 0
+  assertTest "encoded_length over 48 MiB rejects"
+    (match decodeWitnessFileV overEnc with
+     | .error e => (e.splitOn "encoded_length exceeds").length > 1
+     | _ => false)
+  -- code-response cap bytes = 4 + Σ(4 + |code|); boundary at 64 MiB
+  assertTest "codeResponseBytes empty" (codeResponseBytes [] == 4)
+  assertTest "codeResponseBytes two codes" (codeResponseBytes [[1,2,3], [9]] == 4 + (4+3) + (4+1))
+  assertTest "maxContractCodeResponseBytes = 64 MiB" (maxContractCodeResponseBytes == 67108864)
+  assertTest "maxCompressedWitnessBytes = 48 MiB" (maxCompressedWitnessBytes == 50331648)
+  IO.println s!"Gate-B cap tests passed: fuel ({old} → {new}), wire size, tier caps, zstd decoder, versioned witness, size caps"
 
 end NearSpecV3.Successor.GateBCapsTests
 
