@@ -1139,4 +1139,120 @@ private theorem runFast_eq_run (cfg : NearCfg) (p : Prepared)
             have hlt : m < fuel := by rw [hfuel]; exact Nat.lt_succ_self m
             exact ih m hlt s'
           · rfl
+
+/-! ## The call-level fast layer -/
+
+/-- `callEntry` parameterized by the run function: `callEntryWith cfg p run fuel s fi`. -/
+def callEntryWith (p : Prepared) (run : Nat → St → Res) (fuel : Nat) (s : St) (fi : Nat) :
+    Except String (St × Option String) :=
+  let s := { s with gas := { s.gas with g := s.gas.remaining }, stack := #[], frames := [] }
+  let r := match enter p s fi with
+    | .cont s => run fuel s
+    | r => r
+  match r with
+  | .fin s => (sync s).map (·, none)
+  | .abort s e => (sync s).map (·, some e)
+  | .unmodeled why => .error why
+  | .cont _ => .error "cont"
+
+/-- `callEntry` is `callEntryWith` with the plain `run`. -/
+theorem callEntry_eq_callEntryWith (cfg : NearCfg) (p : Prepared) (fuel : Nat) (s : St) (fi : Nat) :
+    callEntry cfg p fuel s fi = callEntryWith p (run cfg p) fuel s fi := rfl
+
+/-- The fast entry: `callEntryWith` with `runFast`. -/
+def callEntryFast (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc)))
+    (fuel : Nat) (s : St) (fi : Nat) : Except String (St × Option String) :=
+  callEntryWith p (runFast cfg p arcs) fuel s fi
+
+/-- The fast entry equals the plain one: the run functions agree by `runFast_eq_run`. -/
+private theorem callEntryFast_eq_callEntry (cfg : NearCfg) (p : Prepared)
+    (arcs : Array (Array (Option Arc))) (hvalid : arcsValidFor p arcs)
+    (fuel : Nat) (s : St) (fi : Nat) :
+    callEntryFast cfg p arcs fuel s fi = callEntry cfg p fuel s fi := by
+  -- both are callEntryWith; the run functions agree on every state by runFast_eq_run,
+  -- so the bodies are equal by a funext + pointwise rewrite
+  rw [callEntryFast, callEntry_eq_callEntryWith cfg p fuel s fi]
+  show callEntryWith p (runFast cfg p arcs) fuel s fi = callEntryWith p (run cfg p) fuel s fi
+  have hfun : runFast cfg p arcs = run cfg p := by
+    funext fuel' s'
+    exact runFast_eq_run cfg p arcs hvalid fuel' s'
+  rw [hfun]
+
+/-- `runCall` with the fast table: identical control flow, the entries by `callEntryFast`. -/
+def runCallFast (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
+    (fuel : Nat) (blockLevel : Bool := true) (full : Bool := false)
+    (real : Option TTN.RealStore := none) : NearSpecV3.Wasm.Run :=
+  let emptySt (gs : Gas) : St :=
+    { pages := #[], globals := #[], table := #[], tableMax := 0, elems := #[], datas := #[],
+      stackRem := 0, gas := gs, ctx := ctx }
+  let ext (s : St) : String := if full then fullExtra s else ""
+  let nop (e : String) : NearSpecV3.Wasm.Run :=
+    .line (s!"abort 0 0 {e}" ++ ext (emptySt (Gas.init ctx.prepaidGas)))
+  if method.isEmpty then nop "MethodResolveError(MethodEmptyName)" else
+  match prepare cfg code blockLevel with
+  | .outOfDomain why => .line s!"out-of-domain {why}"
+  | .unmodeled why => .line s!"unmodeled {why}"
+  | .prepErr v _ => nop s!"CompilationError(PrepareError({v}))"
+  | .compileErr k _ =>
+    nop s!"CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
+  | .ok p =>
+    if !cfg.curveHosts && real.isNone && p.m.imports.any (fun i => curveHosts.contains i.name) then
+      .line "out-of-domain curve host function" else
+    let gs : Gas := Gas.init ctx.prepaidGas
+    let loaded := match payPer gs C.contractLoadingBytes code.size with
+      | (gs, none) => payBase gs C.contractLoadingBase
+      | r => r
+    match loaded with
+    | (gs, some _) => .line (s!"abort {gs.burnt} {gs.used} {errGasExceeded}" ++ ext (emptySt gs))
+    | (gs, none) =>
+      match link p with
+      | .linkError msg => .line (s!"abort {gs.burnt} {gs.used} LinkError \{ msg: \"{msg}\" }" ++ ext (emptySt gs))
+      | .invariant why => .line s!"unmodeled invariant: {why}"
+      | .ok =>
+        match resolve p method with
+        | .notFound => nop "MethodResolveError(MethodNotFound)"
+        | .invalidSignature => nop "MethodResolveError(MethodInvalidSignature)"
+        | .invariant why => .line s!"unmodeled invariant: {why}"
+        | .ok mi =>
+          match instantiate cfg p gs with
+          | .error e => .line (s!"abort {gs.burnt} {gs.used} {e}" ++ ext (emptySt gs))
+          | .ok s =>
+            let s := { s with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
+                              storageUsage := ctx.storageUsage, real := real,
+                              curveHosts := cfg.curveHosts }
+            let arcs := p.funcs.map arcsFor
+            let afterStart : Except String (St × Option String) :=
+              match p.m.start with
+              | some st => callEntryFast cfg p arcs fuel s st
+              | none => .ok (s, none)
+            match afterStart with
+            | .error why => .line s!"unmodeled {why}"
+            | .ok (s, some e) => .done s (some e)
+            | .ok (s, none) =>
+              match callEntryFast cfg p arcs fuel s mi with
+              | .error why => .line s!"unmodeled {why}"
+              | .ok (s, e) => .done s e
+
+/-- `runCallFast = runCall`: identical control flow; the entries agree by
+`callEntryFast_eq_callEntry` (the table validity comes from the builder:
+`arcsFor_valid`). -/
+private theorem runCallFast_eq_runCall (cfg : NearCfg) (code : ByteArray) (method : String)
+    (ctx : CallCtx) (fuel : Nat) (blockLevel full : Bool) (real : Option TTN.RealStore) :
+    runCallFast cfg code method ctx fuel blockLevel full real =
+      runCall cfg code method ctx fuel blockLevel full real := by
+  -- the bodies are syntactically identical except:
+  -- (a) the fast side builds the arcs table (only consumed by its entries),
+  -- (b) the entry calls: callEntryFast vs callEntry.
+  -- Since callEntryFast reduces to callEntryWith (runFast) and callEntry to
+  -- callEntryWith (run cfg p), and the runs are equal by runFast_eq_run (with the
+  -- table's validity from arcsFor_valid), the bodies are equal after zeta-reduction.
+  -- The proof: simp both sides with the defining equations and the entry theorem.
+  sorry
+
+/-- The builder's rows satisfy `ArcsOK`: every emitted arc is a real run of its
+function (by `runFrom_steps`/`runFrom_end` and the `runSteps` landing), and it sits at
+its start pc. -/
+theorem arcsFor_valid (pf : PFunc) : ArcsOK pf (arcsFor pf) := by
+  sorry
+
 end NearSpecV3.Wasm
