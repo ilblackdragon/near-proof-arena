@@ -1,0 +1,12 @@
+name = "arcproto"
+version = "0.1.0"
+defaultTargets = ["arcproto"]
+
+[[require]]
+name = "NearSpecV3"
+path = "../../spec/lean/v3"
+
+[[lean_exe]]
+name = "arcproto"
+root = "ArcProto"
+supportInterpreter = true
