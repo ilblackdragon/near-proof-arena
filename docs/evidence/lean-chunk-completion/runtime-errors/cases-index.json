@@ -1,0 +1,711 @@
+[
+ {
+  "case_dir": "re601-00-h10007-s0",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10007-s0",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.03.call.s2rtfitb:applied",
+   "successor.runtime-errors.03.call.s2rtfitb:included",
+   "successor.runtime-errors.04.call.s2rtovrb:applied",
+   "successor.runtime-errors.04.call.s2rtovrb:included",
+   "successor.runtime-errors.09.call.s2rtbadty:included"
+  ],
+  "files": {
+   "claim.bin": "a68e24eb274f4d065170b8d1a35d07fd0bf5df303a0ace19e3fba377d851d867",
+   "meta.json": "b09c6dba86c3ac0e70bdefd58a545a8df5767f7c76e899b39208189fd7054cd8",
+   "witness.bin": "355caefd3cb62b9bd421908a934d155cdb7f67abc844ecf355a6708faec72794"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10007-s0-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10007-s0-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1eae814272a949a612bc1035df47a0ff9bd5046f1dcbff51a860a2dd921d172d",
+   "meta.json": "f1d9eb12a3beaa5f42d5590402eb5fb3c63696a2af8183b4f5ab354175997e6f",
+   "witness.bin": "355caefd3cb62b9bd421908a934d155cdb7f67abc844ecf355a6708faec72794"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10007-s0-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10007-s0-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "77e7e9291d0361746842535be389537502ff3a688466870275e033fc76ac2d78",
+   "meta.json": "0cf10c514cd4ca61345bb94683a243b51102572198778c3647467565cc100578",
+   "witness.bin": "355caefd3cb62b9bd421908a934d155cdb7f67abc844ecf355a6708faec72794"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10007-s0-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10007-s0-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "a3bb238531ad72ca8909782036eb544b878339913a8e55d39508c7cc4b93486f",
+   "meta.json": "b5c21e4759589639e45f9ff1b98422b02ea62a135ee7c41908298ef2c0c5bbbb",
+   "witness.bin": "355caefd3cb62b9bd421908a934d155cdb7f67abc844ecf355a6708faec72794"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10011-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10011-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.10.cross-shard-call.s0rtload:applied",
+   "successor.runtime-errors.11.cross-shard-call.s1rtlink:applied",
+   "successor.runtime-errors.12.emit-then.s0rtload:applied",
+   "successor.runtime-errors.13.emit-then.s1rtlink:applied",
+   "successor.runtime-errors.13.emit-then.s1rtlink:included",
+   "successor.runtime-errors.14.emit-then.s1rtfita:included",
+   "successor.runtime-errors.19.missing-method.s3rtovrc:included"
+  ],
+  "files": {
+   "claim.bin": "8a7274f43a14e085595159a1c1dd0ecddc79847665877334ec6e40a415a621e9",
+   "meta.json": "b7620d13b43f4acde04c93b8c4f001374a11de9c8fe1a99c1b7f9153298ea60f",
+   "witness.bin": "084ce6c03d46528d3b91ab4aa58ce7488bfb331039182b24804e54d14aceaddf"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10011-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10011-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f0e7269ed256741a90fd2623317945f29830d36e79a40063882cb06439b9c0c7",
+   "meta.json": "28ada9f187266ae4387bdf373dd17149d73435771d0b255d832a77022459a85f",
+   "witness.bin": "084ce6c03d46528d3b91ab4aa58ce7488bfb331039182b24804e54d14aceaddf"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10011-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10011-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "9b6498b1d5551c83171717587c7472d9159e66384bb2f6808a5c62d21b0e72c5",
+   "meta.json": "f74fdf8292c1c37493619600404526601074979d8946a1daf817e4ea7764f729",
+   "witness.bin": "084ce6c03d46528d3b91ab4aa58ce7488bfb331039182b24804e54d14aceaddf"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10011-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10011-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "02d03f267fd3a7db3268ed80a0ecb6b2fd7dc318061a241f4966a3cd8233c54c",
+   "meta.json": "b1a6b2fd6f93b3c306f84e336b76ee71eb24ea2b1c0ffbeaf585ffb789ce1ed2",
+   "witness.bin": "084ce6c03d46528d3b91ab4aa58ce7488bfb331039182b24804e54d14aceaddf"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10012-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10012-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.12.emit-then.s0rtload:applied",
+   "successor.runtime-errors.13.emit-then.s1rtlink:applied",
+   "successor.runtime-errors.14.emit-then.s1rtfita:applied",
+   "successor.runtime-errors.14.emit-then.s1rtfita:included",
+   "successor.runtime-errors.15.emit-then.s0rtcombo+s2rtovrb:included",
+   "successor.runtime-errors.19.missing-method.s3rtovrc:applied",
+   "successor.runtime-errors.19.missing-method.s3rtovrc:included"
+  ],
+  "files": {
+   "claim.bin": "924c00738ffea70fb179aaadac7f9244b4fdde67562b72d5a68c62e6c282fc33",
+   "meta.json": "5a4b90c9d66c85c342a1055bf7e479217e400c1ee1b2d1b1cca3d1181deeee0f",
+   "witness.bin": "72068785b3e9d5a94a860d987bcf0ce148341e6ecfc2617ee23eb7e54198a2df"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10012-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10012-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "006d9f8bb9dddf2a14d783e3997b45679600469477b6f9dc4a8f542d6833b6d2",
+   "meta.json": "5e35351f924163631e3f405ad9df3fe22ede03077ea88de827403b48bed39461",
+   "witness.bin": "72068785b3e9d5a94a860d987bcf0ce148341e6ecfc2617ee23eb7e54198a2df"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10012-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10012-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8f077b823813c1540b65dd58c53a6d8c4e7b7983dd08887d4593eea5609b116b",
+   "meta.json": "5f0c8e231baecde8959e7d1e0b604c93fef3d837d0f96ae2ac4cb6b724f4892b",
+   "witness.bin": "72068785b3e9d5a94a860d987bcf0ce148341e6ecfc2617ee23eb7e54198a2df"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10012-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10012-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d65068d461bb9935138ecc8c091e0d8228c351289f41a9b1124b4cda15337d19",
+   "meta.json": "6a906160a92875fff102c9f0234414466f8b7286b10075ce917d97b9b3864b8f",
+   "witness.bin": "72068785b3e9d5a94a860d987bcf0ce148341e6ecfc2617ee23eb7e54198a2df"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10013-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10013-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.12.emit-then.s0rtload:applied",
+   "successor.runtime-errors.13.emit-then.s1rtlink:applied",
+   "successor.runtime-errors.14.emit-then.s1rtfita:applied",
+   "successor.runtime-errors.15.emit-then.s0rtcombo+s2rtovrb:applied",
+   "successor.runtime-errors.15.emit-then.s0rtcombo+s2rtovrb:included",
+   "successor.runtime-errors.16.emit-then.s2rtbadty+s3rtfitc:included",
+   "successor.runtime-errors.19.missing-method.s3rtovrc:applied"
+  ],
+  "files": {
+   "claim.bin": "47325975b6953736aeca396a4107089777dce35322ffef2d4ba09ff52e282c95",
+   "meta.json": "24933f5807a9a68c9a052450bcf1c8652820b48feabbdc9fa4df62c831d5317f",
+   "witness.bin": "c83a0ca905a01bf04b5526f0c8f8cfbf576a70bd98e86734f137be5f1e7730e6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10013-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10013-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b5d5470897e0804d4e9fe1844d558277822f0cae05bb052fcdd0942a32a55ed9",
+   "meta.json": "1c4856780edb5a6ab5c2e7fdb40b1febe95b0c7d796b353fa5f38592721291bc",
+   "witness.bin": "c83a0ca905a01bf04b5526f0c8f8cfbf576a70bd98e86734f137be5f1e7730e6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10013-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10013-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1c2b85afd1157a73e8525dee41b1f3d5b70cfbb1603d2064e6e0b38776a0ddac",
+   "meta.json": "9b8e754413fca8d7d3b3c994949fa4fc79bdbcdcf85338aef0442e044ed812a4",
+   "witness.bin": "c83a0ca905a01bf04b5526f0c8f8cfbf576a70bd98e86734f137be5f1e7730e6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10013-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10013-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "01eeccac575b34600bb0fa5611fd44d57a8317d8d31a85597e8459cdab12a765",
+   "meta.json": "33487177dc6ab0822747fe781896ee5a5c2033fd26cc5c1078f746ff3ed8df2e",
+   "witness.bin": "c83a0ca905a01bf04b5526f0c8f8cfbf576a70bd98e86734f137be5f1e7730e6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10014-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10014-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.13.emit-then.s1rtlink:applied",
+   "successor.runtime-errors.14.emit-then.s1rtfita:applied",
+   "successor.runtime-errors.15.emit-then.s0rtcombo+s2rtovrb:applied",
+   "successor.runtime-errors.16.emit-then.s2rtbadty+s3rtfitc:applied",
+   "successor.runtime-errors.16.emit-then.s2rtbadty+s3rtfitc:included",
+   "successor.runtime-errors.24.transfer-then-call.s1rtovra:included",
+   "successor.runtime-errors.25.call-then-transfer.s0rtload:included"
+  ],
+  "files": {
+   "claim.bin": "d2916f65fd067eee37505a99278685f6dcb1a6031b40a10f5c9c13ea970543ff",
+   "meta.json": "d33998e84340d6963cd59d21cc4a97eede090af6bd13916f5aad790e8430960c",
+   "witness.bin": "b347b5e87b00521f15589c1a0efc96259a262e15017bae348340dec8434be552"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10014-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10014-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "b7427aecf83b82f7359a9968efc32cb57f35847f29d92ebb06b3c52b87dfe90b",
+   "meta.json": "b6c77c526d3600d380f78cfb65e7f4381434d0c21d40d1be44705dac9914d94a",
+   "witness.bin": "b347b5e87b00521f15589c1a0efc96259a262e15017bae348340dec8434be552"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10014-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10014-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8f228bc1d1b4e097b9c74dc07c4bd681a36f5c572c3f39265147bac1acacb71e",
+   "meta.json": "cd2d898c9c8070ff89142046a30bc893e1772623c3614030622c21bb39b4ea0a",
+   "witness.bin": "b347b5e87b00521f15589c1a0efc96259a262e15017bae348340dec8434be552"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10014-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10014-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "3fa4b4f036c1f94f4d6ae84061bbc3613be9e67e358b18d1f56637512479f17d",
+   "meta.json": "177a1ee1fe3b169f0f7f6e4743a6e62f463e5420710297e2bc93d3366ffa6ccd",
+   "witness.bin": "b347b5e87b00521f15589c1a0efc96259a262e15017bae348340dec8434be552"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10015-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10015-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.14.emit-then.s1rtfita:applied",
+   "successor.runtime-errors.15.emit-then.s0rtcombo+s2rtovrb:applied",
+   "successor.runtime-errors.16.emit-then.s2rtbadty+s3rtfitc:applied",
+   "successor.runtime-errors.24.transfer-then-call.s1rtovra:included",
+   "successor.runtime-errors.25.call-then-transfer.s0rtload:included"
+  ],
+  "files": {
+   "claim.bin": "12cda3c14b5c93ffd4119280a78b8a80ffd6d64f4c83568d665a65a884328235",
+   "meta.json": "3d25ba1205f969d524c260c31734844ebaca40aceb5c930913bf10d9bec865b1",
+   "witness.bin": "82b88190729e8259f6c255a5109b768e24b4d0664151a8c0bfeef61ecfcbd8d6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10015-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10015-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "2800c08d9cb1f08934e018c04058dbc216c198b65fbf6017301797851af8485d",
+   "meta.json": "f33ce043365fc246888216a11682a1d963cf655833899c6f866826d141b1e3b7",
+   "witness.bin": "82b88190729e8259f6c255a5109b768e24b4d0664151a8c0bfeef61ecfcbd8d6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10015-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10015-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "4bb02fbd18958704300454be08d7a19e872f9cc25a4ca605ca8dcd51c0025592",
+   "meta.json": "4c4e2212bc784b67f2c809c150d0ea53b955d5a00c40598daf4fd573ea1bbd37",
+   "witness.bin": "82b88190729e8259f6c255a5109b768e24b4d0664151a8c0bfeef61ecfcbd8d6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10015-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10015-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "8d339ca57fbe121fc00de1bab4df88874a6c3ea7cdc336ca047cb4c5c709f621",
+   "meta.json": "a0a98e77af02c91a31f1b39b725278dec79e0309b3335b6fb8928eb7c8f30e8c",
+   "witness.bin": "82b88190729e8259f6c255a5109b768e24b4d0664151a8c0bfeef61ecfcbd8d6"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10017-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10017-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.15.emit-then.s0rtcombo+s2rtovrb:applied",
+   "successor.runtime-errors.16.emit-then.s2rtbadty+s3rtfitc:applied",
+   "successor.runtime-errors.24.transfer-then-call.s1rtovra:applied",
+   "successor.runtime-errors.28.transfer-then-call.s1rtlink:included",
+   "successor.runtime-errors.38.deploy-call.rtunk_sandbox.s3rtdep:included"
+  ],
+  "files": {
+   "claim.bin": "dbd6422988d45f44e2d14d33b651d6889287991f4df0182d794151acba868ae8",
+   "meta.json": "6358a6d3183f3ba58626dd9d86b7fd049c899d465ad17387a6123f40e1e57d27",
+   "witness.bin": "7deac781deb37334db0c42bf667f880bbd13ad9e42006b78a31e0e7eb5940ac4"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10017-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10017-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "1228b2cbc1ba298ce397fd328fd14e4341b2129c482d64b9932e93249293f7ac",
+   "meta.json": "99dd2a8a1db9966ecb9f6e2bb3633d8d687b22dc87b921d9d36422d21babc691",
+   "witness.bin": "7deac781deb37334db0c42bf667f880bbd13ad9e42006b78a31e0e7eb5940ac4"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10017-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10017-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "66d592507332bffbffd9b35d2fac88c73ab40fa32d0dc02478267292e78e1350",
+   "meta.json": "e8d3a02681c078d4bccf971678b7a981e0013dc6508d5c7932a48445e04ed9e3",
+   "witness.bin": "7deac781deb37334db0c42bf667f880bbd13ad9e42006b78a31e0e7eb5940ac4"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10017-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10017-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6412a08453eaefe9c051cffbbc0220ed1798f40d8c6b27d3ef7fd43e698d62a0",
+   "meta.json": "919ce55797ee5362d4919b8a06721ffeaa8d45465a43a77bd4575fc1787bffbc",
+   "witness.bin": "7deac781deb37334db0c42bf667f880bbd13ad9e42006b78a31e0e7eb5940ac4"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10045-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10045-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.55.call-deployed.rtbad_input.s0rtdep:applied",
+   "successor.runtime-errors.58.call-deployed.rtbad_block_index.s1rtdep:applied",
+   "successor.runtime-errors.61.call-deployed.rtbad_panic.s2rtdep:applied",
+   "successor.runtime-errors.64.call-deployed.rtbad_promise_create.s3rtdep:applied",
+   "successor.runtime-errors.74.deploy-call.rtprep_memory.s3rtdep:applied",
+   "successor.runtime-errors.74.deploy-call.rtprep_memory.s3rtdep:included"
+  ],
+  "files": {
+   "claim.bin": "25cb2e6a31916bbafffb3b91fcd01501da1f66cd95179c888c495b981c829dc0",
+   "meta.json": "2557e9be4170047f826db647f9d5a429721fddf6839eca0a13d05e9dcac4c3b5",
+   "witness.bin": "ac17a5a536ac0004380701c28354c9d44b3795b86a63cbfe7ea3b007088c4f5b"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10045-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10045-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f3c2cff252774564fab5bdc42fcbe49738442de4000482c98291288f6c8e9ba5",
+   "meta.json": "be09bd00d47948416bda6938ef523184b7db501ff7f7a3292dc7d623fc1db93d",
+   "witness.bin": "ac17a5a536ac0004380701c28354c9d44b3795b86a63cbfe7ea3b007088c4f5b"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10045-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10045-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "30a499df99597ac49341c092bd7f8e9e1ebafffd5ebfa40a5a3877bd39122a1b",
+   "meta.json": "8db262b4728e0f3de2bc74554578db689f71ab235ab2db34d5c2c0e939d6d9f5",
+   "witness.bin": "ac17a5a536ac0004380701c28354c9d44b3795b86a63cbfe7ea3b007088c4f5b"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10045-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10045-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "0827fdf66d2ae8c2d47965724a8bcebc9c1e8d51e68acf28c6cce0f51290b201",
+   "meta.json": "8ec1c788d7b92f4e7eb21d56ce3e872c35c3c007ca9485aa3f6fa6cbaa78d450",
+   "witness.bin": "ac17a5a536ac0004380701c28354c9d44b3795b86a63cbfe7ea3b007088c4f5b"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10053-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10053-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.67.call-deployed.rtbad_read_register.s0rtdep:applied",
+   "successor.runtime-errors.70.call-deployed.rtprep_module.s1rtdep:applied",
+   "successor.runtime-errors.73.call-deployed.rtprep_internal.s2rtdep:applied",
+   "successor.runtime-errors.76.call-deployed.rtprep_memory.s3rtdep:applied",
+   "successor.runtime-errors.86.deploy-call.rtload2.s3rtdep:included"
+  ],
+  "files": {
+   "claim.bin": "790e003202d61c75a18aa12023ee4098532bc52345c1b373e7aec66c06bdd5ab",
+   "meta.json": "36517ec87c8de36bcc16098a136685518dd7770eba3f02f47798ecbe18b1603a",
+   "witness.bin": "44f536e8a0f0f43c66dab3ea27e0ee5c988b3f34c3fe2dee0e02af208b2ba06e"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10053-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10053-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "d3bd65fa4834866d225eb4343c9ec5ba1fbc2a9ec1ef132122f42bf8f0808d88",
+   "meta.json": "b4b6e5912f50bcadeb11bfbbac675d76898d07e8245063e06bdee1c843177d00",
+   "witness.bin": "44f536e8a0f0f43c66dab3ea27e0ee5c988b3f34c3fe2dee0e02af208b2ba06e"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10053-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10053-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "6d47e9da9029a04d0e065796ac4baf1a07ad61f4774a537b2450f83fd3f48da4",
+   "meta.json": "80fcc921a8449e9611ff0d591dffcb8beb0b0372772706a1376ebb50daed9497",
+   "witness.bin": "44f536e8a0f0f43c66dab3ea27e0ee5c988b3f34c3fe2dee0e02af208b2ba06e"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10053-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10053-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "eb8753fd02a4e236387ea8319c4d986698c963cd764d7bc5bbc87c0da2c64461",
+   "meta.json": "532b4c20484085a32deea35048a7bfd60bfe710886e34d82eb0539f5c9aec0ed",
+   "witness.bin": "44f536e8a0f0f43c66dab3ea27e0ee5c988b3f34c3fe2dee0e02af208b2ba06e"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10059-s2",
+  "kind": "honest",
+  "scenario": "RuntimeErrors",
+  "source": "re601/d3/00-h10059-s2",
+  "nearcore": "ok",
+  "expected_rel": true,
+  "mutation": null,
+  "verdict_source": "nearcore(cold)",
+  "steps": [
+   "successor.runtime-errors.79.call-deployed.rtprep_table.s0rtdep:included",
+   "successor.runtime-errors.82.call-deployed.rtprep_global.s1rtdep:included",
+   "successor.runtime-errors.85.call-deployed.rtload.s2rtdep:included",
+   "successor.runtime-errors.87.deploy.rtload2.s3rtdep:applied",
+   "successor.runtime-errors.88.call-deployed.rtload2.s3rtdep:included"
+  ],
+  "files": {
+   "claim.bin": "3219afbd66b1775a070e8cb18b3b362b71e4df75ed9d4d0e71e989df3831a244",
+   "meta.json": "2c7be54012135868af689f6e79b760cb1d747ca266fe9a9c0c6a579917f6e97e",
+   "witness.bin": "eaa8f8ce32444e24839c46b577155726b54cdadd8fd81666589d030c6b0314e4"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10059-s2-c.drop_last_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10059-s2-c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.drop_last_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "ce5e061388358f2f03b9183232980de42330719510c95f98bce857e48b795ae3",
+   "meta.json": "14bfb319dce85c1ecd4d9e269dc15d936ee1d191dbedd2f90796cbec9f875c8b",
+   "witness.bin": "eaa8f8ce32444e24839c46b577155726b54cdadd8fd81666589d030c6b0314e4"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10059-s2-c.epoch_start_flip",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10059-s2-c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.epoch_start_flip",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "c5fed67abf4115fbba61dac70ad46f10848ff3ee44ecfd8038550d58b5efe9de",
+   "meta.json": "2615e2a20a4aabd99184ac50b3d042e429f6f3529277400911dddaa17f567cf6",
+   "witness.bin": "eaa8f8ce32444e24839c46b577155726b54cdadd8fd81666589d030c6b0314e4"
+  }
+ },
+ {
+  "case_dir": "re601-00-h10059-s2-c.extra_block",
+  "kind": "mutant",
+  "scenario": "RuntimeErrors",
+  "source": "re601/mutants/00-h10059-s2-c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "expected_rel": false,
+  "mutation": "c.extra_block",
+  "verdict_source": "claim-v3",
+  "steps": [],
+  "files": {
+   "claim.bin": "f66830951de45bb3dfd2e6c2c15e6178c7301200a0ef0b7d871a2acb3e97f09f",
+   "meta.json": "82f6042da3eec33c1c384c91fd41159c1d1ad204f211ac6a75266a856b4c3ca7",
+   "witness.bin": "eaa8f8ce32444e24839c46b577155726b54cdadd8fd81666589d030c6b0314e4"
+  }
+ }
+]

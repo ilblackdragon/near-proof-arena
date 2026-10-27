@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Bind a cross-family scenario run (`oracle/v3-successor` `src/xfam.rs`, `NEAR_SUCCESSOR_SCENARIO`
-= yield-congestion | curve-callbacks | genesis-tx | gaskey-target | rollback-refund) to nearcore's
+= yield-congestion | curve-callbacks | genesis-tx | gaskey-target | rollback-refund | runtime-errors) to nearcore's
 recorded outcomes and to its cases.
 
 Input: a run directory with `summary.json`, `xfam-<chain>.json` (every scenario transaction with
@@ -183,6 +183,30 @@ def check_family(scenario, steps, headers_rows, metas, sc_list):
             problems.append("no genesis-B2 case")
         if facts["genesis_b2_with_main_transactions"]:
             problems.append("a genesis-B2 witness with main-transition transactions (genesis chunks have none)")
+    elif scenario == "RuntimeErrors":
+        # nearcore's failure kind of every receipt, e.g. `LoadingError`, `LinkError`,
+        # `PrepareError(Instantiate)`, `HostError(GasExceeded)`
+        kinds, by_executor = collections.Counter(), collections.defaultdict(collections.Counter)
+        for s in executed:
+            for r in s["receipts"]:
+                if r.get("executed", True) is False:
+                    continue
+                k = rt_failure_kind(r["failure"]) if r["status"] == "failure" else r["status"]
+                kinds[k] += 1
+                by_executor[r["executor"]][k] += 1
+        facts["receipt_kind_counts"] = dict(kinds)
+        facts["receipt_kinds_by_executor"] = {e: dict(c) for e, c in sorted(by_executor.items())}
+        for need in ("LoadingError", "LinkError", "PrepareError(Instantiate)", "PrepareError(Memory)"):
+            if not kinds.get(need):
+                problems.append(f"no receipt failed with {need}")
+        # the boundary pairs straddle nearcore's limit: each `fit` module ran, each `over` one did not load
+        for fit, over in (("s1rtfita", "s1rtovra"), ("s2rtfitb", "s2rtovrb"), ("s3rtfitc", "s3rtovrc")):
+            fk, ok = by_executor.get(fit, {}), by_executor.get(over, {})
+            if "LoadingError" in fk or not (fk.get("value") or fk.get("receipt")):
+                problems.append(f"{fit}: no successful call, or a LoadingError")
+            if not ok.get("LoadingError"):
+                problems.append(f"{over}: no LoadingError")
+        facts["cross_shard_steps"] = len([s for s in executed if s["signer_shard"] != s["receiver_shard"]])
     else:
         kinds = collections.Counter()
         for s in executed:
@@ -195,6 +219,30 @@ def check_family(scenario, steps, headers_rows, metas, sc_list):
     unexecuted = [s["label"] for s in steps if not s["executed"]]
     facts["unexecuted_transactions"] = unexecuted
     return facts, problems
+
+
+def rt_failure_kind(failure):
+    """The function-call failure kind in a failure's debug text: `LoadingError`, `LinkError`,
+    `PrepareError(X)`, `HostError(X)`, `MethodNotFound`, …, or `failure` for anything else."""
+    t = str(failure)
+    # `ExecutionError` strings (`runtime/runtime/src/conversions.rs:70-91`)
+    for text, kind in (("Loading Error:", "LoadingError"), ("Link Error:", "LinkError"),
+                       ("Exceeded the prepaid gas", "HostError(GasExceeded)"),
+                       ("MethodResolveError(MethodNotFound)", "MethodNotFound"),
+                       ("CodeDoesNotExist", "CodeDoesNotExist")):
+        if text in t:
+            return kind
+    m = re.search(r"PrepareError\((\w+)\)", t)
+    if m:
+        return f"PrepareError({m.group(1)})"
+    m = re.search(r"HostError\((\w+)", t)
+    if m:
+        return f"HostError({m.group(1)})"
+    m = re.search(r"FunctionCallError\((\w+)", t)
+    if m:
+        return m.group(1)
+    m = re.search(r"kind: (\w+)", t)
+    return m.group(1) if m else "failure"
 
 
 def collect(run):
@@ -231,7 +279,8 @@ def collect(run):
     for rel, m in metas.items():
         x = m.get("features", {}).get("xfam")
         labels = m.get("tx_labels", []) + m.get("new_tx_labels", [])
-        ran = any(e.get("name") in ("xfam", "xcurve") for e in m.get("executed_contracts", []))
+        ran = any(e.get("name") in ("xfam", "xcurve") or str(e.get("name", "")).startswith("rt")
+                  for e in m.get("executed_contracts", []))
         if scenario == "GenesisTx":
             if x and (x.get("b2_genesis") or int(re.search(r"-h(\d+)-", rel).group(1)) <= 10004):
                 active.add(rel)

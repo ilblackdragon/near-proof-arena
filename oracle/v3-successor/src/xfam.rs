@@ -51,6 +51,7 @@ pub enum Kind {
     GenesisTx,
     GasKeyTarget,
     RollbackRefund,
+    RuntimeErrors,
 }
 
 pub fn kind() -> Option<Kind> {
@@ -61,6 +62,7 @@ pub fn kind() -> Option<Kind> {
         Some(S::GenesisTx) => Some(Kind::GenesisTx),
         Some(S::GasKeyTarget) => Some(Kind::GasKeyTarget),
         Some(S::RollbackRefund) => Some(Kind::RollbackRefund),
+        Some(S::RuntimeErrors) => Some(Kind::RuntimeErrors),
         _ => None,
     }
 }
@@ -446,6 +448,11 @@ pub fn xcurve_wasm() -> &'static [u8] {
 pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
     match kind() {
         Some(Kind::CurveCallbacks) => vec![("xcurve", xcurve_wasm().to_vec())],
+        Some(Kind::RuntimeErrors) => {
+            let mut v = vec![("xfam", xfam_wasm().to_vec())];
+            v.extend(crate::rterr::contracts().iter().cloned());
+            v
+        }
         Some(_) => vec![("xfam", xfam_wasm().to_vec())],
         None => vec![],
     }
@@ -463,7 +470,39 @@ fn accounts() -> Vec<(&'static str, bool)> {
         Some(Kind::GenesisTx) => vec![("s0gx", true), ("s1gx", true), ("s2gx", true), ("s3gx", false), ("s3xnote", true)],
         Some(Kind::GasKeyTarget) => vec![("s0gkt", false), ("s1gkc", true), ("s2gkr", false), ("s3gks", false)],
         Some(Kind::RollbackRefund) => vec![("s0rbg", false), ("s0rbu", false), ("s1rbs", false), ("s2rbt", true), ("s3rbt", true), ("s3xnote", true)],
+        Some(Kind::RuntimeErrors) => RT_ACCOUNTS.iter().map(|(n, c)| (*n, c.is_some())).collect(),
         None => vec![],
+    }
+}
+
+/// `runtime-errors` accounts and their genesis code (`None`: no code; `xfam`: the caller). The
+/// `s<k>rtdep` accounts receive in-chain deployments.
+const RT_ACCOUNTS: &[(&str, Option<&str>)] = &[
+    ("s0rtload", Some("rtload")),
+    ("s1rtfita", Some("rtfita")),
+    ("s1rtovra", Some("rtovra")),
+    ("s2rtfitb", Some("rtfitb")),
+    ("s2rtovrb", Some("rtovrb")),
+    ("s3rtfitc", Some("rtfitc")),
+    ("s3rtovrc", Some("rtovrc")),
+    ("s0rtcombo", Some("rtcombo")),
+    ("s1rtlink", Some("rtunk_nosuch")),
+    ("s2rtbadty", Some("rtbad_storage_write")),
+    ("s3rtx", Some("xfam")),
+    ("s0rtdep", None),
+    ("s1rtdep", None),
+    ("s2rtdep", None),
+    ("s3rtdep", None),
+];
+
+fn account_code(name: &str) -> &'static [u8] {
+    match kind() {
+        Some(Kind::CurveCallbacks) => xcurve_wasm(),
+        Some(Kind::RuntimeErrors) => match RT_ACCOUNTS.iter().find(|(n, _)| *n == name).and_then(|x| x.1) {
+            Some("xfam") | None => xfam_wasm(),
+            Some(c) => crate::rterr::code(c),
+        },
+        _ => xfam_wasm(),
     }
 }
 
@@ -474,8 +513,8 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
         return (records, supply);
     }
     assert!(n_shards >= 4, "the cross-family scenarios need at least 4 shards");
-    let code: &[u8] = if kind() == Some(Kind::CurveCallbacks) { xcurve_wasm() } else { xfam_wasm() };
     for (name, with_code) in accounts() {
+        let code = account_code(name);
         let account_id = acct(name);
         let amount = Balance::from_near(1_000_000);
         let contract = if with_code { AccountContract::Local(CryptoHash::hash_bytes(code)) } else { AccountContract::None };
@@ -923,6 +962,82 @@ fn rollback_refund() -> Vec<Step> {
     v
 }
 
+/// `runtime-errors` (W03): calls into the `src/rterr.rs` contracts directly, across shards, from
+/// `promise_then` chains (the callback records the callee's promise status), with too little gas
+/// for the loading fee, with a missing method, in multi-action receipts, and right after an
+/// in-chain deployment (in the same receipt, so a failed call rolls the deployment back, and in a
+/// later receipt, so the code is served from the committed state).
+fn runtime_errors() -> Vec<Step> {
+    let mut v: Vec<Step> = Vec::new();
+    let mut i = 0usize;
+    let mut push = |v: &mut Vec<Step>, off: u64, name: &str, signer: &str, receiver: &str, actions: Vec<Action>| {
+        v.push(step(off, format!("successor.runtime-errors.{i:02}.{name}"), signer, receiver, actions, How::Main));
+        i += 1;
+    };
+    let gas = |method: &str, g: u64, deposit: u128| {
+        Action::FunctionCall(Box::new(FunctionCallAction {
+            method_name: method.into(),
+            args: vec![],
+            gas: Gas::from_gas(g),
+            deposit: Balance::from_yoctonear(deposit),
+        }))
+    };
+    let main = |deposit: u128| fc("main", vec![], 20, deposit);
+    let emit = |targets: &[(&str, &str)]| {
+        let mut a = vec![2u8, targets.len() as u8];
+        for (t, m) in targets {
+            a.push(t.len() as u8);
+            a.extend(t.as_bytes());
+            a.push(m.len() as u8);
+            a.extend(m.as_bytes());
+        }
+        fc("emit", a, 60, 0)
+    };
+    // direct calls into the genesis contracts (each signed by the contract account itself)
+    for (off, acc) in [(0, "s0rtload"), (0, "s1rtfita"), (0, "s1rtovra"), (1, "s2rtfitb"), (1, "s2rtovrb"),
+                       (1, "s3rtfitc"), (1, "s3rtovrc"), (2, "s0rtcombo"), (2, "s1rtlink"), (2, "s2rtbadty")] {
+        push(&mut v, off, &format!("call.{acc}"), acc, acc, vec![main(NEAR)]);
+    }
+    // cross-shard: a transaction from s3rtx, and promise chains whose callback records the status
+    push(&mut v, 3, "cross-shard-call.s0rtload", "s3rtx", "s0rtload", vec![main(NEAR)]);
+    push(&mut v, 3, "cross-shard-call.s1rtlink", "s3rtx", "s1rtlink", vec![main(NEAR)]);
+    push(&mut v, 4, "emit-then.s0rtload", "s3rtx", "s3rtx", vec![emit(&[("s0rtload", "main")])]);
+    push(&mut v, 5, "emit-then.s1rtlink", "s3rtx", "s3rtx", vec![emit(&[("s1rtlink", "main")])]);
+    push(&mut v, 6, "emit-then.s1rtfita", "s3rtx", "s3rtx", vec![emit(&[("s1rtfita", "main")])]);
+    push(&mut v, 7, "emit-then.s0rtcombo+s2rtovrb", "s3rtx", "s3rtx", vec![emit(&[("s0rtcombo", "main"), ("s2rtovrb", "main")])]);
+    push(&mut v, 8, "emit-then.s2rtbadty+s3rtfitc", "s3rtx", "s3rtx", vec![emit(&[("s2rtbadty", "main"), ("s3rtfitc", "main")])]);
+    // order: loading precedes method resolution; linking precedes it as well
+    push(&mut v, 5, "missing-method.s0rtload", "s0rtload", "s0rtload", vec![fc("absent", vec![], 20, 0)]);
+    push(&mut v, 5, "missing-method.s1rtlink", "s1rtlink", "s1rtlink", vec![fc("absent", vec![], 20, 0)]);
+    push(&mut v, 6, "missing-method.s3rtovrc", "s3rtovrc", "s3rtovrc", vec![fc("absent", vec![], 20, 0)]);
+    // gas below the contract-loading fee
+    push(&mut v, 7, "low-gas.s0rtload", "s0rtload", "s0rtload", vec![gas("main", 1_000_000, 0)]);
+    push(&mut v, 7, "low-gas.s1rtlink", "s1rtlink", "s1rtlink", vec![gas("main", 1_000_000, 0)]);
+    push(&mut v, 8, "low-gas.s1rtfita", "s1rtfita", "s1rtfita", vec![gas("main", 1_000_000, 0)]);
+    push(&mut v, 8, "low-gas.s2rtovrb", "s2rtovrb", "s2rtovrb", vec![gas("main", 1_000_000, 0)]);
+    // multi-action receipts: the failing call stops the receipt and rolls back earlier actions
+    push(&mut v, 9, "transfer-then-call.s1rtovra", "s3rtx", "s1rtovra", vec![tr(NEAR), main(0)]);
+    push(&mut v, 9, "call-then-transfer.s0rtload", "s3rtx", "s0rtload", vec![main(0), tr(NEAR)]);
+    push(&mut v, 10, "call-call.s2rtovrb", "s2rtovrb", "s2rtovrb", vec![main(0), main(0)]);
+    push(&mut v, 10, "call-call.s1rtfita", "s1rtfita", "s1rtfita", vec![main(0), main(0)]);
+    push(&mut v, 11, "transfer-then-call.s1rtlink", "s3rtx", "s1rtlink", vec![tr(NEAR), main(0)]);
+    // in-chain deployments: deploy+call (one receipt), deploy alone, then a call
+    let mut deployed: Vec<&str> = crate::rterr::IMPORTS.iter().map(|(n, _)| *n).collect();
+    deployed.extend(["rtload", "rtload2", "rtcombo", "rtfitunk", "rtfita", "rtovrc"]);
+    let deps = ["s0rtdep", "s1rtdep", "s2rtdep", "s3rtdep"];
+    for (k, name) in deployed.iter().enumerate() {
+        let acc = deps[k % deps.len()];
+        let base = 12 + 9 * (k / deps.len()) as u64;
+        let code = crate::rterr::code(name).to_vec();
+        push(&mut v, base, &format!("deploy-call.{name}.{acc}"), acc, acc,
+             vec![Action::DeployContract(DeployContractAction { code: code.clone() }), main(1000)]);
+        push(&mut v, base + 3, &format!("deploy.{name}.{acc}"), acc, acc,
+             vec![Action::DeployContract(DeployContractAction { code })]);
+        push(&mut v, base + 6, &format!("call-deployed.{name}.{acc}"), "s3rtx", acc, vec![main(1000)]);
+    }
+    v
+}
+
 // ---------------------------------------------------------------------------------------------
 // the driver
 // ---------------------------------------------------------------------------------------------
@@ -945,6 +1060,7 @@ impl Driver {
             Some(Kind::GenesisTx) => (10001, genesis_tx()),
             Some(Kind::GasKeyTarget) => (10004, gaskey_target()),
             Some(Kind::RollbackRefund) => (10004, rollback_refund()),
+            Some(Kind::RuntimeErrors) => (10004, runtime_errors()),
             None => (u64::MAX, vec![]),
         };
         Driver { start, steps, retry: vec![], submitted: vec![], used: HashMap::new() }
@@ -1112,7 +1228,8 @@ pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String], 
         return (true, true);
     }
     let mine = |l: &String| l.starts_with("successor.") && !l.contains(".flood.");
-    let ran = executed.iter().any(|e| e["name"] == "xfam" || e["name"] == "xcurve");
+    let ran = executed.iter().any(|e| e["name"] == "xfam" || e["name"] == "xcurve"
+        || e["name"].as_str().is_some_and(crate::rterr::is_mine));
     let relevant = match k {
         Kind::GenesisTx => height <= 10004 || tx_labels.iter().any(mine),
         _ => ran || tx_labels.iter().any(mine) || new_tx_labels.iter().any(mine),

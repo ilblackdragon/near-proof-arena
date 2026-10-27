@@ -277,15 +277,15 @@ receipt ids, gas burnt and tokens burnt.
 | # | Hazard | Proposed treatment |
 |---|---|---|
 | H1 | Compile success depends on Winch (x86_64) / Cranelift (aarch64) | assumption "every prepared module within limits compiles", tested on real and random contracts |
-| H2 | Concurrency-permit `LinkError` | assumption (unreachable), documented |
+| H2 | Concurrency-permit `LinkError` | host concurrency, not chunk content (W03): `None` needs more than 1,000 live instances and 65,535 failed retries; the count is bounded by the node's thread pools ([runtime-errors](../evidence/lean-chunk-completion/runtime-errors/README.md) §2.2) |
 | H3 | Canonical NaN sign on non-x86 | assumption, plus a per-opcode float difftest on x86_64 |
 | H4 | Native stack overflow before the instrumented limit | assumption, plus a deep-recursion stress test at the 262,144 budget |
 | H5 | Gas-hook burn failure becomes `LinkError` | invariant `prepaid ≤ max_gas_burnt` (prove it from the action-validation spec) |
 | H6 | Error variants are not consensus-observable (B10) | `Rel` may quotient error kinds to the failure bit; the T evidence still compares exact errors |
 | H7 | `bls12381_not_in_group_fix = false` at PV86: the known not-in-group behaviour is *protocol* | specify the buggy behaviour as is (Appendix A) |
 | H8 | Storage-proof-size accounting couples execution to witness recording | model in `RuntimeD3` with the trie layer |
-| H9 | `LoadingError` (corrupted/stale local compiled-contract cache) and `WasmUnknownError` become 0-gas failed outcomes (`function_call.rs:328-337`) | `Rel_D3` is stated under the assumption that neither occurs: a correct node never produces them. The oracle never uses a persistent cache shared across nearcore versions |
-| H10 | Resource errors at instantiation (pooling-allocator exhaustion, mmap failure, the H2 semaphore) fall through `into_vm_error` into `LinkError{msg}` *with* the loading fee (`W:mod.rs:414-419, 1019-1026`) | assumption (never occurs on a correctly provisioned node); H2 is one instance |
+| H9 | `LoadingError` (corrupted/stale local compiled-contract cache) and `WasmUnknownError` become 0-gas failed outcomes (`function_call.rs:328-337`) | W03: the instance-size `LoadingError` **is** reachable from chunk content, independent of cache state, and modelled (`runCallWithLimits`, `loadingLimits`). The other deserialization failures (foreign or corrupted artifact, mmap) are host state. `WasmUnknownError` is unreachable: every wasmtime-45 trap is classified, and epoch interruption and atomics are off ([runtime-errors](../evidence/lean-chunk-completion/runtime-errors/README.md) §2.1, §2.3) |
+| H10 | Resource errors at instantiation (pooling-allocator exhaustion, mmap failure, the H2 semaphore) fall through `into_vm_error` into `LinkError{msg}` *with* the loading fee (`W:mod.rs:414-419, 1019-1026`) | W03: host resources only. `StoreLimits` and the pool cannot refuse a prepared module, and the import `LinkError` (unknown or mistyped `env` import) is chunk content and modelled ([runtime-errors](../evidence/lean-chunk-completion/runtime-errors/README.md) §2.2) |
 | H11 | Winch/Cranelift divergence beyond H1/H3: trap classification, native stack use, float min/max/nearest corners; whether any mainnet validator runs aarch64 is unmeasured | x86_64/Winch pin as a stated protocol assumption; aarch64 leg of the difftest is a recommended addition |
 | H12 | Native stack under *host calls* at maximum WASM depth (pairings, BLS, `ecrecover` near the 262,144 budget) | stress test at checkpoint 3 |
 | H13 | Out-of-gas `burnt_gas` depends on finite-wasm range boundaries once a promise exists (review F1, see §3.3) | AIR commits the finite-wasm point table; no per-instruction metering |

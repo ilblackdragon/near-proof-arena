@@ -1,0 +1,359 @@
+{
+ "total": {
+  "verdict_rows": 33930,
+  "disagreements": 0,
+  "honest": 814,
+  "mutants": 33116,
+  "blind_graded": 814,
+  "blind_pass": true,
+  "ablation_rows": 814,
+  "ablation_detected": 209
+ },
+ "runs": [
+  {
+   "run": "re601",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 601001803, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 90, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 208,
+    "mutants": 8407,
+    "honest_nearcore": {
+     "ok": 208
+    }
+   },
+   "receipt_kind_counts": {
+    "LoadingError": 24,
+    "value": 218,
+    "LinkError": 33,
+    "HostError(GasExceeded)": 2,
+    "PrepareError(Instantiate)": 8,
+    "PrepareError(Memory)": 2
+   },
+   "problems": [],
+   "verdict_rows": 8615,
+   "verdict_partition": {
+    "verdict_compared_agree": 8615
+   },
+   "verdict_disagreements": [],
+   "verdict_by_nearcore": {
+    "nearcore accept / lean accept": 2042,
+    "nearcore reject / lean reject": 6573
+   },
+   "blind": {
+    "pass_": true,
+    "cases": 208,
+    "graded": 208,
+    "counts": {
+     "match": 208
+    },
+    "compared_outputs": [
+     "stateRoot",
+     "outcomeRoot",
+     "gasUsed",
+     "balanceBurnt",
+     "outgoingReceiptsRoot",
+     "proposals",
+     "txRoot",
+     "encodedMerkleRoot",
+     "encodedLength",
+     "congestion",
+     "bwRequests"
+    ]
+   },
+   "ablation": {
+    "rows": 208,
+    "detected": 53,
+    "per_kind": {
+     "HostError(GasExceeded)/missed": 2,
+     "LinkError/detected": 32,
+     "LoadingError/detected": 21,
+     "LoadingError/missed": 1,
+     "PrepareError(Instantiate)/missed": 8,
+     "PrepareError(Memory)/missed": 2
+    }
+   },
+   "honest_by_kind": {
+    "LoadingError": {
+     "honest_cases": 22,
+     "agree": 22
+    },
+    "LinkError": {
+     "honest_cases": 32,
+     "agree": 32
+    },
+    "PrepareError(Instantiate)": {
+     "honest_cases": 8,
+     "agree": 8
+    },
+    "PrepareError(Memory)": {
+     "honest_cases": 2,
+     "agree": 2
+    },
+    "HostError(GasExceeded)": {
+     "honest_cases": 2,
+     "agree": 2
+    }
+   }
+  },
+  {
+   "run": "re602",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 602001812, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 90, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 203,
+    "mutants": 8192,
+    "honest_nearcore": {
+     "ok": 203
+    }
+   },
+   "receipt_kind_counts": {
+    "LoadingError": 24,
+    "value": 218,
+    "LinkError": 33,
+    "HostError(GasExceeded)": 2,
+    "PrepareError(Instantiate)": 8,
+    "PrepareError(Memory)": 2
+   },
+   "problems": [],
+   "verdict_rows": 8395,
+   "verdict_partition": {
+    "verdict_compared_agree": 8395
+   },
+   "verdict_disagreements": [],
+   "verdict_by_nearcore": {
+    "nearcore accept / lean accept": 1996,
+    "nearcore reject / lean reject": 6399
+   },
+   "blind": {
+    "pass_": true,
+    "cases": 203,
+    "graded": 203,
+    "counts": {
+     "match": 203
+    },
+    "compared_outputs": [
+     "stateRoot",
+     "outcomeRoot",
+     "gasUsed",
+     "balanceBurnt",
+     "outgoingReceiptsRoot",
+     "proposals",
+     "txRoot",
+     "encodedMerkleRoot",
+     "encodedLength",
+     "congestion",
+     "bwRequests"
+    ]
+   },
+   "ablation": {
+    "rows": 203,
+    "detected": 52,
+    "per_kind": {
+     "HostError(GasExceeded)/missed": 2,
+     "LinkError/detected": 31,
+     "LoadingError/detected": 21,
+     "LoadingError/missed": 1,
+     "PrepareError(Instantiate)/missed": 8,
+     "PrepareError(Memory)/missed": 2
+    }
+   },
+   "honest_by_kind": {
+    "LoadingError": {
+     "honest_cases": 22,
+     "agree": 22
+    },
+    "LinkError": {
+     "honest_cases": 31,
+     "agree": 31
+    },
+    "PrepareError(Instantiate)": {
+     "honest_cases": 8,
+     "agree": 8
+    },
+    "PrepareError(Memory)": {
+     "honest_cases": 2,
+     "agree": 2
+    },
+    "HostError(GasExceeded)": {
+     "honest_cases": 2,
+     "agree": 2
+    }
+   }
+  },
+  {
+   "run": "re603",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 603001821, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 20, blocks: 90, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 199,
+    "mutants": 8183,
+    "honest_nearcore": {
+     "ok": 199
+    }
+   },
+   "receipt_kind_counts": {
+    "LoadingError": 23,
+    "value": 218,
+    "LinkError": 33,
+    "HostError(GasExceeded)": 2,
+    "PrepareError(Instantiate)": 8,
+    "PrepareError(Memory)": 2
+   },
+   "problems": [],
+   "verdict_rows": 8382,
+   "verdict_partition": {
+    "verdict_compared_agree": 8382
+   },
+   "verdict_disagreements": [],
+   "verdict_by_nearcore": {
+    "nearcore accept / lean accept": 1982,
+    "nearcore reject / lean reject": 6400
+   },
+   "blind": {
+    "pass_": true,
+    "cases": 199,
+    "graded": 199,
+    "counts": {
+     "match": 199
+    },
+    "compared_outputs": [
+     "stateRoot",
+     "outcomeRoot",
+     "gasUsed",
+     "balanceBurnt",
+     "outgoingReceiptsRoot",
+     "proposals",
+     "txRoot",
+     "encodedMerkleRoot",
+     "encodedLength",
+     "congestion",
+     "bwRequests"
+    ]
+   },
+   "ablation": {
+    "rows": 199,
+    "detected": 52,
+    "per_kind": {
+     "HostError(GasExceeded)/missed": 2,
+     "LinkError/detected": 32,
+     "LoadingError/detected": 20,
+     "LoadingError/missed": 1,
+     "PrepareError(Instantiate)/missed": 8,
+     "PrepareError(Memory)/missed": 2
+    }
+   },
+   "honest_by_kind": {
+    "LoadingError": {
+     "honest_cases": 21,
+     "agree": 21
+    },
+    "LinkError": {
+     "honest_cases": 32,
+     "agree": 32
+    },
+    "PrepareError(Instantiate)": {
+     "honest_cases": 8,
+     "agree": 8
+    },
+    "PrepareError(Memory)": {
+     "honest_cases": 2,
+     "agree": 2
+    },
+    "HostError(GasExceeded)": {
+     "honest_cases": 2,
+     "agree": 2
+    }
+   }
+  },
+  {
+   "run": "re604",
+   "chain_params": [
+    "D3Params { base: ChainParams { seed: 604001836, n_shards: 4, seats: 8, gas_limit_tgas: 60, epoch_length: 12, blocks: 90, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "population": {
+    "honest": 204,
+    "mutants": 8334,
+    "honest_nearcore": {
+     "ok": 204
+    }
+   },
+   "receipt_kind_counts": {
+    "LoadingError": 23,
+    "value": 218,
+    "LinkError": 33,
+    "HostError(GasExceeded)": 2,
+    "PrepareError(Instantiate)": 8,
+    "PrepareError(Memory)": 2
+   },
+   "problems": [],
+   "verdict_rows": 8538,
+   "verdict_partition": {
+    "verdict_compared_agree": 8538
+   },
+   "verdict_disagreements": [],
+   "verdict_by_nearcore": {
+    "nearcore accept / lean accept": 2016,
+    "nearcore reject / lean reject": 6522
+   },
+   "blind": {
+    "pass_": true,
+    "cases": 204,
+    "graded": 204,
+    "counts": {
+     "match": 204
+    },
+    "compared_outputs": [
+     "stateRoot",
+     "outcomeRoot",
+     "gasUsed",
+     "balanceBurnt",
+     "outgoingReceiptsRoot",
+     "proposals",
+     "txRoot",
+     "encodedMerkleRoot",
+     "encodedLength",
+     "congestion",
+     "bwRequests"
+    ]
+   },
+   "ablation": {
+    "rows": 204,
+    "detected": 52,
+    "per_kind": {
+     "HostError(GasExceeded)/detected": 1,
+     "HostError(GasExceeded)/missed": 1,
+     "LinkError/detected": 32,
+     "LoadingError/detected": 20,
+     "LoadingError/missed": 1,
+     "PrepareError(Instantiate)/missed": 8,
+     "PrepareError(Memory)/missed": 2
+    }
+   },
+   "honest_by_kind": {
+    "LoadingError": {
+     "honest_cases": 21,
+     "agree": 21
+    },
+    "LinkError": {
+     "honest_cases": 32,
+     "agree": 32
+    },
+    "PrepareError(Instantiate)": {
+     "honest_cases": 8,
+     "agree": 8
+    },
+    "PrepareError(Memory)": {
+     "honest_cases": 2,
+     "agree": 2
+    },
+    "HostError(GasExceeded)": {
+     "honest_cases": 2,
+     "agree": 2
+    }
+   }
+  }
+ ]
+}

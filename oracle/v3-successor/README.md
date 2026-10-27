@@ -189,6 +189,17 @@ dispatchers). Labels are `successor.<scenario>.NN.name` and say what was submitt
   global code, and insufficient deposit), a state init that then emits receipts, a CreateAccount
   with UseGlobalContract whose init fails, local deploy+init success and failure, emitted receipts
   that are rolled back by a panic, emitted receipts to a failing callee, and deposit refunds.
+* `runtime-errors` (W03, contracts in `src/rterr.rs`): a quiet chain (no baseline traffic or
+  crafted injections). Its 101 steps call modules whose instance layout does not fit Wasmtime's
+  pooling allocator (`LoadingError`), and three shapes at nearcore's last fitting global count and
+  at one more. They also call modules with an unknown `env` import (including `burn_gas`,
+  `sleep_nanos`, `sandbox_debug_log` and `finite_wasm_gas`) or a wrongly typed host import
+  (`LinkError`), and imports that preparation rejects (`PrepareError::Instantiate` / `Memory`).
+  The calls come directly, cross-shard, from `promise_then` chains, with too little gas for the
+  loading fee, with a missing method, in multi-action receipts, and after in-chain deployments
+  (deploy+call in one receipt, then deploy alone, then a call). The setup's cache warm-up
+  tolerates the contracts that fail preparation; it caches their compilation error, as nearcore
+  does.
 
 Without `NEAR_SUCCESSOR_SCENARIO` none of this code changes the output (the hooks return early and
 use no RNG). Relevant chunks get the full mutant set. `NEAR_XFAM_MUTATE_EVERY=k` keeps one in k of
