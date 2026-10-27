@@ -89,7 +89,7 @@ def functionCallL (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base)
     accountContract := some (toBA hh) }
   -- trie-backed External over the merged witness values (§4.2, d3-trie-accounting.md)
   let pfx := TTN.contractDataPrefix ctx.currentAccount
-  let ovl : Std.HashMap ByteArray (Option ByteArray) :=
+  let ovl : TTN.BMap (Option ByteArray) :=
     (st.o.committed ++ st.o.prosp).foldl (fun m (k, v) =>
       m.insert (toBA k) (v.map toBA)) {}
   let real : TTN.RealStore := { store := W.dummy, root := toBA env.preRoot, overlay := ovl, pfx }

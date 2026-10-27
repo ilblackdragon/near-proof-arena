@@ -1,6 +1,6 @@
 # Full Lean chunk transition — open work
 
-Status as of 2026-10-27, main at `e8f79b34e`. Target: nearcore 2.13.4
+Status as of 2026-10-27, main at `4382363b7` plus the kernel-map change below. Target: nearcore 2.13.4
 (`44f7ae6cd7ef08bab604e20a473bf77e35d4c993`), PV86, pinned mainnet runtime parameters.
 
 This is the open backlog only. Measured results live in the evidence directories under
@@ -32,6 +32,8 @@ Combined figures are for `nearspec-v3-check-successor --tier allFeatures` built 
 | Corpus-wide **blind** replay, 39,942 non-mutant chunks (checker `29bf5217`) | 39,452 match all 11 header fields, 0 mismatches; 266 genesis, 224 `d2corpus.v2` |
 | Per-outcome observables vs nearcore (17,338 chunks incl. mainnet shard 13) | 0 mismatches over 592,845 outcome fields, 439,552 receipt fields, 617,303 storage changes; 38,061 wrong-observable controls all detected ([full-observables](../evidence/lean-chunk-completion/full-observables/README.md)) |
 | Mainnet shard 13, 1,223 consecutive chunks | verdict 1,223/1,223, blind 1,223/1,223 |
+| Kernel-map change (`TTN.BMap`, checker `b65fe05c…`) re-run | verdict and reject reason unchanged on every case: 235,716 corpus (`allFeatures`), 577 fixtures and 3,138 census (both tiers) |
+| Kernel non-vacuity (`decide +kernel`, no `native_decide`) | `RelD3`, `Tier.rel .allFeatures` on an honest chunk; both negations on a nearcore-rejected mutant; 199 s, 20.7 GB ([§12.1](../../spec/near-chunk-validation-d3.md#121-kernel-non-vacuity)) |
 
 Pinned-nearcore fixture families, each with honest chunks, mutants, blind replay and a deliberate-
 breakage control (agreement with nearcore at `allFeatures`; out-of-domain counts are named races):
@@ -49,8 +51,9 @@ breakage control (agreement with nearcore at `allFeatures`; out-of-domain counts
 | Fuel stress: 300 Tgas burns, stack and memory maxima | 180 | 0 | [fuel-termination](../evidence/lean-chunk-completion/fuel-termination/README.md) |
 
 Proved in this round: tier lifts and genesis overlap (`TierProofs`, `GenesisOverlap`, `TierMono`), fuel monotonicity (more fuel changes only fuel-exhausted runs), curve loop
-bounds, layout reachability at PV86 (`LayoutReach`), and kernel non-vacuity of `RelD3` with its
-negation on real cases (`Examples/RealCaseD3`, run on demand: ~21 GB).
+bounds, layout reachability at PV86 (`LayoutReach`), and kernel non-vacuity of `RelD3` and of
+`Tier.rel .allFeatures`, each with its negation on real cases (`Examples/RealCaseD3`, run on demand:
+~3.5 min, ~21 GB).
 
 ## Decisions taken (2026-10-26)
 
@@ -61,6 +64,16 @@ negation on real cases (`Examples/RealCaseD3`, run on demand: ~21 GB).
 - **ML-DSA-65 signatures** are implemented (FIPS 204 plus `ml_dsa_65_verification_cost`), not excluded.
 - **W13 all-shard replay** waits on a machine the sponsor will provide
   ([runbook](../../tools/mainnet-replay/ALL_SHARDS_RUNBOOK.md)).
+- **D3 kernel non-vacuity runs on demand**, like D1 and D2: `Examples/RealCaseD3` stays out of
+  `defaultTargets` (≈21 GB peak; hosted CI runners have 16 GB). Run it with
+  `HEAVY_MEM=40G /data/illia/nearproof-deps/bin/heavy lake build NearSpecV3.Examples.RealCaseD3`
+  after any change to the checker's definitions.
+- **Kernel-reducible maps.** `Wasm.TTN`'s byte-keyed `Std.HashMap`s (overlay, accounting cache,
+  recorder) became `TTN.BMap`, a `Std.TreeMap` under lexicographic byte order, because the kernel
+  cannot reduce `HashMap` (opaque `ByteArray.hash`, `USize` bucket index). This edits definitions
+  in `checkD3`'s closure without changing their meaning; the signed challenges judge against their
+  frozen trusted tree, which is unaffected. Compiled code's byte order is checked against the
+  reference by `Wasm/CmpBytesTests.lean`.
 
 ## Open work, by what blocks Gate B
 
@@ -77,7 +90,7 @@ negation on real cases (`Examples/RealCaseD3`, run on demand: ~21 GB).
 | 9 | W04 | Float overlap/range proofs, preparation negatives, composition |
 | 10 | W09 | Recorder-link / upper-bound proof (UQ-015) |
 | 11 | W11 | Authentication and correctness/overlap proofs for the split; upgrade segments (PV84→86) are outside the pinned target |
-| 12 | D3 | Successor `allFeatures` kernel non-vacuity: needs a kernel-evaluable read recorder (the hash-map recorder blocks it) |
+| 12 | D3 | Kernel non-vacuity covers one honest chunk (no storage writes) and one code-drop mutant; a storage-writing, multi-receipt or resharding chunk is not yet kernel-checked (WASM preparation's list-backed `ByteArray.extract` limits contract size) |
 | 13 | D1→D3 | `ZkFormal.PQ.Join.WitnessLift` existence (`Coverage.lean:191`); `ArmAgrees` is a hypothesis |
 | 14 | W14–W16 | Frozen validation, Gate A admission, successor release |
 
@@ -237,8 +250,9 @@ split fixtures match nearcore; no valid layout/split exclusion remains.
 ### W12 Full combined relation and tier proofs (integration + L1)
 
 `allFeatures` is the candidate union; the named wide tiers are not cumulative and
-`completeCodeGlobal` is not an ancestor. Open: tier inclusion/monotonicity and old-domain agreement
-proofs; cross-family tests. **Success:** composition and proofs pass on a buildable package.
+`completeCodeGlobal` is not an ancestor. Landed: tier lifts, genesis overlap, cross-family fixtures,
+and kernel non-vacuity of `RelD3` and `Tier.rel .allFeatures`. Open: tier obligations O1–O7 and
+old-domain agreement proofs (open item 4); broader kernel cases (open item 12). **Success:** composition and proofs pass on a buildable package.
 
 ### W13 Authenticated mainnet witness replay (L7)
 

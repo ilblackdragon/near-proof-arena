@@ -1,4 +1,4 @@
-import Std.Data.HashMap
+import Std.Data.TreeMap
 import NearSpecV3.Wasm.Crypto
 
 /-!
@@ -17,12 +17,31 @@ absent); a node missing from the recorded storage is `MissingTrieValue`; node de
 
 namespace NearSpecV3.Wasm.TTN
 
+/-- Lexicographic byte order, the key order of `BMap`. The kernel reduces the list comparison;
+compiled code uses the equal loop `cmpBytesImpl`. -/
+def cmpBytesImpl (a b : ByteArray) : Ordering := Id.run do
+  for i in [0:min a.size b.size] do
+    let x := a.get! i
+    let y := b.get! i
+    if x < y then return .lt
+    if y < x then return .gt
+  return compare a.size b.size
+
+@[implemented_by cmpBytesImpl]
+def cmpBytes (a b : ByteArray) : Ordering := compare a.data.toList b.data.toList
+
+/-- Byte-keyed map of the trie-backed `External` (overlay, accounting cache, recorder set).
+`Std.HashMap` would serve equally (no code iterates these maps), but its bucket index goes through
+`ByteArray.hash` (an `opaque` extern) and `USize`, so the kernel cannot reduce it and
+`decide +kernel` on a chunk that reads state gets stuck. -/
+abbrev BMap (α : Type) := Std.TreeMap ByteArray α cmpBytes
+
 /-- Recorded storage: node or value bytes by SHA-256 (nearcore's `TrieMemoryPartialStorage`). A
 function, so RuntimeD3 can pass the D2 environment's lookup over the merged witness values. -/
 abbrev Store := ByteArray → Option ByteArray
 
 def mkStore (values : List ByteArray) : Store :=
-  let m : Std.HashMap ByteArray ByteArray := values.foldl (fun m v => m.insert (Crypto.sha256 v) v) {}
+  let m : BMap ByteArray := values.foldl (fun m v => m.insert (Crypto.sha256 v) v) {}
   fun h => m.get? h
 
 def leN (d : ByteArray) (off n : Nat) : Nat :=
@@ -123,7 +142,7 @@ def lookup (st : Store) (root : ByteArray) (key : ByteArray) : Except String Loo
 
 /-- `AccountingState` (`ext.rs:645-748`), one per chunk application. -/
 structure Acct where
-  cache : Std.HashMap ByteArray Unit := {}
+  cache : BMap Unit := {}
   db : Nat := 0
   mem : Nat := 0
 
@@ -139,7 +158,7 @@ first recording (`record_with`, :114-130) + 2000 per contract-data removal (`rec
 :140-146, called from `TrieUpdate::remove` for `TrieKey::ContractData`, `update.rs:169-181`).
 Chunk-scoped (`recording_reads_with_proof_size_limit`, `runtime/mod.rs:1258`), never rolled back. -/
 structure Recorder where
-  set : Std.HashMap ByteArray Unit := {}
+  set : BMap Unit := {}
   size : Nat := 0
 
 def Recorder.record (r : Recorder) (h : ByteArray) (len : Nat) : Recorder :=
@@ -159,7 +178,7 @@ the chunk so far (committed receipts + the current receipt's prospective), keyed
 structure RealStore where
   store : Store
   root : ByteArray
-  overlay : Std.HashMap ByteArray (Option ByteArray) := {}
+  overlay : BMap (Option ByteArray) := {}
   acct : Acct := {}
   pfx : ByteArray := .empty
   recd : Recorder := {}

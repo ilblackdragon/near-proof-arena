@@ -11,7 +11,8 @@ usage: gen_realcase_d3.py [--no-successor] CORPORA CASE[:pos|neg] ...
 The polarity defaults to the case's meta.json `expected_rel_d3` and must agree with it. Positive
 cases must be D3-only (`expected_rel_d2 == false`), so each theorem is about the D3 relation, not
 about a D2 chunk that happens to pass D3 as well. A positive case gets two theorems: `RelD3` (the
-signed statement) and `Tier.rel .allFeatures` (the successor). A negative gets `¬ RelD3`.
+signed statement) and `Tier.rel .allFeatures` (the successor). A negative gets `¬ RelD3` and
+`¬ Tier.rel .allFeatures`.
 
 Every theorem is proved by `decide +kernel` on the Bool mirror (`acceptsD3`, `acceptsSuccessor`),
 then transported to the `Prop` by the proved bridges in `RealCaseD3Bridge.lean`. The relation
@@ -80,11 +81,7 @@ def main():
     title = ("# Kernel non-vacuity of `RelD3` and of the `allFeatures` successor relation" if successor
              else "# Kernel non-vacuity of `RelD3` (signed statement)")
     note = [] if successor else [
-          "The successor `allFeatures` theorem is not generated (`--no-successor`): its recorder",
-          "keeps `Std.HashMap ByteArray` sets (`Wasm.TTN.Recorder`, read by",
-          "`Successor.StorageExecution.logged`), and `ByteArray.hash` is an `opaque` extern, so the",
-          "kernel cannot reduce `acceptsSuccessor (Tier.cfg .allFeatures)` on any chunk that reads",
-          "state. See `spec/near-chunk-validation-d3.md` §12.1.", ""]
+          "The successor `allFeatures` theorems are not generated (`--no-successor`).", ""]
     th = ["import NearSpecV3.Examples.RealCaseD3Data", "import NearSpecV3.Examples.RealCaseD3Bridge", "",
           "/-!", title, "",
           "`decide +kernel` evaluates the whole checker (witness decoding, trie reveal, receipt proofs,",
@@ -107,6 +104,11 @@ def main():
             th.append("set_option maxRecDepth 200000 in")
             th.append("theorem acceptsD3_%s : acceptsD3 %s %s = false := by decide +kernel\n" % (n, c, w))
             th.append("theorem not_relD3_%s : ¬ RelD3 %s %s :=\n  not_relD3_of_accepts_false _ _ acceptsD3_%s\n" % (n, c, w, n))
+            if not successor:
+                continue
+            th.append("set_option maxRecDepth 200000 in")
+            th.append("theorem acceptsAllFeatures_%s :\n    acceptsSuccessor (Tier.cfg .allFeatures) %s %s = false := by\n  decide +kernel\n" % (n, c, w))
+            th.append("theorem not_relAllFeatures_%s : ¬ Tier.rel .allFeatures %s %s :=\n  not_tierRel_of_accepts_false _ _ _ acceptsAllFeatures_%s\n" % (n, c, w, n))
     th.append("end NearSpecV3.Examples")
     open(os.path.join(out_dir, "RealCaseD3.lean"), "w").write("\n".join(th) + "\n")
 

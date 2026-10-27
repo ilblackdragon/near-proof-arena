@@ -1,5 +1,5 @@
 import NearSpecV3.D2.TxD2
-import Std.Data.HashMap
+import Std.Data.TreeMap
 
 /-! Opt-in PV86 global codecs. Original D2 pBase/pRcpt remain rejecting. -/
 namespace NearSpecV3.Successor.GlobalCodecs
@@ -64,7 +64,7 @@ def pDsiGlobal : P D3.L4.Dsi := fun bs => do
     let (k, bs) ← pBytes "state_init key" bs
     let (v, bs) ← pBytes "state_init value" bs
     pure ((k,v), bs)) bs
-  let map := entries.foldl (fun (m : Std.HashMap Bytes Bytes) (k,v) => m.insert k v) {}
+  let map := entries.foldl (fun (m : Std.TreeMap Bytes Bytes compare) (k,v) => m.insert k v) {}
   let data := map.toList.mergeSort (fun a b => !bytesLt b.1 a.1)
   let (deposit, bs) ← pU128 "deposit" bs
   pure (⟨⟨code,data⟩,deposit⟩,bs)

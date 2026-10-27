@@ -42,7 +42,7 @@ call; `"overlay"` = drop committed writes between calls. -/
 def replayChunk (cfg : NearCfg) (code : ByteArray) (store : Store) (root : ByteArray)
     (calls : List CallIn) (fuelOf : Nat → Nat) (ablate : String := "") (deltas : Bool := false) :
     List String := Id.run do
-  let mut overlay : Std.HashMap ByteArray (Option ByteArray) := {}
+  let mut overlay : TTN.BMap (Option ByteArray) := {}
   let mut acct : Acct := {}
   let mut recd : Recorder := {}
   let mut out := #[]

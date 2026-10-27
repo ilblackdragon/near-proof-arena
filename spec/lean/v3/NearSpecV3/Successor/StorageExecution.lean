@@ -126,7 +126,7 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
     accountContract := some (toBA hh) }
   -- trie-backed External over the merged witness values (§4.2, d3-trie-accounting.md)
   let pfx := TTN.contractDataPrefix ctx.currentAccount
-  let ovl : Std.HashMap ByteArray (Option ByteArray) :=
+  let ovl : TTN.BMap (Option ByteArray) :=
     (st.o.committed ++ st.o.prosp).foldl (fun m (k, v) =>
       m.insert (toBA k) (v.map toBA)) {}
   let recording ← get

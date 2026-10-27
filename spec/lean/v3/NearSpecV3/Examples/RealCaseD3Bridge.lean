@@ -40,4 +40,11 @@ theorem tierRel_of_accepts (t : NearSpecV3.Successor.Tier) (c w : NearSpec.Bytes
     (h : acceptsSuccessor t.cfg c w = true) : NearSpecV3.Successor.Tier.rel t c w :=
   (relSuccessor_iff_accepts t.cfg c w).2 h
 
+/-- A tier rejects an input when its Bool mirror does. -/
+theorem not_tierRel_of_accepts_false (t : NearSpecV3.Successor.Tier) (c w : NearSpec.Bytes)
+    (h : acceptsSuccessor t.cfg c w = false) : ¬ NearSpecV3.Successor.Tier.rel t c w := by
+  intro hr
+  rw [(relSuccessor_iff_accepts t.cfg c w).1 hr] at h
+  exact Bool.noConfusion h
+
 end NearSpecV3.Examples
