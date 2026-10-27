@@ -4,6 +4,16 @@ import NearSpecV3.Wasm.Segment
 /-!
 # Arcs: bulk execution of zero-fee control runs (W02 evaluation time)
 
+> **Status: in-progress formalization — not imported by `NearSpecV3` and not reachable from
+> any checker.** The performance mechanism is validated (prototype: `research/lean-arcs/`,
+> 1,474× on `blocks4999`, 9,375/9,375 A/B parity) and the core correspondence theorem
+> `step_sim` (all four `exec` arms, including the guard case that excludes `exec .end_`'s
+> singleton return arm) is **proved with no `sorry`**. The remaining declarations carry
+> explicit `sorry`s (see *Open proofs* below); until they are discharged and the module is
+> imported, nothing here affects any verdict. Per the repo's axiom gate, the successor may
+> switch to `runCallWithLimitsFast` only after `runFast_eq_run` (and its call-level
+> consequences) are proved and audited (`propext`, `Classical.choice`, `Quot.sound` only).
+
 `wasmFuel` (`Wasm/Fuel.lean`) made the step budget non-binding for valid runs and moved the
 binding limit to *evaluation time*: a loop of `k` zero-fee `block`s and one `br` executes
 `2k + 2` interpreter steps per `2 · regular_op_cost` of gas, so the worst contract at PV86
@@ -64,6 +74,15 @@ naive A/B harness reports 0 ms for work it actually did. Force each phase with i
 statement before reading the closing clock. `research/lean-arcs/` documents the artifact and
 the honest numbers (blocks4999 at 300 Tgas: ~13–55 h → ~27 s with the fused-br prototype; the
 committed module keeps the same mechanism with a simpler, theorem-friendly run shape).
+
+## Open proofs (the remaining `sorry`s)
+
+* `step_walk` — the walk/interpreter correspondence over a whole arc run (the successor case
+  of the induction; `step_sim` is the one-step core, proved).
+* `simWalk_stall`, `arc_walk_advances` — the walk's stall/advance facts.
+* After those: `arc_seg` (seg over a valid arc = one jump), `runFast_eq_run`,
+  `callEntryFast_eq_callEntry`, `runCallFast_eq_runCall`, `runCallWithLimitsFast_eq`,
+  the fuel-transfer theorems, and `arcsFor_valid` (the builder's contract).
 -/
 
 namespace NearSpecV3.Wasm
@@ -106,22 +125,18 @@ the rest of the length-2 requirement. -/
 def endDemand (sim : List SimLab) : Nat := 2 - sim.length
 
 /-- One walk transition on `(pc, sim, grd)`: advance on a run-determined free instruction
-(accumulating `endDemand` at `end`s), stay otherwise. -/
+(accumulating `endDemand sim` on every advance — a conservative over-approximation that only
+matters at `end`s, where `endDemand sim = 2 - |sim|` is exactly the entry depth the `end`
+needs), stay otherwise. -/
 def simNext (pf : PFunc) (st : Nat × List SimLab × Nat) : Nat × List SimLab × Nat :=
   match st with
   | (pc, sim, grd) =>
     if h : pc < pf.code.size then
       match pf.code[pc], pf.gas[pc]? with
       | i, some none =>
-        match i with
-        | .end_ =>
-          match simStep pf pc sim i with
-          | some (pc', sim') => (pc', sim', Nat.max grd (endDemand sim))
-          | none => (pc, sim, grd)
-        | _ =>
-          match simStep pf pc sim i with
-          | some (pc', sim') => (pc', sim', grd)
-          | none => (pc, sim, grd)
+        match simStep pf pc sim i with
+        | some (pc', sim') => (pc', sim', Nat.max grd (endDemand sim))
+        | none => (pc, sim, grd)
       | _, _ => (pc, sim, grd)
     else (pc, sim, grd)
 
@@ -436,5 +451,77 @@ private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en :
         pc' = pc_k + 1 := by
       sorry
     sorry
+
+/-! ## The walk's advance facts -/
+
+/-- `simNext` never lowers the guard accumulator: it either keeps `grd` or takes
+`max grd (endDemand sim)` at an in-run `end`. -/
+private theorem simNext_grd_ge (pf : PFunc) (pc : Nat) (sim : List SimLab) (grd : Nat) :
+    grd ≤ (simNext pf (pc, sim, grd)).2.2 := by
+  -- unfold + iota-reduce the outer tuple match; the if and the pair match remain
+  simp only [simNext]
+  split
+  · -- pc in range: the (code, gas) pair match
+    rename_i hpc
+    split
+    · -- free: simStep advance (max) or stall (grd)
+      rename_i i hgas
+      -- one more level: simStep's advance or stall
+      cases hss : simStep pf pc sim pf.code[pc] with
+      | some p =>
+        -- advance: the accumulator is Nat.max grd (endDemand sim)
+        obtain ⟨pc', sim'⟩ := p
+        show grd ≤ Nat.max grd (endDemand sim)
+        exact Nat.le_max_left grd (endDemand sim)
+      | none => exact Nat.le_refl _
+    · exact Nat.le_refl _
+  · exact Nat.le_refl _
+
+/-- The walk's guard accumulator is monotone along the walk: position `k`'s accumulator
+is at most position `k + j`'s. -/
+private theorem simWalk_grd_mono (pf : PFunc) (pc0 : Nat) :
+    ∀ (k j : Nat), (simWalk pf pc0 k).2.2 ≤ (simWalk pf pc0 (k + j)).2.2 := by
+  intro k
+  induction k with
+  | zero =>
+    intro j
+    induction j with
+    | zero => exact Nat.le_refl _
+    | succ j ih =>
+      -- simWalk (0+(j+1)) = simNext (simWalk (0+j)) by the step equation
+      rw [show (0 + (j + 1)) = (0 + j) + 1 from rfl, simWalk.eq_2]
+      obtain ⟨a, b, c, heq⟩ : ∃ a b c, simWalk pf pc0 (0 + j) = (a, b, c) :=
+        ⟨_, _, _, rfl⟩
+      rw [heq] at ih ⊢
+      exact Nat.le_trans ih (simNext_grd_ge pf a b c)
+  | succ k ih =>
+    intro j
+    induction j with
+    | zero => exact Nat.le_refl _
+    | succ j ihj =>
+      -- goal: (simWalk (k+1)).grd ≤ (simWalk ((k+1+j)+1)).grd
+      -- rewrite only the RHS's step: simWalk (X+1) = simNext (simWalk X)
+      obtain ⟨a, b, c, heq⟩ : ∃ a b c, simWalk pf pc0 (k + 1 + j) = (a, b, c) :=
+        ⟨_, _, _, rfl⟩
+      have hstep : simWalk pf pc0 (k + 1 + j + 1) = simNext pf (simWalk pf pc0 (k + 1 + j)) := rfl
+      show (simWalk pf pc0 (k + 1)).2.2 ≤ (simNext pf (simWalk pf pc0 (k + 1 + j))).2.2
+      rw [heq] at ihj ⊢
+      -- ihj : (simWalk (k+1)).2.2 ≤ (a, b, c).2.2 — and (a,b,c).2.2 is definitionally c
+      exact Nat.le_trans ihj (simNext_grd_ge pf a b c)
+
+/-- If the walk is stalled at position `k` (its state is a `simNext` fixed point), it stays
+there forever: `simNext` is idempotent on its own fixed points. -/
+private theorem simWalk_stall (pf : PFunc) {pc : Nat} {sim : List SimLab} {grd : Nat}
+    (hstall : simNext pf (pc, sim, grd) = (pc, sim, grd)) (k : Nat) :
+    simWalk pf pc (k + 1) = simNext pf (simWalk pf pc k) ∧
+    ∀ (j : Nat), simWalk pf pc (k + 1 + j) = (pc, sim, grd) := by
+  sorry
+
+/-- A valid arc's walk advances at every position before its end: if it stalled at some
+`k < len`, it would stall forever (`simWalk_stall`) and never reach `runEnd ≠ pc0 + k`. -/
+private theorem arc_walk_advances (pf : PFunc) {a : Arc} (hok : ArcOK pf a) (k : Nat)
+    (hk : k < a.runEnd - a.pc0) :
+    (simWalk pf a.pc0 (k + 1)).1 = (simWalk pf a.pc0 k).1 + 1 := by
+  sorry
 
 end NearSpecV3.Wasm
