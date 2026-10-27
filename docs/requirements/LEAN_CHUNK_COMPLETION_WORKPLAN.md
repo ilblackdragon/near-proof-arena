@@ -1,283 +1,102 @@
-# Full Lean chunk transition — open work
+# Lean chunk validation — what is left
 
-Status as of 2026-10-27, main at `4382363b7` plus the kernel-map change below. Target: nearcore 2.13.4
-(`44f7ae6cd7ef08bab604e20a473bf77e35d4c993`), PV86, pinned mainnet runtime parameters.
+Status 2026-10-27, after the arcs, size-limit, UQ-014 and signed-tier merges. Scope: **stateless
+chunk validation** at PV86 against pinned nearcore 2.13.4 (`44f7ae6c`), mainnet parameters.
+Block/header validity, finality and the epoch manager are out of scope: their answers enter the
+claim as trusted facts ([claim-v3 §2.4](../../spec/claim-v3.md#24-classification-of-every-claim-value)).
+The long form of this file (per-package history and criteria) is in git history (`b6b01df77`) and
+[workplan-review-2026-10-25.md](../evidence/lean-chunk-completion/workplan-review-2026-10-25.md).
+Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md); all three are open.
 
-This is the open backlog only. Measured results live in the evidence directories under
-[`docs/evidence/lean-chunk-completion/`](../evidence/lean-chunk-completion/); the review narrative
-that used to be here (CI repairs, the smoke-table fix, the signed-tier correction) is preserved in
-[`workplan-review-2026-10-25.md`](../evidence/lean-chunk-completion/workplan-review-2026-10-25.md).
-Package IDs are stable: a package stays listed while any criterion is open.
+## TL;DR
 
-The [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md) defines the gates:
-
-- **Gate A:** restricted reference independently checked and admitted live with signed evidence.
-- **Gate B:** one executable transition covers every reachable target case with protocol resource
-  behaviour and complete validation; prover capacity must not exclude valid inputs.
-- **Gate C:** full relation and tiers frozen, independently admitted, packaged and released.
-
-All three are open. AIR/PQ implementation, GPU proving and succinctness are not prerequisites.
-Nearcore correspondence is tested unless a refinement proof is supplied.
-
-## Where the successor stands
-
-Combined figures are for `nearspec-v3-check-successor --tier allFeatures` built from `e8f79b34e`
-(sha256 `bde46d67…`), compared with each case's recorded nearcore verdict.
-
-| Evidence | Result |
-|---|---|
-| All six corpora, 235,716 cases | 235,397 agree; 95 out of domain (preparation-pipeline race), all nearcore-rejected; 224 Lean rejects in `d2corpus.v2`, whose witnesses carry no code and whose `ok` is the producer's verdict, not a cold one. No Lean accept of a nearcore-rejected chunk |
-| All 577 committed fixture cases | 577/577 agree |
-| 3,138-case gap census | `allFeatures` 3,138 accept; `signed` 2,403 out of domain / 735 accept (unchanged) |
-| Corpus-wide **blind** replay, 39,942 non-mutant chunks (checker `29bf5217`) | 39,452 match all 11 header fields, 0 mismatches; 266 genesis, 224 `d2corpus.v2` |
-| Per-outcome observables vs nearcore (17,338 chunks incl. mainnet shard 13) | 0 mismatches over 592,845 outcome fields, 439,552 receipt fields, 617,303 storage changes; 38,061 wrong-observable controls all detected ([full-observables](../evidence/lean-chunk-completion/full-observables/README.md)) |
-| Mainnet shard 13, 1,223 consecutive chunks | verdict 1,223/1,223, blind 1,223/1,223 |
-| Kernel-map change (`TTN.BMap`, checker `b65fe05c…`) re-run | verdict and reject reason unchanged on every case: 235,716 corpus (`allFeatures`), 577 fixtures and 3,138 census (both tiers) |
-| Kernel non-vacuity (`decide +kernel`, no `native_decide`) | `RelD3`, `Tier.rel .allFeatures` on an honest chunk; both negations on a nearcore-rejected mutant; 199 s, 20.7 GB ([§12.1](../../spec/near-chunk-validation-d3.md#121-kernel-non-vacuity)) |
-
-Pinned-nearcore fixture families, each with honest chunks, mutants, blind replay and a deliberate-
-breakage control (agreement with nearcore at `allFeatures`; out-of-domain counts are named races):
-
-| Family | Compared | Disagreements | Evidence |
-|---|---|---|---|
-| Curve hosts (12 alt_bn128/BLS, p256, ecrecover) | 229 verdicts, 181 blind | 0 | [curve-host](../evidence/lean-chunk-completion/curve-host-fixtures/README.md) |
-| Key families, gas keys | 2,925 | 0 | [key-family](../evidence/lean-chunk-completion/key-family-fixtures/README.md) |
-| ML-DSA-65 transactions, delegates, receipt keys | 533 honest + 3,886 mutants | 0 | [mldsa](../evidence/lean-chunk-completion/mldsa-fixtures/README.md) |
-| Yield/resume | 8,834 | 0 | [yield](../evidence/lean-chunk-completion/yield-fixtures/README.md) |
-| Storage limits (one-byte flips) | 3,098 | 0 | [storage-limit](../evidence/lean-chunk-completion/storage-limit-fixtures/README.md) |
-| Real resharding splits (single, consecutive, threshold-driven) | 2,920 honest + 268 mutants | 0 | [resharding](../evidence/lean-chunk-completion/resharding-fixtures/README.md), [resharding-2](../evidence/lean-chunk-completion/resharding-fixtures-2/README.md) |
-| Cross-family: yield under congestion, curve hosts from callbacks, post-genesis transactions, gas-key target side, rollback/refund | 33,182 | 0 (9 race exclusions) | [cross-family](../evidence/lean-chunk-completion/cross-family-fixtures/README.md) |
-| Gate-B boundaries: 8 MiB+ witnesses, 1.8 Pgas chunks, segments to 71 blocks | 1,324 | 0 | [gate-b-caps](../evidence/lean-chunk-completion/gate-b-caps/README.md) |
-| Fuel stress: 300 Tgas burns, stack and memory maxima | 180 | 0 | [fuel-termination](../evidence/lean-chunk-completion/fuel-termination/README.md) |
-
-Proved in this round: tier lifts and genesis overlap (`TierProofs`, `GenesisOverlap`, `TierMono`), fuel monotonicity (more fuel changes only fuel-exhausted runs), curve loop
-bounds, layout reachability at PV86 (`LayoutReach`), and kernel non-vacuity of `RelD3` and of
-`Tier.rel .allFeatures`, each with its negation on real cases (`Examples/RealCaseD3`, run on demand:
-~3.5 min, ~21 GB).
-
-## Decisions taken (2026-10-26)
-
-- **Signed statement (UQ-010).** The secp256k1 delegate widening moved 37 signed-tier verdicts: 35
-  `out_of_domain → accept` on the 3,138 census and 2 high-s `reject → accept`. Nearcore accepts all 37.
-  They are **accepted as a strengthening** of the signed statement
-  ([record](../research/lean-chunk-w00-owner-map.md#32-uq-010-decision-record--the-secp256k1-delegate-strengthening-2026-10-26)).
-- **ML-DSA-65 signatures** are implemented (FIPS 204 plus `ml_dsa_65_verification_cost`), not excluded.
-- **W13 all-shard replay** waits on a machine the sponsor will provide
-  ([runbook](../../tools/mainnet-replay/ALL_SHARDS_RUNBOOK.md)).
-- **D3 kernel non-vacuity runs on demand**, like D1 and D2: `Examples/RealCaseD3` stays out of
-  `defaultTargets` (≈21 GB peak; hosted CI runners have 16 GB). Run it with
-  `HEAVY_MEM=40G /data/illia/nearproof-deps/bin/heavy lake build NearSpecV3.Examples.RealCaseD3`
-  after any change to the checker's definitions.
-- **Kernel-reducible maps.** `Wasm.TTN`'s byte-keyed `Std.HashMap`s (overlay, accounting cache,
-  recorder) became `TTN.BMap`, a `Std.TreeMap` under lexicographic byte order, because the kernel
-  cannot reduce `HashMap` (opaque `ByteArray.hash`, `USize` bucket index). This edits definitions
-  in `checkD3`'s closure without changing their meaning; the signed challenges judge against their
-  frozen trusted tree, which is unaffected. Compiled code's byte order is checked against the
-  reference by `Wasm/CmpBytesTests.lean`.
+- **One checker, two tiers.** `nearspec-v3-check-successor --tier allFeatures` is the full
+  successor; `--tier signed` (`checkD3`/`RelD3`) is the statement of record.
+- **Agreement with cold nearcore (`allFeatures`).** Corpus, 235,716 cases: 235,397 agree, 95 out of
+  domain, 224 Lean rejects in `d2corpus.v2` (those witnesses carry no code and their `ok` is the
+  producer's warm verdict, not a cold one). Fixtures: 640/640 across the committed families
+  ([curve hosts](../evidence/lean-chunk-completion/curve-host-fixtures/README.md),
+  [key families](../evidence/lean-chunk-completion/key-family-fixtures/README.md),
+  [ML-DSA-65](../evidence/lean-chunk-completion/mldsa-fixtures/README.md),
+  [yield](../evidence/lean-chunk-completion/yield-fixtures/README.md),
+  [resharding](../evidence/lean-chunk-completion/resharding-fixtures-2/README.md),
+  [cross-family](../evidence/lean-chunk-completion/cross-family-fixtures/README.md),
+  [Gate-B caps](../evidence/lean-chunk-completion/gate-b-caps/README.md),
+  [runtime errors](../evidence/lean-chunk-completion/runtime-errors/README.md),
+  [size limits](../evidence/lean-chunk-completion/size-limits/README.md), …; each generated family
+  has honest chunks, mutants, blind replay and a deliberate-breakage control). Gap census 3,138/3,138
+  accept. Mainnet shard 13: 1,223/1,223 consecutive chunks. **No Lean accept of a
+  nearcore-rejected chunk anywhere.**
+- **Blind.** Lean computes every header output from the witness: 39,452 corpus chunks match all 11
+  fields; per-outcome observables match on 17,338 chunks with 0 mismatches
+  ([full-observables](../evidence/lean-chunk-completion/full-observables/README.md)).
+- **Out of domain (`allFeatures`):** the 95 preparation-pipeline thread races (nearcore is itself
+  nondeterministic there and rejects all 95), and a cold code fetch over the 64 MiB response cap
+  (`w.code_response_size`: the verdict depends on the validator's cache).
+- **Closed in this round.**
+  - Size limits: Lean takes the compressed witness (`near-arena-cwitness-v3`), decodes zstd, and
+    applies nearcore's 48 MiB encoded / 64 MiB decoded limits exactly
+    ([size-limits](../evidence/lean-chunk-completion/size-limits/README.md)).
+  - UQ-014: every runtime error kind has a disposition. Loading errors and import link errors are
+    modelled; `WasmUnknownError` is unreachable; host-state failures are an environment assumption.
+    Evidence: 33,930 verdicts, 0 disagreements
+    ([runtime-errors](../evidence/lean-chunk-completion/runtime-errors/README.md)).
+  - Signed tier: the 4 valid-chunk rejects are fixed (V3 bandwidth chaining, instance loading
+    limits). Both engines now honour the V2 parent-map buffer rule in bandwidth requests. Before
+    this fix they accepted 21 of 24 mutants that nearcore rejects
+    ([signed-valid-rejects](../evidence/lean-chunk-completion/signed-valid-rejects/README.md)).
+  - Speed: zero-fee control runs execute as proved arcs (`@[csimp]`). The worst loop went from
+    ~10.6 h to ~50 s per 300 Tgas. Verdicts are identical on every population.
+- **Signed tier, corpus.** 112,036 agree and 120,716 agree outside its domain. 2,758 are out of
+  domain, of which 2,513 are oracle-asserted. 206 reject valid chunks: the same code-less
+  `d2corpus.v2` cases. No signed accept of a nearcore reject.
+- **Proved:** tier lifts and genesis overlap, fuel monotonicity, PV86 layout reachability, the
+  arcs fast path, loading-before-execution order, and kernel non-vacuity (`decide +kernel`, no
+  `native_decide`) of `RelD3` and `Tier.rel .allFeatures`, each with its negation on real chunks.
+  Only `propext`, `Classical.choice` and `Quot.sound` are used.
 
 ## Open work, by what blocks Gate B
 
-| # | Package | Open |
+| # | Item | Done when |
 |---|---|---|
-| 1 | W13 | 1,000-block all-shard window (hardware pending); the cold native adapter, without which `make w13-gate` cannot pass; finality/authentication boundary |
-| 2 | W02 | Fuel sufficiency theorem: obligations O-W1b–O-W4 (`Wasm/Fuel.lean`; finite-wasm charges before execution is the largest). Evaluation time: a 300 Tgas receipt of zero-fee control loops needs ~55 h — bulk-skip such runs. Memory: ~106 B per witness byte |
-| 3 | W02 | `w.compressed_size` approximates nearcore's 48 MiB compressed-witness limit (needs a zstd model or an authenticated length); total contract-code size (64 MiB) unmodelled; narrower tiers keep the old caps (UQ-012 tier design) |
-| 4 | W12 | Tier refinement: segment, gas, witness-size, layout and genesis lifts proved for all three shells, the W10 genesis overlap proved, four named tier pairs proved ([tier-proofs](../evidence/lean-chunk-completion/tier-proofs/README.md)); 60 flag-contained tier pairs differ on no case except the two below. Open O1–O7 (floats, curve hosts, global actions, storage resolution, loading limits, resharding on non-genesis segments, complete-code). Signed `checkD3` rejects valid post-split V3 chunks (`InvalidBandwidthRequests`): a stated restriction of the signed statement |
-| 5 | W08 | Historical/warm compiled-cache coherence; `completeCodeGlobal` rejects valid warm-cache chunks (178 on the tier census) and refines no tier; signed D3 tiers keep the pre-state code rule; generator labels race mutants `e.code_cache` |
-| 6 | W00 | Open UQs: 001–004, 007, 010 (`DomainD3` reconciliation), 013–016, 017 (header set); fact authentication; versioned claim/witness schema |
-| 7 | W01 | Failure kinds, per-receipt storage attribution and per-outcome compute are not compared; d1run/d2corpus.v2 lack expected per-outcome values |
-| 8 | W03 | `WasmUnknownError` / resource `LinkError` reachability (UQ-014) |
-| 9 | W04 | Float overlap/range proofs, preparation negatives, composition |
-| 10 | W09 | Recorder-link / upper-bound proof (UQ-015) |
-| 11 | W11 | Authentication and correctness/overlap proofs for the split; upgrade segments (PV84→86) are outside the pinned target |
-| 12 | D3 | Kernel non-vacuity covers one honest chunk (no storage writes) and one code-drop mutant; a storage-writing, multi-receipt or resharding chunk is not yet kernel-checked (WASM preparation's list-backed `ByteArray.extract` limits contract size) |
-| 13 | D1→D3 | `ZkFormal.PQ.Join.WitnessLift` existence (`Coverage.lean:191`); `ArmAgrees` is a hypothesis |
-| 14 | W14–W16 | Frozen validation, Gate A admission, successor release |
+| 1 | **W13 all-shard mainnet replay**, the only real-traffic evidence beyond shard 13. Needs: a 1,000-block all-shard window on the sponsor machine ([runbook](../../tools/mainnet-replay/ALL_SHARDS_RUNBOOK.md), [replay gate](../../tools/mainnet-replay/README.md)), the cold native adapter, and the finality/authentication boundary | `make w13-gate`: 100% coverage, 100% verified matches, 0 mismatches / unsupported / missing / errors (with zero comparisons, `mismatch_percent` is `null`, never a pass) |
+| 2 | **Evaluator speed and memory** (W02/W16). Still slow: push-then-pop and `br_if`-back-edge loops (~3–4 h per 300 Tgas); the zstd decoder (~145 s per MB of entropy-coded witness, hours at 48 MiB); ~106 B of memory per witness byte | every worst-case fixture meets a stated per-chunk time/memory budget |
+| 3 | **Fuel sufficiency theorem** (W02): obligations O-W1b–O-W4 in `Wasm/Fuel.lean`. The largest is finite-wasm charges before execution | proved: no valid execution is rejected as fuel exhaustion |
+| 4 | **Size-limit fixtures** (W02): the 48 MiB encoded boundary is tested at frame level only, and the 64 MiB code-response cap by unit tests only. No whole-chunk fixture exists at either boundary | whole-chunk nearcore fixtures at both boundaries, or a stated reason they cannot be generated |
+| 5 | **Tier refinement** (W12): obligations O1–O7 (floats, curve hosts, global actions, storage resolution, loading limits, resharding on non-genesis segments, complete-code). `completeCodeGlobal` refines no tier | proofs build with the allowed axioms |
+| 6 | **Signed-tier completeness** (UQ-010), where the signed tier excludes valid chunks: (a) a non-empty outgoing buffer to a split parent (`c.same_layout`) and pre-split gating (`c.no_split_gate`); (b) eval-time worst-case loops that exhaust the signed fuel budget (`e.wasm-α … fuel exhausted`, 9 fixtures); (c) the signed `witness.bin` bound (64 MiB including code, `ChallengeChunkV3`), which can exclude code-heavy chunks; (d) `DomainD3` reconciliation | each removed, or accepted by decision as a signed restriction |
+| 7 | **Warm-cache coherence** (W08): historical and warm compiled-cache behaviour. `completeCodeGlobal` rejects 178 valid warm-cache chunks. The generator labels race mutants `e.code_cache` | every code-resolution case is deterministic and justified, or rests on an authenticated input |
+| 8 | **Open UQs** (W00): 001 (cold-cache statement), 002, 003 (NaN payloads), 004 (curve gas pins), 007 (`LegacyEthWallet`), 013 (binding trusted facts), 015 (recorder bound; W09), 016 (action-log equivalence), 017 (genesis header set); versioned claim/witness schema | each has a source-backed disposition and a test or proof |
+| 9 | **Observables** (W01): failure kinds, per-receipt storage attribution, per-outcome compute; expected per-outcome values for d1run/d2corpus.v2; the corpus CI gate on a provisioned runner | every case has an asserted outcome and a full observable comparison |
+| 10 | **Remaining shapes** (W05–W07): curve hosts from timed-out yield callbacks; post-NEP-488 `version = 1`; ML-DSA `z` exactly at the norm bound; mismatched distribution code identities; state init followed by a successful emit | fixtures, or a source-backed unreachability argument |
+| 11 | **Proof debt**: float overlap/range (W04); split correctness and authentication (W11); `WitnessLift` (`Coverage.lean:191`); wider kernel non-vacuity (storage-writing, multi-receipt and resharding cases); `Logged.API`/`D3LSpec` no longer build (`Logged/WasmStepE.lean:185/200`, outside the default build) | proved, with no `sorry` and only the allowed axioms |
+| 12 | **Environment assumptions** (from UQ-014): host-state failures (slot exhaustion, mmap, cache I/O) are assumed absent; the instance-layout model is measured on x86_64 only | stated in the frozen package; aarch64 measured, or excluded by statement |
+| 13 | **W14–W16**: freeze one package and replay everything on it (Gate B); restricted reference admission (Gate A); successor admission and release (Gate C) | signed admissions |
 
-Supporting research that is landed but carries no gate: the eleven `promise_*` encodings and the
-`ripemd160` AIR row (open: `round_agrees`, the rotation bridge, feed-forward/digest rows, the
-`X`-column message binding; see the review record).
+## Decisions in force
 
-## Dependency tree
+- `checkD3`/`RelD3` is the statement of record. Its widenings toward nearcore are accepted as
+  strengthenings: the UQ-010 secp delegates and, on 2026-10-27, V3 bandwidth chaining, instance
+  loading limits and the V2 parent-map rule ([record](../research/lean-chunk-w00-owner-map.md)).
+- ML-DSA-65 is implemented, not excluded. W13 runs on a sponsor-provided all-shard machine.
+- Kernel non-vacuity (`Examples/RealCaseD3`, ~3.5 min, ~21 GB) runs on demand, not in CI:
+  `HEAVY_MEM=40G /data/illia/nearproof-deps/bin/heavy lake build NearSpecV3.Examples.RealCaseD3`.
+- Successor storage maps are `TTN.BMap` (`Std.TreeMap`), so the kernel can evaluate them.
+- The witness may be the compressed bytes as distributed (`near-arena-cwitness-v3`). Lean decodes
+  zstd and applies nearcore's 48 MiB encoded / 64 MiB decoded limits. A chunk whose cold code
+  fetch exceeds the 64 MiB response cap is out of domain (`w.code_response_size`).
+- Zero-fee control runs execute as proved arcs in compiled code only (`@[csimp]`,
+  `Wasm/Arcs.lean`). The spec and the kernel proofs still use single steps.
 
-Arrows are acceptance dependencies, not instructions to wait before coding.
+## Rules for remaining work
 
-```mermaid
-flowchart TD
-    W00["W00 Boundary and schema closure"]
-    W01["W01 Observable comparison and CI evidence"]
-    SEM["W02–W11 Remaining semantics, proofs and family validation"]
-    W12["W12 Combined relation and tier proofs"]
-    CAP["W13 Witness acquisition and claim conversion"]
-    RUN["W13 All-shard replay gate"]
-    W14["W14 Frozen validation / Gate B"]
-    W15["W15 Restricted reference admission / Gate A"]
-    W16["W16 Successor admission and release / Gate C"]
-    W00 --> SEM
-    W00 --> W12
-    SEM --> W12
-    W01 --> W12
-    W00 --> RUN
-    W01 --> RUN
-    W12 --> RUN
-    CAP --> RUN
-    W00 --> W14
-    W01 --> W14
-    W12 --> W14
-    RUN --> W14
-    W14 --> W16
-    W15 -.-> W16
-```
-
-W07/W08 share code-resolution and cache contracts; W07/W11 share obsolete-layout routing (UQ-006);
-W09/W11 share trie accounting. W15's dashed edge means reusable admission tooling only.
-
-## Acceptance requirements for outstanding work
-
-Each remaining semantic change must satisfy transition-plan §5 and:
-
-- Exercise executable successor paths through positive and discriminating negative whole chunks.
-  Imports, standalone helpers and theorems that assume the missing result are insufficient.
-- Bind pinned nearcore source, toolchains, parameters, oracle/checker binaries, inputs and outputs.
-  Distinguish independent native outcomes from derived expectations and Python-reference evidence.
-- Ground truth is pinned nearcore run cold. Produced values (roots, gas, receipts) are never inputs
-  to Lean's computation; Lean computes them and they are compared (`--blind`).
-- Cover each new branch/boundary with deliberate-breakage controls; at least 1,000 generated
-  comparisons per new semantic family across at least four recorded seeds, plus directed tests.
-- Compare computed roots, outcomes, gas/compute, refunds, logs, return data, receipts, writes and
-  rollback. Missing results, crashes, timeouts and unsupported valid cases are not matches.
-- A Lean accept of a nearcore-rejected chunk is a soundness bug. Nondeterminism in nearcore (thread
-  races) is a named out-of-domain reason, never an accept.
-- Build changed declarations and actual drivers; audit transitive axioms. Only `propext`,
-  `Classical.choice` and `Quot.sound`; no `sorryAx`, semantic axioms or `native_decide`.
-- Record package identity, counts/seeds, residual premises and remaining failures.
-
-Shared checker, dispatch, codec, claim schema, root import and Lake target changes need one
-integration owner. Preserve signed definitions and oracle pins (`make pin-check`). A semantic
-correction invalidates affected evidence. Final whole-corpus replay is W14.
-
-## Packages and success criteria
-
-### W00 Boundary inventory and schema closure (L0 + integration)
-
-Settle the canonical predicate, the remaining rejection guards, trusted facts and the 17 UQs in the
-[inventory](../research/lean-chunk-coverage.md); finalize versioned claim/witness extensions and
-boundary-fact contracts. **Success:** every open row/UQ has an owner, a source-backed disposition and
-a test/proof obligation; nothing is relabelled complete to close Gate B.
-
-### W01 Computed observables and CI validation (L7 + integration)
-
-Landed: header-level outputs (`--emit`/`--blind`) and per-outcome observables (`--emit-full`/
-`--blind-full`: outcomes, return data, logs, outgoing and refund receipts, committed storage changes,
-compute) compared with nearcore on 17,338 chunks, with wrong-observable controls. Open: failure kinds,
-per-receipt storage attribution, per-outcome compute; expected values for d1run/d2corpus.v2; the
-corpus-content CI gate on a provisioned runner.
-**Success:** every required case has an asserted outcome and complete observable comparison.
-
-### W02 Protocol capacity and evaluator totality (L1)
-
-Landed: `wasmFuel` from the gas and block limits with monotonicity proofs; every arena cap on
-`allFeatures` lifted or replaced by nearcore's rule (50 limit constants checked against PV86); full
-236,293-case rerun with no drift; boundary and stress fixtures with runtime/memory figures. Open: the
-fuel-sufficiency theorem (O-W1b–O-W4); an exact compressed-witness limit; total code size; evaluator
-speed and memory for W16 budgets; the two 64-draw shuffles (negligible false-reject chance).
-**Success:** no valid execution is rejected as fuel exhaustion or a prover-derived cap.
-
-### W03 Remaining runtime-error semantics (Wasm owner + L7)
-
-Resolve `WasmUnknownError` and resource `LinkError` reachability (including execution-slot retry
-exhaustion) from pinned source. **Success:** no reachable environment failure is assumed absent or
-renamed a domain exclusion.
-
-### W04 Float proof and composition closure (L2)
-
-Chunk-level old/new agreement on the overlap, arithmetic range/fuel obligations, preparation
-negatives, cross-family composition. **Success:** proofs and composition checks pass; engine
-agreement is not presented as an IEEE/nearcore refinement theorem.
-
-### W05 Curve whole-chunk validation (L3)
-
-Landed: all 12 alt_bn128/BLS hosts, `p256_verify`, `ecrecover` as whole chunks, including register
-and out-of-bounds inputs and calls from callbacks and promise chains. Open: calls from timed-out yield
-callbacks; post-NEP-488 `version = 1`. **Success:** every target curve host has whole-chunk parity evidence on every entry path.
-
-### W06 Transaction and delegate key families (L3 key substream)
-
-Landed: secp256k1 tx and delegate verification (high-s rule), ML-DSA-65 keys, signatures
-(`MlDsa65.lean`, pinned to NIST and nearcore vectors) and verification cost on every entry path, the
-key/signature type mismatch, transaction wire size; whole-chunk fixtures with 0 disagreements. Open:
-a `z` coefficient exactly at the norm bound in an otherwise valid signature (cannot be generated). **Success:** every reachable key/signature
-variant decodes and verifies on each entry path with trie parity.
-
-### W07 Remaining actions and hosts (L4)
-
-Landed: global actions, distribution receipts (routed to split children), promise hosts, gas keys
-on both shards, yield/resume including under congestion, rollback/refund/emitted-receipt composition.
-Open: mismatched distribution code identities (with W08); state init followed by a successful emit
-(always `BalanceExceeded` in the generator). **Success:** every required promise/action shape executes on real tries with matching
-fees, nonces, receipts and rollback.
-
-### W08 Cache identity and environment closure (L1 + L4)
-
-Landed: deploy-tracker resolution and the preparation-pipeline rule (`Successor/Pipeline.lean`).
-Open: historical/warm compiled-cache coherence; `completeCodeGlobal` rejects valid warm-cache chunks
-and refines no tier; the pipeline rule in the signed D3 tiers; the cold native adapter for W13; the
-generator's `e.code_cache` label on race mutants. **Success:** every code
-resolution case is deterministic and justified, or rests on an authenticated input.
-
-### W09 Storage boundary validation and bounds (L5)
-
-Landed: one-byte nearcore flips of the per-receipt and chunk soft limits (3,098 verdicts, 0
-disagreements). Open: the recorder-link/upper-bound proof (UQ-015); split and global-code
-composition at the limit. **Success:** independent boundary evidence and observable parity validate
-the accounting.
-
-### W10 Genesis proof and fact closure (L6)
-
-Landed: post-genesis chunks with transactions and implicit transitions; nearcore never builds a
-genesis chunk with transactions (zero tx root), so `tx_valid` on genesis is reachable only empty.
-The genesis/non-genesis overlap is proved (`checkD2CoreGWith_overlap`, `checkD2CoreG_overlap`). Open: genesis fact
-authentication; the UQ-017 header comparison set. **Success:** overlap theorem and transaction-bearing cases pass.
-
-### W11 Resharding boundary validation (L6 resharding substream)
-
-Landed: real dynamic splits (2,920 PV86 witnesses: single, consecutive and threshold-driven splits,
-walks across two layout changes, storage-limit and distribution compositions) with `ReshardCore`/
-`TrieSplit`/`Routing`; UQ-009 closed by `LayoutReach` and the PV84→86 mainnet schedule. Open:
-authentication and correctness/overlap proofs. **Success:** genuine
-split fixtures match nearcore; no valid layout/split exclusion remains.
-
-### W12 Full combined relation and tier proofs (integration + L1)
-
-`allFeatures` is the candidate union; the named wide tiers are not cumulative and
-`completeCodeGlobal` is not an ancestor. Landed: tier lifts, genesis overlap, cross-family fixtures,
-and kernel non-vacuity of `RelD3` and `Tier.rel .allFeatures`. Open: tier obligations O1–O7 and
-old-domain agreement proofs (open item 4); broader kernel cases (open item 12). **Success:** composition and proofs pass on a buildable package.
-
-### W13 Authenticated mainnet witness replay (L7)
-
-Landed: shard-13 diagnostic, blind. Open: the 1,000-block all-shard window (hardware pending); the
-cold native adapter; the finality/authentication boundary. Use the
-[replay gate](../../tools/mainnet-replay/README.md) and
-[capture launcher](../../tools/mainnet-replay/nearcore-capture/README.md). **Success:** `make
-w13-gate` reports 100% replay coverage, 100% verified matches and zero mismatches, unsupported
-cases, missing witnesses or errors. `mismatch_percent` is `null` (N/A) with no comparisons.
-
-### W14 Frozen validation and Gate B (L7 + integration)
-
-Freeze one W12 package; replay D1 53,048, D2 67,384 and D3 115,284 cases plus every fixture set and
-W13 on it; clean builds, axiom/runtime audits, resource measurements; one manifest binding code,
-toolchains, parameters, commands, binaries, inputs and outputs. **Success:** the frozen package meets
-every Gate B obligation.
-
-### W15 Restricted reference admission / Gate A (L8)
-
-Bind the exact restricted relation and trusted tree to artifact hashes, run the configured formal
-checks and conformance, and archive signed live **ADMITTED at formal tier** evidence. Local or
-unsigned PASS is insufficient.
-
-### W16 Full successor admission and release / Gate C (L8 + integration)
-
-Freeze the full relation, tiers, canonical encoding and fact provenance; pin the successor
-challenge; obtain its own signed admission; demonstrate contributor instructions for another proof
-system; authorized release. This workplan does not authorize external release.
+- Ground truth is pinned nearcore run cold. Produced values are never Lean inputs (`--blind`).
+- Each semantic change needs:
+  - whole-chunk positive and negative fixtures (≥ 1,000 comparisons over ≥ 4 seeds per new
+    family);
+  - a deliberate-breakage control;
+  - a before/after verdict table on the corpus, fixtures and census.
+- A Lean accept of a nearcore reject is a soundness bug. Nearcore nondeterminism is a named
+  out-of-domain reason, never an accept.
+- Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
+- Keep `make pin-check` ok (signed sources unchanged).

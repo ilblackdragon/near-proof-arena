@@ -31,7 +31,7 @@ and all seven global/state-init promise hosts. `completeCodeGlobal` adds authent
 witness admission; incomplete-code policy failures are kept separate from raw nearcore verdicts.
 Both new tiers pass 265 targeted comparisons and 83 promise-host chunks each; twelve pinned Rust
 codec vectors and fourteen paired code-witness cases provide additional checks. See the
-[workplan](LEAN_CHUNK_COMPLETION_WORKPLAN.md#w08-cache-identity-and-environment-closure-l1--l4)
+[workplan](LEAN_CHUNK_COMPLETION_WORKPLAN.md#open-work-by-what-blocks-gate-b)
 and [handoff](../logs/lean-chunk-cache-global-2026-10-24.md) for exact counts and scope.
 W05 remains excluded. Gas-key, historical compiled-cache identity, old-layout distribution,
 full observable/proof/composition and release obligations remain; no completion gate is closed.
@@ -61,7 +61,7 @@ the default build. These remaining CI obligations are W01 in the completion work
 captured block heights, all shards' newly included chunks, zero mismatches and full replay coverage.
 Reports include mismatch %, coverage %, verified-match %, missing witnesses and exclusions/errors;
 zero comparisons is mismatch **N/A**, never a passing 0%. See
-[W13 criteria](LEAN_CHUNK_COMPLETION_WORKPLAN.md#w13-authenticated-mainnet-witness-replay-l7) and
+[W13 criteria](LEAN_CHUNK_COMPLETION_WORKPLAN.md#open-work-by-what-blocks-gate-b) and
 [reproduction](../../tools/mainnet-replay/README.md). The initial live probe captured 30 chunks,
 executed zero and correctly failed. W13 is **not satisfied** until actual mainnet witnesses and
 canonical native context are exported and the full gate passes.
