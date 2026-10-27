@@ -1,0 +1,6 @@
+[2m2026-10-27T09:16:09.606802Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m fold k=1 step=2
+[2m2026-10-27T09:16:09.621605Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m regenerated recursion guest provable_macro.rs from rec_memory
+[2m2026-10-27T09:16:09.621661Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m 
+/data/illia/pq-tail-architecture-20261024/jolt-target/ci/jolt build -p recursion-guest --mode std --backtrace off --stack-size 33554432 --heap-size 134217728 -- --release --target-dir /tmp/jolt-guest-targets/recursion-guest-verify --features guest
+[2m2026-10-27T09:17:03.211808Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m Built guest binary with jolt: /tmp/jolt-guest-targets/recursion-guest-verify/riscv64imac-zero-linux-musl/release/recursion-guest
+[2m2026-10-27T09:17:03.211864Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m recursion guest built

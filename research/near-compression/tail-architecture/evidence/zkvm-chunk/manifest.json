@@ -54,6 +54,14 @@
     "audit_synthetic_tries.py": "afa0a75a793a68819b89a01e724db62307a65998ff995e686f9231f096620e81",
     "corpus-trie-census.json": "e847f1fae64500a0630302aa65135daf012820296491b4bf5a72a2b69cc58798",
     "first-full-run.log": "b7d7cb36fb6d732a953c9b9e8288f5b47636e0b09445643bfe69f284de285acf",
+    "fold/Cargo.toml": "f3804af5b1d26cce686df1f2a8e3dc1e1641a0fd8c5e96026674816268cac7ac",
+    "fold/fold-k2-r5.log": "f94133da3ced4b42d94551ecc1e0226c60f395ebc5a6b7ff87e8c78e9d0a1c60",
+    "fold/fold-step1.log": "c0e02dcc818ff3acfdb2b8ad7ee9c6092348298c15e5042643d50790b22c8dff",
+    "fold/fold1-step1.log": "eecd18d6c9992ea62c89b49aac94c25a7208df730c7c075cb5649d254fa70af0",
+    "fold/fold1-step2.log": "b5bf11862b6936b61b6656287f9ba95380331aef4aa430da69b55121414f032e",
+    "fold/main.rs": "e3c5b4908aa102ea8465063e480fc3d6b0387bd75b335e9af119e55b3331a21c",
+    "fold/recursion-guest-provable-macro.rs": "74852c9ed2bfa5ffa49bd640e826aa3bf809bba566d1754cff4aaf501485f723",
+    "fold/run-fold.sh": "f04e414f9b202d3e2aefc92059615049fb86bdb927be7f3aa152827eb9ef41f4",
     "guest-src/Cargo.toml": "0442f3e4492fa69a22daa77f5fd07c91a73ee0496c9d5f4f6ecf3416c83f2878",
     "guest-src/guest-Cargo.toml": "68581b4a07eed075ca2fe8c405d8450ddfe8b7e4c85708810dd6c7205283a7d7",
     "guest-src/src/lib.rs": "0a6c97a0aa39261e448f409a74bc3ff1537755382e914a9339c21a7786139aab",
@@ -75,5 +83,43 @@
     "synthetic/mixed16.bin": "e8f1c0476723db5ac12a0c93d6539b26736076b2c6e9d2147a8057f1ee73ceb4",
     "synthetic/mixed16.json": "8ec00694fe24ffd6f8dfd8f1c6a89c6f35d7cb7d49a8efdc366f5a3acf82a0f6",
     "synthetic-trie-fixtures.rs": "dd75f66913fc29e411e7bc847588b5bb15426c102cff0325ac50b577d3d254d1"
+  },
+  "phase4_fold": {
+    "status": "PHASE4_FOLD_MEASURED_AT_STEP_BOUNDARY_TRACE_INTRACTABLE_NON_PQ",
+    "pcs": "DoryScheme (BN254) \u2014 NON-PQ, confirmed from jolt-sdk/src/host_utils.rs (VerifierPCS = DoryScheme; prove path = jolt_prover::dory::prove) and from the runtime loading ~/.cache/dory/dory_36.urs. The only PQ zkVM numbers in this lane remain JOLT_SCREEN's sha2-chain scales 18/20.",
+    "what_works": {
+      "step1_k2": "two near-chunk proofs proven and outer-verified (198.720 s / 155.917 s under load LA ~4.5-14 \u2014 NOT comparable to the pinned Phase 3 numbers 102.3 s), serialized fold input 3,011,037 B (verifier preprocessing + 2 proofs + 2 devices), postcard-framed 3,011,041 B",
+      "step1_k1": "one near-chunk proof (211.608 s under load), fold input 2,912,738 B, framed 2,912,742 B",
+      "recursion_guest_build": "std-mode RISC-V build works after adding rust-src to the pinned 1.95 toolchain; macro/host MemoryConfig alignment enforced by generating provable_macro.rs from rec_memory in the driver"
+    },
+    "what_failed": {
+      "trace_step": "the in-guest verification of ONE or TWO 98,154 B near-chunk proofs did not complete in any attempt (k=1 and k=2): 40-60+ minute traces, killed externally by the host environment's process-lifetime limit before producing the TRACE row count",
+      "dory_setup_scale": "the recursion preprocessing loads max_log_n=36 \u2014 the fold trace is ~2^36 rows, consistent with in-guest Dory verification of an 8.46M-cycle chunk proof being ~10^10-10^11 guest cycles",
+      "environment": "background processes are killed ~40-60 min after spawn (verified with a canary loop and four fold attempts); the trace phase cannot be checkpointed by the SDK's trace() API",
+      "not_a_code_bug": "step-1 serialization and all inner-proof outer-verifications pass; the stock fibonacci recursion reached Dory preprocessing in the same tree; the failure is trace-phase DURATION, exceeding the environment's process-lifetime window"
+    },
+    "fold_cost_model_from_measurements": {
+      "inner_prove_class": "~102 s per chunk proof at pinned 4 threads (Phase 3 pinned numbers; this session's 156-212 s runs were load-affected)",
+      "fold_input_bytes": "k=1: 2,912,742 B; k=2: 3,011,041 B (marginal ~98 KB per additional proof; the 2.8 MB fixed part is verifier preprocessing)",
+      "in_guest_verify_estimate": "Dory setup max_log_n=36 => the fold statement is 2^36-scale; at the measured guest rate (8.46M rows for the chunk workload; the recursion guest's verification arithmetic is 100-1000x the deserialization) the in-guest verify of one chunk proof is plausibly 10^10-10^11 cycles => trace tens of minutes to hours => fold prove on the order of hours on this CPU. THIS IS AN ESTIMATE, labeled as such; the trace step is what would measure it exactly and it does not fit this environment.",
+      "aggregation_verdict": "zkVM recursive folding of near-chunk-sized proofs is CPU-intractable at this workload scale: the fold costs more than re-verifying the proofs directly (host verify 0.133 s each)."
+    },
+    "bugs_found_and_fixed": [
+      "inventory inline registrations dead-stripped by --gc-sections: the guest crate must be a host dependency for its registration tables to survive (fold driver now depends on near-chunk-guest)",
+      "missing rust-src on the pinned 1.95 toolchain blocked the recursion guest's std-mode build",
+      "macro/host MemoryConfig must match exactly or the emulator MMU faults (driver now generates provable_macro.rs from its rec_memory)",
+      "the recursion guest's verify(bytes) needs postcard framing of the record buffer as a single slice",
+      "the stock recursion example REGENERATES provable_macro.rs on every run \u2014 fold drivers must own the macro file or they build with whatever the last stock run left behind"
+    ],
+    "evidence_sha256": {
+      "Cargo.toml": "f3804af5b1d26cce686df1f2a8e3dc1e1641a0fd8c5e96026674816268cac7ac",
+      "fold-k2-r5.log": "f94133da3ced4b42d94551ecc1e0226c60f395ebc5a6b7ff87e8c78e9d0a1c60",
+      "fold-step1.log": "c0e02dcc818ff3acfdb2b8ad7ee9c6092348298c15e5042643d50790b22c8dff",
+      "fold1-step1.log": "eecd18d6c9992ea62c89b49aac94c25a7208df730c7c075cb5649d254fa70af0",
+      "fold1-step2.log": "b5bf11862b6936b61b6656287f9ba95380331aef4aa430da69b55121414f032e",
+      "main.rs": "e3c5b4908aa102ea8465063e480fc3d6b0387bd75b335e9af119e55b3331a21c",
+      "recursion-guest-provable-macro.rs": "74852c9ed2bfa5ffa49bd640e826aa3bf809bba566d1754cff4aaf501485f723",
+      "run-fold.sh": "f04e414f9b202d3e2aefc92059615049fb86bdb927be7f3aa152827eb9ef41f4"
+    }
   }
 }

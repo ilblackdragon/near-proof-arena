@@ -113,3 +113,26 @@ macro collision) — each now a documented lesson. Timing window was under
 heavy external load (LA 17.5, foreign checker processes): relative ~13%
 gain consistent, absolute numbers invalid until re-measured quiet. See
 PQ_VERIFY_PARALLEL.md and evidence/pq-verify-parallel.
+
+### zkVM benchmark phases 4-5: fold measured at boundary; verdict published (2026-10-27)
+
+Phase 4 fold driver (examples/near-chunk-fold): k=2 fold input 3,011,037 B
+and k=1 2,912,742 B serialized with all inner proofs outer-verified. The
+trace step — in-guest Dory verification of one 98 KB chunk proof — is
+~2^36 scale (dory_36.urs) and does not complete inside this host's
+process-lifetime limit (verified with canaries; the stock fibonacci
+recursion reaches preprocessing in the same tree, so workload-scale, not
+code). Folding verdict: in-guest verification costs more than host
+verification of every chunk (0.133 s each); CPU zkVM folding at chunk
+scale is intractable, and the folding PCS is Dory — non-PQ. Five fold
+mechanics bugs found/fixed (inventory registrations stripped by
+--gc-sections; rust-src missing for std-mode guests; macro/host MemoryConfig
+must match; postcard framing; stock example rewrites the guest macro).
+
+ZKVM_NEAR_CHUNK.md publishes the three-way decision table and go/no-go:
+zkVM = coverage play only (GPU-backed, non-PQ, hours/chunk CPU); custom
+circuit = the only measured PQ path (needs GPU prove port + folded verify
+for the deadlines); witness-replacement alive but unwon — every remaining
+step is measured and enumerated, no unknown unknowns. Phase-4 logs, driver
+source and manifests archived in evidence/zkvm-chunk/fold with verified
+hashes. D0a-transfer-only, composed-PQ, ZK, GPU-unmeasured gaps stated.
