@@ -147,7 +147,7 @@ pub fn genesis_records(
             ("s0cacheright", crate::d3contracts::TINY),
         ],
         Some(Scenario::CurveHosts | Scenario::Keys | Scenario::Mldsa | Scenario::Yield
-             | Scenario::StorageLimits | Scenario::FuelStress
+             | Scenario::StorageLimits | Scenario::FuelStress | Scenario::EvalTime
              | Scenario::GateBCaps) => &[],
         Some(_) => &[],
     };
@@ -210,6 +210,8 @@ pub enum Scenario {
     StorageLimits,
     /// `fuel-stress` (src/scenarios.rs, W02): interpreter-step and non-metered-work maxima.
     FuelStress,
+    /// `eval-time` (src/scenarios.rs, W02): the zero-fee control shapes the Lean arcs target.
+    EvalTime,
     /// cross-family scenarios (src/xfam.rs)
     YieldCongestion,
     CurveCallbacks,
@@ -232,6 +234,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "yield" => Some(Scenario::Yield),
         Ok(value) if value == "storage-limits" => Some(Scenario::StorageLimits),
         Ok(value) if value == "fuel-stress" => Some(Scenario::FuelStress),
+        Ok(value) if value == "eval-time" => Some(Scenario::EvalTime),
         Ok(value) if value == "yield-congestion" => Some(Scenario::YieldCongestion),
         Ok(value) if value == "curve-callbacks" => Some(Scenario::CurveCallbacks),
         Ok(value) if value == "genesis-tx" => Some(Scenario::GenesisTx),

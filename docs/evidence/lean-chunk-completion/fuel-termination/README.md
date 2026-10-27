@@ -138,6 +138,16 @@ same gas in the cheapest *costly* instruction takes about 0.33·10⁹ steps (~40
 prover-independent budget must either accept this 10⁴ spread or have the interpreter skip
 zero-fee control instructions in bulk, for example by precomputing `block`/`end` runs.
 
+**Update (W02 evaluation time, `../eval-time/`).** The compiled checker now skips zero-fee
+control runs in bulk. `Wasm/Arcs.lean` proves `runFast = run` for every fuel and installs
+`runCall`/`runCallWithLimits`/`callEntry`/`outcome` replacements as `@[csimp]` lemmas. No
+definition changed and no verdict moved: 577 + 577 fixtures, 3,138 × 2 census and 235,716 corpus
+cases are identical. On this table's fixtures, `blocks4999` 0.3 Tgas takes 38.3 s → 0.07 s,
+`blocks200` 5 Tgas 28.4 s → 0.40 s, and `nops` 300 Tgas 7.1 s → 3.4 s. A pinned-nearcore
+`blocks4999` **300 Tgas** chunk now accepts in 49.6 s on a loaded host, against about 10.6 h
+single-stepped. Still open: shapes that keep many pushed labels across a charged group
+(`pushpop4999`) are only 2–3× faster.
+
 ## 5. Corpus verdict movement
 
 The population is the 3,138-case gap census: `nearcore == "ok" ∧ expected_rel_d3 == false` over
@@ -167,7 +177,8 @@ By `successorFuel_moves_only_exhausted`, a census case could move only if it was
 * #11 and #12 are argued, not mechanized.
 * The signed `D3.functionCall` keeps the insufficient legacy budget (out of domain on the §1
   inputs).
-* Evaluation time at protocol scale (§4).
+* Evaluation time at protocol scale (§4): bulk skipping of zero-fee runs is done
+  (`../eval-time/`). Label-heavy push/pop shapes remain about 3–4 h per 300 Tgas.
 
 ## Reproduce
 

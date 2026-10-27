@@ -1,6 +1,7 @@
 import NearSpecV3.D2.Receipts
 import NearSpecV3.ChunkValidationD2
 import NearSpecV3.Wasm.Exec
+import NearSpecV3.Wasm.Arcs
 
 /-!
 # RuntimeD3: WASM execution behind D2's `ActionHooks.functionCall`

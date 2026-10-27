@@ -10,3 +10,11 @@ path = "../../spec/lean/v3"
 name = "arcproto"
 root = "ArcProto"
 supportInterpreter = true
+
+[[lean_exe]]
+name = "arcprobe"
+root = "ArcProbe"
+
+[[lean_exe]]
+name = "arcprobe-old"
+root = "ArcProbeOld"

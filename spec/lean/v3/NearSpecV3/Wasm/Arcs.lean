@@ -4,524 +4,893 @@ import NearSpecV3.Wasm.Segment
 /-!
 # Arcs: bulk execution of zero-fee control runs (W02 evaluation time)
 
-> **Status: in-progress formalization — not imported by `NearSpecV3` and not reachable from
-> any checker.** The performance mechanism is validated (prototype: `research/lean-arcs/`,
-> 1,474× on `blocks4999`, 9,375/9,375 A/B parity) and the core correspondence theorem
-> `step_sim` (all four `exec` arms, including the guard case that excludes `exec .end_`'s
-> singleton return arm) is **proved with no `sorry`**. The remaining declarations carry
-> explicit `sorry`s (see *Open proofs* below); until they are discharged and the module is
-> imported, nothing here affects any verdict. Per the repo's axiom gate, the successor may
-> switch to `runCallWithLimitsFast` only after `runFast_eq_run` (and its call-level
-> consequences) are proved and audited (`propext`, `Classical.choice`, `Quot.sound` only).
-
 `wasmFuel` (`Wasm/Fuel.lean`) made the step budget non-binding for valid runs and moved the
-binding limit to *evaluation time*: a loop of `k` zero-fee `block`s and one `br` executes
-`2k + 2` interpreter steps per `2 · regular_op_cost` of gas, so the worst contract at PV86
-(`k = 4,999`) spends ~5.7·10⁹ steps per Tgas — ~55 h for a 300 Tgas receipt at the measured
-8–9 M steps/s. The evidence README proposes skipping zero-fee control instructions in bulk
-(`docs/evidence/lean-chunk-completion/fuel-termination/README.md` §4).
+binding limit to *evaluation time*: a loop of `k` zero-fee `block`/`end` pairs and one `br`
+executes `2k + 2` interpreter steps per `2 · regular_op_cost` of gas, so the worst contract at
+PV86 (`k = 4,999`) spends ~5.7·10⁹ steps per Tgas (`docs/evidence/lean-chunk-completion/
+fuel-termination/README.md` §4). This module removes that cost **without changing a single step
+of the semantics**:
 
-This module does that **without changing a single step of the semantics**. The observations:
+* `run`, `callEntry`, `runCall`, `runCallWithLimits` and `outcome` (`Wasm/Exec.lean`) stay the
+  definitions. Every relation (`RelD3`, `Tier.rel`), kernel non-vacuity theorem and existing proof
+  is about them and is untouched.
+* `runFast` executes a precomputed **arc** — a maximal run of free `block`/`loop`/`end`/`nop`
+  instructions, optionally fused with the `br` that ends it — as one jump, and is otherwise
+  `step` by `step`. An arc consumes exactly the fuel of the single steps it replaces.
+* `runFast_eq_run`: `runFast = run` for **every** fuel, configuration and state, given a valid arc
+  table; `arcsOf_valid`: the builder's table is valid. So `callEntry = callEntryArcs`,
+  `runCall = runCallFast`, `runCallWithLimits = runCallWithLimitsFast` and
+  `outcome = outcomeFast` hold unconditionally, and they are registered as `@[csimp]` lemmas.
+  A `@[csimp]` lemma rewrites references in code compiled *after* it is in scope, so the
+  compiled callers import this module: `Wasm/ChunkStorage` and `D3/FunctionCall` (and through it
+  `Successor/StorageExecution`, `Logged/D3L` and the successor checker), and `MainRuntime`.
+  The kernel and every proof only ever see the original definitions. `run` itself has no
+  `@[csimp]` replacement (the table would be rebuilt on every `run` call); compiled code that
+  calls `run` directly, and the logged mirror `Logged/WasmRun.runL` (its own step loop), still
+  single-step.
 
-* `block`, `loop`, `end` and `nop` are the only instructions that are free (gas-table entry
-  `none`) and cannot touch the value stack, locals, globals, memory, gas or host state.
-  (`else` reads and pops the label list; everything else either carries a fee or reads the
-  value stack, so a run stops at it.)
-* Inside such a run the machine state changes only in the top frame's `pc` and `labels`, and
-  the only label field a run can set is `height`, which is the entry value-stack height.
-* If the run never pops an *entry* label (every `end` pops a label the run pushed), its net
-  effect is one jump: `pc := runEnd`, `labels := pushes ++ entry`.
+Axioms: `propext`, `Classical.choice`, `Quot.sound` only (`#print axioms` at the end).
 
-So one **arc** — a jump over the run — replaces `len = runEnd − pc0` single steps and consumes
-the same `len` fuel. `runFast` is *proved equal to `run` for every fuel* (`runFast_eq_run`),
-so the fuel theorems of `Wasm/Fuel.lean` transfer verbatim to the fast layer
-(`runFast_fuel_le`, `runCallFast_eq_runCall`, `runCallWithLimitsFast_eq_runCallWithLimits`,
-`successorFuel_moves_only_exhausted_fast`): the W02 statement keeps its exact meaning.
+## Why a run is a jump
 
-Everything is additive: `Exec.step`, `Exec.run`, `Exec.runCall`, `Prepare` and `FiniteWasm`
-are untouched, the signed `D3` path never sees an arc, and the successor switches wholesale
-(`Successor/StorageExecution.lean` calls `runCallWithLimitsFast`).
+`block`, `loop`, `end` and `nop` never read or write the value stack, locals, globals, memory,
+gas or host state; when free (gas-table entry `none`) a step of one of them changes only the top
+frame's `pc` (to `pc + 1`) and its label list. Read back to front, a run is a label-list
+transformer: drop `pops` entry labels, push `pushes` labels whose `height` is the (constant)
+value-stack size. The only runtime condition is the **guard** `guard ≤ labels.length`: it makes
+every in-run `end` take `exec .end_`'s pop arm (the singleton/empty arms would return from the
+function) and, for a fused `br l`, makes `doBr` take the branch arm (not `doReturn`).
 
-## Why the runs are "determined", and the one runtime condition
+The builder computes, in one backward pass per function, the arc of **every** pc of a run (the
+arc of `pc` is the arc of `pc + 1` extended by the instruction at `pc`, `extend`): a branch that
+lands in the middle of a run still finds an arc. Pushes are stored bottom-first so that the
+extension is O(1) and arcs of one run share their push lists.
 
-`simStep` below is the *conservative abstract simulator* of one free instruction: it returns
-`none` unless executing that instruction is definitionally a `.cont` whose label effect the
-simulator reproduces exactly. It returns `none` for every non-run instruction, for an `end`
-that would pop an entry label (empty simulator stack), and for a `block` whose `endOf` entry
-is missing. A run the simulator walks through therefore consists solely of steps that
-`Exec.step` turns into `.cont` (given the entry label list is nonempty, so that `exec .end_`'s
-terminal `[_]` singleton arm cannot fire: at an in-run `end` the list is `runLabels ++ entry`
-with `entry` nonempty, hence of length ≥ 2). The runtime fire condition is exactly that
-nonempty check — an O(1) match; the structurally-degenerate empty case single-steps.
+## Fused `br`
 
-## The proof architecture
+When the run ends at `br l`, the arc also executes the branch. A loop back-edge discards the
+labels the run pushed, so the fused arc never materializes them (`brFast`): the per-iteration
+cost of `blocks4999` is O(1) instead of O(run length). A charge point on the `br` keeps the real
+`charge` call; if it does not continue (out of gas, overflow) the arc falls back to `step` on
+the exact single-stepped state, so the failure result is the single-stepped one by definition.
 
-* `simWalk pf pc0 k` iterates `simNext` (which applies `simStep`) `k` times from `(pc0, [])`.
-* `ArcOK pf a`: the walk from `pc0` advances through all `len` instructions of `[pc0, runEnd)`
-  and lands exactly on `(runEnd, pushes)`.
-* `step_walk`: the `k`-th single step of a valid arc's run is `.cont` of the `(k+1)`-th walk
-  state (the four `exec` arms, by the observations above).
-* `arc_seg`: chaining `step_walk`: `seg len s = .cont (applyArc s f a)`.
-* `runFast_eq_run`: `runFast` mirrors `run`'s fuel recursion; an arc fire substitutes
-  `arc_seg` + `run_seg` (`Wasm/Segment.lean`), every other path single-steps identically.
-* `arcsFor_valid`: the builder (a scan whose in-run transition *is* `simNext`) emits only
-  `ArcOK` arcs, at their start pc.
+## Cost and limits
 
-## Measurement discipline
+The table is built once per call (`runCallFast`), one backward pass per function: O(code size),
+≈ 5 ms for a 10,000-instruction function. `runFast` looks the table up only at a free run
+instruction, so a step of any other instruction costs what `step` costs.
 
-`IO.monoMsNow` timing inside one `IO` block floats pure `let`s between the clock reads, so a
-naive A/B harness reports 0 ms for work it actually did. Force each phase with its own `IO`
-statement before reading the closing clock. `research/lean-arcs/` documents the artifact and
-the honest numbers (blocks4999 at 300 Tgas: ~13–55 h → ~27 s with the fused-br prototype; the
-committed module keeps the same mechanism with a simpler, theorem-friendly run shape).
-
-## Open proofs (the remaining `sorry`s)
-
-* `step_walk` — the walk/interpreter correspondence over a whole arc run (the successor case
-  of the induction; `step_sim` is the one-step core, proved).
-* `simWalk_stall`, `arc_walk_advances` — the walk's stall/advance facts.
-* After those: `arc_seg` (seg over a valid arc = one jump), `runFast_eq_run`,
-  `callEntryFast_eq_callEntry`, `runCallFast_eq_runCall`, `runCallWithLimitsFast_eq`,
-  the fuel-transfer theorems, and `arcsFor_valid` (the builder's contract).
+Label lists are `List Label`, so an arc that *keeps* `m` pushed labels still materializes them
+(O(m)), and a `br_if`/`br_table` is never fused (it reads the value stack). A contract that
+pushes many labels in one run and pops them in another, separated by a charged instruction,
+still costs O(`max_blocks_per_function`) list cells per iteration: ~3× faster than
+single-stepping, not O(1). Measurements: `docs/evidence/lean-chunk-completion/eval-time/`.
 -/
 
 namespace NearSpecV3.Wasm
 
-/-! ## The conservative simulator
+/-! ## Run cores -/
 
-The walk state is `(pc, sim, grd)`: the current pc, the labels the run has pushed and not
-popped (top-first), and the **guard demand**: `grd` accumulates, over the run's `end`
-instructions, the minimum entry-label depth the run needs. At an in-run `end` the label list
-is `matLabels H sim ++ en`; `exec .end_` takes the pop arm iff its length is at least 2, i.e.
-`|sim| + |en| ≥ 2`. So an `end` at simulator depth `|sim|` demands `|en| ≥ 2 − |sim|`
-(`0` when `|sim| ≥ 2`). The arc's `guard` is the maximum demand; the runtime fire condition
-`labels.length ≥ guard` (at the fire point `sim = []`, so `labels = en`) discharges every
-demand. Without it, a run could reach an `end` with a singleton label list at function top
-level and *return* instead of advancing — the guard is what makes the run's effect a pure
-jump. -/
-
-/-- The abstract label bookkeeping of a run: `(target, arity, isLoop)`. -/
+/-- A label pushed by a run, without its height: `(target, arity, isLoop)`. -/
 abbrev SimLab := Nat × Nat × Bool
 
-/-- One simulated free instruction on `(pc, sim)`, returning `(pc', sim')` or `none` when the
-instruction is not *run-determined* (not a run instruction; an `end` that would pop an entry
-label — empty `sim`; a `block` whose `endOf` entry is missing). -/
-def simStep (pf : PFunc) (pc : Nat) (sim : List SimLab) (i : Instr) : Option (Nat × List SimLab) :=
-  match i with
-  | .block bt =>
-    match pf.endOf[pc]? with
-    | some e => some (pc + 1, (e + 1, (btResults bt).size, false) :: sim)
-    | none => none
-  | .loop _ => some (pc + 1, (pc + 1, 0, true) :: sim)
-  | .nop => some (pc + 1, sim)
-  | .end_ =>
-    match sim with
-    | _ :: t => some (pc + 1, t)
-    | [] => none
-  | _ => none
+/-- Materialize a pushed label at value-stack height `H`. -/
+def SimLab.mk (H : Nat) : SimLab → Label
+  | (t, ar, lp) => { target := t, arity := ar, height := H, isLoop := lp }
 
-/-- The guard demand one `end` at simulator depth `|sim|` adds: the entry labels must supply
-the rest of the length-2 requirement. -/
-def endDemand (sim : List SimLab) : Nat := 2 - sim.length
+/-- Materialize bottom-first pushes onto the label list `L` (the last element ends on top). -/
+def matOnto (H : Nat) : List SimLab → List Label → List Label
+  | [], L => L
+  | x :: r, L => matOnto H r (SimLab.mk H x :: L)
 
-/-- One walk transition on `(pc, sim, grd)`: advance on a run-determined free instruction
-(accumulating `endDemand sim` on every advance — a conservative over-approximation that only
-matters at `end`s, where `endDemand sim = 2 - |sim|` is exactly the entry depth the `end`
-needs), stay otherwise. -/
-def simNext (pf : PFunc) (st : Nat × List SimLab × Nat) : Nat × List SimLab × Nat :=
-  match st with
-  | (pc, sim, grd) =>
-    if h : pc < pf.code.size then
-      match pf.code[pc], pf.gas[pc]? with
-      | i, some none =>
-        match simStep pf pc sim i with
-        | some (pc', sim') => (pc', sim', Nat.max grd (endDemand sim))
-        | none => (pc, sim, grd)
-      | _, _ => (pc, sim, grd)
-    else (pc, sim, grd)
-
-/-- The walk from `pc0`: `simWalk pf pc0 k` applies `simNext` `k` times to `(pc0, [], 0)`. -/
-def simWalk (pf : PFunc) (pc0 : Nat) : Nat → Nat × List SimLab × Nat
-  | 0 => (pc0, [], 0)
-  | k + 1 => simNext pf (simWalk pf pc0 k)
-
-/-! ## Arcs -/
-
-/-- A precomputed shortcut over a run of free `block`/`loop`/`end`/`nop` instructions. -/
-structure Arc where
-  /-- the run's start pc; the arc is stored at this index of the per-function table -/
-  pc0 : Nat
-  /-- the first pc after the run (the arc's landing pc) -/
-  runEnd : Nat
-  /-- the labels the run pushes, top-first: `(target, arity, isLoop)`; `height` is the entry
-  value-stack size at fire time -/
+/-- The net effect of a run of `len` free control instructions: drop `pops` entry labels, then
+push `pushes` (bottom-first, `nPush` of them). `grd` is the entry label depth the run needs. -/
+structure Core where
+  len : Nat
   pushes : List SimLab
-  /-- minimum entry-label depth the run needs (see the simulator doc): the fire condition
-  `labels.length ≥ guard` makes every in-run `end` take `exec`'s pop arm -/
-  guard : Nat
+  nPush : Nat
+  pops : Nat
+  grd : Nat
   deriving Inhabited, Repr
 
-/-- Materialize the run's pushed labels with the given value-stack height. -/
-def matLabels (H : Nat) : List SimLab → List Label
-  | [] => []
-  | (t, ar, lp) :: rest => { target := t, arity := ar, height := H, isLoop := lp } :: matLabels H rest
+def Core.empty : Core := ⟨0, [], 0, 0, 0⟩
 
-/-- The net effect of executing the whole run from state `s`: the top frame's `pc` moves to
-`runEnd` and its labels become `matLabels H pushes ++ entry`; the rest of `s` is unchanged. -/
-def applyArc (s : St) (f : Frame) (a : Arc) : St :=
-  setFrame s { f with pc := a.runEnd, labels := matLabels s.stack.size a.pushes ++ f.labels }
+/-- Prepend an instruction that pushes `x` to the run `c`. -/
+def Core.push (c : Core) (x : SimLab) : Core :=
+  match c.pops with
+  | 0 => { c with len := c.len + 1, pushes := x :: c.pushes, nPush := c.nPush + 1, grd := c.grd - 1 }
+  | k + 1 => { c with len := c.len + 1, pops := k, grd := c.grd - 1 }
 
-/-- Fuel an arc consumes: its run's single steps. -/
-def Arc.len (a : Arc) : Nat := a.runEnd - a.pc0
+/-- Prepend the instruction at `pc` to the run `c` that starts at `pc + 1`; `none` unless that
+instruction is a free `block` (with an `endOf` entry), `loop`, `nop` or `end`. -/
+def extend (pf : PFunc) (pc : Nat) (c : Core) : Option Core :=
+  match pf.gas[pc]? with
+  | some none =>
+    match pf.code[pc]? with
+    | some (.block bt) =>
+      match pf.endOf[pc]? with
+      | some e => some (c.push (e + 1, (btResults bt).size, false))
+      | none => none
+    | some (.loop _) => some (c.push (pc + 1, 0, true))
+    | some .nop => some { c with len := c.len + 1 }
+    | some .end_ => some { c with len := c.len + 1, pops := c.pops + 1, grd := Nat.max 2 (c.grd + 1) }
+    | _ => none
+  | _ => none
 
-/-! ### Validity (the builder's contract) -/
+/-- The run of length `k` from `pc`, if the `k` instructions at `pc …` are all run instructions. -/
+def runFrom (pf : PFunc) (pc : Nat) : Nat → Option Core
+  | 0 => some Core.empty
+  | k + 1 => (runFrom pf (pc + 1) k).bind (extend pf pc)
 
-/-- `a` describes a real run of `pf`: it starts below its end, ends within the code, and the
-conservative walk from `pc0` advances through all `len = runEnd − pc0` instructions and lands
-exactly on `(runEnd, pushes)`. -/
-def ArcOK (pf : PFunc) (a : Arc) : Prop :=
-  a.pc0 < a.runEnd ∧ a.runEnd ≤ pf.code.size ∧
-    simWalk pf a.pc0 (a.runEnd - a.pc0) = (a.runEnd, a.pushes, a.guard)
+/-! ## Arcs and their validity -/
 
-/-- The per-function table is valid for `pf`: every stored arc is `ArcOK` and sits at its
-start pc. -/
-def ArcsOK (pf : PFunc) (row : Array (Option Arc)) : Prop :=
-  ∀ (pc : Nat) (a : Arc), row[pc]? = some a → a.pc0 = pc ∧ ArcOK pf a
+/-- An arc: a run, the guard to fire it, and the fused `br l` at the run's end with its gas-table
+entry (if the run ends at a `br`). -/
+structure Arc where
+  core : Core
+  guard : Nat
+  br : Option (Nat × Option (IK × Fee))
+  deriving Inhabited
 
-/-- The whole table matches the prepared module: row `fn` is valid for `p.funcs[fn]`. -/
-def arcsValidFor (p : Prepared) (arcs : Array (Array (Option Arc))) : Prop :=
+/-- `a` is a correct arc of `pf` at `pc`. -/
+def ArcOK (pf : PFunc) (pc : Nat) (a : Arc) : Prop :=
+  0 < a.core.len ∧ runFrom pf pc a.core.len = some a.core ∧ a.core.grd ≤ a.guard ∧
+    match a.br with
+    | none => True
+    | some (l, g) => pf.code[pc + a.core.len]? = some (.br l) ∧ pf.gas[pc + a.core.len]? = some g ∧
+        a.core.pops + l + 2 - a.core.nPush ≤ a.guard
+
+/-- A table whose row `fn` holds correct arcs of `p.funcs[fn]`. -/
+def ArcsValid (p : Prepared) (arcs : Array (Array (Option Arc))) : Prop :=
   ∀ (fn : Nat) (row : Array (Option Arc)), arcs[fn]? = some row →
-    ∃ pf, p.funcs[fn]? = some pf ∧ ArcsOK pf row
+    ∃ pf, p.funcs[fn]? = some pf ∧ ∀ (pc : Nat) (a : Arc), row[pc]? = some (some a) → ArcOK pf pc a
 
-/-! ### The builder
+/-! ## The builder -/
 
-One linear scan. At a pc whose walk advances, the run extends to the first stall of `simNext`
-(the walk with the full remaining budget stops there, because a stalled state is a fixed
-point); the arc is `(pc, runEnd, walk pushes)`. The scan then continues at `runEnd`, so runs
-are maximal and disjoint. Runs of length < 2 are not worth an entry. -/
+/-- Shortest plain arc worth a table entry. Any value is correct. Measured on the `mixed` probe
+(30 Tgas, min of 3, loaded host; `docs/evidence/lean-chunk-completion/eval-time/`): 2 → 2,562 ms,
+4 → 2,558, 8 → 2,741, no plain arcs → 2,704, single-step 2,543–2,623. Short arcs cost nothing
+measurable (the cost is the table lookup, which happens only at run instructions), so the
+shortest useful length is taken. -/
+def arcMinLen : Nat := 2
 
-/-- Build the arc table of one function: scan pcs left to right, emitting an arc per maximal
-determined run of length ≥ 2 and continuing at the run's end. `left` is the number of pcs left
-to scan (`pc = code.size - left`); the arc branch jumps to `runEnd`, strictly past `pc`. -/
-def buildFrom (pf : PFunc) (left : Nat) (out : Array (Option Arc)) : Array (Option Arc) :=
-  if left = 0 then out else
-    let pc := pf.code.size - left
-    let (runEnd, sim, grd) := simWalk pf pc left
-    if pc + 2 ≤ runEnd then
-      buildFrom pf (pf.code.size - runEnd) (out.set! pc (some ⟨pc, runEnd, sim, grd⟩))
-    else buildFrom pf (left - 1) out
-termination_by left
-decreasing_by
-  all_goals omega
+/-- Shortest fused (`br`-ending) arc worth an entry. Any value ≥ 1 is correct. -/
+def arcMinLenBr : Nat := 1
 
-/-- The arc table of one function (a slot per pc; `none` = no arc). -/
+/-- The arc stored at `pc` for the run `c` that starts there. -/
+def arcEntry (pf : PFunc) (pc : Nat) (c : Core) : Option Arc :=
+  let e := pc + c.len
+  let br : Option (Nat × Option (IK × Fee)) :=
+    match pf.code[e]? with
+    | some (.br l) => (pf.gas[e]?).map (fun g => (l, g))
+    | _ => none
+  match br with
+  | some (l, g) =>
+    if arcMinLenBr ≤ c.len ∧ 0 < c.len then
+      some ⟨c, Nat.max c.grd (c.pops + l + 2 - c.nPush), some (l, g)⟩
+    else none
+  | none => if arcMinLen ≤ c.len ∧ 0 < c.len then some ⟨c, c.grd, none⟩ else none
+
+/-- Backward pass: `buildGo pf k cur acc` processes pcs `k-1, …, 0`; `cur` is the maximal run
+from `k`, `acc` the entries of pcs `k, k+1, …`. -/
+def buildGo (pf : PFunc) : Nat → Core → List (Option Arc) → List (Option Arc)
+  | 0, _, acc => acc
+  | k + 1, cur, acc =>
+    let c := (extend pf k cur).getD Core.empty
+    buildGo pf k c (arcEntry pf k c :: acc)
+
+/-- The arc table of one function: one slot per pc. -/
 def arcsFor (pf : PFunc) : Array (Option Arc) :=
-  buildFrom pf pf.code.size (Array.replicate pf.code.size none)
+  (buildGo pf pf.code.size Core.empty []).toArray
 
-/-! ## The fast layer -/
+/-- The arc table of a prepared module. -/
+def arcsOf (p : Prepared) : Array (Array (Option Arc)) := p.funcs.map arcsFor
 
-/-- Find the arc at the top frame's pc, with the guard satisfied: at the fire point the walk's
-`sim` is empty, so `f.labels` *is* the entry list the guard demands its length about. -/
-def findArc (arcs : Array (Array (Option Arc))) (s : St) : Option (Arc × Frame) :=
-  match s.frames with
-  | f :: _ =>
-    match (arcs[f.fn]?).bind (fun row => (row[f.pc]?).join) with
-    | some a => if a.guard ≤ f.labels.length then some (a, f) else none
-    | none => none
-  | [] => none
+/-! ## The fast interpreter -/
 
-/-- `runFast` is `run`, except that at an arc whose run fits the remaining budget the whole
-run executes as one jump (`applyArc`), consuming its length in fuel; every other step is
-exactly `Exec.step`. -/
-def runFast (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc))) :
-    Nat → St → Res
+/-- `n ≤ l.length`, in O(n). -/
+def lenGe {α : Type} : Nat → List α → Bool
+  | 0, _ => true
+  | _ + 1, [] => false
+  | n + 1, _ :: t => lenGe n t
+
+/-- The instructions a run consists of (arcs start only at these). -/
+def isRunInstr : Instr → Bool
+  | .block _ | .loop _ | .end_ | .nop => true
+  | _ => false
+
+/-- The arc stored for the top frame `f` at a run instruction `i`. Only run instructions look the
+table up, so every other step pays one constructor test; `getD`, not `[·]?`, so a miss allocates
+no `Option` cell. -/
+def arcAt (arcs : Array (Array (Option Arc))) (f : Frame) (i : Instr) : Option Arc :=
+  if isRunInstr i then (arcs.getD f.fn #[]).getD f.pc none else none
+
+/-- The state after the arc's run: what `len` single steps produce. -/
+def applyArc (s : St) (f : Frame) (a : Arc) : St :=
+  setFrame s { f with pc := f.pc + a.core.len,
+                      labels := matOnto s.stack.size a.core.pushes (f.labels.drop a.core.pops) }
+
+/-- The end of `doBr` once the target label and the remaining labels are known. -/
+def finishBr (s : St) (f : Frame) (lab : Label) (labels : List Label) : Res :=
+  let vals := s.stack.extract (s.stack.size - lab.arity) s.stack.size
+  let s := { s with stack := s.stack.extract 0 lab.height ++ vals }
+  .cont (setFrame s { f with pc := lab.target, labels := labels })
+
+/-- The fused `br l` after the arc's run, computed from the entry frame `f` without materializing
+the pushed labels the branch discards. -/
+def brFast (s : St) (f : Frame) (a : Arc) (l : Nat) : Res :=
+  let H := s.stack.size
+  let c := a.core
+  if l < c.nPush then
+    let lab := SimLab.mk H (c.pushes.getD (c.nPush - 1 - l) default)
+    finishBr s f lab
+      (matOnto H (c.pushes.take (c.nPush - (if lab.isLoop then l else l + 1))) (f.labels.drop c.pops))
+  else
+    match f.labels[c.pops + (l - c.nPush)]? with
+    | some lab => finishBr s f lab (f.labels.drop (c.pops + (if lab.isLoop then l else l + 1) - c.nPush))
+    | none => .unmodeled "invariant: branch to an unknown label"
+
+/-- The arc's run followed by its fused `br l` (gas entry `g`). -/
+def fuseBr (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (a : Arc) (l : Nat)
+    (g : Option (IK × Fee)) : Res :=
+  match g with
+  | none => brFast s f a l
+  | some (k, fee) =>
+    match charge s fee (if k = .linear then topCount s else 0) with
+    | .cont s' => brFast s' f a l
+    | _ => step cfg p (applyArc s f a)
+
+/-- `run`, with arcs. The body is `step`'s dispatch (same order, same results) with one extra
+branch: at a free run instruction whose arc's guard holds, the whole arc executes and consumes the
+fuel of the steps it replaces. -/
+def runFast (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc))) : Nat → St → Res
   | 0, _ => .unmodeled "fuel exhausted"
   | n + 1, s =>
-    match findArc arcs s with
-    | some (a, f) =>
-      if a.runEnd - a.pc0 ≤ n + 1 ∧ 0 < a.runEnd - a.pc0 then
-        runFast cfg p arcs (n + 1 - (a.runEnd - a.pc0)) (applyArc s f a)
-      else
-        match step cfg p s with
-        | .cont s' => runFast cfg p arcs n s'
-        | r => r
-    | none =>
-      match step cfg p s with
-      | .cont s' => runFast cfg p arcs n s'
-      | r => r
+    match s.frames with
+    | [] => .fin s
+    | f :: _ =>
+      match p.funcs[f.fn]? with
+      | none => .unmodeled "bad frame"
+      | some pf =>
+        match pf.code[f.pc]? with
+        | none => .unmodeled "pc out of range"
+        | some i =>
+          match pf.gas[f.pc]? with
+          | none => .unmodeled "invariant: gas table shorter than the code"
+          | some none =>
+            match arcAt arcs f i with
+            | some a =>
+              if lenGe a.guard f.labels then
+                match a.br with
+                | some (l, g) =>
+                  if a.core.len ≤ n then
+                    match fuseBr cfg p s f a l g with
+                    | .cont s' => runFast cfg p arcs (n - a.core.len) s'
+                    | r => r
+                  else
+                    match exec cfg p s f pf i with
+                    | .cont s' => runFast cfg p arcs n s'
+                    | r => r
+                | none =>
+                  if h : 0 < a.core.len ∧ a.core.len ≤ n + 1 then
+                    runFast cfg p arcs (n + 1 - a.core.len) (applyArc s f a)
+                  else
+                    match exec cfg p s f pf i with
+                    | .cont s' => runFast cfg p arcs n s'
+                    | r => r
+              else
+                match exec cfg p s f pf i with
+                | .cont s' => runFast cfg p arcs n s'
+                | r => r
+            | none =>
+              match exec cfg p s f pf i with
+              | .cont s' => runFast cfg p arcs n s'
+              | r => r
+          | some (some (k, fee)) =>
+            match charge s fee (if k = .linear then topCount s else 0) with
+            | .cont s1 =>
+              match exec cfg p s1 f pf i with
+              | .cont s' => runFast cfg p arcs n s'
+              | r => r
+            | r => r
+termination_by n => n
+decreasing_by all_goals omega
 
-/-! ## The equivalence
+/-! ## Proofs: a run is its single steps -/
 
-`runFast = run` for every fuel, given `arcsValidFor`. The chain: a valid arc's run
-single-steps through exactly the simulator's states (`step_walk`), so the `k` steps the arc
-skips are `seg k` ending in `applyArc` (`arc_seg`), and `runFast`'s recursion is `run`'s with
-that one substitution (`runFast_eq_run`). -/
+theorem setFrame_stack (s : St) (F : Frame) : (setFrame s F).stack = s.stack := by
+  unfold setFrame; split <;> rfl
 
-/-- `matLabels` preserves length. -/
-private theorem matLabels_length (H : Nat) : ∀ (l : List SimLab), (matLabels H l).length = l.length
-  | [] => rfl
-  | _ :: t => by simp only [matLabels, List.length_cons, matLabels_length H t]
+theorem setFrame_setFrame {s : St} {f : Frame} {fs : List Frame} (hf : s.frames = f :: fs)
+    (F1 F2 : Frame) : setFrame (setFrame s F1) F2 = setFrame s F2 := by
+  simp [setFrame, hf]
 
-/-- The frame part of `applyArc`: rebuilding the label list from the walk state. -/
-private theorem applyArc_frames (s : St) (f : Frame) (fs : List Frame) (a : Arc)
-    (hf : s.frames = f :: fs) :
-    (applyArc s f a).frames =
-        ({ f with pc := a.runEnd, labels := matLabels s.stack.size a.pushes ++ f.labels } : Frame) :: fs := by
-  unfold applyArc
-  rw [setFrame_frames hf]
+theorem setFrame_self {s : St} {f : Frame} {fs : List Frame} (hf : s.frames = f :: fs) :
+    setFrame s f = s := by
+  cases s; simp_all [setFrame]
 
-/-- The run-relative invariant: the top frame's label list is the materialization of the
-simulator's pushes above an *unchanged entry tail* `en`. `matLabels H sim ++ en` with `en`
-independent of the run. This is what the walk preserves and `applyArc` re-establishes. -/
-def SimInv (f : Frame) (pc : Nat) (sim : List SimLab) (en : List Label) (H : Nat) : Prop :=
-  f.pc = pc ∧ f.labels = matLabels H sim ++ en
+theorem lenGe_iff {α : Type} : ∀ (n : Nat) (l : List α), lenGe n l = true ↔ n ≤ l.length
+  | 0, _ => by simp [lenGe]
+  | _ + 1, [] => by simp [lenGe]
+  | n + 1, _ :: t => by simp [lenGe, lenGe_iff n t]
 
-/-- Key correspondence, one run instruction: if the simulator advances from `(pc, sim)` to
-`(pc', sim')`, then the real interpreter steps to `.cont` of the corresponding state,
-preserving the invariant (same entry tail and stack height). For an in-run `end`,
-`hend : 2 ≤ sim.length + en.length` is the guard condition that makes `exec .end_` take the
-pop arm (the walk's `endDemand sim ≤ guard ≤ |en|` at fire time; `step_walk` propagates it). -/
-private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
-    {sim sim' : List SimLab} {i : Instr} {en : List Label} {H : Nat}
-    (hpff : p.funcs[fn]? = some pf)
-    (hstep : simStep pf pc sim i = some (pc', sim'))
-    (s : St) (f : Frame) (fs : List Frame)
-    (hi : pf.code[pc]? = some i) (hfree : pf.gas[pc]? = some none)
-    (hf : s.frames = f :: fs) (hfn : f.fn = fn)
-    (hinv : SimInv f pc sim en H)
-    (hend : i = .end_ → 2 ≤ sim.length + en.length)
-    (hsH : s.stack.size = H) :
-    ∃ s' : St, step pv86 p s = .cont s' ∧
-      ∃ f' : Frame, s'.frames = f' :: fs ∧ SimInv f' pc' sim' en H := by
-  obtain ⟨hpc, hlab⟩ := hinv
-  -- `hen` says the total label depth is ≥ 1: the only relevant sub-case is en ≠ [], because
-  -- at an in-run `end` the list `matLabels H sim ++ en` must have length ≥ 2 to take the pop
-  -- arm (a singleton list would make `exec .end_` return/pop). We case on the instruction.
-  cases i with
-  | block bt =>
-    simp only [simStep] at hstep
-    cases he : pf.endOf[pc]? with
-    | some e =>
-      rw [he] at hstep
-      simp only [Option.some.injEq, Option.getD_some] at hstep
-      obtain ⟨rfl, rfl⟩ : pc' = pc + 1 ∧
-          sim' = ((e + 1, (btResults bt).size, false) : SimLab) :: sim := by
-        simp only [Prod.mk.injEq] at hstep
-        exact ⟨hstep.1.symm, hstep.2.symm⟩
-      -- the state exec .block produces: label list = newlab :: (matLabels H sim ++ en)
-      refine ⟨{ s with frames := ({ f with pc := pc + 1, labels :=
-        ({ target := e + 1, arity := (btResults bt).size, height := H, isLoop := false } : Label)
-          :: (matLabels H sim ++ en) } : Frame) :: fs }, ?_, ?_⟩
-      · simp only [step, hf, hpff, hfn, hpc, hi, hfree]
-        simp only [exec, setFrame, hf, hfn, hpc]
-        rw [he, hlab, hsH]
-      · -- the frame and its invariant
-        refine ⟨{ f with pc := pc + 1, labels :=
-          ({ target := e + 1, arity := (btResults bt).size, height := H, isLoop := false } : Label)
-            :: (matLabels H sim ++ en) }, rfl, ?_⟩
-        constructor
-        · rfl
-        · rfl
-    | none =>
-      -- simulator stalls (no endOf entry): contradiction with hstep
-      rw [he] at hstep
-      simp at hstep
-  | loop bt =>
-    -- simulator: (pc+1, (pc+1, 0, true) :: sim)
-    simp only [simStep, Option.some.injEq, Prod.mk.injEq] at hstep
-    obtain ⟨rfl, rfl⟩ : pc' = pc + 1 ∧
-        sim' = ((pc + 1, 0, true) : SimLab) :: sim := ⟨hstep.1.symm, hstep.2.symm⟩
-    refine ⟨{ s with frames := ({ f with pc := pc + 1, labels :=
-      ({ target := pc + 1, arity := 0, height := H, isLoop := true } : Label)
-        :: (matLabels H sim ++ en) } : Frame) :: fs }, ?_, ?_⟩
-    · simp only [step, hf, hpff, hfn, hpc, hi, hfree]
-      simp only [exec, setFrame, hf]
-      rw [hlab, hsH, hfn, hpc]
-    · refine ⟨{ f with pc := pc + 1, labels :=
-        ({ target := pc + 1, arity := 0, height := H, isLoop := true } : Label)
-          :: (matLabels H sim ++ en) }, rfl, ?_⟩
-      constructor
-      · rfl
-      · rfl
-  | nop =>
-    -- simulator: (pc+1, sim); nop keeps the label list
-    simp only [simStep, Option.some.injEq, Prod.mk.injEq] at hstep
-    obtain ⟨rfl, rfl⟩ : pc' = pc + 1 ∧ sim' = sim := ⟨hstep.1.symm, hstep.2.symm⟩
-    refine ⟨{ s with frames := ({ f with pc := pc + 1, labels := f.labels } : Frame) :: fs }, ?_, ?_⟩
-    · simp only [step, hf, hpff, hfn, hpc, hi, hfree]
-      simp only [exec, setFrame, hf]
-      rw [hfn, hpc]
-    · exact ⟨{ f with pc := pc + 1, labels := f.labels }, rfl, rfl, hlab⟩
-  | end_ =>
-    -- simulator: pops a run label (sim = lab :: t)
-    simp only [simStep] at hstep
-    match hsim : sim with
-    | [] => simp at hstep
-    | lab :: t =>
-      simp only [hsim, Option.some.injEq, Prod.mk.injEq] at hstep
-      rcases hstep with ⟨rfl, hsim'⟩
-      -- labels at this end: matLabels H (lab :: t) ++ en; its length is ≥ 2 by the guard
-      have hlen : 2 ≤ (matLabels H (lab :: t) ++ en).length := by
-        have h1 := hend rfl
-        simp only [List.length_cons, List.length_append, matLabels_length] at h1 ⊢
-        omega
-      refine ⟨{ s with frames := ({ f with pc := pc + 1, labels := matLabels H t ++ en } : Frame)
-        :: fs }, ?_, ?_⟩
-      · -- step: exec .end_ with the label list of length ≥ 2 takes the pop arm
-        simp only [step, hf, hpff, hfn, hpc, hi, hfree]
-        rw [exec.eq_7]
-        -- rewrite f.labels to the literal cons, then case the tail
-        obtain ⟨tg, ar, lp⟩ := lab
-        have hlab2 : f.labels = ({ target := tg, arity := ar, height := H, isLoop := lp } : Label)
-            :: matLabels H t ++ en := by
-          rw [hlab]
-          simp only [matLabels]
-        rw [hlab2]
-        cases htail2 : (matLabels H t ++ en) with
-        | nil =>
-          -- singleton list — contradicts hlen: unfold matLabels on the cons (only hlen
-          -- needs it; the goal's scrutinee is already the cons form), push the cons out
-          -- of the append, rewrite the (empty) tail
-          have hc : (matLabels H ((tg, ar, lp) :: t) ++ en).length
-              = 1 + (matLabels H t ++ en).length := by
-            simp only [matLabels, List.length_cons, List.length_append, matLabels_length]
-            omega
-          rw [hc, htail2, List.length_nil] at hlen
-          -- hlen : 2 ≤ 1 + 0 — impossible; the guard excludes the singleton case
-          omega
-        | cons r rs =>
-          -- the scrutinee is (lab' :: matLabels H t) ++ en; push the cons out, rewrite
-          -- the tail to r :: rs, and the match iota-reduces to the pop arm
-          rw [List.cons_append, htail2]
-          -- normalize f.fn/f.pc/frame-update to the RHS shape
-          simp only [setFrame, hf, hfn, hpc]
-      · -- the frame witness and its SimInv
-        refine ⟨{ f with pc := pc + 1, labels := matLabels H t ++ en }, ?_, ?_⟩
-        · show (_ :: fs) = (_ :: fs)
+theorem matOnto_eq (H : Nat) : ∀ (r : List SimLab) (L : List Label),
+    matOnto H r L = (r.map (SimLab.mk H)).reverse ++ L
+  | [], L => rfl
+  | x :: r, L => by simp [matOnto, matOnto_eq H r]
+
+theorem runFrom_len (pf : PFunc) : ∀ (k pc : Nat) (c : Core), runFrom pf pc k = some c →
+    c.len = k ∧ c.nPush = c.pushes.length
+  | 0, pc, c, h => by simp [runFrom, Core.empty] at h; subst h; simp
+  | k + 1, pc, c, h => by
+    simp only [runFrom, Option.bind_eq_some_iff] at h
+    obtain ⟨c', h1, h2⟩ := h
+    obtain ⟨ih1, ih2⟩ := runFrom_len pf k (pc + 1) c' h1
+    unfold extend at h2
+    repeat' split at h2
+    all_goals first
+      | (cases h2; done)
+      | (simp only [Option.some.injEq] at h2; subst h2
+         first
+           | (simp [ih1, ih2])
+           | (unfold Core.push; split <;> simp_all))
+
+/-- One run instruction: `step` is `.cont` of the frame with `pc + 1` and the instruction's label
+effect, and the label effect composes with the rest of the run. -/
+theorem extend_step (cfg : NearCfg) {p : Prepared} {pf : PFunc} {pc : Nat} {c c' : Core}
+    (hext : extend pf pc c' = some c)
+    {s : St} {f : Frame} {fs : List Frame} (hf : s.frames = f :: fs)
+    (hpf : p.funcs[f.fn]? = some pf) (hpc : f.pc = pc) (hg : c.grd ≤ f.labels.length) :
+    ∃ L1, step cfg p s = .cont (setFrame s { f with pc := pc + 1, labels := L1 }) ∧
+      c'.grd ≤ L1.length ∧
+      matOnto s.stack.size c'.pushes (L1.drop c'.pops) =
+        matOnto s.stack.size c.pushes (f.labels.drop c.pops) := by
+  subst hpc
+  unfold extend at hext
+  split at hext
+  · rename_i hgas
+    split at hext
+    · rename_i bt hcode
+      split at hext
+      · rename_i e he
+        simp only [Option.some.injEq] at hext
+        subst hext
+        refine ⟨SimLab.mk s.stack.size (e + 1, (btResults bt).size, false) :: f.labels, ?_, ?_, ?_⟩
+        · simp only [step, hf, hpf, hcode, hgas, exec, he]
           rfl
-        · have hs : sim' = t := hsim'.symm
-          rw [hs]
-          exact ⟨rfl, rfl⟩
-  | _ => simp [simStep] at hstep
+        · unfold Core.push at hg; split at hg <;> simp at hg ⊢ <;> omega
+        · unfold Core.push; split <;> simp_all [matOnto]
+      · cases hext
+    · rename_i bt hcode
+      simp only [Option.some.injEq] at hext
+      subst hext
+      refine ⟨SimLab.mk s.stack.size (f.pc + 1, 0, true) :: f.labels, ?_, ?_, ?_⟩
+      · simp only [step, hf, hpf, hcode, hgas, exec]
+        try rfl
+      · unfold Core.push at hg; split at hg <;> simp at hg ⊢ <;> omega
+      · unfold Core.push; split <;> simp_all [matOnto]
+    · rename_i hcode
+      simp only [Option.some.injEq] at hext
+      subst hext
+      refine ⟨f.labels, ?_, ?_, rfl⟩
+      · simp only [step, hf, hpf, hcode, hgas, exec]
+        try rfl
+      · simpa using hg
+    · rename_i hcode
+      simp only [Option.some.injEq] at hext
+      subst hext
+      simp only at hg
+      have h2 : 2 ≤ f.labels.length := Nat.le_trans (Nat.le_max_left _ _) hg
+      have h3 : c'.grd + 1 ≤ f.labels.length := Nat.le_trans (Nat.le_max_right _ _) hg
+      match hL : f.labels with
+      | a :: b :: rest =>
+        rw [hL] at h3
+        refine ⟨b :: rest, ?_, ?_, ?_⟩
+        · simp only [step, hf, hpf, hcode, hgas, exec, hL]
+          try rfl
+        · simp at h3 ⊢; omega
+        · simp
+      | [a] => rw [hL] at h2; simp at h2
+      | [] => rw [hL] at h2; simp at h2
+    · cases hext
+  · cases hext
 
-/-- The walk and the real interpreter agree over a whole arc run: from a state satisfying the
-invariant at `(pc0, [])` (entry labels `en` with `guard ≤ |en|`), the `k`-th single step of the
-run is `.cont` of the `(k+1)`-th walk state, for every `k < len` (induction on the walk; the
-guard's demand is exactly what `step_sim`'s `hend` needs at each in-run `end`). -/
-private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
-    {H : Nat} {s0 : St} {f0 : Frame} {fs : List Frame}
-    (hpff : p.funcs[fn]? = some pf)
-    (hvalid : ArcOK pf a)
-    (hf : s0.frames = f0 :: fs) (hfn : f0.fn = fn) (hpc0 : f0.pc = a.pc0)
-    (hlab0 : f0.labels = en) (hgrd : a.guard ≤ en.length)
-    (hsH : s0.stack.size = H) :
-    ∀ (k : Nat) (hk : k ≤ a.runEnd - a.pc0),
-      ∃ s : St, seg pv86 p k s0 = .cont s ∧
-        ∃ f : Frame, s.frames = f :: fs ∧
-          SimInv f (a.pc0 + k) (simWalk pf a.pc0 k).2.1 en H ∧
-          s.stack.size = s0.stack.size := by
-  intro k
-  induction k with
-  | zero =>
-    -- zero steps: the state is s0 itself; the walk at 0 is (pc0, [], 0)
-    intro _
-    refine ⟨s0, rfl, f0, hf, ?_, rfl⟩
-    exact ⟨hpc0, by rw [hlab0]; rfl⟩
-  | succ k ih =>
-    -- the (k+1)-th step: `seg (k+1) = step >>= seg k`; by ih (for k ≤ len−1) the state
-    -- before the last step satisfies the invariant at walk position k; `step_sim` gives
-    -- the step is `.cont` of the (k+1)-th walk state.
-    intro hk
-    -- obtain the k-step state by ih (k ≤ len since k+1 ≤ len)
-    have hk' : k ≤ a.runEnd - a.pc0 := Nat.le_of_succ_le hk
-    obtain ⟨s1, hseg1, f1, hf1, hinv1, hstack1⟩ := ih hk'
-    -- the state before the step: top frame at pc0+k with walk labels
-    obtain ⟨hpc1, hlab1⟩ := hinv1
-    -- the instruction at pc0+k is free and run-determined (the walk advances: k < len)
-    -- walk position k → (pc0+k, sim_k, grd_k); since k < len, simNext advances
-    have hwalk : simWalk pf a.pc0 (k + 1) = simNext pf (simWalk pf a.pc0 k) := rfl
-    -- ArcOK: the walk at len lands on (runEnd, pushes, guard); monotonicity of the walk:
-    -- positions before len always advance (otherwise the walk would stall and never land)
-    -- Extract the walk state at k:
-    obtain ⟨pc_k, sim_k, grd_k⟩ := simWalk pf a.pc0 k
-    -- the state at step k has pc pc0+k (by hinv1) and labels matLabels H sim_k ++ en
-    -- (the walk's sim at k); the step is run-determined:
-    have hstep : ∃ (pc' : Nat) (sim' : List SimLab),
-        simStep pf pc_k sim_k (pf.code[pc_k]?.getD .nop) = some (pc', sim') ∧
-        pc' = pc_k + 1 := by
-      sorry
-    sorry
+/-- A valid run executes as its `k` single steps. -/
+theorem seg_runFrom (cfg : NearCfg) {p : Prepared} {pf : PFunc} :
+    ∀ (k : Nat) {pc : Nat} {c : Core}, runFrom pf pc k = some c →
+    ∀ {s : St} {f : Frame} {fs : List Frame}, s.frames = f :: fs → p.funcs[f.fn]? = some pf →
+      f.pc = pc → c.grd ≤ f.labels.length →
+      seg cfg p k s = .cont (setFrame s
+        { f with pc := pc + k, labels := matOnto s.stack.size c.pushes (f.labels.drop c.pops) })
+  | 0, pc, c, h, s, f, fs, hf, _, hpc, _ => by
+    simp [runFrom, Core.empty] at h
+    subst h; subst hpc
+    simp only [seg, Nat.add_zero, matOnto, List.drop_zero]
+    exact (congrArg Res.cont (setFrame_self hf)).symm
+  | k + 1, pc, c, h, s, f, fs, hf, hpf, hpc, hg => by
+    simp only [runFrom, Option.bind_eq_some_iff] at h
+    obtain ⟨c', h1, h2⟩ := h
+    obtain ⟨L1, hstep, hg', hmat⟩ := extend_step cfg h2 hf hpf hpc hg
+    have ih := seg_runFrom cfg k h1 (s := setFrame s { f with pc := pc + 1, labels := L1 })
+      (f := { f with pc := pc + 1, labels := L1 }) (fs := fs) (setFrame_frames hf _) hpf rfl hg'
+    simp only [seg, hstep, Res.cont_bind]
+    rw [ih, setFrame_setFrame hf, setFrame_stack, hmat, show pc + 1 + k = pc + (k + 1) by omega]
 
-/-! ## The walk's advance facts -/
+/-! ## Proofs: the fused `br` -/
 
-/-- `simNext` never lowers the guard accumulator: it either keeps `grd` or takes
-`max grd (endDemand sim)` at an in-run `end`. -/
-private theorem simNext_grd_ge (pf : PFunc) (pc : Nat) (sim : List SimLab) (grd : Nat) :
-    grd ≤ (simNext pf (pc, sim, grd)).2.2 := by
-  -- unfold + iota-reduce the outer tuple match; the if and the pair match remain
-  simp only [simNext]
-  split
-  · -- pc in range: the (code, gas) pair match
-    rename_i hpc
-    split
-    · -- free: simStep advance (max) or stall (grd)
-      rename_i i hgas
-      -- one more level: simStep's advance or stall
-      cases hss : simStep pf pc sim pf.code[pc] with
-      | some p =>
-        -- advance: the accumulator is Nat.max grd (endDemand sim)
-        obtain ⟨pc', sim'⟩ := p
-        show grd ≤ Nat.max grd (endDemand sim)
-        exact Nat.le_max_left grd (endDemand sim)
-      | none => exact Nat.le_refl _
-    · exact Nat.le_refl _
-  · exact Nat.le_refl _
+theorem mat_get_lt (H : Nat) (r : List SimLab) (D : List Label) {l : Nat} (hl : l < r.length) :
+    (matOnto H r D)[l]? = some (SimLab.mk H (r.getD (r.length - 1 - l) default)) := by
+  rw [matOnto_eq, List.getElem?_append_left (by simpa using hl),
+    List.getElem?_reverse (by simpa using hl), List.getElem?_map, List.length_map,
+    List.getElem?_eq_getElem (by omega), List.getD_eq_getElem?_getD,
+    List.getElem?_eq_getElem (by omega)]
+  rfl
 
-/-- The walk's guard accumulator is monotone along the walk: position `k`'s accumulator
-is at most position `k + j`'s. -/
-private theorem simWalk_grd_mono (pf : PFunc) (pc0 : Nat) :
-    ∀ (k j : Nat), (simWalk pf pc0 k).2.2 ≤ (simWalk pf pc0 (k + j)).2.2 := by
-  intro k
-  induction k with
-  | zero =>
-    intro j
-    induction j with
-    | zero => exact Nat.le_refl _
-    | succ j ih =>
-      -- simWalk (0+(j+1)) = simNext (simWalk (0+j)) by the step equation
-      rw [show (0 + (j + 1)) = (0 + j) + 1 from rfl, simWalk.eq_2]
-      obtain ⟨a, b, c, heq⟩ : ∃ a b c, simWalk pf pc0 (0 + j) = (a, b, c) :=
-        ⟨_, _, _, rfl⟩
-      rw [heq] at ih ⊢
-      exact Nat.le_trans ih (simNext_grd_ge pf a b c)
-  | succ k ih =>
-    intro j
-    induction j with
-    | zero => exact Nat.le_refl _
-    | succ j ihj =>
-      -- goal: (simWalk (k+1)).grd ≤ (simWalk ((k+1+j)+1)).grd
-      -- rewrite only the RHS's step: simWalk (X+1) = simNext (simWalk X)
-      obtain ⟨a, b, c, heq⟩ : ∃ a b c, simWalk pf pc0 (k + 1 + j) = (a, b, c) :=
-        ⟨_, _, _, rfl⟩
-      have hstep : simWalk pf pc0 (k + 1 + j + 1) = simNext pf (simWalk pf pc0 (k + 1 + j)) := rfl
-      show (simWalk pf pc0 (k + 1)).2.2 ≤ (simNext pf (simWalk pf pc0 (k + 1 + j))).2.2
-      rw [heq] at ihj ⊢
-      -- ihj : (simWalk (k+1)).2.2 ≤ (a, b, c).2.2 — and (a,b,c).2.2 is definitionally c
-      exact Nat.le_trans ihj (simNext_grd_ge pf a b c)
+theorem mat_drop_le (H : Nat) (r : List SimLab) (D : List Label) {k : Nat} (hk : k ≤ r.length) :
+    (matOnto H r D).drop k = matOnto H (r.take (r.length - k)) D := by
+  rw [matOnto_eq, matOnto_eq, List.drop_append_of_le_length (by simpa using hk), List.drop_reverse,
+    List.length_map, List.map_take]
 
-/-- If the walk is stalled at position `k` (its state is a `simNext` fixed point), it stays
-there forever: `simNext` is idempotent on its own fixed points. -/
-private theorem simWalk_stall (pf : PFunc) {pc : Nat} {sim : List SimLab} {grd : Nat}
-    (hstall : simNext pf (pc, sim, grd) = (pc, sim, grd)) (k : Nat) :
-    simWalk pf pc (k + 1) = simNext pf (simWalk pf pc k) ∧
-    ∀ (j : Nat), simWalk pf pc (k + 1 + j) = (pc, sim, grd) := by
-  sorry
+theorem mat_get_ge (H : Nat) (r : List SimLab) (L : List Label) (pops : Nat) {l : Nat}
+    (hl : r.length ≤ l) : (matOnto H r (L.drop pops))[l]? = L[pops + (l - r.length)]? := by
+  rw [matOnto_eq, List.getElem?_append_right (by simpa using hl), List.getElem?_drop]
+  simp
 
-/-- A valid arc's walk advances at every position before its end: if it stalled at some
-`k < len`, it would stall forever (`simWalk_stall`) and never reach `runEnd ≠ pc0 + k`. -/
-private theorem arc_walk_advances (pf : PFunc) {a : Arc} (hok : ArcOK pf a) (k : Nat)
-    (hk : k < a.runEnd - a.pc0) :
-    (simWalk pf a.pc0 (k + 1)).1 = (simWalk pf a.pc0 k).1 + 1 := by
-  sorry
+theorem mat_drop_ge (H : Nat) (r : List SimLab) (L : List Label) (pops : Nat) {k : Nat}
+    (hk : r.length ≤ k) : (matOnto H r (L.drop pops)).drop k = L.drop (pops + k - r.length) := by
+  rw [matOnto_eq, List.drop_append, List.drop_drop]
+  have : (r.map (SimLab.mk H)).reverse.drop k = [] := by
+    apply List.drop_eq_nil_of_le; simpa using hk
+  rw [this, List.nil_append]
+  simp only [List.length_reverse, List.length_map]
+  congr 1
+  omega
+
+theorem mat_length (H : Nat) (r : List SimLab) (D : List Label) :
+    (matOnto H r D).length = r.length + D.length := by
+  simp [matOnto_eq]
+
+/-- The fused branch computes `doBr` on the state after the run. -/
+theorem brFast_eq (p : Prepared) (a : Arc) (l : Nat) {t : St} {f : Frame} {fs : List Frame}
+    (hf : t.frames = f :: fs) (hn : a.core.nPush = a.core.pushes.length)
+    (hg : a.core.pops + l + 2 - a.core.nPush ≤ f.labels.length) (X : Nat) :
+    doBr p (setFrame t
+        { f with pc := X, labels := matOnto t.stack.size a.core.pushes (f.labels.drop a.core.pops) })
+      { f with pc := X, labels := matOnto t.stack.size a.core.pushes (f.labels.drop a.core.pops) } l
+    = brFast t f a l := by
+  have hlen : ¬ (l + 1 ≥ (matOnto t.stack.size a.core.pushes (f.labels.drop a.core.pops)).length) := by
+    rw [mat_length, List.length_drop]; omega
+  unfold doBr brFast
+  simp only
+  simp only [hlen, ↓reduceIte]
+  by_cases hl : l < a.core.nPush
+  · simp only [hl, ↓reduceIte]; rw [mat_get_lt _ _ _ (by omega)]
+    simp only [finishBr, hn]
+    rw [hn] at hl
+    generalize SimLab.mk t.stack.size (a.core.pushes.getD (a.core.pushes.length - 1 - l) default) = lab
+    cases hlp : lab.isLoop <;> simp only [Bool.false_eq_true, ite_true, ite_false] <;>
+      rw [mat_drop_le _ _ _ (by omega), setFrame_stack] <;> simp [setFrame, hf]
+  · simp only [hl, ↓reduceIte]; rw [mat_get_ge _ _ _ _ (by omega), hn]
+    rw [hn] at hl
+    cases hlab : f.labels[a.core.pops + (l - a.core.pushes.length)]? with
+    | none => rfl
+    | some lab =>
+      simp only [finishBr]
+      cases hlp : lab.isLoop <;> simp only [Bool.false_eq_true, ite_true, ite_false] <;>
+        rw [mat_drop_ge _ _ _ _ (by omega), setFrame_stack] <;> simp [setFrame, hf]
+
+theorem setFrame_gas (s : St) (F : Frame) : (setFrame s F).gas = s.gas := by
+  unfold setFrame; split <;> rfl
+
+theorem charge_cont_stack (s : St) (fee : Fee) (c : Nat) (s' : St)
+    (h : charge s fee c = .cont s') : s'.stack = s.stack := by
+  simp only [charge] at h
+  by_cases h1 : c * fee.l + fee.c ≥ u64Bound
+  · simp only [h1, ite_true] at h
+    repeat' split at h
+    all_goals cases h
+  · simp only [h1, ite_false] at h
+    by_cases h2 : c * fee.l + fee.c > s.gas.g
+    · simp only [h2, ite_true] at h
+      repeat' split at h
+      all_goals cases h
+    · simp only [h2, ite_false] at h
+      cases h; rfl
+
+/-- Charging only touches gas: it commutes with replacing the top frame. -/
+theorem charge_setFrame {s s' : St} {fee : Fee} {c : Nat} (h : charge s fee c = .cont s')
+    (F : Frame) : charge (setFrame s F) fee c = .cont (setFrame s' F) := by
+  simp only [charge] at h ⊢
+  rw [setFrame_gas]
+  by_cases h1 : c * fee.l + fee.c ≥ u64Bound
+  · simp only [h1, ite_true] at h
+    repeat' split at h
+    all_goals cases h
+  · simp only [h1, ite_false] at h ⊢
+    by_cases h2 : c * fee.l + fee.c > s.gas.g
+    · simp only [h2, ite_true] at h
+      repeat' split at h
+      all_goals cases h
+    · simp only [h2, ite_false] at h ⊢
+      cases h
+      cases hs : s.frames <;> simp [setFrame, hs]
+
+theorem topCount_setFrame (s : St) (F : Frame) : topCount (setFrame s F) = topCount s := by
+  unfold topCount; rw [setFrame_stack]
+
+/-- The fused arc is the run followed by one `step` of its `br`. -/
+theorem fuseBr_eq (cfg : NearCfg) {p : Prepared} {pf : PFunc} {pc : Nat} {a : Arc} {l : Nat}
+    {g : Option (IK × Fee)} (hok : ArcOK pf pc a) (hbr : a.br = some (l, g))
+    {s : St} {f : Frame} {fs : List Frame} (hf : s.frames = f :: fs)
+    (hpf : p.funcs[f.fn]? = some pf) (hpc : f.pc = pc) (hguard : a.guard ≤ f.labels.length) :
+    fuseBr cfg p s f a l g = step cfg p (applyArc s f a) := by
+  obtain ⟨_, hrun, _, hb⟩ := hok
+  rw [hbr] at hb
+  obtain ⟨hcode, hgas, hdem⟩ := hb
+  have hn := (runFrom_len pf _ pc _ hrun).2
+  have hg : a.core.pops + l + 2 - a.core.nPush ≤ f.labels.length := Nat.le_trans hdem hguard
+  subst hpc
+  unfold applyArc
+  simp only [step, setFrame_frames hf, hpf, hcode, hgas]
+  unfold fuseBr
+  cases g with
+  | none => exact (brFast_eq p a l hf hn hg _).symm
+  | some kf =>
+    obtain ⟨k, fee⟩ := kf
+    simp only [topCount_setFrame]
+    cases hc : charge s fee (if k = .linear then topCount s else 0) with
+    | cont s' =>
+      simp only
+      rw [charge_setFrame hc]
+      simp only [exec]
+      have hf' : s'.frames = f :: fs := (charge_cont_frames _ _ _ _ hc).trans hf
+      have hst : s'.stack = s.stack := charge_cont_stack _ _ _ _ hc
+      have := brFast_eq p a l hf' hn hg (f.pc + a.core.len)
+      rw [hst] at this
+      exact this.symm
+    | fin _ => simp only [applyArc, step, setFrame_frames hf, hpf, hcode, hgas, topCount_setFrame]
+    | abort _ _ => simp only [applyArc, step, setFrame_frames hf, hpf, hcode, hgas, topCount_setFrame]
+    | unmodeled _ => simp only [applyArc, step, setFrame_frames hf, hpf, hcode, hgas, topCount_setFrame]
+
+/-! ## Proofs: `runFast = run` -/
+
+theorem arcAt_spec {arcs : Array (Array (Option Arc))} {f : Frame} {i : Instr} {a : Arc}
+    (h : arcAt arcs f i = some a) :
+    ∃ row, arcs[f.fn]? = some row ∧ row[f.pc]? = some (some a) := by
+  unfold arcAt at h
+  split at h
+  · rw [Array.getD_eq_getD_getElem?, Array.getD_eq_getD_getElem?] at h
+    cases hrow : arcs[f.fn]? with
+    | none => rw [hrow] at h; simp at h
+    | some row =>
+      rw [hrow, Option.getD_some] at h
+      cases hpc : row[f.pc]? with
+      | none => rw [hpc] at h; simp at h
+      | some e =>
+        rw [hpc, Option.getD_some] at h
+        exact ⟨row, rfl, by rw [hpc, h]⟩
+  · cases h
+
+/-- A valid arc's run is `seg` of its length. -/
+theorem seg_arc (cfg : NearCfg) {p : Prepared} {pf : PFunc} {a : Arc} {s : St} {f : Frame}
+    {fs : List Frame} (hok : ArcOK pf f.pc a) (hf : s.frames = f :: fs)
+    (hpf : p.funcs[f.fn]? = some pf) (hguard : a.guard ≤ f.labels.length) :
+    seg cfg p a.core.len s = .cont (applyArc s f a) := by
+  obtain ⟨_, hrun, hgrd, _⟩ := hok
+  exact seg_runFrom cfg a.core.len hrun hf hpf rfl (Nat.le_trans hgrd hguard)
+
+theorem seg_one (cfg : NearCfg) (p : Prepared) (s : St) : seg cfg p 1 s = step cfg p s := by
+  simp only [seg]
+  exact Res.bind_cont _
+
+/-- **`runFast` is `run`**, for every fuel and state, given a valid arc table. -/
+theorem runFast_eq_run (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc)))
+    (hv : ArcsValid p arcs) : ∀ (n : Nat) (s : St), runFast cfg p arcs n s = run cfg p n s := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | _ n ih =>
+  intro s
+  cases n with
+  | zero => rw [runFast, run]
+  | succ n =>
+    -- continuing after one step: the fast and the reference recursion agree
+    have hK : ∀ r : Res, (match r with
+        | .cont s' => runFast cfg p arcs n s'
+        | r => r) = (match r with
+        | .cont s' => run cfg p n s'
+        | r => r) := by
+      intro r
+      cases r with
+      | cont s' => exact ih n (by omega) s'
+      | fin _ => rfl
+      | abort _ _ => rfl
+      | unmodeled _ => rfl
+    rw [runFast, run]
+    cases hfr : s.frames with
+    | nil => simp only [step, hfr]
+    | cons f fs =>
+      simp only
+      cases hpf : p.funcs[f.fn]? with
+      | none => simp only [step, hfr, hpf]
+      | some pf =>
+        simp only
+        cases hcode : pf.code[f.pc]? with
+        | none => simp only [step, hfr, hpf, hcode]
+        | some i =>
+          simp only
+          cases hgas : pf.gas[f.pc]? with
+          | none => simp only [step, hfr, hpf, hcode, hgas]
+          | some g =>
+            cases g with
+            | some kf =>
+              obtain ⟨k, fee⟩ := kf
+              simp only [step, hfr, hpf, hcode, hgas]
+              cases charge s fee (if k = .linear then topCount s else 0) with
+              | cont s1 => exact hK _
+              | fin _ => rfl
+              | abort _ _ => rfl
+              | unmodeled _ => rfl
+            | none =>
+              have hst : step cfg p s = exec cfg p s f pf i := by
+                simp only [step, hfr, hpf, hcode, hgas]
+              simp only
+              rw [hst]
+              cases harc : arcAt arcs f i with
+              | none => exact hK _
+              | some a =>
+                simp only
+                by_cases hgd : lenGe a.guard f.labels = true
+                · simp only [hgd, ↓reduceIte]
+                  have hg := (lenGe_iff _ _).1 hgd
+                  obtain ⟨row, hrow, ha⟩ := arcAt_spec harc
+                  obtain ⟨pf', hpf', hrowok⟩ := hv _ _ hrow
+                  rw [hpf] at hpf'
+                  cases hpf'
+                  have hok := hrowok _ _ ha
+                  have hseg := seg_arc cfg hok hfr hpf hg
+                  -- back to the reference recursion: `run (n+1) s` itself
+                  rw [← hst, ← run]
+                  cases hbr : a.br with
+                  | some lg =>
+                    obtain ⟨l, g⟩ := lg
+                    simp only
+                    by_cases hlen : a.core.len ≤ n
+                    · simp only [hlen, ↓reduceIte]; rw [fuseBr_eq cfg hok hbr hfr hpf rfl hg]
+                      have hrun : run cfg p (n + 1) s =
+                          (seg cfg p (a.core.len + 1) s).bind (run cfg p (n - a.core.len)) := by
+                        rw [← run_seg]; congr 1; omega
+                      rw [hrun, seg_add, hseg, Res.cont_bind, seg_one]
+                      cases step cfg p (applyArc s f a) with
+                      | cont s' => exact ih _ (by omega) s'
+                      | fin _ => rfl
+                      | abort _ _ => rfl
+                      | unmodeled _ => rfl
+                    · simp only [hlen, ↓reduceIte]
+                      rw [run, hst]; exact hK _
+                  | none =>
+                    simp only
+                    by_cases hlen : 0 < a.core.len ∧ a.core.len ≤ n + 1
+                    · simp only [hlen, ↓reduceDIte, and_self]; rw [ih _ (by omega)]
+                      have hrun : run cfg p (n + 1) s =
+                          (seg cfg p a.core.len s).bind (run cfg p (n + 1 - a.core.len)) := by
+                        rw [← run_seg]; congr 1; omega
+                      rw [hrun, hseg, Res.cont_bind]
+                    · simp only [hlen, ↓reduceDIte]
+                      rw [run, hst]; exact hK _
+                · simp only [hgd, Bool.false_eq_true, ↓reduceIte]
+                  exact hK _
+
+/-! ## Proofs: the builder emits only valid arcs -/
+
+theorem arcEntry_ok {pf : PFunc} {pc : Nat} {c : Core} (hrun : runFrom pf pc c.len = some c)
+    {a : Arc} (h : arcEntry pf pc c = some a) : ArcOK pf pc a := by
+  unfold arcEntry at h
+  simp only at h
+  split at h
+  · rename_i l g hbr
+    split at h
+    · rename_i hlen
+      simp only [Option.some.injEq] at h
+      subst h
+      refine ⟨hlen.2, hrun, Nat.le_max_left _ _, ?_⟩
+      simp only
+      split at hbr
+      · rename_i l' hcode
+        simp only [Option.map_eq_some_iff, Prod.mk.injEq] at hbr
+        obtain ⟨g', hg', rfl, rfl⟩ := hbr
+        exact ⟨hcode, hg', Nat.le_max_right _ _⟩
+      · cases hbr
+    · cases h
+  · split at h
+    · rename_i hlen
+      simp only [Option.some.injEq] at h
+      subst h
+      exact ⟨hlen.2, hrun, Nat.le_refl _, trivial⟩
+    · cases h
+
+theorem buildGo_ok (pf : PFunc) : ∀ (k : Nat) (cur : Core) (acc : List (Option Arc)),
+    runFrom pf k cur.len = some cur →
+    (∀ (j : Nat) (a : Arc), acc[j]? = some (some a) → ArcOK pf (k + j) a) →
+    ∀ (j : Nat) (a : Arc), (buildGo pf k cur acc)[j]? = some (some a) → ArcOK pf j a
+  | 0, cur, acc, _, hacc => by
+    intro j a h
+    simp only [buildGo] at h
+    simpa using hacc j a h
+  | k + 1, cur, acc, hcur, hacc => by
+    simp only [buildGo]
+    have hc : runFrom pf k ((extend pf k cur).getD Core.empty).len =
+        some ((extend pf k cur).getD Core.empty) := by
+      cases he : extend pf k cur with
+      | none => rfl
+      | some c =>
+        have h1 : runFrom pf k (cur.len + 1) = some c := by
+          simp only [runFrom, hcur, Option.bind_some, he]
+        have := (runFrom_len pf _ _ _ h1).1
+        simp only [Option.getD_some]
+        rw [this]; exact h1
+    apply buildGo_ok pf k _ _ hc
+    intro j a h
+    cases j with
+    | zero => exact arcEntry_ok hc (by simpa using h)
+    | succ j =>
+      have := hacc j a (by simpa using h)
+      rwa [show k + 1 + j = k + (j + 1) by omega] at this
+
+theorem arcsFor_ok (pf : PFunc) (pc : Nat) (a : Arc) (h : (arcsFor pf)[pc]? = some (some a)) :
+    ArcOK pf pc a := by
+  unfold arcsFor at h
+  rw [List.getElem?_toArray] at h
+  exact buildGo_ok pf _ Core.empty [] rfl (by simp) pc a h
+
+/-- The module's own table is valid. -/
+theorem arcsOf_valid (p : Prepared) : ArcsValid p (arcsOf p) := by
+  intro fn row h
+  unfold arcsOf at h
+  rw [Array.getElem?_map] at h
+  cases hpf : p.funcs[fn]? with
+  | none => rw [hpf] at h; cases h
+  | some pf =>
+    rw [hpf] at h
+    simp only [Option.map_some, Option.some.injEq] at h
+    subst h
+    exact ⟨pf, rfl, arcsFor_ok pf⟩
+
+/-! ## The fast call layer (copies of `Exec`'s call layer with `runFast`) -/
+
+/-- `callEntry` with arcs. -/
+def callEntryFast (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc))) (fuel : Nat)
+    (s : St) (fi : Nat) : Except String (St × Option String) :=
+  let s := { s with gas := { s.gas with g := s.gas.remaining }, stack := #[], frames := [] }
+  let r := match enter p s fi with
+    | .cont s => runFast cfg p arcs fuel s
+    | r => r
+  match r with
+  | .fin s => (sync s).map (·, none)
+  | .abort s e => (sync s).map (·, some e)
+  | .unmodeled why => .error why
+  | .cont _ => .error "cont"
+
+/-- `callEntry` with the module's own arc table. -/
+def callEntryArcs (cfg : NearCfg) (p : Prepared) (fuel : Nat) (s : St) (fi : Nat) :
+    Except String (St × Option String) :=
+  callEntryFast cfg p (arcsOf p) fuel s fi
+
+/-- `runCall` with arcs: verbatim `Exec.runCall`, the arc table built once per call. -/
+def runCallFast (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
+    (blockLevel : Bool := true) (full : Bool := false) (real : Option TTN.RealStore := none) : Run :=
+  let emptySt (gs : Gas) : St :=
+    { pages := #[], globals := #[], table := #[], tableMax := 0, elems := #[], datas := #[],
+      stackRem := 0, gas := gs, ctx := ctx }
+  let ext (s : St) : String := if full then fullExtra s else ""
+  let nop (e : String) : Run := .line (s!"abort 0 0 {e}" ++ ext (emptySt (Gas.init ctx.prepaidGas)))
+  if method.isEmpty then nop "MethodResolveError(MethodEmptyName)" else
+  match prepare cfg code blockLevel with
+  | .outOfDomain why => .line s!"out-of-domain {why}"
+  | .unmodeled why => .line s!"unmodeled {why}"
+  | .prepErr v _ => nop s!"CompilationError(PrepareError({v}))"
+  | .compileErr k _ =>
+    nop s!"CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
+  | .ok p =>
+    if !cfg.curveHosts && real.isNone && p.m.imports.any (fun i => curveHosts.contains i.name) then
+      .line "out-of-domain curve host function" else
+    let gs : Gas := Gas.init ctx.prepaidGas
+    let loaded := match payPer gs C.contractLoadingBytes code.size with
+      | (gs, none) => payBase gs C.contractLoadingBase
+      | r => r
+    match loaded with
+    | (gs, some _) => .line (s!"abort {gs.burnt} {gs.used} {errGasExceeded}" ++ ext (emptySt gs))
+    | (gs, none) =>
+      match link p with
+      | .linkError msg => .line (s!"abort {gs.burnt} {gs.used} LinkError \{ msg: \"{msg}\" }" ++ ext (emptySt gs))
+      | .invariant why => .line s!"unmodeled invariant: {why}"
+      | .ok =>
+        match resolve p method with
+        | .notFound => nop "MethodResolveError(MethodNotFound)"
+        | .invalidSignature => nop "MethodResolveError(MethodInvalidSignature)"
+        | .invariant why => .line s!"unmodeled invariant: {why}"
+        | .ok mi =>
+          match instantiate cfg p gs with
+          | .error e => .line (s!"abort {gs.burnt} {gs.used} {e}" ++ ext (emptySt gs))
+          | .ok s =>
+            let s := { s with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
+                              storageUsage := ctx.storageUsage, real := real,
+                              curveHosts := cfg.curveHosts }
+            let arcs := arcsOf p
+            let afterStart : Except String (St × Option String) :=
+              match p.m.start with
+              | some st => callEntryFast cfg p arcs fuel s st
+              | none => .ok (s, none)
+            match afterStart with
+            | .error why => .line s!"unmodeled {why}"
+            | .ok (s, some e) => .done s (some e)
+            | .ok (s, none) =>
+              match callEntryFast cfg p arcs fuel s mi with
+              | .error why => .line s!"unmodeled {why}"
+              | .ok (s, e) => .done s e
+
+/-- `runCallWithLimits` over `runCallFast`. -/
+def runCallWithLimitsFast (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
+    (fuel : Nat) (blockLevel : Bool := true) (full : Bool := false)
+    (real : Option TTN.RealStore := none) : Run :=
+  let fallback := fun (_ : Unit) => runCallFast cfg code method ctx fuel blockLevel full real
+  if !cfg.loadingLimits then fallback () else
+  match prepare cfg code blockLevel with
+  | .ok p =>
+    if instanceAllocationFits p.m then fallback () else
+      .line ("abort 0 0 " ++ instanceLoadingError ++
+        (if full then " || compute 0 || logs  || actions  || trie " else ""))
+  | _ => fallback ()
+
+/-- `outcome` over `runCallWithLimitsFast`. -/
+def outcomeFast (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
+    (blockLevel : Bool := true) (full : Bool := false) : String :=
+  let ext (s : St) : String := if full then fullExtra s else ""
+  match runCallWithLimitsFast cfg code method ctx fuel blockLevel full with
+  | .line l => l
+  | .done s (some e) => s!"abort {s.gas.burnt} {s.gas.used} {e}" ++ ext s
+  | .done s none =>
+    let ret := match s.ret with
+      | some (.inl d) => hex d
+      | some (.inr r) => s!"receipt{r}"
+      | none => "-"
+    s!"ok {s.gas.burnt} {s.gas.used} {ret} {s.balance}" ++ ext s
+/-! ## Proofs: the call layer, and the compiler replacement -/
+
+theorem callEntryFast_eq (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc)))
+    (hv : ArcsValid p arcs) (fuel : Nat) (s : St) (fi : Nat) :
+    callEntryFast cfg p arcs fuel s fi = callEntry cfg p fuel s fi := by
+  unfold callEntryFast callEntry
+  simp only [runFast_eq_run cfg p arcs hv]
+  rfl
+
+/-- Compiled `callEntry` runs with the module's arc table. -/
+@[csimp] theorem callEntry_eq_arcs : @callEntry = @callEntryArcs := by
+  funext cfg p fuel s fi
+  exact (callEntryFast_eq cfg p (arcsOf p) (arcsOf_valid p) fuel s fi).symm
+
+/-- Compiled `runCall` runs with arcs (table built once per call). -/
+@[csimp] theorem runCall_eq_fast : @runCall = @runCallFast := by
+  funext cfg code method ctx fuel blockLevel full real
+  unfold runCall runCallFast
+  simp only [callEntryFast_eq _ _ _ (arcsOf_valid _)]
+  rfl
+
+@[csimp] theorem runCallWithLimits_eq_fast : @runCallWithLimits = @runCallWithLimitsFast := by
+  funext cfg code method ctx fuel blockLevel full real
+  unfold runCallWithLimits runCallWithLimitsFast
+  rw [runCall_eq_fast] <;> rfl
+
+@[csimp] theorem outcome_eq_fast : @outcome = @outcomeFast := by
+  funext cfg code method ctx fuel blockLevel full
+  unfold outcome outcomeFast
+  rw [runCallWithLimits_eq_fast] <;> rfl
+
 
 end NearSpecV3.Wasm
+
+#print axioms NearSpecV3.Wasm.runFast_eq_run
+#print axioms NearSpecV3.Wasm.arcsOf_valid
+#print axioms NearSpecV3.Wasm.callEntry_eq_arcs
+#print axioms NearSpecV3.Wasm.runCall_eq_fast
+#print axioms NearSpecV3.Wasm.runCallWithLimits_eq_fast
+#print axioms NearSpecV3.Wasm.outcome_eq_fast

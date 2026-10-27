@@ -1,0 +1,32 @@
+{
+ "d3_00-h10009-s3": {
+  "claim.bin": "84804b1300c41d91f1f7cd7cc21b5fae8db253584daed9a3a8a1d04712a49f78",
+  "meta.json": "78df2ece615bf57be8a513e0cebd209c0f57b0b42aab6390404d193e4249e5ff",
+  "witness.bin": "4e49ed7b53fabe1c0838cdea9c9639f726430493846a69c89dacb3d0e54f4b4a"
+ },
+ "d3_00-h10012-s1": {
+  "claim.bin": "7a0f23d87ccb1fc69d4a7d8b5a73a31d4bf424e6b2b67b375c34d98331655405",
+  "meta.json": "be59d3994bea13babc81e2dbd7f67084e2bbf73dddf450bd56bc60062202256b",
+  "witness.bin": "15c9da1950cae155c6ba4557ceba4498a3a0ab1fa7f43520aa1d239805a12c9c"
+ },
+ "d3_00-h10012-s3": {
+  "claim.bin": "82e61d334b2569b74d366be8e07a1859fd8d2e677c8386ee7cea17a63eaaf1b0",
+  "meta.json": "14a793f9006acd956c5a9d028ce69e4de18167d9a8c895ffd5c83e2474b2deae",
+  "witness.bin": "b26aa956f9d9a53eb2dd8b8f79dc586802b0bf7eff0e51939ef32d342e385903"
+ },
+ "ood_00-h10006-s1": {
+  "claim.bin": "9975f28dc0093984a9df756780191abfece9bbce4dfc206626cef95dc3bb3b0b",
+  "meta.json": "7f41b279e5f7c0421a649e5414555db4d9054d69e2925981a8c287c755922d93",
+  "witness.bin": "ffeb64fb9e8682fa1789cadcb3d08de85d2ee2be801d7b5e77b77cb605779840"
+ },
+ "ood_00-h10006-s3": {
+  "claim.bin": "a321974c1d390ab585dab72982df4c5bec3ad3264cebf91fdb06af26e25bbfe6",
+  "meta.json": "64dd52b01bf6b08ad4ca474dfb0c839ca8772e8305a450de1160cd3b1c266edb",
+  "witness.bin": "74d7378f9573219c732460bef3527f090863c15b3c00dea252543390780e45dd"
+ },
+ "ood_00-h10009-s1": {
+  "claim.bin": "d0c2cc47a18f5dff7f81a80ad03ed570c46f6045383de635851acb847f6bc0c1",
+  "meta.json": "500d59479331b693884d113545ec9435e7cb87e206c16131c1cb13364286d8d3",
+  "witness.bin": "0a19f21c6511c3e7d9be6ed240fe20f539ed4f598f3ef99dabf6e9f981157804"
+ }
+}

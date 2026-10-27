@@ -1,8 +1,32 @@
 # Lean Wasm arcs: bulk-skipping zero-fee control runs (W02 evaluation-time)
 
-Status: **validated prototype** (perf evidence only — the equivalence theorem is *not* proved yet;
-nothing here is wired into the successor checker). Repo-relative, builds against the pinned
-`NearSpecV3` package (`lake build`; toolchain v4.34.1).
+Status (2026-10-27): **superseded by the proved, integrated module
+`spec/lean/v3/NearSpecV3/Wasm/Arcs.lean`.** That module proves `runFast = run` for every fuel
+(no `sorry`; axioms `propext`, `Classical.choice`, `Quot.sound`), proves the builder's table
+valid, and registers `@[csimp]` replacements `callEntry → callEntryArcs`,
+`runCall → runCallFast`, `runCallWithLimits → runCallWithLimitsFast`, `outcome → outcomeFast`,
+so the compiled successor checker runs arcs while every definition, relation and proof is
+unchanged. Its design differs from this prototype: arcs are built backwards for **every** pc of
+a run (a branch landing mid-run still finds one), runs may pop entry labels, the fused `br`
+never materializes discarded labels, and the fused charge's failure path is `step` on the exact
+single-stepped state (by definition, so L2 below holds by construction). Measurements of the
+committed module: `docs/evidence/lean-chunk-completion/eval-time/`. `ArcProbe.lean` /
+`ArcProbeOld.lean` (`lake build arcprobe arcprobe-old`) time the committed path against the
+single-step baseline; `gen_wasm.py OUT` writes the probe modules (now also `deep4999`,
+`pushpop4999`, `brif4999`, `midrun4998`). `ArcProto.lean` is kept as the historical prototype.
+
+Prototype limitations, now: **L1** closed (theorem proved). **L2** closed by construction: the
+failure path *is* `step` on the run's end state. **L3** not reproduced: the overhead was the
+per-step table lookup, which is now done only at run instructions; `arcMinLen = 2` was measured.
+**L4** open (`br_if`/`br_table`/`if`/`else` are not fused; `brif4999` is only 2.3× faster).
+**L5** superseded: the full 577/3,138/235,716 replays are identical, and pinned-nearcore
+`eval-time` fixtures exist. The new probe shapes also expose **L6**: labels pushed by one run
+and popped by another, across a charged group (`pushpop4999`), still cost O(blocks) list cells
+per iteration (3× faster). The prototype also returned a charge-failure abort when the fuel
+could not cover the fused run. The committed module checks the fuel first.
+
+The rest of this file is the prototype's original record. Repo-relative, builds against the
+pinned `NearSpecV3` package (`lake build`; toolchain v4.34.1).
 
 ## The problem (measured, `docs/evidence/lean-chunk-completion/fuel-termination/`)
 

@@ -268,6 +268,22 @@ NEAR_SUCCESSOR_SCENARIO=fuel-stress $B gen --domain d3 --seed 2026 --chains 1 --
 
 Evidence: `docs/evidence/lean-chunk-completion/fuel-termination/`.
 
+## Eval-time scenario (W02 arcs)
+
+Set `NEAR_SUCCESSOR_SCENARIO=eval-time` for a quiet chain with the `evalc` contract
+(`scenarios::eval_wat`) on `s0eval` and `s1eval`, and 6 FunctionCalls (`eval_schedule`). Three run
+at 300 Tgas: `blocks4999`, `deep4999` (4,998 pushed labels discarded by the back-edge) and
+`midrun4998` (a `br_if` that lands mid-run). Three run at 3 Tgas: `blocks4999`, `pushpop4999`
+(labels pushed and popped across a charged group) and `brif4999` (a `br_if` back-edge).
+`tools/d3/collect_fuel_stress.py` maps each call to its case.
+
+```
+NEAR_SUCCESSOR_SCENARIO=eval-time $B gen --domain d3 --seed 2027 --chains 1 --blocks 30 \
+  --p-missing 0 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --out RUN
+```
+
+Evidence: `docs/evidence/lean-chunk-completion/eval-time/`.
+
 ## Per-outcome nearcore observables (`NEAR_SUCCESSOR_OBSERVABLES=1`, W01)
 
 With `NEAR_SUCCESSOR_OBSERVABLES=1`, `gen` and `reshard` also write

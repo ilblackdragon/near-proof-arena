@@ -1,5 +1,6 @@
 import Lean
 import NearSpecV3.Wasm.Exec
+import NearSpecV3.Wasm.Arcs
 
 open NearSpecV3.Wasm
 
