@@ -170,6 +170,11 @@ dispatchers). Labels are `successor.<scenario>.NN.name` and say what was submitt
   limit, so run it on the low-gas-limit chain shapes (`--first-chain 3|4|8|9`). It includes a 200 KB
   cross-shard resume trigger that the bandwidth scheduler buffers, a resume after 360 KB of
   own-shard receipts, and a resume whose yield's timeout is due but deferred. Needs 235 blocks.
+* `yield-congestion-v2parent`: `yield-congestion` on a genesis layout rebuilt as V2 with an identity
+  split map (`d3gen::genesis_layout`), so the layout carries `shards_parent_map` with every shard its
+  own parent, like mainnet's unsplit shards since PV75. Bandwidth requests then chain each shard's
+  own buffer twice (`congestion_control.rs:545-554`). Same steps, labels and chain shapes as
+  `yield-congestion`. Evidence: `docs/evidence/lean-chunk-completion/signed-valid-rejects/v2-parent-map/`.
 * `curve-callbacks`: the `curve-hosts` inputs (first pos/neg/edge and the gas-exhaustion input of
   each host), called from `promise_then` callbacks (callback arguments, promise result in memory and
   in a register), a three-promise chain, a callback after a cross-shard promise, yield callbacks

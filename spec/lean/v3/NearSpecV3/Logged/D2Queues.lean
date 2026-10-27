@@ -209,10 +209,30 @@ def bandwidthRequestsV3L (env : Env) (rs : RS) : LM (List BwRequest) := do
     pure (some (⟨s, bm⟩ : BwRequest))
   pure reqs.reduceOption
 
-/-- Mirror of `bandwidthRequests`: the V3 rule for a V3 layout, the own-buffer rule otherwise. -/
+/-- Mirror of `bandwidthRequestsV2P`: a V2 layout with a parent map chains the parent's buffer. -/
+def bandwidthRequestsV2PL (env : Env) (rs : RS) (pm : List (Nat × Nat)) : LM (List BwRequest) := do
+  let l := env.ctx.layout
+  let reqs ← l.shardIds.mapM fun s => do
+    let own ← bufferSizesL env rs s
+    let parent ← match pm.find? (·.1 == s) with
+      | some (_, p) => bufferSizesL env rs p
+      | none => throw (v2ParentMissing s)
+    let bm := makeRequest env.sched (parent ++ own)
+    if bm.all (· == 0) then return none
+    pure (some (⟨s, bm⟩ : BwRequest))
+  pure reqs.reduceOption
+
+/-- The V2 half of the request rule, shared by both engines: parent chaining when the layout carries
+a parent map, the own buffer otherwise. -/
+def bandwidthRequestsV2AnyL (env : Env) (rs : RS) : LM (List BwRequest) :=
+  match env.ctx.layout.v2ParentMap with
+  | some pm => bandwidthRequestsV2PL env rs pm
+  | none => bandwidthRequestsV2L env rs
+
+/-- Mirror of `bandwidthRequests`: the V3 rule for a V3 layout, the V2 rule otherwise. -/
 def bandwidthRequestsL (env : Env) (rs : RS) : LM (List BwRequest) :=
   if env.ctx.layout.lastSplit.isSome then bandwidthRequestsV3L env rs
-  else bandwidthRequestsV2L env rs
+  else bandwidthRequestsV2AnyL env rs
 
 def delayPushL (rs : RS) (r : Rcpt) : LM RS := do
   let gas ← LM.okL (congestionGas r) (panicked "receipt congestion gas overflow")

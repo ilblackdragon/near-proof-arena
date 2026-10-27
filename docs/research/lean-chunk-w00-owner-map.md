@@ -352,6 +352,23 @@ python3 tools/d3/replay_successor.py --tier signed --cases-file /tmp/gap3138.txt
 
 The "before" side is the same commands on `b6b01df77`.
 
+**Follow-up, same day: V2 layouts with a parent map (soundness).** nearcore's
+`get_parent_shard_id` also succeeds on a V2 layout that carries `shards_parent_map`
+(`shard_layout/v2.rs:285-301`). On such a layout every request chains the parent's buffer, so an
+unsplit shard requests its own buffer twice. Lean's V2 decoder dropped the map, so both engines
+used the own-buffer rule. The case is reachable at PV86. Mainnet's static layouts from PV75 to PV81
+are V2 with a parent map (`res/epoch_configs/mainnet/75.json`–`81.json`), and under the PV85/86
+dynamic config an epoch without a split keeps the previous layout
+(`chain/epoch-manager/src/lib.rs:693-707`). The decoder now keeps the map (`Layout.v2ParentMap`),
+and both engines apply the rule (`bandwidthRequestsV2P` / `bandwidthRequestsV2PL`, related by
+`Logged.R_bandwidthRequestsV2P`). A map without an entry for a layout shard is a named exclusion.
+On a generated V2 parent-map chain (`yield-congestion-v2parent`, seed 102, 2,301 cases) the fix moves
+21 (`signed`) / 24 (`allFeatures`) honest chunks from `reject` to `accept`, and 21 / 24
+own-buffer-only header mutants from **`accept`** to `reject`: the pre-fix checker accepted chunks
+nearcore rejects. No case of the census, the fixtures or the corpus carries a V2 parent map
+(`tools/d3/claim_layout.py --summary`: 235,716 / 577 / 3,138 V2 without a map, or V3), and none moves.
+[Evidence](../evidence/lean-chunk-completion/signed-valid-rejects/v2-parent-map/README.md).
+
 ## 4. The schema decision W00 owes
 
 The workplan asks for "a schema decision states which existing claim fields suffice, which need a

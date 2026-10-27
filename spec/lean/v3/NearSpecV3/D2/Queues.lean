@@ -356,7 +356,7 @@ def groupSizes (o : Ovl) (s : Nat) : Nat → Nat → Except String (List Nat)
     pure (sz :: (← groupSizes o s fuel (i + 1)))
 
 /-- `generate_bandwidth_requests` for a layout whose `get_parent_shard_id` fails (`NoParent`): a V2
-layout, whose parent map the decoder does not carry. The request to a shard is its own buffer. -/
+layout without a parent map. The request to a shard is its own buffer. -/
 def bandwidthRequestsV2 (env : Env) (rs : RS) : Except String (List BwRequest) := do
   let reqs ← env.ctx.layout.shardIds.mapM fun s => do
     let (f, n) := bufGet rs.bufIdx s
@@ -402,11 +402,41 @@ def bandwidthRequestsV3 (env : Env) (rs : RS) : Except String (List BwRequest) :
     pure (some (⟨s, bm⟩ : BwRequest))
   pure reqs.reduceOption
 
-/-- `generate_bandwidth_requests` (`congestion_control.rs:503-524`): the V3 parent-chaining rule for a
-V3 layout (`lastSplit` set), the own-buffer rule otherwise. -/
+/-- The exclusion for a V2 parent map without an entry for a shard of the layout. nearcore's
+`ShardLayoutV2::try_get_parent_shard_id` (`shard_layout/v2.rs:292-298`) relies on the map's
+construction (`validate_and_derive_shard_parent_map`) to cover every shard; a layout whose map does
+not is not one nearcore builds, so it is declined, never decided. -/
+def v2ParentMissing (s : Nat) : String :=
+  s!"out of domain (c.layout): V2 shards_parent_map has no entry for shard {s}"
+
+/-- `generate_bandwidth_request` (`congestion_control.rs:526-566`) for a V2 layout **with** a parent
+map. `get_parent_shard_id` succeeds (`shard_layout/mod.rs:253-272`, `shard_layout/v2.rs:285-301`) and
+returns the map's entry, so the request to `to_shard` chains the parent's buffer before the shard's
+own (`:545-554`). An unsplit shard is its own parent, so its own buffer counts twice; the child of a
+split chains the buffer to the old parent id, which is outside the layout (and non-empty only if
+`forwardFromBuffer` did not already exclude the chunk). Mainnet's V2 layouts since PV75 carry a parent
+map. -/
+def bandwidthRequestsV2P (env : Env) (rs : RS) (pm : List (Nat × Nat)) :
+    Except String (List BwRequest) := do
+  let l := env.ctx.layout
+  let reqs ← l.shardIds.mapM fun s => do
+    let own ← bufferSizes env rs s
+    let parent ← match pm.find? (·.1 == s) with
+      | some (_, p) => bufferSizes env rs p
+      | none => throw (v2ParentMissing s)
+    let bm := makeRequest env.sched (parent ++ own)
+    if bm.all (· == 0) then return none
+    pure (some (⟨s, bm⟩ : BwRequest))
+  pure reqs.reduceOption
+
+/-- `generate_bandwidth_requests` (`congestion_control.rs:503-524`): the parent-chaining rule for a V3
+layout (`lastSplit` set) and for a V2 layout with a parent map, the own-buffer rule for a V2 layout
+without one (`get_parent_shard_id` fails with `NoParent`). -/
 def bandwidthRequests (env : Env) (rs : RS) : Except String (List BwRequest) :=
   if env.ctx.layout.lastSplit.isSome then bandwidthRequestsV3 env rs
-  else bandwidthRequestsV2 env rs
+  else match env.ctx.layout.v2ParentMap with
+    | some pm => bandwidthRequestsV2P env rs pm
+    | none => bandwidthRequestsV2 env rs
 
 /-! ## Delayed receipts (`congestion_control.rs:838-944`, `rch.rs:83-123`) -/
 

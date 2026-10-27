@@ -1,0 +1,93 @@
+{
+ "base": "04-h10027-s2",
+ "case": "04-h10027-s2-hdr.bandwidth_requests.own_only(derived)",
+ "kind": "mutant",
+ "mutation": "hdr.bandwidth_requests.own_only(derived)",
+ "d3_violations": [],
+ "in_d2": false,
+ "in_d3": true,
+ "expected_rel": false,
+ "expected_rel_d2": false,
+ "expected_rel_d3": false,
+ "features": {
+  "accesses_equal_state_executed": true,
+  "base_state_bytes": 83816,
+  "buffered_post": 447,
+  "buffered_pre": 446,
+  "chunk_gas_price": "0",
+  "code_blobs": 1,
+  "code_bytes": 958,
+  "contract_data_removals": 0,
+  "contracts_ran": [
+   "d2program"
+  ],
+  "delayed_queue_post": 156,
+  "delayed_queue_pre": 321,
+  "deployed_in_chunk": 0,
+  "ed25519_import": false,
+  "executed_receipts": 260,
+  "fc_failure_kinds": {},
+  "fc_gas_burnt": 889149544489,
+  "fc_gas_burnt_for_function_call": 1085572621,
+  "fc_profile_exceeds_gas_burnt": 0,
+  "header_bandwidth_requests": 1,
+  "header_validator_proposals": 0,
+  "n_blocks": 2,
+  "n_callbacks": 0,
+  "n_epochs": 1,
+  "n_fc_failures": 0,
+  "n_function_calls": 1,
+  "n_function_calls_with_code": 1,
+  "n_implicit": 0,
+  "n_logs": 0,
+  "n_ood_host_calls": 0,
+  "n_outcomes_tokens_burnt_nonzero": 0,
+  "n_promises": 1,
+  "n_receipts": 98,
+  "n_receipts_with_receiver_reward": 0,
+  "n_shards": 5,
+  "ood_host_import": false,
+  "ood_host_profile_unmarked": 0,
+  "own_congestion_nonzero_post": true,
+  "own_congestion_nonzero_pre": true,
+  "pending_data_count_post": 3,
+  "pending_data_count_pre": 0,
+  "ran_deployed_in_chunk": 0,
+  "received_data_post": 0,
+  "received_data_pre": 0,
+  "receiver_reward_est": "0",
+  "rs": [
+   2,
+   8
+  ],
+  "tokens_burnt_receipts": "0",
+  "tokens_burnt_txs": "0",
+  "validator_update_in_main": false,
+  "validator_updates": 0,
+  "witness_bytes": 103436,
+  "xfam": {
+   "b2_genesis": false,
+   "n_new_transactions": 0,
+   "n_transactions": 3,
+   "post_buffered_receipts_gas": "226938205395646",
+   "post_delayed_receipts_gas": "175811685197538",
+   "post_receipt_bytes": 84315
+  },
+  "yield_queue_pre": 0
+ },
+ "nearcore": "derived: validate: InvalidBandwidthRequests (header requests differ from the chunk extra the cold validator accepted; chain/chain/src/validate.rs:280-299)",
+ "verdict_source": "derived(honest header = nearcore chunk extra)",
+ "honest_requests": [
+  [
+   1,
+   [
+    1,
+    0,
+    0,
+    0,
+    0
+   ]
+  ]
+ ],
+ "own_only_requests": []
+}

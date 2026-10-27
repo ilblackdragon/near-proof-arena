@@ -257,7 +257,7 @@ def delayPopR (env : Env) (fuel : Nat) (rs : RS) : M (RS × Option Rcpt) := do
   else logged (delayPopL env fuel rs)
 def bandwidthRequestsR (env : Env) (rs : RS) :=
   if env.ctx.layout.lastSplit.isSome then logged (bandwidthRequestsV3L env rs)
-  else logged (bandwidthRequestsV2L env rs)
+  else logged (bandwidthRequestsV2AnyL env rs)
 /-- `forward_from_buffer` (`congestion_control.rs:236-286`) for a V3 layout: the buffers to
 `get_split_parent_shard_ids()` = `{last_split}` (`shard_layout/mod.rs:402-408`) are forwarded first,
 each receipt to its shard in the current layout (a child), then the layout's own shards. Buffers to

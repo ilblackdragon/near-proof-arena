@@ -68,6 +68,11 @@ Side effects, all in the same direction: every tier built from `signedCfg` (`flo
 `checkD3Proto`, `checkD3G` and `checkD3Global` inherit them too. `checkD2` (D2's `applyNewChunkD2`)
 inherits the bandwidth fix.
 
+**Follow-up (same day): V2 layouts with a parent map.** nearcore applies the same parent chaining
+on a V2 layout that carries `shards_parent_map`. Lean dropped the map, so both engines accepted
+own-buffer-only headers that nearcore rejects (a soundness bug). This is fixed in both engines and
+measured on a generated V2 parent-map chain in [v2-parent-map/](v2-parent-map/README.md).
+
 ## Measured (`--tier signed`, `tools/d3/replay_successor.py --jobs 16`)
 
 Before: `b65fe05c…` (main `b6b01df77`). After: `87d7e13e…`. Full counts are in `summary.json`, and

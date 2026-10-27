@@ -219,14 +219,25 @@ theorem R_bandwidthRequestsV3 (env : Env) (es : HStore) (rs : RS) :
     R s root (bandwidthRequestsV3L env rs) (bandwidthRequestsV3 (env.ws es) (rs.wt (preT s root))) id := by
   unfold bandwidthRequestsV3 bandwidthRequestsV3L; lk
 
+/-- The legacy engine's V2 parent-map rule computes what the recorder engine's
+`bandwidthRequestsV2PL` computes. -/
+theorem R_bandwidthRequestsV2P (env : Env) (es : HStore) (rs : RS) (pm : List (Nat × Nat)) :
+    R s root (bandwidthRequestsV2PL env rs pm)
+      (bandwidthRequestsV2P (env.ws es) (rs.wt (preT s root)) pm) id := by
+  unfold bandwidthRequestsV2P bandwidthRequestsV2PL; lk
+
 theorem R_bandwidthRequests (env : Env) (es : HStore) (rs : RS) :
     R s root (bandwidthRequestsL env rs) (bandwidthRequests (env.ws es) (rs.wt (preT s root))) id := by
-  unfold bandwidthRequests bandwidthRequestsL
+  unfold bandwidthRequests bandwidthRequestsL bandwidthRequestsV2AnyL
   show R s root (if env.ctx.layout.lastSplit.isSome then _ else _)
     (if env.ctx.layout.lastSplit.isSome then _ else _) id
   split
   · exact R_bandwidthRequestsV3 env es rs
-  · exact R_bandwidthRequestsV2 env es rs
+  · show R s root (match env.ctx.layout.v2ParentMap with | some pm => _ | none => _)
+      (match env.ctx.layout.v2ParentMap with | some pm => _ | none => _) id
+    cases env.ctx.layout.v2ParentMap with
+    | some pm => exact R_bandwidthRequestsV2P env es rs pm
+    | none => exact R_bandwidthRequestsV2 env es rs
 
 theorem R_delayPush (rs : RS) (r : Rcpt) :
     R s root (delayPushL rs r) (delayPush (rs.wt (preT s root)) r) (·.wt (preT s root)) := by
