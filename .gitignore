@@ -15,3 +15,8 @@ req.log
 # 112 MB of prover benchmark packets from the pq-realtime-hypothesis sweep. Kept locally for
 # reference; nothing in the tree or docs cites a path under it, so it stays out of git.
 research/near-compression/results/pq-realtime-hypothesis/
+# Per-session Lean proof scratch: throwaway drafts, most superseded and non-compiling, not imported
+# by any module and not in any lake target. Proven results are moved into NearSpecV3/*.lean; this
+# directory is regenerable never-published working state. (Cf. b6b01df77, which untracked a scratch
+# file committed by mistake.)
+spec/lean/v3/Scratch/
