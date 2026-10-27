@@ -1,0 +1,32 @@
+{
+ "status": "PHASE1_WASM_SLICE_TOOLING_KAT_LADDER_AUDITED",
+ "slice": "WASM_SLICE_DEF.md (i32/i64 core sans div in circuit rung, locals 16, globals 8, stack 64, memory 1024B, bounded control, gas=1/op)",
+ "fixtures": {
+  "format": "NPMWASM01 (magic, ver, dims, code, gas, initial stack/locals/globals/mem, per-step rows with full snapshots, final state, result, sha256 digest)",
+  "ladder": "addchain 8/64/512/2044 steps; mix 42/162/1272/1992; memmix 35/135/1060/2010; ctrlbounded 21",
+  "oracle": "refinterp.py (spec-derived, no prover-shared code); audit requires byte-identical regeneration",
+  "mutants_rejected": 104,
+  "count": 13
+ },
+ "trust_boundary": "interpreter = host oracle; circuit = prover (Phase 2); fixtures = shared contract; div/rem + host calls excluded from circuit rungs (corpus keeps them)",
+ "evidence_sha256": {
+  "WASM_SLICE_DEF.md": "747360f4810507d92bb7a723e7635b6c66c68a11b212e27d6b132dc7896bba11",
+  "audit.json": "4afe5d6fc3f4bbab6bfadfedc986ab10f8e9ce32a41f65401844e1e2592fc861",
+  "audit_wasm_trace.py": "f980fa30f578c92ccd0a4cdec8535d2bd96f7d320ab3f7ff11be46e1370ba561",
+  "fixtures/addchain131.bin": "2735131141b18b694b002f1284b611f4d4caff235c52ac227e7d4dc92984c69a",
+  "fixtures/addchain19.bin": "456dd80222d0819dd07e8ee8e22e57c5e508d9b3513309521dde6730871dddd7",
+  "fixtures/addchain5.bin": "6980376b44124e8d7fc49f75ee21c926634138f2304cf7a6a9b74b6b958bb3f5",
+  "fixtures/addchain514.bin": "7fca4589df01c9e586d1d8b1b7a9e33fa4fcb319300011d5c7e062caa2f35be0",
+  "fixtures/ctrlbounded.bin": "ef1c823fbdcc64fdff2d8f1b9f55fde10d5a7bf1451ba6d1a02a1fb025b7934e",
+  "fixtures/memmix1.bin": "76e5166d502188e1cce83cedfc7b245f20fab63520b0f893ad23f9cca89b7a08",
+  "fixtures/memmix42.bin": "8d0c12dbf0e295b2f37107f710de561e7958e6ab8989797146a5bfbb6f6398e9",
+  "fixtures/memmix5.bin": "31e542f653d199f556c1aa44b62b49d86ff063fd1ea18f24f51e697564adfd79",
+  "fixtures/memmix80.bin": "e09ac45837b4233dc2d2a593b404fc6744966f127c7fd2392f5d65012aa1ce5f",
+  "fixtures/mix1.bin": "d0d42990ccc8d2a419007850141f373acac58544291f6d65e93091c0184fbc0a",
+  "fixtures/mix42.bin": "0d5bfe600a01e91638a1ea4546c4d07607df7498cdf707edfb956df4955810b3",
+  "fixtures/mix5.bin": "23d710ea416c333162bb9bc476c7de6186c84dbd9eae27ebdf085fb15a9dba5f",
+  "fixtures/mix66.bin": "9982126e5fa4c3d90fc99840528198f752b1ebcc205ab6e9009dd4ba29003a62",
+  "gen_wasm_fixtures.py": "df051cb52a386ee681cbe55dcfc0bea08a0fb217814e6ea984118fb084c03382",
+  "wasm_trace_export.py": "0aaec35c1267b517f4dfb20ac0315a3ace4070465f7853253122d719f66b16d8"
+ }
+}
