@@ -244,23 +244,35 @@ Recorded as a candidate only. The 6.8 % cut in §5.1 is the lever with a measure
 
 ### 5.5 The depth-3 question is separate from the size question
 
+> **COMPLETED 2026-10-25: depth 3 reported and is legal.** `AGG_DEPTH3_OK leaves=8 final statement
+> = segments [0, 8)`; `L3_0_PROOF_BYTES total=322027 gkr=37592 relations=24772 stacking=6640
+> whir=252824`; `L3_0_SUMMARY … program_rows=309082 merkle_nodes=7998 leaf_blocks=1913 prove_s=752.2
+> peak_rss_gb=21.45`; `test result: ok … finished in 3389.72s`. The whole 8-leaf tree, all three
+> levels cold-proved, took 3,389.72 s. So §5.5's "do not treat depth 3 as legal until it reports"
+> is resolved **in the affirmative**, and the depth law's flatness is now measured at production
+> geometry from depth 3, not just predicted.
+
 The depth law measured at test targets is flat (`132,301 B` at depths 2/3/4), but those runs used
 `log_blowup = 3`, which does not transfer to production. Depth 3 aggregates two NV children exactly
-as depth 2 does, so the model predicts a flat SHA cost. Its run (`launch-d3-geom.sh` →
-`agg-d3-geom.log`) is in flight; **do not treat depth 3 as legal until it reports.**
+as depth 2 does, and the measured production result is **near-flat**: `L3_0` is 322,027 B against
+`L2_0`/`L2_1` at 315,913/317,845 B — **+4,182 to +6,114 B for one level, then flat**. The reason the
+step exists at all is that L2's children ran 131 queries and L3's ran 143; from L3 upward every
+child runs `[46,41,31,25]`, so `comps` is a fixpoint at 9,911 and L4–L8 should land near 322 KB.
 
-Note that depth 3's flatness does **not** fix the size problem. Even if depth 3 fits `2^21`, each
-level's root proof still carries ~143 queries, so a depth-8 tree's root would still be ~315 KB.
+Note that depth 3's flatness does **not** fix the size problem. Each level's root proof still
+carries ~143 queries at a `2^21` stacked commitment, so the measured depth-3 root is **322,027 B**
+and a depth-8 tree's root projects to **≈322 KB, band 318–355 KB** — over the cap by ~22 KB, not
+under it. An earlier sentence here said "~315 KB"; the measured depth-3 figure is 6,114 B larger.
 **The depth law being flat is necessary for a 1 Pgas tree to exist; the size levers in 5.1/5.3 are
 what make it ship under cap.** These are independent problems.
 
-**Partial depth-3 evidence is already in** (`agg-d3-geom.log`, still running at time of writing):
+**Depth-3 evidence, now complete** (`agg-d3-geom.log`, finished):
 
 ```
 L2_0_GEOM … comps=8747 … log_rows=21        (identical to the depth-2 run — deterministic)
 L2_1_GEOM … comps=8747 … log_rows=21        (the second L2 node, also identical)
 L2_0_PROOF_BYTES total=315913               (byte-identical to the depth-2 node)
-L2_1_PROOF_BYTES total=317845               (16 B wider: L2_1's own two children differ)
+L2_1_PROOF_BYTES total=317845               (1,932 B wider: L2_1's own two children differ)
 L3_0_GEOM merkle_nodes=7998 leaf_blocks=1913 comps=9911 rows=1268608 log_rows=21
 ```
 
