@@ -561,7 +561,7 @@ def SimInv (f : Frame) (fn : Nat) (pc : Nat) (sim : List SimLab) (en : List Labe
 preserving the invariant (same entry tail and stack height). For an in-run `end`,
 `hend : 2 ≤ sim.length + en.length` is the guard condition that makes `exec .end_` take the
 pop arm (the walk's `endDemand sim ≤ guard ≤ |en|` at fire time; `step_walk` propagates it). -/
-private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
+private theorem step_sim {cfg : NearCfg} {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
     {sim sim' : List SimLab} {i : Instr} {en : List Label} {H : Nat}
     (hpff : p.funcs[fn]? = some pf)
     (hstep : simStep pf pc sim i = some (pc', sim'))
@@ -571,7 +571,7 @@ private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
     (hinv : SimInv f fn pc sim en H f.locals f.base)
     (hend : i = .end_ → 2 ≤ sim.length + en.length)
     (hsH : s.stack.size = H) :
-    ∃ s' : St, step pv86 p s = .cont s' ∧
+    ∃ s' : St, step cfg p s = .cont s' ∧
       ∃ f' : Frame, s' = { s with frames := f' :: fs } ∧ SimInv f' fn pc' sim' en H f.locals f.base ∧
         s'.stack.size = s.stack.size := by
   obtain ⟨hfn, hpc, hlab, hloc, hbase⟩ := hinv
@@ -771,7 +771,7 @@ private theorem walk_pc_chain (pf : PFunc) (pc0 m : Nat)
 invariant at `(pc0, [])` (entry labels `en` with `guard ≤ |en|`), the `k`-th single step of the
 run is `.cont` of the `(k+1)`-th walk state, for every `k < len` (induction on the walk; the
 guard's demand is exactly what `step_sim`'s `hend` needs at each in-run `end`). -/
-private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
+private theorem step_walk {cfg : NearCfg} {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
     {H : Nat} {s0 : St} {f0 : Frame} {fs : List Frame}
     (hpff : p.funcs[fn]? = some pf)
     (hvalid : ArcOK pf a)
@@ -779,7 +779,7 @@ private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en :
     (hlab0 : f0.labels = en) (hgrd : a.guard ≤ en.length)
     (hsH : s0.stack.size = H) :
     ∀ (k : Nat) (hk : k ≤ a.runEnd - a.pc0),
-      ∃ (s : St) (f : Frame), seg pv86 p k s0 = .cont s ∧
+      ∃ (s : St) (f : Frame), seg cfg p k s0 = .cont s ∧
         s = { s0 with frames := f :: fs } ∧
           SimInv f fn (a.pc0 + k) (simWalk pf a.pc0 k).2.1 en H f0.locals f0.base ∧
           s.stack.size = s0.stack.size := by
@@ -895,14 +895,14 @@ private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en :
         (by rw [hstack1]; exact hsH)
     -- chain: seg (k+1) s0 = seg k s0 >>= seg 1; the first k steps reach s1 (hseg1),
     -- the last step is hstep2
-    have hseg2 : seg pv86 p (k + 1) s0 = .cont s2 := by
+    have hseg2 : seg cfg p (k + 1) s0 = .cont s2 := by
       -- seg (k+1) = seg k then seg 1 (Segment.seg_add); the first part is hseg1
-      rw [seg_add pv86 p k 1 s0, hseg1]
+      rw [seg_add cfg p k 1 s0, hseg1]
       -- (cont s1).bind (seg 1) = seg 1 s1; seg 1 = step then seg 0 (the identity on cont)
-      show (Res.cont s1).bind (seg pv86 p 1) = Res.cont s2
-      -- beta-reduce the bind: = seg pv86 p 1 s1; then unfold seg 1 = step >>= seg 0
-      show seg pv86 p 1 s1 = Res.cont s2
-      rw [show seg pv86 p 1 s1 = (step pv86 p s1).bind (seg pv86 p 0) from rfl]
+      show (Res.cont s1).bind (seg cfg p 1) = Res.cont s2
+      -- beta-reduce the bind: = seg cfg p 1 s1; then unfold seg 1 = step >>= seg 0
+      show seg cfg p 1 s1 = Res.cont s2
+      rw [show seg cfg p 1 s1 = (step cfg p s1).bind (seg cfg p 0) from rfl]
       rw [hstep2]
       rfl
     -- the frame's invariant at the walk's (k+1) position: pc' = pc_k + 1 = pc0 + (k+1),
@@ -943,14 +943,14 @@ private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en :
 /-- A valid arc's whole run, single-stepped, is `.cont` of `applyArc`'s state: the run
 (`step_walk` over `len` positions) ends at the walk's landing state, which is exactly
 `applyArc` (pc at `runEnd`, labels `matLabels H pushes ++ en`). -/
-private theorem arc_seg {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
+private theorem arc_seg {cfg : NearCfg} {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
     {H : Nat} {s0 : St} {f0 : Frame} {fs : List Frame}
     (hpff : p.funcs[fn]? = some pf)
     (hvalid : ArcOK pf a)
     (hf : s0.frames = f0 :: fs) (hfn : f0.fn = fn) (hpc0 : f0.pc = a.pc0)
     (hlab0 : f0.labels = en) (hgrd : a.guard ≤ en.length)
     (hsH : s0.stack.size = H) :
-    seg pv86 p a.len s0 = .cont (applyArc s0 f0 a) := by
+    seg cfg p a.len s0 = .cont (applyArc s0 f0 a) := by
   -- the landing state: pc = runEnd, labels = pushes (ArcOK's walk-landing)
   -- the walk's pc at len (the pc chain over ArcOK's advance clause)
   have hpclen : (simWalk pf a.pc0 (a.runEnd - a.pc0)).1 = a.pc0 + (a.runEnd - a.pc0) :=
@@ -990,4 +990,153 @@ private theorem arc_seg {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : L
   rw [← hs1]
   exact hseg1
 
+
+/-- `runFast` equals `run` at every fuel, on a valid table (strong induction on the
+fuel): the arc fire path replaces `seg len` + the remainder (by `arc_seg` + `run_seg`),
+every other path single-steps identically. -/
+private theorem runFast_eq_run (cfg : NearCfg) (p : Prepared)
+    (arcs : Array (Array (Option Arc))) (hvalid : arcsValidFor p arcs) :
+    ∀ (fuel : Nat) (s : St), runFast cfg p arcs fuel s = run cfg p fuel s := by
+  intro fuel
+  -- strong induction: the recursive calls are at strictly smaller fuels (the arc's
+  -- length is >= 1 by ArcOK, so fuel+1-len < fuel+1; the single-step path recurses at
+  -- fuel < fuel+1)
+  induction fuel using Nat.strongRecOn with
+  | ind fuel ih =>
+    intro s
+    match hfind : findArc arcs s with
+    | none =>
+      -- both single-step; the fuel must be a successor (zero gives fuel-exhausted = rfl)
+      cases hfuel : fuel with
+      | zero =>
+        -- both report fuel exhausted (equations)
+        show runFast cfg p arcs 0 s = run cfg p 0 s
+        simp only [runFast, run]
+      | succ m =>
+        -- both single-step and recurse at m
+        show runFast cfg p arcs (m + 1) s = run cfg p (m + 1) s
+        unfold runFast run
+        rw [hfind]
+        show (match step cfg p s with
+              | .cont s' => runFast cfg p arcs m s'
+              | r => r) = (match step cfg p s with
+              | .cont s' => run cfg p m s'
+              | r => r)
+        split
+        · rename_i s' hs'
+          have hlt : m < fuel := by rw [hfuel]; exact Nat.lt_succ_self m
+          exact ih m hlt s'
+        · rfl
+    | some (a, f) =>
+      -- the arc fire: extract the frame/arc facts from findArc's reduced form
+      obtain ⟨fs, hf, hslotraw, hgrd, harceq⟩ :
+          ∃ (fs : List Frame),
+            s.frames = f :: fs ∧
+              ((arcs[f.fn]?).bind fun row => (row[f.pc]?).join) = some a ∧
+                a.guard ≤ f.labels.length ∧ a = a := by
+        unfold findArc at hfind
+        split at hfind
+        · rename_i f0 frs hfr
+          split at hfind
+          · rename_i a₁ hlookup
+            split at hfind
+            · rename_i hgrd
+              have h1 : (a₁, f0) = (a, f) := (Option.some.injEq ..) |>.mp hfind
+              have hf0 : f0 = f := (Prod.mk.injEq ..) |>.mp h1 |>.2
+              have ha₁ : a₁ = a := (Prod.mk.injEq ..) |>.mp h1 |>.1
+              rw [hf0] at hfr hlookup hgrd
+              rw [ha₁] at hlookup hgrd
+              exact ⟨frs, hfr, hlookup, hgrd, rfl⟩
+            · exact absurd hfind (by simp)
+          · exact absurd hfind (by simp)
+        · exact absurd hfind (by simp)
+      -- the table's validity at f.fn gives ArcOK
+      have hrow : ∃ pf, p.funcs[f.fn]? = some pf ∧
+          ArcsOK pf (arcs[f.fn]?.getD #[]) := by
+        obtain ⟨row, hroweq⟩ : ∃ row, arcs[f.fn]? = some row := by
+          cases h : arcs[f.fn]? with
+          | none => rw [h] at hslotraw; simp at hslotraw
+          | some row => exact ⟨row, rfl⟩
+        have hrowget : arcs[f.fn]?.getD #[] = row := by rw [hroweq]; rfl
+        exact hvalid f.fn _ (by rw [hrowget]; exact hroweq)
+      obtain ⟨pf, hpff, hrowok⟩ := hrow
+      -- the slot at f.pc: from the bind chain
+      have hslot : (arcs[f.fn]?.getD #[])[f.pc]? = some a := by
+        obtain ⟨row, hroweq⟩ : ∃ row, arcs[f.fn]? = some row := by
+          cases h : arcs[f.fn]? with
+          | none => rw [h] at hslotraw; simp at hslotraw
+          | some row => exact ⟨row, rfl⟩
+        have hbind : (arcs[f.fn]?.bind fun r => (r[f.pc]?).join) = some a := hslotraw
+        rw [hroweq] at hbind
+        have hjoin : (row[f.pc]?).join = some a := hbind
+        cases hrowpc : row[f.pc]? with
+        | none => rw [hrowpc] at hjoin; simp at hjoin
+        | some opt =>
+          rw [hrowpc] at hjoin
+          cases hopt : opt with
+          | none => rw [hopt] at hjoin; simp at hjoin
+          | some a₁ =>
+            rw [hopt] at hjoin
+            have ha₁ : a₁ = a := (Option.some.injEq ..) |>.mp hjoin
+            show (arcs[f.fn]?.getD #[])[f.pc]? = some a
+            rw [hroweq]
+            have hget : (some row).getD #[] = row := rfl
+            rw [hget, hrowpc, hopt, ha₁]
+            rfl
+      have haok : ArcOK pf a := (hrowok f.pc a hslot).2
+      have hpc0 : a.pc0 = f.pc := (hrowok f.pc a hslot).1
+      -- the fire vs run: the fuel must be a successor for any firing
+      cases hfuel : fuel with
+      | zero =>
+        -- the goal's fuel was already substituted by the cases; close via the equations
+        show runFast cfg p arcs 0 s = run cfg p 0 s
+        simp only [runFast, run]
+      | succ m =>
+        show runFast cfg p arcs (m + 1) s = run cfg p (m + 1) s
+        unfold runFast
+        rw [hfind]
+        -- the option match's scrutinee is the literal some (a, f): iota-reduce it so the
+        -- split sees only the inner if
+        show (if a.runEnd - a.pc0 ≤ m + 1 ∧ 0 < a.runEnd - a.pc0 then
+              runFast cfg p arcs (m + 1 - (a.runEnd - a.pc0)) (applyArc s f a)
+            else
+              match step cfg p s with
+              | .cont s' => runFast cfg p arcs m s'
+              | r => r) = run cfg p (m + 1) s
+        split
+        · -- fits (the split's hypothesis is the conjunction)
+          rename_i hfit
+          obtain ⟨hfitlen, hfitpos⟩ := hfit
+          -- run's side: seg + remainder
+          have harc : seg cfg p (a.runEnd - a.pc0) s = .cont (applyArc s f a) :=
+            arc_seg (p := p) (pf := pf) (fn := f.fn) (en := f.labels)
+              (H := s.stack.size) hpff haok hf rfl (by rw [hpc0]) rfl hgrd rfl
+          have hsplit : m + 1 = (a.runEnd - a.pc0) + (m + 1 - (a.runEnd - a.pc0)) := by
+            have := hfitlen
+            omega
+          -- run's side: rewrite the fuel with hsplit (forward: m+1 → the sum), which
+          -- makes run_seg applicable; then the seg is the jump (harc)
+          rw [hsplit]
+          -- normalize the LHS's fuel arithmetic (X + rest - X = rest)
+          have hnorm : a.runEnd - a.pc0 + (m + 1 - (a.runEnd - a.pc0)) - (a.runEnd - a.pc0)
+              = m + 1 - (a.runEnd - a.pc0) := by omega
+          rw [hnorm, run_seg, harc]
+          -- the recursive fuel: m+1-len < m+1 (len >= 1), so the strong ih applies
+          have hlt : m + 1 - (a.runEnd - a.pc0) < m + 1 := by
+            have := haok.1
+            omega
+          have hltm : m + 1 - (a.runEnd - a.pc0) < fuel := by rw [hfuel]; exact hlt
+          exact ih _ hltm (applyArc s f a)
+        · -- the inner if fails (the fuel does not fit): single-step on both sides
+          show (match step cfg p s with
+                | .cont s' => runFast cfg p arcs m s'
+                | r => r) = run cfg p (m + 1) s
+          rw [show run cfg p (m + 1) s = (match step cfg p s with
+                | .cont s' => run cfg p m s'
+                | r => r) from rfl]
+          split
+          · rename_i s' hs'
+            have hlt : m < fuel := by rw [hfuel]; exact Nat.lt_succ_self m
+            exact ih m hlt s'
+          · rfl
 end NearSpecV3.Wasm
