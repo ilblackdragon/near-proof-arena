@@ -507,4 +507,36 @@ depend on `sorryAx` or on axioms outside the allowed set. -/
 #print axioms tier_floats_eq_checkD3F
 #print axioms checkSuccessor_unsupported_pv
 
+/-! ## W02: the completeness-domain witness bound for `.allFeatures`
+
+`WfClaim.DomainTier` (`ChallengeChunkV3.lean`, a signed file) fixes every tier's completeness
+domain to claims with a `Rel_t` witness of at most `maxWitnessChunk` = 64 MiB, and its comment
+justifies this by "the code blobs total ≤ 4 000 000 bytes". That premise is **false at PV86**: a
+cold validator's accessed pre-state contract code is not part of the storage proof and is loaded at
+`contract_loading_bytes` ≈ 1.09e6 gas/byte, so one chunk can require on the order of a gigabyte of
+distinct code. nearcore bounds it only at the single `ContractCodeResponse` of 64 MiB
+(`MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE`), which `.allFeatures` now models as the
+`w.code_response_size` exclusion. Consequently a `witness.bin` on `.allFeatures` can hold a
+compressed state witness of up to 48 MiB (`near-arena-cwitness-v3`) **and** up to 64 MiB of code
+blobs, so a 64 MiB witness bound would exclude real chunks.
+
+The correct completeness-domain witness bound for `.allFeatures` is the sum of the framing, the
+compressed-witness cap and the code-response cap below. This is the bound a completeness statement
+for `.allFeatures` must use instead of `maxWitnessChunk`; the signed `DomainTier`/`maxWitnessChunk`
+are left unchanged (that is a signed-statement/domain decision for the integrator). The **signed
+tier's exposure**: a signed `witness.bin` carries the state witness in the clear (≤ 8 MiB on the
+signed tier via `w.size`) plus up to 64 MiB of code blobs, i.e. up to ≈ 72 MiB, which already
+exceeds `maxWitnessChunk` = 64 MiB — so even the signed `DomainTier` bound can formally exclude a
+real large-code chunk. This is a restriction of the signed completeness statement, not a soundness
+issue (`RelChunkV3`/`Rel_t` are unaffected). -/
+def allFeaturesWitnessBound : Nat :=
+  -- 4+22 tag ‖ 4 + compressed state witness (≤ MAX_COMPRESSED_STATE_WITNESS_SIZE)
+  -- ‖ code-response Vec<CodeBytes> (≤ MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE)
+  (4 + 22) + 4 + maxCompressedWitnessBytes + maxContractCodeResponseBytes
+
+theorem allFeaturesWitnessBound_exceeds_maxWitnessChunk :
+    maxWitnessChunk < allFeaturesWitnessBound := by
+  unfold allFeaturesWitnessBound maxCompressedWitnessBytes maxContractCodeResponseBytes maxWitnessChunk
+  decide
+
 end NearSpecV3.Successor
