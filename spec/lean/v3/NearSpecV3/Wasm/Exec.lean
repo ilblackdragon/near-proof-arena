@@ -654,9 +654,9 @@ def runCall (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
               | .error why => .line s!"unmodeled {why}"
               | .ok (s, e) => .done s e
 
-/-- Successor loading preflight. Deserialization/allocator validation precedes gas charging,
-linking and method resolution in the pinned runner. A loading failure is a zero-gas failed call.
-The original runCall remains the signed execution path. -/
+/-- Loading preflight. Deserialization/allocator validation precedes gas charging, linking and
+method resolution in the pinned runner. A loading failure is a zero-gas failed call. Since
+2026-10-27 the signed configuration (`pv86`) runs it; `loadingLimits := false` is plain `runCall`. -/
 def runCallWithLimits (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
     (fuel : Nat) (blockLevel : Bool := true) (full : Bool := false)
     (real : Option TTN.RealStore := none) : Run :=
@@ -669,11 +669,16 @@ def runCallWithLimits (cfg : NearCfg) (code : ByteArray) (method : String) (ctx 
         (if full then " || compute 0 || logs  || actions  || trie " else ""))
   | _ => fallback ()
 
-/-- Loading checks are definitionally absent from the signed configuration. -/
-theorem runCallWithLimits_signed (code : ByteArray) (method : String) (ctx : CallCtx)
-    (fuel : Nat) (blockLevel full : Bool) (real : Option TTN.RealStore) :
-    runCallWithLimits pv86 code method ctx fuel blockLevel full real =
-      runCall pv86 code method ctx fuel blockLevel full real := rfl
+/-- Without the loading rule, `runCallWithLimits` is definitionally `runCall`. -/
+theorem runCallWithLimits_noLimits (cfg : NearCfg) (h : cfg.loadingLimits = false) (code : ByteArray)
+    (method : String) (ctx : CallCtx) (fuel : Nat) (blockLevel full : Bool)
+    (real : Option TTN.RealStore) :
+    runCallWithLimits cfg code method ctx fuel blockLevel full real =
+      runCall cfg code method ctx fuel blockLevel full real := by
+  unfold runCallWithLimits; simp [h]
+
+/-- The signed configuration carries the pinned loading rule. -/
+theorem pv86_loadingLimits : pv86.loadingLimits = true := rfl
 
 /-- One line in the harness format (`oracle/wasm-d3/src/main.rs`):
 `ok <burnt> <used> <ret|-|receiptN> <balance>`, `abort <burnt> <used> <error>` (the zero-gas no-op

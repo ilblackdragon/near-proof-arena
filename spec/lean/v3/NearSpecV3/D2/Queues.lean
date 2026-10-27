@@ -355,7 +355,9 @@ def groupSizes (o : Ovl) (s : Nat) : Nat → Nat → Except String (List Nat)
       | some b => ok? (decodeGroup b) (inconsistent "receipt group")
     pure (sz :: (← groupSizes o s fuel (i + 1)))
 
-def bandwidthRequests (env : Env) (rs : RS) : Except String (List BwRequest) := do
+/-- `generate_bandwidth_requests` for a layout whose `get_parent_shard_id` fails (`NoParent`): a V2
+layout, whose parent map the decoder does not carry. The request to a shard is its own buffer. -/
+def bandwidthRequestsV2 (env : Env) (rs : RS) : Except String (List BwRequest) := do
   let reqs ← env.ctx.layout.shardIds.mapM fun s => do
     let (f, n) := bufGet rs.bufIdx s
     if n ≤ f then return none
@@ -368,6 +370,43 @@ def bandwidthRequests (env : Env) (rs : RS) : Except String (List BwRequest) := 
     if bm.all (· == 0) then return none
     pure (some (⟨s, bm⟩ : BwRequest))
   pure reqs.reduceOption
+
+/-- The receipt-group sizes of the outgoing buffer to `s`: none for an empty buffer, the groups when
+the metadata covers the whole buffer, else the basic request `[max_receipt_size]`
+(`get_receipt_group_sizes_for_buffer_to_shard`, `congestion_control.rs:565-610`). -/
+def bufferSizes (env : Env) (rs : RS) (s : Nat) : Except String (List Nat) := do
+  let (f, n) := bufGet rs.bufIdx s
+  if n ≤ f then return []
+  let len := n - f
+  match metaGet rs.metas s with
+  | some m => if m.totalNum == len then groupSizes rs.o s (m.next - m.first) m.first
+              else pure [env.sched.maxReceiptSize]
+  | none => pure [env.sched.maxReceiptSize]
+
+/-- `generate_bandwidth_request` (`congestion_control.rs:526-566`) for a V3 layout. The request to
+`to_shard` chains the buffer to `shard_layout.get_parent_shard_id(to_shard)` before the shard's own
+buffer (`:545-554`). For a V3 layout that call always succeeds (`shard_layout/mod.rs:253-272`,
+`ShardLayoutV3::try_get_parent_shard_id`, `shard_layout/v3.rs:344-354`): a child of the latest split
+chains its parent's buffer and every other shard chains its own buffer a second time. This is the
+same rule as the recorder engine's `bandwidthRequestsV3L` (`Logged/D2Queues.lean`), to which
+`Logged.R_bandwidthRequestsV3` relates it. -/
+def bandwidthRequestsV3 (env : Env) (rs : RS) : Except String (List BwRequest) := do
+  let l := env.ctx.layout
+  let reqs ← l.shardIds.mapM fun s => do
+    let own ← bufferSizes env rs s
+    let parent ← match l.lastSplit, l.parentV3 s with
+      | some _, some p => bufferSizes env rs p
+      | _, _ => pure []
+    let bm := makeRequest env.sched (parent ++ own)
+    if bm.all (· == 0) then return none
+    pure (some (⟨s, bm⟩ : BwRequest))
+  pure reqs.reduceOption
+
+/-- `generate_bandwidth_requests` (`congestion_control.rs:503-524`): the V3 parent-chaining rule for a
+V3 layout (`lastSplit` set), the own-buffer rule otherwise. -/
+def bandwidthRequests (env : Env) (rs : RS) : Except String (List BwRequest) :=
+  if env.ctx.layout.lastSplit.isSome then bandwidthRequestsV3 env rs
+  else bandwidthRequestsV2 env rs
 
 /-! ## Delayed receipts (`congestion_control.rs:838-944`, `rch.rs:83-123`) -/
 

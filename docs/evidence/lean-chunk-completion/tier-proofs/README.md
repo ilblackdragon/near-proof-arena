@@ -110,8 +110,8 @@ them. No named tier is affected (every resharding tier also sets the genesis fla
 | O1 | floats | induction showing `NearCfg.floats` is read only by the three `Prepare` guards | 0 violations |
 | O2 | curve hosts | propagation of `successorDispatch_extends` through `runCall`/`St`/runtime | 0 |
 | O3 | global actions | routing/outgoing root proved for non-distribution receipts; missing: global codecs extend the D2 codecs, `globalTarget` never excludes a non-distribution receipt, `StorageExecution.run` monotone in `globals` | 0 |
-| O4 | storage resolution | agreement of `applyNewChunkD2` and `StorageExecution.run` on the legacy domain (engine change, W08 rule), **restricted to `lastSplit = none`** | 1 counterexample on a V3 post-split layout (Finding 1) |
-| O5 | loading limits | not a lift (correction); chunk-level form of `runCallWithLimits_eq_of_fits` | 0 (no case in the corpora differs) |
+| O4 | storage resolution | agreement of `applyNewChunkD2` and `StorageExecution.run` on the legacy domain (engine change, W08 rule), **restricted to `lastSplit = none`** until 2026-10-27 | the Finding 1 counterexample is resolved (both engines apply the V3 bandwidth rule) |
+| O5 | loading limits | not a lift (correction); chunk-level form of `runCallWithLimits_eq_of_fits`. Since 2026-10-27 `Wasm.pv86` sets the flag, so every tier carries it | 0 (no case in the corpora differs) |
 | O6 | resharding, non-genesis | `checkReshardCore` reduces to `checkD2CoreWithObs` on one-layout, no-split-gate segments, **at verdict level** (`VRefines`) | 1 reason-only difference (Finding 2) |
 | O7 | complete-code witness | not a lift; counterexamples below | violations, all `w.code_complete` |
 
@@ -181,6 +181,11 @@ never accepts an invalid one here) and a legitimate semantic correction in the s
 signed sources are immutable, so the exact restricted statement is: O4, and old-domain agreement,
 on witnesses whose layout has `lastSplit = none`. None of the six corpora nor the mainnet shard-13
 window contains a case of this kind (0 violations there).
+*Resolved 2026-10-27:* the legacy `bandwidthRequests` now applies the V3 rule (`D2.bandwidthRequestsV3`,
+related to the recorder's `bandwidthRequestsV3L` by `Logged.R_bandwidthRequestsV3`), and every tier,
+`signed` included, accepts this fixture
+([signed-valid-rejects](../signed-valid-rejects/README.md)). The `lastSplit = none` restriction
+on O4 is no longer forced by this case.
 
 **Finding 2 — the resharding step (O6) holds only at verdict level.**
 `resharding-fixtures/cases/seed23-02-h10062-s5-c.child_layout_is_parent` (a mutant): every tier

@@ -59,8 +59,12 @@ def main():
     cases = [regression / entry["case_dir"] for entry in entries]
     got = run_batch([str(binary), "--tier", "runtimeLimits"], cases, 120, "runtimeLimits")
     assert all(r["verdict"] == "accept" for r in got.values()), got
-    broken = run_batch([str(binary), "--tier", "genesisFloatsProtoGas"], cases[:1], 120,
-                       "genesisFloatsProtoGas")
+    # Every tier carries the loading rule (it is part of `Wasm.pv86` since 2026-10-27), so the
+    # deliberate-breakage control switches it off explicitly.
+    got = run_batch([str(binary), "--tier", "signed"], cases, 120, "signed")
+    assert all(r["verdict"] == "accept" for r in got.values()), got
+    broken = run_batch([str(binary), "--tier", "genesisFloatsProtoGas", "--ablate-loading-limits"],
+                       cases[:1], 120, "genesisFloatsProtoGas")
     assert next(iter(broken.values()))["verdict"] == "reject", broken
     float_regression = REPO / "docs/evidence/lean-chunk-completion/float-chunks-224/cases"
     float_entries = json.loads((float_regression / "index.json").read_text())
