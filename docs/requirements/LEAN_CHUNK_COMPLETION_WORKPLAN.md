@@ -12,9 +12,9 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
 
 - **One checker, two tiers.** `nearspec-v3-check-successor --tier allFeatures` is the full
   successor; `--tier signed` (`checkD3`/`RelD3`) is the statement of record.
-- **Agreement with cold nearcore (`allFeatures`).** Corpus, 235,716 cases: 235,397 agree, 95 out of
-  domain, 224 Lean rejects in `d2corpus.v2` (those witnesses carry no code and their `ok` is the
-  producer's warm verdict, not a cold one). Fixtures: 640/640 across the committed families
+- **Agreement with cold nearcore (`allFeatures`).** Corpus, 235,716 cases: 235,621 agree, 95 out of
+  domain, 0 disagree. The 224 `d2corpus.v2` witnesses that carried no code and a warm `ok` were
+  regenerated cold with code ([d2corpus-cold](../evidence/lean-chunk-completion/d2corpus-cold/README.md)). Fixtures: 640/640 across the committed families
   ([curve hosts](../evidence/lean-chunk-completion/curve-host-fixtures/README.md),
   [key families](../evidence/lean-chunk-completion/key-family-fixtures/README.md),
   [ML-DSA-65](../evidence/lean-chunk-completion/mldsa-fixtures/README.md),
@@ -47,9 +47,10 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
     ([signed-valid-rejects](../evidence/lean-chunk-completion/signed-valid-rejects/README.md)).
   - Speed: zero-fee control runs execute as proved arcs (`@[csimp]`). The worst loop went from
     ~10.6 h to ~50 s per 300 Tgas. Verdicts are identical on every population.
-- **Signed tier, corpus.** 112,036 agree and 120,716 agree outside its domain. 2,758 are out of
-  domain, of which 2,513 are oracle-asserted. 206 reject valid chunks: the same code-less
-  `d2corpus.v2` cases. No signed accept of a nearcore reject.
+- **Signed tier, corpus.** 112,036 agree and 120,922 agree outside its domain. 2,758 are out of
+  domain, of which 2,513 are oracle-asserted. No signed reject of a nearcore-accepted corpus chunk
+  (the 206 were the code-less `d2corpus.v2` witnesses, now regenerated cold). No signed accept of
+  a nearcore reject.
 - **Proved:** tier lifts and genesis overlap, fuel monotonicity, PV86 layout reachability, the
   arcs fast path, loading-before-execution order, and kernel non-vacuity (`decide +kernel`, no
   `native_decide`) of `RelD3` and `Tier.rel .allFeatures`, each with its negation on real chunks.
