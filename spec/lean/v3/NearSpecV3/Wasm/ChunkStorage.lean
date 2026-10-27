@@ -1,4 +1,5 @@
 import NearSpecV3.Wasm.Exec
+import NearSpecV3.Wasm.Arcs
 
 /-!
 # Contract storage across a chunk (trie-backed `External`, chunk-level threading)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Bind an `oracle/v3-successor` `fuel-stress` run (W02) to nearcore's outcomes and to cases.
+"""Bind an `oracle/v3-successor` `fuel-stress` or `eval-time` run (W02) to nearcore's outcomes
+and to cases.
 
-Input is a run directory produced with `NEAR_SUCCESSOR_SCENARIO=fuel-stress`, which contains
+Input is a run directory produced with `NEAR_SUCCESSOR_SCENARIO=fuel-stress` (or `eval-time`), which contains
 `scenario-<chain>.json` (nearcore's outcome tree for every scenario transaction). Each step is
 mapped to the honest case that validates the application of its function-call receipt: the
 first case of the executor's shard whose height is above the execution height (the witness for
@@ -26,6 +27,12 @@ EXPECT = {
     "12.chunk-nops-a": "gas", "13.chunk-nops-b": "gas", "14.chunk-nops-c": "gas",
     "15.blocks200-1T": "gas",
 }
+# the `eval-time` scenario (W02 arcs): every call runs out of gas
+EXPECT_EVAL = {
+    "00.blocks4999-300T": "gas", "01.deep4999-300T": "gas", "02.midrun4998-300T": "gas",
+    "03.blocks4999-3T": "gas", "04.pushpop4999-3T": "gas", "05.brif4999-3T": "gas",
+}
+SCENARIOS = {"FuelStress": ("successor.fuel-stress.", EXPECT), "EvalTime": ("successor.eval-time.", EXPECT_EVAL)}
 
 
 def index_cases(run):
@@ -55,9 +62,10 @@ def collect(run):
     sc = json.loads(sc_path.read_text())
     by_shard = index_cases(run)
     shards = sc["shards"]
+    prefix, expect = SCENARIOS[sc["scenario"]]
     rows, problems = [], []
     for x in sc["submitted"]:
-        label = x["label"].removeprefix("successor.fuel-stress.")
+        label = x["label"].removeprefix(prefix)
         tree = x["outcomes"]
         fc = next((o for o in tree[1:] if o.get("executed") and o.get("executor") == x["receiver"]), None)
         if fc is None:
@@ -68,11 +76,11 @@ def collect(run):
         case = next((rel for h, rel in by_shard.get(shard, []) if h > fc["height"]), None)
         if case is None:
             problems.append(f"{label}: no case after height {fc['height']} on shard {shard}")
-        if EXPECT.get(label) != cls:
-            problems.append(f"{label}: nearcore status {fc['status']} (expected {EXPECT.get(label)})")
+        if expect.get(label) != cls:
+            problems.append(f"{label}: nearcore status {fc['status']} (expected {expect.get(label)})")
         rows.append(dict(label=label, call=x["call"], height=fc["height"], shard=shard,
                          status=fc["status"], status_class=cls, gas_burnt=fc["gas_burnt"], case=case))
-    missing = set(EXPECT) - {r["label"] for r in rows}
+    missing = set(expect) - {r["label"] for r in rows}
     problems += [f"missing step {k}" for k in sorted(missing)]
     return dict(run=str(run), scenario=sc["scenario"], contracts=sc["contracts"], shards=shards,
                 steps=rows, problems=problems)

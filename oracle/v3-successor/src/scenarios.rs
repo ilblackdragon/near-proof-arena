@@ -47,6 +47,7 @@ pub enum Scenario {
     Yield,
     StorageLimits,
     FuelStress,
+    EvalTime,
     GateBCaps,
 }
 
@@ -58,6 +59,7 @@ pub fn scenario() -> Option<Scenario> {
         Some(crate::d3gen::Scenario::Yield) => Some(Scenario::Yield),
         Some(crate::d3gen::Scenario::StorageLimits) => Some(Scenario::StorageLimits),
         Some(crate::d3gen::Scenario::FuelStress) => Some(Scenario::FuelStress),
+        Some(crate::d3gen::Scenario::EvalTime) => Some(Scenario::EvalTime),
         Some(crate::d3gen::Scenario::GateBCaps) => Some(Scenario::GateBCaps),
         _ => None,
     }
@@ -65,7 +67,8 @@ pub fn scenario() -> Option<Scenario> {
 
 /// Quiet scenarios suppress baseline D2/D3 traffic and crafted injections.
 pub fn quiet() -> bool {
-    matches!(scenario(), Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::GateBCaps))
+    matches!(scenario(),
+        Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::EvalTime | Scenario::GateBCaps))
         // `runtime-errors` (src/xfam.rs): only its own transactions, so every case is about them
         || crate::xfam::kind() == Some(crate::xfam::Kind::RuntimeErrors)
 }
@@ -286,6 +289,32 @@ pub fn fuel_wasm() -> &'static [u8] {
     W.get_or_init(|| wat::parse_str(fuel_wat()).expect("fuel wat"))
 }
 
+/// Evaluation-time contract (W02, `NearSpecV3.Wasm.Arcs`): the zero-fee control shapes of
+/// `research/lean-arcs/gen_wasm.py`. Every method takes no input and loops until out of gas.
+///   blocks4999   (loop (block)x4999 br $l): one free run, then the back-edge (fused by the arcs)
+///   deep4999     (loop block x4999 br $l end x4999): the back-edge discards 4,998 pushed labels
+///   midrun4998   (loop (block (br_if 0 (i32.const 1))) (block)x4998 br $l): lands mid-run
+///   pushpop4999  (loop block x4999 i32.const 0 drop end x4999 br $l): labels pushed by one run
+///                and popped by another, across a charged group
+///   brif4999     (loop block x4999 i32.const 1 br_if $l end x4999): a br_if back-edge
+pub fn eval_wat() -> String {
+    let open = "block ".repeat(4999);
+    let close = "end ".repeat(4999);
+    format!(r#"(module
+  (memory 1)
+  (func (export "blocks4999") (loop $l {b4999} br $l))
+  (func (export "deep4999") (loop $l {open} br $l {close}))
+  (func (export "midrun4998") (loop $l (block (br_if 0 (i32.const 1))) {b4998} br $l))
+  (func (export "pushpop4999") (loop $l {open} i32.const 0 drop {close} br $l))
+  (func (export "brif4999") (loop $l {open} i32.const 1 br_if $l {close}))
+)"#, b4999 = "(block)".repeat(4999), b4998 = "(block)".repeat(4998))
+}
+
+pub fn eval_wasm() -> &'static [u8] {
+    static W: OnceLock<Vec<u8>> = OnceLock::new();
+    W.get_or_init(|| wat::parse_str(eval_wat()).expect("eval wat"))
+}
+
 /// Data-segment bytes of the large-code contract: the deploy transaction stays under
 /// `max_transaction_size` (1,572,864 B).
 pub const LARGE_PAD: usize = 1_500_000;
@@ -341,6 +370,7 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
             ("yieldc", yield_wasm().to_vec()),
         ],
         Some(Scenario::FuelStress) => vec![("fuelc", fuel_wasm().to_vec())],
+        Some(Scenario::EvalTime) => vec![("evalc", eval_wasm().to_vec())],
         Some(Scenario::GateBCaps) => vec![("slim", slim_wasm().to_vec()), ("gburn", burn_wasm().to_vec())],
         _ => vec![],
     }
@@ -411,6 +441,11 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
             assert!(n_shards >= 2, "the fuel-stress scenario needs at least 2 shards");
             add(&mut records, "s0fuel", Some(fuel_wasm()), vec![]);
             add(&mut records, "s1fuel", Some(fuel_wasm()), vec![]);
+        }
+        Some(Scenario::EvalTime) => {
+            assert!(n_shards >= 2, "the eval-time scenario needs at least 2 shards");
+            add(&mut records, "s0eval", Some(eval_wasm()), vec![]);
+            add(&mut records, "s1eval", Some(eval_wasm()), vec![]);
         }
         Some(Scenario::GateBCaps) => {
             assert!(n_shards >= 2, "the gate-b-caps scenario needs at least 2 shards");
@@ -623,6 +658,30 @@ fn fuel_schedule() -> Vec<(u64, Sched)> {
         (18, call("13.chunk-nops-b", a, "nops", t(300))),
         (18, call("14.chunk-nops-c", a, "nops", t(300))),
         (21, call("15.blocks200-1T", b, "blocks200", t(1))),
+    ]
+}
+
+/// The eval-time schedule (W02 arcs): the three shapes the arcs make O(1) per iteration at the
+/// 300 Tgas maximum; the two they do not, and `blocks4999` again, at 3 Tgas so that the
+/// single-stepping checker finishes them too. One call per chunk.
+fn eval_schedule() -> Vec<(u64, Sched)> {
+    let call = |label: &str, signer: &str, method: &str, gas: Gas| Sched {
+        label: format!("successor.eval-time.{label}"),
+        signer: acct(signer),
+        receiver: acct(signer),
+        describe: format!("{method} gas={}", gas.as_gas()),
+        actions: vec![fc_gas(method, vec![], gas)],
+    };
+    let t = Gas::from_teragas;
+    let a = "s0eval";
+    let b = "s1eval";
+    vec![
+        (0, call("00.blocks4999-300T", b, "blocks4999", t(300))),
+        (0, call("01.deep4999-300T", a, "deep4999", t(300))),
+        (3, call("02.midrun4998-300T", b, "midrun4998", t(300))),
+        (3, call("03.blocks4999-3T", a, "blocks4999", t(3))),
+        (6, call("04.pushpop4999-3T", b, "pushpop4999", t(3))),
+        (6, call("05.brif4999-3T", a, "brif4999", t(3))),
     ]
 }
 
@@ -1010,6 +1069,7 @@ impl Driver {
         let (fixed, lanes) = match scenario() {
             Some(Scenario::Yield) => (yield_schedule(), vec![]),
             Some(Scenario::FuelStress) => (fuel_schedule(), vec![]),
+            Some(Scenario::EvalTime) => (eval_schedule(), vec![]),
             Some(Scenario::StorageLimits) => (storage_misc_schedule(),
                 vec![Lane::new(LaneKind::Receipt, START), Lane::new(LaneKind::Soft, START)]),
             Some(Scenario::GateBCaps) => (gateb_schedule(), vec![]),
@@ -1239,7 +1299,7 @@ fn shard_map(s: &Setup) -> serde_json::Value {
     let tip = c.chain.head().unwrap();
     let layout = c.epoch_manager.get_shard_layout(&tip.epoch_id).unwrap();
     let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s1zyield", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode",
-                 "s0fuel", "s1fuel", "s0gbig", "s0gpad", "s1gburn"];
+                 "s0fuel", "s1fuel", "s0eval", "s1eval", "s0gbig", "s0gpad", "s1gburn"];
     let mut m = serde_json::Map::new();
     for n in names {
         m.insert(n.into(), json!(layout.account_id_to_shard_id(&acct(n)).to_string()));

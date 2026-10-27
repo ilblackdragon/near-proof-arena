@@ -77,8 +77,27 @@ def mixed(iters=1000000):
     main = leb(1) + leb(1) + b"\x7f" + main_code + END        # 1 local of type i32
     return mod([helper, main], [("run", 1)])
 
+CONST0_DROP = b"\x41\x00\x1a"   # i32.const 0; drop (a charged group inside the loop)
+
+def pushpop(n):
+    # (loop (block)^n i32.const 0 drop (end)^n br 0): one run pushes n labels, a charged group,
+    # then a run that pops them as entry labels -- the arcs' O(n)-per-iteration shape
+    code = LOOP + BLOCK * n + CONST0_DROP + END * n + BR + b"\x00" + END
+    return mod([body0(code)], [("run", 0)])
+
+def brif(n):
+    # (loop (block)^n i32.const 1 br_if n (end)^n): the back-edge is a taken br_if (not fused)
+    code = LOOP + BLOCK * n + b"\x41\x01" + b"\x0d" + leb(n) + END * n + END
+    return mod([body0(code)], [("run", 0)])
+
+def midrun(n):
+    # (loop (block i32.const 1 br_if 0) (block)(block)... br 0): the br_if lands mid-run
+    code = LOOP + BLOCK + b"\x41\x01" + b"\x0d\x00" + END + (BLOCK + END) * n + BR + b"\x00" + END
+    return mod([body0(code)], [("run", 0)])
+
 if __name__ == "__main__":
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mods")
+    import sys
+    out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "mods")
     os.makedirs(out, exist_ok=True)
     for name, b in [
         ("b4999.wasm", blocks(4999)),
@@ -88,6 +107,10 @@ if __name__ == "__main__":
         ("nops.wasm", nops()),
         ("deep200.wasm", deep(200)),
         ("mixed.wasm", mixed()),
+        ("deep4999.wasm", deep(4999)),
+        ("pushpop4999.wasm", pushpop(4999)),
+        ("brif4999.wasm", brif(4999)),
+        ("midrun4998.wasm", midrun(4998)),
     ]:
         with open(os.path.join(out, name), "wb") as f:
             f.write(b)
