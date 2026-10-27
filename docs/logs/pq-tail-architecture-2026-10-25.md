@@ -98,3 +98,18 @@ passes. No parameter change. Remaining to <200 ms: aggregate_sparsecnst
 order), Rust statement rebuild (~200 ms), project/amortize residue, then
 folding for per-block aggregate verify. See PQ_VERIFY_PARALLEL.md and
 evidence/pq-verify-parallel.
+
+### Aggregate short-macro verify kernel (2026-10-26, third)
+
+np_shortmac.h: destination-region parallel accumulation for
+aggregate_sparsecnst's deferred short-macro block (78 ms round 0) —
+private per-worker int32 accumulators, entries clipped to regions in
+sorted order (per-element order preserved, headroom bound unchanged).
+Parity proven on boundary-crossing synthetic data; short_macro 78 -> 60
+ms at SM=4; full battery (verify negatives, prove+cross-verify, forged
+counterexample, trie mutants) passes. Three bugs caught pre-landing
+(int32* phi pointer arithmetic, worker-stack AVX-512 alignment, local N
+macro collision) — each now a documented lesson. Timing window was under
+heavy external load (LA 17.5, foreign checker processes): relative ~13%
+gain consistent, absolute numbers invalid until re-measured quiet. See
+PQ_VERIFY_PARALLEL.md and evidence/pq-verify-parallel.

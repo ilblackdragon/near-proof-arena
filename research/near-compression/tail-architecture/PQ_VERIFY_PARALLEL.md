@@ -46,6 +46,39 @@ exploits).
 - Kernel-disabled baseline still passes (1.478 s).
 - No rank/norm/parameter/transcript change anywhere.
 
+## Update 2: aggregate short-macro kernel (later 2026-10-26)
+
+Implemented `np_shortmac.h`, the destination-region parallel kernel for
+`aggregate_sparsecnst`'s deferred short-macro accumulation (the 78 ms
+round-0 block): each worker owns a PRIVATE int32 accumulator for a
+contiguous destination region and processes every shortent CLIPPED to its
+region in the caller's sorted order — per-element accumulation order is
+exactly the serial one, and clipping cannot increase per-element coverage,
+so the int32 headroom bound is unchanged. `shortent`/`shortmac`/
+`shortent_cmp`/`DPWSSD` moved to chihuahua.h as shared static-inline.
+Serial fallback intact; env `LABRADOR_SM_THREADS`.
+
+Three real bugs found on the way (all caught before landing, each a
+lesson): the job struct declared the phi pointer as `int32_t*` so C
+pointer arithmetic stepped 4 bytes into polx arrays (caught by gdb
+address math: `&phi[11096]` was only +41,824 B); the worker's stack
+conversion buffer broke `_mm512_load_si512` alignment (worker stacks are
+not 64B-aligned — heap-allocate worker buffers); and a local named `N`
+collided with `data.h`'s `#define N 64`.
+
+Parity: 150 synthetic entries with boundary-crossing/overlap/odd-wid/
+gaps — serial vs 4-worker byte-identical. Phase effect: short_macro
+78 -> 60 ms at SM=4. Full battery: verify passes with all codec
+negatives; prove with kernels (250,126 B) cross-verifies; the forged
+counterexample and trie mutants still reject under parallel kernels.
+
+Honest measurement note: the box was under heavy external load during
+final timing (load average 17.5, another lane's checker processes at
+100% CPU); back-to-back runs under equal load show the parallel set ~13%
+faster than serial, but ABSOLUTE numbers from that window are invalid —
+the 0.905 s figure predates this kernel and the load, and re-measurement
+on a quiet machine is required before quoting any new total.
+
 ## Path to <200 ms (not yet there)
 
 0.905 s remains. The next levers, in measured order:
