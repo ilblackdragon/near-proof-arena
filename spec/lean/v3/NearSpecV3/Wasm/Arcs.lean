@@ -176,12 +176,18 @@ def Arc.len (a : Arc) : Nat := a.runEnd - a.pc0
 
 /-! ### Validity (the builder's contract) -/
 
-/-- `a` describes a real run of `pf`: it starts below its end, ends within the code, and the
-conservative walk from `pc0` advances through all `len = runEnd − pc0` instructions and lands
-exactly on `(runEnd, pushes)`. -/
+/-- `a` describes a real run of `pf`:
+* the walk from `(pc0, [], 0)` over `len = runEnd − pc0` transitions lands exactly on
+  `(runEnd, pushes, guard)`;
+* **every prefix advances**: for each `k < len`, the transition at walk position `k` moves
+  the pc by exactly one (the only advancing moves `simNext` makes are `simStep`'s `pc + 1`).
+  The builder guarantees this directly (it emits an arc only while `simNext` advances), and
+  `step_walk` needs it to apply `step_sim` at every position of the run. -/
 def ArcOK (pf : PFunc) (a : Arc) : Prop :=
   a.pc0 < a.runEnd ∧ a.runEnd ≤ pf.code.size ∧
-    simWalk pf a.pc0 (a.runEnd - a.pc0) = (a.runEnd, a.pushes, a.guard)
+    simWalk pf a.pc0 (a.runEnd - a.pc0) = (a.runEnd, a.pushes, a.guard) ∧
+    ∀ (k : Nat) (hk : k < a.runEnd - a.pc0),
+      (simWalk pf a.pc0 k).1 + 1 = (simWalk pf a.pc0 (k + 1)).1
 
 /-- The per-function table is valid for `pf`: every stored arc is `ArcOK` and sits at its
 start pc. -/
@@ -195,24 +201,288 @@ def arcsValidFor (p : Prepared) (arcs : Array (Array (Option Arc))) : Prop :=
 
 /-! ### The builder
 
-One linear scan. At a pc whose walk advances, the run extends to the first stall of `simNext`
-(the walk with the full remaining budget stops there, because a stalled state is a fixed
-point); the arc is `(pc, runEnd, walk pushes)`. The scan then continues at `runEnd`, so runs
-are maximal and disjoint. Runs of length < 2 are not worth an entry. -/
+`runSteps pf pc k st` applies `simNext` `k` times from an explicit start state. Because
+`simNext` stalls exactly at non-advancing positions (a stall is a fixed point), the maximal
+run from `pc` is found by stepping while the pc advances; `runFrom` counts the steps, so the
+arc's length is *by construction* the number of advancing transitions — the property
+`ArcOK`'s advance clause states. The scan continues at the run's end, so runs are maximal
+and disjoint; runs of length < 2 are not worth an entry. -/
 
-/-- Build the arc table of one function: scan pcs left to right, emitting an arc per maximal
-determined run of length ≥ 2 and continuing at the run's end. `left` is the number of pcs left
-to scan (`pc = code.size - left`); the arc branch jumps to `runEnd`, strictly past `pc`. -/
+/-- Apply `simNext` `k` times from `st` (last transition applied last, matching `simWalk`'s
+fold order: `runSteps (k+1) st = simNext (runSteps k st)`). -/
+def runSteps (pf : PFunc) : Nat → Nat × List SimLab × Nat → Nat × List SimLab × Nat
+  | 0, st => st
+  | k + 1, st => simNext pf (runSteps pf k st)
+
+/-- Peeling one transition off the end of a `runSteps` chain. -/
+theorem runSteps_peel (pf : PFunc) (n : Nat) (st : Nat × List SimLab × Nat) :
+    runSteps pf (n + 1) st = runSteps pf n (simNext pf st) := by
+  induction n generalizing st with
+  | zero => rfl
+  | succ n ih =>
+    -- both sides unfold one step; then commute simNext through by the ih at simNext st
+    show simNext pf (runSteps pf (n + 1) st) = simNext pf (runSteps pf n (simNext pf st))
+    rw [ih st]
+
+/-- The walk from `pc0` in terms of `runSteps` (definitional unfolding chain). -/
+theorem simWalk_eq_runSteps (pf : PFunc) (pc0 : Nat) (k : Nat) :
+    simWalk pf pc0 k = runSteps pf k (pc0, [], 0) := by
+  induction k with
+  | zero => rfl
+  | succ k ih => rw [simWalk, ih]; rfl
+
+/-- The maximal advancing run from `(pc, sim, grd)`: the number of steps after which the
+pc stops advancing. -/
+def runFrom (pf : PFunc) : Nat → Nat × List SimLab × Nat → Nat
+  | 0, _ => 0
+  | fuel + 1, st =>
+    if (simNext pf st).1 = st.1 then 0 else runFrom pf fuel (simNext pf st) + 1
+
+/-- `runFrom` bounds its result by the fuel. -/
+private theorem runFrom_le (pf : PFunc) (fuel : Nat) (st : Nat × List SimLab × Nat) :
+    runFrom pf fuel st ≤ fuel := by
+  induction fuel generalizing st with
+  | zero => exact Nat.le_refl _
+  | succ fuel ih =>
+    unfold runFrom
+    split
+    · omega
+    · rename_i hne
+      show runFrom pf fuel (simNext pf st) + 1 ≤ fuel + 1
+      exact Nat.succ_le_succ (ih (simNext pf st))
+
+/-- `simStep`'s advancing results always move to `pc + 1`. -/
+private theorem simStep_pc (pf : PFunc) (pc : Nat) (sim : List SimLab) (i : Instr)
+    (pc' : Nat) (sim' : List SimLab) (h : simStep pf pc sim i = some (pc', sim')) :
+    pc' = pc + 1 := by
+  cases i with
+  | block bt =>
+    simp only [simStep] at h
+    cases he : pf.endOf[pc]? with
+    | none => rw [he] at h; simp at h
+    | some e =>
+      rw [he] at h
+      simp only [Prod.mk.injEq, Option.some.injEq] at h
+      exact h.1.symm
+  | loop _ =>
+    simp only [simStep, Prod.mk.injEq, Option.some.injEq] at h
+    exact h.1.symm
+  | nop =>
+    simp only [simStep, Prod.mk.injEq, Option.some.injEq] at h
+    exact h.1.symm
+  | end_ =>
+    simp only [simStep] at h
+    cases hsim : sim with
+    | nil => rw [hsim] at h; simp at h
+    | cons lab t =>
+      rw [hsim] at h
+      simp only [Prod.mk.injEq, Option.some.injEq] at h
+      exact h.1.symm
+  | unreachable => simp [simStep] at h
+  | if_ _ => simp [simStep] at h
+  | else_ => simp [simStep] at h
+  | br _ => simp [simStep] at h
+  | brIf _ => simp [simStep] at h
+  | brTable _ _ => simp [simStep] at h
+  | ret => simp [simStep] at h
+  | call _ => simp [simStep] at h
+  | callIndirect _ _ => simp [simStep] at h
+  | refNull _ => simp [simStep] at h
+  | refIsNull => simp [simStep] at h
+  | refFunc _ => simp [simStep] at h
+  | drop => simp [simStep] at h
+  | select _ => simp [simStep] at h
+  | localGet _ => simp [simStep] at h
+  | localSet _ => simp [simStep] at h
+  | localTee _ => simp [simStep] at h
+  | globalGet _ => simp [simStep] at h
+  | globalSet _ => simp [simStep] at h
+  | tableGet _ => simp [simStep] at h
+  | tableSet _ => simp [simStep] at h
+  | tableSize _ => simp [simStep] at h
+  | tableGrow _ => simp [simStep] at h
+  | tableFill _ => simp [simStep] at h
+  | tableCopy _ _ => simp [simStep] at h
+  | tableInit _ _ => simp [simStep] at h
+  | elemDrop _ => simp [simStep] at h
+  | load _ _ _ => simp [simStep] at h
+  | store _ _ _ => simp [simStep] at h
+  | memSize => simp [simStep] at h
+  | memGrow => simp [simStep] at h
+  | memCopy => simp [simStep] at h
+  | memFill => simp [simStep] at h
+  | memInit _ => simp [simStep] at h
+  | dataDrop _ => simp [simStep] at h
+  | i32Const _ => simp [simStep] at h
+  | i64Const _ => simp [simStep] at h
+  | num _ => simp [simStep] at h
+  | float _ => simp [simStep] at h
+  | f32Const _ => simp [simStep] at h
+  | f64Const _ => simp [simStep] at h
+  | floatLoad _ _ _ => simp [simStep] at h
+  | floatStore _ _ _ => simp [simStep] at h
+
+/-- The key inversion: if the transition from `(pc, sim, grd)` advances, it advances by
+exactly one pc, and the resulting state is `simStep`'s result on a free instruction in range.
+(The four `simStep` constructors are the only advancing moves `simNext` makes.) -/
+private theorem simNext_inv (pf : PFunc) (pc : Nat) (sim : List SimLab) (grd : Nat)
+    (hne : (simNext pf (pc, sim, grd)).1 ≠ pc) :
+    ∃ (i : Instr) (sim' : List SimLab),
+      pc < pf.code.size ∧ pf.code[pc]? = some i ∧ pf.gas[pc]? = some none ∧
+        simStep pf pc sim i = some (pc + 1, sim') ∧
+        simNext pf (pc, sim, grd) = (pc + 1, sim', Nat.max grd (endDemand sim)) := by
+  unfold simNext at hne ⊢
+  simp only at hne ⊢
+  -- level 1: the dite on pc < code.size (split handles the dependent if, one binder)
+  split at hne
+  · -- in range: the pair match; case on the gas entry's shape via its equation
+    rename_i hpc
+    have hcode : pf.code[pc]? = some pf.code[pc] := Array.getElem?_eq_getElem hpc
+    cases hgas : pf.gas[pc]? with
+    | none =>
+      -- the gas entry is missing: the pair match's second scrutinee is `none`, not
+      -- `some none`, so the default (pc, sim, grd) applies — no advance, contradiction
+      rw [hgas] at hne
+      simp at hne
+    | some g =>
+      rw [hgas] at hne
+      cases g with
+      | none =>
+        -- free instruction: simStep advance or stall (the goal's gas slot is already `none`)
+        cases hss : simStep pf pc sim pf.code[pc] with
+        | some p =>
+          obtain ⟨pc'', sim'⟩ := p
+          have hpc2 : pc'' = pc + 1 := simStep_pc pf pc sim _ pc'' sim' hss
+          refine ⟨pf.code[pc], sim', hpc, hcode, rfl, ?_, ?_⟩
+          · rw [hpc2] at hss; exact hss
+          · show (if h : pc < pf.code.size then
+                match pf.code[pc], (some none : Option (Option (IK × Fee))) with
+                | i, some none =>
+                  match simStep pf pc sim i with
+                  | some (pc', sim') => (pc', sim', grd.max (endDemand sim))
+                  | none => (pc, sim, grd)
+                | x, x_1 => (pc, sim, grd)
+              else (pc, sim, grd)) = _
+            rw [hpc2] at hss
+            -- reduce the pair match (iota on the literal `some none`) and the simStep
+            -- match (hss); then the outer dite by hpc
+            simp only [hss]
+            rw [dif_pos hpc]
+        | none =>
+          -- the pair match binds i (with i := pf.code[pc] after iota); simp reduces both
+          simp only [hss] at hne
+          simp at hne
+      | some _ =>
+        simp at hne
+  · -- out of range: simNext = (pc, sim, grd), contradicting hne (pc ≠ pc)
+    rename_i hpc
+    simp only at hne
+    exact absurd rfl hne
+
+/-- Every one of the first `runFrom pf fuel st` transitions advances the pc by exactly one.
+(Maximality — that the run stops at a real stall — is *not* needed for soundness: an
+early-stopping arc skips fewer instructions but is still a valid arc; `ArcOK` does not
+require it.) -/
+private theorem runFrom_steps (pf : PFunc) (fuel : Nat) (st : Nat × List SimLab × Nat) :
+    ∀ (k : Nat) (hk : k < runFrom pf fuel st),
+      (runSteps pf k st).1 + 1 = (runSteps pf (k + 1) st).1 := by
+  induction fuel generalizing st with
+  | zero => intro k hk; exact absurd hk (Nat.not_lt_zero k)
+  | succ fuel ih =>
+    intro k hk
+    unfold runFrom at hk
+    split at hk
+    · -- stalled at the first transition: runFrom = 0, no k satisfies hk
+      exact absurd hk (Nat.not_lt_zero k)
+    · -- advanced: runFrom (fuel+1) st = runFrom fuel st' + 1, st' = simNext st
+      rename_i hadv
+      match k with
+      | 0 =>
+        -- the first transition: hadv says the pc changed; simNext_inv pins it to +1
+        show (runSteps pf 0 st).1 + 1 = (runSteps pf 1 st).1
+        -- runSteps 1 st = simNext (runSteps 0 st) = simNext st
+        obtain ⟨i, sim', hpc, hcode, hgas, hss, hnext⟩ :=
+          simNext_inv pf st.1 st.2.1 st.2.2 hadv
+        -- hnext : simNext (st.1, st.2.1, st.2.2) = (st.1 + 1, sim', …); project the pc
+        have h1 : (simNext pf st).1 = st.1 + 1 := by
+          have : simNext pf st = simNext pf (st.1, st.2.1, st.2.2) := rfl
+          rw [this]
+          exact congrArg Prod.fst hnext
+        show st.1 + 1 = (simNext pf (runSteps pf 0 st)).1
+        show st.1 + 1 = (simNext pf st).1
+        exact h1.symm
+      | j + 1 =>
+        -- later transitions: the ih at st' = simNext st
+        have hk' : j < runFrom pf fuel (simNext pf st) := by
+          -- hk : j + 1 < runFrom fuel st' + 1 (the split's else arm)
+          omega
+        -- peel one transition off each side (each equation's pattern is side-specific)
+        have hL : runSteps pf (j + 1) st = runSteps pf j (simNext pf st) :=
+          runSteps_peel pf j st
+        have hR : runSteps pf (j + 1 + 1) st = runSteps pf (j + 1) (simNext pf st) :=
+          runSteps_peel pf (j + 1) st
+        rw [hL, hR]
+        exact ih (simNext pf st) j hk'
+
+/-- The pc after the run: `runSteps (runFrom fuel st) st` advanced `runFrom` times, each by
+one, so its pc is the start's pc plus the count. -/
+private theorem runFrom_end (pf : PFunc) (fuel : Nat) (st : Nat × List SimLab × Nat) :
+    (runSteps pf (runFrom pf fuel st) st).1 = st.1 + runFrom pf fuel st := by
+  induction fuel generalizing st with
+  | zero => rfl
+  | succ fuel ih =>
+    unfold runFrom
+    split
+    · -- stalled immediately: runFrom = 0
+      rfl
+    · -- advanced: runFrom (fuel+1) st = runFrom fuel st' + 1
+      rename_i hadv
+      -- the pc chain: runSteps (runFrom fuel st' + 1) st = runSteps (runFrom fuel st') st'
+      -- (peeling the first transition), whose pc is st'.1 + runFrom fuel st' by ih,
+      -- and st'.1 = st.1 + 1 by simNext_inv
+      obtain ⟨i, sim', hpc, hcode, hgas, hss, hnext⟩ :=
+        simNext_inv pf st.1 st.2.1 st.2.2 hadv
+      have h1 : (simNext pf st).1 = st.1 + 1 := by
+        have : simNext pf st = simNext pf (st.1, st.2.1, st.2.2) := rfl
+        rw [this]
+        exact congrArg Prod.fst hnext
+      -- peel the last transition off
+      rw [runSteps_peel pf (runFrom pf fuel (simNext pf st)) st]
+      -- now the pc is (simNext st).1 + runFrom fuel (simNext st) by ih
+      have hih := ih (simNext pf st)
+      rw [hih]
+      -- so the claim is (st.1 + 1) + runFrom fuel st' = st.1 + (runFrom fuel st' + 1)
+      show (simNext pf st).1 + runFrom pf fuel (simNext pf st) = _
+      rw [h1]
+      omega
+
 def buildFrom (pf : PFunc) (left : Nat) (out : Array (Option Arc)) : Array (Option Arc) :=
   if left = 0 then out else
     let pc := pf.code.size - left
-    let (runEnd, sim, grd) := simWalk pf pc left
-    if pc + 2 ≤ runEnd then
-      buildFrom pf (pf.code.size - runEnd) (out.set! pc (some ⟨pc, runEnd, sim, grd⟩))
+    let len := runFrom pf left (pc, [], 0)
+    if 2 ≤ len then
+      let st := runSteps pf len (pc, [], 0)
+      buildFrom pf (pf.code.size - st.1) (out.set! pc (some ⟨pc, st.1, st.2.1, st.2.2⟩))
     else buildFrom pf (left - 1) out
 termination_by left
 decreasing_by
-  all_goals omega
+  -- then-branch: st.1 = pc + len with 2 ≤ len, so code.size - st.1 < left
+  · have hend := runFrom_end pf left (pc, [], 0)
+    rename_i hlen
+    -- hend : (runSteps len (pc, [], 0)).1 = pc + len; st is that same triple, so
+    -- st.1 = pc + len by hend (both sides are the same projection of the same term)
+    have hst : st.1 = pc + len := hend
+    have hpc : pc = pf.code.size - left := rfl
+    have hne : left ≠ 0 := by assumption
+    have hlen' : len ≤ left := runFrom_le pf left (pc, [], 0)
+    -- code.size - st.1 = code.size - (pc + len) with pc = code.size - left,
+    -- so = left - len < left (len ≥ 2, left ≥ 1... need len < left, i.e. len ≤ left
+    -- and len ≥ 2 with left > len impossible unless... left ≥ len ≥ 2 gives
+    -- left - len ≥ 0; we need < left: left - len < left iff len > 0 ∧ left > 0 ✓
+    have : pf.code.size - st.1 < left := by omega
+    omega
+  -- else-branch: left - 1 < left (left ≥ 1)
+  · omega
 
 /-- The arc table of one function (a slot per pc; `none` = no arc). -/
 def arcsFor (pf : PFunc) : Array (Option Arc) :=
@@ -257,6 +527,14 @@ single-steps through exactly the simulator's states (`step_walk`), so the `k` st
 skips are `seg k` ending in `applyArc` (`arc_seg`), and `runFast`'s recursion is `run`'s with
 that one substitution (`runFast_eq_run`). -/
 
+/-- Two frames with equal fields are equal (eta + componentwise). -/
+private theorem frame_congr {f g : Frame} (h1 : f.fn = g.fn) (h2 : f.pc = g.pc)
+    (h3 : f.locals = g.locals) (h4 : f.labels = g.labels) (h5 : f.base = g.base) :
+    f = g := by
+  rw [show f = ⟨f.fn, f.pc, f.locals, f.labels, f.base⟩ from rfl,
+      show g = ⟨g.fn, g.pc, g.locals, g.labels, g.base⟩ from rfl,
+      h1, h2, h3, h4, h5]
+
 /-- `matLabels` preserves length. -/
 private theorem matLabels_length (H : Nat) : ∀ (l : List SimLab), (matLabels H l).length = l.length
   | [] => rfl
@@ -273,8 +551,10 @@ private theorem applyArc_frames (s : St) (f : Frame) (fs : List Frame) (a : Arc)
 /-- The run-relative invariant: the top frame's label list is the materialization of the
 simulator's pushes above an *unchanged entry tail* `en`. `matLabels H sim ++ en` with `en`
 independent of the run. This is what the walk preserves and `applyArc` re-establishes. -/
-def SimInv (f : Frame) (pc : Nat) (sim : List SimLab) (en : List Label) (H : Nat) : Prop :=
-  f.pc = pc ∧ f.labels = matLabels H sim ++ en
+def SimInv (f : Frame) (fn : Nat) (pc : Nat) (sim : List SimLab) (en : List Label)
+    (H : Nat) (locals : Array Val) (base : Nat) : Prop :=
+  f.fn = fn ∧ f.pc = pc ∧ f.labels = matLabels H sim ++ en ∧
+    f.locals = locals ∧ f.base = base
 
 /-- Key correspondence, one run instruction: if the simulator advances from `(pc, sim)` to
 `(pc', sim')`, then the real interpreter steps to `.cont` of the corresponding state,
@@ -288,12 +568,13 @@ private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
     (s : St) (f : Frame) (fs : List Frame)
     (hi : pf.code[pc]? = some i) (hfree : pf.gas[pc]? = some none)
     (hf : s.frames = f :: fs) (hfn : f.fn = fn)
-    (hinv : SimInv f pc sim en H)
+    (hinv : SimInv f fn pc sim en H f.locals f.base)
     (hend : i = .end_ → 2 ≤ sim.length + en.length)
     (hsH : s.stack.size = H) :
     ∃ s' : St, step pv86 p s = .cont s' ∧
-      ∃ f' : Frame, s'.frames = f' :: fs ∧ SimInv f' pc' sim' en H := by
-  obtain ⟨hpc, hlab⟩ := hinv
+      ∃ f' : Frame, s' = { s with frames := f' :: fs } ∧ SimInv f' fn pc' sim' en H f.locals f.base ∧
+        s'.stack.size = s.stack.size := by
+  obtain ⟨hfn, hpc, hlab, hloc, hbase⟩ := hinv
   -- `hen` says the total label depth is ≥ 1: the only relevant sub-case is en ≠ [], because
   -- at an in-run `end` the list `matLabels H sim ++ en` must have length ≥ 2 to take the pop
   -- arm (a singleton list would make `exec .end_` return/pop). We case on the instruction.
@@ -315,13 +596,11 @@ private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
       · simp only [step, hf, hpff, hfn, hpc, hi, hfree]
         simp only [exec, setFrame, hf, hfn, hpc]
         rw [he, hlab, hsH]
-      · -- the frame and its invariant
+      · -- the frame witness: state shape by rfl, SimInv components, size kept
         refine ⟨{ f with pc := pc + 1, labels :=
           ({ target := e + 1, arity := (btResults bt).size, height := H, isLoop := false } : Label)
-            :: (matLabels H sim ++ en) }, rfl, ?_⟩
-        constructor
-        · rfl
-        · rfl
+            :: (matLabels H sim ++ en) }, rfl, ?_, rfl⟩
+        exact ⟨hfn, rfl, rfl, hloc, hbase⟩
     | none =>
       -- simulator stalls (no endOf entry): contradiction with hstep
       rw [he] at hstep
@@ -339,10 +618,8 @@ private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
       rw [hlab, hsH, hfn, hpc]
     · refine ⟨{ f with pc := pc + 1, labels :=
         ({ target := pc + 1, arity := 0, height := H, isLoop := true } : Label)
-          :: (matLabels H sim ++ en) }, rfl, ?_⟩
-      constructor
-      · rfl
-      · rfl
+          :: (matLabels H sim ++ en) }, rfl, ?_, rfl⟩
+      exact ⟨hfn, rfl, rfl, hloc, hbase⟩
   | nop =>
     -- simulator: (pc+1, sim); nop keeps the label list
     simp only [simStep, Option.some.injEq, Prod.mk.injEq] at hstep
@@ -351,7 +628,8 @@ private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
     · simp only [step, hf, hpff, hfn, hpc, hi, hfree]
       simp only [exec, setFrame, hf]
       rw [hfn, hpc]
-    · exact ⟨{ f with pc := pc + 1, labels := f.labels }, rfl, rfl, hlab⟩
+    · exact ⟨{ f with pc := pc + 1, labels := f.labels }, rfl,
+        ⟨hfn, rfl, hlab, hloc, hbase⟩, rfl⟩
   | end_ =>
     -- simulator: pops a run label (sim = lab :: t)
     simp only [simStep] at hstep
@@ -395,62 +673,12 @@ private theorem step_sim {p : Prepared} {pf : PFunc} {fn pc pc' : Nat}
           rw [List.cons_append, htail2]
           -- normalize f.fn/f.pc/frame-update to the RHS shape
           simp only [setFrame, hf, hfn, hpc]
-      · -- the frame witness and its SimInv
-        refine ⟨{ f with pc := pc + 1, labels := matLabels H t ++ en }, ?_, ?_⟩
-        · show (_ :: fs) = (_ :: fs)
-          rfl
-        · have hs : sim' = t := hsim'.symm
-          rw [hs]
-          exact ⟨rfl, rfl⟩
+      · -- the frame witness: state shape, SimInv, size
+        refine ⟨{ f with pc := pc + 1, labels := matLabels H t ++ en }, rfl, ?_, rfl⟩
+        have hs : sim' = t := hsim'.symm
+        rw [hs]
+        exact ⟨hfn, rfl, rfl, hloc, hbase⟩
   | _ => simp [simStep] at hstep
-
-/-- The walk and the real interpreter agree over a whole arc run: from a state satisfying the
-invariant at `(pc0, [])` (entry labels `en` with `guard ≤ |en|`), the `k`-th single step of the
-run is `.cont` of the `(k+1)`-th walk state, for every `k < len` (induction on the walk; the
-guard's demand is exactly what `step_sim`'s `hend` needs at each in-run `end`). -/
-private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
-    {H : Nat} {s0 : St} {f0 : Frame} {fs : List Frame}
-    (hpff : p.funcs[fn]? = some pf)
-    (hvalid : ArcOK pf a)
-    (hf : s0.frames = f0 :: fs) (hfn : f0.fn = fn) (hpc0 : f0.pc = a.pc0)
-    (hlab0 : f0.labels = en) (hgrd : a.guard ≤ en.length)
-    (hsH : s0.stack.size = H) :
-    ∀ (k : Nat) (hk : k ≤ a.runEnd - a.pc0),
-      ∃ s : St, seg pv86 p k s0 = .cont s ∧
-        ∃ f : Frame, s.frames = f :: fs ∧
-          SimInv f (a.pc0 + k) (simWalk pf a.pc0 k).2.1 en H ∧
-          s.stack.size = s0.stack.size := by
-  intro k
-  induction k with
-  | zero =>
-    -- zero steps: the state is s0 itself; the walk at 0 is (pc0, [], 0)
-    intro _
-    refine ⟨s0, rfl, f0, hf, ?_, rfl⟩
-    exact ⟨hpc0, by rw [hlab0]; rfl⟩
-  | succ k ih =>
-    -- the (k+1)-th step: `seg (k+1) = step >>= seg k`; by ih (for k ≤ len−1) the state
-    -- before the last step satisfies the invariant at walk position k; `step_sim` gives
-    -- the step is `.cont` of the (k+1)-th walk state.
-    intro hk
-    -- obtain the k-step state by ih (k ≤ len since k+1 ≤ len)
-    have hk' : k ≤ a.runEnd - a.pc0 := Nat.le_of_succ_le hk
-    obtain ⟨s1, hseg1, f1, hf1, hinv1, hstack1⟩ := ih hk'
-    -- the state before the step: top frame at pc0+k with walk labels
-    obtain ⟨hpc1, hlab1⟩ := hinv1
-    -- the instruction at pc0+k is free and run-determined (the walk advances: k < len)
-    -- walk position k → (pc0+k, sim_k, grd_k); since k < len, simNext advances
-    have hwalk : simWalk pf a.pc0 (k + 1) = simNext pf (simWalk pf a.pc0 k) := rfl
-    -- ArcOK: the walk at len lands on (runEnd, pushes, guard); monotonicity of the walk:
-    -- positions before len always advance (otherwise the walk would stall and never land)
-    -- Extract the walk state at k:
-    obtain ⟨pc_k, sim_k, grd_k⟩ := simWalk pf a.pc0 k
-    -- the state at step k has pc pc0+k (by hinv1) and labels matLabels H sim_k ++ en
-    -- (the walk's sim at k); the step is run-determined:
-    have hstep : ∃ (pc' : Nat) (sim' : List SimLab),
-        simStep pf pc_k sim_k (pf.code[pc_k]?.getD .nop) = some (pc', sim') ∧
-        pc' = pc_k + 1 := by
-      sorry
-    sorry
 
 /-! ## The walk's advance facts -/
 
@@ -509,19 +737,257 @@ private theorem simWalk_grd_mono (pf : PFunc) (pc0 : Nat) :
       -- ihj : (simWalk (k+1)).2.2 ≤ (a, b, c).2.2 — and (a,b,c).2.2 is definitionally c
       exact Nat.le_trans ihj (simNext_grd_ge pf a b c)
 
-/-- If the walk is stalled at position `k` (its state is a `simNext` fixed point), it stays
-there forever: `simNext` is idempotent on its own fixed points. -/
-private theorem simWalk_stall (pf : PFunc) {pc : Nat} {sim : List SimLab} {grd : Nat}
-    (hstall : simNext pf (pc, sim, grd) = (pc, sim, grd)) (k : Nat) :
-    simWalk pf pc (k + 1) = simNext pf (simWalk pf pc k) ∧
-    ∀ (j : Nat), simWalk pf pc (k + 1 + j) = (pc, sim, grd) := by
-  sorry
 
-/-- A valid arc's walk advances at every position before its end: if it stalled at some
-`k < len`, it would stall forever (`simWalk_stall`) and never reach `runEnd ≠ pc0 + k`. -/
-private theorem arc_walk_advances (pf : PFunc) {a : Arc} (hok : ArcOK pf a) (k : Nat)
-    (hk : k < a.runEnd - a.pc0) :
-    (simWalk pf a.pc0 (k + 1)).1 = (simWalk pf a.pc0 k).1 + 1 := by
-  sorry
+/-- A valid arc's landing guard: for positions `j ≤ len`, the walk's accumulator at `j` is at
+most `a.guard` (the landing state's third component). -/
+private theorem walk_grd_le_landing (pf : PFunc) {a : Arc} (hok : ArcOK pf a) (j : Nat)
+    (hj : j ≤ a.runEnd - a.pc0) :
+    (simWalk pf a.pc0 j).2.2 ≤ a.guard := by
+  -- monotonicity: (walk j).grd ≤ (walk (j + (len - j))).grd = (walk len).grd = a.guard
+  have h1 := simWalk_grd_mono pf a.pc0 j (a.runEnd - a.pc0 - j)
+  have hlen : j + (a.runEnd - a.pc0 - j) = a.runEnd - a.pc0 := by omega
+  rw [hlen] at h1
+  -- the landing: (walk len) = (runEnd, pushes, guard) by ArcOK
+  have hlanding := hok.2.2.1
+  rw [hlanding] at h1
+  -- h1 : (walk j).grd ≤ (runEnd, pushes, a.guard).grd = a.guard
+  exact h1
+
+/-- If the walk from `pc0` advances at every position `< m`, its pc at position `k ≤ m`
+is `pc0 + k`. -/
+private theorem walk_pc_chain (pf : PFunc) (pc0 m : Nat)
+    (hadv : ∀ (k : Nat) (hk : k < m), (simWalk pf pc0 k).1 + 1 = (simWalk pf pc0 (k + 1)).1)
+    (k : Nat) (hk : k ≤ m) : (simWalk pf pc0 k).1 = pc0 + k := by
+  induction k with
+  | zero => rfl
+  | succ k ih =>
+    have hklt : k < m := Nat.lt_of_succ_le hk
+    have h1 : (simWalk pf pc0 (k + 1)).1 = (simWalk pf pc0 k).1 + 1 := (hadv k hklt).symm
+    show (simWalk pf pc0 (k + 1)).1 = pc0 + (k + 1)
+    rw [h1, ih (Nat.le_of_succ_le hk)]
+    rfl
+
+/-- The walk and the real interpreter agree over a whole arc run: from a state satisfying the
+invariant at `(pc0, [])` (entry labels `en` with `guard ≤ |en|`), the `k`-th single step of the
+run is `.cont` of the `(k+1)`-th walk state, for every `k < len` (induction on the walk; the
+guard's demand is exactly what `step_sim`'s `hend` needs at each in-run `end`). -/
+private theorem step_walk {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
+    {H : Nat} {s0 : St} {f0 : Frame} {fs : List Frame}
+    (hpff : p.funcs[fn]? = some pf)
+    (hvalid : ArcOK pf a)
+    (hf : s0.frames = f0 :: fs) (hfn : f0.fn = fn) (hpc0 : f0.pc = a.pc0)
+    (hlab0 : f0.labels = en) (hgrd : a.guard ≤ en.length)
+    (hsH : s0.stack.size = H) :
+    ∀ (k : Nat) (hk : k ≤ a.runEnd - a.pc0),
+      ∃ (s : St) (f : Frame), seg pv86 p k s0 = .cont s ∧
+        s = { s0 with frames := f :: fs } ∧
+          SimInv f fn (a.pc0 + k) (simWalk pf a.pc0 k).2.1 en H f0.locals f0.base ∧
+          s.stack.size = s0.stack.size := by
+  intro k
+  induction k with
+  | zero =>
+    -- zero steps: the state is s0 itself; the walk at 0 is (pc0, [], 0)
+    intro _
+    refine ⟨s0, f0, rfl, ?_, ?_, rfl⟩
+    · -- s0 = {s0 with frames := f0 :: fs}, given hf : s0.frames = f0 :: fs
+      rw [← hf]
+    · exact ⟨hfn, hpc0, by rw [hlab0]; rfl, rfl, rfl⟩
+  | succ k ih =>
+    -- the (k+1)-th step: `seg (k+1) = step >>= seg k`; by ih the state after k steps
+    -- satisfies the invariant at walk position k; the advance clause (ArcOK) + simNext_inv
+    -- make the instruction run-determined, and step_sim gives the .cont continuation.
+    intro hk
+    have hk' : k ≤ a.runEnd - a.pc0 := Nat.le_of_succ_le hk
+    obtain ⟨s1, f1, hseg1, hshape1, hinv1, hstack1⟩ := ih hk'
+    obtain ⟨hfn1, hpc1, hlab1, hloc1, hbase1⟩ := hinv1
+    -- the walk state at position k
+    obtain ⟨pc_k, sim_k, grd_k, hwk⟩ :
+        ∃ pc_k sim_k grd_k, simWalk pf a.pc0 k = (pc_k, sim_k, grd_k) :=
+      ⟨_, _, _, rfl⟩
+    -- the advance clause of ArcOK (k < len since k+1 ≤ len)
+    have hklt : k < a.runEnd - a.pc0 := Nat.lt_of_succ_le hk
+    have hadvk := hvalid.2.2.2 k hklt
+    -- the walk's pc at k: pc0 + k (the advance chain)
+    have hpc_k : (simWalk pf a.pc0 k).1 = a.pc0 + k :=
+      walk_pc_chain pf a.pc0 (a.runEnd - a.pc0) (fun j hj => hvalid.2.2.2 j hj) k hk'
+    -- link the walk's sim to sim_k and f1's labels to sim_k (via hwk)
+    have hsims : (simWalk pf a.pc0 k).2.1 = sim_k := by rw [hwk]
+    rw [hsims] at hlab1
+    -- f1.pc = pc_k (both are pc0 + k)
+    have hpc_k' : pc_k = a.pc0 + k := by
+      have h := hpc_k
+      rw [hwk] at h
+      exact h
+    have hfpk : f1.pc = pc_k := by rw [hpc1, hpc_k']
+    -- the advance at position k: the simNext transition from (pc_k, sim_k, grd_k)
+    -- moved the pc, so simNext_inv applies
+    have hadv : (simNext pf (pc_k, sim_k, grd_k)).1 ≠ pc_k := by
+      -- simWalk (k+1) = simNext (simWalk k) = simNext (pc_k, sim_k, grd_k)
+      have h1 : simWalk pf a.pc0 (k + 1) = simNext pf (pc_k, sim_k, grd_k) := by
+        rw [simWalk.eq_2 (pf := pf) (pc0 := a.pc0) (k := k), hwk]
+      -- hadvk : (simWalk k).1 + 1 = (simWalk (k+1)).1, so the pc moved
+      have h2 : (simWalk pf a.pc0 k).1 + 1 = (simWalk pf a.pc0 (k + 1)).1 := hadvk
+      rw [hwk] at h2
+      rw [← h1]
+      show (simWalk pf a.pc0 (k + 1)).1 ≠ pc_k
+      have h2' : pc_k + 1 = (simWalk pf a.pc0 (k + 1)).1 := h2
+      omega
+    obtain ⟨i, sim', hpcIR, hcode, hgas, hss, hnext⟩ := simNext_inv pf pc_k sim_k grd_k hadv
+    -- the guard condition for step_sim's hend: at an in-run end, 2 ≤ |sim_k| + |en|
+    -- (from the walk's guard demand: endDemand sim_k ≤ the accumulated guard ≤ a.guard
+    -- ≤ |en|; and |sim_k| ≥ 1 since simStep's end pops one of sim)
+    have hend : i = .end_ → 2 ≤ sim_k.length + en.length := by
+      intro hi
+      -- simStep's end arm with result some (pc+1, sim') implies sim_k is nonempty
+      cases hsimk : sim_k with
+      | nil =>
+        -- simStep on .end_ with empty sim is none, contradicting hss
+        rw [hi] at hss
+        rw [hsimk] at hss
+        simp [simStep] at hss
+      | cons lab t =>
+        -- the walk at position k advanced (hadvk), so its accumulator absorbed
+        -- endDemand sim_k on this transition; monotonicity carries it to the landing
+        -- guard, and the fire-time guard bounds that by |en|:
+        --   endDemand (lab :: t) ≤ grd_{k+1} ≤ a.guard ≤ |en|
+        -- endDemand (lab :: t) = 2 - (lab :: t).length, and |lab :: t| ≥ 1, so
+        -- 2 ≤ |lab :: t| + |en| follows from 2 - |lab::t| ≤ |en|.
+        have hmon : (simWalk pf a.pc0 (k + 1)).2.2 ≤ a.guard :=
+          walk_grd_le_landing pf hvalid (k + 1) hk
+        -- the walk's accumulator at k+1 absorbed endDemand sim_k on the advance (the
+        -- transition at position k advanced and sim_k is the pre-state sim): extract it
+        -- from the transition equation
+        have habs : Nat.max grd_k (endDemand sim_k) ≤ (simWalk pf a.pc0 (k + 1)).2.2 := by
+          -- simWalk (k+1) = simNext (simWalk k) = simNext (pc_k, sim_k, grd_k);
+          -- the advance case of simNext sets the accumulator to max grd_k (endDemand sim_k)
+          rw [show simWalk pf a.pc0 (k + 1) = simNext pf (pc_k, sim_k, grd_k) from by
+              rw [simWalk.eq_2 (pf := pf) (pc0 := a.pc0) (k := k), hwk]]
+          rw [hnext]
+          exact Nat.le_refl _
+        -- so endDemand (lab :: t) ≤ max grd_k (endDemand sim_k) ≤ walk(k+1).grd ≤ a.guard
+        -- ≤ |en|; with endDemand = 2 - |lab::t|:
+        have hd : endDemand (lab :: t) ≤ en.length := by
+          have h2 : Nat.max grd_k (endDemand sim_k) ≤ (simWalk pf a.pc0 (k + 1)).2.2 := habs
+          have h3 := Nat.le_trans h2 hmon
+          have h4 : a.guard ≤ en.length := hgrd
+          -- endDemand sim_k = endDemand (lab :: t) (sim_k = lab :: t by the cases)
+          rw [hsimk] at *
+          have h5 : endDemand (lab :: t) ≤ Nat.max grd_k (endDemand (lab :: t)) :=
+            Nat.le_max_right _ _
+          exact Nat.le_trans (Nat.le_trans h5 h3) h4
+        -- endDemand (lab :: t) = 2 - (1 + t.length) ≤ |en| gives 2 ≤ 1 + t.length + |en|
+        unfold endDemand at hd
+        have hlen' : (lab :: t).length = 1 + t.length := by
+          simp only [List.length_cons]
+          omega
+        rw [hlen'] at hd
+        -- goal: 2 ≤ (lab :: t).length + en.length = 1 + t.length + |en|
+        show 2 ≤ (lab :: t).length + en.length
+        omega
+    -- apply step_sim: the real step from s1 is .cont of the walk-advanced state
+    -- step_sim needs s1.frames = f1 :: fs: project it from hshape1
+    have hframes1 : s1.frames = f1 :: fs := by rw [hshape1]
+    obtain ⟨s2, hstep2, f2, hshape2, hinv2, hsizes2⟩ :=
+      step_sim (p := p) (pf := pf) (fn := fn) (pc := pc_k) (pc' := pc_k + 1)
+        (sim := sim_k) (sim' := sim') (i := i) (en := en) (H := H)
+        hpff hss s1 f1 fs hcode hgas hframes1 hfn1
+        ⟨hfn1, hfpk, hlab1, rfl, rfl⟩ hend
+        (by rw [hstack1]; exact hsH)
+    -- chain: seg (k+1) s0 = seg k s0 >>= seg 1; the first k steps reach s1 (hseg1),
+    -- the last step is hstep2
+    have hseg2 : seg pv86 p (k + 1) s0 = .cont s2 := by
+      -- seg (k+1) = seg k then seg 1 (Segment.seg_add); the first part is hseg1
+      rw [seg_add pv86 p k 1 s0, hseg1]
+      -- (cont s1).bind (seg 1) = seg 1 s1; seg 1 = step then seg 0 (the identity on cont)
+      show (Res.cont s1).bind (seg pv86 p 1) = Res.cont s2
+      -- beta-reduce the bind: = seg pv86 p 1 s1; then unfold seg 1 = step >>= seg 0
+      show seg pv86 p 1 s1 = Res.cont s2
+      rw [show seg pv86 p 1 s1 = (step pv86 p s1).bind (seg pv86 p 0) from rfl]
+      rw [hstep2]
+      rfl
+    -- the frame's invariant at the walk's (k+1) position: pc' = pc_k + 1 = pc0 + (k+1),
+    -- sim' = the walk's (k+1) sim
+    have hwalknext : (simWalk pf a.pc0 (k + 1)).2.1 = sim' := by
+      -- simWalk (k+1) = simNext (simWalk k) = simNext (pc_k, sim_k, grd_k) = (pc_k+1, sim', …)
+      show (simNext pf (simWalk pf a.pc0 k)).2.1 = sim'
+      rw [hwk]
+      rw [hnext]
+    -- s2's stack size: preserved by the step (hsizes2), and s1's was s0's (hstack1)
+    have hstack2 : s2.stack.size = s0.stack.size := by
+      rw [hsizes2, hstack1]
+    refine ⟨s2, f2, hseg2, ?_, ?_, hstack2⟩
+    · -- s2 = {s1 with frames := f2 :: fs} (hshape2) and s1 = {s0 with frames := f1 :: fs}
+      -- (hshape1): compose into s2 = {s0 with frames := f2 :: fs}
+      rw [hshape2, hshape1]
+    · -- the SimInv: fn by hfn2, pc/labels by the walk landing, locals/base composed
+      obtain ⟨hfn2, hpc2, hlab2, hloc2, hbase2⟩ := hinv2
+      have hloc2' : f2.locals = f0.locals := by rw [hloc2, hloc1]
+      have hbase2' : f2.base = f0.base := by rw [hbase2, hbase1]
+      refine ⟨hfn2, ?_, ?_, hloc2', hbase2'⟩
+      · -- f2.pc = pc0 + (k+1): pc_k + 1 = (pc0 + k) + 1
+        show f2.pc = a.pc0 + (k + 1)
+        rw [hpc2]
+        have : pc_k = a.pc0 + k := hpc_k'
+        omega
+      · -- f2.labels = matLabels H (walk (k+1) sim) ++ en
+        show f2.labels = matLabels H (simWalk pf a.pc0 (k + 1)).2.1 ++ en
+        rw [hwalknext]
+        exact hlab2
+-- The walk's stall/advance facts are not needed as separate lemmas: `ArcOK` carries the
+-- advance clause directly (the builder's `runFrom`-counted runs provide it), and the
+-- guard monotonicity above transfers the fire-time guard to every in-run `end`.
+
+
+/-! ## The arc-run equivalence -/
+
+/-- A valid arc's whole run, single-stepped, is `.cont` of `applyArc`'s state: the run
+(`step_walk` over `len` positions) ends at the walk's landing state, which is exactly
+`applyArc` (pc at `runEnd`, labels `matLabels H pushes ++ en`). -/
+private theorem arc_seg {p : Prepared} {pf : PFunc} {fn : Nat} {a : Arc} {en : List Label}
+    {H : Nat} {s0 : St} {f0 : Frame} {fs : List Frame}
+    (hpff : p.funcs[fn]? = some pf)
+    (hvalid : ArcOK pf a)
+    (hf : s0.frames = f0 :: fs) (hfn : f0.fn = fn) (hpc0 : f0.pc = a.pc0)
+    (hlab0 : f0.labels = en) (hgrd : a.guard ≤ en.length)
+    (hsH : s0.stack.size = H) :
+    seg pv86 p a.len s0 = .cont (applyArc s0 f0 a) := by
+  -- the landing state: pc = runEnd, labels = pushes (ArcOK's walk-landing)
+  -- the walk's pc at len (the pc chain over ArcOK's advance clause)
+  have hpclen : (simWalk pf a.pc0 (a.runEnd - a.pc0)).1 = a.pc0 + (a.runEnd - a.pc0) :=
+    walk_pc_chain pf a.pc0 (a.runEnd - a.pc0) (fun j hj => hvalid.2.2.2 j hj)
+      (a.runEnd - a.pc0) (Nat.le_refl _)
+  -- the landing's pc IS a.runEnd (ArcOK's landing, projected)
+  have hpcend : (simWalk pf a.pc0 (a.runEnd - a.pc0)).1 = a.runEnd := by rw [hvalid.2.2.1]
+  -- so runEnd = pc0 + len
+  have hrunEnd : a.runEnd = a.pc0 + a.len := by
+    have : a.len = a.runEnd - a.pc0 := rfl
+    omega
+  -- the walk's pushes at len = a.pushes
+  have hpush : (simWalk pf a.pc0 (a.runEnd - a.pc0)).2.1 = a.pushes := by rw [hvalid.2.2.1]
+  -- the state after len steps (step_walk)
+  obtain ⟨s1, f1, hseg1, hshape1, hinv1, hsizes1⟩ :=
+    step_walk hpff hvalid hf hfn hpc0 hlab0 hgrd hsH (a.runEnd - a.pc0) (Nat.le_refl _)
+  obtain ⟨hfn1, hpc1, hlab1, hloc1, hbase1⟩ := hinv1
+  -- f1 is the landing frame: pc = pc0 + len = runEnd; labels = matLabels H pushes ++ en
+  -- (hpc1's pc0 + len is the walk's landing pc = runEnd; hlab1's sim is the landing pushes)
+  have hpc1' : f1.pc = a.runEnd := by
+    rw [hpc1]
+    -- the invariant's pc is pc0 + (runEnd - pc0) = runEnd
+    omega
+  have hlab1' : f1.labels = matLabels s0.stack.size a.pushes ++ f0.labels := by
+    rw [hlab1, hpush, hlab0]
+    -- the height H is s0.stack.size (hsH)
+    rw [hsH]
+  -- f1 vs the update: all five fields agree (fn, pc, labels, locals, base)
+  have hf1' : f1 = { f0 with pc := a.runEnd, labels := matLabels s0.stack.size a.pushes ++ f0.labels } :=
+    frame_congr (f := f1) (g := { f0 with pc := a.runEnd, labels := matLabels s0.stack.size a.pushes ++ f0.labels })
+      (by rw [hfn1, hfn]) hpc1' hloc1 hlab1' hbase1
+  have hs1 : s1 = applyArc s0 f0 a := by
+    rw [hshape1, hf1']
+    -- applyArc = setFrame s0 {f0 with pc/labels}; setFrame on f0 :: fs (by hf)
+    unfold applyArc setFrame
+    rw [hf]
+  rw [← hs1]
+  exact hseg1
 
 end NearSpecV3.Wasm
