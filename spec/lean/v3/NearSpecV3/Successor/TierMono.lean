@@ -259,6 +259,39 @@ theorem runCallWithLimits_eq_of_fits (cfg : Wasm.NearCfg) (code : ByteArray) (me
       simp only [hfit p hp, ↓reduceIte]
     · rfl
 
+/-! ## Runtime-error branches of the pinned runner (W03, UQ-014)
+
+Dispositions, with pinned-source citations and whole-chunk fixtures, are in
+`docs/evidence/lean-chunk-completion/runtime-errors/README.md`. In short:
+
+* `LoadingError`: the only content-determined cause at PV86 is the pooling allocator's instance
+  size (`runCallWithLimits`, modelled). The allocator's memory and table checks cannot fail after
+  preparation. Every other cause (cache corruption, a foreign artifact, mmap/allocation failure)
+  is host state, not chunk content.
+* `LinkError` at `instantiate_pre` is the import check (`link`, modelled). The other
+  constructions (`memory export missing`, `failed to acquire execution slot`, instantiation
+  resources, the gas-hook burn) are unreachable after preparation or depend on host concurrency
+  and resources.
+* `WasmUnknownError`: unreachable. Every wasmtime 45 trap is classified, and the two
+  `nondeterministic trap` codes need epoch interruption or atomics, which PV86 never enables.
+
+The theorem below is the ordering half of the modelled `LoadingError`. nearcore deserializes the
+module (`Module::deserialize`, where the allocator check runs) before charging the loading fee,
+linking imports or resolving the method (`wasmtime_runner/mod.rs:744-745` runs before the fee at
+`:797-808`, and the method is resolved in `prepare`, `:874-905`). So an
+over-limit module gives the same zero-gas failure whatever the method, prepaid gas, deposit or
+imports. -/
+
+theorem runCallWithLimits_loading_precedes (cfg : Wasm.NearCfg) (code : ByteArray) (method : String)
+    (ctx : Wasm.CallCtx) (fuel : Nat) (blockLevel full : Bool) (real : Option Wasm.TTN.RealStore)
+    (p : Wasm.Prepared) (hl : cfg.loadingLimits = true) (hp : Wasm.prepare cfg code blockLevel = .ok p)
+    (hnf : Wasm.instanceAllocationFits p.m = false) :
+    Wasm.runCallWithLimits cfg code method ctx fuel blockLevel full real =
+      .line ("abort 0 0 " ++ Wasm.instanceLoadingError ++
+        (if full then " || compute 0 || logs  || actions  || trie " else "")) := by
+  unfold Wasm.runCallWithLimits
+  simp only [hl, Bool.not_true, Bool.false_eq_true, ↓reduceIte, hp, hnf]
+
 /-! ## Global actions: the routing part of O3
 
 With `globals = true` the recorder driver routes receipts by `Rcpt.targetShard` and builds the
@@ -456,6 +489,7 @@ Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs
 #print axioms checkD2CoreGWith_reshardingDriver_mono
 #print axioms relSuccessor_resharding_mono_genesis
 #print axioms runCallWithLimits_eq_of_fits
+#print axioms runCallWithLimits_loading_precedes
 #print axioms relSuccessor_resharding_allFeatures_of
 #print axioms relSuccessor_curveHosts_allFeatures_of
 #print axioms relSuccessor_globalActions_allFeatures_of

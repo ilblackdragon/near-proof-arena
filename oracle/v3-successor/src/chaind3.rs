@@ -141,7 +141,12 @@ pub fn setup_d3(p: &ChainParams, min_gas_price: u128) -> Setup {
         let cache = c.runtime_adapter.compiled_contract_cache();
         for (_, code) in crate::d3contracts::all() {
             let code = near_vm_runner::ContractCode::new(code, None);
-            near_vm_runner::precompile_contract(&code, Arc::clone(&wasm_config), Some(cache)).expect("cache").expect("compile");
+            let compiled = near_vm_runner::precompile_contract(&code, Arc::clone(&wasm_config), Some(cache)).expect("cache");
+            // `runtime-errors` registers contracts that fail preparation on purpose (src/rterr.rs);
+            // their cached compilation error is what nearcore itself would cache
+            if crate::xfam::kind() != Some(crate::xfam::Kind::RuntimeErrors) {
+                compiled.expect("compile");
+            }
         }
     }
     Setup { clock, env, ems, genesis, accounts }

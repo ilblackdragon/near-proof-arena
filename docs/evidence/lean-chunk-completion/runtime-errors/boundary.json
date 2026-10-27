@@ -1,0 +1,23 @@
+a {'fit': 65501, 'fit_outcome': 'ok 1163636267416 1163636267416 - 1000000000000000000000000', 'over': 65502, 'over_outcome': 'thread \'main\' (4120626) panicked at src/main.rs:200:25:\nVMRunnerError: LoadingError("module instance size does not fit in pooling allocator requirements")\nnote:'}
+b {'fit': 65344, 'fit_outcome': 'ok 1161749608476 1161749608476 - 1000000000000000000000000', 'over': 65345, 'over_outcome': 'thread \'main\' (4121471) panicked at src/main.rs:200:25:\nVMRunnerError: LoadingError("module instance size does not fit in pooling allocator requirements")\nnote:'}
+c {'fit': 65505, 'fit_outcome': 'ok 1093853245081 1093853245081 - 1000000000000000000000000', 'over': 65506, 'over_outcome': 'thread \'main\' (4122361) panicked at src/main.rs:200:25:\nVMRunnerError: LoadingError("module instance size does not fit in pooling allocator requirements")\nnote:'}
+{
+ "a": {
+  "fit": 65501,
+  "fit_outcome": "ok 1163636267416 1163636267416 - 1000000000000000000000000",
+  "over": 65502,
+  "over_outcome": "thread 'main' (4120626) panicked at src/main.rs:200:25:\nVMRunnerError: LoadingError(\"module instance size does not fit in pooling allocator requirements\")\nnote:"
+ },
+ "b": {
+  "fit": 65344,
+  "fit_outcome": "ok 1161749608476 1161749608476 - 1000000000000000000000000",
+  "over": 65345,
+  "over_outcome": "thread 'main' (4121471) panicked at src/main.rs:200:25:\nVMRunnerError: LoadingError(\"module instance size does not fit in pooling allocator requirements\")\nnote:"
+ },
+ "c": {
+  "fit": 65505,
+  "fit_outcome": "ok 1093853245081 1093853245081 - 1000000000000000000000000",
+  "over": 65506,
+  "over_outcome": "thread 'main' (4122361) panicked at src/main.rs:200:25:\nVMRunnerError: LoadingError(\"module instance size does not fit in pooling allocator requirements\")\nnote:"
+ }
+}

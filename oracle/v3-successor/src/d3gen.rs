@@ -216,6 +216,9 @@ pub enum Scenario {
     GenesisTx,
     GasKeyTarget,
     RollbackRefund,
+    /// `runtime-errors` (src/xfam.rs, src/rterr.rs, W03): instance-layout `LoadingError`, import
+    /// `LinkError` and the preparation checks that precede them, in whole chunks.
+    RuntimeErrors,
     /// `gate-b-caps` (src/scenarios.rs): witnesses above 8 MiB, chunk function-call gas above
     /// 1 Pgas and a zero-fee-instruction loop (W02 Gate-B caps).
     GateBCaps,
@@ -238,6 +241,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "gaskey-target" => Some(Scenario::GasKeyTarget),
         Ok(value) if value == "rollback-refund" => Some(Scenario::RollbackRefund),
         Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
+        Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

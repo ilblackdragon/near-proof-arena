@@ -66,6 +66,8 @@ pub fn scenario() -> Option<Scenario> {
 /// Quiet scenarios suppress baseline D2/D3 traffic and crafted injections.
 pub fn quiet() -> bool {
     matches!(scenario(), Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::GateBCaps))
+        // `runtime-errors` (src/xfam.rs): only its own transactions, so every case is about them
+        || crate::xfam::kind() == Some(crate::xfam::Kind::RuntimeErrors)
 }
 
 fn acct(s: &str) -> AccountId {

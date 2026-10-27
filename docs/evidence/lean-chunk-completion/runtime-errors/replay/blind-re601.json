@@ -1,0 +1,41 @@
+{
+  "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+  "cases": 208,
+  "graded": 208,
+  "counts": {
+    "match": 208
+  },
+  "mismatch_percent": 0.0,
+  "verified_match_percent": 100.0,
+  "matched_cases_exercising": {
+    "congestion_buffered_gas": 1,
+    "congestion_receipt_bytes": 1,
+    "gas_used": 170,
+    "implicit_transitions": 18
+  },
+  "field_diffs": {},
+  "reasons": {},
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "identities": {
+    "lean_binary_sha256": "b65fe05c9d0db682a531f2ec9ed6dbaa7ae3f2fdb616b34eb65c9009236a194f",
+    "harness_sha256": "11c263d1d71d4716b026224db6d2afa1bedd677d5308d6cb84128ddbefbfc250",
+    "blind_inputs_sha256": "8464ecd8cb2114b3fcc7c378a45c46cdd96f175ea0900f95e9d78bb64232c590",
+    "tier": "allFeatures",
+    "cases_list_sha256": "2e44e9a7fdc1106ef91d6a8ec6364547f34385fdb277f3a170a9142bb28130d6"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 33.966119220945984,
+  "pass": true
+}
