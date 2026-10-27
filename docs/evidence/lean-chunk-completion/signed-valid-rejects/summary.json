@@ -1,0 +1,107 @@
+{
+  "tier": "signed",
+  "checker_before": {
+    "sha256": "b65fe05c9d0db682a531f2ec9ed6dbaa7ae3f2fdb616b34eb65c9009236a194f",
+    "tree": "b6b01df77 (main)"
+  },
+  "checker_after": {
+    "sha256": "87d7e13ea10935479d4b45e8de856d628ac303ca8a863918ee3807466f11a7e1",
+    "tree": "this commit"
+  },
+  "tool": "tools/d3/replay_successor.py --tier signed --jobs 16",
+  "populations": {
+    "gap": {
+      "description": "3,138-case gap census",
+      "before": {
+        "cases": 3138,
+        "verdicts": {
+          "accept": 735,
+          "out_of_domain": 2403
+        },
+        "partition": {
+          "domain_exclusion_asserted": 2403,
+          "verdict_agree_outside_domain": 735
+        }
+      },
+      "after": {
+        "cases": 3138,
+        "verdicts": {
+          "accept": 735,
+          "out_of_domain": 2403
+        },
+        "partition": {
+          "domain_exclusion_asserted": 2403,
+          "verdict_agree_outside_domain": 735
+        }
+      },
+      "moved": 0
+    },
+    "fixtures": {
+      "description": "577 committed fixture cases",
+      "before": {
+        "cases": 577,
+        "verdicts": {
+          "accept": 112,
+          "out_of_domain": 320,
+          "reject": 145
+        },
+        "partition": {
+          "domain_exclusion_asserted": 266,
+          "domain_exclusion_unasserted": 54,
+          "verdict_agree_outside_domain": 59,
+          "verdict_compared_agree": 194,
+          "verdict_compared_disagree": 4
+        }
+      },
+      "after": {
+        "cases": 577,
+        "verdicts": {
+          "accept": 116,
+          "out_of_domain": 320,
+          "reject": 141
+        },
+        "partition": {
+          "domain_exclusion_asserted": 266,
+          "domain_exclusion_unasserted": 54,
+          "verdict_agree_outside_domain": 60,
+          "verdict_compared_agree": 197
+        }
+      },
+      "moved": 4
+    },
+    "corpus": {
+      "description": "235,716 cases, six corpora",
+      "before": {
+        "cases": 235716,
+        "verdicts": {
+          "accept": 73577,
+          "out_of_domain": 2758,
+          "reject": 159381
+        },
+        "partition": {
+          "domain_exclusion_asserted": 2513,
+          "domain_exclusion_unasserted": 245,
+          "verdict_agree_outside_domain": 120716,
+          "verdict_compared_agree": 112036,
+          "verdict_compared_disagree": 206
+        }
+      },
+      "after": {
+        "cases": 235716,
+        "verdicts": {
+          "accept": 73577,
+          "out_of_domain": 2758,
+          "reject": 159381
+        },
+        "partition": {
+          "domain_exclusion_asserted": 2513,
+          "domain_exclusion_unasserted": 245,
+          "verdict_agree_outside_domain": 120716,
+          "verdict_compared_agree": 112036,
+          "verdict_compared_disagree": 206
+        }
+      },
+      "moved": 0
+    }
+  }
+}

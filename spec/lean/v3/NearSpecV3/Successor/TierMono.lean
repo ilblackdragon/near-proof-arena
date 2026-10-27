@@ -457,14 +457,16 @@ Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs
 * **O4 storage resolution** — the step from the legacy main transition (`applyNewChunkD2`, merged
   value size bound) to `recorderDriver` (`StorageExecution.run`, W08 pipeline code rule). This is a
   change of engine, not a guard: the refinement needs an agreement theorem between the two runtimes
-  on the legacy domain. **It is false without a layout restriction**: on the honest, nearcore-valid
-  fixture `resharding-fixtures/cases/seed11-02-h10077-s2` (a V3 layout after a split, one layout
-  across the claim's epochs, non-empty outgoing buffers) every legacy-engine tier, `.signed`
-  included, rejects with `InvalidBandwidthRequests` and every recorder-engine tier accepts. The
-  legacy `bandwidthRequests` (`D2/Queues.lean`) lacks the V3 parent chaining of
-  `bandwidthRequestsV3L` (and the legacy buffer forwarding lacks `forwardFromBufferV3L`). The
-  statement to prove is therefore O4 on witnesses whose layout has `lastSplit = none`.
-* **O5 loading limits** — not a lift (a semantic correction). The restricted statement is
+  on the legacy domain. Until 2026-10-27 it was false without a layout restriction: on the honest,
+  nearcore-valid fixture `resharding-fixtures/cases/seed11-02-h10077-s2` (a V3 layout after a split,
+  one layout across the claim's epochs, non-empty outgoing buffers) every legacy-engine tier,
+  `.signed` included, rejected with `InvalidBandwidthRequests`. The legacy `bandwidthRequests`
+  (`D2/Queues.lean`) now applies the V3 parent chaining for a V3 layout, and
+  `Logged.R_bandwidthRequestsV3` relates it to the recorder engine's `bandwidthRequestsV3L`; every
+  tier accepts the fixture. The legacy buffer forwarding still reports a non-empty buffer outside the
+  layout as `c.same_layout` (an exclusion, not a reject) where `forwardFromBufferV3L` forwards it.
+* **O5 loading limits** — not a lift (a semantic correction). Since 2026-10-27 `Wasm.pv86`, and so
+  `signedCfg` and every tier, sets the flag, so no named tier pair differs in it. The restricted statement is
   `runCallWithLimits_eq_of_fits`; the chunk-level form (every executed module fits ⇒ the flag is
   inert) needs the same propagation as O2.
 * **O6 resharding, non-genesis** — `VRefines (checkD2CoreWith recorderDriver …)

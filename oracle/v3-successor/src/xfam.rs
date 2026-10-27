@@ -57,7 +57,7 @@ pub enum Kind {
 pub fn kind() -> Option<Kind> {
     use crate::d3gen::Scenario as S;
     match crate::d3gen::scenario() {
-        Some(S::YieldCongestion) => Some(Kind::YieldCongestion),
+        Some(S::YieldCongestion | S::YieldCongestionV2Parent) => Some(Kind::YieldCongestion),
         Some(S::CurveCallbacks) => Some(Kind::CurveCallbacks),
         Some(S::GenesisTx) => Some(Kind::GenesisTx),
         Some(S::GasKeyTarget) => Some(Kind::GasKeyTarget),

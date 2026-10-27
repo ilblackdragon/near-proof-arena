@@ -72,7 +72,7 @@ fn acct(k: usize, j: usize) -> AccountId {
 pub fn setup_d3(p: &ChainParams, min_gas_price: u128) -> Setup {
     let accounts: Vec<Vec<AccountId>> = (0..p.n_shards).map(|k| (0..ACCTS_PER_SHARD).map(|j| acct(k, j)).collect()).collect();
     let boundaries: Vec<AccountId> = (1..p.n_shards).map(|k| format!("s{k}").parse().unwrap()).collect();
-    let shard_layout = ShardLayout::multi_shard_custom(boundaries, 3);
+    let shard_layout = crate::d3gen::genesis_layout(ShardLayout::multi_shard_custom(boundaries, 3));
     let validators = crate::chaind2::validators_of(p.n_shards);
     let initial_balance = Balance::from_near(1_000_000);
     let validator_stake = Balance::from_near(1_000_000);

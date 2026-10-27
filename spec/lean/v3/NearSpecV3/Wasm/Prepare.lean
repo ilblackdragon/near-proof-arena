@@ -49,7 +49,12 @@ structure NearCfg where
   `floats: true`, `saturating_float_to_int: true`, `features.rs:47-59`) — the switch exists only
   to keep the signed D3α statement unchanged. -/
   floats : Bool := false
-  /-- Successor-only pinned Wasmtime pooling allocation check. Signed configurations keep false. -/
+  /-- The pinned Wasmtime pooling allocation check (`runCallWithLimits`): a prepared module whose
+  instance does not fit the pooling allocator is a zero-gas failed call (`LoadingError`), as in the
+  pinned validator (`near-vm-runner/src/wasmtime_runner/mod.rs:481-495` configures the pool,
+  `:744-745` maps the deserialization failure to `LoadingError`). `pv86` (and so the signed
+  `checkD3`) sets it since 2026-10-27; the field default stays `false` only so that a configuration
+  built from `{}` keeps its old meaning. -/
   loadingLimits : Bool := false
   /-- Successor global/state-init promise action translation; signed configs keep false. -/
   globalActions : Bool := false
@@ -63,7 +68,11 @@ structure NearCfg where
   The signed `hostCall` is untouched and remains the arm set for every other name. -/
   curveHosts : Bool := false
 
-def pv86 : NearCfg := {}
+/-- The PV86 configuration. It carries the pinned validator's instance-loading rule
+(`loadingLimits := true`): without it the signed checker ran a module that nearcore refuses to load
+and rejected the valid chunk on its post-state root (signed-tier valid-reject fixes 2026-10-27,
+`docs/research/lean-chunk-w00-owner-map.md` §3.3). -/
+def pv86 : NearCfg := { loadingLimits := true }
 /-- The PV86 configuration **with floats in domain**: the L2 extension. -/
 def floatPv86 : NearCfg := { pv86 with floats := true }
 

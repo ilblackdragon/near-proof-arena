@@ -59,9 +59,24 @@ def main():
     cases = [regression / entry["case_dir"] for entry in entries]
     got = run_batch([str(binary), "--tier", "runtimeLimits"], cases, 120, "runtimeLimits")
     assert all(r["verdict"] == "accept" for r in got.values()), got
-    broken = run_batch([str(binary), "--tier", "genesisFloatsProtoGas"], cases[:1], 120,
-                       "genesisFloatsProtoGas")
+    # Every tier carries the loading rule (it is part of `Wasm.pv86` since 2026-10-27), so the
+    # deliberate-breakage control switches it off explicitly.
+    got = run_batch([str(binary), "--tier", "signed"], cases, 120, "signed")
+    assert all(r["verdict"] == "accept" for r in got.values()), got
+    broken = run_batch([str(binary), "--tier", "genesisFloatsProtoGas", "--ablate-loading-limits"],
+                       cases[:1], 120, "genesisFloatsProtoGas")
     assert next(iter(broken.values()))["verdict"] == "reject", broken
+    # V2 layouts with a parent map: nearcore chains the parent's buffer (an unsplit shard's own
+    # buffer twice) into each bandwidth request. Honest chunks must be accepted and the
+    # own-buffer-only header mutants (what a missing parent term would compute) rejected.
+    v2p = REPO / "docs/evidence/lean-chunk-completion/signed-valid-rejects/v2-parent-map"
+    v2p_cases = [REPO / line for line in (v2p / "cases.txt").read_text().split()]
+    assert len(v2p_cases) == 16
+    for tier in ("signed", "allFeatures"):
+        got = run_batch([str(binary), "--tier", tier], v2p_cases, 120, tier)
+        for case, r in got.items():
+            want = ("reject", "invalid: InvalidBandwidthRequests") if "own_only" in str(case) else ("accept", "")
+            assert (r["verdict"], r["reason"]) == want, (tier, case, r)
     float_regression = REPO / "docs/evidence/lean-chunk-completion/float-chunks-224/cases"
     float_entries = json.loads((float_regression / "index.json").read_text())
     float_cases = [float_regression / entry["case_dir"] for entry in float_entries]
@@ -136,7 +151,7 @@ def main():
     print("FLOAT MUTANT SMOKE PASSED: 2 rejects + 2 accepted mutations")
     print("INPUT-DRIVEN FLOAT CHUNK SMOKE PASSED: 8 chunks")
     print("FLOAT CHUNK SMOKE PASSED: 8 chunks, removed-float tier detected")
-    print("SUCCESSOR SMOKE PASSED: 49 raw configuration comparisons + 1 complete-code policy check, 4 runtime chunks, ablation detected")
+    print("SUCCESSOR SMOKE PASSED: 49 raw configuration comparisons + 1 complete-code policy check, 4 runtime chunks, 16 V2 parent-map cases x 2 tiers, ablation detected")
 
 if __name__ == "__main__":
     main()

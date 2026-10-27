@@ -1,0 +1,103 @@
+{
+ "checker_before": "87d7e13ea10935479d4b45e8de856d628ac303ca8a863918ee3807466f11a7e1 (ba043074d)",
+ "checker_after": "c4afbc1f6e773b09ef22b6d2174491c64294f7d96c5a26137ba9253ca6b4e94b",
+ "oracle": "a53014d9b5832cce1256d6a15dc53c49e97d77918279e592adadc508ba530738 (near-arena-oracle-v3-successor, this tree)",
+ "generation": "NEAR_SUCCESSOR_SCENARIO=yield-congestion-v2parent NEAR_XFAM_MUTATE_EVERY=4 gen --domain d3 --seed 102 --first-chain 4 --chains 1 --blocks 260 --p-missing 0.1 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12",
+ "populations": {
+  "g": "all 1,126 honest chunks of the run (d3/ and ood/) plus the 1,175 family mutants (collect_xfam.py)",
+  "o": "24 hdr.bandwidth_requests.own_only(derived) mutants (tools/d3/bw_own_only_mutants.py)"
+ },
+ "runs": {
+  "g-mid-signed": {
+   "cases": 2301,
+   "verdicts": {
+    "accept": 950,
+    "out_of_domain": 789,
+    "reject": 562
+   },
+   "partition": {
+    "domain_exclusion_asserted": 789,
+    "verdict_agree_outside_domain": 415,
+    "verdict_compared_agree": 1076,
+    "verdict_compared_disagree": 21
+   }
+  },
+  "g-v2p-signed": {
+   "cases": 2301,
+   "verdicts": {
+    "accept": 971,
+    "out_of_domain": 789,
+    "reject": 541
+   },
+   "partition": {
+    "domain_exclusion_asserted": 789,
+    "verdict_agree_outside_domain": 415,
+    "verdict_compared_agree": 1097
+   }
+  },
+  "g-mid-allFeatures": {
+   "cases": 2301,
+   "verdicts": {
+    "accept": 1343,
+    "reject": 958
+   },
+   "partition": {
+    "verdict_agree_outside_domain": 107,
+    "verdict_compared_agree": 2170,
+    "verdict_compared_disagree": 24
+   }
+  },
+  "g-v2p-allFeatures": {
+   "cases": 2301,
+   "verdicts": {
+    "accept": 1367,
+    "reject": 934
+   },
+   "partition": {
+    "verdict_agree_outside_domain": 109,
+    "verdict_compared_agree": 2192
+   }
+  },
+  "o-mid-signed": {
+   "cases": 24,
+   "verdicts": {
+    "accept": 21,
+    "out_of_domain": 3
+   },
+   "partition": {
+    "domain_exclusion_asserted": 3,
+    "verdict_compared_disagree": 21
+   }
+  },
+  "o-v2p-signed": {
+   "cases": 24,
+   "verdicts": {
+    "out_of_domain": 3,
+    "reject": 21
+   },
+   "partition": {
+    "domain_exclusion_asserted": 3,
+    "verdict_compared_agree": 21
+   }
+  },
+  "o-mid-allFeatures": {
+   "cases": 24,
+   "verdicts": {
+    "accept": 24
+   },
+   "partition": {
+    "verdict_compared_disagree": 24
+   }
+  },
+  "o-v2p-allFeatures": {
+   "cases": 24,
+   "verdicts": {
+    "reject": 24
+   },
+   "partition": {
+    "verdict_agree_outside_domain": 2,
+    "verdict_compared_agree": 22
+   }
+  }
+ }
+}

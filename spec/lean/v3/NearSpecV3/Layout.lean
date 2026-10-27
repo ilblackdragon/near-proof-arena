@@ -36,6 +36,13 @@ structure Layout where
   lastSplit : Option Nat := none
   /-- V3 only: child shard → its ancestor shards. -/
   ancestorMap : List (Nat × List Nat) := []
+  /-- V2 only: `shards_parent_map` (shard → its parent in the previous layout; an unsplit shard maps
+  to itself), `none` when the layout carries no parent map. nearcore reads it in
+  `ShardLayoutV2::try_get_parent_shard_id` (`shard_layout/v2.rs:285-301`), and so in the bandwidth
+  request rule (`congestion_control.rs:545-554`). Mainnet's static layouts since PV75 carry one
+  (`res/epoch_configs/mainnet/75.json`–`81.json`), and under the dynamic layout config of PV85/86 a
+  layout without a split is carried over unchanged (`chain/epoch-manager/src/lib.rs:693-707`). -/
+  v2ParentMap : Option (List (Nat × Nat)) := none
   deriving Repr
 
 def pPairU64 : P (Nat × Nat) := fun bs => do
@@ -57,13 +64,14 @@ def decodeLayout (b : Bytes) : Except String Layout := do
     let (i2x, bs) ← pVec "id_to_index_map" pPairU64 bs
     let (_, bs) ← pVec "index_to_id_map" pPairU64 bs
     let (_, bs) ← pOption "shards_split_map" (pVec "split map" pKeyVecU64) bs
-    let (_, bs) ← pOption "shards_parent_map" (pVec "parent map" pPairU64) bs
+    let (parentMap, bs) ← pOption "shards_parent_map" (pVec "parent map" pPairU64) bs
     let (_, bs) ← pU32 "version" bs
     if !bs.isEmpty then throw "decode: trailing bytes in ShardLayout"
-    -- V2 has no V3 split map: its split information lives in the optional maps just skipped, whose
-    -- shape differs (parent map is shard -> shard). V2 resharding is not modelled; the fields stay
-    -- empty so a V2 layout can never claim a V3 split.
-    pure { boundaries := bd, shardIds := ids, idToIndex := i2x }
+    -- V2 has no V3 split map: its split information lives in the optional maps, whose shape differs
+    -- (parent map is shard -> shard). V2 resharding is not modelled; the V3 fields stay empty so a
+    -- V2 layout can never claim a V3 split. The parent map is kept: the bandwidth request rule
+    -- reads it (`v2ParentMap`).
+    pure { boundaries := bd, shardIds := ids, idToIndex := i2x, v2ParentMap := parentMap }
   | 3 => do
     let (bd, bs) ← pVec "boundary_accounts" (pAccountId "boundary") bs
     let (ids, bs) ← pVec "shard_ids" (pU64 "shard id") bs

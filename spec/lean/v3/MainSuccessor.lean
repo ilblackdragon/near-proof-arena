@@ -140,9 +140,15 @@ def outputRow (dir tier : String) (r : Except String Observable) : String :=
 
 def main (args : List String) : IO UInt32 := do
   let "--tier" :: tierName :: rest := args
-    | IO.eprintln "usage: nearspec-v3-check-successor --tier TIER [--emit|--blind|--emit-full|--blind-full] CASE_DIR..."; return 2
+    | IO.eprintln "usage: nearspec-v3-check-successor --tier TIER [--ablate-loading-limits] [--emit|--blind|--emit-full|--blind-full] CASE_DIR..."; return 2
   let some tier := parseTier tierName
     | IO.eprintln s!"unknown successor tier: {tierName}"; return 2
+  -- `--ablate-loading-limits`: a deliberate-breakage control only (the pinned instance-loading rule
+  -- switched off); every tier sets it since 2026-10-27, so no tier can serve as the control.
+  let (ablate, rest) := match rest with
+    | "--ablate-loading-limits" :: ds => (true, ds)
+    | ds => (false, ds)
+  let cfg := if ablate then { tier.cfg with loadingLimits := false } else tier.cfg
   let (mode, full, dirs) := match rest with
     | "--emit" :: ds => (some false, false, ds)
     | "--blind" :: ds => (some true, false, ds)
@@ -159,7 +165,7 @@ def main (args : List String) : IO UInt32 := do
       let wb ← IO.FS.readBinFile (dir ++ "/witness.bin")
       match mode with
       | some blind =>
-        let r := checkSuccessorObs tier.cfg blind cb.toList wb.toList
+        let r := checkSuccessorObs cfg blind cb.toList wb.toList
         if full then
           let (row, ok) := outputRowFull dir tierName r
           if !ok then failed := true
@@ -167,7 +173,7 @@ def main (args : List String) : IO UInt32 := do
         else
           IO.println (outputRow dir tierName r)
       | none =>
-        let (verdict, reason) := match checkVerdict (Tier.checker tier) cb.toList wb.toList with
+        let (verdict, reason) := match checkVerdict (checkSuccessor cfg) cb.toList wb.toList with
           | .accept => ("accept", "")
           | .reject e => ("reject", e)
           | .outOfDomain e => ("out_of_domain", e)

@@ -212,6 +212,10 @@ pub enum Scenario {
     FuelStress,
     /// cross-family scenarios (src/xfam.rs)
     YieldCongestion,
+    /// `yield-congestion-v2parent`: `yield-congestion` on a genesis layout that is V2 **with** a
+    /// parent map (every shard its own parent, as mainnet's unsplit shards since PV75), so the
+    /// bandwidth requests chain each shard's own buffer twice (`congestion_control.rs:545-554`).
+    YieldCongestionV2Parent,
     CurveCallbacks,
     GenesisTx,
     GasKeyTarget,
@@ -225,6 +229,20 @@ pub enum Scenario {
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
+/// The genesis shard layout of a scenario: the base layout unchanged, except that
+/// `yield-congestion-v2parent` rebuilds it as a V2 layout with an identity split map (so a parent map
+/// in which every shard is its own parent), keeping boundaries and shard ids.
+pub fn genesis_layout(base: near_primitives::shard_layout::ShardLayout)
+    -> near_primitives::shard_layout::ShardLayout {
+    use near_primitives::shard_layout::ShardLayout;
+    if scenario() != Some(Scenario::YieldCongestionV2Parent) {
+        return base;
+    }
+    let ids: Vec<_> = base.shard_ids().collect();
+    let split = ids.iter().map(|&id| (id, vec![id])).collect();
+    ShardLayout::v2(base.boundary_accounts().clone(), ids, Some(split))
+}
+
 pub fn scenario() -> Option<Scenario> {
     match std::env::var("NEAR_SUCCESSOR_SCENARIO") {
         Err(std::env::VarError::NotPresent) => None,
@@ -236,6 +254,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "storage-limits" => Some(Scenario::StorageLimits),
         Ok(value) if value == "fuel-stress" => Some(Scenario::FuelStress),
         Ok(value) if value == "yield-congestion" => Some(Scenario::YieldCongestion),
+        Ok(value) if value == "yield-congestion-v2parent" => Some(Scenario::YieldCongestionV2Parent),
         Ok(value) if value == "curve-callbacks" => Some(Scenario::CurveCallbacks),
         Ok(value) if value == "genesis-tx" => Some(Scenario::GenesisTx),
         Ok(value) if value == "gaskey-target" => Some(Scenario::GasKeyTarget),

@@ -84,7 +84,8 @@ structure ProtocolCfg where
   gasCap : Option Nat := some D3.gAlpha
   /-- Use L6's genesis-aware pipeline (`checkD2CoreG`) instead of `checkD2Core`. -/
   genesisMainTransition : Bool := false
-  /-- Pinned validator's Wasmtime pooling allocation failure semantics. -/
+  /-- Pinned validator's Wasmtime pooling allocation failure semantics. `signedCfg` sets it (it is
+  part of `Wasm.pv86`, and so of `checkD3`); the field default stays `false`. -/
   loadingLimits : Bool := false
   /-- Chunk-scoped proof recording and runtime contract identifier resolution. -/
   storageResolution : Bool := false
@@ -121,8 +122,11 @@ def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
   let base := if cfg.floats then Wasm.floatPv86 else Wasm.pv86
   { base with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions, curveHosts := cfg.curveHosts }
 
-/-- The signed configuration: exactly `checkD3`'s arguments. -/
-def signedCfg : ProtocolCfg := {}
+/-- The signed configuration: exactly `checkD3`'s arguments. `loadingLimits := true` because
+`Wasm.pv86` carries the pinned instance-loading rule (signed-tier valid-reject fixes 2026-10-27);
+every tier built from `signedCfg` inherits it, so `.runtimeLimits` now differs from
+`.genesisFloatsProtoGas` in name only. -/
+def signedCfg : ProtocolCfg := { loadingLimits := true }
 
 /-- The signed configuration with resharding decided. -/
 def reshardingCfg : ProtocolCfg := { signedCfg with resharding := true }

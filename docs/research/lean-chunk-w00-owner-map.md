@@ -294,6 +294,81 @@ restored to the `throw` and rebuilt. The committed pair is
 Consequence: wherever a document says the widening is "successor-only" or "the signed tier is
 unchanged", read it as superseded by this record.
 
+### 3.3 Signed-tier valid-reject fixes 2026-10-27
+
+**Decision (user, recorded 2026-10-27): accepted as a strengthening of the signed statement.** Before
+this change, `D3.checkD3` / `D3.RelD3` (`--tier signed`) rejected four chunks that pinned nearcore
+accepts and `allFeatures` accepts. A reject of a valid chunk on the statement of record is a bug.
+This change edits Lean definitions on `checkD3`'s path. `oracle/v3-d3/src/**`, `challenges/**` and
+the oracle pins are unchanged (`make pin-check` ok). Evidence:
+[signed-valid-rejects](../evidence/lean-chunk-completion/signed-valid-rejects/README.md).
+
+Two root causes. In both, the fix reuses the rule the successor tiers already apply:
+
+1. **V3 bandwidth parent chaining** (`InvalidBandwidthRequests`, 1 case: `resharding-fixtures`
+   `seed11-02-h10077-s2`). nearcore chains the buffer to `get_parent_shard_id(to_shard)` before the
+   shard's own buffer (`runtime/runtime/src/congestion_control.rs:545-554`). That call always
+   succeeds for a V3 layout (`shard_layout/mod.rs:253-272`, `shard_layout/v3.rs:344-354`). The legacy
+   `D2.bandwidthRequests` now dispatches a V3 layout to `bandwidthRequestsV3`. `Logged.R_bandwidthRequestsV3`
+   proves that it evaluates to what the recorder engine's `bandwidthRequestsV3L` (the `allFeatures`
+   rule, now shared from `Logged/D2Queues.lean`) evaluates to. V2 layouts keep the previous body.
+   Until this change, workplan item 4 recorded this case as a stated restriction of the signed
+   statement. It is no longer one.
+2. **Instance loading** (`main transition post state root`, 3 cases: `runtime-chunks-209`
+   `runtime-above-43`, `runtime-mixed-71`, `runtime-targeted-1703`). The pooling allocator refuses a
+   module whose instance exceeds 1 MiB (`near-vm-runner/src/wasmtime_runner/mod.rs:481-495`,
+   `:744-745`), and the runtime turns that into a zero-gas failed call
+   (`runtime/runtime/src/function_call.rs:328-330`). `Wasm.pv86` now sets `loadingLimits := true`,
+   which is the same `runCallWithLimits` rule `allFeatures` runs. `checkD3`'s text is unchanged, and
+   `signedCfg := { loadingLimits := true }` keeps `checkSuccessor_signed` and `signed_tier_rel_iff`
+   definitional.
+
+**Population and moves (`--tier signed`, before `b65fe05c…` on `b6b01df77`, after `87d7e13e…`).**
+
+| Population | Before (accept / OOD / reject) | After | Moves | nearcore |
+|---|---|---|---|---|
+| 3,138-case gap census (§3.2) | 735 / 2,403 / 0 | unchanged | 0 | — |
+| 577 committed fixture cases | 112 / 320 / 145 | 116 / 320 / 141 | 4 `reject → accept`: the four cases above | `ok` for all four |
+| 235,716-case corpus (six corpora) | 73,577 / 2,758 / 159,381 | unchanged (verdict and reason) | 0 | — |
+
+All four moves go toward nearcore. None goes in the unsound direction, and no out-of-domain count
+changes. No corpus case has either root cause. The remaining signed rejects of nearcore-`ok`
+corpus chunks are the 206 `d2corpus.v2` code-less witnesses (`MissingTrieValue (contract code)`),
+an unrelated known population. Every narrower tier built from `signedCfg` inherits both fixes, as do
+the legacy adapters (`checkD3F`, `checkD3Proto`, `checkD3G`, `checkD3Global`) and `checkD2` (bandwidth
+only). `.runtimeLimits` and `.genesisFloatsProtoGas` now coincide.
+
+**Reproduce** (from the repository root, after `lake build nearspec-v3-check-successor` in
+`spec/lean/v3`):
+
+```sh
+B=spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor
+E=docs/evidence/lean-chunk-completion
+$B --tier signed $E/resharding-fixtures/cases/seed11-02-h10077-s2 \
+  $E/runtime-chunks-209/cases/{runtime-above-43,runtime-mixed-71,runtime-targeted-1703}   # 4 x accept
+$B --tier signed --ablate-loading-limits $E/runtime-chunks-209/cases/runtime-targeted-1703  # reject (control)
+python3 tools/d3/replay_successor.py --tier signed --cases-file /tmp/gap3138.txt --out OUT --jobs 16
+```
+
+The "before" side is the same commands on `b6b01df77`.
+
+**Follow-up, same day: V2 layouts with a parent map (soundness).** nearcore's
+`get_parent_shard_id` also succeeds on a V2 layout that carries `shards_parent_map`
+(`shard_layout/v2.rs:285-301`). On such a layout every request chains the parent's buffer, so an
+unsplit shard requests its own buffer twice. Lean's V2 decoder dropped the map, so both engines
+used the own-buffer rule. The case is reachable at PV86. Mainnet's static layouts from PV75 to PV81
+are V2 with a parent map (`res/epoch_configs/mainnet/75.json`–`81.json`), and under the PV85/86
+dynamic config an epoch without a split keeps the previous layout
+(`chain/epoch-manager/src/lib.rs:693-707`). The decoder now keeps the map (`Layout.v2ParentMap`),
+and both engines apply the rule (`bandwidthRequestsV2P` / `bandwidthRequestsV2PL`, related by
+`Logged.R_bandwidthRequestsV2P`). A map without an entry for a layout shard is a named exclusion.
+On a generated V2 parent-map chain (`yield-congestion-v2parent`, seed 102, 2,301 cases) the fix moves
+21 (`signed`) / 24 (`allFeatures`) honest chunks from `reject` to `accept`, and 21 / 24
+own-buffer-only header mutants from **`accept`** to `reject`: the pre-fix checker accepted chunks
+nearcore rejects. No case of the census, the fixtures or the corpus carries a V2 parent map
+(`tools/d3/claim_layout.py --summary`: 235,716 / 577 / 3,138 V2 without a map, or V3), and none moves.
+[Evidence](../evidence/lean-chunk-completion/signed-valid-rejects/v2-parent-map/README.md).
+
 ## 4. The schema decision W00 owes
 
 The workplan asks for "a schema decision states which existing claim fields suffice, which need a

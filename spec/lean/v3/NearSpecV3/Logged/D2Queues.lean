@@ -162,7 +162,7 @@ def groupSizesL (o : Ovl) (s : Nat) : Nat → Nat → LM (List Nat)
       | some b => LM.okL (decodeGroup b) (inconsistent "receipt group")
     pure (sz :: (← groupSizesL o s fuel (i + 1)))
 
-def bandwidthRequestsL (env : Env) (rs : RS) : LM (List BwRequest) := do
+def bandwidthRequestsV2L (env : Env) (rs : RS) : LM (List BwRequest) := do
   let reqs ← env.ctx.layout.shardIds.mapM fun s => do
     let (f, n) := bufGet rs.bufIdx s
     if n ≤ f then return none
@@ -175,6 +175,64 @@ def bandwidthRequestsL (env : Env) (rs : RS) : LM (List BwRequest) := do
     if bm.all (· == 0) then return none
     pure (some (⟨s, bm⟩ : BwRequest))
   pure reqs.reduceOption
+
+/-- The receipt-group sizes of the outgoing buffer to `s`: none for an empty buffer, the groups when
+the metadata covers the whole buffer, else the basic request `[max_receipt_size]`
+(`get_receipt_group_sizes_for_buffer_to_shard`, `congestion_control.rs:565-610`). -/
+def bufferSizesL (env : Env) (rs : RS) (s : Nat) : LM (List Nat) := do
+  let (f, n) := bufGet rs.bufIdx s
+  if n ≤ f then return []
+  let len := n - f
+  match metaGet rs.metas s with
+  | some m => if m.totalNum == len then groupSizesL rs.o s (m.next - m.first) m.first
+              else pure [env.sched.maxReceiptSize]
+  | none => pure [env.sched.maxReceiptSize]
+
+/-- `generate_bandwidth_requests` (`congestion_control.rs:503-560`). The request to `to_shard` chains
+the buffer to `shard_layout.get_parent_shard_id(to_shard)` before the shard's own buffer whenever
+that call succeeds. For a V2 layout without a parent map it fails (`NoParent`), so the request is the
+shard's own buffer, as `bandwidthRequestsV2L` computes it. For a V3 layout it always succeeds
+(`try_get_parent_shard_id`, `shard_layout/v3.rs:344-354`): a child of the latest split chains its
+parent's buffer, and **every other shard chains its own buffer a second time**. That is the pinned
+validator's behaviour; validator-generated post-split fixtures reject without it
+(`InvalidBandwidthRequests`). Used by the recorder engine (`StorageExecution.bandwidthRequestsR`)
+and, through `bandwidthRequestsL`, by the logged legacy engine. -/
+def bandwidthRequestsV3L (env : Env) (rs : RS) : LM (List BwRequest) := do
+  let l := env.ctx.layout
+  let reqs ← l.shardIds.mapM fun s => do
+    let own ← bufferSizesL env rs s
+    let parent ← match l.lastSplit, l.parentV3 s with
+      | some _, some p => bufferSizesL env rs p
+      | _, _ => pure []
+    let bm := makeRequest env.sched (parent ++ own)
+    if bm.all (· == 0) then return none
+    pure (some (⟨s, bm⟩ : BwRequest))
+  pure reqs.reduceOption
+
+/-- Mirror of `bandwidthRequestsV2P`: a V2 layout with a parent map chains the parent's buffer. -/
+def bandwidthRequestsV2PL (env : Env) (rs : RS) (pm : List (Nat × Nat)) : LM (List BwRequest) := do
+  let l := env.ctx.layout
+  let reqs ← l.shardIds.mapM fun s => do
+    let own ← bufferSizesL env rs s
+    let parent ← match pm.find? (·.1 == s) with
+      | some (_, p) => bufferSizesL env rs p
+      | none => throw (v2ParentMissing s)
+    let bm := makeRequest env.sched (parent ++ own)
+    if bm.all (· == 0) then return none
+    pure (some (⟨s, bm⟩ : BwRequest))
+  pure reqs.reduceOption
+
+/-- The V2 half of the request rule, shared by both engines: parent chaining when the layout carries
+a parent map, the own buffer otherwise. -/
+def bandwidthRequestsV2AnyL (env : Env) (rs : RS) : LM (List BwRequest) :=
+  match env.ctx.layout.v2ParentMap with
+  | some pm => bandwidthRequestsV2PL env rs pm
+  | none => bandwidthRequestsV2L env rs
+
+/-- Mirror of `bandwidthRequests`: the V3 rule for a V3 layout, the V2 rule otherwise. -/
+def bandwidthRequestsL (env : Env) (rs : RS) : LM (List BwRequest) :=
+  if env.ctx.layout.lastSplit.isSome then bandwidthRequestsV3L env rs
+  else bandwidthRequestsV2AnyL env rs
 
 def delayPushL (rs : RS) (r : Rcpt) : LM RS := do
   let gas ← LM.okL (congestionGas r) (panicked "receipt congestion gas overflow")
