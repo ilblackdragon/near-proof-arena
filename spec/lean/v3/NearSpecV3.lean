@@ -36,6 +36,13 @@ import NearSpecV3.D3.GlobalContractExec
 import NearSpecV3.D3.GlobalContractTests
 import NearSpecV3.D3.GlobalContractChunk
 
+-- Supply economics: the epoch inflation bound (2.5 %/yr) and the block header's supply identity,
+-- plus the per-site accounting of the runtime's balance writes. Additive only: nothing here is
+-- reachable from `checkD2Core`/`checkD3`/`RelD3`, so no signed statement or verdict changes.
+import NearSpecV3.Supply
+import NearSpecV3.SupplyRuntime
+import NearSpecV3.SupplyConfinement
+
 -- Recursion track: segment fold semantics (Wasm/Segment.lean). Was orphaned until
 -- 2026-10-23; imported here so the result is in the default build and cannot rot.
 import NearSpecV3.Wasm.Segment
