@@ -26,7 +26,7 @@
       },
       {
         "id": "c.same_layout",
-        "text": "all epochs of the claim have the byte-identical shard layout (no resharding); no non-empty outgoing buffer to a shard outside the layout"
+        "text": "all epochs of the claim have the byte-identical shard layout (no resharding); no non-empty outgoing buffer to a shard outside the layout (D3a rung only; the D3S rung, the statement of record since 2026-10-27, decides resharding)"
       },
       {
         "id": "c.headers",
@@ -34,7 +34,7 @@
       },
       {
         "id": "c.no_split_gate",
-        "text": "no dynamic-resharding split check for any applied block"
+        "text": "no dynamic-resharding split check for any applied block (D3a rung only; the D3S rung, the statement of record since 2026-10-27, decides resharding)"
       },
       {
         "id": "c.not_genesis",
@@ -46,7 +46,7 @@
       },
       {
         "id": "w.size",
-        "text": "state witness <= 8 MiB; sum of the main transition's base_state values and the contract code blobs + 2000 x ContractData removals <= 4,000,000 bytes (the storage-proof limit never triggers)"
+        "text": "state witness <= 8 MiB; sum of the main transition's base_state values and the contract code blobs + 2000 x ContractData removals <= 4,000,000 bytes (the storage-proof limit never triggers) (D3a rung; on D3S the 8 MiB bound applies to the decoded witness and nearcore's exact storage-proof limits are modelled; witness.bin may be the compressed witness as distributed, near-arena-cwitness-v3, with nearcore's 48 MiB encoded / 64 MiB decoded limits and the 64 MiB code-response cap)"
       },
       {
         "id": "w.shape",
@@ -62,7 +62,7 @@
       },
       {
         "id": "e.wasm_alpha",
-        "text": "every executed contract prepares inside D3\u03b1: integer WASM only (no float type or opcode); no executed FunctionCall calls a curve host function (alt_bn128_*, bls12381_*, ecrecover, p256_verify) or a state-init / global-contract / gas-key host function (importing them is allowed); no unmodeled VM outcome"
+        "text": "every executed contract prepares inside D3α: integer WASM only (no float type or opcode); no executed FunctionCall calls a curve host function (alt_bn128_*, bls12381_*, ecrecover, p256_verify) or a state-init / global-contract / gas-key host function (importing them is allowed); no unmodeled VM outcome"
       },
       {
         "id": "e.global_code",
@@ -105,7 +105,7 @@
     "format": "near-arena-claim-v3",
     "spec_digest": "sha256:619f00219fa15099ee451c28c6585aa18bb84ccf47d14313d2d0dc3dd999b6bb",
     "max_request_bytes": 1048576,
-    "max_witness_bytes": 12582912,
+    "max_witness_bytes": 117440542,
     "max_claim_bytes": 1048576
   },
   "security_profile": {
@@ -303,7 +303,7 @@
     }
   },
   "resource_limits": {
-    "max_proof_bytes": 67108864,
+    "max_proof_bytes": 117440542,
     "max_verify_ms": 60000,
     "max_prove_ms": 600000,
     "max_ram_bytes": 17179869184,
@@ -390,6 +390,26 @@
         "id": "D3a",
         "rank": 5,
         "params": "NearSpecV3.challengeParamsChunk .d3a",
+        "classes": [
+          "d0-quiet",
+          "d0-transfers",
+          "d0-missing",
+          "d1-transfers",
+          "d1-mixed",
+          "d1-receipts",
+          "d2-actions",
+          "d2-queues",
+          "d2-epoch",
+          "d3-calls",
+          "d3-callbacks",
+          "d3-nonwasm",
+          "d3-maxgas"
+        ]
+      },
+      {
+        "id": "D3S",
+        "rank": 6,
+        "params": "NearSpecV3.challengeParamsChunk .d3s",
         "classes": [
           "d0-quiet",
           "d0-transfers",
