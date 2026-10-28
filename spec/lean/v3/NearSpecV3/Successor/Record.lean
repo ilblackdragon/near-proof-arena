@@ -46,11 +46,21 @@ def recordDriver : ExecutionDriver :=
 
 /-- **The statement of record.** `ReshardCore` on every segment without a genesis block, the
 genesis-capable shell otherwise (which reports `c.not_genesis` for a genesis main transition). -/
-def checkD3S (claimBytes witnessBytes : Bytes) : Except String Unit :=
+def checkD3SWith (driver : ExecutionDriver) (claimBytes witnessBytes : Bytes) : Except String Unit :=
   if true && !segmentHasGenesis claimBytes then
-    checkReshardCore recordDriver (D3.d3Hooks recordWasm) true claimBytes witnessBytes (some D3.gAlpha)
+    checkReshardCore driver (D3.d3Hooks recordWasm) true claimBytes witnessBytes (some D3.gAlpha)
   else
-    checkD2CoreWith recordDriver (D3.d3Hooks recordWasm) true claimBytes witnessBytes (some D3.gAlpha)
+    checkD2CoreWith driver (D3.d3Hooks recordWasm) true claimBytes witnessBytes (some D3.gAlpha)
+
+def checkD3S (claimBytes witnessBytes : Bytes) : Except String Unit :=
+  checkD3SWith recordDriver claimBytes witnessBytes
+
+/-- Deliberate-breakage control only (`--ablate-output-checks`): the statement of record with every
+comparison against a produced value skipped (post-state roots of the main, implicit and split
+transitions, outcome root, gas, receipts root, congestion, bandwidth requests). Mutants of those
+values must then be accepted, which shows the fixture mutants exercise the checks. -/
+def checkD3SAblated (claimBytes witnessBytes : Bytes) : Except String Unit :=
+  checkD3SWith { recordDriver with blindOutputs := true } claimBytes witnessBytes
 
 /-- The relation of record. -/
 def RelD3S (claimBytes witnessBytes : Bytes) : Prop := checkD3S claimBytes witnessBytes = .ok ()

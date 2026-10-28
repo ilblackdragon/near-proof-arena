@@ -36,7 +36,11 @@ TIERS = {
                     "c.segment", "w.size", "c.layout"),
     "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
-    "signed": (),
+    # The statement of record since 2026-10-27 (`checkD3S`): the D3α feature set on the recorder
+    # engine with resharding decided, so the resharding guards are no longer exclusion labels.
+    "signed": ("c.same_layout", "c.no_split_gate"),
+    # The D3α rung `checkD3` (the signed tier until 2026-10-27).
+    "d3a": (),
     "floats": ("e.float",),
     "protoGas": ("e.g_alpha",),
     "floatsProtoGas": ("e.float", "e.g_alpha"),
@@ -130,7 +134,7 @@ def _replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
         compare = load_compare()
         _, bad, partition, records = compare.compare(
             tier, list(metas), metas, got,
-            domain="baseline" if tier == "signed" else "successor", widen=TIERS[tier])
+            domain="baseline" if tier in ("signed", "d3a") else "successor", widen=TIERS[tier])
         if sum(partition.values()) != len(cases):
             raise ValueError("comparison does not account for every input")
         result_path = out / "results.jsonl"
