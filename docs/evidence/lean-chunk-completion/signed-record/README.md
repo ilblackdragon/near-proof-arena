@@ -58,6 +58,7 @@ record is [`lean-chunk-w00-owner-map.md` §3.4](../../../research/lean-chunk-w00
 | 931 fixtures (every committed case dir and case tarball) | 179 / 454 / 298 | **216 / 418 / 297** | 113 | 37 | **0** | 0 |
 | 3,138 gap census | 735 / 2,403 / 0 | **1,082 / 2,056 / 0** | 379 | 347 | **0** | 0 |
 | resharding raw runs, 1,700 PV86 cases (seeds 11, 23, 37, 41, 51) | 1,251 / 431 / 18 | **1,494 / 52 / 154** | 398 | 243 | **0** | 0 |
+| 235,716-case corpus (six corpora, with the cold `d2corpus.v2` cases) | 73,783 / 2,758 / 159,175 | **74,133 / 2,393 / 159,190** | 492 | 350 | **0** | 0 |
 
 What moved, on the fixtures (`fixture-moves.jsonl`):
 
@@ -100,7 +101,14 @@ tier.
 
 ## Corpus
 
-See `summary.json` (`corpus`, when present) and owner map §3.4 for the 235,716-case run.
+On the 235,716 corpus cases (`corpus-moves.jsonl`) the 350 new accepts are 178 ETH-implicit
+accounts with a local contract and 172 pre-state contracts served by an in-chunk deploy, all
+nearcore `ok`. 15 deploy-served code mutants move from out of domain to reject, and 95 change
+exclusion reason to the pipeline race (`contract preparation pipelined before the in-chunk
+deploy`). All 110 are nearcore rejects. After the change no corpus case is a signed reject of a
+nearcore-accepted chunk. The remaining signed non-accepts of `ok` chunks are D3α feature exclusions
+(`G_α` 871, ML-DSA keys 308, `c.not_genesis` 265, curve hosts, floats, non-ED25519 keys, global
+actions, promise-action hosts, `c.segment` 7).
 
 ## Reproduce
 

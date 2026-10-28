@@ -76,10 +76,10 @@
    },
    "partition": {
     "domain_exclusion_asserted": 2056,
-    "missing_code_cache_exclusion": 169,
-    "verdict_agree_outside_domain": 913
+    "verdict_agree_outside_domain": 752,
+    "verdict_compared_agree": 330
    },
-   "binary_sha256": "44843b9de5f3fce07d51d45682af2fae658312d89a6da96cc6029b400b45756e"
+   "binary_sha256": "10e94e3791350782f7abf32fb70be056ade9da7eabdb011cbe555560e4d20023"
   },
   "moves": {
    "moved": 379,
@@ -127,6 +127,46 @@
    "nearcore_reject->reject": 136,
    "nearcore_reject->accept": 18,
    "nearcore_reject->out_of_domain": 2
+  }
+ },
+ "corpus": {
+  "before": {
+   "cases": 235716,
+   "verdicts": {
+    "accept": 73783,
+    "out_of_domain": 2758,
+    "reject": 159175
+   },
+   "partition": {
+    "domain_exclusion_asserted": 2311,
+    "domain_exclusion_unasserted": 286,
+    "domain_exclusion_where_in_domain": 161,
+    "verdict_agree_outside_domain": 120922,
+    "verdict_compared_agree": 112036
+   },
+   "binary_sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475"
+  },
+  "after": {
+   "cases": 235716,
+   "verdicts": {
+    "accept": 74133,
+    "out_of_domain": 2393,
+    "reject": 159190
+   },
+   "partition": {
+    "domain_exclusion_asserted": 2056,
+    "domain_exclusion_unasserted": 242,
+    "missing_code_cache_exclusion": 279,
+    "verdict_agree_outside_domain": 121103,
+    "verdict_compared_agree": 112036
+   },
+   "binary_sha256": "44843b9de5f3fce07d51d45682af2fae658312d89a6da96cc6029b400b45756e"
+  },
+  "moves": {
+   "moved": 492,
+   "to_accept_nearcore_ok": 350,
+   "unsound": 0,
+   "accept_lost": 0
   }
  }
 }

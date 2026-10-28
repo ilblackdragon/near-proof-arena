@@ -416,6 +416,7 @@ nearcore-rejected chunk, and no accept is lost.
 | 931 fixtures | 179 / 454 / 298, 26 rejects of nearcore `ok` | 216 / 418 / 297, 0 rejects of nearcore `ok` |
 | 3,138 gap census | 735 / 2,403 / 0 | 1,082 / 2,056 / 0 |
 | 1,700 resharding raw cases (5 seeds) | 1,251 / 431 / 18 | 1,494 / 52 / 154 (0 disagreements) |
+| 235,716-case corpus | 73,783 / 2,758 / 159,175 | 74,133 / 2,393 / 159,190, 0 rejects of nearcore `ok` |
 
 ## 4. The schema decision W00 owes
 
