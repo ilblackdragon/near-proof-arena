@@ -1,0 +1,49 @@
+{
+  "status": "PHASE3_LADDER_MEASURED_PINNED_PROTOCOL",
+  "protocol": "CPU 8-11, RAYON_NUM_THREADS=4, ulimit -v 16GiB, /usr/bin/time -v, two observations per rung",
+  "load_label": "HIGH (box load avg ~52/32 cores during runs; wall-clock upward-noisy, two observations only, no p95 claims)",
+  "ladder": [
+    {"rung": 8, "fixture": "addchain5.bin", "steps": 8, "suite": "sizes", "witness_log": 17, "and": 133100, "private_words": 189039,
+     "prove_s": [0.2589, 0.2626], "verify_s": [0.1338, 0.1365], "packet_bytes": 197167, "rss_mb": [519, 522]},
+    {"rung": 64, "fixture": "addchain19.bin", "steps": 64, "suite": "sizes", "witness_log": 18, "and": 211685, "private_words": 330703,
+     "prove_s": [0.3295, 0.3258], "verify_s": [0.1803, 0.1730], "packet_bytes": 201679, "rss_mb": [700, 702]},
+    {"rung": 512, "fixture": "addchain131.bin", "steps": 512, "suite": "sizem", "witness_log": 20, "and": 839781, "private_words": 1463751,
+     "prove_s": [0.7027, 0.7256], "verify_s": [0.3142, 0.3171], "packet_bytes": 209231, "rss_mb": [2005, 1993]},
+    {"rung": 2048, "fixture": "addchain514.bin", "steps": 2044, "suite": "sizel", "witness_log": 22, "and": 2993253, "private_words": 5348487,
+     "prove_s": [2.0261, 2.0116], "verify_s": [0.6615, 0.6504], "packet_bytes": 157367, "rss_mb": [6140, 6111]},
+    {"rung": 2048, "fixture": "memmix80.bin", "steps": 2010, "suite": "sizel", "witness_log": 22,
+     "prove_s": [1.9332, 1.9177], "verify_s": [0.6481, 0.6470], "packet_bytes": 158647, "rss_mb": [6125, 6120]}
+  ],
+  "secondary_fixtures_single_obs": [
+    {"rung": 64, "fixture": "mix1.bin", "steps": 42, "prove_s": 0.3194, "verify_s": 0.1588, "packet_bytes": 201679},
+    {"rung": 64, "fixture": "memmix1.bin", "steps": 35, "prove_s": 0.3156, "verify_s": 0.1575, "packet_bytes": 201679},
+    {"rung": 64, "fixture": "ctrlbounded.bin", "steps": 21, "prove_s": 0.3218, "verify_s": 0.1590, "packet_bytes": 201679},
+    {"rung": 512, "fixture": "mix5.bin", "steps": 162, "prove_s": 0.6734, "verify_s": 0.3103, "packet_bytes": 209231},
+    {"rung": 512, "fixture": "memmix5.bin", "steps": 135, "prove_s": 0.6943, "verify_s": 0.3051, "packet_bytes": 209231},
+    {"rung": 2048, "fixture": "mix42.bin", "steps": 1272, "prove_s": 1.9299, "verify_s": 0.6511, "packet_bytes": 158647},
+    {"rung": 2048, "fixture": "mix66.bin", "steps": 1992, "prove_s": 1.9176, "verify_s": 0.6446, "packet_bytes": 158647},
+    {"rung": 2048, "fixture": "memmix42.bin", "steps": 1060, "prove_s": 1.9396, "verify_s": 0.6606, "packet_bytes": 158647}
+  ],
+  "geometry_counts": {
+    "and_per_step_2048": 1461.5,
+    "note": "2,993,253 AND / 2048 table slots; fixture used 2044 steps",
+    "vs_d0a_per_slot": 4792,
+    "ratio_vs_d0a": 0.305,
+    "vs_zkvm_rows_per_receipt": 10387
+  },
+  "suite_boundary": {
+    "rungs_logs": [17, 18, 20, 22],
+    "note": "each rung lands exactly on a suite boundary (sizes=18, sizem=20, sizel=22); log 23-24 selects sizexl whose moduli set swaps Q4861 for Q9721 - unmeasured on this corpus; the 2048-step cap is the known frontend dense-build wall",
+    "measured_not_assumed": true
+  },
+  "extrapolation_1_pgas": {
+    "label": "EXTRAPOLATION",
+    "and_per_chunk": "~1.5-8.7 GAND per 1-Pgas chunk at ~1e9 instructions x 1452 AND/step",
+    "vs_largest_rung": "~500-2900x the 2048-step rung",
+    "folding_required": true,
+    "packet_target": "survives: rung packets flat at 0.157-0.209 MB across 8..2048 steps (commitment dominated by the recursive opening, not table size)",
+    "prove_target": "single-circuit CPU proving cannot reach 1-2 s at 1 Pgas (linear ~0.98 ms/step); GPU opening + folded per-block verify remain the named levers",
+    "breaks_first": "the frontend dense-build wall at the 2048-step class"
+  },
+  "phase4_decision_datum": "per-step cost 1452 AND < D0a 4792 AND/slot on the same PQ backend -> integrate (NPMULT04 composite) per the goal's decision rule"
+}
