@@ -549,15 +549,12 @@ distinct code. nearcore bounds it only at the single `ContractCodeResponse` of 6
 compressed state witness of up to 48 MiB (`near-arena-cwitness-v3`) **and** up to 64 MiB of code
 blobs, so a 64 MiB witness bound would exclude real chunks.
 
-The correct completeness-domain witness bound for `.allFeatures` is the sum of the framing, the
-compressed-witness cap and the code-response cap below. This is the bound a completeness statement
-for `.allFeatures` must use instead of `maxWitnessChunk`; the signed `DomainTier`/`maxWitnessChunk`
-are left unchanged (that is a signed-statement/domain decision for the integrator). The **signed
-tier's exposure**: a signed `witness.bin` carries the state witness in the clear (≤ 8 MiB on the
-signed tier via `w.size`) plus up to 64 MiB of code blobs, i.e. up to ≈ 72 MiB, which already
-exceeds `maxWitnessChunk` = 64 MiB — so even the signed `DomainTier` bound can formally exclude a
-real large-code chunk. This is a restriction of the signed completeness statement, not a soundness
-issue (`RelChunkV3`/`Rel_t` are unaffected). -/
+The correct completeness-domain witness bound is the sum of the framing, the compressed-witness
+cap and the code-response cap below. Since 2026-10-27 (owner map §3.4, a deliberate signed-encoding
+change) `ChallengeChunkV3.maxWitnessChunk` is exactly this bound for every tier
+(`allFeaturesWitnessBound_eq_maxWitnessChunk`), so the earlier exposure — a signed `witness.bin` of
+an 8 MiB witness plus up to 64 MiB of code exceeding a 64 MiB bound — is removed.
+-/
 def allFeaturesWitnessBound : Nat :=
   -- 4+22 tag ‖ 4 + compressed state witness (≤ MAX_COMPRESSED_STATE_WITNESS_SIZE)
   -- ‖ code-response Vec<CodeBytes> (≤ MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE)

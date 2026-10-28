@@ -170,7 +170,7 @@ question.
 
 | UQ | Owner | Question (abridged) | Disposition | Where it now surfaces in Lean | Blocking |
 |---|---|---|---|---|---|
-| `UQ-001` | L1 | Must `Rel_D3` be cache-independent; is cold-cache the admitted statement? | open — decision | `Resolution.CacheMode`, `CacheEnv.determinedByClaim`, `coldCache_independent`, `validatorCache_not_independent` | Gate B |
+| `UQ-001` | L1 | Must `Rel_D3` be cache-independent; is cold-cache the admitted statement? | **resolved 2026-10-27 (user)**: cold cache is the admitted statement (§3.4) | `Resolution.CacheMode`, `CacheEnv.determinedByClaim`, `coldCache_independent`, `validatorCache_not_independent` | Gate B |
 | `UQ-002` | L1 + L7 | Can `e.code_cache` narrow to rolled-back deploys only? | open — proof | `Resolution.CacheEnv`, `committedCache`, `validatorCache_not_admitted` | Gate B |
 | `UQ-003` | L2 | Which NaN payload/sign semantics does pinned Wasmtime produce; stable across architectures? | open — decision | `Config.ProtocolCfg.floats` (L2's float kernel) | Gate B |
 | `UQ-004` | L3 | Are curve host gas schedules fully pinned at PV86 (no `86.yaml`)? | open — decision | `HostDispatch.GasOrder`, `HostContract.gasOrder` | Gate B |
@@ -179,7 +179,7 @@ question.
 | `UQ-007` | L4 | Is `LegacyEthWallet` still reachable at PV86 after `EthImplicitGlobalContract` (83)? | open — proof | `Resolution.ethWallet_kind_unreachable`, `IdentifierKind` | Gate B |
 | `UQ-008` | L6 | Which witness carries a resharding transition; per-child-shard congestion info? | **resolved 2026-10-26** — the first child chunk carries `ImplicitTransitionParams::Resharding`; per-child congestion and `retain_split_shard` are modelled (`ReshardCore`, `TrieSplit`) and match nearcore on 2,920 real-split witnesses ([resharding](../evidence/lean-chunk-completion/resharding-fixtures/README.md), [resharding-2](../evidence/lean-chunk-completion/resharding-fixtures-2/README.md)) | `BoundaryFacts.EpochInputs.layouts`, `SplitInputs`, `ShapeExclusion.resharding` | Gate B |
 | `UQ-009` | L9 + L6 | May a valid segment reference a PV85 epoch; both PV85/PV86 configs required? | **resolved 2026-10-26** — no: mainnet goes PV84 → PV86 directly (archival blocks 207,762,733 / 207,762,734), and `Successor/LayoutReach.lean` proves a layout change between PV86 epochs is a dynamic (V3) split; PV86-only configs suffice for the pinned target ([resharding-2](../evidence/lean-chunk-completion/resharding-fixtures-2/README.md)) | `Config.ProtocolCfg.protocolVersion`, `checkSuccessor_unsupported_pv` | Gate B |
-| `UQ-010` | L1 | Which predicate is the statement of record: `checkD3` or `Wasm.DomainD3`? | open — decision; **W00 states `checkD3`/`RelD3` as the record, see §3.1** (L1 still owns reconciling `DomainD3`) | `Config.Tier.domainPredicate` (verdict-form, on the statement of record) | Gate B |
+| `UQ-010` | L1 | Which predicate is the statement of record: `checkD3` or `Wasm.DomainD3`? | **resolved 2026-10-27**: the record is `Successor.RelD3S` (§3.4; `RelD3` is the `.d3a` rung); `DomainD3` reconciled (`contractInD3α` narrowed to dispatch, `noResharding` scoped to `.d3a`) | `Config.Tier.domainPredicate` (verdict-form, on the statement of record) | Gate B |
 | `UQ-011` | L1 + L8 | Must Gate B remove the arena claim-size bounds, or is a larger versioned claim format acceptable? | **resolved for `allFeatures` 2026-10-26** — `c.segment`, `w.size` (8 MiB) and `c.layout` are lifted; nearcore's 64 MiB decode limit is kept and its 48 MiB compressed limit is approximated by the `w.compressed_size` exclusion (> 50,000,000 B). Narrower tiers keep their caps ([gate-b-caps](../evidence/lean-chunk-completion/gate-b-caps/README.md)) | `BoundaryFacts.ShapeExclusion.claimSize/witnessSize`, `permanentExclusions` | Gate B |
 | `UQ-012` | L1 | Unbounded chunk function-call gas or a stated `G_α` capacity contract? | **resolved for `allFeatures` 2026-10-26** — `gasCap := none`: the 1 Pgas figure was nearcore's per-call `max_gas_burnt`, not a chunk rule; 1.8 Pgas chunks accept and match nearcore. Narrower tiers keep the cap (tier design) ([gate-b-caps](../evidence/lean-chunk-completion/gate-b-caps/README.md)) | `Config.ProtocolCfg.gasCap`, `ChunkAccounting.softLimitReached` | Gate B |
 | `UQ-013` | L8 | What admission contract binds the trusted facts to the verifier's chain state? | open — decision | `BoundaryFacts.FactAuthentication`, `BoundaryFact.obligation`, `genesisChunkExtra_requires_auth` | Gate B |
@@ -368,6 +368,54 @@ own-buffer-only header mutants from **`accept`** to `reject`: the pre-fix checke
 nearcore rejects. No case of the census, the fixtures or the corpus carries a V2 parent map
 (`tools/d3/claim_layout.py --summary`: 235,716 / 577 / 3,138 V2 without a map, or V3), and none moves.
 [Evidence](../evidence/lean-chunk-completion/signed-valid-rejects/v2-parent-map/README.md).
+
+### 3.4 The statement of record moves to the successor engine (2026-10-27)
+
+**Decisions (user, 2026-10-27).** (1) Cold cache is the admitted statement (UQ-001). (2) A signed
+tier that rejects or excludes a valid chunk is fixed, not kept as a restriction. (3) This includes
+changing the signed `witness.bin` bound in `ChallengeChunkV3`, which changes the signed encoding,
+with `make pin-check` pins updated deliberately and recorded here.
+
+**What changed** (evidence: [signed-record](../evidence/lean-chunk-completion/signed-record/README.md)).
+
+* **Statement of record: `Successor.RelD3S`** (`Successor/Record.lean`), the D3α feature set on the
+  recorder + resharding engine. `--tier signed` is `checkD3S` (`checkSuccessor_signed`, `rfl`).
+  `D3.checkD3`/`RelD3` keep their text and are the `.d3a` rung and `--tier d3a`
+  (`checkSuccessor_d3a`, `rfl`). §3.1's choice of `checkD3` as the record is superseded by this
+  section. The reasons in §3.1 (it is a term the challenge names and the proofs consume) carry over
+  to `RelD3S`, which `ChallengeChunkV3` names as the rung `.d3s`.
+* **Why not edit `checkD3`.** The `zk-formal` joins (`Join/Coverage.lean`, `Join/Fold.lean`) and the
+  reexec artifact consume `checkD3 = checkD2Core (d3Hooks pv86) …` definitionally, and
+  `checkD2Core` cannot reach `ReshardCore` without an import cycle. A new rung added as a disjunct
+  of `RelChunkV3` keeps every result about `RelD3` true. This is the extension the challenge file
+  already describes ("a future rung is added as a new disjunct in a versioned successor").
+* **Fixed, item 6:** (a) `c.same_layout`/`c.no_split_gate` are decided; (b) `wasmFuel` on the signed
+  path, including `D3.functionCall`; (c) `maxWitnessChunk` = 117,440,542 = framing + 48 MiB +
+  64 MiB (was 64 MiB), and the D3 tiers' proof cap equals it; (d) `contractInD3α` narrowed to
+  dispatch, and `noResharding` scoped to `.d3a`. **Also fixed:** 26 signed rejects of
+  nearcore-accepted `storage-limit-fixtures` chunks (the legacy engine has no storage-proof-limit
+  model). They are now `G_α` exclusions.
+* **Still declared (the D3α feature set, not completeness bugs):** floats, curve hosts, global
+  actions and distribution receipts, ML-DSA and non-ED25519 keys, `G_α`, `c.segment` (32), `w.size`
+  (8 MiB decoded), `c.layout` (64), `c.not_genesis`, `w.code_response_size`, and the pipeline-race
+  `e.code_cache`.
+* **Signed encoding and pins.** `ChallengeChunkV3`: the `Tier` enum gains `.d3s`, and `RelChunkV3`
+  gains a disjunct, `maxWitnessChunk` and `maxProofBytesChunkV3`. The draft
+  `challenges/drafts/near-chunk-v3.draft.json`: `claim_encoding.max_witness_bytes` and
+  `resource_limits.max_proof_bytes` are 117,440,542 (were 12,582,912 and 67,108,864), and there is a
+  D3S coverage tier. `make pin-check` stays all ok: it pins the generator specs and the oracle
+  source trees, and neither changed (no `oracle/v3*`, `challenges/chl_*` or generator-spec file
+  was edited), so no pin value had to move. The draft's `formal_spec.tree_digest` was already
+  stale before this change (draft dated 2026-10-06) and is not checked by `pin-check`.
+
+**Measured, `--tier signed` before (`a1627ea3…`) → after.** No move is an accept of a
+nearcore-rejected chunk, and no accept is lost.
+
+| population | before (accept / OOD / reject) | after |
+|---|---|---|
+| 931 fixtures | 179 / 454 / 298, 26 rejects of nearcore `ok` | 216 / 418 / 297, 0 rejects of nearcore `ok` |
+| 3,138 gap census | 735 / 2,403 / 0 | 1,082 / 2,056 / 0 |
+| 1,700 resharding raw cases (5 seeds) | 1,251 / 431 / 18 | 1,494 / 52 / 154 (0 disagreements) |
 
 ## 4. The schema decision W00 owes
 

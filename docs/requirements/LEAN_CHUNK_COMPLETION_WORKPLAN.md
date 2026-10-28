@@ -11,7 +11,9 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
 ## TL;DR
 
 - **One checker, two tiers.** `nearspec-v3-check-successor --tier allFeatures` is the full
-  successor; `--tier signed` (`checkD3`/`RelD3`) is the statement of record.
+  successor; `--tier signed` (`checkD3S`/`RelD3S`, the D3α feature set on the recorder + resharding
+  engine, since 2026-10-27) is the statement of record. `--tier d3a` is the former signed checker
+  `checkD3`/`RelD3`, kept as the `.d3a` rung ([signed-record](../evidence/lean-chunk-completion/signed-record/README.md)).
 - **Agreement with cold nearcore (`allFeatures`).** Corpus, 235,716 cases: 235,621 agree, 95 out of
   domain, 0 disagree. The 224 `d2corpus.v2` witnesses that carried no code and a warm `ok` were
   regenerated cold with code ([d2corpus-cold](../evidence/lean-chunk-completion/d2corpus-cold/README.md)). Fixtures: 640/640 across the committed families
@@ -63,21 +65,23 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
 | 1 | **W13 all-shard mainnet replay**, the only real-traffic evidence beyond shard 13. Needs: a 1,000-block all-shard window on the sponsor machine ([runbook](../../tools/mainnet-replay/ALL_SHARDS_RUNBOOK.md), [replay gate](../../tools/mainnet-replay/README.md)), the cold native adapter, and the finality/authentication boundary | `make w13-gate`: 100% coverage, 100% verified matches, 0 mismatches / unsupported / missing / errors (with zero comparisons, `mismatch_percent` is `null`, never a pass) |
 | 2 | **Evaluator speed and memory** (W02/W16). Still slow: push-then-pop and `br_if`-back-edge loops (~3–4 h per 300 Tgas); the zstd decoder (~145 s per MB of entropy-coded witness, hours at 48 MiB); ~106 B of memory per witness byte | every worst-case fixture meets a stated per-chunk time/memory budget |
 | 3 | **Fuel sufficiency theorem** (W02): obligations O-W1b–O-W4 in `Wasm/Fuel.lean`. The largest is finite-wasm charges before execution | proved: no valid execution is rejected as fuel exhaustion |
-| 4 | **Size-limit fixtures** (W02): the 48 MiB encoded boundary is tested at frame level only, and the 64 MiB code-response cap by unit tests only. No whole-chunk fixture exists at either boundary | whole-chunk nearcore fixtures at both boundaries, or a stated reason they cannot be generated |
+| 4 | ~~Size-limit fixtures~~ **done 2026-10-27**: whole-chunk fixtures at the 48 MiB encoded boundary (50,331,647 / 50,331,648 accept, 50,331,649 reject) and the 64 MiB code-response cap (at: accept; over: `w.code_response_size`, nearcore's own decode fails), 0 disagreements ([size-limit-chunks](../evidence/lean-chunk-completion/size-limit-chunks/README.md)) | — |
 | 5 | **Tier refinement** (W12): obligations O1–O7 (floats, curve hosts, global actions, storage resolution, loading limits, resharding on non-genesis segments, complete-code). `completeCodeGlobal` refines no tier | proofs build with the allowed axioms |
-| 6 | **Signed-tier completeness** (UQ-010), where the signed tier excludes valid chunks: (a) a non-empty outgoing buffer to a split parent (`c.same_layout`) and pre-split gating (`c.no_split_gate`); (b) eval-time worst-case loops that exhaust the signed fuel budget (`e.wasm-α … fuel exhausted`, 9 fixtures); (c) the signed `witness.bin` bound (64 MiB including code, `ChallengeChunkV3`), which can exclude code-heavy chunks; (d) `DomainD3` reconciliation | each removed, or accepted by decision as a signed restriction |
+| 6 | ~~Signed-tier completeness~~ **done 2026-10-27** (user decision: fix, not restrict): the statement of record is `RelD3S`; resharding decided, `wasmFuel` on the signed path, witness bound 117,440,542 (signed encoding change), `DomainD3` reconciled; also fixed 26 signed rejects of valid storage-limit chunks. 0 unsound moves on 931 fixtures, 3,138 census, 1,700 resharding cases ([signed-record](../evidence/lean-chunk-completion/signed-record/README.md)) | — |
 | 7 | **Warm-cache coherence** (W08): historical and warm compiled-cache behaviour. `completeCodeGlobal` rejects 178 valid warm-cache chunks. The generator labels race mutants `e.code_cache` | every code-resolution case is deterministic and justified, or rests on an authenticated input |
-| 8 | **Open UQs** (W00): 001 (cold-cache statement), 002, 003 (NaN payloads), 004 (curve gas pins), 007 (`LegacyEthWallet`), 013 (binding trusted facts), 015 (recorder bound; W09), 016 (action-log equivalence), 017 (genesis header set); versioned claim/witness schema | each has a source-backed disposition and a test or proof |
+| 8 | **Open UQs** (W00): 002, 003 (NaN payloads), 004 (curve gas pins), 007 (`LegacyEthWallet`), 013 (binding trusted facts), 015 (recorder bound; W09), 016 (action-log equivalence), 017 (genesis header set); versioned claim/witness schema | each has a source-backed disposition and a test or proof |
 | 9 | **Observables** (W01): failure kinds, per-receipt storage attribution, per-outcome compute; expected per-outcome values for d1run/d2corpus.v2; the corpus CI gate on a provisioned runner | every case has an asserted outcome and a full observable comparison |
-| 10 | **Remaining shapes** (W05–W07): curve hosts from timed-out yield callbacks; post-NEP-488 `version = 1`; ML-DSA `z` exactly at the norm bound; mismatched distribution code identities; state init followed by a successful emit | fixtures, or a source-backed unreachability argument |
+| 10 | ~~Remaining shapes~~ **done 2026-10-27**: curve hosts from timed-out yield callbacks and state init + successful emit as fixtures (4 seeds each, 0 disagreements); ML-DSA `z` at the norm bound as 16 crate vectors pinned in the build; BLS `version = 1` and `CodeHash`-mismatched distribution identifiers unreachable at PV86 ([remaining-shapes](../evidence/lean-chunk-completion/remaining-shapes/README.md)). Open: an `AccountId` redeploy distribution fixture | — |
 | 11 | **Proof debt**: float overlap/range (W04); split correctness and authentication (W11); `WitnessLift` (`Coverage.lean:191`); wider kernel non-vacuity (storage-writing, multi-receipt and resharding cases); `Logged.API`/`D3LSpec` no longer build (`Logged/WasmStepE.lean:185/200`, outside the default build) | proved, with no `sorry` and only the allowed axioms |
 | 12 | **Environment assumptions** (from UQ-014): host-state failures (slot exhaustion, mmap, cache I/O) are assumed absent; the instance-layout model is measured on x86_64 only | stated in the frozen package; aarch64 measured, or excluded by statement |
 | 13 | **W14–W16**: freeze one package and replay everything on it (Gate B); restricted reference admission (Gate A); successor admission and release (Gate C) | signed admissions |
 
 ## Decisions in force
 
-- `checkD3`/`RelD3` is the statement of record. Its widenings toward nearcore are accepted as
-  strengthenings: the UQ-010 secp delegates and, on 2026-10-27, V3 bandwidth chaining, instance
+- `RelD3S` (`Successor/Record.lean`) is the statement of record since 2026-10-27; `RelD3` is the
+  `.d3a` rung. Cold cache is the admitted statement (UQ-001). Signed-tier rejects of valid chunks
+  are fixed, not restricted ([owner map §3.4](../research/lean-chunk-w00-owner-map.md)). Earlier
+  widenings toward nearcore were accepted as strengthenings: the UQ-010 secp delegates and, on 2026-10-27, V3 bandwidth chaining, instance
   loading limits and the V2 parent-map rule ([record](../research/lean-chunk-w00-owner-map.md)).
 - ML-DSA-65 is implemented, not excluded. W13 runs on a sponsor-provided all-shard machine.
 - Kernel non-vacuity (`Examples/RealCaseD3`, ~3.5 min, ~21 GB) runs on demand, not in CI:
@@ -100,4 +104,4 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
 - A Lean accept of a nearcore reject is a soundness bug. Nearcore nondeterminism is a named
   out-of-domain reason, never an accept.
 - Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
-- Keep `make pin-check` ok (signed sources unchanged).
+- Keep `make pin-check` ok. Signed-encoding changes are made deliberately and recorded in the owner map.

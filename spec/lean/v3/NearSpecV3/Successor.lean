@@ -155,7 +155,8 @@ theorem signedExclusions_covers (f : ShapeExclusion) :
 
 /-! ## Axiom-closure check points -/
 
-#print axioms signedChecker_eq_checkD3
+#print axioms signedChecker_eq_checkD3S
+#print axioms d3aChecker_eq_checkD3
 #print axioms signedExclusions_owner_consistent
 #print axioms permanentExclusions_eq
 #print axioms signedExclusions_covers
