@@ -1,0 +1,386 @@
+[
+ {
+  "case": "cy601-00-h10008-s3",
+  "origin": "cy601/ood/00-h10008-s3",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "7a5b6d7bdbf2d97f85cc856a55343dfc9858d56ebbf4eb1c53ec3b22f35bbca1",
+   "meta.json": "f3ce929163ff77dcc3311f668ab07de51a6b5be119d12a0d41592d758934413f",
+   "witness.bin": "a6ce7fd2048458c8c8aae5883bb4cbd3475c34c7020234cfbcf2ebb6d45cd744"
+  }
+ },
+ {
+  "case": "cy601-00-h10008-s3-c.drop_last_block",
+  "origin": "cy601/mutants/00-h10008-s3-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "0a124c3e3d89ded9aff959281a35ce12c37af2335b39f2a5c193e054159409d9",
+   "meta.json": "1f0aecddfb7a739a45cd554f0439ed5c88605529b8ac3acd3b43cb6e6302910f",
+   "witness.bin": "a6ce7fd2048458c8c8aae5883bb4cbd3475c34c7020234cfbcf2ebb6d45cd744"
+  }
+ },
+ {
+  "case": "cy601-00-h10008-s3-code.drop.0",
+  "origin": "cy601/mutants/00-h10008-s3-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "7a5b6d7bdbf2d97f85cc856a55343dfc9858d56ebbf4eb1c53ec3b22f35bbca1",
+   "meta.json": "c04eef9bc7dd0246141721931c4d92072965e3205ad8e4c3652ba578cd51044d",
+   "witness.bin": "74d5665db64473f2ee75a48f494ad355aac2eee97b2ae7155869a8b2a430bfb8"
+  }
+ },
+ {
+  "case": "cy601-00-h10008-s3-hdr.bandwidth_requests.add",
+  "origin": "cy601/mutants/00-h10008-s3-hdr.bandwidth_requests.add",
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "files": {
+   "claim.bin": "a314aa4c7a01ce2563f476a5772b5b987dab1a2db5b982a9d4cafba7348c7c79",
+   "meta.json": "d760e7b53e6c0375c32b410933da438f6fa1143f6cf22a9d157939800b6e1ea3",
+   "witness.bin": "a9a19655f0eac847701dd94f6732c3c3e200397185c6bddefcf10983ced6ef07"
+  }
+ },
+ {
+  "case": "cy601-00-h10211-s3",
+  "origin": "cy601/ood/00-h10211-s3",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "577c919ab90a89385f47924a214cf4a6ed40b05f9f9f3a0871b9bd86f267c9c6",
+   "meta.json": "06595dc6d3fdaff1a8b116639bbdff25542bf02b208738b0cfdb6502cd6371b6",
+   "witness.bin": "de64c709ba117736d602f038e1b6148ed2048ae06bf126d1eb54e5ef80d0a7d4"
+  }
+ },
+ {
+  "case": "cy601-00-h10211-s3-c.drop_last_block",
+  "origin": "cy601/mutants/00-h10211-s3-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "04f1b2f30fb971925b1fb3fe9478a545fdeeb01946406eb0214b6145ea39255e",
+   "meta.json": "f3d79975a3178128b8669fac804bc55f606a3655c994e226655e8cecf0bf746a",
+   "witness.bin": "de64c709ba117736d602f038e1b6148ed2048ae06bf126d1eb54e5ef80d0a7d4"
+  }
+ },
+ {
+  "case": "cy601-00-h10211-s3-code.drop.0",
+  "origin": "cy601/mutants/00-h10211-s3-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GKTHSTQKQdHNnZUP4osGuyRBXPKF1XBoRZ1Z2PwPnvSW }))",
+  "files": {
+   "claim.bin": "577c919ab90a89385f47924a214cf4a6ed40b05f9f9f3a0871b9bd86f267c9c6",
+   "meta.json": "d34a155177b28be5eec069ec080aaa3709d932f2c305259ee161387582b9f93f",
+   "witness.bin": "95f9599bc4864b54885e37336ac10eae15f6c3a59f3f0ad1a69d2c0b8cfdb6f6"
+  }
+ },
+ {
+  "case": "cy601-00-h10211-s3-hdr.encoded_length",
+  "origin": "cy601/mutants/00-h10211-s3-hdr.encoded_length",
+  "kind": "mutant",
+  "mutation": "hdr.encoded_length",
+  "nearcore": "validate: InvalidChunkEncodedLength",
+  "files": {
+   "claim.bin": "9c6a53e5a2e030f9a2d791eb478ab3738d4e7786313366e01215972fdddf5013",
+   "meta.json": "d1fa877bc3407326cc8dbcdb02a36c1f434946c67196b94cbef567adde8f1333",
+   "witness.bin": "4d66b51ad0abeb56300d760ec4725aed218493eaa8c16ed3d0be6b6242ed79e8"
+  }
+ },
+ {
+  "case": "cy602-01-h10016-s3",
+  "origin": "cy602/ood/01-h10016-s3",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "77ceedff3759177b26929f8144c6011e504d2ee6014f6955d970a71c850d6537",
+   "meta.json": "07cfaf54d8eb34dc3bb3e2b6919c127e8126b788db3483e917020fdc2e2b6215",
+   "witness.bin": "42f215613db5660c87857c90ab96a9765b4dbfad94fcaffc4cc7881dc8042115"
+  }
+ },
+ {
+  "case": "cy602-01-h10016-s3-c.drop_last_block",
+  "origin": "cy602/mutants/01-h10016-s3-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "20faa810f7a487f26f69aed2761b7fa010faf933a5c2cca39f0f3b93ef73ed86",
+   "meta.json": "1f046b86919a9d93b192e75be9da6d06d0c170f1a7c29a0a28f5f7cf31a5ea65",
+   "witness.bin": "42f215613db5660c87857c90ab96a9765b4dbfad94fcaffc4cc7881dc8042115"
+  }
+ },
+ {
+  "case": "cy602-01-h10016-s3-code.drop.0",
+  "origin": "cy602/mutants/01-h10016-s3-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4 }))",
+  "files": {
+   "claim.bin": "77ceedff3759177b26929f8144c6011e504d2ee6014f6955d970a71c850d6537",
+   "meta.json": "5e91c99ecd210bc1e94a6669af045e6bfb3a23bc4d2424fe5e65e70158ef7396",
+   "witness.bin": "eb802c2d8594e3b6d4c69ac021426aadf0761041c8504eba0d91beecf902f44d"
+  }
+ },
+ {
+  "case": "cy602-01-h10016-s3-hdr.bandwidth_requests.add",
+  "origin": "cy602/mutants/01-h10016-s3-hdr.bandwidth_requests.add",
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "files": {
+   "claim.bin": "66f332873d89079a942ad47a1d1f9e1e189d007c3bcf5f219b5f4e5ed26ca23f",
+   "meta.json": "d095cf73f6751daf5889522afe7b11cf862b9487cf074d1d7d39d252de7e3fb6",
+   "witness.bin": "15e57a53b2b17b205e1e59f6cd5d2a0f1d625ae74414bd1f9b7eef9024640a87"
+  }
+ },
+ {
+  "case": "cy602-01-h10216-s3",
+  "origin": "cy602/ood/01-h10216-s3",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "adc74070c50c43d797ea5f9ddd64d3fed4096487bb1e82d286ba83e32ab91e2c",
+   "meta.json": "315ec81fc379a577a9fbe0359b1264df78dad07c35d3350ee6df2ba4584fd05e",
+   "witness.bin": "736f894beedfefdc736d07d2ff03c0d899717b5b64c23386918053001ef59186"
+  }
+ },
+ {
+  "case": "cy602-01-h10216-s3-c.drop_last_block",
+  "origin": "cy602/mutants/01-h10216-s3-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "8757bd87f68bef51093d65322c0ec738586f415a0060dae14e530258ea700846",
+   "meta.json": "3ec8470a49d20071ac00c5101eb780cf29619c744b282fdf1b0f56166c5200fa",
+   "witness.bin": "736f894beedfefdc736d07d2ff03c0d899717b5b64c23386918053001ef59186"
+  }
+ },
+ {
+  "case": "cy602-01-h10216-s3-code.drop.0",
+  "origin": "cy602/mutants/01-h10216-s3-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4 }))",
+  "files": {
+   "claim.bin": "adc74070c50c43d797ea5f9ddd64d3fed4096487bb1e82d286ba83e32ab91e2c",
+   "meta.json": "fea2c2fa332f2233e3137ccb26eab100c4045895964d830d075dfc8a12f88023",
+   "witness.bin": "70695c3a07404569957192cf704cd51c211449a4b519886e41b0db4095e7189e"
+  }
+ },
+ {
+  "case": "cy602-01-h10216-s3-hdr.bandwidth_requests.add",
+  "origin": "cy602/mutants/01-h10216-s3-hdr.bandwidth_requests.add",
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "files": {
+   "claim.bin": "34cad8cf3e89b0d1d37190d1468411acd2a47c201d455cb82ec5ec285abb8948",
+   "meta.json": "9af12bf41da8cc819250acfc84b093925cfe1c090e116c8d6815e566cc1026fe",
+   "witness.bin": "4bc7dc792a5c6971de6971f5be04e3e64bae9a3f4eb4947846538febef2e219c"
+  }
+ },
+ {
+  "case": "cy603-02-h10016-s0",
+  "origin": "cy603/ood/02-h10016-s0",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "1a7e66fa86c5c9da182b4ef345f26475e5aa12e53f1545732f3c9d1043b058c1",
+   "meta.json": "f31b7521550ea1029f1725f3d6254f3084e6553387655a3bb50babd0e115fb9b",
+   "witness.bin": "c53b75ad1a9db349e28392653d25b69028a5d714178fd3d907abb8772e61a2db"
+  }
+ },
+ {
+  "case": "cy603-02-h10016-s0-c.drop_last_block",
+  "origin": "cy603/mutants/02-h10016-s0-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "1c15600368ebe88c8463798ec3be55119a74592d4a4fc285fbb7aab2f501f964",
+   "meta.json": "745cb4681ae0585f18976459626d9567d847a975e97e482275e9e2016a7a9b96",
+   "witness.bin": "c53b75ad1a9db349e28392653d25b69028a5d714178fd3d907abb8772e61a2db"
+  }
+ },
+ {
+  "case": "cy603-02-h10016-s0-code.drop.0",
+  "origin": "cy603/mutants/02-h10016-s0-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "1a7e66fa86c5c9da182b4ef345f26475e5aa12e53f1545732f3c9d1043b058c1",
+   "meta.json": "37a794dcbe40fd7f1cc840a127b1a9533474daeeb65b0a2041174512beecaebe",
+   "witness.bin": "e5fb5010b1a0d3d8496e955ce977d2cf2e7814f493790861b6f0bdc8085bdef1"
+  }
+ },
+ {
+  "case": "cy603-02-h10016-s0-hdr.bandwidth_requests.add",
+  "origin": "cy603/mutants/02-h10016-s0-hdr.bandwidth_requests.add",
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "files": {
+   "claim.bin": "90d57952c39877d8f1df9a13d6fa83b969e618f68fe630c94ecc989536bfec97",
+   "meta.json": "d637008223f8d21e50d1af530f67225643ceca0d79f7f76f068962466e82f10b",
+   "witness.bin": "61d8422440b4cc3de596adc7c83343a46f534ef42753431f5b4d930c7f78a52c"
+  }
+ },
+ {
+  "case": "cy603-02-h10212-s0",
+  "origin": "cy603/ood/02-h10212-s0",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "bc098cc23e8b67ebfc380a80bfdf030203363cac89af60a0dcd4feb410b272d3",
+   "meta.json": "4d3ea25768f0b3f6ffc26bcb262456898b8862fe224945489e0bf81785d28c03",
+   "witness.bin": "f319384544e70127c05df94f43a0ce8d754c3989a5c8c1119b687523c61ad193"
+  }
+ },
+ {
+  "case": "cy603-02-h10212-s0-c.drop_last_block",
+  "origin": "cy603/mutants/02-h10212-s0-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "7e1095710f38838b3dd1de3ccd0abfdd1db816d687c3e70e70ebb63339912c76",
+   "meta.json": "a9fef828fdb83264c04f8e98a504d3f25c62fe853967851a8eccd8be692c7f52",
+   "witness.bin": "f319384544e70127c05df94f43a0ce8d754c3989a5c8c1119b687523c61ad193"
+  }
+ },
+ {
+  "case": "cy603-02-h10212-s0-code.drop.0",
+  "origin": "cy603/mutants/02-h10212-s0-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4 }))",
+  "files": {
+   "claim.bin": "bc098cc23e8b67ebfc380a80bfdf030203363cac89af60a0dcd4feb410b272d3",
+   "meta.json": "c01803d3367492fa499e41464617f7f51c57725e55eedc76a00061faa25423e1",
+   "witness.bin": "f080ed7e4b436fe52b36662399c42e99e9e6ca16f790b9dcb18506ceb9460f02"
+  }
+ },
+ {
+  "case": "cy603-02-h10212-s0-hdr.bandwidth_requests.add",
+  "origin": "cy603/mutants/02-h10212-s0-hdr.bandwidth_requests.add",
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "files": {
+   "claim.bin": "8eab445c567036801d92b68ee3a655a9d6eea3d924bbdb833728de033daaa014",
+   "meta.json": "9f0fe430b12f203af504307760bc5c40d720e27efe03c092c9ee7f74023ae258",
+   "witness.bin": "cefd9f76805d8f4fb5ad712afb638bf46324886f3ddff160ac08a3a9ba195c26"
+  }
+ },
+ {
+  "case": "cy604-06-h10019-s3",
+  "origin": "cy604/ood/06-h10019-s3",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "7e1d72fd38a263a30472ca78ea0b904271d007d55880c8e05884b370fa8f1314",
+   "meta.json": "fc589cdb55162f6b835797659df8ab2f63e0a6f64b121d44fa59efb36af837c6",
+   "witness.bin": "5bfc8aa20d2525ee23833b7909da5827592cb928e4b004cda5a38877e3c475d9"
+  }
+ },
+ {
+  "case": "cy604-06-h10019-s3-c.drop_last_block",
+  "origin": "cy604/mutants/06-h10019-s3-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "b64133fbda4d7e00aec98f6c7ee5d8966a38b225da9f20853424c7d6e2c0fef8",
+   "meta.json": "63556ae9f4357d22c5e21bf9ca01eb1a1a1cb1a1e2f3d711ec8e2345fb18e652",
+   "witness.bin": "5bfc8aa20d2525ee23833b7909da5827592cb928e4b004cda5a38877e3c475d9"
+  }
+ },
+ {
+  "case": "cy604-06-h10019-s3-code.drop.0",
+  "origin": "cy604/mutants/06-h10019-s3-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))",
+  "files": {
+   "claim.bin": "7e1d72fd38a263a30472ca78ea0b904271d007d55880c8e05884b370fa8f1314",
+   "meta.json": "f6b53c9cde1c99adf2adc59bf136d1ad6b1d91bd82cfe6041aa7c9121ed928a7",
+   "witness.bin": "542df8ac49b4589f8e04ab7028a3196e4787c13698d5baf0643b03c7dfe8cea2"
+  }
+ },
+ {
+  "case": "cy604-06-h10019-s3-hdr.bandwidth_requests.add",
+  "origin": "cy604/mutants/06-h10019-s3-hdr.bandwidth_requests.add",
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "files": {
+   "claim.bin": "103ba08164b93697b01ba8c0fa9d44708bbdd99cf588e4281aa4fc6a468e58c3",
+   "meta.json": "e39a8e32e2730927215b5c849e439cc6b4f87396041a0113bb5e18be790ddaef",
+   "witness.bin": "6fcbf13f390edb9ef22b278b3e2d63d72281c79c509bbc2ca7b367401a505846"
+  }
+ },
+ {
+  "case": "cy604-06-h10211-s3",
+  "origin": "cy604/ood/06-h10211-s3",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "e43e18d61e0e3426132644c76b67089c50837c6784d2c91908cb0e15bae1071d",
+   "meta.json": "5baa5d2f4889f29267a5eddde235368fe22e0289c9889ec7c289be3ae0bed721",
+   "witness.bin": "61366d4f95505e78f700300f765daec784964f85681b0ffe99792a80ca6e2a87"
+  }
+ },
+ {
+  "case": "cy604-06-h10211-s3-c.drop_last_block",
+  "origin": "cy604/mutants/06-h10211-s3-c.drop_last_block",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "files": {
+   "claim.bin": "1d5af661c49db05e045300d13ccffc179e2f04eccbddf4434e9e1ec6fe31ec72",
+   "meta.json": "c16e76c0e2cbbfacd6c91e3bf86e6b375e2483c6918e6edeee23802e357957cc",
+   "witness.bin": "61366d4f95505e78f700300f765daec784964f85681b0ffe99792a80ca6e2a87"
+  }
+ },
+ {
+  "case": "cy604-06-h10211-s3-code.drop.0",
+  "origin": "cy604/mutants/06-h10211-s3-code.drop.0",
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "e43e18d61e0e3426132644c76b67089c50837c6784d2c91908cb0e15bae1071d",
+   "meta.json": "99b8248ddd0bdd35aed2eb894d8263df4c5cb2c53493cc9bfbf3a5ade8f7d1ca",
+   "witness.bin": "0e3acbd99ffda3477f2f4017590895f4634634df664fa09f8a64f04d080e4153"
+  }
+ },
+ {
+  "case": "cy604-06-h10211-s3-hdr.bandwidth_requests.add",
+  "origin": "cy604/mutants/06-h10211-s3-hdr.bandwidth_requests.add",
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "files": {
+   "claim.bin": "0ab43d1f6b163f7ecf0615aec40d92ba0d7cb456ec4cdaae5966148b40789e9d",
+   "meta.json": "3ff10b59e1f9f885a1ee7652369351aa36e106e84d73d861ff82b4ee9cc895b3",
+   "witness.bin": "2225c06094eb64e775a2e089625b7f441381c64af80bb69609654c6b35d911a5"
+  }
+ }
+]
