@@ -172,7 +172,7 @@ def splitChecks : List (String × Bool) :=
 carry it. These are `decide`d, so a change to the tier's configuration breaks a named test. -/
 def tierChecks : List (String × Bool) :=
   [ ("the signed tier does not decide resharding",
-      (Successor.Tier.cfg .signed).resharding == false),
+      (Successor.Tier.cfg .d3a).resharding == false),
     ("the curveHosts tier does not decide resharding",
       (Successor.Tier.cfg .curveHosts).resharding == false),
     ("the resharding tier does decide it",

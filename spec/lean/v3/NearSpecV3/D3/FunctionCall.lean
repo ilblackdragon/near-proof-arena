@@ -301,7 +301,9 @@ def functionCall (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) 
       m.insert (toBA k) (v.map toBA)) {}
   let real : TTN.RealStore := { store := fun hb => (env.codeOf (ofBA hb)).map toBA,
                                 root := toBA env.preRoot, overlay := ovl, pfx }
-  let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
+  -- `wasmFuel` (`Wasm/Fuel.lean`): 10,002 steps per costly step at PV86, enough for zero-fee
+  -- control loops; raising the budget moves only fuel-exhausted results (`runCallWithLimits_fuel_le`)
+  let fuel := Wasm.wasmFuel cfg gas
   match runCallWithLimits cfg codeB (strOf method) ctx fuel true false (some real) with
   | .line l =>
     let (burnt, used) ← lineOutcome l

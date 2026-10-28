@@ -4,6 +4,7 @@ import NearSpecV3.ChunkValidationD1a
 import NearSpecV3.ChunkValidationD1
 import NearSpecV3.ChunkValidationD2
 import NearSpecV3.D3.FunctionCall
+import NearSpecV3.Successor.Record
 
 /-!
 # `near-chunk-v3`: one challenge for the formalized chunk state-transition domains
@@ -12,7 +13,7 @@ The statement is NEAR's stateless chunk validation (`validate_chunk_state_witnes
 formalized domain. Each domain rung `Rel_Dk = Rel ∧ InDk` is a Lean transcription of nearcore,
 difftested against it (`spec/near-chunk-validation-d{0,1,2,3}.md`). The challenge relation is
 
-  `RelChunkV3 c w := RelD0 c w ∨ RelD1 c w ∨ RelD2 c w ∨ RelD3 c w`.
+  `RelChunkV3 c w := RelD0 c w ∨ RelD1 c w ∨ RelD2 c w ∨ RelD3 c w ∨ RelD3S c w`.
 
 Semantically this is `Rel ∧ (InD0 ∨ InD1 ∨ InD2 ∨ InD3α) = Rel ∧ InD3α`, because the domains are
 nested. That nesting is **tested, not proved**: D0 ⊂ D1 ⊂ D2 on the public fixtures and corpora,
@@ -38,6 +39,15 @@ is proved by `relD1a_relD1`, so it adds no disjunct either. Its rank lies betwee
 
 A future rung (D4, D∞) is added as a new disjunct in a versioned successor. `rel_mono` keeps
 holding for the existing tiers.
+
+**D3S (2026-10-27, the statement of record).** `RelD3S` (`Successor/Record.lean`) is the D3α feature
+set on the successor engine: the recorder runtime, `ReshardCore` for resharding segments and the
+compressed witness as distributed. It decides the valid chunks `RelD3` excludes or rejects
+(resharding, the storage-proof limits), so it is added as the disjunct and tier `.d3s`; `RelD3`
+stays the `.d3a` rung unchanged. D3α ⊂ D3S is tested, not proved (every `RelD3` accept of the
+fixtures, the gap census and the corpora is a `RelD3S` accept). The witness bound
+`maxWitnessChunk` and the tier's proof-size cap `maxProofBytesChunkV3` were raised with it
+(below): a `.d3s` witness can be the 48 MiB compressed witness plus 64 MiB of code.
 -/
 
 namespace NearSpecV3
@@ -46,11 +56,11 @@ open ArenaCore
 
 /-- The declared coverage tiers, in increasing domain order. -/
 inductive Tier where
-  | d0a | d0 | d1 | d2 | d3a | d1a
+  | d0a | d0 | d1 | d2 | d3a | d1a | d3s
   deriving DecidableEq, Repr
 
 def Tier.rank : Tier → Nat
-  | .d0a => 0 | .d0 => 1 | .d1a => 2 | .d1 => 3 | .d2 => 4 | .d3a => 5
+  | .d0a => 0 | .d0 => 1 | .d1a => 2 | .d1 => 3 | .d2 => 4 | .d3a => 5 | .d3s => 6
 
 /-- The rung relation of a tier, on claim and witness bytes. -/
 def RelTier : Tier → Bytes → Bytes → Prop
@@ -60,9 +70,11 @@ def RelTier : Tier → Bytes → Bytes → Prop
   | .d2 => RelD2
   | .d3a => D3.RelD3
   | .d1a => RelD1a B0
+  | .d3s => Successor.RelD3S
 
 /-- The challenge relation: any formalized rung endorses the witness. -/
-def RelChunkV3 (c w : Bytes) : Prop := RelD0 c w ∨ RelD1 c w ∨ RelD2 c w ∨ D3.RelD3 c w
+def RelChunkV3 (c w : Bytes) : Prop :=
+  RelD0 c w ∨ RelD1 c w ∨ RelD2 c w ∨ D3.RelD3 c w ∨ Successor.RelD3S c w
 
 /-- **`rel_mono`**: every rung's relation implies the challenge relation. -/
 theorem rel_mono (t : Tier) (c w : Bytes) (h : RelTier t c w) : RelChunkV3 c w := by
@@ -71,24 +83,41 @@ theorem rel_mono (t : Tier) (c w : Bytes) (h : RelTier t c w) : RelChunkV3 c w :
   | d0 => exact Or.inl h
   | d1 => exact Or.inr (Or.inl h)
   | d2 => exact Or.inr (Or.inr (Or.inl h))
-  | d3a => exact Or.inr (Or.inr (Or.inr h))
+  | d3a => exact Or.inr (Or.inr (Or.inr (Or.inl h)))
   | d1a => exact Or.inr (Or.inl (relD1a_relD1 h))
+  | d3s => exact Or.inr (Or.inr (Or.inr (Or.inr h)))
 
 /-! ## `ChallengeSpec` instances -/
 
 def WfClaim.RelTier (t : Tier) (c : WfClaim) (w : List UInt8) : Prop := NearSpecV3.RelTier t c.1.encode w
-/-- The witness-size bound of every tier's domain (64 MiB = `MAX_WITNESS` = `maxProofBytesV3`).
+/-- The witness-size bound of every tier's domain: the `witness.bin` framing (4 + 22-byte tag, 4-byte
+length), nearcore's 48 MiB encoded-witness cap (`MAX_COMPRESSED_STATE_WITNESS_SIZE`,
+`partial_witness.rs:18`) and its 64 MiB code-response cap
+(`MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE`, `contract_distribution.rs:371-399`):
+`26 + 4 + 50,331,648 + 67,108,864` = 117,440,542 bytes.
 
-A D3α `witness.bin` carries a `Vec` of contract-code blobs (spec/claim-v3.md §3), and nothing in
+A `witness.bin` carries a `Vec` of contract-code blobs (spec/claim-v3.md §3), and nothing in
 `RelD3` bounds how *many* blobs a witness lists (an empty or never-read blob can be repeated), so
-`∃ w, RelD3 c w` alone does not give a witness of bounded size, and completeness up to
-`maxProofBytes` would need a lock-step argument through the whole D2/WASM runtime. The domain of a
-tier is therefore the claims with a `Rel_t` witness of at most 64 MiB. This excludes no real chunk:
-the state witness is ≤ 8 MiB (`w.size`) and the code blobs total ≤ 4 000 000 bytes, so dropping
-repeated or unread blobs always gives such a witness; D0–D2 witnesses carry no code and are at most
-8 MiB + 33 bytes anyway. The bound is uniform over the tiers and only fixes which witness a
+`∃ w, RelD3 c w` alone does not give a witness of bounded size. The domain of a tier is therefore
+the claims with a `Rel_t` witness of at most this bound. Until 2026-10-27 the bound was 64 MiB,
+justified by "the code blobs total ≤ 4 000 000 bytes". That premise is false at PV86: accessed
+pre-state code is outside the storage proof and is bounded only by the 64 MiB code response, so a
+64 MiB bound excluded valid code-heavy chunks (an 8 MiB witness plus more than 56 MiB of code). With
+this bound no real chunk is excluded: a `RelD3S` witness is the encoded witness as distributed
+(≤ 48 MiB, or the decoded one in the clear, ≤ 8 MiB on D3α) plus the codes of one response
+(`w.code_response_size` excludes more); dropping repeated or unread blobs from a `RelD3` witness
+gives one under the same bound. The bound is uniform over the tiers and only fixes which witness a
 completeness proof starts from; soundness (`Rel_t`, `RelChunkV3`) is unaffected. -/
-def maxWitnessChunk : Nat := 67108864
+def maxWitnessChunk : Nat := (4 + 22) + 4 + 50331648 + 67108864
+
+/-- The proof-size cap of a `near-chunk-v3` tier. A D3 re-executor's proof is the witness, so the
+D3 tiers' cap is the witness bound; every other tier keeps `maxProofBytesV3` = 64 MiB (user decision
+P-D1-5 for D1a). -/
+def maxProofBytesChunkV3 : Tier → Nat
+  | .d3a | .d3s => maxWitnessChunk
+  | _ => maxProofBytesV3
+
+theorem maxWitnessChunk_eq : maxWitnessChunk = 117440542 := rfl
 
 def WfClaim.DomainTier (t : Tier) (c : WfClaim) : Prop :=
   ∃ w, WfClaim.RelTier t c w ∧ w.length ≤ maxWitnessChunk
@@ -127,7 +156,7 @@ def challengeParamsChunkWith (t : Tier) (profile : SecurityProfile)
 
 def challengeParamsChunk (t : Tier) : ChallengeParams :=
   challengeParamsChunkWith t NearSpec.TransferV1.profileValidityClassical128 verifyFuelV3
-    maxProofBytesV3 maxReductionFuelV3
+    (maxProofBytesChunkV3 t) maxReductionFuelV3
 
 /-- Language inclusion: a claim true at any tier is true for the challenge statement. -/
 theorem inLang_mono (t : Tier) (cb : Bytes) :

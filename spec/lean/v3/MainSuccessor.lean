@@ -7,6 +7,7 @@ open NearSpec NearSpecV3 NearSpecV3.Successor
 
 def parseTier : String → Option Successor.Tier
   | "signed" => some .signed
+  | "d3a" => some .d3a
   | "floats" => some .floats
   | "protoGas" => some .protoGas
   | "floatsProtoGas" => some .floatsProtoGas

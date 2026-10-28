@@ -51,12 +51,20 @@ open NearSpec NearSpecV3
 
 /-! ## The signed statement, preserved -/
 
-/-- The signed tier is the signed checker: an importer of the successor API cannot bypass `checkD3`. -/
-theorem signedChecker_eq_checkD3 (c w : Bytes) :
-    Tier.checker .signed c w = D3.checkD3 c w := tier_signed_eq_checkD3 c w
+/-- The signed tier is the statement of record: an importer of the successor API cannot bypass
+`checkD3S`. -/
+theorem signedChecker_eq_checkD3S (c w : Bytes) :
+    Tier.checker .signed c w = checkD3S c w := tier_signed_eq_checkD3S c w
 
-/-- The signed tier's relation is the signed relation. -/
-theorem signedRelation_iff_RelD3 (c w : Bytes) : Tier.rel .signed c w ↔ D3.RelD3 c w := Iff.rfl
+/-- The signed tier's relation is the relation of record. -/
+theorem signedRelation_iff_RelD3S (c w : Bytes) : Tier.rel .signed c w ↔ RelD3S c w := Iff.rfl
+
+/-- The `.d3a` tier is the D3α checker `checkD3`. -/
+theorem d3aChecker_eq_checkD3 (c w : Bytes) :
+    Tier.checker .d3a c w = D3.checkD3 c w := tier_d3a_eq_checkD3 c w
+
+/-- The `.d3a` tier's relation is `RelD3`. -/
+theorem d3aRelation_iff_RelD3 (c w : Bytes) : Tier.rel .d3a c w ↔ D3.RelD3 c w := Iff.rfl
 
 /-- The signed checker's exclusion classification round-trips: an `out of domain` error is exactly an
 exclusion, and a non-exclusion error is a rejection. -/

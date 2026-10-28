@@ -3,6 +3,7 @@ import NearSpecV3.ChallengeChunkV3Float
 import NearSpecV3.GenesisD3
 import NearSpecV3.Successor.RuntimeCore
 import NearSpecV3.Successor.ReshardCore
+import NearSpecV3.Successor.Record
 
 /-!
 # W00 interface 1/7 — the canonical checker and its tiers
@@ -84,7 +85,7 @@ structure ProtocolCfg where
   gasCap : Option Nat := some D3.gAlpha
   /-- Use L6's genesis-aware pipeline (`checkD2CoreG`) instead of `checkD2Core`. -/
   genesisMainTransition : Bool := false
-  /-- Pinned validator's Wasmtime pooling allocation failure semantics. `signedCfg` sets it (it is
+  /-- Pinned validator's Wasmtime pooling allocation failure semantics. `d3aCfg` sets it (it is
   part of `Wasm.pv86`, and so of `checkD3`); the field default stays `false`. -/
   loadingLimits : Bool := false
   /-- Chunk-scoped proof recording and runtime contract identifier resolution. -/
@@ -122,17 +123,24 @@ def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
   let base := if cfg.floats then Wasm.floatPv86 else Wasm.pv86
   { base with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions, curveHosts := cfg.curveHosts }
 
-/-- The signed configuration: exactly `checkD3`'s arguments. `loadingLimits := true` because
-`Wasm.pv86` carries the pinned instance-loading rule (signed-tier valid-reject fixes 2026-10-27);
-every tier built from `signedCfg` inherits it, so `.runtimeLimits` now differs from
-`.genesisFloatsProtoGas` in name only. -/
-def signedCfg : ProtocolCfg := { loadingLimits := true }
+/-- The D3α configuration: exactly `checkD3`'s arguments (the `.d3a` rung of `near-chunk-v3`).
+`loadingLimits := true` because `Wasm.pv86` carries the pinned instance-loading rule (signed-tier
+valid-reject fixes 2026-10-27); every narrow tier built from `d3aCfg` inherits it, so
+`.runtimeLimits` differs from `.genesisFloatsProtoGas` in name only. Until 2026-10-27 this was the
+signed configuration. -/
+def d3aCfg : ProtocolCfg := { loadingLimits := true }
+
+/-- **The signed configuration** (the statement of record since 2026-10-27, `Successor/Record.lean`):
+the D3α feature set on the recorder engine with resharding decided. Compared with `d3aCfg` it
+removes the `c.same_layout`/`c.no_split_gate` exclusions and the legacy engine's storage-proof
+overestimate, which rejected valid chunks; every D3α feature exclusion and arena bound stays. -/
+def signedCfg : ProtocolCfg := { d3aCfg with storageResolution := true, resharding := true }
 
 /-- The signed configuration with resharding decided. -/
-def reshardingCfg : ProtocolCfg := { signedCfg with resharding := true }
+def reshardingCfg : ProtocolCfg := { d3aCfg with resharding := true }
 
 /-- The protocol gas bound as a configuration (`L1`'s successor bound). -/
-def protocolGasCfg : ProtocolCfg := { signedCfg with gasCap := some maxGasBurnt }
+def protocolGasCfg : ProtocolCfg := { d3aCfg with gasCap := some maxGasBurnt }
 
 /-! ## Verdicts and tier predicates -/
 
@@ -262,14 +270,20 @@ def acceptsSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Boo
 
 /-- At the signed configuration the root **is** `checkD3`: not a reimplementation and not a theorem
 about a reimplementation, but the same term. -/
-theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedCfg c w = D3.checkD3 c w := rfl
+theorem checkSuccessor_d3a (c w : Bytes) : checkSuccessor d3aCfg c w = D3.checkD3 c w := rfl
+
+/-- At the signed configuration the root **is** the statement of record `checkD3S`. -/
+theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedCfg c w = checkD3S c w := rfl
+
+/-- The signed relation is the relation of record. -/
+theorem relSuccessor_signed_iff (c w : Bytes) : RelSuccessor signedCfg c w ↔ RelD3S c w := Iff.rfl
 
 /-- Consequently the signed relation is preserved definitionally. -/
-theorem relSuccessor_signed_iff (c w : Bytes) : RelSuccessor signedCfg c w ↔ D3.RelD3 c w := Iff.rfl
+theorem relSuccessor_d3a_iff (c w : Bytes) : RelSuccessor d3aCfg c w ↔ D3.RelD3 c w := Iff.rfl
 
 /-- And the signed boolean mirror. -/
-theorem acceptsSuccessor_signed (c w : Bytes) :
-    acceptsSuccessor signedCfg c w = D3.acceptsD3 c w := rfl
+theorem acceptsSuccessor_d3a (c w : Bytes) :
+    acceptsSuccessor d3aCfg c w = D3.acceptsD3 c w := rfl
 
 /-- `"out of domain"` prefixed to any string is classified as an exclusion. -/
 theorem isExclusion_prefix (s : String) : isExclusion ("out of domain" ++ s) = true := by
@@ -293,7 +307,10 @@ theorem checkSuccessor_unsupported_pv (cfg : ProtocolCfg) (c w : Bytes)
 /-- Named configurations. Floats, gas and genesis are independent dimensions; loading limits
 correct runtime semantics. Enumeration/rank alone never establishes relation inclusion. -/
 inductive Tier where
+  /-- The statement of record (`checkD3S`, `Successor/Record.lean`). -/
   | signed
+  /-- The D3α rung, `checkD3` on the legacy engine (the signed tier until 2026-10-27). -/
+  | d3a
   | floats
   | protoGas
   | floatsProtoGas
@@ -324,32 +341,33 @@ inductive Tier where
 /-- The tier's configuration. -/
 def Tier.cfg : Tier → ProtocolCfg
   | .signed => signedCfg
-  | .floats => { signedCfg with floats := true }
+  | .d3a => d3aCfg
+  | .floats => { d3aCfg with floats := true }
   | .protoGas => protocolGasCfg
-  | .floatsProtoGas => { signedCfg with floats := true, gasCap := some maxGasBurnt }
-  | .genesis => { signedCfg with genesisMainTransition := true }
+  | .floatsProtoGas => { d3aCfg with floats := true, gasCap := some maxGasBurnt }
+  | .genesis => { d3aCfg with genesisMainTransition := true }
   | .genesisFloatsProtoGas =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true }
+    { d3aCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true }
 
   | .runtimeLimits =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true, loadingLimits := true }
+    { d3aCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true, loadingLimits := true }
 
   | .storageResolution =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+    { d3aCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                          loadingLimits := true, storageResolution := true }
 
   | .globalActions =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+    { d3aCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, globalActions := true }
   | .completeCodeGlobal =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+    { d3aCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, globalActions := true,
                      completeCodeWitness := true }
   | .curveHosts =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+    { d3aCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, curveHosts := true }
   | .resharding =>
-    { signedCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
+    { d3aCfg with floats := true, gasCap := some maxGasBurnt, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, curveHosts := true,
                      resharding := true }
   -- Every implemented feature at once. This is the only tier whose domain is the union of the
@@ -362,7 +380,7 @@ def Tier.cfg : Tier → ProtocolCfg
   -- segment, the 8 MiB witness and the 64-shard layout bounds are lifted (docs/evidence/
   -- lean-chunk-completion/gate-b-caps/README.md).
   | .allFeatures =>
-    { signedCfg with floats := true, gasCap := none, genesisMainTransition := true,
+    { d3aCfg with floats := true, gasCap := none, genesisMainTransition := true,
                      loadingLimits := true, storageResolution := true, globalActions := true,
                      curveHosts := true, resharding := true, segmentUnbounded := true,
                      witnessUnbounded := true, layoutUnbounded := true }
@@ -409,7 +427,7 @@ theorem allFeatures_sets_resharding : (Tier.cfg .allFeatures).resharding = true 
 
 /-- `.allFeatures` lifts the prover-capacity `c.segment` bound; the signed configuration does not. -/
 theorem allFeatures_lifts_segment :
-    (Tier.cfg .allFeatures).segmentUnbounded = true ∧ signedCfg.segmentUnbounded = false := ⟨rfl, rfl⟩
+    (Tier.cfg .allFeatures).segmentUnbounded = true ∧ d3aCfg.segmentUnbounded = false := ⟨rfl, rfl⟩
 
 /-- `.allFeatures` carries no arena-derived cap: no per-chunk function-call gas bound, and the
 8 MiB witness and 64-shard layout bounds are lifted; the signed configuration keeps all of them. -/
@@ -417,8 +435,8 @@ theorem allFeatures_lifts_arena_caps :
     (Tier.cfg .allFeatures).gasCap = none ∧
       (Tier.cfg .allFeatures).witnessUnbounded = true ∧
       (Tier.cfg .allFeatures).layoutUnbounded = true ∧
-      signedCfg.gasCap = some D3.gAlpha ∧ signedCfg.witnessUnbounded = false ∧
-      signedCfg.layoutUnbounded = false := ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+      d3aCfg.gasCap = some D3.gAlpha ∧ d3aCfg.witnessUnbounded = false ∧
+      d3aCfg.layoutUnbounded = false := ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
 
 /-- The `c.segment` lift is additive: at the signed configuration the segment bound is still
 enforced, so `checkSuccessor_signed` is untouched. -/
@@ -451,7 +469,7 @@ The rank remains a *declaration*. The refinement theorems that are proved (gas b
 main transition, `c.segment`, the resharding driver on genesis segments) and the obligations that
 remain are in `Successor/TierMono.lean`. -/
 def Tier.rank : Tier → Nat
-  | .signed => 0 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
+  | .d3a => 0 | .signed => 13 | .floats => 1 | .protoGas => 2 | .floatsProtoGas => 3
   | .genesis => 4 | .genesisFloatsProtoGas => 5 | .runtimeLimits => 6 | .storageResolution => 7
   | .globalActions => 8 | .curveHosts => 9 | .resharding => 10 | .allFeatures => 11
   | .completeCodeGlobal => 12
@@ -461,8 +479,11 @@ def Tier.rank : Tier → Nat
 Each theorem below is `rfl`: the tier's checker is the existing adapter term. That is the contract
 W02–W11 rely on when they say "the successor is the same checker with a different configuration". -/
 
-theorem tier_signed_eq_checkD3 (c w : Bytes) :
-    Tier.checker .signed c w = D3.checkD3 c w := rfl
+theorem tier_d3a_eq_checkD3 (c w : Bytes) :
+    Tier.checker .d3a c w = D3.checkD3 c w := rfl
+
+theorem tier_signed_eq_checkD3S (c w : Bytes) :
+    Tier.checker .signed c w = checkD3S c w := rfl
 
 theorem tier_floats_eq_checkD3F (c w : Bytes) :
     Tier.checker .floats c w = checkD3F c w := rfl
@@ -479,13 +500,16 @@ theorem tier_genesis_eq_checkD3G (c w : Bytes) :
 theorem tier_genesisFloatsProtoGas_eq (c w : Bytes) :
     Tier.checker .genesisFloatsProtoGas c w = checkD3GProtoFloat c w := rfl
 
-/-- The signed tier's checker is literally `checkD3`, so a successor tier list cannot drift from the
-signed entry point without breaking this named theorem. -/
+/-- The signed tier's checker is literally the statement of record `checkD3S`, so a successor tier
+list cannot drift from it without breaking this named theorem. -/
 theorem signed_tier_checker_eq (c w : Bytes) :
-    Tier.checker .signed c w = D3.checkD3 c w := tier_signed_eq_checkD3 c w
+    Tier.checker .signed c w = checkD3S c w := tier_signed_eq_checkD3S c w
 
-/-- The signed tier's relation is the signed relation. -/
-theorem signed_tier_rel_iff (c w : Bytes) : Tier.rel .signed c w ↔ D3.RelD3 c w := Iff.rfl
+/-- The signed tier's relation is the relation of record. -/
+theorem signed_tier_rel_iff (c w : Bytes) : Tier.rel .signed c w ↔ RelD3S c w := Iff.rfl
+
+/-- The `.d3a` tier's relation is `RelD3`. -/
+theorem d3a_tier_rel_iff (c w : Bytes) : Tier.rel .d3a c w ↔ D3.RelD3 c w := Iff.rfl
 
 /-! ## Every input produces a verdict
 
@@ -508,6 +532,7 @@ These are deliberately trivial; they exist so an auditor can confirm the module'
 depend on `sorryAx` or on axioms outside the allowed set. -/
 
 #print axioms checkSuccessor_signed
+#print axioms checkSuccessor_d3a
 #print axioms tier_floats_eq_checkD3F
 #print axioms checkSuccessor_unsupported_pv
 
@@ -538,9 +563,10 @@ def allFeaturesWitnessBound : Nat :=
   -- ‖ code-response Vec<CodeBytes> (≤ MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE)
   (4 + 22) + 4 + maxCompressedWitnessBytes + maxContractCodeResponseBytes
 
-theorem allFeaturesWitnessBound_exceeds_maxWitnessChunk :
-    maxWitnessChunk < allFeaturesWitnessBound := by
+/-- Since 2026-10-27 the challenge's witness bound is exactly this bound (it was 64 MiB, below it). -/
+theorem allFeaturesWitnessBound_eq_maxWitnessChunk :
+    maxWitnessChunk = allFeaturesWitnessBound := by
   unfold allFeaturesWitnessBound maxCompressedWitnessBytes maxContractCodeResponseBytes maxWitnessChunk
-  decide
+  rfl
 
 end NearSpecV3.Successor

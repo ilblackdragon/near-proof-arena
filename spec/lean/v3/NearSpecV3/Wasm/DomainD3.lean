@@ -20,9 +20,22 @@ single epoch, which made D3 exclude 825 in-D2 multi-epoch witnesses of the D3 co
 `noResharding_spec` states what acceptance guarantees, and the `example`s check that it rejects.
 
 **Contract domain.** Every contract executed in the chunk must prepare inside D3α: no float type
-or opcode, which is `prepare … = .outOfDomain`. It must also not import any curve host function
-(`curveHosts`). The execution layer already reports both as `out-of-domain` (`Exec.runCall`).
-`contractInD3α` is the same predicate as a `Bool`.
+or opcode, which is `prepare … = .outOfDomain`. `contractInD3α` is that predicate as a `Bool`.
+
+**Reconciliation with the statement of record (UQ-010, 2026-10-27).** These predicates are not in
+the import closure of any checker; they state the domain, and they must agree with what the
+checkers do. Two disagreements are resolved here, in the direction of the checker:
+
+* *Curve hosts.* `contractInD3α` used to reject a contract that merely **imports** a curve host.
+  No checker does that: preparation decides floats and defers curve hosts to the call
+  (`D3/FunctionCall.lean` `contractOOD`; `Wasm.runCall`, `Wasm/Exec.lean`), so an import-only
+  curve contract is accepted by `checkD3` and `checkD3S` and agrees with nearcore. Calling a curve
+  host is a run-time event (`out of domain (e.wasm-α): … host function … not modelled`), not a
+  property of the contract bytes, so it is not part of this static predicate any more.
+* *Resharding.* `noResharding` is the D3α rung's guard (`checkD3`'s `c.same_layout` and
+  `c.no_split_gate`, proved equal to it by `ReshardingD3.noResharding_iff_guards`). The statement
+  of record `Successor.RelD3S` decides resharding (`Successor/Record.lean`), so `noResharding` is
+  not a domain condition of the record; it bounds only the `.d3a` rung.
 -/
 
 namespace NearSpecV3.Wasm
@@ -53,12 +66,19 @@ theorem noResharding_spec (c : Claim) (h : noResharding c = true) :
   · have := List.all_eq_true.mp h2 f hf
     exact Option.isNone_iff_eq_none.mp this
 
-/-- A contract executed in the chunk is inside D3α. -/
+/-- A contract executed in the chunk is inside D3α: it prepares without a float type or opcode.
+Preparation and compile errors are in-domain outcomes (the call fails in nearcore). Curve-host
+imports are not excluded here: only a call is, at run time (module docstring). -/
 def contractInD3α (cfg : NearCfg) (code : ByteArray) : Bool :=
   match prepare cfg code with
   | .outOfDomain _ => false
-  | .ok p => !p.m.imports.any (fun i => curveHosts.contains i.name)
-  | _ => true   -- preparation/compile errors are in-domain outcomes (the call fails in nearcore)
+  | _ => true
+
+/-- `contractInD3α` is exactly "preparation does not report out of domain". -/
+theorem contractInD3α_iff (cfg : NearCfg) (code : ByteArray) :
+    contractInD3α cfg code = true ↔ ∀ r, prepare cfg code ≠ .outOfDomain r := by
+  unfold contractInD3α
+  cases prepare cfg code <;> simp
 
 private def gate : SplitGate :=
   { memoryUsageThreshold := 0, minChildMemoryUsage := 0, maxNumberOfShards := 0,

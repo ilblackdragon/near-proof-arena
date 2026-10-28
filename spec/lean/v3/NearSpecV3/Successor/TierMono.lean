@@ -110,7 +110,7 @@ non-genesis half is `ReshardCoreExtendsWith` below, an open obligation. -/
 theorem relSuccessor_resharding_mono_genesis (c w : Bytes) (hg : segmentHasGenesis c = true) :
     Refines (Tier.checker .curveHosts c w) (Tier.checker .resharding c w) := by
   unfold Tier.checker checkSuccessor
-  simp only [Tier.cfg, signedCfg, hg, Bool.not_true, Bool.and_false, Bool.false_eq_true, ↓reduceIte,
+  simp only [Tier.cfg, d3aCfg, hg, Bool.not_true, Bool.and_false, Bool.false_eq_true, ↓reduceIte,
     Bool.true_or, Bool.or_true]
   exact checkD2CoreGWith_reshardingDriver_mono _ _ _ _ _ _ _ _ _
 
@@ -205,31 +205,31 @@ theorem checkSuccessor_genesis_mono (cfg : ProtocolCfg) (hr : cfg.resharding = f
 
 theorem gAlpha_le_maxGasBurnt : D3.gAlpha ≤ maxGasBurnt := by decide
 
-/-- `.signed ⊑ .protoGas`: where the signed checker decides, the protocol-gas tier agrees. -/
+/-- `.d3a ⊑ .protoGas`: where the signed checker decides, the protocol-gas tier agrees. -/
 theorem relSuccessor_protoGas_mono (c w : Bytes) :
-    Refines (Tier.checker .signed c w) (Tier.checker .protoGas c w) :=
-  checkSuccessor_gas_mono signedCfg (some maxGasBurnt) gAlpha_le_maxGasBurnt c w
+    Refines (Tier.checker .d3a c w) (Tier.checker .protoGas c w) :=
+  checkSuccessor_gas_mono d3aCfg (some maxGasBurnt) gAlpha_le_maxGasBurnt c w
 
 /-- `.floats ⊑ .floatsProtoGas`. -/
 theorem relSuccessor_floatsProtoGas_mono (c w : Bytes) :
     Refines (Tier.checker .floats c w) (Tier.checker .floatsProtoGas c w) :=
   checkSuccessor_gas_mono (Tier.cfg .floats) (some maxGasBurnt) gAlpha_le_maxGasBurnt c w
 
-/-- `.signed ⊑ .genesis` (W10): the genesis tier agrees with `checkD3` wherever `checkD3` decides. -/
+/-- `.d3a ⊑ .genesis` (W10): the genesis tier agrees with `checkD3` wherever `checkD3` decides. -/
 theorem relSuccessor_genesis_mono (c w : Bytes) :
-    Refines (Tier.checker .signed c w) (Tier.checker .genesis c w) :=
-  checkSuccessor_genesis_mono signedCfg rfl c w
+    Refines (Tier.checker .d3a c w) (Tier.checker .genesis c w) :=
+  checkSuccessor_genesis_mono d3aCfg rfl c w
 
 /-- `.floatsProtoGas ⊑ .genesisFloatsProtoGas` (W10). -/
 theorem relSuccessor_genesisFloatsProtoGas_mono (c w : Bytes) :
     Refines (Tier.checker .floatsProtoGas c w) (Tier.checker .genesisFloatsProtoGas c w) :=
   checkSuccessor_genesis_mono (Tier.cfg .floatsProtoGas) rfl c w
 
-/-- `.protoGas ⊑ .genesisFloatsProtoGas` needs floats; `.signed ⊑ .protoGas ⊑ ·` composes with
+/-- `.protoGas ⊑ .genesisFloatsProtoGas` needs floats; `.d3a ⊑ .protoGas ⊑ ·` composes with
 the genesis lift at the protocol-gas configuration. -/
 theorem relSuccessor_signed_genesisProtoGas (c w : Bytes) :
-    Refines (Tier.checker .signed c w)
-      (checkSuccessor { signedCfg with gasCap := some maxGasBurnt, genesisMainTransition := true } c w) :=
+    Refines (Tier.checker .d3a c w)
+      (checkSuccessor { d3aCfg with gasCap := some maxGasBurnt, genesisMainTransition := true } c w) :=
   Refines.trans (relSuccessor_protoGas_mono c w) (checkSuccessor_genesis_mono protocolGasCfg rfl c w)
 
 /-- A decided verdict is preserved by any refinement: the verdict-level form of every lemma above. -/
@@ -436,7 +436,7 @@ Proved here, with no premise: `c.segment`, the gas bound (including its removal)
 and layout lifts (all configurations; composed as `Lift.gateB`),
 the genesis main transition (all configurations without resharding; W10 overlap including the common
 prefix), the resharding driver on the whole-state shells, and the named pairs
-`.signed ⊑ .protoGas`, `.floats ⊑ .floatsProtoGas`, `.signed ⊑ .genesis`,
+`.d3a ⊑ .protoGas`, `.floats ⊑ .floatsProtoGas`, `.d3a ⊑ .genesis`,
 `.floatsProtoGas ⊑ .genesisFloatsProtoGas`, and `.curveHosts ⊑ .resharding` on segments containing
 a genesis block.
 
@@ -466,7 +466,7 @@ Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs
   tier accepts the fixture. The legacy buffer forwarding still reports a non-empty buffer outside the
   layout as `c.same_layout` (an exclusion, not a reject) where `forwardFromBufferV3L` forwards it.
 * **O5 loading limits** — not a lift (a semantic correction). Since 2026-10-27 `Wasm.pv86`, and so
-  `signedCfg` and every tier, sets the flag, so no named tier pair differs in it. The restricted statement is
+  `d3aCfg` and every tier, sets the flag, so no named tier pair differs in it. The restricted statement is
   `runCallWithLimits_eq_of_fits`; the chunk-level form (every executed module fits ⇒ the flag is
   inert) needs the same propagation as O2.
 * **O6 resharding, non-genesis** — `VRefines (checkD2CoreWith recorderDriver …)
