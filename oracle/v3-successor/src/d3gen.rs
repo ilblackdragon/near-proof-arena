@@ -228,6 +228,16 @@ pub enum Scenario {
     /// `gate-b-caps` (src/scenarios.rs): witnesses above 8 MiB, chunk function-call gas above
     /// 1 Pgas and a zero-fee-instruction loop (W02 Gate-B caps).
     GateBCaps,
+    /// `code-cap` (src/xfam.rs, W02 item 4): a quiet chain whose genesis holds 18 contracts of
+    /// ~4 MiB each, called in sets whose cold contract-code response is exactly below / at / above
+    /// `MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE` = 64 MiB.
+    CodeCap,
+    /// `curve-yield-timeout` (src/xfam.rs, W05): every curve host called from the callback of a
+    /// yield that is never resumed (it times out 200 blocks later).
+    CurveYieldTimeout,
+    /// `state-init-emit` (src/xfam.rs, W07): deterministic state init followed by an emitting call
+    /// in the same receipt, with the derived account funded so the emit succeeds.
+    StateInitEmit,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -264,6 +274,9 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "rollback-refund" => Some(Scenario::RollbackRefund),
         Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
+        Ok(value) if value == "code-cap" => Some(Scenario::CodeCap),
+        Ok(value) if value == "curve-yield-timeout" => Some(Scenario::CurveYieldTimeout),
+        Ok(value) if value == "state-init-emit" => Some(Scenario::StateInitEmit),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

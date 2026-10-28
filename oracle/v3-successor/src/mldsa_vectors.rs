@@ -72,7 +72,36 @@ pub fn hint_mutations(sig: &[u8]) -> Vec<(&'static str, Vec<(usize, u8)>)> {
     out
 }
 
-pub fn command(_args: &[String]) -> i32 {
+/// `mldsa-vectors --verify FILE`: the pinned crate's verdict on external vectors in the output
+/// shape above (`{keys, sigs, cases: [{name, key, msg, sig, patch}]}`); prints
+/// `[{name, verdict}]` as JSON. Keys are raw 1952-byte ML-DSA-65 public keys.
+fn verify_file(path: &str) -> i32 {
+    let d: serde_json::Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let pks: Vec<PublicKey> = d["keys"].as_array().unwrap().iter()
+        .map(|k| {
+            let b = hex::decode(k.as_str().unwrap()).unwrap();
+            PublicKey::MLDSA65(near_crypto::MlDsa65PublicKey(Box::new(b.try_into().unwrap())))
+        })
+        .collect();
+    let sigs: Vec<Vec<u8>> = d["sigs"].as_array().unwrap().iter().map(|s| hex::decode(s.as_str().unwrap()).unwrap()).collect();
+    let mut out = Vec::new();
+    for c in d["cases"].as_array().unwrap() {
+        let mut s = sigs[c["sig"].as_u64().unwrap() as usize].clone();
+        for p in c["patch"].as_array().unwrap() {
+            s[p[0].as_u64().unwrap() as usize] = p[1].as_u64().unwrap() as u8;
+        }
+        let msg = hex::decode(c["msg"].as_str().unwrap()).unwrap();
+        let v = verdict(&pks[c["key"].as_u64().unwrap() as usize], &msg, &s);
+        out.push(json!({"name": c["name"], "verdict": v}));
+    }
+    println!("{}", serde_json::to_string(&out).unwrap());
+    0
+}
+
+pub fn command(args: &[String]) -> i32 {
+    if let Some(i) = args.iter().position(|a| a == "--verify") {
+        return verify_file(&args[i + 1]);
+    }
     let keys: Vec<SecretKey> = (0..2).map(|i| SecretKey::from_seed(KeyType::MLDSA65, &format!("w06-mldsa-vector-{i}"))).collect();
     let pks: Vec<PublicKey> = keys.iter().map(|k| k.public_key()).collect();
     let mut sigs: Vec<Vec<u8>> = Vec::new();

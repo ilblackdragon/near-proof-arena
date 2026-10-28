@@ -232,6 +232,7 @@ fn main() {
         Some("codec-roundtrip") => codec_probe::command(&args),
         Some("curve-steps") => curve_hosts::print_steps(),
         Some("mldsa-vectors") => mldsa_vectors::command(&args),
+        Some("code-cap-probe") => xfam::code_cap_probe(),
         Some("reshard") => reshard::cmd_reshard(&args),
         Some("mainnet-observables") => mainnet_obs::cmd(&args),
         Some("rejudge-d2") => d2cold::cmd(&args),

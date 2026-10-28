@@ -71,6 +71,8 @@ pub fn quiet() -> bool {
         Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::EvalTime | Scenario::GateBCaps))
         // `runtime-errors` (src/xfam.rs): only its own transactions, so every case is about them
         || crate::xfam::kind() == Some(crate::xfam::Kind::RuntimeErrors)
+        // `code-cap` (src/xfam.rs): the code-response size of a chunk must be exactly its calls'
+        || crate::xfam::kind() == Some(crate::xfam::Kind::CodeCap)
 }
 
 fn acct(s: &str) -> AccountId {

@@ -52,6 +52,9 @@ pub enum Kind {
     GasKeyTarget,
     RollbackRefund,
     RuntimeErrors,
+    CodeCap,
+    CurveYieldTimeout,
+    StateInitEmit,
 }
 
 pub fn kind() -> Option<Kind> {
@@ -63,6 +66,9 @@ pub fn kind() -> Option<Kind> {
         Some(S::GasKeyTarget) => Some(Kind::GasKeyTarget),
         Some(S::RollbackRefund) => Some(Kind::RollbackRefund),
         Some(S::RuntimeErrors) => Some(Kind::RuntimeErrors),
+        Some(S::CodeCap) => Some(Kind::CodeCap),
+        Some(S::CurveYieldTimeout) => Some(Kind::CurveYieldTimeout),
+        Some(S::StateInitEmit) => Some(Kind::StateInitEmit),
         _ => None,
     }
 }
@@ -447,7 +453,10 @@ pub fn xcurve_wasm() -> &'static [u8] {
 /// Registry additions of the active cross-family scenario.
 pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
     match kind() {
-        Some(Kind::CurveCallbacks) => vec![("xcurve", xcurve_wasm().to_vec())],
+        Some(Kind::CurveCallbacks | Kind::CurveYieldTimeout) => vec![("xcurve", xcurve_wasm().to_vec())],
+        // registered so the generator appends them for the cold judge and TestEnv's own validators
+        // hold them precompiled (TestEnv does not route `ContractCodeRequest`)
+        Some(Kind::CodeCap) => CODE_CAP_NAMES.iter().zip(code_cap_codes()).map(|(n, c)| (*n, c.clone())).collect(),
         Some(Kind::RuntimeErrors) => {
             let mut v = vec![("xfam", xfam_wasm().to_vec())];
             v.extend(crate::rterr::contracts().iter().cloned());
@@ -466,10 +475,11 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
 fn accounts() -> Vec<(&'static str, bool)> {
     match kind() {
         Some(Kind::YieldCongestion) => vec![("s0xyield", true), ("s0xburn", true), ("s1xcall", false), ("s2xburn", false), ("s3xnote", true)],
-        Some(Kind::CurveCallbacks) => vec![("s0xcurve", true), ("s2xcurve", true), ("s1xccall", false)],
+        Some(Kind::CurveCallbacks | Kind::CurveYieldTimeout) => vec![("s0xcurve", true), ("s2xcurve", true), ("s1xccall", false)],
         Some(Kind::GenesisTx) => vec![("s0gx", true), ("s1gx", true), ("s2gx", true), ("s3gx", false), ("s3xnote", true)],
         Some(Kind::GasKeyTarget) => vec![("s0gkt", false), ("s1gkc", true), ("s2gkr", false), ("s3gks", false)],
-        Some(Kind::RollbackRefund) => vec![("s0rbg", false), ("s0rbu", false), ("s1rbs", false), ("s2rbt", true), ("s3rbt", true), ("s3xnote", true)],
+        Some(Kind::RollbackRefund | Kind::StateInitEmit) => vec![("s0rbg", false), ("s0rbu", false), ("s1rbs", false), ("s2rbt", true), ("s3rbt", true), ("s3xnote", true)],
+        Some(Kind::CodeCap) => CODE_CAP_NAMES.iter().map(|n| (*n, true)).collect(),
         Some(Kind::RuntimeErrors) => RT_ACCOUNTS.iter().map(|(n, c)| (*n, c.is_some())).collect(),
         None => vec![],
     }
@@ -497,7 +507,8 @@ const RT_ACCOUNTS: &[(&str, Option<&str>)] = &[
 
 fn account_code(name: &str) -> &'static [u8] {
     match kind() {
-        Some(Kind::CurveCallbacks) => xcurve_wasm(),
+        Some(Kind::CurveCallbacks | Kind::CurveYieldTimeout) => xcurve_wasm(),
+        Some(Kind::CodeCap) => code_cap_code(name),
         Some(Kind::RuntimeErrors) => match RT_ACCOUNTS.iter().find(|(n, _)| *n == name).and_then(|x| x.1) {
             Some("xfam") | None => xfam_wasm(),
             Some(c) => crate::rterr::code(c),
@@ -1039,6 +1050,264 @@ fn runtime_errors() -> Vec<Step> {
 }
 
 // ---------------------------------------------------------------------------------------------
+// code-cap (W02 item 4): the 64 MiB contract-code-response cap in whole chunks
+// ---------------------------------------------------------------------------------------------
+
+/// `MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE` (`contract_distribution.rs:371-373`, non-test build).
+pub const CODE_RESPONSE_CAP: usize = 64 << 20;
+
+/// Genesis accounts of `code-cap`, all on shard 0. `s0cc00`–`s0cc15` are the "at" set: their borsh
+/// `Vec<CodeBytes>` is exactly 4 + Σ(4 + len) = 67,108,864 bytes. `s0cc16` is one byte longer
+/// than `s0cc15` ("over" = at + 1 replaces it), `s0cc17` one byte shorter ("at − 1").
+pub const CODE_CAP_NAMES: [&str; 18] = [
+    "s0cc00", "s0cc01", "s0cc02", "s0cc03", "s0cc04", "s0cc05", "s0cc06", "s0cc07", "s0cc08",
+    "s0cc09", "s0cc10", "s0cc11", "s0cc12", "s0cc13", "s0cc14", "s0cc15", "s0cc16", "s0cc17",
+];
+
+/// Exact byte length of contract `i`: 12 × 4,194,300 + 4 × 4,194,299 = 67,108,796 =
+/// 67,108,864 − 4 − 16 × 4 for the at set (each ≤ `max_contract_size` = 4,194,304).
+pub fn code_cap_len(i: usize) -> usize {
+    match i {
+        0..=11 => 4_194_300,
+        12..=15 => 4_194_299,
+        16 => 4_194_300, // s0cc15 + 1
+        17 => 4_194_298, // s0cc15 − 1
+        _ => unreachable!(),
+    }
+}
+
+fn leb(mut n: usize, out: &mut Vec<u8>) {
+    loop {
+        let b = (n & 0x7f) as u8;
+        n >>= 7;
+        if n == 0 {
+            out.push(b);
+            return;
+        }
+        out.push(b | 0x80);
+    }
+}
+
+/// A minimal contract (`main`: one `storage_write` of 1 byte, so the call has an observable effect)
+/// padded with a custom section `pad` to exactly `len` bytes. The padding is a deterministic
+/// incompressible byte stream (SHA-256 counter mode) seeded with the contract index, so every code
+/// is distinct.
+pub fn code_cap_wasm(i: usize, len: usize) -> Vec<u8> {
+    let core = wat::parse_str(r#"(module
+  (import "env" "storage_write" (func $sw (param i64 i64 i64 i64 i64) (result i64)))
+  (memory 1)
+  (data (i32.const 0) "kv")
+  (func (export "main") (drop (call $sw (i64.const 1) (i64.const 0) (i64.const 1) (i64.const 1) (i64.const 0)))))"#)
+        .expect("code-cap wat");
+    let name = b"pad";
+    // total = core + 1 (id) + leb(size) + size, size = 1 + |name| + payload
+    for leb_len in 1..=5usize {
+        let size = len.checked_sub(core.len() + 1 + leb_len).expect("code-cap len");
+        let mut l = Vec::new();
+        leb(size, &mut l);
+        if l.len() != leb_len || size < 1 + name.len() {
+            continue;
+        }
+        let payload = size - 1 - name.len();
+        let mut out = core.clone();
+        out.push(0);
+        out.extend(l);
+        out.push(name.len() as u8);
+        out.extend(name);
+        let mut ctr = 0u64;
+        while out.len() < len {
+            let mut seed = (i as u64).to_le_bytes().to_vec();
+            seed.extend(ctr.to_le_bytes());
+            let h = CryptoHash::hash_bytes(&seed);
+            let need = (len - out.len()).min(32);
+            out.extend(&h.as_ref()[..need]);
+            ctr += 1;
+        }
+        assert_eq!(out.len(), len);
+        let _ = payload;
+        return out;
+    }
+    panic!("code-cap: no LEB length fits {len}");
+}
+
+fn code_cap_codes() -> &'static [Vec<u8>] {
+    static C: OnceLock<Vec<Vec<u8>>> = OnceLock::new();
+    C.get_or_init(|| {
+        let v: Vec<Vec<u8>> = (0..CODE_CAP_NAMES.len()).map(|i| code_cap_wasm(i, code_cap_len(i))).collect();
+        let at: usize = 4 + v[..16].iter().map(|c| 4 + c.len()).sum::<usize>();
+        assert_eq!(at, CODE_RESPONSE_CAP, "code-cap at-set size");
+        v
+    })
+}
+
+fn code_cap_code(name: &str) -> &'static [u8] {
+    let i = CODE_CAP_NAMES.iter().position(|n| *n == name).expect("code-cap account");
+    &code_cap_codes()[i]
+}
+
+/// The call sets, 8 heights apart (`--p-missing 0` keeps every set in one chunk). Each set's
+/// codes are the chunk's whole cold code response: the chain is quiet.
+pub const CODE_CAP_SETS: &[(&str, &[usize])] = &[
+    ("one", &[0]),
+    ("eight", &[0, 1, 2, 3, 4, 5, 6, 7]),
+    ("fifteen", &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]),
+    ("at-minus-1", &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17]),
+    ("at", &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]),
+    ("over", &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16]),
+];
+
+pub fn code_cap_response_bytes(set: &[usize]) -> usize {
+    4 + set.iter().map(|&i| 4 + code_cap_len(i)).sum::<usize>()
+}
+
+fn code_cap() -> Vec<Step> {
+    let mut v = Vec::new();
+    for (k, (name, set)) in CODE_CAP_SETS.iter().enumerate() {
+        let bytes = code_cap_response_bytes(set);
+        for &i in set.iter() {
+            let a = CODE_CAP_NAMES[i];
+            v.push(step(8 * k as u64, format!("successor.code-cap.{k}.{name}.{bytes}.{a}"), a, a, vec![fc("main", vec![], 20, 0)], How::Main));
+        }
+    }
+    v
+}
+
+/// `code-cap-probe`: pinned nearcore's own `ContractCodeResponse` round trip on every code-cap set
+/// (encode as the chunk producer does, `decompress_contracts` as the validator does, under the
+/// 64 MiB `CountingRead` limit). Prints one JSON row per set plus every code's hash and length.
+pub fn code_cap_probe() -> i32 {
+    use near_primitives::stateless_validation::ChunkProductionKey;
+    use near_primitives::stateless_validation::contract_distribution::{CodeBytes, ContractCodeResponse};
+    use near_primitives::types::{EpochId, ShardId};
+    let signer = near_primitives::validator_signer::InMemoryValidatorSigner::from_seed(acct("test0"), KeyType::ED25519, "test0");
+    let codes = code_cap_codes();
+    for (i, c) in codes.iter().enumerate() {
+        println!("{}", json!({"code": CODE_CAP_NAMES[i], "len": c.len(), "hash": CryptoHash::hash_bytes(c).to_string()}));
+    }
+    for (name, set) in CODE_CAP_SETS {
+        let v: Vec<CodeBytes> = set.iter().map(|&i| CodeBytes(codes[i].clone().into())).collect();
+        let borsh_len = borsh::to_vec(&v).unwrap().len();
+        let key = ChunkProductionKey { shard_id: ShardId::new(0), epoch_id: EpochId::default(), height_created: 10_010 };
+        let resp = ContractCodeResponse::encode(key, &v, &signer, near_primitives::version::PROTOCOL_VERSION).expect("encode");
+        let variant = match &resp { ContractCodeResponse::V1(_) => "V1", ContractCodeResponse::V2(_) => "V2" };
+        let wire = borsh::to_vec(&resp).unwrap().len();
+        let r = resp.decompress_contracts();
+        println!("{}", json!({"set": name, "n_codes": set.len(), "borsh_vec_codebytes": borsh_len,
+            "model_codeResponseBytes": code_cap_response_bytes(set), "cap": CODE_RESPONSE_CAP,
+            "response_variant": variant, "protocol_version": near_primitives::version::PROTOCOL_VERSION, "wire_bytes": wire,
+            "decompress_contracts": match &r { Ok(x) => format!("ok: {} codes", x.len()), Err(e) => format!("err: {e}") }}));
+    }
+    0
+}
+
+// ---------------------------------------------------------------------------------------------
+// curve-yield-timeout (W05): curve hosts in timed-out yield callbacks
+// ---------------------------------------------------------------------------------------------
+
+/// Every pick of `curve-callbacks` (first pos / neg / edge input and the gas-exhaustion input of
+/// each host) as a `yslot` yield that is never resumed: 200 blocks later the timeout runs the
+/// callback, which calls the host on the callback arguments (`<host>`), or reads the (failed)
+/// promise result into memory (`<host>_rm`) or a register (`<host>_rr`). Four per height.
+fn curve_yield_timeout() -> Vec<Step> {
+    let base = crate::curve_hosts::steps();
+    let mut picks: Vec<(&str, String, Vec<u8>, u64)> = Vec::new();
+    for &(h, _) in CURVE_HOSTS {
+        let of = |class: &str, skip_empty: bool| base.iter().find(|s| s.method == h && s.label.contains(&format!(".{class}."))
+            && !(skip_empty && s.args.is_empty()) && s.tgas >= 100);
+        for (class, skip) in [("pos", true), ("neg", false), ("edge", false)] {
+            if let Some(s) = of(class, skip) {
+                let case = s.label.rsplit('.').next().unwrap().to_string();
+                picks.push((h, format!("{class}.{case}"), s.args.clone(), 100));
+            }
+        }
+        if let Some(s) = base.iter().find(|s| s.method == h && s.tgas < 100) {
+            picks.push((h, "neg.gas_at_element_charge".into(), s.args.clone(), s.tgas));
+        }
+    }
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    let mut slot = 0u8;
+    let mut push = |out: &mut Vec<Step>, h: &str, variant: &str, case: &str, method: String, g: u64, args: &[u8]| {
+        let recv = if i % 2 == 1 { "s2xcurve" } else { "s0xcurve" };
+        let signer = if i % 3 == 2 { "s1xccall" } else { recv };
+        let mut a = vec![slot, g.min(150) as u8, method.len() as u8];
+        a.extend(method.as_bytes());
+        a.extend_from_slice(args);
+        let label = format!("successor.curve-yield-timeout.{i:03}.{h}.{variant}.{case}");
+        out.push(step((i / 4) as u64, label, signer, recv, vec![fc("yslot", a, 300, 0)], How::Main));
+        i += 1;
+        slot = slot.wrapping_add(1);
+    };
+    for (h, case, args, g) in &picks {
+        let reg = !matches!(*h, "p256_verify" | "ecrecover");
+        push(&mut out, h, "timeout-args", case, h.to_string(), *g, args);
+        if case.starts_with("pos") {
+            push(&mut out, h, "timeout-result-memory", case, format!("{h}_rm"), *g, args);
+            if reg {
+                push(&mut out, h, "timeout-result-register", case, format!("{h}_rr"), *g, args);
+            }
+        }
+    }
+    out
+}
+
+// ---------------------------------------------------------------------------------------------
+// state-init-emit (W07): state init followed by a successful emit
+// ---------------------------------------------------------------------------------------------
+
+/// `rollback-refund`'s `state-init-then-emit` with the derived account funded, so the emit's
+/// 1,000-yocto promises are payable: the emitting call carries a deposit (variant `deposit`), or a
+/// `Transfer` precedes it (`transfer`), or both run with a callback (mode 2) or without (mode 0);
+/// also a second state init on the then-active account followed by an emit (`reinit`), and a
+/// cross-shard signer. Four rounds, one height each, every round with fresh derived accounts.
+fn state_init_emit() -> Vec<Step> {
+    let code = xfam_wasm().to_vec();
+    let hash_id = GlobalContractIdentifier::CodeHash(CryptoHash::hash_bytes(&code));
+    let acct_id = GlobalContractIdentifier::AccountId(acct("s0rbg"));
+    let lab = |i: usize, s: &str| format!("successor.state-init-emit.{i:02}.{s}");
+    let emit = |mode: u8, targets: &[(&str, &str)]| {
+        let mut a = vec![mode, targets.len() as u8];
+        for (t, m) in targets {
+            a.push(t.len() as u8);
+            a.extend(t.as_bytes());
+            a.push(m.len() as u8);
+            a.extend(m.as_bytes());
+        }
+        a
+    };
+    let mut v = vec![
+        step(0, lab(0, "deploy-global-hash"), "s0rbg", "s0rbg", vec![Action::DeployGlobalContract(DeployGlobalContractAction { code: code.clone().into(), deploy_mode: GlobalContractDeployMode::CodeHash })], How::Main),
+        step(1, lab(1, "deploy-global-account"), "s0rbg", "s0rbg", vec![Action::DeployGlobalContract(DeployGlobalContractAction { code: code.clone().into(), deploy_mode: GlobalContractDeployMode::AccountId })], How::Main),
+    ];
+    let mut i = 2;
+    for k in 0..4u8 {
+        let off = 12 + 5 * k as u64;
+        let id = if k % 2 == 0 { hash_id.clone() } else { acct_id.clone() };
+        let mut push = |name: &str, signer: &str, receiver: AccountId, actions: Vec<Action>| {
+            let describe = actions.iter().map(describe_action).collect::<Vec<_>>().join(", ");
+            v.push(Step { off, label: lab(i, &format!("r{k}.{name}")), signer: acct(signer), receiver, actions, how: How::Main, describe });
+            i += 1;
+        };
+        let (r, a) = state_init(id.clone(), vec![(b"k".to_vec(), vec![k, 1])], NEAR);
+        push("state-init-emit-deposit-then", "s1rbs", r, vec![a, fc("emit", emit(2, &[("s2rbt", "noop"), ("s3rbt", "fail")]), 60, NEAR)]);
+        let (r, a) = state_init(id.clone(), vec![(b"k".to_vec(), vec![k, 2])], NEAR);
+        push("state-init-transfer-emit", "s1rbs", r, vec![a, tr(NEAR), fc("emit", emit(0, &[("s2rbt", "noop"), ("s3rbt", "noop")]), 60, 0)]);
+        let (r, a) = state_init(id.clone(), vec![(b"k".to_vec(), vec![k, 3])], NEAR);
+        push("state-init-emit-local-target", "s1rbs", r.clone(), vec![a.clone(), fc("emit", emit(2, &[("s0rbu", "noop")]), 60, NEAR / 10)]);
+        // the same derived account again, now active: the second state init is a no-op + refund
+        push("reinit-emit", "s1rbs", r, vec![a, fc("emit", emit(0, &[("s3rbt", "noop")]), 60, NEAR / 10)]);
+        let (r, a) = state_init(id.clone(), vec![(b"k".to_vec(), vec![k, 4])], NEAR);
+        push("state-init-emit-same-shard-signer", "s0rbu", r, vec![a, fc("emit", emit(2, &[("s2rbt", "noop")]), 60, NEAR)]);
+        let (r, a) = state_init(id.clone(), vec![(b"k".to_vec(), vec![k, 5])], NEAR);
+        push("state-init-emit-then-panic", "s1rbs", r, vec![a, fc("emit", emit(1, &[("s2rbt", "noop")]), 60, NEAR)]);
+        // control: the unfunded original (BalanceExceeded, state init rolled back)
+        let (r, a) = state_init(id.clone(), vec![(b"k".to_vec(), vec![k, 6])], NEAR);
+        push("state-init-emit-unfunded", "s1rbs", r, vec![a, fc("emit", emit(2, &[("s2rbt", "noop")]), 60, 0)]);
+    }
+    v
+}
+
+// ---------------------------------------------------------------------------------------------
 // the driver
 // ---------------------------------------------------------------------------------------------
 
@@ -1061,6 +1330,9 @@ impl Driver {
             Some(Kind::GasKeyTarget) => (10004, gaskey_target()),
             Some(Kind::RollbackRefund) => (10004, rollback_refund()),
             Some(Kind::RuntimeErrors) => (10004, runtime_errors()),
+            Some(Kind::CodeCap) => (10004, code_cap()),
+            Some(Kind::CurveYieldTimeout) => (10004, curve_yield_timeout()),
+            Some(Kind::StateInitEmit) => (10004, state_init_emit()),
             None => (u64::MAX, vec![]),
         };
         Driver { start, steps, retry: vec![], submitted: vec![], used: HashMap::new() }
@@ -1224,6 +1496,9 @@ pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String], 
     use std::sync::atomic::{AtomicUsize, Ordering};
     static SEEN: AtomicUsize = AtomicUsize::new(0);
     let Some(k) = kind() else { return (false, false) };
+    if k == Kind::CodeCap {
+        return (false, false);
+    }
     if k == Kind::GenesisTx && b2_genesis {
         return (true, true);
     }
