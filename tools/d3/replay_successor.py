@@ -38,7 +38,7 @@ TIERS = {
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
     # The statement of record since 2026-10-27 (`checkD3S`): the D3α feature set on the recorder
     # engine with resharding decided, so the resharding guards are no longer exclusion labels.
-    "signed": ("c.same_layout", "c.no_split_gate"),
+    "signed": ("c.same_layout", "c.no_split_gate", "e.eth_implicit_local", "e.code_cache"),
     # The D3α rung `checkD3` (the signed tier until 2026-10-27).
     "d3a": (),
     "floats": ("e.float",),

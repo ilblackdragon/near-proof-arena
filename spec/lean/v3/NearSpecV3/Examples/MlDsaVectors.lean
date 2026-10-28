@@ -1,6 +1,7 @@
 import NearSpecV3.MlDsa65
 import NearSpecV3.Examples.MlDsaAcvp
 import NearSpecV3.Examples.MlDsaCrate
+import NearSpecV3.Examples.MlDsaZBound
 
 /-!
 # `MlDsa65.verify` pinned against NIST ACVP and the pinned crate
@@ -20,6 +21,9 @@ prefix) fails the build.
   the ordering check rejects it), duplicates, a count above `ω` or equal to 255, a decreasing
   count, a non-zero unused slot (`hint-padding-nonzero`, again the same set), and two
   well-formed-but-wrong hints; plus `z` packed at `±γ1` and all-zero / all-`0xFF` signatures.
+* `MlDsaZBound.cases`: 16 signatures from a known key whose challenge is consistent and whose
+  largest `|z|` coefficient is `γ1 − β − 1` (accept), `±(γ1 − β)` or `γ1 − β + 1` (reject), with the
+  crate's verdicts: they pin the strict `<` of the norm bound in both directions.
 
 The checks run in the compiled evaluator (`#guard`); about 0.45 s per verification in the
 interpreter. The checker binary runs one in about 2 ms (see the evidence README).
@@ -70,6 +74,22 @@ def crateFailures : List String :=
 #guard MlDsaCrate.cases.size == 74
 #guard (MlDsaCrate.cases.toList.filter (·.2.2.2.2.2)).length == 12
 #guard crateFailures == []
+
+def zbSig (sigIdx : Nat) (patch : List (Nat × Nat)) : List UInt8 :=
+  let base := (unhex MlDsaZBound.sigs[sigIdx]!).toList
+  patch.foldl (fun s (o, b) => s.set o b.toUInt8) base
+
+def zbOk (c : String × Nat × String × Nat × List (Nat × Nat) × Bool) : Bool :=
+  let (_, key, msg, sigIdx, patch, expect) := c
+  verify (unhex MlDsaZBound.keys[key]!).toList (zbSig sigIdx patch) (unhex msg).toList == expect
+
+/-- The `z`-bound cases `MlDsa65.verify` disagrees with the crate on; must be empty. -/
+def zbFailures : List String :=
+  (MlDsaZBound.cases.toList.filter (fun c => !zbOk c)).map (·.1)
+
+#guard MlDsaZBound.cases.size == 16
+#guard (MlDsaZBound.cases.toList.filter (·.2.2.2.2.2)).length == 4
+#guard zbFailures == []
 
 /-! Wrong-length inputs are rejected before decoding (nearcore's Borsh fixes both lengths, so these
 are defensive: `verify` is total on any byte list). -/
