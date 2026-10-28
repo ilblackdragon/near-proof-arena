@@ -136,3 +136,34 @@ for the deadlines); witness-replacement alive but unwon — every remaining
 step is measured and enumerated, no unknown unknowns. Phase-4 logs, driver
 source and manifests archived in evidence/zkvm-chunk/fold with verified
 hashes. D0a-transfer-only, composed-PQ, ZK, GPU-unmeasured gaps stated.
+
+## 2026-10-28 — Wasm Phase 2: NPMWASM02 contract + in-circuit VM (commit bfd11c9a2)
+
+**Design review found v1 fixtures could not express the required
+constraints** (no select-cond, no effective addresses, "initial" state
+written post-run). NPMWASM02: true init state, per-step c/br_h/br_ar/
+mem_addr/mem_word/code_off, module code digest + init digest. Host
+audit green: byte-identical regeneration + 15-class battery (195
+mutants rejected), incl. tag↔code-byte checks.
+
+**In-circuit VM** (`wasm_exec.rs`, `near-wasm-exec` on the same
+LaBRADOR Session, no backend changes): height-tracked select-mux stack
+(64), locals (16), running memory (128 w) + globals (8 w) banks
+(read-over-write scan rejected at ~5x), 42-binop ALU chain (barrel
+shifts/rotates, shift-add mul ladders — no IntMul channel), gas, and
+tight_sha code+init digest bindings. Fixed three soundness bugs found
+by the gates: global.set overwriting locals, branch value read at the
+wrong slot (pop-then-move), and unused-witness fields left unbound
+(now zero-guarded).
+
+**Gates green**: 13/13 KAT fixtures prove bit-exact (8..2010 steps;
+prove 0.30-2.26 s, verify 0.15-0.77 s, packets 156-209 KB vs the
+350-500 KB SWIRL/WHIR baseline); in-circuit battery 13/13 classes
+rejected at named constraints (addchain5, memmix1, ctrlbounded;
+code_off + transport digest host-audit-only — the code-walk rung is
+the stated follow-up). Geometry: ~1,452 AND/step at 2048 steps
+(2.97M AND) vs D0a's 4,792 AND/slot.
+
+Next: Phase 3 ladder runs (pinned protocol, 2 obs) + Phase 4
+integrate-or-publish-wall. Open items (stated, not silent): tag
+sequence↔code binding (byte mux), label-table walk, div in-circuit.
