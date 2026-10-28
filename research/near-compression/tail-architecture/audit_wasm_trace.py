@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Host audit for NPMWASM01 fixtures: step-exact re-execution + mutation battery.
+"""Host audit for NPMWASM02 fixtures: step-exact re-execution + mutation battery.
 
 Re-runs every fixture's program with the tracing interpreter and requires the
 fixture bytes to match byte-for-byte (deterministic regeneration), then builds
@@ -18,16 +18,23 @@ import gen_wasm_fixtures
 
 
 def parse(raw):
-    assert raw[:9] == b'NPMWASM01', 'magic'
+    assert raw[:9] == b'NPMWASM02', 'magic'
     pos = 9
-    ver, n_steps, n_stack, n_locals, n_globals, mem_words = struct.unpack_from('<IIIIII', raw, pos)
-    pos += 24
+    ver = struct.unpack_from('<I', raw, pos)[0]
+    assert ver == 2, 'version'
+    pos += 4
+    n_steps, n_stack, n_locals, n_globals, mem_words = struct.unpack_from('<IIIII', raw, pos)
+    pos += 20
     code_len = struct.unpack_from('<I', raw, pos)[0]
     pos += 4
     code = raw[pos:pos + code_len]
     pos += code_len
     total_gas = struct.unpack_from('<Q', raw, pos)[0]
     pos += 8
+    code_digest = raw[pos:pos + 32]
+    pos += 32
+    init_digest = raw[pos:pos + 32]
+    pos += 32
     def words(k):
         nonlocal pos
         vals = list(struct.unpack_from(f'<{k}Q', raw, pos))
@@ -38,14 +45,20 @@ def parse(raw):
     init_globals = words(n_globals)
     init_mem = words(mem_words)
     steps = []
+    row_size = None
     for _ in range(n_steps):
-        pc, tag, a, b, out = struct.unpack_from('<IIQQQ', raw, pos)
-        pos += 32
-        h = struct.unpack_from('<I', raw, pos)[0]
-        pos += 4
+        pc, tag, a, b, out, c = struct.unpack_from('<IIQQQQ', raw, pos)
+        pos += 40
+        h, code_off, _pad = struct.unpack_from('<III', raw, pos)
+        pos += 12
+        br_taken, br_h, br_ar = struct.unpack_from('<QQQ', raw, pos)
+        pos += 24
+        mem_addr, mem_word = struct.unpack_from('<QQ', raw, pos)
+        pos += 16
         stack = words(n_stack)
         locals_ = words(n_locals)
-        steps.append((pc, tag, a, b, out, h, stack, locals_))
+        steps.append((pc, tag, a, b, out, c, h, code_off, br_taken, br_h, br_ar,
+                      mem_addr, mem_word, stack, locals_))
     fin_stack = words(n_stack)
     fin_locals = words(n_locals)
     fin_globals = words(n_globals)
@@ -54,8 +67,12 @@ def parse(raw):
     digest = raw[pos:pos + 32]
     pos += 32
     assert pos == len(raw), 'trailing bytes'
-    return dict(ver=ver, n_steps=n_steps, code=code, gas=total_gas, steps=steps,
-                fin_stack=fin_stack, fin_locals=fin_locals, fin_globals=fin_globals,
+    return dict(ver=ver, n_steps=n_steps, code=code, gas=total_gas,
+                code_digest=code_digest, init_digest=init_digest,
+                init_stack=init_stack, init_locals=init_locals,
+                init_globals=init_globals, init_mem=init_mem, steps=steps,
+                fin_stack=fin_stack, fin_locals=fin_locals,
+                fin_globals=fin_globals,
                 result=result, kind=kind, digest=digest, mem_words=mem_words)
 
 
@@ -76,10 +93,29 @@ def structural_checks(raw, parsed):
     import hashlib
     if hashlib.sha256(raw[:-32]).digest() != parsed['digest']:
         return False, 'digest'
-    if parsed['ver'] != 1:
+    if parsed['ver'] != 2:
         return False, 'version'
-    if parsed['gas'] != sum(s['gas'] for s in []) and parsed['gas'] < 0:
+    if parsed['gas'] < 0:
         return False, 'gas'
+    # slice gas profile: 1 per executed step
+    if parsed['gas'] != parsed['n_steps']:
+        return False, 'gas-profile'
+    # code byte <-> tag at each step's code_off (the circuit's byte-mux
+    # constraint; host-verified here via the same wasmasm tables)
+    import wasmasm
+    tag_byte = {}
+    for _k, _v in list(wasmasm.NUM.items()) + list(wasmasm.MEM.items()):
+        tag_byte[OP_TAGS.get(_k, 0)] = _v if isinstance(_v, int) else _v[0]
+    for (pc, tag, a, b, out, c, h, code_off, br_taken, br_h, br_ar,
+         mem_addr, mem_word, stack, locals_) in parsed['steps']:
+        want = tag_byte.get(tag)
+        if want is None or parsed['code'][code_off] != want:
+            return False, f'code byte at {code_off} (tag {tag})'
+    # init digest
+    import hashlib as _h
+    init_words = parsed['init_stack'] + parsed['init_locals'] + parsed['init_globals'] + parsed['init_mem']
+    if _h.sha256(b''.join(struct.pack('<Q', v) for v in init_words)).digest() != parsed['init_digest']:
+        return False, 'init digest'
     return True, 'ok'
 
 
@@ -95,8 +131,8 @@ def mutants_of(raw, parsed):
     """Byte mutants hitting each semantic field class."""
     out = []
     n = parsed['n_steps']
-    step_row_off = 9 + 24 + 4 + len(parsed['code']) + 8 + 8 * (N_STACK + N_LOCALS + N_GLOBALS + parsed['mem_words'])
-    row_size = 32 + 4 + 8 * (N_STACK + N_LOCALS)
+    step_row_off = 9 + 4 + 20 + 4 + len(parsed['code']) + 8 + 32 + 32 + 8 * (N_STACK + N_LOCALS + N_GLOBALS + parsed['mem_words'])
+    row_size = 40 + 12 + 24 + 16 + 8 * (N_STACK + N_LOCALS)
     def mut(name, off):
         x = bytearray(raw)
         x[off] ^= 1
@@ -105,18 +141,32 @@ def mutants_of(raw, parsed):
     mut('opcode-tag', step_row_off + 4)
     # operand a of step 0
     mut('operand-a', step_row_off + 8)
+    # select condition c of step 0
+    mut('select-cond', step_row_off + 32)
     # stack word 0 of step 0's snapshot
-    mut('stack-word', step_row_off + 32 + 4)
+    mut('stack-word', step_row_off + 92)
     # local word 0 of step 0's snapshot
-    mut('local-word', step_row_off + 32 + 4 + 8 * N_STACK)
+    mut('local-word', step_row_off + 92 + 8 * N_STACK)
+    # branch metadata of step 0
+    mut('branch-meta', step_row_off + 52)
+    # memory address of step 0
+    mut('mem-addr', step_row_off + 76)
+    # code offset of step 0 (tag<->code binding)
+    mut('code-off', step_row_off + 44)
     # final-state stack word
     mut('final-stack', step_row_off + row_size * n)
     # gas total (in the header)
-    mut('gas-total', 9 + 24 + 4 + len(parsed['code']))
+    mut('gas-total', 9 + 4 + 20 + 4 + len(parsed['code']))
+    # code digest word 0
+    mut('code-digest', 9 + 4 + 20 + 4 + len(parsed['code']) + 8)
+    # init-state digest word 0
+    mut('init-digest', 9 + 4 + 20 + 4 + len(parsed['code']) + 8 + 32)
+    # an initial-state word itself (global 0 = offset of globals section)
+    mut('init-state', 9 + 4 + 20 + 4 + len(parsed['code']) + 8 + 64 + 8 * (N_STACK + N_LOCALS))
     # digest
     mut('digest', len(raw) - 32)
     # a step's stack height
-    mut('stack-height', step_row_off + 32)
+    mut('stack-height', step_row_off + 40)
     return out
 
 
