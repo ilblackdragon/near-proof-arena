@@ -167,3 +167,23 @@ the stated follow-up). Geometry: ~1,452 AND/step at 2048 steps
 Next: Phase 3 ladder runs (pinned protocol, 2 obs) + Phase 4
 integrate-or-publish-wall. Open items (stated, not silent): tag
 sequence↔code binding (byte mux), label-table walk, div in-circuit.
+
+## 2026-10-28 (2) — Wasm Phase 3: ladder measured (commit cb98f8aaa)
+
+Pinned protocol (CPU 8-11, 4 threads, 16 GiB, /usr/bin/time -v, two
+observations/rung), load label HIGH (~52/32 cores). Ladder: prove
+0.26/0.33/0.70/2.01-2.03 s, verify 0.13/0.17/0.31/0.65 s, packets
+FLAT 157-209 KB across 8..2048 steps, RSS 532-6288 MB. memmix80 ==
+addchain rung (the running-bank memory design holds at scale).
+
+Central datum: **~1452 AND/step vs D0a's 4792 AND/slot (0.30x, same PQ
+backend)** → Phase 4 decision by the goal's rule: INTEGRATE.
+Witness logs 17/18/20/22 land ON suite boundaries; sizexl (log 24)
+swaps Q4861→Q9721 (unmeasured, named). 1-Pgas extrapolation (labeled):
+~500-2900x the largest rung — folding required; the packet target
+survives (flat bytes), single-circuit CPU prove cannot reach 1-2 s; the
+2048-cap dense-build wall breaks first.
+
+Evidence: WASM_LADDER.md, evidence/wasm-exec/phase3/ladder.json,
+fixtures-v2/ (13 audited, 195 mutants). Remaining: Phase 4 —
+NPMULT04 composite wiring + WASM_EXEC.md + manifest + commit.
