@@ -1,0 +1,149 @@
+{
+  "block_capture_percent": 100.0,
+  "capture_manifest_sha256": "bdc5b6fbe869e3b1672be19e954409b1f32e14a0c85d2e516225a17b3817488a",
+  "captured_blocks": 1223,
+  "checked_commitments": [
+    "state_root",
+    "implicit_transition_roots",
+    "outcome_root",
+    "outgoing_receipts_root",
+    "gas_used",
+    "gas_limit",
+    "balance_burnt",
+    "validator_proposals",
+    "congestion_info",
+    "bandwidth_requests",
+    "transaction_root",
+    "encoded_merkle_root",
+    "encoded_length",
+    "incoming_receipt_proofs",
+    "applied_receipts_hash"
+  ],
+  "cold_compiled_cache_used_cases": 279,
+  "compared_chunks": 1221,
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "comparison": "blind: Lean-computed outputs vs the endorsed header (produced values are never Lean inputs); blinded-input control must not accept",
+  "counts": {
+    "error": 2,
+    "match": 1221,
+    "missing_witness": 11007
+  },
+  "errors": [],
+  "errors_detail": [
+    {
+      "case_dir": "cases/h221490628-s13",
+      "chunk_hash": "HBQiLf6uVqDopS3xvoRBHdXCh5nDRRn953KQ54HDcBoF",
+      "error": "ValueError: native adapter provenance/input binding mismatch: ['facts_verified'] {'final': False, 'canonical': True, 'final_head_height': 221490627, 'claim_equal': True}"
+    },
+    {
+      "case_dir": "cases/h221490629-s13",
+      "chunk_hash": "BVLb7zEb1Bxn93hoaDGCGRsxcx3TgN6jfA6A5PaiWtbg",
+      "error": "ValueError: native adapter provenance/input binding mismatch: ['facts_verified'] {'final': False, 'canonical': True, 'final_head_height': 221490627, 'claim_equal': True}"
+    }
+  ],
+  "expected_chunk_count_complete": true,
+  "expected_chunks": 12230,
+  "harness_sha256": {
+    "blind_inputs.py": "8464ecd8cb2114b3fcc7c378a45c46cdd96f175ea0900f95e9d78bb64232c590",
+    "gate.py": "902e954cddaeb4be9f7efc75032ee0d33f7b4ba189d3066a2aebedab6478b45e"
+  },
+  "independent_finality_verification": false,
+  "lean": {
+    "path": "/data/illia/nearproof/.claude/worktrees/agent-ad2acd593ca2dc709/spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor",
+    "sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+    "tier": "allFeatures"
+  },
+  "mismatch_denominator": "compared chunks (match + verdict/output mismatch + blind leak); excludes missing/unsupported/native-reject/errors",
+  "mismatch_percent": 0.0,
+  "missed_chunk_slots": 0,
+  "native": {
+    "command": [
+      "/data/illia/nearproof-deps/w13-cold/bin/neard",
+      "--home",
+      "/data/illia/nearproof-deps/w13-cold/pilot-home-view",
+      "view-state",
+      "state-witness",
+      "cold-validate"
+    ],
+    "executable_sha256": "6a1a967d06b83cff191e6834243158dc73d722f6dbe0af23be2ff591f7b5bd00"
+  },
+  "native_seconds": {
+    "max": 0.22367988,
+    "median": 0.001209626,
+    "n": 1221
+  },
+  "per_shard": {
+    "1": {
+      "missing_witness": 1223
+    },
+    "10": {
+      "missing_witness": 1223
+    },
+    "11": {
+      "missing_witness": 1223
+    },
+    "12": {
+      "missing_witness": 1223
+    },
+    "13": {
+      "error": 2,
+      "match": 1221
+    },
+    "4": {
+      "missing_witness": 1223
+    },
+    "6": {
+      "missing_witness": 1223
+    },
+    "7": {
+      "missing_witness": 1223
+    },
+    "8": {
+      "missing_witness": 1223
+    },
+    "9": {
+      "missing_witness": 1223
+    }
+  },
+  "replay_coverage_percent": 9.983646770237122,
+  "required_blocks": 1000,
+  "schema": "near-mainnet-replay-v1",
+  "shards": [
+    1,
+    4,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "source": "jsonrpc+https://archival-rpc.mainnet.fastnear.com",
+  "status": "fail",
+  "trust_boundary": {
+    "block_window": "canonical heights from the configured HTTPS archive; consecutive prev_hash chain",
+    "finality": "native adapter: included block is the canonical block at its height and at or below the final head of the pinned node store (doomslug finality as accepted by that node); its hash must equal the archive block hash",
+    "not_verified": "no light-client / BFT signature proof; header validity is the native node's",
+    "segment": "claim section B hash chain from chunk_inner.prev_block_hash; every block hash also in the archive",
+    "trusted_facts": "claim section C, epoch_id, protocol_version, chain_id recomputed by the native adapter from its own store/epoch manager; supplied claim.bin must be byte-identical"
+  },
+  "verified_match_percent": 9.983646770237122,
+  "window": {
+    "block_count": 1223,
+    "start": 221489407
+  }
+}
