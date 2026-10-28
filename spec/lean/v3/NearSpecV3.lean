@@ -42,6 +42,9 @@ import NearSpecV3.D3.GlobalContractChunk
 import NearSpecV3.Supply
 import NearSpecV3.SupplyRuntime
 import NearSpecV3.SupplyConfinement
+-- The state measure (§6): NEAR summed over the trie's account keys, plus gas keys, plus burnt.
+-- Built on PTrie.allKeys' sound/complete pair; makes the per-site arithmetic composable.
+import NearSpecV3.StateMeasure
 
 -- Recursion track: segment fold semantics (Wasm/Segment.lean). Was orphaned until
 -- 2026-10-23; imported here so the result is in the default build and cannot rot.

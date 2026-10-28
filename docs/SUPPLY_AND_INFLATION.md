@@ -7,8 +7,9 @@ Two economic properties of NEAR, as far as the Lean spec in `spec/lean/v3/NearSp
 
 This document says what each statement means precisely, which theorem proves it, and what is *not*
 proved. The Lean modules are `NearSpecV3/Supply.lean` (formula and header),
-`NearSpecV3/SupplyRuntime.lean` (runtime balance writes) and `NearSpecV3/SupplyConfinement.lean`
-(where in the runtime those writes can land); all three are in the default `lake build`.
+`NearSpecV3/SupplyRuntime.lean` (runtime balance writes), `NearSpecV3/SupplyConfinement.lean`
+(where in the runtime those writes can land) and `NearSpecV3/StateMeasure.lean` (a measure on the state
+itself); all four are in the default `lake build`.
 
 Short version: **(2) is proved as a bound on the epoch-reward formula and on the block header's
 supply identity, and the same cap is carried through to the amount actually credited on a shard —
@@ -138,9 +139,15 @@ at most a year's 2.5 % worth — less if it burns anything.
 
 ### At account granularity
 
-`NearSpecV3/SupplyRuntime.lean` gives the measure `Σ_accounts (amount + locked) + Σ_gas_keys balance +
-tokensBurnt` and the arithmetic of every write to it in the D2 runtime (`D2/Actions.lean`,
-`D2/Receipts.lean`, `D2/RuntimeD2.lean`, `D2/Validators.lean`):
+> **Read this table carefully.** Each row is a lemma about `Nat`s, not about the state. For example
+> `refundStep_total {amount dep : Nat} (h : dep ≤ amount) : (amount - dep) + dep = amount` — it does
+> not mention `Ovl`, `Rcpt`, or the `refunds` function, and `dep` is not tied to the amount actually
+> charged. Nine of the ten rows are cited by nothing outside their own statement. These lemmas record
+> the *arithmetic* each site performs; they do not prove the site performs it. See §2b for the state
+> measure that closes part of that gap, and §3 for what remains.
+
+`NearSpecV3/SupplyRuntime.lean` gives the arithmetic of each balance write in the D2 runtime
+(`D2/Actions.lean`, `D2/Receipts.lean`, `D2/RuntimeD2.lean`, `D2/Validators.lean`):
 
 | site | effect | theorem |
 |---|---|---|
@@ -171,6 +178,46 @@ the per-site arithmetic into a statement about the overlay the runtime actually 
 Read this table as: *the supply rises by exactly the rewards the facts carry, and nothing else*. It does
 not say those rewards are the correct epoch ledger — that is §1's job for the computed ledger, and the
 equality between the two is the "reward *amounts*" gap in §3.
+
+### 2b. A measure on the state itself
+
+`NearSpecV3/StateMeasure.lean` (§6) defines the measure on the trie rather than on bare `Nat`s:
+
+```
+stateTotal t burnt  =  acctSumOf t + akSumOf t + burnt
+```
+
+where `acctSumOf` sums `amount + locked` over the trie's account keys and `akSumOf` sums gas-key
+balances, both found by enumerating the trie with `PTrie.allKeys`.
+
+| statement | theorem |
+|---|---|
+| every path `allKeys` reports has a value | `PTrie.allKeys_sound_nil` |
+| every path with a value is reported | `PTrie.allKeys_complete_nil` |
+| equal values on account keys ⟹ equal account sum | `headVals_congr`, `acctSumOf_congr` |
+| **different account totals contribute differently** | `acctTotalOf_ne` |
+| the measure splits over a listed account | `acctSum_cons` |
+
+The sound/complete pair is what makes the enumeration trustworthy: `allKeys_sound` and
+`allKeys_complete` already existed in `D2/TrieProps.lean:326,506` but nothing imported that module, so
+they were not in the default build; §6.1 restates them at `acc = []` and puts them on the build path.
+
+The two congruence lemmas matter as a *pair*. `acctSumOf_congr` says a write to a non-account key
+cannot change the account sum — that is the property a conservation proof needs. `acctTotalOf_ne` says
+the measure is nevertheless sensitive to account values — without it, the constantly-zero function
+would satisfy `acctSumOf_congr` and the measure would be worthless.
+
+**What is still missing** (§6.5): `acctSumOf` sums over `allKeys`, so a *delta* statement needs
+
+```
+t.upsert key v = some t'  →  t'.allKeys [] = t.allKeys []
+```
+
+— that a write changes no key's *presence*, only one key's value. `find_upsert_self` and
+`find_upsert_other` (`NearSpec/TrieUpsertProofs.lean:381,467`) give the value half but not the presence
+half, and `TrieProps` does not have it. Until that lemma exists, the runtime-conservation theorem
+("`applyActionReceipt` conserves `stateTotal`") is **not** derived, and the credited-then-rejected bug
+remains undetectable by proof.
 
 ### Where the writes can land
 
@@ -236,9 +283,11 @@ These limits matter if the result is to be quoted.
   receives is the value `calculate_reward` computed; that is the next bullet's gap, and §5.5 does not
   narrow it. It also says nothing about the *other* sites in the table — their confinement is not
   proved in this module.
-* **The per-site lemmas speak about the values written**, not about a sum over the trie. A global sum
-  needs `PTrie.allKeys` completeness (`D2/TrieProps.lean:326,506` has the two halves) plus an injection
-  from trie keys to accounts; not attempted here.
+* **The per-site lemmas speak about the values written**, not about a sum over the trie. §2b now
+  defines such a sum (`stateTotal`) on the trie, using `PTrie.allKeys`' sound/complete pair, and proves
+  it is sensitive to exactly the right thing. But the *conservation* theorem over the runtime is not
+  derived: that needs enumeration stability under `upsert` (`t'.allKeys [] = t.allKeys []`), which is
+  not proved. So the credited-then-rejected class of bug is still not caught by proof.
 * **The reward *amounts* a chunk applies are not recomputed in Lean — and cannot be, from claim
   bytes.** This was the largest gap; its arithmetic half is now closed (§2.2), and what remains is a
   trust-boundary statement. In Rust the reward map comes from
@@ -293,9 +342,15 @@ lake build NearSpecV3.Supply NearSpecV3.SupplyRuntime NearSpecV3.SupplyConfineme
 # axiom audit (no `sorryAx`, no extra axioms)
 cat > /tmp/Ax.lean <<'EOF'
 import NearSpecV3.SupplyConfinement
+import NearSpecV3.StateMeasure
 open NearSpecV3.Supply NearSpecV3.SupplyRuntime NearSpecV3.D2
 #print axioms supplyRun_year_increase_le
 #print axioms validatorStep_total
+-- §2b the state measure
+#print axioms NearSpec.PTrie.allKeys_sound_nil
+#print axioms NearSpec.PTrie.allKeys_complete_nil
+#print axioms acctSumOf_congr
+#print axioms acctTotalOf_ne
 -- §2.2 the clip and the amount bounds
 #print axioms uptimeClipped_num_le_den
 #print axioms sumLedgerRows_le_budget
