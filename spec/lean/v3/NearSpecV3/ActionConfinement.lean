@@ -249,6 +249,15 @@ theorem setAK_keeps (o : Ovl) (acc : Bytes) (pk : PublicKey) (k : AK) (a : Bytes
     (o.setAK acc pk k).lookup (kAccount a) = o.lookup (kAccount a) :=
   lookup_set_other (k := kAK acc pk) (k' := kAccount a) (kAccount_ne_kAK a acc pk) k.encode
 
+/-- If the overlay after a step is `st.o` or `st.o` with one `setAK`, the account lookup is kept.
+Useful for actions whose only overlay write is an access-key update. -/
+theorem keeps_of_setAK_or_self {st st' : ActSt} {a : Bytes} {acc : Bytes} {pk : PublicKey}
+    (h : st'.o = st.o ∨ ∃ k, st'.o = st.o.setAK acc pk k) :
+    st'.o.lookup (kAccount a) = st.o.lookup (kAccount a) := by
+  rcases h with h | ⟨k, h⟩
+  · rw [h]
+  · rw [h]; exact setAK_keeps st.o acc pk k a
+
 /-- Writing a nonce row leaves every account's lookup alone. -/
 theorem setNonce_keeps (o : Ovl) (acc : Bytes) (pk : PublicKey) (i : Nat) (v : Bytes) (a : Bytes) :
     (o.set (kNonce acc pk i) v).lookup (kAccount a) = o.lookup (kAccount a) :=
@@ -265,8 +274,11 @@ structurally different:
   includes `iterKeys`-driven contract-data removals, so it needs the fold lemmas plus an argument that
   every key in that list is under `kDataPrefix recv`.
 * **`actTransfer`** — deeply nested (gas-refund path, allowance path, implicit-creation path), with two
-  reads of the same access key. Its overlay writes are only `setAK`, so the statement is true; the
-  case analysis is the work.
+  reads of the same access key. Its overlay writes are only `setAK`, so the statement is true and the
+  shape of the argument is settled — `keeps_of_setAK_or_self` reduces it to showing the final overlay
+  is `st.o` or `st.o.setAK _` — but the case analysis resisted this session's tactic approach
+  (roughly 40 iterations without closing; it needs a per-branch decomposition rather than whole-function
+  `split`).
 * **`actDelegate`** — writes `kAK`/`kNonce` on `d.sender`. Its two write forms are already covered
   (`setAK_keeps`, `setNonce_keeps`); what remains is the case analysis, which is large enough that
   exhaustive `split` times out, so it needs a decomposed proof rather than brute force.
