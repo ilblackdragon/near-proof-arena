@@ -1,0 +1,20 @@
+[package]
+name = "instance-layout-probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Item 12: replays nearcore 2.13.4's Wasmtime engine construction (wasmtime_runner/mod.rs:455-545) and its compile/deserialize path (:567-597, :740-745) on a prepared module, to measure the pooling-allocator instance-layout boundary per target architecture."
+
+# Separate workspace; no path dependency on nearcore, so it cross-compiles without a C toolchain.
+[workspace]
+
+[dependencies]
+# nearcore 2.13.4: workspace `wasmtime = 45.0.0` (default-features off, cranelift + winch),
+# near-vm-runner adds call-hook, parallel-compilation, pooling-allocator, runtime.
+wasmtime = { version = "=45.0.0", default-features = false, features = [
+    "cranelift", "winch", "call-hook", "parallel-compilation", "pooling-allocator", "runtime",
+] }
+hex = "0.4.2"
+
+[profile.release]
+debug = false
