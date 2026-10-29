@@ -1,0 +1,67 @@
+# Conservation of NEAR by a D3 chunk — statement, and why it differs from `TOP_LEVEL_THEOREM.md`
+
+**Status: statement, tested; not proved.** Lean: `spec/lean/v3/NearSpecV3/D3/Conservation.lean`
+(`ChunkConservation`, `MissingChunkConservation`, `ObsAgrees`, all `Prop`s; the module builds).
+
+## The claim
+
+For every chunk the D3 runtime applies (`applyNewChunkD2` with `D3.d3Hooks Wasm.pv86`, the function
+`checkD3` runs):
+
+```
+nearIn(post) + value(outgoing receipts) + balance_burnt
+  = nearIn(pre) + value(incoming receipts) + epoch reward credited on the shard
+```
+
+where `nearIn` is the NEAR in the shard's trie (accounts' `amount + locked`, gas-key balances, and
+receipts at rest: postponed, yield, delayed, buffered) and a receipt's value is its deposit plus its
+gas at its gas price. Summed over a block's shards, every outgoing receipt is another shard's incoming
+one, so the total changes by `Σ rewards − Σ balance_burnt` — the identity the block header's
+`total_supply` check enforces (`Supply.verifyTotalSupply_accept`). With the reward bounded by
+`Supply.creditedRewards_le_supply_div_40`, that is **"total supply grows only by the epoch reward,
+at most 2.5 %/yr"** at the level of the runtime's own state, not just the header field.
+
+It is exact: an over-refund of 1 yoctoNEAR anywhere breaks it.
+
+## Tested
+
+A harness (a copy of `checkD2CoreObs` that stops after the main transition) evaluated both sides on
+every `checkD3`-accepted case of the `d3c7`, `d3c8`, `d3c10` and `d2corpus.v2` corpora. Results and
+counts are recorded in the commit that adds this file.
+
+## Why the obligations in `TOP_LEVEL_THEOREM.md` / `ConservationStatement.lean` are not used
+
+Read against the code, each is false as written:
+
+1. **`applyActionReceipt … → rsSupply rs' = rsSupply rs`.** The receipt `r` is an argument, not part
+   of `rs`, and a successful transfer credits its deposit to the receiver (`Receipts.lean:141-162`):
+   the measure rises by the deposit. The true form is `+ value r`.
+2. **`processTxD2 … → rsSupply rs' = rsSupply rs + fee`.** The signer *pays* `totalCost =
+   burntAmount + rgp·rem + dep` (`Fees.lean:376-384`); `burntAmount` goes to `txBurnt`, `dep` into the
+   receipt, and `rgp·rem` travels as the receipt's gas, which `rcptAmount` does not count. The measure
+   falls by `rgp·rem`; it does not rise by the fee. With gas counted, it is unchanged.
+3. **`processReceipt`** fails on the same branches, and on receipts stored in the trie (postponed
+   `[6]`, yield `[12]`, delayed `[7]`, buffered `[14]`), which the measure omits.
+4. All three quantify over arbitrary `ActionHooks`; a hook can set `st.account` to anything.
+
+And the measure they build on, `StateMeasure.acctSumOf` / `akSumOf`, cannot measure a chunk's trie:
+
+* `PTrie.allKeys` is `none` as soon as any subtree is a hash stub, and a chunk's trie is always a
+  partial trie, so both sums are `0`.
+* `headVals t k` selects keys by their first **nibble**: `k = 0` matches every key whose first byte is
+  `0x00–0x0F` (accounts, code, access keys, received data, …), and `k = 2` matches `0x20–0x2F`, which
+  contains no access keys (those start with byte `0x02`), so gas-key balances are never counted.
+
+`Conservation.lean` therefore measures the *revealed* leaves (`revealedT`) and classifies keys by
+their first byte.
+
+## Not exact conservation: the 1-yocto subsidy
+
+`one_yocto_on_promise` (`Wasm/Host.lean:480,671`): a promise attaching 1 yoctoNEAR from a zero balance
+is not deducted, and `subsidized` is incremented; the chunk subtracts it from `balance_burnt`
+(`D2/RuntimeD2.lean:225-227`). So NEAR *is* created there — 1 yocto per such promise — and netted
+against the burn; the identity is stated with `balance_burnt`, as the header's is.
+
+## Proof
+
+Being attempted with deepseek-fv (`deepseek-fv/envs/nearproof`, problem `nearproof_d3_conservation`).
