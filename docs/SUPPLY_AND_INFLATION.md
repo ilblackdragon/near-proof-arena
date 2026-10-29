@@ -207,17 +207,34 @@ cannot change the account sum — that is the property a conservation proof need
 the measure is nevertheless sensitive to account values — without it, the constantly-zero function
 would satisfy `acctSumOf_congr` and the measure would be worthless.
 
-**What is still missing** (§6.5): `acctSumOf` sums over `allKeys`, so a *delta* statement needs
+### The write delta, at the level the runtime actually writes
+
+`allKeys` depends only on the trie's *shape*, not its values, so trie-level delta reasoning is awkward —
+and it is not where the risk is. The runtime never writes the trie directly: it accumulates writes in
+the overlay's `prosp` and folds them in at `commit` (`D2/State.lean:121`), or discards them at
+`rollback` (`:124`). A "credited then rejected" bug is a discrepancy between what `prosp` holds and what
+`commit` folds in, so the delta is proved at the overlay level:
+
+| statement | theorem |
+|---|---|
+| one overlay write changes the account sum by exactly the record's total difference | `sumEntries_kvPut` |
+| a write to a non-account key leaves the account sum alone | `sumEntries_kvPut_nonacct` |
+| given a key list, a trie write changes exactly one term, by the value delta | `sumKeys_upsert_delta` |
+
+`sumEntries_kvPut {l} {k} {v} : sumEntries (kvPut k v l) + old = acctEntryTotal k v + sumEntries l` is
+the overlay analogue of `validatorStep_total` — but stated about the overlay's own data rather than free
+`Nat`s, so it *does* distinguish a correct write from an over-crediting one.
+
+**What is still missing** (§6.5): connecting the runtime functions to `prosp`. Proving
 
 ```
-t.upsert key v = some t'  →  t'.allKeys [] = t.allKeys []
+applyActionReceipt ... = .ok (rs', _) →  acctSum(rs'.o) + burnt' = acctSum(rs.o) + burnt
 ```
 
-— that a write changes no key's *presence*, only one key's value. `find_upsert_self` and
-`find_upsert_other` (`NearSpec/TrieUpsertProofs.lean:381,467`) give the value half but not the presence
-half, and `TrieProps` does not have it. Until that lemma exists, the runtime-conservation theorem
-("`applyActionReceipt` conserves `stateTotal`") is **not** derived, and the credited-then-rejected bug
-remains undetectable by proof.
+needs a demonstration that `applyActionReceipt`'s committed writes are exactly the `setAcct`/`setAK`
+calls the per-site table lists, and that on the failure path the receipts `refunds` emits return exactly
+what those writes took. That is the same symbolic-execution obligation the docs flag elsewhere, and it
+is not done. **Until it is, the credited-then-rejected bug is not caught by proof.**
 
 ### Where the writes can land
 
@@ -283,11 +300,12 @@ These limits matter if the result is to be quoted.
   receives is the value `calculate_reward` computed; that is the next bullet's gap, and §5.5 does not
   narrow it. It also says nothing about the *other* sites in the table — their confinement is not
   proved in this module.
-* **The per-site lemmas speak about the values written**, not about a sum over the trie. §2b now
-  defines such a sum (`stateTotal`) on the trie, using `PTrie.allKeys`' sound/complete pair, and proves
-  it is sensitive to exactly the right thing. But the *conservation* theorem over the runtime is not
-  derived: that needs enumeration stability under `upsert` (`t'.allKeys [] = t.allKeys []`), which is
-  not proved. So the credited-then-rejected class of bug is still not caught by proof.
+* **The per-site lemmas speak about the values written**, not about a sum over the state. §2b now
+  defines such a sum and proves the overlay-level write delta (`sumEntries_kvPut`). But the
+  *conservation* theorem over the runtime — that `applyActionReceipt` preserves the measure — is not
+  derived: that needs the runtime functions' writes shown to be exactly the listed sites, which is
+  symbolic execution, not arithmetic. So the credited-then-rejected class of bug is still not caught by
+  proof.
 * **The reward *amounts* a chunk applies are not recomputed in Lean — and cannot be, from claim
   bytes.** This was the largest gap; its arithmetic half is now closed (§2.2), and what remains is a
   trust-boundary statement. In Rust the reward map comes from
@@ -351,6 +369,9 @@ open NearSpecV3.Supply NearSpecV3.SupplyRuntime NearSpecV3.D2
 #print axioms NearSpec.PTrie.allKeys_complete_nil
 #print axioms acctSumOf_congr
 #print axioms acctTotalOf_ne
+#print axioms sumEntries_kvPut
+#print axioms sumEntries_kvPut_nonacct
+#print axioms sumKeys_upsert_delta
 -- §2.2 the clip and the amount bounds
 #print axioms uptimeClipped_num_le_den
 #print axioms sumLedgerRows_le_budget
