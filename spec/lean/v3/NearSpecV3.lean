@@ -19,6 +19,9 @@ import NearSpecV3.ChunkValidationD1Out
 import NearSpecV3.D0SubD1
 -- W11 proof debt: split correctness, column partition and authentication (2026-10-29).
 import NearSpecV3.ReshardingProofs
+-- W04 float fuel/range, and the guarded axiom audit of both.
+import NearSpecV3.Wasm.FloatRange
+import NearSpecV3.ProofDebtAudit
 import NearSpecV3.ChallengeV3
 import NearSpecV3.ClaimV3Props
 import NearSpecV3.SHA512
