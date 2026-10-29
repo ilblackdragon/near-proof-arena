@@ -359,7 +359,8 @@ without the new fields behave exactly as in v1.6.
   only as strong as the weakest of them.
 * **How it was checked.** The rungs were difftested against nearcore and against each other: the
   D0 ⊂ D1 ⊂ D2 ⊂ D3 subset checks found no rung accepting what nearcore rejects. Those checks are
-  tests, not proofs.
+  tests, not proofs, except D0 ⊂ D1, which is now proved (`NearSpecV3.relD0_relD1 : RelD0 cb w →
+  RelD1 cb w`, `spec/lean/v3/NearSpecV3/D0SubD1.lean`).
 * **Follow-up (lane item, successor version).** Restructure the lower domains as literal
   restrictions of the top relation: `Rel_Dk := RelD3 ∧ InDk` by definition, with `InDk` decidable.
   `rel_mono` then becomes `RelDk → RelD3` by projection, and the statement of a successor version

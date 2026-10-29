@@ -15,6 +15,8 @@ import NearSpecV3.ChunkValidationV0
 -- Additive only: `checkD1` is defined as its projection, so importing this module changes no signed
 -- statement and no verdict. Imported here so the axioms and the projection are in the default build.
 import NearSpecV3.ChunkValidationD1Out
+-- D0 ⊂ D1 (`relD0_relD1 : RelD0 cb w → RelD1 cb w`), proved; previously only tested on fixtures.
+import NearSpecV3.D0SubD1
 import NearSpecV3.ChallengeV3
 import NearSpecV3.ClaimV3Props
 import NearSpecV3.SHA512

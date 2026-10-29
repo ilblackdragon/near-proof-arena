@@ -300,8 +300,9 @@ both SHA instances keep their D0a heights.
 `ChallengeChunkV3.lean` is part of the draft's pinned tree, so this is a draft revision, done
 in a versioned successor.
 
-D0a ⊂ D1a (needed so a D1a prover also covers the `d0-*` classes) is **tested, not proved**, as
-D0 ⊂ D1 is today. Optionally prove `RelD0a B cb w ∧ txs = [] → RelD1a B cb w` for the trivial
+D0a ⊂ D1a (needed so a D1a prover also covers the `d0-*` classes) is **tested, not proved**.
+D0 ⊂ D1 is proved: `NearSpecV3.relD0_relD1 : RelD0 cb w → RelD1 cb w`
+(`spec/lean/v3/NearSpecV3/D0SubD1.lean`; the D1 run on an empty transaction list matches D0). Optionally prove `RelD0a B cb w ∧ txs = [] → RelD1a B cb w` for the trivial
 transaction list; this is a contained proof about `processTxs ctx st [] = ok st`.
 
 ---
