@@ -1,13 +1,19 @@
 # Plan: end-to-end account-balance confinement for the D2 runtime
 
-Status: **Phase 2 partially done (6/10 actions); Phases 1, 3, 4 not done.** Written before
+Status: **Phase 2: 7/10 actions; Phases 1, 3, 4 not done.** Written before
 implementation so the shape and its limits are reviewable up front, and updated as reality diverged.
 
 ## Outcome so far (honest)
 
 Proved in `NearSpecV3/ActionConfinement.lean`: `actCreateAccount`, `actDeploy`, `actToGasKey`,
-`actFromGasKey`, `actStake`, `actDeleteKey` never change any account key's lookup, plus the reusable
-`applyAll_keeps` / `foldRemove_keeps` / `rangeRemove_keeps` / `setAK_keeps` / `setNonce_keeps`.
+`actFromGasKey`, `actStake`, `actDeleteKey`, **`actTransfer`** never change any account key's lookup,
+plus the reusable `applyAll_keeps` / `foldRemove_keeps` / `rangeRemove_keeps` / `setAK_keeps` /
+`setNonce_keeps` / `keeps_of_setAK_or_self` / `isBytePrefix_head_ne`.
+
+`actTransfer` was the hard one and it did need a restructure, but not the one I predicted: the fix was
+to stop letting a single `first` pick among closing tactics (which commits before the hypothesis is in
+usable shape) and instead run separate `try`-guarded rewrite passes — `rw [← (Prod.mk.inj h).1]`, then
+`rw [← h.1]` — before closing.
 
 **A correction to the plan's premise.** I wrote that "no action writes an account key". That is
 **false**: `actDeleteAccount` does `o.remove (kAccount recv)` (`Actions.lean:241`). The true statement
