@@ -236,6 +236,24 @@ calls the per-site table lists, and that on the failure path the receipts `refun
 what those writes took. That is the same symbolic-execution obligation the docs flag elsewhere, and it
 is not done. **Until it is, the credited-then-rejected bug is not caught by proof.**
 
+### 2c. The action layer (partial)
+
+`NearSpecV3/ActionConfinement.lean` (§7) proves, for six of the ten action constructors, that a
+successful action leaves every *account key*'s lookup unchanged — actions write only access keys
+(`setAK`), nonces (`kNonce`), contract code (`kCode`) and contract data, while credited amounts live in
+the local `st.account` field that `applyActionReceipt` writes back at step 4 or discards at
+`rollback`.
+
+Proved: `actCreateAccount_keeps`, `actDeploy_keeps`, `actToGasKey_keeps`, `actFromGasKey_keeps`,
+`actStake_keeps`, `actDeleteKey_keeps`, plus the reusable `applyAll_keeps`, `foldRemove_keeps`,
+`rangeRemove_keeps`, `setAK_keeps`, `setNonce_keeps`.
+
+**Not proved, and one premise of mine was wrong:** I had claimed *no* action writes an account key.
+`actDeleteAccount` does — `o.remove (kAccount recv)` (`Actions.lean:241`). The correct statement is
+"every action except `actDeleteAccount` leaves all account keys alone; `actDeleteAccount` touches only
+the receiver's". `actTransfer`, `actDelegate` and `actDeleteAccount` are not finished: their case
+analysis is large enough that exhaustive `split` times out, so they need decomposed proofs.
+
 ### Where the writes can land
 
 The table above says what each write *does*; it does not say *which accounts* a site can reach. For the
@@ -372,6 +390,9 @@ open NearSpecV3.Supply NearSpecV3.SupplyRuntime NearSpecV3.D2
 #print axioms sumEntries_kvPut
 #print axioms sumEntries_kvPut_nonacct
 #print axioms sumKeys_upsert_delta
+#print axioms actStake_keeps
+#print axioms actDeleteKey_keeps
+#print axioms applyAll_keeps
 -- §2.2 the clip and the amount bounds
 #print axioms uptimeClipped_num_le_den
 #print axioms sumLedgerRows_le_budget

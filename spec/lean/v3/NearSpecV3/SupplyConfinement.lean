@@ -181,6 +181,16 @@ theorem kAccount_ne_kPendingCount (a b r : Bytes) : kAccount a ≠ kPendingCount
   simp [kAccount, kPendingCount]
 theorem kAccount_ne_kDelayed (a : Bytes) (i : Nat) : kAccount a ≠ kDelayed i := by
   simp [kAccount, kDelayed]
+/-- `kNonce` extends `kAK b pk`, whose first byte is `2`, while `kAccount a` starts with `0`. -/
+theorem kAccount_ne_kNonce (a b : Bytes) (pk : PublicKey) (i : Nat) :
+    kAccount a ≠ kNonce b pk i := by
+  intro h
+  have hhead : (kNonce b pk i).head? = some 2 := by
+    unfold kNonce kAK kAKPrefix
+    simp
+  rw [← h] at hhead
+  simp [kAccount] at hhead
+
 theorem kAccount_ne_kDelayedIdx (a : Bytes) : kAccount a ≠ kDelayedIdx := by
   simp [kAccount, kDelayedIdx]
 theorem kAccount_ne_kYieldIdx (a : Bytes) : kAccount a ≠ kYieldIdx := by simp [kAccount, kYieldIdx]
