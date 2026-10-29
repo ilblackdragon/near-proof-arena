@@ -26,6 +26,8 @@ Confinement only: these theorems say *which key* can change, never *by how much*
 conservation statement is not here; see `docs/PLAN_BALANCE_CONFINEMENT.md` phase 4.
 -/
 
+set_option maxHeartbeats 1000000
+
 namespace NearSpecV3.D2
 
 open NearSpec NearSpecV3
@@ -244,6 +246,24 @@ theorem actDeleteKey_keeps {c : ActCtx} {st st' : ActSt} {res res' : AR}
                 · exact rangeRemove_keeps (List.range g.2) (fun i => kNonce c.r.recv pk i) st.o a
                     (fun i hi => Ne.symm (kAccount_ne_kNonce a c.r.recv pk i))
 
+/-- If `pre` starts with byte `b ≠ 0` and `k` has prefix `pre`, then `k` does not start with the
+account nibble `0`. This is what shows `iterKeys`-driven removal lists never contain an account key. -/
+theorem isBytePrefix_head_ne {pre k : Bytes} {b : UInt8}
+    (hpre : pre.head? = some b) (hk : isBytePrefix pre k = true) (hne : b ≠ 0) :
+    k.head? ≠ some 0 := by
+  intro hk0
+  cases pre with
+  | nil => simp at hpre
+  | cons x xs =>
+    cases k with
+    | nil => simp at hk0
+    | cons y ys =>
+      simp only [isBytePrefix, Bool.and_eq_true] at hk
+      have hxy : x = y := by simpa using hk.1
+      have hx : x = b := by simpa using hpre
+      have hy : y = 0 := by simpa using hk0
+      exact hne (hx ▸ (hxy ▸ hy))
+
 /-- Writing an access key leaves every account's lookup alone. -/
 theorem setAK_keeps (o : Ovl) (acc : Bytes) (pk : PublicKey) (k : AK) (a : Bytes) :
     (o.setAK acc pk k).lookup (kAccount a) = o.lookup (kAccount a) :=
@@ -262,6 +282,28 @@ theorem keeps_of_setAK_or_self {st st' : ActSt} {a : Bytes} {acc : Bytes} {pk : 
 theorem setNonce_keeps (o : Ovl) (acc : Bytes) (pk : PublicKey) (i : Nat) (v : Bytes) (a : Bytes) :
     (o.set (kNonce acc pk i) v).lookup (kAccount a) = o.lookup (kAccount a) :=
   lookup_set_other (k := kNonce acc pk i) (k' := kAccount a) (kAccount_ne_kNonce a acc pk i) v
+
+/-- **`actTransfer` writes only `kAK`.** The credited amount lives in the local `st.account`, which
+`applyActionReceipt` writes back at step 4 or discards at `rollback`; the overlay itself only ever
+receives a `setAK` (the gas-refund and allowance paths). -/
+theorem actTransfer_keeps {c : ActCtx} {st st' : ActSt} {res res' : AR} {dep : Nat} {a : Bytes}
+    (h : actTransfer c st res dep = .ok (st', res')) :
+    st'.o.lookup (kAccount a) = st.o.lookup (kAccount a) := by
+  unfold actTransfer at h
+  simp only [bind, Except.bind, pure, Except.pure] at h
+  repeat' first
+    | split at h
+    | (simp only [Except.ok.injEq, Prod.mk.injEq] at h; try subst_vars)
+    | (simp at h)
+  all_goals try (rw [← (Prod.mk.inj h).1])
+  all_goals try (rw [← h.1])
+  all_goals
+    first
+    | rfl
+    | exact lookup_set_other (k := kAK c.r.recv c.a.signerPk) (k' := kAccount a)
+        (kAccount_ne_kAK a c.r.recv c.a.signerPk) _
+    | exact lookup_set_other (k := kAK c.r.recv ⟨0, hexDecode c.r.recv⟩) (k' := kAccount a)
+        (kAccount_ne_kAK a c.r.recv _) _
 
 /-! ## §7.3 What remains for the action layer
 
