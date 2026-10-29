@@ -17,6 +17,8 @@ import NearSpecV3.ChunkValidationV0
 import NearSpecV3.ChunkValidationD1Out
 -- D0 ⊂ D1 (`relD0_relD1 : RelD0 cb w → RelD1 cb w`), proved; previously only tested on fixtures.
 import NearSpecV3.D0SubD1
+-- W11 proof debt: split correctness, column partition and authentication (2026-10-29).
+import NearSpecV3.ReshardingProofs
 import NearSpecV3.ChallengeV3
 import NearSpecV3.ClaimV3Props
 import NearSpecV3.SHA512
