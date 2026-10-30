@@ -29,14 +29,20 @@ a reason other than floats. The latter can still move only if lifting floats cha
 `D3.checkD3Core` plus a recorder-engine decision of the core's resharding and over-bound errors
 (`D3/Signed.lean`); `checkD3F` has no hand-over. The theorems below are therefore stated on the core,
 which is exactly the old `checkD3` (and `Tier.checker .signed` is no longer `checkD3F`'s refinement
-base: it decides claims `checkD3F` excludes).
+base: it decides claims `checkD3F` excludes). Since 2026-10-30 (W12 O4) `Tier.checker .floats` is
+`checkD3F` behind the narrower legacy tiers' storage-proof precondition (`withStorageExclusion`);
+the theorems below are about the adapter `checkD3F` itself, from the hook refinement directly.
 -/
 
 namespace NearSpecV3.Successor
 open NearSpec NearSpecV3
 
-theorem checkD3F_refines_checkD3 (c w : Bytes) : Refines (D3.checkD3Core c w) (checkD3F c w) :=
-  relSuccessor_floats_mono c w
+theorem checkD3F_refines_checkD3 (c w : Bytes) : Refines (D3.checkD3Core c w) (checkD3F c w) := by
+  have hh : HooksRefine (D3.d3Hooks signedCfg.wasm)
+      (D3.d3Hooks ({ signedCfg with floats := true } : ProtocolCfg).wasm) := by
+    rw [ProtocolCfg.wasm_floats signedCfg rfl]
+    exact d3Hooks_floats _
+  exact checkD2Core_hooks_mono hh _ _ _ _
 
 theorem relD3_relD3F (c w : Bytes) (h : D3.checkD3Core c w = .ok ()) : RelD3F c w := by
   rcases checkD3F_refines_checkD3 c w with he | ⟨e, he, _⟩

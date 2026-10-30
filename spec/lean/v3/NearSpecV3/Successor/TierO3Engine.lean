@@ -8,12 +8,12 @@ set_option maxHeartbeats 4000000
 # W12 / O3 step 5c — the two-run relation of the recorder engine
 
 The run with `globalActions` off (lower) and the run with it on (upper) keep recorder states that
-agree except in the pipeline (`TierO3Pipe.lean`): **`RR rL rU`**: `rL` is `rU` with its own pipe, and
+agree except in the pipeline (`TierO3Pipe.lean`): **`RecRel rL rU`**: `rL` is `rU` with its own pipe, and
 the pipes are `PipeRel`-related (equal, or the lower one uncertain).
 
-**`MRQ E Q x y`**: from `RR`-related states and an environment satisfying `E`, the lower program
+**`MRQ E Q x y`**: from `RecRel`-related states and an environment satisfying `E`, the lower program
 stops with an exclusion, or both stop with the same error, or both return the same value, satisfying
-`Q`, in `RR`-related states. `Q` carries facts about the lower run's values (the non-distribution
+`Q`, in `RecRel`-related states. `Q` carries facts about the lower run's values (the non-distribution
 invariant of step 5). This file: the relation, its monad rules, and the state primitives
 (`get`, `modify`, `modifyPipe`, `logged`, `liftE`).
 -/
@@ -22,18 +22,18 @@ namespace NearSpecV3.Successor
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Logged StorageExecution
 
 /-- The recorder states of the two runs: equal except the pipe, whose two values are `PipeRel`. -/
-def RR (rL rU : Recording) : Prop := rL = { rU with pipe := rL.pipe } ∧ PipeRel rL.pipe rU.pipe
+def RecRel (rL rU : Recording) : Prop := rL = { rU with pipe := rL.pipe } ∧ PipeRel rL.pipe rU.pipe
 
-theorem RR.refl (r : Recording) : RR r r := ⟨rfl, PipeRel.refl _⟩
+theorem RecRel.refl (r : Recording) : RecRel r r := ⟨rfl, PipeRel.refl _⟩
 
 /-- The result relation. -/
 def ResQ {α : Type} (Q : α → Prop) (x y : Except String (α × Recording)) : Prop :=
   (∃ e, x = .error e ∧ isExclusion e = true) ∨ (∃ e, x = .error e ∧ y = .error e) ∨
-    (∃ a sL sU, x = .ok (a, sL) ∧ y = .ok (a, sU) ∧ RR sL sU ∧ Q a)
+    (∃ a sL sU, x = .ok (a, sL) ∧ y = .ok (a, sU) ∧ RecRel sL sU ∧ Q a)
 
 /-- The two-run relation of engine programs. -/
 def MRQ {α : Type} (E : Env → Prop) (Q : α → Prop) (x y : M α) : Prop :=
-  ∀ rL rU env, RR rL rU → E env → ResQ Q (x rL env) (y rU env)
+  ∀ rL rU env, RecRel rL rU → E env → ResQ Q (x rL env) (y rU env)
 
 /-- No value fact. -/
 abbrev MR {α : Type} (E : Env → Prop) (x y : M α) : Prop := MRQ E (fun _ => True) x y
@@ -105,20 +105,20 @@ theorem mapM {α β : Type} {Q : β → Prop} (l : List α) {f g : α → M β} 
 
 /-- `get`: the continuations see the two runs' states. -/
 theorem get_bind {α : Type} {Q : α → Prop} {f g : Recording → M α}
-    (h : ∀ rL rU, RR rL rU → MRQ E Q (f rL) (g rU)) : MRQ E Q (get >>= f) (get >>= g) := by
+    (h : ∀ rL rU, RecRel rL rU → MRQ E Q (f rL) (g rU)) : MRQ E Q (get >>= f) (get >>= g) := by
   intro rL rU env hr he
   exact h rL rU hr rL rU env hr he
 
-/-- `modify` by state maps that keep `RR`. -/
-theorem modify {f g : Recording → Recording} (h : ∀ rL rU, RR rL rU → RR (f rL) (g rU)) :
+/-- `modify` by state maps that keep `RecRel`. -/
+theorem modify {f g : Recording → Recording} (h : ∀ rL rU, RecRel rL rU → RecRel (f rL) (g rU)) :
     MRQ E (fun _ => True) (StateT.modifyGet fun s => ((), f s) : M Unit)
       (StateT.modifyGet fun s => ((), g s) : M Unit) := by
   intro rL rU env hr _
   exact Or.inr (Or.inr ⟨(), f rL, g rU, rfl, rfl, h rL rU hr, trivial⟩)
 
-/-- A record update off the pipe keeps `RR`. -/
+/-- A record update off the pipe keeps `RecRel`. -/
 theorem rr_update {f : Recording → Recording} (hf : ∀ r q, f { r with pipe := q } = { f r with pipe := q })
-    (hp : ∀ r, (f r).pipe = r.pipe) : ∀ rL rU, RR rL rU → RR (f rL) (f rU) := by
+    (hp : ∀ r, (f r).pipe = r.pipe) : ∀ rL rU, RecRel rL rU → RecRel (f rL) (f rU) := by
   intro rL rU ⟨h1, h2⟩
   generalize rL.pipe = q at h1 h2
   subst h1
@@ -141,7 +141,7 @@ def recAfter (env : Env) (keys : List Bytes) (rec : Wasm.TTN.Recorder) : Wasm.TT
     | some bytes => acc.record (D3.toBA h) bytes.length
     | none => acc) rec
 
-theorem logged_run {α : Type} (x : LM α) (r : Recording) (env : Env) :
+theorem logged_run_rr {α : Type} (x : LM α) (r : Recording) (env : Env) :
     StorageExecution.logged x r env =
       (SM.runR (hGet env.store) (x env.preRoot)).1.map
         (fun v => (v, { r with recorder := recAfter env (SM.runR (hGet env.store) (x env.preRoot)).2 r.recorder })) := by
@@ -158,7 +158,7 @@ theorem logged_run {α : Type} (x : LM α) (r : Recording) (env : Env) :
 theorem MRQ.logged {E : Env → Prop} {α : Type} {x y : LM α} (h : LR x y) :
     MR E (StorageExecution.logged x) (StorageExecution.logged y) := by
   intro rL rU env ⟨h1, h2⟩ _
-  rw [logged_run, logged_run]
+  rw [logged_run_rr, logged_run_rr]
   rcases (h env.preRoot).runR (hGet env.store) with ⟨e, ks, he, hx⟩ | he
   · left; refine ⟨e, ?_, hx⟩; rw [he]; rfl
   · rw [he]

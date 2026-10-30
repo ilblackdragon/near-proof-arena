@@ -177,8 +177,8 @@ theorem checkSuccessor_gas_mono (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe
         · exact checkD2CoreGWith_gas_mono _ _ _ _ _ _ _ hg
         · exact checkD2CoreWith_gas_mono _ _ _ _ _ _ _ hg
       · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
-        · exact checkD2CoreG_gas_mono _ _ _ _ _ _ hg
-        · exact checkD2Core_gas_mono _ _ _ _ _ _ hg
+        · exact Refines.storage _ (checkD2CoreG_gas_mono _ _ _ _ _ _ hg)
+        · exact Refines.storage _ (checkD2Core_gas_mono _ _ _ _ _ _ hg)
   · exact Refines.refl _
 
 /-- Switching on the genesis-aware main transition never changes a decided verdict, at any
@@ -199,7 +199,7 @@ theorem checkSuccessor_genesis_mono (cfg : ProtocolCfg) (hr : cfg.resharding = f
     split
     · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
       · exact checkD2CoreWith_refines_GWith _ rfl _ _ _ _ _
-      · exact checkD2Core_refines_G _ _ _ _ _
+      · exact Refines.storage _ (checkD2Core_refines_G _ _ _ _ _)
     · exact Refines.refl _
   · exact Refines.refl _
 
@@ -210,9 +210,10 @@ theorem gAlpha_le_maxGasBurnt : D3.gAlpha ≤ maxGasBurnt := by decide
 /-- `checkD3Core ⊑ .protoGas`: where the signed statement's legacy core decides, the protocol-gas tier
 agrees. Since the UQ-010 resharding hand-over (2026-10-29) the signed tier itself is *wider* than
 `.protoGas` on resharding claims (it decides them; `.protoGas` keeps the legacy exclusions), so the
-pair is stated on the core. -/
+pair is stated on the core (at `signedCfg`: `checkD3Core` behind the narrower legacy tiers'
+storage-proof precondition, `checkSuccessor_signedCore`). -/
 theorem relSuccessor_protoGas_mono (c w : Bytes) :
-    Refines (D3.checkD3Core c w) (Tier.checker .protoGas c w) :=
+    Refines (checkSuccessor signedCfg c w) (Tier.checker .protoGas c w) :=
   checkSuccessor_gas_mono signedCfg (some maxGasBurnt) gAlpha_le_maxGasBurnt rfl c w
 
 /-- `.floats ⊑ .floatsProtoGas`. -/
@@ -223,7 +224,7 @@ theorem relSuccessor_floatsProtoGas_mono (c w : Bytes) :
 /-- `checkD3Core ⊑ .genesis` (W10): the genesis tier agrees with the signed statement's legacy core
 wherever that core decides (stated on the core for the reason given at `relSuccessor_protoGas_mono`). -/
 theorem relSuccessor_genesis_mono (c w : Bytes) :
-    Refines (D3.checkD3Core c w) (Tier.checker .genesis c w) :=
+    Refines (checkSuccessor signedCfg c w) (Tier.checker .genesis c w) :=
   checkSuccessor_genesis_mono signedCfg rfl rfl c w
 
 /-- `.floatsProtoGas ⊑ .genesisFloatsProtoGas` (W10). -/
@@ -234,7 +235,7 @@ theorem relSuccessor_genesisFloatsProtoGas_mono (c w : Bytes) :
 /-- `.protoGas ⊑ .genesisFloatsProtoGas` needs floats; `.signed ⊑ .protoGas ⊑ ·` composes with
 the genesis lift at the protocol-gas configuration. -/
 theorem relSuccessor_signed_genesisProtoGas (c w : Bytes) :
-    Refines (D3.checkD3Core c w)
+    Refines (checkSuccessor signedCfg c w)
       (checkSuccessor { signedCfg with gasCap := some maxGasBurnt, genesisMainTransition := true } c w) :=
   Refines.trans (relSuccessor_protoGas_mono c w) (checkSuccessor_genesis_mono protocolGasCfg rfl rfl c w)
 
@@ -470,7 +471,11 @@ rest are open, each checked empirically (`docs/evidence/lean-chunk-completion/ti
 * **O4 storage resolution** — the step from the legacy main transition (`applyNewChunkD2`, merged
   value size bound) to `recorderDriver` (`StorageExecution.run`, W08 pipeline code rule). This is a
   change of engine, not a guard: the refinement needs an agreement theorem between the two runtimes
-  on the legacy domain. Until 2026-10-27 it was false without a layout restriction: on the honest,
+  on the legacy domain. Since 2026-10-30 (`TierO4.lean`): proved at shell and tier level given the
+  engine agreement (`relSuccessor_runtimeLimits_storageResolution_of`, premise `EngineAgree`, witness
+  condition `O4Witness`), after fixing the narrower legacy tiers' rejects above the storage bound
+  (`Config.withStorageExclusion`; 26 nearcore-valid `storage-limit-fixtures` chunks). The engine
+  agreement is open. Until 2026-10-27 it was false without a layout restriction: on the honest,
   nearcore-valid fixture `resharding-fixtures/cases/seed11-02-h10077-s2` (a V3 layout after a split,
   one layout across the claim's epochs, non-empty outgoing buffers) every legacy-engine tier,
   `.signed` included, rejected with `InvalidBandwidthRequests`. The legacy `bandwidthRequests`
