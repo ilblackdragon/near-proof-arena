@@ -480,12 +480,14 @@ def _last_effective(c):
 
 
 def _other_kind(err):
-    """A different failure kind: swaps the first kind name for another one."""
-    if 'AccountDoesNotExist' in err:
-        return err.replace('AccountDoesNotExist', 'AccountAlreadyExists', 1)
-    if 'InvalidTxError' in err:
-        return 'InvalidTxError(Expired)'
-    return 'ActionError(ActionError { index: Some(0), kind: AccountDoesNotExist { account_id: AccountId("x") } })'
+    """A failure whose canonical kind differs from `err`'s."""
+    base = failure_kinds.canonical_expected(err)
+    for cand in ('InvalidTxError(Expired)', 'InvalidTxError(InvalidNonce { tx_nonce: 1, ak_nonce: 1 })',
+                 'ActionError(ActionError { index: Some(0), kind: AccountDoesNotExist { account_id: AccountId("x") } })',
+                 'ActionError(ActionError { index: Some(0), kind: AccountAlreadyExists { account_id: AccountId("x") } })'):
+        if failure_kinds.canonical_expected(cand) != base:
+            return cand
+    raise AssertionError(base)
 
 
 def _move_cause(c):
