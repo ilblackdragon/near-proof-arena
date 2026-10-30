@@ -440,11 +440,16 @@ prefix), the resharding driver on the whole-state shells, and the named pairs
 `.floatsProtoGas ⊑ .genesisFloatsProtoGas`, and `.curveHosts ⊑ .resharding` on segments containing
 a genesis block.
 
-Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs/`), none proved:
+Status 2026-10-30 (`TierFloats.lean`, `TierHooks.lean`, `TierRefine.lean`; evidence
+`docs/evidence/lean-chunk-completion/tier-refinement-w12/`): O1 is proved on the legacy engine,
+which covers every named pair that differs in `floats`. O5 is discharged for the named tiers. The
+rest are open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs/`):
 
-* **O1 floats** — `Lift cfg { cfg with floats := true }`. `NearCfg.floats` occurs only in the three
-  `Prepare` guards `!cfg.floats && …`; the missing piece is the induction over `prepare`, the
-  interpreter and the chunk runtime showing that no other site reads it.
+* **O1 floats** — proved on the legacy engine: `Lift.floats_legacy` (`TierRefine.lean`), from
+  `Wasm.prepare_floats`, `Wasm.runCallWithLimits_floats`, `d3Hooks_floats` and
+  `checkD2Core_hooks_mono`/`checkD2CoreG_hooks_mono`. Named pairs: `relSuccessor_floats_mono`,
+  `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas`. Still
+  open: `Lift cfg { cfg with floats := true }` on whole-state configurations (no named pair needs it).
 * **O2 curve hosts** — `Lift cfg { cfg with curveHosts := true }`. `successorDispatch_extends`
   (`Wasm/Exec.lean`) is the host-table step; missing is its propagation through `runCall`, `St`
   and the trie-backed runtime.
@@ -466,16 +471,18 @@ Open, each checked empirically (`docs/evidence/lean-chunk-completion/tier-proofs
   tier accepts the fixture. The legacy buffer forwarding still reports a non-empty buffer outside the
   layout as `c.same_layout` (an exclusion, not a reject) where `forwardFromBufferV3L` forwards it.
 * **O5 loading limits** — not a lift (a semantic correction). Since 2026-10-27 `Wasm.pv86`, and so
-  `signedCfg` and every tier, sets the flag, so no named tier pair differs in it. The restricted statement is
-  `runCallWithLimits_eq_of_fits`; the chunk-level form (every executed module fits ⇒ the flag is
-  inert) needs the same propagation as O2.
+  `signedCfg` and every tier, sets the flag, so no named tier pair differs in it
+  (`Tier.cfg_loadingLimits`, `relSuccessor_runtimeLimits_mono`, `TierRefine.lean`). The restricted
+  statement is `runCallWithLimits_eq_of_fits`.
 * **O6 resharding, non-genesis** — `VRefines (checkD2CoreWith recorderDriver …)
   (checkReshardCore reshardingDriver …)` on segments without a genesis block: `ReshardCore` walks the
   segment per block layout and must reduce to `checkD2CoreWithObs` when every epoch has one layout
   and no split gate is set. Only the verdict-level form can hold (see `VRefines`).
 * **O7 complete-code witness** — not a lift, and not in the join: on warm-cache chunks it rejects
   (`w.code_complete`) where every other whole-state tier excludes or accepts; the counterexample
-  family is in the evidence.
+  family is in the evidence. `complete_accepts_untimely` (`TierRefine.lean`): at the resolve step
+  the complete policy also accepts code that a pipelined preparation could not see, where
+  `.coldPartial` reports a thread race out of domain.
 -/
 
 #print axioms checkSuccessor_segment_mono
