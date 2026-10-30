@@ -198,6 +198,16 @@ elab "simp_last_eq" : tactic => withMainContext do
   evalTactic (← `(tactic| simp only [$stx:term]))
 
 open Lean Elab Tactic Meta in
+/-- Succeed when the lower program mentions `n`. -/
+elab "lower_has " n:ident : tactic => withMainContext do
+  let t ← instantiateMVars (← getMainTarget)
+  let args := t.getAppArgs
+  if args.size < 2 then throwError "lower_has: not a relation goal"
+  let x := args[args.size - 2]!
+  let c ← realizeGlobalConstNoOverloadWithInfo n
+  unless (x.find? (·.isConstOf c)).isSome do throwError "lower_has: absent"
+
+open Lean Elab Tactic Meta in
 /-- Succeed when the lower program is a bind whose first action mentions `n`. -/
 elab "lower_bind_has " n:ident : tactic => withMainContext do
   let t ← instantiateMVars (← getMainTarget)
@@ -232,8 +242,8 @@ macro "mrx" : tactic => `(tactic|
 
 macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact MRX.liftE_same _)
 macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact MRX.logged (by mrx_hX) (LR.refl _))
-macro_rules | `(tactic| mrx_close) => `(tactic| exact MRX.modify_off _ (fun _ _ => rfl) (fun _ => rfl))
-macro_rules | `(tactic| mrx_close) => `(tactic| exact MRX.throw_same _)
+macro_rules | `(tactic| mrx_close) => `(tactic| (first | lower_head modify | lower_head setVmErr | lower_head startReceipt | lower_head accountRemovals); exact MRX.modify_off _ (fun _ _ => rfl) (fun _ => rfl))
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact MRX.throw_same _)
 
 /-! ## The recorded call -/
 
@@ -301,8 +311,8 @@ theorem liftE_finishActs {E : Env → Prop} (m : D3.MR) :
   MRX.liftE_ref (fun a h => ⟨finishActsGlobal_of_finishActs m a h, trivial⟩)
     fun e h => Or.inl (finishActs_err m e h)
 
-macro_rules | `(tactic| mrx_close) => `(tactic| exact liftE_timely _ _ _ _ _ _ (PipeRel.det ‹_› _ _ _))
-macro_rules | `(tactic| mrx_close) => `(tactic| exact liftE_finishActs _)
+macro_rules | `(tactic| mrx_close) => `(tactic| lower_has resOf; exact liftE_timely _ _ _ _ _ _ (PipeRel.det ‹_› _ _ _))
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact liftE_finishActs _)
 
 theorem resOf_ga (p : CodeWitnessPolicy) (c : ActCtx) : resOf ⟨true, p⟩ c = resOf ⟨false, p⟩ c := rfl
 
@@ -320,7 +330,7 @@ theorem functionCallRecorded_global (w : NearCfg) (hg : w.globalActions = false)
   all_goals (dsimp only; exact ND.append har (ND.append ‹_› (ND.map (fun _ => rfl) _)))
 
 macro_rules | `(tactic| mrx_close) => `(tactic|
-  exact MRX.tryCatch_unmodeled (functionCallRecorded_global _ ‹_› _ _ _ _ _ ND.nil))
+  with_reducible exact MRX.tryCatch_unmodeled (functionCallRecorded_global _ ‹_› _ _ _ _ _ ND.nil))
 
 /-- The lower run's global actions stop with `w.shape`. -/
 theorem applyGlobal_false {E : Env → Prop} {Q : ActSt × AR → Prop} (c : ActCtx) (st : ActSt) (a : Act) (b : Base)
@@ -335,8 +345,8 @@ theorem ordinaryAction_rr {E : Env → Prop} (c : ActCtx) (st : ActSt) (a : Act)
   refine MRX.bind (MRX.modify_off _ (fun _ _ => rfl) (fun _ => rfl)) fun _ _ => ?_
   exact MRX.pure _ hout
 
-macro_rules | `(tactic| mrx_close) => `(tactic| exact ordinaryAction_rr _ _ _)
-macro_rules | `(tactic| mrx_close) => `(tactic| exact applyGlobal_false _ _ _ _ _)
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact ordinaryAction_rr _ _ _)
+macro_rules | `(tactic| mrx_close) => `(tactic| lower_head applyGlobal; exact applyGlobal_false _ _ _ _ _)
 
 set_option maxHeartbeats 16000000 in
 /-- **O3, action dispatch.** The recorded call entered through `applyAction`'s `try … catch`, the
