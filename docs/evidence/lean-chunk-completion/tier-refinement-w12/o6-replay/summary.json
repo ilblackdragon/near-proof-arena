@@ -1,0 +1,61 @@
+{
+ "fx": {
+  "summary": {
+   "cases": 60,
+   "pairs": {
+    "accept->accept": 3,
+    "out_of_domain->accept": 28,
+    "out_of_domain->out_of_domain": 2,
+    "out_of_domain->reject": 25,
+    "reject->reject": 2
+   },
+   "violations": 0,
+   "reject_reason_differs": 1
+  },
+  "details": [
+   "REASON /data/illia/nearproof-deps/o6/fx/resharding-fixtures__seed23-02-h10062-s5-c.child_layout_is_parent invalid: slot count | invalid: shard not in layout"
+  ]
+ },
+ "census": {
+  "summary": {
+   "cases": 3138,
+   "pairs": {
+    "accept->accept": 2488,
+    "out_of_domain->out_of_domain": 650
+   },
+   "violations": 0,
+   "reject_reason_differs": 0
+  },
+  "details": []
+ },
+ "uq-honest": {
+  "summary": {
+   "cases": 9300,
+   "pairs": {
+    "accept->accept": 9300
+   },
+   "violations": 0,
+   "reject_reason_differs": 0
+  },
+  "details": []
+ },
+ "uq-mut10": {
+  "summary": {
+   "cases": 4492,
+   "pairs": {
+    "accept->accept": 982,
+    "reject->reject": 3510
+   },
+   "violations": 0,
+   "reject_reason_differs": 0
+  },
+  "details": []
+ },
+ "checker_sha256": "54b8a1176622098260758a00203761b4493bc54d162de2bac2f452042230d622",
+ "inputs": {
+  "fx": "resharding-fixtures/cases and resharding-fixtures-2/cases (60 cases, the 4 MB witness expanded)",
+  "census": "the 3,138-case gap census of flags-replay/",
+  "uq-honest": "l6-uq010 gen-v1 and gen2: every d3/ and ood/ case",
+  "uq-mut10": "l6-uq010 gen-v1 and gen2: every tenth mutant (sorted paths)"
+ }
+}
