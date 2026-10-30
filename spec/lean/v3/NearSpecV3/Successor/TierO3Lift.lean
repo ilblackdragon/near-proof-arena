@@ -246,6 +246,69 @@ theorem Refines.forIn_inv {α σ : Type} (l : List α) (b : σ) {f g : α → σ
         | done s => cases hv; exact hr
         | yield s => exact (ih s hr).2 v hv
 
+theorem layoutBytesOf_mem (c : Claim) (e lb : Bytes) (h : layoutBytesOf c e = .ok lb) :
+    ∃ ep ∈ c.epochs, ep.shardLayout = lb := by
+  unfold layoutBytesOf at h
+  split at h
+  · rename_i r hr; cases h; exact ⟨r, List.mem_of_find?_eq_some hr, rfl⟩
+  · cases h
+
+theorem EOk.bind_eq {α β : Type} {P : β → Prop} {x : Except String α} {f : α → Except String β}
+    (hf : ∀ a, x = .ok a → EOk P (f a)) : EOk P (x >>= f) := by
+  intro v h
+  cases hx : x with
+  | error e => rw [hx] at h; cases h
+  | ok a => rw [hx] at h; exact hf a hx v h
+
+theorem EOk.forIn {α σ : Type} (l : List α) (b : σ) {f : α → σ → Except String (ForInStep σ)}
+    (I : σ → Prop) (hb : I b) (h : ∀ a s, I s → EOk (fun r => I r.value) (f a s)) : EOk I (forIn l b f) := by
+  induction l generalizing b with
+  | nil => intro v hv; cases hv; exact hb
+  | cons a t ih =>
+    simp only [List.forIn_cons]
+    intro v hv
+    cases hx : f a b with
+    | error e => rw [hx] at hv; cases hv
+    | ok r =>
+      rw [hx] at hv
+      have hr := h a b hb r hx
+      cases r with
+      | done s => cases hv; exact hr
+      | yield s => exact ih s hr v hv
+
+/-- The walk's main layout is an epoch-table layout. -/
+theorem walkSegment_mainLayout (c : Claim) (blks : List Blk) (ae : List Bytes) (s0 : Nat) (wk : Walk)
+    (h : walkSegment c blks ae s0 = .ok wk) : ∃ ep ∈ c.epochs, ep.shardLayout = wk.mainLayout := by
+  unfold walkSegment at h
+  dsimp only at h
+  obtain ⟨st, hst, h⟩ := Codec.ok_bind h
+  have hI : ∀ x, st.2.2.2.2.1 = some x → ∃ ep ∈ c.epochs, ep.shardLayout = x.2.2 := by
+    refine EOk.forIn (I := fun st : Nat × Nat × List WalkTransition × List (Nat × Nat) × Option (Nat × Nat × Bytes) × Option Nat =>
+      ∀ x, st.2.2.2.2.1 = some x → ∃ ep ∈ c.epochs, ep.shardLayout = x.2.2) _ _ (by intro x hx; cases hx) ?_ st hst
+    intro i s hs
+    try dsimp only
+    repeat' (first
+      | (exact EOk.throw _)
+      | (refine EOk.bind_eq fun _ _ => ?_)
+      | (refine EOk.ite _ (fun _ => ?_) (fun _ => ?_))
+      | (refine EOk.pure ?_; intro x hx; simp only [ForInStep.value, Option.some.injEq] at hx;
+         first | exact hs x hx | (subst hx; exact layoutBytesOf_mem _ _ _ ‹_›))
+      | (split <;> ((try simp only [pure_bind]); (try dsimp only)))
+      | (dsimp only))
+  split at h
+  · rename_i b2i ms ml hm
+    have hx := hI _ hm
+    repeat' (first | (cases h; exact hx) | (cases h; done) | (split at h))
+  · cases h
+
+theorem walkSegment_wf {c : Claim} (hLc : ∀ ep ∈ c.epochs, ∀ L, decodeLayout ep.shardLayout = .ok L → L.WF)
+    {blks : List Blk} {ae : List Bytes} {s0 : Nat} {wk : Walk} (hwk : walkSegment c blks ae s0 = .ok wk)
+    {L : Layout} (hL : decodeLayout wk.mainLayout = .ok L) : L.WF := by
+  obtain ⟨ep, hep, he⟩ := walkSegment_mainLayout c blks ae s0 wk hwk
+  exact hLc ep hep L (he ▸ hL)
+
+#print axioms walkSegment_mainLayout
+
 /-! ## The shells
 
 The walk `o3s` extends O7's `shellA_lockstep`. Its guarded steps (`lower_bind_has`) record the claim's
@@ -306,7 +369,9 @@ macro "o3s" : tactic => `(tactic|
     | (lbh decodeClaimE; refine Refines.bind_eq fun cl hcl => ?_; have hLc := LayoutsWF.of_claim ‹_› hcl)
     | (lbh ExecutionDriver.decodeWitness; refine DrvRel.dw_bind H _ fun w hw => ?_)
     | (lbh decodeLayout; refine Refines.bind_eq fun L hL => ?_;
-        try (have hLwf : L.WF := hLc _ (List.mem_of_find?_eq_some ‹_›) _ hL))
+        try (first | (have hLwf : L.WF := hLc _ (List.mem_of_find?_eq_some ‹_›) _ hL)
+                   | (have hLwf : L.WF := walkSegment_wf hLc ‹_› hL)))
+    | (lbh walkSegment; refine Refines.bind_eq fun wk hwk => ?_)
     | (lbh ExecutionDriver.validateRouting;
         refine DrvRel.vr_bind H hLwf (hw _ (lookupLastD2_mem _ _ _ ‹_›)) fun _ => ?_)
     | (lbh ExecutionDriver.apply;
@@ -322,6 +387,7 @@ macro "o3s" : tactic => `(tactic|
     | (refine Refines.ite_bind_skip _ _ ?_)
     | (refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_))
     | ((refine Refines.bind (Refines.forIn_congr _ _ fun _ _ => ?_) fun _ => ?_); try dsimp only)
+    | (rw [DrvRel.or_eq H _ _ ND.nil])
     | ((refine Refines.bind' (by rfl) fun (_, _) => ?_); try dsimp only)
     | ((refine Refines.bind' (by rfl) fun _ => ?_); try dsimp only)
     | (split <;> (rename_i hsplit; (try simp only [hsplit, pure_bind]); (try dsimp only)))))
@@ -361,9 +427,77 @@ theorem checkD2CoreGWith_o3 (H : DrvRel d ap dw rs vr orr) (h h' : ActionHooks) 
   o3s
   all_goals eok
 
+set_option maxHeartbeats 32000000 in
+theorem checkReshardCoreObs_o3 (H : DrvRel d ap dw rs vr orr) (h h' : ActionHooks) (a : Bool) (c w : Bytes)
+    (g : Option Nat) (hLay : LayoutsWF c) :
+    Refines (checkReshardCoreObs d h a c w g) (checkReshardCoreObs (upD d ap dw rs vr orr) h' a c w g) := by
+  unfold checkReshardCoreObs upD
+  dsimp only
+  o3s
+  all_goals eok
+
+theorem checkReshardCore_o3 (H : DrvRel d ap dw rs vr orr) (h h' : ActionHooks) (a : Bool) (c w : Bytes)
+    (g : Option Nat) (hLay : LayoutsWF c) :
+    Refines (checkReshardCore d h a c w g) (checkReshardCore (upD d ap dw rs vr orr) h' a c w g) :=
+  Refines.map _ (checkReshardCoreObs_o3 d ap dw rs vr orr H h h' a c w g hLay)
+
 #print axioms checkD2CoreWithObs_o3
 #print axioms checkD2CoreGWith_o3
+#print axioms checkReshardCoreObs_o3
 
 end shells
+
+/-! ## The global-action drivers satisfy `DrvRel` -/
+
+/-- The global-action routing check passes on non-distribution receipts of a well-formed layout. -/
+theorem validateRouting_global (cfg : NearCfg) (pol : CodeWitnessPolicy) (L : Layout) (hL : L.WF) :
+    ∀ l : List Rcpt, ND l → (recorderDriver cfg true pol).validateRouting L l = pure ()
+  | [], _ => rfl
+  | r :: l, hl => by
+    have h1 := globalTarget_wf hL r (hl r List.mem_cons_self)
+    have h2 := validateRouting_global cfg pol L hL l (hl.sub fun x hx => List.mem_cons_of_mem _ hx)
+    simp only [recorderDriver, ↓reduceIte] at h2 ⊢
+    simp only [List.forIn_cons, h1]
+    exact h2
+
+/-- **O3, driver fields.** A driver whose five fields are the lower recorder driver's (any other
+fields) against the global-action recorder driver's fields. -/
+theorem drvRel_of_lower (d : ExecutionDriver) (w : NearCfg) (hg : w.globalActions = false) (pol : CodeWitnessPolicy)
+    (h1 : d.decodeWitness = decodeStateWitnessD2) (h2 : d.receiptShard = fun l r => l.shardOf r.recv)
+    (h3 : d.validateRouting = fun _ _ => pure ()) (h4 : d.outgoingRoot = outgoingReceiptsRootD2)
+    (h5 : d.apply = (recorderDriver w false pol).apply) :
+    DrvRel d (recorderDriver { w with globalActions := true } true pol).apply
+      (recorderDriver { w with globalActions := true } true pol).decodeWitness
+      (recorderDriver { w with globalActions := true } true pol).receiptShard
+      (recorderDriver { w with globalActions := true } true pol).validateRouting
+      (recorderDriver { w with globalActions := true } true pol).outgoingRoot where
+  dw_ok sw x hx := by
+    rw [h1] at hx
+    simp only [recorderDriver, ↓reduceIte]
+    rcases Codec.decodeWitness_ref sw with he | ⟨e, he, _⟩
+    · exact ⟨he ▸ hx, decodeStateWitnessD2_nd sw x hx⟩
+    · rw [he] at hx; cases hx
+  dw_err sw e hx := by
+    rw [h1] at hx
+    simp only [recorderDriver, ↓reduceIte]
+    rcases Codec.decodeWitness_ref sw with he | ⟨e', he, hX⟩
+    · exact Or.inr (he ▸ hx)
+    · rw [he] at hx; cases hx; exact Or.inl hX
+  rs_eq L r hr := by
+    rw [h2]
+    exact recorderDriver_receiptShard_globals _ pol L r hr
+  vr_eq L l hL hl := by
+    rw [h3, validateRouting_global _ pol L hL l hl]
+  or_eq L l hl := by
+    rw [h4]
+    exact recorderDriver_outgoingRoot_globals _ pol L l hl
+  ap_ref _ _ p e t vu ps rcs txs cg hL := by
+    rw [h5]
+    exact run_global w hg pol p e hL t vu ps rcs txs cg
+  ap_nd _ p e t vu ps rcs txs cg out hL hx := by
+    rw [h5] at hx
+    exact run_global_nd w hg pol p e hL t vu ps rcs txs cg out hx
+
+#print axioms drvRel_of_lower
 
 end NearSpecV3.Successor
