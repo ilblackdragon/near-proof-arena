@@ -142,4 +142,22 @@ theorem processDelayed_rr (env : Env) (hwf : env.ctx.layout.WF) (fuel : Nat) (rs
 
 end walk
 
+/-! ## The yield timeouts -/
+
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact fob_rr _ ‹_› _ _ (by assumption) (nd_data _ _ _ _ _ _))
+
+theorem yieldLoop_rr {E : Env → Prop} (env : Env) (hwf : env.ctx.layout.WF) (next : Nat) :
+    ∀ (fuel : Nat) (x : RS × Nat × Nat), ND x.1.outgoing →
+    MRQ E (fun y : RS × Nat => ND y.1.outgoing) (StorageExecution.yieldLoop false env next fuel x) (StorageExecution.yieldLoop true env next fuel x)
+  | 0, (rs, i, _), h => by
+    rw [StorageExecution.yieldLoop.eq_1, StorageExecution.yieldLoop.eq_1]
+    exact MRX.pure _ h
+  | fuel + 1, (rs, i, k), h => by
+    rw [StorageExecution.yieldLoop.eq_2, StorageExecution.yieldLoop.eq_2]
+    dsimp only at h
+    mrw
+    all_goals exact yieldLoop_rr env hwf next fuel _ ‹_›
+
+#print axioms yieldLoop_rr
+
 end NearSpecV3.Successor
