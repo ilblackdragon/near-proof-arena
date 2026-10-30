@@ -1,0 +1,14 @@
+ecrecover
+p256_verify
+alt_bn128_g1_multiexp
+alt_bn128_g1_sum
+alt_bn128_pairing_check
+bls12381_p1_sum
+bls12381_p2_sum
+bls12381_g1_multiexp
+bls12381_g2_multiexp
+bls12381_p1_decompress
+bls12381_p2_decompress
+bls12381_map_fp_to_g1
+bls12381_map_fp2_to_g2
+bls12381_pairing_check

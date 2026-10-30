@@ -1,0 +1,15 @@
+d1run {'cases': 2000, 'before_accept': 541, 'after_accept': 541, 'before_reject': 1459, 'after_reject': 1459}
+d2corpus.v2 {'cases': 2000, 'before_accept': 523, 'after_accept': 523, 'before_reject': 1477, 'after_reject': 1477}
+d2corpus.v2-warm-originals {'cases': 224, 'before_reject': 224, 'after_reject': 224}
+d3c10 {'cases': 2000, 'before_accept': 735, 'after_accept': 735, 'before_reject': 1259, 'after_reject': 1259, 'before_out_of_domain': 6, 'after_out_of_domain': 6}
+d3c7 {'cases': 2000, 'before_accept': 781, 'after_accept': 781, 'before_reject': 1218, 'after_reject': 1218, 'before_out_of_domain': 1, 'after_out_of_domain': 1}
+d3c8 {'cases': 2000, 'before_accept': 746, 'after_accept': 746, 'before_reject': 1250, 'after_reject': 1250, 'before_out_of_domain': 4, 'after_out_of_domain': 4}
+d3c9 {'cases': 2000, 'before_accept': 763, 'after_accept': 763, 'before_reject': 1236, 'after_reject': 1236, 'before_out_of_domain': 1, 'after_out_of_domain': 1}
+fixtures {'cases': 338, 'before_accept': 164, 'after_accept': 164, 'before_reject': 174, 'after_reject': 174}
+moved/missing 0 []
+broken control (after-verdict, broken-verdict, reason=fuel_certificate):
+  ('accept', 'accept', False) 89
+  ('accept', 'out_of_domain', True) 348
+  ('out_of_domain', 'out_of_domain', False) 2
+  ('reject', 'out_of_domain', True) 239
+  ('reject', 'reject', False) 522
