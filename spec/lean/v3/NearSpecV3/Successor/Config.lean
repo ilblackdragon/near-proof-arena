@@ -3,6 +3,7 @@ import NearSpecV3.ChallengeChunkV3Float
 import NearSpecV3.GenesisD3
 import NearSpecV3.Successor.RuntimeCore
 import NearSpecV3.Successor.ReshardCore
+import NearSpecV3.D3.Signed
 
 /-!
 # W00 interface 1/7 — the canonical checker and its tiers
@@ -15,10 +16,12 @@ existing adapter (`genesis + floats + protocol gas`) and the recorder-backed run
 
 ## What is signed and what is not
 
-`checkD3`, `RelD3`, `D3.gAlpha` and the oracle pins are the **signed** statement and are immutable.
-`checkSuccessor` is a *successor* dispatcher: at the signed configuration it is definitionally the
-signed checker (`checkSuccessor_signed` below is `rfl`), and every broader tier is a different
-configuration of the same root. Nothing here widens `checkD3`.
+`checkD3`, `RelD3`, `D3.gAlpha` and the oracle pins are the **signed** statement. Its widenings
+toward nearcore are accepted as strengthenings (UQ-010, `docs/research/lean-chunk-w00-owner-map.md`
+§3.2–§3.4). `checkSuccessor` is a *successor* dispatcher: at the signed configuration
+(`signedRecordCfg`) it is definitionally the signed checker (`checkSuccessor_signed` below is `rfl`),
+at `signedCfg` it is the signed checker's legacy core `D3.checkD3Core` (`checkSuccessor_signedCore`),
+and every broader tier is a different configuration of the same root.
 
 ## The configuration
 
@@ -120,6 +123,12 @@ structure ProtocolCfg where
   attribution (`NearCfg.observeDetail`). Set by the driver's `--emit-full` / `--blind-full`; no
   check reads what it records. -/
   observeDetail : Bool := false
+  /-- UQ-010 (2026-10-29): outside the legacy pipeline's two preconditions (one shard layout and no
+  split check; storage-proof limits never reached), decide a legacy error with the recorder engine at
+  this configuration's Wasm configuration and gas cap (`withReshardHandover`, `D3/Signed.lean`). Only the signed
+  statement of record sets it (`signedRecordCfg`); the narrower legacy tiers keep the exclusions,
+  and the whole-state tiers never take the legacy branch. -/
+  reshardHandover : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
@@ -133,6 +142,12 @@ def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
 every tier built from `signedCfg` inherits it, so `.runtimeLimits` now differs from
 `.genesisFloatsProtoGas` in name only. -/
 def signedCfg : ProtocolCfg := { loadingLimits := true }
+
+/-- The signed statement of record: `signedCfg` (whose checker is the legacy core `D3.checkD3Core`)
+with the UQ-010 hand-over (`D3.checkD3`, `D3/Signed.lean`). Every other tier is still built from
+`signedCfg`; the narrower legacy tiers keep the legacy exclusions, and the whole-state tiers never take
+the legacy branch. -/
+def signedRecordCfg : ProtocolCfg := { signedCfg with reshardHandover := true }
 
 /-- The signed configuration with resharding decided. -/
 def reshardingCfg : ProtocolCfg := { signedCfg with resharding := true }
@@ -219,7 +234,16 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
       else
         checkD2CoreWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else if cfg.genesisMainTransition then
-      checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+      if cfg.reshardHandover then
+        withReshardHandover cfg.wasm cfg.gasCap
+          (checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
+          claimBytes witnessBytes
+      else
+        checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+    else if cfg.reshardHandover then
+      withReshardHandover cfg.wasm cfg.gasCap
+        (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
+        claimBytes witnessBytes
     else
       checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
   | _ => .error (unsupportedPvError cfg.protocolVersion)
@@ -268,14 +292,19 @@ def acceptsSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Boo
 
 /-- At the signed configuration the root **is** `checkD3`: not a reimplementation and not a theorem
 about a reimplementation, but the same term. -/
-theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedCfg c w = D3.checkD3 c w := rfl
+theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedRecordCfg c w = D3.checkD3 c w := rfl
+
+/-- At `signedCfg` (no hand-over) the root is the legacy core `D3.checkD3Core`. -/
+theorem checkSuccessor_signedCore (c w : Bytes) :
+    checkSuccessor signedCfg c w = D3.checkD3Core c w := rfl
 
 /-- Consequently the signed relation is preserved definitionally. -/
-theorem relSuccessor_signed_iff (c w : Bytes) : RelSuccessor signedCfg c w ↔ D3.RelD3 c w := Iff.rfl
+theorem relSuccessor_signed_iff (c w : Bytes) : RelSuccessor signedRecordCfg c w ↔ D3.RelD3 c w := Iff.rfl
 
 /-- And the signed boolean mirror. -/
 theorem acceptsSuccessor_signed (c w : Bytes) :
-    acceptsSuccessor signedCfg c w = D3.acceptsD3 c w := rfl
+    acceptsSuccessor signedRecordCfg c w = D3.acceptsD3 c w := rfl
+
 
 /-- `"out of domain"` prefixed to any string is classified as an exclusion. -/
 theorem isExclusion_prefix (s : String) : isExclusion ("out of domain" ++ s) = true := by
@@ -330,7 +359,7 @@ inductive Tier where
 
 /-- The tier's configuration. -/
 def Tier.cfg : Tier → ProtocolCfg
-  | .signed => signedCfg
+  | .signed => signedRecordCfg
   | .floats => { signedCfg with floats := true }
   | .protoGas => protocolGasCfg
   | .floatsProtoGas => { signedCfg with floats := true, gasCap := some maxGasBurnt }

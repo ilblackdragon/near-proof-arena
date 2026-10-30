@@ -79,6 +79,26 @@ def main():
         for case, r in got.items():
             want = ("reject", "invalid: InvalidBandwidthRequests") if "own_only" in str(case) else ("accept", "")
             assert (r["verdict"], r["reason"]) == want, (tier, case, r)
+    # UQ-010 (2026-10-29): the signed statement decides resharding claims through the hand-over to the
+    # recorder engine (`D3/Signed.lean`). An honest split child and a pre-split-gate chunk must be
+    # accepted, their nearcore-rejected mutants rejected, and the deliberate-breakage control
+    # (`--ablate-reshard-handover`, the legacy core) must exclude all four again.
+    rs = REPO / "docs/evidence/lean-chunk-completion"
+    handover = {
+        rs / "resharding-fixtures/cases/seed23-02-h10062-s5": ("accept", ""),
+        rs / "resharding-fixtures/cases/seed23-02-h10062-s5-w.split_child_post_root":
+            ("reject", "invalid: implicit transition post state root"),
+        rs / "resharding-fixtures/cases/seed11-00-h10048-s2": ("accept", ""),
+        rs / "resharding-fixtures/cases/seed11-00-h10048-s2-h.proposed_split_forged":
+            ("reject", "invalid: InvalidChunkHeaderShardSplit"),
+    }
+    got = run_batch([str(binary), "--tier", "signed"], list(handover), 600, "signed")
+    for case, want in handover.items():
+        r = got[str(case.resolve())]
+        assert (r["verdict"], r["reason"]) == want, (case, r)
+    ablated = run_batch([str(binary), "--tier", "signed", "--ablate-reshard-handover"],
+                        list(handover), 600, "signed")
+    assert all(r["verdict"] == "out_of_domain" for r in ablated.values()), ablated
     float_regression = REPO / "docs/evidence/lean-chunk-completion/float-chunks-224/cases"
     float_entries = json.loads((float_regression / "index.json").read_text())
     float_cases = [float_regression / entry["case_dir"] for entry in float_entries]

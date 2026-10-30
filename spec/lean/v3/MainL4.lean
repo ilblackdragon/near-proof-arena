@@ -1,4 +1,5 @@
 import NearSpecV3.D3.GlobalContractChunk
+import NearSpecV3.D3.Signed
 
 /-!
 `nearspec-v3-check-l4 CASE_DIR...` — runs **both** relations on each case and prints one JSON line:

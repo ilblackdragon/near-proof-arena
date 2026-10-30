@@ -195,16 +195,19 @@ theorem checkD2Core_patch (cfg : NearCfg)
       = checkD2Core (NearSpecV3.D3.d3Hooks cfg) allowCodes cb w gasCap := by
   rw [patchArm_eq_d3 cfg hh]
 
-/-- The D3 relation is the D2 pipeline with the D3 hooks, code blobs allowed and the `G_α` cap
-(`D3/FunctionCall.lean:398-403`), so `patchArm_eq_d3` closes it. -/
+/-- The legacy core of the D3 relation (`D3.checkD3Core`) is the D2 pipeline with the D3 hooks, code
+blobs allowed and the `G_α` cap (`D3/FunctionCall.lean`), so `patchArm_eq_d3` closes it. Since the
+UQ-010 hand-over (2026-10-29) `checkD3` is this core plus a recorder-engine decision outside the
+core's preconditions (`D3/Signed.lean`); an accepting core run is an accepting `checkD3` run
+(`D3.checkD3_of_core_ok`), which is all `relD3_of_checkD2Core` needs. -/
 theorem checkD3_congr {f : ActCtx → ActSt → AR → Base → Except String (ActSt × AR)}
     (hh : ∀ (c : ActCtx) (st : ActSt) (ar : AR) (m a : Bytes) (g d : Nat),
       f c st ar (.fcall m a g d)
         = (NearSpecV3.D3.d3Hooks Wasm.pv86).functionCall c st ar (.fcall m a g d))
     (cb w : Bytes) :
     checkD2Core (patchArm Wasm.pv86 f) true cb w (some NearSpecV3.D3.gAlpha)
-      = NearSpecV3.D3.checkD3 cb w := by
-  unfold NearSpecV3.D3.checkD3
+      = NearSpecV3.D3.checkD3Core cb w := by
+  unfold NearSpecV3.D3.checkD3Core
   rw [patchArm_eq_d3 Wasm.pv86 hh]
 
 /-- **The coverage reduction, in checker form.**  `RelD3 cb w` follows from the same pipeline run
@@ -217,9 +220,7 @@ theorem relD3_of_checkD2Core {f : ActCtx → ActSt → AR → Base → Except St
         = (NearSpecV3.D3.d3Hooks Wasm.pv86).functionCall c st ar (.fcall m a g d))
     (cb w : Bytes)
     (ok : checkD2Core (patchArm Wasm.pv86 f) true cb w (some NearSpecV3.D3.gAlpha) = .ok ()) :
-    NearSpecV3.D3.RelD3 cb w := by
-  unfold NearSpecV3.D3.RelD3
-  rw [← checkD3_congr hh cb w]
-  exact ok
+    NearSpecV3.D3.RelD3 cb w :=
+  NearSpecV3.D3.checkD3_of_core_ok cb w (by rw [← checkD3_congr hh cb w]; exact ok)
 
 end ZkFormal.PQ.Join

@@ -164,10 +164,11 @@ theorem checkSuccessor_layout_mono (cfg : ProtocolCfg) (c w : Bytes) :
 
 /-- Weakening the per-chunk gas bound never changes a decided verdict, at any configuration. -/
 theorem checkSuccessor_gas_mono (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe cfg.gasCap g)
-    (c w : Bytes) :
+    (hh : cfg.reshardHandover = false) (c w : Bytes) :
     Refines (checkSuccessor cfg c w) (checkSuccessor { cfg with gasCap := g } c w) := by
   unfold checkSuccessor
   dsimp only
+  simp only [hh, Bool.false_eq_true, ↓reduceIte]
   split
   · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
     · exact Refines.map _ (checkReshardCoreObs_gas_mono _ _ _ _ _ _ _ hg)
@@ -184,12 +185,13 @@ theorem checkSuccessor_gas_mono (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe
 configuration without resharding (W10 overlap). With resharding on, the genesis-capable prefix keeps
 `c.same_layout` and `c.no_split_gate` while the non-genesis resharding driver lifts them, so the
 statement is restricted; every named tier with resharding already sets the genesis flag. -/
-theorem checkSuccessor_genesis_mono (cfg : ProtocolCfg) (hr : cfg.resharding = false) (c w : Bytes) :
+theorem checkSuccessor_genesis_mono (cfg : ProtocolCfg) (hr : cfg.resharding = false)
+    (hh : cfg.reshardHandover = false) (c w : Bytes) :
     Refines (checkSuccessor cfg c w)
       (checkSuccessor { cfg with genesisMainTransition := true } c w) := by
-  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu⟩ := cfg
-  dsimp only at hr
-  subst hr
+  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu, rh⟩ := cfg
+  dsimp only at hr hh
+  subst hr hh
   cases gen
   · unfold checkSuccessor
     dsimp only
@@ -205,32 +207,36 @@ theorem checkSuccessor_genesis_mono (cfg : ProtocolCfg) (hr : cfg.resharding = f
 
 theorem gAlpha_le_maxGasBurnt : D3.gAlpha ≤ maxGasBurnt := by decide
 
-/-- `.signed ⊑ .protoGas`: where the signed checker decides, the protocol-gas tier agrees. -/
+/-- `checkD3Core ⊑ .protoGas`: where the signed statement's legacy core decides, the protocol-gas tier
+agrees. Since the UQ-010 resharding hand-over (2026-10-29) the signed tier itself is *wider* than
+`.protoGas` on resharding claims (it decides them; `.protoGas` keeps the legacy exclusions), so the
+pair is stated on the core. -/
 theorem relSuccessor_protoGas_mono (c w : Bytes) :
-    Refines (Tier.checker .signed c w) (Tier.checker .protoGas c w) :=
-  checkSuccessor_gas_mono signedCfg (some maxGasBurnt) gAlpha_le_maxGasBurnt c w
+    Refines (D3.checkD3Core c w) (Tier.checker .protoGas c w) :=
+  checkSuccessor_gas_mono signedCfg (some maxGasBurnt) gAlpha_le_maxGasBurnt rfl c w
 
 /-- `.floats ⊑ .floatsProtoGas`. -/
 theorem relSuccessor_floatsProtoGas_mono (c w : Bytes) :
     Refines (Tier.checker .floats c w) (Tier.checker .floatsProtoGas c w) :=
-  checkSuccessor_gas_mono (Tier.cfg .floats) (some maxGasBurnt) gAlpha_le_maxGasBurnt c w
+  checkSuccessor_gas_mono (Tier.cfg .floats) (some maxGasBurnt) gAlpha_le_maxGasBurnt rfl c w
 
-/-- `.signed ⊑ .genesis` (W10): the genesis tier agrees with `checkD3` wherever `checkD3` decides. -/
+/-- `checkD3Core ⊑ .genesis` (W10): the genesis tier agrees with the signed statement's legacy core
+wherever that core decides (stated on the core for the reason given at `relSuccessor_protoGas_mono`). -/
 theorem relSuccessor_genesis_mono (c w : Bytes) :
-    Refines (Tier.checker .signed c w) (Tier.checker .genesis c w) :=
-  checkSuccessor_genesis_mono signedCfg rfl c w
+    Refines (D3.checkD3Core c w) (Tier.checker .genesis c w) :=
+  checkSuccessor_genesis_mono signedCfg rfl rfl c w
 
 /-- `.floatsProtoGas ⊑ .genesisFloatsProtoGas` (W10). -/
 theorem relSuccessor_genesisFloatsProtoGas_mono (c w : Bytes) :
     Refines (Tier.checker .floatsProtoGas c w) (Tier.checker .genesisFloatsProtoGas c w) :=
-  checkSuccessor_genesis_mono (Tier.cfg .floatsProtoGas) rfl c w
+  checkSuccessor_genesis_mono (Tier.cfg .floatsProtoGas) rfl rfl c w
 
 /-- `.protoGas ⊑ .genesisFloatsProtoGas` needs floats; `.signed ⊑ .protoGas ⊑ ·` composes with
 the genesis lift at the protocol-gas configuration. -/
 theorem relSuccessor_signed_genesisProtoGas (c w : Bytes) :
-    Refines (Tier.checker .signed c w)
+    Refines (D3.checkD3Core c w)
       (checkSuccessor { signedCfg with gasCap := some maxGasBurnt, genesisMainTransition := true } c w) :=
-  Refines.trans (relSuccessor_protoGas_mono c w) (checkSuccessor_genesis_mono protocolGasCfg rfl c w)
+  Refines.trans (relSuccessor_protoGas_mono c w) (checkSuccessor_genesis_mono protocolGasCfg rfl rfl c w)
 
 /-- A decided verdict is preserved by any refinement: the verdict-level form of every lemma above. -/
 theorem Tier.verdict_of_refines {t t' : Tier} {c w : Bytes}
@@ -362,24 +368,26 @@ theorem Lift.witness (cfg : ProtocolCfg) : Lift cfg { cfg with witnessUnbounded 
 theorem Lift.layout (cfg : ProtocolCfg) : Lift cfg { cfg with layoutUnbounded := true } :=
   fun c w => checkSuccessor_layout_mono cfg c w
 
-theorem Lift.gas (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe cfg.gasCap g) :
+theorem Lift.gas (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe cfg.gasCap g)
+    (hh : cfg.reshardHandover = false) :
     Lift cfg { cfg with gasCap := g } :=
-  fun c w => checkSuccessor_gas_mono cfg g hg c w
+  fun c w => checkSuccessor_gas_mono cfg g hg hh c w
 
 /-- The Gate-B lifts `.allFeatures` adds on top of the named features: `c.segment`, the protocol
 gas bound removed (`gasCap := none`), the compressed witness bound and the layout bound. All four
-are proved, at any configuration whose gas bound is `some _` or `none`. -/
-theorem Lift.gateB (cfg : ProtocolCfg) :
+are proved, at any configuration whose gas bound is `some _` or `none` and that does not use the
+signed statement's resharding hand-over (every wide tier). -/
+theorem Lift.gateB (cfg : ProtocolCfg) (hh : cfg.reshardHandover = false) :
     Lift cfg { cfg with segmentUnbounded := true, gasCap := none, witnessUnbounded := true,
                         layoutUnbounded := true } :=
-  (((Lift.segment cfg).trans (Lift.gas _ none (by cases h : cfg.gasCap <;> simp [CapLe, h]))).trans
+  (((Lift.segment cfg).trans (Lift.gas _ none (by cases h : cfg.gasCap <;> simp [CapLe, h]) hh)).trans
     (Lift.witness _)).trans (Lift.layout _)
 
 /-- `.resharding ⊑ .allFeatures`, given the global-action lift at the resharding configuration. -/
 theorem relSuccessor_resharding_allFeatures_of
     (hGA : Lift (Tier.cfg .resharding) { Tier.cfg .resharding with globalActions := true }) (c w : Bytes) :
     Refines (Tier.checker .resharding c w) (Tier.checker .allFeatures c w) :=
-  (hGA.trans (Lift.gateB _)) c w
+  (hGA.trans (Lift.gateB _ rfl)) c w
 
 /-- Verdict-level refinement: where `x` accepts, `y` accepts; where `x` rejects, `y` rejects (with
 any reason). The resharding step needs this weaker form: `ReshardCore` checks a malformed layout in a
@@ -419,7 +427,7 @@ theorem relSuccessor_curveHosts_allFeatures_of
     (hR : VLift (Tier.cfg .curveHosts) (Tier.cfg .resharding))
     (hGA : Lift (Tier.cfg .resharding) { Tier.cfg .resharding with globalActions := true }) (c w : Bytes) :
     VRefines (Tier.checker .curveHosts c w) (Tier.checker .allFeatures c w) :=
-  ((hR.trans hGA.toV).trans (Lift.gateB _).toV) c w
+  ((hR.trans hGA.toV).trans (Lift.gateB _ rfl).toV) c w
 
 /-- `.globalActions ⊑ .allFeatures` at verdict level, given the curve-host lift and the
 resharding lift (verdict level) at the global-action configurations. -/
@@ -428,7 +436,7 @@ theorem relSuccessor_globalActions_allFeatures_of
     (hR : VLift { Tier.cfg .globalActions with curveHosts := true }
       { Tier.cfg .globalActions with curveHosts := true, resharding := true }) (c w : Bytes) :
     VRefines (Tier.checker .globalActions c w) (Tier.checker .allFeatures c w) :=
-  ((hC.toV.trans hR).trans (Lift.gateB _).toV) c w
+  ((hC.toV.trans hR).trans (Lift.gateB _ rfl).toV) c w
 
 /-! ## Remaining obligations (W12)
 

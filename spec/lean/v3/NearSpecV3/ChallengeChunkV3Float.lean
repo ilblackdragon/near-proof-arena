@@ -113,11 +113,11 @@ theorem checkD3F_characterization (c w : Bytes) :
 instance (c w : Bytes) : Decidable (RelD3F c w) :=
   decidable_of_iff (acceptsD3F c w = true) (relD3F_iff_acceptsD3F c w).symm
 
-/-- `checkD3F` is `checkD3` with one configuration field changed; stated so a reader can see that
-nothing else in the pipeline moves. -/
+/-- `checkD3F` is `checkD3Core` (the legacy core of `checkD3`, `D3/FunctionCall.lean`) with one
+configuration field changed; stated so a reader can see that nothing else in the pipeline moves. -/
 theorem checkD3F_eq_checkD3_of_cfg (c w : Bytes)
-    (h : Wasm.floatPv86 = Wasm.pv86) : checkD3F c w = checkD3 c w := by
-  unfold checkD3F checkD3
+    (h : Wasm.floatPv86 = Wasm.pv86) : checkD3F c w = checkD3Core c w := by
+  unfold checkD3F checkD3Core
   rw [h]
 
 /-! ## Additivity: nothing on D3α's domain changes

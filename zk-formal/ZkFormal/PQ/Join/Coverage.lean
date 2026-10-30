@@ -112,12 +112,14 @@ theorem coverage_pv86 (cb w : Bytes) (sa : StateArm)
     (hagree : ArmAgrees Wasm.pv86 sa)
     (hstate : StateSide Wasm.pv86 cb w sa) :
     NearSpecV3.D3.RelD3 cb w := by
-  have hchk : NearSpecV3.D3.checkD3 cb w
+  -- `checkD3Core` is the pipeline run on `d3Hooks`; an accepting core run is an accepting `checkD3`
+  -- run (`D3.checkD3_of_core_ok`, the UQ-010 hand-over only acts on core errors).
+  have hchk : NearSpecV3.D3.checkD3Core cb w
       = checkD2Core (NearSpecV3.D3.d3Hooks Wasm.pv86) true cb w
           (some NearSpecV3.D3.gAlpha) := rfl
-  have hok : NearSpecV3.D3.checkD3 cb w = .ok () :=
+  have hok : NearSpecV3.D3.checkD3Core cb w = .ok () :=
     hchk ▸ ((coverage Wasm.pv86 cb w sa hagree) ▸ hstate)
-  exact hok
+  exact NearSpecV3.D3.checkD3_of_core_ok cb w hok
 
 /-! ## §3. What the premises mean, checked
 

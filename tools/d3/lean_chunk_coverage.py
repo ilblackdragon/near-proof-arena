@@ -44,7 +44,8 @@ LEAN_FILES = [
     "Wasm/CryptoHost.lean",
     "Wasm/Decode.lean",
     "Wasm/Syntax.lean",
-    "Wasm/DomainD3.lean",
+    # `Wasm/DomainD3.lean` was retired 2026-10-29 (UQ-010); `noResharding` now lives in ReshardingD3.lean.
+    "ReshardingD3.lean",
     "Wasm/Prepare.lean",
     "Wasm/InstanceLayout.lean",
     "D2/Types.lean",
@@ -258,12 +259,14 @@ def float_coverage(repo):
 
 def domain_guards(repo):
     """Named domain guards the plan asks L0 to enumerate."""
-    dom = (repo / LEAN_ROOT / "Wasm/DomainD3.lean").read_text()
+    # `Wasm/DomainD3.lean` was retired 2026-10-29 (UQ-010): `noResharding` moved to ReshardingD3.lean
+    # (it describes the legacy core's guards, not the statement of record), `contractInD3α` was
+    # dropped (it described no checker). See docs/research/lean-chunk-w00-owner-map.md §3.4.
+    dom = (repo / LEAN_ROOT / "ReshardingD3.lean").read_text()
     syn = (repo / LEAN_ROOT / "Wasm/Syntax.lean").read_text()
     prep = (repo / LEAN_ROOT / "Wasm/Prepare.lean").read_text()
     return {
         "noResharding": "def noResharding" in dom,
-        "contractInD3alpha": "contractInD3" in dom,
         "curveHosts": "def curveHosts" in (repo / LEAN_ROOT / "Wasm/Exec.lean").read_text(),
         # L2 keeps the guard *and* adds a switch that turns it off, so the presence test is that
         # the three preparation messages, the switch and its default all exist. (The execution-side
@@ -477,7 +480,7 @@ def inventory(repo, nearcore):
     for name, present in sorted(guards.items()):
         rows.append(row(
             f"L0-guard-{name}", "domain_guard", f"chunk_validation: {name}",
-            f"NearSpecV3.Wasm.DomainD3.{name}" if present else "none",
+            f"NearSpecV3.Wasm.{name}" if present else "none",
             "implemented" if present else "missing",
             "this guard *is* the exclusion" if present else "none",
             "tools/d3/lean_chunk_coverage.py domain_guards", "L0", "L0",

@@ -166,7 +166,7 @@ def outputRow (dir tier : String) (r : Except String Observable) : String :=
 
 def main (args : List String) : IO UInt32 := do
   let "--tier" :: tierName :: rest := args
-    | IO.eprintln "usage: nearspec-v3-check-successor --tier TIER [--ablate-loading-limits] [--emit|--blind|--emit-full|--blind-full] CASE_DIR..."; return 2
+    | IO.eprintln "usage: nearspec-v3-check-successor --tier TIER [--ablate-loading-limits] [--ablate-reshard-handover] [--emit|--blind|--emit-full|--blind-full] CASE_DIR..."; return 2
   let some tier := parseTier tierName
     | IO.eprintln s!"unknown successor tier: {tierName}"; return 2
   -- `--ablate-loading-limits`: a deliberate-breakage control only (the pinned instance-loading rule
@@ -174,7 +174,13 @@ def main (args : List String) : IO UInt32 := do
   let (ablate, rest) := match rest with
     | "--ablate-loading-limits" :: ds => (true, ds)
     | ds => (false, ds)
+  -- `--ablate-reshard-handover`: a deliberate-breakage control only (UQ-010, 2026-10-29): the signed
+  -- statement without the resharding hand-over, i.e. the legacy core `D3.checkD3Core`.
+  let (ablateHandover, rest) := match rest with
+    | "--ablate-reshard-handover" :: ds => (true, ds)
+    | ds => (false, ds)
   let cfg := if ablate then { tier.cfg with loadingLimits := false } else tier.cfg
+  let cfg := if ablateHandover then { cfg with reshardHandover := false } else cfg
   let (mode, full, dirs) := match rest with
     | "--emit" :: ds => (some false, false, ds)
     | "--blind" :: ds => (some true, false, ds)
