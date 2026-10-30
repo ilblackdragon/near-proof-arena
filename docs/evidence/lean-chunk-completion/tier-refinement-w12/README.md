@@ -148,7 +148,7 @@ The §4 finding was adopted as a soundness fix (pre-approved): `resolveCompleteC
 untimely committed-deploy arm to the cold policy's race exclusion. Only that arm changed. W08 has
 since merged a complete-code policy that *is* the cold policy (`complete_eq_cold`, race exclusion
 `e.code_prep_race`). On merging, main's version was taken, and the W12 resolve lemmas were restated
-against it (`complete_untimely_ood`, `complete_ok_coldPartial`, `raceExclusion_isExclusion`). Evidence,
+against it: main's `complete_untimely_ood` / `coldPartial_untimely_ood` plus W12's `complete_untimely_ood_general`, `complete_ok_coldPartial` and `raceExclusion_isExclusion`. Evidence,
 fixtures (4 seeds, 3,853 cases, 23,118 replays), the breakage control and the before/after tables
 are in `docs/evidence/lean-chunk-completion/pipeline-race-fixtures/`. The `complete_accepts_untimely`
 lemma of §4 described the pre-fix behaviour and has been replaced by `complete_untimely_ood`.
