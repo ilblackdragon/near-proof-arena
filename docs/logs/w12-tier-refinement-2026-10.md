@@ -89,3 +89,34 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
   `complete_untimely_ood`, `complete_ok_coldPartial`, `raceExclusion_isExclusion`. The pre-fix lemma
   `complete_accepts_untimely` is gone (main's policy never accepts the arm).
 * The corpus before/after replay of the W12 fix was stopped (superseded).
+
+## 2026-10-30, second session (flags refactor, O7 at chunk level)
+
+* Merged main `5b505261b` (items 3, 6, 11, W01, W08). One conflict: `lakefile.toml` targets (main's
+  list plus `TierStoreAuth`). Main had already repaired the W12 modules for its renames. Full default
+  `lake build`: 391 jobs, ok (merge commit `eb057760e`).
+* **Flag refactor (approved by the integrator).** `StorageExecution.Flags` replaces the
+  `Recording.globalActions` / `Recording.codePolicy` fields. `StorageExecutionOrig.lean` keeps the
+  pre-refactor engine (state `RecordingO extends Recording`); `TierFlagsEq.lean` proves
+  `run_eq_orig`. Lessons:
+  * every closer in the walk must be `with_reducible`: a default-transparency `exact Sim.leaf _ _`
+    tried against an unrelated goal unfolds the engine and never returns;
+  * the frozen copy's `match` auxiliaries are different constants (some shared with other modules
+    by Lean's matcher cache), so `split` cased only one side. `orig_matchers` swaps each for the
+    refactored side's auxiliary of the same type after an `isDefEq` check;
+  * `fun (_, _) => ?_` inside `first` logs an error instead of failing over when the bound type is
+    still a metavariable; the `foldlM`/`forIn`/`mapM` alternatives now come before it.
+  * `applyActionReceipt`: nested `do` join points made the zeta-reducing walk exponential (25 min
+    timeout). `sim_let` (an `elab` tactic) abstracts each join-point pair behind a `Sim` hypothesis;
+    `sim_intro` only introduces syntactic `∀` (a plain `intro` unfolded `Sim`). `TierFlagsEq` now
+    checks in about 15 minutes.
+* Default `lake build`: 394 jobs, ok. `make pin-check` ok. `nearspec-v3-test-storage-resolution`
+  updated for the new signatures (`processIncoming {} …`) and passes.
+* Verdict identity of the refactored binary: 577 fixtures × 4 tiers and the 3,138 census × 2 tiers,
+  0 verdicts and 0 reasons changed (README §6, `flags-replay/`).
+* `TierWhole`/`TierWholeWalk` generalised: `functionCallRecordedWith` takes `ga` and the code
+  resolution (`resOf`) as parameters; `RecRefine P ga p cfg p' cfg'` carries an environment
+  predicate. O1 is the instance `P := True`.
+* **O7 at chunk level proved** (`TierO7.lean`): `Lift.completeCode` on every whole-state
+  configuration, both directions; `.completeCodeGlobal ⊑ .globalActions` and the converse.
+* Open: O2, O3, O4, O6 (README §6 lists the precise remaining pieces).

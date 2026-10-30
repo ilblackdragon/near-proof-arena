@@ -30,24 +30,24 @@ def main (args : List String) : IO UInt32 := do
   -- Boundary source: per_receipt_storage_proof_size_limit = 4,000,000; strict >.
   -- A remove of an absent key records +2000 even without a value or trie-node read.
   for before in [3997999, 3998000, 3998001] do
-    let ((st, ar), rec) ← exec (functionCallRecorded pv86 (context e) (state (.local hash)) result call)
+    let ((st, ar), rec) ← exec (functionCallRecorded {} pv86 (context e) (state (.local hash)) result call)
       { recorder := { size := before } } e
     expect s!"receipt boundary {before}" (ar.ok == (before ≤ 3998000))
     expect "removal recorded even on failure" (rec.recorder.size == before + 2000)
     expect "raw code excluded from trie recorder" (rec.recorder.set.isEmpty)
     expect "removal replayed into overlay" (st.o.cdRemovals == 1)
   -- Same receipt: the second action inherits the first action's proof growth.
-  let ((st, ar), rec) ← exec (functionCallRecorded pv86 (context e) (state (.local hash)) result call)
+  let ((st, ar), rec) ← exec (functionCallRecorded {} pv86 (context e) (state (.local hash)) result call)
     { recorder := { size := 3998000 } } e
   expect "first action exactly at limit" ar.ok
-  let ((_, ar2), rec2) ← exec (functionCallRecorded pv86 (context e) st result call) rec e
+  let ((_, ar2), rec2) ← exec (functionCallRecorded {} pv86 (context e) st result call) rec e
   expect "second action exceeds shared receipt budget" (!ar2.ok && rec2.recorder.size == 4002000)
   let (_, reset) ← exec startReceipt rec2 e
-  let ((_, ar3), rec3) ← exec (functionCallRecorded pv86 (context e) st result call) reset e
+  let ((_, ar3), rec3) ← exec (functionCallRecorded {} pv86 (context e) st result call) reset e
   expect "new receipt resets baseline, not recorder" (ar3.ok && rec3.recorder.size == 4004000)
   -- Successful global-by-hash call retains the stored identifier; no normalization writeback.
   let ((globalState, globalResult), _) ← exec
-    (functionCallRecorded pv86 (context e) (state (.global hash)) result call) {} e
+    (functionCallRecorded {} pv86 (context e) (state (.global hash)) result call) {} e
   expect "global code runs" globalResult.ok
   expect "global identifier preserved" (globalState.account.map (·.contract) == some (.global hash))
   -- Every recognized legacy hash redirects on every chain, including cross-chain old-testnet.
@@ -75,14 +75,14 @@ def main (args : List String) : IO UInt32 := do
   expect "reference lookup records node only" (rec.recorder.size == node.length)
   let (_, recAgain) ← exec (resolveCode (context e) st (st.account.getD (Acct.new 0 0 .none 0))) rec e
   expect "shared path deduplicated" (recAgain.recorder.size == node.length)
-  let missing := (functionCallRecorded pv86 (context e) st result call).run {} e
+  let missing := (functionCallRecorded {} pv86 (context e) st result call).run {} e
   expect "missing code is invalid, not absent contract" (match missing with
     | .error err => err.startsWith "invalid: MissingTrieValue"
     | _ => false)
   let withCode := { e with store := mkHStore [node, code] }
   let st := { st with o := st.o.set kYieldIdx (encIndices 0 0) }
   let ((byAccountState, byAccountResult), _) ← exec
-    (functionCallRecorded pv86 (context withCode) st result call) {} withCode
+    (functionCallRecorded {} pv86 (context withCode) st result call) {} withCode
   expect "global-by-account call succeeds" byAccountResult.ok
   expect "account identifier preserved after successful call"
     (byAccountState.account.map (·.contract) == some (.byAccount (bs "provider")))
@@ -91,7 +91,7 @@ def main (args : List String) : IO UInt32 := do
     ⟨0,0,0,0,0,0⟩, [], 0, 0, 0, 0, [], [], [], [], [], 0, 0⟩
   let data : Rcpt := ⟨bs "alice", bs "alice", zero32, .data false zero32 (some [])⟩
   for size in [3999999, 4000000, 4000001] do
-    let (out, _) ← exec (processIncoming pv86 e rs [data]) { recorder := { size } } e
+    let (out, _) ← exec (processIncoming {} pv86 e rs [data]) { recorder := { size } } e
     expect s!"chunk soft limit {size}" (out.dq.next == (if size > 4000000 then 1 else 0))
   -- Whole-receipt rollback leaves proof growth intact and defers the next incoming receipt.
   let exhaust := (← IO.FS.readBinFile (System.FilePath.mk ((args[1]?).getD "../../../tools/d3/storage-fixtures/exhaust.wasm"))).toList
@@ -104,8 +104,8 @@ def main (args : List String) : IO UInt32 := do
   let act := Act.base ⟨[], .fcall (bs "run") [] (3 * 10^14) 0⟩
   let a := { actions with actions := [act] }
   let receipt : Rcpt := ⟨bs "alice", bs "alice", zero32, .action false a⟩
-  let (first, firstProof) ← exec (processIncoming pv86 e rs [receipt]) {} e
-  let (out, proof) ← exec (processIncoming pv86 e first [data]) firstProof e
+  let (first, firstProof) ← exec (processIncoming {} pv86 e rs [receipt]) {} e
+  let (out, proof) ← exec (processIncoming {} pv86 e first [data]) firstProof e
   expect "failed receipt proof survives rollback" (proof.recorder.size == 4002000)
   expect "next incoming receipt deferred" (out.dq.next == 1 && out.outcomes.length == 1)
   expect "failed removal rolled back" (out.o.lookup (D3.ofBA (TTN.contractDataPrefix "alice") ++ [0]) == none)

@@ -38,15 +38,15 @@ theorem vmCall_stable (cfg : NearCfg) (hr : 0 < cfg.regularOpCost) (F : NearCfg 
 /-- The checker's hook passes `wasmFuel` (item 3, part 3): `functionCallRecorded` is
 `functionCallRecordedF wasmFuel`, whose VM call uses `wasmFuel cfg ctx.prepaidGas` with
 `ctx.prepaidGas := gas`. -/
-theorem functionCallRecorded_fuel (cfg : NearCfg) :
-    functionCallRecorded cfg = functionCallRecordedF wasmFuel cfg := rfl
+theorem functionCallRecorded_fuel (fl : Flags) (cfg : NearCfg) :
+    functionCallRecorded fl cfg = functionCallRecordedF fl wasmFuel cfg := rfl
 
 /-- **W02 fuel sufficiency (final).** For every configuration with `0 < regular_op_cost` and every
 step budget `F ≥ wasmFuel`, the successor's `FunctionCall` hook computes exactly what it computes
 under `wasmFuel`, on every input. -/
-theorem functionCall_fuel_sufficient (cfg : NearCfg) (hr : 0 < cfg.regularOpCost)
+theorem functionCall_fuel_sufficient (fl : Flags) (cfg : NearCfg) (hr : 0 < cfg.regularOpCost)
     (F : NearCfg → Nat → Nat) (hF : ∀ g, wasmFuel cfg g ≤ F cfg g) :
-    functionCallRecordedF F cfg = functionCallRecorded cfg := by
+    functionCallRecordedF fl F cfg = functionCallRecorded fl cfg := by
   have h : vmCall F cfg = vmCall wasmFuel cfg := by
     funext code method ctx real
     exact vmCall_stable cfg hr F hF code method ctx real
@@ -55,10 +55,10 @@ theorem functionCall_fuel_sufficient (cfg : NearCfg) (hr : 0 < cfg.regularOpCost
   rw [h]
 
 /-- At the successor's configurations (`regular_op_cost = 822,756`). -/
-theorem functionCall_fuel_sufficient_pv86 (cfg : NearCfg) (hr : cfg.regularOpCost = pv86.regularOpCost)
+theorem functionCall_fuel_sufficient_pv86 (fl : Flags) (cfg : NearCfg) (hr : cfg.regularOpCost = pv86.regularOpCost)
     (F : NearCfg → Nat → Nat) (hF : ∀ g, wasmFuel cfg g ≤ F cfg g) :
-    functionCallRecordedF F cfg = functionCallRecorded cfg :=
-  functionCall_fuel_sufficient cfg (by rw [hr]; decide) F hF
+    functionCallRecordedF fl F cfg = functionCallRecorded fl cfg :=
+  functionCall_fuel_sufficient fl cfg (by rw [hr]; decide) F hF
 
 end NearSpecV3.Successor.StorageExecution
 

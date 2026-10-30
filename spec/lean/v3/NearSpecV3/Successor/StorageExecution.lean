@@ -19,13 +19,20 @@ namespace NearSpecV3.Successor.StorageExecution
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Logged
 open NearSpecV3.Wasm
 
+/-- The engine's configuration flags. They are parameters, not recorder state (refactor
+2026-10-30, W12): `globalActions` selects the global-action codecs, managers and queue policy;
+`codePolicy` is the contract-code resolution policy (`resolveCodeBytes`). Nothing writes them during
+a run. `TierFlagsEq.lean` proves the engine equal to the pre-refactor one, which kept both in
+`Recording` (`StorageExecutionOrig.lean`). -/
+structure Flags where
+  globalActions : Bool := false
+  codePolicy : CodeWitnessPolicy := .coldPartial
+
 structure Recording where
   recorder : TTN.Recorder := {}
   cache : TTN.Acct := {}
   receiptStart : Nat := 0
   softLimit : Nat := 4000000
-  globalActions : Bool := false
-  codePolicy : CodeWitnessPolicy := .coldPartial
   /-- Authenticated code committed by distribution, distinct from local deployment tracking. -/
   materialized : List Bytes := []
   /-- The preparation pipeline's schedule, replayed to decide deploy-served code (`Pipeline`). -/
@@ -145,7 +152,7 @@ def vmCall (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (code : ByteArray)
   else .ok (runCallWithLimits cfg code method ctx (fuelOf cfg ctx.prepaidGas) true false (some real))
 
 /-- `functionCallRecorded` with the step budget as a parameter; the checker uses `wasmFuel`. -/
-def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c : ActCtx) (st : ActSt)
+def functionCallRecordedF (fl : Flags) (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c : ActCtx) (st : ActSt)
     (ar : AR) (b : Base) : M (ActSt × AR) := do
   let .fcall method args gas deposit := b | throw "unmodeled: functionCall hook on a non-FunctionCall"
   let some acct := st.account | throw "invalid: EXPECT_ACCOUNT_EXISTS"
@@ -172,7 +179,7 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
     witness := env.codeOf, current := st.deploys,
     committed := c.deployed ++ recording.materialized, attempted := c.attempted }
   let timely := recording.pipe.deterministic c.r.rid c.idx hh
-  let code ← liftE (resolveCodeBytes recording.codePolicy sources pre hh timely)
+  let code ← liftE (resolveCodeBytes fl.codePolicy sources pre hh timely)
   let codeB := toBA code
   if let some why := contractOOD cfg codeB then throw (oodE why)
   -- VMContext (§3)
@@ -228,7 +235,7 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
     let burnt := s.gas.burnt
     let logs := s.logs.toList.map ofBA
     -- receipts + gas distribution (only for VM-produced outcomes, §5.5)
-    let (rs, idx, resumes) ← liftE ((if recording.globalActions then managerGlobal else manager) s.actions ah h)
+    let (rs, idx, resumes) ← liftE ((if fl.globalActions then managerGlobal else manager) s.actions ah h)
     let (rs, extra) ← liftE (distribute rs gas s.gas.used)
     let used := s.gas.used + extra
     let ar1 := { ar with gasBurnt := ar.gasBurnt + burnt, gasFC := ar.gasFC + burnt,
@@ -255,7 +262,7 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
       if next != yn then o := o.set kYieldIdx (encIndices yf next)
       let st := { st with o }
       let rcpts ← rs.toList.mapM fun m => do
-        let acts ← liftE ((if recording.globalActions then finishActsGlobal else finishActs) m)
+        let acts ← liftE ((if fl.globalActions then finishActsGlobal else finishActs) m)
         pure (⟨c.r.recv, m.recv, zero32, .action m.yield ⟨true, a.signer, m.refundTo, a.signerPk,
           a.gasPrice, m.outputs, m.inputs, acts⟩⟩ : Rcpt)
       let rcpts := rcpts ++ resumes.map fun (d, p) =>
@@ -272,12 +279,12 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
                        subsidized := ar1.subsidized + s.subsidized })
 
 /-- The successor's `FunctionCall` hook: the successor step budget `wasmFuel`. -/
-def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
+def functionCallRecorded (fl : Flags) (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
     M (ActSt × AR) :=
-  functionCallRecordedF wasmFuel cfg c st ar b
+  functionCallRecordedF fl wasmFuel cfg c st ar b
 
-def applyGlobal (c : ActCtx) (st : ActSt) (a : Act) (b : Base) : M (ActSt × AR) := do
-  if !(← get).globalActions then throw "out of domain (w.shape): global action"
+def applyGlobal (ga : Bool) (c : ActCtx) (st : ActSt) (a : Act) (b : Base) : M (ActSt × AR) := do
+  if !ga then throw "out of domain (w.shape): global action"
   let ex := actExec c.r.recv a
   let res : AR := { gasBurnt := ex.gas, gasUsed := ex.gas, compute := ex.compute,
                     ok := true, newReceipts := [], proposals := [], tokensBurnt := 0 }
@@ -290,7 +297,7 @@ def applyGlobal (c : ActCtx) (st : ActSt) (a : Act) (b : Base) : M (ActSt × AR)
 
 /-- Dispatch shares the original fee/existence/permission checks. Only call resolution and
 recorder state differ. Other actions reuse their read-logging implementation. -/
-def applyAction (cfg : NearCfg) (c : ActCtx) (st : ActSt) (a : Act) : M (ActSt × AR) := do
+def applyAction (fl : Flags) (cfg : NearCfg) (c : ActCtx) (st : ActSt) (a : Act) : M (ActSt × AR) := do
   match a with
   | .base ⟨_, b@(.fcall _ _ _ _)⟩ =>
     let ex := actExec c.r.recv a
@@ -299,11 +306,11 @@ def applyAction (cfg : NearCfg) (c : ActCtx) (st : ActSt) (a : Act) : M (ActSt �
     let elig := c.nActs == 1 && c.r.pred != AccountId.system
     if !existenceOk a st.account c.r.recv elig then return (st, res.fail)
     if !permissionOk a st.account st.actor c.r.recv then return (st, res.fail)
-    try functionCallRecorded cfg c st res b
+    try functionCallRecorded fl cfg c st res b
     catch e => throw (if e.startsWith "unmodeled" then oodE e else e)
   | .base ⟨_, b@(.deployGlobal _)⟩
   | .base ⟨_, b@(.useGlobal _)⟩
-  | .base ⟨_, b@(.stateInit _)⟩ => applyGlobal c st a b
+  | .base ⟨_, b@(.stateInit _)⟩ => applyGlobal fl.globalActions c st a b
   | _ => ordinaryAction c st a
 
 def getR (o : Ovl) (k : Bytes) (what : String) := logged (o.getL k what)
@@ -327,11 +334,11 @@ def globalTarget (layout : Layout) (r : Rcpt) : Except String Nat := do
 
 def globalQueuePolicy : QueuePolicy := ⟨GlobalCodecs.decodeStoredGlobal, globalTarget⟩
 
-def forwardOrBufferR (env : Env) (rs : RS) (r : Rcpt) : M RS := do
-  if (← get).globalActions then logged (forwardOrBufferLWith globalQueuePolicy env rs r)
+def forwardOrBufferR (ga : Bool) (env : Env) (rs : RS) (r : Rcpt) : M RS := do
+  if ga then logged (forwardOrBufferLWith globalQueuePolicy env rs r)
   else logged (forwardOrBufferL env rs r)
-def delayPopR (env : Env) (fuel : Nat) (rs : RS) : M (RS × Option Rcpt) := do
-  if (← get).globalActions then logged (delayPopLWith globalQueuePolicy env fuel rs)
+def delayPopR (ga : Bool) (env : Env) (fuel : Nat) (rs : RS) : M (RS × Option Rcpt) := do
+  if ga then logged (delayPopLWith globalQueuePolicy env fuel rs)
   else logged (delayPopL env fuel rs)
 def bandwidthRequestsR (env : Env) (rs : RS) :=
   if env.ctx.layout.lastSplit.isSome then logged (bandwidthRequestsV3L env rs)
@@ -357,12 +364,12 @@ def forwardFromBufferV3L (globals : Bool) (env : Env) (rs : RS) : LM RS := do
     throw "invalid: buffered receipts gas left with empty outgoing buffers"
   pure rs
 
-def forwardFromBufferR (env : Env) (rs : RS) : M RS := do
-  if env.ctx.layout.lastSplit.isSome then logged (forwardFromBufferV3L (← get).globalActions env rs)
-  else if (← get).globalActions then logged (forwardFromBufferLWith globalQueuePolicy env rs)
+def forwardFromBufferR (ga : Bool) (env : Env) (rs : RS) : M RS := do
+  if env.ctx.layout.lastSplit.isSome then logged (forwardFromBufferV3L ga env rs)
+  else if ga then logged (forwardFromBufferLWith globalQueuePolicy env rs)
   else logged (forwardFromBufferL env rs)
-def decodeStoredRcptR (b : Bytes) (what : String) : M Rcpt := do
-  if (← get).globalActions then liftE (GlobalCodecs.decodeStoredRcptGlobal b what)
+def decodeStoredRcptR (ga : Bool) (b : Bytes) (what : String) : M Rcpt := do
+  if ga then liftE (GlobalCodecs.decodeStoredRcptGlobal b what)
   else liftE (decodeStoredRcpt b what)
 def trieFindR (key : Bytes) := logged (trieFindL key)
 def processTxR (env : Env) (rs : RS × List Bytes) (tf : TxD2 × Bool) : M (RS × List Bytes) := do
@@ -386,14 +393,14 @@ def validatorUpdateR (l : Layout) (own : Nat) (o : Ovl) (f : ValidatorUpdateFact
   logged (validatorUpdateL l own o f ps)
 def schedOvlR (prims : Prims) (ctx : ApplyCtx) (o : Ovl) := logged (schedOvlL prims ctx o)
 
-def actionLoop (hooks : NearCfg) (env : Env) (r : Rcpt) (a : ActionR)
+def actionLoop (fl : Flags) (hooks : NearCfg) (env : Env) (r : Rcpt) (a : ActionR)
     (inputs : List (Option Bytes)) (deployed : List Bytes) (attempted : List Bytes := []) :
     Nat → List Act → ActSt × AR → M (ActSt × AR)
   | _, [], acc => pure acc
   | i, act :: rest, (st, res) => do
     let c : ActCtx := { env, r, a, idx := i, nActs := a.actions.length, inputs, deployed, attempted }
     modify fun r => { r with vmErr := none }
-    let (st', ar) ← applyAction hooks c st act
+    let (st', ar) ← applyAction fl hooks c st act
     let badNew := ar.ok && ar.newReceipts.any (fun x => !validReceipt true x)
     let ar := if badNew then ar.fail else ar
     if !ar.ok && (← get).observe then
@@ -416,7 +423,7 @@ def actionLoop (hooks : NearCfg) (env : Env) (r : Rcpt) (a : ActionR)
     if ar.ok then
       let tb ← okR (add128 res.tokensBurnt ar.tokensBurnt) (panicked "tokens_burnt overflow")
       let sub ← okR (add128 res.subsidized ar.subsidized) (panicked "subsidized_amount overflow")
-      actionLoop hooks env r a inputs deployed attempted (i + 1) rest
+      actionLoop fl hooks env r a inputs deployed attempted (i + 1) rest
         (st, { res with newReceipts := res.newReceipts ++ ar.newReceipts,
                         proposals := res.proposals ++ ar.proposals, tokensBurnt := tb,
                         subsidized := sub, ret := ar.ret.shift res.newReceipts.length })
@@ -424,19 +431,19 @@ def actionLoop (hooks : NearCfg) (env : Env) (r : Rcpt) (a : ActionR)
 
 /-- Assign receipt ids, queue instant receipts, forward or buffer the others
 (`lib.rs:1075-1120`). Returns the ids of the action receipts. -/
-def emitReceipts (env : Env) (parent : Bytes) : RS → Nat → List Rcpt → M (RS × List Bytes)
+def emitReceipts (ga : Bool) (env : Env) (parent : Bytes) : RS → Nat → List Rcpt → M (RS × List Bytes)
   | rs, _, [] => pure (rs, [])
   | rs, k, nr :: rest => do
     let rid := receiptIdFrom parent env.ctx.height k
     let nr := { nr with rid := rid }
     let rs ← if nr.isInstant then pure { rs with instant := rs.instant ++ [nr] }
-             else forwardOrBufferR env rs nr
-    let (rs, ids) ← emitReceipts env parent rs (k + 1) rest
+             else forwardOrBufferR ga env rs nr
+    let (rs, ids) ← emitReceipts ga env parent rs (k + 1) rest
     pure (rs, if nr.isAction then rid :: ids else ids)
 
 /-- `apply_action_receipt` (`lib.rs:776-1164`). Returns the new state, the outcome and its
 compute usage. -/
-def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : ActionR) :
+def applyActionReceipt (fl : Flags) (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : ActionR) :
     M (RS × OutD1 × Nat) := do
   -- 1. input data: read and remove, then commit (E3: the decoded data is kept, in order)
   let (o, inputs) ← a.inputs.foldlM (fun ((o, ins) : Ovl × List (Option Bytes)) d => do
@@ -454,7 +461,7 @@ def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : A
                      compute := Fees.nar.execCompute, ok := true, newReceipts := [],
                      proposals := [], tokensBurnt := 0 }
   -- 3. actions
-  let (st, res) ← actionLoop hooks env r a inputs rs.deployed rs.attempted 0 a.actions
+  let (st, res) ← actionLoop fl hooks env r a inputs rs.deployed rs.attempted 0 a.actions
     ({ o := o, account := acct, actor := r.pred }, res0)
   modifyPipe (·.recordDeploys st.deploys)
   let mut o := st.o
@@ -530,7 +537,7 @@ def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : A
                       attempted := rs.attempted ++ st.deploys, wasmGas := rs.wasmGas + res.gasFC,
                       subsidized := subsidized }
   -- 10. receipt ids, instant / forward
-  let (rs, ids) ← emitReceipts env r.rid rs 0 (newRs ++ dataRs)
+  let (rs, ids) ← emitReceipts fl.globalActions env r.rid rs 0 (newRs ++ dataRs)
   -- 11. outcome (E12: status from the return data; E13: logs of all actions)
   let status : OStatus := if res.ok then
       (match res.ret with
@@ -547,18 +554,18 @@ def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : A
   pure (rs, out, res.compute)
 
 /-- `process_receipt` (`lib.rs:1303-1527`) and `process_action_receipt` (`lib.rs:1529-1597`). -/
-def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
+def processReceipt (fl : Flags) (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
     M (RS × Option (OutD1 × Nat)) := do
   let recv := r.recv
   match r.body with
   | .distribution d =>
-    if !(← get).globalActions then throw oodGcd
+    if !fl.globalActions then throw oodGcd
     let (rs, forward, materialized) ← logged (GlobalExecution.applyDistributionL env rs r d)
     if let some code := materialized then
       modify fun state => { state with materialized := state.materialized ++ [code] }
       modifyPipe (·.recordDeploys [code])
     let rs ← match forward with
-      | some next => forwardOrBufferR env rs next
+      | some next => forwardOrBufferR fl.globalActions env rs next
       | none => pure rs
     pure (rs, none)
   | .data false d x =>
@@ -575,11 +582,11 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
         let o := o.remove (kPendingCount recv ridb)
         let pr ← match ← getR o (kPostponed recv ridb) "postponed receipt" with
           | none => throw (inconsistent "pending receipt should be in the state")
-          | some b => decodeStoredRcptR b "postponed receipt"
+          | some b => decodeStoredRcptR fl.globalActions b "postponed receipt"
         let o := o.remove (kPostponed recv ridb)
         match pr.body with
         | .action _ a =>
-          let (rs, out, cu) ← applyActionReceipt hooks env { rs with o := o } pr a
+          let (rs, out, cu) ← applyActionReceipt fl hooks env { rs with o := o } pr a
           pure (rs, some (out, cu))
         | _ => throw (panicked "given receipt should be an action receipt")
       else
@@ -591,7 +598,7 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
         if ← containsR o (kReceivedData recv d) "received data" then pure (o, n)
         else pure (o.set (kPostponedId recv d) r.rid, n + 1)) (rs.o, 0)
     if pending == 0 then
-      let (rs, out, cu) ← applyActionReceipt hooks env { rs with o := o } r a
+      let (rs, out, cu) ← applyActionReceipt fl hooks env { rs with o := o } r a
       pure (rs, some (out, cu))
     else
       let o := (o.set (kPendingCount recv r.rid) (u32 pending)).set (kPostponed recv r.rid) r.encode
@@ -609,7 +616,7 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
     match ← getR rs.o (kYieldReceipt recv d) "promise yield receipt" with
     | none => pure (rs, none)
     | some b =>
-      let yr ← decodeStoredRcptR b "promise yield receipt"
+      let yr ← decodeStoredRcptR fl.globalActions b "promise yield receipt"
       let o := (rs.o.remove (kYieldReceipt recv d)).remove (kYieldStatus recv d)
       let o ← match ← getR o (kDataToYield recv d) "data id to yield id" with
         | none => pure o
@@ -619,15 +626,15 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
       let o := o.set (kReceivedData recv d) (encOptBytes x)
       match yr.body with
       | .action _ a =>
-        let (rs, out, cu) ← applyActionReceipt hooks env { rs with o := o } yr a
+        let (rs, out, cu) ← applyActionReceipt fl hooks env { rs with o := o } yr a
         pure (rs, some (out, cu))
       | _ => throw (panicked "given receipt should be an action receipt")
 
 /-- `process_receipt_with_metrics`: totals and outcome (`lib.rs:2335-2345`). -/
-def processWithTotals (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS := do
+def processWithTotals (fl : Flags) (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS := do
   modifyPipe Pipeline.startReceipt
   let before := rs.o
-  let (rs, o) ← processReceipt hooks env rs r
+  let (rs, o) ← processReceipt fl hooks env rs r
   -- W01 attribution: the receipt and the receipt whose outcome it produced (a postponed or
   -- yielded receipt the data receipt completed)
   let ids := match o with
@@ -644,76 +651,76 @@ def processWithTotals (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS 
     pure { rs with gas := g, compute := c, outcomes := rs.outcomes ++ [out] }
 
 /-- `process_receipt_and_instant_receipts` (`lib.rs:2619-2656`): instant receipts FIFO. -/
-def processWithInstant (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS := do
-  let rs ← processWithTotals hooks env rs r
+def processWithInstant (fl : Flags) (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS := do
+  let rs ← processWithTotals fl hooks env rs r
   let rec drain : Nat → RS → M RS
     | 0, _ => throw (panicked "instant receipt fuel")
     | fuel + 1, rs =>
       match rs.instant with
       | [] => pure rs
       | ir :: more => do
-        let rs ← processWithTotals hooks env { rs with instant := more } ir
+        let rs ← processWithTotals fl hooks env { rs with instant := more } ir
         drain fuel rs
   drain 100000 rs
 
 /-- The stored-receipt decoder of the active codec, for the pipeline's side-effect-free reads. -/
-def pipeDecode : M (Bytes → Except String Rcpt) := do
-  if (← get).globalActions then pure fun b => GlobalCodecs.decodeStoredRcptGlobal b "stored receipt"
+def pipeDecode (ga : Bool) : M (Bytes → Except String Rcpt) := do
+  if ga then pure fun b => GlobalCodecs.decodeStoredRcptGlobal b "stored receipt"
   else pure fun b => decodeStoredRcpt b "stored receipt"
 
 /-- A fresh `peek_iter` of the delayed queue and a schedule over it (`lib.rs:2452-2493`). -/
-def scheduleDelayed (env : Env) (rs : RS) : M Unit := do
-  let decode ← pipeDecode
-  let decodeStored := if (← get).globalActions then globalQueuePolicy.decodeStored else decodeStored
+def scheduleDelayed (ga : Bool) (env : Env) (rs : RS) : M Unit := do
+  let decode ← pipeDecode ga
+  let decodeStored := if ga then globalQueuePolicy.decodeStored else decodeStored
   modifyPipe fun p =>
     let (p, look) := Pipeline.peekDelayed decodeStored env.ctx.layout env.ctx.own rs.o p
       (rs.dq.next - rs.dq.first + 1) rs.dq.first rs.dq.next
     let (p, _, next) := Pipeline.schedule decode rs.o p look
     { p with next }
 
-def processLocals (hooks : NearCfg) (env : Env) (rs : RS) (locals : List Rcpt) : M RS := do
-  let decode ← pipeDecode
+def processLocals (fl : Flags) (hooks : NearCfg) (env : Env) (rs : RS) (locals : List Rcpt) : M RS := do
+  let decode ← pipeDecode fl.globalActions
   modifyPipe (Pipeline.startList decode rs.o · locals)
   locals.foldlM (fun rs r => do
     if rs.compute ≥ env.ctx.gasLimit || (← softExceeded) then logged (delayPushL rs r)
     else
       modifyPipe (Pipeline.stepList decode rs.o)
-      processWithInstant hooks env rs r) rs
+      processWithInstant fl hooks env rs r) rs
 
-def processDelayedLoop (hooks : NearCfg) (env : Env) : Nat → RS → M RS
+def processDelayedLoop (fl : Flags) (hooks : NearCfg) (env : Env) : Nat → RS → M RS
   | 0, rs => pure rs
   | fuel + 1, rs => do
     if rs.compute ≥ env.ctx.gasLimit || (← softExceeded) then return rs
-    let (rs, r) ← delayPopR env (rs.dq.next - rs.dq.first + 1) rs
+    let (rs, r) ← delayPopR fl.globalActions env (rs.dq.next - rs.dq.first + 1) rs
     match r with
     | none => pure rs
     | some r =>
       match (← get).pipe.next with
       | some n =>
-        if n - 1 == 0 then scheduleDelayed env rs
+        if n - 1 == 0 then scheduleDelayed fl.globalActions env rs
         else modifyPipe fun p => { p with next := some (n - 1) }
       | none => pure ()
       if !validReceipt false r then throw (inconsistent "Delayed receipt in the state is invalid")
-      let rs ← processWithInstant hooks env rs r
-      processDelayedLoop hooks env fuel rs
+      let rs ← processWithInstant fl hooks env rs r
+      processDelayedLoop fl hooks env fuel rs
 
-def processDelayed (hooks : NearCfg) (env : Env) (fuel : Nat) (rs : RS) : M RS := do
-  scheduleDelayed env rs
-  processDelayedLoop hooks env fuel rs
+def processDelayed (fl : Flags) (hooks : NearCfg) (env : Env) (fuel : Nat) (rs : RS) : M RS := do
+  scheduleDelayed fl.globalActions env rs
+  processDelayedLoop fl hooks env fuel rs
 
-def processIncoming (hooks : NearCfg) (env : Env) (rs : RS) (incoming : List Rcpt) : M RS := do
-  let decode ← pipeDecode
+def processIncoming (fl : Flags) (hooks : NearCfg) (env : Env) (rs : RS) (incoming : List Rcpt) : M RS := do
+  let decode ← pipeDecode fl.globalActions
   modifyPipe (Pipeline.startList decode rs.o · incoming)
   incoming.foldlM (fun rs r => do
     if !validReceipt false r then throw (panicked "ReceiptValidationError on an incoming receipt")
     if rs.compute ≥ env.ctx.gasLimit || (← softExceeded) then logged (delayPushL rs r)
     else
       modifyPipe (Pipeline.stepList decode rs.o)
-      processWithInstant hooks env rs r) rs
+      processWithInstant fl hooks env rs r) rs
 
 /-- `resolve_promise_yield_timeouts` (`lib.rs:2986-3088`); returns the state and the final
 `first_index`. -/
-def yieldLoop (env : Env) (next : Nat) : Nat → RS × Nat × Nat → M (RS × Nat)
+def yieldLoop (ga : Bool) (env : Env) (next : Nat) : Nat → RS × Nat × Nat → M (RS × Nat)
   | 0, (rs, i, _) => pure (rs, i)
   | fuel + 1, (rs, i, k) => do
     if i ≥ next then return (rs, i)
@@ -724,14 +731,14 @@ def yieldLoop (env : Env) (next : Nat) : Nat → RS × Nat × Nat → M (RS × N
     if exp > env.ctx.height then return (rs, i)
     let (rs, k) ← if ← containsR rs.o (kYieldReceipt acct d) "promise yield receipt" then do
         let rid := receiptIdFrom d env.ctx.height k
-        let rs ← forwardOrBufferR env rs ⟨acct, acct, rid, .data true d none⟩
+        let rs ← forwardOrBufferR ga env rs ⟨acct, acct, rid, .data true d none⟩
         pure (rs, k + 1)
       else pure (rs, k)
     let rs := { rs with o := rs.o.remove (kYieldTimeout i) }
-    yieldLoop env next fuel (rs, i + 1, k)
+    yieldLoop ga env next fuel (rs, i + 1, k)
 
 /-- Bandwidth scheduler through the overlay (`run_bandwidth_scheduler`, D0's `schedStep`). -/
-def applyNewChunkD2 (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
+def applyNewChunkD2 (fl : Flags) (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
     (vu : Option ValidatorUpdateFacts) (lastProps : List (Bytes × Nat))
     (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (ownCong : Congestion) :
     M MainOutD2 := do
@@ -762,17 +769,17 @@ def applyNewChunkD2 (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
   let rs : RS := { o, limits, outgoing := [], bufIdx, metas, cong := ownCong, dq := ⟨df, dn, 0, 0, 0, 0⟩,
                    outcomes := [], gas := 0, compute := 0, txBurnt := 0, otherBurnt := 0,
                    proposals := [], instant := [], locals := [] }
-  let rs ← forwardFromBufferR env rs
+  let rs ← forwardFromBufferR fl.globalActions env rs
   -- 5. transactions
   let (rs, _) ← txs.foldlM (processTxR env) (rs, [])
   -- 6. receipts: local, delayed, incoming
   let locals := rs.locals
-  let rs ← processLocals hooks env { rs with locals := [] } locals
-  let rs ← processDelayed hooks env (rs.dq.next - rs.dq.first + 1) rs
-  let rs ← processIncoming hooks env rs incoming
+  let rs ← processLocals fl hooks env { rs with locals := [] } locals
+  let rs ← processDelayed fl hooks env (rs.dq.next - rs.dq.first + 1) rs
+  let rs ← processIncoming fl hooks env rs incoming
   -- yield timeouts
   let (yf, yn) ← getIndicesR rs.o kYieldIdx "PromiseYieldIndices"
-  let (rs, yf') ← yieldLoop env yn (yn - yf + 1) (rs, yf, 0)
+  let (rs, yf') ← yieldLoop fl.globalActions env yn (yn - yf + 1) (rs, yf, 0)
   -- 7. validate_apply_state_update
   let rs := if yf' != yf then { rs with o := rs.o.set kYieldIdx (encIndices yf' yn) } else rs
   let cong ← liftE (applyDelayedCongestion rs.dq rs.cong)
@@ -800,7 +807,7 @@ def run (cfg : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
     (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (congestion : Congestion)
     (globalActions : Bool := false) (codePolicy : CodeWitnessPolicy := .coldPartial) :
     Except String MainOutD2 :=
-  ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion).run
-    { globalActions, codePolicy, observe := cfg.observeDetail } env).map Prod.fst
+  ((applyNewChunkD2 { globalActions, codePolicy } cfg prims env t vu props incoming txs congestion).run
+    { observe := cfg.observeDetail } env).map Prod.fst
 
 end NearSpecV3.Successor.StorageExecution
