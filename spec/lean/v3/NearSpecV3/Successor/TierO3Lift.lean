@@ -500,4 +500,88 @@ theorem drvRel_of_lower (d : ExecutionDriver) (w : NearCfg) (hg : w.globalAction
 
 #print axioms drvRel_of_lower
 
+/-! ## Configuration and tier level -/
+
+/-- The shells, for a lower driver with the recorder driver's five fields and the upper driver with
+the global-action recorder driver's. -/
+theorem shells_o3 (dL dU : ExecutionDriver) (w : NearCfg) (pol : CodeWitnessPolicy)
+    (H : DrvRel dL (recorderDriver { w with globalActions := true } true pol).apply
+      (recorderDriver { w with globalActions := true } true pol).decodeWitness
+      (recorderDriver { w with globalActions := true } true pol).receiptShard
+      (recorderDriver { w with globalActions := true } true pol).validateRouting
+      (recorderDriver { w with globalActions := true } true pol).outgoingRoot)
+    (hd : dU = upD dL (recorderDriver { w with globalActions := true } true pol).apply
+      (recorderDriver { w with globalActions := true } true pol).decodeWitness
+      (recorderDriver { w with globalActions := true } true pol).receiptShard
+      (recorderDriver { w with globalActions := true } true pol).validateRouting
+      (recorderDriver { w with globalActions := true } true pol).outgoingRoot)
+    (h h' : ActionHooks) (a : Bool) (c wb : Bytes) (g : Option Nat) (hLay : LayoutsWF c) :
+    Refines (checkD2CoreGWith dL h a c wb g) (checkD2CoreGWith dU h' a c wb g) ∧
+    Refines (checkD2CoreWith dL h a c wb g) (checkD2CoreWith dU h' a c wb g) ∧
+    Refines (checkReshardCore dL h a c wb g) (checkReshardCore dU h' a c wb g) := by
+  subst hd
+  exact ⟨checkD2CoreGWith_o3 _ _ _ _ _ _ H h h' a c wb g hLay, checkD2CoreWith_o3 _ _ _ _ _ _ H h h' a c wb g hLay,
+    checkReshardCore_o3 _ _ _ _ _ _ H h h' a c wb g hLay⟩
+
+/-- **O3, configuration level.** On every whole-state configuration (storage resolution, complete
+code or resharding set) with global actions off, switching them on refines the checker on every
+claim whose shard layouts are well formed. -/
+theorem Lift.globalActions_wf (cfg : ProtocolCfg) (hga : cfg.globalActions = false)
+    (hw : (cfg.storageResolution || cfg.completeCodeWitness || cfg.resharding) = true) (c wb : Bytes)
+    (hLay : LayoutsWF c) :
+    Refines (checkSuccessor cfg c wb) (checkSuccessor { cfg with globalActions := true } c wb) := by
+  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu, od, rh⟩ := cfg
+  simp only at hga hw
+  subst hga
+  have h1 : (sr || false || cc || rs) = true := by
+    cases sr <;> cases cc <;> cases rs <;> simp_all
+  have h2 : (sr || true || cc || rs) = true := by simp
+  let W := ProtocolCfg.wasm ⟨pv, fl, gc, gen, ll, sr, false, cc, ch, rs, seg, wu, lu, od, rh⟩
+  let P : CodeWitnessPolicy := if cc then .complete else .coldPartial
+  unfold checkSuccessor
+  dsimp only
+  split
+  · simp only [h1, h2, ite_true]
+    cases rs
+    · simp only [Bool.false_and, Bool.false_eq_true, ite_false]
+      refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+      · exact (shells_o3 _ _ W P (drvRel_of_lower _ W rfl P (by rfl) (by rfl) (by rfl) (by rfl) (by rfl)) (by rfl) _ _ _ _ _ _ hLay).1
+      · exact (shells_o3 _ _ W P (drvRel_of_lower _ W rfl P (by rfl) (by rfl) (by rfl) (by rfl) (by rfl)) (by rfl) _ _ _ _ _ _ hLay).2.1
+    · simp only [Bool.true_and, ite_true]
+      refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+      · exact (shells_o3 _ _ W P (drvRel_of_lower _ W rfl P (by rfl) (by rfl) (by rfl) (by rfl) (by rfl)) (by rfl) _ _ _ _ _ _ hLay).2.2
+      · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
+        · exact (shells_o3 _ _ W P (drvRel_of_lower _ W rfl P (by rfl) (by rfl) (by rfl) (by rfl) (by rfl)) (by rfl) _ _ _ _ _ _ hLay).1
+        · exact (shells_o3 _ _ W P (drvRel_of_lower _ W rfl P (by rfl) (by rfl) (by rfl) (by rfl) (by rfl)) (by rfl) _ _ _ _ _ _ hLay).2.1
+  · exact Refines.refl _
+
+/-- **O3, `.storageResolution ⊑ .globalActions`**, on claims whose shard layouts are well formed. -/
+theorem relSuccessor_storageResolution_globalActions_wf (c w : Bytes) (hLay : LayoutsWF c) :
+    Refines (Tier.checker .storageResolution c w) (Tier.checker .globalActions c w) :=
+  Lift.globalActions_wf (Tier.cfg .storageResolution) rfl rfl c w hLay
+
+/-- **O3, the resharding configuration** (the `hGA` premise of `relSuccessor_resharding_allFeatures_of`,
+on claims whose shard layouts are well formed). -/
+theorem lift_resharding_globalActions_wf (c w : Bytes) (hLay : LayoutsWF c) :
+    Refines (checkSuccessor (Tier.cfg .resharding) c w)
+      (checkSuccessor { Tier.cfg .resharding with globalActions := true } c w) :=
+  Lift.globalActions_wf (Tier.cfg .resharding) rfl rfl c w hLay
+
+/-- `.resharding ⊑ .allFeatures`, on claims whose shard layouts are well formed. -/
+theorem relSuccessor_resharding_allFeatures_wf (c w : Bytes) (hLay : LayoutsWF c) :
+    Refines (Tier.checker .resharding c w) (Tier.checker .allFeatures c w) :=
+  (lift_resharding_globalActions_wf c w hLay).trans (Lift.gateB _ rfl c w)
+
+/-- **`.curveHosts ⊑ .allFeatures` at verdict level, under the layout hypothesis only**
+(`relSuccessor_curveHosts_allFeatures_of` with `resharding_vlift_curveHosts` and the O3 lift). -/
+theorem relSuccessor_curveHosts_allFeatures_wf (c w : Bytes) (hLay : LayoutsWF c) :
+    VRefines (Tier.checker .curveHosts c w) (Tier.checker .allFeatures c w) :=
+  ((resharding_vlift_curveHosts c w).trans (lift_resharding_globalActions_wf c w hLay).toV).trans
+    ((Lift.gateB _ rfl).toV c w)
+
+#print axioms Lift.globalActions_wf
+#print axioms relSuccessor_storageResolution_globalActions_wf
+#print axioms relSuccessor_resharding_allFeatures_wf
+#print axioms relSuccessor_curveHosts_allFeatures_wf
+
 end NearSpecV3.Successor
