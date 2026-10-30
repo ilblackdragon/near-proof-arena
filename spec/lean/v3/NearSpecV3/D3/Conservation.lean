@@ -220,6 +220,21 @@ def txReceipt (tf : TxD2 × Bool) (rid : Bytes) (gp : Nat) : Rcpt :=
   ⟨tf.1.signer, tf.1.receiver, rid,
    .action false ⟨false, tf.1.signer, none, tf.1.pk, gp, [], [], tf.1.actions⟩⟩
 
+/-- A system receipt carries no gas price. The runtime builds every system receipt with
+`gasPrice = 0` (`D2/Receipts.lean:93,97`, `D2/Actions.lean:236-239`) and never refunds or burns a
+system receipt's gas, so one with `gasPrice > 0` would hand unpaid gas to the receipts it spawns. -/
+def SysGasFree (r : Rcpt) : Prop :=
+  r.pred = AccountId.system → ∀ (y : Bool) (a : ActionR), r.body = .action y a → a.gasPrice = 0
+
+/-- The receipts at rest in a trie, decoded as `entryNear` decodes them (postponed / yield at
+`[6]`/`[12]`, delayed / buffered at `[7]`/`[14]`). -/
+def storedRcpts (t : PTrie) : List Rcpt :=
+  (revealedT t []).filterMap fun (n, v) =>
+    match packNibbles n with
+    | 6 :: _ :: _ | 12 :: _ :: _ => match decodeRcpt v with | .ok r => some r | .error _ => none
+    | 7 :: _ :: _ | 14 :: _ :: _ => match decodeStored v with | .ok s => some s.r | .error _ => none
+    | _ => none
+
 /-! ## The statements -/
 
 /-- **A D3 chunk changes the NEAR it holds only by the epoch reward and the burnt amount.**
@@ -251,6 +266,14 @@ receipt with `gasPrice = 0` makes the gas for minting value-free in the measure,
 `subsidized ≤ burnt` guard does not bound the total. Without it an account could in principle be
 credited up to the `u128Max` V2 marker. Found by the deepseek-fv lead.
 
+The two `system` hypotheses exclude what only a forged input can contain. No revealed account
+`system`: the runtime cannot create one (`actCreateAccount` rejects it, it is not implicit, and
+`stateInit` is out of D3's domain), so no function call ever runs *at* `system` — a contract there
+would emit receipts with predecessor `system`, whose gas the runtime treats as free. And no input
+system receipt (incoming, or at rest in the trie) carries a gas price, for the same reason; the
+receipts the chunk itself creates are system receipts only as refunds, with `gasPrice = 0`. Found
+by the deepseek-fv lead, with a kernel-evaluated WASM run.
+
 The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
 `ChunkValidationD2.lean:213`); the second is the chunk producer's invariant and is not checked by
@@ -262,6 +285,8 @@ def ChunkConservation : Prop :=
     (ownCong : Congestion) (out : MainOutD2) (o : Ovl),
     t.wf = true →
     env.ctx.gasLimit < 2 ^ 64 →
+    (∀ v, t.find (nibbles (kAccount AccountId.system)) ≠ some (some v)) →
+    (∀ r ∈ incoming ++ storedRcpts t, SysGasFree r) →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
     (∀ r ∈ incoming, CanonRcpt r) →
