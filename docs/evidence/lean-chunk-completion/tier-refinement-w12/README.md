@@ -28,7 +28,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
 | O3 | global actions | open. Proved (§7, §9): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target. Open: stored-receipt decoder agreement, the engine walk with `ga` differing (needs a state relation on the pipeline, §8), driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
-| O4 | storage resolution | open | — |
+| O4 | storage resolution | **proved at shell and tier level given the engine agreement** (2026-10-30, §10), after a legacy-side fix (26 nearcore-valid chunks the narrower legacy tiers rejected); the engine agreement `EngineAgree` is open (phases E0, E1 proved) | `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreGWith_legacy_recorder`, `checkD2CoreG_ok_bound`, `engineAgree_of_logged`, `logged_run` (`TierO4.lean`) |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §8): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
 | O7 | complete-code witness | **proved at chunk level** (2026-10-30, §6): on every whole-state configuration the complete-code flag moves no verdict, in either direction | `Lift.completeCode`, `relSuccessor_completeCodeGlobal_globalActions`, `relSuccessor_globalActions_completeCodeGlobal` (`TierO7.lean`) |
@@ -191,7 +191,7 @@ obligations need more:
 * **O4 (storage resolution)** needs an agreement theorem between two engines (`applyNewChunkD2` and
   `StorageExecution.run`).
 * **O6 (resharding, non-genesis)** needs a verdict-level correspondence proof between two
-  differently structured shells. (Done 2026-10-30, §7.)
+  differently structured shells. (Done 2026-10-30, §8.)
 * **O7 at chunk level** needs:
   * W08's code-resolution policy, which W08 owns;
   * an accept-preservation walk with states that differ in `Recording.codePolicy`. Its resolve-level
@@ -286,7 +286,7 @@ whose environment satisfies `P`; every walk lemma carries `P env`. O1 (`Lift.flo
 * **O2 (curve hosts).** The same per-arm generator over `St.curveHosts` plus the
   `successorDispatch_extends` host-table step. The `CR` lemmas exist for four gas helpers only.
 * **O4 (storage resolution)**: engine agreement `applyNewChunkD2` vs `StorageExecution.run`.
-  Not started.
+  (2026-10-30, third session: shell and tier level proved given the engine agreement; see §10.)
 * **O6 (resharding, non-genesis)**: verdict-level correspondence `checkD2CoreWith` vs
   `checkReshardCore`. (Done 2026-10-30, §7.)
 
@@ -640,3 +640,147 @@ rewrites each bind by `bind_of_ok`.
    engine's `env.ctx.layout` (as O7 carried store authentication, `ApplyRefineA`).
 
 No refinement was found false on a real chunk; no nearcore replay was needed.
+
+## 10. Update 2026-10-30 (third session): O4, storage resolution
+
+Lean: `spec/lean/v3/NearSpecV3/Successor/TierO4.lean` (default target). Fix:
+`Successor/Config.lean` (`withStorageExclusion`). Replay evidence: `o4-replay/`. Axioms of the new
+theorems: `o4-replay/axioms.txt` (only `propext`, `Classical.choice`, `Quot.sound`; no `sorry`).
+
+### The statement
+
+`.runtimeLimits` and `.storageResolution` differ only in `storageResolution`, which switches the
+shell's driver from `legacyDriver` to `recorderDriver cfg`. The driver change touches four places:
+
+| phase | legacy driver | recorder driver |
+|---|---|---|
+| decode | `decodeWitnessFile` | `decodeWitnessFileV` (also the `near-arena-cwitness-v3` format) |
+| decode | — | `w.code_response_size` exclusion (code > 64 MiB) |
+| apply transactions and receipts | `applyNewChunkD2 (d3Hooks cfg)` | `StorageExecution.run cfg … false .coldPartial` |
+| outputs | `w.size` exclusion `base + 2000 · removals ≤ 4,000,000`, after the main transition | none |
+
+* `O4Witness w`: the witness file is in the original format (`isCWitnessFile w = false`; the legacy
+  driver rejects a compressed-format file with `decode: wrong witness format`, the recorder decodes
+  it) and its codes fit one `ContractCodeResponse` (the recorder excludes the others first; the
+  legacy driver excludes them only after the main transition, so an earlier legacy reject would not
+  be preserved). Both are conditions on the witness file alone.
+* `EngineRef base x y`: a legacy main-transition reject on a witness within the legacy storage
+  bound (`base ≤ 4,000,000`) is a recorder reject with the same string; a legacy output inside the
+  legacy size bound is the recorder's output.
+* `EngineAgree cfg`: `EngineRef` on every main-transition input the shells build (store
+  `mkHStore merged`, trie the revealed pre-state).
+
+### Proved
+
+| theorem | statement |
+|---|---|
+| `checkD2CoreWithObs_legacy_recorder`, `checkD2CoreGWith_legacy_recorder` | shell level: `EngineAgree cfg → O4Witness w → legacyMergedBytes w ≤ 4,000,000 → Refines (legacy shell) (recorder shell)`; the decode, code-response and size phases are walked (`o4_lockstep`, `Refines.engine_bind`) |
+| `checkD2CoreG_ok_bound` | the legacy genesis-capable shell accepts only when `legacyMergedBytes w ≤ 4,000,000` (`NoAcc` walk) |
+| **`relSuccessor_runtimeLimits_storageResolution_of`** | `EngineAgree → O4Witness w → Refines (Tier.checker .runtimeLimits c w) (Tier.checker .storageResolution c w)`; no size premise (above the bound the left is an exclusion) |
+| `verdict_runtimeLimits_storageResolution_of` | the verdict-level reading |
+| `applyNewChunkD2_eq_logged`, `engineAgree_of_logged` | engine phase E0: the legacy engine on the shell's inputs is its logged mirror `applyNewChunkD2L (d3HooksL cfg)` (`R_applyNewChunkD2`, `HooksR_d3`, `HInv_mkHStore`), so `EngineAgree` reduces to `EngineAgreeL` (stated against the mirror) |
+| `logged_run` | engine phase E1: `StorageExecution.logged x` returns `LM.ev e.store e.preRoot x` and only updates the recorder |
+| `SimE`, `SimE.bind`, `SimE.pure`, `SimE.logged`, `SimE.modify`, `SimE.ite`, `SimE.foldlM`, `engineAgreeL_of_simE` | the engine simulation (mirror `LM α` vs recorder `M β`, value map `φ`, recorder invariant `P`), its rules, and the bridge: a simulation of the whole main transition gives `EngineAgreeL` |
+
+### Counterexample on real chunks, and the fix (legacy side)
+
+Checked against data before proving (`o4-replay/`): `.runtimeLimits ⊑ .storageResolution` held on the
+577 fixtures and the 3,138 census (0 violations), but **failed on 26 of the 88 committed
+`storage-limit-fixtures` cases**, all nearcore `ok` (pinned cold validator, `meta.json`):
+`.runtimeLimits` (and every narrower legacy tier) rejected with `invalid: MissingTrieValue …` or
+`invalid: StorageInconsistentState(MissingTrieValue)`; `.storageResolution` accepted. Cause: the
+legacy pipeline runs the receipts that nearcore postpones at `main_storage_proof_size_soft_limit`,
+and their values are legitimately absent from the witness. The signed statement already decides
+those errors with the recorder engine (UQ-010 hand-over, `D3/Signed.lean`, same condition); the
+narrower legacy tiers did not, although `Config.lean` documented that they "keep the exclusions".
+
+Fix (pre-approved: the signed statement of record is unchanged, `checkSuccessor_signed` is still
+`rfl`, `make pin-check` ok): `checkSuccessor`'s two non-hand-over legacy branches wrap the legacy
+result in `withStorageExclusion`, which reports a legacy **reject** on a witness with
+`legacyMergedBytes w > 4,000,000` as `out of domain (w.size): storage-proof upper bound may exceed
+main_storage_proof_size_soft_limit` (the legacy shell's own `w.size` message). Accepts and
+exclusions are unchanged (`withStorageExclusion_cases`); above the bound the legacy shell never
+accepts (`checkD2CoreG_ok_bound`). Affected tiers: `.floats`, `.protoGas`, `.floatsProtoGas`,
+`.genesis`, `.genesisFloatsProtoGas`, `.runtimeLimits`. Follow-on edits (no other semantics): the
+named pairs stated on `D3.checkD3Core` are restated on `checkSuccessor signedCfg`
+(= `withStorageExclusion (checkD3Core c w) w`, `checkSuccessor_signedCore`); `Refines.storage`
+(congruence) closes the legacy leaves of `checkSuccessor_gas_mono`, `checkSuccessor_genesis_mono`,
+`Lift.floats_legacy` and `Lift.floats`; `FloatOverlap.checkD3F_refines_checkD3` is proved from the
+hook refinement directly. Cost: legacy rejects of structurally broken mutants above the bound become
+exclusions too (24 of the 88 committed cases); `.storageResolution` and the signed statement still
+reject them.
+
+### Before/after (checker `54b8a117…` → `2347323d…`, per case verdict and reason)
+
+`o4-replay/summary.json`, per-case rows `o4-replay/*.results.jsonl.gz`. "Before" is the fix
+reverted, so it is also the breakage control: it reproduces every violation below.
+
+| population | tier | cases | identical | changed | verdicts after (accept / reject / ood) |
+|---|---|---|---|---|---|
+| 577 fixtures | signed, floats, protoGas, floatsProtoGas, genesis, genesisFloatsProtoGas, runtimeLimits, storageResolution | 577 each | 577 each | 0 | e.g. runtimeLimits 153 / 141 / 283; signed 143 / 166 / 268 |
+| 88 committed storage-limit fixtures | signed | 88 | 88 | 0 | 56 / 24 / 8 |
+| 88 committed storage-limit fixtures | storageResolution | 88 | 88 | 0 | 64 / 24 / 0 |
+| 88 committed storage-limit fixtures | floats, protoGas, floatsProtoGas, genesis, genesisFloatsProtoGas, runtimeLimits | 88 each | 38 each | 50 reject → ood (26 nearcore-valid, 24 mutants) | runtimeLimits 20 / 0 / 68 |
+| 2,700 honest storage-limit chunks (s99, s101; all nearcore `ok`) | runtimeLimits | 2,700 | 2,656 | 44 reject → ood | 2,570 / 0 / 130 |
+| 3,138 gap census | signed | 3,138 | 3,138 | 0 | 735 / 0 / 2,403 |
+| 3,138 gap census | runtimeLimits | 3,138 | 3,138 | 0 | 1,858 / 0 / 1,280 |
+
+The O4 pair after the fix (`runtimeLimits` decides ⇒ `storageResolution` gives the same verdict and
+reason): fixtures 0 violations of 577; committed storage-limit fixtures 0 of 88 (before: 26);
+census 0 of 3,138. The family is the existing two-seed storage-limit family, not a new family;
+no other population moved.
+
+### What is open, and why
+
+`EngineAgree` (the recorder engine refines the legacy engine on the legacy domain) is not proved.
+After E0/E1 the remaining obligation is a simulation between `Logged.applyNewChunkD2L (d3HooksL cfg)`
+(`LM`, stateless) and `StorageExecution.applyNewChunkD2 {}` (`StateT Recording …`), phase by phase:
+validator update, delayed indices, scheduler and buffer metadata (all `logged` of the same mirrors,
+`logged_run`); `forwardFromBufferR` (V2: `forwardFromBufferL`; V3: `forwardFromBufferV3L`);
+transactions (`processTxR` = `logged processTxD2L` plus observation); local, delayed and incoming
+receipts (soft-limit checks, pipeline bookkeeping, `applyAction`: `ordinaryAction` =
+`logged (applyActionL d2HooksL)` on non-call actions, `functionCallRecorded` vs `functionCallL` on
+calls); yield timeouts; outputs. The state relation leaves the recorder state free except
+`recorder.size ≤ base + 2000 · cdRemovals(current overlay)` (to show `softExceeded` stays false);
+`cdRemovals` is monotone (`Ovl.remove` increments it, commit and rollback keep it).
+
+**As stated over every store, `EngineAgree` is false.** These shapes make the recorder exclude or
+diverge where the legacy engine decides. None occurs in the corpora, the 577 fixtures, the 3,138
+census or the storage-limit family. Each needs a premise, or a recorder-side fix; a recorder fix
+changes the engine the signed hand-over runs, so it is not pre-approved.
+
+| id | shape | legacy | recorder | real chunk? |
+|---|---|---|---|---|
+| G1 | ContractData removals alone push the recorded size past 4,000,000 before a legacy reject (`merged ≤ 4,000,000 < merged + 2000 · removals`), soft or per-receipt limit | decides (reject) | defers receipts / `RecordedStorageExceeded` | not seen; plausible on a large-deletion chunk |
+| G2 | a called contract fails the fuel certificate (`vmCall`) | runs it under `wasmFuel` | `out of domain (w.fuel_certificate)` | none measured (`fuel-sufficiency/`) |
+| G3 | the preparation pipeline is `uncertain` (a lookahead receipt calls a global-contract account, or a stored receipt or account does not decode) and a later call is served by a committed in-chunk deploy | serves it (`codeAvailable`) | `e.code_prep_race` (`Pipe.deterministic` is false whenever `uncertain`) | not seen; constructible (the uncertain receipt delayed by the gas limit, or failing before its call). Nearcore is deterministic there, so the recorder is over-conservative |
+| G4 | V3 layout, every forwarded buffer empty and `bufferedGas ≠ 0` | continues | `invalid: buffered receipts gas left …` | inconsistent pre-state only |
+| G5 | a non-ETH-implicit account whose local contract hash is a legacy magic hash | `MissingTrieValue` reject | redirects to the global wallet contract | unreachable (no deploy produces the magic hash) |
+
+The provable statement is `EngineAgree` restricted to inputs without G1–G5 (premises on the store
+or the recorder run), plus proofs that reachable states exclude G4 and G5. G3 is the shape most
+likely to move a verdict on a real chain. Its fix would make `uncertain` per task key, so an unknown
+receipt does not taint unrelated calls. That changes the recorder engine the signed hand-over runs,
+so the owner has to decide it.
+
+### Next steps
+
+1. `SimE` and its bind, pure, `logged`, `modify`, `ite` and `foldlM` rules exist. Add `forIn`/`match`
+   congruences and a lockstep tactic in the style of `TierFlagsEq` (`with_reducible` closers,
+   `sim_let`/`sim_walk_jp` for `applyActionReceipt`'s join points). The value map `φ` puts the
+   revealed pre-state trie into the mirror's overlays (the mirror starts from `Ovl.ofTrie dummyT`, the
+   recorder from `Ovl.ofTrie t`), as `Logged.R` does with `.wt (preT s root)`; each logged mirror
+   then needs its trie-independence lemma (`f (o.wt t) = (f o).map (·.wt t)`, the `Logged.Lockstep`
+   `*_congr`/`foldl_*_wt` family). The soft-limit
+   argument needs the current overlay's `cdRemovals`, which lives in the values, not in `Recording`:
+   either make `P` a relation on (state, value) pairs, or take G1 as a premise (`softExceeded`
+   never true on the run).
+2. Phases 1–5 of `applyNewChunkD2` (all `logged`; `forwardFromBufferR` on V2 layouts is
+   `forwardFromBufferL`; on V3 layouts relate `forwardFromBufferV3L` or use the legacy
+   `c.same_layout` exclusion).
+3. `functionCallRecorded` vs `functionCallL` under the G2, G3 and G5 premises: `resolveCode` on
+   `.local` hashes, and `resolveColdCode` vs `codeAvailable` plus the legacy pre-state probe (whose
+   deploy-served branch is an exclusion).
+4. The recorder-size invariant through the VM's `RealStore` recording (G1), or keep G1 as a premise.
+5. Compose into `EngineAgreeL` under the premises; `relSuccessor_runtimeLimits_storageResolution_of`
+   then holds under them.

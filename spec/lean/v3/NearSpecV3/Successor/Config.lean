@@ -126,7 +126,8 @@ structure ProtocolCfg where
   /-- UQ-010 (2026-10-29): outside the legacy pipeline's two preconditions (one shard layout and no
   split check; storage-proof limits never reached), decide a legacy error with the recorder engine at
   this configuration's Wasm configuration and no per-chunk gas cap (`withReshardHandover`, `D3/Signed.lean`). Only the signed
-  statement of record sets it (`signedRecordCfg`); the narrower legacy tiers keep the exclusions,
+  statement of record sets it (`signedRecordCfg`); the narrower legacy tiers keep the exclusions
+  (an error above the storage bound is reported as the `w.size` exclusion, `withStorageExclusion`),
   and the whole-state tiers never take the legacy branch. -/
   reshardHandover : Bool := false
 
@@ -211,6 +212,30 @@ def unsupportedPvError (pv : Nat) : String :=
   "out of domain (c.pv86): successor configuration assumes protocol version " ++ toString pv ++
   ", only 86 is implemented"
 
+/-- The legacy pipeline's storage-proof exclusion (`legacyDriver.sizeOk`'s message). -/
+def legacyStorageExclusion : String :=
+  "out of domain (w.size): storage-proof upper bound may exceed main_storage_proof_size_soft_limit"
+
+/-- **The narrower legacy tiers' storage-proof precondition** (W12 O4, 2026-10-30). The legacy
+pipeline runs every receipt and reveals the whole recorded trie, which is nearcore's behaviour only
+while the storage-proof limits are not reached; it asserts that with its `w.size` bound, but only
+after the main transition. On a witness whose values and code exceed 4,000,000 bytes the legacy
+core can never accept (that check is necessary for acceptance), and an earlier error is premature:
+nearcore postpones receipts there, so the witness legitimately lacks values the legacy pipeline
+reads, and the legacy core rejected valid chunks with `MissingTrieValue` (the nearcore-valid
+`storage-limit-fixtures` cases). The signed statement of record decides such an error with the
+recorder engine (`withReshardHandover`, the same condition `legacyStorageBound <
+legacyMergedBytes`); the narrower legacy tiers keep it an exclusion, as their documented design
+says. Accepts and exclusions are unchanged; only a reject above the bound becomes the `w.size`
+exclusion. -/
+def withStorageExclusion (r : Except String Unit) (witnessBytes : Bytes) : Except String Unit :=
+  match r with
+  | .ok u => .ok u
+  | .error e =>
+    if !isExclusion e && decide (legacyStorageBound < legacyMergedBytes witnessBytes) then
+      .error legacyStorageExclusion
+    else .error e
+
 /-- **The single semantic root.** One dispatcher over the explicit protocol configuration. Every
 tier's checker is this function at that tier's configuration; there is no second dispatch path. -/
 def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Except String Unit :=
@@ -239,13 +264,15 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
           (checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
           claimBytes witnessBytes
       else
-        checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+        withStorageExclusion
+          (checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap) witnessBytes
     else if cfg.reshardHandover then
       withReshardHandover cfg.wasm
         (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
         claimBytes witnessBytes
     else
-      checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+      withStorageExclusion
+        (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap) witnessBytes
   | _ => .error (unsupportedPvError cfg.protocolVersion)
 
 /-- The whole-state driver `checkSuccessor` builds for a wide configuration. -/
@@ -294,9 +321,28 @@ def acceptsSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Boo
 about a reimplementation, but the same term. -/
 theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedRecordCfg c w = D3.checkD3 c w := rfl
 
-/-- At `signedCfg` (no hand-over) the root is the legacy core `D3.checkD3Core`. -/
+/-- At `signedCfg` (no hand-over) the root is the legacy core `D3.checkD3Core`, with an error above
+the storage bound reported as the `w.size` exclusion. -/
 theorem checkSuccessor_signedCore (c w : Bytes) :
-    checkSuccessor signedCfg c w = D3.checkD3Core c w := rfl
+    checkSuccessor signedCfg c w = withStorageExclusion (D3.checkD3Core c w) w := rfl
+
+/-- The storage exclusion keeps every accept. -/
+theorem withStorageExclusion_ok (w : Bytes) : withStorageExclusion (.ok ()) w = .ok () := rfl
+
+/-- The storage exclusion changes a result only by replacing a reject with the `w.size` exclusion,
+and only when the witness's values and code exceed the legacy storage bound. -/
+theorem withStorageExclusion_cases (r : Except String Unit) (w : Bytes) :
+    withStorageExclusion r w = r ∨
+      ∃ e, r = .error e ∧ isExclusion e = false ∧ legacyStorageBound < legacyMergedBytes w ∧
+        withStorageExclusion r w = .error legacyStorageExclusion := by
+  cases r with
+  | ok u => exact .inl rfl
+  | error e =>
+    cases he : isExclusion e <;> by_cases hb : legacyStorageBound < legacyMergedBytes w
+    · exact .inr ⟨e, rfl, he, hb, by simp [withStorageExclusion, he, hb]⟩
+    · exact .inl (by simp [withStorageExclusion, he, hb])
+    · exact .inl (by simp [withStorageExclusion, he])
+    · exact .inl (by simp [withStorageExclusion, he])
 
 /-- Consequently the signed relation is preserved definitionally. -/
 theorem relSuccessor_signed_iff (c w : Bytes) : RelSuccessor signedRecordCfg c w ↔ D3.RelD3 c w := Iff.rfl
@@ -495,26 +541,27 @@ def Tier.rank : Tier → Nat
 
 /-! ## The adapters, at their tiers
 
-Each theorem below is `rfl`: the tier's checker is the existing adapter term. That is the contract
+Each theorem below is `rfl`: the tier's checker is the existing adapter term (for the narrower
+legacy tiers, wrapped in the storage-proof precondition `withStorageExclusion`). That is the contract
 W02–W11 rely on when they say "the successor is the same checker with a different configuration". -/
 
 theorem tier_signed_eq_checkD3 (c w : Bytes) :
     Tier.checker .signed c w = D3.checkD3 c w := rfl
 
 theorem tier_floats_eq_checkD3F (c w : Bytes) :
-    Tier.checker .floats c w = checkD3F c w := rfl
+    Tier.checker .floats c w = withStorageExclusion (checkD3F c w) w := rfl
 
 theorem tier_protoGas_eq_checkD3Proto (c w : Bytes) :
-    Tier.checker .protoGas c w = checkD3Proto c w := rfl
+    Tier.checker .protoGas c w = withStorageExclusion (checkD3Proto c w) w := rfl
 
 theorem tier_floatsProtoGas_eq_checkD3ProtoFloat (c w : Bytes) :
-    Tier.checker .floatsProtoGas c w = checkD3ProtoFloat c w := rfl
+    Tier.checker .floatsProtoGas c w = withStorageExclusion (checkD3ProtoFloat c w) w := rfl
 
 theorem tier_genesis_eq_checkD3G (c w : Bytes) :
-    Tier.checker .genesis c w = checkD3G c w := rfl
+    Tier.checker .genesis c w = withStorageExclusion (checkD3G c w) w := rfl
 
 theorem tier_genesisFloatsProtoGas_eq (c w : Bytes) :
-    Tier.checker .genesisFloatsProtoGas c w = checkD3GProtoFloat c w := rfl
+    Tier.checker .genesisFloatsProtoGas c w = withStorageExclusion (checkD3GProtoFloat c w) w := rfl
 
 /-- The signed tier's checker is literally `checkD3`, so a successor tier list cannot drift from the
 signed entry point without breaking this named theorem. -/
