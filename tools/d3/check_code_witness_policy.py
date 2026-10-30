@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Check complete-code witness policy without relabeling raw nearcore mutant outcomes.
+"""Check the complete-code witness policy against raw cold nearcore, without relabeling it.
 
 Each pair contains an independently nearcore-accepted complete witness and a code-only mutant.
 Normalization restores the source registry's hash-verified code vector and must reproduce the
-original accepted witness byte-for-byte. Incomplete mutant `expected_rel` is retained as a separate
-raw-oracle observation, never reused as the complete-witness policy expectation.
+original accepted witness byte-for-byte. Complete and restored witnesses must accept. Since
+2026-10-29 the incomplete mutant must reproduce its own raw cold nearcore verdict (`expected_rel`),
+or be the named preparation-race exclusion; before, the policy rejected every incomplete witness
+with `w.code_complete`, including the ones nearcore deterministically accepts.
 """
 import argparse
 import hashlib
@@ -18,6 +20,7 @@ from replay_successor import REPO, run_batch, sha256
 
 TAG = b"near-arena-witness-v3"
 POLICY_PREFIX = "invalid witness (w.code_complete):"
+RACE_PREFIX = "out of domain (e.code_prep_race):"
 
 
 def decode_envelope(data):
@@ -120,7 +123,7 @@ def prepare_pair(pair, base, out):
                 "incomplete_reason": mutant.get("nearcore"),
                 "incomplete_verdict_source": mutant.get("verdict_source")},
             "normalized_provenance": "byte-identical to independently nearcore-accepted complete witness",
-            "policy_expectations": {"complete": "claim_accept", "incomplete": "witness_policy_failure",
+            "policy_expectations": {"complete": "claim_accept", "incomplete": "raw_cold_nearcore_verdict",
                                     "normalized": "claim_accept"}}
 
 
@@ -129,8 +132,18 @@ def validate_rows(rows, pairs):
         for kind, case in pair["cases"].items():
             row = rows[case]
             if kind == "incomplete":
-                if row["verdict"] != "reject" or not row["reason"].startswith(POLICY_PREFIX):
-                    raise ValueError(f"{pair['name']}: expected explicit incomplete-witness failure, got {row}")
+                # Since 2026-10-29 the complete policy resolves a missing blob exactly as the cold
+                # validator does (an earlier in-chunk deploy serves it, or MissingTrieValue), so the
+                # incomplete witness must reproduce the raw cold verdict. The only other admitted
+                # result is the race exclusion (nearcore's own verdict is then timing-dependent).
+                raw_accept = pair["raw_nearcore"]["incomplete_expected_rel"]
+                verdict = row["verdict"]
+                race = verdict == "out_of_domain" and row["reason"].startswith(RACE_PREFIX)
+                if verdict == "accept" and not raw_accept:
+                    raise ValueError(f"{pair['name']}: accepted an incomplete witness nearcore rejects: {row}")
+                if verdict != ("accept" if raw_accept else "reject") and not race:
+                    raise ValueError(f"{pair['name']}: incomplete witness: nearcore "
+                                     f"{'accepts' if raw_accept else 'rejects'}, got {row}")
             elif row["verdict"] != "accept":
                 raise ValueError(f"{pair['name']}: complete source/normalized bytes did not accept: {row}")
 

@@ -3,7 +3,24 @@
 Nearcore pin: `44f7ae6cd7ef08bab604e20a473bf77e35d4c993` (PV86).
 Implementation: `Successor/CodeResolution.lean`. No signed checker is changed by this module.
 
-## The boundary
+## Revision 2026-10-29 (W08)
+
+The policy below (2026-10-24) rejected every call whose pre-state probe was `present`/`unknown` and
+whose bytes the witness lacked, even when an earlier in-chunk deploy serves the code
+deterministically. On the census STRAT population that rejected 178 nearcore-valid cases (8 more on
+the W08 population). Since the W08 preparation-pipeline model (`Successor/Pipeline.lean`) decides
+when such a deploy serves deterministically, that blanket rule was neither nearcore's behaviour nor
+needed for determinism. The `complete` policy is now the cold resolution (witness bytes, then the
+call's own receipt's deploys, then committed/rolled-back deploys when `timely`, else
+`MissingTrieValue`) with two differences: witness bytes are hash-checked explicitly, and a **race on a
+recorded access** (pre-state probe shows the contract key holds the called hash, which is exactly when
+nearcore's producer records the access and ships the code, `function_call.rs:355-393`) is rejected as
+an incomplete witness instead of excluded. Laws: `complete_eq_cold_of_timely`,
+`complete_ok_iff_cold_ok`, `complete_differs_only_on_recorded_race`. The steps below describe the
+superseded 2026-10-24 policy; the source audit (next sections) is unchanged. Evidence and the UQ-001
+disposition: [w08-warm-cache](../evidence/lean-chunk-completion/w08-warm-cache/README.md).
+
+## The boundary (2026-10-24, superseded)
 
 `CodeWitnessPolicy.coldPartial` retains the earlier successor's code-selection behavior and
 cache-dependent exclusion. `complete` is an explicitly different witness relation:
@@ -67,13 +84,15 @@ witness code to avoid timing-sensitive prepared failures.
 
 ## Checked properties and fixtures
 
-`CodeResolutionTests.lean` checks 18 directed cases: cold-partial preservation; raw witness closure;
-current/committed/failed same-code deployments; changed-code deployment; rollback; absent versus
-unrevealed pre-state probes; bad hash-indexed storage; and present hash references without code blobs.
-Theorem `complete_attempted_independent` is definitional: changing attempted deployment history never
-changes complete-policy selection. `complete_supplied` proves that authenticated supplied code always
-wins regardless of origin/history. Missing raw code at known pre-state or unknown origin is proved to
-produce the witness-policy error. These are implementation laws, not axioms assuming a cache answer.
+`CodeResolutionTests.lean` (revised 2026-10-29) checks 35 directed cases: cold-partial preservation;
+every deploy-served case (current, committed, rolled back) under both policies and every probe result;
+the recorded-access race reject; the unrecorded/unrevealed race exclusion; supplied code on every
+schedule; bad hash-indexed storage; `recorded` against nearcore's `record_contract_call` test; and the
+three probe results. Proved laws: `complete_supplied`, `complete_eq_cold_of_timely`,
+`complete_ok_iff_cold_ok`, `complete_differs_only_on_recorded_race` (only `propext`,
+`Classical.choice`, `Quot.sound`). The 2026-10-24 laws `complete_attempted_independent`,
+`complete_unknown_requires_witness` and `complete_prestate_requires_witness` described the superseded
+policy and were removed with it. These are implementation laws, not axioms assuming a cache answer.
 
 Integration validation must distinguish protocol outcomes from witness-policy failures. Required
 independent cases are same-account deploy/call, cross-account identical-code warming, failed deploy
@@ -90,8 +109,8 @@ with a claimed hash in the compiled cache. Raw witness completeness alone cannot
 poisoned nearcore cache coherent: a cache hit bypasses the supplied bytes. The successor integration
 explicitly excludes malformed current distributions with `out of domain (w.shape): global_code_identity`; historical cache identity
 is a separate environment/admission boundary. No theorem in this module establishes equality with
-arbitrary warmed or poisoned nearcore histories. `complete_attempted_independent` states only the
-exact implemented fact that the attempted-deployment list is not read by complete-policy selection.
+arbitrary *poisoned* nearcore histories; coherent warm caches are the subject of the UQ-001
+disposition in [w08-warm-cache](../evidence/lean-chunk-completion/w08-warm-cache/README.md).
 
 ## Integrated validation checkpoint — 2026-10-24
 
