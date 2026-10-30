@@ -12,11 +12,10 @@ the W08 population). Since the W08 preparation-pipeline model (`Successor/Pipeli
 when such a deploy serves deterministically, that blanket rule was neither nearcore's behaviour nor
 needed for determinism. The `complete` policy is now the cold resolution (witness bytes, then the
 call's own receipt's deploys, then committed/rolled-back deploys when `timely`, else
-`MissingTrieValue`) with two differences: witness bytes are hash-checked explicitly, and a **race on a
-recorded access** (pre-state probe shows the contract key holds the called hash, which is exactly when
-nearcore's producer records the access and ships the code, `function_call.rs:355-393`) is rejected as
-an incomplete witness instead of excluded. Laws: `complete_eq_cold_of_timely`,
-`complete_ok_iff_cold_ok`, `complete_differs_only_on_recorded_race`. The steps below describe the
+`MissingTrieValue`, a race being `out of domain (e.code_prep_race)`) with witness bytes hash-checked
+explicitly. Laws: `complete_eq_cold` (equal to the cold policy on authenticated bytes, every schedule)
+and `complete_unauthenticated`. A draft that rejected races on recorded accesses was dropped so that
+the race arm is the shared race exclusion. The steps below describe the
 superseded 2026-10-24 policy; the source audit (next sections) is unchanged. Evidence and the UQ-001
 disposition: [w08-warm-cache](../evidence/lean-chunk-completion/w08-warm-cache/README.md).
 
@@ -84,12 +83,11 @@ witness code to avoid timing-sensitive prepared failures.
 
 ## Checked properties and fixtures
 
-`CodeResolutionTests.lean` (revised 2026-10-29) checks 35 directed cases: cold-partial preservation;
+`CodeResolutionTests.lean` (revised 2026-10-29) checks 31 directed cases: cold-partial preservation;
 every deploy-served case (current, committed, rolled back) under both policies and every probe result;
-the recorded-access race reject; the unrecorded/unrevealed race exclusion; supplied code on every
-schedule; bad hash-indexed storage; `recorded` against nearcore's `record_contract_call` test; and the
-three probe results. Proved laws: `complete_supplied`, `complete_eq_cold_of_timely`,
-`complete_ok_iff_cold_ok`, `complete_differs_only_on_recorded_race` (only `propext`,
+the race exclusion under both policies for every probe result; supplied code on every
+schedule; bad hash-indexed storage; and the
+three probe results. Proved laws: `complete_supplied`, `complete_eq_cold`, `complete_unauthenticated` (only `propext`,
 `Classical.choice`, `Quot.sound`). The 2026-10-24 laws `complete_attempted_independent`,
 `complete_unknown_requires_witness` and `complete_prestate_requires_witness` described the superseded
 policy and were removed with it. These are implementation laws, not axioms assuming a cache answer.

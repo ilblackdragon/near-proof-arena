@@ -30,13 +30,11 @@ passed in as `timely`). A deploy in the call's own receipt blocks its receiver f
 Two policies:
 
 * `coldPartial` — the cold validator on exactly the given bytes; a race is out of domain.
-* `complete` — the same deterministic resolution, plus one authenticated witness rule: when the
-  call is a recorded contract access (`PrestateCode.recorded`: the pre-state probe, authenticated
-  by the pre-state root, shows the key holds the called hash) the canonical witness carries its
-  bytes, so a witness that omits them **and** whose verdict would then hinge on a race is rejected
-  as incomplete (`w.code_complete`) instead of excluded. Everywhere else the two policies give the
-  same result (`complete_eq_cold_of_timely`, `complete_ok_iff_cold_ok`,
-  `complete_differs_only_on_recorded_race`).
+* `complete` — the same resolution with witness bytes hash-checked explicitly, independently of how
+  the store was built. Until 2026-10-29 it instead demanded witness bytes for every pre-state or
+  unrevealed-origin call, rejecting deploy-served code nearcore executes deterministically (and it
+  served committed deploys without the race check). On authenticated witness bytes the two policies
+  now give the same result on every schedule (`complete_eq_cold`).
 
 Neither policy reads a validator-history cache. UQ-001 (what this means for the compiled-code
 cache) is dispositioned in `docs/evidence/lean-chunk-completion/w08-warm-cache/README.md`; the
@@ -48,7 +46,7 @@ open NearSpec NearSpecV3 NearSpecV3.D2
 inductive CodeWitnessPolicy where
   /-- nearcore's cold validator: in-chunk deploys serve missing code unless preparation raced. -/
   | coldPartial
-  /-- The cold validator, with a race on a recorded access decided by the canonical witness. -/
+  /-- The cold validator with witness bytes hash-checked explicitly. -/
   | complete
   deriving DecidableEq, Repr
 
@@ -75,14 +73,6 @@ def PrestateCode.hash? : PrestateCode → Option Bytes
   | .present h => some h
   | _ => none
 
-/-- nearcore's `record_contract_call` (`function_call.rs:355-393`): the call is a contract access,
-and its code is part of the canonical cold witness, exactly when the pre-state contract key holds
-the called hash. `unknown` (the witness does not reveal the path) is *not* evidence either way. -/
-def PrestateCode.recorded (pre : PrestateCode) (hash : Bytes) : Bool :=
-  match pre with
-  | .present h => h == hash
-  | _ => false
-
 /-- Bytes in these lists come from executed authenticated deploy/distribution actions. Rollback
 clears `current`; it never promotes failed deploys into `committed`. `attempted` (every executed
 deploy, committed or rolled back) is what the chunk's own precompiles put in the compiled cache. -/
@@ -91,11 +81,6 @@ structure CodeSources where
   current : List Bytes := []
   committed : List Bytes := []
   attempted : List Bytes := []
-
-/-- The complete policy's one extra reject: a recorded access whose bytes the witness omits, where
-nearcore would otherwise have to win a preparation race to find the code. -/
-def incompleteCodeWitness : String :=
-  "invalid witness (w.code_complete): the witness omits the code of a recorded pre-state contract access that only a racing in-chunk deploy could serve"
 
 def unauthenticatedCodeWitness : String :=
   "invalid witness (w.code_complete): contract code does not hash to the resolved identifier"
@@ -130,12 +115,10 @@ def resolveColdCode (sources : CodeSources) (timely : Bool) (hash : Bytes) : Exc
       | some code => if timely then .ok code else .error raceExclusion
       | none => .error missingCode
 
-/-- The complete-code relation. The same resolution as `resolveColdCode`, except that (a) witness
-bytes are hash-checked explicitly, independently of how the store was built, and (b) a race on a
-recorded access is a witness reject, not an exclusion: the canonical witness carries those bytes
-(`PrestateCode.recorded`), so the verdict rests on that authenticated input instead of on thread
-timing. A race on an unrecorded or unrevealed access stays out of domain. -/
-def resolveCompleteCode (sources : CodeSources) (pre : PrestateCode) (timely : Bool) (hash : Bytes) :
+/-- The complete-code relation: `resolveColdCode` with witness bytes hash-checked explicitly. The
+pre-state probe `pre` is not consulted (nearcore's validator never reads the code key); it stays in
+the signature for the callers. -/
+def resolveCompleteCode (sources : CodeSources) (_pre : PrestateCode) (timely : Bool) (hash : Bytes) :
     Except String Bytes :=
   match sources.witness hash with
   | some code =>
@@ -145,10 +128,7 @@ def resolveCompleteCode (sources : CodeSources) (pre : PrestateCode) (timely : B
     | some code => .ok code
     | none =>
       match (sources.committed ++ sources.attempted).find? (fun code => sha256 code == hash) with
-      | some code =>
-        if timely then .ok code
-        else if pre.recorded hash then .error incompleteCodeWitness
-        else .error raceExclusion
+      | some code => if timely then .ok code else .error raceExclusion
       | none => .error missingCode
 
 def resolveCodeBytes (policy : CodeWitnessPolicy) (sources : CodeSources)
@@ -168,53 +148,22 @@ theorem complete_supplied (sources : CodeSources) (pre : PrestateCode) (code has
     resolveCodeBytes .complete sources pre hash timely = .ok code := by
   simp [resolveCodeBytes, resolveCompleteCode, found, auth]
 
-/-- When the preparation schedule cannot race (`timely`), the complete policy **is** the cold
-validator on authenticated witness bytes: the same code or the same error string. -/
-theorem complete_eq_cold_of_timely (sources : CodeSources) (pre : PrestateCode) (hash : Bytes)
+/-- On authenticated witness bytes the complete policy **is** the cold validator, on every
+preparation schedule: the same code or the same error string (including the race exclusion). -/
+theorem complete_eq_cold (sources : CodeSources) (pre : PrestateCode) (hash : Bytes) (timely : Bool)
     (auth : sources.authentic hash) :
-    resolveCodeBytes .complete sources pre hash true =
-      resolveCodeBytes .coldPartial sources pre hash true := by
+    resolveCodeBytes .complete sources pre hash timely =
+      resolveCodeBytes .coldPartial sources pre hash timely := by
   unfold resolveCodeBytes resolveCompleteCode resolveColdCode
   cases hw : sources.witness hash with
   | some code => simp [auth code hw]
   | none => simp
 
-/-- Under authenticated witness bytes the two policies accept exactly the same calls with the same
-code, on every schedule. -/
-theorem complete_ok_iff_cold_ok (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
-    (timely : Bool) (auth : sources.authentic hash) :
-    resolveCodeBytes .complete sources pre hash timely = .ok code ↔
-      resolveCodeBytes .coldPartial sources pre hash timely = .ok code := by
-  unfold resolveCodeBytes resolveCompleteCode resolveColdCode
-  cases hw : sources.witness hash with
-  | some c => simp [auth c hw]
-  | none =>
-    cases sources.current.find? (fun code => sha256 code == hash) with
-    | some c => simp
-    | none =>
-      cases (sources.committed ++ sources.attempted).find? (fun code => sha256 code == hash) with
-      | none => simp
-      | some c => cases timely <;> cases pre.recorded hash <;> simp
-
-/-- The only place the policies differ: a racing preparation on a recorded access, which the
-complete policy rejects and the cold policy excludes. -/
-theorem complete_differs_only_on_recorded_race (sources : CodeSources) (pre : PrestateCode)
-    (hash : Bytes) (timely : Bool) (auth : sources.authentic hash)
-    (hne : resolveCodeBytes .complete sources pre hash timely ≠
-      resolveCodeBytes .coldPartial sources pre hash timely) :
-    timely = false ∧ pre.recorded hash = true ∧
-      resolveCodeBytes .complete sources pre hash timely = .error incompleteCodeWitness ∧
-      resolveCodeBytes .coldPartial sources pre hash timely = .error raceExclusion := by
-  revert hne
-  unfold resolveCodeBytes resolveCompleteCode resolveColdCode
-  cases hw : sources.witness hash with
-  | some c => simp [auth c hw]
-  | none =>
-    cases sources.current.find? (fun code => sha256 code == hash) with
-    | some c => simp
-    | none =>
-      cases (sources.committed ++ sources.attempted).find? (fun code => sha256 code == hash) with
-      | none => simp
-      | some c => cases timely <;> cases pre.recorded hash <;> simp
+/-- The only difference without authentication: a witness blob that does not hash to the
+identifier is rejected by the complete policy (the cold policy would run it). -/
+theorem complete_unauthenticated (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
+    (timely : Bool) (found : sources.witness hash = some code) (bad : sha256 code ≠ hash) :
+    resolveCodeBytes .complete sources pre hash timely = .error unauthenticatedCodeWitness := by
+  simp [resolveCodeBytes, resolveCompleteCode, found, bad]
 
 end NearSpecV3.Successor

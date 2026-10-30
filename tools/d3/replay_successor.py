@@ -27,8 +27,7 @@ CODE = ("e.code_cache", "e.code_deploy_served")
 TIERS = {
     # The code labels are widened on every whole-state tier: an in-chunk deploy serves a pre-state
     # call through the deploy tracker or the deploy's precompile (`Successor/CodeResolution.lean`).
-    # Since 2026-10-29 `completeCodeGlobal` resolves these exactly as the cold validator does; it
-    # differs from the cold policy only on a race of a recorded access.
+    # Since 2026-10-29 `completeCodeGlobal` resolves these exactly as the cold validator does.
     "globalActions": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE,
     "completeCodeGlobal": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE,
     # W05 curve hosts: the widest tier. A curve-host case is in domain here, so the tier declares

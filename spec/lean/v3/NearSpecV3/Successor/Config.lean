@@ -91,8 +91,8 @@ structure ProtocolCfg where
   storageResolution : Bool := false
   /-- Opt-in typed global actions, distribution receipts and promise translation. -/
   globalActions : Bool := false
-  /-- Complete-code witness relation: the cold resolution, with a race on a recorded contract access
-  rejected as an incomplete witness instead of excluded (`CodeResolution`). Reads no compiled cache. -/
+  /-- Complete-code witness relation: the cold resolution with witness bytes hash-checked
+  explicitly (`CodeResolution.complete_eq_cold`). Reads no compiled cache. -/
   completeCodeWitness : Bool := false
   /-- Opt-in `D3γ` curve-host dispatch: decide the 14 curve host functions (`ecrecover`,
   `p256_verify`, `alt_bn128_*`, `bls12381_*`) instead of excluding a contract that imports or calls
@@ -316,9 +316,9 @@ inductive Tier where
   distribution receipts and promise translation), the `curveHosts` table and resharding together.
   This is the only tier whose domain is the union of the other wide tiers': the named tiers are not
   cumulative (`curveHosts`/`resharding` omit `globalActions`, so each excludes 222 chunks that
-  `globalActions` decides). `completeCodeGlobal` differs from `globalActions` only on a preparation
-  race of a recorded contract access (`complete_differs_only_on_recorded_race`; until 2026-10-29 it
-  also rejected deploy-served code, 178 nearcore-valid STRAT cases). See `allFeatures_sets_globalActions`,
+  `globalActions` decides). On authenticated witness bytes `completeCodeGlobal` resolves code as
+  `globalActions` does (`complete_eq_cold`); until 2026-10-29 it rejected deploy-served code (178
+  nearcore-valid STRAT cases). See `allFeatures_sets_globalActions`,
   `allFeatures_sets_curveHosts` and `allFeatures_sets_resharding`. -/
   | allFeatures
   deriving DecidableEq, Repr
@@ -433,9 +433,8 @@ theorem wide_tiers_not_cumulative :
       (Tier.cfg .globalActions).curveHosts = false := ⟨rfl, rfl, rfl⟩
 
 /-- `.completeCodeGlobal` adds the complete-code witness policy to `.globalActions`; `.allFeatures`
-uses the cold-partial policy. Since 2026-10-29 the two policies resolve every call identically
-except a preparation race on a recorded access, which the complete policy rejects and the cold one
-excludes (`complete_differs_only_on_recorded_race`). The configuration is still not an ancestor of
+uses the cold-partial policy. Since 2026-10-29 the two policies resolve every call identically on
+authenticated witness bytes (`complete_eq_cold`). The configuration is still not an ancestor of
 `.allFeatures` (which does not set the flag); the verdict-level lift is W12's O7. -/
 theorem completeCodeGlobal_not_in_join :
     (Tier.cfg .completeCodeGlobal).completeCodeWitness = true ∧
@@ -449,7 +448,7 @@ theorems below plus the still-missing semantic families.
 named tiers are not cumulative: `.curveHosts` and `.resharding` omit `globalActions`, so each
 *excludes* 222 chunks its rank-8 predecessor decides; `.completeCodeGlobal` was narrower than
 `.globalActions` until 2026-10-29 (its complete-code policy rejected deploy-served code); it now
-differs only on a race of a recorded access. `.allFeatures` is the first tier that actually composes every
+resolves code as the cold policy does. `.allFeatures` is the first tier that actually composes every
 implemented feature; only for it does "higher rank" mean "wider domain" among the wide tiers.
 The rank remains a *declaration*. The refinement theorems that are proved (gas bound, genesis
 main transition, `c.segment`, the resharding driver on genesis segments) and the obligations that

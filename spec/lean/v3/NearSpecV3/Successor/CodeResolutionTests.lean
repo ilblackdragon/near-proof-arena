@@ -38,13 +38,12 @@ def failed (x : Except String Bytes) (reason : String) : Bool := match x with | 
 -- No source: nearcore's cold MissingTrieValue, the same string as the cold policy.
 #guard failed (resolveCodeBytes .complete empty (.present hash) hash) missingCode
 #guard failed (resolveCodeBytes .complete empty .unknown hash) missingCode
--- A race on a recorded access (pre-state key holds the hash): the canonical witness carries the
--- bytes, so their absence is a witness reject, not an exclusion.
+-- A race is the race exclusion under both policies, whatever the probe says (until 2026-10-29 the
+-- complete policy served committed deploys without the race check).
 #guard failed (resolveCodeBytes .complete { empty with committed := [code] } (.present hash) hash false)
-  incompleteCodeWitness
+  raceExclusion
 #guard failed (resolveCodeBytes .complete { empty with attempted := [code] } (.present hash) hash false)
-  incompleteCodeWitness
--- A race on an unrevealed or unrecorded access stays out of domain, as in the cold policy.
+  raceExclusion
 #guard failed (resolveCodeBytes .complete { empty with committed := [code] } .unknown hash false)
   raceExclusion
 #guard failed (resolveCodeBytes .complete { empty with committed := [code] } .absent hash false)
@@ -59,11 +58,6 @@ def failed (x : Except String Bytes) (reason : String) : Bool := match x with | 
 #guard failed (resolveCodeBytes .complete { witness := fun _ => some [99] } .unknown hash)
   unauthenticatedCodeWitness
 #guard !(resolveCodeBytes .complete { empty with current := [[99]] } .absent hash).isOk
--- `recorded` is nearcore's `record_contract_call` test: present with the called hash only.
-#guard (PrestateCode.present hash).recorded hash
-#guard !(PrestateCode.present (zeros 32)).recorded hash
-#guard !PrestateCode.absent.recorded hash
-#guard !PrestateCode.unknown.recorded hash
 -- Probe results: absent leaf, unrevealed path and present reference are three distinct facts.
 #guard prestateCode (.leaf [1] (.val code) 0) [0] == .absent
 #guard prestateCode (.hash D2.emptyRoot) [0] == .absent
@@ -71,7 +65,6 @@ def failed (x : Except String Bytes) (reason : String) : Bool := match x with | 
 #guard prestateCode (.leaf [0, 0] (.ref code.length hash) 0) [0] == .present hash
 
 #print axioms complete_supplied
-#print axioms complete_eq_cold_of_timely
-#print axioms complete_ok_iff_cold_ok
-#print axioms complete_differs_only_on_recorded_race
+#print axioms complete_eq_cold
+#print axioms complete_unauthenticated
 end NearSpecV3.Successor.CodeResolutionTests
