@@ -415,6 +415,262 @@ theorem walk_one_layout
     simp only [wstD, hne, Bool.false_eq_true, ↓reduceIte]
     rfl
 
+theorem newAt_eq (j : Nat) (hj : j < blks.length) : newAt blks idx j = newIn idx blks[j] := by
+  simp only [newAt, List.getElem?_eq_getElem hj]
+
+theorem goodAt_eq (j : Nat) (hj : j < blks.length) :
+    goodAt blks L j = (blks[j].slots.length == L.numShards) := by
+  simp only [goodAt, List.getElem?_eq_getElem hj]
+
+/-- The non-resharding checker's scan (`findIdx?` twice, every slot count) from a walk result. -/
+theorem d2_of_found (P : Blk → Bool) (hP : ∀ B, P B = newIn idx B) (b t : Nat)
+    (hf : Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t) (ht : t + 1 = blks.length) :
+    blks.all (fun B => B.slots.length == L.numShards) = true ∧ blks.findIdx? P = some b ∧
+      (blks.drop (b + 1)).findIdx? P = some (t - b - 1) := by
+  obtain ⟨_, hb2, hb3, hb4, ht1, ht2, ht3, ht4, ht5⟩ := hf
+  refine ⟨?_, ?_, ?_⟩
+  · rw [List.all_eq_true]
+    intro B hB
+    obtain ⟨j, hj, rfl⟩ := List.getElem_of_mem hB
+    rw [← goodAt_eq blks L j hj]
+    rcases Nat.lt_or_ge b j with h | h
+    · exact ht5 j (by omega) (by omega)
+    · exact hb4 j (by omega) h
+  · rw [List.findIdx?_eq_some_iff_getElem]
+    refine ⟨by omega, ?_, fun j hj => ?_⟩
+    · rw [hP, ← newAt_eq blks idx b (by omega)]; exact hb2
+    · rw [hP, ← newAt_eq blks idx j (by omega), hb3 j (Nat.zero_le _) hj]; simp
+  · rw [List.findIdx?_eq_some_iff_getElem]
+    refine ⟨by simp; omega, ?_, fun j hj => ?_⟩
+    · rw [List.getElem_drop, hP, ← newAt_eq blks idx _ (by omega), show b + 1 + (t - b - 1) = t by omega]
+      exact ht3
+    · rw [List.getElem_drop, hP, ← newAt_eq blks idx _ (by omega), ht4 _ (by omega) (by omega)]; simp
+
+/-- The walk's scan from the non-resharding checker's. -/
+theorem found_of_d2 (P : Blk → Bool) (hP : ∀ B, P B = newIn idx B) (b j : Nat)
+    (hall : blks.all (fun B => B.slots.length == L.numShards) = true) (hb : blks.findIdx? P = some b)
+    (hj : (blks.drop (b + 1)).findIdx? P = some j) :
+    Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b (b + 1 + j) := by
+  rw [List.findIdx?_eq_some_iff_getElem] at hb hj
+  obtain ⟨hbl, hb1, hb2⟩ := hb
+  obtain ⟨hjl, hj1, hj2⟩ := hj
+  simp only [List.length_drop] at hjl
+  rw [List.all_eq_true] at hall
+  have hgood : ∀ k, k < blks.length → goodAt blks L k = true := fun k hk => by
+    rw [goodAt_eq blks L k hk]; exact hall _ (List.getElem_mem hk)
+  refine ⟨Nat.zero_le _, ?_, fun k _ hk => ?_, fun k _ hk => hgood k (by omega), by omega, by omega, ?_,
+    fun k h₁ h₂ => ?_, fun k _ h₂ => hgood k (by omega)⟩
+  · rw [newAt_eq blks idx b hbl, ← hP]; exact hb1
+  · rw [newAt_eq blks idx k (by omega), ← hP]
+    have := hb2 k hk
+    simpa using this
+  · rw [newAt_eq blks idx _ (by omega), ← hP]
+    rw [List.getElem_drop] at hj1
+    exact hj1
+  · obtain ⟨m, rfl⟩ : ∃ m, k = b + 1 + m := ⟨k - (b + 1), by omega⟩
+    rw [newAt_eq blks idx _ (by omega), ← hP]
+    have := hj2 m (by omega)
+    rw [List.getElem_drop] at this
+    simpa using this
+
+/-! ## The epoch table -/
+
+theorem mem_insertSorted (x : Bytes × Option Bytes) (p : Bytes × Option Bytes) :
+    ∀ l : List (Bytes × Option Bytes), x ∈ insertSorted p l ↔ x = p ∨ x ∈ l := by
+  intro l
+  induction l with
+  | nil => simp [insertSorted]
+  | cons q qs ih =>
+    unfold insertSorted
+    split
+    · simp
+    · simp only [List.mem_cons, ih]
+      constructor
+      · rintro (h | h | h) <;> simp [h]
+      · rintro (h | h | h) <;> simp [h]
+
+theorem mem_foldl_insertSorted (x : Bytes × Option Bytes) :
+    ∀ (l acc : List (Bytes × Option Bytes)),
+      x ∈ l.foldl (fun acc p => insertSorted p acc) acc ↔ x ∈ acc ∨ x ∈ l := by
+  intro l
+  induction l with
+  | nil => simp
+  | cons p ps ih =>
+    intro acc
+    simp only [List.foldl_cons, ih, mem_insertSorted, List.mem_cons]
+    constructor
+    · rintro ((h | h) | h) <;> simp [h]
+    · rintro (h | h | h) <;> simp [h]
+
+def dedupStep : Bytes × Option Bytes → List Bytes → List Bytes := fun (k, _) acc =>
+  match acc with
+  | k' :: _ => if k == k' then acc else k :: acc
+  | [] => [k]
+
+theorem dedupSorted_eq (l : List Bytes) :
+    dedupSorted l = (sortKV (l.map fun k => (k, none))).foldr dedupStep [] := rfl
+
+theorem dedupStep_sub (kv : Bytes × Option Bytes) (acc : List Bytes) (y : Bytes) (hy : y ∈ acc) :
+    y ∈ dedupStep kv acc := by
+  obtain ⟨k, v⟩ := kv
+  cases acc with
+  | nil => cases hy
+  | cons k' tl =>
+    simp only [dedupStep]
+    split
+    · exact hy
+    · exact List.mem_cons_of_mem _ hy
+
+theorem dedupStep_self (k : Bytes) (v : Option Bytes) (acc : List Bytes) : k ∈ dedupStep (k, v) acc := by
+  cases acc with
+  | nil => simp [dedupStep]
+  | cons k' tl =>
+    simp only [dedupStep]
+    split
+    · rename_i hk
+      have : k = k' := by simpa using hk
+      subst this; exact List.mem_cons_self
+    · exact List.mem_cons_self
+
+theorem mem_dedup_foldr (k : Bytes) :
+    ∀ (L : List (Bytes × Option Bytes)) (v : Option Bytes), (k, v) ∈ L → k ∈ L.foldr dedupStep [] := by
+  intro L
+  induction L with
+  | nil => intro v h; cases h
+  | cons kv rest ih =>
+    intro v h
+    rw [List.foldr_cons]
+    rcases List.mem_cons.mp h with h | h
+    · subst h; exact dedupStep_self _ _ _
+    · exact dedupStep_sub _ _ _ (ih v h)
+
+theorem mem_dedupSorted (x : Bytes) (l : List Bytes) (h : x ∈ l) : x ∈ dedupSorted l := by
+  rw [dedupSorted_eq]
+  apply mem_dedup_foldr x _ none
+  unfold sortKV
+  rw [mem_foldl_insertSorted]
+  right
+  exact List.mem_map_of_mem h
+
+theorem layoutBytes_of_table (c : Claim) (ae : List Bytes) (ep : EpochRec)
+    (htab : (c.epochs.map (·.epochId) == dedupSorted ae) = true)
+    (hsl : c.epochs.all (·.shardLayout == ep.shardLayout) = true) :
+    ∀ e ∈ ae, layoutBytesOf c e = .ok ep.shardLayout := by
+  intro e he
+  have htab' : c.epochs.map (·.epochId) = dedupSorted ae := by simpa using htab
+  have hm : e ∈ c.epochs.map (·.epochId) := by rw [htab']; exact mem_dedupSorted e ae he
+  obtain ⟨r, hr, hre⟩ := List.mem_map.mp hm
+  unfold layoutBytesOf
+  cases hf : c.epochs.find? (·.epochId == e) with
+  | none =>
+    rw [List.find?_eq_none] at hf
+    exact absurd (by simp [hre]) (hf r hr)
+  | some r' =>
+    have hr' := List.mem_of_find?_eq_some hf
+    rw [List.all_eq_true] at hsl
+    have := hsl r' hr'
+    simp only [beq_iff_eq] at this
+    simp only [this]; rfl
+
+/-! ## Loops -/
+
+/-- Two lists related pointwise. -/
+def Rel2 {α β : Type} (R : α → β → Prop) : List α → List β → Prop
+  | [], [] => True
+  | a :: as, b :: bs => R a b ∧ Rel2 R as bs
+  | _, _ => False
+
+theorem forIn_forall2 {α β σ : Type} (R : α → β → Prop) (f : α → σ → Except String (ForInStep σ))
+    (g : β → σ → Except String (ForInStep σ)) (hfg : ∀ a b st, R a b → f a st = g b st) :
+    ∀ (xs : List α) (ys : List β), Rel2 R xs ys → ∀ st, forIn xs st f = forIn ys st g := by
+  intro xs
+  induction xs with
+  | nil =>
+    intro ys h st
+    cases ys with
+    | nil => rfl
+    | cons _ _ => cases h
+  | cons a as ih =>
+    intro ys h st
+    cases ys with
+    | nil => cases h
+    | cons b bs =>
+      obtain ⟨hab, hr⟩ := h
+      rw [forIn_except_cons, forIn_except_cons, hfg _ _ _ hab]
+      cases g _ st with
+      | error e => rfl
+      | ok r =>
+        cases r with
+        | done b => rfl
+        | yield b => exact ih bs hr b
+
+theorem forall2_sources (blks : List Blk) (s : Nat) :
+    ∀ m k, k + m ≤ blks.length →
+      Rel2 (fun (p : Nat × Nat) S => blks[p.1]? = some S ∧ p.2 = s)
+        ((List.range' k m).map (fun j => (j, s))) (List.take m (List.drop k blks)) := by
+  intro m
+  induction m with
+  | zero => intro k _; simp [Rel2]
+  | succ m ih =>
+    intro k hk
+    rw [List.range'_succ, List.drop_eq_getElem_cons (by omega), List.map_cons, List.take_succ_cons]
+    exact ⟨⟨List.getElem?_eq_getElem (by omega), rfl⟩, ih (k + 1) (by omega)⟩
+
+/-- The implicit-transition loops: the resharding loop carries the congestion and the remaining
+facts, and otherwise runs the non-resharding loop's body. -/
+theorem forIn_implicit {T F C : Type} (s : Nat)
+    (FX : (Nat × F) × T → Bytes → Except String (ForInStep Bytes))
+    (FY : WalkTransition × T → Bytes × C × List F → Except String (ForInStep (Bytes × C × List F)))
+    (cong : C) (hnd : ∀ a r b, FX a r ≠ .ok (.done b))
+    (hb : ∀ i f fs T root, FY (.old i s, T) (root, cong, f :: fs) =
+      (FX ((i, f), T) root).map (fun st => match st with
+        | .yield r => .yield (r, cong, fs)
+        | .done r => .done (r, cong, fs))) :
+    ∀ (is : List Nat) (fs : List F) (Ts : List T) (root : Bytes), is.length = fs.length →
+      is.length = Ts.length →
+      forIn ((is.map (fun i => WalkTransition.old i s)).zip Ts) (root, cong, fs) FY =
+        (forIn ((is.zip fs).zip Ts) root FX).map (fun r => (r, cong, [])) := by
+  intro is
+  induction is with
+  | nil =>
+    intro fs Ts root h1 _
+    cases fs with
+    | nil => rfl
+    | cons _ _ => cases h1
+  | cons i is ih =>
+    intro fs Ts root h1 h2
+    cases fs with
+    | nil => cases h1
+    | cons f fs =>
+      cases Ts with
+      | nil => cases h2
+      | cons T Ts =>
+        simp only [List.map_cons, List.zip_cons_cons]
+        rw [forIn_except_cons, forIn_except_cons, hb]
+        cases hfx : FX ((i, f), T) root with
+        | error e => rfl
+        | ok r =>
+          cases r with
+          | done b => exact absurd ‹_› (hnd _ _ b)
+          | yield b =>
+            simp only [List.length_cons, Nat.add_right_cancel_iff] at h1 h2
+            exact ih fs Ts b h1 h2
+
+theorem VR.bind_eq {α β γ δ : Type} {S : γ → δ → Prop} {p : Except String α} {p' : Except String β}
+    (h : α → β) (hp : p' = p.map h) {f : α → Except String γ} {g : β → Except String δ}
+    (hk : ∀ a, p = .ok a → VR S (f a) (g (h a))) : VR S (p >>= f) (p' >>= g) := by
+  subst hp
+  cases hq : p with
+  | error e =>
+    refine ⟨fun _ hx => (by cases hx), fun e' hx hne => ⟨e', ?_, hne⟩⟩
+    rw [error_bind'] at hx; injection hx with hx; subst hx; rfl
+  | ok a => exact hk a hq
+
+theorem VR.bind_eq' {α γ δ : Type} {S : γ → δ → Prop} {p p' : Except String α}
+    (hp : p' = p) {f : α → Except String γ} {g : α → Except String δ}
+    (hk : ∀ a, p = .ok a → VR S (f a) (g a)) : VR S (p >>= f) (p' >>= g) := by
+  subst hp; exact VR.bind_same hk
+
 end Walk
 
 end NearSpecV3.Successor
