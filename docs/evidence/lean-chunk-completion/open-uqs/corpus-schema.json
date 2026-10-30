@@ -1,0 +1,10 @@
+{
+ "case_dirs": 235940,
+ "by_schema": {
+  "claim v3  legacy (unversioned => 3)": 235940,
+  "witness v3 clear legacy (unversioned => 3)": 235940
+ },
+ "bad": 0,
+ "bad_examples": [],
+ "bad_reasons": []
+}

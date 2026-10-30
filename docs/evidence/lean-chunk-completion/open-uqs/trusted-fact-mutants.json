@@ -1,0 +1,106 @@
+{
+ "cases": 240,
+ "mutants": 2348,
+ "rows": 2348,
+ "tier": "allFeatures",
+ "by_field": {
+  "T1.epoch_id": {
+   "reject": 240
+  },
+  "T11.minimum_stake": {
+   "accept": 240
+  },
+  "T13.tx_valid[0]": {
+   "reject": 179,
+   "accept": 9
+  },
+  "T2.protocol_version": {
+   "out_of_domain": 240
+  },
+  "T3.chain_id": {
+   "accept": 239,
+   "reject": 1
+  },
+  "T4.rs_parts": {
+   "reject": 240
+  },
+  "T5.epoch_protocol_version": {
+   "reject": 240
+  },
+  "T7.epoch_height": {
+   "accept": 231,
+   "reject": 9
+  },
+  "T8.validator_stake": {
+   "accept": 237,
+   "reject": 3
+  },
+  "T9.epoch_start_after[0]": {
+   "reject": 240
+  }
+ },
+ "top_reasons": {
+  "T1.epoch_id": [
+   [
+    "invalid: epoch id",
+    240
+   ]
+  ],
+  "T13.tx_valid[0]": [
+   [
+    "invalid: main transition post state root",
+    165
+   ],
+   [
+    "invalid: MissingTrieValue (delayed receipt)",
+    13
+   ],
+   [
+    "invalid: MissingTrieValue (promise yield timeout)",
+    1
+   ]
+  ],
+  "T2.protocol_version": [
+   [
+    "out of domain (c.pv86)",
+    240
+   ]
+  ],
+  "T3.chain_id": [
+   [
+    "invalid: main transition post state root",
+    1
+   ]
+  ],
+  "T4.rs_parts": [
+   [
+    "invalid: InvalidChunkEncodedMerkleRoot",
+    240
+   ]
+  ],
+  "T5.epoch_protocol_version": [
+   [
+    "invalid: epoch table does not match epoch_id / protocol_version",
+    240
+   ]
+  ],
+  "T7.epoch_height": [
+   [
+    "invalid: main transition post state root",
+    9
+   ]
+  ],
+  "T8.validator_stake": [
+   [
+    "invalid: main transition post state root",
+    3
+   ]
+  ],
+  "T9.epoch_start_after[0]": [
+   [
+    "invalid: epoch_start_after inconsistent with the headers",
+    240
+   ]
+  ]
+ }
+}

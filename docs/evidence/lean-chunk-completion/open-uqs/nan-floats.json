@@ -1,0 +1,40 @@
+{
+ "calls": 5920,
+ "nan_results": 3214,
+ "x86_64_winch_rule_violations": 0,
+ "aarch64_cranelift_rule_violations": 0,
+ "x86_64_vs_aarch64_differences": 0,
+ "x86_64_vs_lean_differences": 0,
+ "control_canonicalisation_off": {
+  "x86_64_rule_violations": 2496,
+  "aarch64_rule_violations": 2482,
+  "x86_64_vs_aarch64_differences": 194,
+  "examples": [
+   [
+    "f32.add 2143289344 2139095041",
+    "0x7fc00000",
+    "0x7fc00001"
+   ],
+   [
+    "f32.add 2143289344 4286578689",
+    "0x7fc00000",
+    "0xffc00001"
+   ],
+   [
+    "f32.add 2143289344 2143289343",
+    "0x7fc00000",
+    "0x7fffffff"
+   ],
+   [
+    "f32.add 4290772992 2139095041",
+    "0xffc00000",
+    "0x7fc00001"
+   ],
+   [
+    "f32.add 4290772992 4286578689",
+    "0xffc00000",
+    "0xffc00001"
+   ]
+  ]
+ }
+}

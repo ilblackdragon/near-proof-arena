@@ -1,0 +1,53 @@
+{
+ "population": "storage-limit-fixtures cases.tar.gz (88)",
+ "signed": {
+  "by_verdict": {
+   "out_of_domain/nearcore:accept": 26,
+   "accept/nearcore:accept": 12,
+   "reject/nearcore:accept": 26,
+   "reject/nearcore:reject": 24
+  },
+  "reasons": [
+   [
+    "out of domain (w.size): storage-proof upper bound may exceed main_storage_proof_size_soft_limit",
+    18
+   ],
+   [
+    "invalid: StorageInconsistentState(MissingTrieValue)",
+    12
+   ],
+   [
+    "invalid: MissingTrieValue (promise yield timeout)",
+    12
+   ],
+   [
+    "invalid: segment does not reach the last-but-one new chunk",
+    8
+   ],
+   [
+    "invalid: epoch_start_after inconsistent with the headers",
+    8
+   ],
+   [
+    "invalid: segment is not exactly the blocks the validator reads",
+    6
+   ],
+   [
+    "out of domain (e.g_alpha): chunk function-call gas 37628069700430 > G_\u03b1 3450888781824",
+    2
+   ],
+   [
+    "out of domain (e.g_alpha): chunk function-call gas 19146393598433 > G_\u03b1 3450888781824",
+    2
+   ],
+   [
+    "out of domain (e.g_alpha): chunk function-call gas 51857510069128 > G_\u03b1 3450888781824",
+    2
+   ],
+   [
+    "out of domain (e.g_alpha): chunk function-call gas 9484488390430 > G_\u03b1 3450888781824",
+    2
+   ]
+  ]
+ }
+}

@@ -1,0 +1,27 @@
+{
+ "probe": "arch=x86_64 strategy=winch ptr_bytes=8",
+ "runner": null,
+ "shapes": {
+  "a": {
+   "fit": 65501,
+   "over": 65502,
+   "over_outcome": "over module instance size does not fit in pooling allocator requirements: instance allocation for this module requires 1048592 bytes which exceeds the configured maximum of 1048576 bytes; breakdown of allocation requirement:   * 99.95% - 1048064 bytes - defined globals",
+   "x86_64_nearcore_fit": 65501,
+   "equal_to_x86_64": true
+  },
+  "b": {
+   "fit": 65344,
+   "over": 65345,
+   "over_outcome": "over module instance size does not fit in pooling allocator requirements: instance allocation for this module requires 1048592 bytes which exceeds the configured maximum of 1048576 bytes; breakdown of allocation requirement:   * 99.71% - 1045552 bytes - defined globals",
+   "x86_64_nearcore_fit": 65344,
+   "equal_to_x86_64": true
+  },
+  "c": {
+   "fit": 65505,
+   "over": 65506,
+   "over_outcome": "over module instance size does not fit in pooling allocator requirements: instance allocation for this module requires 1048592 bytes which exceeds the configured maximum of 1048576 bytes; breakdown of allocation requirement:   * 99.96% - 1048128 bytes - defined globals",
+   "x86_64_nearcore_fit": 65505,
+   "equal_to_x86_64": true
+  }
+ }
+}
