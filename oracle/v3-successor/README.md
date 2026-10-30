@@ -205,6 +205,23 @@ dispatchers). Labels are `successor.<scenario>.NN.name` and say what was submitt
   (deploy+call in one receipt, then deploy alone, then a call). The setup's cache warm-up
   tolerates the contracts that fail preparation; it caches their compilation error, as nearcore
   does.
+* `host-rows` (Gate-B L0 row validation): a quiet chain whose 46 steps call the host functions
+  that no other fixture calls, through `contracts/hostrows.wat`:
+  - `current_contract_code` on local code, on accounts that use a global contract by hash and by
+    account id (deployed in-chain), and after an in-receipt deploy;
+  - `refund_to_account_id` directly, across shards, and from a callee whose receipt has a
+    refund-to account;
+  - `promise_set_refund_to` on a transfer to an absent account, on a callee, with an invalid
+    promise index, on a joint promise, and with an invalid or an absent refund account;
+  - the deprecated `storage_iter_{prefix,range,next}` (each one traps);
+  - `gas(k)` via the `env.gas` import, below and above 20 Tgas prepaid and above the 300 Tgas
+    burn limit.
+
+  Further steps call the gas-key promise hosts through `contracts/kgashost.wat`, and the
+  global/state-init promise hosts through
+  `tools/d3/global-promise-fixtures/all-hosts-valid-receivers.wat`, at 300 Tgas and 20 Tgas.
+  Every chunk with scenario activity gets the full mutant set.
+  Evidence: `docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/`.
 
 Without `NEAR_SUCCESSOR_SCENARIO` none of this code changes the output (the hooks return early and
 use no RNG). Relevant chunks get the full mutant set. `NEAR_XFAM_MUTATE_EVERY=k` keeps one in k of

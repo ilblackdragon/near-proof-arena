@@ -67,6 +67,16 @@ on at least one case.
   - 9 rows have only nearcore-accepted exercising chunks, and their controls still detect. They
     stay `implemented`, as listed below.
   - 7 rows never fire.
+
+  **Update (host-rows, [host-rows/README.md](host-rows/README.md)).** The new opt-in
+  `oracle/v3-successor` scenario `host-rows` adds 4 seeds (11,437 cases, each judged by cold
+  nearcore). It calls the 7 uncalled hosts and the 9 hosts that lacked a negative, with full mutant
+  sets. 15 of those 16 rows are now promoted, so 74 of the 75 non-curve host rows are validated.
+  `current_contract_code` stays `implemented`: Lean returns 1 on a global-contract account, where
+  nearcore returns 2 or 3. That makes Lean reject 205 nearcore-accepted cases (a completeness bug;
+  0 Lean accepts of a nearcore reject). `l0_exercise.py map` now excludes disagreeing cases from
+  the exercising evidence. `evidence --disagreement-cause` attributes them to their cause row, and
+  `promote_row` refuses a row that causes disagreements.
 - **Actions.** All 12 implemented tags are exercised, including Delegate (8) and DelegateV2 (14).
   Each has 76–4,771 nearcore-rejected exercising chunks, and every control flips 12 of 16 cases.
   All 12 are promoted.
@@ -82,8 +92,7 @@ on at least one case.
 
 | rows | reason | next step |
 |---|---|---|
-| hosts `promise_batch_action_{add_gas_key_with_full_access, add_gas_key_with_function_call, deploy_global_contract, deploy_global_contract_by_account_id, state_init, state_init_by_account_id, transfer_to_gas_key, use_global_contract_by_account_id}`, `set_state_init_data_entry` | positive chunks plus a detecting control, but no nearcore-rejected chunk exercises them. Their fixtures (key-family, global-promise, corpus ood) have no mutant sets on disk. A `t.tx_valid` flip is **not** a valid negative: `tx_valid` is a trusted claim input (`verdict_source: nearcore(tx_valid=claim)`), and 4 of 87 such flips are accepted by both nearcore and Lean | generate mutant sets of those fixture chains with `oracle/v3-successor` and re-run `l0_exercise.py` |
-| hosts `current_contract_code`, `refund_to_account_id`, `promise_set_refund_to`, `storage_iter_prefix`, `storage_iter_range`, `storage_iter_next`, `gas` | no case in any population calls them. They are importable at PV86: `imports.rs:197,201-202,341`. `storage_iter_*` returns `HostError::Deprecated` (`logic.rs:4353`). `gas` is `VMLogic::gas` (`logic.rs:1956`) | add `oracle/v3-successor` scenario contracts calling each, judged cold; then trace and ablate |
+| host `current_contract_code` | exercised by the `host-rows` scenario (164 nearcore-accepted, 542 nearcore-rejected cases, control flips 12/16), but Lean rejects 205 nearcore-accepted cases: on a global-contract account nearcore returns 2 / 3, Lean returns 1 (completeness bug, [host-rows §3](host-rows/README.md)) | fix the Lean arm (carry the `AccountContract` kind into `CallCtx`), then re-run the host-rows population |
 | L0-D2-006, 007, 021, 022 | a deciding fixture exists (12 mutants each, rejected with the guard's reason), but the guard is verdict-redundant: without it, the empty segment, duplicate epoch, reversed or gapped segment is rejected by a later guard. No verdict-level control can detect its removal | a theorem that the later guard implies it would make the redundancy explicit |
 | other d2-core guards (D2-001…005, 009, 011–014, 019, 020, 023–026, 033, 038, 039, 057) | not targeted in this pass. Some are unreachable as a first failure: D2-009 is implied by D2-008, D2-023 is pre-empted by the `chunk_headers_root` check, D2-014's mutants fail at the encoded-root comparison. Some are throws, not `check` calls (D2-024, 026, 057). D2-005/011 are statement-scope (`c.pv86`) out-of-domain guards, and the comparator counts their exclusion of a PV85 claim as a disagreement | per guard: a directed mutant plus a `throw`-level hook in `l0_ctl_patch.py` |
 | d3-hook rows, wasm-prepare/-exec rows, `L0-instr-*`, domain guards, `L0-AF-fuel-certificate`, retired W rows | not addressed by this pass (their hooks are elsewhere in the successor path) | — |
@@ -133,16 +142,12 @@ remaining work. No new row has been promoted yet.
   (`promise_set_refund_to`).
 
 **Next steps, in order:**
-1. *7 uncalled hosts.*
-   - Add the contracts above to `oracle/v3-successor/contracts` and a scenario in `src/scenarios.rs`.
-   - Generate ≥ 4 seeds with mutants. Use the generator's normal path: cold nearcore judges, and the
-     mutant set comes from the same tool as the corpus `hdr.*`/`w.*` classes.
-   - Add the new cases to a population file and run `l0_exercise.py trace`, then `map`, `ablate`
-     and `evidence`.
-2. *9 hosts without a negative chunk.* Run the same generator with its mutant classes over the
-   key-family, global-promise and corpus-ood chains that already exercise them. Their bases are
-   listed in `map2.json` (lane host). Then rerun `trace`, `map` and `evidence`. Their controls
-   already detect.
+1. *7 uncalled hosts.* **Done** ([host-rows](host-rows/README.md)): scenario `host-rows` in
+   `src/xfam.rs`, contract `contracts/hostrows.wat`, 4 seeds. 6 are promoted. `current_contract_code`
+   is blocked by a Lean completeness bug (global-contract accounts).
+2. *9 hosts without a negative chunk.* **Done** ([host-rows](host-rows/README.md)). The same
+   scenario calls `kgashost` and the global-promise `all-hosts-valid-receivers` contract, with full
+   mutant sets, instead of regenerating the corpus chains. All 9 are promoted.
 3. *Throw guards* (D2-009, 024, 026, 057 and the genesis-branch throws).
    - Extend `l0_ctl_patch.py`: wrap each targeted `throw "…"` in the successor core with
      `Ctl.thr "<msg>"`. That is a copy-with-edits of `checkD2CoreGWith` / `checkD2CoreWith` under

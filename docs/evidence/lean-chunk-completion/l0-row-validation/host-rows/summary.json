@@ -1,0 +1,74 @@
+{
+ "hr811": {
+  "chain": "D3Params { base: ChainParams { seed: 811002433, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.05, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+  "honest": 155,
+  "honest_accepted_by_nearcore": 155,
+  "mutants": 2634,
+  "table": {
+   "classification|verdict_agree_outside_domain": 1342,
+   "classification|verdict_compared_agree": 1396,
+   "classification|verdict_compared_disagree": 51,
+   "disagree|honest|ccc fired=True": 4,
+   "disagree|mutant|ccc fired=True": 47,
+   "honest|nearcore accept|lean accept": 151,
+   "honest|nearcore accept|lean reject": 4,
+   "mutant|nearcore accept|lean accept": 535,
+   "mutant|nearcore accept|lean reject": 47,
+   "mutant|nearcore reject|lean reject": 2052
+  }
+ },
+ "hr812": {
+  "chain": "D3Params { base: ChainParams { seed: 812002437, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.05, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+  "honest": 187,
+  "honest_accepted_by_nearcore": 187,
+  "mutants": 2594,
+  "table": {
+   "classification|verdict_agree_outside_domain": 1407,
+   "classification|verdict_compared_agree": 1323,
+   "classification|verdict_compared_disagree": 51,
+   "disagree|honest|ccc fired=True": 4,
+   "disagree|mutant|ccc fired=True": 47,
+   "honest|nearcore accept|lean accept": 183,
+   "honest|nearcore accept|lean reject": 4,
+   "mutant|nearcore accept|lean accept": 522,
+   "mutant|nearcore accept|lean reject": 47,
+   "mutant|nearcore reject|lean reject": 2025
+  }
+ },
+ "hr813": {
+  "chain": "D3Params { base: ChainParams { seed: 813002441, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.05, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+  "honest": 229,
+  "honest_accepted_by_nearcore": 229,
+  "mutants": 2701,
+  "table": {
+   "classification|verdict_agree_outside_domain": 1380,
+   "classification|verdict_compared_agree": 1498,
+   "classification|verdict_compared_disagree": 52,
+   "disagree|honest|ccc fired=True": 4,
+   "disagree|mutant|ccc fired=True": 48,
+   "honest|nearcore accept|lean accept": 225,
+   "honest|nearcore accept|lean reject": 4,
+   "mutant|nearcore accept|lean accept": 547,
+   "mutant|nearcore accept|lean reject": 48,
+   "mutant|nearcore reject|lean reject": 2106
+  }
+ },
+ "hr814": {
+  "chain": "D3Params { base: ChainParams { seed: 814002446, n_shards: 5, seats: 8, gas_limit_tgas: 60, epoch_length: 20, blocks: 40, p_missing: 0.05, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+  "honest": 192,
+  "honest_accepted_by_nearcore": 192,
+  "mutants": 2745,
+  "table": {
+   "classification|verdict_agree_outside_domain": 1323,
+   "classification|verdict_compared_agree": 1563,
+   "classification|verdict_compared_disagree": 51,
+   "disagree|honest|ccc fired=True": 4,
+   "disagree|mutant|ccc fired=True": 47,
+   "honest|nearcore accept|lean accept": 188,
+   "honest|nearcore accept|lean reject": 4,
+   "mutant|nearcore accept|lean accept": 560,
+   "mutant|nearcore accept|lean reject": 47,
+   "mutant|nearcore reject|lean reject": 2138
+  }
+ }
+}

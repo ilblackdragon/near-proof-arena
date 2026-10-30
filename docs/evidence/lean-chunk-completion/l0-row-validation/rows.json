@@ -23,6 +23,17 @@
     "reject": 132
    }
   },
+  "host_rows": {
+   "cases": 11437,
+   "disagreement_cause": "host:current_contract_code on a global-contract account (Lean returns 1, nearcore 2/3); see host-rows/README.md",
+   "lean_accept_nearcore_reject": 0,
+   "lean_reject_nearcore_accept": 205,
+   "output_sha256": "82c1fe5b60fe62e177dbeb0c7c2eb39d929f922e485dfe3379947544d871c2c3",
+   "verdicts": {
+    "accept": 2911,
+    "reject": 8526
+   }
+  },
   "sample": {
    "cases": 51164,
    "disagreement_reasons": [
@@ -61,11 +72,13 @@
  },
  "identity": {
   "guard_mutants": "132/132 identical",
+  "host_rows": "11,437/11,437 identical verdict and reason (control build with NEARSPEC_TRACE=1 vs default)",
   "sample": "51,164/51,164 identical verdict and reason (control build with NEARSPEC_TRACE=1 vs default)",
   "supplement": "2,218/2,218 identical"
  },
  "populations": {
   "guard_mutants": "132 claim mutants (tools/d3/l0_guard_mutants.py, 12 per guard over d3c7-d3c10 bases), committed under guard-mutants/",
+  "host_rows": "11,437 cases of the opt-in oracle/v3-successor host-rows scenario (seeds 811-814, chain shapes 0/1/2/4; 763 honest chunks, 10,674 mutants), every case judged by cold pinned nearcore 2.13.4; host-rows/README.md",
   "sample": "all 39,942 non-mutant corpus cases (d1run, d2corpus.v2, d3c7-d3c10: honest + ood), the 3,138-case census, 1,363 fixture-family cases (freeze list; 7 with a missing meta.json skipped) and a 5% random sample (seed 20261031) of the corpus mutants: 51,164 cases",
   "supplement": "20% random sample (seed 31) of the nearcore-rejected mutants of the remaining-shapes runs state-init-emit (se701-se704), dist-identity (gd/gdb812-818) and the yield regen y4242: 2,218 cases"
  },
@@ -1335,6 +1348,64 @@
    },
    "target": "host:current_account_id"
   },
+  "L0-host-current_contract_code": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "run811/d3/00-h10007-s1",
+     "run811/ood/00-h10006-s3",
+     "run812/d3/01-h10009-s4",
+     "run812/ood/01-h10006-s0",
+     "run813/d3/02-h10007-s4",
+     "run813/ood/02-h10006-s0",
+     "run814/d3/04-h10007-s4",
+     "run814/ood/04-h10006-s0",
+     "run811/mutants/00-h10006-s3-code.duplicate",
+     "run811/ood/00-h10014-s1",
+     "run813/mutants/02-h10006-s0-code.duplicate",
+     "run813/ood/02-h10014-s4",
+     "run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10006-s0-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10006-s0-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10006-s0-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:current_contract_code",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "disagreement_reason": "on an account whose contract is global (AccountContract::Global / GlobalByAccount) nearcore returns 2 / 3 with the code hash / the account id (logic.rs:4000-4030); Lean always returns 1 with the code hash (Wasm/Host.lean:726-730, ctx.accountContract := some hash in Successor/StorageExecution.lean:202), so the post-state differs and Lean rejects the valid chunk. Not a soundness bug: no Lean accept of a nearcore reject",
+   "exercising": {
+    "disagreement_cause": "host:current_contract_code",
+    "disagreement_examples": [
+     "run811/mutants/00-h10015-s2-code.duplicate",
+     "run811/mutants/00-h10015-s2-code.extra_garbage",
+     "run811/mutants/00-h10015-s2-code.extra_unneeded",
+     "run811/mutants/00-h10015-s2-hdr.height_created"
+    ],
+    "disagreements": 205,
+    "disagreements_caused": 205,
+    "examples": [
+     "run811/d3/00-h10007-s1",
+     "run811/mutants/00-h10006-s3-code.duplicate",
+     "run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10006-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 164,
+    "nearcore_reject": 542,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
+   "target": "host:current_contract_code"
+  },
   "L0-host-ed25519_verify": {
    "control": {
     "ablated_disagreements": 12,
@@ -1420,6 +1491,55 @@
     "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
    },
    "target": "host:epoch_height"
+  },
+  "L0-host-gas": {
+   "control": {
+    "ablated_disagreements": 10,
+    "ablated_verdicts": {
+     "accept": 2,
+     "reject": 14
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "run811/d3/00-h10013-s3",
+     "run811/mutants/00-h10013-s3-code.duplicate",
+     "run811/ood/00-h10015-s1",
+     "run812/d3/01-h10013-s0",
+     "run812/mutants/01-h10013-s0-code.duplicate",
+     "run812/ood/01-h10015-s4",
+     "run813/d3/02-h10013-s0",
+     "run813/mutants/02-h10013-s0-code.duplicate",
+     "run813/ood/02-h10015-s0",
+     "run814/d3/04-h10013-s0",
+     "run814/mutants/04-h10013-s0-code.duplicate",
+     "run814/ood/04-h10015-s0",
+     "run811/mutants/00-h10013-s3-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10013-s0-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10013-s0-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10013-s0-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:gas",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "run811/d3/00-h10013-s3",
+     "run811/d3/00-h10016-s1",
+     "run811/mutants/00-h10013-s3-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10013-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 298,
+    "nearcore_reject": 446,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
+   "target": "host:gas"
   },
   "L0-host-input": {
    "control": {
@@ -1857,7 +1977,7 @@
    "control": {
     "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 12
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
@@ -1866,53 +1986,98 @@
      "d3c7/ood/00-h10006-s2",
      "d3c8/ood/00-h10135-s2",
      "d3c9/ood/00-h10121-s2",
-     "key-family-fixtures/cases/00-h10194-s2",
-     "d3c10/ood/01-h10097-s2",
-     "d3c7/ood/00-h10075-s2",
-     "d3c8/ood/00-h10175-s2",
-     "d3c9/ood/00-h10174-s2",
-     "key-family-fixtures/cases/00-h10206-s2",
-     "d3c10/ood/01-h10184-s2",
-     "d3c7/ood/00-h10156-s2"
+     "run811/mutants/00-h10015-s0-code.duplicate",
+     "run811/ood/00-h10015-s0",
+     "run812/mutants/01-h10015-s3-code.duplicate",
+     "run812/ood/01-h10015-s3",
+     "run813/mutants/02-h10015-s5-code.duplicate",
+     "run813/ood/02-h10015-s5",
+     "run814/mutants/04-h10015-s3-code.duplicate",
+     "run814/ood/04-h10015-s3",
+     "run811/mutants/00-h10015-s0-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10015-s3-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10015-s5-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10015-s3-hdr.bandwidth_requests.add"
     ],
-    "cases": 12,
+    "cases": 16,
     "target": "host:promise_batch_action_add_gas_key_with_full_access",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
+    "disagreement_cause": [
+     "host:current_contract_code"
+    ],
+    "disagreement_examples": [
+     "run811/mutants/00-h10020-s0-code.duplicate",
+     "run811/mutants/00-h10020-s0-code.extra_garbage",
+     "run811/mutants/00-h10020-s0-code.extra_unneeded",
+     "run811/mutants/00-h10020-s0-code.reorder"
+    ],
+    "disagreements": 39,
+    "disagreements_caused": 0,
     "examples": [
      "d3c10/ood/01-h10013-s2",
-     "d3c10/ood/01-h10097-s2"
+     "d3c10/ood/01-h10097-s2",
+     "run811/mutants/00-h10015-s0-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10015-s0-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 80,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 252,
+    "nearcore_reject": 307,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_add_gas_key_with_full_access"
   },
   "L0-host-promise_batch_action_add_gas_key_with_function_call": {
    "control": {
-    "ablated_disagreements": 1,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 1
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
     "case_list": [
-     "key-family-fixtures/cases/00-h10198-s2"
+     "run811/mutants/00-h10015-s0-code.duplicate",
+     "run811/ood/00-h10015-s0",
+     "run812/ood/01-h10015-s3",
+     "run813/ood/02-h10015-s5",
+     "run814/ood/04-h10015-s3",
+     "run811/mutants/00-h10015-s0-code.extra_garbage",
+     "run812/mutants/01-h10015-s3-code.duplicate",
+     "run813/mutants/02-h10015-s5-code.duplicate",
+     "run814/mutants/04-h10015-s3-code.duplicate",
+     "key-family-fixtures/cases/00-h10198-s2",
+     "run813/mutants/02-h10015-s5-code.extra_garbage",
+     "run814/mutants/04-h10015-s3-code.extra_garbage",
+     "run811/mutants/00-h10015-s0-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10015-s3-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10015-s5-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10015-s3-hdr.bandwidth_requests.add"
     ],
-    "cases": 1,
+    "cases": 16,
     "target": "host:promise_batch_action_add_gas_key_with_function_call",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
-     "key-family-fixtures/cases/00-h10198-s2"
+     "run811/mutants/00-h10015-s0-code.duplicate",
+     "run811/mutants/00-h10015-s0-code.extra_garbage",
+     "run811/mutants/00-h10015-s0-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10015-s0-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 1,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 49,
+    "nearcore_reject": 75,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_add_gas_key_with_function_call"
   },
   "L0-host-promise_batch_action_add_key_with_full_access": {
@@ -2175,56 +2340,98 @@
   },
   "L0-host-promise_batch_action_deploy_global_contract": {
    "control": {
-    "ablated_disagreements": 2,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 2
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
     "case_list": [
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/ood/00-h10016-s2",
+     "run812/mutants/01-h10017-s2-code.duplicate",
+     "run812/ood/01-h10017-s2",
+     "run813/mutants/02-h10016-s2-code.duplicate",
+     "run813/ood/02-h10016-s2",
+     "run814/mutants/04-h10016-s2-code.duplicate",
+     "run814/ood/04-h10016-s2",
      "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/ood/00-h10021-s2",
+     "run813/mutants/02-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
     ],
-    "cases": 2,
+    "cases": 16,
     "target": "host:promise_batch_action_deploy_global_contract",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
-     "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10016-s2-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 2,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 106,
+    "nearcore_reject": 152,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_deploy_global_contract"
   },
   "L0-host-promise_batch_action_deploy_global_contract_by_account_id": {
    "control": {
-    "ablated_disagreements": 2,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 2
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
     "case_list": [
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/ood/00-h10016-s2",
+     "run812/mutants/01-h10017-s2-code.duplicate",
+     "run812/ood/01-h10017-s2",
+     "run813/mutants/02-h10016-s2-code.duplicate",
+     "run813/ood/02-h10016-s2",
+     "run814/mutants/04-h10016-s2-code.duplicate",
+     "run814/ood/04-h10016-s2",
      "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/ood/00-h10021-s2",
+     "run813/mutants/02-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
     ],
-    "cases": 2,
+    "cases": 16,
     "target": "host:promise_batch_action_deploy_global_contract_by_account_id",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
-     "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10016-s2-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 2,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 106,
+    "nearcore_reject": 152,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_deploy_global_contract_by_account_id"
   },
   "L0-host-promise_batch_action_function_call": {
@@ -2360,7 +2567,7 @@
    "control": {
     "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 12
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
@@ -2369,55 +2576,87 @@
      "d3c7/ood/00-h10006-s2",
      "d3c8/ood/00-h10054-s2",
      "d3c9/ood/00-h10012-s2",
-     "global-promise-fixtures/cases/caller-gas-failure",
-     "d3c10/ood/00-h10142-s2",
-     "d3c7/ood/00-h10035-s2",
-     "d3c8/ood/00-h10059-s2",
-     "d3c9/ood/00-h10103-s2",
-     "global-promise-fixtures/cases/caller-success",
-     "d3c10/ood/01-h10053-s2",
-     "d3c7/ood/00-h10038-s2"
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/ood/00-h10016-s2",
+     "run812/mutants/01-h10017-s2-code.duplicate",
+     "run812/ood/01-h10017-s2",
+     "run813/mutants/02-h10016-s2-code.duplicate",
+     "run813/ood/02-h10016-s2",
+     "run814/mutants/04-h10016-s2-code.duplicate",
+     "run814/ood/04-h10016-s2",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
     ],
-    "cases": 12,
+    "cases": 16,
     "target": "host:promise_batch_action_state_init",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
      "d3c10/ood/00-h10048-s2",
-     "d3c10/ood/00-h10142-s2"
+     "d3c10/ood/00-h10142-s2",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10016-s2-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 81,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 233,
+    "nearcore_reject": 221,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_state_init"
   },
   "L0-host-promise_batch_action_state_init_by_account_id": {
    "control": {
-    "ablated_disagreements": 2,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 2
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
     "case_list": [
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/ood/00-h10016-s2",
+     "run812/mutants/01-h10017-s2-code.duplicate",
+     "run812/ood/01-h10017-s2",
+     "run813/mutants/02-h10016-s2-code.duplicate",
+     "run813/ood/02-h10016-s2",
+     "run814/mutants/04-h10016-s2-code.duplicate",
+     "run814/ood/04-h10016-s2",
      "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/ood/00-h10021-s2",
+     "run813/mutants/02-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
     ],
-    "cases": 2,
+    "cases": 16,
     "target": "host:promise_batch_action_state_init_by_account_id",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
-     "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10016-s2-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 2,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 106,
+    "nearcore_reject": 152,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_state_init_by_account_id"
   },
   "L0-host-promise_batch_action_transfer": {
@@ -2465,31 +2704,50 @@
   },
   "L0-host-promise_batch_action_transfer_to_gas_key": {
    "control": {
-    "ablated_disagreements": 4,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 4
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
     "case_list": [
+     "run811/mutants/00-h10017-s0-code.duplicate",
+     "run811/ood/00-h10017-s0",
+     "run812/mutants/01-h10017-s3-code.duplicate",
+     "run812/ood/01-h10017-s3",
+     "run813/mutants/02-h10017-s5-code.duplicate",
+     "run813/ood/02-h10017-s5",
+     "run814/mutants/04-h10017-s3-code.duplicate",
+     "run814/ood/04-h10017-s3",
      "key-family-fixtures/cases/00-h10202-s2",
-     "key-family-fixtures/cases/00-h10206-s2",
-     "key-family-fixtures/cases/00-h10210-s2",
-     "key-family-fixtures/cases/00-h10214-s2"
+     "run811/mutants/00-h10017-s0-code.extra_garbage",
+     "run811/ood/00-h10018-s0",
+     "run812/mutants/01-h10017-s3-code.extra_garbage",
+     "run811/mutants/00-h10017-s0-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10017-s3-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10017-s5-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10017-s3-hdr.bandwidth_requests.add"
     ],
-    "cases": 4,
+    "cases": 16,
     "target": "host:promise_batch_action_transfer_to_gas_key",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
-     "key-family-fixtures/cases/00-h10202-s2",
-     "key-family-fixtures/cases/00-h10206-s2"
+     "run811/mutants/00-h10017-s0-code.duplicate",
+     "run811/mutants/00-h10017-s0-code.extra_garbage",
+     "run811/mutants/00-h10017-s0-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10017-s0-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 4,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 172,
+    "nearcore_reject": 231,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_transfer_to_gas_key"
   },
   "L0-host-promise_batch_action_use_global_contract": {
@@ -2537,29 +2795,50 @@
   },
   "L0-host-promise_batch_action_use_global_contract_by_account_id": {
    "control": {
-    "ablated_disagreements": 2,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 2
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
     "case_list": [
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/ood/00-h10016-s2",
+     "run812/mutants/01-h10017-s2-code.duplicate",
+     "run812/ood/01-h10017-s2",
+     "run813/mutants/02-h10016-s2-code.duplicate",
+     "run813/ood/02-h10016-s2",
+     "run814/mutants/04-h10016-s2-code.duplicate",
+     "run814/ood/04-h10016-s2",
      "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/ood/00-h10021-s2",
+     "run813/mutants/02-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
     ],
-    "cases": 2,
+    "cases": 16,
     "target": "host:promise_batch_action_use_global_contract_by_account_id",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
-     "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10016-s2-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 2,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 106,
+    "nearcore_reject": 152,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:promise_batch_action_use_global_contract_by_account_id"
   },
   "L0-host-promise_batch_create": {
@@ -2819,6 +3098,65 @@
     "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
    },
    "target": "host:promise_return"
+  },
+  "L0-host-promise_set_refund_to": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "run811/d3/00-h10010-s3",
+     "run811/mutants/00-h10008-s3-code.duplicate",
+     "run811/ood/00-h10008-s3",
+     "run812/d3/01-h10010-s0",
+     "run812/mutants/01-h10008-s0-code.duplicate",
+     "run812/ood/01-h10008-s0",
+     "run813/d3/02-h10010-s0",
+     "run813/mutants/02-h10008-s0-code.duplicate",
+     "run813/ood/02-h10008-s0",
+     "run814/d3/04-h10010-s0",
+     "run814/mutants/04-h10008-s0-code.duplicate",
+     "run814/ood/04-h10008-s0",
+     "run811/mutants/00-h10008-s3-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10008-s0-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10008-s0-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10008-s0-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:promise_set_refund_to",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "disagreement_cause": [
+     "host:current_contract_code"
+    ],
+    "disagreement_examples": [
+     "run811/mutants/00-h10022-s1-code.duplicate",
+     "run811/mutants/00-h10022-s1-code.extra_garbage",
+     "run811/mutants/00-h10022-s1-code.extra_unneeded",
+     "run811/mutants/00-h10022-s1-hdr.height_created"
+    ],
+    "disagreements": 48,
+    "disagreements_caused": 0,
+    "examples": [
+     "run811/d3/00-h10010-s3",
+     "run811/d3/00-h10011-s3",
+     "run811/mutants/00-h10008-s3-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10008-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 364,
+    "nearcore_reject": 592,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
+   "target": "host:promise_set_refund_to"
   },
   "L0-host-promise_then": {
    "control": {
@@ -3103,6 +3441,54 @@
    },
    "target": "host:read_register"
   },
+  "L0-host-refund_to_account_id": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "run811/d3/00-h10010-s3",
+     "run811/mutants/00-h10006-s3-code.duplicate",
+     "run811/ood/00-h10006-s3",
+     "run812/d3/01-h10010-s0",
+     "run812/mutants/01-h10006-s0-code.duplicate",
+     "run812/ood/01-h10006-s0",
+     "run813/d3/02-h10023-s0",
+     "run813/ood/02-h10006-s0",
+     "run814/d3/04-h10023-s0",
+     "run814/ood/04-h10006-s0",
+     "run811/d3/00-h10023-s3",
+     "run812/d3/01-h10023-s0",
+     "run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10006-s0-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10006-s0-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10006-s0-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:refund_to_account_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "run811/d3/00-h10010-s3",
+     "run811/d3/00-h10023-s3",
+     "run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10006-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 220,
+    "nearcore_reject": 318,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
+   "target": "host:refund_to_account_id"
+  },
   "L0-host-register_len": {
    "control": {
     "ablated_disagreements": 12,
@@ -3191,29 +3577,50 @@
   },
   "L0-host-set_state_init_data_entry": {
    "control": {
-    "ablated_disagreements": 2,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 2
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
     "case_list": [
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/ood/00-h10016-s2",
+     "run812/mutants/01-h10017-s2-code.duplicate",
+     "run812/ood/01-h10017-s2",
+     "run813/mutants/02-h10016-s2-code.duplicate",
+     "run813/ood/02-h10016-s2",
+     "run814/mutants/04-h10016-s2-code.duplicate",
+     "run814/ood/04-h10016-s2",
      "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/ood/00-h10021-s2",
+     "run813/mutants/02-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
     ],
-    "cases": 2,
+    "cases": 16,
     "target": "host:set_state_init_data_entry",
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
     "examples": [
-     "global-promise-fixtures/cases/caller-success",
-     "global-promise-fixtures/cases/child-action-failure"
+     "run811/mutants/00-h10016-s2-code.duplicate",
+     "run811/mutants/00-h10016-s2-code.extra_garbage",
+     "run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10016-s2-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 2,
-    "nearcore_reject": 0,
-    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+    "nearcore_accept": 106,
+    "nearcore_reject": 152,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
    },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
    "target": "host:set_state_init_data_entry"
   },
   "L0-host-sha256": {
@@ -3388,6 +3795,150 @@
     "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
    },
    "target": "host:storage_has_key"
+  },
+  "L0-host-storage_iter_next": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "run811/d3/00-h10013-s3",
+     "run812/d3/01-h10013-s0",
+     "run813/d3/02-h10013-s0",
+     "run814/d3/04-h10013-s0",
+     "run811/mutants/00-h10013-s3-code.duplicate",
+     "run812/mutants/01-h10013-s0-code.duplicate",
+     "run813/mutants/02-h10013-s0-code.duplicate",
+     "run814/mutants/04-h10013-s0-code.duplicate",
+     "run811/mutants/00-h10013-s3-code.extra_garbage",
+     "run812/mutants/01-h10013-s0-code.extra_garbage",
+     "run813/mutants/02-h10013-s0-code.extra_garbage",
+     "run814/mutants/04-h10013-s0-code.extra_garbage",
+     "run811/mutants/00-h10013-s3-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10013-s0-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10013-s0-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10013-s0-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:storage_iter_next",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "run811/d3/00-h10013-s3",
+     "run811/mutants/00-h10013-s3-code.duplicate",
+     "run811/mutants/00-h10013-s3-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10013-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 48,
+    "nearcore_reject": 72,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
+   "target": "host:storage_iter_next"
+  },
+  "L0-host-storage_iter_prefix": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "run811/d3/00-h10012-s3",
+     "run811/mutants/00-h10012-s3-code.duplicate",
+     "run812/d3/01-h10012-s0",
+     "run812/mutants/01-h10012-s0-code.duplicate",
+     "run813/d3/02-h10012-s0",
+     "run813/mutants/02-h10012-s0-code.duplicate",
+     "run814/d3/04-h10012-s0",
+     "run814/mutants/04-h10012-s0-code.duplicate",
+     "run811/d3/00-h10016-s1",
+     "run812/mutants/01-h10012-s0-code.extra_garbage",
+     "run813/d3/02-h10016-s4",
+     "run814/mutants/04-h10012-s0-code.extra_garbage",
+     "run811/mutants/00-h10012-s3-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10012-s0-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10012-s0-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10012-s0-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:storage_iter_prefix",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "run811/d3/00-h10012-s3",
+     "run811/d3/00-h10016-s1",
+     "run811/mutants/00-h10012-s3-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10012-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 104,
+    "nearcore_reject": 144,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
+   "target": "host:storage_iter_prefix"
+  },
+  "L0-host-storage_iter_range": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "run811/d3/00-h10012-s1",
+     "run812/d3/01-h10012-s4",
+     "run813/d3/02-h10012-s4",
+     "run814/d3/04-h10012-s4",
+     "run811/mutants/00-h10012-s1-code.duplicate",
+     "run812/mutants/01-h10012-s4-code.duplicate",
+     "run813/mutants/02-h10012-s4-code.duplicate",
+     "run814/mutants/04-h10012-s4-code.duplicate",
+     "run811/mutants/00-h10012-s1-code.extra_garbage",
+     "run812/mutants/01-h10012-s4-code.extra_garbage",
+     "run813/mutants/02-h10012-s4-code.extra_garbage",
+     "run814/mutants/04-h10012-s4-code.extra_garbage",
+     "run811/mutants/00-h10012-s1-hdr.bandwidth_requests.add",
+     "run812/mutants/01-h10012-s4-hdr.bandwidth_requests.add",
+     "run813/mutants/02-h10012-s4-hdr.bandwidth_requests.add",
+     "run814/mutants/04-h10012-s4-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:storage_iter_range",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "run811/d3/00-h10012-s1",
+     "run811/mutants/00-h10012-s1-code.duplicate",
+     "run811/mutants/00-h10012-s1-hdr.bandwidth_requests.add",
+     "run811/mutants/00-h10012-s1-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 56,
+    "nearcore_reject": 72,
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   },
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   ],
+   "target": "host:storage_iter_range"
   },
   "L0-host-storage_read": {
    "control": {

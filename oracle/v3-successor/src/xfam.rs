@@ -52,6 +52,11 @@ pub enum Kind {
     GasKeyTarget,
     RollbackRefund,
     RuntimeErrors,
+    /// `host-rows` (Gate-B L0 row validation): a quiet chain whose contracts call the hosts that
+    /// no other fixture calls (`contracts/hostrows.wat`), the gas-key promise hosts
+    /// (`contracts/kgashost.wat`) and the global / state-init promise hosts
+    /// (`tools/d3/global-promise-fixtures/all-hosts-valid-receivers.wat`).
+    HostRows,
 }
 
 pub fn kind() -> Option<Kind> {
@@ -63,6 +68,7 @@ pub fn kind() -> Option<Kind> {
         Some(S::GasKeyTarget) => Some(Kind::GasKeyTarget),
         Some(S::RollbackRefund) => Some(Kind::RollbackRefund),
         Some(S::RuntimeErrors) => Some(Kind::RuntimeErrors),
+        Some(S::HostRows) => Some(Kind::HostRows),
         _ => None,
     }
 }
@@ -461,6 +467,7 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
             v.extend(crate::rterr::contracts().iter().cloned());
             v
         }
+        Some(Kind::HostRows) => HR_CONTRACTS.iter().map(|n| (*n, hr_code(n).to_vec())).collect(),
         Some(_) => vec![("xfam", xfam_wasm().to_vec())],
         None => vec![],
     }
@@ -479,6 +486,7 @@ fn accounts() -> Vec<(&'static str, bool)> {
         Some(Kind::GasKeyTarget) => vec![("s0gkt", false), ("s1gkc", true), ("s2gkr", false), ("s3gks", false)],
         Some(Kind::RollbackRefund) => vec![("s0rbg", false), ("s0rbu", false), ("s1rbs", false), ("s2rbt", true), ("s3rbt", true), ("s3xnote", true)],
         Some(Kind::RuntimeErrors) => RT_ACCOUNTS.iter().map(|(n, c)| (*n, c.is_some())).collect(),
+        Some(Kind::HostRows) => HR_ACCOUNTS.iter().map(|(n, c)| (*n, c.is_some())).collect(),
         None => vec![],
     }
 }
@@ -503,6 +511,33 @@ const RT_ACCOUNTS: &[(&str, Option<&str>)] = &[
     ("s3rtdep", None),
 ];
 
+/// `host-rows` contracts (registry names).
+const HR_CONTRACTS: &[&str] = &["hostrows", "kgashost", "hrall"];
+
+fn hr_code(name: &str) -> &'static [u8] {
+    static C: OnceLock<Vec<Vec<u8>>> = OnceLock::new();
+    let c = C.get_or_init(|| vec![
+        wat::parse_str(include_str!("../contracts/hostrows.wat")).expect("hostrows.wat"),
+        crate::keys::host_code(),
+        wat::parse_str(include_str!("../../../tools/d3/global-promise-fixtures/all-hosts-valid-receivers.wat")).expect("all-hosts wat"),
+    ]);
+    &c[HR_CONTRACTS.iter().position(|n| *n == name).unwrap_or_else(|| panic!("host-rows contract {name}"))]
+}
+
+/// `host-rows` accounts and their genesis code (`None`: no code; the global-contract users and the
+/// in-chain deployer start without code).
+const HR_ACCOUNTS: &[(&str, Option<&str>)] = &[
+    ("s0hrow", Some("hostrows")),
+    ("s1hrow", Some("hostrows")),
+    ("s2hrkg", Some("kgashost")),
+    ("s3hrall", Some("hrall")),
+    ("s2hrglob", None),
+    ("s3hrglob", None),
+    ("s3hrgacc", None),
+    ("s1hrgbya", None),
+    ("s1hrdep", None),
+];
+
 fn account_code(name: &str) -> &'static [u8] {
     match kind() {
         Some(Kind::CurveCallbacks) => xcurve_wasm(),
@@ -510,6 +545,8 @@ fn account_code(name: &str) -> &'static [u8] {
             Some("xfam") | None => xfam_wasm(),
             Some(c) => crate::rterr::code(c),
         },
+        // accounts without genesis code: the code is unused (`genesis_records` checks `with_code`)
+        Some(Kind::HostRows) => HR_ACCOUNTS.iter().find(|(n, _)| *n == name).and_then(|x| x.1).map(hr_code).unwrap_or(&[]),
         _ => xfam_wasm(),
     }
 }
@@ -1158,6 +1195,102 @@ fn runtime_errors() -> Vec<Step> {
     v
 }
 
+/// `host-rows`: every host that no other fixture calls, and the gas-key / global / state-init
+/// promise hosts, called by transactions on dedicated accounts (labels say what was submitted):
+/// `current_contract_code` on a local-code account, on accounts using a global contract by hash
+/// and by account id, and right after an in-receipt deploy; `refund_to_account_id` directly, across
+/// shards and from a callee whose receipt carries a refund-to account; `promise_set_refund_to` on a
+/// transfer to an absent account (the deposit refund goes to the refund-to account), on a callee,
+/// with an invalid promise index, on a joint promise, with an invalid and an absent refund account;
+/// the three deprecated `storage_iter_*` hosts (a trap) next to a call that only writes; `gas(k)`
+/// for k = 0, 1000, 23·10⁶ and 24.4·10⁶ (below / above 20 Tgas prepaid), 300,000, 10⁶ and u32::MAX
+/// (above the 300 Tgas burn limit); the five `kgashost`
+/// methods (including a missing and a malformed key); the all-hosts global/state-init call at 300
+/// and 20 Tgas, directly and across shards.
+fn host_rows() -> Vec<Step> {
+    let mut v: Vec<Step> = Vec::new();
+    let mut i = 0usize;
+    let mut push = |v: &mut Vec<Step>, off: u64, name: &str, signer: &str, receiver: &str, actions: Vec<Action>| {
+        v.push(step(off, format!("successor.host-rows.{i:02}.{name}"), signer, receiver, actions, How::Main));
+        i += 1;
+    };
+    let code = hr_code("hostrows").to_vec();
+    let use_g = |id: GlobalContractIdentifier| Action::UseGlobalContract(Box::new(UseGlobalContractAction { contract_identifier: id }));
+    let hash_id = GlobalContractIdentifier::CodeHash(CryptoHash::hash_bytes(&code));
+    let acct_id = GlobalContractIdentifier::AccountId(acct("s3hrgacc"));
+    let psr = |mode: u8, target: &str, refund: &str| {
+        let mut a = vec![mode, target.len() as u8];
+        a.extend(target.as_bytes());
+        a.push(refund.len() as u8);
+        a.extend(refund.as_bytes());
+        fc("psr", a, 30, 0)
+    };
+    let gas = |k: u32, tgas: u64| fc("gas", k.to_le_bytes().to_vec(), tgas, 0);
+    let pkb = |pk: &PublicKey| borsh::to_vec(pk).unwrap();
+    let kg = acct("s2hrkg");
+    let (k1, k2, k3) = (gas_key(&kg, "hr1"), gas_key(&kg, "hr2"), gas_key(&kg, "hr3"));
+    let absent = gas_key(&kg, "hr-absent");
+    let mut fundto = vec![kg.as_str().len() as u8];
+    fundto.extend(kg.as_bytes());
+    fundto.extend(pkb(&k1.public_key()));
+    // current_contract_code: local code; global code by hash / by account id (set up in-chain)
+    push(&mut v, 0, "ccc.local", "s0hrow", "s0hrow", vec![fc("ccc", vec![], 20, 0)]);
+    push(&mut v, 0, "ccc.local.cross-shard", "s3hrall", "s1hrow", vec![fc("ccc", vec![], 20, 0)]);
+    push(&mut v, 1, "deploy-global-hash", "s0hrow", "s0hrow",
+         vec![Action::DeployGlobalContract(DeployGlobalContractAction { code: code.clone().into(), deploy_mode: GlobalContractDeployMode::CodeHash })]);
+    push(&mut v, 1, "deploy-global-account", "s3hrgacc", "s3hrgacc",
+         vec![Action::DeployGlobalContract(DeployGlobalContractAction { code: code.clone().into(), deploy_mode: GlobalContractDeployMode::AccountId })]);
+    push(&mut v, 8, "use-global-hash", "s2hrglob", "s2hrglob", vec![use_g(hash_id.clone())]);
+    push(&mut v, 8, "use-global-account", "s1hrgbya", "s1hrgbya", vec![use_g(acct_id)]);
+    push(&mut v, 8, "use-global-hash+ccc", "s3hrglob", "s3hrglob", vec![use_g(hash_id), fc("ccc", vec![], 20, 0)]);
+    push(&mut v, 8, "deploy+ccc", "s1hrdep", "s1hrdep", vec![Action::DeployContract(DeployContractAction { code }), fc("ccc", vec![], 20, 0)]);
+    push(&mut v, 14, "ccc.global-hash", "s2hrglob", "s2hrglob", vec![fc("ccc", vec![], 20, 0)]);
+    push(&mut v, 14, "ccc.global-account", "s1hrgbya", "s1hrgbya", vec![fc("ccc", vec![], 20, 0)]);
+    push(&mut v, 15, "ccc.global-account.cross-shard", "s0hrow", "s1hrgbya", vec![fc("ccc", vec![], 20, 0)]);
+    // refund_to_account_id
+    push(&mut v, 0, "rta.self", "s0hrow", "s0hrow", vec![fc("rta", vec![], 20, 0)]);
+    push(&mut v, 2, "rta.cross-shard", "s1hrow", "s0hrow", vec![fc("rta", vec![], 20, 0)]);
+    push(&mut v, 15, "rta.global-hash", "s3hrall", "s2hrglob", vec![fc("rta", vec![], 20, 0)]);
+    // promise_set_refund_to
+    push(&mut v, 2, "psr.transfer-absent", "s0hrow", "s0hrow", vec![psr(0, "s2hrnone", "s3hrall")]);
+    push(&mut v, 2, "psr.transfer-ok", "s0hrow", "s0hrow", vec![psr(0, "s1hrow", "s3hrall")]);
+    push(&mut v, 3, "psr.call-rta-other", "s0hrow", "s0hrow", vec![psr(1, "s1hrow", "s2hrkg")]);
+    push(&mut v, 3, "psr.call-rta-self", "s1hrow", "s1hrow", vec![psr(1, "s1hrow", "s0hrow")]);
+    push(&mut v, 4, "psr.bad-promise-index", "s0hrow", "s0hrow", vec![psr(2, "s1hrow", "s3hrall")]);
+    push(&mut v, 4, "psr.joint-promise", "s1hrow", "s1hrow", vec![psr(3, "s0hrow", "s3hrall")]);
+    push(&mut v, 5, "psr.invalid-refund-id", "s0hrow", "s0hrow", vec![psr(0, "s1hrow", "A!")]);
+    push(&mut v, 5, "psr.absent-refund-and-target", "s1hrow", "s1hrow", vec![psr(0, "s2hrnone", "s3hrnone")]);
+    push(&mut v, 16, "psr.global-account", "s1hrgbya", "s1hrgbya", vec![psr(1, "s0hrow", "s3hrall")]);
+    // storage_iter_* (deprecated: a trap) and a write-only control
+    push(&mut v, 6, "iter-prefix", "s0hrow", "s0hrow", vec![fc("itp", vec![], 20, 0)]);
+    push(&mut v, 6, "iter-range", "s1hrow", "s1hrow", vec![fc("itr", vec![], 20, 0)]);
+    push(&mut v, 7, "iter-next", "s0hrow", "s0hrow", vec![fc("itn", vec![], 20, 0)]);
+    push(&mut v, 7, "iter-none", "s1hrow", "s1hrow", vec![fc("itok", vec![], 20, 0)]);
+    push(&mut v, 9, "iter-prefix.cross-shard", "s3hrall", "s1hrow", vec![fc("itp", vec![], 20, 0)]);
+    // gas(k): 822,756 gas per unit at PV86
+    push(&mut v, 7, "gas.0", "s0hrow", "s0hrow", vec![gas(0, 20)]);
+    push(&mut v, 9, "gas.1000", "s1hrow", "s1hrow", vec![gas(1000, 20)]);
+    push(&mut v, 9, "gas.23e6", "s1hrow", "s1hrow", vec![gas(23_000_000, 20)]);
+    push(&mut v, 9, "gas.over-prepaid", "s0hrow", "s0hrow", vec![gas(24_400_000, 20)]);
+    push(&mut v, 10, "gas.1e6.300tgas", "s1hrow", "s1hrow", vec![gas(1_000_000, 300)]);
+    push(&mut v, 10, "gas.u32max.300tgas", "s0hrow", "s0hrow", vec![gas(u32::MAX, 300)]);
+    push(&mut v, 11, "gas.300000.cross-shard", "s3hrall", "s0hrow", vec![gas(300_000, 300)]);
+    // gas-key promise hosts (kgashost)
+    push(&mut v, 9, "kg.addfull", "s2hrkg", "s2hrkg", vec![fc("addfull", pkb(&k1.public_key()), 30, 0)]);
+    push(&mut v, 9, "kg.addfc", "s2hrkg", "s2hrkg", vec![fc("addfc", pkb(&k2.public_key()), 30, 0)]);
+    push(&mut v, 11, "kg.fund", "s2hrkg", "s2hrkg", vec![fc("fund", pkb(&k1.public_key()), 30, 0)]);
+    push(&mut v, 11, "kg.addfund", "s2hrkg", "s2hrkg", vec![fc("addfund", pkb(&k3.public_key()), 30, 0)]);
+    push(&mut v, 12, "kg.fund-missing", "s2hrkg", "s2hrkg", vec![fc("fund", pkb(&absent.public_key()), 30, 0)]);
+    push(&mut v, 12, "kg.addfull-malformed", "s2hrkg", "s2hrkg", vec![fc("addfull", vec![7, 1, 2, 3], 30, 0)]);
+    push(&mut v, 13, "kg.fundto", "s2hrkg", "s2hrkg", vec![fc("fundto", fundto, 30, 0)]);
+    push(&mut v, 13, "kg.addfull.cross-shard", "s0hrow", "s2hrkg", vec![fc("addfull", pkb(&absent.public_key()), 30, 0)]);
+    // global / state-init promise hosts (all-hosts-valid-receivers)
+    push(&mut v, 10, "all.300tgas", "s3hrall", "s3hrall", vec![fc("run", vec![], 300, 0)]);
+    push(&mut v, 12, "all.20tgas", "s3hrall", "s3hrall", vec![fc("run", vec![], 20, 0)]);
+    push(&mut v, 14, "all.300tgas.cross-shard", "s0hrow", "s3hrall", vec![fc("run", vec![], 300, 0)]);
+    v
+}
+
 // ---------------------------------------------------------------------------------------------
 // the driver
 // ---------------------------------------------------------------------------------------------
@@ -1183,6 +1316,7 @@ impl Driver {
             Some(Kind::RollbackRefund) if variant().as_deref() == Some("state-init-emit") => (10004, state_init_emit()),
             Some(Kind::RollbackRefund) => (10004, rollback_refund()),
             Some(Kind::RuntimeErrors) => (10004, runtime_errors()),
+            Some(Kind::HostRows) => (10004, host_rows()),
             None => (u64::MAX, vec![]),
         };
         if let Some(v) = variant() {
@@ -1355,7 +1489,8 @@ pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String], 
     }
     let mine = |l: &String| l.starts_with("successor.") && !l.contains(".flood.");
     let ran = executed.iter().any(|e| e["name"] == "xfam" || e["name"] == "xcurve"
-        || e["name"].as_str().is_some_and(crate::rterr::is_mine));
+        || e["name"].as_str().is_some_and(crate::rterr::is_mine)
+        || (k == Kind::HostRows && e["name"].as_str().is_some_and(|n| HR_CONTRACTS.contains(&n))));
     let relevant = match k {
         Kind::GenesisTx => height <= 10004 || tx_labels.iter().any(mine),
         _ => ran || tx_labels.iter().any(mine) || new_tx_labels.iter().any(mine),

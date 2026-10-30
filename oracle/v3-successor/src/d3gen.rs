@@ -298,6 +298,8 @@ pub enum Scenario {
     /// `runtime-errors` (src/xfam.rs, src/rterr.rs, W03): instance-layout `LoadingError`, import
     /// `LinkError` and the preparation checks that precede them, in whole chunks.
     RuntimeErrors,
+    /// `host-rows` (src/xfam.rs, Gate-B L0 row validation): the hosts no other fixture calls.
+    HostRows,
     /// `gate-b-caps` (src/scenarios.rs): witnesses above 8 MiB, chunk function-call gas above
     /// 1 Pgas and a zero-fee-instruction loop (W02 Gate-B caps).
     GateBCaps,
@@ -357,6 +359,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "code-response" => Some(Scenario::CodeResponse),
         Ok(value) if value == "removal-soft" => Some(Scenario::RemovalSoft),
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
+        Ok(value) if value == "host-rows" => Some(Scenario::HostRows),
         Ok(value) if value == "pipeline-race" => Some(Scenario::PipelineRace),
         Ok(value) if value == "code-cache" => Some(Scenario::CodeCache),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),

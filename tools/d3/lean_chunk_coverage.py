@@ -265,6 +265,11 @@ def promote_row(repo, r):
         raise ValueError(f"row evidence for {r['id']} is missing: {missing}")
     ex, ctl = e["exercising"], e["control"]
     fam = r["family"]
+    if ex.get("disagreements_caused", 0):
+        return dict(r, remaining_work=r["remaining_work"] + "; L0 row validation (2026-10-31): Lean "
+                    f"disagrees with nearcore on {ex['disagreements_caused']} exercising cases "
+                    f"(completeness bug: {e.get('disagreement_reason', 'see the evidence README')}) "
+                    f"({ROW_EVIDENCE_DIR}README.md)")
     if not (ex["nearcore_accept"] >= ROW_MIN_ACCEPT[fam] and ex["nearcore_reject"] >= ROW_MIN_REJECT[fam]
             and ctl["baseline"] == "pass" and ctl["ablated_disagreements"] >= 1):
         why = ("removing the guard leaves every deciding mutant rejected by a later guard "
@@ -280,8 +285,11 @@ def promote_row(repo, r):
          f"(claim-v3 discipline) " if fam == "d2-core" else
          f"whole-chunk fixtures: {ex['nearcore_accept']} nearcore-accepted and {ex['nearcore_reject']} "
          f"nearcore-rejected cases exercise it ") +
-        f"({ex['source']}; e.g. {', '.join(ex['examples'][:3])}), "
-        f"0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE={ctl['target']}` "
+        f"({ex['source']}; e.g. {', '.join(ex['examples'][:3])}), " +
+        (f"0 verdict disagreements caused by this row ({ex['disagreements']} disagreeing cases also "
+         f"run {', '.join(ex['disagreement_cause'])}, which causes them; they are not counted). "
+         if ex.get("disagreements") else "0 verdict disagreements. ") +
+        f"Breakage control: `NEARSPEC_ABLATE={ctl['target']}` "
         f"({ctl['what']}) in the control build: {ctl['ablated_disagreements']} of {ctl['cases']} "
         f"replayed exercising cases disagree with the expected verdict (unablated: "
         f"{ctl['cases']}/{ctl['cases']} agree). Evidence: {', '.join(paths[:2])} | earlier record: {r['evidence']}")
