@@ -338,7 +338,7 @@ def wstD (b t : Nat) : WSt :=
 /-- The walk the one-layout segment yields. -/
 def expectedWalk (b t : Nat) : Walk :=
   { b2i := b, mainShard := s, mainLayout := lb, sources := (List.range' b (t - b)).map (fun j => (j, s)),
-    transitions := ((List.range b).map (fun i => WalkTransition.old i s)).reverse, stop := t }
+    transitions := (List.range b).reverse.map (fun i => WalkTransition.old i s), stop := t }
 
 theorem walk_prep
     (hlb : ∀ e ∈ c.epochId :: blks.map (·.hdr.epochId), layoutBytesOf c e = .ok lb)
@@ -412,7 +412,7 @@ theorem walk_one_layout
     have hne : ((List.range' b (t - b)).map (fun j => (j, s))).isEmpty = false := by
       obtain ⟨n, hn⟩ : ∃ n, t - b = n + 1 := ⟨t - b - 1, by omega⟩
       rw [hn, List.range'_succ]; rfl
-    simp only [wstD, hne, Bool.false_eq_true, ↓reduceIte]
+    simp only [wstD, hne, Bool.false_eq_true, ↓reduceIte, expectedWalk, List.map_reverse]
     rfl
 
 theorem newAt_eq (j : Nat) (hj : j < blks.length) : newAt blks idx j = newIn idx blks[j] := by
@@ -616,6 +616,32 @@ theorem forall2_sources (blks : List Blk) (s : Nat) :
     rw [List.range'_succ, List.drop_eq_getElem_cons (by omega), List.map_cons, List.take_succ_cons]
     exact ⟨⟨List.getElem?_eq_getElem (by omega), rfl⟩, ih (k + 1) (by omega)⟩
 
+/-- `ForInStep.map`. -/
+def fsMap {α β : Type} (g : α → β) : ForInStep α → ForInStep β
+  | .yield r => .yield (g r)
+  | .done r => .done (g r)
+
+theorem map_bind_check {α σ : Type} (q : Except String α) (c : α → Bool) (m : String) (g : α → σ) :
+    (q >>= fun r => check (c r) m >>= fun _ => pure (ForInStep.yield (g r))) =
+      (q >>= fun r => check (c r) m >>= fun _ => pure (ForInStep.yield r)).map (fsMap g) := by
+  cases q with
+  | error e => rfl
+  | ok r =>
+    simp only [ok_bind']
+    cases hc : c r
+    · simp only [check_false_bind]; rfl
+    · simp only [check_true_bind]; rfl
+
+theorem bind_check_yield_ne_done {α : Type} (q : Except String α) (c : α → Bool) (m : String) (b : α) :
+    (q >>= fun r => check (c r) m >>= fun _ => pure (ForInStep.yield r)) ≠ .ok (.done b) := by
+  cases q with
+  | error e => intro h; cases h
+  | ok r =>
+    simp only [ok_bind']
+    cases hc : c r
+    · simp only [check_false_bind]; intro h; cases h
+    · simp only [check_true_bind]; intro h; cases h
+
 /-- The implicit-transition loops: the resharding loop carries the congestion and the remaining
 facts, and otherwise runs the non-resharding loop's body. -/
 theorem forIn_implicit {T F C : Type} (s : Nat)
@@ -623,9 +649,7 @@ theorem forIn_implicit {T F C : Type} (s : Nat)
     (FY : WalkTransition × T → Bytes × C × List F → Except String (ForInStep (Bytes × C × List F)))
     (cong : C) (hnd : ∀ a r b, FX a r ≠ .ok (.done b))
     (hb : ∀ i f fs T root, FY (.old i s, T) (root, cong, f :: fs) =
-      (FX ((i, f), T) root).map (fun st => match st with
-        | .yield r => .yield (r, cong, fs)
-        | .done r => .done (r, cong, fs))) :
+      (FX ((i, f), T) root).map (fsMap fun r => (r, cong, fs))) :
     ∀ (is : List Nat) (fs : List F) (Ts : List T) (root : Bytes), is.length = fs.length →
       is.length = Ts.length →
       forIn ((is.map (fun i => WalkTransition.old i s)).zip Ts) (root, cong, fs) FY =
@@ -671,6 +695,333 @@ theorem VR.bind_eq' {α γ δ : Type} {S : γ → δ → Prop} {p p' : Except St
     (hk : ∀ a, p = .ok a → VR S (f a) (g a)) : VR S (p >>= f) (p' >>= g) := by
   subst hp; exact VR.bind_same hk
 
+theorem VR.y_rw {α β : Type} {R : α → β → Prop} {x : Except String α} {y y' : Except String β}
+    (h : y = y') (hv : VR R x y') : VR R x y := by subst h; exact hv
+
+theorem VR.y_ok {α β γ : Type} {R : α → β → Prop} {x : Except String α} {q : Except String γ}
+    {b : γ} {k : γ → Except String β} (h : q = .ok b) (hv : VR R x (k b)) : VR R x (q >>= k) := by
+  rw [h]; exact hv
+
+/-- The resharding checker's walk fails (with a reject) when no scan to the last block exists. -/
+theorem y_walk_err {β : Type}
+    (hlb : ∀ e ∈ c.epochId :: blks.map (·.hdr.epochId), layoutBytesOf c e = .ok lb)
+    (hL : decodeLayout lb = .ok L) (hidx : L.index s = some idx)
+    (hng : blks.any (·.isGenesis) = false) (m : String) (hm : isExclusion m = false)
+    (K : Walk → Except String β)
+    (hnot : ¬ ∃ b t, Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t ∧ t + 1 = blks.length) :
+    ∃ e', (walkSegment c blks (c.epochId :: blks.map (·.hdr.epochId)) s >>= fun wk =>
+      check (wk.stop + 1 == blks.length) m >>= fun _ => K wk) = .error e' ∧ isExclusion e' = false := by
+  obtain ⟨we, wo, _⟩ := walk_one_layout c blks s idx lb L hlb hL hidx hng
+  cases hw : walkSegment c blks (c.epochId :: blks.map (·.hdr.epochId)) s with
+  | error e => exact ⟨e, rfl, we e hw⟩
+  | ok wk =>
+    obtain ⟨b, t, hf, rfl⟩ := wo wk hw
+    have : (t + 1 == blks.length) = false := by
+      cases h : (t + 1 == blks.length)
+      · rfl
+      · exact absurd ⟨b, t, hf, by simpa using h⟩ hnot
+    exact ⟨m, by simp only [ok_bind', expectedWalk, this, check_false_bind], hm⟩
+
+theorem y_walk_ok {β : Type}
+    (hlb : ∀ e ∈ c.epochId :: blks.map (·.hdr.epochId), layoutBytesOf c e = .ok lb)
+    (hL : decodeLayout lb = .ok L) (hidx : L.index s = some idx)
+    (hng : blks.any (·.isGenesis) = false) (m : String) (K : Walk → Except String β) (b t : Nat)
+    (hf : Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t) (ht : t + 1 = blks.length) :
+    (walkSegment c blks (c.epochId :: blks.map (·.hdr.epochId)) s >>= fun wk =>
+      check (wk.stop + 1 == blks.length) m >>= fun _ => K wk) = K (expectedWalk s lb b t) := by
+  obtain ⟨_, _, wc⟩ := walk_one_layout c blks s idx lb L hlb hL hidx hng
+  rw [wc b t hf, ok_bind']
+  simp only [expectedWalk, ht, beq_self_eq_true, check_true_bind]
+
+theorem nf_none1 (P : Blk → Bool) (hP : ∀ B, P B = newIn idx B) (heq : blks.findIdx? P = none) :
+    ¬ ∃ b t, Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t ∧ t + 1 = blks.length := by
+  rintro ⟨b, t, hf, ht⟩
+  have := (d2_of_found blks idx L P hP b t hf ht).2.1
+  rw [heq] at this; cases this
+
+theorem nf_none2 (P : Blk → Bool) (hP : ∀ B, P B = newIn idx B) (b2i : Nat)
+    (heq1 : blks.findIdx? P = some b2i) (heq2 : (blks.drop (b2i + 1)).findIdx? P = none) :
+    ¬ ∃ b t, Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t ∧ t + 1 = blks.length := by
+  rintro ⟨b, t, hf, ht⟩
+  obtain ⟨_, h1, h2⟩ := d2_of_found blks idx L P hP b t hf ht
+  rw [heq1] at h1; cases h1
+  rw [heq2] at h2; cases h2
+
+theorem nf_stop (P : Blk → Bool) (hP : ∀ B, P B = newIn idx B) (b2i j : Nat)
+    (heq1 : blks.findIdx? P = some b2i) (heq2 : (blks.drop (b2i + 1)).findIdx? P = some j)
+    (hst : (b2i + 1 + j + 1 == blks.length) = false) :
+    ¬ ∃ b t, Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t ∧ t + 1 = blks.length := by
+  rintro ⟨b, t, hf, ht⟩
+  obtain ⟨_, h1, h2⟩ := d2_of_found blks idx L P hP b t hf ht
+  rw [heq1] at h1; cases h1
+  rw [heq2] at h2; cases h2
+  have := hf.2.2.2.2.1
+  simp only [beq_eq_false_iff_ne, ne_eq] at hst
+  omega
+
+theorem found_b (P : Blk → Bool) (hP : ∀ B, P B = newIn idx B) (b2i : Nat)
+    (heq1 : blks.findIdx? P = some b2i) (b t : Nat)
+    (hf : Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t) (ht : t + 1 = blks.length) :
+    b = b2i := by
+  have := (d2_of_found blks idx L P hP b t hf ht).2.1
+  rw [heq1] at this; injection this with this; exact this.symm
+
+theorem genesis_false_of_get (hng : blks.any (·.isGenesis) = false) (i : Nat) (B : Blk)
+    (h : blks[i]? = some B) : B.isGenesis = false := by
+  rw [List.any_eq_false] at hng
+  simpa using hng B (List.mem_of_getElem? h)
+
 end Walk
+
+theorem expectedProposedSplit_none (n s : Nat) (t : PTrie) (e : Bool) :
+    TrieSplit.expectedProposedSplit none n s t e = .ok none := rfl
+
+theorem beq_none_isNone {α : Type} [BEq α] (o : Option α) : (o == none) = o.isNone := by
+  cases o <;> rfl
+
+theorem forIn_const_ok {α : Type} (l : List α) (body : α → PUnit → Except String (ForInStep PUnit))
+    (h : ∀ a ∈ l, body a PUnit.unit = .ok (.yield PUnit.unit)) :
+    forIn l PUnit.unit body = .ok PUnit.unit := by
+  induction l with
+  | nil => rfl
+  | cons a as ih =>
+    rw [List.forIn_cons, h a List.mem_cons_self]
+    exact ih (fun b hb => h b (List.mem_cons_of_mem _ hb))
+
+example (idx : Nat) (B : Blk) : (match B.slots[idx]? with
+    | some (s, snd) => s.heightIncluded == B.hdr.height
+    | none => false) = newIn idx B := by
+  unfold newIn
+  cases B.slots[idx]? with
+  | none => rfl
+  | some p => rfl
+
+/-- **O6, the correspondence.** On a segment without a genesis block, wherever the whole-state
+checker without resharding accepts or rejects, the resharding tiers' checker (`ReshardCore`)
+returns the same verdict. -/
+theorem checkD2CoreWithObs_vr_reshard (d : ExecutionDriver) (hr : d.resharding = false)
+    (hcr : d.codeResponseCap = true) (hwu : d.witnessUnbounded = false)
+    (hlu : d.layoutUnbounded = false) (hseg : d.segmentUnbounded = false)
+    (hik : d.implicitKind = fun _ _ _ => .ok .applyOldChunk)
+    (sa' : PTrie → Bytes → RetainMode → Except String Bytes)
+    (h : ActionHooks) (cb wb : Bytes) (g : Option Nat)
+    (c : Claim) (blks : List Blk) (hc : decodeClaimE cb = .ok c) (hb : c.blocks.mapM decodeBlk = .ok blks)
+    (hng : blks.any (·.isGenesis) = false) :
+    VR (fun _ _ => True) (checkD2CoreWithObs d h true cb wb g)
+      (checkReshardCoreObs { d with resharding := true, splitApply := sa' } h true cb wb g) := by
+  unfold checkD2CoreWithObs checkReshardCoreObs
+  simp only [hc, hb, hr, hik, hcr, hwu, hlu, hseg, Except.mapError, ok_bind', throw_bind', pure_bind',
+    Bool.not_false, Bool.not_true, ↓reduceIte, Bool.false_eq_true]
+  refine VR.bind_same fun cw _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun w _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun H _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ htab => ?_
+  cases hep : List.find? (fun x => x.epochId == c.epochId) c.epochs with
+  | none => simp only [throw_bind']; exact VR.err_err rfl rfl (by decide)
+  | some ep =>
+  simp only [ok_bind', pure_bind']
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.xood (by decide) fun hsl => ?_
+  refine VR.bind_same fun L hL => ?_
+  refine VR.xood (by decide) fun hbound => ?_
+  refine VR.y_ok (forIn_const_ok _ _ fun e he => ?_) ?_
+  · have : e.shardLayout = ep.shardLayout := by
+      rw [List.all_eq_true] at hsl; simpa using hsl e he
+    simp only [this, hL, ok_bind', hbound, check_true_bind]; rfl
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.xood (by decide) fun hsg => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  have hlb := layoutBytes_of_table c _ ep (check_ok htab) hsl
+  cases hall : blks.all (fun b => b.slots.length == L.numShards)
+  · simp only [check_false_bind]
+    refine VR.of_x_err rfl fun _ => ?_
+    cases hli : L.index H.shardId with
+    | none => exact ⟨_, rfl, by decide⟩
+    | some idx =>
+      simp only
+      cases hh : blks.all (fun b => b.slots.all fun x => decide (x.fst.heightIncluded ≤ b.hdr.height))
+      · exact ⟨_, rfl, by decide⟩
+      · simp only [check_true_bind]
+        exact y_walk_err c blks H.shardId idx ep.shardLayout L hlb hL hli hng _ (by decide) _
+          (fun ⟨b, t, hf, ht⟩ => by
+            have := (d2_of_found blks idx L (newIn idx) (fun _ => rfl) b t hf ht).1
+            rw [hall] at this; cases this)
+  simp only [check_true_bind]
+  cases hli : L.index H.shardId with
+  | none => exact VR.err_err rfl rfl (by decide)
+  | some idx =>
+  simp only
+  refine VR.bind_same fun _ _ => ?_
+  split
+  rotate_left
+  next heq =>
+    exact VR.of_x_err rfl fun _ => y_walk_err c blks H.shardId idx ep.shardLayout L hlb hL hli hng _
+      (by decide) _ (nf_none1 blks idx L _ (fun B => by (try dsimp only); unfold newIn; cases B.slots[idx]? <;> rfl) heq)
+  rename_i b2i heq1
+  split
+  rotate_left
+  next hB =>
+    exfalso
+    obtain ⟨hlt, _⟩ := List.findIdx?_eq_some_iff_getElem.mp heq1
+    rw [List.getElem?_eq_getElem hlt] at hB; cases hB
+  rename_i B2 hB
+  simp only [genesis_false_of_get blks hng b2i B2 hB, Bool.not_false, check_true_bind]
+  cases hgce : c.genesisChunkExtra.isNone
+  · simp only [check_false_bind]
+    refine VR.of_x_err rfl fun _ => ?_
+    by_cases hex : ∃ b t, Found0 blks.length (goodAt blks L) (newAt blks idx) 0 b t ∧ t + 1 = blks.length
+    · obtain ⟨b, t, hf, ht⟩ := hex
+      obtain rfl := found_b blks idx L _ (fun B => by (try dsimp only); unfold newIn; cases B.slots[idx]? <;> rfl) b2i heq1 b t hf ht
+      refine ⟨_, ?_, (by decide : isExclusion "invalid: genesis_chunk_extra for a non-genesis main block" = false)⟩
+      rw [y_walk_ok c blks H.shardId idx ep.shardLayout L hlb hL hli hng _ _ b t hf ht]
+      simp only [expectedWalk, hB, genesis_false_of_get blks hng b B2 hB, Bool.not_false, check_true_bind,
+        hgce, check_false_bind]
+    · exact y_walk_err c blks H.shardId idx ep.shardLayout L hlb hL hli hng _ (by decide) _ hex
+  simp only [check_true_bind]
+  split
+  rotate_left
+  next heq2 =>
+    exact VR.of_x_err rfl fun _ => y_walk_err c blks H.shardId idx ep.shardLayout L hlb hL hli hng _
+      (by decide) _ (nf_none2 blks idx L _ (fun B => by (try dsimp only); unfold newIn; cases B.slots[idx]? <;> rfl) b2i heq1 heq2)
+  rename_i j heq2
+  cases hst : (b2i + 1 + j + 1 == blks.length)
+  · simp only [check_false_bind]
+    exact VR.of_x_err rfl fun _ => y_walk_err c blks H.shardId idx ep.shardLayout L hlb hL hli hng _
+      (by decide) _ (nf_stop blks idx L _ (fun B => by (try dsimp only); unfold newIn; cases B.slots[idx]? <;> rfl) b2i j heq1 heq2 hst)
+  simp only [check_true_bind]
+  have hf := found_of_d2 blks idx L _ (fun B => by (try dsimp only); unfold newIn; cases B.slots[idx]? <;> rfl) b2i j hall heq1 heq2
+  refine VR.y_rw (y_walk_ok c blks H.shardId idx ep.shardLayout L hlb hL hli hng _ _ b2i (b2i + 1 + j) hf
+    (by simpa using hst)) ?_
+  simp only [expectedWalk, hB, genesis_false_of_get blks hng b2i B2 hB, Bool.not_false, check_true_bind,
+    hgce, hL, ok_bind', hli]
+  have hN : b2i + 1 + j + 1 = blks.length := by simpa using hst
+  refine VR.bind_eq' (by simp [List.filterMap_map, Function.comp_def]) fun _ hfacts => ?_
+  have hfacts' : c.applyFacts.length = 1 + b2i := by simpa using check_ok hfacts
+  refine VR.bind_eq' (by simp [List.filterMap_map, Function.comp_def]) fun _ _ => ?_
+  cases hpb : blks[b2i + 1]? with
+  | none => exact VR.err_err rfl rfl (by decide)
+  | some prevB2 =>
+  cases hsl2 : B2.slots[idx]? with
+  | none => exact VR.err_err rfl rfl (by decide)
+  | some p =>
+  dsimp only
+  refine VR.bind_eq' (forIn_forall2 _ _ _ ?hfg _ _ (forall2_sources blks H.shardId _ _ (by omega)) _)
+    fun _ _ => ?_
+  case hfg =>
+    intro a S st hR
+    obtain ⟨jj, t'⟩ := a
+    obtain ⟨hS, ht'⟩ := hR
+    simp only at hS ht'
+    subst ht'
+    simp only [hS]
+    rfl
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  cases hsc : Scheduler.Params.calculate Scheduler.Config.pv86 L.numShards with
+  | none => exact VR.err_err rfl rfl (by decide)
+  | some sched =>
+  dsimp only
+  simp only [pure_bind']
+  have hgate : (c.applyFacts.headD ⟨none, 0, none⟩).splitGate = none := by
+    cases hfa : c.applyFacts with
+    | nil => rfl
+    | cons f fs =>
+      rw [hfa, List.all_eq_true] at hsg
+      simpa using hsg f List.mem_cons_self
+  refine VR.bind_same fun _ _ => ?_
+  refine VR.y_ok (by rw [hgate]; exact expectedProposedSplit_none _ _ _ _) ?_
+  refine VR.bind_same fun out _ => ?_
+  refine VR.bind_same fun _ _ => ?_
+  cases g
+  rotate_left
+  · dsimp only
+    refine VR.bind_same fun _ _ => ?_
+    refine VR.bind_same fun _ _ => ?_
+    refine VR.bind_eq' (by simp) fun _ hcnt => ?_
+    have hcnt' : w.implicit.length = b2i := by simpa using check_ok hcnt
+    refine VR.bind_eq (fun r => (r, out.congestion, []))
+      (forIn_implicit H.shardId _ _ out.congestion ?hnd ?hb _ _ _ _ (by simp; omega) (by simp; omega))
+      fun r _ => ?_
+    case hnd =>
+      intro a r b hx
+      split at hx
+      · exact bind_check_yield_ne_done _ _ _ _ hx
+      · cases hx
+    case hb =>
+      intro i f fs T root
+      dsimp only
+      cases hM : blks[i]? with
+      | none => rfl
+      | some M =>
+        have hlo : layoutOf c M.hdr.epochId = .ok L := by
+          unfold layoutOf
+          rw [hlb _ (List.mem_cons_of_mem _ (List.mem_map_of_mem (List.mem_of_getElem? hM))), ok_bind', hL]
+        dsimp only
+        rw [hlo, ok_bind', hsc, pure_bind']
+        exact map_bind_check _ _ _ _
+    dsimp only
+    simp only [beq_self_eq_true, ↓reduceIte, beq_none_isNone]
+    iterate 11 refine VR.bind_same fun _ _ => ?_
+    split
+    · rename_i hem
+      simp only [hem]
+      exact VR.err_err rfl rfl (by decide)
+    · rename_i emr len hem
+      simp only [hem]
+      refine VR.bind_same fun _ _ => ?_
+      refine VR.bind_same fun _ _ => ?_
+      exact VR.ok_ok trivial
+  · dsimp only
+    refine VR.bind_same fun _ _ => ?_
+    refine VR.bind_eq' (by simp) fun _ hcnt => ?_
+    have hcnt' : w.implicit.length = b2i := by simpa using check_ok hcnt
+    refine VR.bind_eq (fun r => (r, out.congestion, []))
+      (forIn_implicit H.shardId _ _ out.congestion ?hnd ?hb _ _ _ _ (by simp; omega) (by simp; omega))
+      fun r _ => ?_
+    case hnd =>
+      intro a r b hx
+      split at hx
+      · exact bind_check_yield_ne_done _ _ _ _ hx
+      · cases hx
+    case hb =>
+      intro i f fs T root
+      dsimp only
+      cases hM : blks[i]? with
+      | none => rfl
+      | some M =>
+        have hlo : layoutOf c M.hdr.epochId = .ok L := by
+          unfold layoutOf
+          rw [hlb _ (List.mem_cons_of_mem _ (List.mem_map_of_mem (List.mem_of_getElem? hM))), ok_bind', hL]
+        dsimp only
+        rw [hlo, ok_bind', hsc, pure_bind']
+        exact map_bind_check _ _ _ _
+    dsimp only
+    simp only [beq_self_eq_true, ↓reduceIte, beq_none_isNone]
+    iterate 11 refine VR.bind_same fun _ _ => ?_
+    split
+    · rename_i hem
+      simp only [hem]
+      exact VR.err_err rfl rfl (by decide)
+    · rename_i emr len hem
+      simp only [hem]
+      refine VR.bind_same fun _ _ => ?_
+      refine VR.bind_same fun _ _ => ?_
+      exact VR.ok_ok trivial
 
 end NearSpecV3.Successor
