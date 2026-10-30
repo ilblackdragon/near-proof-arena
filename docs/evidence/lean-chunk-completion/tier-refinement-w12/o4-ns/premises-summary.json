@@ -1,0 +1,67 @@
+{
+ "fx": {
+  "label": "577 fixtures",
+  "cases": 577,
+  "nsEq": 577,
+  "noEsc": 577,
+  "both": 577,
+  "legacyDecides": 294,
+  "legacyDecidesBoth": 294,
+  "escapes": [],
+  "predictionViolations": 0,
+  "nsEqFalse_legacyExcluded": 0,
+  "nsEqFalse_legacyWrong": 0
+ },
+ "census": {
+  "label": "3,138 census",
+  "cases": 3138,
+  "nsEq": 3138,
+  "noEsc": 3138,
+  "both": 3138,
+  "legacyDecides": 1858,
+  "legacyDecidesBoth": 1858,
+  "escapes": [],
+  "predictionViolations": 0,
+  "nsEqFalse_legacyExcluded": 0,
+  "nsEqFalse_legacyWrong": 0
+ },
+ "slsample": {
+  "label": "storage-limit: 88 committed fixtures + 300 random honest chunks (seeded sample of 2,700)",
+  "cases": 388,
+  "nsEq": 348,
+  "noEsc": 388,
+  "both": 348,
+  "legacyDecides": 302,
+  "legacyDecidesBoth": 302,
+  "escapes": [],
+  "predictionViolations": 0,
+  "nsEqFalse_legacyExcluded": 40,
+  "nsEqFalse_legacyWrong": 0
+ },
+ "rsh": {
+  "label": "removal-soft: 1,440 honest chunks",
+  "cases": 1440,
+  "nsEq": 1388,
+  "noEsc": 1440,
+  "both": 1388,
+  "legacyDecides": 1440,
+  "legacyDecidesBoth": 1388,
+  "escapes": [],
+  "predictionViolations": 0,
+  "nsEqFalse_legacyExcluded": 0,
+  "nsEqFalse_legacyWrong": 52
+ },
+ "rs": {
+  "label": "removal-soft: all cases, partial run",
+  "cases": 3310,
+  "nsEq": 2592,
+  "noEsc": 3310,
+  "both": 2592,
+  "legacyDecides": 3310,
+  "legacyDecidesBoth": 2592,
+  "escapes": [],
+  "predictionViolations": 0,
+  "nsEqFalse_legacyExcluded": 0,
+  "nsEqFalse_legacyWrong": 718
+ }
+}

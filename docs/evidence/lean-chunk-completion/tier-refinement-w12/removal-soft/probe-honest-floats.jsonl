@@ -1,0 +1,60 @@
+{"case":"gen/rs1/ood/00-h10062-s3","reason":"out of domain (e.g_alpha): chunk function-call gas 34898424690430 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs1/ood/00-h10046-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10050-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10054-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10058-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10042-s3","reason":"out of domain (e.g_alpha): chunk function-call gas 119768696804671 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs1/ood/00-h10010-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10014-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10018-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10022-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10026-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10030-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10034-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10038-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs1/ood/00-h10066-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10060-s3","reason":"out of domain (e.g_alpha): chunk function-call gas 34898424690430 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs2/ood/00-h10044-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10048-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10052-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10056-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10040-s3","reason":"out of domain (e.g_alpha): chunk function-call gas 119768696804671 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs2/ood/00-h10008-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10012-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10016-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10020-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10024-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10028-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10032-s3","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10036-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs2/ood/00-h10064-s3","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10059-s0","reason":"out of domain (e.g_alpha): chunk function-call gas 34898424690430 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs3/ood/01-h10043-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10047-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10051-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10055-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10039-s0","reason":"out of domain (e.g_alpha): chunk function-call gas 119768696804671 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs3/ood/01-h10007-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10011-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10015-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10019-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10023-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10027-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10031-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10035-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs3/ood/01-h10063-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10062-s0","reason":"out of domain (e.g_alpha): chunk function-call gas 34898424690430 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs4/ood/01-h10046-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10050-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10054-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10058-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10042-s0","reason":"out of domain (e.g_alpha): chunk function-call gas 119768696804671 > G_α 3450888781824","tier":"floats","verdict":"out_of_domain"}
+{"case":"gen/rs4/ood/01-h10010-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10014-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10018-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10022-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10026-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10030-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10034-s0","reason":"invalid: MissingTrieValue (account)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10038-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}
+{"case":"gen/rs4/ood/01-h10066-s0","reason":"invalid: StorageInconsistentState(MissingTrieValue)","tier":"floats","verdict":"reject"}

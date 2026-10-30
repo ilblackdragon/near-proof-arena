@@ -28,7 +28,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
 | O3 | global actions | open. Proved (§7, §9, §11): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target; (§11) stored-receipt, transaction and witness decoder refinement (`decodeStoredRcpt_ref`, `decodeWitness_ref`), the pipe relation and every pipe update (`PipeRel`, `pipeFn_*`), the queue operations on well-formed layouts (`delayPop_rel`, `forwardFromBuffer_rel`, `forwardFromBufferV3_rel`, `forwardOrBuffer_eq`), the engine relation `MRQ` and its state rules. Open (§11): the non-distribution invariant on the lower run's `RS`, the recorded call with `ga` differing, the engine walk, driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`, `TierO3Dec.lean`, `TierO3Pipe.lean`, `TierO3Queue.lean`, `TierO3Engine.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
-| O4 | storage resolution | **open: the shell and tier levels are proved given engine obligations, but those obligations cannot be satisfied as stated** (2026-10-30, §10, §12, §13). §12 found `EngineAgree` false as first stated (finding G0: observation fields) and restated it on `obsClear`-ed outputs. It then reduced the engine to `EngineObligations`, proving the main transition, receipt loops and yield timeouts. §13 proved the per-receipt simulation down to the `FunctionCall` hook (`pwiSim_of`) and found G7 (global actions). §13 also found that `EngineObligations` cannot be satisfied (soft limit vs. removals, `remClosed_soft_absurd`), so the §12 tier theorem is vacuous. Open: run-level premises (§13 next steps), `FCSim` (G2, G3, G5, G6) and G4 | `relSuccessor_runtimeLimits_storageResolution_of_obligations`, `engineAgree_of_obligations`, `sim_applyNewChunkD2`, `sim_processLocals/Delayed/Incoming`, `sim_yieldLoop`, `fwdSim_v2` (`TierO4Engine.lean`); `pwiSim_of`, `actSim_of`, `remClosed_soft_absurd` (`TierO4Receipt.lean`); `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreWith_clearObs` (`TierO4.lean`) |
+| O4 | storage resolution | **proved under two per-witness premises** (2026-10-30, sixth session, §14): `.runtimeLimits ⊑ .storageResolution` on `O4Witness` files whenever the storage-resolution result equals the `NS` reference shell's (G1 soft limit, G6 VM recorder state) and is not a named escape (G2, G3, G3b, G4, G7). G4 and G5 are settled, `FCSim` is walked, and the premises are non-vacuous (`o4_premises_nonvacuous`) and measured (§14.3). §14.1 found a **completeness bug** in `.signed` and the legacy-engine tiers: they reject nearcore-valid chunks whose ContractData removals cross the soft limit. It is not fixed, because the fix changes the signed statement (proposal in §14.1). Earlier steps: §10, §12, §13 | `relSuccessor_runtimeLimits_storageResolution`, `verdict_runtimeLimits_storageResolution`, `o4_premises_nonvacuous`, `engineAgreeX`, `fwdSimX`, `simx_applyNewChunkD2` (`TierO4NSMain.lean`); `fcSimNS`, `actSimNS`, `code_rel`, `tail_rel`, `resolve_local_nonEth`, `simx_processWithInstant` (`TierO4NSSim.lean`); `checkD2CoreGWith_legacy_ns`, `runtimeLimits_ns_of`, `engineAgreeX_of_simX` (`TierO4X.lean`); `checkNS`, `StorageExecutionNS` (`TierO4NS.lean`); earlier: `relSuccessor_runtimeLimits_storageResolution_of` (`TierO4.lean`), `TierO4Engine.lean`, `TierO4Receipt.lean` |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §8): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
 | O7 | complete-code witness | **proved at chunk level** (2026-10-30, §6): on every whole-state configuration the complete-code flag moves no verdict, in either direction | `Lift.completeCode`, `relSuccessor_completeCodeGlobal_globalActions`, `relSuccessor_globalActions_completeCodeGlobal` (`TierO7.lean`) |
@@ -1104,3 +1104,187 @@ Step 4 (instrumenting the checker) and the direct G1 measurement were not done t
      `sha256` of its bytes.
    * Prove G4 forwarding under its premise.
    * State the final theorem with only run-level premises.
+
+## 14. Update 2026-10-30 (sixth O4 session): removal ground truth, and O4 under per-witness premises
+
+Lean: `Successor/TierO4NS.lean` (the proof-side recorder copy `NS`), `TierO4X.lean` (`SimX`,
+`RefinesX`, the shell walk), `TierO4NSSim.lean` (the `FunctionCall` hook, actions, receipts),
+`TierO4NSMain.lean` (loops, forwarding, main transition, final theorem). All four are default
+targets. No `sorry`. Axioms of every new theorem: `propext`, `Classical.choice`, `Quot.sound`
+(`o4-ns/axioms.txt`). No checker definition changed. `MainSuccessor.lean` gained an
+observation-only mode, `--o4-premises`. `make pin-check` is ok. The oracle gained the opt-in
+scenario `removal-soft` (`oracle/v3-successor/src/scenarios.rs`; no existing scenario changed).
+
+### 14.1 Ground truth: ContractData removals past the soft limit
+
+§13 argued that a `DeleteAccount` of an account with more than 2,000 ContractData keys makes the
+recorder cross `main_storage_proof_size_soft_limit` while the witness stays small. This session
+built that shape and its variants as whole chunks and judged them with the pinned cold nearcore
+(2.13.4, `44f7ae6c`, PV86).
+
+**Family `removal-soft`.** Quiet chain. Shard-0 accounts (layout shard id 3 or 0). Every probe chunk
+also carries an incoming 1-yocto transfer from shard 1, and some carry a local "victim" receipt
+(`R x`):
+
+| shape | probe chunk | nearcore |
+|---|---|---|
+| `reinsert` (8 per seed) | three receipts, each with 700 `storage_remove`+`storage_write` pairs of the same keys (recorder bound 2,000 B per removal, 4.2 MB in total; witness about 46 KB) | the incoming transfer, and the victim when present, are deferred to the next chunk |
+| `reinsert-one` (control) | one such receipt (1.4 MB) | the incoming transfer runs in the same chunk |
+| `vm-delete` | two receipts with 1,200 first-time deletions each, then a victim | incoming and victim deferred |
+| `delete-account` (4 per seed) | a 3.7 MB read plus `DeleteAccount` of an account with 190 one-byte entries (storage usage under the 10,000 B cap) | incoming deferred; witness values 3,705,070 B < 4,000,000 |
+| `delete-account-large` (§13's literal shape) | 3.7 MB read plus `DeleteAccount` of a 2,100-key account | the action fails with `DeleteAccountWithLargeState` (`actions.rs:383`, `MAX_ACCOUNT_DELETION_STORAGE_USAGE` = 10,000 B). Nothing is removed and nothing is deferred |
+
+**§13's literal shape cannot occur at PV86.** A `DeleteAccount` removes at most about 230 entries,
+because storage usage is at most 10,000 B. The shape §13 needs does occur through VM
+`storage_remove`, and through a capped `DeleteAccount` next to large reads.
+
+Generation: `NEAR_SUCCESSOR_SCENARIO=removal-soft $B gen --domain d3 --seed S [--first-chain 1]
+--chains 1 --blocks 80 --p-missing 0 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000`. Seeds
+1 and 2 use chain 0 (4 shards); seeds 3 and 4 use chain 1 (5 shards). Each seed shifts the start
+height and the written fill byte. In total: 1,440 honest chunks (all `cold_ok`) and 5,856 mutants,
+each mutant judged by nearcore (`verdict_source: nearcore(cold)`). Every probe chunk gets the full
+mutant set. The probe outcomes of all 4 seeds (`removal-soft/probes.json`) agree with the table
+above.
+
+**Verdicts** (checker `2347323d…`, the main checker; `replay_successor.py`; per-case rows in
+`removal-soft/*.results.jsonl.gz`; table `removal-soft/verdicts-table.json`):
+
+| population | cases | `.storageResolution` acc / rej / ood | `.runtimeLimits` acc / rej / ood | `.signed` acc / rej / ood |
+|---|---|---|---|---|
+| crossing probes, honest (reinsert, vm-delete, delete-account) | 52 | 52 / 0 / 0 | **0 / 52 / 0** | **0 / 52 / 0** |
+| crossing probes, mutants | 2,756 | 572 / 2,184 / 0 | **0 / 2,756 / 0** | **0 / 2,756 / 0** |
+| controls (reinsert-one, delete-account-large), honest | 8 | 8 / 0 / 0 | 8 / 0 / 0 | 0 / 0 / 8 |
+| controls, mutants | 400 | 88 / 312 / 0 | 88 / 312 / 0 | 0 / 172 / 228 |
+| rest of the chains, honest / mutants | 1,380 / 2,700 | 1,380 / 0 / 0 · 600 / 2,100 / 0 | same | 1,362 / 0 / 18 · 600 / 2,100 / 0 |
+| harness disagreements with nearcore | 7,296 | **0** | **624** | **624** |
+
+* **Soundness: no Lean tier accepts a nearcore reject** (0 of 7,296 on all three tiers). The
+  legacy shell's `w.size` guard (`base + 2000 · removals ≤ 4,000,000`, after the main transition)
+  still excludes every successful legacy run on such a chunk. `base` bounds nearcore's recorded
+  bytes, and the removal count only grows, so whenever nearcore defers, the legacy guard fails.
+* **Completeness bug in the legacy-engine tiers, including `.signed`.** The 624 disagreements are
+  the 52 honest crossing chunks and 572 nearcore-accepted mutants of them, for example
+  `hdr.height_included(unchecked)`. On each, `.runtimeLimits` and `.signed` reject with
+  `invalid: MissingTrieValue (account)` or `invalid: StorageInconsistentState(MissingTrieValue)`.
+  The legacy engine has no soft limit: it runs the receipt nearcore deferred, and that receipt's
+  values are not in the witness. `.floats` and `.genesis` give the same 52 rejects on the honest
+  probes (`removal-soft/probe-honest-{floats,genesis}.jsonl`; the other narrow tiers
+  share the engine). The §10 fix (`withStorageExclusion`) and the signed hand-over (`D3/Signed.lean`
+  `handover`) both test `legacyMergedBytes w > 4,000,000`, and that test omits the 2,000 B charged
+  per ContractData removal.
+* **Not fixed.** The pre-approval covers the §10 kind of fix: make the narrower legacy tiers
+  exclude, and keep the signed statement. That is not possible here, because the signed tier
+  itself rejects these chunks. If only the narrow tiers excluded them, the proved pairs
+  `.signed ⊑ .floats`, `.signed ⊑ .runtimeLimits` and `.signed ⊑ .genesisFloatsProtoGas` would
+  become false, since `Refines` does not allow a signed reject against an exclusion. Any fix
+  changes the signed checker's verdict on these witnesses, so the owner has to decide it.
+  **Proposed fix:** extend the hand-over condition from `legacyMergedBytes w > 4,000,000` to
+  `legacyMergedBytes w + 2000 · R > 4,000,000`, where `R` is the ContractData removal count of the
+  recorder run on the same inputs (`MainOutD2.cdRemovals`), or `0` when that run fails. The signed
+  tier then hands these chunks to the recorder, which accepts them as nearcore does. The narrow
+  tiers report the `w.size` exclusion under the same condition, so the named pairs keep holding.
+  Fixtures for that change: `removal-soft/cases.tar.gz` (60 honest probe chunks plus, for each, 2
+  nearcore-accepted and 2 nearcore-rejected mutants; index and sha256 in
+  `removal-soft/cases-index.json`). Breakage control: the current checker, which disagrees on all 52
+  crossing chunks.
+
+### 14.2 O4 under per-witness premises
+
+§13's design, implemented:
+
+* **The reference copy `NS`** (`TierO4NS.lean`) is the recorder at `fl0`, with four changes. It
+  has no soft-limit test (G1). Each VM call gets a fresh `RealStore`, as in the legacy hook (G6). A
+  call's code is excluded as `out of domain (e.code_attempted_only)` when only a rolled-back
+  in-chunk deploy provides it (**G3b, new**: the legacy engine rejects with `MissingTrieValue`,
+  while the recorder and nearcore serve it from the compiled-contract cache; reachable only if the
+  witness does not reveal the receiver's pre-state account). Inside the hook, the computation after
+  code selection runs in `Except` (`callTailNS`). `checkNS` is the storage-resolution shell at the
+  `NS` driver.
+* **Escapes.** `esc` names the strings by which `NS` (and the recorder) may fail where the legacy
+  engine decides:
+  * G2: `w.fuel_certificate`;
+  * G3: `e.code_prep_race`;
+  * G3b: `e.code_attempted_only`;
+  * G4: `invalid: buffered receipts gas left …`, nearcore's `assert_eq!` in `forward_from_buffer`;
+  * G7: `w.shape: global action`.
+
+  `SimX`/`RefinesX` are `Sim`/`Refines` that additionally allow an `esc` failure on the recorder
+  side. `o4x_lockstep` repeats the §10 shell walk for `RefinesX` (`checkD2CoreGWith_legacy_ns`,
+  25 s).
+* **`FCSim`, walked.** `functionCall_nf` puts `D3.functionCall` in a normal form (by `rfl` per
+  contract and ETH-implicit case). `code_rel` relates the legacy code selection to
+  `resolveColdCodeNS`: they agree, or the legacy one excludes (the in-chunk-deploy-served
+  pre-state contract), or `NS` fails with G3/G3b. `tail_rel` relates the legacy VM tail to
+  `callTailNS`: they agree, or `NS` fails G2. `simx_hook` handles the `unmodeled` wrapper and the
+  value map; `HooksR_d3` shows that legacy hook values are fixed points of `·.wt T`.
+* **G5 is unreachable** (`resolve_local_nonEth`). `Rci.resolve` redirects a local contract to the
+  wallet only on an ETH-implicit account, and the legacy hook excludes every ETH-implicit account
+  with a local contract before it resolves code. §10's description (a non-ETH-implicit account
+  redirected) does not match the code.
+* **G7** is an escape: `applyGlobal false` fails with `escG7` at once (`actSimNS`). No reachability
+  argument is needed.
+* **G4 is settled** (`fwdSimX`, every layout). V2 is `fwdSim_v2`. On V3, a non-empty buffer to a
+  shard outside the layout is the legacy `c.same_layout` exclusion. An empty parent buffer forwards
+  nothing (`ev_fwdToShard_empty`, `bufGet_outside`). The trailing empty-buffer assertion is the
+  escape. The assertion is nearcore's own (`congestion_control.rs:281-284`, a panic), so on such a
+  pre-state the recorder is the faithful one.
+* **The receipt level, loops and main transition** are the §12/§13 walks repeated for `SimX`
+  and `NS` with `P := True`. `RemClosed` and `soft` are no longer needed (`simx_*`,
+  `simx_applyNewChunkD2`). **`engineAgreeX`** has no premise.
+
+**Theorem** (`TierO4NSMain.lean`):
+
+```
+theorem relSuccessor_runtimeLimits_storageResolution (c w : Bytes) (hw : O4Witness w)
+    (hNS : Tier.checker .storageResolution c w = checkNS c w)
+    (hX : ∀ s, Tier.checker .storageResolution c w = .error s → esc s = false) :
+    Refines (Tier.checker .runtimeLimits c w) (Tier.checker .storageResolution c w)
+```
+
+plus its verdict reading, `verdict_runtimeLimits_storageResolution`. Both premises are decidable
+functions of `(c, w)`. **Non-vacuity:** `o4_premises_nonvacuous` exhibits `c = w = []`, with every
+check run in the kernel (`decide +kernel`). That witness is trivial, because both shells stop at
+the claim decoder. The measured rows below are the real-chunk instances.
+
+### 14.3 The premises on data
+
+`--o4-premises` (observation only) prints per case the `.runtimeLimits`, `.storageResolution` and
+`NS` verdicts, `nsEq` (premise `hNS`) and `noEsc` (premise `hX`). It is a separate entry branch in
+`main`; the tier path is unchanged. Its `.runtimeLimits`/`.storageResolution` columns match the
+replays of checker `2347323d…` case for case (below). Checker `548f77c3…`. Rows:
+`o4-ns/premises-*.jsonl.gz`; summary: `o4-ns/premises-summary.json`. `O4Witness` is not measured.
+It holds on every original-format witness whose codes fit one code response, which covers every
+case here.
+
+| population | cases | `hNS` holds | `hX` holds | both | legacy decides | legacy decides, both hold | escapes seen | prediction violations |
+|---|---|---|---|---|---|---|---|---|
+| 577 fixtures | 577 | 577 | 577 | 577 | 294 | 294 | none | 0 |
+| 3,138 census | 3,138 | 3,138 | 3,138 | 3,138 | 1,858 | 1,858 | none | 0 |
+| storage-limit family: the 88 committed fixtures and 300 honest chunks sampled from 2,700 (seed 14) | 388 | 348 | 388 | 348 | 302 | 302 | none | 0 |
+| `removal-soft`, honest chunks | 1,440 | 1,388 | 1,440 | 1,388 | 1,440 | 1,388 | none | 0 |
+| `removal-soft`, the first 3,310 cases of the 7,296 in list order (run stopped) | 3,310 | 2,592 | 3,310 | 2,592 | 3,310 | 2,592 | none | 0 |
+
+Where `hNS` fails: in the storage-limit sample, on 40 chunks, `.runtimeLimits` is excluded (the §10
+`withStorageExclusion`). In `removal-soft`, on the 52 honest crossing chunks (718 of the 3,310
+cases, mutants included), `.runtimeLimits` is wrong (§14.1). Neither is a theorem violation: the
+theorem's premise fails there. Verdict identity of the instrumented columns: 577 + 3,138 + 1,440
+cases against the replays (`.runtimeLimits` and `.storageResolution`), and 388 against the
+storage-limit replays, all identical.
+
+Where both premises hold, the theorem predicts `.runtimeLimits ⊑ .storageResolution`. The column
+"prediction violations" checks that prediction against the verdicts. `nsEq` fails exactly on the
+G1 shapes: the storage-limit probes and the `removal-soft` crossing chunks, where `NS`, like the
+legacy engine, runs the deferred receipts. On those chunks `.runtimeLimits` is either excluded
+(`withStorageExclusion`, storage-limit family) or wrong (§14.1). No escape string occurs in any
+population.
+
+### 14.4 What is open
+
+* The §14.1 completeness bug of the legacy-engine tiers and `.signed`: the owner must decide the
+  signed hand-over change (proposal above).
+* O4 holds under `hNS` and `hX`. Discharging `hNS` would need a run-level argument that the soft
+  limit and the per-receipt limit are never reached on a witness, or a VM lemma for G6 (results
+  equal modulo `recd`/`acct` unless `RecordedStorageExceeded`). Neither is attempted. On the
+  premise rows, `hNS` holds wherever the recorder's limits are not reached.
+* G3b may deserve a recorder-side look. It is unreachable when the witness reveals the receiver's
+  pre-state account, which the recorder itself records.

@@ -296,3 +296,42 @@ handover. Lean runs under `heavy` with `HEAVY_MEM=32G`, `LEAN_NUM_THREADS=10`.
 * Engineering: pure-bind walk rules need `with_reducible`. At default transparency the file took
   over 15 minutes and 24 GB.
 * Not done: `FCSim` (step 3), checker instrumentation and the G1 measurement (step 4), step 5.
+
+
+## 2026-10-30, sixth O4 session (removal ground truth, O4 under per-witness premises)
+
+* Started from main `4d48255b9` (worktree `worktree-agent-a2e72e08b02b153e5`).
+* **Ground truth first.** Added the opt-in scenario `removal-soft` (`oracle/v3-successor`).
+  ContractData removals push the recorder past the 4,000,000 B soft limit while the witness values
+  stay under it. Shapes: VM `storage_remove` with reinsertion, first-time VM deletions, and a capped
+  `DeleteAccount` next to a 3.7 MB read; plus §13's literal shape (`DeleteAccount` of a 2,100-key
+  account). 4 seeds, 7,296 cases, judged by cold nearcore 2.13.4.
+  * The literal shape fails in nearcore with `DeleteAccountWithLargeState`: storage usage is capped
+    at 10,000 B. The other shapes defer receipts.
+  * **No Lean tier accepts a nearcore reject.**
+  * `.runtimeLimits`, `.floats`, `.genesis` and **`.signed`** reject all 52 crossing honest chunks
+    and 572 nearcore-valid mutants (`MissingTrieValue`). `.storageResolution` agrees with nearcore
+    on all 7,296.
+  * Not fixed. The signed tier has the bug too, and a narrow-tier-only exclusion would falsify
+    `.signed ⊑ .runtimeLimits`/`.floats`/`.genesisFloatsProtoGas`. Proposed hand-over change and
+    fixtures in README §14.1 and `removal-soft/`.
+* **§13's design, implemented** (`TierO4NS`, `TierO4X`, `TierO4NSSim`, `TierO4NSMain`):
+  * the reference copy `NS`: no soft test, a fresh VM store, and the G3b exclusion;
+  * `SimX`/`RefinesX` with the escape set `esc` (G2, G3, G3b, G4, G7);
+  * `FCSim` walked through a normal form of the legacy hook;
+  * G5 shown unreachable; G4 proved on every layout;
+  * `engineAgreeX` with no premise.
+  * **`relSuccessor_runtimeLimits_storageResolution`** has two per-witness premises (`hNS`, `hX`).
+    `o4_premises_nonvacuous` checks them in the kernel on a witness.
+  * Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
+* **New finding G3b**: code that only a rolled-back in-chunk deploy provides. The legacy engine
+  rejects; the recorder and nearcore serve it from the compiled-contract cache. It needs the
+  receiver's pre-state account to be unrevealed. It is an escape of `NS`.
+* **Instrumentation**: `--o4-premises` (observation only; its tier columns are identical to the
+  replays). Premise counts on the fixtures, the census, the storage-limit family and `removal-soft`
+  are in README §14.3.
+* Engineering: whole-module builds take 25 s (`TierO4X`), about 4 min (`TierO4NSSim`, mostly
+  `simx_applyActionReceipt`) and about 2.5 min (`TierO4NSMain`). The legacy hook's do-block
+  duplicates its continuation into every branch, so the walk goes through `functionCall_nf`. That
+  lemma is proved by `rfl` per contract case, after destructuring `ActSt`/`Acct`, so that `simp`
+  cannot rewrite fields.

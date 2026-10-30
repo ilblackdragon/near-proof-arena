@@ -1,0 +1,67 @@
+{
+ "oracle_binary_sha256": "f2cbd5fcf56a92b3bdb2d898c6806f4c1dea97ed78c739ef1b06cbff9267d9c3",
+ "nearcore": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993 (2.13.4, PV86)",
+ "replays": {
+  "runtimeLimits": {
+   "status": "fail",
+   "verdicts": {
+    "accept": 2076,
+    "reject": 5220
+   },
+   "disagreements": 624,
+   "checker_sha256": "2347323d5056523f184ec45124ba0930e6e948ad5cdacedc4fccd157a668f35a",
+   "partition": {
+    "verdict_agree_outside_domain": 1032,
+    "verdict_compared_agree": 5640,
+    "verdict_compared_disagree": 624
+   }
+  },
+  "storageResolution": {
+   "status": "pass",
+   "verdicts": {
+    "accept": 2700,
+    "reject": 4596
+   },
+   "disagreements": 0,
+   "checker_sha256": "2347323d5056523f184ec45124ba0930e6e948ad5cdacedc4fccd157a668f35a",
+   "partition": {
+    "verdict_agree_outside_domain": 1272,
+    "verdict_compared_agree": 6024
+   }
+  },
+  "signed": {
+   "status": "fail",
+   "verdicts": {
+    "accept": 1962,
+    "out_of_domain": 254,
+    "reject": 5080
+   },
+   "disagreements": 624,
+   "checker_sha256": "2347323d5056523f184ec45124ba0930e6e948ad5cdacedc4fccd157a668f35a",
+   "partition": {
+    "domain_exclusion_asserted": 254,
+    "verdict_agree_outside_domain": 2356,
+    "verdict_compared_agree": 4062,
+    "verdict_compared_disagree": 624
+   }
+  }
+ },
+ "generation": {
+  "rs1": [
+   "chain 0: D3Params { base: ChainParams { seed: 1000003, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 80, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+   "  honest=320 cold_ok=320 d3=301 d1=256 d0=228 ood_written=19 mutants=1464 crafted=0"
+  ],
+  "rs2": [
+   "chain 0: D3Params { base: ChainParams { seed: 2000006, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 80, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+   "  honest=320 cold_ok=320 d3=301 d1=255 d0=227 ood_written=19 mutants=1464 crafted=0"
+  ],
+  "rs3": [
+   "chain 1: D3Params { base: ChainParams { seed: 3000010, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 80, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+   "  honest=400 cold_ok=400 d3=380 d1=330 d0=302 ood_written=20 mutants=1464 crafted=0"
+  ],
+  "rs4": [
+   "chain 1: D3Params { base: ChainParams { seed: 4000013, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 80, p_missing: 0.0, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.0, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }",
+   "  honest=400 cold_ok=400 d3=380 d1=330 d0=302 ood_written=20 mutants=1464 crafted=0"
+  ]
+ }
+}
