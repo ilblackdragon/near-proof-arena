@@ -185,3 +185,144 @@ remaining work. No new row has been promoted yet.
      1 extra gas for one class;
    - rerun the trace over `runs/sample.txt` (≈ 2.5 h at 5 processes);
    - run `ablate` (≈ 10 min).
+
+## Second pass, steps 3–5: results (2026-10-30)
+
+Steps 3–5 of the handover above are done for every non-host row except `L0-D3-006` (handled
+separately). Steps 1–2 (the 16 host rows) are handled separately too. Coverage counts move from
+139 validated / 14 impossible / 72 implemented to **154 / 36 / 35**.
+
+### Method additions
+
+- **Control build v3** (`ctl-v3`, sha256 `689dbfb4…`, from `tools/d3/l0_ctl_patch.py` on this
+  commit). The new hooks are again `@[implemented_by]` copies, so kernel terms are unchanged:
+  - `throw:<msg>` on copies of `walkSegment`, `checkReshardCoreObs`, `checkD2CoreWithObs` and
+    `checkD2CoreGWith`: a literal `throw "<msg>"` becomes `out of domain (l0-ablated): <msg>`. A throw
+    has no continuation value, so the control is "this guard no longer rejects".
+  - `guard:decode: Not all bytes read`: the witness decoders skip the trailing-bytes test.
+  - `instr:int` / `instr:float` (an `exec` wrapper): each executed instruction of the family
+    first charges 1 extra gas. Trace `I int` / `I float`, once per case.
+  - `wasm:load`, `wasm:prep`, `wasm:compile` on a copy of `runCallFast`. Compiled code calls
+    `runCallFast`, not `runCall`, because of `@[csimp] runCall_eq_fast`; a hook on `runCall` is
+    dead code. `wasm:fuelcert` is on a copy of `vmCall`.
+- **Where the d2-core guards run on `allFeatures`.** `allFeatures` sets `resharding`, so every
+  segment without a genesis block goes to `checkReshardCoreObs` (`Successor/ReshardCore.lean`).
+  Only genesis-containing segments go to `checkD2CoreGWith`. Each row's `lean_path_symbol` now
+  names those sites, with the signed line kept last.
+- **Verdict identity.** With trace on and no ablation, ctl-v3 matches the default checker on all
+  4,893 traced population cases: fixture families minus the slow removal-soft, fuel, eval-budget,
+  gate-b-caps and storage-limit families, plus 4,000 sampled corpus cases and the runtime-errors
+  family. The `t.tx_valid` exec-negs are excluded from every map.
+- **New directed claim mutants** (`l0_guard_mutants.py`, now in `guard-mutants/`, 240 in total;
+  `index.json`):
+  - `l0.c.inner_height_created` (D2-003)
+  - `l0.c.epoch_id_next` (D2-004): the chunk is claimed in the prev block's next epoch, with flag 0
+    set to 1 and a copied epoch record. Only the witness epoch id disagrees.
+  - `l0.c.epoch_id_other` (D2-004, masked)
+  - `l0.c.rs_total1` (D2-014)
+  - `l0.c.prev_block_merkle_root` (D2-021) and `l0.c.block1_merkle_root` (D2-022): one byte of the
+    unused `block_merkle_root` changes a block hash and nothing else.
+  - `l0.c.truncate_before_main` (D2-026)
+  - `l0.c.other_epoch_pv85` (D2-011)
+- **New statuses in `promote_row`** (`lean_chunk_coverage.py`).
+  - `validated-by-subsumption` requires all of: ≥ 1 deciding reject, an unablated pass, an ablated
+    replay that still rejects every case, every subsuming row validated in the same inventory, and
+    a Lean lemma or a source argument.
+  - `impossible-at-boundary` needs a reason. Named lemmas must be declared in
+    `spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean`.
+  - Optional `surface` strings must still occur in the named Lean files, which guards against
+    drift.
+  - The entries are in `second-pass-statuses.json`; `l0_exercise.py statuses` merges them into
+    `rows.json`.
+- **Lean** (`L0GuardSubsumption.lean`, in `defaultTargets`; axioms `propext`, `Classical.choice`
+  and `Quot.sound` only; no `sorry`):
+  - `empty_segment_fails_start`, `pHash_length` (D2-006 ⇒ D2-021 fails)
+  - `strictlyAscending_dedupSorted`, `ascending_of_referenced` (D2-008 ⇒ D2-007)
+  - `epoch_in_table_of_referenced` (D2-008 ⇒ D2-009)
+  - `scheduler_params_pv86` (D2-038 never fails)
+  - `base_state_hashes` (D2-039 never fails)
+
+### Rows by new status
+
+**Validated with a detecting per-row control (10):**
+
+| row | deciding / exercising cases | control (flipped / replayed) |
+|---|---|---|
+| D2-003 | 12 `inner_height_created` | `guard:` → accept, 12/12 |
+| D2-004 | 12 `epoch_id_next` | `guard:` → accept, 12/12 |
+| D2-021 | 12 `prev_block_merkle_root` | `guard:` → accept, 12/12 |
+| D2-022 | 12 `block1_merkle_root` | `guard:` → accept, 12/12 |
+| D2-024 | 2 resharding `c.child_layout_is_parent` | `throw:` → excluded, 2/2 |
+| D2-026 | 12 `truncate_before_main` | `throw:` → excluded, 12/12 |
+| D2-057 | 13 corpus `w.trailing_byte` (cold nearcore) | `guard:` → accept, 13/13 |
+| L0-instr-integer | 1,685 accept / 96 reject | `instr:int`, 12/24 |
+| L0-W-009 | 1,787 / 102 | `wasm:load`, 12/24 |
+| L0-AF-fuel-certificate | 1,788 / 102 | `wasm:fuelcert`, 23/24 |
+
+Note: the first-pass masked mutants for D2-021 and D2-022 (reversed segment, dropped block) are
+caught by later guards. The `block_merkle_root` mutants show that both guards are load-bearing.
+D2-004's `epoch_id_other` mutants are masked, but its `epoch_id_next` mutants are not.
+
+**Validated through existing evidence entries:**
+- D2-002: new `VALIDATION["witness-size"]`, the gate-b-caps wsize fixtures with the pre-lift
+  checker as control.
+- D3-011: `code-cache`, the same site as D3-009, `CodeResolution.resolveCodeBytes`.
+
+**Validated by subsumption (3):**
+- D2-006, subsumed by D2-021 (Lean).
+- D2-007, subsumed by D2-008 (Lean).
+- D2-014, subsumed by D2-056: the ablated replay rejects all 12 at the encoded-root
+  `Reed-Solomon parameters` site.
+
+**impossible-at-boundary (22):**
+- Not evaluated on `allFeatures`:
+  - D2-001 (`allowCodes = true`)
+  - W-001, W-002, W-003, W-018, guard-floatOutOfDomain (`floats`)
+  - guard-curveHosts (`curveHosts`)
+- Statement scope (`c.pv86`):
+  - D2-005: 12 `pv85` mutants, all excluded, none accepted.
+  - D2-011: 12 `other_epoch_pv85` mutants, all excluded.
+- Never the first failure:
+  - D2-009 (Lean)
+  - D2-013: the upper bound is lifted, and no nearcore layout has 0 shards.
+- Never fails:
+  - D2-038, D2-039 (Lean)
+  - D2-033: probability below 2^-1024 (assumption recorded).
+- Dead code on `allFeatures`:
+  - D3-004: the only caller passes a FunctionCall.
+  - D3-005: `existenceOk` is checked first.
+  - D3-012: UQ-016's static check, `check_action_log_tags.py`, with its `--inject` control.
+- Unreachable on any nearcore chain:
+  - D3-007: total supply is below 2^128 (assumption recorded).
+  - D3-015: 2^64 − 1 yield receipts would be needed.
+  - D3-016: bounded by prepaid gas.
+- Retired: W-016, W-017.
+
+**Still `implemented`, each with an exact next step in `remaining_work`:**
+- **D2-012, D2-019, L0-same-layout, L0-split-gate, guard-noResharding.**
+  - Finding: on `allFeatures` these guards are live for genesis-containing segments
+    (`checkD2CoreGWith`, `RuntimeCore.lean:436,455`).
+  - The earlier text "legacy-core guard only" was wrong for `allFeatures`.
+  - None of the 266 genesis-main corpus chunks triggers them. This is an exclusion, never an
+    accept.
+- **D2-020, D2-023, D2-025.** They need witness mutants judged by cold nearcore:
+  - D2-020: an oversized new transaction with the transaction root rehashed.
+  - D2-023, D2-025: a fabricated block chain named by both chunk headers.
+
+  No claim-only mutant can make D2-023 or D2-025 the first failure.
+- **L0-instr-float, W-012.** 39 accepted cases and a detecting control (12/12). There is no valid
+  rejected case once the `t.tx_valid` flips are excluded. Needed: mutant sets of the float chains.
+- **W-005.** One accepted case, `PrepareError(Memory)`, and a detecting control. No rejected case.
+- **W-006.** No case calls a contract that fails to compile.
+- **D3-003, D3-013, D3-014, W-011, W-013, W-014.** These are exclusion paths that fire on 0 of
+  235,716 corpus cases. Each `remaining_work` names the proof that would make it dead.
+
+No Lean/nearcore disagreement was found. Every baseline replay passes, and no ablation-free
+verdict differs from the default checker. Working files are under
+`/data/illia/nearproof-deps/l0-validate/runs/`:
+- `trace-g2.jsonl`, `trace-g3.jsonl`, `trace-w2.jsonl`
+- `map-g2.json`, `map-w2.json`
+- `ablate-g2.json`, `ablate-w2.json`
+- `abl-g2/`, `abl-w2/`
+
+The ctl-v3 tree is `l0-validate/tree-g`.

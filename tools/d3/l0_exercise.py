@@ -46,15 +46,19 @@ def _trace_batch(binary, cases, timeout):
     for line in p.stderr.splitlines():
         if line.startswith("CASE "):
             cur = str(Path(line[5:]).resolve())
-            ev[cur] = {"hosts": collections.Counter(), "acts": collections.Counter()}
+            ev[cur] = {"hosts": collections.Counter(), "acts": collections.Counter(),
+                       "events": collections.Counter()}
         elif line.startswith("H ") and cur:
             ev[cur]["hosts"][line[2:]] += 1
         elif line.startswith("A ") and cur:
             ev[cur]["acts"][line[2:]] += 1
+        elif line.startswith(("I ", "W ")) and cur:
+            ev[cur]["events"][line] += 1
     if set(ev) != set(rows):
         raise ValueError("trace markers do not match the result rows")
     return [{"case": c, "verdict": r["verdict"], "reason": r["reason"],
-             "hosts": dict(ev[c]["hosts"]), "acts": dict(ev[c]["acts"])} for c, r in rows.items()]
+             "hosts": dict(ev[c]["hosts"]), "acts": dict(ev[c]["acts"]),
+             "events": dict(ev[c]["events"])} for c, r in rows.items()]
 
 
 def cmd_trace(a):
@@ -123,6 +127,12 @@ def cmd_map(a):
                 rows["host:" + h][k].append(r["case"])
             for t in r["acts"]:
                 rows["act:" + t][k].append(r["case"])
+            for ev in r.get("events", {}):
+                rows[EVENT_TARGET.get(ev, "wasm:prep" if ev.startswith("W prep:") else "event:" + ev)][k] \
+                    .append(r["case"])
+            if r["verdict"] == "reject" and r["reason"]:
+                # deciding cases of a guard: this guard's message is the first failure
+                rows["reason:" + r["reason"]][k].append(r["case"])
     out = {k: {"accept": sorted(set(v["accept"])), "reject": sorted(set(v["reject"])),
                **({"disagree": sorted(set(v["disagree"]))} if v["disagree"] else {})}
            for k, v in sorted(rows.items())}
@@ -172,13 +182,13 @@ def run_replay(binary, cases, out, ablate, jobs):
 
 def cmd_ablate(a):
     m = json.loads(a.map.read_text())
-    targets = [t for t in (a.targets or m) if t in m or t.startswith("guard:")]
+    targets = [t for t in (a.targets or m) if t in m or t.startswith(("guard:", "throw:"))]
     res = json.loads(a.out.read_text()) if a.out.exists() else {}
     work = a.workdir
     for t in targets:
         if t in res and not a.force:
             continue
-        ent = m.get(t, {"accept": [], "reject": []})
+        ent = m.get(t) or m.get("reason:" + t.split(":", 1)[1], {"accept": [], "reject": []})
         cases = pick(ent["accept"], a.k) + pick(ent["reject"], a.k_reject)
         if not cases:
             res[t] = {"cases": 0}
@@ -208,7 +218,22 @@ GUARD_ROWS = {
     "invalid: validator_update does not match the epoch start": "L0-D2-031",
     "invalid: tx_valid length": "L0-D2-037",
     "decode: Not all bytes read": "L0-D2-057",
+    # second pass (2026-10-30)
+    "invalid: witness chunk header differs from the claim": "L0-D2-003",
+    "invalid: epoch id": "L0-D2-004",
+    "invalid: Reed-Solomon parameters": "L0-D2-014",
 }
+THROW_ROWS = {
+    "invalid: shard not in layout": "L0-D2-024",
+    "invalid: segment has no new chunk": "L0-D2-026",
+}
+EVENT_TARGET = {"I int": "instr:int", "I float": "instr:float", "W load": "wasm:load",
+                "W compile": "wasm:compile", "W fuelcert": "wasm:fuelcert"}
+OTHER_ROWS = {"instr:int": "L0-instr-integer", "instr:float": "L0-instr-float",
+              "wasm:load": "L0-W-009", "wasm:prep": "L0-W-005", "wasm:compile": "L0-W-006",
+              "wasm:fuelcert": "L0-AF-fuel-certificate"}
+# rows whose evidence is another row's target (same site, two rows)
+ALIASES = {"L0-W-012": "instr:float"}
 
 
 def row_of(target):
@@ -219,12 +244,26 @@ def row_of(target):
         return f"L0-action-{int(v.lstrip('D')):02d}"
     if kind == "guard":
         return GUARD_ROWS.get(v)
-    return None
+    if kind == "throw":
+        return THROW_ROWS.get(v)
+    return OTHER_ROWS.get(target)
 
 
 WHAT = {"host": "the arm burns 1 extra gas before it runs",
         "act": "the action reports 1 extra gas burnt and used",
-        "guard": "the failing check passes"}
+        "guard": "the failing check passes",
+        "throw": "the guard's rejection becomes a named exclusion (out of domain (l0-ablated))",
+        "instr": "each executed instruction of the family first charges 1 extra gas",
+        "wasm": "the site charges 1 extra gas (load: the contract-loading charge; prep/compile: the "
+                "failed call burns 1 gas instead of 0) or, for the fuel certificate, reports failure"}
+SOURCE = {
+    "guard": "claim-v3 mutants (tools/d3/l0_guard_mutants.py over honest corpus chunks) or corpus "
+             "mutants judged by cold nearcore, each rejected first by this guard",
+    "throw": "claim-v3 mutants (resharding-fixtures c.child_layout_is_parent; l0_guard_mutants.py "
+             "l0.c.truncate_before_main), each rejected first by this guard",
+    "instr": "observation trace of the second-pass control build over the fixture families and a "
+             "4,000-case corpus subsample; verdicts identical to the default checker",
+}
 
 
 def short(c):
@@ -245,13 +284,18 @@ def cmd_evidence(a):
     cause = {t: set(m.get(t, {}).get("disagree", [])) for t in (a.disagreement_cause or [])}
     explained = set().union(*cause.values()) if cause else set()
     rows = {}
-    for t, ent in sorted(m.items()):
-        rid = row_of(t)
-        if rid is None or t not in abl or not abl[t].get("cases"):
+    items = [(row_of(t), t) for t in sorted(m)] + [(r, t) for r, t in ALIASES.items()]
+    items += [(row_of(t), t) for t in abl if t.startswith(("guard:", "throw:"))]
+    if a.only:
+        items = [(r, t) for r, t in items if r in a.only]
+    for rid, t in items:
+        ent = m.get(t) or m.get("reason:" + t.split(":", 1)[1])
+        if rid is None or ent is None or t not in abl or not abl[t].get("cases"):
             continue
         x = abl[t]
         kind = t.split(":")[0]
-        src = ("claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks "
+        src = (SOURCE.get(kind, SOURCE["instr"]) if a.only else
+               "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks "
                "(d3c7-d3c10), each rejected first by this guard" if kind == "guard" else
                "observation trace of the control build over the corpus sample, census and fixture "
                "families; verdicts identical to the default checker")
@@ -284,10 +328,52 @@ def cmd_evidence(a):
                     else:
                         rows[rid][k] = v
     doc = json.loads(a.out.read_text()) if a.out.exists() else {}
+    if a.only:  # second pass: merge the named rows into the existing record
+        doc.setdefault("rows", {}).update(rows)
+        rows = doc["rows"]
     doc.update(schema="l0-row-validation-v1", rows=rows)
     a.out.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
-    det = sum(1 for r in rows.values() if r["control"]["ablated_disagreements"] > 0)
+    det = sum(1 for r in rows.values() if r.get("control", {}).get("ablated_disagreements", 0) > 0)
     print(f"{len(rows)} rows with evidence, {det} with a detecting control")
+
+
+def cmd_statuses(a):
+    """Merge second-pass status entries (`--spec`) into rows.json. An entry with a `target` gets
+    its deciding fixtures (from the maps) and its ablated replay (from the ablate files, with the
+    reasons of the ablated verdicts) attached, exactly as `evidence` records them."""
+    spec = json.loads(a.spec.read_text())
+    m, abl = {}, {}
+    for p in a.map or []:
+        m.update(json.loads(p.read_text()))
+    for p in a.ablate or []:
+        abl.update(json.loads(p.read_text()))
+    doc = json.loads(a.out.read_text())
+    for rid, e in spec.items():
+        if rid.startswith("_"):
+            continue
+        e = dict(e)
+        t = e.get("target")
+        if t:
+            ent = m.get(t) or m.get("reason:" + t.split(":", 1)[1])
+            x = abl.get(t)
+            rs_ = collections.Counter()
+            rep_dir = Path(x["ablated"]["report"]).parent
+            for r in load_jsonl(rep_dir / "results.jsonl"):
+                rs_[f"{r['verdict']}: {r['reason']}" if r["reason"] else r["verdict"]] += 1
+            kind = t.split(":")[0]
+            e["exercising"] = {"nearcore_accept": len(ent["accept"]), "nearcore_reject": len(ent["reject"]),
+                               "source": e.pop("source", SOURCE.get(kind, SOURCE["guard"])),
+                               "examples": [short(c) for c in (ent["accept"][:2] + ent["reject"][:2])]}
+            e["control"] = {"target": t, "what": WHAT[kind], "cases": x["cases"],
+                            "baseline": x["baseline"].get("status"),
+                            "ablated_disagreements": x["ablated"].get("disagreements", 0),
+                            "ablated_verdicts": x["ablated"].get("verdicts"),
+                            "ablated_reasons": "; ".join(f"{k} ({v})" for k, v in sorted(rs_.items())),
+                            "binary_sha256": x["ablated"].get("binary_sha256"),
+                            "case_list": [short(c) for c in x["case_list"]]}
+        doc["rows"][rid] = {**doc["rows"].get(rid, {}), **e}
+    a.out.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    print(f"{len([k for k in spec if not k.startswith('_')])} status entries merged")
 
 
 def main():
@@ -324,8 +410,14 @@ def main():
                    help="targets to which the disagreeing cases they fire in are attributed")
     e.add_argument("--extra", type=Path, nargs="*",
                    help="JSON {target: fields} merged into those rows (evidence paths, reasons)")
+    e.add_argument("--only", nargs="*", help="rows to (re)write; the other rows of --out are kept")
+    s = sp.add_parser("statuses")
+    s.add_argument("--spec", type=Path, required=True)
+    s.add_argument("--map", type=Path, nargs="*")
+    s.add_argument("--ablate", type=Path, nargs="*")
+    s.add_argument("--out", type=Path, required=True)
     a = ap.parse_args()
-    return {"trace": cmd_trace, "identity": cmd_identity, "map": cmd_map, "ablate": cmd_ablate,
+    return {"statuses": cmd_statuses, "trace": cmd_trace, "identity": cmd_identity, "map": cmd_map, "ablate": cmd_ablate,
             "evidence": cmd_evidence}[a.cmd](a) or 0
 
 

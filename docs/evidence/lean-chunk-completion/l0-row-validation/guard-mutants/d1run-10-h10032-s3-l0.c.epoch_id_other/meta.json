@@ -1,0 +1,52 @@
+{
+  "base": "/data/illia/nearproof-deps/corpora/d1run/ood/10-h10032-s3",
+  "case": "10-h10032-s3",
+  "chain_params": "ChainParams { seed: 5151015463, n_shards: 5, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 150, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None, d1: true, p_adv: 0.5 }",
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.no_tx_flags",
+    "w.no_txs"
+  ],
+  "d1_violations": [
+    "c.single_epoch",
+    "c.no_split_gate"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d3": false,
+  "features": {
+    "bw_requests_in_context": true,
+    "n_blocks": 2,
+    "n_implicit": 0,
+    "n_receipts": 1,
+    "n_shards": 5,
+    "n_source_blocks": 1,
+    "n_source_proofs": 4,
+    "other_congestion_nonzero": true,
+    "rs": [
+      5,
+      16
+    ],
+    "witness_bytes": 4390
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "kind": "mutant",
+  "l0_row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "nearcore": "claim-v3 discipline",
+  "new_tx_labels": [],
+  "tx_labels": [
+    "honest",
+    "honest",
+    "honest"
+  ],
+  "tx_results": [
+    "success_local",
+    "success",
+    "success"
+  ],
+  "verdict_source": "claim-v3"
+}
