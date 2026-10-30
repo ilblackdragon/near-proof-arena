@@ -138,3 +138,28 @@ The host was oversubscribed (load average 140–170 on 32 cores; `zkbuild.slice`
 a 6 GB `systemd-run` scope (normal CPU weight) — each took 1–3 s; kernel runs went through `heavy`
 (40 G caps, own scope — see §5), one module per `decide +kernel`.
 - default build: `lake build` in `spec/lean/v3`, 335 jobs, ok (includes `Logged.Audit` and `ProofDebtAudit`); `make pin-check` ok.
+
+## 8. Round 2 (2026-10-30)
+
+After merging main (W12 tier refinement, fuel sufficiency). Commits: `c563bc243` (float overlap),
+`3b2605b42` (D2 ⊂ D3), `8d61b5408` (oracle logged driver in CI), `5506766c2` (WitnessLift
+reduction). Details and the D1 ⊂ D2 scoping are in the evidence README §6.
+
+* Float overlap: W12's `relSuccessor_floats_mono` already is the overlap statement
+  (`Tier.checker .signed = checkD3`, `.floats = checkD3F`, both `rfl`), for every chunk; stated as
+  corollaries in `Successor/FloatOverlap.lean` (default target).
+* D2 ⊂ D3: proved (`relD2_relD3`). The new ingredient is the gas-cap step: a postcondition walk
+  (`PostE`, tactics `post_walk`/`wg_walk` with registries of callee lemmas) showing the D2 runtime
+  reports `wasmGas = 0` under a hook that never succeeds on `FunctionCall`.
+* WitnessLift: reduced to `∀ cb w, RelD1 cb w → RelD2 cb w` (`relD1a_relD3_of_d1_d2`).
+* D1 ⊂ D2: open; empirical census: the compiled `checkD1`, `checkD2` and `checkD3` (`--tier signed`) on `d1run/d1` and `d1run/ood` (6,975 cases; 5 output lines were garbled by concurrent writers and are not counted): 3,393 D1 accepts, all 3,393 accepted by `checkD2` and by `checkD3`, 0 counterexamples. The `d1run/mutants` sample was not run (the case list hit the shell argument limit), so mutant D1 accepts, if any, are not covered.
+* Oracle: `nearspec-v3-check-logged` + `LoggedHarness` rebuilt; `make d3-drivers` builds them and
+  runs `AuditLogged.lean`.
+* d3rich kernel case: tried `d3c7/d3/06-h10009-s0` (`d3rich`, two receipts, contract-data write) at a 60 GB cap: the first attempt hit the kernel heartbeat limit after 5:08 at 48.6 GB; with `maxHeartbeats 0` it was OOM-killed at 60 GB. Not claimed; the modules were not committed. A `d3rich` kernel case needs more than 60 GB.
+
+```
+'NearSpecV3.Successor.relD2_relD3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Successor.relD3_relD3F' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Successor.checkD3F_reject_of_checkD3_reject' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Successor.checkD3F_verdict_of_decided' depends on axioms: [propext, Classical.choice, Quot.sound]
+```

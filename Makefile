@@ -166,7 +166,8 @@ lean: ## lake build the Lean projects in LEAN_PROJECTS
 
 # The D3 differential drivers live in two separate Lake projects:
 #   * spec/lean/v3             — checkD3G (genesis), checkD3Proto (L1 protocol gas)
-#   * oracle/wasm-d3/lean      — checkD3 (the D3alpha checker the difftests use), checkD3F (floats)
+#   * oracle/wasm-d3/lean      — checkD3 (the D3alpha checker the difftests use), checkD3F (floats),
+#                                the read-logging checker (nearspec-v3-check-logged) and its audit
 # None of those are in v3's defaultTargets, and oracle/wasm-d3/lean is not in LEAN_PROJECTS at all,
 # so a plain `lake build` leaves them unbuilt (the W01 "root's default build does not include every
 # executable" gap). This target builds each by name and refuses to pass if a binary is absent.
@@ -174,6 +175,7 @@ D3_DRIVERS := spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3g \
               spec/lean/v3/.lake/build/bin/nearspec-v3-check-d3proto \
               oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3 \
               oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3f \
+              oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-logged \
               spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor \
               spec/lean/v3/.lake/build/bin/nearspec-v3-runtime \
               spec/lean/v3/.lake/build/bin/nearspec-v3-test-storage-resolution \
@@ -185,7 +187,9 @@ d3-drivers: ## Build the named D3 successor drivers (genesis, protocol-gas, D3al
 	$(call require_cmd,$(LAKE),install elan: https://github.com/leanprover/elan)
 	$(call require_cmd,$(PYTHON),install python3)
 	@cd spec/lean/v3 && $(LAKE) build nearspec-v3-check-d3g nearspec-v3-check-d3proto nearspec-v3-check-successor nearspec-v3-runtime nearspec-v3-test-storage-resolution nearspec-v3-test-global-actions nearspec-v3-test-global-codecs nearspec-v3-test-gate-b-caps NearSpecV3.Successor.CodeResolutionTests NearSpecV3.Successor.PromiseActionsTests
-	@cd oracle/wasm-d3/lean && $(LAKE) build nearspec-v3-check-d3 nearspec-v3-check-d3f
+	@cd oracle/wasm-d3/lean && $(LAKE) build nearspec-v3-check-d3 nearspec-v3-check-d3f nearspec-v3-check-logged LoggedHarness
+	@# the read-logging checker's axiom audit (#guard_msgs: fails on any change, e.g. a sorryAx)
+	@cd oracle/wasm-d3/lean && $(LAKE) env lean AuditLogged.lean
 	@for b in $(D3_DRIVERS); do \
 	  [ -x "$$b" ] || { echo "make: *** MISSING BINARY: '$$b' was not built" >&2; exit 2; }; \
 	done
