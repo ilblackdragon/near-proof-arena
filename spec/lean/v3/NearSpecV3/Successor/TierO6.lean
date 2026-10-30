@@ -839,9 +839,9 @@ theorem checkD2CoreWithObs_vr_reshard (d : ExecutionDriver) (hr : d.resharding =
   refine VR.bind_same fun _ _ => ?_
   refine VR.bind_same fun _ htab => ?_
   cases hep : List.find? (fun x => x.epochId == c.epochId) c.epochs with
-  | none => simp only [throw_bind']; exact VR.err_err rfl rfl (by decide)
+  | none => simp only; exact VR.err_err rfl rfl (by decide)
   | some ep =>
-  simp only [ok_bind', pure_bind']
+  simp only
   refine VR.bind_same fun _ _ => ?_
   refine VR.bind_same fun _ _ => ?_
   refine VR.xood (by decide) fun hsl => ?_
@@ -903,8 +903,7 @@ theorem checkD2CoreWithObs_vr_reshard (d : ExecutionDriver) (hr : d.resharding =
       obtain rfl := found_b blks idx L _ (fun B => by (try dsimp only); unfold newIn; cases B.slots[idx]? <;> rfl) b2i heq1 b t hf ht
       refine ⟨_, ?_, (by decide : isExclusion "invalid: genesis_chunk_extra for a non-genesis main block" = false)⟩
       rw [y_walk_ok c blks H.shardId idx ep.shardLayout L hlb hL hli hng _ _ b t hf ht]
-      simp only [expectedWalk, hB, genesis_false_of_get blks hng b B2 hB, Bool.not_false, check_true_bind,
-        hgce, check_false_bind]
+      simp only [expectedWalk, hB, genesis_false_of_get blks hng b B2 hB, Bool.not_false, check_true_bind]
     · exact y_walk_err c blks H.shardId idx ep.shardLayout L hlb hL hli hng _ (by decide) _ hex
   simp only [check_true_bind]
   split
@@ -922,7 +921,7 @@ theorem checkD2CoreWithObs_vr_reshard (d : ExecutionDriver) (hr : d.resharding =
   refine VR.y_rw (y_walk_ok c blks H.shardId idx ep.shardLayout L hlb hL hli hng _ _ b2i (b2i + 1 + j) hf
     (by simpa using hst)) ?_
   simp only [expectedWalk, hB, genesis_false_of_get blks hng b2i B2 hB, Bool.not_false, check_true_bind,
-    hgce, hL, ok_bind', hli]
+    hL, ok_bind', hli]
   have hN : b2i + 1 + j + 1 = blks.length := by simpa using hst
   refine VR.bind_eq' (by simp [List.filterMap_map, Function.comp_def]) fun _ hfacts => ?_
   have hfacts' : c.applyFacts.length = 1 + b2i := by simpa using check_ok hfacts

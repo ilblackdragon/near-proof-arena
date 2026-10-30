@@ -30,7 +30,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 | O3 | global actions | open. The recorder-state part is now a parameter (`Flags.globalActions`, §6); the codec, manager, queue-policy and interpreter-flag agreements remain (§6) | routing part only: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
 | O4 | storage resolution | open | — |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
-| O6 | resharding, non-genesis | open | — |
+| O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §7): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
 | O7 | complete-code witness | **proved at chunk level** (2026-10-30, §6): on every whole-state configuration the complete-code flag moves no verdict, in either direction | `Lift.completeCode`, `relSuccessor_completeCodeGlobal_globalActions`, `relSuccessor_globalActions_completeCodeGlobal` (`TierO7.lean`) |
 
 ### O1, the proof chain
@@ -191,7 +191,7 @@ obligations need more:
 * **O4 (storage resolution)** needs an agreement theorem between two engines (`applyNewChunkD2` and
   `StorageExecution.run`).
 * **O6 (resharding, non-genesis)** needs a verdict-level correspondence proof between two
-  differently structured shells.
+  differently structured shells. (Done 2026-10-30, §7.)
 * **O7 at chunk level** needs:
   * W08's code-resolution policy, which W08 owns;
   * an accept-preservation walk with states that differ in `Recording.codePolicy`. Its resolve-level
@@ -288,7 +288,7 @@ whose environment satisfies `P`; every walk lemma carries `P env`. O1 (`Lift.flo
 * **O4 (storage resolution)**: engine agreement `applyNewChunkD2` vs `StorageExecution.run`.
   Not started.
 * **O6 (resharding, non-genesis)**: verdict-level correspondence `checkD2CoreWith` vs
-  `checkReshardCore`. Not started.
+  `checkReshardCore`. (Done 2026-10-30, §7.)
 
 ### Next steps (handover, 2026-10-30; resume on branch `worktree-agent-a5081ae59762de001`)
 
