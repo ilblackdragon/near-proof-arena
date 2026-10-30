@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bind an `oracle/v3-successor` `fuel-stress` or `eval-time` run (W02) to nearcore's outcomes
+"""Bind an `oracle/v3-successor` `fuel-stress`, `eval-time`, `eval-loops` or `code-response` run (W02) to nearcore's outcomes
 and to cases.
 
 Input is a run directory produced with `NEAR_SUCCESSOR_SCENARIO=fuel-stress` (or `eval-time`), which contains
@@ -32,7 +32,20 @@ EXPECT_EVAL = {
     "00.blocks4999-300T": "gas", "01.deep4999-300T": "gas", "02.midrun4998-300T": "gas",
     "03.blocks4999-3T": "gas", "04.pushpop4999-3T": "gas", "05.brif4999-3T": "gas",
 }
-SCENARIOS = {"FuelStress": ("successor.fuel-stress.", EXPECT), "EvalTime": ("successor.eval-time.", EXPECT_EVAL)}
+# the `eval-loops` scenario (W02/W16 label memo): every call runs out of gas
+EXPECT_LOOPS = {
+    "00.pushpop4999-300T": "gas", "01.brif4999-300T": "gas", "02.brtable4999-300T": "gas",
+    "03.deepbrif4998-300T": "gas", "04.pushpop4999-3T": "gas", "05.brif4999-3T": "gas",
+    "06.brtable4999-3T": "gas", "07.deepbrif4998-3T": "gas", "08.brtablealt4997-300T": "gas",
+    "09.brtablealt4997-3T": "gas",
+}
+# the `code-response` scenario (W02 size limits): every `run` call returns (empty body)
+EXPECT_CR = {f"{tag}.{c}": "value" for tag, n, small in (("at64", 16, "crsat"), ("over64", 16, "crsover"),
+                                                         ("under64", 8, "crsat"))
+             for c in [f"crb{i:02}" for i in range(n)] + [small]}
+SCENARIOS = {"FuelStress": ("successor.fuel-stress.", EXPECT), "EvalTime": ("successor.eval-time.", EXPECT_EVAL),
+             "EvalLoops": ("successor.eval-loops.", EXPECT_LOOPS),
+             "CodeResponse": ("successor.code-response.", EXPECT_CR)}
 
 
 def index_cases(run):

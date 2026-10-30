@@ -228,6 +228,12 @@ pub enum Scenario {
     /// `gate-b-caps` (src/scenarios.rs): witnesses above 8 MiB, chunk function-call gas above
     /// 1 Pgas and a zero-fee-instruction loop (W02 Gate-B caps).
     GateBCaps,
+    /// `eval-loops` (src/scenarios.rs, W02/W16): the label-keeping loop shapes (push-then-pop,
+    /// `br_if`/`br_table` back-edges, a shallow branch under deep nesting) at 300 Tgas.
+    EvalLoops,
+    /// `code-response` (src/scenarios.rs, W02): chunks whose accessed pre-state contract code is
+    /// exactly at / one byte over the 64 MiB `ContractCodeResponse` cap.
+    CodeResponse,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -263,6 +269,8 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "gaskey-target" => Some(Scenario::GasKeyTarget),
         Ok(value) if value == "rollback-refund" => Some(Scenario::RollbackRefund),
         Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
+        Ok(value) if value == "eval-loops" => Some(Scenario::EvalLoops),
+        Ok(value) if value == "code-response" => Some(Scenario::CodeResponse),
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
