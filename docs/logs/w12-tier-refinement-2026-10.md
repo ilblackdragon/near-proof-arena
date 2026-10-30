@@ -187,3 +187,21 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
   * Loops with `mut` state were handled by abstract scan lemmas (`scan_phase0/1`, `scan_post`) whose
     step hypotheses are discharged on the concrete body after `refine` instantiates it.
 * Default `lake build` (395 jobs) ok; `make pin-check` ok. Open in W12: O2, O3, O4.
+
+## 2026-10-30, fourth session (O3 steps 1–3)
+
+* Started from main `1a490cd64`; lake cache copied from the third session's worktree.
+* Integrator decision recorded (README §8): O3 under the well-formed-layout hypothesis (nearcore's
+  `ShardLayout` V2/V3 constructors assert `shard_ids.len() == boundary_accounts.len() + 1`; trusted
+  claim fact under A1/UQ-013). No checker definition changes.
+* Step 1: `HostQ.lean`, `HostQArms.lean` (generated; the arm walk checks in about 25 s), `HostQStep.lean`.
+  Trick: the invariant on non-call instructions comes from commutation with `setX` read at `setX s s = s`,
+  so the existing `sf` walk did the work.
+* Step 2: `TierO3Call.lean` (about 6 min, mostly `lineOutcome_XG`'s ten `split_eval`s). The
+  instantiated state's facts are kept by an elaborator that generalizes the `instantiate` call with
+  its equation (`inst_gen`) before `lk_split` loses it.
+* Step 3: `TierO3Codec.lean`. `pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`.
+* Findings for step 5 (README §8): the pipeline state diverges where the D2 codec excludes a stored
+  receipt (lower pipe `uncertain`), so the engine walk needs a state relation; `finishActs` errors
+  are `unmodeled` and only become exclusions through `applyAction`'s catch.
+* Open: README §8 steps 4–6, O4, O6.
