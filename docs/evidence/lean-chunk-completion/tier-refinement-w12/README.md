@@ -28,7 +28,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
 | O3 | global actions | open. Proved (§7, §9): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target. Open: stored-receipt decoder agreement, the engine walk with `ga` differing (needs a state relation on the pipeline, §8), driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
-| O4 | storage resolution | **proved at shell and tier level given the engine agreement** (2026-10-30, §10), after a legacy-side fix (26 nearcore-valid chunks the narrower legacy tiers rejected); the engine agreement `EngineAgree` is open (phases E0, E1 proved) | `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreGWith_legacy_recorder`, `checkD2CoreG_ok_bound`, `engineAgree_of_logged`, `logged_run` (`TierO4.lean`) |
+| O4 | storage resolution | **proved at shell and tier level given the engine obligations** (2026-10-30, §10, §11). §11 found `EngineAgree` false as first stated (finding G0: observation fields) and restated it on `obsClear`-ed outputs; the engine is now reduced to `EngineObligations` (recorder invariant, forwarding, per-receipt simulation): main transition, receipt loops and yield timeouts proved; the per-receipt simulation `PWISim` (where G2, G3, G5 live), the invariant (G1) and V3 forwarding (G4) are open | `relSuccessor_runtimeLimits_storageResolution_of_obligations`, `engineAgree_of_obligations`, `sim_applyNewChunkD2`, `sim_processLocals/Delayed/Incoming`, `sim_yieldLoop`, `fwdSim_v2` (`TierO4Engine.lean`); `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreWith_clearObs` (`TierO4.lean`) |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §8): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
 | O7 | complete-code witness | **proved at chunk level** (2026-10-30, §6): on every whole-state configuration the complete-code flag moves no verdict, in either direction | `Lift.completeCode`, `relSuccessor_completeCodeGlobal_globalActions`, `relSuccessor_globalActions_completeCodeGlobal` (`TierO7.lean`) |
@@ -784,3 +784,102 @@ so the owner has to decide it.
 4. The recorder-size invariant through the VM's `RealStore` recording (G1), or keep G1 as a premise.
 5. Compose into `EngineAgreeL` under the premises; `relSuccessor_runtimeLimits_storageResolution_of`
    then holds under them.
+
+## 11. Update 2026-10-30 (fourth session): O4 engine agreement, reduced to the per-receipt simulation
+
+Lean: `Successor/TierO4.lean` (G0 fix), `Successor/TierO4Engine.lean` (new, default target). No
+`sorry`; axioms of every new theorem: `propext`, `Classical.choice`, `Quot.sound`
+(`o4-engine/axioms.txt`). No definition of any checker changed, so no verdict can move: no fixtures,
+breakage control or before/after table are required (rules for remaining work), and `make pin-check`
+is unaffected.
+
+### Finding G0: `EngineAgree` was false as first stated (fixed)
+
+`MainOutD2` has three observation-only fields (`committed`, `compute`, `detail`). The legacy engine
+leaves them `none`; the recorder reports `committed := some …` and `compute := some …` on every
+accept. `EngineRef` asked for `y = .ok out` with `out` the legacy output, so it could never hold on a
+legacy accept: `EngineAgree` was false outright and the §10 tier theorem was vacuous. No check reads
+these fields (the shell copies them into its `Observable`, which the `Unit`-valued checkers discard).
+
+Fix (proof side only): `obsClear` erases them; `ExecutionDriver.clearObs` erases them from a driver's
+main transition. `checkD2CoreWith_clearObs` and `checkD2CoreGWith_clearObs` prove the `Unit`-valued
+shells equal at `d` and `d.clearObs` for **every** driver `d` (walk `umap_walk`: binds, flag `if`s,
+`match`es, and the final `pure` under `Except.map (fun _ => ())`). `EngineAgree`, `EngineAgreeL` and
+the `SimE` bridge are restated on `obsClear`-ed outputs, and the shell and tier theorems re-proved
+on the cleared drivers.
+
+### The simulation `Sim` (against the original engine, not the mirror)
+
+`Sim e P φ x y`: from every recorder state satisfying `P`, if the original legacy computation `x`
+(`Except String`) returns `a`, the recorder computation `y` (`M`) returns some `b` with `a = φ b` in a
+state satisfying `P`; if `x` rejects with a non-exclusion, `y` rejects with the same string. `φ` puts
+the revealed trie back into the recorder's states (`·.wt T`).
+
+The §10 next steps planned a per-mirror trie-independence lemma (`f (o.wt t) = (f o).map (·.wt t)`)
+for every logged mirror, because the mirror starts from a dummy trie and the recorder from the real
+one. Relating the recorder to the **original** engine removes that obligation: each existing mirror
+lemma `R_f` says `f (b.wt T) = (LM.ev (fL b)).map (·.wt T)` for *every* `b`, so `Sim.logged` turns
+it into a simulation step directly, whatever trie the recorder's overlay carries. Rules: `pure`, `ok`,
+`throw`, `error`, `bind`, `bind_id`, `logged`, `logged_ok_bind` (a logged read with a known value
+against a pure read of the original), `liftE`, `okR`, `book`/`bind_book`/`pure_book` (recorder-only
+bookkeeping, `Book`), `get`, `get_all`, `ite`, `ite_iff`, `foldlM`, `softExceeded_bind`. Lockstep
+tactics: `main_walk`, `recv_walk`.
+
+### Proved
+
+| theorem | statement |
+|---|---|
+| `checkD2CoreWith_clearObs`, `checkD2CoreGWith_clearObs` | G0: the `Unit` shells ignore the observation fields (every driver) |
+| `sim_processTxR` | a transaction: `logged processTxD2L` plus observation bookkeeping |
+| `sim_applyNewChunkD2` | **phases 1–5 and 7** of the main transition (validator update, delayed indices, scheduler, buffer indices and metadata, transactions, yield indices, congestion, bandwidth requests, finalize, totals), value map `obsClear`, given the forwarding and receipt-phase simulations |
+| `sim_processLocals`, `sim_processIncoming`, `sim_processDelayed` (`sim_processDelayedLoop`), `sim_yieldLoop` | the receipt loops: soft-limit tests false under `P` (`hSoft`), pipeline bookkeeping (`modifyPipe`, `pipeDecode`, `scheduleDelayed`) skipped, `delayPush`/`delayPop`/`forwardOrBuffer`/`get`/`contains` by their mirror lemmas, each receipt by `PWISim` |
+| `fwdSim_v2` | forwarding on a V2 layout (`lastSplit = none`) |
+| `engineAgree_of_obligations` | `(∀ merged e, e.store = mkHStore merged → EngineObligations cfg e) → EngineAgree cfg` |
+| **`relSuccessor_runtimeLimits_storageResolution_of_obligations`** | `.runtimeLimits ⊑ .storageResolution` on `O4Witness` files, under the engine obligations |
+
+### The remaining premises (`EngineObligations cfg e`, all named and documented in Lean)
+
+| field | content | status |
+|---|---|---|
+| `P`, `init`, `frame` | an invariant of the recorder state reading only `recorder` and `softLimit` | free choice; trivial for the intended `P` |
+| `reads` | `P` survives every logged read | provable for the intended `P` (below); not yet done |
+| `soft` (**G1**) | `P r → r.recorder.size ≤ r.softLimit` | the G1 premise. Intended `P`: the recorder set holds only store hashes, `size = Σ set + 2000·k`, `base + 2000·k ≤ 4,000,000`. Logged reads keep it (they only record store-backed hashes, deduplicated); ContractData removals (`accountRemovals`, the VM's `removeRecord`) raise `k` — that is exactly G1. On a legacy accept within the size bound `k ≤ final cdRemovals` discharges it; on a legacy reject it stays a premise |
+| `fwd` (**G4**) | the forwarding step | V2 layouts proved (`fwdSim_v2`); V3 layouts: premise (recorder forwards the parent buffer, then rejects "buffered receipts gas left" when every forwarded buffer is empty and `bufferedGas ≠ 0`) |
+| `pwi` | `PWISim e P cfg`: `processWithInstant` of the recorder simulates the legacy one | **open**: `processWithTotals` → `processReceipt` → `applyActionReceipt` → `actionLoop` → `applyAction`; the action dispatch (`ordinaryAction` = `logged (applyActionL d2HooksL)` + `accountRemovals`) and `functionCallRecorded` vs `functionCall` (G2 fuel certificate, G3 pipeline `uncertain`, G5 magic hash; also the VM's chunk-scoped `acct`/`recd`/`recBefore` vs the legacy per-call fresh ones, which needs the PV86 equal-cost argument of `TrieAccounting.lean` and the per-receipt limit) live here |
+
+### Data on the premises
+
+`o4-engine/premise_proxies.py` (output `premise_proxies.json`) counts, over the §10 replays, the
+verdict reasons by which a premise failure would surface on the recorder side (G2
+`w.fuel_certificate`, G3 `e.code_prep_race`, G4 `buffered receipts gas left`, G1's VM half
+`RecordedStorageExceeded`, G5 legacy-wallet redirection):
+
+| population | cases | legacy decides | G1 (VM) | G2 | G3 | G4 | G5 |
+|---|---|---|---|---|---|---|---|
+| 577 fixtures | 577 | 294 | 0 | 0 | 0 | 0 | 0 |
+| 3,138 census | 3,138 | 1,858 | 0 | 0 | 0 | 0 | 0 |
+| 88 storage-limit fixtures | 88 | 70 | 0 | 0 | 0 | 0 | 0 |
+
+G1's soft-limit half (receipts deferred) is silent in the verdict reason; it would show as an O4
+violation, and §10 measured 0 after the legacy fix on all three populations. These are proxies, not
+direct measurements of the premises: a direct count needs the checker to report the recorder size at
+each soft-limit test (next step 4).
+
+### Next steps (exact)
+
+1. `PWISim`: walk `processWithInstant`/`processWithTotals` (`drain` by induction on its fuel),
+   `processReceipt` (data, postponed, yield arms: `getR`/`containsR`/`decodeStoredRcptR` by mirror
+   lemmas and `liftE`), `applyActionReceipt`, `emitReceipts` (`forwardOrBufferR`), in the style of
+   `recv_walk`. Needed new rules: `startReceipt`, `curFail`/`vmErr`/`modifyDetail` as `Book`
+   (`startReceipt` changes `receiptStart` only, so it is bookkeeping under `PFrame`).
+2. `actionLoop`/`applyAction`: non-call actions are `logged (applyActionL d2HooksL)` against
+   `D2.applyAction`'s non-call arms (mirror lemma `R_applyAction` with the D3 hooks), plus
+   `accountRemovals` (needs `P` closed under it: G1); global actions are legacy exclusions.
+3. `functionCallRecorded` vs `D3.functionCall`, under named premises G2 (`fuelCertified cfg code`),
+   G3 (`Pipe.deterministic` true at the call), G5 (no non-ETH-implicit local magic hash; to be proved
+   unreachable from deploys), and the VM agreement for differing `acct`/`recd`/`recBefore` (gas is
+   equal at PV86, `TrieAccounting.lean` module note; the per-receipt limit needs a G1-style premise).
+4. Instrument the checker to report the maximum recorder size at soft-limit tests and the
+   per-receipt growth, and measure G1 directly on the 577 fixtures, the census and the storage-limit
+   family.
+5. The intended `P` and its `reads` lemma; V3 forwarding under G4.

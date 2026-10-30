@@ -353,6 +353,251 @@ theorem sim_applyNewChunkD2 (cfg : Wasm.NearCfg) (hP : PFrame P)
 
 end steps
 
+/-! ## The receipt phases, given the per-receipt simulation
+
+`processLocals`, `processDelayed`, `processIncoming` and `yieldLoop` of the recorder add, to the
+legacy loops, (a) the soft-limit test `softExceeded` (false under the invariant, `hSoft`) and
+(b) pipeline bookkeeping (`modifyPipe`, `scheduleDelayed`; `Book`). Their receipts go through
+`processWithInstant`, whose simulation is the hypothesis `hPWI`. -/
+
+theorem Book.modifyPipe {e : Env} (f : Pipeline.Pipe → Pipeline.Pipe) :
+    Book e (StorageExecution.modifyPipe f) () := fun _ => ⟨_, rfl, rfl, rfl⟩
+
+theorem Book.pipeDecode {e : Env} :
+    Book e (StorageExecution.pipeDecode false) (fun b => decodeStoredRcpt b "stored receipt") :=
+  fun r => ⟨r, rfl, rfl, rfl⟩
+
+theorem Book.scheduleDelayed {e : Env} (env : Env) (rs : RS) :
+    Book e (StorageExecution.scheduleDelayed false env rs) () := by
+  unfold StorageExecution.scheduleDelayed
+  exact Book.bind Book.pipeDecode (Book.modifyPipe _)
+
+namespace Sim
+variable {e : Env} {P : Recording → Prop}
+
+/-- Under the invariant the soft limit is not exceeded. -/
+theorem softExceeded_bind {α β : Type} {ψ : β → α} {x : Except String α} {g : Bool → M β}
+    (hSoft : ∀ r, P r → r.recorder.size ≤ r.softLimit) (h : Sim e P ψ x (g false)) :
+    Sim e P ψ x (StorageExecution.softExceeded >>= g) := by
+  intro r hr
+  have h' := h r hr
+  have hf : decide (r.recorder.size > r.softLimit) = false := by
+    have := hSoft r hr; simp only [decide_eq_false_iff_not]; omega
+  have hrun : (StorageExecution.softExceeded >>= g).run r e = (g false).run r e := by
+    show (g (decide (r.recorder.size > r.softLimit))).run r e = _
+    rw [hf]
+  unfold SimAt at h' ⊢
+  rw [hrun]
+  exact h'
+
+/-- A recorder read of its own state, for every state. -/
+theorem get_all {α β : Type} {ψ : β → α} {x : Except String α} {g : Recording → M β}
+    (h : ∀ r0, Sim e P ψ x (g r0)) : Sim e P ψ x (MonadState.get >>= g) := fun r hr => h r r hr
+
+theorem ite_iff {α β : Type} {φ : β → α} (c c' : Prop) [Decidable c] [Decidable c'] (hc : c ↔ c')
+    {x x' : Except String α} {y y' : M β}
+    (h : c → Sim e P φ x y) (h' : ¬c → Sim e P φ x' y') :
+    Sim e P φ (if c then x else x') (if c' then y else y') := by
+  by_cases hcc : c
+  · simp only [hcc, hc.mp hcc, ite_true]; exact h hcc
+  · have : ¬c' := fun h => hcc (hc.mpr h)
+    simp only [hcc, this, ite_false]; exact h' hcc
+
+end Sim
+
+section receipts
+variable {e : Env} {P : Recording → Prop}
+
+/-- The per-receipt obligation: `processWithInstant` of the recorder simulates the legacy one. -/
+def PWISim (e : Env) (P : Recording → Prop) (cfg : Wasm.NearCfg) : Prop :=
+  ∀ (rs rsO : RS) (r : Rcpt), rsO = rs.wt (T e) →
+    Sim e P (·.wt (T e)) (D2.processWithInstant (D3.d3Hooks cfg) e rsO r)
+      (StorageExecution.processWithInstant fl0 cfg e rs r)
+
+set_option hygiene false in
+/-- Walk a receipt-phase loop body. -/
+macro "recv_walk" : tactic => `(tactic|
+  repeat (first
+    | (exact Sim.pure rfl)
+    | (exact Sim.ok rfl)
+    | (exact Sim.throw _)
+    | (exact Sim.error _)
+    | (refine err_bind rfl fun _ => ?_; rfl)
+    | (exact hPWI _ _ _ (by rfl))
+    | (exact ih _ _ (by rfl))
+    | (exact ih _ _ _ (by rfl))
+    | (refine Sim.bind (hPWI _ _ _ (by rfl)) fun _ => ?_)
+    | (exact Sim.logged (R_delayPush' _ (by rfl) _) hRec)
+    | (exact Sim.logged (R_forwardOrBuffer' _ (by rfl) _ (by rfl) _) hRec)
+    | (refine Sim.bind (Sim.logged (R_forwardOrBuffer' _ (by rfl) _ (by rfl) _) hRec) fun _ => ?_)
+    | (refine Sim.bind (Sim.logged (R_delayPop' _ (by rfl) _ _ (by rfl)) hRec) fun _ => ?_; dsimp only)
+    | (with_reducible refine Sim.get_all fun _ => ?_)
+    | (refine Sim.bind_id (Sim.logged (R_get' _ (by rfl) _ _) hRec) fun _ => ?_)
+    | (refine Sim.bind_id (Sim.logged (R_contains' _ (by rfl) _ _) hRec) fun _ => ?_)
+    | (refine Sim.bind_id (Sim.okR _ _) fun _ => ?_)
+    | (refine Sim.softExceeded_bind hSoft ?_)
+    | (refine Sim.book hP (Book.modifyPipe _) ?_)
+    | (refine Sim.book hP Book.pipeDecode ?_)
+    | (refine Sim.book hP (Book.scheduleDelayed _ _) ?_)
+    | (refine Sim.ite_iff _ _ (by simp) (fun _ => ?_) (fun _ => ?_))
+    | (refine Sim.ite _ (fun _ => ?_) (fun _ => ?_))
+    | (split <;> (rename_i hsplit; (try simp only [hsplit]); (try dsimp only)))))
+
+theorem sim_processLocals (cfg : Wasm.NearCfg) (hP : PFrame P)
+    (hRec : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder })
+    (hSoft : ∀ r, P r → r.recorder.size ≤ r.softLimit) (hPWI : PWISim e P cfg)
+    (rs rsO : RS) (l : List Rcpt) (h : rsO = rs.wt (T e)) :
+    Sim e P (·.wt (T e)) (D2.processLocals (D3.d3Hooks cfg) e rsO l)
+      (StorageExecution.processLocals fl0 cfg e rs l) := by
+  subst h
+  unfold D2.processLocals StorageExecution.processLocals
+  refine Sim.book hP Book.pipeDecode ?_
+  refine Sim.book hP (Book.modifyPipe _) ?_
+  refine Sim.foldlM' (fun b c => ?_) l rfl
+  recv_walk
+  all_goals done
+
+theorem sim_processIncoming (cfg : Wasm.NearCfg) (hP : PFrame P)
+    (hRec : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder })
+    (hSoft : ∀ r, P r → r.recorder.size ≤ r.softLimit) (hPWI : PWISim e P cfg)
+    (rs rsO : RS) (l : List Rcpt) (h : rsO = rs.wt (T e)) :
+    Sim e P (·.wt (T e)) (D2.processIncoming (D3.d3Hooks cfg) e rsO l)
+      (StorageExecution.processIncoming fl0 cfg e rs l) := by
+  subst h
+  unfold D2.processIncoming StorageExecution.processIncoming
+  refine Sim.book hP Book.pipeDecode ?_
+  refine Sim.book hP (Book.modifyPipe _) ?_
+  refine Sim.foldlM' (fun b c => ?_) l rfl
+  recv_walk
+  all_goals done
+
+theorem sim_processDelayedLoop (cfg : Wasm.NearCfg) (hP : PFrame P)
+    (hRec : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder })
+    (hSoft : ∀ r, P r → r.recorder.size ≤ r.softLimit) (hPWI : PWISim e P cfg) :
+    ∀ (fuel : Nat) (rs rsO : RS), rsO = rs.wt (T e) →
+    Sim e P (·.wt (T e)) (D2.processDelayed (D3.d3Hooks cfg) e fuel rsO)
+      (StorageExecution.processDelayedLoop fl0 cfg e fuel rs)
+  | 0, rs, rsO, h => by
+    subst h
+    unfold D2.processDelayed StorageExecution.processDelayedLoop
+    exact Sim.ok rfl
+  | fuel + 1, rs, rsO, h => by
+    subst h
+    have ih := sim_processDelayedLoop cfg hP hRec hSoft hPWI fuel
+    unfold D2.processDelayed StorageExecution.processDelayedLoop
+    simp only [StorageExecution.delayPopR]
+    recv_walk
+    all_goals done
+
+theorem sim_processDelayed (cfg : Wasm.NearCfg) (hP : PFrame P)
+    (hRec : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder })
+    (hSoft : ∀ r, P r → r.recorder.size ≤ r.softLimit) (hPWI : PWISim e P cfg)
+    (fuel : Nat) (rs rsO : RS) (h : rsO = rs.wt (T e)) :
+    Sim e P (·.wt (T e)) (D2.processDelayed (D3.d3Hooks cfg) e fuel rsO)
+      (StorageExecution.processDelayed fl0 cfg e fuel rs) := by
+  unfold StorageExecution.processDelayed
+  exact Sim.book hP (Book.scheduleDelayed _ _) (sim_processDelayedLoop cfg hP hRec hSoft hPWI fuel rs rsO h)
+
+theorem sim_yieldLoop (hP : PFrame P)
+    (hRec : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder })
+    (hSoft : ∀ r, P r → r.recorder.size ≤ r.softLimit) (next : Nat) :
+    ∀ (fuel : Nat) (acc accO : RS × Nat × Nat), accO = (acc.1.wt (T e), acc.2) →
+    Sim e P (fun p => (p.1.wt (T e), p.2)) (D2.yieldLoop e next fuel accO)
+      (StorageExecution.yieldLoop false e next fuel acc)
+  | 0, (rs, i, k), accO, h => by
+    subst h
+    unfold D2.yieldLoop StorageExecution.yieldLoop
+    exact Sim.ok rfl
+  | fuel + 1, (rs, i, k), accO, h => by
+    subst h
+    have ih := sim_yieldLoop hP hRec hSoft next fuel
+    unfold D2.yieldLoop StorageExecution.yieldLoop
+    simp only [StorageExecution.getR, StorageExecution.containsR, StorageExecution.forwardOrBufferR]
+    recv_walk
+    all_goals done
+
+end receipts
+
+/-! ## Forwarding and the bridge to `EngineAgree` -/
+
+/-- The forwarding obligation of the main transition. -/
+def FwdSim (e : Env) (P : Recording → Prop) : Prop :=
+  ∀ rs rsO, rsO = rs.wt (T e) → Sim e P (·.wt (T e)) (forwardFromBuffer e rsO)
+    (StorageExecution.forwardFromBufferR false e rs)
+
+/-- On a V2 layout (no recent split) the recorder forwards with the legacy mirror. -/
+theorem fwdSim_v2 {e : Env} {P : Recording → Prop}
+    (hRec : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder })
+    (hl : e.ctx.layout.lastSplit = none) : FwdSim e P := by
+  intro rs rsO h
+  subst h
+  unfold StorageExecution.forwardFromBufferR
+  simp only [hl, Option.isSome_none, Bool.false_eq_true, ↓reduceIte]
+  exact Sim.logged (R_forwardFromBuffer' e rfl rs rfl) hRec
+
+/-- **The engine obligation, reduced.** For each shell input, an invariant `P` of the recorder state
+that (a) holds initially, (b) reads only the recorder and the soft limit, (c) survives every logged
+read, (d) keeps the soft limit unexceeded (finding G1), together with the forwarding step (`FwdSim`;
+V2 layouts: `fwdSim_v2`; V3 layouts: finding G4) and the per-receipt simulation (`PWISim`). -/
+structure EngineObligations (cfg : Wasm.NearCfg) (e : Env) where
+  P : Recording → Prop
+  init : P { observe := cfg.observeDetail }
+  frame : PFrame P
+  reads : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder }
+  soft : ∀ r, P r → r.recorder.size ≤ r.softLimit
+  fwd : FwdSim e P
+  pwi : PWISim e P cfg
+
+theorem obsClear_obsClear (o : MainOutD2) : obsClear (obsClear o) = obsClear o := rfl
+
+/-- **Bridge.** The engine obligations on every shell input give `EngineAgree`. -/
+theorem engineAgree_of_obligations (cfg : Wasm.NearCfg)
+    (hO : ∀ (merged : List Bytes) (e : Env), e.store = mkHStore merged → EngineObligations cfg e) :
+    EngineAgree cfg := by
+  intro merged p e vu ps rs txs cg he
+  have O := hO merged e he
+  have hs : HInv e.store := by rw [he]; exact HInv_mkHStore merged
+  have hsim := sim_applyNewChunkD2 (e := e) (P := O.P) cfg O.frame O.reads hs p vu ps rs txs cg O.fwd
+    (fun rs rsO l h => sim_processLocals cfg O.frame O.reads O.soft O.pwi rs rsO l h)
+    (fun fuel rs rsO h => sim_processDelayed cfg O.frame O.reads O.soft O.pwi fuel rs rsO h)
+    (fun rs rsO l h => sim_processIncoming cfg O.frame O.reads O.soft O.pwi rs rsO l h)
+    (fun next fuel acc accO h => sim_yieldLoop O.frame O.reads O.soft next fuel acc accO h)
+  have h0 := hsim _ O.init
+  unfold SimAt at h0
+  refine ⟨fun err hx hne _ => ?_, fun out hx _ => ?_⟩
+  · cases hl : D2.applyNewChunkD2 (D3.d3Hooks cfg) p e (T e) vu ps rs txs cg with
+    | ok a => rw [hl] at hx; cases hx
+    | error err' =>
+      rw [hl] at hx h0
+      cases hx
+      rcases h0 with h0 | h0
+      · rw [hne] at h0; cases h0
+      · unfold StorageExecution.run
+        rw [h0]; rfl
+  · cases hl : D2.applyNewChunkD2 (D3.d3Hooks cfg) p e (T e) vu ps rs txs cg with
+    | error err' => rw [hl] at hx; cases hx
+    | ok a =>
+      rw [hl] at hx h0
+      cases hx
+      obtain ⟨b, r', hy, rfl, _⟩ := h0
+      unfold StorageExecution.run
+      rw [hy]; rfl
+
+#print axioms engineAgree_of_obligations
+#print axioms sim_applyNewChunkD2
+#print axioms sim_processDelayed
+#print axioms sim_yieldLoop
+
+/-- **O4, tier level, under the engine obligations.** -/
+theorem relSuccessor_runtimeLimits_storageResolution_of_obligations
+    (hO : ∀ (merged : List Bytes) (e : Env), e.store = mkHStore merged →
+      EngineObligations (Tier.cfg .storageResolution).wasm e)
+    (c w : Bytes) (hw : O4Witness w) :
+    Refines (Tier.checker .runtimeLimits c w) (Tier.checker .storageResolution c w) :=
+  relSuccessor_runtimeLimits_storageResolution_of (engineAgree_of_obligations _ hO) c w hw
+
+#print axioms relSuccessor_runtimeLimits_storageResolution_of_obligations
+
 #print axioms Sim.bind
 #print axioms Sim.logged
 #print axioms Sim.foldlM
