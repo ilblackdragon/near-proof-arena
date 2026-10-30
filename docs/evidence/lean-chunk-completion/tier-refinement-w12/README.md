@@ -27,7 +27,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 |---|---|---|---|
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
-| O3 | global actions | open. Proved (§7, §9): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target; (§11) stored-receipt, transaction and witness decoder refinement (`decodeStoredRcpt_ref`, `decodeWitness_ref`), the pipe relation and every pipe update (`PipeRel`, `pipeFn_*`), the queue operations on well-formed layouts (`delayPop_rel`, `forwardFromBuffer_rel`, `forwardFromBufferV3_rel`, `forwardOrBuffer_eq`), the engine relation `MRQ` and its state rules. (§14) the non-distribution invariant (`TierO3Inv`), the recorded call and dispatch with `ga` differing (`functionCallRecorded_global`, `applyAction_global`), the engine walk through `processWithInstant`, `processLocals`, `processIncoming`. Open (§14): `processDelayedLoop` (its `pipe.next` read), `yieldLoop`, `applyNewChunkD2`/`run`, driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`, `TierO3Dec.lean`, `TierO3Pipe.lean`, `TierO3Queue.lean`, `TierO3Engine.lean`, `TierO3Inv.lean`, `TierO3Rec.lean`, `TierO3Walk.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
+| O3 | global actions | **proved on claims whose shard layouts are well formed** (2026-10-30, seventh session, §15; the §9 hypothesis `LayoutsWF`, shown to hold on real chunks): on every whole-state configuration with global actions off, switching them on refines the checker (`Lift.globalActions_wf`); `.storageResolution ⊑ .globalActions`, `.resharding ⊑ .allFeatures`, and `.curveHosts ⊑ .allFeatures` at verdict level under the layout hypothesis only. Earlier steps (§7, §9, §11, §14): interpreter two-run host call, `LowQ`, call level, decoder agreement, pipe relation, queue operations, `MRQ`, non-distribution invariant, recorded call and dispatch, engine walk. Open: the unconditional `Lift` (the layout fact comes from claim admission, not from the checker). With O2: `relSuccessor_globalActions_allFeatures` (no premise), `relSuccessor_storageResolution_allFeatures_wf` | `Lift.globalActions_wf`, `relSuccessor_storageResolution_globalActions_wf`, `lift_resharding_globalActions_wf`, `relSuccessor_resharding_allFeatures_wf`, `relSuccessor_curveHosts_allFeatures_wf`, `checkD2CoreWithObs_o3`, `checkD2CoreGWith_o3`, `checkReshardCoreObs_o3`, `drvRel_of_lower` (`TierO3Lift.lean`); `run_global`, `run_global_nd`, `applyNewChunkD2_rr`, `processDelayedLoop_rr`, `yieldLoop_rr` (`TierO3Run.lean`); `layoutsWF_06_h10006_s0`, `layoutsWF_seed37_00_h10085_s7` (`TierO3Real.lean`); `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3*.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
 | O4 | storage resolution | **open: the shell and tier levels are proved given engine obligations, but those obligations cannot be satisfied as stated** (2026-10-30, §10, §12, §13). §12 found `EngineAgree` false as first stated (finding G0: observation fields) and restated it on `obsClear`-ed outputs. It then reduced the engine to `EngineObligations`, proving the main transition, receipt loops and yield timeouts. §13 proved the per-receipt simulation down to the `FunctionCall` hook (`pwiSim_of`) and found G7 (global actions). §13 also found that `EngineObligations` cannot be satisfied (soft limit vs. removals, `remClosed_soft_absurd`), so the §12 tier theorem is vacuous. Open: run-level premises (§13 next steps), `FCSim` (G2, G3, G5, G6) and G4 | `relSuccessor_runtimeLimits_storageResolution_of_obligations`, `engineAgree_of_obligations`, `sim_applyNewChunkD2`, `sim_processLocals/Delayed/Incoming`, `sim_yieldLoop`, `fwdSim_v2` (`TierO4Engine.lean`); `pwiSim_of`, `actSim_of`, `remClosed_soft_absurd` (`TierO4Receipt.lean`); `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreWith_clearObs` (`TierO4.lean`) |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §8): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
@@ -1178,3 +1178,87 @@ made `whnf` time out).
    for `(Tier.cfg .resharding, {… with globalActions := true})`, discharging the premise of
    `relSuccessor_resharding_allFeatures_of` and, with `resharding_vlift_curveHosts` (`TierO6`), of
    `relSuccessor_curveHosts_allFeatures_of` under the layout hypothesis only.
+
+## 15. Update 2026-10-30 (seventh session): O3 finished under the layout hypothesis
+
+No definition was changed and no verdict can move. New proof modules, all default `lake build` targets:
+`TierO3Run`, `TierO3Lift`, `TierO3Real`. No `sorry`. Axioms: only `propext`, `Classical.choice`,
+`Quot.sound` (`axioms-o3-step6.txt`). `make pin-check` ok. No refinement was found false on a real
+chunk; no nearcore replay was needed. §14's list is done; what stays open is listed at the end.
+
+### Engine (`TierO3Run.lean`)
+
+* `MRX.get_pipe_step`: a `get` whose continuation, run from the state it read, is a pipe update
+  (`PipeFn`-related in the two runs) followed by a common continuation. The delayed loop does not use
+  it directly: `pdl_succ` rewrites `processDelayedLoop`'s body so that the `match (← get).pipe.next`
+  read is one `modifyPipe (stepF ga env rs)` (proved per run by `pdl_get_step`, the
+  same equation `get_pipe_step` takes as premise), and `pipeFn_step` relates the two `stepF`s.
+* `processDelayedLoop_rr`, `processDelayed_rr`, `yieldLoop_rr`, `applyNewChunkD2_rr` (with
+  `ND out.outgoing`).
+* **`run_global`**: `Refines (run w … false p) (run { w with globalActions := true } … true p)` on an
+  environment with `env.ctx.layout.WF`; **`run_global_nd`**: the lower output carries no
+  distribution receipt.
+
+### Driver fields and shells (`TierO3Lift.lean`)
+
+* `LayoutsWF c`: every layout of the decoded claim's epoch table that decodes is well formed (the §9
+  hypothesis, stated on the claim bytes).
+* `DrvRel d ap dw rs vr orr`: the upper driver's five fields against the lower driver's: witness
+  decoder refines (`decodeWitness_ref`) and the lower decoder yields no distribution receipt
+  (`decodeStateWitnessD2_nd`, `NDW`); `receiptShard` and `outgoingRoot` equal on non-distribution
+  receipts; `validateRouting` equal on a well-formed layout and non-distribution receipts
+  (`validateRouting_global`); `apply` refines on `env.ctx.layout.WF` with `ND` of the lower output.
+  **`drvRel_of_lower`**: the global-action recorder driver against any driver with the lower
+  recorder driver's five fields (so the resharding driver and the Gate-B variants too).
+* Shells: `checkD2CoreWithObs_o3`, `checkD2CoreGWith_o3`, `checkReshardCoreObs_o3` (and the `Unit`
+  forms). The walk `o3s` threads the layout fact from the claim decoding to `env.ctx.layout`, as O7
+  threads store authentication: `hLc` at `decodeClaimE`, `hLwf : L.WF` at `decodeLayout` of the
+  epoch-table entry `find?` returned, and for the resharding core's `Lmain` from
+  `walkSegment_mainLayout` (the walk's main layout is an epoch-table layout). The source-proof loop
+  carries `∀ e ∈ proofs, NDE e` (`Refines.forIn_inv`; unary side `eok`; `lookupLastD2_mem`,
+  `shuffleWithSeed_mem`) so the receipt filter's two shard functions agree (`DrvRel.filter_eq`).
+* **`Lift.globalActions_wf`**: on every configuration with `storageResolution`,
+  `completeCodeWitness` or `resharding` set and `globalActions` off,
+  `LayoutsWF c → Refines (checkSuccessor cfg c w) (checkSuccessor { cfg with globalActions := true } c w)`
+  (stated against main's `withStorageExclusion`/whole-state dispatch; the whole-state branch never
+  takes the storage-exclusion wrapper).
+* Named: **`relSuccessor_storageResolution_globalActions_wf`** (`.storageResolution ⊑ .globalActions`),
+  `lift_resharding_globalActions_wf` (the `hGA` premise of `relSuccessor_resharding_allFeatures_of`,
+  per claim), **`relSuccessor_resharding_allFeatures_wf`**, and
+  **`relSuccessor_curveHosts_allFeatures_wf`** (`.curveHosts ⊑ .allFeatures` at verdict level, with
+  `resharding_vlift_curveHosts` from `TierO6`), each with `LayoutsWF c` as the only premise.
+
+### Non-vacuity (`TierO3Real.lean`)
+
+`layoutsWFb` decides `LayoutsWF` (`layoutsWF_of_b`). By `decide +kernel` (no `native_decide`):
+`layoutsWF_06_h10006_s0` (the honest D3 chunk `d3c7/d3/06-h10006-s0`) and
+`layoutsWF_seed37_00_h10085_s7` (a resharding chunk whose epoch table carries two distinct layouts,
+`seed37_layouts_differ`). `storageResolution_globalActions_06_h10006_s0` and
+`curveHosts_allFeatures_seed37_00_h10085_s7` instantiate the named pairs on them.
+
+With O2 (`Lift.curveHosts`), the same module closes `relSuccessor_globalActions_allFeatures`
+(`.globalActions ⊑ .allFeatures` at verdict level, no premise) and
+`relSuccessor_storageResolution_allFeatures_wf` (`.storageResolution ⊑ .allFeatures` at verdict
+level under `LayoutsWF`).
+
+### Proof engineering
+
+* `repeat` re-applies its tactic to the first goal only; a walk that branches needs `repeat'` (the
+  O7 walks run twice for that reason).
+* `lower_bind_has` failed on goals whose spine carries metadata (after a `have` in context); `lbh`/`lhd`
+  strip metadata along the spine. Every `o3s` rule is guarded by them, including the
+  `x = .error e` closer (guarded by a `throw` head), so no rule unifies the two runs' programs by
+  unfolding.
+* Elaboration order: `rfl` arguments whose type mentions a driver that only the goal determines must
+  be `(by rfl)`.
+
+### What remains open
+
+* The unconditional `Lift`: `LayoutsWF` is a claim-admission fact (§9: nearcore's `ShardLayout`
+  constructors assert it, and admission contract A1 rebuilds the trusted section from the verifier's
+  own chain state), not something the checker checks. On a malformed layout the lower run routes by
+  `shardOf` while the upper's `globalTarget` may fail, so the hypothesis cannot be dropped without a
+  checker change.
+* O3 is not needed for `.globalActions ⊑ .allFeatures` (closed above from O2 and O6). O4 (the
+  storage-resolution engine change) is untouched by this session.
+
