@@ -7,7 +7,7 @@ import NearSpecV3.Successor.GlobalCodecs
 import NearSpecV3.Successor.GlobalExecution
 import NearSpecV3.Successor.QueueExecution
 import NearSpecV3.Successor.PromiseActions
-import NearSpecV3.Wasm.Fuel
+import NearSpecV3.Wasm.FuelCert
 
 /-! Chunk-scoped protocol recorder over the existing read-logging D2 operations.
 Reads are executed against the authenticated witness store; recorder state is computed locally.
@@ -77,8 +77,21 @@ def resolveCode (c : ActCtx) (st : ActSt) (acct : D2.Acct) : M (Option Bytes × 
 
 open NearSpecV3.D3
 
-def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
-    M (ActSt × AR) := do
+/-- The VM call of a `FunctionCall` action under the step budget `fuelOf cfg ctx.prepaidGas`.
+
+W02: the call first runs the fuel certificate (`Wasm/FuelCert.lean`). `Wasm.wasmFuel_sufficient`
+proves the budget `wasmFuel` never decides an outcome for a certified contract; a contract whose
+prepared functions fail the certificate is out of domain (`w.fuel_certificate`) instead of being
+run under a budget not proved sufficient. No measured contract fails it (evidence
+`fuel-sufficiency/`). -/
+def vmCall (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (code : ByteArray) (method : String)
+    (ctx : CallCtx) (real : TTN.RealStore) : Except String Run :=
+  if !fuelCertified cfg code then .error (oodE "w.fuel_certificate: a prepared function fails the fuel certificate")
+  else .ok (runCallWithLimits cfg code method ctx (fuelOf cfg ctx.prepaidGas) true false (some real))
+
+/-- `functionCallRecorded` with the step budget as a parameter; the checker uses `wasmFuel`. -/
+def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c : ActCtx) (st : ActSt)
+    (ar : AR) (b : Base) : M (ActSt × AR) := do
   let .fcall method args gas deposit := b | throw "unmodeled: functionCall hook on a non-FunctionCall"
   let some acct := st.account | throw "invalid: EXPECT_ACCOUNT_EXISTS"
   let env := c.env
@@ -137,8 +150,10 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
   -- W02: the legacy `(gas / regular + 2) · 64 + 10⁶` budget is exhausted by valid zero-fee
   -- control-flow loops (`Wasm/Fuel.lean`); `wasmFuel` changes only fuel-exhausted results
   -- (`Wasm.successorFuel_moves_only_exhausted`).
-  let fuel := wasmFuel cfg gas
-  match runCallWithLimits cfg codeB (strOf method) ctx fuel true false (some real) with
+  -- `vmCall` passes `fuelOf cfg ctx.prepaidGas`, and `ctx.prepaidGas = gas` (above): the checker's
+  -- budget is `wasmFuel cfg gas` (`functionCallRecorded_fuel`).
+  let vmr ← liftE (vmCall fuelOf cfg codeB (strOf method) ctx real)
+  match vmr with
   | .line l =>
     let (burnt, used) ← liftE (lineOutcome l)
     let gb := ar.gasBurnt + burnt
@@ -197,6 +212,11 @@ def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b 
       pure ({ st with account := some acct' },
             { ar1 with newReceipts := ar1.newReceipts ++ rcpts, ret := ret,
                        subsidized := ar1.subsidized + s.subsidized })
+
+/-- The successor's `FunctionCall` hook: the successor step budget `wasmFuel`. -/
+def functionCallRecorded (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
+    M (ActSt × AR) :=
+  functionCallRecordedF wasmFuel cfg c st ar b
 
 def applyGlobal (c : ActCtx) (st : ActSt) (a : Act) (b : Base) : M (ActSt × AR) := do
   if !(← get).globalActions then throw "out of domain (w.shape): global action"

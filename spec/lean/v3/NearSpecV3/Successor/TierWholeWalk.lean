@@ -256,8 +256,20 @@ theorem recorder_applyRefine {w w' : NearCfg} (hh : RecRefine w w') (g : Bool) (
     ApplyRefine (recorderDriver w g p).apply (recorderDriver w' g p).apply h h' :=
   fun prims e t vu ps rs txs cg => run_rec_mono hh prims e t vu ps rs txs cg g p
 
-theorem recRefine_floats (w : NearCfg) : RecRefine w { w with floats := true } :=
-  recRefine_of_callRel rfl (callRel_floats w)
+theorem recRefine_floats (w : NearCfg) : RecRefine w { w with floats := true } := by
+  refine recRefine_of_vmRel fun code => ?_
+  rcases Wasm.prepare_floats w code true with hp | ⟨x, hp⟩
+  · left
+    refine ⟨?_, fun m ctx real => ?_⟩
+    · unfold D3.contractOOD; rw [hp]
+    · have hc : fuelCertified w code = fuelCertified { w with floats := true } code := by
+        unfold fuelCertified; rw [hp]; rfl
+      show vmCall wasmFuel w code m ctx real = vmCall wasmFuel { w with floats := true } code m ctx real
+      unfold vmCall
+      rw [hc, Wasm.runCallWithLimits_floats w true code m ctx _ true false (some real) hp.symm]
+      rfl
+  · right
+    exact ⟨x, by unfold D3.contractOOD; rw [hp]⟩
 
 /-- **O1, every configuration.** Switching floats on never changes a decided verdict: on the legacy
 engine through the hooks (`Lift.floats_legacy`), on the whole-state engine through the recorded

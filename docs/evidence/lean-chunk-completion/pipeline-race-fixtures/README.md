@@ -1,5 +1,18 @@
 # completeCodeGlobal pipeline-race arm (W12, 2026-10-30)
 
+> **Superseded by the W08 merge (main `459a66c8a`).** W08 replaced `resolveCompleteCode` with the
+> cold validator's policy (`complete_eq_cold`). Its race arm sends untimely code to
+> `out of domain (e.code_prep_race)`, and its evidence is the `code-cache` family in
+> `w08-warm-cache/` (88 nearcore races, all excluded). On merging, main's `CodeResolution.lean` was
+> taken unchanged, so the W12 fix below is no longer in the tree.
+>
+> This directory stays as an independent nearcore-judged family that reaches the arm through a
+> different route: Lean's own `uncertain` pipeline flag, which a global-contract call sets. Its
+> replays were made with the pre-merge W12 binaries (`generation.json`), not re-run on main's
+> policy. The `pipeline-race` generator scenario stays in `oracle/v3-successor`. The corpus
+> before/after replay was stopped when the merge superseded the fix, so the corpus line at the end
+> was never measured.
+
 ## The change
 
 The fix is in `spec/lean/v3/NearSpecV3/Successor/CodeResolution.lean`, `resolveCompleteCode`, and
@@ -98,5 +111,10 @@ arm is not on their path).
   594 cases. completeCodeGlobal before vs after: **0 changes**
   (`fixtures-before-after.json`). One case is an `io_error` in both runs (an incomplete case
   directory).
-* **Corpus:** see `corpus-before-after.json`. The population is every corpus `ood` case plus a seeded
-  10% of the 27,270 code mutants (`tools/corpus_list.py`), 9,743 cases.
+* **Corpus: not measured.** Two attempts were made:
+  * every corpus `ood` case plus 10% of the code mutants (9,743 cases);
+  * 10% of the code mutants only (2,739 cases, `tools/corpus_list.py`).
+
+  Both were stopped: the first was too slow on the loaded host, and the second (1,366 of 2,739 done)
+  was stopped when the W08 merge superseded this fix. On those 1,366 cases, before vs after: **0
+  changes** (`corpus-partial-before-after.json`). This is a partial sample, not a corpus-wide claim.

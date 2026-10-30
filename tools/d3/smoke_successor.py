@@ -15,10 +15,9 @@ def main():
     with tempfile.TemporaryDirectory(prefix="successor-smoke-") as tmp:
         for tier in TIERS:
             out = Path(tmp) / tier
-            # Complete-code admission is a stronger relation than the raw cold oracle.
-            # Keep the original metadata and check that policy boundary explicitly below.
-            compared = [path for entry, path in zip(entries, cases)
-                        if tier != "completeCodeGlobal" or "e.code_cache" not in entry["d3_violations"]]
+            # Since 2026-10-29 the complete-code policy resolves deploy-served code exactly as the cold
+            # validator does, so `completeCodeGlobal` is compared on every case like the other tiers.
+            compared = cases
             report = replay(binary, tier, compared, out)
             assert report["status"] == "pass", report["disagreements"]
             rows = [json.loads(s) for s in (out / "results.jsonl").read_text().splitlines()]
@@ -48,11 +47,14 @@ def main():
                         # must have decided it rather than still excluding it
                         assert row["verdict"] != "out_of_domain", (tier, row)
             if tier == "completeCodeGlobal":
+                # deploy-served code mutants: the same verdict as the cold policy, never the old
+                # blanket `w.code_complete` reject
                 incomplete = [path for entry, path in zip(entries, cases)
                               if "e.code_cache" in entry["d3_violations"]]
-                policy = run_batch([str(binary), "--tier", tier], incomplete, 120, tier)
-                assert all(r["verdict"] == "reject" and "w.code_complete" in r["reason"]
-                           for r in policy.values()), policy
+                if incomplete:
+                    policy = run_batch([str(binary), "--tier", tier], incomplete, 120, tier)
+                    cold = run_batch([str(binary), "--tier", "globalActions"], incomplete, 120, "globalActions")
+                    assert all(policy[c]["verdict"] == cold[c]["verdict"] for c in policy), (policy, cold)
             print(f"{tier}: {len(compared)} raw comparisons; {report['verdicts']}")
     regression = REPO / "docs/evidence/lean-chunk-completion/runtime-chunks-209/cases"
     entries = json.loads((regression / "index.json").read_text())

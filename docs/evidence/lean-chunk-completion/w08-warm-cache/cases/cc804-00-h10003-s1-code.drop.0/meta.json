@@ -1,0 +1,31 @@
+{
+  "base": "00-h10003-s1",
+  "case": "00-h10003-s1-code.drop.0",
+  "codes": [],
+  "d3_violations": [
+    "e.code_deploy_served"
+  ],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 202292738763,
+    "fc_gas_burnt_for_function_call": 202292738763
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "ok",
+  "nearcore_probe": {
+    "poisoned": "validate: InvalidChunkStateWitness(\"Post state root FRQXj2SfsKCvoKwcDR3gC5AGf8ZuDAthd1cfyvgUjSQk for main transition does not match expected post state root KJ1VNYENUXuwRyFNRkWshmAhCFVFdQ4NkmVg8hmwv3h\")",
+    "poisoned_cache": "every registry contract compiled under the next one's hash (incoherent control)",
+    "warm": "ok",
+    "warm_cache": "every registry contract precompiled (coherent)"
+  },
+  "nearcore_schedule": {
+    "eager": "ok",
+    "lazy": "ok"
+  },
+  "verdict_source": "nearcore(cold)"
+}

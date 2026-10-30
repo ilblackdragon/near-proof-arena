@@ -30,6 +30,9 @@
 //!       nearcore's stored outcomes, outgoing receipts and state changes of each captured mainnet
 //!       witness's main transition, from a stopped node's database opened read-only
 //!       (src/mainnet_obs.rs, workplan W01).
+//!   rejudge-d2 --corpus D2CORPUS --cases LIST --chain I --blocks N --out OUT --scratch SCRATCH
+//!       Cold re-judgment of existing d2corpus.v2 cases with the needed code blobs appended
+//!       (src/d2cold.rs): replays the D2 chain byte-identically and writes OUT/<sub>/<case>.
 //!   reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N] [--shards n]
 //!       [--epoch-length L] [--gas-limit-tgas G] [--split-k k] [--variant v] [--p-missing P]
 //!       [--p-burst-hot B] [--min-gas-price P] [--second-split SID] [--max-shards M] [--no-force]
@@ -88,6 +91,8 @@ mod mldsa_vectors;
 mod reshard;
 mod observables;
 mod mainnet_obs;
+mod d2cold;
+mod cachejudge;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
@@ -230,6 +235,7 @@ fn main() {
         Some("mldsa-vectors") => mldsa_vectors::command(&args),
         Some("reshard") => reshard::cmd_reshard(&args),
         Some("mainnet-observables") => mainnet_obs::cmd(&args),
+        Some("rejudge-d2") => d2cold::cmd(&args),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-successor gen --domain d3 ... | contracts (see src/main.rs)");

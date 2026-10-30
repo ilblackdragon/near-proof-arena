@@ -1,0 +1,33 @@
+{
+  "base": "00-h10004-s1",
+  "case": "00-h10004-s1-code.drop.0",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [
+    "e.g_alpha"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 3826298510477,
+    "fc_gas_burnt_for_function_call": 3826298510477
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "nearcore_probe": {
+    "poisoned": "validate: InvalidOutcomesProof",
+    "poisoned_cache": "every registry contract compiled under the next one's hash (incoherent control)",
+    "warm": "ok",
+    "warm_cache": "every registry contract precompiled (coherent)"
+  },
+  "verdict_source": "nearcore(cold)"
+}

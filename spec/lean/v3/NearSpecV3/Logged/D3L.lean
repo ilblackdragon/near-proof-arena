@@ -94,7 +94,7 @@ def functionCallL (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base)
       m.insert (toBA k) (v.map toBA)) {}
   let real : TTN.RealStore := { store := W.dummy, root := toBA env.preRoot, overlay := ovl, pfx }
   let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
-  match ← LM.lift (W.runCallL cfg codeB (strOf method) ctx fuel true false (W.dr real)) with
+  match ← LM.lift (W.runCallWithLimitsL cfg codeB (strOf method) ctx fuel true false (W.dr real)) with
   | .line l =>
     let (burnt, used) ← liftE (lineOutcome l)
     let gb := ar.gasBurnt + burnt

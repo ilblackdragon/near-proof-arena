@@ -15,26 +15,35 @@ import subprocess
 import sys
 
 REPO = Path(__file__).resolve().parents[2]
+# Labels the successor generator (oracle/v3-successor, 2026-10-29) gives a code mutant whose pre-state
+# call only an earlier in-chunk deploy can serve. They replace the baseline's `e.code_cache`, which
+# named the wrong cause (validator cache history) and did not separate races from the rest:
+#   `e.code_deploy_served` nearcore serves the call through the deploy under both forced preparation
+#                          schedules (src/cachejudge.rs): deterministic, compared on every whole-state
+#                          tier;
+#   `e.code_prep_race`     the forced eager and lazy schedules give different verdicts: a thread race,
+#                          the named exclusion `out of domain (e.code_prep_race)` of every tier.
+CODE = ("e.code_cache", "e.code_deploy_served")
 TIERS = {
-    # `e.code_cache` is widened on every cold-partial whole-state tier: a pre-state contract also
-    # deployed in the chunk is served by the deploy tracker (`ContractStorage::get` order), so only a
-    # rolled-back deploy still needs the compiled cache. `completeCodeGlobal` rejects such witnesses.
-    "globalActions": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
-    "completeCodeGlobal": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local"),
+    # The code labels are widened on every whole-state tier: an in-chunk deploy serves a pre-state
+    # call through the deploy tracker or the deploy's precompile (`Successor/CodeResolution.lean`).
+    # Since 2026-10-29 `completeCodeGlobal` resolves these exactly as the cold validator does.
+    "globalActions": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE,
+    "completeCodeGlobal": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE,
     # W05 curve hosts: the widest tier. A curve-host case is in domain here, so the tier declares
     # no curve exclusion; it still carries the genesis/float/gas ones the narrower tiers carry.
-    "curveHosts": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
+    "curveHosts": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE,
     # The widest tier: curve hosts plus resharding. The resharding guards (`c.same_layout`,
     # `c.no_split_gate`) are lifted, so those labels are no longer exclusion labels here.
-    "resharding": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
+    "resharding": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE,
     # The genuinely cumulative tier: global actions and curve hosts and resharding together. The
     # named wide tiers are NOT cumulative (`curveHosts`/`resharding` omit `globalActions`), so this
     # is the only tier whose domain contains every other wide tier's decided cases. It is also the
     # Gate-B tier: the arena-only `c.segment`, `w.size` (8 MiB) and `c.layout` (64 shards) bounds
     # and the per-chunk gas bound are lifted (docs/evidence/lean-chunk-completion/gate-b-caps).
-    "allFeatures": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache",
-                    "c.segment", "w.size", "c.layout"),
-    "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local", "e.code_cache"),
+    "allFeatures": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE +
+                   ("c.segment", "w.size", "c.layout"),
+    "storageResolution": ("c.not_genesis", "e.float", "e.g_alpha", "e.eth_implicit_local") + CODE,
     "runtimeLimits": ("c.not_genesis", "e.float", "e.g_alpha"),
     "signed": (),
     "floats": ("e.float",),
@@ -88,6 +97,16 @@ def load_compare():
     return mod
 
 
+def licenses(compare):
+    """The pinned harness's exclusion licences plus the successor generator's code labels. The
+    signed tier's cold-cache exclusion (`code_cache`) is licensed by either new label; the race
+    exclusion `e.code_prep_race` only by the race label."""
+    table = dict(compare.EXCLUSION_LICENSES)
+    table["code_cache"] = table["code_cache"] | {"e.code_deploy_served", "e.code_prep_race"}
+    table["e.code_prep_race"] = frozenset({"e.code_prep_race"})
+    return table
+
+
 def _replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
     if tier not in TIERS or batch <= 0 or timeout <= 0 or jobs <= 0:
         raise ValueError("invalid tier, batch size or timeout")
@@ -130,7 +149,8 @@ def _replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
         compare = load_compare()
         _, bad, partition, records = compare.compare(
             tier, list(metas), metas, got,
-            domain="baseline" if tier == "signed" else "successor", widen=TIERS[tier])
+            domain="baseline" if tier == "signed" else "successor", widen=TIERS[tier],
+            licenses=licenses(compare))
         if sum(partition.values()) != len(cases):
             raise ValueError("comparison does not account for every input")
         result_path = out / "results.jsonl"

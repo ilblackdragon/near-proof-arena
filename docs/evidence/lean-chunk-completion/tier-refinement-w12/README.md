@@ -142,10 +142,13 @@ the statement's meaning. It is not a pre-approved soundness fix, so it is left t
 
 ## 5. Update 2026-10-30
 
-### Race arm of completeCodeGlobal: fixed
+### Race arm of completeCodeGlobal: fixed (then superseded by W08)
 
-The §4 finding was adopted as a soundness fix (pre-approved): `resolveCompleteCode` now sends the
-untimely committed-deploy arm to the cold policy's race exclusion. Only that arm changed. Evidence,
+The §4 finding was adopted as a soundness fix (pre-approved): `resolveCompleteCode` sent the
+untimely committed-deploy arm to the cold policy's race exclusion. Only that arm changed. W08 has
+since merged a complete-code policy that *is* the cold policy (`complete_eq_cold`, race exclusion
+`e.code_prep_race`). On merging, main's version was taken, and the W12 resolve lemmas were restated
+against it (`complete_untimely_ood`, `complete_ok_coldPartial`, `raceExclusion_isExclusion`). Evidence,
 fixtures (4 seeds, 3,853 cases, 23,118 replays), the breakage control and the before/after tables
 are in `docs/evidence/lean-chunk-completion/pipeline-race-fixtures/`. The `complete_accepts_untimely`
 lemma of §4 described the pre-fix behaviour and has been replaced by `complete_untimely_ood`.

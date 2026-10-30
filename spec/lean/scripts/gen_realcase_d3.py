@@ -3,10 +3,17 @@
 corpus case directories (kernel non-vacuity of the signed `RelD3` and of the successor
 `allFeatures` relation).
 
-usage: gen_realcase_d3.py [--no-successor] CORPORA CASE[:pos|neg] ...
+usage: gen_realcase_d3.py [--no-successor] [--name SUFFIX] CORPORA CASE[:pos|neg|spos|sneg] ...
        CORPORA = the directory holding the D3 corpora; CASE = <corpus>/d3/<name> or <corpus>/mutants/<name>
+       (or any case directory relative to CORPORA, or absolute)
        e.g. gen_realcase_d3.py /data/illia/nearproof-deps/corpora d3c7/d3/06-h10006-s0 \
                 d3c10/mutants/00-h10074-s1-code.drop.0
+       --name W writes RealCaseD3WData.lean / RealCaseD3W.lean instead (the default files are kept).
+
+`spos` / `sneg` are successor-only cases (e.g. a split child, which the signed tier excludes as
+`c.same_layout`): the polarity comes from meta.json `nearcore` ("ok" = spos), and the generated
+theorems are `Tier.rel .allFeatures` (resp. its negation) plus `¬ RelD3` (the signed statement does
+not hold: it excludes the chunk), all by `decide +kernel`.
 
 The polarity defaults to the case's meta.json `expected_rel_d3` and must agree with it. Positive
 cases must be D3-only (`expected_rel_d2 == false`), so each theorem is about the D3 relation, not
@@ -38,10 +45,20 @@ def lit(b):
     return "leN %d %d" % (len(b), int.from_bytes(b, "little"))
 
 
+def rel_mut(d):
+    b = os.path.basename(d)
+    return b.split("-", 4)[-1] if b.count("-") >= 4 else b
+
+
 def main():
     args = sys.argv[1:]
     successor = "--no-successor" not in args
     args = [a for a in args if a != "--no-successor"]
+    name = ""
+    if "--name" in args:
+        i = args.index("--name")
+        name = args[i + 1]
+        del args[i:i + 2]
     corpus, specs = args[0], args[1:]
     if not specs:
         sys.exit(__doc__)
@@ -50,7 +67,13 @@ def main():
         rel = s.split(":")[0]
         d = os.path.join(corpus, rel)
         meta = json.load(open(os.path.join(d, "meta.json")))
-        pos = meta["expected_rel_d3"] if ":" not in s else s.split(":")[1] == "pos"
+        pol = s.split(":")[1] if ":" in s else None
+        if pol in ("spos", "sneg"):
+            pos = pol == "spos"
+            assert pos == (meta.get("nearcore") == "ok"), s
+            cases.append((ident(os.path.basename(d)), d, meta, pol))
+            continue
+        pos = meta["expected_rel_d3"] if pol is None else pol == "pos"
         assert pos == meta["expected_rel_d3"], s
         if pos:
             assert meta.get("expected_rel_d2") is False, "%s: positive must be D3-only" % s
@@ -61,8 +84,16 @@ def main():
         what = "mutant `%s`" % m["mutation"] if m.get("mutation") else "honest D3-only case"
         acts = "; ".join(m.get("action_results", [])[:6]) or "—"
         ran = ", ".join(m.get("features", {}).get("contracts_ran", [])) or "—"
+        shown = d[d.index("docs/"):] if "docs/" in d else os.path.relpath(d, corpus)
+        if pos in ("spos", "sneg"):
+            what = "honest split case" if m.get("kind") == "honest" else "mutant `%s`" % (m.get("mutation") or rel_mut(d))
+            doc.append("* `%s` — %s; shape %s; implicit transitions: %s; nearcore: \"%s\"" % (
+                shown, what, m.get("shape"),
+                ", ".join(next(iter(t)) for t in m.get("implicit_transitions", [])) or "—",
+                m["nearcore"][:70].replace('"', "'")))
+            continue
         doc.append("* `%s` — %s; contracts run: %s; receipts: %s; nearcore: \"%s\"" % (
-            os.path.relpath(d, corpus), what, ran, acts,
+            shown, what, ran, acts,
             m["nearcore"][:70].replace('"', "'")))
     data = ["import NearSpecV3.D3.FunctionCall", "", "/-!",
             "# Real nearcore D3 cases for the kernel non-vacuity theorems (`RealCaseD3.lean`)", "",
@@ -76,13 +107,13 @@ def main():
         data.append("def witnessD3_%s : List UInt8 := %s" % (n, lit(open(os.path.join(d, "witness.bin"), "rb").read())))
         data.append("")
     data.append("end NearSpecV3.Examples")
-    open(os.path.join(out_dir, "RealCaseD3Data.lean"), "w").write("\n".join(data) + "\n")
+    open(os.path.join(out_dir, "RealCaseD3%sData.lean" % name), "w").write("\n".join(data) + "\n")
 
-    title = ("# Kernel non-vacuity of `RelD3` and of the `allFeatures` successor relation" if successor
+    title = ("# Kernel non-vacuity of `RelD3` and of the `allFeatures` successor relation" + (" (wider cases)" if name else "") if successor
              else "# Kernel non-vacuity of `RelD3` (signed statement)")
     note = [] if successor else [
           "The successor `allFeatures` theorems are not generated (`--no-successor`).", ""]
-    th = ["import NearSpecV3.Examples.RealCaseD3Data", "import NearSpecV3.Examples.RealCaseD3Bridge", "",
+    th = ["import NearSpecV3.Examples.RealCaseD3%sData" % name, "import NearSpecV3.Examples.RealCaseD3Bridge", "",
           "/-!", title, "",
           "`decide +kernel` evaluates the whole checker (witness decoding, trie reveal, receipt proofs,",
           "WASM preparation, instantiation and execution, storage, roots, Reed–Solomon) on real",
@@ -91,6 +122,18 @@ def main():
           "open NearSpecV3.D3 NearSpecV3.Successor", ""]
     for n, _, _, pos in cases:
         c, w = "claimD3_%s" % n, "witnessD3_%s" % n
+        if pos in ("spos", "sneg"):
+            th.append("set_option maxRecDepth 200000 in")
+            th.append("theorem acceptsD3_%s : acceptsD3 %s %s = false := by decide +kernel\n" % (n, c, w))
+            th.append("theorem not_relD3_%s : ¬ RelD3 %s %s :=\n  not_relD3_of_accepts_false _ _ acceptsD3_%s\n" % (n, c, w, n))
+            b = "true" if pos == "spos" else "false"
+            th.append("set_option maxRecDepth 200000 in")
+            th.append("theorem acceptsAllFeatures_%s :\n    acceptsSuccessor (Tier.cfg .allFeatures) %s %s = %s := by\n  decide +kernel\n" % (n, c, w, b))
+            if pos == "spos":
+                th.append("theorem relAllFeatures_%s : Tier.rel .allFeatures %s %s :=\n  tierRel_of_accepts _ _ _ acceptsAllFeatures_%s\n" % (n, c, w, n))
+            else:
+                th.append("theorem not_relAllFeatures_%s : ¬ Tier.rel .allFeatures %s %s :=\n  not_tierRel_of_accepts_false _ _ _ acceptsAllFeatures_%s\n" % (n, c, w, n))
+            continue
         if pos:
             th.append("set_option maxRecDepth 200000 in")
             th.append("theorem acceptsD3_%s : acceptsD3 %s %s = true := by decide +kernel\n" % (n, c, w))
@@ -109,8 +152,33 @@ def main():
             th.append("set_option maxRecDepth 200000 in")
             th.append("theorem acceptsAllFeatures_%s :\n    acceptsSuccessor (Tier.cfg .allFeatures) %s %s = false := by\n  decide +kernel\n" % (n, c, w))
             th.append("theorem not_relAllFeatures_%s : ¬ Tier.rel .allFeatures %s %s :=\n  not_tierRel_of_accepts_false _ _ _ acceptsAllFeatures_%s\n" % (n, c, w, n))
-    th.append("end NearSpecV3.Examples")
-    open(os.path.join(out_dir, "RealCaseD3.lean"), "w").write("\n".join(th) + "\n")
+    if not name:
+        th.append("end NearSpecV3.Examples")
+        open(os.path.join(out_dir, "RealCaseD3%s.lean" % name), "w").write("\n".join(th) + "\n")
+        return
+    # `--name`: one module per kernel decision, so each `decide +kernel` runs in its own Lean
+    # process (peak memory is per decision, and a partial run keeps the finished modules).
+    first = th.index("set_option maxRecDepth 200000 in")
+    header, units, cur = th[:first], [], []
+    for line in th[first:]:
+        if line == "set_option maxRecDepth 200000 in" and cur:
+            units.append(cur)
+            cur = []
+        cur.append(line)
+    units.append(cur)
+    mods = []
+    for i, u in enumerate(units):
+        mod = "RealCaseD3%sK%d" % (name, i)
+        mods.append(mod)
+        body = ["import NearSpecV3.Examples.RealCaseD3%sData" % name,
+                "import NearSpecV3.Examples.RealCaseD3Bridge", "",
+                "/-! One kernel decision of `RealCaseD3%s` (generated by `gen_realcase_d3.py`). -/" % name, "",
+                "namespace NearSpecV3.Examples", "", "open NearSpecV3.D3 NearSpecV3.Successor", ""]
+        body += u + ["end NearSpecV3.Examples"]
+        open(os.path.join(out_dir, mod + ".lean"), "w").write("\n".join(body) + "\n")
+    umb = ["import NearSpecV3.Examples.%s" % m for m in mods] + [""] + header[3:]
+    umb = [l for l in umb if not l.startswith("namespace") and not l.startswith("open ")]
+    open(os.path.join(out_dir, "RealCaseD3%s.lean" % name), "w").write("\n".join(umb).rstrip() + "\n")
 
 
 if __name__ == "__main__":

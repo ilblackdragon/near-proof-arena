@@ -78,3 +78,14 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
   the 10% code-mutant sample (2,739 cases).
 * Open: O2, O3, O4, O6, and O7 at chunk level. Reasons are in
   `docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md` §5.
+
+## 2026-10-30, after the W08 merge
+
+* Merged main `459a66c8a` (W08: completeCodeGlobal = cold policy). Conflicts:
+  * `CodeResolution{,Tests}.lean`: main's version taken unchanged.
+  * `d3gen.rs`: both scenarios kept (`code-cache` and `pipeline-race`).
+  * `lakefile.toml`: main's targets plus `TierWholeWalk`.
+* The W12 race-arm fix is superseded. The `TierRefine` O7 lemmas were restated for main's policy:
+  `complete_untimely_ood`, `complete_ok_coldPartial`, `raceExclusion_isExclusion`. The pre-fix lemma
+  `complete_accepts_untimely` is gone (main's policy never accepts the arm).
+* The corpus before/after replay of the W12 fix was stopped (superseded).

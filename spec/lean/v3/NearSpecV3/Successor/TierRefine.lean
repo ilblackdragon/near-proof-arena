@@ -152,59 +152,40 @@ theorem relSuccessor_signed_runtimeLimits (c w : Bytes) :
 
 /-! ## O7: the complete-code policy against the cold validator, at the code-resolution step
 
-`completeCodeGlobal` differs from `globalActions` only in `CodeWitnessPolicy` (`.complete` vs
-`.coldPartial`), read once per call by `resolveCodeBytes`.
-
-* `.complete` rejects (`w.code_complete`) a call whose code a warm or in-chunk deploy serves and
-  that nearcore accepts (census: 178 + 8 valid chunks, `tier-proofs/ccg.json`). That is the W08
-  policy question and is not touched here.
-* **Race arm (fixed 2026-10-30).** `.complete` used to *accept* a call whose code only a committed
-  in-chunk deploy serves although `Pipeline.deterministic` could not rule out that its preparation
-  was pipelined before that deploy (`timely = false`), where `.coldPartial` reports the thread race
-  out of domain. It now reports the same exclusion (`resolveCompleteCode`). `complete_untimely_ood`
-  states that both policies agree on that arm. -/
-
-def raceOOD : String :=
-  D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code"
+Since the W08 merge, `resolveCompleteCode` is the cold policy with witness bytes hash-checked
+(`complete_eq_cold`: equal on authentic stores), and its race arm reports `raceExclusion`
+(`out of domain (e.code_prep_race)`). The lemmas below are the resolve-level steps O7 needs without
+the authenticity premise: every complete-policy accept is a cold-policy accept of the same bytes,
+and both policies exclude the race arm. -/
 
 /-- On the race arm both policies report the same exclusion. -/
 theorem complete_untimely_ood (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
-    (hw : sources.witness hash = none) (hp : pre.needsWitness hash = false)
+    (hw : sources.witness hash = none)
     (hc : sources.current.find? (fun c => sha256 c == hash) = none)
-    (hd : sources.committed.find? (fun c => sha256 c == hash) = some code) :
-    resolveCodeBytes .complete sources pre hash false = .error raceOOD ∧
-      resolveCodeBytes .coldPartial sources pre hash false = .error raceOOD := by
+    (hd : (sources.committed ++ sources.attempted).find? (fun c => sha256 c == hash) = some code) :
+    resolveCodeBytes .complete sources pre hash false = .error raceExclusion ∧
+      resolveCodeBytes .coldPartial sources pre hash false = .error raceExclusion := by
   refine ⟨?_, ?_⟩
-  · simp [resolveCodeBytes, resolveCompleteCode, CodeSources.deployed, List.find?_append, hw, hp,
-      hc, hd, raceOOD]
-  · simp [resolveCodeBytes, resolveColdCode, List.find?_append, hw, hc, hd, raceOOD]
-
-/-- The concrete instance that the pre-fix policy accepted. -/
-theorem complete_untimely_ood_example (code : Bytes) :
-    resolveCodeBytes .complete { witness := fun _ => none, committed := [code] } .absent
-      (sha256 code) false = .error raceOOD := by
-  simp [resolveCodeBytes, resolveCompleteCode, CodeSources.deployed, PrestateCode.needsWitness,
-    raceOOD]
+  · simp [resolveCodeBytes, resolveCompleteCode, hw, hc, hd]
+  · simp [resolveCodeBytes, resolveColdCode, hw, hc, hd]
 
 /-- **O7, resolve step.** Wherever the complete policy resolves code, the cold policy resolves the
 same bytes (an accept of `.complete` is an accept of `.coldPartial`). -/
 theorem complete_ok_coldPartial (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
     (timely : Bool) (h : resolveCodeBytes .complete sources pre hash timely = .ok code) :
     resolveCodeBytes .coldPartial sources pre hash timely = .ok code := by
-  simp only [resolveCodeBytes, resolveCompleteCode, resolveColdCode, CodeSources.deployed,
-    List.find?_append] at h ⊢
-  rcases hw : sources.witness hash with _ | c <;>
-    rcases hc : List.find? (fun c => sha256 c == hash) sources.current with _ | c1 <;>
-    rcases hd : List.find? (fun c => sha256 c == hash) sources.committed with _ | c2 <;>
-    cases ht : timely <;> cases hn : pre.needsWitness hash <;>
-    simp_all <;> (split at h <;> simp_all)
+  simp only [resolveCodeBytes, resolveCompleteCode, resolveColdCode] at h ⊢
+  cases hw : sources.witness hash with
+  | none => rw [hw] at h; exact h
+  | some c =>
+    rw [hw] at h
+    by_cases hs : (sha256 c == hash) = true <;> simp_all
 
-#print axioms complete_ok_coldPartial
-
-theorem raceOOD_isExclusion : isExclusion raceOOD = true := oodE_isExclusion _
+theorem raceExclusion_isExclusion : isExclusion raceExclusion = true := by
+  unfold raceExclusion; ood_tac
 
 #print axioms complete_untimely_ood
-#print axioms complete_untimely_ood_example
-#print axioms raceOOD_isExclusion
+#print axioms complete_ok_coldPartial
+#print axioms raceExclusion_isExclusion
 
 end NearSpecV3.Successor

@@ -48,7 +48,10 @@ literally of the form `!cfg.floats && <property of the module>`. Therefore:
 What is **not** proved: `checkD3F = checkD3` on float-free *chunks*. That needs an induction over
 `prepare` and the whole chunk pipeline showing no other site reads `NearCfg.floats`; the guard
 equalities above are the only step that is about floats, and the rest is a (large) syntactic
-argument not carried out here. A reader must not cite this module for chunk-level additivity.
+argument not carried out here. A reader must not cite this module for chunk-level additivity; the
+chunk-level overlap statement is `Successor.FloatOverlap` (`relD3_relD3F`,
+`checkD3F_reject_of_checkD3_reject`, `checkD3F_verdict_of_decided`: wherever `checkD3` decides,
+`checkD3F` returns the same result), a corollary of W12's `relSuccessor_floats_mono`.
 `ChallengeChunkV3Float.checkD3F_eq_checkD3_of_cfg` records the weaker syntactic fact that the two
 checkers differ only in the configuration argument.
 

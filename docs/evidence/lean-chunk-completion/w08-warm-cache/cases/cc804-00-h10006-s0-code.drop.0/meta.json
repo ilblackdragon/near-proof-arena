@@ -1,0 +1,37 @@
+{
+  "base": "00-h10006-s0",
+  "case": "00-h10006-s0-code.drop.0",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [
+    "e.code_prep_race"
+  ],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 2200907726538,
+    "fc_gas_burnt_for_function_call": 2200907726538
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "ok",
+  "nearcore_probe": {
+    "poisoned": "validate: InvalidChunkStateWitness(\"Post state root 8YoxoE94cZ7KhJULRVMkn8QNgmoWLCwMeUB4wbjnUGSn for main transition does not match expected post state root HjYiJfRvGm4JmzEvN4mrgEyExdmRJNKMorzbRxJXK9dN\")",
+    "poisoned_cache": "every registry contract compiled under the next one's hash (incoherent control)",
+    "warm": "ok",
+    "warm_cache": "every registry contract precompiled (coherent)"
+  },
+  "nearcore_schedule": {
+    "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+    "lazy": "ok"
+  },
+  "verdict_source": "nearcore(cold)"
+}

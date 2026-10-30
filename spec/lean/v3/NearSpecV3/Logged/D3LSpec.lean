@@ -19,12 +19,12 @@ theorem ev_codeAvailableL (c : ActCtx) (st : ActSt) (h : Bytes) :
 /-- The WASM call: the mirror's result is the original's with the states' store erased. -/
 theorem R_bind_runCallL {β α : Type} (cfg : NearCfg) (code : ByteArray) (m : String) (ctx : CallCtx)
     (fuel : Nat) (realM : TTN.RealStore) {k : Run → LM β} {o : Except String α} {φ : β → α}
-    (h : R s root (k (W.mapRun (W.E W.dummy) (runCall cfg code m ctx fuel true false
+    (h : R s root (k (W.mapRun (W.E W.dummy) (runCallWithLimits cfg code m ctx fuel true false
       (some { realM with store := fun hb => (hGet s (ofBA hb)).map toBA })))) o φ) :
-    R s root (LM.lift (W.runCallL cfg code m ctx fuel true false (W.dr realM)) >>= k) o φ := by
+    R s root (LM.lift (W.runCallWithLimitsL cfg code m ctx fuel true false (W.dr realM)) >>= k) o φ := by
   refine R_bind_ok ?_ h
   rw [LM.ev_lift]
-  exact W.runCallL_spec (σ := fun hb => (hGet s (ofBA hb)).map toBA) (fun _ => rfl) cfg code m ctx fuel true
+  exact W.runCallWithLimitsL_spec (σ := fun hb => (hGet s (ofBA hb)).map toBA) (fun _ => rfl) cfg code m ctx fuel true
     false { realM with store := fun hb => (hGet s (ofBA hb)).map toBA } rfl
 
 end
@@ -77,7 +77,7 @@ macro_rules | `(tactic| lk_step) => `(tactic| apply R_bind_ok (LM.ev_getB _ _ _)
 open Lean in
 /-- The closed `Exec.runCall …` subterms of `e`. -/
 partial def collectRunCall (e : Expr) (acc : Array Expr := #[]) : Array Expr :=
-  let acc := if e.isAppOfArity ``NearSpecV3.Wasm.runCall 8 && !e.hasLooseBVars then acc.push e else acc
+  let acc := if e.isAppOfArity ``NearSpecV3.Wasm.runCallWithLimits 8 && !e.hasLooseBVars then acc.push e else acc
   match e with
   | .app f a => collectRunCall a (collectRunCall f acc)
   | .lam _ t b _ => collectRunCall b (collectRunCall t acc)
@@ -101,7 +101,7 @@ elab "gen_runCall" : tactic => withMainContext do
   for b in all do
     if b != e then
       unless (← isDefEq b e) do throwError "gen_runCall: the runCall terms differ"
-  let tgt' := tgt.replace (fun x => if x.isAppOfArity ``NearSpecV3.Wasm.runCall 8 && !x.hasLooseBVars then some e else none)
+  let tgt' := tgt.replace (fun x => if x.isAppOfArity ``NearSpecV3.Wasm.runCallWithLimits 8 && !x.hasLooseBVars then some e else none)
   g ← g.replaceTargetDefEq tgt'
   let (fvs, g2) ← g.generalize #[{ expr := e, xName? := some `rr }]
   replaceMainGoal [g2]
@@ -122,7 +122,7 @@ elab "orig_at_runCall" : tactic => withMainContext do
   let env ← getEnv
   unless isMatcherAppCore env o do throwError "orig not a match"
   let some m ← matchMatcherApp? o | throwError "no"
-  unless m.discrs.any (fun d => d.isAppOf ``NearSpecV3.Wasm.runCall) do throwError "orig not at runCall"
+  unless m.discrs.any (fun d => d.isAppOf ``NearSpecV3.Wasm.runCallWithLimits) do throwError "orig not at runCall"
 
 open Lean Elab Tactic Meta in
 /-- On a goal mentioning `E dummy t` (a final machine state of the mirror): unfold the erasure and case

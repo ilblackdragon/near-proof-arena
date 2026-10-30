@@ -128,6 +128,8 @@ variable (σ : TTN.Store) (t : St)
 @[simp] theorem E_actions : (E σ t).actions = t.actions := rfl
 @[simp] theorem E_dataCount : (E σ t).dataCount = t.dataCount := rfl
 @[simp] theorem E_subsidized : (E σ t).subsidized = t.subsidized := rfl
+@[simp] theorem E_globalActions : (E σ t).globalActions = t.globalActions := rfl
+@[simp] theorem E_curveHosts : (E σ t).curveHosts = t.curveHosts := rfl
 @[simp] theorem E_real_isSome : (E σ t).real.isSome = t.real.isSome := by unfold E; cases t.real <;> rfl
 @[simp] theorem E_memBytes : memBytes (E σ t) = memBytes t := rfl
 @[simp] theorem E_readByte (a : Nat) : readByte (E σ t) a = readByte t a := rfl

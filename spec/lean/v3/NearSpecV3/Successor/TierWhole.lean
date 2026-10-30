@@ -20,12 +20,11 @@ Application: floats on the whole-state engine (`Lift.floats_whole`).
 namespace NearSpecV3.Successor.StorageExecution
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Logged NearSpecV3.Wasm NearSpecV3.D3
 
-/-- `functionCallRecorded` with its configuration-dependent calls as parameters
+/-- `functionCallRecordedF` with its configuration-dependent calls as parameters
 (`functionCallRecorded_eq_with` is `rfl`). -/
-def functionCallRecordedWith (ood : ByteArray → Option String) (fuelOf : Nat → Nat)
-    (rc : ByteArray → String → CallCtx → Nat → TTN.RealStore → Run)
-    (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
-    M (ActSt × AR) := do
+def functionCallRecordedWith (ood : ByteArray → Option String)
+    (vm : ByteArray → String → CallCtx → TTN.RealStore → Except String Run)
+    (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) : M (ActSt × AR) := do
   let .fcall method args gas deposit := b | throw "unmodeled: functionCall hook on a non-FunctionCall"
   let some acct := st.account | throw "invalid: EXPECT_ACCOUNT_EXISTS"
   let env := c.env
@@ -84,8 +83,10 @@ def functionCallRecordedWith (ood : ByteArray → Option String) (fuelOf : Nat �
   -- W02: the legacy `(gas / regular + 2) · 64 + 10⁶` budget is exhausted by valid zero-fee
   -- control-flow loops (`Wasm/Fuel.lean`); `wasmFuel` changes only fuel-exhausted results
   -- (`Wasm.successorFuel_moves_only_exhausted`).
-  let fuel := fuelOf gas
-  match rc codeB (strOf method) ctx fuel real with
+  -- `vmCall` passes `fuelOf cfg ctx.prepaidGas`, and `ctx.prepaidGas = gas` (above): the checker's
+  -- budget is `wasmFuel cfg gas` (`functionCallRecorded_fuel`).
+  let vmr ← liftE (vm codeB (strOf method) ctx real)
+  match vmr with
   | .line l =>
     let (burnt, used) ← liftE (lineOutcome l)
     let gb := ar.gasBurnt + burnt
@@ -145,10 +146,9 @@ def functionCallRecordedWith (ood : ByteArray → Option String) (fuelOf : Nat �
             { ar1 with newReceipts := ar1.newReceipts ++ rcpts, ret := ret,
                        subsidized := ar1.subsidized + s.subsidized })
 
-
 theorem functionCallRecorded_eq_with (cfg : NearCfg) :
-    functionCallRecorded cfg = functionCallRecordedWith (contractOOD cfg) (wasmFuel cfg)
-      (fun code m ctx fuel real => runCallWithLimits cfg code m ctx fuel true false (some real)) := rfl
+    functionCallRecorded cfg = functionCallRecordedWith (contractOOD cfg)
+      (fun code m ctx real => vmCall wasmFuel cfg code m ctx real) := rfl
 
 end NearSpecV3.Successor.StorageExecution
 
@@ -257,16 +257,30 @@ open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Wasm StorageExecution
 
 /-! ## The recorded call -/
 
-theorem functionCallRecordedWith_mono {ood ood' : ByteArray → Option String} (fuelOf : Nat → Nat)
-    {rc rc' : ByteArray → String → CallCtx → Nat → TTN.RealStore → Run} (h : CallRel ood ood' rc rc')
+/-- Two instantiations of the recorded call's configuration-dependent calls agree on a code blob, or
+the first excludes it. -/
+def VmRel (ood ood' : ByteArray → Option String)
+    (vm vm' : ByteArray → String → CallCtx → TTN.RealStore → Except String Run) : Prop :=
+  ∀ code, (ood code = ood' code ∧ ∀ m ctx real, vm code m ctx real = vm' code m ctx real) ∨
+    ∃ w, ood code = some w
+
+theorem VmRel.none {ood ood' : ByteArray → Option String}
+    {vm vm' : ByteArray → String → CallCtx → TTN.RealStore → Except String Run} (h : VmRel ood ood' vm vm')
+    {X : ByteArray} (hn : ∀ w, ood X = some w → False) :
+    ood' X = ood X ∧ ∀ m ctx real, vm' X m ctx real = vm X m ctx real := by
+  rcases h X with ⟨e1, e2⟩ | ⟨w, hw⟩
+  · exact ⟨e1.symm, fun m ctx real => (e2 m ctx real).symm⟩
+  · exact (hn w hw).elim
+
+theorem functionCallRecordedWith_mono {ood ood' : ByteArray → Option String}
+    {vm vm' : ByteArray → String → CallCtx → TTN.RealStore → Except String Run} (h : VmRel ood ood' vm vm')
     (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
-    MRef (functionCallRecordedWith ood fuelOf rc c st ar b)
-      (functionCallRecordedWith ood' fuelOf rc' c st ar b) := by
+    MRef (functionCallRecordedWith ood vm c st ar b) (functionCallRecordedWith ood' vm' c st ar b) := by
   unfold functionCallRecordedWith
   repeat (first
     | (with_reducible exact MRef.refl _)
     | (exact fun _ _ => Or.inr ⟨_, rfl, oodE_isExclusion _⟩)
-    | (refine (fun (hx : _ ∧ _) => ?_) (CallRel.none h (by assumption)); obtain ⟨e1, e2⟩ := hx;
+    | (refine (fun (hx : _ ∧ _) => ?_) (VmRel.none h (by assumption)); obtain ⟨e1, e2⟩ := hx;
        simp only [e1, e2])
     | ((refine MRef.bind (by with_reducible exact MRef.refl _) fun (_, _) => ?_); try dsimp only)
     | ((refine MRef.bind (by with_reducible exact MRef.refl _) fun _ => ?_); try dsimp only)
@@ -281,13 +295,13 @@ theorem functionCallRecordedWith_mono {ood ood' : ByteArray → Option String} (
 def RecRefine (cfg cfg' : NearCfg) : Prop :=
   ∀ c st ar b, MRef (functionCallRecorded cfg c st ar b) (functionCallRecorded cfg' c st ar b)
 
-theorem recRefine_of_callRel {cfg cfg' : NearCfg} (hf : wasmFuel cfg = wasmFuel cfg')
-    (h : CallRel (D3.contractOOD cfg) (D3.contractOOD cfg')
-      (fun code m ctx fuel real => runCallWithLimits cfg code m ctx fuel true false (some real))
-      (fun code m ctx fuel real => runCallWithLimits cfg' code m ctx fuel true false (some real))) :
+theorem recRefine_of_vmRel {cfg cfg' : NearCfg}
+    (h : VmRel (D3.contractOOD cfg) (D3.contractOOD cfg')
+      (fun code m ctx real => vmCall wasmFuel cfg code m ctx real)
+      (fun code m ctx real => vmCall wasmFuel cfg' code m ctx real)) :
     RecRefine cfg cfg' := by
   intro c st ar b
-  rw [functionCallRecorded_eq_with, functionCallRecorded_eq_with, ← hf]
-  exact functionCallRecordedWith_mono _ h c st ar b
+  rw [functionCallRecorded_eq_with, functionCallRecorded_eq_with]
+  exact functionCallRecordedWith_mono h c st ar b
 
 end NearSpecV3.Successor

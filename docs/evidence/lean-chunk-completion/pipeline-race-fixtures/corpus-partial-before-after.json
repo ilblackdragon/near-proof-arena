@@ -1,0 +1,6 @@
+{
+ "population": "cases of the seeded 10% code-mutant sample (tools/corpus_list.py) replayed by both binaries before the run was stopped",
+ "cases": 1366,
+ "changed": 0,
+ "changed_cases": []
+}

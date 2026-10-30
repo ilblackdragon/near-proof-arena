@@ -480,9 +480,9 @@ rest are open, each checked empirically (`docs/evidence/lean-chunk-completion/ti
   and no split gate is set. Only the verdict-level form can hold (see `VRefines`).
 * **O7 complete-code witness** — not a lift, and not in the join: on warm-cache chunks it rejects
   (`w.code_complete`) where every other whole-state tier excludes or accepts; the counterexample
-  family is in the evidence. `complete_accepts_untimely` (`TierRefine.lean`): at the resolve step
-  the complete policy also accepts code that a pipelined preparation could not see, where
-  `.coldPartial` reports a thread race out of domain.
+  family is in the evidence. Since the W08 merge the complete policy is the cold one on
+  authenticated witness bytes (`complete_eq_cold`); the resolve-level steps toward O7 are
+  `complete_ok_coldPartial` and `complete_untimely_ood` (`TierRefine.lean`).
 -/
 
 #print axioms checkSuccessor_segment_mono

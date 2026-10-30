@@ -52,6 +52,9 @@ impl D3World {
                 txs.extend(batch);
             }
         }
+        if scenario() == Some(Scenario::CodeCache) {
+            txs.extend(code_cache_txs(w, s, bh, height));
+        }
         txs
     }
     pub fn finish(&self, s: &crate::chaingen::Setup, out: &std::path::Path, chain_idx: usize) {
@@ -192,6 +195,32 @@ pub fn genesis_records(
             supply = supply.checked_add(amount).unwrap();
         }
     }
+    if scenario() == Some(Scenario::CodeCache) {
+        // `code_cache_txs`: one TINY pre-state contract and two code-less accounts per shard
+        for k in 0..accounts.len() {
+            for (name, code) in [("ccpre", Some(crate::d3contracts::TINY)), ("ccdep", None), ("ccrb", None)] {
+                let account_id = baseline::acct(&format!("s{k}{name}"));
+                let amount = Balance::from_near(1_000_000);
+                let contract = match code {
+                    Some(c) => AccountContract::Local(CryptoHash::hash_bytes(c)),
+                    None => AccountContract::None,
+                };
+                records.push(StateRecord::Account {
+                    account_id: account_id.clone(),
+                    account: Account::new(amount, Balance::ZERO, contract, 10_000),
+                });
+                records.push(StateRecord::access_key(
+                    account_id.clone(),
+                    &InMemorySigner::test_signer(&account_id).public_key(),
+                    AccessKey::full_access(),
+                ));
+                if let Some(c) = code {
+                    records.push(StateRecord::Contract { account_id, code: c.to_vec() });
+                }
+                supply = supply.checked_add(amount).unwrap();
+            }
+        }
+    }
     if crate::keys::enabled() {
         let (extra, amount) = crate::keys::genesis_records();
         records.extend(extra);
@@ -270,6 +299,9 @@ pub enum Scenario {
     /// cannot schedule, so it marks the chunk's preparation timing `uncertain`) in the chunk
     /// where a fresh account deploys code in one receipt and calls it in a later one.
     PipelineRace,
+    /// `code-cache` (W08 / UQ-001, `code_cache_txs`): same-code deploys next to pre-state calls,
+    /// with warm and poisoned-cache probes of every case (src/cachejudge.rs).
+    CodeCache,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -307,8 +339,73 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
         Ok(value) if value == "pipeline-race" => Some(Scenario::PipelineRace),
+        Ok(value) if value == "code-cache" => Some(Scenario::CodeCache),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
+}
+
+/// `code-cache` (W08 / UQ-001): every shard `k` has a pre-state contract `s{k}ccpre` (TINY at
+/// genesis) and two code-less accounts `s{k}ccdep`, `s{k}ccrb`. Each round, per shard, a
+/// deterministic pattern of `height` and `k` (no RNG draw, so the baseline stream is unchanged)
+/// selects and orders up to five transactions that put a same-code deploy and a pre-state call in
+/// one chunk:
+///   D  `s{k}ccdep` deploys TINY (local receipt, committed);
+///   R  `s{k}ccrb` deploys TINY then calls a missing method (local receipt, rolled back);
+///   S  `s{k}ccpre` redeploys TINY then calls it (deploy in the call's own receipt);
+///   C  `s{k}ccpre` calls itself (local receipt, pre-state code);
+///   X  `s{k}ccdep` calls `s{k}ccpre` (an incoming receipt one chunk later, after that chunk's
+///      local receipts).
+/// The code mutants of these chunks (`--code-mutant-p`) drop TINY's blob, so a pre-state call is
+/// served by an earlier deploy, by nothing, or races its preparation.
+fn code_cache_txs(
+    w: &mut crate::d2gen::World,
+    s: &crate::chaingen::Setup,
+    bh: &CryptoHash,
+    height: u64,
+) -> Vec<(String, SignedTransaction)> {
+    use near_primitives::action::DeployContractAction;
+    let code = crate::d3contracts::TINY.to_vec();
+    let fc = |method: &str| {
+        Action::FunctionCall(Box::new(FunctionCallAction {
+            method_name: method.into(),
+            args: vec![(height % 251) as u8],
+            gas: Gas::from_teragas(20),
+            deposit: Balance::ZERO,
+        }))
+    };
+    let deploy = || Action::DeployContract(DeployContractAction { code: code.clone() });
+    let mut out = Vec::new();
+    for k in 0..s.accounts.len() {
+        let x = (height.wrapping_mul(2_654_435_761) ^ (k as u64).wrapping_mul(40_503)) >> 3;
+        let pattern = (x % 32) as u32;
+        if pattern == 0 {
+            continue;
+        }
+        let (pre, dep, rb) = (
+            baseline::acct(&format!("s{k}ccpre")),
+            baseline::acct(&format!("s{k}ccdep")),
+            baseline::acct(&format!("s{k}ccrb")),
+        );
+        let steps: [(&str, &near_primitives::types::AccountId, &near_primitives::types::AccountId, Vec<Action>); 5] = [
+            ("D.deploy-committed", &dep, &dep, vec![deploy()]),
+            ("R.deploy-rollback", &rb, &rb, vec![deploy(), fc("absent_method")]),
+            ("S.same-receipt-deploy-call", &pre, &pre, vec![deploy(), fc("run")]),
+            ("C.prestate-call", &pre, &pre, vec![fc("run")]),
+            ("X.incoming-prestate-call", &dep, &pre, vec![fc("run")]),
+        ];
+        let start = ((x >> 5) % 5) as usize;
+        for i in 0..5 {
+            let j = (start + i) % 5;
+            if pattern & (1 << j) == 0 {
+                continue;
+            }
+            let (label, signer, receiver, actions) = &steps[j];
+            if let Some(tx) = w.plain_tx(s, bh, signer, receiver, actions.clone()) {
+                out.push((format!("successor.code-cache.{label}"), tx));
+            }
+        }
+    }
+    out
 }
 
 fn global_step(
