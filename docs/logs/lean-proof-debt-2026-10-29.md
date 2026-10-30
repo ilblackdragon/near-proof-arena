@@ -12,7 +12,7 @@ Worktree branch `worktree-agent-ab18ad53358787ddb`, base `4f07a7fdf`. Evidence s
 | `ebb151685` | `Logged.API`/`D3LSpec` repaired; `NearSpecV3.Logged.Audit` added to `defaultTargets` |
 | `81d6cb079` | W11: `NearSpecV3/ReshardingProofs.lean` |
 | `30d534b85`, `d166197c9`, `9ea617df8` | W04: `NearSpecV3/Wasm/FloatRange.lean`; guarded audit `NearSpecV3/ProofDebtAudit.lean` |
-| (this commit) | wider kernel non-vacuity `Examples/RealCaseD3Wide*`, generator `--name`, evidence, this log |
+| `e61d22144` + final commit | wider kernel non-vacuity `Examples/RealCaseD3{Store,Split}*` (the first `Wide` set was replaced: two of its cases exceed 40 GB), generator `--name`, evidence, this log |
 
 ## 1. `Logged.API` / `D3LSpec` (repaired, now in the default build)
 
@@ -74,7 +74,14 @@ dispatches the `FunctionCall` hook"). Not attempted in this lane; still tested-o
 
 ## 5. Wider kernel non-vacuity
 
-KERNEL_LOG_PLACEHOLDER
+Measured; table, commands and resources in the evidence README §3. Eight `decide +kernel`
+decisions on four real chunks, all built: `RealCaseD3Store` (d3c9 `02-h10008-s1`, three receipts, a
+`d3tiny` contract-data write; and its `w.main_post_root` mutant) and `RealCaseD3Split`
+(`resharding-fixtures-2` `seed37-00-h10085-s7`, a split child's first chunk; and its
+`w.split_child_post_root` mutant), each for `RelD3` and `Tier.rel .allFeatures`. Largest: 4:10
+wall, 43 GB. Two `d3rich` storage cases were tried first and OOM-killed at the 40 GB cap; they are
+not claimed. The first attempt ran inside `zkbuild.slice` and stalled under memory pressure; the
+successful runs used the same guards in their own scope.
 
 ## 6. Axiom audit (`#print axioms`, measured on this branch)
 
@@ -129,4 +136,5 @@ KERNEL_LOG_PLACEHOLDER
 The host was oversubscribed (load average 140–170 on 32 cores; `zkbuild.slice` at its 42.9 GB
 `MemoryHigh`, CPU weight 50). Small proof checks were run as plain `lean` against the built oleans in
 a 6 GB `systemd-run` scope (normal CPU weight) — each took 1–3 s; kernel runs went through `heavy`
-(40 G), one module per `decide +kernel`.
+(40 G caps, own scope — see §5), one module per `decide +kernel`.
+- default build: `lake build` in `spec/lean/v3`, 335 jobs, ok (includes `Logged.Audit` and `ProofDebtAudit`); `make pin-check` ok.
