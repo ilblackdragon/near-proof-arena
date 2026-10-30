@@ -1,0 +1,2010 @@
+{
+ "cases": 88,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "comparisons": [
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10213-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10214-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10215-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10217-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10219-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10220-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10220-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10221-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10222-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10222-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10223-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10224-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10225-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10226-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10230-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10231-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10233-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10233-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10234-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10234-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10236-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10237-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10238-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10240-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10241-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10242-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10244-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10247-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10207-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10208-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10209-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10209-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10210-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10210-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10211-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10211-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10211-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10212-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10212-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10213-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10213-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10214-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10214-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10215-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10215-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10216-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10217-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10217-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10218-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.eth_implicit_local",
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10219-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10219-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10220-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10221-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10221-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10222-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10223-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10223-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10224-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10224-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10225-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10225-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10226-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10227-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10228-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10229-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10230-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10231-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10232-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10232-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10232-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10233-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10234-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10235-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10235-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10236-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10236-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10237-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10237-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10238-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10239-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10240-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10240-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10241-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10241-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10242-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": true,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10243-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10243-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10246-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "e.ood_host"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  }
+ ],
+ "disagreements": [
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10220-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10222-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10231-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10233-s1",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10233-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10234-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10237-s1",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/d3/00-h10242-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10207-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10208-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10209-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10209-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10210-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10210-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10211-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10211-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10212-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10212-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10213-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10213-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10214-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10214-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10215-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10215-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10216-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10217-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10217-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10218-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10219-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10220-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10221-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10222-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10223-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10223-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10224-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10224-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10225-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10225-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10226-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10227-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10228-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10229-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10231-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10232-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10234-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10235-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10235-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10236-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10236-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10237-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10237-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10238-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10239-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10240-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10240-s3",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/cy601/ood/00-h10242-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: InvalidReceiptsProof",
+   "ok"
+  ]
+ ],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "a989c273f9f5c33b4594d543399597be9101bc5f06a2d31d0ee0b008512f40c5"
+ },
+ "output_sha256": "dec839eebd339a0b6df21082fbde14a4ec69002e2855b4702ca448cef019b7f8",
+ "package": {
+  "binary": "/data/illia/nearproof-deps/w10-runs/bin/ctl-yield-timeout-result",
+  "sha256": "a6402378fc93606571058675e2d19700ffd502abe800a784e39bb3f46c66bb09",
+  "tier": "allFeatures"
+ },
+ "partition": {
+  "verdict_agree_outside_domain": 11,
+  "verdict_compared_agree": 21,
+  "verdict_compared_disagree": 56
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "fail",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 32,
+  "reject": 56
+ },
+ "workers": 2
+}
