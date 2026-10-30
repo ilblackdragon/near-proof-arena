@@ -26,8 +26,8 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 | id | obligation | status | theorems |
 |---|---|---|---|
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
-| O2 | curve hosts | open | — |
-| O3 | global actions | open. The recorder-state part is now a parameter (`Flags.globalActions`, §6); the codec, manager, queue-policy and interpreter-flag agreements remain (§6) | routing part only: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
+| O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
+| O3 | global actions | open. Components proved (§7): interpreter two-run host call, decoder agreement on keys and base actions, D2 exclusions on every newly accepted shape, manager/`finishActs` agreement, queue target. Open: delegate/transaction re-serialization, the lower run's invariant, the engine walk with `ga` differing (§7) | `callHost_RR_global` (`HostCommStep.lean`); `TierO3.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
 | O4 | storage resolution | open | — |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | open | — |
@@ -292,6 +292,8 @@ whose environment satisfies `P`; every walk lemma carries `P env`. O1 (`Lift.flo
 
 ### Next steps (handover, 2026-10-30; resume on branch `worktree-agent-a5081ae59762de001`)
 
+(Superseded by §7: O2 is proved and the O3 steps are restated there.)
+
 Pre-check done for O3 (1), by reading the source (no proof yet): the D2 decoders exclude rather than
 reject on what the global decoders newly accept. `D2.pBase` throws `oodDeployGlobal` /
 `oodUseGlobal` / `oodStateInit` (all `out of domain (w.shape): …`) on action tags 9, 10, 11, and
@@ -325,3 +327,113 @@ In order, committing after each:
 Tooling lessons for these walks (`TierFlagsEq.lean`): use only `with_reducible` closers; use
 `orig_matchers` when the two sides come from different elaborations; use `sim_let`/`sim_walk_jp`
 for `do` join points.
+
+## 7. Update 2026-10-30 (third session): O2 proved, O3 components
+
+No definition was changed; every new module is a proof module (default `lake build` target). Full
+default build: 399 jobs, ok. `make pin-check` ok. No `sorry`. Axiom audit of every new theorem:
+`axioms-o2-o3.txt` (only `propext`, `Classical.choice`, `Quot.sound`; 29 `#print axioms`). The
+"Next steps" of §6 are superseded by this section.
+
+### The commutation generator (`HostComm.lean`, `HostCommArms.lean`, `HostCommStep.lean`)
+
+* `setF oc og` overwrites `St.curveHosts` (when `oc = some c`) and `St.globalActions` (when
+  `og = some g`). `CR φ x y` is the two-run commutation; the framework and helper lemmas follow
+  `Logged/WasmCR*.lean` (store map `E σ`) with the flag map in its place.
+* `HostCommArms.lean` is generated (`gen/gen_hostcomm_arms.py`, arm list read from `FuelHost.lean`):
+  one theorem per `hostCall.eq_N` (75) and `cryptoHostCall.eq_N` (14) arm. The ten
+  `globalPromiseHosts` arms (they contain the seven `globalActions` reads, `Host.lean` 571, 577, 592,
+  615, 1167, 1179, 1199) commute with every map that leaves the flag alone (`setF oc none`); every other
+  arm with every `setF oc og`. Summaries: `CR_hostCall`, `CR_hostCall_none`, `CR_cryptoHostCall`,
+  `CR_dispatchArm`, `CR_dispatchArm_none`. The module checks in about 35 s.
+* `HostCommStep.lean`: every machine helper and non-call instruction commutes (`F_*`, `sf`). Host
+  calls are two-run steps, `RR X φ lower upper`: the upper result is the lower one mapped by `φ`, or
+  the lower one stopped with a message in `X`:
+  * `callHost_RR_curve`: selector on; `X = XC`, the 14 curve names with a successor arm
+    (`host function NAME not modelled in D3α`);
+  * `callHost_RR_global`: `globalActions` on, from a trie-backed lower state with the flag off; `X = XG`,
+    the ten lifted names (`out-of-domain host function NAME called`).
+  `RR_exec`, `RR_step`, `RR_run`, `ER_callEntry` lift these to a run, from a `CallHyp` whose predicate
+  `Q` must survive the lower run (`True` for O2).
+
+### O2 (`TierO2.lean`): proved
+
+1. `instantiate_curve`: instantiation commutes with the selector (`instLoops`, an `rfl` copy of its two
+   segment loops; `forIn_fst`).
+2. `runCall_curve`, `runCallWithLimits_curve`: on a trie-backed call (`real = some _`, which is what
+   `vmCall` passes) the upper call is the lower call with the selector set in its final state, or the
+   lower call is `.line "unmodeled host function NAME not modelled in D3α"` for a curve name. (`runCallT`
+   is an `rfl` copy of `runCall` with the post-instantiation tail named `runTail`.)
+3. `lineOutcome_XC`: each of those 14 lines is an exclusion of the recorded call. `String.splitOn` is
+   well-founded recursion and does not reduce by `decide`; `split_eval` unfolds it with its equation
+   lemma on the closed strings.
+4. `functionCallRecordedWith_vmF`, `recRefine_curve`: the recorded call refines (it reads the final
+   state only through projections, so the flag is invisible); `RecRefine P ga p w p {w with curveHosts := true}`.
+5. **`Lift.curveHosts`**: for every configuration with storage resolution, global actions, complete
+   code or resharding set, `Lift cfg {cfg with curveHosts := true}` (through `run_rec_mono` and the
+   `*_apply_mono` shells). Named: `.storageResolution ⊑ .curveHosts`
+   (`relSuccessor_storageResolution_curveHosts`, the only named pair differing in the selector alone)
+   and `relSuccessor_globalActions_curve`.
+
+Not covered: the selector on a legacy-engine configuration (no named tier has it; it would need the
+same step for `D3.functionCall` and the legacy hook walk).
+
+### O3: decoder check (finished) and components (`TierO3.lean`)
+
+Decoder source check, completed. Where the global decoders accept and the D2 decoders do not, the D2
+failure is an exclusion (`w.shape`), never a reject:
+
+| site | D2 | global | lemma |
+|---|---|---|---|
+| key tag 2 (stake, add/delete key, gas keys, delegate key, receipt signer key) | `oodMlDsaKey` | accepts | `pPk_mlDsa_ood`; tags > 2 rejected identically by `pPublicKey` (`pPublicKey_tag_le`) |
+| signature tag 2 (`pSig`: delegate) | same truncation error, else `oodMlDsaSig` | accepts | `pSig_mlDsa` |
+| action tags 9, 10, 11 | `oodDeployGlobal` / `oodUseGlobal` / `oodStateInit` | accepts | `pBase_global_ood` |
+| receipt tag 4 | `oodGcd` | accepts | `pRcpt_distribution_ood` |
+| transaction key/signature not ED25519 (`pTxD2`) | `out of domain (w.shape): non-ED25519 …` | accepts | source reading |
+| delegate tags 8/14 nested in a delegate | `decode: DelegateAction mustn't contain a nested one` | the same string | source reading |
+| `decodeStoredRcpt` vs `decodeStoredRcptGlobal` | maps every non-shape error to `inconsistent what` | the same mapping | source reading |
+
+Where D2 decodes, the global decoders return the same value: `pPkGlobal_of_pPk`,
+`pBaseGlobal_of_pBase`, `pActGlobal_of_pBaseAct` (base actions; `baseRaw` is the identity off
+state-init, `baseRaw_of_pBase`). **One gap is not proved:** on a delegate action `pActGlobal`
+re-serializes the payload and raw bytes from the decoded fields (`borshBytes`, `u32` count, raw inner
+actions, `nonceBytes`, `u64`, `PublicKey.encode`) and `pTxD2Global` re-serializes the body
+(`rawPrefix ++ u32 count ++ raws ++ strict`), where D2 keeps the consumed bytes. Every field is
+fixed-width or length-prefixed borsh, so the two agree; the proof needs a round-trip lemma
+(`consumed bs rest = encode x` for `pAccountId`, `pVec`, `pTxNonce`, `pU64`, `pPublicKey`, `pBaseAct`).
+No disagreement with nearcore is expected or was found: the difference is in our re-encoding only.
+
+Other components proved:
+
+* `finishActsGlobal_of_finishActs`: where `finishActs` yields actions, `finishActsGlobal` yields the same.
+  Where `finishActs` fails it throws an exclusion or an `unmodeled: …` error, which `applyAction`'s
+  catch turns into an exclusion.
+* `managerGlobal_eq_manager`: equal on a log without raw actions (`NoRaw`).
+* `globalTarget_of_not_distribution`: on a non-distribution receipt whose D2 shard is in the layout,
+  the global queue target is the D2 shard. (If `shardOf` falls outside `shardIds`, which a malformed
+  layout permits since `shardOf` defaults to 0, the global target excludes or rejects where D2 does
+  not; whether the claim decoder rules such layouts out has not been checked.)
+
+### O3: what remains, in order (next steps)
+
+1. **Lower-run invariant.** `callHost_RR_global` needs, at every host call of the lower run,
+   `globalActions = false` and `real.isSome`; `managerGlobal_eq_manager` needs `NoRaw` of the final log.
+   All three hold (only `realOpH`/`realSetH`/`realPutH`/`removeRecord` write `real`, always as `some`;
+   only the ten lifted arms write `rawAction`, and only when the flag is set), but need a
+   preservation walk over every arm. Pattern: `FuelHost`'s `HOR` (a predicate preserved by every arm,
+   errors included because the recorded call reads the log of an aborted call too), generated over the
+   same equation lemmas. Then instantiate `CallHyp XG none (some true) Q` with
+   `Q s := s.globalActions = false ∧ s.real.isSome ∧ NoRaw s.actions`.
+2. **`lineOutcome_XG`**: the ten lifted-name lines, as `lineOutcome_XC` (`split_eval`).
+3. **`runCall`/`vmCall` for `globalActions`**: as `runCall_curve`, but `instantiate` sets the flag from
+   `cfg.globalActions` and `runCall` does not override it (`instantiate_curve`'s proof works for
+   `setF none (some g)` unchanged: `instLoops_F` is generic).
+4. **Recorded call with `ga` differing**: `functionCallRecordedWith_vmF` with `ga` false on the left
+   and true on the right; the `manager`/`finishActs` steps by `managerGlobal_eq_manager` (from `NoRaw`)
+   and `finishActsGlobal_of_finishActs`.
+5. **Engine walk with `ga` differing** (`RecRefine` with `ga ga'`): the `ga` reads of
+   `StorageExecution` (`applyGlobal`, `forwardOrBufferR`, `delayPopR`, `decodeStoredRcptR`,
+   `pipeDecode`, …). Needs the decoder round-trip of the gap above for stored receipts with delegate
+   actions, and `globalTarget_of_not_distribution` with the layout condition discharged.
+6. **Driver fields** (`decodeWitness`, `validateRouting`; `receiptShard`/`outgoingRoot` are in
+   `TierMono`), then `Lift` for `.storageResolution ⊑ .globalActions`.
