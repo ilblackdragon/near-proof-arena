@@ -187,3 +187,27 @@ survives (flat bytes), single-circuit CPU prove cannot reach 1-2 s; the
 Evidence: WASM_LADDER.md, evidence/wasm-exec/phase3/ladder.json,
 fixtures-v2/ (13 audited, 195 mutants). Remaining: Phase 4 —
 NPMULT04 composite wiring + WASM_EXEC.md + manifest + commit.
+
+## 2026-10-30 — Wasm Phase 4: NPMULT04 composite proven (restructure then prove)
+
+Restructured: `near-receipt-wasm.rs` = the NPMULT03 receipt sections
+(lists 16,16,1024 compact + trie + ledger) PLUS the Wasm execution
+section on the same LaBRADOR Session/commitment (NPMULT04 magic).
+
+Proven, two observations (HIGH load ~40-52/32):
+- packet **250,226 B** (+100 B over NPMULT03's 250,126 — the recursive
+  opening dominates; the Wasm section rides the same commitment)
+- prove 7.241 / 7.218 s, verify 2.079 / 2.542 s, RSS 13.25/13.31 GB
+- AND 4,402,980 = receipt 4,191,295 + wasm 211,685 (cap 64); log 23
+  (sizel — NO suite-boundary crossing)
+- all receipt negative checks still reject (112 table mutations, root
+  mutation, digest mutation); wasm_steps=64 proven.
+
+Evidence: WASM_EXEC.md, evidence/wasm-exec/phase4/{composite.json,
+near-receipt-wasm.rs, wasm_exec.rs}, manifest-phase4.json (24 sha256
+entries, all verified present). Decision by the measured rule: the
+slice is 0.30x D0a's AND/slot → INTEGRATE (done).
+
+Open (named): code-walk rung (opcode-byte read + label walk), div/host
+calls, GPU opening + folded per-block verify for 1-2 s / <200 ms,
+1-Pgas composition (dense-build wall breaks first).
