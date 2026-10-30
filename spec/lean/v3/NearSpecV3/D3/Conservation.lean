@@ -74,20 +74,29 @@ def revealedK : Kids → Nat → List Nat → List (List Nat × Bytes)
   | .some c r, i, acc => revealedT c (acc ++ [i]) ++ revealedK r (i + 1) acc
 end
 
-/-- NEAR held under one trie entry, by the entry's first key byte. -/
-def entryNear (key v : Bytes) : Nat :=
+/-- NEAR held under one trie entry, by the entry's first key byte, for shard `own` of layout `l`.
+
+A delayed receipt counts only if it routes to `own`: after a reshard both children inherit the
+parent's delayed queue, and each drops the copies that belong to its sibling (`delayPop`,
+`D2/Queues.lean:459-480`, "resharding leftovers"). Counting those copies would count the same NEAR
+twice across the two shards. -/
+def entryNear (l : Layout) (own : Nat) (key v : Bytes) : Nat :=
   match key with
   | 0 :: _ => acctTotalOf v                                  -- account: amount + locked
   | 2 :: _ => akGasOf v                                      -- access key: gas-key balance
   | 6 :: _ :: _ | 12 :: _ :: _ =>                            -- postponed / yield receipt
     match decodeRcpt v with | .ok r => rcptValue r | .error _ => 0
-  | 7 :: _ :: _ | 14 :: _ :: _ =>                            -- delayed / buffered receipt
+  | 7 :: _ :: _ =>                                           -- delayed receipt of this shard
+    match decodeStored v with
+    | .ok s => if l.shardOf s.r.recv == own then rcptValue s.r else 0
+    | .error _ => 0
+  | 14 :: _ :: _ =>                                          -- buffered outgoing receipt
     match decodeStored v with | .ok s => rcptValue s.r | .error _ => 0
   | _ => 0
 
 /-- **NEAR in the revealed part of a trie**: accounts, gas keys, and receipts at rest. -/
-def nearIn (t : PTrie) : Nat :=
-  sumNat ((revealedT t []).map fun (n, v) => entryNear (packNibbles n) v)
+def nearIn (l : Layout) (own : Nat) (t : PTrie) : Nat :=
+  sumNat ((revealedT t []).map fun (n, v) => entryNear l own (packNibbles n) v)
 
 /-! ## The post-state of a chunk
 
@@ -103,8 +112,8 @@ def finalTrie (o : Ovl) : Option (Option PTrie) :=
     | t => some t
   applyChanges t0 (sortKV o.committed)
 
-def nearInOpt : Option PTrie → Nat
-  | some t => nearIn t
+def nearInOpt (l : Layout) (own : Nat) : Option PTrie → Nat
+  | some t => nearIn l own t
   | none => 0
 
 /-- `applyNewChunkD2`, also returning the committed overlay that `finalize` hashes. The body is the
@@ -198,8 +207,9 @@ def ChunkConservation : Prop :=
     applyNewChunkD2Obs (D3.d3Hooks Wasm.pv86) prims env t vu lastProps incoming txs ownCong
       = .ok (out, o) →
     ∃ t', finalTrie o = some t' ∧
-      nearInOpt t' + rcptsValue out.outgoing + out.balanceBurnt
-        = nearIn t + rcptsValue incoming + creditedOpt env.ctx.layout env.ctx.own t vu
+      nearInOpt env.ctx.layout env.ctx.own t' + rcptsValue out.outgoing + out.balanceBurnt
+        = nearIn env.ctx.layout env.ctx.own t + rcptsValue incoming
+          + creditedOpt env.ctx.layout env.ctx.own t vu
 
 /-- **A missing chunk changes the NEAR it holds only by the epoch reward.** -/
 def MissingChunkConservation : Prop :=
@@ -207,7 +217,8 @@ def MissingChunkConservation : Prop :=
     (lastProps : List (Bytes × Nat)) (root : Bytes),
     applyMissingChunkD2 prims env t vu lastProps = .ok root →
     ∃ o : Ovl, ∃ t', finalTrie o = some t' ∧ o.finalize = .ok root ∧
-      nearInOpt t' = nearIn t + creditedOpt env.ctx.layout env.ctx.own t vu
+      nearInOpt env.ctx.layout env.ctx.own t'
+        = nearIn env.ctx.layout env.ctx.own t + creditedOpt env.ctx.layout env.ctx.own t vu
 
 /-- `applyNewChunkD2Obs` is `applyNewChunkD2` with the overlay kept. -/
 def ObsAgrees : Prop :=
