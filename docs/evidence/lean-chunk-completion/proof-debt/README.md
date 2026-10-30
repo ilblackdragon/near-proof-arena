@@ -13,11 +13,11 @@ or verdict table is required by the workplan rules; §5 says why the one behavio
 
 | sub-item | status | where |
 |---|---|---|
-| float overlap/range (W04) | **range/fuel: proved** — `bitLen`'s and `isqrt`'s fuel, and every float operator of the kernel maps `w`-bit inputs to `w`-bit results (arithmetic, rounding, `min`/`max`, integer roundings, conversions). **Not done here:** chunk-level overlap (`checkD3 ⊆ checkD3F` on float-free chunks) = tier obligation O1, owned by the sibling W12 lane | `NearSpecV3/Wasm/FloatRange.lean` |
+| float overlap/range (W04) | **proved**. Range/fuel: `bitLen`'s and `isqrt`'s fuel, and every float operator maps `w`-bit inputs to `w`-bit results. Overlap (round 2): `checkD3F` returns `checkD3`'s result wherever `checkD3` decides, on every chunk (`Successor.FloatOverlap`, a corollary of W12's `relSuccessor_floats_mono`) | `NearSpecV3/Wasm/FloatRange.lean`, `Successor/FloatOverlap.lean` |
 | split correctness and authentication (W11) | **proved**: key-level correctness through squashing, per-column partition, independence from unread parent nodes (same child root on any refinement) | `NearSpecV3/ReshardingProofs.lean` |
-| `WitnessLift` (`Coverage.lean:191`) | **open** — see §4 | — |
+| `WitnessLift` (`Coverage.lean:191`) | **reduced to one rung** (round 2): `D2 ⊂ D3` proved (`relD2_relD3`), and `relD1a_relD3_of_d1_d2` gives `RelD1a → RelD3` (identity witness) from `D1 ⊂ D2` alone. **Open:** `D1 ⊂ D2` — see §6 | `NearSpecV3/D2SubD3.lean`, `NearSpecV3/D2SubD3/*` |
 | wider kernel non-vacuity | **done**: storage-writing 3-receipt chunk and a split child, each accepted and its root mutant rejected, for `RelD3` and `Tier.rel .allFeatures` (8 kernel decisions, measured) | `NearSpecV3/Examples/RealCaseD3{Store,Split}*.lean` |
-| `Logged.API` / `D3LSpec` build | **repaired**, and now built and axiom-audited by the default target CI runs | `Logged/WasmCRCrypto.lean`, `Logged/Audit.lean`, `lakefile.toml` |
+| `Logged.API` / `D3LSpec` build | **repaired**, built and axiom-audited by the default target; the oracle driver `nearspec-v3-check-logged` and `AuditLogged.lean` are built and run by `make d3-drivers` (CI job `d3-drivers`) | `Logged/WasmCRCrypto.lean`, `Logged/Audit.lean`, `lakefile.toml`, `Makefile`, `oracle/wasm-d3/lean/LoggedHarness.lean` |
 
 ## 2. Theorems (all: no `sorry`; axioms ⊆ {`propext`, `Classical.choice`, `Quot.sound`})
 
@@ -115,3 +115,46 @@ Not proved in this lane. Analysis:
 touching `checkD3`. The only consumer outside the package is `oracle/wasm-d3/lean`'s logged driver
 (`MainLogged`, `AuditLogged`), which had not built since `St` gained `globalActions`/`curveHosts`; it
 was not rebuilt in this lane.
+
+## 6. Round 2 (2026-10-30)
+
+**D2 ⊂ D3 (proved).** `NearSpecV3.Successor.relD2_relD3 : RelD2 cb w → RelD3 cb w`, on the same
+bytes, via `checkD3_refines_checkD2 : Refines (checkD2 c w) (checkD3 c w)`. The three differences
+between the checkers, each a refinement:
+
+| step | lemma | argument |
+|---|---|---|
+| gas cap `none → some G_α` | `checkD2CoreObs_cap_free` | under a gas-free hook the chunk's `wasmGas` is 0: `D2.applyAction_gasFC` (every action but `FunctionCall` keeps `gas_burnt_for_function_call`; the walk covers all eleven action bodies) and `D2.applyNewChunkD2_wasmGas` (a postcondition walk, `PostE`, through every runtime function: queues, buffers, delayed receipts, transactions, receipts, instant receipts, yield timeouts) |
+| `allowCodes false → true` | `checkD2CoreObs_codes_mono` | only the `w.no_code` exclusion goes |
+| `d2Hooks → d3Hooks` | `d2Hooks_refine` + W12's `checkD2CoreObs_hooks_mono` | `d2Hooks` answers every `FunctionCall` with the exclusion `out of domain (e.wasm)`; the legacy pipeline binds the hook's result and never catches it |
+
+Files: `NearSpecV3/D2SubD3/GasFree.lean`, `NearSpecV3/D2SubD3/WasmGas.lean`, `NearSpecV3/D2SubD3.lean`
+(new default target; `#guard_msgs` on `relD2_relD3`'s axioms).
+
+**`WitnessLift` reduced.** `relD1a_relD3_of_d1_d2 (hd12 : ∀ cb w, RelD1 cb w → RelD2 cb w) :
+RelD1a B cb w W Dp N → RelD3 cb w` (and the same from `RelD0`). With the identity witness this is
+`WitnessLift`, so the only obligation left is the `D1 ⊂ D2` rung.
+
+**D1 ⊂ D2 (open).** Not proved. Unlike D2 ⊂ D3 (the same pipeline with three parameters changed),
+`checkD1` and `checkD2` are separate implementations: different witness types (`Receipt`/`Tx` vs
+`Rcpt`/`TxD2`), different trie machinery (`partialTrie` + `PTrie.set` vs `revealAll` + overlay +
+`finalize` with squashing), a special-purpose transfer runtime (`RuntimeD0`/`RuntimeD1`) vs the
+general action runtime with fees, refunds, delayed/buffered queues, bandwidth requests and yield
+timeouts, and different claim walks (single epoch vs multi-epoch). A proof is a phase simulation of
+the `D0SubD1` kind with, at least: decoder agreement on D1-shaped witnesses; claim-walk agreement on
+single-epoch segments; trie-update agreement (`PTrie.set` roots vs `Ovl.finalize` roots, via the
+`NearSpec.TrieUpsert*` refinement lemmas); D1 transaction processing = D2 `processTxD2` on transfer
+transactions; system/transfer receipts through `applyActionReceipt`; empty bandwidth requests and
+zero congestion under D1's `c.own_congestion_zero`; and equal outcome/receipt-root encodings. That is
+several thousand lines and was not attempted in this round.
+Empirical check (measured, this round): the compiled `checkD1`, `checkD2` and `checkD3` (`--tier signed`) on `d1run/d1` and `d1run/ood` (6,975 cases; 5 output lines were garbled by concurrent writers and are not counted): 3,393 D1 accepts, all 3,393 accepted by `checkD2` and by `checkD3`, 0 counterexamples. The `d1run/mutants` sample was not run (the case list hit the shell argument limit), so mutant D1 accepts, if any, are not covered.
+
+**Float overlap (closed).** See the status table: `relD3_relD3F`,
+`checkD3F_reject_of_checkD3_reject`, `checkD3F_verdict_of_decided`.
+
+**Oracle logged driver (rebuilt, in CI).** `nearspec-v3-check-logged` builds; `LoggedHarness`
+needed the `TTN.BMap` overlay type. `make d3-drivers` builds both and runs `AuditLogged.lean`
+(passes). Smoke: `--d3` and `--d3l` agree on 300/300 d3c9 cases (150 honest, 150 mutants; 190
+accept, 109 reject, 1 out of domain).
+
+**`d3rich` storage case at 60 GB (optional item).** tried `d3c7/d3/06-h10009-s0` (`d3rich`, two receipts, contract-data write) at a 60 GB cap: the first attempt hit the kernel heartbeat limit after 5:08 at 48.6 GB; with `maxHeartbeats 0` it was OOM-killed at 60 GB. Not claimed; the modules were not committed. A `d3rich` kernel case needs more than 60 GB.
