@@ -132,8 +132,8 @@ theorem forIn_congr {α σ : Type} (l : List α) (b : σ)
 
 /-- The narrower legacy tiers' storage-proof precondition (`withStorageExclusion`) preserves
 refinement. -/
-theorem storage {r r' : Except String Unit} (w : Bytes) (h : Refines r r') :
-    Refines (withStorageExclusion r w) (withStorageExclusion r' w) := by
+theorem storage {r r' : Except String Unit} (c w : Bytes) (h : Refines r r') :
+    Refines (withStorageExclusion r c w) (withStorageExclusion r' c w) := by
   rcases h with rfl | ⟨e, rfl, he⟩
   · exact refl _
   · exact Or.inr ⟨e, by simp [withStorageExclusion, he], he⟩

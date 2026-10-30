@@ -228,11 +228,11 @@ recorder engine (`withReshardHandover`, the same condition `legacyStorageBound <
 legacyMergedBytes`); the narrower legacy tiers keep it an exclusion, as their documented design
 says. Accepts and exclusions are unchanged; only a reject above the bound becomes the `w.size`
 exclusion. -/
-def withStorageExclusion (r : Except String Unit) (witnessBytes : Bytes) : Except String Unit :=
+def withStorageExclusion (r : Except String Unit) (claimBytes witnessBytes : Bytes) : Except String Unit :=
   match r with
   | .ok u => .ok u
   | .error e =>
-    if !isExclusion e && decide (legacyStorageBound < legacyMergedBytes witnessBytes) then
+    if !isExclusion e && storageCrossed claimBytes witnessBytes then
       .error legacyStorageExclusion
     else .error e
 
@@ -265,14 +265,14 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
           claimBytes witnessBytes
       else
         withStorageExclusion
-          (checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap) witnessBytes
+          (checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap) claimBytes witnessBytes
     else if cfg.reshardHandover then
       withReshardHandover cfg.wasm
         (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
         claimBytes witnessBytes
     else
       withStorageExclusion
-        (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap) witnessBytes
+        (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap) claimBytes witnessBytes
   | _ => .error (unsupportedPvError cfg.protocolVersion)
 
 /-- The whole-state driver `checkSuccessor` builds for a wide configuration. -/
@@ -324,23 +324,23 @@ theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedRecordCfg c w
 /-- At `signedCfg` (no hand-over) the root is the legacy core `D3.checkD3Core`, with an error above
 the storage bound reported as the `w.size` exclusion. -/
 theorem checkSuccessor_signedCore (c w : Bytes) :
-    checkSuccessor signedCfg c w = withStorageExclusion (D3.checkD3Core c w) w := rfl
+    checkSuccessor signedCfg c w = withStorageExclusion (D3.checkD3Core c w) c w := rfl
 
 /-- The storage exclusion keeps every accept. -/
-theorem withStorageExclusion_ok (w : Bytes) : withStorageExclusion (.ok ()) w = .ok () := rfl
+theorem withStorageExclusion_ok (c w : Bytes) : withStorageExclusion (.ok ()) c w = .ok () := rfl
 
 /-- The storage exclusion changes a result only by replacing a reject with the `w.size` exclusion,
 and only when the witness's values and code exceed the legacy storage bound. -/
-theorem withStorageExclusion_cases (r : Except String Unit) (w : Bytes) :
-    withStorageExclusion r w = r ∨
-      ∃ e, r = .error e ∧ isExclusion e = false ∧ legacyStorageBound < legacyMergedBytes w ∧
-        withStorageExclusion r w = .error legacyStorageExclusion := by
+theorem withStorageExclusion_cases (r : Except String Unit) (c w : Bytes) :
+    withStorageExclusion r c w = r ∨
+      ∃ e, r = .error e ∧ isExclusion e = false ∧ storageCrossed c w = true ∧
+        withStorageExclusion r c w = .error legacyStorageExclusion := by
   cases r with
   | ok u => exact .inl rfl
   | error e =>
-    cases he : isExclusion e <;> by_cases hb : legacyStorageBound < legacyMergedBytes w
-    · exact .inr ⟨e, rfl, he, hb, by simp [withStorageExclusion, he, hb]⟩
+    cases he : isExclusion e <;> cases hb : storageCrossed c w
     · exact .inl (by simp [withStorageExclusion, he, hb])
+    · exact .inr ⟨e, rfl, he, rfl, by simp [withStorageExclusion, he, hb]⟩
     · exact .inl (by simp [withStorageExclusion, he])
     · exact .inl (by simp [withStorageExclusion, he])
 
@@ -549,19 +549,19 @@ theorem tier_signed_eq_checkD3 (c w : Bytes) :
     Tier.checker .signed c w = D3.checkD3 c w := rfl
 
 theorem tier_floats_eq_checkD3F (c w : Bytes) :
-    Tier.checker .floats c w = withStorageExclusion (checkD3F c w) w := rfl
+    Tier.checker .floats c w = withStorageExclusion (checkD3F c w) c w := rfl
 
 theorem tier_protoGas_eq_checkD3Proto (c w : Bytes) :
-    Tier.checker .protoGas c w = withStorageExclusion (checkD3Proto c w) w := rfl
+    Tier.checker .protoGas c w = withStorageExclusion (checkD3Proto c w) c w := rfl
 
 theorem tier_floatsProtoGas_eq_checkD3ProtoFloat (c w : Bytes) :
-    Tier.checker .floatsProtoGas c w = withStorageExclusion (checkD3ProtoFloat c w) w := rfl
+    Tier.checker .floatsProtoGas c w = withStorageExclusion (checkD3ProtoFloat c w) c w := rfl
 
 theorem tier_genesis_eq_checkD3G (c w : Bytes) :
-    Tier.checker .genesis c w = withStorageExclusion (checkD3G c w) w := rfl
+    Tier.checker .genesis c w = withStorageExclusion (checkD3G c w) c w := rfl
 
 theorem tier_genesisFloatsProtoGas_eq (c w : Bytes) :
-    Tier.checker .genesisFloatsProtoGas c w = withStorageExclusion (checkD3GProtoFloat c w) w := rfl
+    Tier.checker .genesisFloatsProtoGas c w = withStorageExclusion (checkD3GProtoFloat c w) c w := rfl
 
 /-- The signed tier's checker is literally `checkD3`, so a successor tier list cannot drift from the
 signed entry point without breaking this named theorem. -/

@@ -52,8 +52,8 @@ theorem checkSuccessor_legacy_eq (cfg : ProtocolCfg) (hs : cfg.storageResolution
     checkSuccessor cfg c w =
       if cfg.protocolVersion = 86 then
         (if cfg.genesisMainTransition then
-           withStorageExclusion (checkD2CoreG (D3.d3Hooks cfg.wasm) true c w cfg.gasCap) w
-         else withStorageExclusion (checkD2Core (D3.d3Hooks cfg.wasm) true c w cfg.gasCap) w)
+           withStorageExclusion (checkD2CoreG (D3.d3Hooks cfg.wasm) true c w cfg.gasCap) c w
+         else withStorageExclusion (checkD2Core (D3.d3Hooks cfg.wasm) true c w cfg.gasCap) c w)
       else .error (unsupportedPvError cfg.protocolVersion) := by
   unfold checkSuccessor
   split
@@ -80,8 +80,8 @@ theorem Lift.floats_legacy (cfg : ProtocolCfg) (hs : cfg.storageResolution = fal
       checkSuccessor_legacy_eq { cfg with floats := true } hs hg hc hr hrh c w]
     refine Refines.ite_congr _ (fun _ => Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_))
       (fun _ => Refines.refl _)
-    · exact Refines.storage _ (checkD2CoreG_hooks_mono hh _ _ _ _)
-    · exact Refines.storage _ (checkD2Core_hooks_mono hh _ _ _ _)
+    · exact Refines.storage _ _ (checkD2CoreG_hooks_mono hh _ _ _ _)
+    · exact Refines.storage _ _ (checkD2Core_hooks_mono hh _ _ _ _)
   · rw [ProtocolCfg.floats_true_eq cfg hf]
     exact Refines.refl _
 

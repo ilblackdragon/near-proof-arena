@@ -413,8 +413,10 @@ theorem runtimeLimits_ns_of (hE : EngineAgreeX (Tier.cfg .storageResolution).was
     (hw : O4Witness w) : RefinesX (Tier.checker .runtimeLimits c w) (checkNS c w) := by
   rw [tier_runtimeLimits_eq]
   by_cases hB : legacyMergedBytes w ≤ legacyStorageBound
-  · rw [withStorageExclusion_small _ hB]
-    exact checkD2CoreGWith_legacy_ns _ hE c w hw hB _
+  · have h := checkD2CoreGWith_legacy_ns _ hE c w hw hB (some maxGasBurnt)
+    rcases withStorageExclusion_cases (checkD2CoreG _ true c w (some maxGasBurnt)) c w with hs | ⟨e, _, _, _, hs⟩
+    · rw [hs]; exact h
+    · rw [hs]; exact RefinesX.of (Or.inr ⟨_, rfl, by decide⟩)
   · obtain ⟨e, he, hx⟩ := withStorageExclusion_big (checkD2CoreG_noacc _ c w _ (Nat.lt_of_not_le hB))
       (Nat.lt_of_not_le hB)
     exact RefinesX.of (Or.inr ⟨e, he, hx⟩)

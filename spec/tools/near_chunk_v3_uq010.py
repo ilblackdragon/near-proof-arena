@@ -21,8 +21,9 @@ DROP_EXCLUDES = {"resharding", "dynamic_resharding_split_search"}
 RESTRICTION_TEXT = {
     "w.size": "state witness (near-arena-witness-v3 state_witness field) <= 8 MiB; the cold-fetched "
               "contract code fits one ContractCodeResponse (MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE "
-              "= 64 MiB); the storage-proof limits are decided (legacy core below 4,000,000 bytes of "
-              "values and code, the recorder engine above it, D3/Signed.lean)",
+              "= 64 MiB); the storage-proof limits are decided (legacy core while the witness's values and "
+              "code plus 2,000 bytes per ContractData removal of the recorder run stay at most 4,000,000 "
+              "bytes, the recorder engine above it; D3/Signed.lean storageCrossed)",
     "e.g_alpha": "on claims the legacy core decides: the chunk's sum of gas_burnt_for_function_call (incl. "
                  "host gas) <= G_alpha = 2^22 x 822,756 gas (NearSpecV3.D3.gAlpha), checked after the main "
                  "transition; not applied to claims decided by the hand-over (resharding, storage-proof "
