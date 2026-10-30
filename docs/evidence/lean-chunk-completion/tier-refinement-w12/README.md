@@ -437,3 +437,29 @@ Other components proved:
    actions, and `globalTarget_of_not_distribution` with the layout condition discharged.
 6. **Driver fields** (`decodeWitness`, `validateRouting`; `receiptShard`/`outgoingRoot` are in
    `TierMono`), then `Lift` for `.storageResolution ⊑ .globalActions`.
+
+### O3: layout well-formedness (checked 2026-10-30, after the coordinator's follow-up)
+
+The claim decoder does **not** rule out a receipt whose D2 shard is outside the layout.
+`decodeLayout` (`Layout.lean:58-84`) reads `boundary_accounts` and `shard_ids` as two independent
+vectors, and the shells check only `1 ≤ numShards` (and `≤ 64` unless `layoutUnbounded`,
+`RuntimeCore.lean:230, 439`). With `shard_ids.length ≠ boundary_accounts.length + 1`,
+`Layout.shardOf` falls back to `getD … 0`, and shard `0` need not be in `shard_ids`. There the D2
+queue routes to shard 0 while `globalTarget` throws (`out of domain (c.layout)` on a V2 layout,
+`invalid: ShardingError …` on a V3 one). So `.storageResolution ⊑ .globalActions` is false as stated
+on such claims, in the reject direction for V3.
+
+Not a real chunk: nearcore builds every `ShardLayout` through its constructors, which keep
+`shard_ids.len() == boundary_accounts.len() + 1` (`core/primitives/src/shard_layout/v2.rs`, `v3.rs`,
+pinned 2.13.4). An ill-formed layout is unreachable from an honest epoch config, so nearcore has no
+verdict for it, rather than a reject. To check before acting on it: whether the claim's layout bytes are
+authenticated against the epoch config. If they are, the case is unreachable for every valid claim.
+
+Two ways to handle it in the statement. I have done neither, because each needs a decision:
+* **Exclusion (semantic change):** add `check (L.shardIds.length == L.boundaries.length + 1)
+  "out of domain (c.layout): …"` to the shells' layout check. Verdicts can move only on ill-formed
+  layouts. The rules then require fixtures, a breakage control and a before/after table. This keeps
+  the signed statement's meaning only if the signed checker is left unchanged (put the check on the
+  successor shells only).
+* **Hypothesis:** state O3's `Lift` for claims whose layouts are well formed. This needs no
+  definition change, but the refinement is then conditional.
