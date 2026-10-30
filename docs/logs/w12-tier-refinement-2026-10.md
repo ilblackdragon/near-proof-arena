@@ -257,3 +257,21 @@ handover. Lean runs under `heavy` with `HEAVY_MEM=32G`, `LEAN_NUM_THREADS=10`.
 * **Finding**: the engine walk needs the non-distribution invariant on every `RS` of the lower run
   (the shells' `outgoingRoot` reads `out.outgoing`), not only at `emitReceipts`. `MRQ` carries it as
   a value predicate. Next steps: README §11.
+
+## 2026-10-30, fourth session (O4, engine agreement)
+
+* Started from main `18c1c7fcc` (worktree `worktree-agent-a994ce707a5fba315`).
+* **Finding G0**: `EngineAgree` as stated in §10 was false on every legacy accept (the recorder's
+  output carries `committed`/`compute`, the legacy output does not), so the conditional tier theorem
+  was vacuous. Fixed on the proof side: `obsClear`, `ExecutionDriver.clearObs`,
+  `checkD2CoreWith_clearObs`/`checkD2CoreGWith_clearObs` (every driver); `EngineAgree`,
+  `EngineAgreeL` and the `SimE` bridge restated on `obsClear`-ed outputs; shell and tier re-proved.
+* **`TierO4Engine.lean`**: the simulation `Sim` against the original legacy engine (each mirror
+  lemma `R_f` is a step, so no per-mirror trie-independence lemmas), lockstep tactics `main_walk`,
+  `recv_walk`; proved the main transition (phases 1–5, 7), the receipt loops, yield timeouts, V2
+  forwarding, and the bridge `engineAgree_of_obligations` /
+  `relSuccessor_runtimeLimits_storageResolution_of_obligations`.
+* Open: `PWISim` (per receipt, incl. the function call: G2, G3, G5 and the VM recorder state), the
+  invariant's `reads` lemma and G1, V3 forwarding (G4). Premise proxies on the replays: all 0
+  (`o4-engine/premise_proxies.json`). README §11.
+
