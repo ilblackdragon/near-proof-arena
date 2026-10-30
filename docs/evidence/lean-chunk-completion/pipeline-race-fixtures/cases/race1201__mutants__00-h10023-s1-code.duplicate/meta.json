@@ -1,0 +1,37 @@
+{
+  "base": "00-h10023-s1",
+  "case": "00-h10023-s1-code.duplicate",
+  "codes": [
+    {
+      "hash": "9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc",
+      "len": 345,
+      "name": "d3tiny"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    },
+    {
+      "hash": "9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc",
+      "len": 345,
+      "name": "d3tiny"
+    }
+  ],
+  "d3_violations": [
+    "w.shape"
+  ],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 3222883162199,
+    "fc_gas_burnt_for_function_call": 3222883162199
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.duplicate",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

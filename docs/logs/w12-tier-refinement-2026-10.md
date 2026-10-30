@@ -54,3 +54,27 @@ See `docs/evidence/lean-chunk-completion/tier-refinement-w12/axioms.txt` (verbat
 ## Open (reasons in the evidence README §2)
 
 O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no named pair needs it).
+
+## 2026-10-30 (continued, after the coordinator's follow-up)
+
+* Merged main (fast-forward to `bc4637d80`).
+* **Race arm fix (pre-approved).** `resolveCompleteCode` (CodeResolution.lean) sends the untimely
+  committed-deploy arm to the cold policy's race exclusion. Only that arm changed; W08 owns the rest
+  of the complete-code policy. Lean pieces: `complete_untimely_ood`, `complete_ok_coldPartial`, and
+  `#guard` tests.
+* **Fixture generator.** New opt-in scenario `pipeline-race` in `oracle/v3-successor`. It gave 4 runs
+  (seeds 1201–1204, 110 blocks each, about 3 min per run) and 3,853 nearcore-judged cases, of which
+  188 reach the arm. Replays: 3 tiers × {fixed, control} = 23,118. A1 (no unsound accept) and A2
+  (race arm) pass; A3 (breakage control) is detected on 142 cases. Finding: every pre-fix accept on
+  the arm agreed with nearcore. The family's races come from Lean's own `uncertain` flag (a
+  global-contract call), and nearcore is deterministic there. The fix is the workplan rule applied,
+  at the cost of 186 decided cases.
+* **Machinery.** `TierWhole.lean` (`MRef`, `functionCallRecordedWith`) and `TierWholeWalk.lean` (the
+  recorder-engine walk, the shells' `*_apply_mono`, and `Lift.floats` at every configuration). One
+  lesson: Lean's `repeat` swallows the max-recursion error and stops a long walk silently, so a
+  second `all_goals` pass is needed.
+* **Corpus before/after.** The first attempt (every `ood` directory plus 10% of the code mutants,
+  9,743 cases) was too slow on the loaded host (minutes per heavy `ood` chunk). It was restarted on
+  the 10% code-mutant sample (2,739 cases).
+* Open: O2, O3, O4, O6, and O7 at chunk level. Reasons are in
+  `docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md` §5.

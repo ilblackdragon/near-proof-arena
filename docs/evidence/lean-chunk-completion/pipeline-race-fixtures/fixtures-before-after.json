@@ -1,0 +1,18 @@
+{
+ "cases": 594,
+ "before": {
+  "out_of_domain": 157,
+  "reject": 149,
+  "accept": 287,
+  "io_error": 1
+ },
+ "after": {
+  "out_of_domain": 157,
+  "reject": 149,
+  "accept": 287,
+  "io_error": 1
+ },
+ "changed": 0,
+ "transitions": [],
+ "examples": []
+}

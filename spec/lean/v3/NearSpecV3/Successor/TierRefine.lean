@@ -186,6 +186,21 @@ theorem complete_untimely_ood_example (code : Bytes) :
   simp [resolveCodeBytes, resolveCompleteCode, CodeSources.deployed, PrestateCode.needsWitness,
     raceOOD]
 
+/-- **O7, resolve step.** Wherever the complete policy resolves code, the cold policy resolves the
+same bytes (an accept of `.complete` is an accept of `.coldPartial`). -/
+theorem complete_ok_coldPartial (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
+    (timely : Bool) (h : resolveCodeBytes .complete sources pre hash timely = .ok code) :
+    resolveCodeBytes .coldPartial sources pre hash timely = .ok code := by
+  simp only [resolveCodeBytes, resolveCompleteCode, resolveColdCode, CodeSources.deployed,
+    List.find?_append] at h ⊢
+  rcases hw : sources.witness hash with _ | c <;>
+    rcases hc : List.find? (fun c => sha256 c == hash) sources.current with _ | c1 <;>
+    rcases hd : List.find? (fun c => sha256 c == hash) sources.committed with _ | c2 <;>
+    cases ht : timely <;> cases hn : pre.needsWitness hash <;>
+    simp_all <;> (split at h <;> simp_all)
+
+#print axioms complete_ok_coldPartial
+
 theorem raceOOD_isExclusion : isExclusion raceOOD = true := oodE_isExclusion _
 
 #print axioms complete_untimely_ood
