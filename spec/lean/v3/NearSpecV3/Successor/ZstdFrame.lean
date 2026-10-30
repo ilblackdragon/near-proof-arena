@@ -57,11 +57,11 @@ def decodeLiterals (data : ByteArray) (src srcSize : Nat) (ent : Entropy) (block
       if lhSize + litSize > srcSize then throw "zstd: raw literals srcSize"
       let mut out : Array UInt8 := Array.mkEmpty litSize
       for i in [0:litSize] do
-        out := out.push (data.data.getD (src + lhSize + i) 0)
+        out := out.push (getB data (src + lhSize + i))
       pure (out, lhSize + litSize, ent)
     else
       if lhSize + 1 > srcSize then throw "zstd: rle literals srcSize"
-      let v := data.data.getD (src + lhSize) 0
+      let v := getB data (src + lhSize)
       pure (Array.replicate litSize v, lhSize + 1, ent)
   | _ =>   -- Compressed (2) or Treeless/Repeat (3)
     if srcSize < 5 then throw "zstd: compressed literals srcSize"
@@ -300,7 +300,7 @@ def decodeBlock (data : ByteArray) (src stop : Nat) (ent : Entropy) (windowSize 
   | 1 =>   -- RLE
     if body + 1 > stop then throw "zstd: rle block truncated"
     if blockSize > blockMax then throw "zstd: rle block too large"
-    let v := data.data.getD body 0
+    let v := getB data body
     pure (out ++ ByteArray.mk (Array.replicate blockSize v), ent, 3 + 1, lastBlock)
   | 2 =>   -- Compressed
     if body + blockSize > stop then throw "zstd: compressed block truncated"

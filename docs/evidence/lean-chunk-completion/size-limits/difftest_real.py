@@ -1,7 +1,7 @@
 import subprocess, os, glob, struct, json, random
-LEAN = "/data/illia/nearproof-wt/w02-size-limits/spec/lean/v3/.lake/build/bin/nearspec-v3-zstd-decode"
-Z = "/tmp/lean-global-oracle-target/release/zref"
-d = "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w02/dtr"
+LEAN = os.environ.get("ZSTD_LEAN", "/data/illia/nearproof-wt/w02-size-limits/spec/lean/v3/.lake/build/bin/nearspec-v3-zstd-decode")
+Z = os.environ.get("ZSTD_ZREF", "/tmp/lean-global-oracle-target/release/zref")
+d = os.environ.get("ZSTD_WORK", "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w02/dtr")
 os.makedirs(d, exist_ok=True)
 
 def state_witness_of(path):

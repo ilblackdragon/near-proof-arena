@@ -1,0 +1,21 @@
+{
+  "real_pass": 3600,
+  "real_fail": 0,
+  "levels": {
+    "L1_w4": [
+      1200,
+      0
+    ],
+    "L3_w0": [
+      1200,
+      0
+    ],
+    "L9_w4": [
+      1200,
+      0
+    ]
+  },
+  "fails": [],
+  "total": 3600,
+  "distinct_witnesses": 1200
+}
