@@ -1,0 +1,12 @@
+{
+  "roundtrip_pass": 720,
+  "roundtrip_fail": 0,
+  "fails": [
+    "CONTROL-OK mismatch lean=ERR"
+  ],
+  "synthetic_pass": 19,
+  "synthetic_fail": 1,
+  "control_detected": 13,
+  "control_missed": 0,
+  "control_total_rejected_by_zref": 13
+}

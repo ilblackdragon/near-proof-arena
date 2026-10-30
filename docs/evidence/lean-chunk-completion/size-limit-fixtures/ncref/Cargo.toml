@@ -1,0 +1,27 @@
+[package]
+name = "ncref"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "W02 size-limit fixtures: nearcore 2.13.4's own witness codec, compressed-size cap and contract-code-response codec, built WITHOUT `test_features` (which raise both caps to 512 MiB in the generator's build)."
+
+[workspace]
+
+[[bin]]
+name = "ncref"
+path = "src/main.rs"
+
+[dependencies]
+# Path into the pinned checkout (oracle/scripts/link-nearcore.sh). No `test_features`: the
+# production caps (48 MiB compressed witness, 64 MiB uncompressed code response) are in force.
+near-primitives = { path = "../../../../../oracle/vendor/nearcore/core/primitives", default-features = false, features = ["solomon"] }
+borsh = { version = "1.0.0", features = ["derive", "rc"] }
+sha2 = "0.10"
+hex = "0.4.2"
+
+[patch.crates-io]
+protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+protobuf-support = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+
+[profile.release]
+opt-level = 2

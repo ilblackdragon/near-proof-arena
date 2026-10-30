@@ -1,0 +1,22 @@
+{
+  "enc.at48": {
+    "encoded_len": 50331648,
+    "lean": "ERR zstd: raw block too large"
+  },
+  "enc.over48": {
+    "encoded_len": 50331649,
+    "lean": "ERR invalid: encoded_length exceeds MAX_COMPRESSED_STATE_WITNESS_SIZE"
+  },
+  "dec.at64": {
+    "decoded_len": 67108864,
+    "encoded_len": 2066,
+    "lean": "OK 67108864",
+    "zref": "OK 67108864"
+  },
+  "dec.over64": {
+    "decoded_len": 67108865,
+    "encoded_len": 2067,
+    "lean": "ERR decode: witness larger than 64 MiB",
+    "zref": "ERR WriteZero:limit"
+  }
+}

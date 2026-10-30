@@ -60,18 +60,44 @@ def ctz32 (x : Nat) : Nat := Id.run do
 
 @[inline] def mask (nbBits : Nat) : Nat := (1 <<< nbBits) - 1
 
+/-- Byte `i` of `data`, `0` out of range. The definition reads the byte through `ByteArray.data`;
+compiled code uses `getBFast` instead (`getB_eq`, `@[csimp]`), because in compiled code
+`ByteArray.data` converts the whole byte array to a boxed `Array UInt8` on every call (this made
+each byte read O(input size), W02/W16). -/
+def getB (data : ByteArray) (i : Nat) : UInt8 := data.data.getD i 0
+
+/-- `getB` without the conversion: a bounds-checked direct read. -/
+@[inline] def getBFast (data : ByteArray) (i : Nat) : UInt8 :=
+  if h : i < data.size then data[i] else 0
+
+@[csimp] theorem getB_eq : @getB = @getBFast := by
+  funext data i
+  cases data with
+  | mk a =>
+    unfold getB getBFast
+    have hs : ({ data := a } : ByteArray).size = a.size := rfl
+    by_cases h : i < a.size
+    · have h' : i < ({ data := a } : ByteArray).size := h
+      simp only [h', ↓reduceDIte]
+      show a.getD i 0 = a[i]
+      simp [Array.getD, h]
+    · have h' : ¬ i < ({ data := a } : ByteArray).size := h
+      simp only [h', ↓reduceDIte]
+      show a.getD i 0 = 0
+      simp [Array.getD, h]
+
 /-- Little-endian integer of `k` bytes at absolute index `i`. Out-of-range bytes read as 0. -/
 def readLE (data : ByteArray) (i k : Nat) : Nat := Id.run do
   let mut v := 0
   let mut sh := 0
   for j in [0:k] do
-    let b := (data.data.getD (i + j) 0).toNat
+    let b := (getB data (i + j)).toNat
     v := v + (b <<< sh)
     sh := sh + 8
   return v
 
 @[inline] def byteAt (data : ByteArray) (i : Nat) : Nat :=
-  (data.data.getD i 0).toNat
+  (getB data i).toNat
 
 /-! ## `BIT_DStream`: the register-based reverse reader, ported from `bitstream.h`. -/
 

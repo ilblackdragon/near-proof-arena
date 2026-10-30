@@ -755,6 +755,479 @@ theorem arcsOf_valid (p : Prepared) : ArcsValid p (arcsOf p) := by
     subst h
     exact ⟨pf, rfl, arcsFor_ok pf⟩
 
+/-! ## Label memo: O(1) label work for loops that keep their labels
+
+An arc that *keeps* labels (`pushpop`: push `m` labels, a charged group, pop them) and a branch
+that is not fused (`br_if l` back-edge, `br_table`) cost O(label depth) per execution, because
+labels are a `List Label` in `St`: the pushes are materialized, and `doBr` walks the list
+(`length`, `[l]?`, `drop`). In a loop the label list at a given pc is usually the *same object*
+every iteration (the run pushes onto, and the branch drops back to, the same tail). `runMemo`
+caches, per pc, the label work of the last execution: the input label list, the value-stack height
+(arcs) or branch depth (branches), and the result. A hit needs the input to be equal to the cached
+one; `labsEq` decides that with a pointer-equality shortcut at every cell (`withPtrEq`, whose
+contract is that the shortcut is taken only where the full comparison answers `true`), so a loop
+that returns to the same list object hits in O(1), and anything else costs at most one comparison
+walk. The memo is a fixed array of `memoSlots` slots (direct-mapped by `(fn, pc)`), so it retains a
+bounded number of lists. Label work smaller than `memoMin` is recomputed, never memoized.
+
+`doBr` itself is also replaced (`brInfo`) by an O(`l`) form: `l + 1 ≥ labels.length` is decided by
+`lenGe` instead of `length`, so a shallow branch in a deeply nested function no longer walks all
+labels.
+
+Proved: `runMemo_eq_runFast` (given a valid memo, for every fuel and state), so with
+`runFast_eq_run` the call layer below is still `run` exactly. -/
+
+deriving instance DecidableEq for Label
+
+/-- Label-list equality with a pointer-equality shortcut at every cell. -/
+def labsEqS : (a b : List Label) → {r : Bool // r = true ↔ a = b}
+  | [], [] => ⟨true, by simp⟩
+  | [], _ :: _ => ⟨false, by simp⟩
+  | _ :: _, [] => ⟨false, by simp⟩
+  | x :: xs, y :: ys =>
+    ⟨withPtrEq (x :: xs) (y :: ys) (fun _ => decide (x = y) && (labsEqS xs ys).1)
+      (fun h => by
+        simp only [List.cons.injEq] at h
+        obtain ⟨rfl, rfl⟩ := h
+        simp [(labsEqS xs xs).2]),
+     by simp only [withPtrEq, Bool.and_eq_true, decide_eq_true_eq, (labsEqS xs ys).2,
+          List.cons.injEq]⟩
+
+@[inline] def labsEq (a b : List Label) : Bool := (labsEqS a b).1
+
+theorem labsEq_iff (a b : List Label) : labsEq a b = true ↔ a = b := (labsEqS a b).2
+
+/-- The label part of the fused `br l` (`brFast` without the value stack). -/
+def brLab (a : Arc) (L : List Label) (H l : Nat) : Option (Label × List Label) :=
+  let c := a.core
+  if l < c.nPush then
+    let lab := SimLab.mk H (c.pushes.getD (c.nPush - 1 - l) default)
+    some (lab, matOnto H (c.pushes.take (c.nPush - (if lab.isLoop then l else l + 1))) (L.drop c.pops))
+  else
+    match L[c.pops + (l - c.nPush)]? with
+    | some lab => some (lab, L.drop (c.pops + (if lab.isLoop then l else l + 1) - c.nPush))
+    | none => none
+
+/-- `brFast` once its label part is known. -/
+def brFin (s : St) (f : Frame) : Option (Label × List Label) → Res
+  | some (lab, ls) => finishBr s f lab ls
+  | none => .unmodeled "invariant: branch to an unknown label"
+
+theorem brFast_brLab (s : St) (f : Frame) (a : Arc) (l : Nat) :
+    brFast s f a l = brFin s f (brLab a f.labels s.stack.size l) := by
+  unfold brFast brLab
+  simp only
+  split
+  · rfl
+  · split <;> simp only [brFin]
+
+/-- What an arc's label work yields: the plain run's labels, or the fused branch's label part. -/
+inductive ArcRes where
+  | plain (L : List Label)
+  | br (r : Option (Label × List Label))
+
+/-- The label work of arc `a` on labels `L` at stack height `H`; `none` when the guard fails. -/
+def arcRes (a : Arc) (L : List Label) (H : Nat) : Option ArcRes :=
+  if lenGe a.guard L then
+    some (match a.br with
+      | none => .plain (matOnto H a.core.pushes (L.drop a.core.pops))
+      | some (l, _) => .br (brLab a L H l))
+  else none
+
+/-- What `doBr` decides from the labels alone. -/
+inductive BrI where
+  | ret
+  | bad
+  | go (lab : Label) (ls : List Label)
+
+/-- `doBr`'s label work, in O(`l`): `l + 1 ≥ length` is `¬ lenGe (l + 2)`. -/
+def brInfo (L : List Label) (l : Nat) : BrI :=
+  if !lenGe (l + 2) L then .ret
+  else
+    match L[l]? with
+    | none => .bad
+    | some lab => .go lab (if lab.isLoop then L.drop l else L.drop (l + 1))
+
+/-- `doBr` once its label work is known. -/
+def doBrI (p : Prepared) (s : St) (f : Frame) : BrI → Res
+  | .ret => doReturn p s
+  | .bad => .unmodeled "invariant: branch to an unknown label"
+  | .go lab ls =>
+    let vals := s.stack.extract (s.stack.size - lab.arity) s.stack.size
+    let s := { s with stack := s.stack.extract 0 lab.height ++ vals }
+    .cont (setFrame s { f with pc := lab.target, labels := ls })
+
+theorem doBr_brInfo (p : Prepared) (s : St) (f : Frame) (l : Nat) :
+    doBr p s f l = doBrI p s f (brInfo f.labels l) := by
+  unfold doBr brInfo
+  by_cases h : l + 1 ≥ f.labels.length
+  · have h' : (!lenGe (l + 2) f.labels) = true := by
+      cases hb : lenGe (l + 2) f.labels
+      · rfl
+      · have := (lenGe_iff _ _).1 hb; omega
+    simp only [h, ↓reduceIte, h', doBrI]
+  · have h' : (!lenGe (l + 2) f.labels) = false := by
+      have : lenGe (l + 2) f.labels = true := (lenGe_iff _ _).2 (by omega)
+      simp [this]
+    simp only [h, ↓reduceIte, h', Bool.false_eq_true]
+    split <;> rename_i heq <;> simp only [heq, doBrI]
+
+/-- What a memo entry caches. -/
+inductive MOut where
+  | arc (r : Option ArcRes)
+  | br (r : BrI)
+
+/-- One memo entry: its pc, the input labels, the stack height (arc) or branch depth (branch), and
+the result. -/
+structure MEntry where
+  fn : Nat
+  pc : Nat
+  inp : List Label
+  key : Nat
+  out : MOut
+
+/-- Number of memo slots (direct-mapped by `(fn, pc)`). Any value is correct. -/
+def memoSlots : Nat := 256
+
+/-- Label work below this size is recomputed rather than memoized. Any value is correct. -/
+def memoMin : Nat := 16
+
+abbrev Memo := Array (Option MEntry)
+
+def Memo.empty : Memo := Array.replicate memoSlots none
+
+@[inline] def memoSlot (fn pc : Nat) : Nat := (pc + 7 * fn) % memoSlots
+
+/-- The arc stored at `(fn, pc)`. -/
+def arcOfKey (arcs : Array (Array (Option Arc))) (fn pc : Nat) : Option Arc :=
+  (arcs.getD fn #[]).getD pc none
+
+/-- An entry is correct: its result is the label work of its input. -/
+def EntryOK (arcs : Array (Array (Option Arc))) (e : MEntry) : Prop :=
+  match e.out with
+  | .arc r => ∀ a, arcOfKey arcs e.fn e.pc = some a → r = arcRes a e.inp e.key
+  | .br r => r = brInfo e.inp e.key
+
+def MemoOK (arcs : Array (Array (Option Arc))) (m : Memo) : Prop :=
+  ∀ (j : Nat) (e : MEntry), m[j]? = some (some e) → EntryOK arcs e
+
+theorem memoOK_empty (arcs : Array (Array (Option Arc))) : MemoOK arcs Memo.empty := by
+  intro j e h
+  simp [Memo.empty, Array.getElem?_replicate] at h
+
+theorem memoOK_set {arcs : Array (Array (Option Arc))} {m : Memo} (hm : MemoOK arcs m)
+    (i : Nat) {e : MEntry} (he : EntryOK arcs e) : MemoOK arcs (m.setIfInBounds i (some e)) := by
+  intro j e' h
+  rw [Array.getElem?_setIfInBounds] at h
+  split at h
+  · split at h
+    · simp only [Option.some.injEq] at h; subst h; exact he
+    · cases h
+  · exact hm j e' h
+
+/-- The arc's label work, memoized when it is large. -/
+def memoArc (m : Memo) (fn pc : Nat) (a : Arc)
+    (L : List Label) (H : Nat) : Option ArcRes × Memo :=
+  if a.guard + a.core.nPush < memoMin then (arcRes a L H, m) else
+  let j := memoSlot fn pc
+  let fresh := fun (_ : Unit) =>
+    let r := arcRes a L H
+    (r, m.setIfInBounds j (some ⟨fn, pc, L, H, .arc r⟩))
+  match m[j]? with
+  | some (some ⟨fn', pc', inp, H', .arc r⟩) =>
+    if fn' == fn && pc' == pc && H' == H && labsEq L inp then (r, m) else fresh ()
+  | _ => fresh ()
+
+theorem memoArc_spec {arcs : Array (Array (Option Arc))} {m : Memo} (hm : MemoOK arcs m)
+    {fn pc : Nat} {a : Arc} (ha : arcOfKey arcs fn pc = some a) (L : List Label) (H : Nat) :
+    (memoArc m fn pc a L H).1 = arcRes a L H ∧ MemoOK arcs (memoArc m fn pc a L H).2 := by
+  unfold memoArc
+  split
+  · exact ⟨rfl, hm⟩
+  · have hfresh : MemoOK arcs
+        (m.setIfInBounds (memoSlot fn pc) (some ⟨fn, pc, L, H, .arc (arcRes a L H)⟩)) :=
+      memoOK_set hm _ (fun a' ha' => by simp only at ha'; rw [ha] at ha'; cases ha'; rfl)
+    simp only
+    split
+    · rename_i fn' pc' inp H' r hj
+      split
+      · rename_i hc
+        simp only [Bool.and_eq_true, beq_iff_eq] at hc
+        obtain ⟨⟨⟨rfl, rfl⟩, rfl⟩, hl⟩ := hc
+        have hl := (labsEq_iff _ _).1 hl
+        subst hl
+        have := hm _ _ hj
+        exact ⟨this a ha, hm⟩
+      · exact ⟨rfl, hfresh⟩
+    · exact ⟨rfl, hfresh⟩
+
+/-- `doBr`'s label work, memoized when the branch is deep. -/
+def memoBr (m : Memo) (fn pc : Nat) (L : List Label) (l : Nat) : BrI × Memo :=
+  if l < memoMin then (brInfo L l, m) else
+  -- the depth is part of the slot, so a `br_table` alternating between targets does not thrash
+  let j := memoSlot fn (pc + 13 * l)
+  let fresh := fun (_ : Unit) =>
+    let r := brInfo L l
+    (r, m.setIfInBounds j (some ⟨fn, pc, L, l, .br r⟩))
+  match m[j]? with
+  | some (some ⟨fn', pc', inp, l', .br r⟩) =>
+    if fn' == fn && pc' == pc && l' == l && labsEq L inp then (r, m) else fresh ()
+  | _ => fresh ()
+
+theorem memoBr_spec {arcs : Array (Array (Option Arc))} {m : Memo} (hm : MemoOK arcs m)
+    (fn pc : Nat) (L : List Label) (l : Nat) :
+    (memoBr m fn pc L l).1 = brInfo L l ∧ MemoOK arcs (memoBr m fn pc L l).2 := by
+  unfold memoBr
+  split
+  · exact ⟨rfl, hm⟩
+  · have hfresh : MemoOK arcs
+        (m.setIfInBounds (memoSlot fn (pc + 13 * l)) (some ⟨fn, pc, L, l, .br (brInfo L l)⟩)) :=
+      memoOK_set hm _ rfl
+    simp only
+    split
+    · rename_i fn' pc' inp l' r hj
+      split
+      · rename_i hc
+        simp only [Bool.and_eq_true, beq_iff_eq] at hc
+        obtain ⟨⟨⟨rfl, rfl⟩, rfl⟩, hl⟩ := hc
+        have hl := (labsEq_iff _ _).1 hl
+        subst hl
+        exact ⟨hm _ _ hj, hm⟩
+      · exact ⟨rfl, hfresh⟩
+    · exact ⟨rfl, hfresh⟩
+
+/-- `exec` with memoized branch label work. -/
+def execM (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (pf : PFunc) (i : Instr) (m : Memo) :
+    Res × Memo :=
+  match i with
+  | .br l =>
+    let r := memoBr m f.fn f.pc f.labels l
+    (doBrI p s f r.1, r.2)
+  | .brIf l =>
+    let (c, s1) := popN s
+    if c ≠ 0 then
+      let r := memoBr m f.fn f.pc f.labels l
+      (doBrI p s1 f r.1, r.2)
+    else (exec cfg p s f pf i, m)
+  | .brTable ls d =>
+    let (c, s1) := popN s
+    let r := memoBr m f.fn f.pc f.labels (ls[c]?.getD d)
+    (doBrI p s1 f r.1, r.2)
+  | _ => (exec cfg p s f pf i, m)
+
+theorem execM_spec (cfg : NearCfg) (p : Prepared) {arcs : Array (Array (Option Arc))} {m : Memo}
+    (hm : MemoOK arcs m) (s : St) (f : Frame) (pf : PFunc) (i : Instr) :
+    (execM cfg p s f pf i m).1 = exec cfg p s f pf i ∧ MemoOK arcs (execM cfg p s f pf i m).2 := by
+  unfold execM
+  split
+  · rename_i l
+    obtain ⟨h1, h2⟩ := memoBr_spec hm f.fn f.pc f.labels l
+    exact ⟨by simp only [exec, h1, doBr_brInfo], h2⟩
+  · rename_i l
+    obtain ⟨h1, h2⟩ := memoBr_spec (arcs := arcs) hm f.fn f.pc f.labels l
+    rcases hp : popN s with ⟨c, s1⟩
+    by_cases hc : c = 0
+    · constructor
+      · simp [hc]
+      · simpa [hc] using hm
+    · constructor
+      · simp only [exec, hp, ne_eq, hc, not_false_eq_true, ↓reduceIte, h1, doBr_brInfo]
+      · simpa [hc] using h2
+  · rename_i ls d
+    obtain ⟨h1, h2⟩ := memoBr_spec hm f.fn f.pc f.labels (ls[(popN s).1]?.getD d)
+    exact ⟨by simp only [exec, h1, doBr_brInfo], h2⟩
+  · exact ⟨rfl, hm⟩
+
+/-- The fused branch once its label part is known (`fuseBr` with `brFin`). -/
+def fuseBrM (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (a : Arc)
+    (g : Option (IK × Fee)) (blab : Option (Label × List Label)) : Res :=
+  match g with
+  | none => brFin s f blab
+  | some (k, fee) =>
+    match charge s fee (if k = .linear then topCount s else 0) with
+    | .cont s' => brFin s' f blab
+    | _ => step cfg p (applyArc s f a)
+
+theorem fuseBrM_eq (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (a : Arc) (l : Nat)
+    (g : Option (IK × Fee)) :
+    fuseBrM cfg p s f a g (brLab a f.labels s.stack.size l) = fuseBr cfg p s f a l g := by
+  unfold fuseBrM fuseBr
+  cases g with
+  | none => exact (brFast_brLab s f a l).symm
+  | some kf =>
+    obtain ⟨k, fee⟩ := kf
+    simp only
+    cases hc : charge s fee (if k = .linear then topCount s else 0) with
+    | cont s' =>
+      simp only
+      rw [brFast_brLab, charge_cont_stack _ _ _ _ hc]
+    | fin _ => rfl
+    | abort _ _ => rfl
+    | unmodeled _ => rfl
+
+/-- `runFast` with the label memo. The same dispatch; the arc's and the branches' label work comes
+from `memoArc`/`memoBr`. -/
+def runMemo (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc))) :
+    Nat → Memo → St → Res
+  | 0, _, _ => .unmodeled "fuel exhausted"
+  | n + 1, m, s =>
+    match s.frames with
+    | [] => .fin s
+    | f :: _ =>
+      match p.funcs[f.fn]? with
+      | none => .unmodeled "bad frame"
+      | some pf =>
+        match pf.code[f.pc]? with
+        | none => .unmodeled "pc out of range"
+        | some i =>
+          match pf.gas[f.pc]? with
+          | none => .unmodeled "invariant: gas table shorter than the code"
+          | some none =>
+            match arcAt arcs f i with
+            | some a =>
+              let am := memoArc m f.fn f.pc a f.labels s.stack.size
+              match am.1 with
+              | some (.br blab) =>
+                match a.br with
+                | some (_, g) =>
+                  if a.core.len ≤ n then
+                    match fuseBrM cfg p s f a g blab with
+                    | .cont s' => runMemo cfg p arcs (n - a.core.len) am.2 s'
+                    | r => r
+                  else
+                    match exec cfg p s f pf i with
+                    | .cont s' => runMemo cfg p arcs n am.2 s'
+                    | r => r
+                | none => runFast cfg p arcs (n + 1) s
+              | some (.plain L) =>
+                if 0 < a.core.len ∧ a.core.len ≤ n + 1 then
+                  runMemo cfg p arcs (n + 1 - a.core.len) am.2
+                    (setFrame s { f with pc := f.pc + a.core.len, labels := L })
+                else
+                  match exec cfg p s f pf i with
+                  | .cont s' => runMemo cfg p arcs n am.2 s'
+                  | r => r
+              | none =>
+                match exec cfg p s f pf i with
+                | .cont s' => runMemo cfg p arcs n am.2 s'
+                | r => r
+            | none =>
+              let em := execM cfg p s f pf i m
+              match em.1 with
+              | .cont s' => runMemo cfg p arcs n em.2 s'
+              | r => r
+          | some (some (k, fee)) =>
+            match charge s fee (if k = .linear then topCount s else 0) with
+            | .cont s1 =>
+              let em := execM cfg p s1 f pf i m
+              match em.1 with
+              | .cont s' => runMemo cfg p arcs n em.2 s'
+              | r => r
+            | r => r
+termination_by n => n
+decreasing_by all_goals omega
+
+theorem arcAt_key {arcs : Array (Array (Option Arc))} {f : Frame} {i : Instr} {a : Arc}
+    (h : arcAt arcs f i = some a) : arcOfKey arcs f.fn f.pc = some a := by
+  unfold arcAt at h
+  split at h
+  · exact h
+  · cases h
+
+/-- **`runMemo` is `runFast`**, for every fuel and state, given a valid memo. -/
+theorem runMemo_eq_runFast (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Arc))) :
+    ∀ (n : Nat) (m : Memo) (s : St), MemoOK arcs m →
+      runMemo cfg p arcs n m s = runFast cfg p arcs n s := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | _ n ih =>
+  intro m s hm
+  cases n with
+  | zero => rw [runMemo, runFast]
+  | succ n =>
+    have hK : ∀ (r : Res) (m' : Memo), MemoOK arcs m' → (match r with
+        | .cont s' => runMemo cfg p arcs n m' s'
+        | r => r) = (match r with
+        | .cont s' => runFast cfg p arcs n s'
+        | r => r) := by
+      intro r m' hm'
+      cases r with
+      | cont s' => exact ih n (by omega) m' s' hm'
+      | fin _ => rfl
+      | abort _ _ => rfl
+      | unmodeled _ => rfl
+    rw [runMemo, runFast]
+    cases hfr : s.frames with
+    | nil => rfl
+    | cons f fs =>
+      simp only
+      cases hpf : p.funcs[f.fn]? with
+      | none => rfl
+      | some pf =>
+        simp only
+        cases hcode : pf.code[f.pc]? with
+        | none => rfl
+        | some i =>
+          simp only
+          cases hgas : pf.gas[f.pc]? with
+          | none => rfl
+          | some g =>
+            cases g with
+            | some kf =>
+              obtain ⟨k, fee⟩ := kf
+              simp only
+              cases charge s fee (if k = .linear then topCount s else 0) with
+              | cont s1 =>
+                simp only
+                obtain ⟨h1, h2⟩ := execM_spec cfg p hm s1 f pf i
+                rw [h1]
+                exact hK _ _ h2
+              | fin _ => rfl
+              | abort _ _ => rfl
+              | unmodeled _ => rfl
+            | none =>
+              simp only
+              cases harc : arcAt arcs f i with
+              | none =>
+                simp only
+                obtain ⟨h1, h2⟩ := execM_spec cfg p hm s f pf i
+                rw [h1]
+                exact hK _ _ h2
+              | some a =>
+                simp only
+                obtain ⟨h1, h2⟩ := memoArc_spec hm (arcAt_key harc) f.labels s.stack.size
+                generalize memoArc m f.fn f.pc a f.labels s.stack.size = am at h1 h2
+                obtain ⟨ar, m'⟩ := am
+                simp only at h1 h2 ⊢
+                subst h1
+                unfold arcRes
+                by_cases hgd : lenGe a.guard f.labels = true
+                · simp only [hgd, ↓reduceIte]
+                  cases hbr : a.br with
+                  | some lg =>
+                    obtain ⟨l, g⟩ := lg
+                    simp only
+                    by_cases hlen : a.core.len ≤ n
+                    · simp only [hlen, ↓reduceIte]
+                      rw [fuseBrM_eq]
+                      cases fuseBr cfg p s f a l g with
+                      | cont s' => exact ih _ (by omega) m' s' h2
+                      | fin _ => rfl
+                      | abort _ _ => rfl
+                      | unmodeled _ => rfl
+                    · simp only [hlen, ↓reduceIte]
+                      exact hK _ m' h2
+                  | none =>
+                    simp only
+                    by_cases hlen : 0 < a.core.len ∧ a.core.len ≤ n + 1
+                    · simp only [hlen, ↓reduceDIte, and_self, ↓reduceIte]
+                      rw [ih _ (by omega) m' _ h2]
+                      rfl
+                    · simp only [hlen, ↓reduceDIte, ↓reduceIte]
+                      exact hK _ m' h2
+                · simp only [hgd, Bool.false_eq_true, ↓reduceIte]
+                  exact hK _ m' h2
+
 /-! ## The fast call layer (copies of `Exec`'s call layer with `runFast`) -/
 
 /-- `callEntry` with arcs. -/
@@ -762,7 +1235,7 @@ def callEntryFast (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Option Ar
     (s : St) (fi : Nat) : Except String (St × Option String) :=
   let s := { s with gas := { s.gas with g := s.gas.remaining }, stack := #[], frames := [] }
   let r := match enter p s fi with
-    | .cont s => runFast cfg p arcs fuel s
+    | .cont s => runMemo cfg p arcs fuel Memo.empty s
     | r => r
   match r with
   | .fin s => (sync s).map (·, none)
@@ -860,7 +1333,7 @@ theorem callEntryFast_eq (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Op
     (hv : ArcsValid p arcs) (fuel : Nat) (s : St) (fi : Nat) :
     callEntryFast cfg p arcs fuel s fi = callEntry cfg p fuel s fi := by
   unfold callEntryFast callEntry
-  simp only [runFast_eq_run cfg p arcs hv]
+  simp only [runMemo_eq_runFast cfg p arcs _ _ _ (memoOK_empty arcs), runFast_eq_run cfg p arcs hv]
   rfl
 
 /-- Compiled `callEntry` runs with the module's arc table. -/
@@ -889,6 +1362,7 @@ theorem callEntryFast_eq (cfg : NearCfg) (p : Prepared) (arcs : Array (Array (Op
 end NearSpecV3.Wasm
 
 #print axioms NearSpecV3.Wasm.runFast_eq_run
+#print axioms NearSpecV3.Wasm.runMemo_eq_runFast
 #print axioms NearSpecV3.Wasm.arcsOf_valid
 #print axioms NearSpecV3.Wasm.callEntry_eq_arcs
 #print axioms NearSpecV3.Wasm.runCall_eq_fast
