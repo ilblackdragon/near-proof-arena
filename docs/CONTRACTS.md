@@ -362,7 +362,10 @@ without the new fields behave exactly as in v1.6.
   tests, not proofs, except D0 ⊂ D1 and D2 ⊂ D3, which are now proved
   (`NearSpecV3.relD0_relD1 : RelD0 cb w → RelD1 cb w`, `spec/lean/v3/NearSpecV3/D0SubD1.lean`;
   `NearSpecV3.Successor.relD2_relD3 : RelD2 cb w → RelD3 cb w`, `spec/lean/v3/NearSpecV3/D2SubD3.lean`).
-  D1 ⊂ D2 remains tested only (3,393/3,393 `d1run` D1 accepts are D2 and D3 accepts, 2026-10-30).
+  D1 ⊂ D2 is **false** for claims with a false genesis `epoch_start_after` flag (D0/D1 do not
+  check the flags against the headers; kernel-checked counterexample
+  `NearSpecV3.Examples.not_d1_sub_d2`, `not_d0_sub_d3`, 2026-10-30). On the corpora, 3,394/3,394
+  honest and 951/951 mutant D1 accepts are D2 and D3 accepts.
 * **Follow-up (lane item, successor version).** Restructure the lower domains as literal
   restrictions of the top relation: `Rel_Dk := RelD3 ∧ InDk` by definition, with `InDk` decidable.
   `rel_mono` then becomes `RelDk → RelD3` by projection, and the statement of a successor version
