@@ -3,6 +3,7 @@ import NearSpecV3.Examples.D1NotSubD2K1
 import NearSpecV3.Examples.D1NotSubD2K2
 import NearSpecV3.Examples.D1NotSubD2K3
 import NearSpecV3.Examples.D1NotSubD2K4
+import NearSpecV3.Rungs
 
 /-!
 # D1 ⊄ D2 (and D0 ⊄ D3): a kernel-checked counterexample
@@ -48,6 +49,11 @@ and `WitnessLift` with the identity witness fails on this pair. -/
 theorem not_d1a_sub_d3 : ¬ ∀ cb w, RelD1a B0 cb w → D3.RelD3 cb w :=
   fun h => gf_not_relD3 (h _ _ gf_relD1a)
 
+/-- **A `checkD1` accept is not, by itself, a `RelRungD1` chunk** (`Rungs.lean`): the fast checker
+is admitted only together with a D2 run (`rungD1_of_checks`). -/
+theorem not_rungD1_of_checkD1 : ¬ ∀ cb w, RelD1 cb w → RelRungD1 cb w :=
+  fun h => gf_not_relD3 (h _ _ gf_relD1).1
+
 /-- **D0 ⊂ D3 is false.** -/
 theorem not_d0_sub_d3 : ¬ ∀ cb w, RelD0 cb w → D3.RelD3 cb w :=
   fun h => gf_not_relD3 (h _ _ gf_relD0)
@@ -57,3 +63,4 @@ end NearSpecV3.Examples
 #print axioms NearSpecV3.Examples.not_d1_sub_d2
 #print axioms NearSpecV3.Examples.not_d0_sub_d3
 #print axioms NearSpecV3.Examples.not_d1a_sub_d3
+#print axioms NearSpecV3.Examples.not_rungD1_of_checkD1

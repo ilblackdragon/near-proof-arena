@@ -429,6 +429,34 @@ floats 150, `c.not_genesis` 137, global-contract and state-init shapes ~303, non
 keys 79, `c.segment` 3. On mainnet shard 13, 279 of 1,223 chunks are excluded for floats. These are
 recorded, not changed here.
 
+### 3.5 Rung decision record — `Rel_Dk := RelD3 ∧ InDk` (2026-10-30)
+
+**Finding.** `D1 ⊂ D2` (and `D0 ⊂ D3`, `RelD1a ⊂ RelD3`) is false: D0/D1 never compare the
+`epoch_start_after` flags with the headers, D2/D3 require `!isGenesis || flag = 1`
+(`NearSpecV3.Examples.not_d1_sub_d2`, `not_d1a_sub_d3`, kernel-checked;
+`docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`). Not a nearcore-reject accept
+(the witness is valid; the flag is a false trusted claim fact), but it made `WitnessLift` unprovable.
+
+**Decision (owner, option 1).** The rungs of the `near-chunk-v3` statement are restrictions of the
+top relation: `RelRungDk := RelD3 ∧ InRungDk` (`spec/lean/v3/NearSpecV3/RungsDefs.lean`), with
+`InRungDk` the cumulative domain of the rung's own checker (no `out of domain …` verdict). The
+statement is `NearSpecV3.RelChunkV3R` (`ChallengeChunkV3R.lean`, `relChunkV3R_iff : ↔ RelD3`), in
+the **new draft** `challenges/drafts/near-chunk-v3-1.draft.json` (judge config
+`runners/formal-checker/challenges/near-chunk-v3-1.json`, templates `spec/lean/judge/ExpectedChunkV3R*`).
+The v3.0 draft, its module and every signed file are unchanged.
+
+**What is proved.** `D0 ⊂ D1 ⊂ D2 ⊂ D3` for the rungs (projections, `rung_chain`); `WitnessLift`
+over the D1a rung (`ZkFormal.PQ.Join.witnessLift`); the fast checkers are admitted by
+`rungD2_of_checkD2` (alone) and `rungD{0,0a,1,1a}_of_checks` (with a `checkD2` accept). Checker-level
+`D0 ⊂ D1` (`relD0_relD1`) and `D2 ⊂ D3` (`Successor.relD2_relD3`) stay; checker-level `D1 ⊂ D2` is
+false (`not_d1_sub_d2`).
+
+**Names kept.** `RelD0`, `RelD0a`, `RelD1`, `RelD1a`, `RelD2` keep their meaning (checker
+acceptance): they are the statements of the separate D0/D0a/D1 challenges (the signed
+`near-chunk-validation-d0` declares `NearSpecV3.RelD0`) and of the zk-formal D0a/D1a stacks, whose
+soundness theorems are about the checkers. Redefining those names would change a signed statement's
+meaning and those theorems' content; the rung relations are new names instead.
+
 ## 4. The schema decision W00 owes
 
 The workplan asks for "a schema decision states which existing claim fields suffice, which need a

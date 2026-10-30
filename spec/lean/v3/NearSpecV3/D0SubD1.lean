@@ -93,7 +93,10 @@ end NearSpecV3.D0SubD1
 
 namespace NearSpecV3
 
-/-- D0 ⊂ D1: every pair the D0 checker accepts, the D1 checker accepts. -/
+/-- D0 ⊂ D1: every pair the D0 checker accepts, the D1 checker accepts (checker level). For the
+rungs of the `near-chunk-v3-1` statement (`RelRungDk := RelD3 ∧ InRungDk`, `RungsDefs.lean`) the
+inclusion is a projection, `rungD0_rungD1`; this checker-level theorem is what admits a `checkD0`
+accept into the D1 domain (`Rungs.rungD0_of_checks`). -/
 theorem relD0_relD1 (cb w : NearSpec.Bytes) (h : RelD0 cb w) : RelD1 cb w :=
   D0SubD1.relD0_imp_relD1 cb w h
 

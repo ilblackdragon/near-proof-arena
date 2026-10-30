@@ -15,7 +15,7 @@ or verdict table is required by the workplan rules; §5 says why the one behavio
 |---|---|---|
 | float overlap/range (W04) | **proved**. Range/fuel: `bitLen`'s and `isqrt`'s fuel, and every float operator maps `w`-bit inputs to `w`-bit results. Overlap (round 2): `checkD3F` returns `checkD3`'s result wherever `checkD3` decides, on every chunk (`Successor.FloatOverlap`, a corollary of W12's `relSuccessor_floats_mono`) | `NearSpecV3/Wasm/FloatRange.lean`, `Successor/FloatOverlap.lean` |
 | split correctness and authentication (W11) | **proved**: key-level correctness through squashing, per-column partition, independence from unread parent nodes (same child root on any refinement) | `NearSpecV3/ReshardingProofs.lean` |
-| `WitnessLift` (`Coverage.lean:191`) | **not provable as stated** (round 3): `D2 ⊂ D3` is proved, but `D1 ⊂ D2` is **false** — a kernel-checked counterexample in `RelD1a B0` but not `RelD3` (§7). Needs a decision: D2's genesis rule in D0/D1, or a claim condition | `NearSpecV3/D2SubD3.lean`, `NearSpecV3/D2SubD3/*` |
+| `WitnessLift` (`Coverage.lean:191`) | **proved** (round 4, §8): by the owner's decision the statement's rungs are `RelD3 ∧ InRungDk`; the lift over the D1a rung is a projection (`ZkFormal.PQ.Join.witnessLift`). Over the checker relation it is false (`not_d1a_sub_d3`) | `RungsDefs.lean`, `Rungs.lean`, `ChallengeChunkV3R.lean`, `zk-formal/ZkFormal/PQ/Join/Coverage.lean` | `NearSpecV3/D2SubD3.lean`, `NearSpecV3/D2SubD3/*` |
 | wider kernel non-vacuity | **done**: storage-writing 3-receipt chunk and a split child, each accepted and its root mutant rejected, for `RelD3` and `Tier.rel .allFeatures` (8 kernel decisions, measured) | `NearSpecV3/Examples/RealCaseD3{Store,Split}*.lean` |
 | `Logged.API` / `D3LSpec` build | **repaired**, built and axiom-audited by the default target; the oracle driver `nearspec-v3-check-logged` and `AuditLogged.lean` are built and run by `make d3-drivers` (CI job `d3-drivers`) | `Logged/WasmCRCrypto.lean`, `Logged/Audit.lean`, `lakefile.toml`, `Makefile`, `oracle/wasm-d3/lean/LoggedHarness.lean` |
 
@@ -201,3 +201,29 @@ lower rungs as restrictions of the top relation (`Rel_Dk := RelD3 ∧ InDk`), wh
 inclusion and `WitnessLift` a projection. The minimal alternative is to add D2's genesis rule to
 D0/D1 (it moves only false-flag claims from accept to reject), then run the phase simulation under
 it. Either changes a rung of the signed `near-chunk-v3` statement, so it needs the owner's decision.
+
+## 8. Round 4 (2026-10-30): decision — rungs are restrictions of `RelD3`
+
+Owner's decision (option 1): `RelRungDk := RelD3 ∧ InRungDk`.
+
+* `spec/lean/v3/NearSpecV3/RungsDefs.lean` — `DomDk` (the rung's checker reports no exclusion:
+  D0's receipt-only shape, D1's Transfer-only domain, every decoder's codec, D0a/D1a's gas / routing /
+  scheduler / unfolded-trie / ChaCha / depth / transaction bounds, every `c.*`/`w.*`/`e.*`/`r.*`
+  exclusion), cumulative `InRungDk` (`D0a ⊂ D0 ⊂ D1 ⊂ D2`, `D1a ⊂ D1`), `RelRungDk`; the inclusions
+  are projections (`rungD0a_rungD0`, `rungD0_rungD1`, `rungD1a_rungD1`, `rungD1_rungD2`,
+  `rungD2_rungD3`, `rung_chain`) and the lift is `rungD1a_lift`.
+* `Rungs.lean` — the fast checkers: `rungD2_of_checkD2` (alone), `rungD1_of_checks`,
+  `rungD0_of_checks`, `rungD1a_of_checks`, `rungD0a_of_checks` (with a `checkD2` accept);
+  `Examples.not_rungD1_of_checkD1` shows `checkD1` alone does not suffice.
+* `ChallengeChunkV3R.lean` — the `near-chunk-v3-1` statement `RelChunkV3R`, `relChunkV3R_iff :
+  RelChunkV3R ↔ RelD3`, tiers, `rel_monoR`, `sound_liftR`. New draft
+  `challenges/drafts/near-chunk-v3-1.draft.json` (derived from the unchanged v3.0 draft by
+  `spec/tools/build_challenge_draft_v3_chunk_r.py`; covered by `make pin-check`), judge config
+  `runners/formal-checker/challenges/near-chunk-v3-1.json`, templates
+  `spec/lean/judge/ExpectedChunkV3R*.template`. No item-6 draft existed when this was created.
+* `zk-formal/ZkFormal/PQ/Join/Coverage.lean` — `WitnessLift` over `RelRungD1a`, proved
+  (`witnessLift`); `relD3_of_lift` no longer takes it as a hypothesis.
+* The checker relations `RelD0 … RelD2` keep their meaning (the signed `near-chunk-validation-d0`
+  declares `NearSpecV3.RelD0`; the zk-formal D0a/D1a stacks prove soundness for the checkers), so their
+  other consumers needed no change. Checker-level `D0 ⊂ D1` and `D2 ⊂ D3` stay proved; checker-level
+  `D1 ⊂ D2` stays false.
