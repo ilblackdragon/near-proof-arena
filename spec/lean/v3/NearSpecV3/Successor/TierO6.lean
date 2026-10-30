@@ -3,6 +3,29 @@ import NearSpecV3.Successor.TierMono
 set_option maxRecDepth 20000
 set_option maxHeartbeats 4000000
 
+/-!
+# W12 O6 — resharding on segments without a genesis block (verdict level)
+
+A resharding tier checks a segment without a genesis block with `checkReshardCoreObs`, which walks
+the segment block by block in each block's own layout (`walkSegment`) and recomputes the split gate.
+The non-resharding whole-state tiers run `checkD2CoreWithObs` (through the genesis-capable shell,
+which on such segments is the same function, `checkD2CoreGWith_eq_of_segment`). That shell excludes
+every segment whose epochs differ in layout (`c.same_layout`) or whose facts carry a split gate
+(`c.no_split_gate`). On the remaining segments:
+
+* `walk_one_layout`: the per-block walk with one layout and no genesis block is the plain two-phase
+  scan for the first two new chunks; it yields `expectedWalk` exactly when the plain shell's
+  `findIdx?` scans succeed with every slot count right, and otherwise rejects (never excludes).
+* `checkD2CoreWithObs_vr_reshard`: the two shells then decide alike (`VR`): where the plain shell
+  accepts, `ReshardCore` accepts; where it rejects, `ReshardCore` rejects, possibly with another
+  reason (the check order differs; fixture `seed23-02-h10062-s5-c.child_layout_is_parent`:
+  `slot count` vs `shard not in layout`), so only the verdict-level form `VRefines` holds.
+* `checkSuccessor_resharding_vmono`: `VLift cfg {cfg with resharding := true}` on every whole-state
+  configuration with the genesis main transition and the Gate-B bounds in force; the named
+  instances are `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`) and the resharding
+  premises of the two `allFeatures` compositions.
+-/
+
 namespace NearSpecV3.Successor
 open NearSpec NearSpecV3 NearSpecV3.D2
 
@@ -1133,5 +1156,72 @@ theorem checkD2CoreGWith_eq_of_segment (d : ExecutionDriver) (hd : d.resharding 
           | (refine OverlapNG.ite_congr _ (fun _ => ?_) (fun _ => ?_))
           | (split <;> (rename_i hsplit; (try simp only [hsplit]); (try dsimp only))))
       exact key _ rfl rfl
+
+
+/-! ## O6 at configuration and tier level -/
+
+/-- **O6.** On every whole-state configuration with the genesis main transition and the Gate-B
+bounds in force, switching resharding on preserves every decided verdict (`VRefines`): on segments
+with a genesis block both run the genesis-capable shell (`checkD2CoreGWith_resharding_mono`); on the
+others the resharding tier runs `ReshardCore`, which decides every one-layout, no-split-gate segment
+as the plain shell does (`checkD2CoreWith_vrefines_reshard`), and the plain shell excludes every other
+segment (`c.same_layout`, `c.no_split_gate`). -/
+theorem checkSuccessor_resharding_vmono (cfg : ProtocolCfg) (hr : cfg.resharding = false)
+    (hgen : cfg.genesisMainTransition = true) (hsr : cfg.storageResolution = true)
+    (hseg : cfg.segmentUnbounded = false) (hwu : cfg.witnessUnbounded = false)
+    (hlu : cfg.layoutUnbounded = false) :
+    VLift cfg { cfg with resharding := true } := by
+  intro c w
+  unfold checkSuccessor
+  simp only [hr, hsr, hgen, Bool.false_and, Bool.true_and, Bool.true_or, Bool.or_true, ↓reduceIte,
+    Bool.false_eq_true]
+  split
+  · cases hg : segmentHasGenesis c
+    · simp only [Bool.not_false, ↓reduceIte]
+      rw [checkD2CoreGWith_eq_of_segment _ rfl _ _ _ _ _ hg]
+      exact checkD2CoreWith_vrefines_reshard _ rfl rfl hwu hlu hseg rfl _ _ _ _ _ hg
+    · simp only [Bool.not_true, Bool.false_eq_true, ↓reduceIte]
+      exact (checkD2CoreGWith_resharding_mono _ rfl rfl _ _ _ _ _ _).toV
+  · exact (Refines.refl _).toV
+
+/-- `.curveHosts ⊑ .resharding` at verdict level, on every input. -/
+theorem relSuccessor_resharding_vmono (c w : Bytes) :
+    VRefines (Tier.checker .curveHosts c w) (Tier.checker .resharding c w) :=
+  checkSuccessor_resharding_vmono (Tier.cfg .curveHosts) rfl rfl rfl rfl rfl rfl c w
+
+/-- The resharding step of `.globalActions ⊑ .allFeatures` (the `hR` premise of
+`relSuccessor_globalActions_allFeatures_of`). -/
+theorem resharding_vlift_globalActionsCurve :
+    VLift { Tier.cfg .globalActions with curveHosts := true }
+      { Tier.cfg .globalActions with curveHosts := true, resharding := true } :=
+  checkSuccessor_resharding_vmono _ rfl rfl rfl rfl rfl rfl
+
+/-- The resharding step of `.curveHosts ⊑ .allFeatures` (the `hR` premise of
+`relSuccessor_curveHosts_allFeatures_of`). -/
+theorem resharding_vlift_curveHosts : VLift (Tier.cfg .curveHosts) (Tier.cfg .resharding) :=
+  checkSuccessor_resharding_vmono (Tier.cfg .curveHosts) rfl rfl rfl rfl rfl rfl
+
+/-- `.curveHosts ⊑ .allFeatures` at verdict level, given only the global-action lift (O3). -/
+theorem relSuccessor_curveHosts_allFeatures_of_GA
+    (hGA : Lift (Tier.cfg .resharding) { Tier.cfg .resharding with globalActions := true }) (c w : Bytes) :
+    VRefines (Tier.checker .curveHosts c w) (Tier.checker .allFeatures c w) :=
+  relSuccessor_curveHosts_allFeatures_of resharding_vlift_curveHosts hGA c w
+
+/-- `.globalActions ⊑ .allFeatures` at verdict level, given only the curve-host lift (O2). -/
+theorem relSuccessor_globalActions_allFeatures_of_C
+    (hC : Lift (Tier.cfg .globalActions) { Tier.cfg .globalActions with curveHosts := true }) (c w : Bytes) :
+    VRefines (Tier.checker .globalActions c w) (Tier.checker .allFeatures c w) :=
+  relSuccessor_globalActions_allFeatures_of hC resharding_vlift_globalActionsCurve c w
+
+#print axioms walk_one_layout
+#print axioms checkD2CoreWithObs_vr_reshard
+#print axioms checkD2CoreWith_vrefines_reshard
+#print axioms checkD2CoreGWith_eq_of_segment
+#print axioms checkSuccessor_resharding_vmono
+#print axioms relSuccessor_resharding_vmono
+#print axioms resharding_vlift_globalActionsCurve
+#print axioms resharding_vlift_curveHosts
+#print axioms relSuccessor_curveHosts_allFeatures_of_GA
+#print axioms relSuccessor_globalActions_allFeatures_of_C
 
 end NearSpecV3.Successor
