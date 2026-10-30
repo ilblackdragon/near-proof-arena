@@ -16,7 +16,7 @@ Runtime switches (read once at start-up):
   `A <tag>` each time `Successor.StorageExecution.applyAction` (the `allFeatures` action dispatch)
   runs an action (`<tag>` is the borsh action tag, `D<tag>` for a delegate).
 * `NEARSPEC_ABLATE=<target>`: a deliberate-breakage control, one row at a time:
-  - `host:<name>`  the arm of host `<name>` burns 1 extra gas after it runs;
+  - `host:<name>`  the arm of host `<name>` burns 1 extra gas before it runs (so arms that abort are covered too);
   - `act:<tag>`    an action with tag `<tag>` reports 1 extra gas burnt and used;
   - `guard:<msg>`  a failing `check b msg` whose message starts with `<msg>` passes.
 
@@ -81,7 +81,7 @@ CALLHOST_CTL = '''def callHostCtl (s : St) (name : String) : Res :=
     | none =>
       .unmodeled s!"host function {name} not modelled in D3α"
     | some h =>
-      let h := if Ctl.ablate == "host:" ++ name then (h *> burnH 1) else h
+      let h := if Ctl.ablate == "host:" ++ name then (burnH 1 *> h) else h
       Ctl.tr ("H " ++ name) fun _ =>
       match h.run s with
       | .ok _ s => .cont { s with gas := { s.gas with g := s.gas.remaining } }

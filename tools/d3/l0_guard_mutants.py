@@ -7,7 +7,7 @@ judgement the corpus `c.*` / `t.*` mutants carry (`verdict_source: claim-v3`): t
 the one cold nearcore produced, so any other claim for that witness is false (`expected_rel:
 false`). A mutant whose bytes do not parse as a claim-v3 body is not emitted.
 
-Usage: l0_guard_mutants.py --bases FILE --out DIR [--per-kind N]
+Usage: l0_guard_mutants.py --bases FILE --out DIR [--per-kind N] [--only NAME...]
 The witness and code files are copied unchanged; `meta.json` records the base and the mutation.
 """
 import argparse
@@ -192,7 +192,16 @@ def mutations(c):
         x.gce = b"\x01" + u32(0)
         return True
 
+    def txv_flip(x):
+        if not x.txv:
+            return False
+        x.txv[0] ^= 1
+        return True
+
     return [
+        # an executing negative: the chunk still runs, the post state differs (row: none, used as
+        # the nearcore-rejected exercising case of hosts/actions whose fixtures have no mutants)
+        (None, "l0.t.tx_valid_flip0", txv_flip),
         ("L0-D2-005", "l0.c.pv85", pv85),
         ("L0-D2-006", "l0.c.empty_segment", empty),
         ("L0-D2-007", "l0.c.epoch_dup", dup_epoch),
@@ -215,6 +224,7 @@ def main():
     ap.add_argument("--bases", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--per-kind", type=int, default=12)
+    ap.add_argument("--only", nargs="*", help="mutation names to emit (default: all guard kinds)")
     a = ap.parse_args()
     bases = [Path(l) for l in a.bases.read_text().splitlines() if l]
     made = {}
@@ -227,6 +237,8 @@ def main():
         if meta.get("expected_rel") is not True:
             continue
         for row, name, f in mutations(None):
+            if (a.only and name not in a.only) or (not a.only and row is None):
+                continue
             if made.get(name, 0) >= a.per_kind:
                 continue
             c = Claim(data)

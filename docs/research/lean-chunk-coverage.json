@@ -11,9 +11,9 @@
     "nearcore": "imports link at instantiation (wasmtime_runner/mod.rs:1127-1155); only a call runs External code"
   },
   "counts": {
-    "implemented": 150,
+    "implemented": 72,
     "impossible-at-boundary": 14,
-    "validated": 61
+    "validated": 139
   },
   "evidence": "static reconciliation of pinned nearcore git objects against Lean dispatch tables; no execution, differential testing or proof",
   "exclusion_classification": [
@@ -534,127 +534,127 @@
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 10571 nearcore-accepted and 1301 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10005-s1, d2corpus.v2/d2/00-h10005-s2, d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:0` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-00",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:CreateAccount = 0",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 4932 nearcore-accepted and 643 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10005-s1, d2corpus.v2/d2/00-h10006-s3, d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:1` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-01",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DeployContract = 1",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 17757 nearcore-accepted and 2880 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10006-s0, d2corpus.v2/ood/00-h10010-s1, d3c10/mutants/00-h10005-s0-code.drop.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:2` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-02",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:FunctionCall = 2",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 38112 nearcore-accepted and 4771 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d1run/d1/00-h10006-s1, d1run/d1/00-h10006-s2, d1run/mutants/00-h10008-s0-hdr.proposals.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:3` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-03",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:Transfer = 3",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 2697 nearcore-accepted and 329 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10010-s2, d2corpus.v2/d2/00-h10021-s2, d2corpus.v2/mutants/00-h10110-s0-t.tx_valid_flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:4` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-04",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:Stake = 4",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 11896 nearcore-accepted and 1533 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10004-s0, d2corpus.v2/d2/00-h10005-s3, d2corpus.v2/mutants/00-h10017-s2-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:5` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-05",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:AddKey = 5",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 3343 nearcore-accepted and 393 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10003-s0, d2corpus.v2/d2/00-h10011-s3, d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:6` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-06",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DeleteKey = 6",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 4131 nearcore-accepted and 511 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10003-s2, d2corpus.v2/d2/00-h10004-s0, d2corpus.v2/mutants/00-h10177-s1-t.tx_valid_flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:7` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-07",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DeleteAccount = 7",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 6333 nearcore-accepted and 660 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10004-s0, d2corpus.v2/d2/00-h10007-s0, d2corpus.v2/mutants/00-h10100-s0-hdr.prev_outcome_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:D8` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-08",
       "lean_path_symbol": "none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:Delegate = 8",
       "owner": "L4",
-      "remaining_work": "delegate body decodes via pAct; no whole-chunk differential case recorded",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
@@ -702,85 +702,85 @@
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 951 nearcore-accepted and 107 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10014-s3, d2corpus.v2/d2/00-h10023-s2, d2corpus.v2/mutants/00-h10148-s3-hdr.prev_outcome_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:12` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-12",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:TransferToGasKey = 12",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 729 nearcore-accepted and 76 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10004-s0, d2corpus.v2/d2/00-h10005-s3, d2corpus.v2/mutants/00-h10035-s1-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:13` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-13",
       "lean_path_symbol": "NearSpecV3.D2.Types.pBase",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:WithdrawFromGasKey = 13",
       "owner": "L4",
-      "remaining_work": "differential test through a whole chunk; no dedicated regression yet",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
+      "evidence": "whole-chunk fixtures: 794 nearcore-accepted and 76 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/d2/00-h10015-s3, d2corpus.v2/d2/00-h10039-s3, d2corpus.v2/mutants/01-h10020-s4-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=act:D14` (the action reports 1 extra gas burnt and used) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase",
       "family": "action",
       "id": "L0-action-14",
       "lean_path_symbol": "none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DelegateV2 = 14",
       "owner": "L4",
-      "remaining_work": "delegate body decodes via pAct; no whole-chunk differential case recorded",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 178 nearcore-accepted and 1 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10089-s1, d3c10/d3/00-h10089-s2, d3c7/mutants/01-h10142-s4-hdr.prev_gas_used), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:abort` (the arm burns 1 extra gas before it runs) in the control build: 12 of 13 replayed exercising cases disagree with the expected verdict (unablated: 13/13 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-abort",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::abort",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1081 nearcore-accepted and 130 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10021-s0, d3c10/d3/00-h10022-s3, d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:account_balance` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-account_balance",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::account_balance",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1050 nearcore-accepted and 138 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10006-s2, d3c10/d3/00-h10016-s1, d3c10/mutants/00-h10016-s1-w.drop_node.main.45), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:account_locked_balance` (the arm burns 1 extra gas before it runs) in the control build: 11 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-account_locked_balance",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::account_locked_balance",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -828,43 +828,43 @@
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1058 nearcore-accepted and 113 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s0, d3c10/d3/00-h10019-s1, d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:attached_deposit` (the arm burns 1 extra gas before it runs) in the control build: 11 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-attached_deposit",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::attached_deposit",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1070 nearcore-accepted and 115 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s3, d3c10/d3/00-h10021-s0, d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:block_index` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-block_index",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::block_index",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1159 nearcore-accepted and 117 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s3, d3c10/d3/00-h10021-s0, d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:block_timestamp` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-block_timestamp",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::block_timestamp",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1010,29 +1010,29 @@
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 351 nearcore-accepted and 26 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10089-s2, d3c10/d3/00-h10139-s0, d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:chain_id` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-chain_id",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::chain_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1390 nearcore-accepted and 156 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10006-s2, d3c10/d3/00-h10007-s3, d3c10/mutants/00-h10021-s3-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:current_account_id` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-current_account_id",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::current_account_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1045,7 +1045,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::current_contract_code",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): no case of its populations calls this host, so a cold-judged scenario contract is needed (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -1066,29 +1066,29 @@
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 142 nearcore-accepted and 9 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10028-s0, d3c10/d3/00-h10128-s0, d3c7/mutants/00-h10119-s0-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:ed25519_verify` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-ed25519_verify",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::ed25519_verify",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1118 nearcore-accepted and 115 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10007-s3, d3c10/d3/00-h10015-s0, d3c10/mutants/00-h10099-s0-code.drop.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:epoch_height` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-epoch_height",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::epoch_height",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1101,78 +1101,78 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::gas",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): no case of its populations calls this host, so a cold-judged scenario contract is needed (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 16979 nearcore-accepted and 2135 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10006-s0, d2corpus.v2/ood/00-h10010-s3, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:input` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-input",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::input",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 605 nearcore-accepted and 45 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10005-s0, d3c10/d3/00-h10015-s0, d3c10/mutants/03-h10034-s2-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:keccak256` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-keccak256",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::keccak256",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 626 nearcore-accepted and 103 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10042-s2, d3c10/d3/00-h10049-s2, d3c10/mutants/02-h10172-s1-w.drop_node.main.2), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:keccak512` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-keccak512",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::keccak512",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1227 nearcore-accepted and 143 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10006-s2, d3c10/d3/00-h10014-s0, d3c10/mutants/02-h10040-s2-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:log_utf16` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-log_utf16",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::log_utf16",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 7390 nearcore-accepted and 876 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10006-s0, d3c10/d3/00-h10007-s3, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:log_utf8` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-log_utf8",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::log_utf8",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1192,71 +1192,71 @@
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 583 nearcore-accepted and 160 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10016-s2, d3c10/d3/00-h10027-s0, d3c10/mutants/00-h10099-s0-code.drop.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:panic` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-panic",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::panic",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 171 nearcore-accepted and 15 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10018-s2, d3c10/d3/00-h10027-s0, d3c7/mutants/05-h10125-s4-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:panic_utf8` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-panic_utf8",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::panic_utf8",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1093 nearcore-accepted and 121 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s0, d3c10/d3/00-h10015-s2, d3c10/mutants/02-h10058-s1-w.drop_node.main.24), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:predecessor_account_id` (the arm burns 1 extra gas before it runs) in the control build: 11 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-predecessor_account_id",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::predecessor_account_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1061 nearcore-accepted and 97 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10015-s2, d3c10/d3/00-h10027-s2, d3c10/mutants/01-h10030-s2-hdr.prev_outcome_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:prepaid_gas` (the arm burns 1 extra gas before it runs) in the control build: 11 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-prepaid_gas",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::prepaid_gas",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1898 nearcore-accepted and 161 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10016-s2, d2corpus.v2/ood/00-h10026-s3, d3c10/mutants/00-h10085-s2-code.flip.1), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_and` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_and",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_and",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1269,7 +1269,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_add_gas_key_with_full_access",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -1283,92 +1283,92 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_add_gas_key_with_function_call",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 3467 nearcore-accepted and 383 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10016-s1, d2corpus.v2/ood/00-h10016-s3, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_add_key_with_full_access` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_add_key_with_full_access",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_add_key_with_full_access",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 972 nearcore-accepted and 91 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10005-s0, d3c10/d3/00-h10036-s2, d3c10/mutants/02-h10019-s2-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_add_key_with_function_call` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_add_key_with_function_call",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_add_key_with_function_call",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 3400 nearcore-accepted and 370 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10016-s1, d2corpus.v2/ood/00-h10016-s3, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_create_account` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_create_account",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_create_account",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 489 nearcore-accepted and 56 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10080-s2, d3c10/d3/00-h10086-s0, d3c10/mutants/02-h10019-s2-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_delete_account` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_delete_account",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_delete_account",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1167 nearcore-accepted and 117 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10021-s0, d3c10/d3/00-h10022-s3, d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_delete_key` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_delete_key",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_delete_key",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1274 nearcore-accepted and 146 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10018-s2, d3c10/d3/00-h10025-s0, d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_deploy_contract` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_deploy_contract",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_deploy_contract",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1381,7 +1381,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_deploy_global_contract",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -1395,50 +1395,50 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_deploy_global_contract_by_account_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 919 nearcore-accepted and 133 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10018-s2, d3c10/d3/00-h10044-s3, d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_function_call` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_function_call",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_function_call",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 473 nearcore-accepted and 55 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10014-s0, d3c10/d3/00-h10015-s1, d3c7/mutants/00-h10194-s2-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_function_call_weight` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_function_call_weight",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_function_call_weight",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 636 nearcore-accepted and 71 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10005-s0, d3c10/d3/00-h10054-s2, d3c7/mutants/02-h10082-s3-hdr.prev_gas_used), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_stake` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_stake",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_stake",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1451,7 +1451,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_state_init",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -1465,22 +1465,22 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_state_init_by_account_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 5260 nearcore-accepted and 523 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10016-s1, d2corpus.v2/ood/00-h10016-s2, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_transfer` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_transfer",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_transfer",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1493,22 +1493,22 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_transfer_to_gas_key",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 85 nearcore-accepted and 10 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/ood/00-h10059-s2, d3c10/ood/00-h10171-s2, se704/mutants/06-h10027-s2-hdr.congestion.delayed_gas), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_action_use_global_contract` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_action_use_global_contract",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_use_global_contract",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1521,92 +1521,92 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_action_use_global_contract_by_account_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 6563 nearcore-accepted and 669 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10016-s1, d2corpus.v2/ood/00-h10016-s2, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_create` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_create",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_create",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 795 nearcore-accepted and 65 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10016-s1, d2corpus.v2/ood/00-h10016-s2, d3c10/mutants/00-h10085-s2-code.flip.1), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_batch_then` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_batch_then",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_batch_then",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 7608 nearcore-accepted and 817 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s0, d3c10/d3/00-h10007-s3, d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_create` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_create",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_create",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 2988 nearcore-accepted and 456 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10006-s0, d3c10/d3/00-h10008-s1, d3c10/mutants/00-h10038-s0-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_result` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_result",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_result",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 2977 nearcore-accepted and 422 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10006-s0, d3c10/d3/00-h10008-s1, d3c10/mutants/00-h10038-s0-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_results_count` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_results_count",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_results_count",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 445 nearcore-accepted and 80 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10015-s2, d3c10/d3/00-h10018-s2, d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_return` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_return",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_return",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1619,106 +1619,106 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_set_refund_to",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): no case of its populations calls this host, so a cold-judged scenario contract is needed (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 4201 nearcore-accepted and 459 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s0, d3c10/d3/00-h10007-s3, d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_then` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_then",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_then",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 754 nearcore-accepted and 129 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10006-s0, d2corpus.v2/ood/00-h10010-s3, d3c10/mutants/00-h10085-s2-code.flip.1), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_yield_create` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_yield_create",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_yield_create",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 4 nearcore-accepted and 17 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. yield-fixtures/cases/y1729-01-h10029-s0, yield-fixtures/cases/y1729-01-h10038-s0, y4242/mutants/00-h10028-s3-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_yield_create_with_id` (the arm burns 1 extra gas before it runs) in the control build: 4 of 8 replayed exercising cases disagree with the expected verdict (unablated: 8/8 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_yield_create_with_id",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_yield_create_with_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 126 nearcore-accepted and 112 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10027-s2, d3c10/d3/01-h10138-s1, d3c7/mutants/06-h10043-s0-code.drop.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_yield_resume` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_yield_resume",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_yield_resume",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 2 nearcore-accepted and 11 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. yield-fixtures/cases/y1729-01-h10030-s0, yield-fixtures/cases/y4242-00-h10030-s3, y4242/mutants/00-h10030-s3-hdr.congestion.allowed_shard), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:promise_yield_resume_with_yield_id` (the arm burns 1 extra gas before it runs) in the control build: 2 of 6 replayed exercising cases disagree with the expected verdict (unablated: 6/6 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-promise_yield_resume_with_yield_id",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::promise_yield_resume_with_yield_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1101 nearcore-accepted and 89 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s3, d3c10/d3/00-h10015-s2, d3c10/mutants/03-h10173-s1-hdr.gas_limit), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:random_seed` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-random_seed",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::random_seed",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 16978 nearcore-accepted and 2131 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10006-s0, d2corpus.v2/ood/00-h10010-s3, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:read_register` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-read_register",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::read_register",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1731,36 +1731,36 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::refund_to_account_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): no case of its populations calls this host, so a cold-judged scenario contract is needed (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 17008 nearcore-accepted and 2135 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10006-s0, d2corpus.v2/ood/00-h10010-s3, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:register_len` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-register_len",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::register_len",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 600 nearcore-accepted and 71 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10009-s2, d3c10/d3/00-h10027-s0, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:ripemd160` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-ripemd160",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::ripemd160",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1787,50 +1787,50 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::set_state_init_data_entry",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): positive chunks and a detecting control, but no nearcore-rejected exercising chunk (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 599 nearcore-accepted and 56 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10007-s3, d3c10/d3/00-h10015-s0, d3c10/mutants/03-h10156-s1-code.flip.0), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:sha256` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-sha256",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::sha256",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1121 nearcore-accepted and 125 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10006-s2, d3c10/d3/00-h10009-s2, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:signer_account_id` (the arm burns 1 extra gas before it runs) in the control build: 11 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-signer_account_id",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::signer_account_id",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1082 nearcore-accepted and 127 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10009-s2, d3c10/d3/00-h10015-s2, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:signer_account_pk` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-signer_account_pk",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::signer_account_pk",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1850,15 +1850,15 @@
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 2327 nearcore-accepted and 279 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10014-s0, d3c10/d3/00-h10015-s2, d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:storage_has_key` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-storage_has_key",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_has_key",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1871,7 +1871,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_iter_next",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): no case of its populations calls this host, so a cold-judged scenario contract is needed (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -1885,7 +1885,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_iter_prefix",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): no case of its populations calls this host, so a cold-judged scenario contract is needed (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -1899,134 +1899,134 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_iter_range",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
+      "remaining_work": "host gas/return behaviour not differentially tested in this lane; L0 row validation (2026-10-31): no case of its populations calls this host, so a cold-judged scenario contract is needed (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 3749 nearcore-accepted and 540 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10007-s3, d3c10/d3/00-h10010-s2, d3c10/mutants/00-h10016-s1-w.drop_node.main.45), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:storage_read` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-storage_read",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_read",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 2517 nearcore-accepted and 263 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10015-s2, d3c10/d3/00-h10022-s3, d3c10/mutants/00-h10189-s2-code.drop.1), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:storage_remove` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-storage_remove",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_remove",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1134 nearcore-accepted and 129 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s0, d3c10/d3/00-h10015-s0, d3c10/mutants/00-h10183-s1-hdr.congestion.receipt_bytes), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:storage_usage` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-storage_usage",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_usage",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 13092 nearcore-accepted and 1737 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s0, d3c10/d3/00-h10004-s3, d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:storage_write` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-storage_write",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::storage_write",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1067 nearcore-accepted and 127 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10028-s0, d3c10/d3/00-h10034-s1, d3c10/mutants/02-h10036-s2-hdr.congestion.allowed_shard), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:used_gas` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-used_gas",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::used_gas",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 336 nearcore-accepted and 28 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10027-s0, d3c10/d3/00-h10047-s1, d3c10/mutants/00-h10161-s1-hdr.gas_limit), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:validator_stake` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-validator_stake",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::validator_stake",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 317 nearcore-accepted and 21 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10027-s0, d3c10/d3/00-h10081-s0, d3c10/mutants/02-h10040-s2-hdr.bandwidth_requests.add), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:validator_total_stake` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-validator_total_stake",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::validator_total_stake",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 5202 nearcore-accepted and 852 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s0, d3c10/d3/00-h10006-s2, d3c10/mutants/00-h10016-s1-w.drop_node.main.45), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:value_return` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-value_return",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::value_return",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
       "domain_guard": "none",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "evidence": "whole-chunk fixtures: 1037 nearcore-accepted and 91 nearcore-rejected cases exercise it (observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker; e.g. d3c10/d3/00-h10004-s3, d3c10/d3/00-h10015-s2, d3c10/mutants/01-h10038-s3-hdr.prev_outcome_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=host:write_register` (the arm burns 1 extra gas before it runs) in the control build: 12 of 16 replayed exercising cases disagree with the expected verdict (unablated: 16/16 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
       "family": "host",
       "id": "L0-host-write_register",
       "lean_path_symbol": "NearSpecV3.Wasm.Host.dispatch",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::write_register",
       "owner": "L4",
-      "remaining_work": "host gas/return behaviour not differentially tested in this lane",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "generated comparisons per opcode family",
@@ -2347,7 +2347,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation.rs:369-371 (blocks_after_last_last_chunk non-empty)",
       "owner": "L0",
-      "remaining_work": "none",
+      "remaining_work": "none; L0 row validation (2026-10-31): removing the guard leaves every deciding mutant rejected by a later guard (verdict-redundant), so no verdict-level breakage control detects it (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -2361,7 +2361,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "spec/claim-v3.md \u00a72.2 (epoch table strictly ascending)",
       "owner": "L0",
-      "remaining_work": "none",
+      "remaining_work": "none; L0 row validation (2026-10-31): removing the guard leaves every deciding mutant rejected by a later guard (verdict-redundant), so no verdict-level breakage control detects it (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -2396,15 +2396,15 @@
       "acceptance_tests": "directed pv mismatch",
       "dependencies": "",
       "domain_guard": "epoch record pv = claim pv",
-      "evidence": "D2:137-138",
+      "evidence": "whole-chunk fixtures: 12 claim mutants rejected first by this guard (claim-v3 discipline) (claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard; e.g. l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.epoch_record_pv, l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.epoch_record_pv), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=guard:invalid: epoch table does not match epoch_id / protocol_version` (the failing check passes) in the control build: 12 of 12 replayed exercising cases disagree with the expected verdict (unablated: 12/12 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: D2:137-138",
       "family": "d2-core",
       "id": "L0-D2-010",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:137",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "spec/claim-v3.md \u00a72.2",
       "owner": "L0",
-      "remaining_work": "none",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "directed segment spanning a PV85->86 activation",
@@ -2480,29 +2480,29 @@
       "acceptance_tests": "directed length mutant",
       "dependencies": "",
       "domain_guard": "epoch_start_after length",
-      "evidence": "D2:145",
+      "evidence": "whole-chunk fixtures: 12 claim mutants rejected first by this guard (claim-v3 discipline) (claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard; e.g. l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.esa_extra_flag, l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.esa_extra_flag), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=guard:invalid: epoch_start_after length` (the failing check passes) in the control build: 12 of 12 replayed exercising cases disagree with the expected verdict (unablated: 12/12 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: D2:145",
       "family": "d2-core",
       "id": "L0-D2-016",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:145",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "spec/claim-v3.md \u00a72.2 (one flag per block)",
       "owner": "L0",
-      "remaining_work": "none",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "directed flag=2",
       "dependencies": "",
       "domain_guard": "epoch_start_after flag 0/1",
-      "evidence": "D2:146 `all (\u00b7.toNat \u2264 1)`",
+      "evidence": "whole-chunk fixtures: 12 claim mutants rejected first by this guard (claim-v3 discipline) (claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard; e.g. l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.esa_flag2, l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.esa_flag2), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=guard:invalid: epoch_start_after flag` (the failing check passes) in the control build: 12 of 12 replayed exercising cases disagree with the expected verdict (unablated: 12/12 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: D2:146 `all (\u00b7.toNat \u2264 1)`",
       "family": "d2-core",
       "id": "L0-D2-017",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:146",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "spec/claim-v3.md \u00a72.2",
       "owner": "L0",
-      "remaining_work": "none",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "mutant `c.epoch_start_flip.reject` (131)",
@@ -2557,7 +2557,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation.rs:144-253 (walk starts at prev block)",
       "owner": "L0",
-      "remaining_work": "none",
+      "remaining_work": "none; L0 row validation (2026-10-31): removing the guard leaves every deciding mutant rejected by a later guard (verdict-redundant), so no verdict-level breakage control detects it (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -2571,7 +2571,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation.rs:229-243 (walk follows prev_hash)",
       "owner": "L0",
-      "remaining_work": "none",
+      "remaining_work": "none; L0 row validation (2026-10-31): removing the guard leaves every deciding mutant rejected by a later guard (verdict-redundant), so no verdict-level breakage control detects it (docs/evidence/lean-chunk-completion/l0-row-validation/README.md)",
       "status": "implemented"
     },
     {
@@ -2648,15 +2648,15 @@
       "acceptance_tests": "directed Some on non-genesis B2",
       "dependencies": "",
       "domain_guard": "genesis_chunk_extra for non-genesis",
-      "evidence": "D2:177 `c.genesisChunkExtra.isNone`",
+      "evidence": "whole-chunk fixtures: 12 claim mutants rejected first by this guard (claim-v3 discipline) (claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard; e.g. l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.genesis_extra_some, l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.genesis_extra_some), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=guard:invalid: genesis_chunk_extra for a non-genesis main block` (the failing check passes) in the control build: 12 of 12 replayed exercising cases disagree with the expected verdict (unablated: 12/12 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: D2:177 `c.genesisChunkExtra.isNone`",
       "family": "d2-core",
       "id": "L0-D2-028",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:177",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "claim-v3 T14 (genesis_chunk_extra Some iff B2 genesis)",
       "owner": "L0",
-      "remaining_work": "none",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "mutants c.drop_last_block/c.extra_block",
@@ -2676,29 +2676,29 @@
       "acceptance_tests": "directed wrong apply_facts length",
       "dependencies": "",
       "domain_guard": "apply_facts length",
-      "evidence": "D2:184",
+      "evidence": "whole-chunk fixtures: 12 claim mutants rejected first by this guard (claim-v3 discipline) (claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard; e.g. l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.apply_facts_extra, l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.apply_facts_extra), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=guard:invalid: apply_facts length` (the failing check passes) in the control build: 12 of 12 replayed exercising cases disagree with the expected verdict (unablated: 12/12 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: D2:184",
       "family": "d2-core",
       "id": "L0-D2-030",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:184",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "spec/claim-v3.md \u00a72.3 (one ApplyFacts per applied block)",
       "owner": "L0",
-      "remaining_work": "none",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "directed missing/extra validator_update",
       "dependencies": "",
       "domain_guard": "validator_update presence",
-      "evidence": "D2:186-189",
+      "evidence": "whole-chunk fixtures: 12 claim mutants rejected first by this guard (claim-v3 discipline) (claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard; e.g. l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.validator_update_toggle, l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.validator_update_toggle), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=guard:invalid: validator_update does not match the epoch start` (the failing check passes) in the control build: 12 of 12 replayed exercising cases disagree with the expected verdict (unablated: 12/12 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: D2:186-189",
       "family": "d2-core",
       "id": "L0-D2-031",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:186-189",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "claim-v3 T10 (validator_update Some iff epoch start)",
       "owner": "L0",
-      "remaining_work": "none",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "mutants w.corrupt_proof/w.drop_proof/w.extra_proof",
@@ -2774,15 +2774,15 @@
       "acceptance_tests": "mutant t.tx_valid_flip 261",
       "dependencies": "",
       "domain_guard": "tx_valid length",
-      "evidence": "D2:217",
+      "evidence": "whole-chunk fixtures: 12 claim mutants rejected first by this guard (claim-v3 discipline) (claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard; e.g. l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.tx_valid_extra, l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.tx_valid_extra), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=guard:invalid: tx_valid length` (the failing check passes) in the control build: 12 of 12 replayed exercising cases disagree with the expected verdict (unablated: 12/12 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: D2:217",
       "family": "d2-core",
       "id": "L0-D2-037",
       "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:217",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "claim-v3 T13 (tx_valid length)",
       "owner": "L0",
-      "remaining_work": "none",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures",
+      "status": "validated"
     },
     {
       "acceptance_tests": "directed numShards/epoch outside scheduler table",

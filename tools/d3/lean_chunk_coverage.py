@@ -223,6 +223,72 @@ def _validated(repo, key):
             f"Lean: {e['lean']}. Evidence: {', '.join(e['paths'])}")
 
 
+# --- Per-row evidence (L0 row validation, 2026-10-31) --------------------------------------
+# `l0-row-validation/rows.json` is written by `tools/d3/l0_exercise.py evidence`. For one row it
+# records the exercising whole-chunk cases (from the observation trace of the control build, each
+# judged by cold pinned nearcore or, for claim mutants, by the claim-v3 discipline) and a per-row
+# breakage control (`NEARSPEC_ABLATE=<target>` in the control build, replayed through the
+# repository's comparator). A row is promoted only when (i) the derived surface already made it
+# `implemented`, (ii) the entry has at least ROW_MIN_ACCEPT nearcore-accepted and ROW_MIN_REJECT
+# nearcore-rejected exercising cases (guards: deciding rejects only), (iii) the unablated replay of
+# the control cases passes and (iv) the ablated replay has at least one disagreement.
+ROW_EVIDENCE_DIR = EV + "l0-row-validation/"
+ROW_EVIDENCE = ROW_EVIDENCE_DIR + "rows.json"
+ROW_MIN_ACCEPT = {"host": 1, "action": 1, "d2-core": 0}
+ROW_MIN_REJECT = {"host": 1, "action": 1, "d2-core": 1}
+_ROW_CACHE = {}
+
+
+def _row_evidence(repo):
+    key = str(repo)
+    if key not in _ROW_CACHE:
+        p = Path(repo) / ROW_EVIDENCE
+        _ROW_CACHE[key] = json.loads(p.read_text())["rows"] if p.exists() else {}
+    return _ROW_CACHE[key]
+
+
+def promote_row(repo, r):
+    """Apply a per-row evidence entry to an `implemented` row (see the rules above)."""
+    e = _row_evidence(repo).get(r["id"])
+    if r["status"] != "implemented" or r["family"] not in ROW_MIN_REJECT:
+        return r
+    if e is None:
+        if r["family"] != "host" or not _row_evidence(repo):
+            return r
+        return dict(r, remaining_work=r["remaining_work"] + "; L0 row validation (2026-10-31): no case "
+                    "of its populations calls this host, so a cold-judged scenario contract is needed "
+                    f"({ROW_EVIDENCE_DIR}README.md)")
+    paths = [ROW_EVIDENCE_DIR + "README.md", ROW_EVIDENCE, "tools/d3/l0_ctl_patch.py",
+             "tools/d3/l0_exercise.py"] + e.get("paths", [])
+    missing = [p for p in paths if not (Path(repo) / p).exists()]
+    if missing:
+        raise ValueError(f"row evidence for {r['id']} is missing: {missing}")
+    ex, ctl = e["exercising"], e["control"]
+    fam = r["family"]
+    if not (ex["nearcore_accept"] >= ROW_MIN_ACCEPT[fam] and ex["nearcore_reject"] >= ROW_MIN_REJECT[fam]
+            and ctl["baseline"] == "pass" and ctl["ablated_disagreements"] >= 1):
+        why = ("removing the guard leaves every deciding mutant rejected by a later guard "
+               "(verdict-redundant), so no verdict-level breakage control detects it"
+               if ctl["ablated_disagreements"] == 0 else
+               "positive chunks and a detecting control, but no nearcore-rejected exercising chunk")
+        return dict(r, remaining_work=r["remaining_work"] + f"; L0 row validation (2026-10-31): {why} "
+                    f"({ROW_EVIDENCE_DIR}README.md)")
+    out = dict(r)
+    out["status"] = "validated"
+    out["evidence"] = (
+        (f"whole-chunk fixtures: {ex['nearcore_reject']} claim mutants rejected first by this guard "
+         f"(claim-v3 discipline) " if fam == "d2-core" else
+         f"whole-chunk fixtures: {ex['nearcore_accept']} nearcore-accepted and {ex['nearcore_reject']} "
+         f"nearcore-rejected cases exercise it ") +
+        f"({ex['source']}; e.g. {', '.join(ex['examples'][:3])}), "
+        f"0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE={ctl['target']}` "
+        f"({ctl['what']}) in the control build: {ctl['ablated_disagreements']} of {ctl['cases']} "
+        f"replayed exercising cases disagree with the expected verdict (unablated: "
+        f"{ctl['cases']}/{ctl['cases']} agree). Evidence: {', '.join(paths[:2])} | earlier record: {r['evidence']}")
+    out["remaining_work"] = e.get("remaining", "none on allFeatures")
+    return out
+
+
 # --- L4: the three global-contract actions (tags 9/10/11) ---------------------------------
 # The signed tier's decoder (`D2.pBase`) still rejects them; the successor decoder
 # (`Successor/GlobalCodecs.lean` `pBaseGlobal`) decodes them and `allFeatures` executes them
@@ -1009,6 +1075,7 @@ def inventory(repo, nearcore):
     extra = _l0_supplement()
     existing_ids = {r["id"] for r in rows}
     rows.extend(reconcile_l0(repo, sf, r) for r in extra["rows"] if r["id"] not in existing_ids)
+    rows = [promote_row(repo, r) for r in rows]
     ids = [r["id"] for r in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("duplicate coverage row id")
