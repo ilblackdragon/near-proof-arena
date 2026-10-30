@@ -18,3 +18,7 @@ root = "ArcProbe"
 [[lean_exe]]
 name = "arcprobe-old"
 root = "ArcProbeOld"
+
+[[lean_exe]]
+name = "arcprobe-broken"
+root = "ArcProbeBroken"

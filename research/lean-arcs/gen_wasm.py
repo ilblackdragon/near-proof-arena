@@ -95,6 +95,21 @@ def midrun(n):
     code = LOOP + BLOCK + b"\x41\x01" + b"\x0d\x00" + END + (BLOCK + END) * n + BR + b"\x00" + END
     return mod([body0(code)], [("run", 0)])
 
+def memoctl(depth=20):
+    # breakage control for the label memo (ArcProbeBroken.lean): g() = block(i32) [block]^depth
+    # i32.const 7 br depth end^depth end; run() checks call g + 100 + call g == 114, else traps.
+    # The second call of g runs at value-stack height 2, so its `br` labels differ in their heights.
+    g = leb(0) + b"\x02\x7f" + BLOCK * depth + b"\x41\x07" + BR + leb(depth) + END * depth + b"\x00" + END + END
+    run = leb(0) + (b"\x10\x00" + b"\x41\xe4\x00" + b"\x10\x00" + b"\x6a\x6a"
+                    + b"\x41\xf2\x00" + b"\x47" + b"\x04\x40\x00\x0b") + END
+    secs = []
+    secs.append(section(1, vec([b"\x60\x00\x01\x7f", b"\x60\x00\x00"])))
+    secs.append(section(3, vec([leb(0), leb(1)])))
+    secs.append(section(5, vec([b"\x00\x01"])))
+    secs.append(section(7, vec([leb(3) + b"run" + b"\x00" + leb(1)])))
+    secs.append(section(10, vec([leb(len(b)) + b for b in [g, run]])))
+    return b"\x00asm\x01\x00\x00\x00" + b"".join(secs)
+
 if __name__ == "__main__":
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "mods")
@@ -111,6 +126,7 @@ if __name__ == "__main__":
         ("pushpop4999.wasm", pushpop(4999)),
         ("brif4999.wasm", brif(4999)),
         ("midrun4998.wasm", midrun(4998)),
+        ("memoctl.wasm", memoctl()),
     ]:
         with open(os.path.join(out, name), "wb") as f:
             f.write(b)
