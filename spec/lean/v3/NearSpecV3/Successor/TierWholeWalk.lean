@@ -19,7 +19,7 @@ theorem unmodeledHandler_ex (e : String) (he : isExclusion e = true) (r : Record
   · exact ⟨_, rfl, he⟩
 
 syntax "rk_close" : tactic
-macro_rules | `(tactic| rk_close) => `(tactic| exact (‹RecRefine _ _› _ _ _ _))
+macro_rules | `(tactic| rk_close) => `(tactic| exact (‹RecRefine _ _ _ _ _ _› _ _ _ _ (by assumption)))
 
 macro "rec_lockstep" : tactic => `(tactic|
   repeat (first
@@ -36,20 +36,20 @@ macro "rec_lockstep" : tactic => `(tactic|
     | (refine MRef.ite_congr _ (fun _ => ?_) (fun _ => ?_))
     | (split <;> (rename_i hsplit; (try simp only [hsplit]); (try dsimp only)))))
 
-theorem applyAction_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (c : ActCtx) (st : ActSt)
-    (a : Act) : MRef (StorageExecution.applyAction cfg c st a) (StorageExecution.applyAction cfg' c st a) := by
+theorem applyAction_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (c : ActCtx) (st : ActSt)
+    (a : Act) (hP : P c.env) : MRef (StorageExecution.applyAction ⟨ga, p⟩ cfg c st a) (StorageExecution.applyAction ⟨ga, p'⟩ cfg' c st a) := by
   unfold StorageExecution.applyAction
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact applyAction_rec_mono ‹_› _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact applyAction_rec_mono ‹_› _ _ _ (by assumption))
 
-theorem actionLoop_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env) (r : Rcpt)
+theorem actionLoop_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env) (r : Rcpt)
     (a : ActionR) (inputs : List (Option Bytes)) (deployed attempted : List Bytes) (i : Nat)
-    (acts : List Act) (acc : ActSt × AR) :
-    MRef (StorageExecution.actionLoop cfg env r a inputs deployed attempted i acts acc)
-      (StorageExecution.actionLoop cfg' env r a inputs deployed attempted i acts acc) := by
+    (acts : List Act) (acc : ActSt × AR) (hP : P env) :
+    MRef (StorageExecution.actionLoop ⟨ga, p⟩ cfg env r a inputs deployed attempted i acts acc)
+      (StorageExecution.actionLoop ⟨ga, p'⟩ cfg' env r a inputs deployed attempted i acts acc) := by
   induction acts generalizing i acc with
   | nil => exact MRef.refl _
   | cons act rest ih =>
@@ -59,44 +59,44 @@ theorem actionLoop_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env 
     all_goals rec_lockstep
     all_goals first | exact ih _ _ | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact actionLoop_rec_mono ‹_› _ _ _ _ _ _ _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact actionLoop_rec_mono ‹_› _ _ _ _ _ _ _ _ _ (by assumption))
 
-theorem applyActionReceipt_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (rs : RS) (r : Rcpt) (a : ActionR) :
-    MRef (StorageExecution.applyActionReceipt cfg env rs r a)
-      (StorageExecution.applyActionReceipt cfg' env rs r a) := by
+theorem applyActionReceipt_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (rs : RS) (r : Rcpt) (a : ActionR) (hP : P env) :
+    MRef (StorageExecution.applyActionReceipt ⟨ga, p⟩ cfg env rs r a)
+      (StorageExecution.applyActionReceipt ⟨ga, p'⟩ cfg' env rs r a) := by
   unfold StorageExecution.applyActionReceipt
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact applyActionReceipt_rec_mono ‹_› _ _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact applyActionReceipt_rec_mono ‹_› _ _ _ _ (by assumption))
 
-theorem processReceipt_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (rs : RS) (r : Rcpt) :
-    MRef (StorageExecution.processReceipt cfg env rs r) (StorageExecution.processReceipt cfg' env rs r) := by
+theorem processReceipt_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (rs : RS) (r : Rcpt) (hP : P env) :
+    MRef (StorageExecution.processReceipt ⟨ga, p⟩ cfg env rs r) (StorageExecution.processReceipt ⟨ga, p'⟩ cfg' env rs r) := by
   unfold StorageExecution.processReceipt
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processReceipt_rec_mono ‹_› _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processReceipt_rec_mono ‹_› _ _ _ (by assumption))
 
-theorem processWithTotals_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (rs : RS) (r : Rcpt) :
-    MRef (StorageExecution.processWithTotals cfg env rs r)
-      (StorageExecution.processWithTotals cfg' env rs r) := by
+theorem processWithTotals_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (rs : RS) (r : Rcpt) (hP : P env) :
+    MRef (StorageExecution.processWithTotals ⟨ga, p⟩ cfg env rs r)
+      (StorageExecution.processWithTotals ⟨ga, p'⟩ cfg' env rs r) := by
   unfold StorageExecution.processWithTotals
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processWithTotals_rec_mono ‹_› _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processWithTotals_rec_mono ‹_› _ _ _ (by assumption))
 
-theorem processWithInstant_drain_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (fuel : Nat) (rs : RS) :
-    MRef (StorageExecution.processWithInstant.drain cfg env fuel rs)
-      (StorageExecution.processWithInstant.drain cfg' env fuel rs) := by
+theorem processWithInstant_drain_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (fuel : Nat) (rs : RS) (hP : P env) :
+    MRef (StorageExecution.processWithInstant.drain ⟨ga, p⟩ cfg env fuel rs)
+      (StorageExecution.processWithInstant.drain ⟨ga, p'⟩ cfg' env fuel rs) := by
   induction fuel generalizing rs with
   | zero => exact MRef.refl _
   | succ n ih =>
@@ -105,31 +105,31 @@ theorem processWithInstant_drain_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine c
     all_goals rec_lockstep
     all_goals first | exact ih _ | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processWithInstant_drain_rec_mono ‹_› _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processWithInstant_drain_rec_mono ‹_› _ _ _ (by assumption))
 
-theorem processWithInstant_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (rs : RS) (r : Rcpt) :
-    MRef (StorageExecution.processWithInstant cfg env rs r)
-      (StorageExecution.processWithInstant cfg' env rs r) := by
+theorem processWithInstant_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (rs : RS) (r : Rcpt) (hP : P env) :
+    MRef (StorageExecution.processWithInstant ⟨ga, p⟩ cfg env rs r)
+      (StorageExecution.processWithInstant ⟨ga, p'⟩ cfg' env rs r) := by
   unfold StorageExecution.processWithInstant
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processWithInstant_rec_mono ‹_› _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processWithInstant_rec_mono ‹_› _ _ _ (by assumption))
 
-theorem processLocals_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (rs : RS) (l : List Rcpt) :
-    MRef (StorageExecution.processLocals cfg env rs l) (StorageExecution.processLocals cfg' env rs l) := by
+theorem processLocals_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (rs : RS) (l : List Rcpt) (hP : P env) :
+    MRef (StorageExecution.processLocals ⟨ga, p⟩ cfg env rs l) (StorageExecution.processLocals ⟨ga, p'⟩ cfg' env rs l) := by
   unfold StorageExecution.processLocals
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-theorem processDelayedLoop_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (fuel : Nat) (rs : RS) :
-    MRef (StorageExecution.processDelayedLoop cfg env fuel rs)
-      (StorageExecution.processDelayedLoop cfg' env fuel rs) := by
+theorem processDelayedLoop_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (fuel : Nat) (rs : RS) (hP : P env) :
+    MRef (StorageExecution.processDelayedLoop ⟨ga, p⟩ cfg env fuel rs)
+      (StorageExecution.processDelayedLoop ⟨ga, p'⟩ cfg' env fuel rs) := by
   induction fuel generalizing rs with
   | zero => exact MRef.refl _
   | succ n ih =>
@@ -138,35 +138,35 @@ theorem processDelayedLoop_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg
     all_goals rec_lockstep
     all_goals first | exact ih _ | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processDelayedLoop_rec_mono ‹_› _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processDelayedLoop_rec_mono ‹_› _ _ _ (by assumption))
 
-theorem processDelayed_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (fuel : Nat) (rs : RS) :
-    MRef (StorageExecution.processDelayed cfg env fuel rs)
-      (StorageExecution.processDelayed cfg' env fuel rs) := by
+theorem processDelayed_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (fuel : Nat) (rs : RS) (hP : P env) :
+    MRef (StorageExecution.processDelayed ⟨ga, p⟩ cfg env fuel rs)
+      (StorageExecution.processDelayed ⟨ga, p'⟩ cfg' env fuel rs) := by
   unfold StorageExecution.processDelayed
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-theorem processIncoming_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (env : Env)
-    (rs : RS) (l : List Rcpt) :
-    MRef (StorageExecution.processIncoming cfg env rs l)
-      (StorageExecution.processIncoming cfg' env rs l) := by
+theorem processIncoming_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (env : Env)
+    (rs : RS) (l : List Rcpt) (hP : P env) :
+    MRef (StorageExecution.processIncoming ⟨ga, p⟩ cfg env rs l)
+      (StorageExecution.processIncoming ⟨ga, p'⟩ cfg' env rs l) := by
   unfold StorageExecution.processIncoming
   rec_lockstep
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processLocals_rec_mono ‹_› _ _ _)
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processDelayed_rec_mono ‹_› _ _ _)
-macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processIncoming_rec_mono ‹_› _ _ _)
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processLocals_rec_mono ‹_› _ _ _ (by assumption))
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processDelayed_rec_mono ‹_› _ _ _ (by assumption))
+macro_rules | `(tactic| rk_close) => `(tactic| with_reducible exact processIncoming_rec_mono ‹_› _ _ _ (by assumption))
 
-theorem applyNewChunkD2_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (prims : Prims)
+theorem applyNewChunkD2_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg') (prims : Prims)
     (env : Env) (t : PTrie) (vu : Option ValidatorUpdateFacts) (lastProps : List (Bytes × Nat))
-    (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (ownCong : Congestion) :
-    MRef (StorageExecution.applyNewChunkD2 cfg prims env t vu lastProps incoming txs ownCong)
-      (StorageExecution.applyNewChunkD2 cfg' prims env t vu lastProps incoming txs ownCong) := by
+    (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (ownCong : Congestion) (hP : P env) :
+    MRef (StorageExecution.applyNewChunkD2 ⟨ga, p⟩ cfg prims env t vu lastProps incoming txs ownCong)
+      (StorageExecution.applyNewChunkD2 ⟨ga, p'⟩ cfg' prims env t vu lastProps incoming txs ownCong) := by
   unfold StorageExecution.applyNewChunkD2
   rec_lockstep
   all_goals rec_lockstep
@@ -174,15 +174,15 @@ theorem applyNewChunkD2_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') 
 
 /-- **The recorder engine is monotone in its recorded call** (at equal observation settings: the
 W01 `observeDetail` flag seeds the engine's state and is read by no check). -/
-theorem run_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg')
+theorem run_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {cfg cfg' : NearCfg} (hh : RecRefine P ga p cfg p' cfg')
     (ho : cfg.observeDetail = cfg'.observeDetail) (prims : Prims) (env : Env)
     (t : PTrie) (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat)) (incoming : List Rcpt)
-    (txs : List (TxD2 × Bool)) (congestion : Congestion) (globals : Bool) (policy : CodeWitnessPolicy) :
-    Refines (StorageExecution.run cfg prims env t vu props incoming txs congestion globals policy)
-      (StorageExecution.run cfg' prims env t vu props incoming txs congestion globals policy) := by
+    (txs : List (TxD2 × Bool)) (congestion : Congestion) (hP : P env) :
+    Refines (StorageExecution.run cfg prims env t vu props incoming txs congestion ga p)
+      (StorageExecution.run cfg' prims env t vu props incoming txs congestion ga p') := by
   unfold StorageExecution.run
   rw [← ho]
-  exact Refines.map _ (applyNewChunkD2_rec_mono hh prims env t vu props incoming txs congestion _ env)
+  exact Refines.map _ (applyNewChunkD2_rec_mono hh prims env t vu props incoming txs congestion hP _ env)
 
 /-! ## Shells: monotone in the driver's main transition
 
@@ -255,14 +255,15 @@ theorem checkReshardCore_apply_mono (d : ExecutionDriver) (ap' : ApplyFn) (h h' 
 /-! ## Configuration level: the whole-state engine -/
 
 /-- The recorder engine's `apply` refines when its recorded calls do. -/
-theorem recorder_applyRefine {w w' : NearCfg} (hh : RecRefine w w')
-    (ho : w.observeDetail = w'.observeDetail) (g : Bool) (p : CodeWitnessPolicy)
-    (h h' : ActionHooks) :
+theorem recorder_applyRefine {w w' : NearCfg} (g : Bool) (p : CodeWitnessPolicy)
+    (hh : RecRefine (fun _ => True) g p w p w')
+    (ho : w.observeDetail = w'.observeDetail) (h h' : ActionHooks) :
     ApplyRefine (recorderDriver w g p).apply (recorderDriver w' g p).apply h h' :=
-  fun prims e t vu ps rs txs cg => run_rec_mono hh ho prims e t vu ps rs txs cg g p
+  fun prims e t vu ps rs txs cg => run_rec_mono hh ho prims e t vu ps rs txs cg trivial
 
-theorem recRefine_floats (w : NearCfg) : RecRefine w { w with floats := true } := by
-  refine recRefine_of_vmRel fun code => ?_
+theorem recRefine_floats (w : NearCfg) (P : Env → Prop) (ga : Bool) (p : CodeWitnessPolicy) :
+    RecRefine P ga p w p { w with floats := true } := by
+  refine recRefine_of_vmRel P ga p fun code => ?_
   rcases Wasm.prepare_floats w code true with hp | ⟨x, hp⟩
   · left
     refine ⟨?_, fun m ctx real => ?_⟩
@@ -287,9 +288,9 @@ theorem Lift.floats (cfg : ProtocolCfg) (hrh : cfg.reshardHandover = false) :
   case true =>
     rw [ProtocolCfg.floats_true_eq cfg hf]
     exact Refines.refl _
-  have hh : RecRefine cfg.wasm ({ cfg with floats := true } : ProtocolCfg).wasm := by
+  have hh : ∀ ga p, RecRefine (fun _ => True) ga p cfg.wasm p ({ cfg with floats := true } : ProtocolCfg).wasm := by
     rw [ProtocolCfg.wasm_floats cfg hf]
-    exact recRefine_floats _
+    exact recRefine_floats _ _
   have hk : HooksRefine (D3.d3Hooks cfg.wasm)
       (D3.d3Hooks ({ cfg with floats := true } : ProtocolCfg).wasm) := by
     rw [ProtocolCfg.wasm_floats cfg hf]
@@ -304,15 +305,15 @@ theorem Lift.floats (cfg : ProtocolCfg) (hrh : cfg.reshardHandover = false) :
   · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
     · cases rs
       · simp only [Bool.false_and, Bool.false_eq_true] at *
-      · exact checkReshardCore_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
+      · exact checkReshardCore_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono (hh _ _) rfl p e t vu ps rs txs cg trivial) _ _ _ _
     · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
       · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
         · cases rs
-          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
-          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
+          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono (hh _ _) rfl p e t vu ps rs txs cg trivial) _ _ _ _
+          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono (hh _ _) rfl p e t vu ps rs txs cg trivial) _ _ _ _
         · cases rs
-          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
-          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
+          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono (hh _ _) rfl p e t vu ps rs txs cg trivial) _ _ _ _
+          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono (hh _ _) rfl p e t vu ps rs txs cg trivial) _ _ _ _
       · exact Refines.ite_congr _ (fun _ => checkD2CoreG_hooks_mono hk _ _ _ _)
           (fun _ => checkD2Core_hooks_mono hk _ _ _ _)
   · exact Refines.refl _

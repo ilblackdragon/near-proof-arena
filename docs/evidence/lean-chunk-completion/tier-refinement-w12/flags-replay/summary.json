@@ -1,0 +1,62 @@
+{
+ "fx-signed": {
+  "cases": 577,
+  "identical": 577,
+  "changed": 0,
+  "verdicts": {
+   "out_of_domain": 268,
+   "reject": 166,
+   "accept": 143
+  }
+ },
+ "fx-allFeatures": {
+  "cases": 577,
+  "identical": 577,
+  "changed": 0,
+  "verdicts": {
+   "accept": 402,
+   "reject": 175
+  }
+ },
+ "fx-globalActions": {
+  "cases": 577,
+  "identical": 577,
+  "changed": 0,
+  "verdicts": {
+   "out_of_domain": 157,
+   "reject": 141,
+   "accept": 279
+  }
+ },
+ "fx-completeCodeGlobal": {
+  "cases": 577,
+  "identical": 577,
+  "changed": 0,
+  "verdicts": {
+   "out_of_domain": 157,
+   "reject": 141,
+   "accept": 279
+  }
+ },
+ "census-allFeatures": {
+  "cases": 3138,
+  "identical": 3138,
+  "changed": 0,
+  "verdicts": {
+   "accept": 3138
+  }
+ },
+ "census-signed": {
+  "cases": 3138,
+  "identical": 3138,
+  "changed": 0,
+  "verdicts": {
+   "out_of_domain": 2403,
+   "accept": 735
+  }
+ },
+ "checker_sha256": {
+  "before": "197e28fecce08627d0aea0853fe56b454c4b4521176888b2436fd263fa8c2d09",
+  "after": "54b8a1176622098260758a00203761b4493bc54d162de2bac2f452042230d622"
+ }
+}

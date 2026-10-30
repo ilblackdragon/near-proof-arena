@@ -22,7 +22,9 @@ open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Logged NearSpecV3.Wasm NearSpe
 
 /-- `functionCallRecordedF` with its configuration-dependent calls as parameters
 (`functionCallRecorded_eq_with` is `rfl`). -/
-def functionCallRecordedWith (ood : ByteArray → Option String)
+def functionCallRecordedWith (ga : Bool)
+    (res : List Bytes → List Bytes → List Bytes → PrestateCode → Bytes → Bool → Except String Bytes)
+    (ood : ByteArray → Option String)
     (vm : ByteArray → String → CallCtx → TTN.RealStore → Except String Run)
     (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) : M (ActSt × AR) := do
   let .fcall method args gas deposit := b | throw "unmodeled: functionCall hook on a non-FunctionCall"
@@ -46,11 +48,8 @@ def functionCallRecordedWith (ood : ByteArray → Option String)
   -- complete-code policy consults it.
   let recording ← get
   let pre := prestateCode st.o.trie codeKey
-  let sources : CodeSources := {
-    witness := env.codeOf, current := st.deploys,
-    committed := c.deployed ++ recording.materialized, attempted := c.attempted }
   let timely := recording.pipe.deterministic c.r.rid c.idx hh
-  let code ← liftE (resolveCodeBytes recording.codePolicy sources pre hh timely)
+  let code ← liftE (res st.deploys (c.deployed ++ recording.materialized) c.attempted pre hh timely)
   let codeB := toBA code
   if let some why := ood codeB then throw (oodE why)
   -- VMContext (§3)
@@ -106,7 +105,7 @@ def functionCallRecordedWith (ood : ByteArray → Option String)
     let burnt := s.gas.burnt
     let logs := s.logs.toList.map ofBA
     -- receipts + gas distribution (only for VM-produced outcomes, §5.5)
-    let (rs, idx, resumes) ← liftE ((if recording.globalActions then managerGlobal else manager) s.actions ah h)
+    let (rs, idx, resumes) ← liftE ((if ga then managerGlobal else manager) s.actions ah h)
     let (rs, extra) ← liftE (distribute rs gas s.gas.used)
     let used := s.gas.used + extra
     let ar1 := { ar with gasBurnt := ar.gasBurnt + burnt, gasFC := ar.gasFC + burnt,
@@ -133,7 +132,7 @@ def functionCallRecordedWith (ood : ByteArray → Option String)
       if next != yn then o := o.set kYieldIdx (encIndices yf next)
       let st := { st with o }
       let rcpts ← rs.toList.mapM fun m => do
-        let acts ← liftE ((if recording.globalActions then finishActsGlobal else finishActs) m)
+        let acts ← liftE ((if ga then finishActsGlobal else finishActs) m)
         pure (⟨c.r.recv, m.recv, zero32, .action m.yield ⟨true, a.signer, m.refundTo, a.signerPk,
           a.gasPrice, m.outputs, m.inputs, acts⟩⟩ : Rcpt)
       let rcpts := rcpts ++ resumes.map fun (d, p) =>
@@ -149,9 +148,15 @@ def functionCallRecordedWith (ood : ByteArray → Option String)
             { ar1 with newReceipts := ar1.newReceipts ++ rcpts, ret := ret,
                        subsidized := ar1.subsidized + s.subsidized })
 
-theorem functionCallRecorded_eq_with (cfg : NearCfg) :
-    functionCallRecorded cfg = functionCallRecordedWith (contractOOD cfg)
-      (fun code m ctx real => vmCall wasmFuel cfg code m ctx real) := rfl
+/-- The code resolution of the recorded call, its witness source fixed to the call's environment. -/
+def resOf (fl : Flags) (c : ActCtx) :
+    List Bytes → List Bytes → List Bytes → PrestateCode → Bytes → Bool → Except String Bytes :=
+  fun current committed attempted pre hash timely =>
+    resolveCodeBytes fl.codePolicy { witness := c.env.codeOf, current, committed, attempted } pre hash timely
+
+theorem functionCallRecorded_eq_with (fl : Flags) (cfg : NearCfg) (c : ActCtx) :
+    functionCallRecorded fl cfg c = functionCallRecordedWith fl.globalActions (resOf fl c) (contractOOD cfg)
+      (fun code m ctx real => vmCall wasmFuel cfg code m ctx real) c := rfl
 
 end NearSpecV3.Successor.StorageExecution
 
@@ -275,10 +280,12 @@ theorem VmRel.none {ood ood' : ByteArray → Option String}
   · exact ⟨e1.symm, fun m ctx real => (e2 m ctx real).symm⟩
   · exact (hn w hw).elim
 
-theorem functionCallRecordedWith_mono {ood ood' : ByteArray → Option String}
+theorem functionCallRecordedWith_mono (ga : Bool)
+    (res : List Bytes → List Bytes → List Bytes → PrestateCode → Bytes → Bool → Except String Bytes)
+    {ood ood' : ByteArray → Option String}
     {vm vm' : ByteArray → String → CallCtx → TTN.RealStore → Except String Run} (h : VmRel ood ood' vm vm')
     (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
-    MRef (functionCallRecordedWith ood vm c st ar b) (functionCallRecordedWith ood' vm' c st ar b) := by
+    MRef (functionCallRecordedWith ga res ood vm c st ar b) (functionCallRecordedWith ga res ood' vm' c st ar b) := by
   unfold functionCallRecordedWith
   repeat (first
     | (with_reducible exact MRef.refl _)
@@ -294,17 +301,21 @@ theorem functionCallRecordedWith_mono {ood ood' : ByteArray → Option String}
     | (split <;> (rename_i hsplit; (try simp only [hsplit]); (try dsimp only))))
   all_goals exact MRef.refl _
 
-/-- The hypothesis every walk lemma below carries: the two configurations' recorded calls refine. -/
-def RecRefine (cfg cfg' : NearCfg) : Prop :=
-  ∀ c st ar b, MRef (functionCallRecorded cfg c st ar b) (functionCallRecorded cfg' c st ar b)
+/-- The hypothesis every walk lemma below carries: the two runs' recorded calls refine, on every
+call whose environment satisfies `P`. The two runs share `globalActions` (`ga`) and may differ in
+the Wasm configuration and the code policy. -/
+def RecRefine (P : Env → Prop) (ga : Bool) (p : CodeWitnessPolicy) (cfg : NearCfg)
+    (p' : CodeWitnessPolicy) (cfg' : NearCfg) : Prop :=
+  ∀ c st ar b, P c.env →
+    MRef (functionCallRecorded ⟨ga, p⟩ cfg c st ar b) (functionCallRecorded ⟨ga, p'⟩ cfg' c st ar b)
 
-theorem recRefine_of_vmRel {cfg cfg' : NearCfg}
+theorem recRefine_of_vmRel {cfg cfg' : NearCfg} (P : Env → Prop) (ga : Bool) (p : CodeWitnessPolicy)
     (h : VmRel (D3.contractOOD cfg) (D3.contractOOD cfg')
       (fun code m ctx real => vmCall wasmFuel cfg code m ctx real)
       (fun code m ctx real => vmCall wasmFuel cfg' code m ctx real)) :
-    RecRefine cfg cfg' := by
-  intro c st ar b
+    RecRefine P ga p cfg p cfg' := by
+  intro c st ar b _
   rw [functionCallRecorded_eq_with, functionCallRecorded_eq_with]
-  exact functionCallRecordedWith_mono h c st ar b
+  exact functionCallRecordedWith_mono ga _ h c st ar b
 
 end NearSpecV3.Successor

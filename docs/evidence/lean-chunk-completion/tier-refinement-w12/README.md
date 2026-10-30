@@ -5,7 +5,8 @@ default `lake build` target (`lakefile.toml`) and imports the other two. No `sor
 audit (`#print axioms` from the build log) is in `axioms.txt`: only `propext`, `Classical.choice`,
 `Quot.sound`. Build log excerpt: `build.log`.
 
-**No definition was changed and no verdict can move.** The new files add theorems and two
+**No definition was changed and no verdict can move** (first session; the second session's flag
+refactor of `StorageExecution` is proved equal to the old engine and measured, §6). The new files add theorems and two
 helper definitions, `Wasm.earlyPassWith` and `D3.functionCallWith`. Each is a verbatim copy of an
 existing body with its configuration-dependent calls taken as parameters. `earlyPass_eq_with` and
 `functionCall_eq_with` prove they equal the originals by `rfl`, so a drift breaks the build. The
@@ -26,11 +27,11 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 |---|---|---|---|
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | open | — |
-| O3 | global actions | open (unchanged: the routing part in `TierMono.lean`) | — |
+| O3 | global actions | open. The recorder-state part is now a parameter (`Flags.globalActions`, §6); the codec, manager, queue-policy and interpreter-flag agreements remain (§6) | routing part only: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
 | O4 | storage resolution | open | — |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | open | — |
-| O7 | complete-code witness | open. `completeCodeGlobal` still refines no tier. The race arm is **fixed** (2026-10-30, `pipeline-race-fixtures/`); the rest is W08's policy plus a state-relating walk (§5) | `complete_untimely_ood`, `complete_untimely_ood_example` |
+| O7 | complete-code witness | **proved at chunk level** (2026-10-30, §6): on every whole-state configuration the complete-code flag moves no verdict, in either direction | `Lift.completeCode`, `relSuccessor_completeCodeGlobal_globalActions`, `relSuccessor_globalActions_completeCodeGlobal` (`TierO7.lean`) |
 
 ### O1, the proof chain
 
@@ -196,3 +197,95 @@ obligations need more:
   * an accept-preservation walk with states that differ in `Recording.codePolicy`. Its resolve-level
     step is proved: `complete_ok_coldPartial` (every `.complete` accept is a `.coldPartial` accept
     of the same bytes) and `complete_untimely_ood` (both policies exclude the race arm).
+
+## 6. Update 2026-10-30 (second session): flags as parameters, O7 at chunk level
+
+### The flag refactor (approved by the integrator)
+
+`Successor/StorageExecution.lean` (not a signed file) no longer keeps `globalActions` and
+`codePolicy` in its `Recording` state. They are a parameter, `StorageExecution.Flags`, threaded
+through the engine (`functionCallRecorded fl cfg …`, `applyAction fl cfg …`, …,
+`applyNewChunkD2 fl …`). Functions that only read `globalActions` take it as a `Bool`
+(`forwardOrBufferR ga …`, `decodeStoredRcptR ga …`, `pipeDecode ga`, …). `run` keeps its signature
+and builds the flags from its two arguments.
+
+**Equality with the pre-refactor engine (proved).** `StorageExecutionOrig.lean` is the pre-refactor
+engine, verbatim except that its state type is `RecordingO` (the new `Recording` plus the two
+flags) and the pure helpers are shared. `TierFlagsEq.lean` proves
+`run_eq_orig : StorageExecution.run … = Orig.run …` for every input. The walk relates the two
+engines by `Sim fl xO xN` (from the old state `s.withF fl`, the old computation returns the new
+one's result, with the flags added back to the final state). The flags are never written, so every
+function of the engine closes (`Sim.functionCallRecordedF` … `Sim.applyNewChunkD2`). One engineering
+point: each `match` of the frozen copy elaborates to its own auxiliary constant. The tactic
+`orig_matchers` replaces each by the refactored side's auxiliary of the same type, after checking
+the two constants are definitionally equal (the kernel rechecks the change), so `split` cases both
+sides together. A second one: `applyActionReceipt`'s mutable variables elaborate to about ten nested join
+points (`have __do_jp := fun … => …`); zeta-reducing them duplicates the continuation into every
+branch, and the walk did not finish in 25 minutes. `sim_let` relates the two join points once
+(`∀ xs, Sim fl (jO xs) (jN xs)`) and walks the body with them abstract (`sim_walk_jp`); that proof
+checks in about 10 minutes, the whole module in about 15.
+
+**Verdicts (binary changed, so measured too).** Checker before (merge commit `eb057760e`) and after
+(this commit), `tools/d3/replay_successor.py`, per case verdict *and* reason:
+
+| population | tier | cases | identical | changed |
+|---|---|---|---|---|
+| 577 fixtures (`combined/fixtures.txt`) | signed | 577 | 577 | 0 |
+| 577 fixtures | allFeatures | 577 | 577 | 0 |
+| 577 fixtures | globalActions | 577 | 577 | 0 |
+| 577 fixtures | completeCodeGlobal | 577 | 577 | 0 |
+| 3,138 gap census | allFeatures | 3,138 | 3,138 | 0 |
+| 3,138 gap census | signed | 3,138 | 3,138 | 0 |
+
+Verdict counts (after): fixtures signed 143 accept / 166 reject / 268 out of domain; allFeatures
+402 / 175 / 0; globalActions and completeCodeGlobal 279 / 141 / 157 each; census allFeatures
+3,138 accept; census signed 735 accept / 2,403 out of domain. Checker SHA-256: before
+`197e28fe…`, after `54b8a117…` (before any later commit of this lane; the Lean-only proof modules do
+not enter the binary). Per-case results: `flags-replay/`. No verdict and no reason
+moved, so no fixture family, breakage control or before/after table beyond this one is needed: the
+refactor is not a semantic change (`run_eq_orig`).
+
+### O7 at chunk level (proved)
+
+With the policy a parameter, the existing recorder-engine walk (`run_rec_mono`, `TierWholeWalk.lean`)
+applies. It was generalised: `RecRefine P ga p cfg p' cfg'` relates the recorded calls of two runs
+that share `globalActions` and may differ in the Wasm configuration and the code policy, on calls
+whose environment satisfies `P`; every walk lemma carries `P env`. O1 (`Lift.floats`) is the instance
+`P := True`, `p = p'`.
+
+* `resOf_policy_eq`, `functionCallRecorded_policy_eq`: on a content-addressed store
+  (`StoreAuth e := e.store.Auth`) the two policies resolve every call the same way
+  (`complete_eq_cold`), so the recorded calls are equal.
+* `run_policy_mono`: the engine at one policy refines the engine at the other, on such stores.
+* `checkD2CoreWithObsA_apply_mono`, `checkD2CoreGWithA_apply_mono`, `checkReshardCoreObsA_apply_mono`:
+  the shells refine under `ApplyRefineA` (refinement of `apply` on authenticated stores only). Every
+  shell builds its main-transition store as `mkHStore merged`, authenticated by `mkHStore_auth`
+  (`TierStoreAuth.lean`).
+* **`Lift.completeCode`**: on every configuration with storage resolution, global actions or
+  resharding set, `Lift {cfg with completeCodeWitness := b} {cfg with completeCodeWitness := b'}`
+  for all `b b'`.
+* Named tiers: `.completeCodeGlobal ⊑ .globalActions` and `.globalActions ⊑ .completeCodeGlobal`
+  (`relSuccessor_completeCodeGlobal_globalActions`, `relSuccessor_globalActions_completeCodeGlobal`).
+  The two tiers decide every input the same way up to exclusion reasons. The fixture replay agrees:
+  identical verdicts and reasons on all 577 fixtures.
+
+### Still open
+
+* **O3 (global actions).** The recorder-state part is now a parameter (`ga`), but a refinement
+  `ga = false ⊑ ga = true` still needs, beyond the engine walk: (1) the global codecs
+  (`pRcptGlobal`, `pTxD2Global`, `decodeStoredRcptGlobal`) return the D2 codecs' value, or the D2
+  codec's *same error string*, on every input the D2 codecs do not exclude (the global decoders
+  accept action tags 9–11 and ML-DSA keys where the D2 decoders fail, so the statement needed is
+  "the D2 decode fails with an exclusion there"; whether every such D2 failure is reported as an
+  exclusion has not been checked); (2) `managerGlobal`/`finishActsGlobal` agree with
+  `manager`/`finishActs` on VM action logs without global actions; (3) the queue policy
+  `globalQueuePolicy` agrees with the D2 queue functions on non-distribution receipts;
+  (4) the interpreter's `St.globalActions` flag (`Host.lean`: promise-action encodings, the
+  `hostExcluded` guard) commutes, which is the per-arm commutation generator (`HostComm.lean`'s
+  `CR` framework, not yet generated over `hostCall.eq_N` / `cryptoHostCall.eq_N`).
+* **O2 (curve hosts).** The same per-arm generator over `St.curveHosts` plus the
+  `successorDispatch_extends` host-table step. The `CR` lemmas exist for four gas helpers only.
+* **O4 (storage resolution)**: engine agreement `applyNewChunkD2` vs `StorageExecution.run`.
+  Not started.
+* **O6 (resharding, non-genesis)**: verdict-level correspondence `checkD2CoreWith` vs
+  `checkReshardCore`. Not started.

@@ -28,3 +28,17 @@ info: NearSpecV3/Successor/TierWholeWalk.lean:319:0: 'NearSpecV3.Successor.check
 info: NearSpecV3/Successor/TierWholeWalk.lean:320:0: 'NearSpecV3.Successor.checkD2CoreGWith_apply_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
 info: NearSpecV3/Successor/TierWholeWalk.lean:321:0: 'NearSpecV3.Successor.checkReshardCoreObs_apply_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
 info: NearSpecV3/Successor/TierWholeWalk.lean:322:0: 'NearSpecV3.Successor.Lift.floats' depends on axioms: [propext, Classical.choice, Quot.sound]
+
+# 2026-10-30, second session (default lake build, 394 jobs)
+NearSpecV3/Successor/TierWholeWalk.lean:327:0: 'NearSpecV3.Successor.run_rec_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierWholeWalk.lean:328:0: 'NearSpecV3.Successor.checkD2CoreWithObs_apply_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierWholeWalk.lean:329:0: 'NearSpecV3.Successor.checkD2CoreGWith_apply_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierWholeWalk.lean:330:0: 'NearSpecV3.Successor.checkReshardCoreObs_apply_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierWholeWalk.lean:331:0: 'NearSpecV3.Successor.Lift.floats' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO7.lean:191:0: 'NearSpecV3.Successor.run_policy_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO7.lean:192:0: 'NearSpecV3.Successor.checkD2CoreGWithA_apply_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO7.lean:193:0: 'NearSpecV3.Successor.checkReshardCoreObsA_apply_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO7.lean:194:0: 'NearSpecV3.Successor.Lift.completeCode' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO7.lean:195:0: 'NearSpecV3.Successor.relSuccessor_completeCodeGlobal_globalActions' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO7.lean:196:0: 'NearSpecV3.Successor.relSuccessor_globalActions_completeCodeGlobal' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierFlagsEq.lean:732:0: 'NearSpecV3.Successor.StorageExecution.run_eq_orig' depends on axioms: [propext, Classical.choice, Quot.sound]
