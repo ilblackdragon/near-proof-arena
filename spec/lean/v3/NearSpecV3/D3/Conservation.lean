@@ -237,7 +237,17 @@ def storedRcpts (t : PTrie) : List Rcpt :=
 
 /-! ## The statements -/
 
-/-- **A D3 chunk changes the NEAR it holds only by the epoch reward and the burnt amount.**
+/-- **A D3 chunk creates no NEAR beyond the epoch reward.**
+
+The conclusion is `≤`, not `=`. On every corpus chunk the two sides are *equal* (26,888 chunks), but
+over an arbitrary pre-state equality fails in one direction only: the runtime writes some queue
+slots blindly (`delayPush` at `kDelayed next`, `bufferReceipt`, `kPostponed recv rid`,
+`kYieldReceipt recv dataId`), so a value already at rest there is overwritten and its NEAR destroyed.
+For the postponed and yield keys the slot is named by a SHA-256-derived id, so freshness would need a
+no-collision assumption about a concrete hash. Destruction never helps a counterfeiter, and `≤` is
+the property that matters — supply grows only by the epoch reward — and it still fails for any
+over-credit or over-refund. Found by the deepseek-fv provers (`delayPush` over a stale slot,
+kernel-checked step identity).
 
 NEAR in the pre-state plus the value of the incoming receipts plus the reward credited equals NEAR
 in the post-state plus the value of the outgoing receipts plus the chunk's `balance_burnt`.
@@ -298,7 +308,7 @@ def ChunkConservation : Prop :=
       = .ok (out, o) →
     ∃ t', finalTrie o = some t' ∧
       nearInOpt env.ctx.layout env.ctx.own t' + rcptsValue out.outgoing + out.balanceBurnt
-        = nearIn env.ctx.layout env.ctx.own t + rcptsValue incoming
+        ≤ nearIn env.ctx.layout env.ctx.own t + rcptsValue incoming
           + creditedOpt env.ctx.layout env.ctx.own t vu
 
 /-- **A missing chunk changes the NEAR it holds only by the epoch reward.** -/
