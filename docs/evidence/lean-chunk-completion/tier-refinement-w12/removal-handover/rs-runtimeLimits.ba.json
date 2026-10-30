@@ -1,0 +1,17 @@
+{
+ "name": "rs-runtimeLimits",
+ "cases": 7296,
+ "counts": {
+  "after:accept": 2076,
+  "after:reject": 3640,
+  "after:out_of_domain": 1580
+ },
+ "moves": {
+  "reject->out_of_domain | nearcore ok | neutral": 624,
+  "reject->out_of_domain | nearcore reject | away": 956
+ },
+ "reason_pairs": {
+  "invalid: MissingTrieValue (account) => out of domain (w.size): storage-proof upper bound ": 980,
+  "invalid: StorageInconsistentState(MissingTrieValue => out of domain (w.size): storage-proof upper bound ": 600
+ }
+}

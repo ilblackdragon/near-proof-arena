@@ -1,0 +1,11 @@
+{
+ "name": "fx-signed",
+ "cases": 577,
+ "counts": {
+  "after:out_of_domain": 268,
+  "after:reject": 166,
+  "after:accept": 143
+ },
+ "moves": {},
+ "reason_pairs": {}
+}
