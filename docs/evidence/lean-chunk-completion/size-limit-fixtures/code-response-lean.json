@@ -1,0 +1,43 @@
+{
+ "checker": "bin/check-after",
+ "checker_sha256": "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83",
+ "tier": "allFeatures",
+ "rows": [
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/cr2029/ood/00-h10018-s3",
+   "wall_s": 50.07,
+   "cpu_s": 49.74,
+   "max_rss": 1278697472,
+   "load": [
+    49.1,
+    38.8
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/cr2029/ood/00-h10006-s3",
+   "wall_s": 105.0,
+   "cpu_s": 100.51,
+   "max_rss": 2355089408,
+   "load": [
+    38.8,
+    41.4
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/cr2029/ood/00-h10012-s3",
+   "wall_s": 2.08,
+   "cpu_s": 1.75,
+   "max_rss": 2285137920,
+   "load": [
+    41.4,
+    41.4
+   ],
+   "verdict": "out_of_domain",
+   "reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE"
+  }
+ ]
+}

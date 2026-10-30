@@ -1,0 +1,129 @@
+{
+ "fixtures/signed": {
+  "cases": 931,
+  "identical_verdict_and_reason": 931,
+  "verdict_changes": 0,
+  "reason_changes": 0,
+  "errors_or_timeouts": 0,
+  "before": {
+   "out_of_domain": 454,
+   "reject": 298,
+   "accept": 179
+  },
+  "after": {
+   "out_of_domain": 454,
+   "reject": 298,
+   "accept": 179
+  },
+  "examples": [],
+  "wall_s": [
+   731.7,
+   732.9
+  ],
+  "checkers": [
+   "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83"
+  ]
+ },
+ "fixtures/allFeatures": {
+  "cases": 931,
+  "identical_verdict_and_reason": 931,
+  "verdict_changes": 0,
+  "reason_changes": 0,
+  "errors_or_timeouts": 0,
+  "before": {
+   "accept": 574,
+   "reject": 357
+  },
+  "after": {
+   "accept": 574,
+   "reject": 357
+  },
+  "examples": [],
+  "wall_s": [
+   968.5,
+   920.7
+  ],
+  "checkers": [
+   "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83"
+  ]
+ },
+ "gap/signed": {
+  "cases": 3138,
+  "identical_verdict_and_reason": 3138,
+  "verdict_changes": 0,
+  "reason_changes": 0,
+  "errors_or_timeouts": 0,
+  "before": {
+   "out_of_domain": 2403,
+   "accept": 735
+  },
+  "after": {
+   "out_of_domain": 2403,
+   "accept": 735
+  },
+  "examples": [],
+  "wall_s": [
+   1309.4,
+   1333.3
+  ],
+  "checkers": [
+   "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83"
+  ]
+ },
+ "gap/allFeatures": {
+  "cases": 3138,
+  "identical_verdict_and_reason": 3138,
+  "verdict_changes": 0,
+  "reason_changes": 0,
+  "errors_or_timeouts": 0,
+  "before": {
+   "accept": 3138
+  },
+  "after": {
+   "accept": 3138
+  },
+  "examples": [],
+  "wall_s": [
+   1835.8,
+   2109.5
+  ],
+  "checkers": [
+   "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83"
+  ]
+ },
+ "corpus/allFeatures": {
+  "cases": 29465,
+  "identical_verdict_and_reason": 29465,
+  "verdict_changes": 0,
+  "reason_changes": 0,
+  "errors_or_timeouts": 0,
+  "before": {
+   "accept": 9585,
+   "reject": 19870,
+   "out_of_domain": 10
+  },
+  "after": {
+   "accept": 9585,
+   "reject": 19870,
+   "out_of_domain": 10
+  },
+  "examples": [],
+  "wall_s": [
+   3287.2,
+   2286.9
+  ],
+  "checkers": [
+   "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83"
+  ]
+ },
+ "populations": {
+  "fixtures": "every committed case directory under docs/evidence/lean-chunk-completion (931, tarballs extracted)",
+  "gap": "d3c7-d3c10 cases with nearcore == ok and expected_rel_d3 == false (3,138)",
+  "corpus": "deterministic 1-in-8 sample (line % 8 == 1) of d1run, d2corpus.v2, d3c7-d3c10 (29,465 of 235,716)"
+ }
+}

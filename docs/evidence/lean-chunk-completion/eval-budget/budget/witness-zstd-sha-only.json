@@ -1,0 +1,31 @@
+{
+ "checker": "bin/check-mid",
+ "checker_sha256": "65d2820763ad2de4f32c507dfde2d7ed9218ac96650515f62c6106c1da02f705",
+ "tier": "allFeatures",
+ "rows": [
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/gate-b-caps__cases.tar.gz/cases/gb2002__ood__00-h10006-s3",
+   "wall_s": 21.54,
+   "cpu_s": 21.41,
+   "max_rss": 666501120,
+   "load": [
+    29.8,
+    28.7
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/gate-b-caps__cases.tar.gz/cases/gb2002__ood__00-h10024-s3",
+   "wall_s": 38.46,
+   "cpu_s": 38.42,
+   "max_rss": 1026748416,
+   "load": [
+    28.7,
+    28.4
+   ],
+   "verdict": "accept",
+   "reason": ""
+  }
+ ]
+}

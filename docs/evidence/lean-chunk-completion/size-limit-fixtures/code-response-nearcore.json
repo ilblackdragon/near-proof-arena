@@ -1,0 +1,59 @@
+{
+ "00-h10006-s3": {
+  "nearcore_cold_with_codes": "ok",
+  "nearcore_warm_no_codes": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 43PDLtPbKDcm7Tbsaq6MHZUfUeZ3UnXq6pymVRPmxqq9 }))",
+  "d3_violations": [
+   "e.g_alpha"
+  ],
+  "tx_labels": [
+   "at64"
+  ],
+  "ncref_codes": {
+   "n_codes": 17,
+   "code_bytes": 67108792,
+   "borsh_len": 67108864,
+   "cap": 67108864,
+   "response": "V2",
+   "decompress": "ok"
+  }
+ },
+ "00-h10012-s3": {
+  "nearcore_cold_with_codes": "ok",
+  "nearcore_warm_no_codes": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: DK3YPveAARJDYR5SWCLqoXZMcnAWxfsMY8CRAPhXT4Qz }))",
+  "d3_violations": [
+   "e.g_alpha"
+  ],
+  "tx_labels": [
+   "over64"
+  ],
+  "ncref_codes": {
+   "n_codes": 17,
+   "code_bytes": 67108793,
+   "borsh_len": 67108865,
+   "cap": 67108864,
+   "response": "V2",
+   "decompress": "error: Decompressed data exceeded limit of 67.1 MB: Exceeded the limit of 67108864 bytes"
+  }
+ },
+ "00-h10018-s3": {
+  "nearcore_cold_with_codes": "ok",
+  "nearcore_warm_no_codes": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 43PDLtPbKDcm7Tbsaq6MHZUfUeZ3UnXq6pymVRPmxqq9 }))",
+  "d3_violations": [
+   "e.g_alpha"
+  ],
+  "tx_labels": [
+   "under64"
+  ],
+  "ncref_codes": {
+   "n_codes": 9,
+   "code_bytes": 33556792,
+   "borsh_len": 33556832,
+   "cap": 67108864,
+   "response": "V2",
+   "decompress": "ok"
+  }
+ }
+}
