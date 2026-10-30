@@ -1,0 +1,60 @@
+{
+ "lean_rows": "results.jsonl",
+ "cases": 3934,
+ "table": [
+  {
+   "key": [
+    "lean_accept",
+    "cold_ok",
+    "warm_ok",
+    "poisoned_err"
+   ],
+   "n": 2473,
+   "example": "/data/illia/nearproof-deps/w08-runs/cc801/d3/00-h10003-s0"
+  },
+  {
+   "key": [
+    "lean_reject_missing_code",
+    "cold_err",
+    "warm_ok",
+    "poisoned_err"
+   ],
+   "n": 1312,
+   "example": "/data/illia/nearproof-deps/w08-runs/cc801/mutants/00-h10003-s3-code.drop.0"
+  },
+  {
+   "key": [
+    "lean_ood",
+    "cold_err",
+    "warm_ok",
+    "poisoned_err"
+   ],
+   "n": 97,
+   "example": "/data/illia/nearproof-deps/w08-runs/cc801/mutants/00-h10004-s2-code.drop.0"
+  },
+  {
+   "key": [
+    "lean_accept",
+    "cold_ok",
+    "warm_ok",
+    "poisoned_ok"
+   ],
+   "n": 33,
+   "example": "/data/illia/nearproof-deps/w08-runs/cc801/d3/00-h10005-s1"
+  },
+  {
+   "key": [
+    "lean_ood",
+    "cold_ok",
+    "warm_ok",
+    "poisoned_err"
+   ],
+   "n": 19,
+   "example": "/data/illia/nearproof-deps/w08-runs/cc801/mutants/00-h10009-s1-code.flip.0"
+  }
+ ],
+ "statement_violations": [],
+ "control_poisoned_differs_in_domain": 2473,
+ "positive_control_warm_differs_on_missing_code": 1312,
+ "status": "pass"
+}

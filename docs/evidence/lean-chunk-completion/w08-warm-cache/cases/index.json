@@ -1,0 +1,266 @@
+[
+ {
+  "case_dir": "cc801-00-h10003-s0",
+  "class": "honest",
+  "source": "cc801/d3/00-h10003-s0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "b1c91cf584f65e8d987ec61787fe27b9d7a993d81b9962dafc4cadf3d67d0aa7",
+   "witness.bin": "0195dada86fe20e5c5258d4051ea8e538792cb388d1a43235c57d182a88429b0",
+   "meta.json": "414dee2c2600b20ddb0bbd4241ef3e153f003bb03eba71666d6b672f91d777c6"
+  }
+ },
+ {
+  "case_dir": "cc801-00-h10003-s0-code.drop.0",
+  "class": "deploy_served_accept",
+  "source": "cc801/mutants/00-h10003-s0-code.drop.0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "b1c91cf584f65e8d987ec61787fe27b9d7a993d81b9962dafc4cadf3d67d0aa7",
+   "witness.bin": "8c2b55980684f53041ce2062e6519fac6242f3535a213ed687658d9f43520233",
+   "meta.json": "0aa38763c1204217765083709640b6a069fda73750079edfc30cc18306e0a4ee"
+  }
+ },
+ {
+  "case_dir": "cc801-00-h10003-s0-code.duplicate",
+  "class": "unlabelled_mutant_accept",
+  "source": "cc801/mutants/00-h10003-s0-code.duplicate",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "b1c91cf584f65e8d987ec61787fe27b9d7a993d81b9962dafc4cadf3d67d0aa7",
+   "witness.bin": "e6423e8c44dfaf254ccd72b0659b30343abf43a85103803e8d9082b53c43c564",
+   "meta.json": "37d0bf8075b1336f9a07435dd66aa1475e064f3af6c54fedab9ba695f8432411"
+  }
+ },
+ {
+  "case_dir": "cc801-00-h10003-s3-code.drop.0",
+  "class": "unlabelled_mutant_reject",
+  "source": "cc801/mutants/00-h10003-s3-code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "71c04e7683ffe02ee29f4636cd2013e6a6dea9612d88abc515a423d7578b2cea",
+   "witness.bin": "16bf64f9599ac7df533c4b4e891efb8dc0d38c2981c573405ef8592f089d54d4",
+   "meta.json": "3bb75d29f0a200dfcaacef1a3178dff80eee95ba0356a522bf9eb27ab5c80b3e"
+  }
+ },
+ {
+  "case_dir": "cc801-00-h10004-s2-code.drop.0",
+  "class": "race",
+  "source": "cc801/mutants/00-h10004-s2-code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "a56d79023ceaeb162379d1b71bf06b759317bac47ad21432a58fc7d7ec46029f",
+   "witness.bin": "4e00727343053924a5fa1e7bf25059192d8ba4e87141f7ac9ecf9a1c3b3acd60",
+   "meta.json": "12d8fdf9696fd81a27764b0144ef24093bd95eb1303a046b0fece094e4e5561c"
+  }
+ },
+ {
+  "case_dir": "cc801-00-h10005-s3-code.none",
+  "class": "deploy_served_reject",
+  "source": "cc801/mutants/00-h10005-s3-code.none",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))",
+  "files": {
+   "claim.bin": "a27c168fbb0ff1d52e9516280c10de5857c452349dec51c0d6239db7f419340d",
+   "witness.bin": "4a0dc78a2d7d50c89f3faab493f05927eb7127632b40ed6a98efcc8056cd6d3a",
+   "meta.json": "e31d130e027fa84611e711618eaf093b3d5c830951a4d0244b5e70765dafdfdf"
+  }
+ },
+ {
+  "case_dir": "cc802-00-h10003-s0",
+  "class": "honest",
+  "source": "cc802/d3/00-h10003-s0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "bda42bdd195dea09bb0f10a70594968ba80d40a3728f63fdd1d55b9043ba1c80",
+   "witness.bin": "1fbe1cdda1792e7608631b3d242556206f0caea837c770a3a3dc433c201c2077",
+   "meta.json": "a0fed2985d312d46307f021d062500064c6693b2cd218a4ef72d5fe44b6ad2d7"
+  }
+ },
+ {
+  "case_dir": "cc802-00-h10003-s0-code.drop.0",
+  "class": "deploy_served_accept",
+  "source": "cc802/mutants/00-h10003-s0-code.drop.0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "bda42bdd195dea09bb0f10a70594968ba80d40a3728f63fdd1d55b9043ba1c80",
+   "witness.bin": "3ea9e63bda2a14c3d0bdc5e5d12d8474f0b2ae50c2eebe964825ff4c8a675bbb",
+   "meta.json": "2edd595f99c0bc573a4ce220978140145e5ff2040ae6e9df736ee2b03bf79890"
+  }
+ },
+ {
+  "case_dir": "cc802-00-h10003-s0-code.duplicate",
+  "class": "unlabelled_mutant_accept",
+  "source": "cc802/mutants/00-h10003-s0-code.duplicate",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "bda42bdd195dea09bb0f10a70594968ba80d40a3728f63fdd1d55b9043ba1c80",
+   "witness.bin": "ecbf4411cfaa5704e6953aac2cbd2612f8a2a2609b3b1650ec2dd335dc3f3dc5",
+   "meta.json": "1cf8c2f0cdbfe3096d8f06b868db425856a6538311daadee1780f0a8b76748b2"
+  }
+ },
+ {
+  "case_dir": "cc802-00-h10003-s3-code.drop.0",
+  "class": "unlabelled_mutant_reject",
+  "source": "cc802/mutants/00-h10003-s3-code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "3b2567b4aa7bd265f05ce203d26459d6979602ac0dacde437dddc1ea062b08b5",
+   "witness.bin": "c85559321dd57ccba5a73b42f71044c647c3db9425bf7ee1cdadccf4d7ae22e3",
+   "meta.json": "ffa1bd75d33c67e8de628c46da8b04d2171b16b05333850bb3177f02bc50345f"
+  }
+ },
+ {
+  "case_dir": "cc802-00-h10004-s2-code.drop.1",
+  "class": "race",
+  "source": "cc802/mutants/00-h10004-s2-code.drop.1",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "0edca85214a2764b275c82241ed10529afe8fa68f6586c0913ee59a1d7cef424",
+   "witness.bin": "f5a6b6a83c7173a76a965c4a72f3285b7c8d1de4cb7c91cab9a1f2d887fdae37",
+   "meta.json": "200c6219eb4c49f19b09ae6f2bb42d5fe5e0ce701f4275eb3a12d8f23af716f3"
+  }
+ },
+ {
+  "case_dir": "cc802-00-h10004-s2-code.none",
+  "class": "deploy_served_reject",
+  "source": "cc802/mutants/00-h10004-s2-code.none",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "0edca85214a2764b275c82241ed10529afe8fa68f6586c0913ee59a1d7cef424",
+   "witness.bin": "f779d4ebd7f0cec656ab708590da1e33f6c68e5e5026ebef180824b216d3562a",
+   "meta.json": "e8d667e378edbcdd2fdb31e257f771f153e883d8bb93c2ed5f0c3fb761c3eafd"
+  }
+ },
+ {
+  "case_dir": "cc803-00-h10003-s0",
+  "class": "honest",
+  "source": "cc803/d3/00-h10003-s0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "9315fef646354bc515a754779e2cb56608c1da19041c64d7fbf265c408d86239",
+   "witness.bin": "89b89d23b3a4cc7d3c4cfeccc849c23d3fe1b397ce3d7dccfd3c55b7de4785d3",
+   "meta.json": "619e43c2021a01ae0544a8fb2566378dd34404544477ae020366571f0dc20d9e"
+  }
+ },
+ {
+  "case_dir": "cc803-00-h10003-s0-code.drop.0",
+  "class": "deploy_served_accept",
+  "source": "cc803/mutants/00-h10003-s0-code.drop.0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "9315fef646354bc515a754779e2cb56608c1da19041c64d7fbf265c408d86239",
+   "witness.bin": "998620f62435e1674726016ebff472c2caa17f5dafb6bfcbcc2192fb335bde81",
+   "meta.json": "7f21feceaeebf0da4a295497ea8ca571d806ed366c88397f7ce2aa0f9e780aa9"
+  }
+ },
+ {
+  "case_dir": "cc803-00-h10003-s0-code.duplicate",
+  "class": "unlabelled_mutant_accept",
+  "source": "cc803/mutants/00-h10003-s0-code.duplicate",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "9315fef646354bc515a754779e2cb56608c1da19041c64d7fbf265c408d86239",
+   "witness.bin": "2d80980579b279e8ec74a95c709766b7c34502fcde24617932d88e997abf6eff",
+   "meta.json": "e3da75d2e6f2542353adfe60fb063ed87ef3a8541debc7e6a95fae1df56d7594"
+  }
+ },
+ {
+  "case_dir": "cc803-00-h10003-s3-code.drop.0",
+  "class": "unlabelled_mutant_reject",
+  "source": "cc803/mutants/00-h10003-s3-code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "91b9244e6f1d6f18ef37deb425d412418bd971473a15267990e22cc820ea8037",
+   "witness.bin": "00e167053ef4f71ddddd61f36528688afb41c91aed6dc8e8a29b3bf47a6cbf61",
+   "meta.json": "743f74b88d99abe88c8a3f77bbaa1d8c181a6d70ab69c6e6981192ef6349f9fc"
+  }
+ },
+ {
+  "case_dir": "cc803-00-h10004-s2-code.drop.0",
+  "class": "race",
+  "source": "cc803/mutants/00-h10004-s2-code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "73323bb0658daf60b779eac9acbd5aef74a533249d958ea1bc998e975e2daa8d",
+   "witness.bin": "2005bff55bb21315d066a517d2a86c0ecf8928f72d850d7b408a09603e05f49f",
+   "meta.json": "fc43f2443519d08eae59ce96cf77feb4b9e925356cf47a2505d63668de5b6562"
+  }
+ },
+ {
+  "case_dir": "cc803-00-h10004-s2-code.none",
+  "class": "deploy_served_reject",
+  "source": "cc803/mutants/00-h10004-s2-code.none",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "73323bb0658daf60b779eac9acbd5aef74a533249d958ea1bc998e975e2daa8d",
+   "witness.bin": "7c49855d94253260bcb2cdc9e8b7e541f90c0248b26fa0cb9cbbb9bd4779c8f4",
+   "meta.json": "0b71446e00096ea498eaf873d6841af6668ef102ea7ca219c34ec6f304e806b9"
+  }
+ },
+ {
+  "case_dir": "cc804-00-h10003-s1",
+  "class": "honest",
+  "source": "cc804/d3/00-h10003-s1",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "6919209c94409248df9628fbf03c710aac44d13b80014c7b402b07c1a9da47c5",
+   "witness.bin": "116bf00c015d4c1bca8258bc03919e4e72cbc5bf389d9eef55bd06ca0ab67542",
+   "meta.json": "cb0aa52b2a1f7fcdfe85a2daeb75bda2ea073f3ca011ae823c0992d381346c76"
+  }
+ },
+ {
+  "case_dir": "cc804-00-h10003-s1-code.drop.0",
+  "class": "deploy_served_accept",
+  "source": "cc804/mutants/00-h10003-s1-code.drop.0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "6919209c94409248df9628fbf03c710aac44d13b80014c7b402b07c1a9da47c5",
+   "witness.bin": "4def5990dd51b76a18ee3805b3e32c08da5f23b95269c882d99d0798f4109298",
+   "meta.json": "c1725ccd3a326fe161f4eaa45cfe877a8ea7aaa717af2b74326d7f2ea8a762f8"
+  }
+ },
+ {
+  "case_dir": "cc804-00-h10003-s1-code.duplicate",
+  "class": "unlabelled_mutant_accept",
+  "source": "cc804/mutants/00-h10003-s1-code.duplicate",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "6919209c94409248df9628fbf03c710aac44d13b80014c7b402b07c1a9da47c5",
+   "witness.bin": "fa07c5c0395ad4fe6184f8c53b7af3b5a2a48d42a5189f1a6ec376a371e88423",
+   "meta.json": "268c9b6a72d9c1b48a63aab41646fe389c1cbe03dd681b76ee6286cbcaff6c93"
+  }
+ },
+ {
+  "case_dir": "cc804-00-h10004-s1-code.drop.0",
+  "class": "unlabelled_mutant_reject",
+  "source": "cc804/mutants/00-h10004-s1-code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "files": {
+   "claim.bin": "46b8b0f4c4127272a2c2943fe8532f92fb8ce6f80031bcd03d4ae1f6f8a5fa4b",
+   "witness.bin": "97e94186ba450f4d8ed0b397142c5ffd22b811b57d78cb36af81e41991662c08",
+   "meta.json": "268ace2a6a332b2d77c2dcf6d72a260d07e0b0b41f8d3b15dab20842ddf44225"
+  }
+ },
+ {
+  "case_dir": "cc804-00-h10005-s3-code.none",
+  "class": "deploy_served_reject",
+  "source": "cc804/mutants/00-h10005-s3-code.none",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+  "files": {
+   "claim.bin": "bbc1e9423a3e7edc9f90a610b7272de628eaff3d9b488c13681732244fce3e51",
+   "witness.bin": "3557d72a57d0a6c192b3cf9fa5282be6c4031fcf2f2da5017fcfbd22d7b33906",
+   "meta.json": "4b92f390a9b3e44f3c00dca632ad754c01409ed7e7dfb129f0e1e1977a7d383f"
+  }
+ },
+ {
+  "case_dir": "cc804-00-h10006-s0-code.drop.0",
+  "class": "race",
+  "source": "cc804/mutants/00-h10006-s0-code.drop.0",
+  "nearcore": "ok",
+  "files": {
+   "claim.bin": "a83147fd2364324705534beab19369e687f773e83cdfdd49c66985f85d015f55",
+   "witness.bin": "c6fca25d41ee08bc519942cd47a5b3020a8cc007781fb928106c5ee604a4e00e",
+   "meta.json": "d7f02b58a6bcd72fbc83ccaa857ef0d2c03bcbe4ba8041fd8255057de108f89b"
+  }
+ }
+]

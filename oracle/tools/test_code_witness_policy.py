@@ -57,12 +57,25 @@ class PolicyTests(unittest.TestCase):
 
     @staticmethod
     def rows(command, cases, timeout, tier):
-        return {str(c): dict(case=str(c), tier=tier,
-            verdict='reject' if c.name == 'incomplete' else 'accept',
-            reason=policy.POLICY_PREFIX + ' missing code' if c.name == 'incomplete' else '')
-            for c in cases}
+        # the raw cold verdict of the incomplete fixture is an accept (deploy-served code)
+        return {str(c): dict(case=str(c), tier=tier, verdict='accept', reason='') for c in cases}
 
-    def test_repeated_policy_verdict_not_raw_expectation(self):
+    @staticmethod
+    def incomplete_as(verdict, reason):
+        def run(command, cases, timeout, tier):
+            rows = PolicyTests.rows(command, cases, timeout, tier)
+            for row in rows.values():
+                if Path(row['case']).name == 'incomplete':
+                    row.update(verdict=verdict, reason=reason)
+            return rows
+        return run
+
+    def raw_reject(self):
+        meta = json.loads((self.root / 'incomplete/meta.json').read_text())
+        meta.update(expected_rel=False, nearcore='cold MissingTrieValue')
+        (self.root / 'incomplete/meta.json').write_text(json.dumps(meta))
+
+    def test_repeated_policy_verdict_matches_raw_cold(self):
         with patch.object(policy, 'run_batch', side_effect=self.rows) as run:
             report = policy.check(self.binary, self.manifest, self.root / 'out')
         self.assertEqual(run.call_count, 2)
@@ -70,16 +83,33 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(report['raw_mutant_accepts'], 1)
         self.assertFalse(report['raw_nearcore_mutant_expectations_relabelled'])
 
-    def test_generic_rejection_is_not_policy_success(self):
-        def generic(*args):
-            rows = self.rows(*args)
-            for row in rows.values():
-                if row['verdict'] == 'reject':
-                    row['reason'] = 'invalid claim'
-            return rows
-        with patch.object(policy, 'run_batch', side_effect=generic):
-            with self.assertRaisesRegex(ValueError, 'incomplete-witness'):
+    def test_reject_of_raw_cold_accept_fails(self):
+        # the pre-2026-10-29 blanket policy: a deterministic deploy-served witness was rejected
+        run = self.incomplete_as('reject', policy.POLICY_PREFIX + ' missing code')
+        with patch.object(policy, 'run_batch', side_effect=run):
+            with self.assertRaisesRegex(ValueError, 'nearcore accepts'):
                 policy.check(self.binary, self.manifest, self.root / 'out')
+
+    def test_accept_of_raw_cold_reject_fails(self):
+        self.raw_reject()
+        with patch.object(policy, 'run_batch', side_effect=self.rows):
+            with self.assertRaisesRegex(ValueError, 'nearcore rejects'):
+                policy.check(self.binary, self.manifest, self.root / 'out')
+
+    def test_reject_of_raw_cold_reject_passes(self):
+        self.raw_reject()
+        run = self.incomplete_as('reject', 'invalid: MissingTrieValue (contract code)')
+        with patch.object(policy, 'run_batch', side_effect=run):
+            self.assertEqual(policy.check(self.binary, self.manifest, self.root / 'out')['status'], 'pass')
+
+    def test_race_exclusion_admitted_other_exclusions_not(self):
+        run = self.incomplete_as('out_of_domain', policy.RACE_PREFIX + ' contract preparation pipelined')
+        with patch.object(policy, 'run_batch', side_effect=run):
+            self.assertEqual(policy.check(self.binary, self.manifest, self.root / 'out')['status'], 'pass')
+        run = self.incomplete_as('out_of_domain', 'out of domain (e.wasm-α): something else')
+        with patch.object(policy, 'run_batch', side_effect=run):
+            with self.assertRaisesRegex(ValueError, 'nearcore accepts'):
+                policy.check(self.binary, self.manifest, self.root / 'out2')
 
     def test_failed_preflight_invalidates_old_pass(self):
         out = self.root / 'out'

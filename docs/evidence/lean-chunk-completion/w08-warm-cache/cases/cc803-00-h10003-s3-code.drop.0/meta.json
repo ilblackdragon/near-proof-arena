@@ -1,0 +1,25 @@
+{
+  "base": "00-h10003-s3",
+  "case": "00-h10003-s3-code.drop.0",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 106535648703,
+    "fc_gas_burnt_for_function_call": 106535648703
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "code.drop.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "nearcore_probe": {
+    "poisoned": "validate: InvalidChunkStateWitness(\"Post state root 5ZgzNvbfMHL5mtdY8EVE5ABGe88f6hThXeaKKUQ46Zxa for main transition does not match expected post state root 4GqvZ7zpJLyiSbuoFeCEkk2vWESGC5GERdYtRZVTzXzy\")",
+    "poisoned_cache": "every registry contract compiled under the next one's hash (incoherent control)",
+    "warm": "ok",
+    "warm_cache": "every registry contract precompiled (coherent)"
+  },
+  "verdict_source": "nearcore(cold)"
+}

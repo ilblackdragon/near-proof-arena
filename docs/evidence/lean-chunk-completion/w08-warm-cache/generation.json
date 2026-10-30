@@ -1,0 +1,105 @@
+{
+ "nearcore": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "rustc": "1.96.0",
+ "generator_sha256": "068c7ad685254f5f6057ed6c3fedc8864e060dc1af5b5819146c48444ef392d8",
+ "generator_source_commit": "9ddd6e68c",
+ "probe_delay_ms": 400,
+ "runs": {
+  "smoke800": {
+   "args": "NEAR_SUCCESSOR_SCENARIO=code-cache gen --domain d3 --chains 1 --ood-cap 100000 --seed 800 --blocks 20 --mutate-every 0 --code-mutant-p 1.0",
+   "cases": 586,
+   "classes": {
+    "honest|-|nearcore_ok": 64,
+    "mutant|-|nearcore_err": 165,
+    "mutant|-|nearcore_ok": 212,
+    "mutant|e.code_deploy_served|nearcore_err": 27,
+    "mutant|e.code_deploy_served|nearcore_ok": 100,
+    "mutant|e.code_prep_race|nearcore_err": 14,
+    "mutant|e.code_prep_race|nearcore_ok": 4
+   }
+  },
+  "cc801": {
+   "args": "NEAR_SUCCESSOR_SCENARIO=code-cache gen --domain d3 --chains 1 --ood-cap 100000 --seed 801 --blocks 80 --mutate-every 0 --code-mutant-p 1.0 (stopped early)",
+   "cases": 758,
+   "classes": {
+    "honest|-|nearcore_ok": 84,
+    "mutant|-|nearcore_err": 230,
+    "mutant|-|nearcore_ok": 273,
+    "mutant|e.code_deploy_served|nearcore_err": 29,
+    "mutant|e.code_deploy_served|nearcore_ok": 125,
+    "mutant|e.code_prep_race|nearcore_err": 13,
+    "mutant|e.code_prep_race|nearcore_ok": 4
+   }
+  },
+  "cc802": {
+   "args": "NEAR_SUCCESSOR_SCENARIO=code-cache gen --domain d3 --chains 1 --ood-cap 100000 --seed 802 --blocks 80 --mutate-every 0 --code-mutant-p 1.0 (stopped early)",
+   "cases": 860,
+   "classes": {
+    "honest|-|nearcore_ok": 95,
+    "mutant|-|nearcore_err": 276,
+    "mutant|-|nearcore_ok": 303,
+    "mutant|e.code_deploy_served|nearcore_err": 38,
+    "mutant|e.code_deploy_served|nearcore_ok": 136,
+    "mutant|e.code_prep_race|nearcore_err": 9,
+    "mutant|e.code_prep_race|nearcore_ok": 3
+   }
+  },
+  "cc803": {
+   "args": "NEAR_SUCCESSOR_SCENARIO=code-cache gen --domain d3 --chains 1 --ood-cap 100000 --seed 803 --blocks 80 --mutate-every 0 --code-mutant-p 1.0 (stopped early)",
+   "cases": 833,
+   "classes": {
+    "honest|-|nearcore_ok": 91,
+    "mutant|-|nearcore_err": 256,
+    "mutant|-|nearcore_ok": 301,
+    "mutant|e.code_deploy_served|nearcore_err": 32,
+    "mutant|e.code_deploy_served|nearcore_ok": 132,
+    "mutant|e.code_prep_race|nearcore_err": 17,
+    "mutant|e.code_prep_race|nearcore_ok": 4
+   }
+  },
+  "cc804": {
+   "args": "NEAR_SUCCESSOR_SCENARIO=code-cache gen --domain d3 --chains 1 --ood-cap 100000 --seed 804 --blocks 80 --mutate-every 0 --code-mutant-p 1.0 (stopped early)",
+   "cases": 897,
+   "classes": {
+    "honest|-|nearcore_ok": 105,
+    "mutant|-|nearcore_err": 244,
+    "mutant|-|nearcore_ok": 326,
+    "mutant|e.code_deploy_served|nearcore_err": 42,
+    "mutant|e.code_deploy_served|nearcore_ok": 160,
+    "mutant|e.code_prep_race|nearcore_err": 17,
+    "mutant|e.code_prep_race|nearcore_ok": 3
+   }
+  },
+  "full805": {
+   "args": "NEAR_SUCCESSOR_SCENARIO=code-cache gen --domain d3 --chains 1 --ood-cap 100000 --seed 805 --blocks 12 --mutate-every 3 --code-mutant-p 0.3 --drop-cap 6",
+   "cases": 796,
+   "classes": {
+    "honest|-|nearcore_ok": 43,
+    "mutant|-|nearcore_err": 526,
+    "mutant|-|nearcore_ok": 173,
+    "mutant|e.code_deploy_served|nearcore_err": 9,
+    "mutant|e.code_deploy_served|nearcore_ok": 36,
+    "mutant|e.code_prep_race|nearcore_err": 9
+   }
+  }
+ },
+ "generator_sources": {
+  "oracle/v3-successor/src/cachejudge.rs": "18d10ed2cbe49c59eba5bdf9f78d538c9e001c090b003d2b1d6d6afffba4e7e7",
+  "oracle/v3-successor/src/chaind3.rs": "8ba40f64416cb7b17bad4ebaa98ca5ca59381be05c395e4e97557a8631a176d7",
+  "oracle/v3-successor/src/codec_probe.rs": "79676368ceb71d1b312d57ce8802ee574c3339bd16a4f77716955d61ea78a2a4",
+  "oracle/v3-successor/src/curve_hosts.rs": "56012b045f9acd5b50ad96bffb137e3c931acdadc5291593ba00fd69999791d4",
+  "oracle/v3-successor/src/d2cold.rs": "d9542c5158b73b58352e9a7aa65d9d1da5a3cd20ea0586ebce6481a4714bf85b",
+  "oracle/v3-successor/src/d3.rs": "5e1cef3c793767db429268ec8f7ab376664e680fc3a572e05dad604f81aa85d5",
+  "oracle/v3-successor/src/d3contracts.rs": "d03295c9a4eeeebe8754b35e3ce6e5f58b1808d3bfc42715c83fa54384cb37d2",
+  "oracle/v3-successor/src/d3gen.rs": "47e77379b4a4441f6463471052d25e68b639f61b899b0eb8ac74f6d591de5bd8",
+  "oracle/v3-successor/src/keys.rs": "ef913fa2d5df30880dab47cbafc68d82d71b9d9c31e9b12765da8d4fffde50fa",
+  "oracle/v3-successor/src/main.rs": "d51bfd4594a04ce22c0ecae978ddd79f8bdb2ab8aa70ffc0a1ad96d9d45f44da",
+  "oracle/v3-successor/src/mainnet_obs.rs": "cdaea8be7d18c795ed2bddabece16f6d24d1883093c1625e377b6f5cf7e4a1cf",
+  "oracle/v3-successor/src/mldsa_vectors.rs": "4398cea47facc34be6338fff6256228db7b5075ad5aa5626319a0ec984d9c2bf",
+  "oracle/v3-successor/src/observables.rs": "89347df653dc5ad4d41c760ae233391ea105ebcf3d12108aee11647051fd48c4",
+  "oracle/v3-successor/src/reshard.rs": "f8d81f150ba85eef7f79d781c221bd4a45334d74c222154fce5c899d95eb334e",
+  "oracle/v3-successor/src/rterr.rs": "fe569bd1425072f4ea39b35eadc4c116a0e2bd12508c8f027dd3c1ffc9ef9c07",
+  "oracle/v3-successor/src/scenarios.rs": "8681fc83166a8f665bb2cda4cd5d1eefb7dffb9c0154749ac9d966caec99ddad",
+  "oracle/v3-successor/src/xfam.rs": "048f52f506e8aa7fcb9f11260222d2438027579e7d56a6b724b715a8316d3319"
+ }
+}

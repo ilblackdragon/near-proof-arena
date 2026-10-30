@@ -1,0 +1,214 @@
+{
+ "fam-before-completeCodeGlobal": {
+  "status": "fail",
+  "cases": 3934,
+  "verdicts": {
+   "accept": 1804,
+   "out_of_domain": 1,
+   "reject": 2129
+  },
+  "partition": {
+   "domain_exclusion_asserted": 1,
+   "verdict_agree_outside_domain": 82,
+   "verdict_compared_agree": 3131,
+   "verdict_compared_disagree": 720
+  },
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/bin-before",
+   "sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "tier": "completeCodeGlobal"
+  }
+ },
+ "fam-before-allFeatures": {
+  "status": "fail",
+  "cases": 3934,
+  "verdicts": {
+   "accept": 2507,
+   "out_of_domain": 115,
+   "reject": 1312
+  },
+  "partition": {
+   "domain_exclusion_unasserted": 88,
+   "domain_exclusion_where_in_domain": 27,
+   "verdict_agree_outside_domain": 15,
+   "verdict_compared_agree": 3804
+  },
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/bin-before",
+   "sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "tier": "allFeatures"
+  }
+ },
+ "fam-final-completeCodeGlobal": {
+  "status": "fail",
+  "cases": 3934,
+  "verdicts": {
+   "accept": 2506,
+   "out_of_domain": 116,
+   "reject": 1312
+  },
+  "partition": {
+   "domain_exclusion_asserted": 89,
+   "domain_exclusion_where_in_domain": 27,
+   "verdict_agree_outside_domain": 14,
+   "verdict_compared_agree": 3804
+  },
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/w08/bin-final",
+   "sha256": "fe992b40a28aa7f0bb387486e8e4d6616725bcbcfcfe6cd55310cb0251d4a7b8",
+   "tier": "completeCodeGlobal"
+  }
+ },
+ "fam-final-allFeatures": {
+  "status": "fail",
+  "cases": 3934,
+  "verdicts": {
+   "accept": 2507,
+   "out_of_domain": 115,
+   "reject": 1312
+  },
+  "partition": {
+   "domain_exclusion_asserted": 88,
+   "domain_exclusion_where_in_domain": 27,
+   "verdict_agree_outside_domain": 15,
+   "verdict_compared_agree": 3804
+  },
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/w08/bin-final",
+   "sha256": "fe992b40a28aa7f0bb387486e8e4d6616725bcbcfcfe6cd55310cb0251d4a7b8",
+   "tier": "allFeatures"
+  }
+ },
+ "full805-final-allFeatures": {
+  "status": "fail",
+  "cases": 796,
+  "verdicts": {
+   "accept": 252,
+   "out_of_domain": 12,
+   "reject": 532
+  },
+  "partition": {
+   "domain_exclusion_asserted": 9,
+   "domain_exclusion_where_in_domain": 3,
+   "verdict_agree_outside_domain": 4,
+   "verdict_compared_agree": 780
+  },
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/w08/bin-final",
+   "sha256": "fe992b40a28aa7f0bb387486e8e4d6616725bcbcfcfe6cd55310cb0251d4a7b8",
+   "tier": "allFeatures"
+  }
+ },
+ "full805-final-completeCodeGlobal": {
+  "status": "fail",
+  "cases": 796,
+  "verdicts": {
+   "accept": 252,
+   "out_of_domain": 12,
+   "reject": 532
+  },
+  "partition": {
+   "domain_exclusion_asserted": 9,
+   "domain_exclusion_where_in_domain": 3,
+   "verdict_agree_outside_domain": 4,
+   "verdict_compared_agree": 780
+  },
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/w08/bin-final",
+   "sha256": "fe992b40a28aa7f0bb387486e8e4d6616725bcbcfcfe6cd55310cb0251d4a7b8",
+   "tier": "completeCodeGlobal"
+  }
+ },
+ "transitions-strat886": [
+  "cases 886",
+  "700 ('reject', 'reject', 'nearcore_err', 'reason_changed', 'invalid: MissingTrieValue (contract code)')",
+  "178 ('reject', 'accept', 'nearcore_ok', 'reason_changed', '')",
+  "4 ('reject', 'out_of_domain', 'nearcore_err', 'reason_changed', 'out of domain (e.code_prep_race): contract pr')",
+  "3 ('reject', 'reject', 'nearcore_err', 'reason_changed', 'invalid: MissingTrieValue (finalize: trie upd')",
+  "1 ('reject', 'reject', 'nearcore_err', 'reason_changed', 'invalid: main transition post state root')",
+  "Lean accept of nearcore reject: 0"
+ ],
+ "transitions-w08-ccg": [
+  "cases 103",
+  "95 ('reject', 'out_of_domain', 'nearcore_err', 'reason_changed', 'out of domain (e.code_prep_race): contract pr')",
+  "8 ('reject', 'accept', 'nearcore_ok', 'reason_changed', '')",
+  "Lean accept of nearcore reject: 0"
+ ],
+ "transitions-w08-af": [
+  "cases 103",
+  "95 ('out_of_domain', 'out_of_domain', 'nearcore_err', 'reason_changed', 'out of domain (e.code_prep_race): contract pr')",
+  "8 ('accept', 'accept', 'nearcore_ok', 'same_reason', '')",
+  "Lean accept of nearcore reject: 0"
+ ],
+ "transitions-strat-ccg": [
+  "cases 18553",
+  "10130 ('accept', 'accept', 'nearcore_ok', 'same_reason', '')",
+  "700 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (access key)')",
+  "700 ('reject', 'reject', 'nearcore_err', 'reason_changed', 'invalid: MissingTrieValue (contract code)')",
+  "645 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (account)')",
+  "449 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (BufferedReceiptGro')",
+  "435 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidCongestionInfo')",
+  "295 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: main transition post state root')",
+  "269 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidChunkEncodedMerkleRoot')",
+  "254 ('out_of_domain', 'out_of_domain', 'nearcore_ok', 'same_reason', 'out of domain (e.wasm-\u03b1): unmodeled unmodeled')",
+  "237 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: transaction root of the last chunk')",
+  "196 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidTxRoot')",
+  "178 ('reject', 'accept', 'nearcore_ok', 'reason_changed', '')",
+  "160 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (delayed receipt)')",
+  "154 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (DelayedReceiptIndi')",
+  "151 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: segment does not reach the last-but-')",
+  "146 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: source_receipt_proofs contains extra')",
+  "143 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidChunkEncodedLength')",
+  "143 ('reject', 'reject', 'nearcore_err', 'same_reason', 'decode: Not all bytes read')",
+  "141 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: applied receipts hash')",
+  "137 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidGasUsed')",
+  "135 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidBandwidthRequests')",
+  "131 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: chunk slots do not match chunk_heade')",
+  "129 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidReceiptsProof')",
+  "129 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidBalanceBurnt')",
+  "129 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidStateRoot')",
+  "128 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidChunkHeaderShardSplit')",
+  "126 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: epoch table does not match the refer')",
+  "126 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (bandwidth schedule')",
+  "121 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: receipt proof to_shard_id')",
+  "119 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidValidatorProposals')",
+  "119 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: missing source receipt proof')",
+  "115 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (BufferedReceiptInd')",
+  "114 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidGasLimit')",
+  "113 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: InvalidOutcomesProof')",
+  "110 ('reject', 'reject', 'nearcore_err', 'same_reason', 'decode: truncated split shard')",
+  "107 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: segment is not exactly the blocks th')",
+  "105 ('reject', 'reject', 'nearcore_err', 'same_reason', 'decode: invalid account id (stake account)')",
+  "102 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: receipt proof merkle path')",
+  "99 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: epoch_start_after inconsistent with ')",
+  "88 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (buffered receipt)')",
+  "85 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (promise yield time')",
+  "83 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (finalize: trie upd')",
+  "81 ('reject', 'reject', 'nearcore_err', 'same_reason', 'decode: ed25519 signature high bits')",
+  "76 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: StorageInconsistentState(MissingTrie')",
+  "75 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (PromiseYieldIndice')",
+  "22 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (receipt group)')",
+  "20 ('reject', 'reject', 'nearcore_err', 'same_reason', 'decode: truncated stake account')",
+  "12 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: implicit transitions count')",
+  "12 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: implicit transition post state root')",
+  "12 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (contract code leng')",
+  "12 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (access keys of a d')",
+  "10 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (pending data count')",
+  "9 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (postponed receipt ')",
+  "8 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (postponed receipt)')",
+  "8 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (contract data of a')",
+  "7 ('out_of_domain', 'out_of_domain', 'nearcore_ok', 'same_reason', 'out of domain (c.segment)')",
+  "4 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (gas key nonce)')",
+  "4 ('reject', 'out_of_domain', 'nearcore_err', 'reason_changed', 'out of domain (e.code_prep_race): contract pr')",
+  "3 ('reject', 'reject', 'nearcore_err', 'reason_changed', 'invalid: MissingTrieValue (finalize: trie upd')",
+  "1 ('reject', 'reject', 'nearcore_err', 'reason_changed', 'invalid: main transition post state root')",
+  "1 ('reject', 'reject', 'nearcore_err', 'same_reason', 'invalid: MissingTrieValue (received data)')",
+  "Lean accept of nearcore reject: 0"
+ ],
+ "binaries": {
+  "lean_before": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+  "lean_draft": "4e209c969866dce00612637700f6ff605d3213d0ccdd49fce273af209cd4fc19",
+  "lean_final": "fe992b40a28aa7f0bb387486e8e4d6616725bcbcfcfe6cd55310cb0251d4a7b8",
+  "generator": "068c7ad685254f5f6057ed6c3fedc8864e060dc1af5b5819146c48444ef392d8"
+ }
+}

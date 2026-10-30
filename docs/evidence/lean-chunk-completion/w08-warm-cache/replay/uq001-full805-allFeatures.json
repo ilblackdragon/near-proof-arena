@@ -1,0 +1,67 @@
+{
+ "lean_rows": "results.jsonl",
+ "cases": 796,
+ "table": [
+  {
+   "key": [
+    "lean_reject_other",
+    "cold_err",
+    "warm_err",
+    "poisoned_err"
+   ],
+   "n": 342,
+   "example": "/data/illia/nearproof-deps/w08-runs/full805/mutants/00-h10003-s2-hdr.bandwidth_requests.add"
+  },
+  {
+   "key": [
+    "lean_accept",
+    "cold_ok",
+    "warm_ok",
+    "poisoned_err"
+   ],
+   "n": 247,
+   "example": "/data/illia/nearproof-deps/w08-runs/full805/d3/00-h10003-s0"
+  },
+  {
+   "key": [
+    "no_probe"
+   ],
+   "n": 140,
+   "example": null
+  },
+  {
+   "key": [
+    "lean_reject_missing_code",
+    "cold_err",
+    "warm_ok",
+    "poisoned_err"
+   ],
+   "n": 51,
+   "example": "/data/illia/nearproof-deps/w08-runs/full805/mutants/00-h10003-s3-code.drop.0"
+  },
+  {
+   "key": [
+    "lean_ood",
+    "cold_err",
+    "warm_ok",
+    "poisoned_err"
+   ],
+   "n": 12,
+   "example": "/data/illia/nearproof-deps/w08-runs/full805/mutants/00-h10006-s1-code.drop.0"
+  },
+  {
+   "key": [
+    "lean_accept",
+    "cold_ok",
+    "warm_ok",
+    "poisoned_ok"
+   ],
+   "n": 4,
+   "example": "/data/illia/nearproof-deps/w08-runs/full805/ood/00-h10002-s0"
+  }
+ ],
+ "statement_violations": [],
+ "control_poisoned_differs_in_domain": 247,
+ "positive_control_warm_differs_on_missing_code": 51,
+ "status": "pass"
+}

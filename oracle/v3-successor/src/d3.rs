@@ -18,14 +18,18 @@
 //!                        contract (§10.0a P5, conservative legacy-wallet exclusion)
 //!   ∧ `e.g_alpha`        the chunk's Σ `gas_burnt_for_function_call` ≤ `G_α` = 2²² · 822,756
 //!                        (`D3.gAlpha`); recorded per case as `features.fc_gas_burnt_for_function_call`
-//!   ∧ `e.code_cache`     (per code-blob list, so per code mutant) the first executed pre-state
-//!                        contract whose blob is absent from the witness was not deployed earlier in
-//!                        the chunk (committed or rolled back, any account). A *pre-state contract*
+//!   ∧ (per code-blob list, so per code mutant) the first executed pre-state contract whose blob
+//!                        is absent from the witness was not deployed earlier in the chunk
+//!                        (committed or rolled back, any account). A *pre-state contract*
 //!                        (§10.0a P1) is one whose current `Local` hash equals its `Local` hash in
-//!                        the chunk's pre-state trie (`source == "state"` below). Otherwise nearcore's verdict depends
-//!                        on its compiled-contract cache and preparation pipeline (README.md,
-//!                        spec/near-chunk-validation-d3.md §10.0/§10.1). Honest witnesses carry
-//!                        every accessed code, so only code mutants can leave D3α this way.
+//!                        the chunk's pre-state trie (`source == "state"` below). Otherwise the
+//!                        deploy serves the code (deploy tracker / the deploy's precompile), and
+//!                        the signed D3α excludes the case. The baseline crate names this
+//!                        `e.code_cache`; this crate names its real cause (W08, 2026-10-29):
+//!                        `e.code_prep_race` when nearcore's verdict differs between the forced
+//!                        eager and lazy preparation schedules (src/cachejudge.rs), else
+//!                        `e.code_deploy_served` (deterministic). Honest witnesses carry every
+//!                        accessed code, so only code mutants can leave D3α this way.
 //!   ∧ `o.unknown_receipt` / `o.code_unknown`  (oracle limits: an executed receipt the oracle
 //!                        cannot find, a code hash outside the registry; never seen so far).
 //! "Executed contract" = the code a FunctionCall that reaches its dispatch point runs: the
@@ -628,6 +632,9 @@ pub struct D3Ctx<'a> {
     pub d3_seen: &'a mut usize,
     pub drop_cap: usize,
     pub code_mutant_p: f64,
+    /// Schedule and cache probes (src/cachejudge.rs): labels deploy-served code mutants by their
+    /// real cause, and (opt-in) records warm / poisoned-cache verdicts for UQ-001.
+    pub probe: Option<&'a crate::cachejudge::CacheJudge>,
 }
 
 fn write_case(dir: &Path, claim: &Claim, witness: &[u8], codes: &[Vec<u8>], meta: serde_json::Value) {
@@ -645,7 +652,7 @@ fn vstr(r: &Result<(), String>) -> String {
 pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     let D3Ctx {
         tracker, client, ci, judge, built, sw, wb, accesses, codes, verdict, warm, cold_no_codes, labels, chain_idx, params,
-        n_shards, out, o, rng, ood_count, d3_seen, drop_cap, code_mutant_p,
+        n_shards, out, o, rng, ood_count, d3_seen, drop_cap, code_mutant_p, probe,
     } = x;
     let viol = match crate::d0::classify(tracker, built, sw, wb.len(), codes.len()) {
         Ok(v) => v,
@@ -693,7 +700,8 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         }
     }
     if code_cache_dependent(&an3.state_calls, vals, codes) {
-        viol3.push("e.code_cache");
+        // honest witnesses carry every accessed code, so this is not expected (no schedule probe)
+        viol3.push("e.code_deploy_served");
     }
     let in_d3 = viol3.is_empty();
     // the D2 classifier's e.wasm and the D3 walk agree on whether any contract ran
@@ -767,6 +775,12 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         "action_results": an2.action_results, "receipt_classes": an2.receipt_classes,
         "features": features,
     });
+    let mut meta = meta;
+    if let Some(p) = probe.filter(|_| crate::cachejudge::warm_enabled()) {
+        let rs = (built.claim.rs_data_parts, built.claim.rs_total_parts);
+        meta["nearcore_probe"] = crate::cachejudge::cache_probe(p, ci, client, wb, codes, rs);
+    }
+    let meta = meta;
     // coverage counters
     d3s.add("honest_with_function_calls", (an3.features.get("n_function_calls").cloned().unwrap_or_default().as_u64().unwrap_or(0) > 0) as u64);
     d3s.add("honest_with_executed_code", ran as u64);
@@ -898,11 +912,25 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     }
     let gas_bfc = an3.features.get("fc_gas_burnt_for_function_call").cloned().unwrap_or_default();
     for (m, flags, derived, cs) in ms {
-        // Preserve the base exclusions; a code-blob list can also make the verdict cache-dependent
-        // (`e.code_cache`, only reachable by code mutants: the others carry the honest codes)
+        // Preserve the base exclusions. A code-blob list can also leave a pre-state call whose code
+        // only an earlier in-chunk deploy (committed or rolled back) holds; only code mutants reach
+        // this. Its cause is that deploy plus the preparation pipeline, not validator cache history,
+        // so the label says which (W08, 2026-10-29; before, every such mutant was `e.code_cache`):
+        //   `e.code_prep_race`     nearcore's verdict differs between the forced eager and lazy
+        //                          preparation schedules (src/cachejudge.rs): a thread race;
+        //   `e.code_deploy_served` the deploy serves the call under both schedules: deterministic.
         let m_cc = code_cache_dependent(&an3.state_calls, vals, &cs);
+        let sched = match (probe, m_cc, &m.judge, &flags, derived) {
+            (Some(p), true, Judge::Nearcore, None, None) => {
+                let e = p.judge(crate::cachejudge::Mode::Eager, ci, client, &m.witness, &cs, rs(&m.claim));
+                let l = p.judge(crate::cachejudge::Mode::Lazy, ci, client, &m.witness, &cs, rs(&m.claim));
+                Some((e, l))
+            }
+            _ => None,
+        };
+        let race = sched.as_ref().is_some_and(|(e, l)| e.is_ok() != l.is_ok());
         let mut m_viol = viol3.clone();
-        if m_cc { m_viol.push("e.code_cache"); }
+        if m_cc { m_viol.push(if race { "e.code_prep_race" } else { "e.code_deploy_served" }); }
         let m_in_d3 = m_viol.is_empty();
 
         let (exp, src): (Result<(), String>, String) = match (&m.judge, &flags, derived) {
@@ -915,9 +943,10 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         let fam = m.name.split(|c: char| c == '.' || c == '(').take(2).collect::<Vec<_>>().join(".");
         d3s.add(&format!("mutant.{fam}.{}", if exp.is_ok() { "accept" } else { "reject" }), 1);
         if m_cc {
-            d3s.add(&format!("mutant_ood.e.code_cache.nearcore_{}", if exp.is_ok() { "accept" } else { "reject" }), 1);
+            let lab = if race { "e.code_prep_race" } else { "e.code_deploy_served" };
+            d3s.add(&format!("mutant_label.{lab}.nearcore_{}", if exp.is_ok() { "accept" } else { "reject" }), 1);
         }
-        let meta = json!({
+        let mut meta = json!({
             "case": mname, "kind": "mutant", "mutation": m.name, "base": name,
             "verdict_source": src,
             "nearcore": vstr(&exp),
@@ -927,6 +956,14 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
             "features": {"base_fc_gas_burnt_for_function_call": gas_bfc, "fc_gas_burnt_for_function_call": gas_bfc},
             "codes": cs.iter().map(|c| { let h = CryptoHash::hash_bytes(c); json!({"hash": h.to_string(), "name": cname(&h), "len": c.len()}) }).collect::<Vec<_>>(),
         });
+        if let Some((e, l)) = &sched {
+            meta["nearcore_schedule"] = json!({"eager": vstr(e), "lazy": vstr(l)});
+        }
+        if let (Some(p), Judge::Nearcore, None, None) =
+            (probe.filter(|_| crate::cachejudge::warm_enabled()), &m.judge, &flags, derived)
+        {
+            meta["nearcore_probe"] = crate::cachejudge::cache_probe(p, ci, client, &m.witness, &cs, rs(&m.claim));
+        }
         stats.mutants += 1;
         write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, &cs, meta);
     }

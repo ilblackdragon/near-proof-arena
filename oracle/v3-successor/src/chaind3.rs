@@ -158,6 +158,8 @@ pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, st
     let mut s = setup_d3(p, dp.min_gas_price);
     let cold_home = out.join(format!(".cold-{chain_idx}"));
     let judge = crate::d3judge::ColdJudge::new(&s.env.clients, &s.ems, &s.genesis, &cold_home);
+    // W08 / UQ-001: schedule and cache probes (src/cachejudge.rs); separate runtimes and caches
+    let probe = crate::cachejudge::CacheJudge::new(&s.env.clients, &s.ems, &s.genesis, &cold_home);
     // W01 (opt-in): nearcore's per-outcome observables of every honest witness; no RNG use
     let mut obs = crate::observables::enabled()
         .then(|| crate::observables::Collector::new(&s.env.clients, &s.ems, &s.genesis, &cold_home, out, chain_idx));
@@ -436,6 +438,7 @@ pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, st
                     d3_seen: &mut d3_seen,
                     drop_cap: dp.drop_cap,
                     code_mutant_p: dp.code_mutant_p,
+                    probe: Some(&probe),
                 },
                 stats,
                 d3s,
