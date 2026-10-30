@@ -239,7 +239,7 @@ separately). Steps 1–2 (the 16 host rows) are handled separately too. Coverage
 
 ### Rows by new status
 
-**Validated with a detecting per-row control (12):**
+**Validated with a detecting per-row control (10):**
 
 | row | deciding / exercising cases | control (flipped / replayed) |
 |---|---|---|
