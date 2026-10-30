@@ -127,3 +127,32 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
 * O3 pre-check (source reading): the D2 decoders exclude (`oodDeployGlobal`, `oodUseGlobal`,
   `oodStateInit`, `oodMlDsaKey`) where the global decoders accept. No reject finding so far.
 * Stopped here because the context was long. The exact next steps are in README §6, "Next steps".
+
+## 2026-10-30, third session (O4, storage resolution)
+
+* Started from main `809e174be` (worktree `worktree-agent-a4c8f20bec2a73f04`).
+* **Statement first, then data.** `TierO4.lean`: `O4Witness` (original witness format, codes fit
+  one code response), `EngineRef`/`EngineAgree` (engine obligation), and the shell walk
+  `checkD2CoreWithObs_legacy_recorder` / `checkD2CoreGWith_legacy_recorder` (decode,
+  code-response and size phases; `o4_lockstep` is `refines_lockstep` plus `Refines.engine_bind`
+  and a right-only passing guard). Checked in about 10 s.
+* **Data check** (`runtimeLimits` vs `storageResolution`, checker `54b8a117…`): 577 fixtures and
+  3,138 census: 0 violations. Committed `storage-limit-fixtures` (88): **26 violations**, all
+  nearcore `ok`: `runtimeLimits` rejects with `MissingTrieValue`/`StorageInconsistentState(MissingTrieValue)`,
+  `storageResolution` accepts. Full honest storage-limit family (2,700 of the 3,098 cases still on
+  disk): `runtimeLimits` rejects 44 nearcore-valid chunks.
+* **Fix (legacy side, pre-approved: signed statement unchanged).** `Config.withStorageExclusion`
+  on `checkSuccessor`'s non-hand-over legacy branches: a legacy reject on a witness above the
+  legacy storage bound is the `w.size` exclusion. Proved: `checkD2CoreG_ok_bound` (`NoAcc` walk:
+  the legacy shell never accepts above the bound), `relSuccessor_runtimeLimits_storageResolution_of`
+  (given `EngineAgree`, on `O4Witness` files, no size premise). Restated the narrow named pairs on
+  `checkSuccessor signedCfg`; `Refines.storage` congruence for the generic lifts; `FloatOverlap`
+  re-proved from the hook refinement. Full default build: 395 jobs ok; `make pin-check` ok;
+  gate-b-caps and storage-resolution test executables pass.
+* **Engine phases E0, E1 proved**: `applyNewChunkD2_eq_logged`/`engineAgree_of_logged` (legacy
+  engine = its logged mirror) and `logged_run`.
+* **Engine agreement open**, and false over arbitrary stores: README §7 lists five shapes (G1–G5)
+  where the recorder excludes or diverges and the legacy engine decides; none seen in data. G3
+  (pipeline `uncertain` taints unrelated calls) is the likeliest on a real chain; its fix changes
+  the recorder engine the signed hand-over runs, so it is left to the owner.
+* Replay evidence and before/after tables: `docs/evidence/lean-chunk-completion/tier-refinement-w12/o4-replay/`.

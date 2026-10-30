@@ -471,7 +471,11 @@ rest are open, each checked empirically (`docs/evidence/lean-chunk-completion/ti
 * **O4 storage resolution** — the step from the legacy main transition (`applyNewChunkD2`, merged
   value size bound) to `recorderDriver` (`StorageExecution.run`, W08 pipeline code rule). This is a
   change of engine, not a guard: the refinement needs an agreement theorem between the two runtimes
-  on the legacy domain. Until 2026-10-27 it was false without a layout restriction: on the honest,
+  on the legacy domain. Since 2026-10-30 (`TierO4.lean`): proved at shell and tier level given the
+  engine agreement (`relSuccessor_runtimeLimits_storageResolution_of`, premise `EngineAgree`, witness
+  condition `O4Witness`), after fixing the narrower legacy tiers' rejects above the storage bound
+  (`Config.withStorageExclusion`; 26 nearcore-valid `storage-limit-fixtures` chunks). The engine
+  agreement is open. Until 2026-10-27 it was false without a layout restriction: on the honest,
   nearcore-valid fixture `resharding-fixtures/cases/seed11-02-h10077-s2` (a V3 layout after a split,
   one layout across the claim's epochs, non-empty outgoing buffers) every legacy-engine tier,
   `.signed` included, rejected with `InvalidBandwidthRequests`. The legacy `bandwidthRequests`

@@ -166,6 +166,98 @@ theorem logged_run {α : Type} (x : Logged.LM α) (r : StorageExecution.Recordin
   simp only [Logged.SM.runR_eq, Logged.LM.ev]
   rfl
 
+/-! ## The engine simulation relation (foundation for the remaining phases)
+
+`SimE e P x y`: from every recorder state satisfying the invariant `P`, the recorder computation
+`y` returns the logged mirror's value `LM.ev e.store e.preRoot x` (in a state satisfying `P`), or,
+where the mirror rejects, the same error; a mirror exclusion constrains nothing. -/
+
+open StorageExecution in
+/-- `φ` maps the mirror's values to the recorder's (as `Logged.R`'s `φ`: the mirror's overlays
+carry a dummy trie, the recorder's the revealed pre-state). -/
+def SimE {α β : Type} (e : Env) (P : Recording → Prop) (φ : α → β) (x : Logged.LM α) (y : M β) : Prop :=
+  ∀ r, P r → match Logged.LM.ev e.store e.preRoot x with
+    | .ok a => ∃ r', (y.run r) e = .ok (φ a, r') ∧ P r'
+    | .error err => isExclusion err = true ∨ (y.run r) e = .error err
+
+namespace SimE
+open StorageExecution
+
+theorem pure {α β : Type} {e : Env} {P : Recording → Prop} (φ : α → β) (a : α) :
+    SimE e P φ (Pure.pure a) (Pure.pure (φ a) : M β) := fun r hr => ⟨r, rfl, hr⟩
+
+theorem bind {α α' β β' : Type} {e : Env} {P : Recording → Prop} {φ : α → α'} {ψ : β → β'}
+    {x : Logged.LM α} {y : M α'} {f : α → Logged.LM β} {g : α' → M β'}
+    (hxy : SimE e P φ x y) (hfg : ∀ a, SimE e P ψ (f a) (g (φ a))) :
+    SimE e P ψ (x >>= f) (y >>= g) := by
+  intro r hr
+  have h1 := hxy r hr
+  rw [Logged.LM.ev_bind]
+  cases hx : Logged.LM.ev e.store e.preRoot x with
+  | error err =>
+    rw [hx] at h1
+    rcases h1 with h | h
+    · exact Or.inl h
+    · refine Or.inr ?_
+      show (y.run r e >>= fun p => (g p.1).run p.2 e) = _
+      rw [h]; rfl
+  | ok a =>
+    rw [hx] at h1
+    obtain ⟨r', hy, hr'⟩ := h1
+    have h2 := hfg a r' hr'
+    show match Logged.LM.ev e.store e.preRoot (f a) with
+      | .ok b => ∃ r'', (y.run r e >>= fun p => (g p.1).run p.2 e) = .ok (ψ b, r'') ∧ P r''
+      | .error err => isExclusion err = true ∨ (y.run r e >>= fun p => (g p.1).run p.2 e) = .error err
+    rw [hy]
+    exact h2
+
+/-- A logged read: the invariant must survive the recorder update. -/
+theorem logged {α : Type} {e : Env} {P : Recording → Prop} (x : Logged.LM α)
+    (hP : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder }) :
+    SimE e P id x (StorageExecution.logged x) := by
+  intro r hr
+  rw [logged_run]
+  cases Logged.LM.ev e.store e.preRoot x with
+  | error err => exact Or.inr rfl
+  | ok a => exact ⟨_, rfl, hP r _ hr⟩
+
+/-- A bookkeeping-only state update (pipeline, observation) that keeps the invariant. -/
+theorem modify {e : Env} {P : Recording → Prop} (f : Recording → Recording)
+    (hP : ∀ r, P r → P (f r)) :
+    SimE e P id (Pure.pure ()) (MonadState.modifyGet fun r => ((), f r) : M Unit) := by
+  intro r hr
+  exact ⟨f r, rfl, hP r hr⟩
+
+end SimE
+
+/-- The top-level bridge: a simulation of the whole main transition from the initial recorder state
+gives the engine obligation (`EngineAgreeL`, hence `EngineAgree` by `engineAgree_of_logged`). -/
+theorem engineAgreeL_of_simE (cfg : Wasm.NearCfg) (P : StorageExecution.Recording → Prop)
+    (hinit : P { observe := cfg.observeDetail })
+    (h : ∀ (merged : List Bytes) (p : Prims) (e : Env) (vu : Option ValidatorUpdateFacts)
+      (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion),
+      e.store = mkHStore merged →
+      SimE e P id (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg)
+        (StorageExecution.applyNewChunkD2 { globalActions := false, codePolicy := .coldPartial } cfg p e
+          (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg)) :
+    EngineAgreeL cfg := by
+  intro merged p e vu ps rs txs cg he
+  have hs := h merged p e vu ps rs txs cg he _ hinit
+  refine ⟨fun err hx hne _ => ?_, fun out hx _ => ?_⟩
+  · rw [hx] at hs
+    rcases hs with hs | hs
+    · rw [hne] at hs; cases hs
+    · unfold StorageExecution.run
+      rw [hs]; rfl
+  · rw [hx] at hs
+    obtain ⟨r', hy, _⟩ := hs
+    unfold StorageExecution.run
+    rw [hy]; rfl
+
+#print axioms engineAgreeL_of_simE
+#print axioms SimE.bind
+#print axioms SimE.logged
+
 /-! ## Lockstep steps for the driver change -/
 
 theorem Refines.bind_ok {α β : Type} {x : Except String α} {f g : α → Except String β}
