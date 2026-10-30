@@ -1,0 +1,1 @@
+{"case": "docs/evidence/lean-chunk-completion/resharding-fixtures/cases/seed11-01-h10072-s5", "before": "out_of_domain", "after": "accept", "nearcore_ok": true, "before_reason": "out of domain (e.g_alpha): chunk function-call gas 3620244061397 > G_\u03b1 3450888781824", "after_reason": ""}
