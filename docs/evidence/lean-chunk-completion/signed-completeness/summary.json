@@ -1,0 +1,196 @@
+{
+ "checker_after": "1ebfae54e060f315f771846276877eae5ee46a22074235a5178a05ea740d4d10",
+ "checker_before": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+ "populations": {
+  "corpus": {
+   "after": {
+    "accept": 73783,
+    "out_of_domain": 2758,
+    "reject": 159175
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 232958
+   },
+   "before": {
+    "accept": 73783,
+    "out_of_domain": 2758,
+    "reject": 159175
+   },
+   "cases": 235716,
+   "moves": {}
+  },
+  "fixtures": {
+   "after": {
+    "accept": 150,
+    "out_of_domain": 269,
+    "reject": 174
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 324
+   },
+   "before": {
+    "accept": 124,
+    "out_of_domain": 320,
+    "reject": 149
+   },
+   "cases": 593,
+   "moves": {
+    "out_of_domain -> accept (nearcore_ok=True)": 26,
+    "out_of_domain -> out_of_domain (nearcore_ok=True)": 1,
+    "out_of_domain -> reject (nearcore_ok=False)": 25
+   }
+  },
+  "fixtures-tar": {
+   "after": {
+    "accept": 61,
+    "out_of_domain": 154,
+    "reject": 123
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 184
+   },
+   "before": {
+    "accept": 55,
+    "out_of_domain": 134,
+    "reject": 149
+   },
+   "cases": 338,
+   "moves": {
+    "out_of_domain -> accept (nearcore_ok=True)": 6,
+    "out_of_domain -> out_of_domain (nearcore_ok=True)": 22,
+    "reject -> out_of_domain (nearcore_ok=True)": 26
+   }
+  },
+  "gap3138": {
+   "after": {
+    "accept": 735,
+    "out_of_domain": 2403
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 735
+   },
+   "before": {
+    "accept": 735,
+    "out_of_domain": 2403
+   },
+   "cases": 3138,
+   "moves": {}
+  },
+  "raw-reshard": {
+   "after": {
+    "accept": 1048,
+    "out_of_domain": 41,
+    "reject": 84
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 1132
+   },
+   "before": {
+    "accept": 889,
+    "out_of_domain": 272,
+    "reject": 12
+   },
+   "cases": 1173,
+   "moves": {
+    "out_of_domain -> accept (nearcore_ok=True)": 159,
+    "out_of_domain -> out_of_domain (nearcore_ok=False)": 2,
+    "out_of_domain -> out_of_domain (nearcore_ok=True)": 6,
+    "out_of_domain -> reject (nearcore_ok=False)": 72
+   }
+  },
+  "shard13": {
+   "after": {
+    "accept": 944,
+    "out_of_domain": 279
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 944
+   },
+   "before": {
+    "accept": 944,
+    "out_of_domain": 279
+   },
+   "cases": 1223,
+   "moves": {}
+  },
+  "storage-c1-honest": {
+   "after": {
+    "accept": 1354,
+    "out_of_domain": 146
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 1354
+   },
+   "before": {
+    "accept": 1354,
+    "out_of_domain": 125,
+    "reject": 21
+   },
+   "cases": 1500,
+   "moves": {
+    "out_of_domain -> out_of_domain (nearcore_ok=True)": 44,
+    "reject -> out_of_domain (nearcore_ok=True)": 21
+   }
+  },
+  "storage-c2-honest": {
+   "after": {
+    "accept": 1653,
+    "out_of_domain": 147
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 1653
+   },
+   "before": {
+    "accept": 1653,
+    "out_of_domain": 125,
+    "reject": 22
+   },
+   "cases": 1800,
+   "moves": {
+    "out_of_domain -> out_of_domain (nearcore_ok=True)": 44,
+    "reject -> out_of_domain (nearcore_ok=True)": 22
+   }
+  },
+  "storage-s103-honest": {
+   "after": {
+    "accept": 1055,
+    "out_of_domain": 145
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 1055
+   },
+   "before": {
+    "accept": 1055,
+    "out_of_domain": 122,
+    "reject": 23
+   },
+   "cases": 1200,
+   "moves": {
+    "out_of_domain -> out_of_domain (nearcore_ok=True)": 42,
+    "reject -> out_of_domain (nearcore_ok=True)": 23
+   }
+  },
+  "storage-s103-mutants": {
+   "after": {
+    "out_of_domain": 255,
+    "reject": 246
+   },
+   "after_vs_nearcore_decided": {
+    "agree": 246
+   },
+   "before": {
+    "out_of_domain": 116,
+    "reject": 385
+   },
+   "cases": 501,
+   "moves": {
+    "out_of_domain -> out_of_domain (nearcore_ok=False)": 68,
+    "out_of_domain -> out_of_domain (nearcore_ok=True)": 44,
+    "out_of_domain -> reject (nearcore_ok=False)": 4,
+    "reject -> out_of_domain (nearcore_ok=False)": 88,
+    "reject -> out_of_domain (nearcore_ok=True)": 55
+   }
+  }
+ },
+ "tier": "signed"
+}
