@@ -366,12 +366,18 @@ without the new fields behave exactly as in v1.6.
   check the flags against the headers; kernel-checked counterexample
   `NearSpecV3.Examples.not_d1_sub_d2`, `not_d0_sub_d3`, 2026-10-30). On the corpora, 3,394/3,394
   honest and 951/951 mutant D1 accepts are D2 and D3 accepts.
-* **Follow-up (lane item, successor version).** Restructure the lower domains as literal
-  restrictions of the top relation: `Rel_Dk := RelD3 ∧ InDk` by definition, with `InDk` decidable.
-  `rel_mono` then becomes `RelDk → RelD3` by projection, and the statement of a successor version
-  can be `RelD3` alone, with one transcription in the trusted surface. The current per-rung checkers
-  (`checkD0`, `checkD1`, `checkD2`) remain as fast implementations, admitted only through proved
-  agreement with `RelD3 ∧ InDk`.
+* **Decision (2026-10-30, owner): the follow-up is adopted** in the successor draft
+  `near-chunk-v3-1` (`challenges/drafts/near-chunk-v3-1.draft.json`, unsigned). Its rungs are
+  `RelRungDk := RelD3 ∧ InRungDk` (`spec/lean/v3/NearSpecV3/RungsDefs.lean`), `InRungDk` the
+  cumulative domain of the rung's checker; the statement `NearSpecV3.RelChunkV3R` is proved equal to
+  `RelD3` (`relChunkV3R_iff`), so one transcription is in the trusted surface, every inclusion is a
+  projection (`rung_chain`) and the D1a witness lift holds (`ZkFormal.PQ.Join.witnessLift`). The
+  per-rung checkers remain fast implementations: `checkD2` is admitted alone (`rungD2_of_checkD2`),
+  `checkD0`/`checkD0a`/`checkD1`/`checkD1a` together with a `checkD2` accept
+  (`rungD{0,0a,1,1a}_of_checks`; alone they are not, `Examples.not_rungD1_of_checkD1`). The v3.0
+  draft and the signed challenges are unchanged; the checker relations `RelD0 … RelD2` keep their
+  meaning as the statements of the separate D0/D0a/D1 challenges. Record:
+  `docs/research/lean-chunk-w00-owner-map.md` §3.4.
 
 **Versioning.**
 

@@ -28,6 +28,9 @@ SIGNED = {
 DRAFTS = {
     "challenges/drafts/near-chunk-v3.draft.json": ["spec/workloads/near-chunk-validation-d0",
                                                    "spec/workloads/near-chunk-v3"],
+    # v3.1 (rungs := RelD3 ∧ InRungDk): same classes and generator specs as v3.0
+    "challenges/drafts/near-chunk-v3-1.draft.json": ["spec/workloads/near-chunk-validation-d0",
+                                                     "spec/workloads/near-chunk-v3"],
 }
 ORACLE_TREE = ["oracle/v3/src", "oracle/v3/Cargo.toml", "oracle/v3/Cargo.lock"]
 
