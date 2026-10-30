@@ -1,0 +1,47 @@
+{
+  "schema": "near-arena-environment-v1",
+  "statement_id": "near/pv86/chunk-validation/v0",
+  "spec": "spec/environment-v3.md",
+  "reference_validator": {
+    "nearcore": "2.13.4",
+    "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+    "protocol_version": 86,
+    "parameters": "mainnet (RuntimeConfigStore::new(None).get_config(86))",
+    "target_arch": "x86_64",
+    "wasm_engine": "wasmtime 45.0.0",
+    "wasm_compiler": "winch",
+    "engine_config_source": "runtime/near-vm-runner/src/wasmtime_runner/mod.rs:455-545",
+    "compiled_contract_cache": "cold"
+  },
+  "assumptions": [
+    {
+      "id": "ENV-2.slot",
+      "statement": "execution-slot acquisition never exhausts its retries",
+      "source": "runtime/near-vm-runner/src/wasmtime_runner/mod.rs:230-269, 1012-1018"
+    },
+    {
+      "id": "ENV-2.host-resources",
+      "statement": "instantiation never fails for host resources (pool slot, memory image mapping, mmap/mprotect, fallible allocation)",
+      "source": "runtime/near-vm-runner/src/wasmtime_runner/mod.rs:1019-1026; wasmtime-45.0.0/src/runtime/module.rs:528-533, 545"
+    },
+    {
+      "id": "ENV-2.cache-io",
+      "statement": "compiled-contract cache reads/writes do not fail and the cache holds only entries this engine wrote",
+      "source": "runtime/near-vm-runner/src/cache.rs:55-67, 820-848; wasmtime_runner/mod.rs:654-675"
+    }
+  ],
+  "architectures": {
+    "x86_64": {"status": "reference", "compiler": "winch"},
+    "aarch64": {
+      "status": "excluded",
+      "compiler": "cranelift",
+      "measured_under": "qemu-aarch64 8.2.2 user mode, static aarch64-unknown-linux-musl build, wasmtime 45.0.0 with nearcore's engine configuration",
+      "measured": {
+        "instance_layout_boundary": {"shape_a": 65501, "shape_b": 65344, "shape_c": 65505, "equal_to_x86_64": true},
+        "float_nan_results": {"calls": 5920, "bit_identical_to_x86_64_and_lean": true}
+      },
+      "not_measured": ["trap classification", "native stack use and compile-time limits", "real silicon", "whole-chunk replay"],
+      "evidence": "docs/evidence/lean-chunk-completion/open-uqs/README.md"
+    }
+  }
+}

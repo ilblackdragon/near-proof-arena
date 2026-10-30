@@ -1,5 +1,6 @@
 import Lean
 import NearSpecV3.Successor.Config
+import NearSpecV3.Successor.SchemaVersion
 
 /-! Explicit-tier driver. I/O failures are errors, never semantic rejections or exclusions.
 JSON encoding uses Lean's encoder, including control characters in paths and error strings. -/
@@ -163,9 +164,14 @@ def main (args : List String) : IO UInt32 := do
     try
       let cb ← IO.FS.readBinFile (dir ++ "/claim.bin")
       let wb ← IO.FS.readBinFile (dir ++ "/witness.bin")
+      -- Every non-signed tier reads the versioned envelope (spec/claim-v3-versioning.md); unversioned
+      -- files are schema version 3 and are passed through unchanged (`checkVersioned_legacy`).
+      -- The signed tier keeps its exact signed byte format.
+      let versioned := tierName != "signed"
       match mode with
       | some blind =>
-        let r := checkSuccessorObs cfg blind cb.toList wb.toList
+        let r := if versioned then Schema.checkVersionedObs cfg blind cb.toList wb.toList
+          else checkSuccessorObs cfg blind cb.toList wb.toList
         if full then
           let (row, ok) := outputRowFull dir tierName r
           if !ok then failed := true
@@ -173,7 +179,8 @@ def main (args : List String) : IO UInt32 := do
         else
           IO.println (outputRow dir tierName r)
       | none =>
-        let (verdict, reason) := match checkVerdict (checkSuccessor cfg) cb.toList wb.toList with
+        let chk := if versioned then Schema.checkVersioned cfg else checkSuccessor cfg
+        let (verdict, reason) := match checkVerdict chk cb.toList wb.toList with
           | .accept => ("accept", "")
           | .reject e => ("reject", e)
           | .outOfDomain e => ("out_of_domain", e)

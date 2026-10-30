@@ -1,0 +1,89 @@
+{
+ "fixtures": {
+  "cases": 1020,
+  "before": {
+   "accept/nearcore:accept": 639,
+   "reject/nearcore:reject": 381
+  },
+  "after_legacy": {
+   "accept/nearcore:accept": 639,
+   "reject/nearcore:reject": 381
+  },
+  "legacy_before_vs_after_differences": 0,
+  "after_envelope": {
+   "accept/nearcore:accept": 639,
+   "reject/nearcore:reject": 381
+  },
+  "envelope_vs_legacy_differences": 0,
+  "lean_accept_of_nearcore_reject": 0,
+  "unmodeled_action_log": 0
+ },
+ "corpus-sample-1200": {
+  "cases": 1200,
+  "before": {
+   "reject/nearcore:reject": 743,
+   "accept/nearcore:accept": 457
+  },
+  "after_legacy": {
+   "reject/nearcore:reject": 743,
+   "accept/nearcore:accept": 457
+  },
+  "legacy_before_vs_after_differences": 0,
+  "after_envelope": {
+   "reject/nearcore:reject": 743,
+   "accept/nearcore:accept": 457
+  },
+  "envelope_vs_legacy_differences": 0,
+  "lean_accept_of_nearcore_reject": 0,
+  "unmodeled_action_log": 0
+ },
+ "census-3138": {
+  "cases": 3138,
+  "before": {
+   "accept/nearcore:accept": 3138
+  },
+  "after_legacy": {
+   "accept/nearcore:accept": 3138
+  },
+  "legacy_before_vs_after_differences": 0,
+  "lean_accept_of_nearcore_reject": 0,
+  "unmodeled_action_log": 0
+ },
+ "controls": {
+  "envv4-after.jsonl": [
+   [
+    "reject: invalid: unsupported claim schema version 4",
+    1200
+   ]
+  ],
+  "envenc2-after.jsonl": [
+   [
+    "reject: invalid: unsupported witness encoding 2",
+    1200
+   ]
+  ],
+  "envmixed-oldchecker.jsonl": [
+   [
+    "reject: invalid claim: decode: wrong claim format",
+    1200
+   ]
+  ]
+ },
+ "signed_tier_on_envelopes": [
+  [
+   "reject: invalid claim: decode: wrong claim format",
+   1200
+  ]
+ ],
+ "corpus_sample_seeds": {
+  "d3c7": 7000021,
+  "d3c8": 8000024,
+  "d3c9": 9000027,
+  "d3c10": 10000030,
+  "per_corpus": 300
+ },
+ "checkers": {
+  "before": "a1627ea3285cb919 (4f07a7fdf)",
+  "after": "f40158a4bb724155"
+ }
+}

@@ -194,6 +194,36 @@ jobs:
           persist-credentials: false
       - name: Harness self-tests
         run: python3 -m unittest discover -s oracle/tools -p 'test_*.py'
+      # Versioned claim/witness schema (spec/claim-v3-versioning.md): every committed fixture must
+      # pass the structural v3 check under the legacy rule (unversioned => schema version 3) and as
+      # an explicit version-3 envelope; the environment manifest must be complete.
+      - name: Claim/witness schema gate (committed fixtures)
+        run: |
+          set -euo pipefail
+          python3 tools/d3/claim_schema.py --self-test
+          find docs/evidence -name claim.bin -printf '%h\n' | sort -u \
+            | while read -r d; do [ -f "$d/witness.bin" ] && echo "$d"; done > /tmp/schema-cases.txt
+          test "$(wc -l < /tmp/schema-cases.txt)" -ge 500
+          python3 tools/d3/claim_schema.py --verify-list /tmp/schema-cases.txt
+          python3 tools/d3/claim_schema.py --check-env spec/environment-v3.json
+      # Negative control for the schema gate: an unsupported schema version must be rejected.
+      - name: Schema gate rejects an unsupported schema version
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob, subprocess, sys, tempfile
+          sys.path.insert(0, "tools/d3")
+          import claim_schema as cs
+          src = sorted(glob.glob("docs/evidence/lean-chunk-completion/**/claim.bin", recursive=True))[0]
+          env = cs.to_versioned(open(src, "rb").read())
+          bad = env[:20] + (4).to_bytes(4, "little") + env[24:]
+          with tempfile.NamedTemporaryFile(suffix=".bin", delete=False) as f:
+              f.write(bad); path = f.name
+          p = subprocess.run([sys.executable, "tools/d3/claim_schema.py", "--verify", path])
+          if p.returncode == 0:
+              print("::error::schema gate accepted claim schema version 4", file=sys.stderr); sys.exit(1)
+          print("schema gate rejected claim schema version 4, as intended")
+          PY
       # Schema only: validates the committed manifest's shape. The content
       # drift gate is the separate job below and requires real corpora.
       - name: Corpus manifest schema (corpus-free)

@@ -1,0 +1,6 @@
+BAD wasm_alt_bn128_pairing_check_element       built=(5102000000000, 5102000000000) snap=(5102000000000, 5102000000000) lean=(5102000000001, 5102000000000)
+31/32 pinned values agree
+BAD magic oldTestnet   nearcore=394abeb35e707609de8f73b63d43bd1a376ffe67935caa68937dd29bc04e673c lean=384abeb35e707609de8f73b63d43bd1a376ffe67935caa68937dd29bc04e673c
+6/7 wallet hashes agree
+BAD Host.lean:1254: tag ZZ has no manager arm
+1 unconsumed site(s)

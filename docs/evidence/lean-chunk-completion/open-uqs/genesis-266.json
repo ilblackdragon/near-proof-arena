@@ -1,0 +1,8 @@
+{
+ "population": "corpus genesis-main-transition cases (266, from corpus-blind-and-pipeline)",
+ "tier": "allFeatures",
+ "by_verdict": {
+  "accept/nearcore:accept": 266
+ },
+ "reasons": []
+}

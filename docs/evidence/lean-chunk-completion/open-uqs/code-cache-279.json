@@ -1,0 +1,19 @@
+{
+ "population": "every d3c7-d3c10 case whose generator meta carries e.code_cache (279)",
+ "tier": "allFeatures",
+ "by_verdict": {
+  "accept/nearcore:accept": 169,
+  "out_of_domain/nearcore:reject": 95,
+  "reject/nearcore:reject": 15
+ },
+ "reasons": [
+  [
+   "out of domain (e.wasm-\u03b1): contract preparation pipelined before the in-chunk deploy that serves its ",
+   95
+  ],
+  [
+   "invalid: MissingTrieValue (contract code)",
+   15
+  ]
+ ]
+}

@@ -5,6 +5,7 @@ import NearSpecV3.Successor.Resolution
 import NearSpecV3.Successor.TrieRecorder
 import NearSpecV3.Successor.BoundaryFacts
 import NearSpecV3.Successor.Differential
+import NearSpecV3.Successor.SchemaVersion
 
 /-!
 # W00 — the successor API
