@@ -98,21 +98,28 @@ def resolveColdCode (sources : CodeSources) (timely : Bool) (hash : Bytes) : Exc
 /-- The complete-witness decision does not read `attempted` or any compiled cache. Raw witness
 code is checked even if the store implementation is not `mkHStore`; production stores are built
 from content hashes. Deployment candidates are individually hash-checked by `deployed`. -/
-def resolveCompleteCode (sources : CodeSources) (pre : PrestateCode) (hash : Bytes) : Except String Bytes :=
+def resolveCompleteCode (sources : CodeSources) (pre : PrestateCode) (hash : Bytes)
+    (timely : Bool := true) : Except String Bytes :=
   match sources.witness hash with
   | some code =>
     if sha256 code == hash then .ok code else .error unauthenticatedCodeWitness
   | none =>
     if pre.needsWitness hash then .error incompleteCodeWitness
     else match sources.deployed hash with
-      | some code => .ok code
+      | some code =>
+        -- W12 race arm: code that only an earlier receipt's deploy serves reaches the call
+        -- through the preparation pipeline; when `Pipeline.deterministic` cannot rule out a
+        -- thread race the outcome is nearcore nondeterminism, out of domain exactly as in
+        -- `resolveColdCode`. A deploy in the call's own receipt (`current`) never races.
+        if timely || (sources.current.find? (fun c => sha256 c == hash)).isSome then .ok code
+        else .error (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code")
       | none => .error "invalid witness (w.code_complete): no authenticated code in witness or committed deployment"
 
 def resolveCodeBytes (policy : CodeWitnessPolicy) (sources : CodeSources)
     (pre : PrestateCode) (hash : Bytes) (timely : Bool := true) : Except String Bytes :=
   match policy with
   | .coldPartial => resolveColdCode sources timely hash
-  | .complete => resolveCompleteCode sources pre hash
+  | .complete => resolveCompleteCode sources pre hash timely
 
 /-- Changing attempted (including rolled-back) deployments cannot change a complete-code verdict.
 This is an implementation law, not an assumed cache-independence field. -/

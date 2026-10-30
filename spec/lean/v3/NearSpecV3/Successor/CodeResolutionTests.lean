@@ -38,6 +38,18 @@ def failed (x : Except String Bytes) (reason : String) : Bool := match x with | 
 -- A new or changed contract can use the transactional code tracker.
 #guard success (resolveCodeBytes .complete { empty with current := [code] } .absent hash)
 #guard success (resolveCodeBytes .complete { empty with committed := [code] } (.present (zeros 32)) hash)
+-- W12 race arm: a committed deploy that a pipelined preparation may not have seen is the
+-- cold policy's race exclusion, never an accept; a deploy in the call's own receipt never races.
+#guard failed (resolveCodeBytes .complete { empty with committed := [code] } .absent hash false)
+  (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code")
+#guard failed (resolveCodeBytes .complete { empty with committed := [code] } (.present (zeros 32)) hash false)
+  (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code")
+#guard success (resolveCodeBytes .complete { empty with current := [code] } .absent hash false)
+#guard success (resolveCodeBytes .complete { empty with current := [code], committed := [code] } .absent hash false)
+-- Supplied code and incomplete witnesses are unaffected by timing.
+#guard success (resolveCodeBytes .complete supplied .unknown hash false)
+#guard failed (resolveCodeBytes .complete { empty with committed := [code] } (.present hash) hash false)
+  incompleteCodeWitness
 -- Rolled-back deployment bytes do not become committed code.
 #guard !(resolveCodeBytes .complete { empty with attempted := [code] } .absent hash).isOk
 -- Code supplied by hash works for every origin/history, including failed deploys.

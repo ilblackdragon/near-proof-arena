@@ -153,28 +153,43 @@ theorem relSuccessor_signed_runtimeLimits (c w : Bytes) :
 /-! ## O7: the complete-code policy against the cold validator, at the code-resolution step
 
 `completeCodeGlobal` differs from `globalActions` only in `CodeWitnessPolicy` (`.complete` vs
-`.coldPartial`), read once per call by `resolveCodeBytes`. Neither refines the other:
+`.coldPartial`), read once per call by `resolveCodeBytes`.
 
 * `.complete` rejects (`w.code_complete`) a call whose code a warm or in-chunk deploy serves and
-  that nearcore accepts (census: 178 + 8 valid chunks, `tier-proofs/ccg.json`);
-* `.complete` *accepts* a call whose code only a committed in-chunk deploy serves although its
-  preparation was pipelined before that deploy (`timely = false`), where the cold validator's
-  outcome is a thread race and `.coldPartial` reports it out of domain. That is an accept of a
-  nondeterministic nearcore outcome. No corpus or fixture case reaches it (the census has no
-  CCG-accept / GA-out-of-domain row), but the two lemmas below show the step itself. -/
+  that nearcore accepts (census: 178 + 8 valid chunks, `tier-proofs/ccg.json`). That is the W08
+  policy question and is not touched here.
+* **Race arm (fixed 2026-10-30).** `.complete` used to *accept* a call whose code only a committed
+  in-chunk deploy serves although `Pipeline.deterministic` could not rule out that its preparation
+  was pipelined before that deploy (`timely = false`), where `.coldPartial` reports the thread race
+  out of domain. It now reports the same exclusion (`resolveCompleteCode`). `complete_untimely_ood`
+  states that both policies agree on that arm. -/
 
-theorem complete_accepts_untimely (code : Bytes) :
+def raceOOD : String :=
+  D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code"
+
+/-- On the race arm both policies report the same exclusion. -/
+theorem complete_untimely_ood (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
+    (hw : sources.witness hash = none) (hp : pre.needsWitness hash = false)
+    (hc : sources.current.find? (fun c => sha256 c == hash) = none)
+    (hd : sources.committed.find? (fun c => sha256 c == hash) = some code) :
+    resolveCodeBytes .complete sources pre hash false = .error raceOOD ∧
+      resolveCodeBytes .coldPartial sources pre hash false = .error raceOOD := by
+  refine ⟨?_, ?_⟩
+  · simp [resolveCodeBytes, resolveCompleteCode, CodeSources.deployed, List.find?_append, hw, hp,
+      hc, hd, raceOOD]
+  · simp [resolveCodeBytes, resolveColdCode, List.find?_append, hw, hc, hd, raceOOD]
+
+/-- The concrete instance that the pre-fix policy accepted. -/
+theorem complete_untimely_ood_example (code : Bytes) :
     resolveCodeBytes .complete { witness := fun _ => none, committed := [code] } .absent
-      (sha256 code) false = .ok code := by
-  simp [resolveCodeBytes, resolveCompleteCode, CodeSources.deployed, PrestateCode.needsWitness]
+      (sha256 code) false = .error raceOOD := by
+  simp [resolveCodeBytes, resolveCompleteCode, CodeSources.deployed, PrestateCode.needsWitness,
+    raceOOD]
 
-theorem coldPartial_untimely_ood (code : Bytes) :
-    resolveCodeBytes .coldPartial { witness := fun _ => none, committed := [code] } .absent
-      (sha256 code) false =
-      .error (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code") := by
-  simp [resolveCodeBytes, resolveColdCode]
+theorem raceOOD_isExclusion : isExclusion raceOOD = true := oodE_isExclusion _
 
-#print axioms complete_accepts_untimely
-#print axioms coldPartial_untimely_ood
+#print axioms complete_untimely_ood
+#print axioms complete_untimely_ood_example
+#print axioms raceOOD_isExclusion
 
 end NearSpecV3.Successor
