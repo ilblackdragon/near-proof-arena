@@ -127,3 +127,37 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
 * O3 pre-check (source reading): the D2 decoders exclude (`oodDeployGlobal`, `oodUseGlobal`,
   `oodStateInit`, `oodMlDsaKey`) where the global decoders accept. No reject finding so far.
 * Stopped here because the context was long. The exact next steps are in README §6, "Next steps".
+
+## 2026-10-30, third session (O2 proved, O3 components)
+
+* Started from main `809e174be`. Lake cache copied from the previous W12 worktree (hash-checked by
+  lake; only changed modules rebuilt).
+* **Generator.** `HostComm.lean` was rewritten around a combined flag map `setF oc og`, following
+  `Logged/WasmCR*.lean` (map `E σ`), which already had the full per-arm framework. Generated
+  `HostCommArms.lean` (`gen/gen_hostcomm_arms.py`; arm list from `FuelHost.lean`): 89 arms, 35 s.
+  Only two hand fixes: `thenDataIdsH`'s `modify` (a case split on `t.real`) and a missing helper,
+  `yieldCreateWithIdH` (unbounded heartbeats). The ten lifted arms commute only with `og = none`.
+* **Two-run steps** (`HostCommStep.lean`). The relation `RR X φ` records *which* message the lower
+  run stopped with: a free `∃ w, lower = .unmodeled w` would have needed `lineOutcome` on a symbolic
+  string, and `String.splitOn` is well-founded recursion (neither `decide` nor `decide +kernel`
+  reduces it). With the 14 (O2) or 10 (O3) messages closed, `split_eval` (unfold `splitOnAux` by
+  its equation lemma, then `decide`) evaluates each line.
+* **O2 proved** (`TierO2.lean`): `instantiate_curve`, `runCall_curve`, `lineOutcome_XC`,
+  `recRefine_curve`, `Lift.curveHosts` (every whole-state configuration),
+  `relSuccessor_storageResolution_curveHosts`. Lessons:
+  * `run` with a variable fuel does not unfold under `rfl` (smart unfolding), so
+    `callEntry {cfg with curveHosts := b} = callEntry cfg` needs induction (`run_curve_cfg`);
+    `step`, `prepare`, `fuelCertified`, `wasmFuel`, `contractOOD` are `rfl`.
+  * `lk_split` on two runs whose discriminants differ splits each side separately and walks into the
+    tail; naming the tail (`runCallT`/`runTail`, `rfl` copies) stops the walk at the right place.
+  * A structure update as a function argument must be parenthesised, and its continuation lines must
+    start at or right of the first field.
+* **O3 decoder check finished** (README §7 table): every newly accepted shape is a D2 `w.shape`
+  exclusion. Proved: `pPkGlobal_of_pPk`, `pBaseGlobal_of_pBase`, `pActGlobal_of_pBaseAct`, the four
+  exclusion lemmas, `finishActsGlobal_of_finishActs`, `managerGlobal_eq_manager` (logs without raw
+  actions), `globalTarget_of_not_distribution`. Gap: delegate/transaction re-serialization needs a borsh
+  round-trip lemma; not a nearcore disagreement.
+* No nearcore replay was needed: no refinement was found false; no definition changed, so no verdict
+  can move (the checker binary is unchanged; the new modules are proof-only).
+* Default `lake build`: 399 jobs, ok. `make pin-check` ok. Axioms: `axioms-o2-o3.txt`.
+* Open: O3 composition (README §7 "what remains", steps 1–6), O4, O6.
