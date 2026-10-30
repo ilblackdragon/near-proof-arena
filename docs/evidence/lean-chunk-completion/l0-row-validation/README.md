@@ -103,3 +103,80 @@ python3 tools/d3/l0_exercise.py evidence --map map.json guard-map.json --ablate 
 
 The working files are under `/data/illia/nearproof-deps/l0-validate/runs/` on the lane host:
 sample lists, traces, maps, and every replay report (baseline and ablated).
+
+## Second pass: status and exact next steps (handover, 2026-10-31)
+
+The coordinator asked for the 72 remaining rows to be continued on this branch. Main has been merged
+in (`773bc4133`). This handover records what is established and gives the exact order of the
+remaining work. No new row has been promoted yet.
+
+**Established from pinned source (nearcore `44f7ae6c`), for the uncalled hosts:**
+- `storage_iter_prefix`, `storage_iter_range` and `storage_iter_next` are ordinary `env` imports
+  (`runtime/near-vm-runner/src/imports.rs:341-343`).
+  - Importing them is **not** a link error: a module that imports them prepares and instantiates.
+  - Calling one is a **trap**. The body returns `Err(HostError::Deprecated { method_name })`
+    (`logic/logic.rs:4353-4357` and the two following functions), so the function call fails with
+    `FunctionCallError::HostError(Deprecated)`.
+  - Lean matches this: `Wasm/Host.lean:910-915` pops the arguments and aborts with the same
+    `Deprecated { method_name: … }` error.
+  - Fixture to build: a contract that imports one of them, with one method that calls it (expected:
+    receipt failure with `Deprecated`, chunk accepted) and one that does not (expected: success).
+    Add a mutant set for each, and use the ablation `host:storage_iter_*`.
+- `gas` is `@as gas: gas_seen_from_wasm<[opcodes: u32]>` (`imports.rs:344`), meaning
+  `gas_opcodes(opcodes)`: it burns `opcodes × regular_op_cost` (`logic.rs:1960-1977`). A contract
+  may import and call `env.gas` directly. Lean has `Wasm/Host.lean:804-806`:
+  `burnH (a[0] * 822756)`. Fixture to build: a contract that calls `gas(k)` for small k, plus a k
+  that exceeds prepaid gas.
+- `current_contract_code`, `refund_to_account_id` and `promise_set_refund_to` are plain imports
+  (`imports.rs:197,201-202`). Fixture to build: a contract that calls each one, including on an
+  account with no code (`current_contract_code` returns 0) and with an invalid account id
+  (`promise_set_refund_to`).
+
+**Next steps, in order:**
+1. *7 uncalled hosts.*
+   - Add the contracts above to `oracle/v3-successor/contracts` and a scenario in `src/scenarios.rs`.
+   - Generate ≥ 4 seeds with mutants. Use the generator's normal path: cold nearcore judges, and the
+     mutant set comes from the same tool as the corpus `hdr.*`/`w.*` classes.
+   - Add the new cases to a population file and run `l0_exercise.py trace`, then `map`, `ablate`
+     and `evidence`.
+2. *9 hosts without a negative chunk.* Run the same generator with its mutant classes over the
+   key-family, global-promise and corpus-ood chains that already exercise them. Their bases are
+   listed in `map2.json` (lane host). Then rerun `trace`, `map` and `evidence`. Their controls
+   already detect.
+3. *Throw guards* (D2-009, 024, 026, 057 and the genesis-branch throws).
+   - Extend `l0_ctl_patch.py`: wrap each targeted `throw "…"` in the successor core with
+     `Ctl.thr "<msg>"`. That is a copy-with-edits of `checkD2CoreGWith` / `checkD2CoreWith` under
+     `@[implemented_by]`, with the same template as `applyActionOrig`/`applyActionCtl`.
+   - Deciding fixtures: D2-057 uses the corpus `w.trailing_byte` mutants (2,530; 13 listed in
+     `runs/trailing.txt`). D2-024 needs a claim mutant whose `chunk_inner` names a shard outside the
+     layout. D2-026 needs a segment with no new chunk.
+4. *Masked guards D2-006/007/021/022.* The ablated replays show which later guard catches each
+   mutant:
+   - D2-006 (empty segment) → `segment does not start at prev_block_hash` (D2-021);
+   - D2-022 → `source_receipt_proofs contains extra proofs` or `segment does not reach the
+     last-but-one new chunk`;
+   - D2-007 and D2-021 → reject (reasons in `runs/guard-abl-repo/*/ablated/results.jsonl`).
+
+   The source argument for D2-006 is direct. With no blocks, `hashes.headD [] = []`, which is never
+   a 32-byte `prevBlockHash`, so D2-021 fails whenever D2-006 would. A small Lean lemma over
+   `checkD2CoreGWith` would make this a proof. For 007/021/022, try mutants that keep the later
+   check satisfied:
+   - 007: duplicate a *referenced* epoch while keeping `epochs == referenced`. This is impossible,
+     because `referenced` is deduplicated and sorted, so `strictlyAscending` failing implies the
+     equality fails. That makes 007 subsumed by D2-008.
+   - 021: a reversed segment of length 2 whose first block's hash equals `prevBlockHash`. This is
+     impossible without a hash collision.
+   - 022: a gap. The walk checks then fail, as observed.
+
+   Record each as validated-by-subsumption (the deciding mutants plus the subsuming guard's
+   validated row), or as `impossible-at-boundary` where it can never be the first failure. This
+   needs a new status path in `promote_row`, with the reason text in `rows.json`.
+5. *D3 hooks (10), wasm-prepare/exec (10), `L0-instr-*` (2), domain guards (5).* These rows cite
+   signed-tier lines (`D3/FunctionCall.lean`). Map each to its `allFeatures` site in
+   `Successor/StorageExecution.lean` (`functionCallRecorded`), `Wasm/Prepare.lean` and
+   `Wasm/Exec.lean` first. Then add hooks the same way:
+   - an `@[implemented_by]` copy with a `Ctl.tr` event and an ablation;
+   - for instruction families: trace the opcode class in `Wasm.Exec.step`, and ablate by charging
+     1 extra gas for one class;
+   - rerun the trace over `runs/sample.txt` (≈ 2.5 h at 5 processes);
+   - run `ablate` (≈ 10 min).
