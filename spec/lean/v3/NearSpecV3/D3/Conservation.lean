@@ -190,6 +190,21 @@ def creditedOpt (l : Layout) (own : Nat) (t : PTrie) : Option ValidatorUpdateFac
   | some f => creditedRewards l own t f
   | none => 0
 
+/-! ## Canonical inputs
+
+`nearIn` measures *stored bytes* by decoding them, so a value the runtime writes in an encoding that
+does not decode back to itself measures `0`. Values decoded from witness bytes are canonical; the
+statement quantifies over structured inputs, so it says so. -/
+
+/-- A receipt whose stored encoding decodes back to itself. `Rcpt.encode` writes each action's
+`raw` bytes (`D2/Types.lean:451,464`), which nothing ties to the structured action except decoding. -/
+def CanonRcpt (r : Rcpt) : Prop := decodeRcpt r.encode = .ok r
+
+/-- The receipt `processTxD2` builds for a transaction (`D2/RuntimeD2.lean:56-57`). -/
+def txReceipt (tf : TxD2 × Bool) (rid : Bytes) (gp : Nat) : Rcpt :=
+  ⟨tf.1.signer, tf.1.receiver, rid,
+   .action false ⟨false, tf.1.signer, none, tf.1.pk, gp, [], [], tf.1.actions⟩⟩
+
 /-! ## The statements -/
 
 /-- **A D3 chunk changes the NEAR it holds only by the epoch reward and the burnt amount.**
@@ -207,7 +222,14 @@ the first write rebuilds that branch with slots `0..15` only, silently dropping 
 by the deepseek-fv lead, with a kernel-checked counterexample). The runtime's writes preserve it
 (`NearSpec/TrieUpsertWf.lean`, `PTrie.upsert_wf`).
 
-The other two hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
+The canonicity hypotheses (`CanonRcpt` of the incoming receipts and of the receipt each transaction
+creates) and the magnitude bound exclude structured inputs no witness can produce: a receipt whose
+actions' `raw` bytes are not their encoding is stored as bytes that do not decode (it measures `0`),
+and an account whose amount reaches `u128Max` is written with the V2 marker in its amount slot
+(`D2/Types.lean:126-166`), so it no longer decodes. Real supply (~1.2·10³³ yocto) is far below
+`u128Max` (~3.4·10³⁸). Both found by the deepseek-fv provers, kernel-checked.
+
+The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
 `ChunkValidationD2.lean:213`); the second is the chunk producer's invariant and is not checked by
 `checkD2`. Without them a foreign receipt can enter this shard's delayed queue, where `nearIn` does
@@ -219,6 +241,11 @@ def ChunkConservation : Prop :=
     t.wf = true →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
+    (∀ r ∈ incoming, CanonRcpt r) →
+    (∀ tf ∈ txs, ∀ (rid : Bytes) (gp : Nat), rid.length = 32 → gp < 2 ^ 128 →
+      CanonRcpt (txReceipt tf rid gp)) →
+    nearIn env.ctx.layout env.ctx.own t + rcptsValue incoming
+      + creditedOpt env.ctx.layout env.ctx.own t vu < Params.u128Max →
     applyNewChunkD2Obs (D3.d3Hooks Wasm.pv86) prims env t vu lastProps incoming txs ownCong
       = .ok (out, o) →
     ∃ t', finalTrie o = some t' ∧
