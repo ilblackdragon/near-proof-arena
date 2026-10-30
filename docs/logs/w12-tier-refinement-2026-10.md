@@ -310,3 +310,23 @@ handover. Lean runs under `heavy` with `HEAVY_MEM=32G`, `LEAN_NUM_THREADS=10`.
   `Classical.choice`, `Quot.sound`; `make pin-check` ok. No refinement found false on a real chunk.
 * Engineering finding: a walk tactic that lets `exact`/`refine` unify the two runs' programs by
   unfolding times out (it evaluates the interpreter); every rule is guarded by the lower program's head.
+
+## 2026-10-30 — O3 finished under the layout hypothesis (seventh session)
+
+* Engine (`TierO3Run.lean`): `MRX.get_pipe_step`; the delayed loop's `pipe.next` read as one pipe
+  update (`pdl_succ`, `stepF`, `pipeFn_step`); `processDelayedLoop_rr`, `yieldLoop_rr`,
+  `applyNewChunkD2_rr`, **`run_global`** (refinement on `env.ctx.layout.WF`) and `run_global_nd`
+  (no distribution receipt in the lower output).
+* Shells and `Lift` (`TierO3Lift.lean`): `LayoutsWF`, `DrvRel`, `drvRel_of_lower`;
+  `checkD2CoreWithObs_o3`, `checkD2CoreGWith_o3`, `checkReshardCoreObs_o3` thread the layout fact to
+  `env.ctx.layout` (the resharding core's main layout via `walkSegment_mainLayout`);
+  **`Lift.globalActions_wf`**, `relSuccessor_storageResolution_globalActions_wf`,
+  `relSuccessor_resharding_allFeatures_wf`, `relSuccessor_curveHosts_allFeatures_wf`.
+* Non-vacuity (`TierO3Real.lean`): `LayoutsWF` decided by `decide +kernel` on `d3c7/d3/06-h10006-s0`
+  and on the resharding chunk `seed37-00-h10085-s7` (two distinct layouts). With O2:
+  `relSuccessor_globalActions_allFeatures` (unconditional, verdict level) and
+  `relSuccessor_storageResolution_allFeatures_wf`.
+* No `sorry`; axioms `propext`, `Classical.choice`, `Quot.sound`; `make pin-check` ok. No refinement
+  found false on a real chunk.
+* Engineering: `repeat` only re-walks the first goal (use `repeat'`); `lower_bind_has` misses goals
+  with metadata in the spine (`lbh`/`lhd`).
