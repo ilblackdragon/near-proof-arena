@@ -28,7 +28,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
 | O3 | global actions | open. Proved (§7, §9, §11): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target; (§11) stored-receipt, transaction and witness decoder refinement (`decodeStoredRcpt_ref`, `decodeWitness_ref`), the pipe relation and every pipe update (`PipeRel`, `pipeFn_*`), the queue operations on well-formed layouts (`delayPop_rel`, `forwardFromBuffer_rel`, `forwardFromBufferV3_rel`, `forwardOrBuffer_eq`), the engine relation `MRQ` and its state rules. Open (§11): the non-distribution invariant on the lower run's `RS`, the recorded call with `ga` differing, the engine walk, driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`, `TierO3Dec.lean`, `TierO3Pipe.lean`, `TierO3Queue.lean`, `TierO3Engine.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
-| O4 | storage resolution | **proved at shell and tier level given the engine obligations** (2026-10-30, §10, §12). §12 found `EngineAgree` false as first stated (finding G0: observation fields) and restated it on `obsClear`-ed outputs; the engine is now reduced to `EngineObligations` (recorder invariant, forwarding, per-receipt simulation): main transition, receipt loops and yield timeouts proved; the per-receipt simulation `PWISim` (where G2, G3, G5 live), the invariant (G1) and V3 forwarding (G4) are open | `relSuccessor_runtimeLimits_storageResolution_of_obligations`, `engineAgree_of_obligations`, `sim_applyNewChunkD2`, `sim_processLocals/Delayed/Incoming`, `sim_yieldLoop`, `fwdSim_v2` (`TierO4Engine.lean`); `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreWith_clearObs` (`TierO4.lean`) |
+| O4 | storage resolution | **open: the shell and tier levels are proved given engine obligations, but those obligations cannot be satisfied as stated** (2026-10-30, §10, §12, §13). §12 found `EngineAgree` false as first stated (finding G0: observation fields) and restated it on `obsClear`-ed outputs. It then reduced the engine to `EngineObligations`, proving the main transition, receipt loops and yield timeouts. §13 proved the per-receipt simulation down to the `FunctionCall` hook (`pwiSim_of`) and found G7 (global actions). §13 also found that `EngineObligations` cannot be satisfied (soft limit vs. removals, `remClosed_soft_absurd`), so the §12 tier theorem is vacuous. Open: run-level premises (§13 next steps), `FCSim` (G2, G3, G5, G6) and G4 | `relSuccessor_runtimeLimits_storageResolution_of_obligations`, `engineAgree_of_obligations`, `sim_applyNewChunkD2`, `sim_processLocals/Delayed/Incoming`, `sim_yieldLoop`, `fwdSim_v2` (`TierO4Engine.lean`); `pwiSim_of`, `actSim_of`, `remClosed_soft_absurd` (`TierO4Receipt.lean`); `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreWith_clearObs` (`TierO4.lean`) |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §8): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
 | O7 | complete-code witness | **proved at chunk level** (2026-10-30, §6): on every whole-state configuration the complete-code flag moves no verdict, in either direction | `Lift.completeCode`, `relSuccessor_completeCodeGlobal_globalActions`, `relSuccessor_globalActions_completeCodeGlobal` (`TierO7.lean`) |
@@ -982,3 +982,125 @@ each soft-limit test (next step 4).
    per-receipt growth, and measure G1 directly on the 577 fixtures, the census and the storage-limit
    family.
 5. The intended `P` and its `reads` lemma; V3 forwarding under G4.
+
+## 13. Update 2026-10-30 (fifth O4 session): the per-receipt simulation, and why §12's obligations cannot be discharged
+
+Lean: `Successor/TierO4Receipt.lean` (new, default target). No definition changed, so no verdict can
+move. That means no fixtures, breakage control or before/after table are required, and
+`make pin-check` is ok. No `sorry`. Axioms of every new theorem: `propext`, `Classical.choice`,
+`Quot.sound` (`o4-receipt/axioms.txt`).
+
+### Proved (steps 1 and 2 of §12)
+
+| theorem | statement |
+|---|---|
+| `sim_emitReceipts`, `sim_actionLoop`, `sim_applyActionReceipt`, `sim_processReceipt`, `sim_processWithTotals`, `sim_drain` | Given the per-action simulation `ActSim`, the recorder's receipt level simulates the legacy one. The recorder-only steps are `Book`: `startReceipt`, the `vmErr`/`curFail`/`detail` updates, `pushAttrib` and `modifyPipe`. The distribution arm is a legacy exclusion (`Sim.excl`). Stored receipts decode with the same D2 decoder (`decodeStoredRcptR false`) |
+| **`pwiSim_of_actSim`** | `ActSim e P cfg → PWISim e P cfg` (step 1) |
+| `sim_ordinary` | A non-call, non-global action is the logged D2 action plus `accountRemovals`, given `RemClosed P`. The logged action uses `R_applyAction` with `d2Hooks`, which agree with `d3Hooks` everywhere except the call arm |
+| **`actSim_of`**, **`pwiSim_of`** | `ActSim`, and so `PWISim`, follow from three obligations: `FCSim` (the `FunctionCall` hook, step 3), `GlobalSim` (G7, below) and `RemClosed` (G1). This is step 2 |
+| `remClosed_soft_absurd` | `RemClosed P` and `EngineObligations.soft` cannot both hold for an inhabited `P` |
+
+Engineering: the walk tactic is `o4r_walk`. Two lessons:
+
+* Pure-bind rules must run under `with_reducible`, with `with_unfolding_all exact rfl` for the
+  value equation. At default transparency the unifier unfolds the monad binds of the whole remaining
+  program; the file then took over 15 minutes and 24 GB.
+* A `split` hypothesis stated on the legacy discriminant (`(st.wt T).account`) must be `dsimp`ed
+  before it can rewrite the recorder's `match` (`st.account`).
+
+### Finding: §12's `EngineObligations` cannot be satisfied, so its tier theorem is vacuous
+
+`PWISim e P cfg` quantifies over **every** `RS` and receipt. It also requires `P` to hold on the
+recorder's output state. Take a receipt from account `A` to `A` with `DeleteAccount`, applied to an
+`RS` whose overlay holds `k` ContractData keys of `A`. The legacy engine accepts it, and the
+recorder adds `2000 · k` to its size (`accountRemovals`). For `k > 2000` the output violates `soft`
+(`size ≤ softLimit`). So no `P` that satisfies `init` and `soft` makes `PWISim` true.
+
+This is argued, not proved. The formal part is `remClosed_soft_absurd`: it shows that `RemClosed`,
+the sufficient condition step 2 needs, contradicts `soft`. As a result,
+`relSuccessor_runtimeLimits_storageResolution_of_obligations` (§12) holds vacuously, as §10's
+theorem did before G0.
+
+Nothing in this section depends on `soft`. The receipt level is proved for any `P`, including
+`P := True`, where `RemClosed` and `reads` are trivial. The soft limit is tested only in the four
+receipt loops (`processLocals`, `processIncoming`, `processDelayedLoop`, `yieldLoop`). So only
+`sim_processLocals`, `sim_processIncoming`, `sim_processDelayed` and `sim_yieldLoop` need a
+different argument.
+
+Every premise stated "for every value" has the same problem: G2 (fuel certificate), G3 (pipeline
+`uncertain`), G6 (VM agreement with the chunk-wide recorder state) and G7. Each is false over
+arbitrary values and true only on reachable ones. Quantified the way `EngineAgree` is (every input
+of every witness), they make the conditional theorem vacuous again.
+
+### Finding G7 (new): global actions
+
+The global actions are `deployGlobal`, `useGlobal` and `stateInit`. `D2.applyAction` runs the
+existence and permission checks before it excludes one of them, and a failed check is an action
+**failure**. The recorder with `globalActions = false` excludes at once (`applyGlobal`). So on a
+value where a check fails, the legacy engine continues and the recorder excludes.
+
+This shape is unreachable: the D2 decoders, `finishActs` and the transaction conversion never build
+a global action, because `pBase` rejects the tags with `w.shape`. It is stated as the obligation
+`GlobalSim`. Discharging it needs the same reachable-value invariant as O3's non-distribution
+invariant (`MRQ` with a value predicate, §11).
+
+### Status of the premises
+
+| id | where it lives now | status |
+|---|---|---|
+| G1 soft limit | the four receipt loops (`softExceeded`) | Open. It must be run-level or coupled (see next steps). `RemClosed` itself is free with `P := True` |
+| G1 per-receipt / G6 VM | inside `FCSim`. The VM gets `recd`/`acct`/`recBefore` from the recorder state; the legacy VM gets fresh ones | open |
+| G2 fuel certificate | inside `FCSim` (`vmCall`) | Open. Data: the item-3 census, 0 failures in 236,871 corpus witnesses (`fuel-sufficiency/`) |
+| G3 pipeline `uncertain` | inside `FCSim` (`resolveCodeBytes … timely`) | open |
+| G4 V3 forwarding | `EngineObligations.fwd` | Open. V2 is proved (§12) |
+| G5 magic hash | inside `FCSim` (`resolveCode`) | Open. Not yet proved unreachable |
+| G7 global actions | `GlobalSim` | Open. Unreachable on decoded inputs |
+
+Step 4 (instrumenting the checker) and the direct G1 measurement were not done this session.
+
+### Next steps (exact)
+
+1. **Make the premises run-level, per witness.** Two proof-side mechanisms:
+   * **Variant drivers, for silent divergences (G1 soft limit, G6).**
+     * Build `runNS`: a proof-side copy of the four loops plus `applyNewChunkD2`/`run` without the
+       soft test, about 140 lines, in the style of `StorageExecutionOrig.lean`. Add a driver
+       `recorderDriverNS` for it.
+     * Premise G1 := on this witness, the storage-resolution checker equals the same shell at
+       `recorderDriverNS`. This is a verdict-level equation, measurable by building the variant
+       into the binary.
+     * Then prove `EngineAgree` for `runNS` with `P := True`: no `soft`, and `RemClosed` is
+       trivial. Reuse `sim_applyNewChunkD2` and the loop proofs with the `softExceeded_bind` step
+       removed.
+     * Treat G6 the same way, with a copy of the call stack whose VM gets a fresh `RealStore`.
+       Alternatively, prove a universal VM lemma: results are equal modulo
+       `real.acct`/`real.recd` unless one side reports `RecordedStorageExceeded`. This holds at
+       PV86 by `ttn_costs_equal` once `payPer`'s split charge is shown to be equal.
+   * **Verdict escapes, for exclusions (G2 `w.fuel_certificate`, G3 `e.code_prep_race`, G7
+     `w.shape: global action`).**
+     * Generalize `SimAt` with an escape set `X`: the recorder may fail with `s ∈ X` where the
+       legacy engine decides. Generalize `EngineRef` and `Refines.engine_bind` the same way.
+     * Copy `o4_lockstep` for `RefinesX x y := Refines x y ∨ ∃ s, y = .error s ∧ X s`. This needs
+       about ten short rules, because the shells propagate engine errors unchanged.
+     * Premise := the storage-resolution verdict is not an `X` exclusion. Data:
+       `o4-engine/premise_proxies.json` already counts these reasons, with 0 on the 577 fixtures,
+       the 3,138 census and the 88 storage-limit fixtures.
+2. **`FCSim` (step 3).** Walk `functionCallRecorded fl0` against `D3.functionCallD3`. The
+   differences:
+   * the legacy ETH-implicit local-contract exclusion against `resolveCode` (G5: legacy magic hashes);
+   * global code identifiers (legacy `w.shape`);
+   * `resolveCodeBytes .coldPartial … timely` against the legacy `codeOf`, pre-state probe and
+     `codeAvailable` (G3);
+   * `vmCall`'s certificate (G2);
+   * the VM's `RealStore` (G6);
+   * the recorder update after the VM, which is free with `P := True`;
+   * `getIndicesL`, by `R_getIndices'`;
+   * `finishActs` and `manager`, which are identical at `fl0`.
+3. **Step 4.** Add an observation-only flag to the binary that runs `runNS` (and the fresh-VM
+   variant) next to the recorder. It reports the maximum recorder size at soft-limit tests and the
+   per-receipt growth. Prove or check that verdicts are identical with the flag off. Measure on the
+   577 fixtures, the census and the storage-limit family.
+4. **Remaining pieces.**
+   * Prove G5 unreachable: no deploy produces a magic hash, because the hash of deployed code is
+     `sha256` of its bytes.
+   * Prove G4 forwarding under its premise.
+   * State the final theorem with only run-level premises.

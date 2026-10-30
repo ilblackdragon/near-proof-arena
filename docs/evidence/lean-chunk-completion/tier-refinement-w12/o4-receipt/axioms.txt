@@ -1,0 +1,4 @@
+NearSpecV3/Successor/TierO4Receipt.lean:330:0: 'NearSpecV3.Successor.O4E.pwiSim_of_actSim' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO4Receipt.lean:331:0: 'NearSpecV3.Successor.O4E.actSim_of' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO4Receipt.lean:332:0: 'NearSpecV3.Successor.O4E.pwiSim_of' depends on axioms: [propext, Classical.choice, Quot.sound]
+NearSpecV3/Successor/TierO4Receipt.lean:333:0: 'NearSpecV3.Successor.O4E.remClosed_soft_absurd' depends on axioms: [propext, Classical.choice, Quot.sound]

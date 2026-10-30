@@ -275,3 +275,24 @@ handover. Lean runs under `heavy` with `HEAVY_MEM=32G`, `LEAN_NUM_THREADS=10`.
   invariant's `reads` lemma and G1, V3 forwarding (G4). Premise proxies on the replays: all 0
   (`o4-engine/premise_proxies.json`). README §11.
 
+
+## 2026-10-30, fifth O4 session (per-receipt simulation)
+
+* Started from main `723b67bac` (worktree `worktree-agent-ab2ec38d0f005ec6d`).
+* **`TierO4Receipt.lean`**:
+  * `pwiSim_of_actSim` (step 1) covers `emitReceipts`, `actionLoop`, `applyActionReceipt`,
+    `processReceipt`, `processWithTotals` and `drain`.
+  * `actSim_of`/`pwiSim_of` (step 2) handle ordinary actions via `R_applyAction` with the D2 hooks
+    plus `accountRemovals`.
+  * Together they reduce `PWISim` to the hook obligation `FCSim`, `GlobalSim` (G7) and
+    `RemClosed` (G1).
+* **Finding**: §12's `EngineObligations` cannot be satisfied, because `PWISim` ranges over every
+  value and must also meet `soft` (`remClosed_soft_absurd`). So the §12 tier theorem is vacuous.
+  Every "for every value" premise has the same problem (G1, G2, G3, G6, G7). README §13 gives the
+  fix: variant drivers for silent divergences, verdict escapes for exclusions, and premises stated
+  per witness.
+* **Finding G7** (global actions): the legacy engine records an action failure when the existence or
+  permission check fails, while the recorder excludes at once. Unreachable on decoded inputs.
+* Engineering: pure-bind walk rules need `with_reducible`. At default transparency the file took
+  over 15 minutes and 24 GB.
+* Not done: `FCSim` (step 3), checker instrumentation and the G1 measurement (step 4), step 5.
