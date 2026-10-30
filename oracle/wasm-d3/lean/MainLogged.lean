@@ -4,8 +4,10 @@ import NearSpecV3.Logged.API
 /-!
 `nearspec-v3-check-logged [--d2|--d2l|--d3|--d3l] CASE_DIR...` — the read-logging checkers
 (`NearSpecV3.Logged`): `--d2l` / `--d3l` evaluate `checkD2Reads` / `checkD3Reads` (one run: the
-verdict, proved equal to `checkD2` / `checkD3`, and the recorded-storage keys read); `--d2` / `--d3`
-the original `checkD2` / `checkD3`. One JSON line per case in the `nearspec-v3-check-d2` format, plus
+verdict, proved equal to `checkD2` / `checkD3Core`, and the recorded-storage keys read); `--d2` / `--d3`
+the original `checkD2` / `checkD3Core` (the legacy core of `checkD3`, which the logged checker
+mirrors; since the UQ-010 hand-over the statement of record `checkD3` adds a recorder-engine decision
+outside the core's preconditions, `D3/Signed.lean`). One JSON line per case in the `nearspec-v3-check-d2` format, plus
 `"reads"` (number of keys read) and `"ms"` (wall time of the check).
 -/
 
@@ -27,7 +29,7 @@ def main (args : List String) : IO UInt32 := do
     let (r, nreads) : Except String Unit × Nat ←
       match mode with
       | 0 => pure (checkD2 cb.toList wb.toList, 0)
-      | 2 => pure (checkD3 cb.toList wb.toList, 0)
+      | 2 => pure (checkD3Core cb.toList wb.toList, 0)
       | 3 => let (r, rs) := checkD3Reads cb.toList wb.toList; pure (r, rs.length)
       | _ => let (r, rs) := checkD2Reads cb.toList wb.toList; pure (r, rs.length)
     let t1 ← IO.monoMsNow
