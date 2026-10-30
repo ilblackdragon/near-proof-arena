@@ -12,6 +12,26 @@ use crate::d2gen::view_account;
 use near_crypto::MlDsa65Signature;
 
 pub const N_STEPS_MLDSA: usize = 47;
+/// Extra steps when `NEAR_MLDSA_BOUND_SIGNER` names the boundary signer (`tools/d3/mldsa65_bound.py`):
+/// signatures whose `z` is exactly at, or one below, the norm bound `γ1 − β` (workplan item 10).
+pub const N_STEPS_MLDSA_BOUND: usize = 6;
+
+pub fn bound_signer() -> Option<String> {
+    std::env::var("NEAR_MLDSA_BOUND_SIGNER").ok().filter(|v| !v.is_empty())
+}
+
+/// A signature of `msg` by the key of seed `seed` from the boundary signer, `mode` = at+ | at- | in+ | in-.
+/// The signer's RNG is seeded with the message, so a step's signature is reproducible from its bytes.
+fn bound_sig(seed: &str, msg: &[u8], mode: &str) -> Signature {
+    let script = bound_signer().expect("NEAR_MLDSA_BOUND_SIGNER");
+    let out = std::process::Command::new("python3")
+        .args([script.as_str(), "sign", seed, &hex::encode(msg), mode, &format!("{mode}-{}", hex::encode(msg))])
+        .output()
+        .expect("boundary signer");
+    assert!(out.status.success(), "boundary signer failed: {}", String::from_utf8_lossy(&out.stderr));
+    eprintln!("mldsa bound signer {mode}: {}", String::from_utf8_lossy(&out.stderr).trim());
+    ml_sig(hex::decode(String::from_utf8(out.stdout).unwrap().trim()).unwrap())
+}
 
 fn ml_bytes(sig: &Signature) -> Vec<u8> {
     match sig {
@@ -325,6 +345,27 @@ impl KeysWorld {
                 let n = self.cur(s, &bh, &ma, &k.public_key(), None)? + 1;
                 let a = Action::Stake(Box::new(near_primitives::action::StakeAction { stake: Balance::from_near(1), public_key: ml1.public_key() }));
                 ("mldsa-stake-key", Inject, 2, vec![sign(v0_unsigned(k.public_key(), &ma, &ma, n, vec![a], bh), &k)])
+            }
+            // ---- `z` at the norm bound (NEAR_MLDSA_BOUND_SIGNER only)
+            47..=50 => {
+                let (mode, name, how) = [("at+", "mldsa-tx-z-at-bound", Inject), ("at-", "mldsa-tx-z-at-neg-bound", Inject),
+                    ("in+", "mldsa-tx-z-bound-minus-one", Pool), ("in-", "mldsa-tx-z-neg-bound-minus-one", Pool)][i - 47];
+                let n = self.next(s, &bh, &ma, &ml1.public_key(), None)?;
+                if mode.starts_with("at") {
+                    unuse(self, &ma, &ml1, n);
+                }
+                let tx = ml_tx(&ml1, n, i as u128);
+                let sig = bound_sig(&format!("keys-main-{ma}"), tx.get_hash_and_size().0.as_ref(), mode);
+                (name, how, 2, vec![with_sig(tx, sig)])
+            }
+            51 | 52 => {
+                let (mode, name) = [("at+", "deleg-mldsa-z-at-bound"), ("in-", "deleg-mldsa-z-neg-bound-minus-one")][i - 51];
+                let n = self.next(s, &bh, &da, &sd.public_key(), None)?;
+                if mode.starts_with("at") {
+                    unuse(self, &da, &sd, n);
+                }
+                let seed = format!("keys-main-{da}");
+                (name, Pool, 1, vec![deleg(self, n, vec![tr(i as u128)], sd.public_key(), &|d| bound_sig(&seed, d.get_nep461_hash().as_bytes(), mode))?])
             }
             _ => return None,
         };

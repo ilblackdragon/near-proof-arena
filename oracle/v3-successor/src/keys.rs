@@ -53,11 +53,15 @@ pub fn enabled() -> bool {
 pub fn mldsa_mode() -> bool {
     std::env::var("NEAR_SUCCESSOR_SCENARIO").as_deref() == Ok(SCENARIO_MLDSA)
 }
+/// `mldsa` with `NEAR_MLDSA_BOUND_SIGNER` set (item 10: the `z`-bound steps).
+pub fn mldsa_bound_mode() -> bool {
+    mldsa_mode() && mldsa::bound_signer().is_some()
+}
 fn label_prefix() -> &'static str {
     if mldsa_mode() { LABEL_PREFIX_MLDSA } else { LABEL_PREFIX }
 }
 fn n_steps() -> usize {
-    if mldsa_mode() { N_STEPS_MLDSA } else { N_STEPS }
+    if mldsa_mode() { N_STEPS_MLDSA + if mldsa::bound_signer().is_some() { mldsa::N_STEPS_MLDSA_BOUND } else { 0 } } else { N_STEPS }
 }
 
 fn acct(s: &str) -> AccountId {

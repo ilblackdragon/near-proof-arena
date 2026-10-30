@@ -8,6 +8,7 @@
 //! `{keys: [hex], sigs: [hex], cases: [{name, key, msg, sig, patch: [[offset, byte]], expect}]}`.
 use near_crypto::{KeyType, MlDsa65Signature, PublicKey, SecretKey, Signature};
 use serde_json::json;
+use sha2::Digest;
 
 const CT: usize = 48;
 const Z: usize = 3200;
@@ -72,7 +73,25 @@ pub fn hint_mutations(sig: &[u8]) -> Vec<(&'static str, Vec<(usize, u8)>)> {
     out
 }
 
-pub fn command(_args: &[String]) -> i32 {
+/// `mldsa-vectors --check FILE`: for each line `SEED_STR MSG_HEX SIG_HEX` of FILE, the public key
+/// `SecretKey::from_seed(MLDSA65, SEED_STR)` and `near_crypto::Signature::verify` of the signature
+/// (item 10: the boundary signatures of `tools/d3/mldsa65_bound.py`). JSON lines on stdout.
+fn check(path: &str) -> i32 {
+    for line in std::fs::read_to_string(path).unwrap().lines().filter(|l| !l.trim().is_empty()) {
+        let v: Vec<&str> = line.split_whitespace().collect();
+        let pk = SecretKey::from_seed(KeyType::MLDSA65, v[0]).public_key();
+        let msg = hex::decode(v[1]).unwrap();
+        let sig = hex::decode(v[2]).unwrap();
+        println!("{}", json!({"seed": v[0], "pk": hex::encode(raw_pk(&pk)), "msg": v[1],
+            "sig_sha256": hex::encode(sha2::Sha256::digest(&sig)), "verify": verdict(&pk, &msg, &sig)}));
+    }
+    0
+}
+
+pub fn command(args: &[String]) -> i32 {
+    if let Some(i) = args.iter().position(|a| a == "--check") {
+        return check(&args[i + 1]);
+    }
     let keys: Vec<SecretKey> = (0..2).map(|i| SecretKey::from_seed(KeyType::MLDSA65, &format!("w06-mldsa-vector-{i}"))).collect();
     let pks: Vec<PublicKey> = keys.iter().map(|k| k.public_key()).collect();
     let mut sigs: Vec<Vec<u8>> = Vec::new();
