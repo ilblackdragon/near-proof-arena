@@ -27,7 +27,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 |---|---|---|---|
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
-| O3 | global actions | open. Proved (§7, §9): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target. Open: stored-receipt decoder agreement, the engine walk with `ga` differing (needs a state relation on the pipeline, §8), driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
+| O3 | global actions | open. Proved (§7, §9): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target; (§11) stored-receipt, transaction and witness decoder refinement (`decodeStoredRcpt_ref`, `decodeWitness_ref`), the pipe relation and every pipe update (`PipeRel`, `pipeFn_*`), the queue operations on well-formed layouts (`delayPop_rel`, `forwardFromBuffer_rel`, `forwardFromBufferV3_rel`, `forwardOrBuffer_eq`), the engine relation `MRQ` and its state rules. Open (§11): the non-distribution invariant on the lower run's `RS`, the recorded call with `ga` differing, the engine walk, driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`, `TierO3Dec.lean`, `TierO3Pipe.lean`, `TierO3Queue.lean`, `TierO3Engine.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
 | O4 | storage resolution | **proved at shell and tier level given the engine agreement** (2026-10-30, §10), after a legacy-side fix (26 nearcore-valid chunks the narrower legacy tiers rejected); the engine agreement `EngineAgree` is open (phases E0, E1 proved) | `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreGWith_legacy_recorder`, `checkD2CoreG_ok_bound`, `engineAgree_of_logged`, `logged_run` (`TierO4.lean`) |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §8): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
@@ -784,3 +784,102 @@ so the owner has to decide it.
 4. The recorder-size invariant through the VM's `RealStore` recording (G1), or keep G1 as a premise.
 5. Compose into `EngineAgreeL` under the premises; `relSuccessor_runtimeLimits_storageResolution_of`
    then holds under them.
+
+## 11. Update 2026-10-30 (fifth session): O3 step 4, step 5 foundations, the non-distribution invariant
+
+No definition was changed; every new module is a proof module and a default `lake build` target
+(`TierO3Dec`, `TierO3Pipe`, `TierO3Queue`, `TierO3Engine`). No `sorry`. Axioms: only `propext`,
+`Classical.choice`, `Quot.sound` (`axioms-o3-step45.txt`). §9's "What remains" is superseded by
+the list at the end of this section.
+
+### Step 4 (proved): the D2 decoders refine the global ones (`TierO3Dec.lean`)
+
+`XR X x y`: `x = y`, or `x` fails with an error in `X`. `X = Shape` (`isShapeOOD`, the six `w.shape`
+constants) for receipts, `X = Excl` (`isExclusion`) for transactions and the witness, because the
+non-ED25519 transaction exclusions are not `isShapeOOD`. The ok direction is the round trip of
+§9 step 3; the error direction is a walk (`ErrX`) that ignores the values the two parsers build.
+
+* `pPk_ref`, `pBase_ref`, `pBaseAct_ref`, `pSig_ref`, `pDelegateBody_ref`, `pAct_ref`,
+  `pActionR_ref`, `pRcpt_ref`, `decodeRcpt_ref`, `decodeStored_ref` (`XR Shape`).
+* **`decodeStoredRcpt_ref`**: where `decodeStoredRcpt` decodes, `decodeStoredRcptGlobal` decodes the
+  same receipt; where it fails, it fails with a `w.shape` exclusion or with the same
+  `inconsistent what`.
+* `pTxD2_ref` (`XR Excl`), **`decodeWitness_ref`**: `decodeStateWitnessD2` against
+  `decodeStateWitnessWith pRcptGlobal pTxD2Global` (`recorderDriver`'s `decodeWitness` with globals).
+* `pRcpt_not_distribution`, `decodeStored_not_distribution`, `decodeStoredRcpt_not_distribution`:
+  the D2 decoders never produce a distribution receipt.
+
+### Step 5a (proved): the pipe relation, in one place (`TierO3Pipe.lean`)
+
+`PipeRel pL pU := pL = pU ∨ pL.uncertain = true`. `PipeRel.det`: where the lower pipe calls a
+deploy-served code deterministic, so does the upper one (so the lower resolution is the upper's, or
+`raceExclusion`). `PipeFn f g` (related pipes to related pipes) for every pipe update of
+`StorageExecution`: `pipeFn_startReceipt`, `pipeFn_recordDeploys`, `pipeFn_next`, `pipeFn_startList`,
+`pipeFn_stepList`, `pipeFn_sched` (the update of `scheduleDelayed`, as `schedFn`), from `*_unc`
+(nothing resets `uncertain`) and `handle_rel`, `schedule_rel`, `peekDelayed_rel` (with `DecLe`
+decoders: `decLe_storedRcpt`, `decLe_stored`). When O4's G3 makes `uncertain` per prepared call,
+only this file changes: the rest of the proof uses `PipeRel.det` and `PipeFn` only.
+
+### Step 5b (proved): the queue operations (`TierO3Queue.lean`)
+
+* `Layout.WF l := l.shardIds.length = l.boundaries.length + 1` (the §9 hypothesis);
+  `Layout.shardOf_mem`, `globalTarget_wf`.
+* `SRel`/`LR`: refinement of read-logging store programs (identical, or the lower one stops with an
+  exclusion, node by node; `SRel.runR`). `SRelQ`/`LRQ` add a fact on common results.
+* The D2 queue functions are the `QueuePolicy` functions at `d2Policy` (`delayPopL_eq`,
+  `fwdLoopL_eq`, `forwardFromBufferToShardL_eq`, `forwardFromBufferL_eq`); two policies related by
+  `PolRel` refine (`delayPopWith_rel`, `readBufferedWith_rel`, `fwdLoopWith_rel`, …), and
+  `polRel_global` relates `d2Policy` to `globalQueuePolicy` on a well-formed layout.
+* Results: `forwardOrBuffer_eq` (equal on a non-distribution receipt), `delayPop_rel`,
+  `forwardFromBuffer_rel`, `forwardFromBufferV3_rel`.
+
+### Step 5c (proved): the engine relation (`TierO3Engine.lean`)
+
+`RecRel rL rU := rL = { rU with pipe := rL.pipe } ∧ PipeRel rL.pipe rU.pipe`. `MRQ E Q x y`: from
+`RecRel` states and an `E` environment, the lower program excludes, or both fail with the same
+error, or both return the same value satisfying `Q` in `RecRel` states. Rules: `weaken`, `pure`,
+`throw_same`, `throw_ex`, `throw_bind`, `liftE`, `bind` (passes `Q` to the continuation), `ite`,
+`foldlM`, `mapM`, `get_bind`, `modify` with `rr_update`, `modifyPipe` (from `PipeFn`), `logged`
+(from `LR`, via `logged_run_rr`).
+
+### Finding: the engine walk needs a non-distribution invariant on values, not only at `emitReceipts`
+
+Two places need "the lower run never carries a distribution receipt":
+`emitReceipts`/`forwardOrBufferR` (lower `shardOf`, upper `globalTarget`) and the shells'
+`outgoingRoot` on `out.outgoing` (`recorderDriver_outgoingRoot_globals`). The second is a fact about
+the *final* `RS.outgoing`, so it is an invariant of every `RS` the lower run threads, not only of the
+receipts it emits. It holds (distribution receipts are built only in `GlobalExecution`, which the lower
+run never reaches, and the D2 decoders never produce one), but it has to be carried through the walk:
+that is why `MRQ` has the value predicate `Q`. Sources of `RS.outgoing` entries: `forwardOrBufferL`
+(emitted receipts, yield-timeout data receipts, transaction receipts in `processTxD2L`, which the
+upper run also routes by `shardOf`), and `fwdLoopL` (D2-decoded). No refinement was found false on a
+real chunk; no nearcore replay was needed.
+
+### What remains, in order (next steps)
+
+1. **Unary store-program facts** (`LRQ`/`SRelQ` with `Q := ND rs.outgoing`, `ND l := ∀ r ∈ l,
+   rcptIsDistribution r = false`): `forwardOrBufferL` (given `ND` of the receipt), `fwdLoopL`,
+   `forwardFromBuffer*`, `delayPopL`, `delayPushL`, `processTxD2L`, `applyActionL d2HooksL` (its
+   `newReceipts`, for `ordinaryAction`), and `refunds` (`Except`). The `SRelQ` rules in
+   `TierO3Queue.lean` already carry a result fact; add `SRelQ.refl_of` (a unary invariant gives
+   `SRelQ` of a program with itself).
+2. **The recorded call** (`functionCallRecordedWith false … vm` against `… true … vm'`), as an
+   `MRQ` up to exclusion-or-`unmodeled` errors, entered through `applyAction`'s `try … catch`
+   (`unmodeledHandler_ex`): `get_bind` then `subst` of `rL := { rU with pipe := q }` (projections
+   off the pipe reduce by `dsimp`), `PipeRel.det` for `timely` (with `resolveCodeBytes … false`
+   refining `… true`: same bytes, `missingCode`, or `raceExclusion`), `vmF_global` and
+   `vmCall_lowQ` (`managerGlobal_eq_manager`), `finishActsGlobal_of_finishActs`; `Q`: `ND` of the
+   new receipts (they are built as `.action`/`.data`).
+3. **The walk**, function by function as in `TierWholeWalk.lean`, with `MRQ` and `Q := ND` on every
+   `RS`: `applyGlobal` (lower `w.shape`), `processReceipt`'s distribution arm (lower `oodGcd`),
+   `decodeStoredRcptR` (`decodeStoredRcpt_ref`), `forwardOrBufferR` (`forwardOrBuffer_eq` + `ND`),
+   `delayPopR`/`forwardFromBufferR` (step 5b), `pipeDecode`/`scheduleDelayed`/`processLocals`/
+   `processIncoming`/`processDelayedLoop` (`modifyPipe` + `pipeFn_*`; `processDelayedLoop` reads
+   `pipe.next`, where both branches only update the pipe, so `PipeRel` is kept when the lower pipe
+   is uncertain). Engine statement: `Refines (run w … false p) (run {w with globalActions := true} … true p)`
+   on environments with `env.ctx.layout.WF`, with `ND` of the output's `outgoing`.
+4. **Driver fields and `Lift`** (§9 step 6, unchanged): `decodeWitness` by `decodeWitness_ref`;
+   `validateRouting`/`receiptShard` on witness receipts (D2-decoded, so non-distribution); `outgoingRoot`
+   by the engine's `ND` output; the shells as O7 threads `StoreAuth` (`ApplyRefineA`), here with
+   `env.ctx.layout.WF` from `LayoutsWF c`. Main now carries O4's `withStorageExclusion` and the
+   restated pairs (merged into this branch); state the `Lift`s against it.

@@ -234,3 +234,26 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
   (pipeline `uncertain` taints unrelated calls) is the likeliest on a real chain; its fix changes
   the recorder engine the signed hand-over runs, so it is left to the owner.
 * Replay evidence and before/after tables: `docs/evidence/lean-chunk-completion/tier-refinement-w12/o4-replay/`.
+
+## 2026-10-30, fifth session (O3 step 4, step 5 foundations)
+
+Worktree `agent-a60a3c17715884969`, from main `bb6afecd0`; merged main `18c1c7fcc` (O4) before
+handover. Lean runs under `heavy` with `HEAVY_MEM=32G`, `LEAN_NUM_THREADS=10`.
+
+* **Step 4 proved** (`TierO3Dec.lean`): `XR` relation (equal, or the lower decoder fails in `X`);
+  every receipt parser against its global version with `X = w.shape`, `decodeStoredRcpt_ref`,
+  transactions and the witness with `X = exclusion` (`pTxD2_ref`, `decodeWitness_ref`); the D2
+  decoders never produce distribution receipts. Engineering: two parsers that elaborate their
+  `match` on the same discriminant through different matchers split separately; rewrite both to one
+  parametrized copy (`decodeStoredW`, `rfl`) first. In `pTxD2`, case the signature tag with
+  `rcases st with _ | _ | _ | st` and close the upper `match` by `split` on the small goal
+  `y = .error e`.
+* **Step 5a/5b/5c proved**: `TierO3Pipe.lean` (the pipe relation, all pipe updates),
+  `TierO3Queue.lean` (`Layout.WF`, `SRel`/`LR`, the queue operations as policy instances,
+  `PolRel` refinement), `TierO3Engine.lean` (`RecRel`, `MRQ`, monad and state rules).
+  Engineering: in `do` code the continuation is pushed into `match` branches, so state relational
+  lemmas on whole function bodies of one parametrized definition (the queue functions at two
+  policies), rewrite the upper discriminant to the lower one, then `split` once.
+* **Finding**: the engine walk needs the non-distribution invariant on every `RS` of the lower run
+  (the shells' `outgoingRoot` reads `out.outgoing`), not only at `emitReceipts`. `MRQ` carries it as
+  a value predicate. Next steps: README §11.
