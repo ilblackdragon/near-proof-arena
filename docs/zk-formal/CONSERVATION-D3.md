@@ -1,6 +1,6 @@
 # Conservation of NEAR by a D3 chunk — statement, and why it differs from `TOP_LEVEL_THEOREM.md`
 
-**Status: statement, tested; not proved.** Lean: `spec/lean/v3/NearSpecV3/D3/Conservation.lean`
+**Status: statement, tested on 26,888 chunks; not proved.** Lean: `spec/lean/v3/NearSpecV3/D3/Conservation.lean`
 (`ChunkConservation`, `MissingChunkConservation`, `ObsAgrees`, all `Prop`s; the module builds).
 
 ## The claim
@@ -26,8 +26,12 @@ It is exact: an over-refund of 1 yoctoNEAR anywhere breaks it.
 ## Tested
 
 A harness (a copy of `checkD2CoreObs` that stops after the main transition) evaluated both sides on
-every `checkD3`-accepted case of the `d3c7`, `d3c8`, `d3c10` and `d2corpus.v2` corpora. Results and
-counts are recorded in the commit that adds this file.
+every `checkD3`-accepted case of the `d3c7`, `d3c8`, `d3c10` and `d2corpus.v2` corpora
+(`nearproof-deps/corpora/*/{d3,d2}`) on 2026-10-30: **26,888 chunks, both sides equal on every one,
+no harness error**. 641 of them start an epoch and credit validator rewards; the rest include
+function calls with promises and attached deposits, refunds, burns, delayed and buffered receipts.
+The statement was tested before any proof effort, so a failing proof cannot be blamed on a false
+target.
 
 ## Why the obligations in `TOP_LEVEL_THEOREM.md` / `ConservationStatement.lean` are not used
 
