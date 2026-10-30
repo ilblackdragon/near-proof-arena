@@ -49,6 +49,12 @@ class Canonical(unittest.TestCase):
         self.assertEqual(fk.canonical_lean('ActionError[0].FunctionCallError(LinkError { msg: "x" })'),
                          'ActionError[0].FunctionCallError.LinkError')
 
+    def test_lean_display_host_errors(self):
+        self.assertEqual(fk.canonical_lean('ActionError[0].FunctionCallError(HostError(AltBn128 invalid input: invalid point))'),
+                         'ActionError[0].FunctionCallError.HostError.AltBn128InvalidInput')
+        self.assertEqual(fk.canonical_lean('ActionError[1].FunctionCallError(HostError(BLS12-381 invalid input: Incorrect input length for x: 1 is not divisible by 2))'),
+                         'ActionError[1].FunctionCallError.HostError.BLS12381InvalidInput')
+
     def test_kinds_differ(self):
         self.assertNotEqual(fk.canonical_expected('InvalidTxError(InvalidNonce { tx_nonce: 1, ak_nonce: 2 })'),
                             fk.canonical_expected('InvalidTxError(NonceTooLarge { tx_nonce: 1, upper_bound: 2 })'))
@@ -87,9 +93,10 @@ class Attribution(unittest.TestCase):
             {'key': '07', 'pre': {'absent': True}, 'changes': [
                 {'cause': 'UpdatedDelayedReceipts', 'valueHash': '09' * 32, 'valueLen': '1'}]},
         ])
-        groups = {self.R1: 0, self.R2: 1}
-        got, unattributed, errors = fo.expected_attribution(exp, groups)
+        groups = [([self.R1], {}, {}), ([self.R2], {}, {})]
+        got, wrote, unattributed, errors = fo.expected_attribution(exp, groups)
         self.assertEqual(got, {0: {'00': ('01' * 32, '3')}, 1: {'00': ('02' * 32, '3')}})
+        self.assertEqual(wrote[0]['01'], ('05' * 32, '7'))
         self.assertFalse(unattributed)
         self.assertEqual(errors, 0)
         lean = {'receiptStateChanges': [
@@ -104,6 +111,45 @@ class Attribution(unittest.TestCase):
         counts, bad = fo.Counter(), fo.Counter()
         fo.compare_attribution(lean, exp, counts, bad)
         self.assertGreater(bad['attrib.entry'], 0)
+
+    def test_unknown_pre_and_queue_keys(self):
+        c1 = 'ReceiptProcessing { receipt_hash: %s }' % b58(self.R1)
+        c2 = 'ActionReceiptProcessingStarted { receipt_hash: %s }' % b58(self.R2)
+        exp = self.exp([
+            # rewritten with its unchanged pre-state value: nearcore sees no change
+            {'key': '01', 'pre': {'valueHash': '05' * 32, 'valueLen': '7'}, 'changes': [
+                {'cause': c1, 'valueHash': '05' * 32, 'valueLen': '7'}]},
+            # outgoing buffer written after R1's commit, logged under R2's first commit
+            {'key': '0d', 'pre': {'absent': True}, 'changes': [
+                {'cause': c2, 'valueHash': '07' * 32, 'valueLen': '9'}]},
+        ])
+        lean = {'receiptStateChanges': [
+            {'ids': [self.R1], 'preKnown': True, 'changes': [{'key': '0d', 'valueHash': '07' * 32, 'valueLen': '9'}]},
+            {'ids': [self.R1], 'preKnown': False, 'changes': [{'key': '01', 'valueHash': '05' * 32, 'valueLen': '7'}]},
+            {'ids': [self.R2], 'preKnown': True, 'changes': []}]}
+        counts, bad = fo.Counter(), fo.Counter()
+        fo.compare_attribution(lean, exp, counts, bad)
+        self.assertEqual(sum(bad.values()), 0)
+        self.assertEqual(counts['attrib.unknownPre'], 1)
+        # an unknown-pre key nearcore never wrote in that entry is a mismatch
+        lean['receiptStateChanges'][1]['changes'][0]['valueHash'] = '06' * 32
+        counts, bad = fo.Counter(), fo.Counter()
+        fo.compare_attribution(lean, exp, counts, bad)
+        self.assertEqual(bad['attrib.key'], 1)
+
+    def test_postponed_then_completed(self):
+        D = 'cc' * 32
+        post = 'PostponedReceipt { receipt_hash: %s }' % b58(self.R1)
+        start = 'ActionReceiptProcessingStarted { receipt_hash: %s }' % b58(self.R1)
+        exp = self.exp([{'key': '06', 'pre': {'absent': True}, 'changes': [
+            {'cause': post, 'valueHash': '01' * 32, 'valueLen': '1'},
+            {'cause': start, 'valueHash': None, 'valueLen': None}]}])
+        lean = {'receiptStateChanges': [
+            {'ids': [self.R1], 'changes': [{'key': '06', 'valueHash': '01' * 32, 'valueLen': '1'}]},
+            {'ids': [D, self.R1], 'changes': [{'key': '06', 'valueHash': None, 'valueLen': None}]}]}
+        counts, bad = fo.Counter(), fo.Counter()
+        fo.compare_attribution(lean, exp, counts, bad)
+        self.assertEqual(sum(bad.values()), 0)
 
     def test_unknown_id_reported(self):
         c = 'ReceiptProcessing { receipt_hash: %s }' % b58(self.R2)

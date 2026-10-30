@@ -107,10 +107,15 @@ def detailJson (o : Observable) : List (String × Lean.Json) :=
       | none => Lean.Json.null),
    ("computeUsage", match o.computeUsage with | some c => num c | none => Lean.Json.null),
    -- version 3 (W01): per processed transaction / receipt, the committed keys it changed
+   -- (an entry behind the marker id lists keys whose pre-state value the witness does not reveal)
    ("receiptStateChanges", match d with
-      | some d => Lean.Json.arr (d.attrib.map fun (ids, cs) => Lean.Json.mkObj [
-          ("ids", Lean.Json.arr (ids.map hx).toArray),
-          ("changes", Lean.Json.arr (cs.map change).toArray)]).toArray
+      | some d => Lean.Json.arr (d.attrib.map fun (ids, cs) =>
+          let (pre, ids) := match ids with
+            | m :: rest => if m == StorageExecution.unknownPreMarker then (false, rest) else (true, ids)
+            | [] => (true, ids)
+          Lean.Json.mkObj [
+            ("ids", Lean.Json.arr (ids.map hx).toArray), ("preKnown", Lean.Json.bool pre),
+            ("changes", Lean.Json.arr (cs.map change).toArray)]).toArray
       | none => Lean.Json.null)]
 
 /-- The emitted detail is the list the checker hashed: the outcome root, gas, logs and receipt count

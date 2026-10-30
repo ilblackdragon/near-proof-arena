@@ -191,11 +191,61 @@ def has_attribution(exp):
     return bool(exp['state_changes']) and all('changes' in c and 'pre' in c for c in exp['state_changes'])
 
 
+# Outgoing-buffer keys (`TrieKey` columns BUFFERED_RECEIPT_INDICES 13, BUFFERED_RECEIPT 14,
+# BUFFERED_RECEIPT_GROUPS_QUEUE_DATA 16, _ITEM 17). nearcore writes them in the receipt sink *after*
+# the receipt's last commit (`lib.rs:963` commits `ReceiptProcessing`, `lib.rs:1109` then forwards or
+# buffers its new receipts), so its change log files them under the *next* commit's cause, i.e. the
+# next receipt, or `UpdatedDelayedReceipts` (`lib.rs:2781`). That is bookkeeping order, not state: the
+# final value of every such key is still compared chunk-wide (`stateChanges`). They are left out of
+# the per-receipt attribution on both sides.
+QUEUE_KEY_PREFIXES = ('0d', '0e', '10', '11')
+
+
+def attrib_key(k):
+    return not k.startswith(QUEUE_KEY_PREFIXES)
+
+
+def lean_groups(entries):
+    """Merge each entry with its unknown-pre companion (same ids, `preKnown: false`). Returns
+    [(ids, known {key: v}, unknown {key: v})]."""
+    out = []
+    for e in entries:
+        cs = {c['key']: (None if c['valueHash'] is None else (c['valueHash'], c['valueLen']))
+              for c in e['changes'] if attrib_key(c['key'])}
+        if e.get('preKnown', True) or not out or out[-1][0] != e['ids']:
+            if e.get('preKnown', True):
+                out.append((e['ids'], cs, {}))
+            else:
+                out.append((e['ids'], {}, cs))
+        else:
+            out[-1][2].update(cs)
+    return out
+
+
+def group_of(cause, cid, by_first, by_last):
+    """The Lean entry a cause belongs to. `PostponedReceipt{h}`: the entry that processed h itself
+    (first id). Every other receipt cause: the last entry whose outcome is h (a receipt postponed and
+    completed in one chunk has two entries); a transaction or receipt without an outcome entry: its
+    first-id entry."""
+    if cause.startswith('PostponedReceipt'):
+        return by_first.get(cid)
+    g = by_last.get(cid)
+    return g if g is not None else by_first.get(cid)
+
+
 def expected_attribution(exp, groups):
-    """nearcore's effective changes per Lean group. `groups`: id (hex) -> group index. Returns
-    ({group: {key: (hash, len)|None}}, ungrouped ids with effective changes, pre-state lookup errors)."""
-    out, unattributed, errors = {}, Counter(), 0
+    """nearcore's changes per Lean group. `groups` = lean_groups(...). Returns
+    (effective {g: {key: v}}, written {g: {key: v}}, ungrouped ids with effective changes,
+    pre-state lookup errors). `written` = the value after the group for every key it committed,
+    changed or not."""
+    by_first, by_last = {}, {}
+    for i, (ids, _, _) in enumerate(groups):
+        by_first.setdefault(ids[0], i)
+        by_last[ids[-1]] = i
+    eff, written, unattributed, errors = {}, {}, Counter(), 0
     for c in exp['state_changes']:
+        if not attrib_key(c['key']):
+            continue
         pre = c['pre']
         if pre is None or 'error' in pre:
             errors += 1
@@ -204,43 +254,60 @@ def expected_attribution(exp, groups):
         before, after = {}, {}
         for ch in c['changes']:
             cid = cause_id(ch['cause'])
-            g = groups.get(cid, ('id', cid)) if cid is not None else ('chunk', None)
+            if cid is None:
+                g = ('chunk', None)
+            else:
+                g = group_of(ch['cause'], cid, by_first, by_last)
+                if g is None:
+                    g = ('id', cid)
             if g not in before:
                 before[g] = running
             running = None if ch['valueHash'] is None else (ch['valueHash'], ch['valueLen'])
             after[g] = running
         for g in before:
+            if isinstance(g, int):
+                written.setdefault(g, {})[c['key']] = after[g]
             if before[g] != after[g]:
                 if isinstance(g, int):
-                    out.setdefault(g, {})[c['key']] = after[g]
+                    eff.setdefault(g, {})[c['key']] = after[g]
                 elif g[0] == 'id':
                     unattributed[g[1]] += 1
-    return out, unattributed, errors
+    return eff, written, unattributed, errors
 
 
 def compare_attribution(lean_out, exp, counts, bad):
     entries = lean_out.get('receiptStateChanges')
     if entries is None or not has_attribution(exp):
         return
-    groups = {}
-    for i, e in enumerate(entries):
-        for x in e['ids']:
-            groups[x] = i
-    exp_by_group, unattributed, errors = expected_attribution(exp, groups)
+    groups = lean_groups(entries)
+    eff, written, unattributed, errors = expected_attribution(exp, groups)
     counts['attrib.preState'] += 1
     if errors:
         bad['attrib.preState'] += 1
     counts['attrib.unattributed'] += 1
     if unattributed:
         bad['attrib.unattributed'] += 1
-    for i, e in enumerate(entries):
-        lean = {c['key']: (None if c['valueHash'] is None else (c['valueHash'], c['valueLen'])) for c in e['changes']}
-        want = exp_by_group.get(i, {})
+    for i, (ids, known, unknown) in enumerate(groups):
+        want, wrote = eff.get(i, {}), written.get(i, {})
+        keys = set(known) | set(unknown) | set(want)
+        miss = 0
+        for k in keys:
+            if k in known:
+                ok = want.get(k, 'missing') == known[k]
+            elif k in unknown:
+                # the checker could not see the pre-state value: nearcore must have committed the
+                # key in this entry with the same final value (changed or not)
+                ok = wrote.get(k, 'missing') == unknown[k]
+            else:
+                ok = False
+            miss += not ok
         counts['attrib.entry'] += 1
-        if lean != want:
-            bad['attrib.entry'] += 1
-        counts['attrib.key'] += len(set(lean) | set(want))
-        bad['attrib.key'] += sum(1 for k in set(lean) | set(want) if lean.get(k, 'missing') != want.get(k, 'missing'))
+        bad['attrib.entry'] += miss > 0
+        counts['attrib.key'] += len(keys)
+        bad['attrib.key'] += miss
+        counts['attrib.unknownPre'] += len(unknown)
+
+
 RECEIPT_FIELDS = ('id', 'predecessor', 'receiver', 'kind', 'bodyHash', 'refund')
 
 
@@ -389,14 +456,27 @@ def mutations(exp):
         out.append(('outcome.failureKind', 'outcome.failureKind', lambda e, i=i: e['outcomes'][i]['status'].__setitem__(
             'error', _other_kind(e['outcomes'][i]['status']['error']))))
     if has_attribution(exp):
-        attributed = [i for i, c in enumerate(cs) if any(cause_id(x['cause']) for x in c['changes'])
-                      and c['changes'][-1]['valueHash'] is not None]
+        attributed = [i for i, c in enumerate(cs) if attrib_key(c['key'])
+                      and cause_id(c['changes'][-1]['cause'])
+                      and c['changes'][-1]['valueHash'] is not None and _last_effective(c)]
         if attributed:
             i = attributed[0]
             out.append(('attrib.value', 'attrib.entry', lambda e, i=i: e['state_changes'][i]['changes'][-1].__setitem__(
                 'valueHash', _flip_hex(e['state_changes'][i]['changes'][-1]['valueHash']))))
             out.append(('attrib.cause', 'attrib.entry', lambda e, i=i: _move_cause(e['state_changes'][i])))
     return out
+
+
+def _last_effective(c):
+    """The key's last change sets a value different from the one before it (pre-state or the previous
+    change): moving or altering it is observable under the effective-change definition."""
+    pre = c.get('pre') or {}
+    if 'error' in pre:
+        return False
+    prev = None if pre.get('absent') else pre.get('valueHash')
+    if len(c['changes']) > 1:
+        prev = c['changes'][-2]['valueHash']
+    return c['changes'][-1]['valueHash'] != prev
 
 
 def _other_kind(err):

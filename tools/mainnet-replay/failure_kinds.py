@@ -241,8 +241,20 @@ def canonical_expected(error):
     return base[:-len('ExecutionError')] + v if v else base
 
 
+_LEAN_VM = re.compile(r'^(.*FunctionCallError)\((HostError|WasmTrap)\((.*)\)\)$', re.S)
+
+
 def canonical_lean(kind):
-    """The Lean-emitted kind → canonical form. LinkError / LoadingError keep only their name."""
+    """The Lean-emitted kind → canonical form. LinkError / LoadingError keep only their name.
+    The Lean VM reports some host errors with nearcore's Display text inside the variant
+    (`HostError(AltBn128 invalid input: …)`); those are resolved with the same Display table."""
+    if kind is not None:
+        m = _LEAN_VM.match(kind.strip())
+        if m and not _IDENT.fullmatch(m.group(3).split(' {')[0].split('(')[0]):
+            inner = m.group(3) if m.group(2) == 'HostError' else 'WebAssembly trap: ' + m.group(3)
+            v = execution_error_variant(inner)
+            if v is not None:
+                return canonical(m.group(1)) + '.' + v
     c = canonical(kind)
     if c is None:
         return None

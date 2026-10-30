@@ -72,16 +72,35 @@ def lineErr (l : String) : String :=
 /-- The committed changes of one step: `Ovl.commit` updates a key in place and appends a new key
 (`kvPut`), so `before.committed` is a positional prefix of `after.committed`. A change is a key
 whose committed value differs from its value before the step (the earlier committed value, else
-the pre-state trie value). Ascending key, `none` = deleted. -/
-def committedDiff (before after : Ovl) : List (Bytes × Option Bytes) :=
+the pre-state trie value). Ascending key, `none` = deleted.
+
+The second list holds the keys first committed in this step whose pre-state *value* the witness
+does not reveal (the step wrote the key without reading it, so the recorded trie holds only the
+value reference): the checker cannot tell whether the write changed the value. -/
+def committedDiff (before after : Ovl) : List (Bytes × Option Bytes) × List (Bytes × Option Bytes) :=
   let rec go : List (Bytes × Option Bytes) → List (Bytes × Option Bytes) → List (Bytes × Option Bytes)
     | (k, v) :: as, (k', v') :: bs =>
       let rest := go as bs
       if k == k' then (if v == v' then rest else (k, v) :: rest)
       else (k, v) :: rest  -- not reached: kvPut never reorders
-    | as, [] => as.filter fun (k, v) => before.trie.find (nibbles k) != some v
+    | as, [] => as
     | [], _ => []
-  sortKV (go after.committed before.committed)
+  let all := go after.committed before.committed
+  let isNew := fun (k : Bytes) => (kvFind k before.committed).isNone
+  let known := all.filter fun (k, v) =>
+    !isNew k || (match before.trie.find (nibbles k) with
+      | some p => p != v
+      | none => false)
+  let unknown := all.filter fun (k, _) => isNew k && (before.trie.find (nibbles k)).isNone
+  (sortKV known, sortKV unknown)
+
+/-- The id list of an attribution entry for the keys whose pre-state value is unknown
+(`committedDiff`.2): the entry's ids behind the marker id `"pre?"`. -/
+def unknownPreMarker : Bytes := "pre?".toUTF8.toList
+
+def pushAttrib (ids : List Bytes) (d : List (Bytes × Option Bytes) × List (Bytes × Option Bytes)) : M Unit :=
+  modifyDetail fun x => { x with attrib := x.attrib ++ [(ids, d.1)] ++
+    (if d.2.isEmpty then [] else [(unknownPreMarker :: ids, d.2)]) }
 def softExceeded : M Bool := do
   let r ← get
   pure (r.recorder.size > r.softLimit)
@@ -338,10 +357,9 @@ def processTxR (env : Env) (rs : RS × List Bytes) (tf : TxD2 × Bool) : M (RS �
     let kinds : List (Bytes × String) := bif isFail then
         [(t.hash, "InvalidTxError." ++ FailureKinds.txKind env.ctx.gasPrice env.ctx.height rs0.o t flag)]
       else []
-    let diff := committedDiff rs0.o rs1.o.commit
     modifyDetail fun d => { d with failKinds := d.failKinds ++ kinds,
-                                   outCompute := d.outCompute ++ [(t.hash, cu)],
-                                   attrib := d.attrib ++ [([t.hash], diff)] }
+                                   outCompute := d.outCompute ++ [(t.hash, cu)] }
+    pushAttrib [t.hash] (committedDiff rs0.o rs1.o.commit)
   pure out
 def validatorUpdateR (l : Layout) (own : Nat) (o : Ovl) (f : ValidatorUpdateFacts) (ps : List (Bytes × Nat)) :=
   logged (validatorUpdateL l own o f ps)
@@ -595,8 +613,7 @@ def processWithTotals (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS 
     | some (out, _) => if out.o.id == r.rid then [r.rid] else [r.rid, out.o.id]
     | none => [r.rid]
   if (← get).observe then
-    let diff := committedDiff before rs.o.commit
-    modifyDetail fun d => { d with attrib := d.attrib ++ [(ids, diff)] }
+    pushAttrib ids (committedDiff before rs.o.commit)
   match o with
   | none => pure rs
   | some (out, cu) =>
