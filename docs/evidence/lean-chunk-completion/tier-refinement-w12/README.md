@@ -1273,7 +1273,7 @@ targets. No `sorry`. Axioms of every new theorem: `propext`, `Classical.choice`,
 observation-only mode, `--o4-premises`. `make pin-check` is ok. The oracle gained the opt-in
 scenario `removal-soft` (`oracle/v3-successor/src/scenarios.rs`; no existing scenario changed).
 
-### 14.1 Ground truth: ContractData removals past the soft limit
+### 16.1 Ground truth: ContractData removals past the soft limit
 
 §13 argued that a `DeleteAccount` of an account with more than 2,000 ContractData keys makes the
 recorder cross `main_storage_proof_size_soft_limit` while the witness stays small. This session
@@ -1346,7 +1346,7 @@ above.
   `removal-soft/cases-index.json`). Breakage control: the current checker, which disagrees on all 52
   crossing chunks.
 
-### 14.2 O4 under per-witness premises
+### 16.2 O4 under per-witness premises
 
 §13's design, implemented:
 
@@ -1404,7 +1404,7 @@ functions of `(c, w)`. **Non-vacuity:** `o4_premises_nonvacuous` exhibits `c = w
 check run in the kernel (`decide +kernel`). That witness is trivial, because both shells stop at
 the claim decoder. The measured rows below are the real-chunk instances.
 
-### 14.3 The premises on data
+### 16.3 The premises on data
 
 `--o4-premises` (observation only) prints per case the `.runtimeLimits`, `.storageResolution` and
 `NS` verdicts, `nsEq` (premise `hNS`) and `noEsc` (premise `hX`). It is a separate entry branch in
@@ -1424,7 +1424,7 @@ case here.
 
 Where `hNS` fails: in the storage-limit sample, on 40 chunks, `.runtimeLimits` is excluded (the §10
 `withStorageExclusion`). In `removal-soft`, on the 52 honest crossing chunks (718 of the 3,310
-cases, mutants included), `.runtimeLimits` is wrong (§14.1). Neither is a theorem violation: the
+cases, mutants included), `.runtimeLimits` is wrong (§16.1). Neither is a theorem violation: the
 theorem's premise fails there. Verdict identity of the instrumented columns: 577 + 3,138 + 1,440
 cases against the replays (`.runtimeLimits` and `.storageResolution`), and 388 against the
 storage-limit replays, all identical.
@@ -1433,12 +1433,12 @@ Where both premises hold, the theorem predicts `.runtimeLimits ⊑ .storageResol
 "prediction violations" checks that prediction against the verdicts. `nsEq` fails exactly on the
 G1 shapes: the storage-limit probes and the `removal-soft` crossing chunks, where `NS`, like the
 legacy engine, runs the deferred receipts. On those chunks `.runtimeLimits` is either excluded
-(`withStorageExclusion`, storage-limit family) or wrong (§14.1). No escape string occurs in any
+(`withStorageExclusion`, storage-limit family) or wrong (§16.1). No escape string occurs in any
 population.
 
-### 14.4 What is open
+### 16.4 What is open
 
-* The §14.1 completeness bug of the legacy-engine tiers and `.signed`: the owner must decide the
+* The §16.1 completeness bug of the legacy-engine tiers and `.signed`: the owner must decide the
   signed hand-over change (proposal above).
 * O4 holds under `hNS` and `hX`. Discharging `hNS` would need a run-level argument that the soft
   limit and the per-receipt limit are never reached on a witness, or a VM lemma for G6 (results
@@ -1447,9 +1447,9 @@ population.
 * G3b may deserve a recorder-side look. It is unreachable when the witness reveals the receiver's
   pre-state account, which the recorder itself records.
 
-## 15. Update 2026-10-30 (sixth O4 session, continued): the removal-aware hand-over (§14.1 fixed)
+## 17. Update 2026-10-30 (sixth O4 session, continued): the removal-aware hand-over (§16.1 fixed)
 
-This section implements the fix proposed in §14.1, on the coordinator's instruction under the user's
+This section implements the fix proposed in §16.1, on the coordinator's instruction under the user's
 standing decision of 2026-10-27: a signed-tier reject of a valid chunk is fixed as a strengthening of
 `checkD3`/`RelD3`.
 
@@ -1497,11 +1497,15 @@ gives every named pair: `.signed ⊑ .runtimeLimits`, `.signed ⊑ .floats`,
 |---|---|---|---|---|---|---|
 | `removal-soft`, all 7,296 (4 seeds) | signed | 7,296 | 624 `reject → accept`, all nearcore-valid (52 honest chunks + 572 accepted mutants). 956 nearcore rejects stay `reject`, now with the recorder's reason (`InvalidCongestionInfo`, header fields, post-state root) | 624 | 0 | 0 |
 
-**PENDING.** These runs were still in progress at the time of this commit (`removal-handover/horun.sh`):
+| full corpus (`gateb-prefreeze` before) | signed | 235,716 | 0 (73,783 / 159,175 / 2,758 before and after) | — | 0 | 0 |
+| mainnet shard 13 (direct checker runs, no `meta.json`) | signed | 1,223 | 0 (944 accept / 279 OOD) | — | — | 0 |
+| gap census | signed | 3,138 | 0 | — | 0 | 0 |
+| gap census | runtimeLimits | 3,138 | 0 | — | 0 | 0 |
+| committed fixtures | signed | 577 | 0 | — | 0 | 0 |
+| committed fixtures | runtimeLimits | 577 | 0 | — | 0 | 0 |
+| `removal-soft`, all 7,296 | runtimeLimits | 7,296 | 1,580 `reject → OOD (w.size)`: the 624 nearcore-valid ones (intended) and 956 nearcore rejects | 624 | 0 | 1,580 |
 
-* signed on the full corpus (235,716 cases), diffed against `gateb-prefreeze/corpus-signed`;
-* signed on shard 13 (1,223 chunks), before and after;
-* signed and `runtimeLimits` on the 3,138 census and the 577 fixtures, with the before rows taken from
-  `o4-replay/`;
-* `runtimeLimits` on `removal-soft`. The expected result is 624 `reject → OOD (w.size)` moves, which
-  is how the narrower tiers are designed to behave.
+The 956 `runtimeLimits` moves of nearcore-rejected chunks to `w.size` are a completeness loss on the
+narrower legacy tier only (never an accept), the same shape as the earlier `withStorageExclusion`
+fix; the signed tier and `.storageResolution` reject all 956. Filled in by the integrator on
+2026-10-31 from `/data/illia/nearproof-deps/w12-o4b/ho/` (`*.ba.json`, `s13-*-direct.jsonl`).
