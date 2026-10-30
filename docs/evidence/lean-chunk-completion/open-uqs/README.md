@@ -143,7 +143,7 @@ d3c7–d3c10, seeds 7000021 / 8000024 / 9000027 / 10000030), one fact rewritten 
 (T6 layout, T10 validator update, T12 split gate and T14 genesis extra were not mutated.)
 
 So a proof is evidence about `chain_id`, `epoch_height`, validator stakes and `minimum_stake` only if
-the verifier knows those values are its own. **Proposal (not adopted; the user decides):**
+the verifier knows those values are its own. **Adopted 2026-10-30 (user decision):**
 
 > *Admission contract A1.* A proof for `claim.bin` is admitted only by a verifier that rebuilds
 > section C of the claim (and `epoch_id`, `protocol_version`, `chain_id`) from its own chain state
