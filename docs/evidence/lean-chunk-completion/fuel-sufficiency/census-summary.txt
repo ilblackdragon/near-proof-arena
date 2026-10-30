@@ -1,0 +1,12 @@
+break-wasm-corpus.err: files 4744 prepared 2532 functions 35923 modules-failing 2511 max-code 10004 (--break: every charge point under-charged by one regular_op_cost)
+break-wasm-opcases.err: files 9169 prepared 9142 functions 20153 modules-failing 9124 max-code 36001 (--break: every charge point under-charged by one regular_op_cost)
+break-wasm-random-11.err: files 2000 prepared 2000 functions 4980 modules-failing 2000 max-code 152 (--break: every charge point under-charged by one regular_op_cost)
+break-wasm-random-13.err: files 2000 prepared 2000 functions 5065 modules-failing 2000 max-code 135 (--break: every charge point under-charged by one regular_op_cost)
+break-wasm-random-17.err: files 2000 prepared 2000 functions 4986 modules-failing 2000 max-code 132 (--break: every charge point under-charged by one regular_op_cost)
+break-wasm-random-7.err: files 2000 prepared 2000 functions 5037 modules-failing 2000 max-code 138 (--break: every charge point under-charged by one regular_op_cost)
+cert-wasm-corpus.err: files 4744 prepared 2532 functions 35923 modules-failing 0 max-code 10004
+cert-wasm-opcases.err: files 9169 prepared 9142 functions 20153 modules-failing 0 max-code 36001
+cert-wasm-random-11.err: files 2000 prepared 2000 functions 4980 modules-failing 0 max-code 152
+cert-wasm-random-13.err: files 2000 prepared 2000 functions 5065 modules-failing 0 max-code 135
+cert-wasm-random-17.err: files 2000 prepared 2000 functions 4986 modules-failing 0 max-code 132
+cert-wasm-random-7.err: files 2000 prepared 2000 functions 5037 modules-failing 0 max-code 138
