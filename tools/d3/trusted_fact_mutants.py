@@ -130,7 +130,7 @@ def main():
         p = subprocess.run([a.checker, "--tier", a.tier, *[d for _, d in chunk]], capture_output=True, text=True)
         return p.stdout.splitlines()
     rows = []
-    with ThreadPoolExecutor(8) as ex:
+    with ThreadPoolExecutor(4) as ex:
         for out in ex.map(run, [jobs[i:i + 10] for i in range(0, len(jobs), 10)]):
             rows += [json.loads(l) for l in out]
     field_of = {d: f for f, d in jobs}
