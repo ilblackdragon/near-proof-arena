@@ -174,3 +174,204 @@ theorem simx_applyNewChunkD2 {e : Env} (cfg : NearCfg) (hs : HInv e.store) (prim
 #print axioms simx_applyNewChunkD2
 
 end NearSpecV3.Successor.O4E
+
+namespace NearSpecV3.Successor.O4E
+open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Logged
+open NearSpecV3.Successor
+open NearSpecV3.Successor.StorageExecution (M Recording)
+
+/-! ## Forwarding (G4) -/
+
+/-- A logged program whose result is a logged mirror's result followed by a check that can only
+fail with an escape. -/
+theorem SimX.logged_post {α β : Type} {e : Env} {P : Recording → Prop} {φ : β → α} {x : Except String α}
+    {n n0 : LM β} (hR : R e.store e.preRoot n0 x φ) (post : β → Except String β)
+    (heq : LM.ev e.store e.preRoot n = LM.ev e.store e.preRoot n0 >>= post)
+    (hpost : ∀ a, post a = .ok a ∨ ∃ s, esc s = true ∧ post a = .error s)
+    (hRec : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder }) :
+    SimX e P φ x (StorageExecution.logged n) := by
+  intro r hr
+  unfold R at hR
+  subst hR
+  unfold SimAtX SimAt
+  rw [logged_run, heq]
+  cases h0 : LM.ev e.store e.preRoot n0 with
+  | error err => exact Or.inl (Or.inr rfl)
+  | ok a =>
+    rcases hpost a with h | ⟨s, hs, h⟩
+    · refine Or.inl ⟨a, _, ?_, rfl, hRec r (Logged.SM.reads (hGet e.store) (n e.preRoot)) hr⟩
+      show (post a).map _ = _
+      rw [h]; rfl
+    · refine Or.inr ⟨s, hs, ?_⟩
+      show (post a).map _ = _
+      rw [h]; rfl
+
+/-- An empty buffer forwards nothing. -/
+theorem ev_fwdToShard_empty (s : HStore) (root : Bytes) (env : Env) (rs : RS) (p : Nat)
+    (h : ¬ (bufGet rs.bufIdx p).1 < (bufGet rs.bufIdx p).2) :
+    LM.ev s root (forwardFromBufferToShardL env rs p) = .ok rs := by
+  unfold forwardFromBufferToShardL
+  rcases hb : bufGet rs.bufIdx p with ⟨f, n⟩
+  rw [hb] at h
+  have hz : n - f = 0 := by simp only at h; omega
+  simp only [hb, hz, fwdLoopL, LM.ev_bind, LM.ev_pure]
+  rfl
+
+theorem bufGet_outside {l : List (Nat × Nat × Nat)} {ids : List Nat} {p : Nat}
+    (hany : ¬ (l.any (fun (s, f, n) => !ids.contains s && decide (f < n))) = true)
+    (hp : ids.contains p = false) : ¬ (bufGet l p).1 < (bufGet l p).2 := by
+  unfold bufGet
+  cases hf : l.find? (·.1 == p) with
+  | none => simp
+  | some x =>
+    rcases x with ⟨s, f, n⟩
+    have hm := List.mem_of_find?_eq_some hf
+    have hs := List.find?_some hf
+    simp only [beq_iff_eq] at hs
+    subst hs
+    intro hlt
+    simp only at hlt
+    apply hany
+    rw [List.any_eq_true]
+    exact ⟨_, hm, by show (!ids.contains s && decide (f < n)) = true; rw [hp]; simp [hlt]⟩
+
+theorem ite_post (c : Bool) (a : RS) :
+    (if c = true then (Except.error escG4 : Except String RS) else .ok a) = .ok a ∨
+      ∃ s, esc s = true ∧ (if c = true then (Except.error escG4 : Except String RS) else .ok a) = .error s := by
+  cases c
+  · exact Or.inl rfl
+  · exact Or.inr ⟨escG4, esc_escG4, rfl⟩
+
+/-- **G4.** Forwarding on every layout, up to the escape `escG4`. -/
+theorem fwdSimX (e : Env) : FwdSimX e := by
+  intro rs rsO h
+  subst h
+  unfold StorageExecution.forwardFromBufferR
+  cases hl : e.ctx.layout.lastSplit with
+  | none =>
+    simp only [hl, Option.isSome_none, Bool.false_eq_true, ↓reduceIte]
+    exact SimX.of (Sim.logged (R_forwardFromBuffer' e rfl rs rfl) pt_rec)
+  | some p =>
+    simp only [hl, Option.isSome_some, ↓reduceIte]
+    by_cases hany : (rs.bufIdx.any (fun (s, f, n) => !e.ctx.layout.shardIds.contains s && decide (f < n))) = true
+    · have hx : forwardFromBuffer e (rs.wt (T e)) =
+          .error "out of domain (c.same_layout): outgoing buffer to a shard outside the layout" := by
+        unfold forwardFromBuffer
+        simp only [RS.wt] at hany ⊢
+        simp only [hany, ↓reduceIte]; rfl
+      rw [hx]
+      exact SimX.excl' _ (by ood_tac)
+    · refine SimX.logged_post (R_forwardFromBuffer' e rfl rs rfl)
+        (fun rs' => if ((match e.ctx.layout.lastSplit with
+            | some p => if e.ctx.layout.shardIds.contains p then [] else [p]
+            | none => []) ++ e.ctx.layout.shardIds).all (fun s => (bufGet rs'.bufIdx s).2 ≤ (bufGet rs'.bufIdx s).1)
+            && rs'.cong.bufferedGas != 0 then .error escG4 else .ok rs') ?_ ?_ pt_rec
+      · have hL : LM.ev e.store e.preRoot (forwardFromBufferL e rs) =
+            LM.ev e.store e.preRoot (e.ctx.layout.shardIds.foldlM (forwardFromBufferToShardL e) rs) := by
+          unfold forwardFromBufferL
+          simp only [hany, Bool.false_eq_true, ↓reduceIte]
+        rw [hL]
+        unfold StorageExecution.forwardFromBufferV3L
+        simp only [hl, Bool.false_eq_true, ↓reduceIte, LM.ev_bind]
+        cases hc : e.ctx.layout.shardIds.contains p
+        · simp only [Bool.false_eq_true, ↓reduceIte, List.cons_append, List.nil_append, List.foldlM_cons,
+            LM.ev_bind, ev_fwdToShard_empty _ _ e rs p (bufGet_outside hany hc)]
+          congr 1
+          funext rs'
+          split <;> rfl
+        · simp only [↓reduceIte, List.nil_append]
+          congr 1
+          funext rs'
+          split <;> rfl
+      · exact fun a => ite_post _ a
+
+#print axioms fwdSimX
+
+/-! ## The bridge and the final theorem -/
+
+/-- **`EngineAgreeX` holds**: the legacy engine is simulated by `NS` up to the escapes, on every
+shell input. No premise. -/
+theorem engineAgreeX (cfg : Wasm.NearCfg) : EngineAgreeX cfg := by
+  refine engineAgreeX_of_simX cfg PT trivial fun merged p e vu ps rs txs cg he => ?_
+  have hs : HInv e.store := by rw [he]; exact HInv_mkHStore merged
+  exact simx_applyNewChunkD2 cfg hs p vu ps rs txs cg (fwdSimX e)
+
+/-- **O4 (W12 item 5), under per-witness premises only.** On a witness file in the original format
+whose codes fit one code response (`O4Witness`), `.runtimeLimits ⊑ .storageResolution` provided
+
+* `hNS` (G1 soft limit, G6 VM recorder state): the storage-resolution checker's result equals the
+  `NS` reference shell's on this witness;
+* `hX` (G2, G3, G3b, G4, G7): the storage-resolution result is not one of the named escapes `esc`.
+
+Both premises are decidable functions of `(c, w)`; `--o4-premises` reports them per case. -/
+theorem relSuccessor_runtimeLimits_storageResolution (c w : Bytes) (hw : O4Witness w)
+    (hNS : Tier.checker .storageResolution c w = checkNS c w)
+    (hX : ∀ s, Tier.checker .storageResolution c w = .error s → esc s = false) :
+    Refines (Tier.checker .runtimeLimits c w) (Tier.checker .storageResolution c w) :=
+  refines_of_x (runtimeLimits_ns_of (engineAgreeX _) c w hw) hNS hX
+
+/-- The verdict-level reading. -/
+theorem verdict_runtimeLimits_storageResolution (c w : Bytes) (hw : O4Witness w)
+    (hNS : Tier.checker .storageResolution c w = checkNS c w)
+    (hX : ∀ s, Tier.checker .storageResolution c w = .error s → esc s = false)
+    (hd : (checkVerdict (Tier.checker .runtimeLimits) c w).inDomain = true) :
+    checkVerdict (Tier.checker .storageResolution) c w = checkVerdict (Tier.checker .runtimeLimits) c w :=
+  Refines.verdict (relSuccessor_runtimeLimits_storageResolution c w hw hNS hX) hd
+
+#print axioms engineAgreeX
+#print axioms relSuccessor_runtimeLimits_storageResolution
+#print axioms verdict_runtimeLimits_storageResolution
+
+end NearSpecV3.Successor.O4E
+
+namespace NearSpecV3.Successor.O4E
+open NearSpec NearSpecV3 NearSpecV3.D2
+open NearSpecV3.Successor
+
+/-! ## Non-vacuity: a witness on which every premise holds
+
+The premises are per witness, so the theorem is not vacuous as soon as one witness satisfies them.
+The checks below run in the kernel (`decide +kernel`, no `ofReduceBool`). The witness is the empty
+claim and witness file: both checkers stop at the same claim-decoding error. The measured data
+(README §14) show the premises holding on real chunk witnesses as well. -/
+
+/-- Boolean equality of `Except String Unit` results. -/
+def eqU : Except String Unit → Except String Unit → Bool
+  | .ok _, .ok _ => true
+  | .error a, .error b => a == b
+  | _, _ => false
+
+theorem eqU_eq {x y : Except String Unit} (h : eqU x y = true) : x = y := by
+  cases x <;> cases y <;> simp_all [eqU]
+
+def decodesW (w : Bytes) : Bool :=
+  match decodeWitnessFile w with
+  | .ok _ => true
+  | .error _ => false
+
+theorem o4Witness_of {w : Bytes} (hc : isCWitnessFile w = false) (hd : decodesW w = false) : O4Witness w := by
+  refine ⟨hc, fun sw codes h => ?_⟩
+  simp [decodesW, h] at hd
+
+theorem nv_sr : eqU (Tier.checker .storageResolution [] []) (.error "invalid claim: decode: truncated claim format") = true := by
+  decide +kernel
+
+theorem nv_ns : eqU (checkNS [] []) (.error "invalid claim: decode: truncated claim format") = true := by
+  decide +kernel
+
+theorem nv_esc : esc "invalid claim: decode: truncated claim format" = false := by decide +kernel
+
+/-- **The premises of `relSuccessor_runtimeLimits_storageResolution` are satisfiable.** -/
+theorem o4_premises_nonvacuous :
+    ∃ c w : Bytes, O4Witness w ∧ Tier.checker .storageResolution c w = checkNS c w ∧
+      ∀ s, Tier.checker .storageResolution c w = .error s → esc s = false := by
+  refine ⟨[], [], o4Witness_of (by decide +kernel) (by decide +kernel), ?_, ?_⟩
+  · rw [eqU_eq nv_sr, eqU_eq nv_ns]
+  · intro s h
+    rw [eqU_eq nv_sr] at h
+    cases h
+    exact nv_esc
+
+#print axioms o4_premises_nonvacuous
+
+end NearSpecV3.Successor.O4E
