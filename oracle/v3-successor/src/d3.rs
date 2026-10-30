@@ -826,7 +826,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         // This changes fixture generation only, never the baseline classification or expectation.
         let scenario = crate::d3gen::scenario();
         // The keys scenario does the same for its key shapes (secp256k1 / ML-DSA keys, gas keys).
-        let global_scenario = matches!(scenario, Some(crate::d3gen::Scenario::GlobalCache | crate::d3gen::Scenario::Keys | crate::d3gen::Scenario::Mldsa));
+        let global_scenario = matches!(scenario, Some(crate::d3gen::Scenario::GlobalCache | crate::d3gen::Scenario::Keys | crate::d3gen::Scenario::Mldsa | crate::d3gen::Scenario::PipelineRace));
         // Opt-in curve traffic likewise mutates its `e.ood_host` chunks (independently judged).
         let curve_scenario = scenario == Some(crate::d3gen::Scenario::CurveHosts);
         // The yield / storage-limits scenarios mutate every sampled chunk: their shapes (yield

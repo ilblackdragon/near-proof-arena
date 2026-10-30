@@ -173,4 +173,34 @@ theorem coldPartial_untimely_ood (code : Bytes) :
 #print axioms complete_untimely_ood
 #print axioms coldPartial_untimely_ood
 
+/-- On the race arm both policies report the same exclusion, for any sources. -/
+theorem complete_untimely_ood_general (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
+    (hw : sources.witness hash = none)
+    (hc : sources.current.find? (fun c => sha256 c == hash) = none)
+    (hd : (sources.committed ++ sources.attempted).find? (fun c => sha256 c == hash) = some code) :
+    resolveCodeBytes .complete sources pre hash false = .error raceExclusion ∧
+      resolveCodeBytes .coldPartial sources pre hash false = .error raceExclusion := by
+  refine ⟨?_, ?_⟩
+  · simp [resolveCodeBytes, resolveCompleteCode, hw, hc, hd]
+  · simp [resolveCodeBytes, resolveColdCode, hw, hc, hd]
+
+/-- **O7, resolve step, without the authenticity premise of `complete_eq_cold`.** Wherever the
+complete policy resolves code, the cold policy resolves the same bytes. -/
+theorem complete_ok_coldPartial (sources : CodeSources) (pre : PrestateCode) (hash code : Bytes)
+    (timely : Bool) (h : resolveCodeBytes .complete sources pre hash timely = .ok code) :
+    resolveCodeBytes .coldPartial sources pre hash timely = .ok code := by
+  simp only [resolveCodeBytes, resolveCompleteCode, resolveColdCode] at h ⊢
+  cases hw : sources.witness hash with
+  | none => rw [hw] at h; exact h
+  | some c =>
+    rw [hw] at h
+    by_cases hs : (sha256 c == hash) = true <;> simp_all
+
+theorem raceExclusion_isExclusion : isExclusion raceExclusion = true := by
+  unfold raceExclusion; ood_tac
+
+#print axioms complete_untimely_ood_general
+#print axioms complete_ok_coldPartial
+#print axioms raceExclusion_isExclusion
+
 end NearSpecV3.Successor

@@ -1,0 +1,62 @@
+[
+ {
+  "dir": "race1201__mutants__00-h10023-s1-code.drop.1",
+  "origin": "race1201/mutants/00-h10023-s1-code.drop.1",
+  "stratum": "mutants nearcore=err"
+ },
+ {
+  "dir": "race1201__mutants__00-h10023-s1-code.duplicate",
+  "origin": "race1201/mutants/00-h10023-s1-code.duplicate",
+  "stratum": "mutants nearcore=ok"
+ },
+ {
+  "dir": "race1201__ood__00-h10019-s1",
+  "origin": "race1201/ood/00-h10019-s1",
+  "stratum": "ood nearcore=ok"
+ },
+ {
+  "dir": "race1202__mutants__00-h10018-s1-code.drop.1",
+  "origin": "race1202/mutants/00-h10018-s1-code.drop.1",
+  "stratum": "mutants nearcore=err"
+ },
+ {
+  "dir": "race1202__mutants__00-h10018-s1-code.duplicate",
+  "origin": "race1202/mutants/00-h10018-s1-code.duplicate",
+  "stratum": "mutants nearcore=ok"
+ },
+ {
+  "dir": "race1202__ood__00-h10018-s1",
+  "origin": "race1202/ood/00-h10018-s1",
+  "stratum": "ood nearcore=ok"
+ },
+ {
+  "dir": "race1203__mutants__00-h10033-s1-code.drop.1",
+  "origin": "race1203/mutants/00-h10033-s1-code.drop.1",
+  "stratum": "mutants nearcore=err"
+ },
+ {
+  "dir": "race1203__mutants__00-h10018-s1-code.duplicate",
+  "origin": "race1203/mutants/00-h10018-s1-code.duplicate",
+  "stratum": "mutants nearcore=ok"
+ },
+ {
+  "dir": "race1203__ood__00-h10018-s1",
+  "origin": "race1203/ood/00-h10018-s1",
+  "stratum": "ood nearcore=ok"
+ },
+ {
+  "dir": "race1204__mutants__00-h10029-s1-code.drop.1",
+  "origin": "race1204/mutants/00-h10029-s1-code.drop.1",
+  "stratum": "mutants nearcore=err"
+ },
+ {
+  "dir": "race1204__mutants__00-h10029-s1-code.duplicate",
+  "origin": "race1204/mutants/00-h10029-s1-code.duplicate",
+  "stratum": "mutants nearcore=ok"
+ },
+ {
+  "dir": "race1204__ood__00-h10018-s1",
+  "origin": "race1204/ood/00-h10018-s1",
+  "stratum": "ood nearcore=ok"
+ }
+]

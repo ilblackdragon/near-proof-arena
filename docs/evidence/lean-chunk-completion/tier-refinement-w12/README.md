@@ -24,13 +24,13 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 
 | id | obligation | status | theorems |
 |---|---|---|---|
-| O1 | floats | **proved on the legacy engine** (every configuration that runs `checkD2Core`/`checkD2CoreG`), which is every named pair that differs in `floats` | `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
+| O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | open | — |
 | O3 | global actions | open (unchanged: the routing part in `TierMono.lean`) | — |
 | O4 | storage resolution | open | — |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | open | — |
-| O7 | complete-code witness | open. `completeCodeGlobal` still refines no tier. Analysis and a resolve-level finding are in §4 | `complete_accepts_untimely`, `coldPartial_untimely_ood` |
+| O7 | complete-code witness | open. `completeCodeGlobal` still refines no tier. The race arm is **fixed** (2026-10-30, `pipeline-race-fixtures/`); the rest is W08's policy plus a state-relating walk (§5) | `complete_untimely_ood`, `complete_untimely_ood_example` |
 
 ### O1, the proof chain
 
@@ -65,7 +65,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
    `.genesis ⊑ .genesisFloatsProtoGas`. Compositions: `.signed ⊑ .genesisFloatsProtoGas`,
    `.floats ⊑ .genesisFloatsProtoGas`, `.signed ⊑ .runtimeLimits`.
 
-What O1 does not cover: floats on the whole-state (recorder) engine. No named pair needs it,
+(Superseded 2026-10-30, §5: `Lift.floats` covers the whole-state engine.) What O1 did not cover: floats on the whole-state (recorder) engine. No named pair needs it,
 because every whole-state tier already sets `floats`. The general `Lift cfg {cfg with floats := true}`
 on a whole-state configuration needs the same walk through `StorageExecution`, whose monad threads
 a `Recording` state.
@@ -139,3 +139,60 @@ done here, for two reasons:
 
 Whether CCG should keep its cache-free reject semantics or become an exclusion is a decision about
 the statement's meaning. It is not a pre-approved soundness fix, so it is left to the owner.
+
+## 5. Update 2026-10-30
+
+### Race arm of completeCodeGlobal: fixed (then superseded by W08)
+
+The §4 finding was adopted as a soundness fix (pre-approved): `resolveCompleteCode` sent the
+untimely committed-deploy arm to the cold policy's race exclusion. Only that arm changed. W08 has
+since merged a complete-code policy that *is* the cold policy (`complete_eq_cold`, race exclusion
+`e.code_prep_race`). On merging, main's version was taken, and the W12 resolve lemmas were restated
+against it: main's `complete_untimely_ood` / `coldPartial_untimely_ood` plus W12's `complete_untimely_ood_general`, `complete_ok_coldPartial` and `raceExclusion_isExclusion`. Evidence,
+fixtures (4 seeds, 3,853 cases, 23,118 replays), the breakage control and the before/after tables
+are in `docs/evidence/lean-chunk-completion/pipeline-race-fixtures/`. The `complete_accepts_untimely`
+lemma of §4 described the pre-fix behaviour and has been replaced by `complete_untimely_ood`.
+
+### Refinement machinery for the whole-state engine (`TierWhole.lean`, `TierWholeWalk.lean`)
+
+* **`MRef x y`** is `Refines` in `StorageExecution`'s monad
+  `StateT Recording (ReaderT Env (Except String))`: from every state and environment, `x` reports an
+  exclusion or returns exactly `y`'s value and final state. It comes with bind, throw, `tryCatch`,
+  `if`, `foldlM`/`forIn`/`mapM` congruences.
+* **`functionCallRecordedWith`** is an `rfl` copy of `functionCallRecorded` with `contractOOD`,
+  `wasmFuel` and `runCallWithLimits` abstracted. `functionCallRecordedWith_mono` relates two
+  instantiations under `CallRel`.
+* **The walk:** `applyAction_rec_mono` … `applyNewChunkD2_rec_mono` lead to `run_rec_mono`, which
+  says the recorder engine refines when its recorded call does (`RecRefine`).
+* **Shells:** `checkD2CoreWithObs_apply_mono`, `checkD2CoreGWith_apply_mono` and
+  `checkReshardCoreObs_apply_mono` refine whenever the driver's `apply` does.
+* **`Lift.floats`:** switching floats on refines at every configuration.
+
+Proof-engineering note: the `repeat`-based lockstep walk stops silently when it hits Lean's
+recursion depth on long bodies (`repeat` is `first | (tac; repeat tac) | skip`). A second
+`all_goals rec_lockstep` pass resumes it.
+
+### What is still open, and why
+
+O2, O3, O4, O6 and O7 at chunk level are **not** proved. The equal-state machinery above covers
+configuration changes that only alter the Wasm configuration's reads in `NearCfg`. The remaining
+obligations need more:
+
+* **O2 (curve hosts) and O3 (global actions)** both change a flag held in the interpreter state
+  (`St.curveHosts`, `St.globalActions`). The two runs' states differ in that field at every step.
+  This needs a commutation lemma `f {s with flag := b} = (f s).withFlag b` for every instruction arm
+  of `Wasm.exec` and every host function in `Wasm/Host.lean` and `Wasm/CryptoHost.lean`, about 300
+  definitions in the `EStateM String St` monad. O3 additionally needs:
+  * `managerGlobal` versus `manager` on action logs without global actions;
+  * agreement of the global codecs with the D2 codecs on every input the D2 codecs decode;
+  * the queue policies;
+  * a state-relating walk for `Recording.globalActions`, which `get` reads at 10 sites.
+* **O4 (storage resolution)** needs an agreement theorem between two engines (`applyNewChunkD2` and
+  `StorageExecution.run`).
+* **O6 (resharding, non-genesis)** needs a verdict-level correspondence proof between two
+  differently structured shells.
+* **O7 at chunk level** needs:
+  * W08's code-resolution policy, which W08 owns;
+  * an accept-preservation walk with states that differ in `Recording.codePolicy`. Its resolve-level
+    step is proved: `complete_ok_coldPartial` (every `.complete` accept is a `.coldPartial` accept
+    of the same bytes) and `complete_untimely_ood` (both policies exclude the race arm).

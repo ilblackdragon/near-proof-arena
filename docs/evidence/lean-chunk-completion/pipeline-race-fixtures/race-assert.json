@@ -1,0 +1,58 @@
+{
+ "cases": 3853,
+ "replays": {
+  "after.completeCodeGlobal": {
+   "accept/ok": 2406,
+   "reject/ok": 21,
+   "reject/err": 1225,
+   "out_of_domain/err": 40,
+   "out_of_domain/ok": 161
+  },
+  "control.completeCodeGlobal": {
+   "accept/ok": 2548,
+   "reject/ok": 25,
+   "reject/err": 1265,
+   "out_of_domain/ok": 15
+  },
+  "after.globalActions": {
+   "accept/ok": 2427,
+   "reject/err": 1213,
+   "out_of_domain/err": 52,
+   "out_of_domain/ok": 161
+  },
+  "control.globalActions": {
+   "accept/ok": 2427,
+   "reject/err": 1213,
+   "out_of_domain/err": 52,
+   "out_of_domain/ok": 161
+  },
+  "after.allFeatures": {
+   "accept/ok": 2440,
+   "reject/err": 1213,
+   "out_of_domain/err": 52,
+   "out_of_domain/ok": 148
+  },
+  "control.allFeatures": {
+   "accept/ok": 2440,
+   "reject/err": 1213,
+   "out_of_domain/err": 52,
+   "out_of_domain/ok": 148
+  }
+ },
+ "A1_unsound": {
+  "after.completeCodeGlobal": [],
+  "control.completeCodeGlobal": [],
+  "after.globalActions": [],
+  "control.globalActions": [],
+  "after.allFeatures": [],
+  "control.allFeatures": []
+ },
+ "A2_violations": [],
+ "A3_control_violations": 142,
+ "race_arm_cases": 188,
+ "race_arm_by_nearcore": {
+  "err": 40,
+  "ok": 148
+ },
+ "pass": true
+}

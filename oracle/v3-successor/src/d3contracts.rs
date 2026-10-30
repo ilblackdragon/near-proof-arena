@@ -29,6 +29,14 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
     if crate::d3gen::scenario() == Some(crate::d3gen::Scenario::CurveHosts) {
         contracts.push((crate::curve_hosts::CODE_NAME, crate::curve_hosts::code().to_vec()));
     }
+    if crate::d3gen::scenario() == Some(crate::d3gen::Scenario::PipelineRace) {
+        const NAMES: [&str; crate::d3gen::RACE_ROUNDS] = ["race00", "race01", "race02", "race03",
+            "race04", "race05", "race06", "race07", "race08", "race09", "race10", "race11",
+            "race12", "race13", "race14", "race15"];
+        for (k, code) in crate::d3gen::race_codes().iter().enumerate() {
+            contracts.push((NAMES[k], code.clone()));
+        }
+    }
     if crate::keys::enabled() {
         contracts.push(("kgashost", crate::keys::host_code()));
     }

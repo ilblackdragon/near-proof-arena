@@ -17,6 +17,8 @@ pub struct D3World {
     driver: crate::scenarios::Driver,
     /// cross-family scenarios (src/xfam.rs)
     xfam: crate::xfam::Driver,
+    /// pipeline-race: (next step, next height)
+    race: (usize, u64),
 }
 
 /// Curve-hosts steps submitted per block height; later steps wait for the next height.
@@ -30,6 +32,7 @@ impl D3World {
             curve_at: (0, 0),
             driver: crate::scenarios::Driver::new(),
             xfam: crate::xfam::Driver::new(),
+            race: (0, 10004),
         }
     }
     /// Scheduled transactions of the opt-in `yield` / `storage-limits` scenarios (none otherwise).
@@ -42,6 +45,13 @@ impl D3World {
     ) -> Vec<(String, SignedTransaction)> {
         let mut txs = self.driver.txs(w, s, bh, height);
         txs.extend(self.xfam.txs(w, s, bh, height));
+        if scenario() == Some(Scenario::PipelineRace) && height >= self.race.1 {
+            let (next, wait, batch) = race_round(self.race.0, w, s, bh);
+            if !batch.is_empty() {
+                self.race = (next, height + wait);
+                txs.extend(batch);
+            }
+        }
         if scenario() == Some(Scenario::CodeCache) {
             txs.extend(code_cache_txs(w, s, bh, height));
         }
@@ -216,6 +226,34 @@ pub fn genesis_records(
         records.extend(extra);
         supply = supply.checked_add(amount).unwrap();
     }
+    if scenario() == Some(Scenario::PipelineRace) {
+        let mut add = |name: &str, code: Option<&[u8]>| {
+            let account_id = baseline::acct(name);
+            let amount = Balance::from_near(1_000_000);
+            let contract = match code {
+                Some(c) => AccountContract::Local(CryptoHash::hash_bytes(c)),
+                None => AccountContract::None,
+            };
+            records.push(StateRecord::Account {
+                account_id: account_id.clone(),
+                account: Account::new(amount, Balance::ZERO, contract, 10_000),
+            });
+            records.push(StateRecord::access_key(
+                account_id.clone(),
+                &InMemorySigner::test_signer(&account_id).public_key(),
+                AccessKey::full_access(),
+            ));
+            if let Some(c) = code {
+                records.push(StateRecord::Contract { account_id, code: c.to_vec() });
+            }
+            supply = supply.checked_add(amount).unwrap();
+        };
+        add(RACE_OWNER, Some(crate::d3contracts::TINY));
+        add(RACE_GLOBAL_USER, Some(crate::d3contracts::TINY));
+        for k in 0..RACE_ROUNDS {
+            add(&race_target(k), None);
+        }
+    }
     let (extra, extra_supply) = crate::xfam::genesis_records(accounts.len());
     records.extend(extra);
     supply = supply.checked_add(extra_supply).unwrap();
@@ -257,6 +295,10 @@ pub enum Scenario {
     /// `gate-b-caps` (src/scenarios.rs): witnesses above 8 MiB, chunk function-call gas above
     /// 1 Pgas and a zero-fee-instruction loop (W02 Gate-B caps).
     GateBCaps,
+    /// `pipeline-race` (W12): a call on a global-contract account (which `Successor.Pipeline`
+    /// cannot schedule, so it marks the chunk's preparation timing `uncertain`) in the chunk
+    /// where a fresh account deploys code in one receipt and calls it in a later one.
+    PipelineRace,
     /// `code-cache` (W08 / UQ-001, `code_cache_txs`): same-code deploys next to pre-state calls,
     /// with warm and poisoned-cache probes of every case (src/cachejudge.rs).
     CodeCache,
@@ -296,6 +338,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "rollback-refund" => Some(Scenario::RollbackRefund),
         Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
+        Ok(value) if value == "pipeline-race" => Some(Scenario::PipelineRace),
         Ok(value) if value == "code-cache" => Some(Scenario::CodeCache),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
@@ -547,4 +590,100 @@ fn global_step(
         receiver,
         actions,
     ))
+}
+
+// ---------------------------------------------------------------------------------------------
+// pipeline-race (W12)
+// ---------------------------------------------------------------------------------------------
+
+pub const RACE_OWNER: &str = "s1raceowner";
+pub const RACE_GLOBAL_USER: &str = "s1raceglobal";
+pub const RACE_ROUNDS: usize = 16;
+
+pub fn race_target(k: usize) -> String {
+    format!("s1racey{k:02}")
+}
+
+/// The code round `k` deploys: a distinct module per round, so no round's code is in another
+/// chunk's witness, and never the global contract's code (which the global call reads).
+pub fn race_codes() -> &'static Vec<Vec<u8>> {
+    static CODES: std::sync::OnceLock<Vec<Vec<u8>>> = std::sync::OnceLock::new();
+    CODES.get_or_init(|| {
+        (0..RACE_ROUNDS)
+            .map(|k| {
+                wat::parse_str(format!(
+                    r#"(module (memory 1) (data (i32.const 0) "race{k:02}") (func (export "run")))"#
+                ))
+                .expect("race wat")
+            })
+            .collect()
+    })
+}
+
+/// One batch of the `pipeline-race` scenario: returns (next step, blocks to wait, transactions).
+/// Step 0 deploys the global contract by hash, step 1 has `RACE_GLOBAL_USER` use it, and each
+/// later step `2 + k` submits, at one height and on shard 1: two calls of the global-contract
+/// account, then a deploy of `race_codes()[k]` to the fresh account `race_target(k)` and a call
+/// of it in a second transaction (a later receipt of the same chunk when both are included).
+fn race_round(
+    step: usize,
+    w: &mut crate::d2gen::World,
+    s: &crate::chaingen::Setup,
+    bh: &CryptoHash,
+) -> (usize, u64, Vec<(String, SignedTransaction)>) {
+    use near_primitives::action::{
+        DeployContractAction, DeployGlobalContractAction, GlobalContractDeployMode,
+        GlobalContractIdentifier, UseGlobalContractAction,
+    };
+    let owner = baseline::acct(RACE_OWNER);
+    let user = baseline::acct(RACE_GLOBAL_USER);
+    let tiny = crate::d3contracts::TINY.to_vec();
+    let fc = |method: &str, arg: u8| {
+        Action::FunctionCall(Box::new(FunctionCallAction {
+            method_name: method.into(),
+            args: vec![arg],
+            gas: Gas::from_teragas(20),
+            deposit: Balance::ZERO,
+        }))
+    };
+    let mut out = vec![];
+    match step {
+        0 => {
+            let a = Action::DeployGlobalContract(DeployGlobalContractAction {
+                code: tiny.clone().into(),
+                deploy_mode: GlobalContractDeployMode::CodeHash,
+            });
+            if let Some(tx) = w.plain_tx(s, bh, &owner, &owner, vec![a]) {
+                out.push(("successor.pipeline-race.00.deploy-global".into(), tx));
+            }
+            (1, 6, out)
+        }
+        1 => {
+            let a = Action::UseGlobalContract(Box::new(UseGlobalContractAction {
+                contract_identifier: GlobalContractIdentifier::CodeHash(CryptoHash::hash_bytes(&tiny)),
+            }));
+            if let Some(tx) = w.plain_tx(s, bh, &user, &user, vec![a]) {
+                out.push(("successor.pipeline-race.01.use-global".into(), tx));
+            }
+            (2, 6, out)
+        }
+        n if n < 2 + RACE_ROUNDS => {
+            let k = n - 2;
+            let y = baseline::acct(&race_target(k));
+            for j in 0..2 {
+                if let Some(tx) = w.plain_tx(s, bh, &user, &user, vec![fc("run", (2 * k + j) as u8)]) {
+                    out.push((format!("successor.pipeline-race.{n:02}.global-call-{j}"), tx));
+                }
+            }
+            let deploy = Action::DeployContract(DeployContractAction { code: race_codes()[k].clone() });
+            if let Some(tx) = w.plain_tx(s, bh, &y, &y, vec![deploy]) {
+                out.push((format!("successor.pipeline-race.{n:02}.deploy"), tx));
+            }
+            if let Some(tx) = w.plain_tx(s, bh, &y, &y, vec![fc("run", k as u8)]) {
+                out.push((format!("successor.pipeline-race.{n:02}.call"), tx));
+            }
+            (n + 1, 5, out)
+        }
+        _ => (step, 1000, out),
+    }
 }
