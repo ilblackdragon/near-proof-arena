@@ -153,28 +153,24 @@ theorem relSuccessor_signed_runtimeLimits (c w : Bytes) :
 /-! ## O7: the complete-code policy against the cold validator, at the code-resolution step
 
 `completeCodeGlobal` differs from `globalActions` only in `CodeWitnessPolicy` (`.complete` vs
-`.coldPartial`), read once per call by `resolveCodeBytes`. Neither refines the other:
+`.coldPartial`), read once per call by `resolveCodeBytes`. Since W08 (2026-10-29) `.complete` is
+the cold validator's own resolution plus an explicit hash check on witness bytes
+(`CodeResolution.complete_eq_cold`). Before W08, `.complete` accepted a call whose code only a
+committed in-chunk deploy serves although its preparation was pipelined before that deploy
+(`timely = false`), a nearcore thread race. Both policies now send that case to the race
+exclusion: -/
 
-* `.complete` rejects (`w.code_complete`) a call whose code a warm or in-chunk deploy serves and
-  that nearcore accepts (census: 178 + 8 valid chunks, `tier-proofs/ccg.json`);
-* `.complete` *accepts* a call whose code only a committed in-chunk deploy serves although its
-  preparation was pipelined before that deploy (`timely = false`), where the cold validator's
-  outcome is a thread race and `.coldPartial` reports it out of domain. That is an accept of a
-  nondeterministic nearcore outcome. No corpus or fixture case reaches it (the census has no
-  CCG-accept / GA-out-of-domain row), but the two lemmas below show the step itself. -/
-
-theorem complete_accepts_untimely (code : Bytes) :
+theorem complete_untimely_ood (code : Bytes) :
     resolveCodeBytes .complete { witness := fun _ => none, committed := [code] } .absent
-      (sha256 code) false = .ok code := by
-  simp [resolveCodeBytes, resolveCompleteCode, CodeSources.deployed, PrestateCode.needsWitness]
+      (sha256 code) false = .error raceExclusion := by
+  simp [resolveCodeBytes, resolveCompleteCode]
 
 theorem coldPartial_untimely_ood (code : Bytes) :
     resolveCodeBytes .coldPartial { witness := fun _ => none, committed := [code] } .absent
-      (sha256 code) false =
-      .error (D3.oodE "contract preparation pipelined before the in-chunk deploy that serves its code") := by
+      (sha256 code) false = .error raceExclusion := by
   simp [resolveCodeBytes, resolveColdCode]
 
-#print axioms complete_accepts_untimely
+#print axioms complete_untimely_ood
 #print axioms coldPartial_untimely_ood
 
 end NearSpecV3.Successor
