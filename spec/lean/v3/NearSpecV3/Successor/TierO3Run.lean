@@ -160,4 +160,70 @@ theorem yieldLoop_rr {E : Env → Prop} (env : Env) (hwf : env.ctx.layout.WF) (n
 
 #print axioms yieldLoop_rr
 
+/-! ## The main transition -/
+
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact ffb_rr _ ‹_› _ ND.nil)
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact processLocals_rr _ ‹_› _ _ ‹_› _ _ (by assumption))
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact processDelayed_rr _ ‹_› _ _ ‹_› _ _ (by assumption))
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact processIncoming_rr _ ‹_› _ _ ‹_› _ _ (by assumption))
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact yieldLoop_rr _ ‹_› _ _ _ (by assumption))
+
+section main
+variable {E : Env → Prop} (w : NearCfg) (hg : w.globalActions = false) (p : CodeWitnessPolicy)
+include hg
+
+theorem applyNewChunkD2_rr (prims : Prims) (env : Env) (hwf : env.ctx.layout.WF) (t : PTrie)
+    (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat)) (incoming : List Rcpt)
+    (txs : List (TxD2 × Bool)) (cong : Congestion) :
+    MRQ E (fun out : MainOutD2 => ND out.outgoing)
+      (StorageExecution.applyNewChunkD2 ⟨false, p⟩ w prims env t vu props incoming txs cong)
+      (StorageExecution.applyNewChunkD2 ⟨true, p⟩ { w with globalActions := true } prims env t vu props incoming txs cong) := by
+  unfold StorageExecution.applyNewChunkD2
+  mrw
+
+#print axioms applyNewChunkD2_rr
+
+/-- The run-level result of `applyNewChunkD2_rr`, from equal initial states. -/
+theorem run_resQ (prims : Prims) (env : Env) (hwf : env.ctx.layout.WF) (t : PTrie)
+    (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat)) (incoming : List Rcpt)
+    (txs : List (TxD2 × Bool)) (cong : Congestion) :
+    ResQ Exc (fun out : MainOutD2 => ND out.outgoing)
+      ((StorageExecution.applyNewChunkD2 ⟨false, p⟩ w prims env t vu props incoming txs cong).run
+        { observe := w.observeDetail } env)
+      ((StorageExecution.applyNewChunkD2 ⟨true, p⟩ { w with globalActions := true } prims env t vu props incoming txs
+        cong).run { observe := w.observeDetail } env) :=
+  applyNewChunkD2_rr (E := fun _ => True) w hg p prims env hwf t vu props incoming txs cong _ _ env
+    (RecRel.refl _) trivial
+
+/-- **O3, the engine.** On a well-formed layout, the recorder engine with global actions off is
+refined by the engine with them on (configuration and flag both switched). -/
+theorem run_global (prims : Prims) (env : Env) (hwf : env.ctx.layout.WF) (t : PTrie)
+    (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat)) (incoming : List Rcpt)
+    (txs : List (TxD2 × Bool)) (cong : Congestion) :
+    Refines (StorageExecution.run w prims env t vu props incoming txs cong false p)
+      (StorageExecution.run { w with globalActions := true } prims env t vu props incoming txs cong true p) := by
+  unfold StorageExecution.run
+  rcases run_resQ w hg p prims env hwf t vu props incoming txs cong with
+    ⟨e, h1, h2⟩ | ⟨e, h1, h2⟩ | ⟨a, sL, sU, h1, h2, _, _⟩
+  · right; exact ⟨e, by rw [h1]; rfl, h2⟩
+  · left; show Except.map _ _ = Except.map _ _; rw [h1, h2]
+  · left; show Except.map _ _ = Except.map _ _; rw [h1, h2]; rfl
+
+/-- **O3, the engine's outgoing receipts.** The lower run's output carries no distribution receipt. -/
+theorem run_global_nd (prims : Prims) (env : Env) (hwf : env.ctx.layout.WF) (t : PTrie)
+    (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat)) (incoming : List Rcpt)
+    (txs : List (TxD2 × Bool)) (cong : Congestion) (out : MainOutD2)
+    (h : StorageExecution.run w prims env t vu props incoming txs cong false p = .ok out) : ND out.outgoing := by
+  unfold StorageExecution.run at h
+  rcases run_resQ w hg p prims env hwf t vu props incoming txs cong with
+    ⟨e, h1, _⟩ | ⟨e, h1, _⟩ | ⟨a, sL, sU, h1, _, _, hq⟩
+  · rw [h1] at h; cases h
+  · rw [h1] at h; cases h
+  · rw [h1] at h; cases h; exact hq
+
+#print axioms run_global
+#print axioms run_global_nd
+
+end main
+
 end NearSpecV3.Successor
