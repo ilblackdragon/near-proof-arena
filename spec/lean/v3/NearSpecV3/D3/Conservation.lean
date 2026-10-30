@@ -201,7 +201,13 @@ total changes by `Σ rewards − Σ balance_burnt` — the block header's `total
 (`Supply.verifyTotalSupply_accept`). Transactions are internal: the signer's charge reappears as
 `txBurnt` plus the value of the receipt it creates.
 
-The two hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
+`t.wf` (`NearSpec/Trie.lean`: nibbles `< 16`, sixteen child slots per branch) excludes tries no
+witness can produce: a path with a nibble `≥ 16` is read by `packNibbles` as some other key, and
+the first write rebuilds that branch with slots `0..15` only, silently dropping the value (found
+by the deepseek-fv lead, with a kernel-checked counterexample). The runtime's writes preserve it
+(`NearSpec/TrieUpsertWf.lean`, `PTrie.upsert_wf`).
+
+The other two hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
 `ChunkValidationD2.lean:213`); the second is the chunk producer's invariant and is not checked by
 `checkD2`. Without them a foreign receipt can enter this shard's delayed queue, where `nearIn` does
@@ -210,6 +216,7 @@ def ChunkConservation : Prop :=
   ∀ (prims : Prims) (env : Env) (t : PTrie) (vu : Option ValidatorUpdateFacts)
     (lastProps : List (Bytes × Nat)) (incoming : List Rcpt) (txs : List (TxD2 × Bool))
     (ownCong : Congestion) (out : MainOutD2) (o : Ovl),
+    t.wf = true →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
     applyNewChunkD2Obs (D3.d3Hooks Wasm.pv86) prims env t vu lastProps incoming txs ownCong
