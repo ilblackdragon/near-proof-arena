@@ -69,3 +69,11 @@ an axiom outside `propext`, `Classical.choice`, `Quot.sound` (e.g. `sorryAx`). -
 /-- info: 'NearSpecV3.Wasm.sqrt_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms NearSpecV3.Wasm.sqrt_lt
+
+/-- info: 'NearSpecV3.Wasm.add_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.add_lt
+
+/-- info: 'NearSpecV3.Wasm.sub_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.sub_lt

@@ -20,16 +20,16 @@ silently truncate the bit length". This module proves the fuel and range facts t
 
 * `roundPackS_lt`: the rounding hands the encoders at most `p` significand bits in every branch
   (subnormal, exact, rounded, carry into the next binade), so every rounded result is a `w`-bit
-  pattern for every significand below the `bitLen` fuel bound; `mul_lt`, `div_lt`, `sqrt_lt`
-  discharge that bound for the three operators whose operands are products/quotients/roots of
-  `p`-bit significands.
+  pattern for every significand below the `bitLen` fuel bound; `add_lt`, `sub_lt`, `mul_lt`,
+  `div_lt`, `sqrt_lt` discharge that bound for the five arithmetic operators (the aligned `add`
+  operands stay below `2^(p + 2^eb)`, i.e. `2^2101` for `f64`), so **every arithmetic result is a
+  `w`-bit pattern**, whatever the inputs (`sqrt`: on `w`-bit inputs).
 
-What is **not** proved here: the operand bound for `add`/`sub` (aligned significands up to
-`2^(p + exponent span)`, ≈ `2^2100` for `f64`, below the 4096-bit fuel but not yet a theorem), and
-the conversions (`convertInt`, `roundToInt`, `demote`, `promote`, truncations). The agreement of the
-results with nearcore stays a differential obligation (`oracle/wasm-d3/tests/difftest_float.py`,
-`float_nearcore.py`), and the chunk-level float overlap (`checkD3 ⊆ checkD3F` on float-free chunks)
-is tier obligation O1 (`Successor/TierMono.lean`).
+What is **not** proved here: range facts for the conversions (`convertInt`, `roundToInt`,
+`demote`, `promote`, truncations) and `min`/`max` (which return an input or an OR/AND of inputs).
+The agreement of the results with nearcore stays a differential obligation
+(`oracle/wasm-d3/tests/difftest_float.py`, `float_nearcore.py`), and the chunk-level float overlap
+(`checkD3 ⊆ checkD3F` on float-free chunks) is tier obligation O1 (`Successor/TierMono.lean`).
 
 Axioms: `propext`, `Classical.choice`, `Quot.sound` (audit in
 `docs/logs/lean-proof-debt-2026-10-29.md`).
@@ -396,5 +396,75 @@ theorem sqrt_lt (f : Fmt) (hf : StdFmt f) (a : Nat) (ha : a < 2 ^ f.w) : Fmt.sqr
     rw [Nat.zero_add, ← Nat.pow_succ']
     exact Nat.pow_lt_pow_right (by decide) (by decide)
   exact Nat.lt_of_le_of_lt this h64
+
+
+/-! ## `add`/`sub`: the aligned operands stay below the fuel bound -/
+
+/-- Decoded exponents lie in `[gridExp, gridExp + 2^eb - 2]`. -/
+theorem decode_e_bounds (f : Fmt) (hf : StdFmt f) (b : Nat) :
+    Fmt.gridExp f ≤ (Fmt.decode f b).2.2 ∧ (Fmt.decode f b).2.2 ≤ Fmt.gridExp f + (2 ^ f.eb : Nat) - 2 := by
+  obtain ⟨hw, hp, heb, hbias⟩ := hf.layout
+  have hef : Fmt.expField f b < 2 ^ f.eb := Nat.mod_lt _ (Nat.two_pow_pos _)
+  have hge : Fmt.gridExp f = 1 - (Fmt.bias f : Int) - (Fmt.fracBits f : Int) := by
+    unfold Fmt.gridExp Fmt.emin Fmt.fracBits; omega
+  have h2 : (2 : Nat) ≤ 2 ^ f.eb := by
+    calc 2 = 2 ^ 1 := rfl
+      _ ≤ 2 ^ f.eb := pow_mono heb
+  unfold Fmt.decode
+  simp only
+  split
+  · simp only; omega
+  · simp only; rw [hge]; omega
+
+theorem shifted_lt (f : Fmt) (hf : StdFmt f) (a b : Nat) :
+    (Fmt.decode f a).2.1 <<< ((Fmt.decode f a).2.2 - min (Fmt.decode f a).2.2 (Fmt.decode f b).2.2).toNat
+      < 2 ^ (f.p + 2 ^ f.eb) := by
+  have hm := decode_m_lt f hf a
+  have ha := decode_e_bounds f hf a
+  have hb := decode_e_bounds f hf b
+  have h := shl_lt (k := ((Fmt.decode f a).2.2 - min (Fmt.decode f a).2.2 (Fmt.decode f b).2.2).toNat) hm
+  exact Nat.lt_of_lt_of_le h (pow_mono (by omega))
+
+theorem eb_bound (f : Fmt) (hf : StdFmt f) : f.p + 2 ^ f.eb + 1 ≤ 4096 := by
+  rcases hf with rfl | rfl <;> decide
+
+/-- **`add` returns a `w`-bit pattern** for every pair of inputs. -/
+theorem add_lt (f : Fmt) (hf : StdFmt f) (a b : Nat) : Fmt.add f a b < 2 ^ f.w := by
+  have hs := specials_lt' f hf
+  have hbound := eb_bound f hf
+  have hA := shifted_lt f hf a b
+  have hB := shifted_lt f hf b a
+  rw [Int.min_comm] at hB
+  unfold Fmt.add
+  split; · exact (hs false).2.2
+  split
+  · split
+    · exact (hs _).1
+    · exact (hs false).2.2
+  split; · exact (hs _).1
+  split; · exact (hs _).1
+  simp only
+  split; · exact (hs _).2.1
+  generalize ((Fmt.decode f a).2.1 <<< _ : Nat) = x at hA ⊢
+  generalize ((Fmt.decode f b).2.1 <<< _ : Nat) = y at hB ⊢
+  have key : ∀ (ca cb : Int), (ca = 1 ∨ ca = -1) → (cb = 1 ∨ cb = -1) →
+      (if ca * (x : Int) + cb * (y : Int) = 0 then Fmt.zero f false
+        else Fmt.roundPack f (decide (ca * (x : Int) + cb * (y : Int) < 0))
+          (ca * (x : Int) + cb * (y : Int)).natAbs
+          (min (Fmt.decode f a).2.2 (Fmt.decode f b).2.2)) < 2 ^ f.w := by
+    intro ca cb hca hcb
+    split
+    · exact (hs false).2.1
+    · apply roundPack_lt f hf
+      have hxy : (ca * (x : Int) + cb * (y : Int)).natAbs ≤ x + y := by
+        rcases hca with rfl | rfl <;> rcases hcb with rfl | rfl <;> omega
+      have h2 : x + y < 2 ^ (f.p + 2 ^ f.eb + 1) := by rw [Nat.pow_succ]; omega
+      exact Nat.lt_of_le_of_lt hxy (Nat.lt_of_lt_of_le h2 (pow_mono hbound))
+  apply key
+  · split <;> simp
+  · split <;> simp
+
+/-- `sub` is `add` of the negation. -/
+theorem sub_lt (f : Fmt) (hf : StdFmt f) (a b : Nat) : Fmt.sub f a b < 2 ^ f.w := add_lt f hf a _
 
 end NearSpecV3.Wasm
