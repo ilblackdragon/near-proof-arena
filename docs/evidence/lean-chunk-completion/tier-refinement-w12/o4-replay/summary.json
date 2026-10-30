@@ -1,0 +1,224 @@
+{
+ "census-runtimeLimits": {
+  "after": {
+   "accept": 1858,
+   "out_of_domain": 1280
+  },
+  "cases": 3138,
+  "changed": {},
+  "identical": 3138
+ },
+ "census-signed": {
+  "after": {
+   "accept": 735,
+   "out_of_domain": 2403
+  },
+  "cases": 3138,
+  "changed": {},
+  "identical": 3138
+ },
+ "fx-floats": {
+  "after": {
+   "accept": 118,
+   "out_of_domain": 318,
+   "reject": 141
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "fx-floatsProtoGas": {
+  "after": {
+   "accept": 153,
+   "out_of_domain": 283,
+   "reject": 141
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "fx-genesis": {
+  "after": {
+   "accept": 116,
+   "out_of_domain": 320,
+   "reject": 141
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "fx-genesisFloatsProtoGas": {
+  "after": {
+   "accept": 153,
+   "out_of_domain": 283,
+   "reject": 141
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "fx-protoGas": {
+  "after": {
+   "accept": 131,
+   "out_of_domain": 305,
+   "reject": 141
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "fx-runtimeLimits": {
+  "after": {
+   "accept": 153,
+   "out_of_domain": 283,
+   "reject": 141
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "fx-signed": {
+  "after": {
+   "accept": 143,
+   "out_of_domain": 268,
+   "reject": 166
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "fx-storageResolution": {
+  "after": {
+   "accept": 159,
+   "out_of_domain": 277,
+   "reject": 141
+  },
+  "cases": 577,
+  "changed": {},
+  "identical": 577
+ },
+ "o4-census": {
+  "cases": 3138,
+  "pairs": {
+   "accept->accept": 1858,
+   "out_of_domain->accept": 390,
+   "out_of_domain->out_of_domain": 890
+  },
+  "violations": 0
+ },
+ "o4-fx": {
+  "cases": 577,
+  "pairs": {
+   "accept->accept": 153,
+   "out_of_domain->accept": 6,
+   "out_of_domain->out_of_domain": 277,
+   "reject->reject": 141
+  },
+  "violations": 0
+ },
+ "o4-slf": {
+  "cases": 88,
+  "pairs": {
+   "accept->accept": 20,
+   "out_of_domain->accept": 44,
+   "out_of_domain->reject": 24
+  },
+  "violations": 0
+ },
+ "slf-floats": {
+  "after": {
+   "accept": 12,
+   "out_of_domain": 76
+  },
+  "cases": 88,
+  "changed": {
+   "reject->out_of_domain": 50
+  },
+  "identical": 38
+ },
+ "slf-floatsProtoGas": {
+  "after": {
+   "accept": 20,
+   "out_of_domain": 68
+  },
+  "cases": 88,
+  "changed": {
+   "reject->out_of_domain": 50
+  },
+  "identical": 38
+ },
+ "slf-genesis": {
+  "after": {
+   "accept": 12,
+   "out_of_domain": 76
+  },
+  "cases": 88,
+  "changed": {
+   "reject->out_of_domain": 50
+  },
+  "identical": 38
+ },
+ "slf-genesisFloatsProtoGas": {
+  "after": {
+   "accept": 20,
+   "out_of_domain": 68
+  },
+  "cases": 88,
+  "changed": {
+   "reject->out_of_domain": 50
+  },
+  "identical": 38
+ },
+ "slf-protoGas": {
+  "after": {
+   "accept": 20,
+   "out_of_domain": 68
+  },
+  "cases": 88,
+  "changed": {
+   "reject->out_of_domain": 50
+  },
+  "identical": 38
+ },
+ "slf-runtimeLimits": {
+  "after": {
+   "accept": 20,
+   "out_of_domain": 68
+  },
+  "cases": 88,
+  "changed": {
+   "reject->out_of_domain": 50
+  },
+  "identical": 38
+ },
+ "slf-signed": {
+  "after": {
+   "accept": 56,
+   "out_of_domain": 8,
+   "reject": 24
+  },
+  "cases": 88,
+  "changed": {},
+  "identical": 88
+ },
+ "slf-storageResolution": {
+  "after": {
+   "accept": 64,
+   "reject": 24
+  },
+  "cases": 88,
+  "changed": {},
+  "identical": 88
+ },
+ "slfull-runtimeLimits": {
+  "after": {
+   "accept": 2570,
+   "out_of_domain": 130
+  },
+  "cases": 2700,
+  "changed": {
+   "reject->out_of_domain": 44
+  },
+  "identical": 2656
+ }
+}
