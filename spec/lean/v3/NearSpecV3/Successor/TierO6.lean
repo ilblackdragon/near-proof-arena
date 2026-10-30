@@ -788,14 +788,6 @@ theorem forIn_const_ok {α : Type} (l : List α) (body : α → PUnit → Except
     rw [List.forIn_cons, h a List.mem_cons_self]
     exact ih (fun b hb => h b (List.mem_cons_of_mem _ hb))
 
-example (idx : Nat) (B : Blk) : (match B.slots[idx]? with
-    | some (s, snd) => s.heightIncluded == B.hdr.height
-    | none => false) = newIn idx B := by
-  unfold newIn
-  cases B.slots[idx]? with
-  | none => rfl
-  | some p => rfl
-
 /-- **O6, the correspondence.** On a segment without a genesis block, wherever the whole-state
 checker without resharding accepts or rejects, the resharding tiers' checker (`ReshardCore`)
 returns the same verdict. -/
@@ -1023,5 +1015,123 @@ theorem checkD2CoreWithObs_vr_reshard (d : ExecutionDriver) (hr : d.resharding =
       refine VR.bind_same fun _ _ => ?_
       refine VR.bind_same fun _ _ => ?_
       exact VR.ok_ok trivial
+
+theorem checkD2CoreWith_vrefines_reshard (d : ExecutionDriver) (hr : d.resharding = false)
+    (hcr : d.codeResponseCap = true) (hwu : d.witnessUnbounded = false)
+    (hlu : d.layoutUnbounded = false) (hseg : d.segmentUnbounded = false)
+    (hik : d.implicitKind = fun _ _ _ => .ok .applyOldChunk)
+    (sa' : PTrie → Bytes → RetainMode → Except String Bytes)
+    (h : ActionHooks) (cb wb : Bytes) (g : Option Nat) (hng : segmentHasGenesis cb = false) :
+    VRefines (checkD2CoreWith d h true cb wb g)
+      (checkReshardCore { d with resharding := true, splitApply := sa' } h true cb wb g) := by
+  unfold segmentHasGenesis at hng
+  cases hc : decodeClaimE cb with
+  | error e => rw [hc] at hng; cases hng
+  | ok c =>
+    rw [hc] at hng
+    cases hb : c.blocks.mapM decodeBlk with
+    | error e => simp only [hb] at hng; cases hng
+    | ok blks =>
+      simp only [hb] at hng
+      exact VR.toV (VR.map _ _ (checkD2CoreWithObs_vr_reshard d hr hcr hwu hlu hseg hik sa' h cb wb g
+        c blks hc hb hng))
+
+/-! ## The genesis-capable shell on a segment without a genesis block -/
+
+/-- `Overlap` without the genesis alternative. -/
+def OverlapNG (W : Except String Observable) (x : Except String Unit) (y : Except String Observable) :
+    Prop :=
+  W = y → x = W.map (fun _ => ())
+
+namespace OverlapNG
+
+theorem bind' {α : Type} {W : Except String Observable} {p₁ p₂ : Except String α}
+    {k₁ : α → Except String Unit} {k₂ : α → Except String Observable} (hp : p₁ = p₂)
+    (hk : ∀ a, OverlapNG W (k₁ a) (k₂ a)) : OverlapNG W (p₁ >>= k₁) (p₂ >>= k₂) := by
+  subst hp
+  intro hW
+  cases hq : p₁ with
+  | error e => subst hW; rw [hq]; rfl
+  | ok a => rw [hq] at hW; exact hk a hW
+
+theorem bindE {α : Type} {W : Except String Observable} {p₁ p₂ : Except String α}
+    {k₁ : α → Except String Unit} {k₂ : α → Except String Observable} (hp : p₁ = p₂)
+    (hk : ∀ a, p₁ = .ok a → OverlapNG W (k₁ a) (k₂ a)) : OverlapNG W (p₁ >>= k₁) (p₂ >>= k₂) := by
+  subst hp
+  intro hW
+  cases hq : p₁ with
+  | error e => subst hW; rw [hq]; rfl
+  | ok a => rw [hq] at hW; exact hk a hq hW
+
+theorem diverge {W : Except String Observable} (gen : Bool) (hg : gen = false) {GEN : Except String Unit}
+    {REST : Unit → Except String Observable} (X : Except String Unit)
+    (hX : X = W.map (fun _ => ())) :
+    OverlapNG W (if (!gen) = true then X else GEN) (check (!gen) notGenesisError >>= REST) := by
+  intro _
+  subst hg
+  exact hX
+
+theorem error_both {W : Except String Observable} {x : Except String Unit}
+    {y : Except String Observable} (e : String) (hx : x = .error e) (hy : y = .error e) :
+    OverlapNG W x y := by
+  intro hW; rw [hx, hW, hy]; rfl
+
+theorem ite_congr {W : Except String Observable} (c : Prop) [Decidable c]
+    {t₁ e₁ : Except String Unit} {t₂ e₂ : Except String Observable}
+    (ht : c → OverlapNG W t₁ t₂) (he : ¬c → OverlapNG W e₁ e₂) :
+    OverlapNG W (if c then t₁ else e₁) (if c then t₂ else e₂) := by
+  by_cases hc : c
+  · simp only [hc, ite_true]; exact ht hc
+  · simp only [hc, ite_false]; exact he hc
+
+end OverlapNG
+
+theorem genesis_false_of_pure (blks : List Blk) (hng : blks.any (·.isGenesis) = false) {i : Nat}
+    {b B : Blk} (hB : blks[i]? = some b) (hp : (pure b : Except String Blk) = .ok B) : B.isGenesis = false := by
+  cases hp
+  exact genesis_false_of_get blks hng i b hB
+
+theorem throw_ne_ok {α : Type} {e : String} {a : α} (h : (throw e : Except String α) = .ok a) : False := by
+  cases h
+
+theorem some_of_match_ok {o : Option Blk} {B : Blk} {m : String}
+    (h : (match o with | some b => (pure b : Except String Blk) | none => throw m) = .ok B) : o = some B := by
+  cases o with
+  | none => cases h
+  | some b => cases h; rfl
+
+/-- On a segment without a genesis block the genesis-capable shell is the non-genesis one, error
+string included. -/
+theorem checkD2CoreGWith_eq_of_segment (d : ExecutionDriver) (hd : d.resharding = false)
+    (h : ActionHooks) (a : Bool) (cb wb : Bytes) (g : Option Nat) (hng : segmentHasGenesis cb = false) :
+    checkD2CoreGWith d h a cb wb g = checkD2CoreWith d h a cb wb g := by
+  unfold segmentHasGenesis at hng
+  cases hc : decodeClaimE cb with
+  | error e => rw [hc] at hng; cases hng
+  | ok c =>
+    rw [hc] at hng
+    cases hb : c.blocks.mapM decodeBlk with
+    | error e => simp only [hb] at hng; cases hng
+    | ok blks =>
+      simp only [hb] at hng
+      have key : ∀ W, W = checkD2CoreWithObs d h a cb wb g →
+          OverlapNG W (checkD2CoreGWith d h a cb wb g) (checkD2CoreWithObs d h a cb wb g) := by
+        intro W hWfull
+        conv => rhs; unfold checkD2CoreWithObs
+        conv => lhs; unfold checkD2CoreGWith
+        simp only [hc, hb, hd, Except.mapError, ok_bind', Bool.not_false, ↓reduceIte]
+        repeat (first
+          | (exfalso; exact throw_ne_ok (by assumption))
+          | (refine OverlapNG.diverge _
+              (genesis_false_of_pure blks hng (by assumption) (by assumption)) _
+              (by subst_vars; rfl))
+          | ((refine OverlapNG.bind' (by with_reducible rfl) fun (_, _) => ?_); try dsimp only)
+          | ((refine OverlapNG.bindE (by with_reducible rfl) fun _ _ => ?_); try dsimp only)
+          | (refine OverlapNG.error_both _ rfl rfl)
+          | ((refine OverlapNG.bind' (by rfl) fun (_, _) => ?_); try dsimp only)
+          | ((refine OverlapNG.bind' (by rfl) fun _ => ?_); try dsimp only)
+          | (refine OverlapNG.ite_congr _ (fun _ => ?_) (fun _ => ?_))
+          | (split <;> (rename_i hsplit; (try simp only [hsplit]); (try dsimp only))))
+      exact key _ rfl rfl
 
 end NearSpecV3.Successor
