@@ -915,7 +915,8 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         // The yield / storage-limits scenarios mutate every sampled chunk: their shapes (yield
         // hosts, large proofs) are what the fixtures are for.
         let any_scenario = matches!(scenario,
-            Some(crate::d3gen::Scenario::Yield | crate::d3gen::Scenario::StorageLimits))
+            Some(crate::d3gen::Scenario::Yield | crate::d3gen::Scenario::StorageLimits
+                 | crate::d3gen::Scenario::RemovalSoft))
             || crate::xfam::kind().is_some();
         if !any_scenario && viol3.iter().any(|v| {
             !matches!(*v, "e.float" | "e.g_alpha")

@@ -34,6 +34,15 @@
 //!   chunk calls 17 of them (one transaction each, signer = receiver, so all execute in the
 //!   chunk that includes them); a control chunk calls 9.
 //!
+//! * `removal-soft` — a quiet chain (W12 O4 ground truth) where ContractData removals alone push
+//!   the recorder's proof-size upper bound (`recorded + 2000 · removals`) past the 4,000,000 B
+//!   chunk soft limit, while the witness's own values stay below it: VM `storage_remove` (first-time
+//!   deletions and repeated delete+reinsert of the same keys) and `DeleteAccount` (an account at the
+//!   10,000 B deletion cap next to a 3.7 MB read, and the literal > 2,000-key account, which
+//!   nearcore refuses with `DeleteAccountWithLargeState`). Each probe chunk also carries an incoming
+//!   transfer and sometimes a local victim receipt, which nearcore postpones once the soft limit is
+//!   crossed.
+//!
 //! The searches use only nearcore's own outcomes (success/failure of the probe receipt, the
 //! execution height of a receipt that follows it in the same chunk). The probe's only knob is the
 //! length of one value written in an earlier chunk, so the trie structure is unchanged between
@@ -62,6 +71,7 @@ pub enum Scenario {
     GateBCaps,
     EvalLoops,
     CodeResponse,
+    RemovalSoft,
 }
 
 pub fn scenario() -> Option<Scenario> {
@@ -76,6 +86,7 @@ pub fn scenario() -> Option<Scenario> {
         Some(crate::d3gen::Scenario::GateBCaps) => Some(Scenario::GateBCaps),
         Some(crate::d3gen::Scenario::EvalLoops) => Some(Scenario::EvalLoops),
         Some(crate::d3gen::Scenario::CodeResponse) => Some(Scenario::CodeResponse),
+        Some(crate::d3gen::Scenario::RemovalSoft) => Some(Scenario::RemovalSoft),
         _ => None,
     }
 }
@@ -84,7 +95,7 @@ pub fn scenario() -> Option<Scenario> {
 pub fn quiet() -> bool {
     matches!(scenario(),
         Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::EvalTime | Scenario::GateBCaps
-             | Scenario::EvalLoops | Scenario::CodeResponse))
+             | Scenario::EvalLoops | Scenario::CodeResponse | Scenario::RemovalSoft))
         // `runtime-errors` (src/xfam.rs): only its own transactions, so every case is about them
         || crate::xfam::kind() == Some(crate::xfam::Kind::RuntimeErrors)
 }
@@ -477,6 +488,7 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
         Some(Scenario::FuelStress) => vec![("fuelc", fuel_wasm().to_vec())],
         Some(Scenario::EvalTime) => vec![("evalc", eval_wasm().to_vec())],
         Some(Scenario::GateBCaps) => vec![("slim", slim_wasm().to_vec()), ("gburn", burn_wasm().to_vec())],
+        Some(Scenario::RemovalSoft) => vec![("slim", slim_wasm().to_vec())],
         Some(Scenario::EvalLoops) => vec![("evalc2", eval2_wasm().to_vec())],
         Some(Scenario::CodeResponse) => {
             // registry names must be 'static
@@ -568,6 +580,26 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
             for (n, c) in cr_contracts() {
                 add(&mut records, &format!("s0{n}"), Some(c.as_slice()), vec![]);
             }
+        }
+        Some(Scenario::RemovalSoft) => {
+            assert!(n_shards >= 2, "the removal-soft scenario needs at least 2 shards");
+            let slim = slim_wasm();
+            let keys = |pfx: &str, n: usize, w: usize, vlen: usize, fill: u8| -> Vec<(Vec<u8>, Vec<u8>)> {
+                (0..n).map(|i| (format!("{pfx}{i:0w$}").into_bytes(), vec![fill; vlen])).collect()
+            };
+            let mut vm = keys("k", RS_VM_KEYS, 4, 8, 0x6B);
+            vm.push((b"x".to_vec(), vec![0x78; 16]));
+            add(&mut records, "s0rvm", Some(slim), vm);
+            let mut vm2 = keys("j", RS_REINSERT_KEYS, 4, 8, 0x6A);
+            vm2.push((b"x".to_vec(), vec![0x79; 16]));
+            add(&mut records, "s0rvm2", Some(slim), vm2);
+            add(&mut records, "s0rbig", Some(slim), vec![(b"big".to_vec(), vec![0xB7; RS_BIG])]);
+            add(&mut records, "s0rdell", None, keys("d", RS_DEL_LARGE_KEYS, 4, 1, 0x44));
+            for i in 0..RS_DEL_ACCOUNTS {
+                add(&mut records, &format!("s0rdel{i}"), None, keys("d", RS_DEL_KEYS, 3, 1, 0x45));
+            }
+            add(&mut records, "s0rrcv", None, vec![]);
+            add(&mut records, "s1rsrc", None, vec![]);
         }
         Some(Scenario::GateBCaps) => {
             assert!(n_shards >= 2, "the gate-b-caps scenario needs at least 2 shards");
@@ -853,6 +885,92 @@ fn cr_schedule() -> Vec<(u64, Sched)> {
         }
         v.push((off, call(format!("successor.code-response.{tag}.{small}"), small)));
     }
+    v
+}
+
+/// removal-soft sizes. `s0rvm`: first-time deletions, two receipts of `RS_VM_DEL` each
+/// (2,000 B each in the recorder's upper bound). `s0rvm2`: `RS_REINSERT_KEYS` delete+reinsert pairs
+/// per receipt, three receipts per probe (the third crosses). `s0rdel<i>`: `RS_DEL_KEYS` one-byte entries, storage usage
+/// just under `MAX_ACCOUNT_DELETION_STORAGE_USAGE` = 10,000 B; `s0rdell` is far above it.
+pub const RS_VM_KEYS: usize = 2_400;
+pub const RS_VM_DEL: usize = 1_200;
+pub const RS_REINSERT_KEYS: usize = 700;
+pub const RS_BIG: usize = 3_700_000;
+pub const RS_DEL_KEYS: usize = 190;
+pub const RS_DEL_LARGE_KEYS: usize = 2_100;
+pub const RS_DEL_ACCOUNTS: usize = 4;
+
+/// The removal-soft schedule. A source transaction at offset `o` (shard 1) and the probe's local
+/// transactions at `o + 1` (shard 0) execute in the same shard-0 chunk: the source's receipt is
+/// incoming there.
+fn removal_soft_schedule(fill_xor: u8) -> Vec<(u64, Sched)> {
+    use near_primitives::action::{DeleteAccountAction, TransferAction};
+    let lbl = |l: &str| format!("successor.removal-soft.{l}");
+    let incoming = |l: &str| Sched {
+        label: lbl(&format!("{l}.incoming")),
+        signer: acct("s1rsrc"),
+        receiver: acct("s0rrcv"),
+        describe: "Transfer(1 yocto)".into(),
+        actions: vec![Action::Transfer(TransferAction { deposit: Balance::from_yoctonear(1) })],
+    };
+    let del_acct = |l: &str, who: &str| Sched {
+        label: lbl(l),
+        signer: acct(who),
+        receiver: acct(who),
+        describe: format!("DeleteAccount({who} -> s1rsrc)"),
+        actions: vec![Action::DeleteAccount(DeleteAccountAction { beneficiary_id: acct("s1rsrc") })],
+    };
+    let vm = |l: &str, who: &str, p: Prog| run_tx(lbl(l), who, who, p);
+    let dels = |lo: usize, hi: usize| {
+        let mut p = Prog::default();
+        for i in lo..hi {
+            p = p.d(format!("k{i:04}").as_bytes());
+        }
+        p
+    };
+    let reinserts = |n: usize, fill: u8| {
+        let mut p = Prog::default();
+        for i in 0..n {
+            let k = format!("j{i:04}");
+            p = p.d(k.as_bytes()).w(k.as_bytes(), fill, 8);
+        }
+        p
+    };
+    let mut v = Vec::new();
+    // repeated delete+reinsert: three receipts cross the soft limit (8 probes; odd ones also carry a
+    // local victim `R x`, the even ones only the incoming transfer)
+    for i in 0..8u64 {
+        let o = 4 * i;
+        let tag = format!("reinsert.p{i}");
+        v.push((o, incoming(&tag)));
+        let f = (0x20 + i as u8) ^ fill_xor;
+        v.push((o + 1, vm(&format!("{tag}.a"), "s0rvm2", reinserts(RS_REINSERT_KEYS, f))));
+        v.push((o + 1, vm(&format!("{tag}.b"), "s0rvm2", reinserts(RS_REINSERT_KEYS, f ^ 1))));
+        v.push((o + 1, vm(&format!("{tag}.c"), "s0rvm2", reinserts(RS_REINSERT_KEYS, f ^ 2))));
+        if i % 2 == 1 {
+            v.push((o + 1, vm(&format!("{tag}.victim"), "s0rvm2", Prog::default().r(b"x"))));
+        }
+    }
+    // control: one delete+reinsert receipt stays under the soft limit (incoming executes)
+    v.push((32, incoming("reinsert-one.control")));
+    v.push((33, vm("reinsert-one.control.a", "s0rvm2", reinserts(RS_REINSERT_KEYS, 0x55 ^ fill_xor))));
+    // DeleteAccount at the deletion cap next to a 3.7 MB read (4 accounts, 4 probes)
+    for i in 0..RS_DEL_ACCOUNTS as u64 {
+        let o = 36 + 4 * i;
+        let tag = format!("delete-account.p{i}");
+        v.push((o, incoming(&tag)));
+        v.push((o + 1, vm(&format!("{tag}.read-big"), "s0rbig", Prog::default().r(b"big"))));
+        v.push((o + 1, del_acct(&format!("{tag}.delete"), &format!("s0rdel{i}"))));
+    }
+    // the literal shape: DeleteAccount of a 2,100-key account (nearcore: DeleteAccountWithLargeState)
+    v.push((52, incoming("delete-account-large")));
+    v.push((53, vm("delete-account-large.read-big", "s0rbig", Prog::default().r(b"big"))));
+    v.push((53, del_acct("delete-account-large.delete", "s0rdell")));
+    // first-time VM deletions: two receipts of 1,200 removals, then a local victim
+    v.push((56, incoming("vm-delete")));
+    v.push((57, vm("vm-delete.a", "s0rvm", dels(0, RS_VM_DEL))));
+    v.push((57, vm("vm-delete.b", "s0rvm", dels(RS_VM_DEL, 2 * RS_VM_DEL))));
+    v.push((57, vm("vm-delete.victim", "s0rvm", Prog::default().r(b"x"))));
     v
 }
 
@@ -1251,7 +1369,7 @@ impl Driver {
     /// other scenario) keeps the previous behaviour.
     pub fn with_seed(seed: Option<u64>) -> Self {
         let (shift, fill_xor) = match (scenario(), seed) {
-            (Some(Scenario::StorageLimits), Some(s)) => (s % 5, ((s / 5) % 16) as u8),
+            (Some(Scenario::StorageLimits | Scenario::RemovalSoft), Some(s)) => (s % 5, ((s / 5) % 16) as u8),
             _ => (0, 0),
         };
         let start = START + shift;
@@ -1264,6 +1382,7 @@ impl Driver {
             Some(Scenario::GateBCaps) => (gateb_schedule(), vec![]),
             Some(Scenario::EvalLoops) => (eval2_schedule(), vec![]),
             Some(Scenario::CodeResponse) => (cr_schedule(), vec![]),
+            Some(Scenario::RemovalSoft) => (removal_soft_schedule(fill_xor), vec![]),
             _ => (vec![], vec![]),
         };
         for l in lanes.iter_mut() {
@@ -1484,6 +1603,7 @@ pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String]) 
             let ran = executed.iter().any(|e| e["name"] == "yieldc");
             (ran, ran)
         }
+        Some(Scenario::RemovalSoft) => (tx_labels.iter().any(|l| l.starts_with("successor.removal-soft.")), false),
         Some(Scenario::StorageLimits) => {
             let f = tx_labels.iter().any(|l| (l.contains(".final-at.probe") || l.contains(".final-above.probe")) && !l.contains("removal"));
             (f, false)
@@ -1499,7 +1619,8 @@ fn shard_map(s: &Setup) -> serde_json::Value {
     let tip = c.chain.head().unwrap();
     let layout = c.epoch_manager.get_shard_layout(&tip.epoch_id).unwrap();
     let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s1zyield", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode",
-                 "s0fuel", "s1fuel", "s0eval", "s1eval", "s0gbig", "s0gpad", "s1gburn", "s0evl", "s1evl"];
+                 "s0fuel", "s1fuel", "s0eval", "s1eval", "s0gbig", "s0gpad", "s1gburn", "s0evl", "s1evl",
+                 "s0rvm", "s0rvm2", "s0rbig", "s0rdell", "s0rdel0", "s0rrcv", "s1rsrc"];
     let mut m = serde_json::Map::new();
     for n in names {
         m.insert(n.into(), json!(layout.account_id_to_shard_id(&acct(n)).to_string()));

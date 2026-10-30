@@ -1,6 +1,7 @@
 import Lean
 import NearSpecV3.Successor.Config
 import NearSpecV3.Successor.SchemaVersion
+import NearSpecV3.Successor.TierO4NS
 
 /-! Explicit-tier driver. I/O failures are errors, never semantic rejections or exclusions.
 JSON encoding uses Lean's encoder, including control characters in paths and error strings. -/
@@ -164,7 +165,39 @@ def outputRow (dir tier : String) (r : Except String Observable) : String :=
     ("verdict", Lean.Json.str verdict), ("reason", Lean.Json.str reason),
     ("outputs", outs)]).compress
 
+/-- `--o4-premises` (W12 O4, README §14; observation only: no tier's verdict is computed differently).
+Per case: the `.runtimeLimits` and `.storageResolution` verdicts, the `NS` reference shell's verdict
+(`checkNS`), and the two per-witness premises of
+`relSuccessor_runtimeLimits_storageResolution`: `nsEq` (storage resolution = `NS`, G1/G6) and
+`noEsc` (the storage-resolution result is not a named escape, G2/G3/G3b/G4/G7). -/
+def o4Row (dir : String) (cb wb : List UInt8) : String :=
+  let vr := fun (r : Except String Unit) => match Verdict.ofExcept r with
+    | .accept => ("accept", "")
+    | .reject e => ("reject", e)
+    | .outOfDomain e => ("out_of_domain", e)
+  let sr := Tier.checker .storageResolution cb wb
+  let ns := checkNS cb wb
+  let rl := Tier.checker .runtimeLimits cb wb
+  let esc := match sr with
+    | .error s => O4E.escName s
+    | .ok _ => ""
+  let j := fun (p : String × String) => Lean.Json.mkObj [("verdict", Lean.Json.str p.1), ("reason", Lean.Json.str p.2)]
+  (Lean.Json.mkObj [("case", Lean.Json.str dir), ("storageResolution", j (vr sr)), ("ns", j (vr ns)),
+    ("runtimeLimits", j (vr rl)), ("nsEq", Lean.Json.bool (vr sr == vr ns)),
+    ("noEsc", Lean.Json.bool (esc == "")), ("escape", Lean.Json.str esc)]).compress
+
 def main (args : List String) : IO UInt32 := do
+  if let "--o4-premises" :: dirs := args then
+    let mut failed := false
+    for dir in dirs do
+      try
+        let cb ← IO.FS.readBinFile (dir ++ "/claim.bin")
+        let wb ← IO.FS.readBinFile (dir ++ "/witness.bin")
+        IO.println (o4Row dir cb.toList wb.toList)
+      catch e =>
+        failed := true
+        IO.println (resultRow dir "o4-premises" "io_error" e.toString)
+    return if failed then 2 else 0
   let "--tier" :: tierName :: rest := args
     | IO.eprintln "usage: nearspec-v3-check-successor --tier TIER [--ablate-loading-limits] [--ablate-reshard-handover] [--emit|--blind|--emit-full|--blind-full] CASE_DIR..."; return 2
   let some tier := parseTier tierName
