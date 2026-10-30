@@ -127,3 +127,29 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
 * O3 pre-check (source reading): the D2 decoders exclude (`oodDeployGlobal`, `oodUseGlobal`,
   `oodStateInit`, `oodMlDsaKey`) where the global decoders accept. No reject finding so far.
 * Stopped here because the context was long. The exact next steps are in README §6, "Next steps".
+
+## 2026-10-30, third session (O6)
+
+* Branch from main `809e174be`. O6 is proved at verdict level (`TierO6.lean`, a default target;
+  README §7): `checkSuccessor_resharding_vmono` (`VLift cfg {cfg with resharding := true}` on every
+  whole-state configuration with the genesis main transition and the Gate-B bounds in force), named
+  `.curveHosts ⊑ .resharding` (`relSuccessor_resharding_vmono`) and the resharding premises of the two
+  `allFeatures` compositions (`relSuccessor_curveHosts_allFeatures_of_GA` now needs only O3,
+  `relSuccessor_globalActions_allFeatures_of_C` only O2).
+* Data first: `curveHosts` against `resharding` on the gap census, both resharding fixture sets and
+  item 6's `l6-uq010` chains (all honest/ood cases, every tenth mutant): 17,050 cases (60 fixtures, 3,138 census, 9,300 honest, 4,492 mutants), 0 violations; one reject-reason difference, the known Finding 2 fixture. The raw split
+  runs of `resharding-fixtures-2` are no longer on disk. No violation, so nothing to exhibit against
+  nearcore and no definition changed.
+* Lessons:
+  * `simp only` with `throw_bind'`/`pure_bind'`/`ok_bind'` (all `rfl`) collapses the dead
+    continuations that zeta-inlined `do` join points copy into every `throw` arm: the unfolded
+    `checkD2CoreWithObs` goal went from 123k lines to 900, and the whole correspondence checks in
+    seconds.
+  * The two shells' `match`es are different auxiliary matchers, so `split` cases only one side.
+    `cases h : discr` (both sides generalise) or `split` on one side plus `simp only [heq]` on the other
+    work; lemmas about a match are applied with `exact` (defeq), never `rw`/`simp`.
+  * `fun B => by try dsimp only; unfold …` parses as `try (dsimp only; unfold …)`; write
+    `(try dsimp only); …`.
+  * Loops with `mut` state were handled by abstract scan lemmas (`scan_phase0/1`, `scan_post`) whose
+    step hypotheses are discharged on the concrete body after `refine` instantiates it.
+* Default `lake build` (395 jobs) ok; `make pin-check` ok. Open in W12: O2, O3, O4.

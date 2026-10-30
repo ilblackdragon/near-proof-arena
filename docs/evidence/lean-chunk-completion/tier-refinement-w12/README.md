@@ -325,3 +325,86 @@ In order, committing after each:
 Tooling lessons for these walks (`TierFlagsEq.lean`): use only `with_reducible` closers; use
 `orig_matchers` when the two sides come from different elaborations; use `sim_let`/`sim_walk_jp`
 for `do` join points.
+
+## 7. Update 2026-10-30 (third session): O6 proved at verdict level
+
+Lean: `spec/lean/v3/NearSpecV3/Successor/TierO6.lean` (a default target). No `sorry`. Axioms of every
+theorem below: `propext`, `Classical.choice`, `Quot.sound` (`o6-replay/axioms.txt`). No definition
+changed, so no checker verdict can move; the module adds theorems and proof-only helpers
+(`VR`, `newIn`, `expectedWalk`, `dedupStep`, `fsMap`, …). Default `lake build` (395 jobs) ok,
+`make pin-check` ok.
+
+### The statement
+
+`checkSuccessor_resharding_vmono cfg … : VLift cfg { cfg with resharding := true }` for every
+configuration with `resharding = false`, `genesisMainTransition = true`, `storageResolution = true`
+and the Gate-B bounds in force (`segmentUnbounded = witnessUnbounded = layoutUnbounded = false`).
+Every named pair that differs in resharding is such a configuration:
+
+| theorem | pair |
+|---|---|
+| `relSuccessor_resharding_vmono`, `resharding_vlift_curveHosts` | `.curveHosts ⊑ .resharding` (all inputs) |
+| `resharding_vlift_globalActionsCurve` | `{globalActions with curveHosts} ⊑ {… with resharding}`, the `hR` premise of `relSuccessor_globalActions_allFeatures_of` |
+| `relSuccessor_curveHosts_allFeatures_of_GA` | `.curveHosts ⊑ .allFeatures`, now premised on O3 only |
+| `relSuccessor_globalActions_allFeatures_of_C` | `.globalActions ⊑ .allFeatures`, now premised on O2 only |
+
+`VRefines` is the strongest form that holds: the resharding shell checks a malformed layout in
+another order, so a reject can carry another reason (Finding 2 of `tier-proofs/`, reproduced below).
+
+### The proof
+
+1. **Segments with a genesis block**: both tiers run `checkD2CoreGWith`; the existing
+   `checkD2CoreGWith_resharding_mono` gives `Refines`.
+2. **Segments without one**: the non-resharding tier runs `checkD2CoreGWith`, which there *is*
+   `checkD2CoreWith`, error string included (`checkD2CoreGWith_eq_of_segment`, an `Overlap` walk
+   whose genesis alternative is discharged by the segment's decoded blocks).
+3. **The correspondence** `checkD2CoreWithObs_vr_reshard`: a verdict-level simulation `VR` (left
+   accepts ⇒ right accepts; left rejects ⇒ right rejects; left excludes ⇒ no constraint).
+   * The plain shell's two exclusions (`c.same_layout`, `c.no_split_gate`) are left-only steps: past
+     them every epoch has the witness epoch's layout and no fact carries a split gate.
+   * The per-epoch layout loop of `ReshardCore` then checks the one layout once per epoch
+     (`forIn_const_ok`); every referenced epoch is in the table (`layoutBytes_of_table`, through
+     `mem_dedupSorted`).
+   * **The walk** (`walk_one_layout`): with one layout and no genesis block, `walkSegment` is the
+     two-phase scan `scan_phase0`/`scan_phase1` (before the first new chunk, after it, stop at the
+     second). It returns `expectedWalk b t` exactly when the plain shell's two `findIdx?` scans find
+     `b` and `t` with every slot count right (`d2_of_found`, `found_of_d2`), and otherwise rejects,
+     never excludes (`y_walk_err`). The shard never changes, no resharding transition is pushed, and
+     the implicit transitions are `old i` for `i < b`, oldest first.
+   * The source-receipt loops agree element-wise (`forIn_forall2`, `forall2_sources`); the
+     implicit-transition loops agree with the resharding loop carrying the congestion and the
+     remaining facts (`forIn_implicit`); the recomputed `proposed_split` is `none` without a gate
+     (`expectedProposedSplit_none`), so `H.proposedSplit == none` is the plain shell's `isNone`;
+     the outgoing-receipt reassignment is the identity (one layout).
+4. **Configuration level**: `checkSuccessor` dispatches on `segmentHasGenesis`, and the two halves
+   compose to `VRefines`.
+
+### Data first (before the proof)
+
+Checker `nearspec-v3-check-successor` sha256 `54b8a117…` (the binary of `flags-replay/`; this lane
+does not change it). Per case: the `curveHosts` verdict against the `resharding` verdict. A
+*violation* is a `curveHosts` accept or reject that `resharding` does not reproduce.
+
+| population | cases | curveHosts → resharding | violations | reject reason differs |
+|---|---|---|---|---|
+| both resharding fixture sets (`resharding-fixtures/`, `resharding-fixtures-2/`) | 60 | accept→accept 3, reject→reject 2, out of domain→accept 28, out of domain→reject 25, out of domain→out of domain 2 | 0 | 1 (`seed23-02-h10062-s5-c.child_layout_is_parent`: `slot count` vs `shard not in layout`, Finding 2) |
+| gap census (`flags-replay/`) | 3,138 | accept→accept 2,488, out of domain→out of domain 650 | 0 | 0 |
+| `l6-uq010` honest and `ood/` cases (gen-v1, gen2) | 9,300 | accept→accept 9,300 | 0 | 0 |
+| `l6-uq010` mutants, every tenth | 4,492 | accept→accept 982, reject→reject 3,510 | 0 | 0 |
+
+The raw split runs of `resharding-fixtures-2` (`c31b` … `t3`) are no longer on disk; their committed
+cases are in the fixture row. Item 6's `l6-uq010` chains have no resharding, so they test the
+one-layout correspondence on ordinary segments.
+No refinement violation exists on any real chunk, so nothing was exhibited against nearcore and no
+fix was needed. Per-case results: `o6-replay/`.
+
+### What is not covered
+
+* Configurations with a Gate-B lift set (`segmentUnbounded`, `witnessUnbounded`, `layoutUnbounded`):
+  no named pair differs in resharding there (`.allFeatures` sets resharding and the lifts at once,
+  and its comparisons go through `Lift.gateB` after the resharding step). The walk in
+  `checkD2CoreWithObs_vr_reshard` fixes the three flags; the same steps would go through with them
+  as variables (the guards are exclusions on both sides), but that was not needed.
+* The signed hand-over (`withReshardHandover`, `D3/Signed.lean`) calls `ReshardCore` on legacy
+  errors; it is not a resharding-flag pair and is unchanged (`make pin-check` ok).
+* Still open in W12: O2, O3, O4 (§6).
