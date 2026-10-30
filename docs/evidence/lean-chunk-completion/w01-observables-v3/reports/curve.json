@@ -1,0 +1,257 @@
+{
+  "label": "curve",
+  "cases": 87,
+  "categories": {
+    "match": 87
+  },
+  "graded": 87,
+  "per_field": {
+    "chunk.balanceBurnt": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    },
+    "chunk.gasUsed": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    },
+    "chunk.outcomeRoot": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    },
+    "computeUsage": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    },
+    "outcome.computeUsage": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.executor": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.failureKind": {
+      "compared": 146,
+      "matched": 146,
+      "mismatched": 0
+    },
+    "outcome.gasBurnt": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.id": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.logs": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.receiptIds": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.returnData": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.status": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.statusReceiptId": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcome.tokensBurnt": {
+      "compared": 3855,
+      "matched": 3855,
+      "mismatched": 0
+    },
+    "outcomes.count": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    },
+    "receipt.bodyHash": {
+      "compared": 2406,
+      "matched": 2406,
+      "mismatched": 0
+    },
+    "receipt.id": {
+      "compared": 2406,
+      "matched": 2406,
+      "mismatched": 0
+    },
+    "receipt.kind": {
+      "compared": 2406,
+      "matched": 2406,
+      "mismatched": 0
+    },
+    "receipt.predecessor": {
+      "compared": 2406,
+      "matched": 2406,
+      "mismatched": 0
+    },
+    "receipt.receiver": {
+      "compared": 2406,
+      "matched": 2406,
+      "mismatched": 0
+    },
+    "receipt.refund": {
+      "compared": 2406,
+      "matched": 2406,
+      "mismatched": 0
+    },
+    "receipts.count": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    },
+    "refunds.count": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    },
+    "stateChange.value": {
+      "compared": 1826,
+      "matched": 1826,
+      "mismatched": 0
+    },
+    "stateChanges.keys": {
+      "compared": 87,
+      "matched": 87,
+      "mismatched": 0
+    }
+  },
+  "header_diffs": {},
+  "recompute_failures": {},
+  "controls": {
+    "total": 949,
+    "detected": 949,
+    "cases": 50,
+    "by_control": {
+      "computeUsage+1": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.computeUsage+1": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.executor": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.extra_log": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.failure->value": {
+        "detected": 38,
+        "missed": 0
+      },
+      "outcome.failureKind": {
+        "detected": 38,
+        "missed": 0
+      },
+      "outcome.gasBurnt+1": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.id": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.log_byte": {
+        "detected": 11,
+        "missed": 0
+      },
+      "outcome.receiptIds": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.returnData": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.tokensBurnt+1": {
+        "detected": 50,
+        "missed": 0
+      },
+      "outcome.value->failure": {
+        "detected": 12,
+        "missed": 0
+      },
+      "outcomes.drop_last": {
+        "detected": 50,
+        "missed": 0
+      },
+      "receipt.bodyHash": {
+        "detected": 50,
+        "missed": 0
+      },
+      "receipt.receiver": {
+        "detected": 50,
+        "missed": 0
+      },
+      "receipts.drop_last": {
+        "detected": 50,
+        "missed": 0
+      },
+      "refund.unmark": {
+        "detected": 50,
+        "missed": 0
+      },
+      "stateChange.value": {
+        "detected": 50,
+        "missed": 0
+      },
+      "stateChange.write->delete": {
+        "detected": 50,
+        "missed": 0
+      },
+      "stateChanges.drop": {
+        "detected": 50,
+        "missed": 0
+      }
+    }
+  },
+  "matched_cases_exercising": {
+    "n_return": 71,
+    "n_refunds": 87,
+    "n_receipts": 87,
+    "n_changes": 87,
+    "n_failures": 68,
+    "n_logs": 17
+  },
+  "totals": {
+    "outcomes": 3855,
+    "receipts": 2406,
+    "state_changes": 1826
+  },
+  "identities": {
+    "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+    "harness_sha256": "1d86a70a26cfee5c73322d3f24fd0aedadfff9dffc852d67bd7f6ff18568a869",
+    "expected": [
+      "docs/evidence/lean-chunk-completion/full-observables/expected/curve.jsonl.gz"
+    ],
+    "tier": "allFeatures",
+    "cases_list_sha256": "2ad9cefb1a38b3c6440b9bb9326dd0e05927dd9e9dc6e6645b4a6aefe6af51f3"
+  },
+  "elapsed_seconds": 21.753957291133702,
+  "pass": true
+}

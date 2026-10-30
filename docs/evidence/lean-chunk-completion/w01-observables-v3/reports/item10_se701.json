@@ -1,0 +1,258 @@
+{
+  "label": "item10-se701",
+  "cases": 238,
+  "categories": {
+    "match": 234,
+    "nearcore_genesis": 4
+  },
+  "graded": 234,
+  "per_field": {
+    "chunk.balanceBurnt": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    },
+    "chunk.gasUsed": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    },
+    "chunk.outcomeRoot": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    },
+    "computeUsage": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    },
+    "outcome.computeUsage": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.executor": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.failureKind": {
+      "compared": 364,
+      "matched": 364,
+      "mismatched": 0
+    },
+    "outcome.gasBurnt": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.id": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.logs": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.receiptIds": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.returnData": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.status": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.statusReceiptId": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcome.tokensBurnt": {
+      "compared": 12417,
+      "matched": 12417,
+      "mismatched": 0
+    },
+    "outcomes.count": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    },
+    "receipt.bodyHash": {
+      "compared": 8544,
+      "matched": 8544,
+      "mismatched": 0
+    },
+    "receipt.id": {
+      "compared": 8544,
+      "matched": 8544,
+      "mismatched": 0
+    },
+    "receipt.kind": {
+      "compared": 8544,
+      "matched": 8544,
+      "mismatched": 0
+    },
+    "receipt.predecessor": {
+      "compared": 8544,
+      "matched": 8544,
+      "mismatched": 0
+    },
+    "receipt.receiver": {
+      "compared": 8544,
+      "matched": 8544,
+      "mismatched": 0
+    },
+    "receipt.refund": {
+      "compared": 8544,
+      "matched": 8544,
+      "mismatched": 0
+    },
+    "receipts.count": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    },
+    "refunds.count": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    },
+    "stateChange.value": {
+      "compared": 8348,
+      "matched": 8348,
+      "mismatched": 0
+    },
+    "stateChanges.keys": {
+      "compared": 234,
+      "matched": 234,
+      "mismatched": 0
+    }
+  },
+  "header_diffs": {},
+  "recompute_failures": {},
+  "controls": {
+    "total": 922,
+    "detected": 922,
+    "cases": 50,
+    "by_control": {
+      "computeUsage+1": {
+        "detected": 49,
+        "missed": 0
+      },
+      "outcome.computeUsage+1": {
+        "detected": 49,
+        "missed": 0
+      },
+      "outcome.executor": {
+        "detected": 49,
+        "missed": 0
+      },
+      "outcome.extra_log": {
+        "detected": 49,
+        "missed": 0
+      },
+      "outcome.failure->value": {
+        "detected": 30,
+        "missed": 0
+      },
+      "outcome.failureKind": {
+        "detected": 30,
+        "missed": 0
+      },
+      "outcome.gasBurnt+1": {
+        "detected": 49,
+        "missed": 0
+      },
+      "outcome.id": {
+        "detected": 49,
+        "missed": 0
+      },
+      "outcome.log_byte": {
+        "detected": 20,
+        "missed": 0
+      },
+      "outcome.receiptIds": {
+        "detected": 48,
+        "missed": 0
+      },
+      "outcome.returnData": {
+        "detected": 47,
+        "missed": 0
+      },
+      "outcome.tokensBurnt+1": {
+        "detected": 49,
+        "missed": 0
+      },
+      "outcome.value->failure": {
+        "detected": 18,
+        "missed": 0
+      },
+      "outcomes.drop_last": {
+        "detected": 49,
+        "missed": 0
+      },
+      "receipt.bodyHash": {
+        "detected": 48,
+        "missed": 0
+      },
+      "receipt.receiver": {
+        "detected": 48,
+        "missed": 0
+      },
+      "receipts.drop_last": {
+        "detected": 48,
+        "missed": 0
+      },
+      "refund.unmark": {
+        "detected": 43,
+        "missed": 0
+      },
+      "stateChange.value": {
+        "detected": 50,
+        "missed": 0
+      },
+      "stateChange.write->delete": {
+        "detected": 50,
+        "missed": 0
+      },
+      "stateChanges.drop": {
+        "detected": 50,
+        "missed": 0
+      }
+    }
+  },
+  "matched_cases_exercising": {
+    "n_failures": 143,
+    "n_refunds": 216,
+    "n_receipts": 229,
+    "n_changes": 234,
+    "n_return": 45,
+    "n_logs": 83
+  },
+  "totals": {
+    "outcomes": 12417,
+    "receipts": 8544,
+    "state_changes": 8348
+  },
+  "identities": {
+    "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+    "harness_sha256": "8dfeccbc50a7d504de52e85f67b57739f26b1e023bcf3209e4677d8e984c1c36",
+    "expected": [
+      "/data/illia/nearproof-deps/w10-runs/runs/se701/nearcore-observables-00.jsonl"
+    ],
+    "tier": "allFeatures",
+    "cases_list_sha256": "4ec0803c7ab72ef551da3b1cfa3284469ce1588d451831f1c1975f5297576762"
+  },
+  "elapsed_seconds": 66.32575171720237,
+  "pass": true
+}
