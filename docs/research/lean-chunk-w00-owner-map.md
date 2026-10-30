@@ -443,8 +443,9 @@ condition, so `.signed ⊑ .runtimeLimits/.floats/.genesisFloatsProtoGas` etc. k
 `checkD3_of_core_ok`, `checkD3_cases` unchanged in form, `handover` now takes the claim). The v3.1
 draft's `w.size` restriction text says so. Removal-soft (7,296 cases, 4 seeds): 624 signed
 `reject → accept` moves, all nearcore-valid; 956 nearcore rejects keep `reject` with the recorder's
-reason; no Lean accept of a nearcore reject, no `reject → OOD`. Corpus, census, shard 13 and fixtures:
-W12 README §15.
+reason; no Lean accept of a nearcore reject, no `reject → OOD`. Corpus (235,716), census (3,138),
+shard 13 (1,223) and the 577 fixtures: 0 signed moves (W12 README §15). The narrower tiers move the
+same 1,580 `removal-soft` rejects to `OOD (w.size)` by design.
 
 ### 3.5 Rung decision record — `Rel_Dk := RelD3 ∧ InDk` (2026-10-30)
 

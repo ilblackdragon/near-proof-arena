@@ -1497,11 +1497,17 @@ gives every named pair: `.signed ⊑ .runtimeLimits`, `.signed ⊑ .floats`,
 |---|---|---|---|---|---|---|
 | `removal-soft`, all 7,296 (4 seeds) | signed | 7,296 | 624 `reject → accept`, all nearcore-valid (52 honest chunks + 572 accepted mutants). 956 nearcore rejects stay `reject`, now with the recorder's reason (`InvalidCongestionInfo`, header fields, post-state root) | 624 | 0 | 0 |
 
-**PENDING.** These runs were still in progress at the time of this commit (`removal-handover/horun.sh`):
+| full corpus | signed | 235,716 | **0** (per case against `gateb-prefreeze/corpus-signed`: 73,783 / 159,175 / 2,758) | — | 0 | 0 |
+| mainnet shard 13 | signed | 1,223 | **0** (944 accept / 279 OOD before and after, `s13.py`) | — | 0 | 0 |
+| 3,138 census | signed, `runtimeLimits` | 3,138 each | **0** | — | 0 | 0 |
+| 577 fixtures | signed, `runtimeLimits` | 577 each | **0** | — | 0 | 0 |
+| `removal-soft`, all 7,296 | `runtimeLimits` | 7,296 | 1,580 `reject → OOD (w.size)`: 624 nearcore-valid, 956 nearcore rejects | — | 0 | 1,580 (by the narrow-tier design: same condition as the hand-over, exclusion instead of recorder) |
 
-* signed on the full corpus (235,716 cases), diffed against `gateb-prefreeze/corpus-signed`;
-* signed on shard 13 (1,223 chunks), before and after;
-* signed and `runtimeLimits` on the 3,138 census and the 577 fixtures, with the before rows taken from
-  `o4-replay/`;
-* `runtimeLimits` on `removal-soft`. The expected result is 624 `reject → OOD (w.size)` moves, which
-  is how the narrower tiers are designed to behave.
+On every signed population the only moves are the 624 `removal-soft` `reject → accept` moves toward
+nearcore. The narrow tiers' `reject → OOD` moves are what the instructed shared condition does:
+there the narrow tiers exclude where the signed statement hands over, which is what keeps
+`.signed ⊑ .runtimeLimits` (and the other pairs) true. The harness reports `fail` on the
+`removal-soft` signed run because of 624 `accept_above_g_alpha` rows: nearcore-valid chunks decided
+on the hand-over path, which has no `G_α` (user decision 2026-10-30). The harness needs that licence;
+it is not a disagreement with nearcore. The corpus and fixture `fail` statuses are the same
+unasserted-exclusion rows as before (identical per case).

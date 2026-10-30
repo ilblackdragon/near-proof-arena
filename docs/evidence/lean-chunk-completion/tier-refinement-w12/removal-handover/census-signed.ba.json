@@ -1,0 +1,10 @@
+{
+ "name": "census-signed",
+ "cases": 3138,
+ "counts": {
+  "after:out_of_domain": 2403,
+  "after:accept": 735
+ },
+ "moves": {},
+ "reason_pairs": {}
+}

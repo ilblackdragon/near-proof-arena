@@ -1,0 +1,11 @@
+{
+ "name": "corpus-signed",
+ "cases": 235716,
+ "counts": {
+  "after:accept": 73783,
+  "after:reject": 159175,
+  "after:out_of_domain": 2758
+ },
+ "moves": {},
+ "reason_pairs": {}
+}
