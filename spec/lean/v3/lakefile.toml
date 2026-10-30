@@ -118,5 +118,9 @@ name = "nearspec-v3-bench-mldsa"
 root = "BenchMlDsa"
 
 [[lean_exe]]
+name = "nearspec-v3-mldsa-check"
+root = "MlDsaCheck"
+
+[[lean_exe]]
 name = "nearspec-v3-zstd-decode"
 root = "ZstdDecode"

@@ -566,6 +566,89 @@ fn fact_mutants(built: &Built, an: &Analysis) -> Vec<(Mutant, &'static str)> {
     out
 }
 
+pub fn dist_mutants_enabled() -> bool {
+    std::env::var("NEAR_DIST_MUTANTS").is_ok_and(|v| !v.is_empty() && v != "0")
+}
+
+/// Item 10, "mismatched distribution code identities": for every incoming global-contract
+/// distribution receipt of the witness (`source_receipt_proofs`), mutants whose receipt no longer
+/// carries the code of its identifier, the receipt proof otherwise unchanged:
+///   `w.dist.code_flip{,_first,_last}`  one code byte flipped (middle / first / last; a `CodeHash`
+///                           id then differs from sha256(code));
+///   `w.dist.code_truncate` / `w.dist.code_extend`  the last code byte dropped / a zero byte appended;
+///   `w.dist.id_hash_flip`   a `CodeHash` identifier with one bit flipped (code unchanged);
+///   `w.dist.id_to_account`  a `CodeHash` identifier replaced by `AccountId(predecessor)`;
+///   `w.dist.id_to_hash`     an `AccountId` identifier replaced by `CodeHash(sha256(code))` (an
+///                           identity consistent with the code, but not the one the deploy chose);
+///   `w.dist.code_flip.dup_last_good` / `.dup_last_bad`  the first receipt's `code_flip` proof
+///                           next to the honest one under the same chunk hash (borsh `HashMap`: the
+///                           last entry wins).
+/// No RNG. Suffix `.p<proof>.r<receipt>`.
+pub fn dist_mutants(claim: &Claim, w: &ChunkStateWitness) -> Vec<Mutant> {
+    use near_primitives::action::GlobalContractIdentifier;
+    use near_primitives::receipt::{GlobalContractDistributionReceipt, ReceiptEnum};
+    use near_primitives::sharding::{ChunkHash, ReceiptProof};
+    let ChunkStateWitness::V2(x) = w;
+    let mut entries: Vec<(ChunkHash, ReceiptProof)> = x.source_receipt_proofs.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut out = Vec::new();
+    for (pi, (_, proof)) in entries.iter().enumerate() {
+        for (ri, r) in proof.0.iter().enumerate() {
+            let ReceiptEnum::GlobalContractDistribution(d) = r.receipt() else { continue };
+            let d = d.clone();
+            let rebuild = |id: GlobalContractIdentifier, code: Vec<u8>| -> Receipt {
+                let nd = match &d {
+                    GlobalContractDistributionReceipt::V1(_) => GlobalContractDistributionReceipt::new_v1(id, d.target_shard(), d.already_delivered_shards().to_vec(), code.into()),
+                    GlobalContractDistributionReceipt::V2(_) => GlobalContractDistributionReceipt::new_v2(id, d.target_shard(), d.already_delivered_shards().to_vec(), code.into(), d.nonce()),
+                };
+                let mut nr = Receipt::new_global_contract_distribution(r.predecessor_id().clone(), nd);
+                nr.set_receipt_id(*r.receipt_id());
+                nr
+            };
+            let code = d.code().to_vec();
+            let mut variants: Vec<(&str, Receipt)> = Vec::new();
+            if !code.is_empty() {
+                for (name, j) in [("w.dist.code_flip", code.len() / 2), ("w.dist.code_flip_first", 0), ("w.dist.code_flip_last", code.len() - 1)] {
+                    let mut c = code.clone();
+                    c[j] ^= 0x01;
+                    variants.push((name, rebuild(d.id().clone(), c)));
+                }
+                variants.push(("w.dist.code_truncate", rebuild(d.id().clone(), code[..code.len() - 1].to_vec())));
+            }
+            let mut ext = code.clone();
+            ext.push(0);
+            variants.push(("w.dist.code_extend", rebuild(d.id().clone(), ext)));
+            match d.id() {
+                GlobalContractIdentifier::CodeHash(h) => {
+                    let mut h2 = *h;
+                    h2.0[0] ^= 0x01;
+                    variants.push(("w.dist.id_hash_flip", rebuild(GlobalContractIdentifier::CodeHash(h2), code.clone())));
+                    variants.push(("w.dist.id_to_account", rebuild(GlobalContractIdentifier::AccountId(r.predecessor_id().clone()), code.clone())));
+                }
+                GlobalContractIdentifier::AccountId(_) => {
+                    variants.push(("w.dist.id_to_hash", rebuild(GlobalContractIdentifier::CodeHash(CryptoHash::hash_bytes(&code)), code.clone())));
+                }
+            }
+            for (k, (name, nr)) in variants.into_iter().enumerate() {
+                let mut bad = entries[pi].1.clone();
+                bad.0[ri] = nr;
+                let mut e = entries.clone();
+                e[pi].1 = bad.clone();
+                out.push(Mutant { name: format!("{name}.p{pi}.r{ri}"), claim: claim.clone(), witness: crate::mutate::encode_with_entries(w, &e), judge: Judge::Nearcore });
+                if k == 0 {
+                    let mut e4 = entries.clone();
+                    e4.insert(pi, (entries[pi].0.clone(), bad.clone()));
+                    out.push(Mutant { name: format!("{name}.dup_last_good.p{pi}.r{ri}"), claim: claim.clone(), witness: crate::mutate::encode_with_entries(w, &e4), judge: Judge::Nearcore });
+                    let mut e5 = entries.clone();
+                    e5.insert(pi + 1, (entries[pi].0.clone(), bad));
+                    out.push(Mutant { name: format!("{name}.dup_last_bad.p{pi}.r{ri}"), claim: claim.clone(), witness: crate::mutate::encode_with_entries(w, &e5), judge: Judge::Nearcore });
+                }
+            }
+        }
+    }
+    out
+}
+
 /// Code-blob mutants: (name, codes).
 fn code_mutants(codes: &[Vec<u8>], rng: &mut StdRng) -> Vec<(String, Vec<Vec<u8>>)> {
     let mut out = Vec::new();
@@ -863,12 +946,17 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     let (forced, forced_drop) = (forced || xf, forced_drop || xd);
     let full = forced || (me > 0 && *d3_seen % me == 0);
     let code_only = !full && !codes.is_empty() && rng.gen_bool(code_mutant_p);
-    if !(verdict.is_ok() && (full || code_only)) {
+    // item 10 (opt-in `NEAR_DIST_MUTANTS=1`): incoming global-contract distribution receipts whose
+    // code no longer matches their identifier; computed without the RNG, so the other cases and
+    // mutants of a run are unchanged
+    let dist = if dist_mutants_enabled() { dist_mutants(&built.claim, sw) } else { vec![] };
+    if !(verdict.is_ok() && (full || code_only || !dist.is_empty())) {
         return;
     }
     let rs = |c: &Claim| (c.rs_data_parts, c.rs_total_parts);
     // (mutant, flags, derived verdict, codes)
     let mut ms: Vec<(Mutant, Option<Vec<u8>>, Option<&'static str>, Vec<Vec<u8>>)> = Vec::new();
+    ms.extend(dist.into_iter().map(|m| (m, None, None, codes.to_vec())));
     if full {
         let last = built.blocks.last().unwrap();
         let parent = if last.header().is_genesis() { None } else { client.chain.get_block(last.header().prev_hash()).ok().and_then(|b| block_rec(&b).ok()) };
@@ -907,7 +995,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
             ms.push((m, None, Some(how), codes.to_vec()));
         }
     }
-    for (n, cs) in code_mutants(codes, rng) {
+    for (n, cs) in if full || code_only { code_mutants(codes, rng) } else { vec![] } {
         ms.push((Mutant { name: n, claim: built.claim.clone(), witness: wb.to_vec(), judge: Judge::Nearcore }, None, None, cs));
     }
     let gas_bfc = an3.features.get("fc_gas_burnt_for_function_call").cloned().unwrap_or_default();

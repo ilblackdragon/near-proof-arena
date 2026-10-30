@@ -63,6 +63,19 @@ pub fn cmd(args: &[String]) -> i32 {
             let (root, _) = ApplyChunkResult::compute_outcomes_proof(&outs);
             let receipts = cs.get_outgoing_receipts(&bh, sid).map_err(|e| format!("{e:?}"))?;
             let changes: Vec<_> = KeyForStateChanges::for_block(&bh).find_iter(&store).collect();
+            // W01 attribution: each changed key's pre-state value reference, from the witness's
+            // own recorded pre-state nodes and the applied chunk's `prev_state_root` (the root its
+            // application starts from), both independent of the stored changes.
+            let pre_root = cs
+                .get_block(&bh)
+                .map_err(|e| format!("block: {e:?}"))?
+                .chunks()
+                .iter_raw()
+                .find(|c| c.shard_id() == sid)
+                .map(|c| c.prev_state_root())
+                .ok_or_else(|| "main-transition chunk header not in block".to_string())?;
+            let near_primitives::state::PartialState::TrieValues(nodes) = w.main_state_transition().base_state.clone();
+            let pre_trie = near_store::Trie::from_recorded_storage(near_store::PartialStorage { nodes: near_primitives::state::PartialState::TrieValues(nodes) }, pre_root, false);
             let rec_outs: Vec<_> = outs
                 .iter()
                 .map(|o| {
@@ -93,7 +106,7 @@ pub fn cmd(args: &[String]) -> i32 {
                 "compute_usage": null,
                 "outcomes": rec_outs,
                 "outgoing_receipts": receipts.iter().map(crate::observables::receipt_json).collect::<Vec<_>>(),
-                "state_changes": changes.iter().map(crate::observables::change_json).collect::<Vec<_>>(),
+                "state_changes": changes.iter().map(|c| crate::observables::change_detail_json(c, Some(&pre_trie))).collect::<Vec<_>>(),
                 "store_outcome_ids": ids.iter().map(|i| hex::encode(i.0)).collect::<Vec<_>>(),
             }))
         })();

@@ -555,4 +555,16 @@ def decodeStored (b : Bytes) : Except String Stored := do
     let r ← decodeRcpt b
     pure ⟨r, none⟩
 
+/-- Observation only (W01): per-outcome detail a successor driver reports beside the outcome list.
+No check reads it. `failKinds`: the failure kind of each failed outcome (by outcome id), in
+nearcore's `TxExecutionError` naming (`Successor.FailureKinds`); `outCompute`: each outcome's
+compute usage (by outcome id); `attrib`: per processed transaction / receipt, the ids it is
+attributed to and the committed storage keys whose value it changed (ascending key, `none` =
+deleted), compared with the value before it. -/
+structure ObsDetail where
+  failKinds : List (Bytes × String) := []
+  outCompute : List (Bytes × Nat) := []
+  attrib : List (List Bytes × List (Bytes × Option Bytes)) := []
+  deriving Repr
+
 end NearSpecV3.D2

@@ -95,6 +95,9 @@ structure Observable where
   stateChanges : Option (List (Bytes × Option Bytes)) := none
   /-- Σ compute usage of the main transition's outcomes, when reported. -/
   computeUsage : Option Nat := none
+  /-- Failure kinds, per-outcome compute and per-receipt storage attribution, when reported
+  (observation only, W01). -/
+  detail : Option D2.ObsDetail := none
   deriving Repr
 
 /-- The outputs a D2-domain chunk reports: the D3-only fields are `0`. -/

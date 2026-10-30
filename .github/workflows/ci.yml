@@ -329,27 +329,42 @@ jobs:
   # and a "provisioned" check that regenerates a slice would be a false green.
   # The honest split is therefore: schema always, content only where a runner
   # already mounts the corpora. See docs/logs/lean-chunk-L7-2026-10-24.md §2.
+  #
+  # Provisioning (W01, 2026-10-29): the job runs on a self-hosted runner carrying the
+  # `near-corpora` label. `tools/d3/fetch_corpora.sh` obtains the corpora (already mounted,
+  # rsync from NEAR_CORPORA_SOURCE, or per-family tarballs from NEAR_CORPORA_URL) and accepts them
+  # only if the committed content manifest verifies. Registering the runner and setting the
+  # variables is an owner action: tools/d3/CORPUS_RUNNER_RUNBOOK.md.
   corpus-content-gates:
     name: corpus content drift gate (requires pinned corpora)
     if: vars.NEAR_CORPORA_AVAILABLE == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64, near-corpora]
     permissions:
       contents: read
-    timeout-minutes: 120
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Corpus manifest content drift gate
+      # Obtains the corpora if the runner does not already mount them, then runs the content drift
+      # gate (`corpus_manifest.py --verify`) against the committed manifest. Exit 2 = not configured.
+      - name: Fetch and verify pinned corpora (content drift gate)
         env:
           NEAR_CORPORA_DIR: ${{ vars.NEAR_CORPORA_DIR }}
+          NEAR_CORPORA_SOURCE: ${{ vars.NEAR_CORPORA_SOURCE }}
+          NEAR_CORPORA_URL: ${{ vars.NEAR_CORPORA_URL }}
         run: |
           set -euo pipefail
           test -n "${NEAR_CORPORA_DIR:-}" || {
             echo "::error::NEAR_CORPORA_DIR is not set; the content gate needs the corpora root"
             exit 2
           }
-          python3 tools/d3/corpus_manifest.py --verify docs/evidence/lean-chunk-L7/corpus-manifest.json
+          bash tools/d3/fetch_corpora.sh
+      # The W01 comparator's own unit tests (canonical failure kinds, attribution, controls) run with
+      # the gate, so a runner that verifies the corpora also checks the observable harness.
+      - name: Observable comparator self-tests
+        working-directory: tools/mainnet-replay
+        run: python3 -m unittest -q test_full_observables test_failure_kinds
 
   # Environment-gated tests (CI convention). Tests whose prerequisites are
   # opt-in (ARENA_DEV_UNSAFE, FC_NEAR_SPEC, FC_FORMAL_CORE_DIR, ARENA_FC_TESTS,

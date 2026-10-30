@@ -1,0 +1,398 @@
+{
+ "nearcore_pin": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "protocol_version": 86,
+ "oracle_binaries": {
+  "oracle": "54046c29add68d1bc7020c5d854fdd4ca94e5a62d45e38a6214373d178e7a2cb",
+  "oracle-b": "b33b91d3bf77150ceea2a18edb154e978ab844789339215b8793fff289fefe4d",
+  "oracle-base": "d889064ff13094d63c129d4bebefb2040d2049f8c6b48297c4220997aefa944c"
+ },
+ "oracle_binary_use": {
+  "oracle": "cy60*, mb*, se70*, gd81* (first dist-mutant version, superseded)",
+  "oracle-b": "gdb81* (committed sources) and the baseline-identity run bl-final",
+  "oracle-base": "HEAD (4f07a7fdf) oracle sources; baseline-identity run bl-base"
+ },
+ "baseline_identity": {
+  "command": "gen --domain d3 --seed 7 --chains 2 --blocks 40 --mutate-every 10 (no scenario; NEAR_SUCCESSOR_OBSERVABLES=1 on both)",
+  "result": [
+   "8547",
+   "IDENTICAL"
+  ]
+ },
+ "lean_checker_sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+ "control_checkers": {
+  "ctl-dist-proof": "d71c14383231f7aadf0de9dfb8f5045d9c3b31438013e995a7b49337ac445a77",
+  "ctl-dist-proof-hash": "40a2b0df53d054312f9bcef7d87d84956eefa3e9c5e19a6eaabf9bfcb0c10d32",
+  "ctl-mldsa-norm": "078040b62691aa3404bcfae67760a22d1fe9dd070bac30d56021d15a7dfe01eb",
+  "ctl-mldsa-norm-check": "b82d2eab24a9e8fd906264e8303e3b89e4a0a11e72f39e923b0eeb3d7864f260",
+  "ctl-stateinit-then": "7f642e7cd0708161ded20f03285aedf43e72dc0ed471022512c249cd751ef3d5",
+  "ctl-yield-timeout-result": "a6402378fc93606571058675e2d19700ffd502abe800a784e39bb3f46c66bb09"
+ },
+ "sources": {
+  "oracle/v3-successor/src/xfam.rs": "3e3093d9d3896beffd795993af4f3374864f1a93efffa114c7fea7d0f28bb618",
+  "oracle/v3-successor/src/d3.rs": "14cd0a3d621ff4013d670b391c4844fdf3572bf0822c9087e7d080416b9f5a49",
+  "oracle/v3-successor/src/keys.rs": "240ed3c1f21f42243cf06f936bef72b9a5f8235d847ebe74da0e59785591a9e9",
+  "oracle/v3-successor/src/keys/mldsa.rs": "d6a2ab13faae8ca97fff23df4926d0e3cf38bb0b506749c922a8013c1dabf558",
+  "oracle/v3-successor/src/scenarios.rs": "b297b28e9110457563a47b6a8630575a2865ef4034038ed6672152dc26f276db",
+  "oracle/v3-successor/src/mldsa_vectors.rs": "760580f47b5a3745d2a6b4155a6bf23e2c596449ce2bee3973fc60a00996c063",
+  "tools/d3/mldsa65_bound.py": "434a3e1fef4423bc475412284c3fb611c67cdc5c1247142131216b2b2f7af40c",
+  "tools/d3/collect_xfam.py": "984b2c6b8bb847d04845969cae31f6b73c4efd7f797bb217e765b9defce7ecaa",
+  "tools/d3/collect_keys.py": "b9e36c3ee23d0faf3a276386f6e199c8c55bb315b197d31d86a8d4d38cac8dfb",
+  "spec/lean/v3/MlDsaCheck.lean": "dd5384bab2faa61bae29c44bc0c47887858278619e562e070d5b0141b752a09b",
+  "tools/d3/replay_successor.py": "a989c273f9f5c33b4594d543399597be9101bc5f06a2d31d0ee0b008512f40c5",
+  "tools/mainnet-replay/blind_corpus.py": "11c263d1d71d4716b026224db6d2afa1bedd677d5308d6cb84128ddbefbfc250"
+ },
+ "run_scripts": {
+  "gen.sh": "#!/bin/bash\n# usage: gen.sh NAME ENV... -- GEN_ARGS...   (runs under the heavy wrapper; log in NAME.log)\nR=/data/illia/nearproof-deps/w10-runs\nBIN=${BIN:-$R/bin/oracle}\nname=$1; shift\nenvs=()\nwhile [ \"$1\" != \"--\" ]; do envs+=(\"$1\"); shift; done\nshift\ncd $R\nstart=$(date +%s)\nenv NEAR_SUCCESSOR_OBSERVABLES=1 \"${envs[@]}\" HEAVY_MEM=12G /data/illia/nearproof-deps/bin/heavy \\\n  $BIN gen --domain d3 \"$@\" --out $R/runs/$name > $R/logs/$name.log 2>&1\necho \"rc=$? seconds=$(( $(date +%s) - start ))\" >> $R/logs/$name.log\n",
+  "wave1.sh": "#!/bin/bash\nR=/data/illia/nearproof-deps/w10-runs\nWT=/data/illia/nearproof/.claude/worktrees/agent-ad54daf2830fc99ec\nmkdir -p $R/runs $R/logs $R/bin\ncp /data/illia/nearproof-deps/w10-oracle-target/release/near-arena-oracle-v3-successor $R/bin/oracle\ncp $WT/tools/d3/mldsa65_bound.py $R/bin/mldsa65_bound.py\ni=0\nfor c in 0 1 2 6; do\n  gp=0; [ $((i%2)) -eq 0 ] && gp=100000000\n  s=$((601+i))\n  bash $R/gen.sh cy$s NEAR_SUCCESSOR_SCENARIO=curve-callbacks NEAR_XFAM_VARIANT=curve-yield-timeout NEAR_XFAM_MUTATE_EVERY=3 -- \\\n    --seed $s --first-chain $c --chains 1 --blocks 280 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price $gp &\n  i=$((i+1))\ndone\nfor s in 1618 2718 31415 6151; do\n  gp=0; [ $s -eq 2718 -o $s -eq 31415 ] && gp=100000000\n  bash $R/gen.sh mb$s NEAR_SUCCESSOR_SCENARIO=mldsa NEAR_MLDSA_BOUND_SIGNER=$R/bin/mldsa65_bound.py -- \\\n    --seed $s --chains 1 --blocks 300 --mutate-every 0 --code-mutant-p 0 --ood-cap 2000 --min-gas-price $gp &\ndone\nwait\n",
+  "wave2.sh": "#!/bin/bash\nR=/data/illia/nearproof-deps/w10-runs\ni=0\nfor c in 0 1 2 6; do\n  gp=0; [ $((i%2)) -eq 0 ] && gp=100000000\n  s=$((701+i))\n  bash $R/gen.sh se$s NEAR_SUCCESSOR_SCENARIO=rollback-refund NEAR_XFAM_VARIANT=state-init-emit NEAR_XFAM_MUTATE_EVERY=1 -- \\\n    --seed $s --first-chain $c --chains 1 --blocks 70 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price $gp &\n  s=$((811+i))\n  bash $R/gen.sh gd$s NEAR_SUCCESSOR_SCENARIO=global-cache NEAR_DIST_MUTANTS=1 -- \\\n    --seed $s --first-chain $c --chains 1 --blocks 140 --mutate-every 0 --code-mutant-p 0 --ood-cap 2000 --min-gas-price $gp &\n  i=$((i+1))\ndone\nwait\n",
+  "wave3.sh": "#!/bin/bash\n# distribution-identity mutants with oracle B (all distribution receipts, 8 variants + 2 dup), 8 seeds\nR=/data/illia/nearproof-deps/w10-runs\ncp /data/illia/nearproof-deps/w10-oracle-target/release/near-arena-oracle-v3-successor $R/bin/oracle-b\ni=0\nfor c in 0 1 2 6 7 8 9 10; do\n  gp=0; [ $((i%2)) -eq 0 ] && gp=100000000\n  s=$((811+i))\n  BIN=$R/bin/oracle-b bash $R/gen.sh gdb$s NEAR_SUCCESSOR_SCENARIO=global-cache NEAR_DIST_MUTANTS=1 -- \\\n    --seed $s --first-chain $c --chains 1 --blocks 140 --mutate-every 0 --code-mutant-p 0 --ood-cap 2000 --min-gas-price $gp &\n  i=$((i+1))\n  [ $i -eq 4 ] && wait\ndone\nwait\n",
+  "replay.sh": "#!/bin/bash\n# usage: replay.sh RUN [CHECKER_NAME] [EXTRA_LIST]   \u2014 replays col/RUN/{honest,mutants}.txt (or EXTRA_LIST)\nR=/data/illia/nearproof-deps/w10-runs\nWT=/data/illia/nearproof/.claude/worktrees/agent-ad54daf2830fc99ec\nrun=$1; chk=${2:-checker}; list=${3:-}\nmkdir -p $R/rep\nif [ -z \"$list\" ]; then\n  cat $R/col/$run/honest.txt $R/col/$run/mutants.txt > $R/col/$run/all.txt\n  list=$R/col/$run/all.txt\nfi\nHEAVY_MEM=24G /data/illia/nearproof-deps/bin/heavy python3 $WT/tools/d3/replay_successor.py --binary $R/bin/$chk --tier allFeatures \\\n  --cases-file $list --out $R/rep/$run-$chk --jobs 2 --timeout 3600 > $R/logs/rep-$run-$chk.log 2>&1\necho \"rc=$?\" >> $R/logs/rep-$run-$chk.log\n",
+  "blind.sh": "#!/bin/bash\n# Blind replay (--blind) of honest chunks of each family; 2 jobs, one family at a time.\nWT=/data/illia/nearproof/.claude/worktrees/agent-ad54daf2830fc99ec\nR=/data/illia/nearproof-deps/w10-runs\nmkdir -p $R/blind\ncat $R/col/se70*/honest.txt > $R/blind/se-honest.txt\ncat $R/col/gdb81*/honest.txt > $R/blind/gd-honest.txt\ngrep -hv /mutants/ $R/col/mb*/bound.txt > $R/blind/mb-honest.txt\ncat $R/col/cy60*/ctl-all.txt > $R/blind/cy-honest.txt\nfor f in se gd mb cy; do\n  HEAVY_MEM=24G /data/illia/nearproof-deps/bin/heavy python3 $WT/tools/mainnet-replay/blind_corpus.py --binary $R/bin/checker \\\n    --cases $R/blind/$f-honest.txt --root / --out $R/blind/$f --jobs 2 --timeout 3600 > $R/logs/blind-$f.log 2>&1\n  echo \"blind $f rc=$?\" >> $R/logs/queue.out\ndone\n",
+  "ctl.py": "\"\"\"Apply / revert one deliberate-breakage control in the Lean tree (item 10).\nusage: ctl.py apply|revert NAME\"\"\"\nimport sys\nL = '/data/illia/nearproof/.claude/worktrees/agent-ad54daf2830fc99ec/spec/lean/v3/NearSpecV3/'\nCTL = {\n    # ML-DSA-65: the z norm bound admits \u2016z\u2016\u221e = \u03b31 \u2212 \u03b2\n    'mldsa-norm': [('MlDsa65.lean',\n        '  z.all fun p => p.all fun c => c.natAbs < gamma1 - beta',\n        '  z.all fun p => p.all fun c => c.natAbs \u2264 gamma1 - beta')],\n    # state init: one extra yocto credited when more actions follow the init in the receipt\n    'stateinit-then': [('Successor/GlobalExecution.lean',\n        '  let amount \u2190 LM.okL (add128 acct.amount needed) (panicked \"IntegerOverflowError\")',\n        '  let amount \u2190 LM.okL (add128 acct.amount (needed + (if c.idx + 1 < c.nActs then 1 else 0))) (panicked \"IntegerOverflowError\")')],\n    # yield timeout: the callback's promise result is Successful([]) instead of Failed\n    'yield-timeout-result': [('Successor/StorageExecution.lean',\n        'let rs \u2190 forwardOrBufferR env rs \u27e8acct, acct, rid, .data true d none\u27e9',\n        'let rs \u2190 forwardOrBufferR env rs \u27e8acct, acct, rid, .data true d (some [])\u27e9')],\n    # incoming receipt proofs: not verified for a proof that carries a distribution receipt\n    'dist-proof': [('Successor/RuntimeCore.lean',\n        'check (verifyReceiptProofD2 ci.prevOutgoingReceiptsRoot e) \"invalid: receipt proof merkle path\"',\n        'check (verifyReceiptProofD2 ci.prevOutgoingReceiptsRoot e || e.receipts.any (fun r => match r.body with | .distribution _ => true | _ => false)) \"invalid: receipt proof merkle path\"'),\n        # the legacy-core equalities (`rfl` against ChunkValidationD2) are exactly what this control\n        # breaks, so the control build drops them (never committed)\n        ('Successor/RuntimeCore.lean',\n         'theorem legacy_core_eq (h : ActionHooks) (a : Bool) (c w : Bytes) (cap : Option Nat) :\\n    checkD2CoreWith legacyDriver h a c w cap = checkD2Core h a c w cap := rfl\\n',\n         '-- ctl: legacy_core_eq dropped\\n'),\n        ('Successor/RuntimeCore.lean',\n         'theorem legacy_genesis_eq (h : ActionHooks) (a : Bool) (c w : Bytes) (cap : Option Nat) :\\n    checkD2CoreGWith legacyDriver h a c w cap = checkD2CoreG h a c w cap := rfl\\n',\n         '-- ctl: legacy_genesis_eq dropped\\n'),\n        # the resharding-capable core (used by the widest tiers) has its own copy of the check\n        ('Successor/ReshardCore.lean',\n         'check (verifyReceiptProofD2 ci.prevOutgoingReceiptsRoot e) \"invalid: receipt proof merkle path\"',\n         'check (verifyReceiptProofD2 ci.prevOutgoingReceiptsRoot e || e.receipts.any (fun r => match r.body with | .distribution _ => true | _ => false)) \"invalid: receipt proof merkle path\"')],\n}\n# receipt proofs and the applied-receipts hash both skipped when a distribution receipt is present\n_h = [(f, 'check (sha256 (encodeRcpts receipts) == w.appliedReceiptsHash) \"invalid: applied receipts hash\"',\n       'check (sha256 (encodeRcpts receipts) == w.appliedReceiptsHash || receipts.any (fun r => match r.body with | .distribution _ => true | _ => false)) \"invalid: applied receipts hash\"')\n      for f in ('Successor/RuntimeCore.lean', 'Successor/ReshardCore.lean')]\nCTL['dist-proof-hash'] = CTL['dist-proof'] + _h\nmode, name = sys.argv[1], sys.argv[2]\nfor f, a, b in CTL[name]:\n    p = L + f\n    s = open(p).read()\n    src, dst = (a, b) if mode == 'apply' else (b, a)\n    n = s.count(src)\n    assert n >= 1, (f, mode, name)\n    s = s.replace(src, dst)\n    open(p, 'w').write(s)\n    print(mode, name, f, n)\n"
+ },
+ "runs": {
+  "bl-base": {
+   "seed": 7,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 7000021, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 7000022, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 0 }"
+   ],
+   "honest": 314,
+   "cold_accepted": 314,
+   "mutants": 2534,
+   "log_tail": "rc=0 seconds=126",
+   "observables": [
+    "nearcore-observables-00.jsonl",
+    "nearcore-observables-01.jsonl"
+   ]
+  },
+  "bl-final": {
+   "seed": 7,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 7000021, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 0 }",
+    "D3Params { base: ChainParams { seed: 7000022, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 0 }"
+   ],
+   "honest": 314,
+   "cold_accepted": 314,
+   "mutants": 2534,
+   "log_tail": "rc=0 seconds=136",
+   "observables": [
+    "nearcore-observables-00.jsonl",
+    "nearcore-observables-01.jsonl"
+   ]
+  },
+  "cy601": {
+   "seed": 601,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 601001803, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 280, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 976,
+   "cold_accepted": 976,
+   "mutants": 3235,
+   "log_tail": "rc=0 seconds=1757",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "cy602": {
+   "seed": 602,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 602001807, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 280, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 1207,
+   "cold_accepted": 1207,
+   "mutants": 3135,
+   "log_tail": "rc=0 seconds=2187",
+   "observables": [
+    "nearcore-observables-01.jsonl"
+   ]
+  },
+  "cy603": {
+   "seed": 603,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 603001811, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 280, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 1484,
+   "cold_accepted": 1484,
+   "mutants": 3196,
+   "log_tail": "rc=0 seconds=2128",
+   "observables": [
+    "nearcore-observables-02.jsonl"
+   ]
+  },
+  "cy604": {
+   "seed": 604,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 604001818, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 280, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 975,
+   "cold_accepted": 975,
+   "mutants": 2927,
+   "log_tail": "rc=0 seconds=2053",
+   "observables": [
+    "nearcore-observables-06.jsonl"
+   ]
+  },
+  "gd811": {
+   "seed": 811,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 811002433, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 476,
+   "cold_accepted": 476,
+   "mutants": 52,
+   "log_tail": "rc=0 seconds=132",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "gd812": {
+   "seed": 812,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 812002437, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 611,
+   "cold_accepted": 611,
+   "mutants": 65,
+   "log_tail": "rc=0 seconds=123",
+   "observables": [
+    "nearcore-observables-01.jsonl"
+   ]
+  },
+  "gd813": {
+   "seed": 813,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 813002441, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 732,
+   "cold_accepted": 732,
+   "mutants": 73,
+   "log_tail": "rc=0 seconds=148",
+   "observables": [
+    "nearcore-observables-02.jsonl"
+   ]
+  },
+  "gd814": {
+   "seed": 814,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 814002448, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 493,
+   "cold_accepted": 493,
+   "mutants": 52,
+   "log_tail": "rc=0 seconds=111",
+   "observables": [
+    "nearcore-observables-06.jsonl"
+   ]
+  },
+  "gdb811": {
+   "seed": 811,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 811002433, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 476,
+   "cold_accepted": 476,
+   "mutants": 100,
+   "log_tail": "rc=0 seconds=181",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "gdb812": {
+   "seed": 812,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 812002437, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 611,
+   "cold_accepted": 611,
+   "mutants": 125,
+   "log_tail": "rc=0 seconds=124",
+   "observables": [
+    "nearcore-observables-01.jsonl"
+   ]
+  },
+  "gdb813": {
+   "seed": 813,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 813002441, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 732,
+   "cold_accepted": 732,
+   "mutants": 141,
+   "log_tail": "rc=0 seconds=183",
+   "observables": [
+    "nearcore-observables-02.jsonl"
+   ]
+  },
+  "gdb814": {
+   "seed": 814,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 814002448, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 493,
+   "cold_accepted": 493,
+   "mutants": 100,
+   "log_tail": "rc=0 seconds=101",
+   "observables": [
+    "nearcore-observables-06.jsonl"
+   ]
+  },
+  "gdb815": {
+   "seed": 815,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 815002452, n_shards: 5, seats: 3, gas_limit_tgas: 1000, epoch_length: 12, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 671,
+   "cold_accepted": 671,
+   "mutants": 117,
+   "log_tail": "rc=0 seconds=153",
+   "observables": [
+    "nearcore-observables-07.jsonl"
+   ]
+  },
+  "gdb816": {
+   "seed": 816,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 816002456, n_shards: 6, seats: 8, gas_limit_tgas: 10, epoch_length: 12, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 742,
+   "cold_accepted": 742,
+   "mutants": 118,
+   "log_tail": "rc=0 seconds=144",
+   "observables": [
+    "nearcore-observables-08.jsonl"
+   ]
+  },
+  "gdb817": {
+   "seed": 817,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 817002460, n_shards: 4, seats: 100, gas_limit_tgas: 60, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 508,
+   "cold_accepted": 508,
+   "mutants": 100,
+   "log_tail": "rc=0 seconds=110",
+   "observables": [
+    "nearcore-observables-09.jsonl"
+   ]
+  },
+  "gdb818": {
+   "seed": 818,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 818002464, n_shards: 5, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 140, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 605,
+   "cold_accepted": 605,
+   "mutants": 116,
+   "log_tail": "rc=0 seconds=139",
+   "observables": [
+    "nearcore-observables-10.jsonl"
+   ]
+  },
+  "mb1618": {
+   "seed": 1618,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 1618004854, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 1059,
+   "cold_accepted": 1059,
+   "mutants": 628,
+   "log_tail": "rc=0 seconds=1725",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "mb2718": {
+   "seed": 2718,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 2718008154, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 1042,
+   "cold_accepted": 1042,
+   "mutants": 610,
+   "log_tail": "rc=0 seconds=2112",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "mb31415": {
+   "seed": 31415,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 31415094245, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 1064,
+   "cold_accepted": 1064,
+   "mutants": 604,
+   "log_tail": "rc=0 seconds=1742",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "mb6151": {
+   "seed": 6151,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 6151018453, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 300, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 1041,
+   "cold_accepted": 1041,
+   "mutants": 607,
+   "log_tail": "rc=0 seconds=2071",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "se701": {
+   "seed": 701,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 701002103, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 70, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 238,
+   "cold_accepted": 238,
+   "mutants": 2604,
+   "log_tail": "rc=0 seconds=124",
+   "observables": [
+    "nearcore-observables-00.jsonl"
+   ]
+  },
+  "se702": {
+   "seed": 702,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 702002107, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 70, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 300,
+   "cold_accepted": 300,
+   "mutants": 2581,
+   "log_tail": "rc=0 seconds=127",
+   "observables": [
+    "nearcore-observables-01.jsonl"
+   ]
+  },
+  "se703": {
+   "seed": 703,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 703002111, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 70, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 366,
+   "cold_accepted": 366,
+   "mutants": 2613,
+   "log_tail": "rc=0 seconds=109",
+   "observables": [
+    "nearcore-observables-02.jsonl"
+   ]
+  },
+  "se704": {
+   "seed": 704,
+   "chains": [
+    "D3Params { base: ChainParams { seed: 704002118, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 70, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 232,
+   "cold_accepted": 232,
+   "mutants": 2697,
+   "log_tail": "rc=0 seconds=100",
+   "observables": [
+    "nearcore-observables-06.jsonl"
+   ]
+  }
+ },
+ "raw_runs": "/data/illia/nearproof-deps/w10-runs/runs"
+}

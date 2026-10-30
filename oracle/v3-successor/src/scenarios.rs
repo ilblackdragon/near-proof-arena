@@ -1452,6 +1452,12 @@ fn outcome_tree(s: &Setup, id: &CryptoHash) -> Vec<serde_json::Value> {
 /// every chunk that ran the yield contract; storage-limits — the chunks of the final at/above
 /// probes of the two base searches (their 4 MB witnesses make drop-node mutants too large).
 pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String]) -> (bool, bool) {
+    // `mldsa` with the boundary signer (item 10): the full set (with drop-node mutants) for every
+    // chunk that carries a `z`-bound step
+    if crate::keys::mldsa_bound_mode() {
+        let f = tx_labels.iter().any(|l| l.contains("-z-at-") || l.contains("-z-bound-minus-one") || l.contains("-z-neg-bound-minus-one"));
+        return (f, f);
+    }
     match scenario() {
         Some(Scenario::Yield) => {
             let ran = executed.iter().any(|e| e["name"] == "yieldc");

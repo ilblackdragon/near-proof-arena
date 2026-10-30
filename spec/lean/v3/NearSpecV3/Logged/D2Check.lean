@@ -220,7 +220,8 @@ def checkD2CoreLObs (hooks : ActionHooksL) (allowCodes : Bool) (claimBytes witne
              outcomes := out.outcomes
              outgoing := out.outgoing
              stateChanges := out.committed
-             computeUsage := out.compute }
+             computeUsage := out.compute
+             detail := out.detail }
 
 
 /-- The signed logged checker: the observable logged checker projected to its verdict. -/

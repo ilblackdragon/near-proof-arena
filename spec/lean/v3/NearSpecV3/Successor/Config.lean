@@ -116,12 +116,17 @@ structure ProtocolCfg where
   /-- Opt-in lift of the `numShards ≤ 64` half of `c.layout`, the D0 routing-table size. nearcore
   has no such limit. The signed configuration keeps this `false`. -/
   layoutUnbounded : Bool := false
+  /-- Observation only (W01): record failure kinds, per-outcome compute and per-receipt storage
+  attribution (`NearCfg.observeDetail`). Set by the driver's `--emit-full` / `--blind-full`; no
+  check reads what it records. -/
+  observeDetail : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
 def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
   let base := if cfg.floats then Wasm.floatPv86 else Wasm.pv86
-  { base with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions, curveHosts := cfg.curveHosts }
+  { base with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions, curveHosts := cfg.curveHosts,
+              observeDetail := cfg.observeDetail }
 
 /-- The signed configuration: exactly `checkD3`'s arguments. `loadingLimits := true` because
 `Wasm.pv86` carries the pinned instance-loading rule (signed-tier valid-reject fixes 2026-10-27);

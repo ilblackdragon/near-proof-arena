@@ -73,12 +73,26 @@ checker computed them. Byte strings are hex; account ids are hex of their UTF-8 
 def detailJson (o : Observable) : List (String × Lean.Json) :=
   let hx := fun (b : List UInt8) => Lean.Json.str (hexOf b)
   let num := fun (n : Nat) => Lean.Json.str (toString n)
-  let outcome := fun (x : OutD1) => Lean.Json.mkObj [
-    ("id", hx x.o.id), ("executor", hx x.o.executorId), ("status", statusJson x.status),
+  let lookup := fun {α : Type} (l : List (List UInt8 × α)) (id : List UInt8) =>
+    (l.find? (·.1 == id)).map (·.2)
+  let d := o.detail
+  -- version 3 (W01): the failure kind inside a failed status, each outcome's compute usage
+  let status := fun (x : OutD1) => match x.status, d with
+    | .failure, some d => Lean.Json.mkObj [("kind", "failure"),
+        ("error", match lookup d.failKinds x.o.id with
+          | some k => Lean.Json.str k
+          | none => Lean.Json.null)]
+    | s, _ => statusJson s
+  let outcome := fun (x : OutD1) => Lean.Json.mkObj ([
+    ("id", hx x.o.id), ("executor", hx x.o.executorId), ("status", status x),
     ("gasBurnt", num x.o.gasBurnt), ("tokensBurnt", num x.o.tokensBurnt),
     ("logs", Lean.Json.arr (x.logs.map hx).toArray),
     ("receiptIds", Lean.Json.arr (x.o.receiptIds.map hx).toArray),
-    ("leaf", hx x.leaf)]
+    ("leaf", hx x.leaf)] ++ (match d with
+      | some d => [("computeUsage", match lookup d.outCompute x.o.id with
+          | some c => num c
+          | none => Lean.Json.null)]
+      | none => []))
   let rcpt := fun (r : D2.Rcpt) => Lean.Json.mkObj [
     ("id", hx r.rid), ("predecessor", hx r.pred), ("receiver", hx r.recv),
     ("kind", Lean.Json.str (rbodyKind r.body)), ("hash", hx (sha256 r.encode)),
@@ -92,7 +106,18 @@ def detailJson (o : Observable) : List (String × Lean.Json) :=
    ("stateChanges", match o.stateChanges with
       | some cs => Lean.Json.arr (cs.map change).toArray
       | none => Lean.Json.null),
-   ("computeUsage", match o.computeUsage with | some c => num c | none => Lean.Json.null)]
+   ("computeUsage", match o.computeUsage with | some c => num c | none => Lean.Json.null),
+   -- version 3 (W01): per processed transaction / receipt, the committed keys it changed
+   -- (an entry behind the marker id lists keys whose pre-state value the witness does not reveal)
+   ("receiptStateChanges", match d with
+      | some d => Lean.Json.arr (d.attrib.map fun (ids, cs) =>
+          let (pre, ids) := match ids with
+            | m :: rest => if m == StorageExecution.unknownPreMarker then (false, rest) else (true, ids)
+            | [] => (true, ids)
+          Lean.Json.mkObj [
+            ("ids", Lean.Json.arr (ids.map hx).toArray), ("preKnown", Lean.Json.bool pre),
+            ("changes", Lean.Json.arr (cs.map change).toArray)]).toArray
+      | none => Lean.Json.null)]
 
 /-- The emitted detail is the list the checker hashed: the outcome root, gas, logs and receipt count
 recomputed from it must equal the computed header-level values. A failure is a checker bug. -/
@@ -114,7 +139,7 @@ def outputRowFull (dir tier : String) (r : Except String Observable) : String ×
     ((Lean.Json.mkObj [("case", Lean.Json.str dir), ("tier", Lean.Json.str tier),
       ("verdict", Lean.Json.str (if ok then "accept" else "internal_error")),
       ("reason", Lean.Json.str (if ok then "" else "emitted detail does not hash to the computed outputs")),
-      ("outputsVersion", (2 : Nat)),
+      ("outputsVersion", (if o.detail.isSome then 3 else 2 : Nat)),
       ("selfCheck", Lean.Json.mkObj (sc.map fun (k, b) => (k, Lean.Json.bool b))),
       ("outputs", outs)]).compress, ok)
   | v, _ =>
@@ -156,6 +181,8 @@ def main (args : List String) : IO UInt32 := do
     | "--emit-full" :: ds => (some false, true, ds)
     | "--blind-full" :: ds => (some true, true, ds)
     | ds => (none, false, ds)
+  -- `--emit-full` / `--blind-full` also record the W01 detail (observation only, `observeDetail`)
+  let cfg := if full then { cfg with observeDetail := true } else cfg
   if dirs.isEmpty then
     IO.eprintln "at least one case directory is required"
     return 2
