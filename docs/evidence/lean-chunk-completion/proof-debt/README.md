@@ -15,7 +15,7 @@ or verdict table is required by the workplan rules; §5 says why the one behavio
 |---|---|---|
 | float overlap/range (W04) | **proved**. Range/fuel: `bitLen`'s and `isqrt`'s fuel, and every float operator maps `w`-bit inputs to `w`-bit results. Overlap (round 2): `checkD3F` returns `checkD3`'s result wherever `checkD3` decides, on every chunk (`Successor.FloatOverlap`, a corollary of W12's `relSuccessor_floats_mono`) | `NearSpecV3/Wasm/FloatRange.lean`, `Successor/FloatOverlap.lean` |
 | split correctness and authentication (W11) | **proved**: key-level correctness through squashing, per-column partition, independence from unread parent nodes (same child root on any refinement) | `NearSpecV3/ReshardingProofs.lean` |
-| `WitnessLift` (`Coverage.lean:191`) | **reduced to one rung** (round 2): `D2 ⊂ D3` proved (`relD2_relD3`), and `relD1a_relD3_of_d1_d2` gives `RelD1a → RelD3` (identity witness) from `D1 ⊂ D2` alone. **Open:** `D1 ⊂ D2` — see §6 | `NearSpecV3/D2SubD3.lean`, `NearSpecV3/D2SubD3/*` |
+| `WitnessLift` (`Coverage.lean:191`) | **not provable as stated** (round 3): `D2 ⊂ D3` is proved, but `D1 ⊂ D2` is **false** — a kernel-checked counterexample in `RelD1a B0` but not `RelD3` (§7). Needs a decision: D2's genesis rule in D0/D1, or a claim condition | `NearSpecV3/D2SubD3.lean`, `NearSpecV3/D2SubD3/*` |
 | wider kernel non-vacuity | **done**: storage-writing 3-receipt chunk and a split child, each accepted and its root mutant rejected, for `RelD3` and `Tier.rel .allFeatures` (8 kernel decisions, measured) | `NearSpecV3/Examples/RealCaseD3{Store,Split}*.lean` |
 | `Logged.API` / `D3LSpec` build | **repaired**, built and axiom-audited by the default target; the oracle driver `nearspec-v3-check-logged` and `AuditLogged.lean` are built and run by `make d3-drivers` (CI job `d3-drivers`) | `Logged/WasmCRCrypto.lean`, `Logged/Audit.lean`, `lakefile.toml`, `Makefile`, `oracle/wasm-d3/lean/LoggedHarness.lean` |
 
@@ -158,3 +158,46 @@ needed the `TTN.BMap` overlay type. `make d3-drivers` builds both and runs `Audi
 accept, 109 reject, 1 out of domain).
 
 **`d3rich` storage case at 60 GB (optional item).** tried `d3c7/d3/06-h10009-s0` (`d3rich`, two receipts, contract-data write) at a 60 GB cap: the first attempt hit the kernel heartbeat limit after 5:08 at 48.6 GB; with `maxHeartbeats 0` it was OOM-killed at 60 GB. Not claimed; the modules were not committed. A `d3rich` kernel case needs more than 60 GB.
+
+## 7. Round 3 (2026-10-30): D1 ⊂ D2 is false
+
+Scoping phase B of the planned D1 ⊂ D2 simulation (the claim checks) turned up a check D2 has and
+D1 lacks: D2 requires `!b.isGenesis || epoch_start_after = 1` for every block of the segment; D0/D1
+only require all flags to be 0. A d1run chunk whose segment ends at the genesis block, with that
+(trusted) flag falsely set to 0, is accepted by D0, D1 and D1a and rejected by D2 and D3. Proved by
+kernel evaluation: `not_d1_sub_d2`, `not_d1_sub_d3`, `not_d0_sub_d3`, `not_d1a_sub_d3`
+(`spec/lean/v3/NearSpecV3/Examples/D1NotSubD2*.lean`; evidence and the six cases in
+[`d1-genesis-flag/`](d1-genesis-flag/README.md)). The witness is the honest, nearcore-valid one, so
+this is not a Lean accept of a nearcore reject; it is a claim-discipline difference between the
+rungs. It does mean `WitnessLift` (and `RelD1a ⊂ RelD3` on the same bytes) cannot be proved without
+changing D0/D1 or adding a claim hypothesis, so the phase simulation was **not started**: its target
+statement needs that decision first.
+
+**Phase status of the D1 ⊂ D2 simulation** (the running list requested by the coordinator):
+
+| phase | content | status |
+|---|---|---|
+| A | claim decode, witness file, code / size gates | not started (identical terms in both checkers) |
+| B | witness decode (`decodeStateWitnessD1` ⇒ `decodeStateWitnessD2`, `pReceipt`/`pTxD1` ⇒ `pRcpt`/`pTxD2`) and claim checks | **blocked**: the claim checks differ by the genesis rule (counterexample above) |
+| C | chain walk and source receipts | not started |
+| D | main transition (`applyNewChunkD1` vs `applyNewChunkD2`: trie, transactions, receipts, congestion, bandwidth) | not started |
+| E | implicit transitions, header comparison, Reed–Solomon body | not started |
+
+Phase B's decoders turned out closer than feared: both use the strict `pAccountId` and reject
+ML-DSA signer keys, so no second decoder-level gap was found by reading.
+
+**Censuses (re-run serially, one process per case, at most 3 workers).** The round-2 numbers came
+from `xargs -P 3` writing to one file, which interleaved a few output lines; the serial re-runs:
+
+| population | cases | D1 accepts | D2 accept | D3 (`--tier signed`) accept |
+|---|---|---|---|---|
+| `d1run/d1` + `d1run/ood` | 7,039 | 3,394 | 3,394 | 3,394 |
+| `d1run/mutants`, every 8th (case list in a file) | 5,751 | 951 | 951 | 951 |
+
+The real corpora never contain the false genesis flag, which is why no census found the gap.
+
+**Recommendation.** The cleanest closure is the follow-up already in `docs/CONTRACTS.md`: define the
+lower rungs as restrictions of the top relation (`Rel_Dk := RelD3 ∧ InDk`), which makes every
+inclusion and `WitnessLift` a projection. The minimal alternative is to add D2's genesis rule to
+D0/D1 (it moves only false-flag claims from accept to reject), then run the phase simulation under
+it. Either changes a rung of the signed `near-chunk-v3` statement, so it needs the owner's decision.

@@ -109,7 +109,15 @@ theorem relD2_relD3 (c w : Bytes) (h : RelD2 c w) : D3.RelD3 c w := by
 `D0 ⊂ D1` (`relD0_relD1`) and `D2 ⊂ D3` (`relD2_relD3`) are proved, `D1a ⊂ D1` is a projection
 (`relD1a_relD1`). The one missing rung is `D1 ⊂ D2`. `WitnessLift B cb w := RelD1a B cb w →
 ∃ w2, RelD3 cb w2` (`zk-formal/ZkFormal/PQ/Join/Coverage.lean`) therefore follows, with the identity
-witness `w2 = w`, from that rung alone: -/
+witness `w2 = w`, from that rung alone.
+
+**The rung is false as stated** (2026-10-30, `Examples/D1NotSubD2.lean`, kernel-checked):
+D0/D1 never compare the `epoch_start_after` flags with the headers, D2/D3 require
+`!b.isGenesis || flag = 1`, so a claim whose segment ends at the genesis block with a false flag 0
+is in `RelD0`, `RelD1` and `RelD1a B0` but not in `RelD2`/`RelD3` (`not_d1_sub_d2`,
+`not_d1a_sub_d3`). The two lemmas below stay true but their hypothesis does not hold; closing
+`WitnessLift` needs either D2's genesis rule in D0/D1 or a claim condition (evidence:
+`docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`). -/
 
 theorem relD1a_relD3_of_d1_d2 (hd12 : ∀ cb w, RelD1 cb w → RelD2 cb w) {B : Nat} {cb w : Bytes}
     {W Dp N : Nat} (h : RelD1a B cb w W Dp N) : D3.RelD3 cb w :=
