@@ -49,7 +49,9 @@ string; where `x` returns an output inside the legacy size bound, `y` returns th
 Legacy exclusions, rejects above the bound and outputs over the size bound constrain nothing.
 
 `EngineAgree cfg`: `EngineRef` holds on every main-transition input the shell builds (the store is
-`mkHStore merged`, the trie is the revealed pre-state).
+`mkHStore merged`, the trie is the revealed pre-state), with both outputs' observation-only fields
+erased (`obsClear`; finding G0: the recorder reports `committed`/`compute`, the legacy engine does
+not, so without the erasure `EngineAgree` was false on every legacy accept).
 
 **Shell theorem (proved):** `checkD2CoreGWith_legacy_recorder` —
 `EngineAgree cfg → O4Witness w → legacyMergedBytes w ≤ 4,000,000 →
@@ -87,6 +89,87 @@ theorem decodeWitnessFileV_of_not_c (w : Bytes) (h : isCWitnessFile w = false) :
   unfold isCWitnessFile at h
   simp only [h, Bool.false_eq_true, ↓reduceIte]
 
+/-! ## Observation fields (finding G0, 2026-10-30)
+
+`MainOutD2` carries three observation-only fields (`committed`, `compute`, `detail`). The legacy
+engine leaves them `none`; the recorder engine reports `committed := some …` and
+`compute := some …` on every accept. So the first statement of `EngineRef` (`y = .ok out`) could
+never hold on a legacy accept, and `EngineAgree` as first stated was false outright (the conditional
+theorems were vacuous). No check reads these fields: the shell copies them into its `Observable`,
+which the `Unit`-valued checkers discard. `checkD2CoreWith_clearObs` and
+`checkD2CoreGWith_clearObs` prove that erasing them (`ExecutionDriver.clearObs`) leaves both
+`Unit`-valued shells unchanged, and the engine relation is now stated on `obsClear`-ed outputs. -/
+
+/-- The main-transition output with its observation-only fields erased. -/
+def obsClear (o : MainOutD2) : MainOutD2 := { o with committed := none, compute := none, detail := none }
+
+/-- The driver whose main transition reports no observation fields. -/
+def ExecutionDriver.clearObs (d : ExecutionDriver) : ExecutionDriver :=
+  { d with apply := fun h p e t vu ps rs txs cg => (d.apply h p e t vu ps rs txs cg).map obsClear }
+
+theorem except_map_bind_obs {β : Type} (x : Except String MainOutD2) (K : MainOutD2 → Except String β) :
+    (x.map obsClear >>= K) = (x >>= fun o => K (obsClear o)) := by cases x <;> rfl
+
+theorem umap_bind {α β : Type} (x : Except String α) {f g : α → Except String β}
+    (h : ∀ a, (f a).map (fun _ => ()) = (g a).map (fun _ => ())) :
+    (x >>= f).map (fun _ => ()) = (x >>= g).map (fun _ => ()) := by
+  cases x with
+  | error e => rfl
+  | ok a => exact h a
+
+theorem umap_pure {β : Type} (a b : β) :
+    (pure a : Except String β).map (fun _ => ()) = (pure b : Except String β).map (fun _ => ()) := rfl
+
+theorem umap_ite_join {β : Type} (c : Prop) [Decidable c] (x₁ x₂ : Except String Unit)
+    {K K' : Unit → Except String β} (hK : ∀ v, (K v).map (fun _ => ()) = (K' v).map (fun _ => ())) :
+    (if c then x₁ >>= K else x₂ >>= K).map (fun _ => ()) =
+      (if c then x₁ >>= K' else x₂ >>= K').map (fun _ => ()) := by
+  by_cases hc : c
+  · simp only [hc, ite_true]; exact umap_bind _ hK
+  · simp only [hc, ite_false]; exact umap_bind _ hK
+
+theorem umap_ite_skip {β : Type} (c : Prop) [Decidable c] (x : Except String Unit)
+    {K K' : Except String β} (hK : K.map (fun _ => ()) = K'.map (fun _ => ())) :
+    (if c then x >>= (fun _ => K) else K).map (fun _ => ()) =
+      (if c then x >>= (fun _ => K') else K').map (fun _ => ()) := by
+  by_cases hc : c
+  · simp only [hc, ite_true]; exact umap_bind _ fun _ => hK
+  · simp only [hc, ite_false]; exact hK
+
+theorem umap_ite {β : Type} (c : Prop) [Decidable c] {t t' e e' : Except String β}
+    (ht : t.map (fun _ => ()) = t'.map (fun _ => ())) (he : e.map (fun _ => ()) = e'.map (fun _ => ())) :
+    (if c then t else e).map (fun _ => ()) = (if c then t' else e').map (fun _ => ()) := by
+  by_cases hc : c
+  · simp only [hc, ite_true]; exact ht
+  · simp only [hc, ite_false]; exact he
+
+macro "umap_walk" : tactic => `(tactic|
+  repeat (first
+    | (exact umap_pure _ _)
+    | (with_reducible rfl)
+    | (refine umap_bind _ fun _ => ?_)
+    | (refine umap_ite_join _ _ _ fun _ => ?_)
+    | (refine umap_ite_skip _ _ ?_)
+    | (refine umap_ite _ ?_ ?_)
+    | (split <;> (try dsimp only)) ))
+
+set_option maxHeartbeats 16000000 in
+theorem checkD2CoreWith_clearObs (d : ExecutionDriver) (hooks : ActionHooks) (a : Bool) (c w : Bytes)
+    (g : Option Nat) :
+    checkD2CoreWith d.clearObs hooks a c w g = checkD2CoreWith d hooks a c w g := by
+  unfold checkD2CoreWith checkD2CoreWithObs
+  simp only [ExecutionDriver.clearObs, except_map_bind_obs, obsClear]
+  umap_walk
+
+set_option maxHeartbeats 16000000 in
+theorem checkD2CoreGWith_clearObs (d : ExecutionDriver) (hooks : ActionHooks) (a : Bool) (c w : Bytes)
+    (g : Option Nat) :
+    checkD2CoreGWith d.clearObs hooks a c w g = checkD2CoreGWith d hooks a c w g := by
+  unfold checkD2CoreGWith
+  rw [checkD2CoreWith_clearObs]
+  simp only [ExecutionDriver.clearObs, except_map_bind_obs, obsClear]
+  rfl
+
 /-! ## The engine relation -/
 
 /-- The legacy shell's size bound (`legacyDriver.sizeOk`). -/
@@ -108,8 +191,9 @@ def EngineAgree (cfg : Wasm.NearCfg) : Prop :=
     (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion),
     e.store = mkHStore merged →
     EngineRef (mergedBytes merged)
-      (applyNewChunkD2 (D3.d3Hooks cfg) p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg)
-      (StorageExecution.run cfg p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg false .coldPartial)
+      ((applyNewChunkD2 (D3.d3Hooks cfg) p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).map obsClear)
+      ((StorageExecution.run cfg p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg false .coldPartial).map
+        obsClear)
 
 /-! ## Engine phase E0: the legacy engine is its logged mirror
 
@@ -124,8 +208,9 @@ def EngineAgreeL (cfg : Wasm.NearCfg) : Prop :=
     (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion),
     e.store = mkHStore merged →
     EngineRef (mergedBytes merged)
-      (Logged.LM.ev e.store e.preRoot (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg))
-      (StorageExecution.run cfg p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg false .coldPartial)
+      ((Logged.LM.ev e.store e.preRoot (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg)).map obsClear)
+      ((StorageExecution.run cfg p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg false .coldPartial).map
+        obsClear)
 
 /-- **E0.** The legacy main transition on the shell's inputs is its logged mirror. -/
 theorem applyNewChunkD2_eq_logged (cfg : Wasm.NearCfg) (merged : List Bytes) (p : Prims) (e : Env)
@@ -252,22 +337,45 @@ theorem engineAgreeL_of_simE (cfg : Wasm.NearCfg) (P : StorageExecution.Recordin
     (h : ∀ (merged : List Bytes) (p : Prims) (e : Env) (vu : Option ValidatorUpdateFacts)
       (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion),
       e.store = mkHStore merged →
-      SimE e P id (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg)
-        (StorageExecution.applyNewChunkD2 { globalActions := false, codePolicy := .coldPartial } cfg p e
+      SimE e P obsClear (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg)
+        (obsClear <$> StorageExecution.applyNewChunkD2 { globalActions := false, codePolicy := .coldPartial } cfg p e
           (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg)) :
     EngineAgreeL cfg := by
   intro merged p e vu ps rs txs cg he
   have hs := h merged p e vu ps rs txs cg he _ hinit
+  have hmap : ∀ {β γ : Type} (f : β → γ) (y : StorageExecution.M β) (r : StorageExecution.Recording),
+      (f <$> y).run r e = (y.run r e).map fun q => (f q.1, q.2) := by
+    intro β γ f y r
+    simp only [StateT.run_map]
+    rfl
+  rw [hmap] at hs
   refine ⟨fun err hx hne _ => ?_, fun out hx _ => ?_⟩
-  · rw [hx] at hs
-    rcases hs with hs | hs
-    · rw [hne] at hs; cases hs
-    · unfold StorageExecution.run
-      rw [hs]; rfl
-  · rw [hx] at hs
-    obtain ⟨r', hy, _⟩ := hs
-    unfold StorageExecution.run
-    rw [hy]; rfl
+  · cases hl : Logged.LM.ev e.store e.preRoot (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg) with
+    | ok a => rw [hl] at hx; cases hx
+    | error err' =>
+      rw [hl] at hx hs
+      cases hx
+      rcases hs with hs | hs
+      · rw [hne] at hs; cases hs
+      · unfold StorageExecution.run
+        cases hy : (StorageExecution.applyNewChunkD2 { globalActions := false, codePolicy := .coldPartial } cfg p e
+          (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).run { observe := cfg.observeDetail } e with
+        | ok q => rw [hy] at hs; cases hs
+        | error err'' => rw [hy] at hs; cases hs; rfl
+  · cases hl : Logged.LM.ev e.store e.preRoot (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg) with
+    | error err' => rw [hl] at hx; cases hx
+    | ok a =>
+      rw [hl] at hx hs
+      cases hx
+      obtain ⟨r', hy, _⟩ := hs
+      unfold StorageExecution.run
+      cases hy' : (StorageExecution.applyNewChunkD2 { globalActions := false, codePolicy := .coldPartial } cfg p e
+          (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).run { observe := cfg.observeDetail } e with
+      | error err'' => rw [hy'] at hy; cases hy
+      | ok q =>
+        rw [hy'] at hy
+        simp only [Except.map, Except.ok.injEq, Prod.mk.injEq] at hy
+        simp only [Except.map, hy.1]
 
 #print axioms engineAgreeL_of_simE
 #print axioms SimE.bind
@@ -342,11 +450,11 @@ theorem legacyMergedBytes_of_decode {w sw : Bytes} {codes : List Bytes} {sw' : S
 
 theorem checkD2CoreWithObs_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgree cfg)
     (c w : Bytes) (hw : O4Witness w) (hB : legacyMergedBytes w ≤ legacyStorageBound) (g : Option Nat) :
-    Refines (checkD2CoreWithObs legacyDriver (D3.d3Hooks cfg) true c w g)
-      (checkD2CoreWithObs (recorderDriver cfg) (D3.d3Hooks cfg) true c w g) := by
+    Refines (checkD2CoreWithObs legacyDriver.clearObs (D3.d3Hooks cfg) true c w g)
+      (checkD2CoreWithObs (recorderDriver cfg).clearObs (D3.d3Hooks cfg) true c w g) := by
   unfold checkD2CoreWithObs
-  simp only [legacyDriver, recorderDriver, Bool.false_eq_true, ↓reduceIte, Bool.not_true,
-    decodeWitnessFileV_of_not_c w hw.1]
+  simp only [ExecutionDriver.clearObs, legacyDriver, recorderDriver, Bool.false_eq_true, ↓reduceIte,
+    Bool.not_true, decodeWitnessFileV_of_not_c w hw.1]
   refine Refines.bind' rfl fun cl => ?_
   refine Refines.bind_ok fun ⟨sw, codes⟩ hd => ?_
   refine Refines.check_bind_right _ _ (decide_eq_true (hw.2 sw codes hd)) ?_
@@ -360,8 +468,9 @@ theorem checkD2CoreWithObs_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgre
 theorem checkD2CoreWith_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgree cfg)
     (c w : Bytes) (hw : O4Witness w) (hB : legacyMergedBytes w ≤ legacyStorageBound) (g : Option Nat) :
     Refines (checkD2CoreWith legacyDriver (D3.d3Hooks cfg) true c w g)
-      (checkD2CoreWith (recorderDriver cfg) (D3.d3Hooks cfg) true c w g) :=
-  Refines.map _ (checkD2CoreWithObs_legacy_recorder cfg hE c w hw hB g)
+      (checkD2CoreWith (recorderDriver cfg) (D3.d3Hooks cfg) true c w g) := by
+  rw [← checkD2CoreWith_clearObs legacyDriver, ← checkD2CoreWith_clearObs (recorderDriver cfg)]
+  exact Refines.map _ (checkD2CoreWithObs_legacy_recorder cfg hE c w hw hB g)
 
 set_option maxHeartbeats 16000000 in
 /-- **O4, shell level.** The genesis-capable shell at the legacy driver (`checkD2CoreG`) is refined
@@ -371,12 +480,16 @@ theorem checkD2CoreGWith_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgree 
     (c w : Bytes) (hw : O4Witness w) (hB : legacyMergedBytes w ≤ legacyStorageBound) (g : Option Nat) :
     Refines (checkD2CoreG (D3.d3Hooks cfg) true c w g)
       (checkD2CoreGWith (recorderDriver cfg) (D3.d3Hooks cfg) true c w g) := by
-  have hW := checkD2CoreWith_legacy_recorder cfg hE c w hw hB g
-  rw [← legacy_genesis_eq]
+  have hW : Refines (checkD2CoreWith legacyDriver.clearObs (D3.d3Hooks cfg) true c w g)
+      (checkD2CoreWith (recorderDriver cfg).clearObs (D3.d3Hooks cfg) true c w g) := by
+    rw [checkD2CoreWith_clearObs, checkD2CoreWith_clearObs]
+    exact checkD2CoreWith_legacy_recorder cfg hE c w hw hB g
+  rw [← legacy_genesis_eq, ← checkD2CoreGWith_clearObs legacyDriver,
+    ← checkD2CoreGWith_clearObs (recorderDriver cfg)]
   unfold checkD2CoreGWith
-  simp only [legacyDriver, recorderDriver, Bool.false_eq_true, ↓reduceIte, Bool.not_true,
-    decodeWitnessFileV_of_not_c w hw.1]
-  simp only [legacyDriver, recorderDriver, Bool.false_eq_true, ↓reduceIte] at hW
+  simp only [ExecutionDriver.clearObs, legacyDriver, recorderDriver, Bool.false_eq_true, ↓reduceIte,
+    Bool.not_true, decodeWitnessFileV_of_not_c w hw.1]
+  simp only [ExecutionDriver.clearObs, legacyDriver, recorderDriver, Bool.false_eq_true, ↓reduceIte] at hW
   refine Refines.bind' rfl fun cl => ?_
   refine Refines.bind_ok fun ⟨sw, codes⟩ hd => ?_
   refine Refines.check_bind_right _ _ (decide_eq_true (hw.2 sw codes hd)) ?_
