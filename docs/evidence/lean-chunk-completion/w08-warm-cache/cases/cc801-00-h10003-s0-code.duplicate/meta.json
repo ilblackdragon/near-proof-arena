@@ -1,0 +1,36 @@
+{
+  "base": "00-h10003-s0",
+  "case": "00-h10003-s0-code.duplicate",
+  "codes": [
+    {
+      "hash": "9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc",
+      "len": 345,
+      "name": "d3tiny"
+    },
+    {
+      "hash": "9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc",
+      "len": 345,
+      "name": "d3tiny"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 106535648703,
+    "fc_gas_burnt_for_function_call": 106535648703
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "code.duplicate",
+  "nearcore": "ok",
+  "nearcore_probe": {
+    "poisoned": "validate: InvalidChunkStateWitness(\"Post state root 3T1RaKU9zYpuPPPZpGa9GLAYzQSW7GHosh4vB4wrLxB6 for main transition does not match expected post state root DA571Gz2nnP6yWN1Exp9AMbMqQkRzg6ShKJbXM8gX4EQ\")",
+    "poisoned_cache": "every registry contract compiled under the next one's hash (incoherent control)",
+    "warm": "ok",
+    "warm_cache": "every registry contract precompiled (coherent)"
+  },
+  "verdict_source": "nearcore(cold)"
+}

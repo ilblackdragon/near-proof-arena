@@ -1,0 +1,31 @@
+{
+  "base": "00-h10004-s2",
+  "case": "00-h10004-s2-code.none",
+  "codes": [],
+  "d3_violations": [
+    "e.code_deploy_served"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1362915239379,
+    "fc_gas_burnt_for_function_call": 1362915239379
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "code.none",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+  "nearcore_probe": {
+    "poisoned": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: H5K8NLLj2kbHKmq3jU6qipMnRftBniZvXMJpfwSFEDFf }))",
+    "poisoned_cache": "every registry contract compiled under the next one's hash (incoherent control)",
+    "warm": "ok",
+    "warm_cache": "every registry contract precompiled (coherent)"
+  },
+  "nearcore_schedule": {
+    "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+    "lazy": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4 }))"
+  },
+  "verdict_source": "nearcore(cold)"
+}
