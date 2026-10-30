@@ -1,0 +1,3781 @@
+{
+ "binaries": {
+  "control": {
+   "path": "nearspec-v3-ctl-successor built from tools/d3/l0_ctl_patch.py over spec/lean at 0e7a77fd4",
+   "sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911"
+  },
+  "default": {
+   "path": "gateb-freeze-2368b8713/checker (nearspec-v3-check-successor, spec/lean identical to this commit)",
+   "sha256": "9b583e3a42e6bb50edf5ec8557fea7e30b9f0a01d72724f688aac15929b233f8"
+  }
+ },
+ "default_replay": {
+  "guard_mutants": {
+   "cases": 132,
+   "disagreement_reasons": [],
+   "disagreements": 0,
+   "output_sha256": "4432d903e8a7ee359facdad4e4d40908f58aa814f1d5ec3687c36fb3ebdb6ed5",
+   "partition": {
+    "verdict_compared_agree": 132
+   },
+   "status": "pass",
+   "verdicts": {
+    "reject": 132
+   }
+  },
+  "sample": {
+   "cases": 51164,
+   "disagreement_reasons": [
+    "out of domain (e.code_prep_race): contract preparation pipel"
+   ],
+   "disagreements": 16,
+   "output_sha256": "9729fc85e376afb058bcd8b93957916f1a969e89292ff26f50b5df7f2c9a66b8",
+   "partition": {
+    "domain_exclusion_asserted": 4,
+    "domain_exclusion_unasserted": 12,
+    "domain_exclusion_where_in_domain": 4,
+    "verdict_agree_outside_domain": 25314,
+    "verdict_compared_agree": 25830
+   },
+   "status": "fail",
+   "verdicts": {
+    "accept": 42763,
+    "out_of_domain": 20,
+    "reject": 8381
+   }
+  },
+  "supplement": {
+   "cases": 2218,
+   "disagreement_reasons": [],
+   "disagreements": 0,
+   "output_sha256": "44167d43af8a8ef8a48bc07c0edd2ee76a07fd8d80f57d70cc801c42c99282e7",
+   "partition": {
+    "verdict_agree_outside_domain": 848,
+    "verdict_compared_agree": 1370
+   },
+   "status": "pass",
+   "verdicts": {
+    "reject": 2218
+   }
+  }
+ },
+ "identity": {
+  "guard_mutants": "132/132 identical",
+  "sample": "51,164/51,164 identical verdict and reason (control build with NEARSPEC_TRACE=1 vs default)",
+  "supplement": "2,218/2,218 identical"
+ },
+ "populations": {
+  "guard_mutants": "132 claim mutants (tools/d3/l0_guard_mutants.py, 12 per guard over d3c7-d3c10 bases), committed under guard-mutants/",
+  "sample": "all 39,942 non-mutant corpus cases (d1run, d2corpus.v2, d3c7-d3c10: honest + ood), the 3,138-case census, 1,363 fixture-family cases (freeze list; 7 with a missing meta.json skipped) and a 5% random sample (seed 20261031) of the corpus mutants: 51,164 cases",
+  "supplement": "20% random sample (seed 31) of the nearcore-rejected mutants of the remaining-shapes runs state-init-emit (se701-se704), dist-identity (gd/gdb812-818) and the yield regen y4242: 2,218 cases"
+ },
+ "rows": {
+  "L0-D2-006": {
+   "control": {
+    "ablated_disagreements": 0,
+    "ablated_verdicts": {
+     "reject": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.empty_segment"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: empty chain segment",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.empty_segment",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.empty_segment"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: empty chain segment"
+  },
+  "L0-D2-007": {
+   "control": {
+    "ablated_disagreements": 0,
+    "ablated_verdicts": {
+     "reject": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.epoch_dup"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: epoch table not strictly ascending",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.epoch_dup",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.epoch_dup"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: epoch table not strictly ascending"
+  },
+  "L0-D2-010": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "out_of_domain": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.epoch_record_pv"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: epoch table does not match epoch_id / protocol_version",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.epoch_record_pv",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.epoch_record_pv"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: epoch table does not match epoch_id / protocol_version"
+  },
+  "L0-D2-016": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "accept": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.esa_extra_flag"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: epoch_start_after length",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.esa_extra_flag",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.esa_extra_flag"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: epoch_start_after length"
+  },
+  "L0-D2-017": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "accept": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.esa_flag2"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: epoch_start_after flag",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.esa_flag2",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.esa_flag2"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: epoch_start_after flag"
+  },
+  "L0-D2-021": {
+   "control": {
+    "ablated_disagreements": 0,
+    "ablated_verdicts": {
+     "reject": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.blocks_reversed"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: segment does not start at prev_block_hash",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.blocks_reversed",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.blocks_reversed"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: segment does not start at prev_block_hash"
+  },
+  "L0-D2-022": {
+   "control": {
+    "ablated_disagreements": 0,
+    "ablated_verdicts": {
+     "reject": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10126-s2-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c10-00-h10140-s1-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c7-00-h10108-s1-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c7-00-h10148-s3-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c8-00-h10126-s0-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c8-00-h10138-s1-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c8-01-h10016-s3-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c9-00-h10066-s3-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c9-00-h10154-s2-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c9-00-h10179-s1-l0.c.drop_middle_block"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: segment is not hash-linked",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10126-s2-l0.c.drop_middle_block",
+     "l0-row-validation/guard-mutants/d3c10-00-h10140-s1-l0.c.drop_middle_block"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: segment is not hash-linked"
+  },
+  "L0-D2-028": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "accept": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.genesis_extra_some"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: genesis_chunk_extra for a non-genesis main block",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.genesis_extra_some",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.genesis_extra_some"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: genesis_chunk_extra for a non-genesis main block"
+  },
+  "L0-D2-030": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "accept": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.apply_facts_extra"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: apply_facts length",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.apply_facts_extra",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.apply_facts_extra"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: apply_facts length"
+  },
+  "L0-D2-031": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "accept": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.validator_update_toggle"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: validator_update does not match the epoch start",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.validator_update_toggle",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.validator_update_toggle"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: validator_update does not match the epoch start"
+  },
+  "L0-D2-037": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "accept": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c10-00-h10030-s1-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c7-00-h10004-s1-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c7-00-h10016-s2-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c7-00-h10033-s0-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c8-00-h10004-s1-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c8-00-h10018-s2-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c8-00-h10034-s2-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c9-00-h10004-s1-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c9-00-h10019-s0-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c9-00-h10036-s1-l0.c.tx_valid_extra"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: tx_valid length",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.tx_valid_extra",
+     "l0-row-validation/guard-mutants/d3c10-00-h10016-s3-l0.c.tx_valid_extra"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 12,
+    "source": "claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks (d3c7-d3c10), each rejected first by this guard"
+   },
+   "target": "guard:invalid: tx_valid length"
+  },
+  "L0-action-00": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10005-s1",
+     "d2corpus.v2/mutants/00-h10054-s2-w.new_tx.drop_rehashed",
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d3c10/d3/00-h10004-s2",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10030-s2-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10010-s0",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add",
+     "d3c10/mutants/00-h10015-s0-code.flip.1",
+     "d3c7/mutants/00-h10030-s2-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10013-s3-code.drop.1"
+    ],
+    "cases": 16,
+    "target": "act:0",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10005-s1",
+     "d2corpus.v2/d2/00-h10005-s2",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.proposals.add"
+    ],
+    "nearcore_accept": 10571,
+    "nearcore_reject": 1301,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:0"
+  },
+  "L0-action-01": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10005-s1",
+     "d2corpus.v2/mutants/01-h10011-s3-t.chain_id(unused_in_D0)",
+     "d2corpus.v2/ood/00-h10010-s3",
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10013-s2",
+     "d3c7/d3/00-h10006-s3",
+     "d3c7/mutants/00-h10059-s0-code.extra_garbage",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10007-s3",
+     "d3c8/mutants/00-h10057-s1-code.duplicate",
+     "d3c8/ood/00-h10029-s2",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add",
+     "d3c10/mutants/00-h10036-s2-code.drop.0",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10011-s2-code.truncate.0"
+    ],
+    "cases": 16,
+    "target": "act:1",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10005-s1",
+     "d2corpus.v2/d2/00-h10006-s3",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.proposals.add"
+    ],
+    "nearcore_accept": 4932,
+    "nearcore_reject": 643,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:1"
+  },
+  "L0-action-02": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10012-s0-t.chain_id(unused_in_D0)",
+     "d3c10/mutants/00-h10005-s0-code.drop.0",
+     "d3c7/mutants/00-h10008-s3-code.truncate.0",
+     "d3c8/mutants/00-h10011-s2-code.truncate.0",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "act:2",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d2corpus.v2/ood/00-h10010-s1",
+     "d3c10/mutants/00-h10005-s0-code.drop.0",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root"
+    ],
+    "nearcore_accept": 17757,
+    "nearcore_reject": 2880,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:2"
+  },
+  "L0-action-03": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d1run/d1/00-h10006-s1",
+     "d1run/mutants/00-h10006-s1-w.base_state.extra_junk",
+     "d1run/ood/00-h10005-s1",
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/mutants/00-h10007-s3-hdr.height_created",
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d3c10/d3/00-h10004-s2",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d1run/mutants/00-h10008-s0-hdr.proposals.add",
+     "d2corpus.v2/mutants/00-h10007-s3-hdr.prev_outgoing_receipts_root",
+     "d3c10/mutants/00-h10005-s0-code.drop.0",
+     "d3c7/mutants/00-h10009-s2-code.flip.1"
+    ],
+    "cases": 16,
+    "target": "act:3",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d1run/d1/00-h10006-s1",
+     "d1run/d1/00-h10006-s2",
+     "d1run/mutants/00-h10008-s0-hdr.proposals.add",
+     "d1run/mutants/00-h10008-s0-w.drop_node.main.15"
+    ],
+    "nearcore_accept": 38112,
+    "nearcore_reject": 4771,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:3"
+  },
+  "L0-action-04": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10010-s2",
+     "d2corpus.v2/mutants/00-h10110-s0-t.validator_reward.other_shard.0(unread)",
+     "d2corpus.v2/ood/02-h10006-s3",
+     "d3c10/d3/00-h10010-s3",
+     "d3c10/mutants/00-h10098-s0-w.base_state.extra_junk",
+     "d3c10/ood/00-h10003-s2",
+     "d3c7/d3/00-h10005-s0",
+     "d3c7/mutants/00-h10030-s2-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10003-s2",
+     "d3c8/d3/00-h10016-s3",
+     "d3c8/mutants/00-h10052-s1-code.extra_garbage",
+     "d3c8/ood/00-h10057-s2",
+     "d2corpus.v2/mutants/00-h10110-s0-t.tx_valid_flip.0",
+     "d3c10/mutants/00-h10038-s0-code.flip.0",
+     "d3c7/mutants/00-h10030-s2-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10099-s1-code.flip.0"
+    ],
+    "cases": 16,
+    "target": "act:4",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10010-s2",
+     "d2corpus.v2/d2/00-h10021-s2",
+     "d2corpus.v2/mutants/00-h10110-s0-t.tx_valid_flip.0",
+     "d2corpus.v2/mutants/00-h10110-s0-w.drop_node.main.39"
+    ],
+    "nearcore_accept": 2697,
+    "nearcore_reject": 329,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:4"
+  },
+  "L0-action-05": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/mutants/00-h10022-s2-hdr.height_included(unchecked)",
+     "d2corpus.v2/ood/00-h10010-s1",
+     "d3c10/d3/00-h10004-s2",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10030-s2-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10003-s2",
+     "d3c8/d3/00-h10006-s3",
+     "d3c8/mutants/00-h10052-s1-code.extra_garbage",
+     "d3c8/ood/00-h10004-s2",
+     "d2corpus.v2/mutants/00-h10017-s2-hdr.bandwidth_requests.add",
+     "d3c10/mutants/00-h10030-s0-hdr.prev_state_root",
+     "d3c7/mutants/00-h10030-s2-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10011-s2-code.truncate.0"
+    ],
+    "cases": 16,
+    "target": "act:5",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/d2/00-h10005-s3",
+     "d2corpus.v2/mutants/00-h10017-s2-hdr.bandwidth_requests.add",
+     "d2corpus.v2/mutants/00-h10127-s2-hdr.encoded_length"
+    ],
+    "nearcore_accept": 11896,
+    "nearcore_reject": 1533,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:5"
+  },
+  "L0-action-06": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10003-s0",
+     "d2corpus.v2/mutants/00-h10045-s0-w.new_tx.drop_rehashed",
+     "d2corpus.v2/ood/00-h10010-s1",
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/mutants/00-h10030-s0-code.extra_garbage",
+     "d3c10/ood/00-h10014-s3",
+     "d3c7/d3/00-h10008-s1",
+     "d3c7/mutants/01-h10105-s2-w.base_state.extra_junk",
+     "d3c7/ood/00-h10012-s3",
+     "d3c8/d3/00-h10008-s1",
+     "d3c8/mutants/00-h10138-s3-hdr.height_included(unchecked)",
+     "d3c8/ood/00-h10004-s2",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add",
+     "d3c10/mutants/00-h10030-s0-hdr.prev_state_root",
+     "d3c7/mutants/00-h10074-s3-code.flip.0",
+     "d3c8/mutants/00-h10138-s3-t.tx_valid_flip.0"
+    ],
+    "cases": 16,
+    "target": "act:6",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10003-s0",
+     "d2corpus.v2/d2/00-h10011-s3",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.bandwidth_requests.add",
+     "d2corpus.v2/mutants/00-h10031-s3-hdr.proposals.add"
+    ],
+    "nearcore_accept": 3343,
+    "nearcore_reject": 393,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:6"
+  },
+  "L0-action-07": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10003-s2",
+     "d2corpus.v2/mutants/00-h10156-s1-w.base_state.extra_junk",
+     "d2corpus.v2/ood/00-h10021-s3",
+     "d3c10/d3/00-h10005-s2",
+     "d3c10/mutants/00-h10037-s1-code.extra_garbage",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10006-s0",
+     "d3c7/mutants/00-h10051-s3-w.main_block_hash(unchecked)",
+     "d3c7/ood/00-h10010-s3",
+     "d3c8/d3/00-h10012-s3",
+     "d3c8/mutants/00-h10023-s0-code.extra_unneeded",
+     "d3c8/ood/00-h10006-s2",
+     "d2corpus.v2/mutants/00-h10177-s1-t.tx_valid_flip.0",
+     "d3c10/mutants/00-h10016-s1-code.none",
+     "d3c7/mutants/00-h10051-s3-code.flip.0",
+     "d3c8/mutants/00-h10056-s1-hdr.congestion.receipt_bytes"
+    ],
+    "cases": 16,
+    "target": "act:7",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10003-s2",
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/mutants/00-h10177-s1-t.tx_valid_flip.0",
+     "d2corpus.v2/mutants/00-h10177-s1-w.main_post_root"
+    ],
+    "nearcore_accept": 4131,
+    "nearcore_reject": 511,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:7"
+  },
+  "L0-action-08": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/mutants/00-h10100-s0-w.unsorted_keys",
+     "d2corpus.v2/ood/00-h10016-s2",
+     "d3c10/d3/00-h10005-s2",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10013-s2",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10005-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d2corpus.v2/mutants/00-h10100-s0-hdr.prev_outcome_root",
+     "d3c10/mutants/00-h10021-s3-code.flip.0",
+     "d3c7/mutants/00-h10057-s0-code.drop.0",
+     "d3c8/mutants/00-h10094-s2-hdr.tx_root"
+    ],
+    "cases": 16,
+    "target": "act:D8",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/d2/00-h10007-s0",
+     "d2corpus.v2/mutants/00-h10100-s0-hdr.prev_outcome_root",
+     "d2corpus.v2/mutants/00-h10100-s0-w.drop_node.main.14"
+    ],
+    "nearcore_accept": 6333,
+    "nearcore_reject": 660,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:D8"
+  },
+  "L0-action-12": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10014-s3",
+     "d2corpus.v2/mutants/04-h10014-s0-w.new_tx.sig_flip_rehashed",
+     "d2corpus.v2/ood/00-h10013-s3",
+     "d3c10/d3/00-h10019-s0",
+     "d3c10/mutants/00-h10140-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10056-s1",
+     "d3c7/d3/00-h10004-s1",
+     "d3c7/mutants/00-h10111-s2-code.extra_unneeded",
+     "d3c7/ood/00-h10062-s3",
+     "d3c8/d3/00-h10018-s0",
+     "d3c8/mutants/00-h10018-s0-w.dup_key_last_good",
+     "d3c8/ood/00-h10010-s0",
+     "d2corpus.v2/mutants/00-h10148-s3-hdr.prev_outcome_root",
+     "d3c10/mutants/01-h10197-s2-hdr.congestion.allowed_shard",
+     "d3c7/mutants/01-h10048-s3-hdr.prev_state_root",
+     "d3c8/mutants/00-h10018-s0-w.drop_node.main.1"
+    ],
+    "cases": 16,
+    "target": "act:12",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10014-s3",
+     "d2corpus.v2/d2/00-h10023-s2",
+     "d2corpus.v2/mutants/00-h10148-s3-hdr.prev_outcome_root",
+     "d2corpus.v2/mutants/01-h10111-s0-hdr.prev_gas_used"
+    ],
+    "nearcore_accept": 951,
+    "nearcore_reject": 107,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:12"
+  },
+  "L0-action-13": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/mutants/00-h10035-s1-t.minimum_stake(unused_in_D0)",
+     "d2corpus.v2/ood/00-h10034-s0",
+     "d3c10/d3/00-h10013-s0",
+     "d3c10/mutants/00-h10044-s0-code.extra_garbage",
+     "d3c10/ood/00-h10046-s3",
+     "d3c7/d3/00-h10018-s1",
+     "d3c7/mutants/04-h10074-s2-code.reorder",
+     "d3c7/ood/00-h10038-s2",
+     "d3c8/d3/00-h10005-s3",
+     "d3c8/mutants/01-h10189-s1-code.duplicate",
+     "d3c8/ood/00-h10015-s3",
+     "d2corpus.v2/mutants/00-h10035-s1-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/00-h10044-s0-hdr.encoded_merkle_root",
+     "d3c7/mutants/03-h10098-s3-hdr.congestion.receipt_bytes",
+     "d3c8/mutants/00-h10139-s0-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "act:13",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10004-s0",
+     "d2corpus.v2/d2/00-h10005-s3",
+     "d2corpus.v2/mutants/00-h10035-s1-hdr.congestion.receipt_bytes",
+     "d2corpus.v2/mutants/00-h10161-s3-w.drop_node.main.27"
+    ],
+    "nearcore_accept": 729,
+    "nearcore_reject": 76,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:13"
+  },
+  "L0-action-14": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/d2/00-h10015-s3",
+     "d2corpus.v2/mutants/02-h10094-s2-hdr.height_included(unchecked)",
+     "d2corpus.v2/ood/00-h10020-s0",
+     "d3c10/d3/00-h10018-s1",
+     "d3c10/mutants/02-h10084-s2-code.extra_unneeded",
+     "d3c10/ood/00-h10038-s2",
+     "d3c7/d3/00-h10030-s0",
+     "d3c7/mutants/02-h10035-s3-code.extra_garbage",
+     "d3c7/ood/00-h10058-s1",
+     "d3c8/d3/00-h10012-s2",
+     "d3c8/mutants/02-h10049-s3-w.unsorted_keys",
+     "d3c8/ood/00-h10010-s0",
+     "d2corpus.v2/mutants/01-h10020-s4-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/02-h10036-s2-hdr.congestion.allowed_shard",
+     "d3c7/mutants/00-h10134-s1-hdr.prev_balance_burnt",
+     "d3c8/mutants/02-h10049-s3-hdr.prev_outgoing_receipts_root"
+    ],
+    "cases": 16,
+    "target": "act:D14",
+    "what": "the action reports 1 extra gas burnt and used"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/d2/00-h10015-s3",
+     "d2corpus.v2/d2/00-h10039-s3",
+     "d2corpus.v2/mutants/01-h10020-s4-hdr.congestion.receipt_bytes",
+     "d2corpus.v2/mutants/01-h10020-s4-t.tx_valid_flip.3"
+    ],
+    "nearcore_accept": 794,
+    "nearcore_reject": 76,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "act:D14"
+  },
+  "L0-host-abort": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 13
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10089-s1",
+     "d3c10/mutants/01-h10078-s4-code.extra_unneeded",
+     "d3c7/d3/00-h10024-s1",
+     "d3c7/mutants/01-h10142-s4-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/01-h10047-s3",
+     "d3c8/d3/00-h10008-s1",
+     "d3c8/mutants/01-h10100-s3-code.extra_garbage",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/01-h10010-s4",
+     "d3c9/ood/02-h10014-s1",
+     "cross-family-fixtures/cases/cc202-01-h10076-s0",
+     "global-cache-fixtures/cases/00-h10059-s3",
+     "d3c7/mutants/01-h10142-s4-hdr.prev_gas_used"
+    ],
+    "cases": 13,
+    "target": "host:abort",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10089-s1",
+     "d3c10/d3/00-h10089-s2",
+     "d3c7/mutants/01-h10142-s4-hdr.prev_gas_used"
+    ],
+    "nearcore_accept": 178,
+    "nearcore_reject": 1,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:abort"
+  },
+  "L0-host-account_balance": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10021-s0",
+     "d3c10/mutants/00-h10099-s0-code.duplicate",
+     "d3c10/ood/00-h10014-s2",
+     "d3c7/d3/00-h10006-s1",
+     "d3c7/mutants/00-h10086-s3-code.duplicate",
+     "d3c7/ood/00-h10031-s3",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10010-s0",
+     "d3c9/d3/00-h10010-s1",
+     "d3c9/mutants/00-h10014-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10006-s1",
+     "d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas",
+     "d3c7/mutants/01-h10088-s0-hdr.congestion.allowed_shard",
+     "d3c8/mutants/00-h10088-s1-code.truncate.0",
+     "d3c9/mutants/00-h10057-s2-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:account_balance",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10021-s0",
+     "d3c10/d3/00-h10022-s3",
+     "d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas",
+     "d3c10/mutants/00-h10099-s0-code.drop.0"
+    ],
+    "nearcore_accept": 1081,
+    "nearcore_reject": 130,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:account_balance"
+  },
+  "L0-host-account_locked_balance": {
+   "control": {
+    "ablated_disagreements": 11,
+    "ablated_verdicts": {
+     "accept": 1,
+     "reject": 15
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/mutants/00-h10126-s3-hdr.height_created",
+     "d3c10/ood/00-h10019-s3",
+     "d3c7/d3/00-h10011-s3",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10010-s0",
+     "d3c8/d3/00-h10015-s1",
+     "d3c8/mutants/00-h10057-s1-code.duplicate",
+     "d3c8/ood/00-h10010-s0",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10014-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10019-s2",
+     "d3c10/mutants/00-h10016-s1-w.drop_node.main.45",
+     "d3c7/mutants/00-h10044-s1-hdr.prev_outcome_root",
+     "d3c8/mutants/00-h10086-s2-hdr.prev_outgoing_receipts_root",
+     "d3c9/mutants/00-h10124-s2-hdr.congestion.allowed_shard"
+    ],
+    "cases": 16,
+    "target": "host:account_locked_balance",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/d3/00-h10016-s1",
+     "d3c10/mutants/00-h10016-s1-w.drop_node.main.45",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 1050,
+    "nearcore_reject": 138,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:account_locked_balance"
+  },
+  "L0-host-attached_deposit": {
+   "control": {
+    "ablated_disagreements": 11,
+    "ablated_verdicts": {
+     "accept": 1,
+     "reject": 15
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10140-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10014-s2",
+     "d3c7/d3/00-h10015-s2",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10010-s0",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10018-s3",
+     "d3c9/d3/00-h10013-s3",
+     "d3c9/mutants/00-h10166-s2-hdr.height_created",
+     "d3c9/ood/00-h10041-s3",
+     "d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/00-h10044-s1-hdr.prev_outcome_root",
+     "d3c8/mutants/00-h10159-s0-hdr.congestion.delayed_gas",
+     "d3c9/mutants/00-h10166-s2-hdr.encoded_length"
+    ],
+    "cases": 16,
+    "target": "host:attached_deposit",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/d3/00-h10019-s1",
+     "d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/00-h10167-s0-w.drop_node.main.5"
+    ],
+    "nearcore_accept": 1058,
+    "nearcore_reject": 113,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:attached_deposit"
+  },
+  "L0-host-block_index": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/mutants/01-h10028-s1-code.extra_garbage",
+     "d3c10/ood/00-h10014-s3",
+     "d3c7/d3/00-h10006-s3",
+     "d3c7/mutants/01-h10029-s4-w.base_state.extra_junk",
+     "d3c7/ood/00-h10050-s2",
+     "d3c8/d3/00-h10013-s1",
+     "d3c8/mutants/00-h10125-s1-hdr.height_created",
+     "d3c8/ood/00-h10007-s2",
+     "d3c9/d3/00-h10007-s2",
+     "d3c9/mutants/00-h10116-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10017-s0",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10066-s3-hdr.congestion.allowed_shard",
+     "d3c9/mutants/01-h10020-s1-hdr.congestion.receipt_bytes",
+     "se701/mutants/00-h10025-s3-code.drop.1"
+    ],
+    "cases": 16,
+    "target": "host:block_index",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/d3/00-h10021-s0",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas",
+     "d3c7/mutants/01-h10029-s4-w.implicit.empty_base"
+    ],
+    "nearcore_accept": 1070,
+    "nearcore_reject": 115,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:block_index"
+  },
+  "L0-host-block_timestamp": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/mutants/00-h10167-s0-hdr.height_created",
+     "d3c10/ood/00-h10014-s2",
+     "d3c7/d3/00-h10019-s0",
+     "d3c7/mutants/00-h10103-s2-code.extra_garbage",
+     "d3c7/ood/00-h10018-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10007-s2",
+     "d3c9/d3/00-h10014-s0",
+     "d3c9/mutants/00-h10021-s3-code.extra_garbage",
+     "d3c9/ood/00-h10031-s1",
+     "d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/03-h10137-s2-t.tx_valid_flip.0",
+     "d3c8/mutants/00-h10094-s2-hdr.tx_root",
+     "d3c9/mutants/00-h10144-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:block_timestamp",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/d3/00-h10021-s0",
+     "d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/02-h10008-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 1159,
+    "nearcore_reject": 117,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:block_timestamp"
+  },
+  "L0-host-chain_id": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10089-s2",
+     "d3c10/mutants/00-h10139-s0-w.base_state.extra_junk",
+     "d3c10/ood/00-h10029-s1",
+     "d3c7/d3/00-h10080-s2",
+     "d3c7/mutants/00-h10158-s1-hdr.height_included(unchecked)",
+     "d3c7/ood/00-h10058-s1",
+     "d3c8/d3/00-h10082-s0",
+     "d3c8/mutants/01-h10190-s0-code.extra_garbage",
+     "d3c8/ood/00-h10054-s2",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/01-h10057-s4-code.reorder",
+     "d3c9/ood/00-h10047-s0",
+     "d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/02-h10027-s4-code.drop.0",
+     "d3c8/mutants/03-h10036-s0-code.flip.0",
+     "se703/mutants/02-h10025-s0-hdr.encoded_merkle_root"
+    ],
+    "cases": 16,
+    "target": "host:chain_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10089-s2",
+     "d3c10/d3/00-h10139-s0",
+     "d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/00-h10139-s0-hdr.prev_outcome_root"
+    ],
+    "nearcore_accept": 351,
+    "nearcore_reject": 26,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:chain_id"
+  },
+  "L0-host-current_account_id": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/mutants/02-h10013-s3-hdr.height_created",
+     "d3c10/ood/00-h10017-s3",
+     "d3c7/d3/00-h10007-s3",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10015-s0",
+     "d3c8/mutants/01-h10056-s4-code.extra_unneeded",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10090-s0-hdr.height_created",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/00-h10021-s3-code.flip.0",
+     "d3c7/mutants/04-h10091-s4-code.drop.0",
+     "d3c8/mutants/01-h10127-s0-code.truncate.0",
+     "d3c9/mutants/00-h10090-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:current_account_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10021-s3-code.flip.0",
+     "d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 1390,
+    "nearcore_reject": 156,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:current_account_id"
+  },
+  "L0-host-ed25519_verify": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10028-s0",
+     "d3c7/d3/00-h10013-s0",
+     "d3c7/mutants/05-h10123-s5-code.duplicate",
+     "d3c8/d3/00-h10011-s0",
+     "d3c8/mutants/01-h10093-s3-code.extra_unneeded",
+     "d3c8/ood/02-h10022-s5",
+     "d3c9/d3/00-h10158-s0",
+     "d3c9/ood/02-h10019-s5",
+     "curve-host-fixtures/cases/00-h10057-s0",
+     "d3c10/d3/00-h10128-s0",
+     "d3c7/d3/00-h10030-s0",
+     "d3c7/ood/04-h10032-s3",
+     "d3c7/mutants/00-h10119-s0-hdr.bandwidth_requests.add",
+     "se704/mutants/06-h10036-s0-hdr.congestion.allowed_shard",
+     "d3c7/mutants/00-h10119-s0-hdr.prev_balance_burnt",
+     "se704/mutants/06-h10036-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:ed25519_verify",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10028-s0",
+     "d3c10/d3/00-h10128-s0",
+     "d3c7/mutants/00-h10119-s0-hdr.bandwidth_requests.add",
+     "d3c7/mutants/00-h10119-s0-hdr.prev_balance_burnt"
+    ],
+    "nearcore_accept": 142,
+    "nearcore_reject": 9,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:ed25519_verify"
+  },
+  "L0-host-epoch_height": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10019-s3",
+     "d3c7/d3/00-h10005-s3",
+     "d3c7/mutants/00-h10030-s2-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10018-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/02-h10148-s3-code.drop.1",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10011-s0",
+     "d3c9/mutants/00-h10014-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10017-s0",
+     "d3c10/mutants/00-h10099-s0-code.drop.0",
+     "d3c7/mutants/00-h10030-s2-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10086-s2-hdr.prev_outgoing_receipts_root",
+     "d3c9/mutants/01-h10057-s3-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:epoch_height",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/d3/00-h10015-s0",
+     "d3c10/mutants/00-h10099-s0-code.drop.0",
+     "d3c10/mutants/02-h10139-s3-w.drop_node.main.2"
+    ],
+    "nearcore_accept": 1118,
+    "nearcore_reject": 115,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:epoch_height"
+  },
+  "L0-host-input": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10012-s0-t.chain_id(unused_in_D0)",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:input",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d2corpus.v2/ood/00-h10010-s3",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 16979,
+    "nearcore_reject": 2135,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:input"
+  },
+  "L0-host-keccak256": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10005-s0",
+     "d3c10/mutants/01-h10090-s4-code.duplicate",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10010-s2",
+     "d3c7/mutants/00-h10086-s3-code.duplicate",
+     "d3c7/ood/00-h10007-s2",
+     "d3c8/d3/00-h10018-s2",
+     "d3c8/mutants/05-h10055-s4-hdr.height_created",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10029-s1",
+     "d3c9/mutants/00-h10029-s1-code.duplicate",
+     "d3c9/ood/00-h10029-s2",
+     "d3c10/mutants/03-h10034-s2-hdr.congestion.receipt_bytes",
+     "d3c8/mutants/02-h10020-s1-code.truncate.0",
+     "se701/mutants/00-h10024-s3-hdr.prev_outcome_root",
+     "se702/mutants/01-h10035-s3-hdr.bandwidth_requests.add"
+    ],
+    "cases": 16,
+    "target": "host:keccak256",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10005-s0",
+     "d3c10/d3/00-h10015-s0",
+     "d3c10/mutants/03-h10034-s2-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 605,
+    "nearcore_reject": 45,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:keccak256"
+  },
+  "L0-host-keccak512": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10042-s2",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10014-s2",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/00-h10057-s0-code.extra_garbage",
+     "d3c7/ood/00-h10030-s1",
+     "d3c8/d3/00-h10011-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10018-s3",
+     "d3c9/d3/00-h10018-s1",
+     "d3c9/mutants/00-h10116-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10019-s2",
+     "d3c10/mutants/02-h10172-s1-w.drop_node.main.2",
+     "d3c7/mutants/03-h10118-s3-w.drop_node.main.29",
+     "d3c8/mutants/01-h10084-s1-hdr.congestion.receipt_bytes",
+     "d3c9/mutants/00-h10018-s1-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:keccak512",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10042-s2",
+     "d3c10/d3/00-h10049-s2",
+     "d3c10/mutants/02-h10172-s1-w.drop_node.main.2",
+     "d3c10/mutants/02-h10172-s1-w.drop_node.main.34"
+    ],
+    "nearcore_accept": 626,
+    "nearcore_reject": 103,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:keccak512"
+  },
+  "L0-host-log_utf16": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/mutants/01-h10038-s1-code.reorder",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10007-s3",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10053-s0",
+     "d3c8/d3/00-h10011-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10120-s3-code.extra_garbage",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/02-h10040-s2-hdr.bandwidth_requests.add",
+     "d3c7/mutants/02-h10045-s0-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10088-s1-code.truncate.0",
+     "d3c9/mutants/00-h10166-s2-hdr.encoded_length"
+    ],
+    "cases": 16,
+    "target": "host:log_utf16",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/d3/00-h10014-s0",
+     "d3c10/mutants/02-h10040-s2-hdr.bandwidth_requests.add",
+     "d3c10/mutants/02-h10112-s2-w.drop_node.main.21"
+    ],
+    "nearcore_accept": 1227,
+    "nearcore_reject": 143,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:log_utf16"
+  },
+  "L0-host-log_utf8": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10006-s0",
+     "d3c10/mutants/00-h10037-s3-code.extra_unneeded",
+     "d3c10/ood/00-h10014-s3",
+     "d3c7/d3/00-h10007-s3",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10007-s2",
+     "d3c8/d3/00-h10006-s0",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10010-s0",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10021-s3-code.extra_garbage",
+     "d3c9/ood/00-h10006-s1",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10034-s3-hdr.prev_state_root",
+     "d3c9/mutants/00-h10018-s1-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:log_utf8",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10006-s0",
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 7390,
+    "nearcore_reject": 876,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:log_utf8"
+  },
+  "L0-host-panic": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10016-s2",
+     "d3c10/mutants/00-h10099-s0-code.duplicate",
+     "d3c10/ood/00-h10036-s0",
+     "d3c7/d3/00-h10008-s3",
+     "d3c7/mutants/01-h10071-s2-w.base_state.extra_junk",
+     "d3c7/ood/00-h10077-s1",
+     "d3c8/d3/00-h10011-s3",
+     "d3c8/mutants/02-h10017-s5-code.extra_garbage",
+     "d3c8/ood/00-h10015-s3",
+     "d3c9/d3/00-h10020-s3",
+     "d3c9/mutants/00-h10090-s0-hdr.height_created",
+     "d3c9/ood/00-h10029-s2",
+     "d3c10/mutants/00-h10099-s0-code.drop.0",
+     "d3c8/mutants/01-h10014-s3-w.drop_node.main.42",
+     "d3c9/mutants/00-h10090-s0-hdr.congestion.delayed_gas",
+     "y4242/mutants/00-h10010-s3-code.truncate.0"
+    ],
+    "cases": 16,
+    "target": "host:panic",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10016-s2",
+     "d3c10/d3/00-h10027-s0",
+     "d3c10/mutants/00-h10099-s0-code.drop.0",
+     "d3c7/mutants/01-h10071-s2-hdr.bandwidth_requests.add"
+    ],
+    "nearcore_accept": 583,
+    "nearcore_reject": 160,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:panic"
+  },
+  "L0-host-panic_utf8": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10018-s2",
+     "d3c10/ood/01-h10090-s3",
+     "d3c7/d3/00-h10009-s1",
+     "d3c7/mutants/02-h10019-s1-code.duplicate",
+     "d3c7/ood/00-h10184-s1",
+     "d3c8/d3/00-h10037-s0",
+     "d3c8/mutants/01-h10005-s1-code.duplicate",
+     "d3c8/ood/00-h10034-s0",
+     "d3c9/d3/00-h10083-s2",
+     "d3c9/mutants/00-h10116-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10069-s1",
+     "key-family-fixtures/cases/00-h10040-s3",
+     "d3c7/mutants/05-h10125-s4-code.flip.0",
+     "d3c9/mutants/01-h10038-s0-code.flip.0",
+     "se702/mutants/01-h10035-s2-code.flip.0",
+     "d3c8/mutants/05-h10128-s3-hdr.congestion.allowed_shard"
+    ],
+    "cases": 16,
+    "target": "host:panic_utf8",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10018-s2",
+     "d3c10/d3/00-h10027-s0",
+     "d3c7/mutants/05-h10125-s4-code.flip.0",
+     "d3c8/mutants/05-h10128-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 171,
+    "nearcore_reject": 15,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:panic_utf8"
+  },
+  "L0-host-predecessor_account_id": {
+   "control": {
+    "ablated_disagreements": 11,
+    "ablated_verdicts": {
+     "accept": 1,
+     "reject": 15
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10011-s2",
+     "d3c7/mutants/00-h10101-s0-w.unsorted_keys",
+     "d3c7/ood/00-h10010-s0",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10014-s2",
+     "d3c9/d3/00-h10007-s1",
+     "d3c9/mutants/01-h10069-s2-code.extra_unneeded",
+     "d3c9/ood/00-h10017-s0",
+     "d3c10/mutants/02-h10058-s1-w.drop_node.main.24",
+     "d3c7/mutants/00-h10101-s0-hdr.prev_balance_burnt",
+     "d3c8/mutants/01-h10129-s3-w.drop_node.main.40",
+     "d3c9/mutants/00-h10016-s1-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:predecessor_account_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/02-h10058-s1-w.drop_node.main.24",
+     "d3c10/mutants/02-h10058-s1-w.drop_node.main.44"
+    ],
+    "nearcore_accept": 1093,
+    "nearcore_reject": 121,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:predecessor_account_id"
+  },
+  "L0-host-prepaid_gas": {
+   "control": {
+    "ablated_disagreements": 11,
+    "ablated_verdicts": {
+     "accept": 1,
+     "reject": 15
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/00-h10069-s2-code.duplicate",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10005-s3",
+     "d3c7/mutants/00-h10155-s0-code.extra_garbage",
+     "d3c7/ood/00-h10012-s1",
+     "d3c8/d3/00-h10011-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10023-s3",
+     "d3c9/d3/00-h10013-s3",
+     "d3c9/mutants/00-h10116-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/01-h10030-s2-hdr.prev_outcome_root",
+     "d3c7/mutants/01-h10105-s2-hdr.bandwidth_requests.add",
+     "d3c8/mutants/00-h10088-s1-code.truncate.0",
+     "d3c9/mutants/00-h10098-s2-w.drop_node.main.10"
+    ],
+    "cases": 16,
+    "target": "host:prepaid_gas",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/d3/00-h10027-s2",
+     "d3c10/mutants/01-h10030-s2-hdr.prev_outcome_root",
+     "d3c10/mutants/02-h10013-s3-hdr.prev_outgoing_receipts_root"
+    ],
+    "nearcore_accept": 1061,
+    "nearcore_reject": 97,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:prepaid_gas"
+  },
+  "L0-host-promise_and": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10016-s2",
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10126-s3-hdr.height_created",
+     "d3c10/ood/00-h10012-s1",
+     "d3c7/d3/00-h10006-s0",
+     "d3c7/mutants/01-h10023-s0-w.base_state.extra_junk",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10010-s2",
+     "d3c8/mutants/01-h10088-s3-code.duplicate",
+     "d3c8/ood/00-h10010-s0",
+     "d3c9/d3/00-h10014-s1",
+     "d3c9/mutants/00-h10021-s3-code.extra_garbage",
+     "d3c10/mutants/00-h10085-s2-code.flip.1",
+     "d3c7/mutants/01-h10023-s0-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10191-s0-hdr.prev_outcome_root",
+     "d3c9/mutants/01-h10015-s3-t.tx_valid_flip.1"
+    ],
+    "cases": 16,
+    "target": "host:promise_and",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10016-s2",
+     "d2corpus.v2/ood/00-h10026-s3",
+     "d3c10/mutants/00-h10085-s2-code.flip.1",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 1898,
+    "nearcore_reject": 161,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_and"
+  },
+  "L0-host-promise_batch_action_add_gas_key_with_full_access": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/ood/01-h10013-s2",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/ood/00-h10135-s2",
+     "d3c9/ood/00-h10121-s2",
+     "key-family-fixtures/cases/00-h10194-s2",
+     "d3c10/ood/01-h10097-s2",
+     "d3c7/ood/00-h10075-s2",
+     "d3c8/ood/00-h10175-s2",
+     "d3c9/ood/00-h10174-s2",
+     "key-family-fixtures/cases/00-h10206-s2",
+     "d3c10/ood/01-h10184-s2",
+     "d3c7/ood/00-h10156-s2"
+    ],
+    "cases": 12,
+    "target": "host:promise_batch_action_add_gas_key_with_full_access",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/ood/01-h10013-s2",
+     "d3c10/ood/01-h10097-s2"
+    ],
+    "nearcore_accept": 80,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_add_gas_key_with_full_access"
+  },
+  "L0-host-promise_batch_action_add_gas_key_with_function_call": {
+   "control": {
+    "ablated_disagreements": 1,
+    "ablated_verdicts": {
+     "reject": 1
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "key-family-fixtures/cases/00-h10198-s2"
+    ],
+    "cases": 1,
+    "target": "host:promise_batch_action_add_gas_key_with_function_call",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "key-family-fixtures/cases/00-h10198-s2"
+    ],
+    "nearcore_accept": 1,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_add_gas_key_with_function_call"
+  },
+  "L0-host-promise_batch_action_add_key_with_full_access": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10136-s0-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/00-h10158-s1-hdr.height_included(unchecked)",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10006-s0",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10090-s0-hdr.height_created",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10189-s3-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10066-s3-hdr.congestion.allowed_shard",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_add_key_with_full_access",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d2corpus.v2/ood/00-h10016-s3",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 3467,
+    "nearcore_reject": 383,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_add_key_with_full_access"
+  },
+  "L0-host-promise_batch_action_add_key_with_function_call": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10005-s0",
+     "d3c10/mutants/01-h10010-s1-w.main_block_hash(unchecked)",
+     "d3c10/ood/00-h10013-s2",
+     "d3c7/d3/00-h10009-s0",
+     "d3c7/mutants/00-h10158-s1-hdr.height_included(unchecked)",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10012-s0",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10016-s0",
+     "d3c9/mutants/00-h10116-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10007-s3",
+     "d3c10/mutants/02-h10019-s2-code.flip.0",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10094-s2-hdr.tx_root",
+     "d3c9/mutants/02-h10132-s2-t.rs_params"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_add_key_with_function_call",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10005-s0",
+     "d3c10/d3/00-h10036-s2",
+     "d3c10/mutants/02-h10019-s2-code.flip.0",
+     "d3c10/mutants/03-h10113-s1-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 972,
+    "nearcore_reject": 91,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_add_key_with_function_call"
+  },
+  "L0-host-promise_batch_action_create_account": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/00-h10051-s3-w.main_block_hash(unchecked)",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10006-s0",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10090-s0-hdr.height_created",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10051-s3-code.flip.0",
+     "d3c8/mutants/00-h10066-s3-hdr.congestion.allowed_shard",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_create_account",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d2corpus.v2/ood/00-h10016-s3",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 3400,
+    "nearcore_reject": 370,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_create_account"
+  },
+  "L0-host-promise_batch_action_delete_account": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10080-s2",
+     "d3c10/mutants/01-h10131-s1-code.extra_garbage",
+     "d3c10/ood/00-h10012-s1",
+     "d3c7/d3/00-h10010-s2",
+     "d3c7/mutants/01-h10105-s2-w.base_state.extra_junk",
+     "d3c7/ood/00-h10018-s2",
+     "d3c8/d3/00-h10047-s2",
+     "d3c8/mutants/04-h10119-s1-code.duplicate",
+     "d3c8/ood/00-h10007-s2",
+     "d3c9/d3/00-h10011-s2",
+     "d3c9/mutants/01-h10069-s2-code.extra_unneeded",
+     "d3c9/ood/00-h10007-s3",
+     "d3c10/mutants/02-h10019-s2-code.flip.0",
+     "d3c8/mutants/00-h10066-s3-hdr.congestion.allowed_shard",
+     "d3c9/mutants/00-h10011-s2-code.drop.0",
+     "se701/mutants/00-h10024-s1-hdr.prev_state_root"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_delete_account",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10080-s2",
+     "d3c10/d3/00-h10086-s0",
+     "d3c10/mutants/02-h10019-s2-code.flip.0",
+     "d3c7/mutants/01-h10105-s2-hdr.bandwidth_requests.add"
+    ],
+    "nearcore_accept": 489,
+    "nearcore_reject": 56,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_delete_account"
+  },
+  "L0-host-promise_batch_action_delete_key": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10021-s0",
+     "d3c10/mutants/00-h10167-s0-hdr.height_created",
+     "d3c10/ood/00-h10017-s3",
+     "d3c7/d3/00-h10022-s1",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10058-s1",
+     "d3c8/d3/00-h10011-s3",
+     "d3c8/mutants/00-h10117-s1-code.extra_garbage",
+     "d3c8/ood/00-h10010-s0",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10120-s0-code.extra_unneeded",
+     "d3c9/ood/00-h10017-s0",
+     "d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/00-h10134-s1-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10117-s1-hdr.prev_balance_burnt",
+     "d3c9/mutants/00-h10160-s2-hdr.prev_gas_used"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_delete_key",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10021-s0",
+     "d3c10/d3/00-h10022-s3",
+     "d3c10/mutants/00-h10167-s0-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/00-h10167-s0-w.drop_node.main.5"
+    ],
+    "nearcore_accept": 1167,
+    "nearcore_reject": 117,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_delete_key"
+  },
+  "L0-host-promise_batch_action_deploy_contract": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10018-s2",
+     "d3c10/mutants/00-h10136-s0-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10020-s1",
+     "d3c7/mutants/00-h10158-s1-hdr.height_included(unchecked)",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10012-s0",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10007-s2",
+     "d3c9/d3/00-h10014-s0",
+     "d3c9/mutants/00-h10090-s0-hdr.height_created",
+     "d3c9/ood/00-h10007-s3",
+     "d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10066-s3-hdr.congestion.allowed_shard",
+     "d3c9/mutants/00-h10090-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_deploy_contract",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10018-s2",
+     "d3c10/d3/00-h10025-s0",
+     "d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/00-h10139-s0-hdr.prev_outcome_root"
+    ],
+    "nearcore_accept": 1274,
+    "nearcore_reject": 146,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_deploy_contract"
+  },
+  "L0-host-promise_batch_action_deploy_global_contract": {
+   "control": {
+    "ablated_disagreements": 2,
+    "ablated_verdicts": {
+     "reject": 2
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "cases": 2,
+    "target": "host:promise_batch_action_deploy_global_contract",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "nearcore_accept": 2,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_deploy_global_contract"
+  },
+  "L0-host-promise_batch_action_deploy_global_contract_by_account_id": {
+   "control": {
+    "ablated_disagreements": 2,
+    "ablated_verdicts": {
+     "reject": 2
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "cases": 2,
+    "target": "host:promise_batch_action_deploy_global_contract_by_account_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "nearcore_accept": 2,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_deploy_global_contract_by_account_id"
+  },
+  "L0-host-promise_batch_action_function_call": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10018-s2",
+     "d3c10/mutants/00-h10136-s0-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10020-s1",
+     "d3c7/mutants/01-h10029-s4-w.base_state.extra_junk",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10012-s0",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10007-s2",
+     "d3c9/d3/00-h10021-s2",
+     "d3c9/mutants/00-h10090-s0-hdr.height_created",
+     "d3c9/ood/00-h10017-s0",
+     "d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas",
+     "d3c8/mutants/02-h10129-s4-w.drop_node.main.13",
+     "d3c9/mutants/00-h10090-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_function_call",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10018-s2",
+     "d3c10/d3/00-h10044-s3",
+     "d3c10/mutants/00-h10139-s0-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/00-h10139-s0-hdr.prev_outcome_root"
+    ],
+    "nearcore_accept": 919,
+    "nearcore_reject": 133,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_function_call"
+  },
+  "L0-host-promise_batch_action_function_call_weight": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10014-s0",
+     "d3c10/mutants/02-h10111-s2-code.duplicate",
+     "d3c7/d3/00-h10013-s3",
+     "d3c7/mutants/00-h10166-s0-code.duplicate",
+     "d3c7/ood/00-h10030-s3",
+     "d3c8/d3/00-h10013-s1",
+     "d3c8/mutants/04-h10119-s0-code.drop.0",
+     "d3c8/ood/00-h10018-s3",
+     "d3c9/d3/00-h10035-s1",
+     "d3c9/mutants/00-h10057-s2-w.dup_key_last_good",
+     "d3c9/ood/00-h10032-s3",
+     "se701/ood/00-h10026-s3",
+     "d3c7/mutants/00-h10194-s2-code.flip.0",
+     "d3c9/mutants/00-h10057-s2-hdr.congestion.delayed_gas",
+     "y4242/mutants/00-h10013-s3-hdr.encoded_merkle_root",
+     "se701/mutants/00-h10024-s1-hdr.prev_state_root"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_function_call_weight",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10014-s0",
+     "d3c10/d3/00-h10015-s1",
+     "d3c7/mutants/00-h10194-s2-code.flip.0",
+     "d3c8/mutants/03-h10109-s3-hdr.bandwidth_requests.add"
+    ],
+    "nearcore_accept": 473,
+    "nearcore_reject": 55,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_function_call_weight"
+  },
+  "L0-host-promise_batch_action_stake": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10005-s0",
+     "d3c10/ood/00-h10014-s3",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/02-h10085-s4-code.drop.0",
+     "d3c7/ood/00-h10043-s1",
+     "d3c8/d3/00-h10022-s1",
+     "d3c8/mutants/00-h10197-s0-w.dup_key_last_good",
+     "d3c8/ood/00-h10015-s3",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10120-s3-code.extra_garbage",
+     "d3c9/ood/00-h10006-s2",
+     "se701/mutants/00-h10024-s3-code.duplicate",
+     "d3c7/mutants/02-h10082-s3-hdr.prev_gas_used",
+     "d3c8/mutants/01-h10014-s3-w.drop_node.main.42",
+     "d3c9/mutants/01-h10093-s1-hdr.congestion.receipt_bytes",
+     "se701/mutants/00-h10024-s3-code.truncate.0"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_stake",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10005-s0",
+     "d3c10/d3/00-h10054-s2",
+     "d3c7/mutants/02-h10082-s3-hdr.prev_gas_used",
+     "d3c7/mutants/02-h10082-s3-t.tx_valid_flip.0"
+    ],
+    "nearcore_accept": 636,
+    "nearcore_reject": 71,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_stake"
+  },
+  "L0-host-promise_batch_action_state_init": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/ood/00-h10048-s2",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/ood/00-h10054-s2",
+     "d3c9/ood/00-h10012-s2",
+     "global-promise-fixtures/cases/caller-gas-failure",
+     "d3c10/ood/00-h10142-s2",
+     "d3c7/ood/00-h10035-s2",
+     "d3c8/ood/00-h10059-s2",
+     "d3c9/ood/00-h10103-s2",
+     "global-promise-fixtures/cases/caller-success",
+     "d3c10/ood/01-h10053-s2",
+     "d3c7/ood/00-h10038-s2"
+    ],
+    "cases": 12,
+    "target": "host:promise_batch_action_state_init",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/ood/00-h10048-s2",
+     "d3c10/ood/00-h10142-s2"
+    ],
+    "nearcore_accept": 81,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_state_init"
+  },
+  "L0-host-promise_batch_action_state_init_by_account_id": {
+   "control": {
+    "ablated_disagreements": 2,
+    "ablated_verdicts": {
+     "reject": 2
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "cases": 2,
+    "target": "host:promise_batch_action_state_init_by_account_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "nearcore_accept": 2,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_state_init_by_account_id"
+  },
+  "L0-host-promise_batch_action_transfer": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10014-s3-code.extra_unneeded",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10044-s1-hdr.prev_outcome_root",
+     "d3c8/mutants/00-h10034-s3-hdr.prev_state_root",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_transfer",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d2corpus.v2/ood/00-h10016-s2",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 5260,
+    "nearcore_reject": 523,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_transfer"
+  },
+  "L0-host-promise_batch_action_transfer_to_gas_key": {
+   "control": {
+    "ablated_disagreements": 4,
+    "ablated_verdicts": {
+     "reject": 4
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "key-family-fixtures/cases/00-h10202-s2",
+     "key-family-fixtures/cases/00-h10206-s2",
+     "key-family-fixtures/cases/00-h10210-s2",
+     "key-family-fixtures/cases/00-h10214-s2"
+    ],
+    "cases": 4,
+    "target": "host:promise_batch_action_transfer_to_gas_key",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "key-family-fixtures/cases/00-h10202-s2",
+     "key-family-fixtures/cases/00-h10206-s2"
+    ],
+    "nearcore_accept": 4,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_transfer_to_gas_key"
+  },
+  "L0-host-promise_batch_action_use_global_contract": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/ood/00-h10059-s2",
+     "d3c7/ood/00-h10096-s2",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/ood/00-h10051-s2",
+     "global-promise-fixtures/cases/caller-success",
+     "d3c10/ood/00-h10171-s2",
+     "d3c7/ood/00-h10140-s2",
+     "d3c8/ood/00-h10057-s2",
+     "d3c9/ood/00-h10086-s2",
+     "global-promise-fixtures/cases/child-action-failure",
+     "d3c8/ood/00-h10074-s2",
+     "d3c9/ood/00-h10201-s2",
+     "se704/mutants/06-h10027-s2-hdr.congestion.delayed_gas",
+     "se704/mutants/06-h10027-s2-hdr.encoded_length",
+     "se704/mutants/06-h10027-s2-hdr.gas_limit",
+     "se704/mutants/06-h10027-s2-hdr.prev_outcome_root"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_action_use_global_contract",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/ood/00-h10059-s2",
+     "d3c10/ood/00-h10171-s2",
+     "se704/mutants/06-h10027-s2-hdr.congestion.delayed_gas",
+     "se704/mutants/06-h10027-s2-hdr.encoded_length"
+    ],
+    "nearcore_accept": 85,
+    "nearcore_reject": 10,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_use_global_contract"
+  },
+  "L0-host-promise_batch_action_use_global_contract_by_account_id": {
+   "control": {
+    "ablated_disagreements": 2,
+    "ablated_verdicts": {
+     "reject": 2
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "cases": 2,
+    "target": "host:promise_batch_action_use_global_contract_by_account_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "nearcore_accept": 2,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_action_use_global_contract_by_account_id"
+  },
+  "L0-host-promise_batch_create": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10014-s3-code.extra_unneeded",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10044-s1-hdr.prev_outcome_root",
+     "d3c8/mutants/00-h10066-s3-hdr.congestion.allowed_shard",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_create",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d2corpus.v2/ood/00-h10016-s2",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 6563,
+    "nearcore_reject": 669,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_create"
+  },
+  "L0-host-promise_batch_then": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d3c10/d3/00-h10005-s3",
+     "d3c10/mutants/00-h10153-s0-code.duplicate",
+     "d3c10/ood/00-h10019-s3",
+     "d3c7/d3/00-h10011-s3",
+     "d3c7/mutants/01-h10131-s4-code.reorder",
+     "d3c7/ood/01-h10015-s0",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10197-s0-w.dup_key_last_good",
+     "d3c8/ood/00-h10029-s2",
+     "d3c9/d3/00-h10008-s1",
+     "d3c9/mutants/00-h10021-s3-code.extra_garbage",
+     "d3c10/mutants/00-h10085-s2-code.flip.1",
+     "d3c7/mutants/01-h10131-s4-hdr.bandwidth_requests.add",
+     "d3c8/mutants/01-h10055-s2-code.drop.1",
+     "d3c9/mutants/01-h10178-s0-hdr.prev_gas_used"
+    ],
+    "cases": 16,
+    "target": "host:promise_batch_then",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10016-s1",
+     "d2corpus.v2/ood/00-h10016-s2",
+     "d3c10/mutants/00-h10085-s2-code.flip.1",
+     "d3c10/mutants/00-h10199-s1-w.drop_node.main.23"
+    ],
+    "nearcore_accept": 795,
+    "nearcore_reject": 65,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_batch_then"
+  },
+  "L0-host-promise_create": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10005-s3",
+     "d3c7/mutants/00-h10030-s2-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10012-s0-t.chain_id(unused_in_D0)",
+     "d3c9/ood/00-h10006-s1",
+     "d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas",
+     "d3c7/mutants/00-h10030-s2-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10012-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:promise_create",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas",
+     "d3c10/mutants/00-h10098-s0-hdr.encoded_length"
+    ],
+    "nearcore_accept": 7608,
+    "nearcore_reject": 817,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_create"
+  },
+  "L0-host-promise_result": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10006-s0",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10031-s0",
+     "d3c7/d3/00-h10007-s3",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10020-s0",
+     "d3c8/d3/00-h10012-s0",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10015-s3",
+     "d3c9/d3/00-h10009-s2",
+     "d3c9/mutants/00-h10054-s3-code.extra_garbage",
+     "d3c9/ood/00-h10029-s2",
+     "d3c10/mutants/00-h10038-s0-code.flip.0",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10034-s3-hdr.prev_state_root",
+     "d3c9/mutants/00-h10090-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:promise_result",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10006-s0",
+     "d3c10/d3/00-h10008-s1",
+     "d3c10/mutants/00-h10038-s0-code.flip.0",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 2988,
+    "nearcore_reject": 456,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_result"
+  },
+  "L0-host-promise_results_count": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10006-s0",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10031-s0",
+     "d3c7/d3/00-h10007-s3",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10020-s0",
+     "d3c8/d3/00-h10012-s0",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10015-s3",
+     "d3c9/d3/00-h10009-s2",
+     "d3c9/mutants/00-h10054-s3-code.extra_garbage",
+     "d3c9/ood/00-h10029-s2",
+     "d3c10/mutants/00-h10038-s0-code.flip.0",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10034-s3-hdr.prev_state_root",
+     "d3c9/mutants/00-h10090-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:promise_results_count",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10006-s0",
+     "d3c10/d3/00-h10008-s1",
+     "d3c10/mutants/00-h10038-s0-code.flip.0",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 2977,
+    "nearcore_reject": 422,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_results_count"
+  },
+  "L0-host-promise_return": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/00-h10126-s3-hdr.height_created",
+     "d3c10/ood/00-h10058-s1",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/01-h10023-s0-w.base_state.extra_junk",
+     "d3c7/ood/00-h10018-s3",
+     "d3c8/d3/00-h10042-s3",
+     "d3c8/mutants/03-h10030-s2-code.drop.0",
+     "d3c8/ood/00-h10015-s3",
+     "d3c9/d3/00-h10017-s2",
+     "d3c9/mutants/00-h10120-s3-code.extra_garbage",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas",
+     "d3c7/mutants/01-h10023-s0-hdr.congestion.delayed_gas",
+     "d3c8/mutants/03-h10018-s2-code.truncate.0",
+     "se701/mutants/00-h10024-s3-code.truncate.0"
+    ],
+    "cases": 16,
+    "target": "host:promise_return",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/d3/00-h10018-s2",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas",
+     "d3c10/mutants/00-h10126-s3-w.main_post_root"
+    ],
+    "nearcore_accept": 445,
+    "nearcore_reject": 80,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_return"
+  },
+  "L0-host-promise_then": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10005-s3",
+     "d3c7/mutants/00-h10155-s0-code.extra_garbage",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10006-s0",
+     "d3c8/mutants/00-h10018-s0-w.dup_key_last_good",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10007-s1",
+     "d3c9/mutants/00-h10057-s2-w.dup_key_last_good",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas",
+     "d3c7/mutants/01-h10023-s0-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10018-s1-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:promise_then",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas",
+     "d3c10/mutants/00-h10126-s3-w.main_post_root"
+    ],
+    "nearcore_accept": 4201,
+    "nearcore_reject": 459,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_then"
+  },
+  "L0-host-promise_yield_create": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d3c10/d3/00-h10017-s1",
+     "d3c10/mutants/00-h10126-s3-hdr.height_created",
+     "d3c10/ood/00-h10014-s2",
+     "d3c7/d3/00-h10005-s3",
+     "d3c7/mutants/00-h10051-s3-w.main_block_hash(unchecked)",
+     "d3c7/ood/00-h10020-s0",
+     "d3c8/d3/00-h10022-s3",
+     "d3c8/mutants/01-h10100-s3-code.extra_garbage",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/01-h10017-s3-code.drop.0",
+     "d3c10/mutants/00-h10085-s2-code.flip.1",
+     "d3c7/mutants/00-h10051-s3-hdr.tx_root",
+     "d3c8/mutants/00-h10088-s1-code.truncate.0",
+     "d3c9/mutants/00-h10194-s3-hdr.prev_gas_used"
+    ],
+    "cases": 16,
+    "target": "host:promise_yield_create",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d2corpus.v2/ood/00-h10010-s3",
+     "d3c10/mutants/00-h10085-s2-code.flip.1",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 754,
+    "nearcore_reject": 129,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_yield_create"
+  },
+  "L0-host-promise_yield_create_with_id": {
+   "control": {
+    "ablated_disagreements": 4,
+    "ablated_verdicts": {
+     "reject": 8
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "yield-fixtures/cases/y1729-01-h10029-s0",
+     "yield-fixtures/cases/y1729-01-h10038-s0",
+     "yield-fixtures/cases/y4242-00-h10028-s3",
+     "yield-fixtures/cases/y4242-00-h10038-s3",
+     "y4242/mutants/00-h10028-s3-hdr.bandwidth_requests.add",
+     "y4242/mutants/00-h10028-s3-hdr.encoded_length",
+     "y4242/mutants/00-h10028-s3-hdr.proposals.add",
+     "y4242/mutants/00-h10028-s3-hdr.proposed_split.some"
+    ],
+    "cases": 8,
+    "target": "host:promise_yield_create_with_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "yield-fixtures/cases/y1729-01-h10029-s0",
+     "yield-fixtures/cases/y1729-01-h10038-s0",
+     "y4242/mutants/00-h10028-s3-hdr.bandwidth_requests.add",
+     "y4242/mutants/00-h10028-s3-hdr.encoded_length"
+    ],
+    "nearcore_accept": 4,
+    "nearcore_reject": 17,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_yield_create_with_id"
+  },
+  "L0-host-promise_yield_resume": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10027-s2",
+     "d3c10/ood/01-h10049-s2",
+     "d3c7/d3/00-h10024-s1",
+     "d3c7/ood/00-h10020-s0",
+     "d3c8/d3/01-h10088-s1",
+     "d3c8/mutants/03-h10198-s0-hdr.height_included(unchecked)",
+     "d3c8/ood/00-h10014-s2",
+     "d3c9/d3/00-h10124-s2",
+     "d3c9/ood/01-h10040-s2",
+     "cross-family-fixtures/cases/cc202-01-h10025-s0",
+     "yield-fixtures/cases/y1729-01-h10008-s0",
+     "d3c10/d3/01-h10138-s1",
+     "d3c7/mutants/06-h10043-s0-code.drop.0",
+     "d3c9/mutants/00-h10124-s2-hdr.congestion.allowed_shard",
+     "y4242/mutants/00-h10009-s3-code.drop.1",
+     "d3c8/mutants/04-h10136-s0-hdr.congestion.allowed_shard"
+    ],
+    "cases": 16,
+    "target": "host:promise_yield_resume",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10027-s2",
+     "d3c10/d3/01-h10138-s1",
+     "d3c7/mutants/06-h10043-s0-code.drop.0",
+     "d3c8/mutants/04-h10136-s0-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 126,
+    "nearcore_reject": 112,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_yield_resume"
+  },
+  "L0-host-promise_yield_resume_with_yield_id": {
+   "control": {
+    "ablated_disagreements": 2,
+    "ablated_verdicts": {
+     "reject": 6
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "yield-fixtures/cases/y1729-01-h10030-s0",
+     "yield-fixtures/cases/y4242-00-h10030-s3",
+     "y4242/mutants/00-h10030-s3-hdr.congestion.allowed_shard",
+     "y4242/mutants/00-h10030-s3-hdr.encoded_length",
+     "y4242/mutants/00-h10030-s3-t.tx_valid_flip.3",
+     "y4242/mutants/00-h10030-s3-w.drop_node.main.15"
+    ],
+    "cases": 6,
+    "target": "host:promise_yield_resume_with_yield_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "yield-fixtures/cases/y1729-01-h10030-s0",
+     "yield-fixtures/cases/y4242-00-h10030-s3",
+     "y4242/mutants/00-h10030-s3-hdr.congestion.allowed_shard",
+     "y4242/mutants/00-h10030-s3-hdr.encoded_length"
+    ],
+    "nearcore_accept": 2,
+    "nearcore_reject": 11,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:promise_yield_resume_with_yield_id"
+  },
+  "L0-host-random_seed": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10014-s1",
+     "d3c7/mutants/00-h10068-s0-code.duplicate",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10197-s0-w.dup_key_last_good",
+     "d3c8/ood/00-h10015-s3",
+     "d3c9/d3/00-h10012-s1",
+     "d3c9/mutants/00-h10154-s2-w.main_block_hash(unchecked)",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/03-h10173-s1-hdr.gas_limit",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10088-s1-code.truncate.0",
+     "d3c9/mutants/00-h10154-s2-hdr.gas_limit"
+    ],
+    "cases": 16,
+    "target": "host:random_seed",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/03-h10173-s1-hdr.gas_limit",
+     "d3c10/mutants/03-h10173-s1-hdr2.congestion.buffered_gas"
+    ],
+    "nearcore_accept": 1101,
+    "nearcore_reject": 89,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:random_seed"
+  },
+  "L0-host-read_register": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10012-s0-t.chain_id(unused_in_D0)",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:read_register",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d2corpus.v2/ood/00-h10010-s3",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 16978,
+    "nearcore_reject": 2131,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:read_register"
+  },
+  "L0-host-register_len": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10013-s1-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10012-s0-t.chain_id(unused_in_D0)",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10011-s2-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:register_len",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d2corpus.v2/ood/00-h10006-s0",
+     "d2corpus.v2/ood/00-h10010-s3",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 17008,
+    "nearcore_reject": 2135,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:register_len"
+  },
+  "L0-host-ripemd160": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10009-s2",
+     "d3c10/mutants/02-h10161-s5-code.extra_unneeded",
+     "d3c10/ood/00-h10090-s3",
+     "d3c7/d3/00-h10029-s1",
+     "d3c7/mutants/00-h10101-s0-w.unsorted_keys",
+     "d3c7/ood/00-h10007-s2",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10024-s1-w.unsorted_keys",
+     "d3c8/ood/00-h10010-s0",
+     "d3c9/d3/00-h10055-s0",
+     "d3c9/ood/00-h10041-s3",
+     "cross-family-fixtures/cases/cc202-01-h10076-s0",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10101-s0-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10024-s1-hdr.prev_gas_used",
+     "se701/mutants/00-h10029-s2-code.drop.1"
+    ],
+    "cases": 16,
+    "target": "host:ripemd160",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10009-s2",
+     "d3c10/d3/00-h10027-s0",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 600,
+    "nearcore_reject": 71,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:ripemd160"
+  },
+  "L0-host-set_state_init_data_entry": {
+   "control": {
+    "ablated_disagreements": 2,
+    "ablated_verdicts": {
+     "reject": 2
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "cases": 2,
+    "target": "host:set_state_init_data_entry",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "global-promise-fixtures/cases/caller-success",
+     "global-promise-fixtures/cases/child-action-failure"
+    ],
+    "nearcore_accept": 2,
+    "nearcore_reject": 0,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:set_state_init_data_entry"
+  },
+  "L0-host-sha256": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/01-h10163-s0-code.drop.0",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10018-s0",
+     "d3c7/mutants/00-h10030-s2-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10053-s0",
+     "d3c8/d3/00-h10029-s3",
+     "d3c8/mutants/01-h10005-s1-code.duplicate",
+     "d3c8/ood/00-h10068-s1",
+     "d3c9/d3/00-h10013-s3",
+     "d3c9/mutants/01-h10051-s3-code.drop.0",
+     "d3c9/ood/00-h10137-s3",
+     "d3c10/mutants/03-h10156-s1-code.flip.0",
+     "d3c8/mutants/00-h10191-s0-hdr.prev_outcome_root",
+     "d3c9/mutants/01-h10044-s2-hdr.prev_outcome_root",
+     "se703/mutants/02-h10048-s5-hdr.prev_balance_burnt"
+    ],
+    "cases": 16,
+    "target": "host:sha256",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/d3/00-h10015-s0",
+     "d3c10/mutants/03-h10156-s1-code.flip.0",
+     "d3c7/mutants/00-h10030-s2-hdr.prev_balance_burnt"
+    ],
+    "nearcore_accept": 599,
+    "nearcore_reject": 56,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:sha256"
+  },
+  "L0-host-signer_account_id": {
+   "control": {
+    "ablated_disagreements": 11,
+    "ablated_verdicts": {
+     "accept": 1,
+     "reject": 15
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/mutants/00-h10167-s0-hdr.height_created",
+     "d3c10/ood/00-h10035-s3",
+     "d3c7/d3/00-h10007-s3",
+     "d3c7/mutants/00-h10112-s0-code.extra_garbage",
+     "d3c7/ood/00-h10010-s0",
+     "d3c8/d3/00-h10011-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10057-s2-w.dup_key_last_good",
+     "d3c9/ood/00-h10029-s0",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10194-s2-code.flip.0",
+     "d3c8/mutants/01-h10134-s0-hdr.prev_balance_burnt",
+     "d3c9/mutants/00-h10057-s2-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:signer_account_id",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/d3/00-h10009-s2",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 1121,
+    "nearcore_reject": 125,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:signer_account_id"
+  },
+  "L0-host-signer_account_pk": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10009-s2",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10006-s0",
+     "d3c7/mutants/00-h10158-s1-hdr.height_included(unchecked)",
+     "d3c7/ood/00-h10018-s3",
+     "d3c8/d3/00-h10011-s2",
+     "d3c8/mutants/00-h10125-s1-hdr.height_created",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/01-h10069-s2-code.extra_unneeded",
+     "d3c9/ood/00-h10006-s1",
+     "cross-family-fixtures/cases/rb401-00-h10032-s1",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/02-h10189-s5-hdr.congestion.allowed_shard",
+     "d3c8/mutants/00-h10073-s1-t.rs_params",
+     "d3c9/mutants/01-h10020-s1-hdr.congestion.receipt_bytes"
+    ],
+    "cases": 16,
+    "target": "host:signer_account_pk",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10009-s2",
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 1082,
+    "nearcore_reject": 127,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:signer_account_pk"
+  },
+  "L0-host-storage_has_key": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10014-s0",
+     "d3c10/mutants/00-h10126-s3-hdr.height_created",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10020-s0",
+     "d3c8/d3/00-h10007-s3",
+     "d3c8/mutants/00-h10012-s0-code.reorder",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10013-s0",
+     "d3c9/mutants/01-h10057-s4-code.reorder",
+     "d3c9/ood/00-h10006-s1",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas",
+     "d3c7/mutants/00-h10044-s1-hdr.prev_outcome_root",
+     "d3c8/mutants/00-h10094-s2-hdr.tx_root",
+     "d3c9/mutants/00-h10124-s2-hdr.congestion.allowed_shard"
+    ],
+    "cases": 16,
+    "target": "host:storage_has_key",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10014-s0",
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/00-h10126-s3-hdr.congestion.delayed_gas",
+     "d3c10/mutants/00-h10126-s3-w.main_post_root"
+    ],
+    "nearcore_accept": 2327,
+    "nearcore_reject": 279,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:storage_has_key"
+  },
+  "L0-host-storage_read": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/mutants/00-h10099-s0-code.duplicate",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10010-s0",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10113-s2-code.extra_unneeded",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/00-h10016-s1-w.drop_node.main.45",
+     "d3c7/mutants/00-h10044-s1-hdr.prev_outcome_root",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10050-s2-code.truncate.0"
+    ],
+    "cases": 16,
+    "target": "host:storage_read",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10007-s3",
+     "d3c10/d3/00-h10010-s2",
+     "d3c10/mutants/00-h10016-s1-w.drop_node.main.45",
+     "d3c10/mutants/00-h10038-s3-hdr.congestion.delayed_gas"
+    ],
+    "nearcore_accept": 3749,
+    "nearcore_reject": 540,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:storage_read"
+  },
+  "L0-host-storage_remove": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/01-h10027-s2-code.reorder",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10039-s3-w.dup_key_last_good",
+     "d3c7/ood/00-h10017-s1",
+     "d3c8/d3/00-h10007-s3",
+     "d3c8/mutants/00-h10052-s1-code.extra_garbage",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10166-s2-hdr.height_created",
+     "d3c9/ood/00-h10017-s0",
+     "d3c10/mutants/00-h10189-s2-code.drop.1",
+     "d3c7/mutants/00-h10073-s2-hdr.gas_limit",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10050-s2-code.truncate.0"
+    ],
+    "cases": 16,
+    "target": "host:storage_remove",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/d3/00-h10022-s3",
+     "d3c10/mutants/00-h10189-s2-code.drop.1",
+     "d3c10/mutants/01-h10131-s2-code.flip.1"
+    ],
+    "nearcore_accept": 2517,
+    "nearcore_reject": 263,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:storage_remove"
+  },
+  "L0-host-storage_usage": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/01-h10138-s3-w.new_tx.drop_rehashed",
+     "d3c10/ood/00-h10014-s2",
+     "d3c7/d3/00-h10012-s2",
+     "d3c7/mutants/01-h10029-s4-w.base_state.extra_junk",
+     "d3c7/ood/00-h10031-s3",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/00-h10024-s1-w.unsorted_keys",
+     "d3c8/ood/00-h10010-s0",
+     "d3c9/d3/00-h10018-s0",
+     "d3c9/mutants/00-h10029-s1-code.duplicate",
+     "d3c9/ood/00-h10029-s0",
+     "d3c10/mutants/00-h10183-s1-hdr.congestion.receipt_bytes",
+     "d3c7/mutants/00-h10134-s1-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10024-s1-hdr.prev_gas_used",
+     "d3c9/mutants/01-h10015-s3-t.tx_valid_flip.1"
+    ],
+    "cases": 16,
+    "target": "host:storage_usage",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/d3/00-h10015-s0",
+     "d3c10/mutants/00-h10183-s1-hdr.congestion.receipt_bytes",
+     "d3c10/mutants/00-h10183-s1-w.drop_node.main.44"
+    ],
+    "nearcore_accept": 1134,
+    "nearcore_reject": 129,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:storage_usage"
+  },
+  "L0-host-storage_write": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10037-s3-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s1",
+     "d3c7/d3/00-h10004-s2",
+     "d3c7/mutants/00-h10022-s1-hdr.height_created",
+     "d3c7/ood/00-h10006-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10006-s3",
+     "d3c9/mutants/00-h10014-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10006-s1",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c7/mutants/00-h10030-s2-hdr.prev_balance_burnt",
+     "d3c8/mutants/00-h10013-s3-code.drop.1",
+     "d3c9/mutants/00-h10016-s1-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:storage_write",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/mutants/00-h10009-s2-hdr.encoded_merkle_root",
+     "d3c10/mutants/00-h10009-s2-t.rs_params"
+    ],
+    "nearcore_accept": 13092,
+    "nearcore_reject": 1737,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:storage_write"
+  },
+  "L0-host-used_gas": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10028-s0",
+     "d3c10/mutants/00-h10049-s2-code.extra_garbage",
+     "d3c10/ood/00-h10097-s0",
+     "d3c7/d3/00-h10005-s3",
+     "d3c7/mutants/00-h10193-s1-code.extra_unneeded",
+     "d3c7/ood/00-h10010-s0",
+     "d3c8/d3/00-h10011-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10006-s2",
+     "d3c9/d3/00-h10028-s2",
+     "d3c9/mutants/00-h10113-s2-code.extra_unneeded",
+     "d3c9/ood/00-h10006-s1",
+     "d3c10/mutants/02-h10036-s2-hdr.congestion.allowed_shard",
+     "d3c7/mutants/00-h10134-s1-hdr.prev_balance_burnt",
+     "d3c8/mutants/01-h10134-s0-hdr.prev_balance_burnt",
+     "d3c9/mutants/00-h10144-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:used_gas",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10028-s0",
+     "d3c10/d3/00-h10034-s1",
+     "d3c10/mutants/02-h10036-s2-hdr.congestion.allowed_shard",
+     "d3c10/mutants/02-h10036-s2-w.new_tx.drop"
+    ],
+    "nearcore_accept": 1067,
+    "nearcore_reject": 127,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:used_gas"
+  },
+  "L0-host-validator_stake": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10027-s0",
+     "d3c10/mutants/00-h10161-s1-code.duplicate",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10006-s0",
+     "d3c7/mutants/02-h10185-s1-w.dup_key_last_good",
+     "d3c7/ood/00-h10010-s0",
+     "d3c8/d3/00-h10004-s3",
+     "d3c8/mutants/04-h10172-s3-code.extra_unneeded",
+     "d3c8/ood/00-h10057-s2",
+     "d3c9/d3/00-h10019-s3",
+     "d3c9/mutants/01-h10081-s0-code.extra_garbage",
+     "cross-family-fixtures/cases/rb401-00-h10033-s1",
+     "d3c10/mutants/00-h10161-s1-hdr.gas_limit",
+     "d3c7/mutants/02-h10185-s1-w.new_tx.drop",
+     "se701/mutants/00-h10025-s3-code.drop.1",
+     "se702/mutants/01-h10041-s2-code.drop.2"
+    ],
+    "cases": 16,
+    "target": "host:validator_stake",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10027-s0",
+     "d3c10/d3/00-h10047-s1",
+     "d3c10/mutants/00-h10161-s1-hdr.gas_limit",
+     "d3c10/mutants/00-h10161-s1-hdr.prev_outgoing_receipts_root"
+    ],
+    "nearcore_accept": 336,
+    "nearcore_reject": 28,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:validator_stake"
+  },
+  "L0-host-validator_total_stake": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10027-s0",
+     "d3c10/mutants/02-h10161-s5-code.extra_unneeded",
+     "d3c10/ood/00-h10038-s2",
+     "d3c7/d3/00-h10013-s1",
+     "d3c7/mutants/00-h10057-s0-code.extra_garbage",
+     "d3c7/ood/00-h10030-s1",
+     "d3c8/d3/00-h10017-s2",
+     "d3c8/mutants/03-h10076-s3-code.extra_unneeded",
+     "d3c8/ood/00-h10007-s2",
+     "d3c9/d3/00-h10014-s1",
+     "d3c9/mutants/01-h10052-s1-code.reorder",
+     "d3c9/ood/00-h10006-s2",
+     "d3c10/mutants/02-h10040-s2-hdr.bandwidth_requests.add",
+     "d3c7/mutants/01-h10048-s3-hdr.prev_state_root",
+     "d3c8/mutants/11-h10111-s5-hdr.prev_balance_burnt",
+     "d3c9/mutants/01-h10052-s1-code.drop.0"
+    ],
+    "cases": 16,
+    "target": "host:validator_total_stake",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10027-s0",
+     "d3c10/d3/00-h10081-s0",
+     "d3c10/mutants/02-h10040-s2-hdr.bandwidth_requests.add",
+     "d3c10/mutants/02-h10135-s4-hdr2.congestion.buffered_gas"
+    ],
+    "nearcore_accept": 317,
+    "nearcore_reject": 21,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:validator_total_stake"
+  },
+  "L0-host-value_return": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/mutants/00-h10037-s3-code.extra_unneeded",
+     "d3c10/ood/00-h10006-s3",
+     "d3c7/d3/00-h10005-s3",
+     "d3c7/mutants/00-h10044-s1-t.minimum_stake(unused_in_D0)",
+     "d3c7/ood/00-h10007-s2",
+     "d3c8/d3/00-h10004-s1",
+     "d3c8/mutants/00-h10011-s1-code.extra_garbage",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10008-s0",
+     "d3c9/mutants/00-h10036-s0-t.chain_id(unused_in_D0)",
+     "d3c9/ood/00-h10007-s3",
+     "d3c10/mutants/00-h10016-s1-w.drop_node.main.45",
+     "d3c7/mutants/00-h10016-s1-t.rs_params",
+     "d3c8/mutants/00-h10086-s2-hdr.prev_outgoing_receipts_root",
+     "d3c9/mutants/00-h10018-s1-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:value_return",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s0",
+     "d3c10/d3/00-h10006-s2",
+     "d3c10/mutants/00-h10016-s1-w.drop_node.main.45",
+     "d3c10/mutants/00-h10038-s0-code.flip.0"
+    ],
+    "nearcore_accept": 5202,
+    "nearcore_reject": 852,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:value_return"
+  },
+  "L0-host-write_register": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "case_list": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/mutants/00-h10153-s0-code.duplicate",
+     "d3c10/ood/00-h10012-s1",
+     "d3c7/d3/00-h10007-s0",
+     "d3c7/mutants/00-h10155-s0-code.extra_garbage",
+     "d3c7/ood/00-h10007-s1",
+     "d3c8/d3/00-h10012-s2",
+     "d3c8/mutants/00-h10129-s3-code.drop.0",
+     "d3c8/ood/00-h10007-s1",
+     "d3c9/d3/00-h10017-s2",
+     "d3c9/mutants/00-h10116-s3-code.extra_unneeded",
+     "d3c9/ood/00-h10006-s1",
+     "d3c10/mutants/01-h10038-s3-hdr.prev_outcome_root",
+     "d3c7/mutants/01-h10029-s4-hdr.congestion.delayed_gas",
+     "d3c8/mutants/00-h10088-s1-code.truncate.0",
+     "d3c9/mutants/00-h10144-s0-hdr.congestion.delayed_gas"
+    ],
+    "cases": 16,
+    "target": "host:write_register",
+    "what": "the arm burns 1 extra gas before it runs"
+   },
+   "exercising": {
+    "examples": [
+     "d3c10/d3/00-h10004-s3",
+     "d3c10/d3/00-h10015-s2",
+     "d3c10/mutants/01-h10038-s3-hdr.prev_outcome_root",
+     "d3c10/mutants/02-h10008-s3-hdr.congestion.allowed_shard"
+    ],
+    "nearcore_accept": 1037,
+    "nearcore_reject": 91,
+    "source": "observation trace of the control build over the corpus sample, census and fixture families; verdicts identical to the default checker"
+   },
+   "target": "host:write_register"
+  }
+ },
+ "schema": "l0-row-validation-v1"
+}
