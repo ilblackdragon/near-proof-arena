@@ -97,7 +97,7 @@ pub fn quiet() -> bool {
         Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::EvalTime | Scenario::GateBCaps
              | Scenario::EvalLoops | Scenario::CodeResponse | Scenario::RemovalSoft))
         // `runtime-errors` (src/xfam.rs): only its own transactions, so every case is about them
-        || crate::xfam::kind() == Some(crate::xfam::Kind::RuntimeErrors)
+        || matches!(crate::xfam::kind(), Some(crate::xfam::Kind::RuntimeErrors | crate::xfam::Kind::HostRows))
 }
 
 fn acct(s: &str) -> AccountId {

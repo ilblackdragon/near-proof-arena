@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Bind a cross-family scenario run (`oracle/v3-successor` `src/xfam.rs`, `NEAR_SUCCESSOR_SCENARIO`
-= yield-congestion | curve-callbacks | genesis-tx | gaskey-target | rollback-refund | runtime-errors) to nearcore's
+= yield-congestion | curve-callbacks | genesis-tx | gaskey-target | rollback-refund | runtime-errors
+| host-rows) to nearcore's
 recorded outcomes and to its cases.
 
 Input: a run directory with `summary.json`, `xfam-<chain>.json` (every scenario transaction with
@@ -268,6 +269,33 @@ def check_family(scenario, steps, headers_rows, metas, sc_list):
             if not ok.get("LoadingError"):
                 problems.append(f"{over}: no LoadingError")
         facts["cross_shard_steps"] = len([s for s in executed if s["signer_shard"] != s["receiver_shard"]])
+    elif scenario == "HostRows":
+        # per step: nearcore's kind of every receipt (`value` / `receipt` / failure kind) and, for
+        # `ccc` steps, the first byte of the returned value (current_contract_code's result)
+        per_step, kinds = {}, collections.Counter()
+        for s in executed:
+            ks = []
+            for r in s["receipts"]:
+                if r.get("executed", True) is False:
+                    continue
+                k = hr_failure_kind(r["failure"]) if r["status"] == "failure" else r["status"]
+                if k == "value" and ".ccc" in s["label"] and r.get("value"):
+                    k = f"value(ccc={int(r['value'][:2], 16)})"
+                ks.append(k)
+                kinds[k] += 1
+            per_step[s["label"].split(".", 3)[-1]] = ks
+        facts["receipt_kinds_by_step"] = per_step
+        facts["receipt_kind_counts"] = dict(kinds)
+        want = {"iter-prefix": "HostError(Deprecated)", "iter-range": "HostError(Deprecated)",
+                "iter-next": "HostError(Deprecated)", "gas.over-prepaid": "HostError(GasExceeded)",
+                "gas.u32max.300tgas": "HostError(GasLimitExceeded)", "gas.23e6": "value",
+                "ccc.local": "value(ccc=1)", "ccc.global-hash": "value(ccc=2)",
+                "ccc.global-account": "value(ccc=3)", "psr.joint-promise": "HostError(CannotSetRefundToOnJointPromise)",
+                "psr.bad-promise-index": "HostError(InvalidPromiseIndex)"}
+        for name, k in want.items():
+            if k not in per_step.get(name, []):
+                problems.append(f"host-rows: no `{name}` receipt with {k}")
+        facts["cross_shard_steps"] = len([s for s in executed if s["signer_shard"] != s["receiver_shard"]])
     else:
         kinds = collections.Counter()
         for s in executed:
@@ -280,6 +308,27 @@ def check_family(scenario, steps, headers_rows, metas, sc_list):
     unexecuted = [s["label"] for s in steps if not s["executed"]]
     facts["unexecuted_transactions"] = unexecuted
     return facts, problems
+
+
+HR_TEXTS = (("new action receipt created during a FunctionCall is not valid", "NewReceiptValidationError"),
+            ("Attempted to call deprecated host function", "HostError(Deprecated)"),
+            ("does not correspond to existing promises", "HostError(InvalidPromiseIndex)"),
+            ("Setting refund_to on a joint promise", "HostError(CannotSetRefundToOnJointPromise)"),
+            ("Exceeded the maximum amount of gas allowed to burn", "HostError(GasLimitExceeded)"),
+            ("invalid account id", "HostError(InvalidAccountId)"),
+            ("invalid public key", "HostError(InvalidPublicKey)"),
+            ("doesn't exist", "AccountDoesNotExist"),
+            ("Gas key", "GasKeyDoesNotExist"))
+
+
+def hr_failure_kind(failure):
+    """`rt_failure_kind` plus the `host-rows` failure texts (`ExecutionError` / `ActionError`
+    strings of the pinned runtime)."""
+    t = str(failure)
+    for text, kind in HR_TEXTS:
+        if text in t:
+            return kind
+    return rt_failure_kind(failure)
 
 
 def rt_failure_kind(failure):
@@ -340,7 +389,8 @@ def collect(run):
     for rel, m in metas.items():
         x = m.get("features", {}).get("xfam")
         labels = m.get("tx_labels", []) + m.get("new_tx_labels", [])
-        ran = any(e.get("name") in ("xfam", "xcurve") or str(e.get("name", "")).startswith("rt")
+        ran = any(e.get("name") in ("xfam", "xcurve", "hostrows", "kgashost", "hrall")
+                  or str(e.get("name", "")).startswith("rt")
                   for e in m.get("executed_contracts", []))
         if scenario == "GenesisTx":
             if x and (x.get("b2_genesis") or int(re.search(r"-h(\d+)-", rel).group(1)) <= 10004):

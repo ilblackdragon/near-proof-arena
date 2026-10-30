@@ -151,6 +151,7 @@ Evidence package: [l0-row-validation](../evidence/lean-chunk-completion/l0-row-v
 |---|---|---|---|---|
 | before this pass | 225 | 150 | 61 | 14 |
 | after | 225 | 72 | 139 | 14 |
+| after host-rows (below) | 225 | 57 | 154 | 14 |
 
 Promoted (78):
 - **59 non-curve host arms.** Each has ≥ 1 nearcore-accepted and ≥ 1 nearcore-rejected exercising
@@ -161,15 +162,9 @@ Promoted (78):
   is accepted (for D2-010: excluded as `c.pv86`).
 
 Left `implemented`, with the reason recorded in each row's `remaining_work`:
-- **9 hosts without a negative chunk**:
-  - `add_gas_key_*` ×2, `deploy_global_contract*` ×2, `state_init*` ×2;
-  - `transfer_to_gas_key`, `use_global_contract_by_account_id`, `set_state_init_data_entry`.
-
-  Their controls detect, but no nearcore-rejected chunk exercises them, because their fixture
-  chains have no mutant sets on disk.
-- **7 hosts that no case calls**: `current_contract_code`, `refund_to_account_id`,
-  `promise_set_refund_to`, `storage_iter_{prefix,range,next}` (these return `Deprecated`) and
-  `gas`. All are importable at PV86, so they need new `oracle/v3-successor` scenario contracts.
+- ~~**9 hosts without a negative chunk** and **7 hosts that no case calls**~~: see *Host-rows
+  update* below. 15 are now validated. `current_contract_code` stays `implemented` because of a
+  Lean completeness bug.
 - **4 verdict-redundant guards** (D2-006, 007, 021, 022). Their deciding mutants exist, but a later
   guard rejects the same mutant, so no verdict-level control can detect the removal.
 - **20 d2-core guards not targeted.** These include throws (D2-024, 026, 057), guards pre-empted by
@@ -181,6 +176,49 @@ Left `implemented`, with the reason recorded in each row's `remaining_work`:
   - domain guards;
   - the fuel-certificate guard;
   - the retired W rows.
+
+**Host-rows update (2026-10-31).** Evidence:
+[l0-row-validation/host-rows](../evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md).
+
+The new opt-in `oracle/v3-successor` scenario `host-rows` runs a quiet chain with 46 steps:
+- contract `hostrows.wat` calls `current_contract_code`, `refund_to_account_id`,
+  `promise_set_refund_to`, the three deprecated `storage_iter_*` hosts and `env.gas`;
+- `kgashost` calls the gas-key promise hosts;
+- the global-promise all-hosts contract calls the global/state-init promise hosts.
+
+It ran 4 seeds (811–814, chain shapes 0/1/2/4): 763 honest chunks and 10,674 mutants, all judged
+by cold nearcore. Each relevant chunk got the full mutant set.
+
+Default-checker replay:
+
+| | count |
+|---|---|
+| Lean accept / nearcore accept | 2,911 |
+| Lean reject / nearcore reject | 8,321 |
+| **Lean reject / nearcore accept** | **205** |
+| Lean accept / nearcore reject | 0 |
+
+The control build's trace gives identical verdicts (11,437/11,437).
+
+**Bug (completeness, not soundness).** On a global-contract account nearcore's
+`current_contract_code` returns 2 (`Global`) or 3 (`GlobalByAccount`). Lean
+(`Wasm/Host.lean:726-730`) always returns 1, so Lean rejects valid chunks: 16 honest chunks, plus
+mutants of them that nearcore still accepts. All 205 disagreements run that host on such an account.
+
+Rows:
+- **15 promoted:**
+  - `refund_to_account_id`, `promise_set_refund_to`, `storage_iter_{prefix,range,next}`, `gas`;
+  - the 2 `add_gas_key_*`, `transfer_to_gas_key`;
+  - the 2 `deploy_global_contract*`, `use_global_contract_by_account_id`;
+  - the 2 `state_init*`, `set_state_init_data_entry`.
+
+  Each has 48–364 nearcore-accepted and 72–592 nearcore-rejected exercising cases. Each control
+  flips 10–12 of 16 cases.
+- **`current_contract_code` stays `implemented`.** Disagreeing cases are excluded from exercising
+  evidence and attributed to their cause row, and `promote_row` refuses a row that causes
+  disagreements.
+
+Counts: implemented 72 → 57, validated 139 → 154.
 
 Finding along the way, not a soundness bug: a `t.tx_valid` flip is not a valid negative fixture.
 `tx_valid` is a claim input, judged as `nearcore(tx_valid=claim)`, and 4 of 87 flipped claims are

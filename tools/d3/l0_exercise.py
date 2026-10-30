@@ -106,7 +106,7 @@ def expected(case):
 
 
 def cmd_map(a):
-    rows = collections.defaultdict(lambda: {"accept": [], "reject": []})
+    rows = collections.defaultdict(lambda: {"accept": [], "reject": [], "disagree": []})
     for p in a.trace:
         for r in load_jsonl(p):
             e = expected(r["case"])
@@ -116,15 +116,20 @@ def cmd_map(a):
             # positive evidence only from cases the default verdict also judges (accept/reject)
             if r["verdict"] == "out_of_domain":
                 continue
+            # a Lean/nearcore disagreement is never positive evidence; it is recorded per row
+            if (r["verdict"] == "accept") != e:
+                k = "disagree"
             for h in r["hosts"]:
                 rows["host:" + h][k].append(r["case"])
             for t in r["acts"]:
                 rows["act:" + t][k].append(r["case"])
-    out = {k: {"accept": sorted(set(v["accept"])), "reject": sorted(set(v["reject"]))}
+    out = {k: {"accept": sorted(set(v["accept"])), "reject": sorted(set(v["reject"])),
+               **({"disagree": sorted(set(v["disagree"]))} if v["disagree"] else {})}
            for k, v in sorted(rows.items())}
     a.out.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
     for k, v in out.items():
-        print(f"{k:60s} nearcore-accept {len(v['accept']):6d}  nearcore-reject {len(v['reject']):6d}")
+        print(f"{k:60s} nearcore-accept {len(v['accept']):6d}  nearcore-reject {len(v['reject']):6d}"
+              f"  disagree {len(v.get('disagree', [])):4d}")
 
 
 def pick(cases, k):
@@ -234,6 +239,11 @@ def cmd_evidence(a):
     abl = {}
     for p in a.ablate:
         abl.update(json.loads(p.read_text()))
+    # Disagreeing cases (Lean verdict != nearcore's) of a row are attributed to the named cause
+    # rows (`--disagreement-cause TARGET`, e.g. a host whose Lean result differs from nearcore's).
+    # A row's unattributed disagreements are its disagreeing cases in which no cause row fired.
+    cause = {t: set(m.get(t, {}).get("disagree", [])) for t in (a.disagreement_cause or [])}
+    explained = set().union(*cause.values()) if cause else set()
     rows = {}
     for t, ent in sorted(m.items()):
         rid = row_of(t)
@@ -249,7 +259,13 @@ def cmd_evidence(a):
             "target": t,
             "exercising": {"nearcore_accept": len(ent["accept"]), "nearcore_reject": len(ent["reject"]),
                            "source": src,
-                           "examples": [short(c) for c in (ent["accept"][:2] + ent["reject"][:2])]},
+                           "examples": [short(c) for c in (ent["accept"][:2] + ent["reject"][:2])],
+                           **({"disagreements": len(ent["disagree"]),
+                               "disagreements_caused": len(ent["disagree"]) if t in cause else
+                               len(set(ent["disagree"]) - explained),
+                               "disagreement_cause": t if t in cause else sorted(cause),
+                               "disagreement_examples": [short(c) for c in ent["disagree"][:4]]}
+                              if ent.get("disagree") else {})},
             "control": {"target": t, "what": WHAT[kind], "cases": x["cases"],
                         "baseline": x["baseline"].get("status"),
                         "ablated_disagreements": x["ablated"].get("disagreements", 0),
@@ -257,6 +273,16 @@ def cmd_evidence(a):
                         "binary_sha256": x["ablated"].get("binary_sha256"),
                         "case_list": [short(c) for c in x["case_list"]]},
         }
+    # per-target additions (`--extra FILE`: {target: {"paths": [...], "disagreement_reason": ...}})
+    for p in a.extra or []:
+        for t, add in json.loads(p.read_text()).items():
+            rid = row_of(t)
+            if rid in rows:
+                for k, v in add.items():
+                    if isinstance(v, dict) and isinstance(rows[rid].get(k), dict):
+                        rows[rid][k].update(v)
+                    else:
+                        rows[rid][k] = v
     doc = json.loads(a.out.read_text()) if a.out.exists() else {}
     doc.update(schema="l0-row-validation-v1", rows=rows)
     a.out.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
@@ -294,6 +320,10 @@ def main():
     e.add_argument("--map", type=Path, nargs="+", required=True)
     e.add_argument("--ablate", type=Path, nargs="+", required=True)
     e.add_argument("--out", type=Path, required=True)
+    e.add_argument("--disagreement-cause", nargs="*",
+                   help="targets to which the disagreeing cases they fire in are attributed")
+    e.add_argument("--extra", type=Path, nargs="*",
+                   help="JSON {target: fields} merged into those rows (evidence paths, reasons)")
     a = ap.parse_args()
     return {"trace": cmd_trace, "identity": cmd_identity, "map": cmd_map, "ablate": cmd_ablate,
             "evidence": cmd_evidence}[a.cmd](a) or 0
