@@ -92,6 +92,7 @@ mod reshard;
 mod observables;
 mod mainnet_obs;
 mod d2cold;
+mod cachejudge;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
