@@ -1,5 +1,6 @@
 import NearSpecV3.Successor.TierMono
 import NearSpecV3.Successor.TierStoreAuth
+import NearSpecV3.Logged.D3LSpec
 
 set_option maxRecDepth 20000
 set_option maxHeartbeats 4000000
@@ -109,6 +110,61 @@ def EngineAgree (cfg : Wasm.NearCfg) : Prop :=
     EngineRef (mergedBytes merged)
       (applyNewChunkD2 (D3.d3Hooks cfg) p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg)
       (StorageExecution.run cfg p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg false .coldPartial)
+
+/-! ## Engine phase E0: the legacy engine is its logged mirror
+
+`Logged.R_applyNewChunkD2` (with `HooksR_d3` and `HInv_mkHStore`) says the legacy main transition on
+the revealed pre-state is the logged mirror `applyNewChunkD2L (d3HooksL cfg)` run against the
+witness store. The recorder engine is built from the same logged operations (`StorageExecution.logged`),
+so the remaining engine obligation is stated against the mirror (`EngineAgreeL`). -/
+
+/-- The engine obligation against the logged mirror of the legacy engine. -/
+def EngineAgreeL (cfg : Wasm.NearCfg) : Prop :=
+  ∀ (merged : List Bytes) (p : Prims) (e : Env) (vu : Option ValidatorUpdateFacts)
+    (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion),
+    e.store = mkHStore merged →
+    EngineRef (mergedBytes merged)
+      (Logged.LM.ev e.store e.preRoot (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg))
+      (StorageExecution.run cfg p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg false .coldPartial)
+
+/-- **E0.** The legacy main transition on the shell's inputs is its logged mirror. -/
+theorem applyNewChunkD2_eq_logged (cfg : Wasm.NearCfg) (merged : List Bytes) (p : Prims) (e : Env)
+    (vu : Option ValidatorUpdateFacts) (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool))
+    (cg : Congestion) (he : e.store = mkHStore merged) :
+    applyNewChunkD2 (D3.d3Hooks cfg) p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg =
+      Logged.LM.ev e.store e.preRoot (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg) := by
+  have hs : Logged.HInv e.store := by rw [he]; exact Logged.HInv_mkHStore merged
+  have h := Logged.R_applyNewChunkD2 (s := e.store) (root := e.preRoot) (D3.d3Hooks cfg) (D3.d3HooksL cfg)
+    e.store (Logged.HooksR_d3 cfg) hs p e vu ps rs txs cg
+  unfold Logged.R at h
+  rw [Except.map_id] at h
+  exact h
+
+theorem engineAgree_of_logged (cfg : Wasm.NearCfg) (h : EngineAgreeL cfg) : EngineAgree cfg := by
+  intro merged p e vu ps rs txs cg he
+  rw [applyNewChunkD2_eq_logged cfg merged p e vu ps rs txs cg he]
+  exact h merged p e vu ps rs txs cg he
+
+/-! ## Engine phase E1 (primitive): a logged read is the mirror's read
+
+Every storage read of the recorder engine goes through `StorageExecution.logged`, which runs a
+logged-mirror program against the witness store and only adds the read keys to the recorder. -/
+
+/-- The recorder after a logged program's reads. -/
+def recordReads (e : Env) (keys : List Bytes) (rec : Wasm.TTN.Recorder) : Wasm.TTN.Recorder :=
+  keys.foldl (fun acc h => match e.codeOf h with
+    | some bytes => acc.record (D3.toBA h) bytes.length
+    | none => acc) rec
+
+/-- **E1.** `logged x` returns the mirror's result `LM.ev e.store e.preRoot x` and changes only the
+recorder. -/
+theorem logged_run {α : Type} (x : Logged.LM α) (r : StorageExecution.Recording) (e : Env) :
+    (StorageExecution.logged x).run r e =
+      (Logged.LM.ev e.store e.preRoot x).map fun a =>
+        (a, { r with recorder := recordReads e (Logged.SM.reads (hGet e.store) (x e.preRoot)) r.recorder }) := by
+  unfold StorageExecution.logged
+  simp only [Logged.SM.runR_eq, Logged.LM.ev]
+  rfl
 
 /-! ## Lockstep steps for the driver change -/
 
@@ -373,6 +429,8 @@ theorem verdict_runtimeLimits_storageResolution_of
     checkVerdict (Tier.checker .storageResolution) c w = checkVerdict (Tier.checker .runtimeLimits) c w :=
   Refines.verdict (relSuccessor_runtimeLimits_storageResolution_of hE c w hw) hd
 
+#print axioms engineAgree_of_logged
+#print axioms logged_run
 #print axioms checkD2CoreWithObs_legacy_recorder
 #print axioms checkD2CoreGWith_legacy_recorder
 #print axioms checkD2CoreG_ok_bound
