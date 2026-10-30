@@ -189,6 +189,16 @@ VALIDATION = {
         control="the same tree without the lift (checker e3c9ff28) excludes exactly those 7 claims",
         lean="ProtocolCfg.segmentUnbounded on Tier.cfg .allFeatures",
     ),
+    "witness-size": dict(
+        paths=[EV + "gate-b-caps/README.md"],
+        fixtures=("gate-b-caps: wsize.near-above and wsize.above (witnesses of 8,434,574 and 9,464,574 B, "
+                  "above the former 8 MiB bound) are accepted by cold nearcore and by allFeatures, blind "
+                  "match; wsize.below / near-below accept on both checkers; the 64 MiB decode bound and the "
+                  "w.compressed_size band are tested with constructed witnesses at 8,388,608 / 50,000,000 / "
+                  "67,108,864 B and one byte above each"),
+        control="the checker without the lift reports `out of domain (w.size)` on exactly wsize.near-above and wsize.above",
+        lean="ProtocolCfg.witnessUnbounded on Tier.cfg .allFeatures; compressedSafeWitnessBytes_ok",
+    ),
     "gas-cap": dict(
         paths=[EV + "gate-b-caps/README.md", EV + "signed-completeness/README.md"],
         fixtures=("gate-b-caps fixture gas.above (1.8 Pgas of function-call gas in one chunk, "
@@ -234,8 +244,23 @@ def _validated(repo, key):
 # the control cases passes and (iv) the ablated replay has at least one disagreement.
 ROW_EVIDENCE_DIR = EV + "l0-row-validation/"
 ROW_EVIDENCE = ROW_EVIDENCE_DIR + "rows.json"
-ROW_MIN_ACCEPT = {"host": 1, "action": 1, "d2-core": 0}
-ROW_MIN_REJECT = {"host": 1, "action": 1, "d2-core": 1}
+ROW_MIN_ACCEPT = {"host": 1, "action": 1, "d2-core": 0, "instruction": 1, "wasm-exec": 1,
+                  "wasm-prepare": 1, "successor-guard": 1}
+ROW_MIN_REJECT = {"host": 1, "action": 1, "d2-core": 1, "instruction": 1, "wasm-exec": 1,
+                  "wasm-prepare": 1, "successor-guard": 1}
+# Second pass (2026-10-30): two further statuses an entry may request (`"status"` in rows.json).
+# * `validated-by-subsumption`: a guard that can be the first failure, but whose removal never
+#   changes a verdict, because a later guard rejects every input it rejects. The entry names the
+#   subsuming rows (each must itself be `validated` in this inventory), the deciding fixtures (≥ 1
+#   case rejected first by this guard, with an unablated pass) and the ablated replay (every case
+#   still rejected), plus the proof (Lean lemmas in L0_LEMMAS, each must be declared there) or the
+#   source argument. Emitted as `validated` with a subsumption evidence entry.
+# * `impossible-at-boundary`: a guard that can never be the first failure on `allFeatures` (never
+#   evaluated there, proved never to fail, or reachable only on inputs no nearcore chain produces).
+#   The entry gives the reason; named Lean lemmas must be declared in L0_LEMMAS.
+# An entry may also set `lean_path_symbol` (the `allFeatures` site of a row first written against
+# the signed tier); it is applied whatever the row's status.
+L0_LEMMAS = "spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean"
 _ROW_CACHE = {}
 
 
@@ -247,10 +272,58 @@ def _row_evidence(repo):
     return _ROW_CACHE[key]
 
 
+def _check_surface(repo, rid, items):
+    """Each `{"file", "text"}` must occur in the named Lean file (drift guard for a reason that
+    rests on the current `allFeatures` configuration or code shape)."""
+    for it in items:
+        src = (Path(repo) / LEAN_ROOT / it["file"]).read_text()
+        if it["text"] not in src:
+            raise ValueError(f"row {rid}: surface text {it['text']!r} no longer in {it['file']}")
+
+
+def _check_lemmas(repo, rid, names):
+    src = (Path(repo) / L0_LEMMAS).read_text()
+    for n in names:
+        short = n.rsplit(".", 1)[-1]
+        if f"theorem {short} " not in src:
+            raise ValueError(f"row {rid}: lemma {n} is not declared in {L0_LEMMAS}")
+
+
+def _status_entry(repo, r, e):
+    """`impossible-at-boundary` entries (subsumption entries are applied by promote_subsumed)."""
+    paths = [ROW_EVIDENCE_DIR + "README.md", ROW_EVIDENCE] + e.get("paths", [])
+    missing = [p for p in paths if not (Path(repo) / p).exists()]
+    if missing:
+        raise ValueError(f"row evidence for {r['id']} is missing: {missing}")
+    _check_lemmas(repo, r["id"], e.get("lean", []))
+    _check_surface(repo, r["id"], e.get("surface", []))
+    out = dict(r)
+    out["status"] = "impossible-at-boundary"
+    lean = f" Lean: {', '.join(e['lean'])} ({L0_LEMMAS})." if e.get("lean") else ""
+    ex = e.get("exercising")
+    fx = (f" Fixtures: {ex['nearcore_reject']} {ex['source']} (e.g. {', '.join(ex['examples'][:2])})."
+          if ex else "")
+    reason = e["reason"] if e["reason"].endswith(".") else e["reason"] + "."
+    out["evidence"] = (f"L0 row validation, second pass (2026-10-30): {reason}{lean}{fx} "
+                       f"Evidence: {', '.join(paths[:2])} | earlier record: {r['evidence']}")
+    out["remaining_work"] = e.get("remaining", "none on allFeatures")
+    return out
+
+
 def promote_row(repo, r):
     """Apply a per-row evidence entry to an `implemented` row (see the rules above)."""
     e = _row_evidence(repo).get(r["id"])
-    if r["status"] != "implemented" or r["family"] not in ROW_MIN_REJECT:
+    if e is not None and e.get("lean_path_symbol"):
+        r = dict(r, lean_path_symbol=e["lean_path_symbol"])
+    if r["status"] != "implemented":
+        return r
+    if e is not None and e.get("status") == "impossible-at-boundary":
+        return _status_entry(repo, r, e)
+    if e is not None and e.get("status") == "validated-by-subsumption":
+        return r  # promote_subsumed, once every row's own status is known
+    if e is not None and e.get("status") == "implemented":
+        return dict(r, remaining_work=e["remaining"])
+    if r["family"] not in ROW_MIN_REJECT:
         return r
     if e is None:
         if r["family"] != "host" or not _row_evidence(repo):
@@ -285,6 +358,41 @@ def promote_row(repo, r):
         f"({ctl['what']}) in the control build: {ctl['ablated_disagreements']} of {ctl['cases']} "
         f"replayed exercising cases disagree with the expected verdict (unablated: "
         f"{ctl['cases']}/{ctl['cases']} agree). Evidence: {', '.join(paths[:2])} | earlier record: {r['evidence']}")
+    out["remaining_work"] = e.get("remaining", "none on allFeatures")
+    return out
+
+
+def promote_subsumed(repo, r, status):
+    """Apply a `validated-by-subsumption` entry (see ROW_MIN_* comment)."""
+    e = _row_evidence(repo).get(r["id"])
+    if r["status"] != "implemented" or e is None or e.get("status") != "validated-by-subsumption":
+        return r
+    paths = [ROW_EVIDENCE_DIR + "README.md", ROW_EVIDENCE] + e.get("paths", [])
+    missing = [p for p in paths if not (Path(repo) / p).exists()]
+    if missing:
+        raise ValueError(f"row evidence for {r['id']} is missing: {missing}")
+    _check_lemmas(repo, r["id"], e.get("lean", []))
+    _check_surface(repo, r["id"], e.get("surface", []))
+    by = e["subsumed_by"]
+    ex, ctl = e["exercising"], e["control"]
+    ok = (all(status.get(b) == "validated" for b in by) and ex["nearcore_reject"] >= 1
+          and ctl["baseline"] == "pass" and ctl["ablated_disagreements"] == 0
+          and (e.get("lean") or e.get("argument")))
+    if not ok:
+        return dict(r, remaining_work=r["remaining_work"] + "; L0 row validation (2026-10-30): "
+                    "subsumption entry incomplete (a subsuming row is not validated, or no deciding "
+                    f"fixture) ({ROW_EVIDENCE_DIR}README.md)")
+    out = dict(r)
+    out["status"] = "validated"
+    proof = (f"Lean: {', '.join(e['lean'])} ({L0_LEMMAS})" if e.get("lean") else
+             f"source argument: {e['argument']}")
+    out["evidence"] = (
+        f"validated by subsumption (L0 row validation, 2026-10-30): {ex['nearcore_reject']} claim "
+        f"mutants are rejected first by this guard (claim-v3 discipline; {ex['source']}; e.g. "
+        f"{', '.join(ex['examples'][:2])}). Removing it (`NEARSPEC_ABLATE={ctl['target']}`) leaves all "
+        f"{ctl['cases']} rejected ({ctl['ablated_reasons']}), so no verdict-level control can detect "
+        f"it; it is subsumed by {', '.join(by)} (validated): {e['why']}. {proof}. Evidence: "
+        f"{', '.join(paths[:2])} | earlier record: {r['evidence']}")
     out["remaining_work"] = e.get("remaining", "none on allFeatures")
     return out
 
@@ -590,6 +698,16 @@ L0_RECONCILE = {
         remaining_work="none on allFeatures. The signed tier keeps c.segment as a stated prover-capacity "
                        "restriction (3 census claims with 41/41/43 blocks)",
     ), "segment"),
+    "L0-D2-002": (lambda f: f["witnessUnbounded"], dict(
+        status="validated",
+        lean_path_symbol="ProtocolCfg.witnessUnbounded (Tier.cfg .allFeatures; guard sites ReshardCore.lean:229-230, "
+                         "RuntimeCore.lean:416-417 not evaluated); signed: ChunkValidationD2.lean:120",
+        domain_guard="allFeatures: lifted (nearcore's 64 MiB decode limit stays in the decoder; the "
+                     "w.compressed_size exclusion covers (50,000,000 B, 64 MiB]); signed tier (checkD3Core): "
+                     "w.size (8 MiB)",
+        remaining_work="none on allFeatures. The signed tier keeps the 8 MiB bound as a stated "
+                       "prover-capacity restriction",
+    ), "witness-size"),
     "L0-D2-040": (lambda f: f["storageResolution"], dict(
         status="validated",
         lean_path_symbol="Successor/StorageExecution (recorder driver, sizeOk := true; per-receipt and soft limits "
@@ -647,6 +765,16 @@ L0_RECONCILE = {
                      "Signed tier (checkD3Core): e.code_cache",
         remaining_work="none on allFeatures beyond row L0-AF-prep-race. The signed tier keeps e.code_cache "
                        "(169 census claims)",
+    ), "code-cache"),
+    "L0-D3-011": (lambda f: f["prepRace"], dict(
+        status="validated",
+        lean_path_symbol="NearSpecV3.Successor.CodeResolution.resolveCodeBytes (in-chunk deploys: the deploy "
+                         "tracker `current`, committed and attempted deploys, the compiled cache) via "
+                         "StorageExecution.functionCallRecordedF on allFeatures; signed: D3/FunctionCall.lean:268-275",
+        domain_guard="allFeatures: decided (an in-chunk deploy serves a later call of the same code, committed "
+                     "or rolled back); only the preparation-pipeline race is excluded (row L0-AF-prep-race). "
+                     "Signed tier (checkD3Core): codeAvailable / e.code_cache",
+        remaining_work="none on allFeatures beyond row L0-AF-prep-race (the same evidence as row L0-D3-009)",
     ), "code-cache"),
     "L0-W-015": (lambda f: f["curveHosts"], dict(
         status="validated",
@@ -1076,6 +1204,8 @@ def inventory(repo, nearcore):
     existing_ids = {r["id"] for r in rows}
     rows.extend(reconcile_l0(repo, sf, r) for r in extra["rows"] if r["id"] not in existing_ids)
     rows = [promote_row(repo, r) for r in rows]
+    status = {r["id"]: r["status"] for r in rows}
+    rows = [promote_subsumed(repo, r, status) for r in rows]
     ids = [r["id"] for r in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("duplicate coverage row id")

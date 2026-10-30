@@ -1,0 +1,1442 @@
+[
+ {
+  "case": "d1run-01-h10151-s1-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d1run/ood/01-h10151-s1"
+ },
+ {
+  "case": "d1run-01-h10151-s1-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d1run/ood/01-h10151-s1"
+ },
+ {
+  "case": "d1run-03-h10123-s1-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d1run/ood/03-h10123-s1"
+ },
+ {
+  "case": "d1run-03-h10123-s1-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d1run/ood/03-h10123-s1"
+ },
+ {
+  "case": "d1run-10-h10032-s3-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d1run/ood/10-h10032-s3"
+ },
+ {
+  "case": "d1run-10-h10032-s3-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d1run/ood/10-h10032-s3"
+ },
+ {
+  "case": "d2corpus.v2-00-h10110-s2-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/00-h10110-s2"
+ },
+ {
+  "case": "d2corpus.v2-00-h10110-s2-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/00-h10110-s2"
+ },
+ {
+  "case": "d2corpus.v2-00-h10181-s2-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/00-h10181-s2"
+ },
+ {
+  "case": "d2corpus.v2-00-h10181-s2-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/00-h10181-s2"
+ },
+ {
+  "case": "d2corpus.v2-00-h10182-s1-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/00-h10182-s1"
+ },
+ {
+  "case": "d2corpus.v2-00-h10182-s1-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/00-h10182-s1"
+ },
+ {
+  "case": "d2corpus.v2-07-h10201-s1-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/07-h10201-s1"
+ },
+ {
+  "case": "d2corpus.v2-07-h10201-s1-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/07-h10201-s1"
+ },
+ {
+  "case": "d2corpus.v2-10-h10088-s4-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/10-h10088-s4"
+ },
+ {
+  "case": "d2corpus.v2-10-h10088-s4-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/10-h10088-s4"
+ },
+ {
+  "case": "d2corpus.v2-10-h10195-s0-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/10-h10195-s0"
+ },
+ {
+  "case": "d2corpus.v2-10-h10195-s0-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/10-h10195-s0"
+ },
+ {
+  "case": "d2corpus.v2-11-h10146-s3-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/11-h10146-s3"
+ },
+ {
+  "case": "d2corpus.v2-11-h10146-s3-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d2corpus.v2/d2/11-h10146-s3"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10004-s0-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10004-s0"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10016-s3-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10016-s3"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10030-s1-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10030-s1"
+ },
+ {
+  "case": "d3c10-00-h10126-s2-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10126-s2"
+ },
+ {
+  "case": "d3c10-00-h10140-s1-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/00-h10140-s1"
+ },
+ {
+  "case": "d3c10-01-h10046-s3-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/01-h10046-s3"
+ },
+ {
+  "case": "d3c10-01-h10070-s4-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/01-h10070-s4"
+ },
+ {
+  "case": "d3c10-01-h10104-s2-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/01-h10104-s2"
+ },
+ {
+  "case": "d3c10-01-h10127-s3-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c10/d3/01-h10127-s3"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10004-s1-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10016-s2-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10016-s2"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10033-s0-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10033-s0"
+ },
+ {
+  "case": "d3c7-00-h10108-s1-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10108-s1"
+ },
+ {
+  "case": "d3c7-00-h10108-s1-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10108-s1"
+ },
+ {
+  "case": "d3c7-00-h10148-s3-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/00-h10148-s3"
+ },
+ {
+  "case": "d3c7-01-h10029-s4-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c7/d3/01-h10029-s4"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10004-s1-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10018-s2-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10018-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10034-s2-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10034-s2"
+ },
+ {
+  "case": "d3c8-00-h10126-s0-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10126-s0"
+ },
+ {
+  "case": "d3c8-00-h10126-s0-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10126-s0"
+ },
+ {
+  "case": "d3c8-00-h10138-s1-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/00-h10138-s1"
+ },
+ {
+  "case": "d3c8-01-h10016-s3-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/01-h10016-s3"
+ },
+ {
+  "case": "d3c8-01-h10016-s3-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/01-h10016-s3"
+ },
+ {
+  "case": "d3c8-01-h10052-s1-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/01-h10052-s1"
+ },
+ {
+  "case": "d3c8-01-h10086-s0-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/d3/01-h10086-s0"
+ },
+ {
+  "case": "d3c8-02-h10064-s3-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/ood/02-h10064-s3"
+ },
+ {
+  "case": "d3c8-02-h10064-s3-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/ood/02-h10064-s3"
+ },
+ {
+  "case": "d3c8-08-h10013-s3-l0.c.epoch_id_other",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_other",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/ood/08-h10013-s3"
+ },
+ {
+  "case": "d3c8-08-h10013-s3-l0.c.other_epoch_pv85",
+  "row": "L0-D2-011",
+  "mutation": "l0.c.other_epoch_pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c8/ood/08-h10013-s3"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10004-s1-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10004-s1"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10019-s0-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10019-s0"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.apply_facts_extra",
+  "row": "L0-D2-030",
+  "mutation": "l0.c.apply_facts_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.block1_merkle_root",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.block1_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.blocks_reversed",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.blocks_reversed",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.empty_segment",
+  "row": "L0-D2-006",
+  "mutation": "l0.c.empty_segment",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.epoch_dup",
+  "row": "L0-D2-007",
+  "mutation": "l0.c.epoch_dup",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.epoch_id_next",
+  "row": "L0-D2-004",
+  "mutation": "l0.c.epoch_id_next",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.epoch_record_pv",
+  "row": "L0-D2-010",
+  "mutation": "l0.c.epoch_record_pv",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.esa_extra_flag",
+  "row": "L0-D2-016",
+  "mutation": "l0.c.esa_extra_flag",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.esa_flag2",
+  "row": "L0-D2-017",
+  "mutation": "l0.c.esa_flag2",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.genesis_extra_some",
+  "row": "L0-D2-028",
+  "mutation": "l0.c.genesis_extra_some",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.inner_height_created",
+  "row": "L0-D2-003",
+  "mutation": "l0.c.inner_height_created",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.prev_block_merkle_root",
+  "row": "L0-D2-021",
+  "mutation": "l0.c.prev_block_merkle_root",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.pv85",
+  "row": "L0-D2-005",
+  "mutation": "l0.c.pv85",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.rs_total1",
+  "row": "L0-D2-014",
+  "mutation": "l0.c.rs_total1",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.tx_valid_extra",
+  "row": "L0-D2-037",
+  "mutation": "l0.c.tx_valid_extra",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10036-s1-l0.c.validator_update_toggle",
+  "row": "L0-D2-031",
+  "mutation": "l0.c.validator_update_toggle",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10036-s1"
+ },
+ {
+  "case": "d3c9-00-h10066-s3-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10066-s3"
+ },
+ {
+  "case": "d3c9-00-h10154-s2-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10154-s2"
+ },
+ {
+  "case": "d3c9-00-h10179-s1-l0.c.drop_middle_block",
+  "row": "L0-D2-022",
+  "mutation": "l0.c.drop_middle_block",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10179-s1"
+ },
+ {
+  "case": "d3c9-01-h10112-s0-l0.c.truncate_before_main",
+  "row": "L0-D2-026",
+  "mutation": "l0.c.truncate_before_main",
+  "base": "/data/illia/nearproof-deps/corpora/d3c9/d3/01-h10112-s0"
+ }
+]

@@ -241,6 +241,20 @@ def mutations(c):
         x.epochs = [e for e in x.epochs if e[0] in ref]
         return True
 
+    def epoch_next(x):
+        # claim the chunk is in P's *next* epoch: epoch_id := P.next_epoch_id, flag 0 := 1, and a
+        # copy of the claimed epoch's record under the new id (so the table equals the referenced
+        # epochs); only the witness's epoch id differs from the claim
+        if not x.blocks or not x.flags or x.flags[0] != 0:
+            return False
+        nxt = x.blocks[0][0][LITE + 40:LITE + 72]
+        rec = [e for e in x.epochs if e[0] == x.epoch_id]
+        if not rec or nxt == x.epoch_id or any(e[0] == nxt for e in x.epochs):
+            return False
+        x.epochs = sorted(x.epochs + [[nxt, rec[0][1], rec[0][2]]], key=lambda e: bytes(e[0]))
+        x.epoch_id, x.flags[0] = nxt, 1
+        return True
+
     def txv_flip(x):
         if not x.txv:
             return False
@@ -268,6 +282,7 @@ def mutations(c):
         # second pass (2026-10-30)
         ("L0-D2-003", "l0.c.inner_height_created", inner_hc),
         ("L0-D2-004", "l0.c.epoch_id_other", epoch_other),
+        ("L0-D2-004", "l0.c.epoch_id_next", epoch_next),
         ("L0-D2-014", "l0.c.rs_total1", rs_t1),
         ("L0-D2-021", "l0.c.prev_block_merkle_root", bmr0),
         ("L0-D2-022", "l0.c.block1_merkle_root", bmr1),

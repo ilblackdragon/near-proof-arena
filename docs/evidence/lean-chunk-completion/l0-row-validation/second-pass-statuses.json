@@ -1,0 +1,393 @@
+{
+ "_doc": "Second-pass (2026-10-30) row entries merged into rows.json by `tools/d3/l0_exercise.py statuses`. `status` is impossible-at-boundary, validated-by-subsumption or implemented (with the reason in `remaining`); entries with only `lean_path_symbol` re-point a row at its allFeatures site. Lemmas: spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean. Line numbers are at commit 4f07a7fdf+.",
+ "L0-D2-001": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "not evaluated on allFeatures: Successor/Config.lean checkSuccessor calls checkReshardCore / checkD2CoreGWith with allowCodes = true (guard sites ReshardCore.lean:225, RuntimeCore.lean:412); signed/D2: ChunkValidationD2.lean:119",
+  "reason": "the guard is the D2 tier's exclusion of witnesses that carry contract code. On allFeatures both checkers are called with allowCodes = true, so it is never evaluated and can never be the first failure; witnesses with code are decided (rows L0-D3-008, L0-D3-009)",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "checkReshardCore mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap"
+   },
+   {
+    "file": "Successor/Config.lean",
+    "text": "checkD2CoreGWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap"
+   }
+  ]
+ },
+ "L0-D2-005": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor/ReshardCore.lean:235 (checkReshardCoreObs); genesis segments: Successor/RuntimeCore.lean:422 (checkD2CoreGWith); signed: ChunkValidationD2.lean:125",
+  "reason": "statement scope. The Gate-B relation is the PV 86 statement (checkSuccessor dispatches on cfg.protocolVersion = 86); a claim naming another protocol version is outside it and is reported as the named exclusion `out of domain (c.pv86)`, never an accept. No PV 86 chunk nearcore validates carries such a claim, so no nearcore-judged input can be decided by it. The directed mutants (pv := 85 on honest claims) are all excluded, none accepted",
+  "surface": [
+   {
+    "file": "Successor/ReshardCore.lean",
+    "text": "check (c.protocolVersion == 86) \"out of domain (c.pv86)\""
+   }
+  ],
+  "exercising": {
+   "nearcore_accept": 0,
+   "nearcore_reject": 12,
+   "source": "claim-v3 mutants (l0_guard_mutants.py l0.c.pv85), each excluded first by this guard (verdict: out of domain (c.pv86), never accept)",
+   "examples": [
+    "l0-row-validation/guard-mutants/d3c10-00-h10004-s0-l0.c.pv85"
+   ]
+  }
+ },
+ "L0-D2-011": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor/ReshardCore.lean:248 (checkReshardCoreObs); genesis segments: Successor/RuntimeCore.lean:435; signed: ChunkValidationD2.lean:139",
+  "reason": "statement scope, as L0-D2-005: every epoch of the segment must be a PV 86 epoch. A PV 85 epoch in a PV 86 segment (an upgrade boundary) is the stated PV-upgrade exclusion (UQ-009), reported as `out of domain (c.pv86)`, never an accept; the directed mutants (another epoch's pv := 85) are all excluded",
+  "remaining": "PV-upgrade segments (a PV 85 epoch in the segment) stay a stated statement-scope exclusion (UQ-009)",
+  "surface": [
+   {
+    "file": "Successor/ReshardCore.lean",
+    "text": "\"out of domain (c.pv86): epoch protocol version\""
+   }
+  ],
+  "exercising": {
+   "nearcore_accept": 0,
+   "nearcore_reject": 12,
+   "source": "claim-v3 mutants (l0_guard_mutants.py l0.c.other_epoch_pv85 over honest two-epoch claims), each excluded first by this guard (verdict: out of domain (c.pv86), never accept)",
+   "examples": [
+    "l0-row-validation/guard-mutants/d1run-01-h10151-s1-l0.c.other_epoch_pv85"
+   ]
+  }
+ },
+ "L0-D2-006": {
+  "status": "validated-by-subsumption",
+  "target": "guard:invalid: empty chain segment",
+  "source": "claim-v3 mutants l0.c.empty_segment (first pass)",
+  "lean_path_symbol": "Successor/ReshardCore.lean:238; genesis segments: Successor/RuntimeCore.lean:425; signed: ChunkValidationD2.lean:128",
+  "subsumed_by": [
+   "L0-D2-021"
+  ],
+  "why": "with no block the start guard compares `[]` with the chunk header's prev_block_hash, which the decoder reads as exactly 32 bytes, so L0-D2-021 fails on every input this guard rejects",
+  "lean": [
+   "NearSpecV3.L0Guards.empty_segment_fails_start",
+   "NearSpecV3.L0Guards.pHash_length"
+  ]
+ },
+ "L0-D2-007": {
+  "status": "validated-by-subsumption",
+  "target": "guard:invalid: epoch table not strictly ascending",
+  "source": "claim-v3 mutants l0.c.epoch_dup (first pass)",
+  "lean_path_symbol": "Successor/ReshardCore.lean:240-241; genesis segments: Successor/RuntimeCore.lean:427-428; signed: ChunkValidationD2.lean:131",
+  "subsumed_by": [
+   "L0-D2-008"
+  ],
+  "why": "the referenced epoch list is dedupSorted, which is strictly ascending, so a table that equals it (L0-D2-008 passes) is strictly ascending",
+  "lean": [
+   "NearSpecV3.L0Guards.ascending_of_referenced",
+   "NearSpecV3.L0Guards.strictlyAscending_dedupSorted"
+  ]
+ },
+ "L0-D2-009": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor/ReshardCore.lean:245 (and layoutBytesOf :117); genesis segments: Successor/RuntimeCore.lean:432; signed: ChunkValidationD2.lean:136",
+  "reason": "never the first failure: it runs after L0-D2-008 (table = referenced epochs), and the referenced list contains the claim's epoch_id, so the lookup succeeds whenever L0-D2-008 passed",
+  "lean": [
+   "NearSpecV3.L0Guards.epoch_in_table_of_referenced"
+  ]
+ },
+ "L0-D2-012": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:436); other segments go to checkReshardCore, which has no such guard; signed: ChunkValidationD2.lean:140",
+  "remaining": "on allFeatures the guard is live only for segments that contain the genesis block (Successor/ReshardCore.lean:45, 430). None of the 266 genesis-main corpus chunks triggers it. Needed: a pinned-source argument that a segment reaching genesis cannot span a shard-layout change (then impossible-at-boundary), or a fixture"
+ },
+ "L0-D2-013": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor/ReshardCore.lean:250-255 (each epoch layout; `≤ 64` lifted by layoutUnbounded); genesis segments: Successor/RuntimeCore.lean:438-441; signed: ChunkValidationD2.lean:142",
+  "reason": "the upper bound (64 shards) is lifted on allFeatures (layoutUnbounded, gate-b-caps). What remains is `1 ≤ numShards`, an exclusion that only a shard layout with no shard reaches, and no nearcore layout has none (a V2 layout's shards are boundary_accounts.len() + 1, core/primitives/src/shard_layout). Non-V2/V3 encodings are rejected by the layout decoder (Layout.lean), not by this guard",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "layoutUnbounded := true"
+   }
+  ]
+ },
+ "L0-D2-014": {
+  "status": "validated-by-subsumption",
+  "target": "guard:invalid: Reed-Solomon parameters",
+  "source": "claim-v3 mutants l0.c.rs_total1 (rs_total_parts := 1)",
+  "lean_path_symbol": "Successor/ReshardCore.lean:256 (check) and :401 (encodedMerkleRoot none); genesis segments: Successor/RuntimeCore.lean:442; signed: ChunkValidationD2.lean:143",
+  "subsumed_by": [
+   "L0-D2-056"
+  ],
+  "why": "the parameters feed only the encoded-merkle-root recomputation at the end of the walk (encodedMerkleRoot c.rsDataParts c.rsTotalParts), which rejects parameters it cannot encode with the same message and otherwise yields a root that L0-D2-056 compares with the header",
+  "argument": "rsGenesisParamsOk is the D2/D0 restatement of ReedSolomonWrapper::new's parameter rule; its only consumer is encodedMerkleRoot (ReshardCore.lean:399-404), checked by L0-D2-056 (validated)"
+ },
+ "L0-D2-019": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:455); other segments recompute the split gate (Successor/TrieSplit, checkReshardCoreObs); signed: ChunkValidationD2.lean:156",
+  "remaining": "live on allFeatures only for genesis-containing segments (as L0-D2-012); none of the 266 genesis-main corpus chunks carries a split gate. Needed: a pinned-source argument that no block of a genesis-reaching segment opens the dynamic-resharding gate, or a fixture"
+ },
+ "L0-D2-020": {
+  "status": "implemented",
+  "lean_path_symbol": "Successor/ReshardCore.lean:269; genesis segments: Successor/RuntimeCore.lean:456; signed: ChunkValidationD2.lean:158",
+  "remaining": "an oversized new transaction is not generatable as an honest chunk (the producer drops it; gate-b-caps README); the exact-size boundary is kernel-tested (TestGateBCaps.lean). A whole-chunk fixture needs a witness mutant (new_transactions with an oversized transaction, tx_root rehashed in claim and witness, like the corpus w.new_tx.*_rehashed classes) judged by cold nearcore"
+ },
+ "L0-D2-023": {
+  "status": "implemented",
+  "lean_path_symbol": "Successor/ReshardCore.lean:139 (walkSegment, per-block layout); genesis segments: Successor/RuntimeCore.lean:461; signed: ChunkValidationD2.lean:163",
+  "remaining": "no claim-only mutant can make it the first failure: a slot change fails chunk_headers_root (decodeBlk), and a consistent header change moves the block hash, so L0-D2-021/022 fail first. A deciding fixture needs a fabricated block chain whose hash the claim and witness chunk headers both name (prev_block_hash rewritten in both), judged by cold nearcore"
+ },
+ "L0-D2-025": {
+  "status": "implemented",
+  "lean_path_symbol": "Successor/ReshardCore.lean:278-279; genesis segments: Successor/RuntimeCore.lean:468-469; signed: ChunkValidationD2.lean:169-171",
+  "remaining": "as L0-D2-023: height_included is bound by chunk_headers_root, so a deciding fixture needs a fabricated block chain named by both chunk headers, judged by cold nearcore"
+ },
+ "L0-D2-033": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor/ReshardCore.lean:318; signed: ChunkValidationD2.lean:210",
+  "reason": "shuffleWithSeed's fuel bounds the rejection sampling of nearcore's shuffle_with_seed; exhausting it has probability below 2^-1024 for any seed (the bound is in the message), so no chunk reaches it short of a SHA-256 output pattern of that probability. Assumption recorded: SHA-256 outputs behave as uniform for this bound"
+ },
+ "L0-D2-038": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor/ReshardCore.lean:330; signed: ChunkValidationD2.lean:220-221",
+  "reason": "never fails: the PV 86 bandwidth-scheduler config satisfies both assertions of BandwidthSchedulerParams::calculate (max_single_grant ≥ max_receipt_size, max_shard_bandwidth ≥ max_single_grant) for every shard count",
+  "lean": [
+   "NearSpecV3.L0Guards.scheduler_params_pv86"
+  ]
+ },
+ "L0-D2-039": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor/ReshardCore.lean:339; signed: ChunkValidationD2.lean:230",
+  "reason": "never fails: a trie revealed from a hash-addressed store (mkHStore) hashes to the root it was revealed from, whatever the store holds. A missing or wrong node surfaces later as MissingTrieValue (corpus w.base_state.drop_node, w.drop_node.* classes); extra junk is accepted by both (w.base_state.extra_junk)",
+  "lean": [
+   "NearSpecV3.L0Guards.base_state_hashes"
+  ]
+ },
+ "L0-D3-003": {
+  "status": "implemented",
+  "lean_path_symbol": "Successor.StorageExecution.applyAction (catch: an `unmodeled` error becomes D3.oodE), StorageExecution.lean:309-310; signed: D3/FunctionCall.lean:71",
+  "remaining": "exclusion wrapper; on allFeatures it fires on 0 of the 235,716 corpus cases (the only exclusions are e.code_prep_race). Its triggers are rows L0-D3-013, L0-D3-014, L0-W-011, L0-W-013, L0-W-014 (L0-D3-012 is dead), so it is settled when they are"
+ },
+ "L0-D3-004": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor.StorageExecution.functionCallRecordedF (StorageExecution.lean:157); signed: D3/FunctionCall.lean:232",
+  "reason": "dead code: the only caller on allFeatures is applyAction's `.base ⟨_, b@(.fcall _ _ _ _)⟩` arm, which passes a FunctionCall, so the `let .fcall … | throw` fallback is never taken",
+  "surface": [
+   {
+    "file": "Successor/StorageExecution.lean",
+    "text": "  | .base ⟨_, b@(.fcall _ _ _ _)⟩ =>"
+   },
+   {
+    "file": "Successor/StorageExecution.lean",
+    "text": "    try functionCallRecorded fl cfg c st res b"
+   }
+  ]
+ },
+ "L0-D3-005": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor.StorageExecution.functionCallRecordedF (StorageExecution.lean:158); signed: D3/FunctionCall.lean:233",
+  "reason": "dead code: applyAction first returns a failed action when existenceOk fails (for a FunctionCall existenceOk is `account.isSome`, D2/Actions.lean) and then calls functionCallRecorded with the same state, so st.account is some",
+  "surface": [
+   {
+    "file": "Successor/StorageExecution.lean",
+    "text": "    if !existenceOk a st.account c.r.recv elig then return (st, res.fail)"
+   },
+   {
+    "file": "D2/Actions.lean",
+    "text": "  | _ => account.isSome"
+   }
+  ]
+ },
+ "L0-D3-007": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor.StorageExecution.functionCallRecordedF (StorageExecution.lean:161-162); signed: D3/FunctionCall.lean:243",
+  "reason": "requires an account balance plus an attached deposit ≥ 2^128 yoctoNEAR. Both are parts of the chain's total supply (a u128, block header total_supply; the deposit was debited from the signer), so no nearcore chain reaches it; nearcore's own check (function_call.rs:49-54) is the same StorageInconsistentState. Assumption recorded: total supply < 2^128 (genesis validation sums balances as u128)"
+ },
+ "L0-D3-012": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "allFeatures: Successor.managerGlobal (Successor/PromiseActions.lean) and D3.manager; StorageExecution.functionCallRecordedF line 237; signed: D3/FunctionCall.lean:153,176,219,328,367",
+  "reason": "dead on allFeatures: UQ-016's static check (tools/d3/check_action_log_tags.py) shows every action-log producer site of Wasm/Host.lean is consumed by D3.manager / managerGlobal with the arity its arm expects, and its --inject control (an unknown tag) fails the check",
+  "paths": [
+   "tools/d3/check_action_log_tags.py"
+  ]
+ },
+ "L0-D3-013": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: Successor finishActsGlobal (Successor/PromiseActions.lean) via StorageExecution.functionCallRecordedF line 264; signed: D3/FunctionCall.lean:218-219",
+  "remaining": "exclusion path (action re-encoding / shape); 0 of 235,716 corpus cases reach it on allFeatures. Needed: a codec round-trip proof for the manager's actions (decode ∘ encode), which would make it dead"
+ },
+ "L0-D3-014": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: Successor.StorageExecution.functionCallRecordedF line 275 (promise_return index not in the manager's map); signed: D3/FunctionCall.lean:356",
+  "remaining": "exclusion path; 0 of 235,716 corpus cases reach it. Needed: a proof that every promise index the VM returns (promise_return validates it) has a manager entry"
+ },
+ "L0-D3-015": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "Successor.StorageExecution.functionCallRecordedF line 259; signed: D3/FunctionCall.lean:339-341",
+  "reason": "requires PromiseYieldIndices.next_available_index ≥ 2^64 − 1, i.e. that many yield receipts created on one shard; each costs gas (yield_create_base), so the chain cannot reach it (nearcore panics on the same overflow)"
+ },
+ "L0-D3-016": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "allFeatures: D3.distribute via StorageExecution.functionCallRecordedF line 238; signed: D3/FunctionCall.lean:192-211",
+  "reason": "requires an action's gas plus its share of the unused gas ≥ 2^64; both are bounded by the receipt's prepaid gas, which receipt validation bounds by max_total_prepaid_gas (far below 2^64 / 2), so no valid receipt reaches it"
+ },
+ "L0-W-001": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "not evaluated on allFeatures (Wasm/Prepare.lean:185 is gated on !cfg.floats; Tier.cfg .allFeatures sets floats := true); signed: Prepare.lean:205",
+  "reason": "the float import-type guard is the signed tier's exclusion; allFeatures sets floats, so it is never evaluated there and float signatures are checked by Validate.lean like any other. Float modules are prepared and run on allFeatures (rows L0-instr-float, L0-W-012)",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "{ signedCfg with floats := true, gasCap := none, genesisMainTransition := true,"
+   },
+   {
+    "file": "Wasm/Prepare.lean",
+    "text": "!cfg.floats && (anyFloatVT ft.params || anyFloatVT ft.results)"
+   }
+  ]
+ },
+ "L0-W-002": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "not evaluated on allFeatures (Wasm/Prepare.lean:189 is gated on !cfg.floats); signed: Prepare.lean:234",
+  "reason": "as L0-W-001, for float globals: allFeatures sets floats, so the guard is never evaluated; float globals are initialised by bit pattern (rows L0-instr-float, L0-W-012)",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "{ signedCfg with floats := true, gasCap := none, genesisMainTransition := true,"
+   },
+   {
+    "file": "Wasm/Prepare.lean",
+    "text": "!cfg.floats && gs.any (fun g => g.type.isFloat)"
+   }
+  ]
+ },
+ "L0-W-003": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "not evaluated on allFeatures (Wasm/Prepare.lean:201 is gated on !cfg.floats); signed: Prepare.lean:315",
+  "reason": "as L0-W-001, for float operators in bodies: never evaluated on allFeatures; the finite-wasm stack and gas analyses run on float operators and the operators execute (rows L0-instr-float, L0-W-012)",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "{ signedCfg with floats := true, gasCap := none, genesisMainTransition := true,"
+   },
+   {
+    "file": "Wasm/Prepare.lean",
+    "text": "!cfg.floats && floatInBody groups ft code"
+   }
+  ]
+ },
+ "L0-W-005": {
+  "lean_path_symbol": "allFeatures: Wasm.prepare prepFail sites via Wasm.runCallFast (`.prepErr v`, compiled `@[csimp]` form of runCall) and StorageExecution.vmCall; Prepare.lean:178-390",
+  "remaining": "one nearcore-accepted chunk exercises it (runtime-errors re601-00-h10045-s2, PrepareError(Memory)) and its control detects (`wasm:prep`), but no nearcore-rejected chunk calls a contract that fails preparation. Needed: the mutant set of that chain (and further PrepareError variants) from oracle/v3-successor, then trace/map/evidence"
+ },
+ "L0-W-006": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: Wasm.prepare compileErr via Wasm.runCallFast (`.compileErr k`); Prepare.lean:455-472",
+  "remaining": "no case of the second-pass populations (fixture families, a 4,000-case corpus subsample, runtime-errors) calls a contract whose compilation fails (`W compile` never fires). The trace and ablation hooks exist (`wasm:compile`). Needed: an oracle/v3-successor scenario contract over the H1 bound (params + locals 50,000) called in a whole chunk, judged cold, with its mutant set"
+ },
+ "L0-W-009": {
+  "lean_path_symbol": "allFeatures: Wasm.runCallFast contract-loading charge (Wasm/Arcs.lean, payPer contractLoadingBytes + payBase contractLoadingBase; runCall_eq_fast); Exec.lean:622-626"
+ },
+ "L0-W-011": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: Wasm.exec / step / callEntryFast `unmodeled` invariants (Exec.lean, Arcs.lean), surfaced as e.wasm-α by applyAction",
+  "remaining": "internal invariants (bad frame, pc out of range, gas table shorter than the code, float load/store of a non-memory opcode); 0 of 235,716 corpus cases reach one. Needed: a preservation proof from Validate.lean's typing (then dead)"
+ },
+ "L0-W-012": {
+  "lean_path_symbol": "allFeatures: Wasm.exec `.float` arm → execFloat → evalFloatOp (Exec.lean:459; reached through execOrig/callEntryFast); Validate.lean:270,293; FiniteWasm.lean:132",
+  "remaining": "no nearcore-rejected chunk executes a float instruction once the tx_valid flips are excluded (a t.tx_valid flip is not a valid negative, see the rows-left table); 39 nearcore-accepted chunks exercise it and the family control detects (`instr:float`). Needed: mutant sets of the float chains (d3c9/d3c10 float contracts, oracle/wasm-d3 chunk_float) from the corpus generator, then trace/map/evidence"
+ },
+ "L0-W-013": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: Wasm/Host.lean popArgs and the real-store accessors (Host.lean:406,423,437) under callHost",
+  "remaining": "exclusion path: arity is fixed by link (import signatures are checked against the host table) and allFeatures always passes a real store (vmCall: some real); 0 of 235,716 corpus cases reach it. Needed: a proof of both facts (then dead)"
+ },
+ "L0-W-014": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: Wasm/TrieStore.lean:97 (lookup fuel) and ChunkStorage.lean:76 (real store lost)",
+  "remaining": "exclusion path; 0 of 235,716 corpus cases reach it; the lookup fuel exceeds the deepest key path (gate-b-caps: revealFuel bound). Needed: the same bound stated for TrieStore's fuel (then dead)"
+ },
+ "L0-W-016": {
+  "status": "impossible-at-boundary",
+  "reason": "retired (UQ-010, 2026-10-29): `noResharding` is a description of the legacy core's two guards, not a check of any checker; on allFeatures those guards remain only on genesis-containing segments (rows L0-D2-012, L0-D2-019), so this row decides nothing"
+ },
+ "L0-W-017": {
+  "status": "impossible-at-boundary",
+  "reason": "retired (UQ-010, 2026-10-29): contractInD3α was dropped; no checker evaluates it. The import-only/call behaviour is row L0-W-010 (validated)"
+ },
+ "L0-W-018": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "not evaluated on allFeatures (floats := true: float syntax is decoded, prepared and executed); signed: Syntax.lean:9,67",
+  "reason": "the decoder-only float syntax is the signed tier's view; on allFeatures the float instructions are decoded and executed (rows L0-instr-float, L0-W-012), so no float-syntax rejection is evaluated",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "{ signedCfg with floats := true, gasCap := none, genesisMainTransition := true,"
+   }
+  ]
+ },
+ "L0-guard-curveHosts": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "not evaluated on allFeatures (St.curveHosts := cfg.curveHosts = true: dispatchArm serves the curve hosts, Wasm/Exec.lean:107-125); signed: Wasm.curveHosts",
+  "reason": "the signed tier's exclusion of a curve-host call; allFeatures sets curveHosts, so a call dispatches to its arm (rows L0-host-* curve hosts, L0-W-015 validated) and this guard never fires",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "curveHosts := true, resharding := true, segmentUnbounded := true,"
+   }
+  ]
+ },
+ "L0-guard-floatOutOfDomain": {
+  "status": "impossible-at-boundary",
+  "lean_path_symbol": "not evaluated on allFeatures (floats := true; the guards of Wasm/Prepare.lean:185-201 are gated on !cfg.floats)",
+  "reason": "the signed tier's float preparation exclusion; allFeatures sets floats, so it never fires (rows L0-W-001..003, L0-instr-float)",
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "{ signedCfg with floats := true, gasCap := none, genesisMainTransition := true,"
+   }
+  ]
+ },
+ "L0-guard-noResharding": {
+  "status": "implemented",
+  "lean_path_symbol": "ReshardingD3.lean:80 (description); on allFeatures its two guards remain only in checkD2CoreGWith (genesis-containing segments), Successor/RuntimeCore.lean:436,455",
+  "remaining": "as rows L0-D2-012 / L0-D2-019: live on allFeatures only for genesis-containing segments"
+ },
+ "L0-same-layout": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:436",
+  "remaining": "the remaining-work text 'legacy-core guard only' is inaccurate for allFeatures: genesis-containing segments keep it (Successor/ReshardCore.lean:45). See L0-D2-012"
+ },
+ "L0-split-gate": {
+  "status": "implemented",
+  "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:455",
+  "remaining": "as L0-same-layout: genesis-containing segments keep it on allFeatures. See L0-D2-019"
+ },
+ "L0-AF-fuel-certificate": {
+  "lean_path_symbol": "NearSpecV3.Successor.StorageExecution.vmCall (fuelCertified before runCallWithLimits; Wasm/FuelCert.lean)",
+  "remaining": "the certificate is evaluated and passes on every exercised call; the exclusion itself never fires. A general proof of CodeCertified would make it provably dead (workplan item 3 residual)"
+ },
+ "L0-D2-004": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:233; genesis segments: Successor/RuntimeCore.lean:420; signed: ChunkValidationD2.lean:123"
+ },
+ "L0-D2-003": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:232; genesis segments: Successor/RuntimeCore.lean:419; signed: ChunkValidationD2.lean:122"
+ },
+ "L0-D2-021": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:271; genesis segments: Successor/RuntimeCore.lean:458; signed: ChunkValidationD2.lean:160"
+ },
+ "L0-D2-022": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:272-273; genesis segments: Successor/RuntimeCore.lean:459-460; signed: ChunkValidationD2.lean:161"
+ },
+ "L0-D2-024": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:157,161 (walkSegment), 277, 289, 378; genesis segments: Successor/RuntimeCore.lean:464; signed: ChunkValidationD2.lean:166"
+ },
+ "L0-D2-026": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:178-179 (walkSegment); genesis segments: Successor/RuntimeCore.lean:472; signed: ChunkValidationD2.lean:173-174"
+ },
+ "L0-D2-057": {
+  "lean_path_symbol": "decoder: Successor/WitnessCodec.lean:29 (decodeStateWitnessWith) / ChunkValidationD2.lean:67; signed: ChunkValidationD2.lean:54-67"
+ },
+ "L0-instr-integer": {
+  "lean_path_symbol": "allFeatures: Wasm.exec `.num op` → execNum (Exec.lean:455, reached through execOrig/callEntryFast); decoder: Decode.isIntNumOp"
+ },
+ "L0-instr-float": {
+  "lean_path_symbol": "allFeatures: Wasm.exec `.float op` → execFloat → evalFloatOp, float load/store/const arms (Exec.lean:459-482)",
+  "remaining": "no nearcore-rejected chunk executes a float instruction once the tx_valid flips are excluded (a t.tx_valid flip is not a valid negative, see the rows-left table); 39 nearcore-accepted chunks exercise it and the family control detects (`instr:float`). Needed: mutant sets of the float chains (d3c9/d3c10 float contracts, oracle/wasm-d3 chunk_float) from the corpus generator, then trace/map/evidence"
+ }
+}
