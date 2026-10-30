@@ -25,12 +25,18 @@ pub struct D3World {
 const CURVE_STEPS_PER_HEIGHT: usize = 3;
 impl D3World {
     pub fn new(n_shards: usize) -> Self {
+        Self::with_seed(n_shards, None)
+    }
+
+    /// As `new`, with the chain's generator seed passed to the scenario driver (`storage-limits`
+    /// honours it; see `scenarios::Driver::with_seed`).
+    pub fn with_seed(n_shards: usize, seed: Option<u64>) -> Self {
         Self {
             inner: baseline::D3World::new(n_shards),
             next_step: 0,
             next_height: 10004,
             curve_at: (0, 0),
-            driver: crate::scenarios::Driver::new(),
+            driver: crate::scenarios::Driver::with_seed(seed),
             xfam: crate::xfam::Driver::new(),
             race: (0, 10004),
         }
@@ -302,6 +308,12 @@ pub enum Scenario {
     /// `code-cache` (W08 / UQ-001, `code_cache_txs`): same-code deploys next to pre-state calls,
     /// with warm and poisoned-cache probes of every case (src/cachejudge.rs).
     CodeCache,
+    /// `eval-loops` (src/scenarios.rs, W02/W16): the label-keeping loop shapes (push-then-pop,
+    /// `br_if`/`br_table` back-edges, a shallow branch under deep nesting) at 300 Tgas.
+    EvalLoops,
+    /// `code-response` (src/scenarios.rs, W02): chunks whose accessed pre-state contract code is
+    /// exactly at / one byte over the 64 MiB `ContractCodeResponse` cap.
+    CodeResponse,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -337,6 +349,8 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "gaskey-target" => Some(Scenario::GasKeyTarget),
         Ok(value) if value == "rollback-refund" => Some(Scenario::RollbackRefund),
         Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
+        Ok(value) if value == "eval-loops" => Some(Scenario::EvalLoops),
+        Ok(value) if value == "code-response" => Some(Scenario::CodeResponse),
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
         Ok(value) if value == "pipeline-race" => Some(Scenario::PipelineRace),
         Ok(value) if value == "code-cache" => Some(Scenario::CodeCache),

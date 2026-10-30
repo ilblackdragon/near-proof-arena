@@ -134,8 +134,8 @@ Family totals for the 28: `host` 14, `action` 3, `d2-core` 3, `d3-hook` 3, `boun
 | `L0-D3-008` | missing | L4 | `ResolutionEnv.resolveCodeHash`, `ResolutionEnv.codeOf`, `deployedCode?` | modelled, unvalidated | `contract_code.rs:39-95 RuntimeContractIdentifier::resolve` | replay `UseGlobalContract` / `GlobalByAccount` cases |
 | `L0-D3-009` | partial | L1 | `CacheMode`, `CacheEnv`, `committedCache`, `validatorCache_not_admitted` | open — proof | `contract.rs:104-131`; `contract.rs:42-69 ContractsTracker`; `function_call.rs:355-393`; 169/279 code-cache cases are cold-validator accepts | split 279 cases by committed vs rolled-back deploy; replay cold validator |
 | `L0-W-015` | missing | L3 | `unimplementedHosts` (curve host table) | open — implementation | `imports.rs:354-368` | replay `d3curve` run/cb |
-| `L0-W-016` | partial | L1 | `Tier.domainPredicate` (verdict-form predicate) | open — proof | `DomainD3.lean:23-39`; `noResharding` not referenced by `checkD3` | prove `checkD3 ⇒ noResharding` or delete the duplicate |
-| `L0-W-017` | partial | L1 | `Tier.domainPredicate` | open — proof | `DomainD3.lean:57-62 contractInD3α` rejects curve *imports* while the checker accepts them | import-only curve case: `contractInD3α = false` but `checkD3` accepts |
+| `L0-W-016` | partial | L1 | `Tier.domainPredicate` (verdict-form predicate) | **closed 2026-10-29 — retired (§3.4)**: `Wasm/DomainD3.lean` deleted; `noResharding` kept in `ReshardingD3.lean` as the legacy core's guards, which the statement of record no longer requires | (was `DomainD3.lean:23-39`) | — |
+| `L0-W-017` | partial | L1 | `Tier.domainPredicate` | **closed 2026-10-29 — retired (§3.4)**: `contractInD3α` deleted; it excluded curve-host *imports*, which no checker does | (was `DomainD3.lean:57-62`) | — |
 
 ### 2.6 The exact 28 rows
 
@@ -179,7 +179,7 @@ question.
 | `UQ-007` | L4 | Is `LegacyEthWallet` still reachable at PV86 after `EthImplicitGlobalContract` (83)? | open — proof | `Resolution.ethWallet_kind_unreachable`, `IdentifierKind` | Gate B |
 | `UQ-008` | L6 | Which witness carries a resharding transition; per-child-shard congestion info? | **resolved 2026-10-26** — the first child chunk carries `ImplicitTransitionParams::Resharding`; per-child congestion and `retain_split_shard` are modelled (`ReshardCore`, `TrieSplit`) and match nearcore on 2,920 real-split witnesses ([resharding](../evidence/lean-chunk-completion/resharding-fixtures/README.md), [resharding-2](../evidence/lean-chunk-completion/resharding-fixtures-2/README.md)) | `BoundaryFacts.EpochInputs.layouts`, `SplitInputs`, `ShapeExclusion.resharding` | Gate B |
 | `UQ-009` | L9 + L6 | May a valid segment reference a PV85 epoch; both PV85/PV86 configs required? | **resolved 2026-10-26** — no: mainnet goes PV84 → PV86 directly (archival blocks 207,762,733 / 207,762,734), and `Successor/LayoutReach.lean` proves a layout change between PV86 epochs is a dynamic (V3) split; PV86-only configs suffice for the pinned target ([resharding-2](../evidence/lean-chunk-completion/resharding-fixtures-2/README.md)) | `Config.ProtocolCfg.protocolVersion`, `checkSuccessor_unsupported_pv` | Gate B |
-| `UQ-010` | L1 | Which predicate is the statement of record: `checkD3` or `Wasm.DomainD3`? | open — decision; **W00 states `checkD3`/`RelD3` as the record, see §3.1** (L1 still owns reconciling `DomainD3`) | `Config.Tier.domainPredicate` (verdict-form, on the statement of record) | Gate B |
+| `UQ-010` | L1 | Which predicate is the statement of record: `checkD3` or `Wasm.DomainD3`? | `checkD3`/`RelD3` is the record (§3.1); `DomainD3` **retired 2026-10-29** and item-6 completeness moves recorded (§3.4); the `witness.bin` domain bound awaits a challenge decision (§3.4 (c)) | `Config.Tier.domainPredicate` (verdict-form, on the statement of record) | Gate B |
 | `UQ-011` | L1 + L8 | Must Gate B remove the arena claim-size bounds, or is a larger versioned claim format acceptable? | **resolved for `allFeatures` 2026-10-26** — `c.segment`, `w.size` (8 MiB) and `c.layout` are lifted; nearcore's 64 MiB decode limit is kept and its 48 MiB compressed limit is approximated by the `w.compressed_size` exclusion (> 50,000,000 B). Narrower tiers keep their caps ([gate-b-caps](../evidence/lean-chunk-completion/gate-b-caps/README.md)) | `BoundaryFacts.ShapeExclusion.claimSize/witnessSize`, `permanentExclusions` | Gate B |
 | `UQ-012` | L1 | Unbounded chunk function-call gas or a stated `G_α` capacity contract? | **resolved for `allFeatures` 2026-10-26** — `gasCap := none`: the 1 Pgas figure was nearcore's per-call `max_gas_burnt`, not a chunk rule; 1.8 Pgas chunks accept and match nearcore. Narrower tiers keep the cap (tier design) ([gate-b-caps](../evidence/lean-chunk-completion/gate-b-caps/README.md)) | `Config.ProtocolCfg.gasCap`, `ChunkAccounting.softLimitReached` | Gate B |
 | `UQ-013` | L8 | What admission contract binds the trusted facts to the verifier's chain state? | open — decision | `BoundaryFacts.FactAuthentication`, `BoundaryFact.obligation`, `genesisChunkExtra_requires_auth` | Gate B |
@@ -368,6 +368,94 @@ own-buffer-only header mutants from **`accept`** to `reject`: the pre-fix checke
 nearcore rejects. No case of the census, the fixtures or the corpus carries a V2 parent map
 (`tools/d3/claim_layout.py --summary`: 235,716 / 577 / 3,138 V2 without a map, or V3), and none moves.
 [Evidence](../evidence/lean-chunk-completion/signed-valid-rejects/v2-parent-map/README.md).
+
+### 3.4 UQ-010 signed-tier completeness, workplan item 6 (2026-10-29)
+
+**Decision in force (user, 2026-10-27).** A signed-tier reject or exclusion of a valid chunk is fixed
+as a strengthening of `checkD3`/`RelD3`, not kept as a stated restriction. This section records each
+move made under that decision for workplan item 6. Evidence:
+[signed-completeness](../evidence/lean-chunk-completion/signed-completeness/README.md).
+`oracle/**` Rust sources, `challenges/**` and the oracle pins are unchanged (`make pin-check` ok, no pin
+update needed: the pins cover the Rust oracle trees, not the Lean statement).
+
+**The structural change.** The old body of `checkD3` is now `D3.checkD3Core` (`D3/FunctionCall.lean`).
+`D3.checkD3` (`D3/Signed.lean`) is that core, except that a core *error* outside the core's two stated
+preconditions is decided by the recorder engine that `allFeatures` uses (`checkReshardCore` /
+`StorageExecution`), at the signed feature set (`Wasm.pv86`, `G_α`, clear `near-arena-witness-v3`,
+8 MiB state witness, `c.segment`, `c.layout`; no floats, curve hosts or global actions). The two
+preconditions are:
+
+1. one shard layout and no split check: `c.same_layout` (both forms) and `c.no_split_gate`;
+2. the storage-proof limits never trigger: the core's `w.size` storage-proof exclusion, or any core
+   error on a witness whose values and code exceed 4,000,000 bytes (the core cannot accept such a
+   witness, so its error is a premature exclusion).
+
+Proved (only `propext`, `Classical.choice`, `Quot.sound`): `D3.checkD3_of_core_ok` (every core accept
+is kept) and `D3.checkD3_cases` (`checkD3` is the core's result unless the core returned an error on
+which the hand-over fires). `checkSuccessor signedRecordCfg = D3.checkD3` and
+`checkSuccessor signedCfg = D3.checkD3Core` are both `rfl`. The narrower legacy tiers (`floats`,
+`protoGas`, `genesis`, …) keep the core and its exclusions. The `TierMono` pairs that started at
+`.signed` (`relSuccessor_protoGas_mono`, `relSuccessor_genesis_mono`,
+`relSuccessor_signed_genesisProtoGas`) now start at `checkD3Core`, because the signed tier is wider
+than `.protoGas`/`.genesis` on resharding claims. ChallengeChunkV3.lean gains one import line
+(`D3.Signed`), because `RelChunkV3` names `D3.RelD3`; its text is otherwise unchanged.
+
+| Sub-item | Disposition | Moves (all toward nearcore) |
+|---|---|---|
+| (a) resharding: layout change, buffer to a split parent, pre-split gate | **fixed** (hand-over, precondition 1) | 593 committed fixtures: 26 `OOD → accept`, 25 `OOD → reject` (nearcore rejects), 1 `OOD → OOD (e.g_alpha)`. Raw split runs (1,173 PV86 cases, 6 chains): 159 `OOD → accept`, 72 `OOD → reject`, 8 `OOD → OOD` (other exclusions). No case in any population reaches the buffer-to-split-parent form, so that form is covered by the rule and the proof, not by a fixture |
+| (b) eval-time fuel | **fixed**: the signed engine uses `wasmFuel` (`Wasm/Fuel.lean`); `successorFuel_moves_only_exhausted` applies | 10 committed `fuel exhausted` fixtures: 6 `OOD → accept`, 4 `OOD → OOD (e.g_alpha)` |
+| (c) `witness.bin` completeness bound (`ChallengeChunkV3.maxWitnessChunk`) | stopped 2026-10-29; **done 2026-10-30 by user decision**: `maxWitnessChunk` = 75,497,501 (`maxWitnessChunk_eq`); the v3.1 draft (`near-chunk-v3-1`, built by the item-11 builder with `spec/tools/near_chunk_v3_uq010.py`) raises `max_witness_bytes` and drops `c.same_layout`, `c.no_split_gate`, `e.secp` and the storage-proof clause of `w.size`; pin-check covers it. No published or signed file changed | — |
+| (d) `Wasm.DomainD3` | **retired**: file deleted; `noResharding` moved to `ReshardingD3.lean` as a description of the core's guards; `contractInD3α` dropped (it excluded curve-host *imports*, which no checker does) | — |
+| (e) found here: 26 valid-chunk **rejects** on `storage-limit-fixtures` (`MissingTrieValue`) | **fixed** (hand-over, precondition 2) | 26 `reject → OOD (e.g_alpha)` and 18 `OOD (w.size) → OOD (e.g_alpha)`: the chunks exceed `G_α`, a prover-capacity exclusion outside item 6. Regenerated storage-limit chains (3 shapes, 4,500 honest): 66 `reject → OOD`, 130 `OOD → OOD`; chain 0's 501 mutants: 55 valid `reject → OOD`, 4 `OOD → reject`, and 88 correct rejects → OOD (above `G_α`). **2026-10-30, user decision: `G_α` is lifted on the hand-over path** (`withReshardHandover` runs the recorder with no gas cap; the legacy core keeps it). Now every storage-limit fixture and mutant verdict matches nearcore: the 501 mutants are 99 accept / 402 reject, all agreeing, with 0 `reject → OOD` against the pre-item-6 checker; on 4 seeds (generator now honours `--seed`), 4 × 65 honest chunks move `OOD (e.g_alpha) → accept` |
+
+Unchanged: the 3,138-case census (735 accept / 2,403 OOD before and after), shard 13 (944 / 279,
+the 279 are floats), the corpus (235,716: 73,783 / 2,758 / 159,175 before and after, 0 moves). No population has a Lean accept of a nearcore reject,
+before or after.
+
+**(c), stopped.** The signed `near-chunk-v3` challenge (`chl_497bbbf1…`, trusted tree `66bba27e` at
+`85adc6c0`) fixes the completeness domain in `ChallengeChunkV3.lean` as `∃ w, RelTier t c w ∧ |w| ≤
+maxWitnessChunk = 67,108,864`, and its JSON caps a request witness at `max_witness_bytes =
+12,582,912`. After this change an accepted signed witness can be `(4+21) + (4 + 8,388,608) +
+67,108,864 = 75,497,501` bytes (8 MiB state witness plus a full 64 MiB `ContractCodeResponse`), so
+the bound can exclude a code-heavy valid chunk from the completeness promise (soundness is not
+affected). Proposed, not made: `maxWitnessChunk := 75497501` (or a per-tier bound, with
+`Successor.allFeaturesWitnessBound` for `allFeatures`), and a new challenge version whose
+`max_witness_bytes` is at least that bound and whose restriction list drops `c.same_layout`,
+`c.no_split_gate`, the storage-proof clause of `w.size` and `e.secp`.
+
+**Remaining signed exclusions of valid chunks, outside item 6** (3,138 census, after): `e.g_alpha`
+847, ML-DSA keys 260, curve hosts (`ecrecover`) 245, legacy ETH wallet 210, in-chunk code cache 169,
+floats 150, `c.not_genesis` 137, global-contract and state-init shapes ~303, non-ED25519 transaction
+keys 79, `c.segment` 3. On mainnet shard 13, 279 of 1,223 chunks are excluded for floats. These are
+recorded, not changed here.
+
+### 3.5 Rung decision record — `Rel_Dk := RelD3 ∧ InDk` (2026-10-30)
+
+**Finding.** `D1 ⊂ D2` (and `D0 ⊂ D3`, `RelD1a ⊂ RelD3`) is false: D0/D1 never compare the
+`epoch_start_after` flags with the headers, D2/D3 require `!isGenesis || flag = 1`
+(`NearSpecV3.Examples.not_d1_sub_d2`, `not_d1a_sub_d3`, kernel-checked;
+`docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`). Not a nearcore-reject accept
+(the witness is valid; the flag is a false trusted claim fact), but it made `WitnessLift` unprovable.
+
+**Decision (owner, option 1).** The rungs of the `near-chunk-v3` statement are restrictions of the
+top relation: `RelRungDk := RelD3 ∧ InRungDk` (`spec/lean/v3/NearSpecV3/RungsDefs.lean`), with
+`InRungDk` the cumulative domain of the rung's own checker (no `out of domain …` verdict). The
+statement is `NearSpecV3.RelChunkV3R` (`ChallengeChunkV3R.lean`, `relChunkV3R_iff : ↔ RelD3`), in
+the **new draft** `challenges/drafts/near-chunk-v3-1.draft.json` (judge config
+`runners/formal-checker/challenges/near-chunk-v3-1.json`, templates `spec/lean/judge/ExpectedChunkV3R*`).
+The v3.0 draft, its module and every signed file are unchanged.
+
+**What is proved.** `D0 ⊂ D1 ⊂ D2 ⊂ D3` for the rungs (projections, `rung_chain`); `WitnessLift`
+over the D1a rung (`ZkFormal.PQ.Join.witnessLift`); the fast checkers are admitted by
+`rungD2_of_checkD2` (alone) and `rungD{0,0a,1,1a}_of_checks` (with a `checkD2` accept). Checker-level
+`D0 ⊂ D1` (`relD0_relD1`) and `D2 ⊂ D3` (`Successor.relD2_relD3`) stay; checker-level `D1 ⊂ D2` is
+false (`not_d1_sub_d2`).
+
+**Names kept.** `RelD0`, `RelD0a`, `RelD1`, `RelD1a`, `RelD2` keep their meaning (checker
+acceptance): they are the statements of the separate D0/D0a/D1 challenges (the signed
+`near-chunk-validation-d0` declares `NearSpecV3.RelD0`) and of the zk-formal D0a/D1a stacks, whose
+soundness theorems are about the checkers. Redefining those names would change a signed statement's
+meaning and those theorems' content; the rung relations are new names instead.
 
 ## 4. The schema decision W00 owes
 

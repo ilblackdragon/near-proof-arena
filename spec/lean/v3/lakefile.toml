@@ -1,6 +1,6 @@
 name = "NearSpecV3"
 version = "0.1.0"
-defaultTargets = ["NearSpecV3", "NearSpecV3.Successor", "NearSpecV3.Successor.PromiseActionsTests", "NearSpecV3.Successor.TierMono", "NearSpecV3.Successor.TierRefine", "NearSpecV3.Successor.TierWholeWalk", "NearSpecV3.Successor.TierStoreAuth", "nearspec-v3-check", "nearspec-v3-leaftest", "NearSpecV3.Examples.SecpVerifyVector", "NearSpecV3.Examples.MlDsaVectors", "NearSpecV3.Wasm.CmpBytesTests", "NearSpecV3.Wasm.FuelSufficiency", "NearSpecV3.Logged.Audit", "NearSpecV3.Successor.FuelFinal", "NearSpecV3.Successor.FloatOverlap", "NearSpecV3.D2SubD3"]
+defaultTargets = ["NearSpecV3", "NearSpecV3.Successor", "NearSpecV3.Successor.PromiseActionsTests", "NearSpecV3.Successor.TierMono", "NearSpecV3.Successor.TierRefine", "NearSpecV3.Successor.TierWholeWalk", "NearSpecV3.Successor.TierStoreAuth", "nearspec-v3-check", "nearspec-v3-leaftest", "NearSpecV3.Examples.SecpVerifyVector", "NearSpecV3.Examples.MlDsaVectors", "NearSpecV3.Wasm.CmpBytesTests", "NearSpecV3.Wasm.FuelSufficiency", "NearSpecV3.Logged.Audit", "NearSpecV3.Successor.FuelFinal", "NearSpecV3.Successor.FloatOverlap", "NearSpecV3.D2SubD3", "NearSpecV3.Rungs", "NearSpecV3.ChallengeChunkV3R"]
 
 # v3 statement near/pv86/chunk-validation/v0 (spec/near-chunk-validation-v0.md).
 # A separate Lake package so that no file of the pinned v1/v2 package
@@ -116,6 +116,10 @@ root = "ProbeH10011"
 [[lean_exe]]
 name = "nearspec-v3-bench-mldsa"
 root = "BenchMlDsa"
+
+[[lean_exe]]
+name = "nearspec-v3-mldsa-check"
+root = "MlDsaCheck"
 
 [[lean_exe]]
 name = "nearspec-v3-zstd-decode"

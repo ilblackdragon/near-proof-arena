@@ -1,9 +1,11 @@
 import NearSpecV3.D3.FunctionCall
+import NearSpecV3.D3.Signed
 
 /-!
 `nearspec-v3-check-d3 CASE_DIR...` — evaluates `NearSpecV3.D3.checkD3` (RuntimeD3: D2 + WASM
 FunctionCalls) on `claim.bin` / `witness.bin` (code blobs appended) of each case directory; one JSON
 line per case in the format of `nearspec-v3-check-d2`: verdict `accept` | `reject` | `out_of_domain`.
+Since the UQ-010 hand-over (2026-10-29) `checkD3` is defined in `D3/Signed.lean`.
 -/
 
 open NearSpecV3

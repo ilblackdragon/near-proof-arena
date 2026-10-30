@@ -7,7 +7,9 @@ import NearSpecV3.Successor.GlobalCodecs
 import NearSpecV3.Successor.GlobalExecution
 import NearSpecV3.Successor.QueueExecution
 import NearSpecV3.Successor.PromiseActions
+import NearSpecV3.Wasm.Fuel
 import NearSpecV3.Wasm.FuelCert
+import NearSpecV3.Successor.FailureKinds
 
 /-! Chunk-scoped protocol recorder over the existing read-logging D2 operations.
 Reads are executed against the authenticated witness store; recorder state is computed locally.
@@ -28,6 +30,13 @@ structure Recording where
   materialized : List Bytes := []
   /-- The preparation pipeline's schedule, replayed to decide deploy-served code (`Pipeline`). -/
   pipe : Pipeline.Pipe := {}
+  /-- Observation only (W01, `NearCfg.observeDetail`): nothing below is read by a check. -/
+  observe : Bool := false
+  /-- The VM error of the last function call that failed in the VM (`FunctionCallError(…)`). -/
+  vmErr : Option String := none
+  /-- The failure kind of the action receipt being applied. -/
+  curFail : Option String := none
+  detail : ObsDetail := {}
 
 abbrev M := StateT Recording (ReaderT Env (Except String))
 
@@ -47,6 +56,52 @@ def logged {α : Type} (x : LM α) : M α := do
 
 def startReceipt : M Unit := modify fun r => { r with receiptStart := r.recorder.size }
 def modifyPipe (f : Pipeline.Pipe → Pipeline.Pipe) : M Unit := modify fun r => { r with pipe := f r.pipe }
+
+/-! ### Observation (W01): failure kinds, per-outcome compute, per-receipt storage attribution.
+Recorded only when `Recording.observe`; never read by a check. -/
+
+def setVmErr (e : String) : M Unit := modify fun r => { r with vmErr := some e }
+def modifyDetail (f : ObsDetail → ObsDetail) : M Unit := do
+  if (← get).observe then modify fun r => { r with detail := f r.detail }
+
+/-- The error of an `abort B U <error>` harness line. -/
+def lineErr (l : String) : String :=
+  match l.splitOn " " with
+  | "abort" :: _ :: _ :: rest => " ".intercalate rest
+  | _ => l
+
+/-- The committed changes of one step: `Ovl.commit` updates a key in place and appends a new key
+(`kvPut`), so `before.committed` is a positional prefix of `after.committed`. A change is a key
+whose committed value differs from its value before the step (the earlier committed value, else
+the pre-state trie value). Ascending key, `none` = deleted.
+
+The second list holds the keys first committed in this step whose pre-state *value* the witness
+does not reveal (the step wrote the key without reading it, so the recorded trie holds only the
+value reference): the checker cannot tell whether the write changed the value. -/
+def committedDiff (before after : Ovl) : List (Bytes × Option Bytes) × List (Bytes × Option Bytes) :=
+  let rec go : List (Bytes × Option Bytes) → List (Bytes × Option Bytes) → List (Bytes × Option Bytes)
+    | (k, v) :: as, (k', v') :: bs =>
+      let rest := go as bs
+      if k == k' then (if v == v' then rest else (k, v) :: rest)
+      else (k, v) :: rest  -- not reached: kvPut never reorders
+    | as, [] => as
+    | [], _ => []
+  let all := go after.committed before.committed
+  let isNew := fun (k : Bytes) => (kvFind k before.committed).isNone
+  let known := all.filter fun (k, v) =>
+    !isNew k || (match before.trie.find (nibbles k) with
+      | some p => p != v
+      | none => false)
+  let unknown := all.filter fun (k, _) => isNew k && (before.trie.find (nibbles k)).isNone
+  (sortKV known, sortKV unknown)
+
+/-- The id list of an attribution entry for the keys whose pre-state value is unknown
+(`committedDiff`.2): the entry's ids behind the marker id `"pre?"`. -/
+def unknownPreMarker : Bytes := "pre?".toUTF8.toList
+
+def pushAttrib (ids : List Bytes) (d : List (Bytes × Option Bytes) × List (Bytes × Option Bytes)) : M Unit :=
+  modifyDetail fun x => { x with attrib := x.attrib ++ [(ids, d.1)] ++
+    (if d.2.isEmpty then [] else [(unknownPreMarker :: ids, d.2)]) }
 def softExceeded : M Bool := do
   let r ← get
   pure (r.recorder.size > r.softLimit)
@@ -103,6 +158,7 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
   match codeHash with
   | none =>
     -- CodeDoesNotExist: 0 VM gas, action failure
+    setVmErr "CompilationError(CodeDoesNotExist)"
     pure (st, ar.fail)
   | some hh =>
   -- Code (§2.2). A blob in the merged witness store always serves. Otherwise an in-chunk deploy
@@ -157,6 +213,7 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
   | .line l =>
     let (burnt, used) ← liftE (lineOutcome l)
     let gb := ar.gasBurnt + burnt
+    setVmErr (lineErr l)
     pure (st, { ar.fail with gasBurnt := gb, gasFC := ar.gasFC + burnt, gasUsed := ar.gasUsed + used })
   | .done s err =>
     if let some r := s.real then
@@ -181,6 +238,7 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
     | some e =>
       if e.startsWith "unmodeled" then throw (oodE e)
       if e.startsWith "invalid" || e.startsWith "StorageInconsistentState" then throw s!"invalid: {e}"
+      setVmErr e
       pure (st, ar1.fail)
     | none =>
       -- `PromiseYieldIndices` is read on every successful call; each yield receipt enqueues a
@@ -307,7 +365,23 @@ def decodeStoredRcptR (b : Bytes) (what : String) : M Rcpt := do
   if (← get).globalActions then liftE (GlobalCodecs.decodeStoredRcptGlobal b what)
   else liftE (decodeStoredRcpt b what)
 def trieFindR (key : Bytes) := logged (trieFindL key)
-def processTxR (env : Env) (rs : RS × List Bytes) (tf : TxD2 × Bool) := logged (processTxD2L env rs tf)
+def processTxR (env : Env) (rs : RS × List Bytes) (tf : TxD2 × Bool) : M (RS × List Bytes) := do
+  let (rs0, _) := rs
+  let out ← logged (processTxD2L env rs tf)
+  if (← get).observe && out.1.outcomes.length > rs0.outcomes.length then
+    let (t, flag) := tf
+    let rs1 := out.1
+    let cu := rs1.compute - rs0.compute
+    let isFail : Bool := match rs1.outcomes.getLast?.map (·.status) with
+      | some OStatus.failure => true
+      | _ => false
+    let kinds : List (Bytes × String) := bif isFail then
+        [(t.hash, "InvalidTxError." ++ FailureKinds.txKind env.ctx.gasPrice env.ctx.height rs0.o t flag)]
+      else []
+    modifyDetail fun d => { d with failKinds := d.failKinds ++ kinds,
+                                   outCompute := d.outCompute ++ [(t.hash, cu)] }
+    pushAttrib [t.hash] (committedDiff rs0.o rs1.o.commit)
+  pure out
 def validatorUpdateR (l : Layout) (own : Nat) (o : Ovl) (f : ValidatorUpdateFacts) (ps : List (Bytes × Nat)) :=
   logged (validatorUpdateL l own o f ps)
 def schedOvlR (prims : Prims) (ctx : ApplyCtx) (o : Ovl) := logged (schedOvlL prims ctx o)
@@ -318,8 +392,18 @@ def actionLoop (hooks : NearCfg) (env : Env) (r : Rcpt) (a : ActionR)
   | _, [], acc => pure acc
   | i, act :: rest, (st, res) => do
     let c : ActCtx := { env, r, a, idx := i, nActs := a.actions.length, inputs, deployed, attempted }
-    let (st, ar) ← applyAction hooks c st act
-    let ar := if ar.ok && ar.newReceipts.any (fun x => !validReceipt true x) then ar.fail else ar
+    modify fun r => { r with vmErr := none }
+    let (st', ar) ← applyAction hooks c st act
+    let badNew := ar.ok && ar.newReceipts.any (fun x => !validReceipt true x)
+    let ar := if badNew then ar.fail else ar
+    if !ar.ok && (← get).observe then
+      let vm := (← get).vmErr
+      let kind := if badNew then "NewReceiptValidationError"
+        else match vm with
+          | some e => s!"FunctionCallError({e})"
+          | none => FailureKinds.actionKind c st act
+      modify fun r => { r with curFail := some s!"ActionError[{i}].{kind}" }
+    let st := st'
     -- merge (lib.rs:439-493): asserts, then gas / gas_burnt_for_function_call / gas_used / compute
     if ar.gasFC > ar.gasBurnt then throw (panicked "gas_burnt_for_function_call > gas_burnt")
     if ar.gasBurnt > ar.gasUsed then throw (panicked "gas_burnt > gas_used")
@@ -365,6 +449,7 @@ def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : A
   -- 2. receiver account
   let acct ← getAcctR o r.recv
   startReceipt
+  modify fun x => { x with curFail := none }
   let res0 : AR := { gasBurnt := Fees.nar.exec, gasUsed := Fees.nar.exec,
                      compute := Fees.nar.execCompute, ok := true, newReceipts := [],
                      proposals := [], tokensBurnt := 0 }
@@ -380,7 +465,9 @@ def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : A
     | some x =>
       match storageStakeOk x x.amount with
       | some true => o := o.setAcct r.recv x
-      | some false => res := res.fail
+      | some false =>
+        res := res.fail
+        modify fun x => { x with curFail := some "ActionError[None].LackBalanceForState" }
       | none => throw (inconsistent "storage staking overflow")
     | none => pure ()
   -- 5. prices (AccountCostIncrease)
@@ -454,6 +541,9 @@ def applyActionReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) (a : A
   let out : OutD1 := { o := { id := r.rid, receiptIds := ids, gasBurnt := res.gasBurnt, tokensBurnt := tb,
                               executorId := r.recv },
                        status := status, logs := res.logs }
+  if !res.ok then
+    let kind := (← get).curFail.getD FailureKinds.unclassified
+    modifyDetail fun d => { d with failKinds := d.failKinds ++ [(r.rid, kind)] }
   pure (rs, out, res.compute)
 
 /-- `process_receipt` (`lib.rs:1303-1527`) and `process_action_receipt` (`lib.rs:1529-1597`). -/
@@ -536,12 +626,21 @@ def processReceipt (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) :
 /-- `process_receipt_with_metrics`: totals and outcome (`lib.rs:2335-2345`). -/
 def processWithTotals (hooks : NearCfg) (env : Env) (rs : RS) (r : Rcpt) : M RS := do
   modifyPipe Pipeline.startReceipt
+  let before := rs.o
   let (rs, o) ← processReceipt hooks env rs r
+  -- W01 attribution: the receipt and the receipt whose outcome it produced (a postponed or
+  -- yielded receipt the data receipt completed)
+  let ids := match o with
+    | some (out, _) => if out.o.id == r.rid then [r.rid] else [r.rid, out.o.id]
+    | none => [r.rid]
+  if (← get).observe then
+    pushAttrib ids (committedDiff before rs.o.commit)
   match o with
   | none => pure rs
   | some (out, cu) =>
     let g ← okR (add64 rs.gas out.o.gasBurnt) (panicked "IntegerOverflowError")
     let c ← okR (add64 rs.compute cu) (panicked "IntegerOverflowError")
+    modifyDetail fun d => { d with outCompute := d.outCompute ++ [(out.o.id, cu)] }
     pure { rs with gas := g, compute := c, outcomes := rs.outcomes ++ [out] }
 
 /-- `process_receipt_and_instant_receipts` (`lib.rs:2619-2656`): instant receipts FIFO. -/
@@ -687,10 +786,12 @@ def applyNewChunkD2 (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
   -- E9: balance_burnt = tx + other (+ slashed = 0) − subsidized (rt/mod.rs:386-403); negative ⇒ Error
   if rs.subsidized > burnt then throw "invalid: balance_burnt underflow (subsidized exceeds burnt)"
   let burnt := burnt - rs.subsidized
+  let recd ← get
   pure { root, outcomes := rs.outcomes, outgoing := rs.outgoing, gasUsed, balanceBurnt := burnt,
          congestion := cong, bwRequests := bw, proposals := dedupProposals rs.proposals,
          cdRemovals := o.cdRemovals, wasmGas := rs.wasmGas,
-         committed := some (sortKV o.committed), compute := some rs.compute }
+         committed := some (sortKV o.committed), compute := some rs.compute,
+         detail := if recd.observe then some recd.detail else none }
 
 /-- Execute the recorder-aware main transition. Limits are protocol constants; the initial
 recorder is empty regardless of unused values included in the witness. -/
@@ -700,6 +801,6 @@ def run (cfg : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
     (globalActions : Bool := false) (codePolicy : CodeWitnessPolicy := .coldPartial) :
     Except String MainOutD2 :=
   ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion).run
-    { globalActions, codePolicy } env).map Prod.fst
+    { globalActions, codePolicy, observe := cfg.observeDetail } env).map Prod.fst
 
 end NearSpecV3.Successor.StorageExecution

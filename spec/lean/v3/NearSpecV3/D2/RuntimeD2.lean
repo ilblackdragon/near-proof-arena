@@ -145,6 +145,9 @@ structure MainOutD2 where
   committed : Option (List (Bytes × Option Bytes)) := none
   /-- Observation only (W01): Σ compute usage of the chunk's outcomes. `none` when not reported. -/
   compute : Option Nat := none
+  /-- Observation only (W01): failure kinds, per-outcome compute and per-receipt storage
+  attribution (`ObsDetail`). `none` when not reported; never read by any check. -/
+  detail : Option ObsDetail := none
 
 def decodeBufIdx (b : Bytes) : Option (List (Nat × Nat × Nat)) :=
   match pVec "shard_buffers" (fun bs => do

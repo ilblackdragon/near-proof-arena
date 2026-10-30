@@ -213,8 +213,10 @@ ED25519 signature).
 * Byte-level malformed signatures are covered at the transaction and delegate positions: the
   hint classes, `z`, `c̃`, all-zero, and wrong key. Truncated or over-long ML-DSA signatures cannot
   appear in a chunk, because Borsh fixes the length; the unit pin covers them.
-* A `z` coefficient exactly at the norm bound in an otherwise valid signature cannot be produced
-  without forging. Out-of-range `z` is covered (the ±γ1 crate vectors), but only for signatures
-  whose challenge would fail anyway.
+* *Superseded 2026-10-29:* this section said a `z` coefficient exactly at the norm bound "cannot be
+  produced without forging". That is wrong for the key holder: near_crypto derives ML-DSA-65 keys
+  from a seed, and a FIPS 204 signer that keeps only candidates with `‖z‖∞ = γ1−β` produces them.
+  Whole-chunk fixtures at the bound and at `γ1−β−1` are in
+  [remaining-shapes](../remaining-shapes/README.md).
 * The ACVP pre-hash groups are not pinned; nearcore verifies pure ML-DSA only.
 * `TxD1.lean` (the D1 path) is unchanged: ED25519 only, by design.

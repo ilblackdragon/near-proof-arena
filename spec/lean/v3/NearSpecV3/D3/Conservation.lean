@@ -46,11 +46,26 @@ def carriedGas (recv : Bytes) (acts : List Act) : Nat :=
   | some pg, some ps, some pe => pg + ps.gas + (pe.gas + Fees.nar.exec)
   | _, _, _ => 0
 
-/-- **NEAR held by a receipt**: its attached deposits plus its gas at the receipt's gas price.
-Data and distribution receipts hold none. -/
+/-- The deposits a receipt's actions attach, summed in `Nat` (the shape of `totalDeposit`,
+`D2/Fees.lean:323`, without its `u128` overflow `none`). -/
+def depositOf (acts : List Act) : Nat :=
+  sumNat (acts.map fun a => match a with
+    | .base b => b.b.deposit
+    | .delegate _ d => sumNat (d.actions.map fun b => b.b.deposit))
+
+/-- **NEAR held by a receipt**: its attached deposits plus, for a non-system receipt, its gas at the
+receipt's gas price. Data and distribution receipts hold none.
+
+Deposits are summed exactly: a successful *system* receipt never reaches `refunds`' `totalDeposit`
+guard and credits its actions one by one, so an overflowing `totalDeposit` would undercount it.
+A system receipt's gas is not NEAR: the runtime neither refunds nor burns it (`isSystem` ⇒ no
+`refunds`, `gasOut = 0`, `D2/Receipts.lean:149-171`), and every system receipt the runtime builds
+has `gasPrice = 0` (`Receipts.lean:93,97`, `Actions.lean:237`). Both found by the deepseek-fv
+lead. -/
 def rcptValue (r : Rcpt) : Nat :=
   match r.body with
-  | .action _ a => (totalDeposit a.actions).getD 0 + a.gasPrice * carriedGas r.recv a.actions
+  | .action _ a => depositOf a.actions +
+      (if r.pred == AccountId.system then 0 else a.gasPrice * carriedGas r.recv a.actions)
   | _ => 0
 
 def rcptsValue (rs : List Rcpt) : Nat := sumNat (rs.map rcptValue)
@@ -190,6 +205,36 @@ def creditedOpt (l : Layout) (own : Nat) (t : PTrie) : Option ValidatorUpdateFac
   | some f => creditedRewards l own t f
   | none => 0
 
+/-! ## Canonical inputs
+
+`nearIn` measures *stored bytes* by decoding them, so a value the runtime writes in an encoding that
+does not decode back to itself measures `0`. Values decoded from witness bytes are canonical; the
+statement quantifies over structured inputs, so it says so. -/
+
+/-- A receipt whose stored encoding decodes back to itself. `Rcpt.encode` writes each action's
+`raw` bytes (`D2/Types.lean:451,464`), which nothing ties to the structured action except decoding. -/
+def CanonRcpt (r : Rcpt) : Prop := decodeRcpt r.encode = .ok r
+
+/-- The receipt `processTxD2` builds for a transaction (`D2/RuntimeD2.lean:56-57`). -/
+def txReceipt (tf : TxD2 × Bool) (rid : Bytes) (gp : Nat) : Rcpt :=
+  ⟨tf.1.signer, tf.1.receiver, rid,
+   .action false ⟨false, tf.1.signer, none, tf.1.pk, gp, [], [], tf.1.actions⟩⟩
+
+/-- A system receipt carries no gas price. The runtime builds every system receipt with
+`gasPrice = 0` (`D2/Receipts.lean:93,97`, `D2/Actions.lean:236-239`) and never refunds or burns a
+system receipt's gas, so one with `gasPrice > 0` would hand unpaid gas to the receipts it spawns. -/
+def SysGasFree (r : Rcpt) : Prop :=
+  r.pred = AccountId.system → ∀ (y : Bool) (a : ActionR), r.body = .action y a → a.gasPrice = 0
+
+/-- The receipts at rest in a trie, decoded as `entryNear` decodes them (postponed / yield at
+`[6]`/`[12]`, delayed / buffered at `[7]`/`[14]`). -/
+def storedRcpts (t : PTrie) : List Rcpt :=
+  (revealedT t []).filterMap fun (n, v) =>
+    match packNibbles n with
+    | 6 :: _ :: _ | 12 :: _ :: _ => match decodeRcpt v with | .ok r => some r | .error _ => none
+    | 7 :: _ :: _ | 14 :: _ :: _ => match decodeStored v with | .ok s => some s.r | .error _ => none
+    | _ => none
+
 /-! ## The statements -/
 
 /-- **A D3 chunk changes the NEAR it holds only by the epoch reward and the burnt amount.**
@@ -201,7 +246,35 @@ total changes by `Σ rewards − Σ balance_burnt` — the block header's `total
 (`Supply.verifyTotalSupply_accept`). Transactions are internal: the signer's charge reappears as
 `txBurnt` plus the value of the receipt it creates.
 
-The two hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
+`t.wf` (`NearSpec/Trie.lean`: nibbles `< 16`, sixteen child slots per branch) excludes tries no
+witness can produce: a path with a nibble `≥ 16` is read by `packNibbles` as some other key, and
+the first write rebuilds that branch with slots `0..15` only, silently dropping the value (found
+by the deepseek-fv lead, with a kernel-checked counterexample). The runtime's writes preserve it
+(`NearSpec/TrieUpsertWf.lean`, `PTrie.upsert_wf`).
+
+The canonicity hypotheses (`CanonRcpt` of the incoming receipts and of the receipt each transaction
+creates) and the magnitude bound exclude structured inputs no witness can produce: a receipt whose
+actions' `raw` bytes are not their encoding is stored as bytes that do not decode (it measures `0`),
+and an account whose amount reaches `u128Max` is written with the V2 marker in its amount slot
+(`D2/Types.lean:126-166`), so it no longer decodes. The bound is `2^120` rather than `u128Max` to
+leave room for the 1-yocto promise subsidies minted during the chunk; real supply (~1.2·10³³ yocto,
+about `2^110`) is far below it. Both found by the deepseek-fv provers, kernel-checked.
+
+`gasLimit < 2^64` (the header field is a `u64`, so it holds at the call site by decoding) bounds
+how many receipts a chunk processes, hence how many 1-yocto subsidies it can mint: an incoming
+receipt with `gasPrice = 0` makes the gas for minting value-free in the measure, and the
+`subsidized ≤ burnt` guard does not bound the total. Without it an account could in principle be
+credited up to the `u128Max` V2 marker. Found by the deepseek-fv lead.
+
+The two `system` hypotheses exclude what only a forged input can contain. No revealed account
+`system`: the runtime cannot create one (`actCreateAccount` rejects it, it is not implicit, and
+`stateInit` is out of D3's domain), so no function call ever runs *at* `system` — a contract there
+would emit receipts with predecessor `system`, whose gas the runtime treats as free. And no input
+system receipt (incoming, or at rest in the trie) carries a gas price, for the same reason; the
+receipts the chunk itself creates are system receipts only as refunds, with `gasPrice = 0`. Found
+by the deepseek-fv lead, with a kernel-evaluated WASM run.
+
+The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
 `ChunkValidationD2.lean:213`); the second is the chunk producer's invariant and is not checked by
 `checkD2`. Without them a foreign receipt can enter this shard's delayed queue, where `nearIn` does
@@ -210,8 +283,17 @@ def ChunkConservation : Prop :=
   ∀ (prims : Prims) (env : Env) (t : PTrie) (vu : Option ValidatorUpdateFacts)
     (lastProps : List (Bytes × Nat)) (incoming : List Rcpt) (txs : List (TxD2 × Bool))
     (ownCong : Congestion) (out : MainOutD2) (o : Ovl),
+    t.wf = true →
+    env.ctx.gasLimit < 2 ^ 64 →
+    (∀ v, t.find (nibbles (kAccount AccountId.system)) ≠ some (some v)) →
+    (∀ r ∈ incoming ++ storedRcpts t, SysGasFree r) →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
+    (∀ r ∈ incoming, CanonRcpt r) →
+    (∀ tf ∈ txs, ∀ (rid : Bytes) (gp : Nat), rid.length = 32 → gp < 2 ^ 128 →
+      CanonRcpt (txReceipt tf rid gp)) →
+    nearIn env.ctx.layout env.ctx.own t + rcptsValue incoming
+      + creditedOpt env.ctx.layout env.ctx.own t vu < 2 ^ 120 →
     applyNewChunkD2Obs (D3.d3Hooks Wasm.pv86) prims env t vu lastProps incoming txs ownCong
       = .ok (out, o) →
     ∃ t', finalTrie o = some t' ∧

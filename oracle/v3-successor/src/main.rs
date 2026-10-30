@@ -33,6 +33,10 @@
 //!   rejudge-d2 --corpus D2CORPUS --cases LIST --chain I --blocks N --out OUT --scratch SCRATCH
 //!       Cold re-judgment of existing d2corpus.v2 cases with the needed code blobs appended
 //!       (src/d2cold.rs): replays the D2 chain byte-identically and writes OUT/<sub>/<case>.
+//!   observe-d1 | observe-d2 --corpus DIR --chain I --out OUT --scratch SCRATCH
+//!       nearcore's per-outcome observables (cold validator) for the pinned d1run / d2corpus.v2
+//!       cases of chain I, by re-running the original D1/D2 generator chain unchanged with an
+//!       observation hook on its judge (src/d12obs.rs, workplan W01).
 //!   reshard --seed S --out DIR [--chains K] [--first-chain I] [--blocks N] [--shards n]
 //!       [--epoch-length L] [--gas-limit-tgas G] [--split-k k] [--variant v] [--p-missing P]
 //!       [--p-burst-hot B] [--min-gas-price P] [--second-split SID] [--max-shards M] [--no-force]
@@ -48,7 +52,9 @@ mod claim;
 mod d0;
 #[path = "../../v3/src/enc.rs"]
 mod enc;
-#[path = "../../v3/src/judge.rs"]
+// `judge` is the shared module plus an observation hook that no command but `observe-d1/d2`
+// installs (src/judge_hook.rs re-exports `../../v3/src/judge.rs` unchanged).
+#[path = "judge_hook.rs"]
 mod judge;
 #[path = "../../v3/src/mutate.rs"]
 mod mutate;
@@ -93,6 +99,7 @@ mod observables;
 mod mainnet_obs;
 mod d2cold;
 mod cachejudge;
+mod d12obs;
 #[path = "../../v3-d3/src/d3judge.rs"]
 mod d3judge;
 
@@ -236,6 +243,8 @@ fn main() {
         Some("reshard") => reshard::cmd_reshard(&args),
         Some("mainnet-observables") => mainnet_obs::cmd(&args),
         Some("rejudge-d2") => d2cold::cmd(&args),
+        Some("observe-d1") => d12obs::cmd(&args, true),
+        Some("observe-d2") => d12obs::cmd(&args, false),
         Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-successor gen --domain d3 ... | contracts (see src/main.rs)");

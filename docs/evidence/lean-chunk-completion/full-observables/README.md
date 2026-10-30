@@ -145,6 +145,9 @@ host; the timeout is now 3,600 s.
 
 ## 5. What is not covered
 
+*2026-10-30:* failure kinds, per-receipt state-change attribution, per-outcome compute and the
+d1run / d2corpus.v2 expected values are now covered by [w01-observables-v3](../w01-observables-v3/README.md).
+
 * **Failure kind.** Lean's `OStatus.failure` carries no error kind. The outcome hash commits only to
   the `Failure` tag (`PartialExecutionStatus`). The nearcore records keep `Failure(<error>)` for
   reference, but only the tag is compared.

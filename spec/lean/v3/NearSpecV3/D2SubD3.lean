@@ -80,10 +80,12 @@ theorem checkD2CoreObs_codes_mono (h : ActionHooks) (c w : Bytes) (g : Option Na
 theorem d2Hooks_refine (h : ActionHooks) : HooksRefine d2Hooks h :=
   fun _ _ _ _ => Or.inr ⟨_, rfl, by decide⟩
 
-/-- **D2 ⊂ D3 at the level of results**: wherever `checkD2` is not an exclusion, `checkD3` returns
-the same result. -/
-theorem checkD3_refines_checkD2 (c w : Bytes) : Refines (checkD2 c w) (D3.checkD3 c w) := by
-  unfold checkD2 D3.checkD3 checkD2Core
+/-- **D2 ⊂ D3 at the level of results**: wherever `checkD2` is not an exclusion, `checkD3`'s legacy
+core `checkD3Core` returns the same result. (Since the UQ-010 hand-over, 2026-10-29, `checkD3` itself
+may replace a core reject of a witness above the core's storage bound by the recorder engine's
+verdict, so the result-level statement is on the core; acceptance still transfers, `relD2_relD3`.) -/
+theorem checkD3_refines_checkD2 (c w : Bytes) : Refines (checkD2 c w) (D3.checkD3Core c w) := by
+  unfold checkD2 D3.checkD3Core checkD2Core
   apply Refines.map
   exact ((checkD2CoreObs_cap_free d2Hooks d2Hooks_gasFree false c w D3.gAlpha).trans
     (checkD2CoreObs_codes_mono d2Hooks c w _)).trans
@@ -96,7 +98,7 @@ theorem relD2_relD3 (c w : Bytes) (h : RelD2 c w) : D3.RelD3 c w := by
     · assumption
     · cases h
   rcases checkD3_refines_checkD2 c w with he | ⟨e, he, _⟩
-  · show D3.checkD3 c w = .ok (); rw [← he]; exact h2
+  · exact D3.checkD3_of_core_ok c w (by rw [← he]; exact h2)
   · rw [h2] at he; cases he
 
 /-- info: 'NearSpecV3.Successor.relD2_relD3' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -117,7 +119,9 @@ D0/D1 never compare the `epoch_start_after` flags with the headers, D2/D3 requir
 is in `RelD0`, `RelD1` and `RelD1a B0` but not in `RelD2`/`RelD3` (`not_d1_sub_d2`,
 `not_d1a_sub_d3`). The two lemmas below stay true but their hypothesis does not hold; closing
 `WitnessLift` needs either D2's genesis rule in D0/D1 or a claim condition (evidence:
-`docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`). -/
+`docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`). Decision (2026-10-30): the
+rungs of the statement are now `RelD3 ∧ InRungDk` (`Rungs.lean`, `ChallengeChunkV3R.lean`), where
+every inclusion and the lift are projections. -/
 
 theorem relD1a_relD3_of_d1_d2 (hd12 : ∀ cb w, RelD1 cb w → RelD2 cb w) {B : Nat} {cb w : Bytes}
     {W Dp N : Nat} (h : RelD1a B cb w W Dp N) : D3.RelD3 cb w :=

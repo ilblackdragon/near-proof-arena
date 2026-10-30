@@ -1,0 +1,1093 @@
+{
+ "d1run": {
+  "population": "d1run",
+  "desc": "cold re-capture, 12 chains",
+  "categories": {
+   "match": 6979,
+   "nearcore_genesis": 60
+  },
+  "graded": 6979,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 5813,
+    "matched": 5813,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 438980,
+    "matched": 438980,
+    "mismatched": 0
+   },
+   "attrib.entry": {
+    "compared": 438980,
+    "matched": 438980,
+    "mismatched": 0
+   },
+   "attrib.key": {
+    "compared": 647167,
+    "matched": 647167,
+    "mismatched": 0
+   },
+   "attrib.unknownPre": {
+    "compared": 0,
+    "matched": 0,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 438980,
+    "matched": 438980,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 289184,
+    "matched": 289184,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 298271,
+    "matched": 298271,
+    "mismatched": 0
+   }
+  },
+  "controls": 1793,
+  "controls_total": 1793,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "d2corpus": {
+  "population": "d2corpus",
+  "desc": "cold re-capture, 14 chains",
+  "categories": {
+   "match": 10858,
+   "nearcore_genesis": 69
+  },
+  "graded": 10858,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 21645,
+    "matched": 21645,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 365132,
+    "matched": 365132,
+    "mismatched": 0
+   },
+   "attrib.entry": {
+    "compared": 365682,
+    "matched": 365682,
+    "mismatched": 0
+   },
+   "attrib.key": {
+    "compared": 582282,
+    "matched": 582282,
+    "mismatched": 0
+   },
+   "attrib.unknownPre": {
+    "compared": 493,
+    "matched": 493,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 365132,
+    "matched": 365132,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 245370,
+    "matched": 245370,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 350060,
+    "matched": 350060,
+    "mismatched": 0
+   }
+  },
+  "controls": 1959,
+  "controls_total": 1959,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "mainnet": {
+  "population": "mainnet",
+  "desc": "shard 13, node store, per-change detail",
+  "categories": {
+   "match": 1223
+  },
+  "graded": 1223,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 43,
+    "matched": 43,
+    "mismatched": 0
+   },
+   "attrib.entry": {
+    "compared": 1204,
+    "matched": 1204,
+    "mismatched": 0
+   },
+   "attrib.key": {
+    "compared": 2731,
+    "matched": 2731,
+    "mismatched": 0
+   },
+   "attrib.unknownPre": {
+    "compared": 0,
+    "matched": 0,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 1075,
+    "matched": 1075,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 1112,
+    "matched": 1112,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 3905,
+    "matched": 3905,
+    "mismatched": 0
+   }
+  },
+  "controls": 810,
+  "controls_total": 810,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "regen_y4242": {
+  "population": "regen_y4242",
+  "desc": "yield, fresh run",
+  "categories": {
+   "match": 966,
+   "nearcore_genesis": 4
+  },
+  "graded": 966,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 1431,
+    "matched": 1431,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 30540,
+    "matched": 30540,
+    "mismatched": 0
+   },
+   "attrib.entry": {
+    "compared": 30849,
+    "matched": 30849,
+    "mismatched": 0
+   },
+   "attrib.key": {
+    "compared": 41669,
+    "matched": 41669,
+    "mismatched": 0
+   },
+   "attrib.unknownPre": {
+    "compared": 65,
+    "matched": 65,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 30540,
+    "matched": 30540,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 21097,
+    "matched": 21097,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 22350,
+    "matched": 22350,
+    "mismatched": 0
+   }
+  },
+  "controls": 2063,
+  "controls_total": 2063,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "regen_g2718": {
+  "population": "regen_g2718",
+  "desc": "global-cache, fresh run",
+  "categories": {
+   "match": 501,
+   "nearcore_genesis": 4
+  },
+  "graded": 501,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 594,
+    "matched": 594,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 11534,
+    "matched": 11534,
+    "mismatched": 0
+   },
+   "attrib.entry": {
+    "compared": 11704,
+    "matched": 11704,
+    "mismatched": 0
+   },
+   "attrib.key": {
+    "compared": 16125,
+    "matched": 16125,
+    "mismatched": 0
+   },
+   "attrib.unknownPre": {
+    "compared": 12,
+    "matched": 12,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 11534,
+    "matched": 11534,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 8092,
+    "matched": 8092,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 10120,
+    "matched": 10120,
+    "mismatched": 0
+   }
+  },
+  "controls": 2088,
+  "controls_total": 2088,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "regen_k1618": {
+  "population": "regen_k1618",
+  "desc": "keys, fresh run",
+  "categories": {
+   "match": 988,
+   "nearcore_genesis": 4
+  },
+  "graded": 988,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 1513,
+    "matched": 1513,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 19245,
+    "matched": 19245,
+    "mismatched": 0
+   },
+   "attrib.entry": {
+    "compared": 19507,
+    "matched": 19507,
+    "mismatched": 0
+   },
+   "attrib.key": {
+    "compared": 26241,
+    "matched": 26241,
+    "mismatched": 0
+   },
+   "attrib.unknownPre": {
+    "compared": 64,
+    "matched": 64,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 19245,
+    "matched": 19245,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 13533,
+    "matched": 13533,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 19229,
+    "matched": 19229,
+    "mismatched": 0
+   }
+  },
+  "controls": 2099,
+  "controls_total": 2099,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "regen_d10": {
+  "population": "regen_d10",
+  "desc": "D3 baseline seed 10, fresh run",
+  "categories": {
+   "match": 696,
+   "nearcore_genesis": 4
+  },
+  "graded": 696,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 1363,
+    "matched": 1363,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 25868,
+    "matched": 25868,
+    "mismatched": 0
+   },
+   "attrib.entry": {
+    "compared": 26148,
+    "matched": 26148,
+    "mismatched": 0
+   },
+   "attrib.key": {
+    "compared": 35848,
+    "matched": 35848,
+    "mismatched": 0
+   },
+   "attrib.unknownPre": {
+    "compared": 42,
+    "matched": 42,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 25868,
+    "matched": 25868,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 17967,
+    "matched": 17967,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 18297,
+    "matched": 18297,
+    "mismatched": 0
+   }
+  },
+  "controls": 2077,
+  "controls_total": 2077,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "yield": {
+  "population": "yield",
+  "desc": "committed fixtures (2026-10-26 records)",
+  "categories": {
+   "match": 74
+  },
+  "graded": 74,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 132,
+    "matched": 132,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 3982,
+    "matched": 3982,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 3982,
+    "matched": 3982,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 2749,
+    "matched": 2749,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 2163,
+    "matched": 2163,
+    "mismatched": 0
+   }
+  },
+  "controls": 959,
+  "controls_total": 959,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "curve": {
+  "population": "curve",
+  "desc": "committed fixtures (2026-10-26 records)",
+  "categories": {
+   "match": 87
+  },
+  "graded": 87,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 146,
+    "matched": 146,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 3855,
+    "matched": 3855,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 3855,
+    "matched": 3855,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 2406,
+    "matched": 2406,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 1826,
+    "matched": 1826,
+    "mismatched": 0
+   }
+  },
+  "controls": 949,
+  "controls_total": 949,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "keys": {
+  "population": "keys",
+  "desc": "committed fixtures (2026-10-26 records)",
+  "categories": {
+   "match": 37
+  },
+  "graded": 37,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 50,
+    "matched": 50,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 2838,
+    "matched": 2838,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 2838,
+    "matched": 2838,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 977,
+    "matched": 977,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 1263,
+    "matched": 1263,
+    "mismatched": 0
+   }
+  },
+  "controls": 704,
+  "controls_total": 704,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "globalcache": {
+  "population": "globalcache",
+  "desc": "committed fixtures (2026-10-26 records)",
+  "categories": {
+   "match": 28
+  },
+  "graded": 28,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 50,
+    "matched": 50,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 2457,
+    "matched": 2457,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 2457,
+    "matched": 2457,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 1353,
+    "matched": 1353,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 1572,
+    "matched": 1572,
+    "mismatched": 0
+   }
+  },
+  "controls": 541,
+  "controls_total": 541,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "globalpromise": {
+  "population": "globalpromise",
+  "desc": "committed fixtures (2026-10-26 records)",
+  "categories": {
+   "match": 2
+  },
+  "graded": 2,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 4,
+    "matched": 4,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 14,
+    "matched": 14,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 14,
+    "matched": 14,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 17,
+    "matched": 17,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 37,
+    "matched": 37,
+    "mismatched": 0
+   }
+  },
+  "controls": 37,
+  "controls_total": 37,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "storage": {
+  "population": "storage",
+  "desc": "committed fixtures (2026-10-26 records)",
+  "categories": {
+   "match": 64
+  },
+  "graded": 64,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 16,
+    "matched": 16,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 142,
+    "matched": 142,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 142,
+    "matched": 142,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 76,
+    "matched": 76,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 334,
+    "matched": 334,
+    "mismatched": 0
+   }
+  },
+  "controls": 899,
+  "controls_total": 899,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "resharding": {
+  "population": "resharding",
+  "desc": "committed fixtures (2026-10-26 records)",
+  "categories": {
+   "match": 19,
+   "error": 1
+  },
+  "graded": 19,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 4,
+    "matched": 4,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 3912,
+    "matched": 3912,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 3912,
+    "matched": 3912,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 1544,
+    "matched": 1544,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 4421,
+    "matched": 4421,
+    "mismatched": 0
+   }
+  },
+  "controls": 289,
+  "controls_total": 289,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": false
+ },
+ "pin_d3c9": {
+  "population": "pin_d3c9",
+  "desc": "pinned corpus subset (2026-10-26 records)",
+  "categories": {
+   "match": 81,
+   "nearcore_genesis": 19
+  },
+  "graded": 81,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 62,
+    "matched": 62,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 1636,
+    "matched": 1636,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 1636,
+    "matched": 1636,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 942,
+    "matched": 942,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 2691,
+    "matched": 2691,
+    "mismatched": 0
+   }
+  },
+  "controls": 866,
+  "controls_total": 866,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "pin_d3c10": {
+  "population": "pin_d3c10",
+  "desc": "pinned corpus subset (2026-10-26 records)",
+  "categories": {
+   "match": 83,
+   "nearcore_genesis": 19
+  },
+  "graded": 83,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 65,
+    "matched": 65,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 826,
+    "matched": 826,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 826,
+    "matched": 826,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 405,
+    "matched": 405,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 1226,
+    "matched": 1226,
+    "mismatched": 0
+   }
+  },
+  "controls": 892,
+  "controls_total": 892,
+  "lean_binary_sha256": "85a49e0e7a6a9ddc690ee6e9291db6e153ec582af8e8c52762579c22d3725c34",
+  "pass_": true
+ },
+ "item10_se701": {
+  "population": "item10_se701",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 234,
+   "nearcore_genesis": 4
+  },
+  "graded": 234,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 364,
+    "matched": 364,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 12417,
+    "matched": 12417,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 12417,
+    "matched": 12417,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 8544,
+    "matched": 8544,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 8348,
+    "matched": 8348,
+    "mismatched": 0
+   }
+  },
+  "controls": 922,
+  "controls_total": 922,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "item10_se702": {
+  "population": "item10_se702",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 295,
+   "nearcore_genesis": 5
+  },
+  "graded": 295,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 773,
+    "matched": 773,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 13132,
+    "matched": 13132,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 13132,
+    "matched": 13132,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 9175,
+    "matched": 9175,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 9478,
+    "matched": 9478,
+    "mismatched": 0
+   }
+  },
+  "controls": 930,
+  "controls_total": 930,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "item10_se703": {
+  "population": "item10_se703",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 360,
+   "nearcore_genesis": 6
+  },
+  "graded": 360,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 403,
+    "matched": 403,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 7338,
+    "matched": 7338,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 7338,
+    "matched": 7338,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 5216,
+    "matched": 5216,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 7266,
+    "matched": 7266,
+    "mismatched": 0
+   }
+  },
+  "controls": 880,
+  "controls_total": 880,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "item10_se704": {
+  "population": "item10_se704",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 228,
+   "nearcore_genesis": 4
+  },
+  "graded": 228,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 338,
+    "matched": 338,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 11089,
+    "matched": 11089,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 11089,
+    "matched": 11089,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 7617,
+    "matched": 7617,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 7718,
+    "matched": 7718,
+    "mismatched": 0
+   }
+  },
+  "controls": 938,
+  "controls_total": 938,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "item10_mb1618": {
+  "population": "item10_mb1618",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 1055,
+   "nearcore_genesis": 4
+  },
+  "graded": 1055,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 2276,
+    "matched": 2276,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 25787,
+    "matched": 25787,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 25787,
+    "matched": 25787,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 18291,
+    "matched": 18291,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 20656,
+    "matched": 20656,
+    "mismatched": 0
+   }
+  },
+  "controls": 940,
+  "controls_total": 940,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "item10_mb2718": {
+  "population": "item10_mb2718",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 1038,
+   "nearcore_genesis": 4
+  },
+  "graded": 1038,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 3932,
+    "matched": 3932,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 40169,
+    "matched": 40169,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 40169,
+    "matched": 40169,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 28261,
+    "matched": 28261,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 28235,
+    "matched": 28235,
+    "mismatched": 0
+   }
+  },
+  "controls": 931,
+  "controls_total": 931,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "item10_cy601": {
+  "population": "item10_cy601",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 972,
+   "nearcore_genesis": 4
+  },
+  "graded": 972,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 2134,
+    "matched": 2134,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 29745,
+    "matched": 29745,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 29745,
+    "matched": 29745,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 21200,
+    "matched": 21200,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 28184,
+    "matched": 28184,
+    "mismatched": 0
+   }
+  },
+  "controls": 930,
+  "controls_total": 930,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "item10_cy602": {
+  "population": "item10_cy602",
+  "desc": "item-10 run (no per-change records)",
+  "categories": {
+   "match": 1202,
+   "nearcore_genesis": 5
+  },
+  "graded": 1202,
+  "mismatched_fields": 0,
+  "fields": {
+   "outcome.failureKind": {
+    "compared": 3522,
+    "matched": 3522,
+    "mismatched": 0
+   },
+   "outcome.computeUsage": {
+    "compared": 47949,
+    "matched": 47949,
+    "mismatched": 0
+   },
+   "outcome.id": {
+    "compared": 47949,
+    "matched": 47949,
+    "mismatched": 0
+   },
+   "receipt.id": {
+    "compared": 33492,
+    "matched": 33492,
+    "mismatched": 0
+   },
+   "stateChange.value": {
+    "compared": 36124,
+    "matched": 36124,
+    "mismatched": 0
+   }
+  },
+  "controls": 925,
+  "controls_total": 925,
+  "lean_binary_sha256": "eba960d0573a6fc9642fc544b9b21c849f5b72d036c98382e6fb739ac8b8ca3a",
+  "pass_": true
+ },
+ "_totals": {
+  "outcome.failureKind": 46673,
+  "outcome.computeUsage": 1098587,
+  "attrib.entry": 894074,
+  "attrib.key": 1352063,
+  "attrib.unknownPre": 676,
+  "outcome.id": 1099662,
+  "receipt.id": 738620,
+  "stateChange.value": 883774,
+  "graded": 28070,
+  "mismatched": 0,
+  "ctl_det": 26421,
+  "ctl_tot": 26421
+ }
+}

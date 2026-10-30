@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.D3.ContractData
 import ZkFormal.V2.Air
 import NearSpecV3.D3.FunctionCall
+import NearSpecV3.D3.Signed
 
 /-!
 # `ZkFormal.PQ.Join.Statement` — the joint statement of a Wasm FunctionCall proof and a state proof

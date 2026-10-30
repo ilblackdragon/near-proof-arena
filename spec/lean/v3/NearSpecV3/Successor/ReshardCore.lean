@@ -419,7 +419,8 @@ def checkReshardCoreObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowC
              outcomes := out.outcomes
              outgoing := outgoing
              stateChanges := out.committed
-             computeUsage := out.compute }
+             computeUsage := out.compute
+             detail := out.detail }
 
 def checkReshardCore (driver : ExecutionDriver) (hooks : ActionHooks) (allowCodes : Bool)
     (claimBytes witnessBytes : Bytes) (gasCap : Option Nat := none) : Except String Unit :=

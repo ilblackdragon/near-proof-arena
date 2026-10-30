@@ -1,0 +1,1928 @@
+{
+ "cases": 97,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "comparisons": [
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10193-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10194-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10197-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10200-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10201-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10204-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10205-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10206-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10207-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10209-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10209-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10211-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10212-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10214-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10215-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10216-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/d3/00-h10217-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/d3/00-h10218-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_agree",
+   "d3_violations": [],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": true,
+   "family": "d3",
+   "in_d3": true,
+   "in_domain_under_test": true,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-c.drop_last_block",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: segment does not reach the last-but-one new chunk",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-hdr.bandwidth_requests.add",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-hdr.height_included(unchecked)",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-hdr.tx_root",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-t.tx_valid_flip.4",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.drop_node.main.11",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.drop_node.main.19",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.drop_node.main.26",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (promise yield timeout)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.drop_node.main.33",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.drop_node.main.40",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.drop_node.main.5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptIndices)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.epoch_id",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: epoch table does not match the referenced epochs",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.tx.swap",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: transaction root of the last chunk",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-code.extra_garbage",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-hdr.gas_limit",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-hdr.proposals.add",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-t.tx_valid_flip.2",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.implicit0.3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.main.11",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.main.19",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.main.26",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (DelayedReceiptIndices)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.main.33",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (account)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.main.40",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (account)",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.main.5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptIndices)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.epoch_id",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: epoch table does not match the referenced epochs",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.new_tx.drop_rehashed",
+   "checker": "allFeatures",
+   "classification": "verdict_compared_disagree",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": false,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-c.drop_last_block",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: segment does not reach the last-but-one new chunk",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-code.extra_garbage",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-hdr.encoded_length",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidChunkEncodedLength",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-hdr.prev_outgoing_receipts_root",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-t.tx_valid_flip.1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.drop_node.implicit0.3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (DelayedReceiptIndices)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.drop_node.main.11",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.drop_node.main.19",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.drop_node.main.26",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.drop_node.main.33",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (account)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.drop_node.main.40",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.drop_node.main.5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptIndices)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.epoch_id",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: epoch table does not match the referenced epochs",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10204-s0-w.new_tx.drop_rehashed",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-c.drop_last_block",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: segment does not reach the last-but-one new chunk",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-code.extra_garbage",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-hdr.encoded_length",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidChunkEncodedLength",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-hdr.prev_outgoing_receipts_root",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidReceiptsProof",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-t.tx_valid_flip.1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-w.drop_node.main.11",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (account)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-w.drop_node.main.19",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (bandwidth scheduler state)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-w.drop_node.main.26",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-w.drop_node.main.33",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-w.drop_node.main.40",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-w.drop_node.main.5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (account)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10206-s0-w.epoch_id",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: epoch table does not match the referenced epochs",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-c.drop_last_block",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: segment does not reach the last-but-one new chunk",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-hdr.bandwidth_requests.add",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidBandwidthRequests",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-hdr.height_included(unchecked)",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-hdr.tx_root",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidTxRoot",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.base_state.drop_node",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.drop_node.main.1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (PromiseYieldIndices)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.drop_node.main.17",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (bandwidth scheduler state)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.drop_node.main.24",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.drop_node.main.31",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.drop_node.main.39",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.drop_node.main.46",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (promise yield timeout)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.dup_key_last_bad",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.main_post_root",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: main transition post state root",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10211-s1-w.tx.swap",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: transaction root of the last chunk",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-code.drop.0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (contract code)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-code.reorder",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-hdr.gas_limit",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidGasLimit",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-hdr.proposals.add",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: InvalidValidatorProposals",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.applied_receipts_hash",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: applied receipts hash",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.drop_node.main.12",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (BufferedReceiptGroupsQueueData)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.drop_node.main.2",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (account)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.drop_node.main.27",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (pending data count)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.drop_node.main.34",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (promise yield receipt)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.drop_node.main.41",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (access key)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.drop_node.main.6",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: MissingTrieValue (bandwidth scheduler state)",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.extra_proof",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: source_receipt_proofs contains extra proofs",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10215-s1-w.tx.sig_flip",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: transaction root of the last chunk",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  }
+ ],
+ "disagreements": [
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10194-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10200-s0",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/ood/00-h10212-s1",
+   "allFeatures reject vs nearcore True",
+   "invalid: MissingTrieValue (access key)",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-hdr.height_included(unchecked)",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10194-s0-w.drop_node.main.19",
+   "allFeatures reject vs nearcore True",
+   "invalid: MissingTrieValue (access key)",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-code.extra_garbage",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.drop_node.main.40",
+   "allFeatures reject vs nearcore True",
+   "invalid: MissingTrieValue (account)",
+   "ok"
+  ],
+  [
+   "/data/illia/nearproof-deps/w10-runs/runs/mb1618/mutants/00-h10200-s0-w.new_tx.drop_rehashed",
+   "allFeatures reject vs nearcore True",
+   "invalid: main transition post state root",
+   "ok"
+  ]
+ ],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "a989c273f9f5c33b4594d543399597be9101bc5f06a2d31d0ee0b008512f40c5"
+ },
+ "output_sha256": "82c22f590de8b36ece2a7f87806434deb84cb5aba872eafdd8070e6f3f50206c",
+ "package": {
+  "binary": "/data/illia/nearproof-deps/w10-runs/bin/ctl-mldsa-norm",
+  "sha256": "078040b62691aa3404bcfae67760a22d1fe9dd070bac30d56021d15a7dfe01eb",
+  "tier": "allFeatures"
+ },
+ "partition": {
+  "verdict_agree_outside_domain": 87,
+  "verdict_compared_agree": 2,
+  "verdict_compared_disagree": 8
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "fail",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 21,
+  "reject": 76
+ },
+ "workers": 2
+}

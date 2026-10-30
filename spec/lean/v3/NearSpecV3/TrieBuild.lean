@@ -1,3 +1,4 @@
+import ArenaCore.SHA256Fast
 import NearSpec.TrieUpsert
 
 /-!

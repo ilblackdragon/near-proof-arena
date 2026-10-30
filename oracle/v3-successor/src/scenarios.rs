@@ -23,6 +23,17 @@
 //!   whose loop executes about 1,000 zero-fee `block`/`end` instructions per charged one (the
 //!   evaluator-fuel bound).
 //!
+//! * `eval-loops` — a quiet chain (W02/W16) with the label-keeping loop shapes the Lean label memo
+//!   targets, each burning 300 Tgas (and 3 Tgas, for the single-stepping checker): push-then-pop
+//!   across a charged group, a `br_if` back-edge, a `br_table` back-edge, and a shallow `br_if`
+//!   loop under 4,998 enclosing blocks.
+//! * `code-response` — a quiet chain (W02 size limits) with 18 genesis contracts on shard 0: 16 of
+//!   4,194,000 B and two small ones whose sizes put the chunk's accessed pre-state code, as one
+//!   borsh `Vec<CodeBytes>` (`4 + Σ (4 + |code|)`), exactly at 64 MiB and one byte over
+//!   (`MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE`, `contract_distribution.rs:371-373`). Each
+//!   chunk calls 17 of them (one transaction each, signer = receiver, so all execute in the
+//!   chunk that includes them); a control chunk calls 9.
+//!
 //! The searches use only nearcore's own outcomes (success/failure of the probe receipt, the
 //! execution height of a receipt that follows it in the same chunk). The probe's only knob is the
 //! length of one value written in an earlier chunk, so the trie structure is unchanged between
@@ -49,6 +60,8 @@ pub enum Scenario {
     FuelStress,
     EvalTime,
     GateBCaps,
+    EvalLoops,
+    CodeResponse,
 }
 
 pub fn scenario() -> Option<Scenario> {
@@ -61,6 +74,8 @@ pub fn scenario() -> Option<Scenario> {
         Some(crate::d3gen::Scenario::FuelStress) => Some(Scenario::FuelStress),
         Some(crate::d3gen::Scenario::EvalTime) => Some(Scenario::EvalTime),
         Some(crate::d3gen::Scenario::GateBCaps) => Some(Scenario::GateBCaps),
+        Some(crate::d3gen::Scenario::EvalLoops) => Some(Scenario::EvalLoops),
+        Some(crate::d3gen::Scenario::CodeResponse) => Some(Scenario::CodeResponse),
         _ => None,
     }
 }
@@ -68,7 +83,8 @@ pub fn scenario() -> Option<Scenario> {
 /// Quiet scenarios suppress baseline D2/D3 traffic and crafted injections.
 pub fn quiet() -> bool {
     matches!(scenario(),
-        Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::EvalTime | Scenario::GateBCaps))
+        Some(Scenario::StorageLimits | Scenario::FuelStress | Scenario::EvalTime | Scenario::GateBCaps
+             | Scenario::EvalLoops | Scenario::CodeResponse))
         // `runtime-errors` (src/xfam.rs): only its own transactions, so every case is about them
         || crate::xfam::kind() == Some(crate::xfam::Kind::RuntimeErrors)
 }
@@ -315,6 +331,95 @@ pub fn eval_wasm() -> &'static [u8] {
     W.get_or_init(|| wat::parse_str(eval_wat()).expect("eval wat"))
 }
 
+/// Label-keeping loop shapes (W02/W16, the label memo of `NearSpecV3.Wasm.Arcs`). Every method takes
+/// no input and loops until out of gas.
+///   pushpop4999   (loop block x4999 i32.const 0 drop end x4999 br $l)
+///   brif4999      (loop block x4999 i32.const 1 br_if $l end x4999)
+///   brtable4999   (loop block x4999 i32.const 0 br_table $l $l end x4999)
+///   deepbrif4998  block x4998 (loop $l i32.const 1 br_if $l) end x4998: a shallow back-edge whose
+///                 frame holds 5,000 labels
+///   brtablealt4997 (loop $a (loop $b i ^= 1; block x4997 local.get i br_table $b $a end x4997)):
+///                 a `br_table` back-edge alternating between two depths
+pub fn eval2_wat() -> String {
+    let open = "block ".repeat(4999);
+    let close = "end ".repeat(4999);
+    let open8 = "block ".repeat(4998);
+    let close8 = "end ".repeat(4998);
+    let open7 = "block ".repeat(4997);
+    let close7 = "end ".repeat(4997);
+    format!(r#"(module
+  (memory 1)
+  (func (export "pushpop4999") (loop $l {open} i32.const 0 drop {close} br $l))
+  (func (export "brif4999") (loop $l {open} i32.const 1 br_if $l {close}))
+  (func (export "brtable4999") (loop $l {open} i32.const 0 br_table $l $l {close}))
+  (func (export "deepbrif4998") {open8} (loop $l (br_if $l (i32.const 1))) {close8})
+  (func (export "brtablealt4997") (local $i i32)
+    (loop $a (loop $b (local.set $i (i32.xor (local.get $i) (i32.const 1)))
+      {open7} local.get $i br_table $b $a {close7})))
+)"#)
+}
+
+pub fn eval2_wasm() -> &'static [u8] {
+    static W: OnceLock<Vec<u8>> = OnceLock::new();
+    W.get_or_init(|| wat::parse_str(eval2_wat()).expect("eval2 wat"))
+}
+
+/// `code-response` sizes. 16 · (4 + 4,194,000) + (4 + 4,792) + 4 = 67,108,864 exactly.
+pub const CR_BIG: usize = 4_194_000;
+pub const CR_N_BIG: usize = 16;
+pub const CR_AT: usize = 4_792;
+pub const CR_OVER: usize = 4_793;
+
+fn leb(mut n: usize, out: &mut Vec<u8>) {
+    loop {
+        let b = (n & 0x7f) as u8;
+        n >>= 7;
+        if n == 0 { out.push(b); return; }
+        out.push(b | 0x80);
+    }
+}
+
+/// A valid module of exactly `size` bytes: `(memory 64) (func (export "run")) (data (i32.const 0) …)`
+/// whose data bytes start with `tag` (so every contract has its own hash).
+pub fn sized_wasm(size: usize, tag: u8) -> Vec<u8> {
+    let mut head = b"\0asm\x01\0\0\0".to_vec();
+    head.extend_from_slice(&[0x01, 0x04, 0x01, 0x60, 0x00, 0x00]); // type () -> ()
+    head.extend_from_slice(&[0x03, 0x02, 0x01, 0x00]); // one function of type 0
+    head.extend_from_slice(&[0x05, 0x03, 0x01, 0x00, 0x40]); // memory min 64 pages
+    head.extend_from_slice(&[0x07, 0x07, 0x01, 0x03, b'r', b'u', b'n', 0x00, 0x00]); // export "run"
+    head.extend_from_slice(&[0x0a, 0x04, 0x01, 0x02, 0x00, 0x0b]); // empty body
+    for n in size.saturating_sub(head.len() + 20)..size {
+        let mut payload = vec![0x01, 0x00, 0x41, 0x00, 0x0b];
+        leb(n, &mut payload);
+        let mut sec = vec![0x0b];
+        leb(payload.len() + n, &mut sec);
+        if head.len() + sec.len() + payload.len() + n == size {
+            let mut out = head.clone();
+            out.extend_from_slice(&sec);
+            out.extend_from_slice(&payload);
+            let mut data = vec![tag.wrapping_mul(37).wrapping_add(11); n];
+            for (i, b) in data.iter_mut().take(8).enumerate() {
+                *b = tag ^ (i as u8);
+            }
+            out.extend_from_slice(&data);
+            assert_eq!(out.len(), size);
+            return out;
+        }
+    }
+    panic!("no module of exactly {size} bytes");
+}
+
+/// The `code-response` contracts: `crb00`…`crb15` (4,194,000 B), `crsat` (4,792 B), `crsover` (4,793 B).
+pub fn cr_contracts() -> &'static [(String, Vec<u8>)] {
+    static W: OnceLock<Vec<(String, Vec<u8>)>> = OnceLock::new();
+    W.get_or_init(|| {
+        let mut v: Vec<(String, Vec<u8>)> = (0..CR_N_BIG).map(|i| (format!("crb{i:02}"), sized_wasm(CR_BIG, i as u8))).collect();
+        v.push(("crsat".into(), sized_wasm(CR_AT, 0xA0)));
+        v.push(("crsover".into(), sized_wasm(CR_OVER, 0xA1)));
+        v
+    })
+}
+
 /// Data-segment bytes of the large-code contract: the deploy transaction stays under
 /// `max_transaction_size` (1,572,864 B).
 pub const LARGE_PAD: usize = 1_500_000;
@@ -372,6 +477,13 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
         Some(Scenario::FuelStress) => vec![("fuelc", fuel_wasm().to_vec())],
         Some(Scenario::EvalTime) => vec![("evalc", eval_wasm().to_vec())],
         Some(Scenario::GateBCaps) => vec![("slim", slim_wasm().to_vec()), ("gburn", burn_wasm().to_vec())],
+        Some(Scenario::EvalLoops) => vec![("evalc2", eval2_wasm().to_vec())],
+        Some(Scenario::CodeResponse) => {
+            // registry names must be 'static
+            static N: OnceLock<Vec<&'static str>> = OnceLock::new();
+            let names = N.get_or_init(|| cr_contracts().iter().map(|(n, _)| &*Box::leak(n.clone().into_boxed_str())).collect());
+            names.iter().zip(cr_contracts()).map(|(n, (_, c))| (*n, c.clone())).collect()
+        }
         _ => vec![],
     }
 }
@@ -446,6 +558,16 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
             assert!(n_shards >= 2, "the eval-time scenario needs at least 2 shards");
             add(&mut records, "s0eval", Some(eval_wasm()), vec![]);
             add(&mut records, "s1eval", Some(eval_wasm()), vec![]);
+        }
+        Some(Scenario::EvalLoops) => {
+            assert!(n_shards >= 2, "the eval-loops scenario needs at least 2 shards");
+            add(&mut records, "s0evl", Some(eval2_wasm()), vec![]);
+            add(&mut records, "s1evl", Some(eval2_wasm()), vec![]);
+        }
+        Some(Scenario::CodeResponse) => {
+            for (n, c) in cr_contracts() {
+                add(&mut records, &format!("s0{n}"), Some(c.as_slice()), vec![]);
+            }
         }
         Some(Scenario::GateBCaps) => {
             assert!(n_shards >= 2, "the gate-b-caps scenario needs at least 2 shards");
@@ -685,6 +807,55 @@ fn eval_schedule() -> Vec<(u64, Sched)> {
     ]
 }
 
+/// The eval-loops schedule (W02/W16 label memo): the four label-keeping shapes at 300 Tgas, then at
+/// 3 Tgas (the single-stepping and memo-less checkers finish those too). One call per chunk.
+fn eval2_schedule() -> Vec<(u64, Sched)> {
+    let call = |label: &str, signer: &str, method: &str, gas: Gas| Sched {
+        label: format!("successor.eval-loops.{label}"),
+        signer: acct(signer),
+        receiver: acct(signer),
+        describe: format!("{method} gas={}", gas.as_gas()),
+        actions: vec![fc_gas(method, vec![], gas)],
+    };
+    let t = Gas::from_teragas;
+    let (a, b) = ("s0evl", "s1evl");
+    vec![
+        (0, call("00.pushpop4999-300T", a, "pushpop4999", t(300))),
+        (0, call("01.brif4999-300T", b, "brif4999", t(300))),
+        (3, call("02.brtable4999-300T", a, "brtable4999", t(300))),
+        (3, call("03.deepbrif4998-300T", b, "deepbrif4998", t(300))),
+        (6, call("04.pushpop4999-3T", a, "pushpop4999", t(3))),
+        (6, call("05.brif4999-3T", b, "brif4999", t(3))),
+        (9, call("06.brtable4999-3T", a, "brtable4999", t(3))),
+        (9, call("07.deepbrif4998-3T", b, "deepbrif4998", t(3))),
+        (12, call("08.brtablealt4997-300T", a, "brtablealt4997", t(300))),
+        (12, call("09.brtablealt4997-3T", b, "brtablealt4997", t(3))),
+    ]
+}
+
+/// The code-response schedule: one chunk at the 64 MiB cap (16 big + `crsat`), one a byte over (16
+/// big + `crsover`), one well under (8 big + `crsat`). Every call is `run` (empty) with 20 Tgas.
+fn cr_schedule() -> Vec<(u64, Sched)> {
+    let call = |label: String, name: &str| {
+        let a = format!("s0{name}");
+        Sched {
+            label,
+            signer: acct(&a),
+            receiver: acct(&a),
+            describe: format!("{a}.run"),
+            actions: vec![fc_gas("run", vec![], Gas::from_teragas(20))],
+        }
+    };
+    let mut v = Vec::new();
+    for (off, tag, small, n_big) in [(0u64, "at64", "crsat", CR_N_BIG), (6, "over64", "crsover", CR_N_BIG), (12, "under64", "crsat", 8)] {
+        for i in 0..n_big {
+            v.push((off, call(format!("successor.code-response.{tag}.crb{i:02}"), &format!("crb{i:02}"))));
+        }
+        v.push((off, call(format!("successor.code-response.{tag}.{small}"), small)));
+    }
+    v
+}
+
 /// Fixed storage-limit misc schedule on shards 2 and 3.
 /// Gate-B sizes: the genesis value read by every witness-size probe, and the pad arguments.
 pub const GATEB_BIG: usize = 3_900_000;
@@ -858,6 +1029,8 @@ struct Lane {
     anchors_used: Vec<String>,
     log: Vec<serde_json::Value>,
     iterations: u32,
+    /// Seed-derived XOR on the pad fill byte (storage-limits honours `--seed`).
+    fill_xor: u8,
 }
 
 const A_OFF: u64 = 3;
@@ -869,7 +1042,8 @@ impl Lane {
     fn new(kind: LaneKind, start: u64) -> Self {
         let hi = if kind == LaneKind::Receipt { RECEIPT_RANGE } else { SOFT_RANGE };
         Lane { kind, phase: Phase::Search, lo: 0, hi, lo_seen: false, hi_seen: false, at: None, rm_lo: 0, rm_hi: 0,
-               rm_at: None, start, current: None, pending: None, anchors_used: vec![], log: vec![], iterations: 0 }
+               rm_at: None, start, current: None, pending: None, anchors_used: vec![], log: vec![], iterations: 0,
+               fill_xor: 0 }
     }
 
     fn acct(&self) -> &'static str {
@@ -895,7 +1069,7 @@ impl Lane {
     fn probe(&self, label: &str, t: u32, progs: Vec<Prog>, n_b: usize) -> Probe {
         let me = self.acct();
         let lane = if self.kind == LaneKind::Receipt { "receipt" } else { "soft" };
-        let fill = if self.kind == LaneKind::Receipt { 0xC1 } else { 0xC2 };
+        let fill = (if self.kind == LaneKind::Receipt { 0xC1u8 } else { 0xC2u8 }) ^ self.fill_xor;
         let set = Some(run_tx(format!("successor.storage-limits.{lane}.set-pad.t{t}"), me, me, Prog::default().w(b"pad", fill, t)));
         let b = (0..n_b)
             .map(|i| run_tx(format!("successor.storage-limits.{lane}.{label}.incoming{i}.t{t}"), self.src(), me,
@@ -1066,16 +1240,36 @@ const START: u64 = 10004;
 
 impl Driver {
     pub fn new() -> Self {
-        let (fixed, lanes) = match scenario() {
+        Self::with_seed(None)
+    }
+
+    /// The scenario driver for a chain with generator seed `seed`. Only `storage-limits` uses it:
+    /// the scenario is a quiet chain whose schedule is otherwise a pure function of the heights, so
+    /// every seed produced byte-identical chains. With a seed, its start height moves by
+    /// `seed % 5` blocks (which moves every probe across epoch and chunk boundaries) and the pad
+    /// fill byte is XORed with `(seed / 5) % 16`, so the recorded values differ. `None` (and every
+    /// other scenario) keeps the previous behaviour.
+    pub fn with_seed(seed: Option<u64>) -> Self {
+        let (shift, fill_xor) = match (scenario(), seed) {
+            (Some(Scenario::StorageLimits), Some(s)) => (s % 5, ((s / 5) % 16) as u8),
+            _ => (0, 0),
+        };
+        let start = START + shift;
+        let (fixed, mut lanes) = match scenario() {
             Some(Scenario::Yield) => (yield_schedule(), vec![]),
             Some(Scenario::FuelStress) => (fuel_schedule(), vec![]),
             Some(Scenario::EvalTime) => (eval_schedule(), vec![]),
             Some(Scenario::StorageLimits) => (storage_misc_schedule(),
-                vec![Lane::new(LaneKind::Receipt, START), Lane::new(LaneKind::Soft, START)]),
+                vec![Lane::new(LaneKind::Receipt, start), Lane::new(LaneKind::Soft, start)]),
             Some(Scenario::GateBCaps) => (gateb_schedule(), vec![]),
+            Some(Scenario::EvalLoops) => (eval2_schedule(), vec![]),
+            Some(Scenario::CodeResponse) => (cr_schedule(), vec![]),
             _ => (vec![], vec![]),
         };
-        Driver { start: START, fixed, lanes, submitted: vec![] }
+        for l in lanes.iter_mut() {
+            l.fill_xor = fill_xor;
+        }
+        Driver { start, fixed, lanes, submitted: vec![] }
     }
 
     fn tx(&mut self, w: &mut World, s: &Setup, bh: &CryptoHash, height: u64, x: &Sched) -> Option<(String, SignedTransaction)> {
@@ -1279,6 +1473,12 @@ fn outcome_tree(s: &Setup, id: &CryptoHash) -> Vec<serde_json::Value> {
 /// every chunk that ran the yield contract; storage-limits — the chunks of the final at/above
 /// probes of the two base searches (their 4 MB witnesses make drop-node mutants too large).
 pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String]) -> (bool, bool) {
+    // `mldsa` with the boundary signer (item 10): the full set (with drop-node mutants) for every
+    // chunk that carries a `z`-bound step
+    if crate::keys::mldsa_bound_mode() {
+        let f = tx_labels.iter().any(|l| l.contains("-z-at-") || l.contains("-z-bound-minus-one") || l.contains("-z-neg-bound-minus-one"));
+        return (f, f);
+    }
     match scenario() {
         Some(Scenario::Yield) => {
             let ran = executed.iter().any(|e| e["name"] == "yieldc");
@@ -1299,10 +1499,16 @@ fn shard_map(s: &Setup) -> serde_json::Value {
     let tip = c.chain.head().unwrap();
     let layout = c.epoch_manager.get_shard_layout(&tip.epoch_id).unwrap();
     let names = ["s0yield", "s1ycall", "s2ynote", "s0zlim", "s1zsoft", "s1zyield", "s2zsrc", "s2zmisc", "s3zsrc", "s3zcode",
-                 "s0fuel", "s1fuel", "s0eval", "s1eval", "s0gbig", "s0gpad", "s1gburn"];
+                 "s0fuel", "s1fuel", "s0eval", "s1eval", "s0gbig", "s0gpad", "s1gburn", "s0evl", "s1evl"];
     let mut m = serde_json::Map::new();
     for n in names {
         m.insert(n.into(), json!(layout.account_id_to_shard_id(&acct(n)).to_string()));
+    }
+    if scenario() == Some(Scenario::CodeResponse) {
+        for (n, _) in cr_contracts() {
+            let a = format!("s0{n}");
+            m.insert(a.clone(), json!(layout.account_id_to_shard_id(&acct(&a)).to_string()));
+        }
     }
     json!(m)
 }

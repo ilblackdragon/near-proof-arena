@@ -4,6 +4,7 @@ import NearSpecV3.ChunkValidationD2
 import NearSpecV3.D3.FunctionCall
 import NearSpecV3.TxD1
 import NearSpec.Codec
+import NearSpecV3.Rungs
 
 /-!
 # ZkFormal.PQ.Join.Coverage — the coverage theorem, its premises, and what the premises mean
@@ -57,8 +58,12 @@ So a `RelD1a` witness contains **no `FunctionCall` and no code at all**: "every 
 Wasm run" is vacuously true on it, and `RelD1a B cb w → RelD3 cb w` is not merely unproved but
 **the wrong shape**.  `RelD3` is checked on the **D2** witness format
 (`ChunkValidationD2.decodeStateWitnessD2`), which admits both.  The lift is therefore *witness
-production* (`WitnessLift` below), not a re-reading of the same bytes; §3 states it as the
-existential it is, and records that its proving is the state port's remaining item.
+production* (`WitnessLift` below), not a re-reading of the same bytes.
+
+**Update 2026-10-30.** Over the checker relation `RelD1a` the lift is false (a kernel-checked
+counterexample, `NearSpecV3.Examples.not_d1a_sub_d3`). By the owner's decision the statement's rungs
+are now `RelD3 ∧ InRungDk` (`NearSpecV3.Rungs`), and §4 states and proves the lift over the D1a rung
+(`witnessLift`, a projection).
 -/
 
 namespace ZkFormal.PQ.Join
@@ -112,12 +117,14 @@ theorem coverage_pv86 (cb w : Bytes) (sa : StateArm)
     (hagree : ArmAgrees Wasm.pv86 sa)
     (hstate : StateSide Wasm.pv86 cb w sa) :
     NearSpecV3.D3.RelD3 cb w := by
-  have hchk : NearSpecV3.D3.checkD3 cb w
+  -- `checkD3Core` is the pipeline run on `d3Hooks`; an accepting core run is an accepting `checkD3`
+  -- run (`D3.checkD3_of_core_ok`, the UQ-010 hand-over only acts on core errors).
+  have hchk : NearSpecV3.D3.checkD3Core cb w
       = checkD2Core (NearSpecV3.D3.d3Hooks Wasm.pv86) true cb w
           (some NearSpecV3.D3.gAlpha) := rfl
-  have hok : NearSpecV3.D3.checkD3 cb w = .ok () :=
+  have hok : NearSpecV3.D3.checkD3Core cb w = .ok () :=
     hchk ▸ ((coverage Wasm.pv86 cb w sa hagree) ▸ hstate)
-  exact hok
+  exact NearSpecV3.D3.checkD3_of_core_ok cb w hok
 
 /-! ## §3. What the premises mean, checked
 
@@ -171,46 +178,45 @@ theorem coverage_identity (cfg : Wasm.NearCfg) (cb w : Bytes) :
           (some NearSpecV3.D3.gAlpha) :=
   coverage cfg cb w _ (armAgrees_d3 cfg)
 
-/-! ## §4. The D1→D3 witness lift
+/-! ## §4. The D1→D3 witness lift — now a projection (decision 2026-10-30)
 
-Stated as the existential it is.  §"The D1→D3 witness lift" in the header records *why* it cannot be
-an implication on the same bytes: the D1 decoders reject every non-Transfer action and every code
-blob, so a `RelD1a` witness has no call to cover.  The obligations this leaves are:
+The earlier statement was `RelD1a B cb w → ∃ w2, RelD3 cb w2` over the **checker** relation
+`RelD1a` (`checkD1a` accepts). That statement is **false**: `NearSpecV3.Examples.not_d1a_sub_d3`
+(`spec/lean/v3/NearSpecV3/Examples/D1NotSubD2.lean`, kernel-checked) exhibits a `RelD1a B0` pair
+whose claim (`epoch_start_after` flag 0 on the genesis block) `RelD3` rejects from the claim alone, so
+no witness lifts it. The owner's decision was to redefine the rungs of `near-chunk-v3` as
+restrictions of the top relation, `RelRungDk := RelD3 ∧ InRungDk` (`NearSpecV3/Rungs.lean`,
+statement `NearSpecV3.ChallengeChunkV3R`). The lift is stated over the D1a rung and holds by
+projection with the identity witness (`witnessLift`).
 
-1. **claim half** — both sides start with `decodeClaimE cb` (`checkD1`, `checkD2Core`), and `RelD1a`
-   additionally imposes `c.pv86`, the single-epoch/scheduler bounds and the `G_α`-free D1 gas bound.
-   Nothing to prove about the *decoder*; the D3 side re-checks the claim.
-2. **witness half** — produce a D2 witness for the same claim whose state witness has the D3 shape
-   (any action list, code blobs allowed, the queue/applied-receipt fields `checkD2Core` reads).
-   This is what `WitnessLift` names, and it is the state port's remaining item. -/
+What moved: the state chain's obligation is now to establish the *rung* relation `RelRungD1a`,
+i.e. the D1a run **and** `RelD3` on the same bytes. Reaching `RelD3` from the D1a AIR alone remains
+the join's job (`coverage_pv86`, below); the lift no longer hides it. -/
 
-/-- **The lift, as an existential.**  From a D1a-valid chunk, produce *some* D3 witness for the same
-claim.  Not an identity on bytes (§"The D1→D3 witness lift"), and not a `Prop := True` placeholder:
-it is the witness-production obligation, and `coverage_pv86` is exactly what consumes it once the
-produced witness also satisfies `StateSide`. -/
+/-- **The lift** over the D1a rung of the statement. -/
 def WitnessLift (B : Nat) (cb w : Bytes) : Prop :=
-  NearSpecV3.RelD1a B cb w → ∃ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2
+  NearSpecV3.RelRungD1a B cb w → ∃ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2
 
-/-- **How the lift composes with the join.**  A lift that lands on a witness the state half accepts
-turns a `RelD1a` chunk into `RelD3` through `coverage_pv86` — the statement the chain needs.  The
-lift's *existence* is not proved here (see §4), and the produced witness must be the one `StateSide`
-accepts; this lemma records the composition so that neither half has to be restated later.
+/-- **`WitnessLift` holds** (identity witness; `NearSpecV3.rungD1a_lift`). -/
+theorem witnessLift (B : Nat) (cb w : Bytes) : WitnessLift B cb w :=
+  fun h => NearSpecV3.rungD1a_lift h
 
-The conclusion is deliberately **not** `∃ w2, RelD3 cb w2`.  That is exactly `hlift hrel`, so stating
-it would leave `sa`, `hagree` and `hstate` unused and the "composition" would be the lift wearing a
-join's clothes — the same defect §"The D1→D3 witness lift" documents for the earlier draft.  The
-conclusion below adds the state-side conjunct, which no hypothesis supplies on its own: `hlift` gives
-the `RelD3` witness but says nothing about `sa`, and `hstate` needs an `RelD3` witness to say anything
-at all.  Only the fold ties them together. -/
+/-- **How the lift composes with the join.** A D1a-rung chunk gives a `RelD3` witness (the lift);
+when the state half accepts that witness with the arm `sa`, the fold (`coverage_pv86`) re-derives
+`RelD3` through the state arm. The conclusion keeps the `StateSide` conjunct, which no hypothesis
+supplies on its own. -/
 theorem relD3_of_lift (B : Nat) (cb w : Bytes) (sa : StateArm)
-    (hlift : WitnessLift B cb w)
-    (hrel : NearSpecV3.RelD1a B cb w)
+    (hrel : NearSpecV3.RelRungD1a B cb w)
     (hagree : ArmAgrees Wasm.pv86 sa)
     (hstate : ∀ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2 →
       StateSide Wasm.pv86 cb w2 sa) :
     ∃ w2 : Bytes, NearSpecV3.D3.RelD3 cb w2 ∧ StateSide Wasm.pv86 cb w2 sa := by
-  obtain ⟨w2, hw2⟩ := hlift hrel
+  obtain ⟨w2, hw2⟩ := witnessLift B cb w hrel
   have hside : StateSide Wasm.pv86 cb w2 sa := hstate w2 hw2
   exact ⟨w2, coverage_pv86 cb w2 sa hagree hside, hside⟩
+
+/-- info: 'ZkFormal.PQ.Join.witnessLift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms witnessLift
 
 end ZkFormal.PQ.Join

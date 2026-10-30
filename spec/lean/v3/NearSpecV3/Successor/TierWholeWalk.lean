@@ -172,13 +172,17 @@ theorem applyNewChunkD2_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') 
   all_goals rec_lockstep
   all_goals first | with_reducible exact MRef.refl _
 
-/-- **The recorder engine is monotone in its recorded call.** -/
-theorem run_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg') (prims : Prims) (env : Env)
+/-- **The recorder engine is monotone in its recorded call** (at equal observation settings: the
+W01 `observeDetail` flag seeds the engine's state and is read by no check). -/
+theorem run_rec_mono {cfg cfg' : NearCfg} (hh : RecRefine cfg cfg')
+    (ho : cfg.observeDetail = cfg'.observeDetail) (prims : Prims) (env : Env)
     (t : PTrie) (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat)) (incoming : List Rcpt)
     (txs : List (TxD2 × Bool)) (congestion : Congestion) (globals : Bool) (policy : CodeWitnessPolicy) :
     Refines (StorageExecution.run cfg prims env t vu props incoming txs congestion globals policy)
-      (StorageExecution.run cfg' prims env t vu props incoming txs congestion globals policy) :=
-  Refines.map _ (applyNewChunkD2_rec_mono hh prims env t vu props incoming txs congestion _ env)
+      (StorageExecution.run cfg' prims env t vu props incoming txs congestion globals policy) := by
+  unfold StorageExecution.run
+  rw [← ho]
+  exact Refines.map _ (applyNewChunkD2_rec_mono hh prims env t vu props incoming txs congestion _ env)
 
 /-! ## Shells: monotone in the driver's main transition
 
@@ -251,10 +255,11 @@ theorem checkReshardCore_apply_mono (d : ExecutionDriver) (ap' : ApplyFn) (h h' 
 /-! ## Configuration level: the whole-state engine -/
 
 /-- The recorder engine's `apply` refines when its recorded calls do. -/
-theorem recorder_applyRefine {w w' : NearCfg} (hh : RecRefine w w') (g : Bool) (p : CodeWitnessPolicy)
+theorem recorder_applyRefine {w w' : NearCfg} (hh : RecRefine w w')
+    (ho : w.observeDetail = w'.observeDetail) (g : Bool) (p : CodeWitnessPolicy)
     (h h' : ActionHooks) :
     ApplyRefine (recorderDriver w g p).apply (recorderDriver w' g p).apply h h' :=
-  fun prims e t vu ps rs txs cg => run_rec_mono hh prims e t vu ps rs txs cg g p
+  fun prims e t vu ps rs txs cg => run_rec_mono hh ho prims e t vu ps rs txs cg g p
 
 theorem recRefine_floats (w : NearCfg) : RecRefine w { w with floats := true } := by
   refine recRefine_of_vmRel fun code => ?_
@@ -273,8 +278,10 @@ theorem recRefine_floats (w : NearCfg) : RecRefine w { w with floats := true } :
 
 /-- **O1, every configuration.** Switching floats on never changes a decided verdict: on the legacy
 engine through the hooks (`Lift.floats_legacy`), on the whole-state engine through the recorded
-call (`recRefine_floats`, `run_rec_mono`, the `*_apply_mono` shells). -/
-theorem Lift.floats (cfg : ProtocolCfg) : Lift cfg { cfg with floats := true } := by
+call (`recRefine_floats`, `run_rec_mono`, the `*_apply_mono` shells). Stated for configurations
+without the signed statement's UQ-010 hand-over (`reshardHandover = false`: every tier but `.signed`). -/
+theorem Lift.floats (cfg : ProtocolCfg) (hrh : cfg.reshardHandover = false) :
+    Lift cfg { cfg with floats := true } := by
   intro c w
   cases hf : cfg.floats
   case true =>
@@ -287,24 +294,25 @@ theorem Lift.floats (cfg : ProtocolCfg) : Lift cfg { cfg with floats := true } :
       (D3.d3Hooks ({ cfg with floats := true } : ProtocolCfg).wasm) := by
     rw [ProtocolCfg.wasm_floats cfg hf]
     exact d3Hooks_floats _
-  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu⟩ := cfg
-  simp only at hf
-  subst hf
+  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu, rh⟩ := cfg
+  simp only at hf hrh
+  subst hf hrh
   unfold checkSuccessor
   dsimp only
+  simp only [Bool.false_eq_true, ↓reduceIte]
   split
   · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
     · cases rs
       · simp only [Bool.false_and, Bool.false_eq_true] at *
-      · exact checkReshardCore_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh p e t vu ps rs txs cg _ _) _ _ _ _
+      · exact checkReshardCore_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
     · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
       · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
         · cases rs
-          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh p e t vu ps rs txs cg _ _) _ _ _ _
-          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh p e t vu ps rs txs cg _ _) _ _ _ _
+          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
+          · exact checkD2CoreGWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
         · cases rs
-          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh p e t vu ps rs txs cg _ _) _ _ _ _
-          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh p e t vu ps rs txs cg _ _) _ _ _ _
+          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
+          · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono hh rfl p e t vu ps rs txs cg _ _) _ _ _ _
       · exact Refines.ite_congr _ (fun _ => checkD2CoreG_hooks_mono hk _ _ _ _)
           (fun _ => checkD2Core_hooks_mono hk _ _ _ _)
   · exact Refines.refl _
@@ -313,7 +321,7 @@ theorem Lift.floats (cfg : ProtocolCfg) : Lift cfg { cfg with floats := true } :
 `Lift.floats`; no named pair needs it, since every whole-state tier sets floats. -/
 theorem Lift.floats_whole_example :
     Lift { Tier.cfg .storageResolution with floats := false } (Tier.cfg .storageResolution) :=
-  Lift.floats _
+  Lift.floats _ rfl
 
 #print axioms run_rec_mono
 #print axioms checkD2CoreWithObs_apply_mono

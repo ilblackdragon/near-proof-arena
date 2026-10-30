@@ -1,0 +1,259 @@
+{
+ "checker": "bin/check-after",
+ "checker_sha256": "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83",
+ "tier": "allFeatures",
+ "rows": [
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/gate-b-caps__cases.tar.gz/cases/gb2002__ood__00-h10006-s3",
+   "wall_s": 30.61,
+   "cpu_s": 30.41,
+   "max_rss": 672903168,
+   "load": [
+    33.1,
+    36.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/gate-b-caps__cases.tar.gz/cases/gb2002__ood__00-h10024-s3",
+   "wall_s": 44.15,
+   "cpu_s": 43.73,
+   "max_rss": 1029468160,
+   "load": [
+    36.1,
+    35.6
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/eval-time__cases.tar.gz/cases/ood_00-h10006-s1",
+   "wall_s": 46.24,
+   "cpu_s": 46.2,
+   "max_rss": 81539072,
+   "load": [
+    35.6,
+    31.6
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/eval-time__cases.tar.gz/cases/ood_00-h10006-s3",
+   "wall_s": 48.59,
+   "cpu_s": 48.51,
+   "max_rss": 81006592,
+   "load": [
+    31.6,
+    30.5
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/eval-time__cases.tar.gz/cases/ood_00-h10009-s1",
+   "wall_s": 76.95,
+   "cpu_s": 73.07,
+   "max_rss": 80748544,
+   "load": [
+    30.5,
+    36.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/d3_00-h10009-s1",
+   "wall_s": 0.28,
+   "cpu_s": 0.17,
+   "max_rss": 69824512,
+   "load": [
+    36.1,
+    36.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/d3_00-h10012-s1",
+   "wall_s": 0.26,
+   "cpu_s": 0.12,
+   "max_rss": 70447104,
+   "load": [
+    36.1,
+    36.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/d3_00-h10012-s3",
+   "wall_s": 0.21,
+   "cpu_s": 0.13,
+   "max_rss": 70868992,
+   "load": [
+    36.1,
+    36.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/d3_00-h10027-s1",
+   "wall_s": 0.41,
+   "cpu_s": 0.34,
+   "max_rss": 70889472,
+   "load": [
+    36.1,
+    36.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10006-s1",
+   "wall_s": 36.09,
+   "cpu_s": 33.45,
+   "max_rss": 70774784,
+   "load": [
+    36.1,
+    36.3
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10006-s3",
+   "wall_s": 10.57,
+   "cpu_s": 10.41,
+   "max_rss": 70524928,
+   "load": [
+    36.3,
+    35.5
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10009-s3",
+   "wall_s": 1.18,
+   "cpu_s": 1.17,
+   "max_rss": 71307264,
+   "load": [
+    35.5,
+    35.0
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10015-s1",
+   "wall_s": 8.67,
+   "cpu_s": 8.62,
+   "max_rss": 142086144,
+   "load": [
+    35.0,
+    34.7
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10015-s3",
+   "wall_s": 6.56,
+   "cpu_s": 6.49,
+   "max_rss": 413671424,
+   "load": [
+    34.7,
+    34.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10018-s1",
+   "wall_s": 1.06,
+   "cpu_s": 1.03,
+   "max_rss": 70787072,
+   "load": [
+    34.1,
+    34.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10018-s3",
+   "wall_s": 2.83,
+   "cpu_s": 2.81,
+   "max_rss": 70787072,
+   "load": [
+    34.1,
+    34.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10021-s1",
+   "wall_s": 13.05,
+   "cpu_s": 12.98,
+   "max_rss": 70758400,
+   "load": [
+    34.1,
+    33.7
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10021-s3",
+   "wall_s": 7.09,
+   "cpu_s": 6.9,
+   "max_rss": 70000640,
+   "load": [
+    33.7,
+    33.4
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/fuel-termination__cases.tar.gz/cases/ood_00-h10024-s3",
+   "wall_s": 30.09,
+   "cpu_s": 29.17,
+   "max_rss": 71065600,
+   "load": [
+    33.4,
+    33.3
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/gate-b-caps__cases.tar.gz/cases/gb2002__ood__00-h10006-s1",
+   "wall_s": 30.23,
+   "cpu_s": 29.13,
+   "max_rss": 137543680,
+   "load": [
+    33.3,
+    34.3
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-fixtures/gate-b-caps__cases.tar.gz/cases/gb2002__ood__00-h10012-s1",
+   "wall_s": 62.36,
+   "cpu_s": 61.39,
+   "max_rss": 138207232,
+   "load": [
+    34.3,
+    31.8
+   ],
+   "verdict": "accept",
+   "reason": ""
+  }
+ ]
+}

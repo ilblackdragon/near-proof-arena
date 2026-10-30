@@ -3,6 +3,7 @@ import NearSpecV3.ChallengeChunkV3Float
 import NearSpecV3.GenesisD3
 import NearSpecV3.Successor.RuntimeCore
 import NearSpecV3.Successor.ReshardCore
+import NearSpecV3.D3.Signed
 
 /-!
 # W00 interface 1/7 — the canonical checker and its tiers
@@ -15,10 +16,12 @@ existing adapter (`genesis + floats + protocol gas`) and the recorder-backed run
 
 ## What is signed and what is not
 
-`checkD3`, `RelD3`, `D3.gAlpha` and the oracle pins are the **signed** statement and are immutable.
-`checkSuccessor` is a *successor* dispatcher: at the signed configuration it is definitionally the
-signed checker (`checkSuccessor_signed` below is `rfl`), and every broader tier is a different
-configuration of the same root. Nothing here widens `checkD3`.
+`checkD3`, `RelD3`, `D3.gAlpha` and the oracle pins are the **signed** statement. Its widenings
+toward nearcore are accepted as strengthenings (UQ-010, `docs/research/lean-chunk-w00-owner-map.md`
+§3.2–§3.4). `checkSuccessor` is a *successor* dispatcher: at the signed configuration
+(`signedRecordCfg`) it is definitionally the signed checker (`checkSuccessor_signed` below is `rfl`),
+at `signedCfg` it is the signed checker's legacy core `D3.checkD3Core` (`checkSuccessor_signedCore`),
+and every broader tier is a different configuration of the same root.
 
 ## The configuration
 
@@ -116,18 +119,35 @@ structure ProtocolCfg where
   /-- Opt-in lift of the `numShards ≤ 64` half of `c.layout`, the D0 routing-table size. nearcore
   has no such limit. The signed configuration keeps this `false`. -/
   layoutUnbounded : Bool := false
+  /-- Observation only (W01): record failure kinds, per-outcome compute and per-receipt storage
+  attribution (`NearCfg.observeDetail`). Set by the driver's `--emit-full` / `--blind-full`; no
+  check reads what it records. -/
+  observeDetail : Bool := false
+  /-- UQ-010 (2026-10-29): outside the legacy pipeline's two preconditions (one shard layout and no
+  split check; storage-proof limits never reached), decide a legacy error with the recorder engine at
+  this configuration's Wasm configuration and no per-chunk gas cap (`withReshardHandover`, `D3/Signed.lean`). Only the signed
+  statement of record sets it (`signedRecordCfg`); the narrower legacy tiers keep the exclusions,
+  and the whole-state tiers never take the legacy branch. -/
+  reshardHandover : Bool := false
 
 /-- The Wasm configuration of this protocol run. A function of `floats` and `loadingLimits`: the successor does not
 admit an arbitrary `NearCfg` that could drift from the declared protocol version. -/
 def ProtocolCfg.wasm (cfg : ProtocolCfg) : Wasm.NearCfg :=
   let base := if cfg.floats then Wasm.floatPv86 else Wasm.pv86
-  { base with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions, curveHosts := cfg.curveHosts }
+  { base with loadingLimits := cfg.loadingLimits, globalActions := cfg.globalActions, curveHosts := cfg.curveHosts,
+              observeDetail := cfg.observeDetail }
 
 /-- The signed configuration: exactly `checkD3`'s arguments. `loadingLimits := true` because
 `Wasm.pv86` carries the pinned instance-loading rule (signed-tier valid-reject fixes 2026-10-27);
 every tier built from `signedCfg` inherits it, so `.runtimeLimits` now differs from
 `.genesisFloatsProtoGas` in name only. -/
 def signedCfg : ProtocolCfg := { loadingLimits := true }
+
+/-- The signed statement of record: `signedCfg` (whose checker is the legacy core `D3.checkD3Core`)
+with the UQ-010 hand-over (`D3.checkD3`, `D3/Signed.lean`). Every other tier is still built from
+`signedCfg`; the narrower legacy tiers keep the legacy exclusions, and the whole-state tiers never take
+the legacy branch. -/
+def signedRecordCfg : ProtocolCfg := { signedCfg with reshardHandover := true }
 
 /-- The signed configuration with resharding decided. -/
 def reshardingCfg : ProtocolCfg := { signedCfg with resharding := true }
@@ -214,7 +234,16 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
       else
         checkD2CoreWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else if cfg.genesisMainTransition then
-      checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+      if cfg.reshardHandover then
+        withReshardHandover cfg.wasm
+          (checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
+          claimBytes witnessBytes
+      else
+        checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
+    else if cfg.reshardHandover then
+      withReshardHandover cfg.wasm
+        (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
+        claimBytes witnessBytes
     else
       checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
   | _ => .error (unsupportedPvError cfg.protocolVersion)
@@ -263,14 +292,19 @@ def acceptsSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Boo
 
 /-- At the signed configuration the root **is** `checkD3`: not a reimplementation and not a theorem
 about a reimplementation, but the same term. -/
-theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedCfg c w = D3.checkD3 c w := rfl
+theorem checkSuccessor_signed (c w : Bytes) : checkSuccessor signedRecordCfg c w = D3.checkD3 c w := rfl
+
+/-- At `signedCfg` (no hand-over) the root is the legacy core `D3.checkD3Core`. -/
+theorem checkSuccessor_signedCore (c w : Bytes) :
+    checkSuccessor signedCfg c w = D3.checkD3Core c w := rfl
 
 /-- Consequently the signed relation is preserved definitionally. -/
-theorem relSuccessor_signed_iff (c w : Bytes) : RelSuccessor signedCfg c w ↔ D3.RelD3 c w := Iff.rfl
+theorem relSuccessor_signed_iff (c w : Bytes) : RelSuccessor signedRecordCfg c w ↔ D3.RelD3 c w := Iff.rfl
 
 /-- And the signed boolean mirror. -/
 theorem acceptsSuccessor_signed (c w : Bytes) :
-    acceptsSuccessor signedCfg c w = D3.acceptsD3 c w := rfl
+    acceptsSuccessor signedRecordCfg c w = D3.acceptsD3 c w := rfl
+
 
 /-- `"out of domain"` prefixed to any string is classified as an exclusion. -/
 theorem isExclusion_prefix (s : String) : isExclusion ("out of domain" ++ s) = true := by
@@ -325,7 +359,7 @@ inductive Tier where
 
 /-- The tier's configuration. -/
 def Tier.cfg : Tier → ProtocolCfg
-  | .signed => signedCfg
+  | .signed => signedRecordCfg
   | .floats => { signedCfg with floats := true }
   | .protoGas => protocolGasCfg
   | .floatsProtoGas => { signedCfg with floats := true, gasCap := some maxGasBurnt }
@@ -517,7 +551,8 @@ depend on `sorryAx` or on axioms outside the allowed set. -/
 /-! ## W02: the completeness-domain witness bound for `.allFeatures`
 
 `WfClaim.DomainTier` (`ChallengeChunkV3.lean`, a signed file) fixes every tier's completeness
-domain to claims with a `Rel_t` witness of at most `maxWitnessChunk` = 64 MiB, and its comment
+domain to claims with a `Rel_t` witness of at most `maxWitnessChunk` (64 MiB until 2026-10-30, now
+75,497,501 bytes: UQ-010 item 6(c)), and its comment
 justifies this by "the code blobs total ≤ 4 000 000 bytes". That premise is **false at PV86**: a
 cold validator's accessed pre-state contract code is not part of the storage proof and is loaded at
 `contract_loading_bytes` ≈ 1.09e6 gas/byte, so one chunk can require on the order of a gigabyte of
@@ -529,13 +564,11 @@ blobs, so a 64 MiB witness bound would exclude real chunks.
 
 The correct completeness-domain witness bound for `.allFeatures` is the sum of the framing, the
 compressed-witness cap and the code-response cap below. This is the bound a completeness statement
-for `.allFeatures` must use instead of `maxWitnessChunk`; the signed `DomainTier`/`maxWitnessChunk`
-are left unchanged (that is a signed-statement/domain decision for the integrator). The **signed
-tier's exposure**: a signed `witness.bin` carries the state witness in the clear (≤ 8 MiB on the
-signed tier via `w.size`) plus up to 64 MiB of code blobs, i.e. up to ≈ 72 MiB, which already
-exceeds `maxWitnessChunk` = 64 MiB — so even the signed `DomainTier` bound can formally exclude a
-real large-code chunk. This is a restriction of the signed completeness statement, not a soundness
-issue (`RelChunkV3`/`Rel_t` are unaffected). -/
+for `.allFeatures` must use instead of `maxWitnessChunk`. The signed tier's own bound was raised on
+2026-10-30 (UQ-010 item 6(c), user decision): a signed `witness.bin` carries the state witness in the
+clear (≤ 8 MiB via `w.size`) plus at most one 64 MiB code response, so `maxWitnessChunk` is now
+`(4 + 21) + (4 + 8 MiB) + 64 MiB` = 75,497,501 bytes; the 64 MiB bound it replaces could exclude a real
+large-code chunk from the signed completeness statement (soundness was never affected). -/
 def allFeaturesWitnessBound : Nat :=
   -- 4+22 tag ‖ 4 + compressed state witness (≤ MAX_COMPRESSED_STATE_WITNESS_SIZE)
   -- ‖ code-response Vec<CodeBytes> (≤ MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE)

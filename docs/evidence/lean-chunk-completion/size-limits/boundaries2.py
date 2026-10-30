@@ -1,7 +1,7 @@
 import subprocess, os, json
-LEAN = "/data/illia/nearproof-wt/w02-size-limits/spec/lean/v3/.lake/build/bin/nearspec-v3-zstd-decode"
-Z = "/tmp/lean-global-oracle-target/release/zref"
-d = "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w02/bnd2"
+LEAN = os.environ.get("ZSTD_LEAN", "/data/illia/nearproof-wt/w02-size-limits/spec/lean/v3/.lake/build/bin/nearspec-v3-zstd-decode")
+Z = os.environ.get("ZSTD_ZREF", "/tmp/lean-global-oracle-target/release/zref")
+d = os.environ.get("ZSTD_WORK", "/tmp/claude-1002/-data-illia-nearproof/0e65db12-f071-4aee-abe1-6a3d8ed8412f/scratchpad/w02/bnd2")
 os.makedirs(d, exist_ok=True)
 CAP = 50331648   # 48 MiB encoded cap (MAX_COMPRESSED_STATE_WITNESS_SIZE)
 DEC = 67108864   # 64 MiB decode cap (MAX_UNCOMPRESSED_STATE_WITNESS_SIZE)

@@ -164,7 +164,7 @@ pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, st
     let mut obs = crate::observables::enabled()
         .then(|| crate::observables::Collector::new(&s.env.clients, &s.ems, &s.genesis, &cold_home, out, chain_idx));
     let mut world = crate::d2gen::World::new(&s.accounts, crate::chaind2::validators_of(p.n_shards), crate::chaind2::stakers_of());
-    let mut w3 = crate::d3gen::D3World::new(p.n_shards);
+    let mut w3 = crate::d3gen::D3World::with_seed(p.n_shards, Some(p.seed));
     let mut keys = crate::keys::KeysWorld::new();
     let mut labels: HashMap<CryptoHash, String> = HashMap::new();
     let mut rng = StdRng::seed_from_u64(p.seed);

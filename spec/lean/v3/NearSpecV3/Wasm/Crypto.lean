@@ -1,3 +1,4 @@
+import ArenaCore.SHA256Fast
 import NearSpec.SHA256
 /-!
 # Hash functions behind NEAR's D3α hash host functions

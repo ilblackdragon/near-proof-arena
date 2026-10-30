@@ -1,0 +1,127 @@
+{
+ "checker": "bin/check-after",
+ "checker_sha256": "584976cf3b4ae2c8a1b85177f86e7056616485f88a3358a233f332ed116d5f83",
+ "tier": "allFeatures",
+ "rows": [
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/d3/00-h10012-s3",
+   "wall_s": 0.76,
+   "cpu_s": 0.72,
+   "max_rss": 82321408,
+   "load": [
+    56.9,
+    56.9
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/d3/00-h10012-s1",
+   "wall_s": 0.93,
+   "cpu_s": 0.9,
+   "max_rss": 82583552,
+   "load": [
+    56.9,
+    56.9
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/d3/00-h10015-s3",
+   "wall_s": 0.87,
+   "cpu_s": 0.85,
+   "max_rss": 82325504,
+   "load": [
+    56.9,
+    56.9
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/d3/00-h10015-s1",
+   "wall_s": 0.77,
+   "cpu_s": 0.75,
+   "max_rss": 82579456,
+   "load": [
+    56.9,
+    56.9
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/d3/00-h10018-s1",
+   "wall_s": 0.79,
+   "cpu_s": 0.78,
+   "max_rss": 81797120,
+   "load": [
+    56.9,
+    56.9
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/ood/00-h10006-s3",
+   "wall_s": 43.35,
+   "cpu_s": 43.22,
+   "max_rss": 82583552,
+   "load": [
+    56.9,
+    42.9
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/ood/00-h10006-s1",
+   "wall_s": 64.34,
+   "cpu_s": 63.15,
+   "max_rss": 81276928,
+   "load": [
+    42.9,
+    40.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/ood/00-h10009-s3",
+   "wall_s": 57.35,
+   "cpu_s": 55.91,
+   "max_rss": 82321408,
+   "load": [
+    40.1,
+    40.2
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/ood/00-h10009-s1",
+   "wall_s": 49.46,
+   "cpu_s": 47.65,
+   "max_rss": 81268736,
+   "load": [
+    40.2,
+    41.5
+   ],
+   "verdict": "accept",
+   "reason": ""
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w02-lane-runs/el2028/ood/00-h10018-s3",
+   "wall_s": 44.72,
+   "cpu_s": 43.96,
+   "max_rss": 82059264,
+   "load": [
+    41.5,
+    39.1
+   ],
+   "verdict": "accept",
+   "reason": ""
+  }
+ ]
+}

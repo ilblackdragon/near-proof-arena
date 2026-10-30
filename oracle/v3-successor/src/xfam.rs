@@ -67,6 +67,14 @@ pub fn kind() -> Option<Kind> {
     }
 }
 
+/// `NEAR_XFAM_VARIANT` (workplan item 10): an alternative step table of a scenario, on the same
+/// accounts and contracts. `curve-yield-timeout` (with `curve-callbacks`): curve hosts called from
+/// timed-out yield callbacks. `state-init-emit` (with `rollback-refund`): state initialisation
+/// followed by a successful emit. Unset, every scenario is unchanged.
+pub fn variant() -> Option<String> {
+    std::env::var("NEAR_XFAM_VARIANT").ok().filter(|v| !v.is_empty())
+}
+
 fn acct(s: &str) -> AccountId {
     s.parse().unwrap()
 }
@@ -962,6 +970,118 @@ fn rollback_refund() -> Vec<Step> {
     v
 }
 
+/// `curve-yield-timeout` (item 10, W05/W07): yields created by `yslot` and never resumed, so the
+/// runtime's timeout (200 blocks after creation, `PromiseResult::Failed`) runs the callback, which
+/// is a curve host method. Per host and input (the `curve-callbacks` picks: first pos / neg / edge
+/// input and the gas-exhaustion input with its own callback gas) the callback takes its input from
+/// the yield arguments in memory (`H`) and, for the writer and pairing hosts, in a register
+/// (`H_reg`); from the failed promise result in memory (`H_rm`) and in a register (`H_rr`). Slots
+/// are distinct per receiver account. Four steps per height, so the timeouts of one height share a
+/// chunk.
+fn curve_yield_timeout() -> Vec<Step> {
+    let base = crate::curve_hosts::steps();
+    let mut picks: Vec<(&str, u8, String, Vec<u8>, u64)> = Vec::new();
+    for &(h, k) in CURVE_HOSTS {
+        let of = |class: &str, skip_empty: bool| base.iter().find(|s| s.method == h && s.label.contains(&format!(".{class}."))
+            && !(skip_empty && s.args.is_empty()) && s.tgas >= 100);
+        for (class, skip) in [("pos", true), ("neg", false), ("edge", false)] {
+            if let Some(s) = of(class, skip) {
+                let case = s.label.rsplit('.').next().unwrap().to_string();
+                picks.push((h, k, format!("{class}.{case}"), s.args.clone(), 100));
+            }
+        }
+        if let Some(s) = base.iter().find(|s| s.method == h && s.tgas < 100) {
+            picks.push((h, k, "neg.gas_at_element_charge".into(), s.args.clone(), s.tgas));
+        }
+    }
+    let mut v = Vec::new();
+    let mut slots = [0u8; 2];
+    let per_height = 4;
+    for (h, k, case, args, g) in &picks {
+        let gas_case = case.contains("gas_at");
+        let mut variants = vec![("args-memory", h.to_string())];
+        if !gas_case {
+            variants.push(("failed-result-memory", format!("{h}_rm")));
+            if *k <= 2 {
+                variants.push(("args-register", format!("{h}_reg")));
+                variants.push(("failed-result-register", format!("{h}_rr")));
+            }
+        }
+        for (vname, method) in variants {
+            let i = v.len();
+            let rb = i % 2;
+            let recv = ["s0xcurve", "s2xcurve"][rb];
+            let signer = if i % 3 == 2 { "s1xccall" } else { recv };
+            let slot = slots[rb];
+            slots[rb] += 1;
+            let mut a = vec![slot, (*g).min(150) as u8, method.len() as u8];
+            a.extend(method.as_bytes());
+            a.extend(args);
+            let label = format!("successor.curve-yield-timeout.{i:03}.{h}.{vname}.{case}");
+            v.push(step((i / per_height) as u64, label, signer, recv, vec![fc("yslot", a, 300, 0)], How::Main));
+        }
+    }
+    v
+}
+
+/// `state-init-emit` (item 10, W07): a deterministic state init followed, in the same receipt or a
+/// later one, by an `emit` that succeeds. The `rollback-refund` composition could not reach this:
+/// the derived account holds only its storage stake after the init, so the 1,000-yocto promise
+/// amounts failed with `BalanceExceeded`. Here the account is paid first: by the emitting call's
+/// own deposit, by a `Transfer` between the init and the call, or by a separate later transaction.
+/// Global code by hash and by account id; local and cross-shard targets; with and without a
+/// `promise_then` callback, and with a failing target (the callback sees the failure). The unfunded
+/// composition is kept as a control step.
+fn state_init_emit() -> Vec<Step> {
+    let code = xfam_wasm().to_vec();
+    let hash_id = GlobalContractIdentifier::CodeHash(CryptoHash::hash_bytes(&code));
+    let acct_id = GlobalContractIdentifier::AccountId(acct("s0rbg"));
+    let lab = |i: usize, s: &str| format!("successor.state-init-emit.{i:02}.{s}");
+    let emit = |mode: u8, targets: &[(&str, &str)]| {
+        let mut a = vec![mode, targets.len() as u8];
+        for (t, m) in targets {
+            a.push(t.len() as u8);
+            a.extend(t.as_bytes());
+            a.push(m.len() as u8);
+            a.extend(m.as_bytes());
+        }
+        a
+    };
+    let mut v = vec![
+        step(0, lab(0, "deploy-global-hash"), "s0rbg", "s0rbg", vec![Action::DeployGlobalContract(DeployGlobalContractAction { code: code.clone().into(), deploy_mode: GlobalContractDeployMode::CodeHash })], How::Main),
+        step(1, lab(1, "deploy-global-account"), "s0rbg", "s0rbg", vec![Action::DeployGlobalContract(DeployGlobalContractAction { code: code.clone().into(), deploy_mode: GlobalContractDeployMode::AccountId })], How::Main),
+    ];
+    let mut i = 2;
+    for k in 0..4u8 {
+        let off = 15 + 8 * k as u64;
+        let id = |b: bool| if b { hash_id.clone() } else { acct_id.clone() };
+        let even = k % 2 == 0;
+        let mut push = |off: u64, name: &str, signer: &str, receiver: AccountId, actions: Vec<Action>| {
+            let describe = actions.iter().map(describe_action).collect::<Vec<_>>().join(", ");
+            v.push(Step { off, label: lab(i, &format!("r{k}.{name}")), signer: acct(signer), receiver, actions, how: How::Main, describe });
+            i += 1;
+        };
+        let s = "s1rbs";
+        let (r, a) = state_init(id(even), vec![(b"k".to_vec(), vec![k, 10])], NEAR);
+        push(off, "init-emit-deposit-then-cross-shard", s, r, vec![a, fc("emit", emit(2, &[("s2rbt", "noop"), ("s3rbt", "noop")]), 60, NEAR)]);
+        let (r, a) = state_init(id(!even), vec![(b"k".to_vec(), vec![k, 11])], NEAR);
+        push(off, "init-transfer-emit-cross-shard", s, r, vec![a, tr(NEAR), fc("emit", emit(0, &[("s2rbt", "noop")]), 60, 0)]);
+        let (r, a) = state_init(id(even), vec![(b"k".to_vec(), vec![k, 12])], NEAR);
+        push(off, "init-emit-deposit-failing-target-then", s, r, vec![a, fc("emit", emit(2, &[("s3rbt", "fail")]), 60, NEAR)]);
+        let (r, a) = state_init(id(!even), vec![(b"k".to_vec(), vec![k, 13]), (b"big".to_vec(), vec![k; 512])], 2 * NEAR);
+        let own = r.to_string();
+        push(off, "init-data-emit-deposit-self-and-other", s, r, vec![a, fc("emit", emit(0, &[(own.as_str(), "noop"), ("s3xnote", "noop")]), 60, NEAR)]);
+        let (r, a) = state_init(id(even), vec![(b"k".to_vec(), vec![k, 14])], NEAR);
+        push(off, "init-only", s, r.clone(), vec![a]);
+        push(off + 4, "later-emit-deposit-then", s, r.clone(), vec![fc("emit", emit(2, &[("s2rbt", "noop")]), 60, NEAR)]);
+        push(off + 4, "later-transfer-and-emit", "s0rbu", r, vec![tr(NEAR), fc("emit", emit(0, &[("s3rbt", "noop"), ("s2rbt", "noop")]), 60, 0)]);
+        let (r, a) = state_init(id(!even), vec![(b"k".to_vec(), vec![k, 15])], NEAR);
+        push(off, "init-emit-no-funds-control", s, r, vec![a, fc("emit", emit(0, &[("s2rbt", "noop")]), 60, 0)]);
+        push(off, "ordinary-transfer", s, acct("s0rbu"), vec![tr(NEAR + k as u128)]);
+    }
+    v
+}
+
 /// `runtime-errors` (W03): calls into the `src/rterr.rs` contracts directly, across shards, from
 /// `promise_then` chains (the callback records the callee's promise status), with too little gas
 /// for the loading fee, with a missing method, in multi-action receipts, and right after an
@@ -1055,14 +1175,20 @@ impl Driver {
     pub fn new() -> Self {
         let (start, steps) = match kind() {
             Some(Kind::YieldCongestion) => (10004, yield_congestion()),
+            Some(Kind::CurveCallbacks) if variant().as_deref() == Some("curve-yield-timeout") => (10004, curve_yield_timeout()),
             Some(Kind::CurveCallbacks) => (10004, curve_callbacks()),
             // before the first block: the first chunks after genesis carry these transactions
             Some(Kind::GenesisTx) => (10001, genesis_tx()),
             Some(Kind::GasKeyTarget) => (10004, gaskey_target()),
+            Some(Kind::RollbackRefund) if variant().as_deref() == Some("state-init-emit") => (10004, state_init_emit()),
             Some(Kind::RollbackRefund) => (10004, rollback_refund()),
             Some(Kind::RuntimeErrors) => (10004, runtime_errors()),
             None => (u64::MAX, vec![]),
         };
+        if let Some(v) = variant() {
+            assert!(matches!(kind(), Some(Kind::CurveCallbacks | Kind::RollbackRefund)), "NEAR_XFAM_VARIANT={v} needs its scenario");
+            assert!(matches!(v.as_str(), "curve-yield-timeout" | "state-init-emit"), "unknown NEAR_XFAM_VARIANT={v}");
+        }
         Driver { start, steps, retry: vec![], submitted: vec![], used: HashMap::new() }
     }
 
@@ -1133,7 +1259,7 @@ impl Driver {
             x
         }).collect();
         let v = json!({
-            "scenario": format!("{k:?}"), "start_height": self.start,
+            "scenario": format!("{k:?}"), "variant": variant(), "start_height": self.start,
             "shards": shard_map(s),
             "contracts": contracts().iter().map(|(n, c)| json!({"name": n, "hash": CryptoHash::hash_bytes(c).to_string(), "len": c.len()})).collect::<Vec<_>>(),
             "chunk_headers": header_series(s),

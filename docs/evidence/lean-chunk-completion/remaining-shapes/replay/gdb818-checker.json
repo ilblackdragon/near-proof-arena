@@ -1,0 +1,2537 @@
+{
+ "cases": 130,
+ "checked": [
+  "verdict",
+  "domain_exclusion_reason"
+ ],
+ "comparison": "verdict-and-domain-only",
+ "comparisons": [
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10007-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10009-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10012-s2",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10014-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10014-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10017-s4",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10018-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10021-s2",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10022-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10061-s0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10062-s4",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10064-s3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10065-s2",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/ood/10-h10067-s1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "ood",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.code_extend.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.code_flip.dup_last_bad.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.code_flip.dup_last_good.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.code_flip.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.code_flip_first.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.code_flip_last.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.code_truncate.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.id_hash_flip.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10007-s0-w.dist.id_to_account.p2.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.code_extend.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.code_flip.dup_last_bad.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.code_flip.dup_last_good.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.code_flip.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.code_flip_first.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.code_flip_last.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.code_truncate.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.id_hash_flip.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10009-s3-w.dist.id_to_account.p1.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.code_extend.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.code_flip.dup_last_bad.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.code_flip.dup_last_good.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.code_flip.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.code_flip_first.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.code_flip_last.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.code_truncate.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.id_hash_flip.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10012-s2-w.dist.id_to_account.p8.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.code_extend.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.code_flip.dup_last_bad.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.code_flip.dup_last_good.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.code_flip.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.code_flip_first.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.code_flip_last.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.code_truncate.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s0-w.dist.id_to_hash.p2.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.code_extend.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.code_flip.dup_last_bad.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.code_flip.dup_last_good.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.code_flip.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.code_flip_first.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.code_flip_last.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.code_truncate.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.id_hash_flip.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10014-s1-w.dist.id_to_account.p0.r7",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.code_extend.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.code_flip.dup_last_bad.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.code_flip.dup_last_good.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.code_flip.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.code_flip_first.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.code_flip_last.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.code_truncate.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10017-s4-w.dist.id_to_hash.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.code_extend.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.code_flip.dup_last_bad.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.code_flip.dup_last_good.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.code_flip.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.code_flip_first.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.code_flip_last.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.code_truncate.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10018-s3-w.dist.id_to_hash.p4.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape",
+    "e.g_alpha"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.code_extend.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.code_flip.dup_last_bad.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.code_flip.dup_last_good.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.code_flip.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.code_flip_first.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.code_flip_last.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.code_truncate.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10021-s2-w.dist.id_to_hash.p9.r3",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.code_extend.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.code_flip.dup_last_bad.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.code_flip.dup_last_good.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.code_flip.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.code_flip_first.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.code_flip_last.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.code_truncate.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10022-s1-w.dist.id_to_hash.p3.r5",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.code_extend.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.code_flip.dup_last_bad.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.code_flip.dup_last_good.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.code_flip.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.code_flip_first.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.code_flip_last.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.code_truncate.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10061-s0-w.dist.id_to_hash.p3.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.code_extend.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.code_flip.dup_last_bad.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.code_flip.dup_last_good.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.code_flip.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.code_flip_first.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.code_flip_last.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.code_truncate.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10062-s4-w.dist.id_to_hash.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.code_extend.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.code_flip.dup_last_bad.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.code_flip.dup_last_good.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.code_flip.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.code_flip_first.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.code_flip_last.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.code_truncate.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10064-s3-w.dist.id_to_hash.p0.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.code_extend.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.code_flip.dup_last_bad.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.code_flip.dup_last_good.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.code_flip.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.code_flip_first.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.code_flip_last.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.code_truncate.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10065-s2-w.dist.id_to_hash.p1.r0",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.code_extend.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.code_flip.dup_last_bad.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.code_flip.dup_last_good.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": true,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "",
+   "verdict": "accept",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.code_flip.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.code_flip_first.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.code_flip_last.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.code_truncate.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  },
+  {
+   "case": "/data/illia/nearproof-deps/w10-runs/runs/gdb818/mutants/10-h10067-s1-w.dist.id_to_hash.p6.r1",
+   "checker": "allFeatures",
+   "classification": "verdict_agree_outside_domain",
+   "d3_violations": [
+    "w.shape"
+   ],
+   "exclusion_asserted": null,
+   "expectation_domain": "successor",
+   "expected_rel": false,
+   "expected_rel_d3": false,
+   "family": "mutants",
+   "in_d3": false,
+   "in_domain_under_test": false,
+   "reason": "invalid: receipt proof merkle path",
+   "verdict": "reject",
+   "verdict_agrees": true,
+   "verdict_compared": true
+  }
+ ],
+ "disagreements": [],
+ "harness_sources": {
+  "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+  "tools/d3/replay_successor.py": "a989c273f9f5c33b4594d543399597be9101bc5f06a2d31d0ee0b008512f40c5"
+ },
+ "output_sha256": "c59290c1f6d11266884f2c7654ff201a2c396f58a2e8413361fafd27f8f92e11",
+ "package": {
+  "binary": "/data/illia/nearproof-deps/w10-runs/bin/checker",
+  "sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+  "tier": "allFeatures"
+ },
+ "partition": {
+  "verdict_agree_outside_domain": 130
+ },
+ "schema": "near-successor-replay-v1",
+ "status": "pass",
+ "unavailable": [
+  "refunds",
+  "return_data",
+  "validator_rewards",
+  "tx_results",
+  "action_results"
+ ],
+ "verdicts": {
+  "accept": 28,
+  "reject": 102
+ },
+ "workers": 2
+}

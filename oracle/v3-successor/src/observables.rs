@@ -134,7 +134,41 @@ pub fn change_json(c: &near_primitives::types::RawStateChangesWithTrieKey) -> Va
     })
 }
 
-fn observe(client: &Client, rt: &NightshadeRuntime, wb: &[u8], codes: &[Vec<u8>]) -> Result<Value, String> {
+/// W01 per-receipt attribution: every committed change of one key in order (cause, value hash and
+/// length, `None` = deleted) and the key's pre-state value reference (`None` = absent), read from
+/// the witness's own recorded pre-state (`sha256` of the value, as `ValueRef.hash`).
+pub fn change_detail_json(c: &near_primitives::types::RawStateChangesWithTrieKey, pre: Option<&near_store::Trie>) -> Value {
+    let mut v = change_json(c);
+    let key = c.trie_key.to_vec();
+    let pre_ref = pre.map(|t| {
+        match t.get_optimized_ref(&key, near_store::KeyLookupMode::MemOrTrie, near_store::trie::AccessOptions::NO_SIDE_EFFECTS) {
+            Ok(Some(r)) => json!({ "valueHash": h(&r.value_hash()), "valueLen": r.len().to_string() }),
+            Ok(None) => json!({ "absent": true }),
+            Err(e) => json!({ "error": format!("{e:?}") }),
+        }
+    });
+    if let Value::Object(m) = &mut v {
+        m.insert(
+            "changes".into(),
+            Value::Array(
+                c.changes
+                    .iter()
+                    .map(|x| {
+                        json!({
+                            "cause": format!("{:?}", x.cause),
+                            "valueHash": x.data.as_ref().map(|d| sha(d)),
+                            "valueLen": x.data.as_ref().map(|d| d.len().to_string()),
+                        })
+                    })
+                    .collect(),
+            ),
+        );
+        m.insert("pre".into(), pre_ref.unwrap_or(Value::Null));
+    }
+    v
+}
+
+pub(crate) fn observe(client: &Client, rt: &NightshadeRuntime, wb: &[u8], codes: &[Vec<u8>]) -> Result<Value, String> {
     let w = crate::judge::decode_witness(wb, codes)?;
     let em: &dyn EpochManagerAdapter = client.epoch_manager.as_ref();
     let pre = pre_validate_chunk_state_witness(&w, client.chain.chain_store(), client.chain.genesis_block(), em, rt)
@@ -144,6 +178,13 @@ fn observe(client: &Client, rt: &NightshadeRuntime, wb: &[u8], codes: &[Vec<u8>]
         MainTransition::NewChunk { new_chunk_data, block_hash, shard_id } => (new_chunk_data, block_hash, shard_id),
     };
     let height = new_chunk_data.block.height;
+    // the main transition's pre-state, from the witness's recorded nodes (W01 attribution)
+    let pre_trie = match &new_chunk_data.storage_context.storage_data_source {
+        near_chain::types::StorageDataSource::Recorded(ps) => {
+            Some(near_store::Trie::from_recorded_storage(ps.clone(), new_chunk_data.prev_state_root, false))
+        }
+        _ => None,
+    };
     let epoch_id = em.get_epoch_id(&block_hash).map_err(|e| format!("{e:?}"))?;
     let shard_uid = shard_id_to_uid(em, shard_id, &epoch_id).map_err(|e| format!("{e:?}"))?;
     let span = near_o11y::tracing::debug_span!(target: "client", "w01_observables");
@@ -189,7 +230,7 @@ fn observe(client: &Client, rt: &NightshadeRuntime, wb: &[u8], codes: &[Vec<u8>]
     }
     let outgoing: Vec<Value> = committed_receipts.iter().map(receipt_json).collect();
     let outgoing_applied: Option<Vec<Value>> = reassigned.then(|| a.outgoing_receipts.iter().map(receipt_json).collect());
-    let changes: Vec<Value> = a.trie_changes.state_changes().iter().map(change_json).collect();
+    let changes: Vec<Value> = a.trie_changes.state_changes().iter().map(|c| change_detail_json(c, pre_trie.as_ref())).collect();
     let compute: Option<u64> = a.outcomes.iter().try_fold(0u64, |s, o| o.outcome.compute_usage.map(|c| s + c));
     let store = client.chain.chain_store();
     let stored = near_store::adapter::StoreAdapter::chain_store(&store.store()).get_outcomes_by_block_hash_and_shard_id(&block_hash, shard_id);
