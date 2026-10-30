@@ -12,7 +12,11 @@ set_option maxHeartbeats 4000000
 * queue and decoding steps: `fob_rr` (`forwardOrBuffer_eq` + `forwardOrBufferL_nd`), `delayPop_rr`,
   `ffb_rr`, `decRcpt_rr` (`decodeStoredRcpt_ref`), `processTxR_rr`, `liftE_refunds`;
 * `actionLoop_rr`, `emitReceipts_rr`, `applyActionReceipt_rr`, `processReceipt_rr` (the lower run's
-  distribution arm is `oodGcd`), `processWithTotals_rr`, `drain_rr`, `processWithInstant_rr`.
+  distribution arm is `oodGcd`), `processWithTotals_rr`, `drain_rr`, `processWithInstant_rr`,
+  `scheduleDelayed_rr` (`pipeFn_sched`), `processLocals_rr`, `processIncoming_rr`.
+
+Not yet here (README §12): `processDelayedLoop` (its `pipe.next` read), `yieldLoop`,
+`applyNewChunkD2`, `run`.
 
 The walk tactic `mrw` extends `mrx` (`TierO3Rec.lean`) with `foldlM`, `bind_assoc` and a generic
 bind (no value fact); closers are guarded (`with_reducible`, `lower_head`) so the unifier never
@@ -223,5 +227,37 @@ theorem processWithInstant_rr (env : Env) (hwf : env.ctx.layout.WF) (rs : RS) (r
 #print axioms processWithInstant_rr
 
 end walk
+
+macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact processWithInstant_rr _ ‹_› _ _ ‹_› _ _ (by assumption))
+
+section walk2
+variable {E : Env → Prop} (w : NearCfg) (hg : w.globalActions = false) (p : CodeWitnessPolicy)
+include hg
+
+omit hg in
+theorem scheduleDelayed_rr (env : Env) (rs : RS) :
+    MRQ E (fun _ => True) (scheduleDelayed false env rs) (scheduleDelayed true env rs) := by
+  unfold scheduleDelayed pipeDecode
+  simp only [Bool.false_eq_true, ↓reduceIte, pure_bind]
+  exact MRX.modifyPipe (pipeFn_sched _ _ (decLe_storedRcpt _) _ _ decLe_stored _ _ _ _ _ _)
+
+theorem processLocals_rr (env : Env) (hwf : env.ctx.layout.WF) (rs : RS) (l : List Rcpt) (h : ND rs.outgoing) :
+    MRQ E (fun x : RS => ND x.outgoing)
+      (StorageExecution.processLocals ⟨false, p⟩ w env rs l)
+      (StorageExecution.processLocals ⟨true, p⟩ { w with globalActions := true } env rs l) := by
+  unfold StorageExecution.processLocals
+  mrw
+
+theorem processIncoming_rr (env : Env) (hwf : env.ctx.layout.WF) (rs : RS) (l : List Rcpt) (h : ND rs.outgoing) :
+    MRQ E (fun x : RS => ND x.outgoing)
+      (StorageExecution.processIncoming ⟨false, p⟩ w env rs l)
+      (StorageExecution.processIncoming ⟨true, p⟩ { w with globalActions := true } env rs l) := by
+  unfold StorageExecution.processIncoming
+  mrw
+
+#print axioms processLocals_rr
+#print axioms processIncoming_rr
+
+end walk2
 
 end NearSpecV3.Successor

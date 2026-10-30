@@ -257,3 +257,17 @@ handover. Lean runs under `heavy` with `HEAVY_MEM=32G`, `LEAN_NUM_THREADS=10`.
 * **Finding**: the engine walk needs the non-distribution invariant on every `RS` of the lower run
   (the shells' `outgoingRoot` reads `out.outgoing`), not only at `emitReceipts`. `MRQ` carries it as
   a value predicate. Next steps: README §11.
+
+## 2026-10-30 — O3 steps 5d–5f (sixth session)
+
+* Step 1 proved (`TierO3Inv.lean`): single-run store-program facts (`LOk`), `ND rs.outgoing` kept by
+  every queue program and `processTxD2L`, no distribution receipt from `applyActionL d2HooksL` or
+  `refunds`. `MRQ` generalized to `MRX X` (`TierO3Engine.lean`).
+* Step 2 proved (`TierO3Rec.lean`): `functionCallRecorded_global` (up to exclusion-or-`unmodeled`),
+  `applyAction_global` through the `try … catch`.
+* Step 3 in part (`TierO3Walk.lean`): the walk through `applyActionReceipt`, `processReceipt`,
+  `processWithInstant`, `processLocals`, `processIncoming`. Open: `processDelayedLoop` (pipe read; plan
+  in README §12), `yieldLoop`, `applyNewChunkD2`/`run`, step 4. No `sorry`; axioms `propext`,
+  `Classical.choice`, `Quot.sound`; `make pin-check` ok. No refinement found false on a real chunk.
+* Engineering finding: a walk tactic that lets `exact`/`refine` unify the two runs' programs by
+  unfolding times out (it evaluates the interpreter); every rule is guarded by the lower program's head.

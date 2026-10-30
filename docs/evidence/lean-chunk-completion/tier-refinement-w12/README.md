@@ -27,7 +27,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 |---|---|---|---|
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
-| O3 | global actions | open. Proved (§7, §9): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target; (§11) stored-receipt, transaction and witness decoder refinement (`decodeStoredRcpt_ref`, `decodeWitness_ref`), the pipe relation and every pipe update (`PipeRel`, `pipeFn_*`), the queue operations on well-formed layouts (`delayPop_rel`, `forwardFromBuffer_rel`, `forwardFromBufferV3_rel`, `forwardOrBuffer_eq`), the engine relation `MRQ` and its state rules. Open (§11): the non-distribution invariant on the lower run's `RS`, the recorded call with `ga` differing, the engine walk, driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`, `TierO3Dec.lean`, `TierO3Pipe.lean`, `TierO3Queue.lean`, `TierO3Engine.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
+| O3 | global actions | open. Proved (§7, §9): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target; (§11) stored-receipt, transaction and witness decoder refinement (`decodeStoredRcpt_ref`, `decodeWitness_ref`), the pipe relation and every pipe update (`PipeRel`, `pipeFn_*`), the queue operations on well-formed layouts (`delayPop_rel`, `forwardFromBuffer_rel`, `forwardFromBufferV3_rel`, `forwardOrBuffer_eq`), the engine relation `MRQ` and its state rules. (§12) the non-distribution invariant (`TierO3Inv`), the recorded call and dispatch with `ga` differing (`functionCallRecorded_global`, `applyAction_global`), the engine walk through `processWithInstant`, `processLocals`, `processIncoming`. Open (§12): `processDelayedLoop` (its `pipe.next` read), `yieldLoop`, `applyNewChunkD2`/`run`, driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`, `TierO3Dec.lean`, `TierO3Pipe.lean`, `TierO3Queue.lean`, `TierO3Engine.lean`, `TierO3Inv.lean`, `TierO3Rec.lean`, `TierO3Walk.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
 | O4 | storage resolution | **proved at shell and tier level given the engine agreement** (2026-10-30, §10), after a legacy-side fix (26 nearcore-valid chunks the narrower legacy tiers rejected); the engine agreement `EngineAgree` is open (phases E0, E1 proved) | `relSuccessor_runtimeLimits_storageResolution_of`, `checkD2CoreGWith_legacy_recorder`, `checkD2CoreG_ok_bound`, `engineAgree_of_logged`, `logged_run` (`TierO4.lean`) |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | **proved at verdict level** (2026-10-30, §8): on every whole-state configuration with the genesis main transition and the Gate-B bounds in force, switching resharding on preserves every accept and every reject (`VRefines`; the reject reason may differ) | `checkSuccessor_resharding_vmono`, `relSuccessor_resharding_vmono` (`.curveHosts ⊑ .resharding`), `resharding_vlift_curveHosts`, `resharding_vlift_globalActionsCurve` (`TierO6.lean`) |
@@ -883,3 +883,77 @@ real chunk; no nearcore replay was needed.
    by the engine's `ND` output; the shells as O7 threads `StoreAuth` (`ApplyRefineA`), here with
    `env.ctx.layout.WF` from `LayoutsWF c`. Main now carries O4's `withStorageExclusion` and the
    restated pairs (merged into this branch); state the `Lift`s against it.
+
+## 12. Update 2026-10-30 (sixth session): O3 steps 5d–5f — invariant, recorded call, walk (part)
+
+No definition was changed. New proof modules, all default `lake build` targets: `TierO3Inv`,
+`TierO3Rec`, `TierO3Walk`. `TierO3Engine` generalized: `MRX X E Q` (lower errors in `X`), with
+`MRQ := MRX Exc` (the rules are now `MRX.*`; `MRQ.logged` kept). No `sorry`. Axioms: only `propext`,
+`Classical.choice`, `Quot.sound` (`axioms-o3-step5.txt`). `make pin-check` ok. No refinement was found
+false on a real chunk; no nearcore replay was needed. §11's list is superseded by the one below.
+
+### Step 1 (proved): the lower run never carries a distribution receipt (`TierO3Inv.lean`)
+
+`ND l` (no distribution receipt in `l`); single-run facts `SOk`/`LOk Q x` on store programs (every
+successful result satisfies `Q`), the `lok` walk, `LRQ.of_LR`/`LRQ.refl_of` (a two-run `LR` plus a
+lower single-run fact is an `LRQ`), `MRX.loggedQ`. Proved: `forwardOrBufferL_nd` (on a
+non-distribution receipt), `bufferReceiptL_nd`, `fwdLoopL_nd`, `forwardFromBufferToShardL_nd`,
+`forwardFromBufferL_nd`, `forwardFromBufferV3L_nd`, `delayPushL_nd`, `delayPopL_nd`,
+`processTxD2L_nd` (all keep `ND rs.outgoing`), `applyActionL_nd` (`d2HooksL`: the new receipts of
+every non-call action), `refunds_nd`. The buffer and delayed queues need no invariant: they are read
+through `decodeStored` (`decodeStored_not_distribution`).
+
+### Step 2 (proved): the recorded call and the dispatch (`TierO3Rec.lean`)
+
+* **`functionCallRecorded_global`**: `functionCallRecorded ⟨false, p⟩ w` against
+  `functionCallRecorded ⟨true, p⟩ { w with globalActions := true }` (`w.globalActions = false`), as
+  `MRX XU` (`XU`: exclusion, or an error starting with `unmodeled`), with `ND` of the new receipts.
+  `liftE_timely` (`resolveCodeBytes … false` is `… true` or `raceExclusion`; `PipeRel.det`),
+  `vm_step` (`vmF_global`, `vmCall_lowQ`), `managerGlobal_eq_manager`, `liftE_finishActs`
+  (`finishActs_err`: the lower action-log errors are `w.shape`, `e.wasm-α` or
+  `unmodeled: action re-encoding`; the upper then fails with `unmodeled: global action re-encoding`).
+* `MRX.tryCatch_unmodeled`: `applyAction`'s handler turns `XU` into exclusions.
+* **`applyAction_global`**: the dispatch as `MRQ` with `ND` of the new receipts (global actions:
+  `applyGlobal_false`, the lower `w.shape`; others: `ordinaryAction_rr`).
+
+### Step 3 (part): the engine walk (`TierO3Walk.lean`)
+
+`MRQ` with `Q := ND rs.outgoing`, under `env.ctx.layout.WF` of the explicit environment (the reader
+environment needs nothing; `E` is arbitrary): `fob_rr`, `delayPop_rr`, `ffb_rr`, `decRcpt_rr`,
+`processTxR_rr`, `liftE_refunds`, `actionLoop_rr`, `emitReceipts_rr`, `applyActionReceipt_rr`,
+`processReceipt_rr` (distribution arm: lower `oodGcd`), `processWithTotals_rr`, `drain_rr`,
+`processWithInstant_rr`, `scheduleDelayed_rr` (`pipeFn_sched`), `processLocals_rr`,
+`processIncoming_rr`.
+
+Proof engineering: the walk tactics (`mrx` in `TierO3Rec`, `mrw` in `TierO3Walk`) must never let the
+unifier compare the two runs' programs by unfolding (it runs the interpreter: `vmCall w` against
+`vmCall { w with globalActions := true }`). Closers are `with_reducible exact` or guarded by
+`lower_head`/`lower_has`/`lower_bind_has` (head-symbol checks on the lower program). A `split` is
+followed by rewriting with the split's own equation (`simp_last_eq`), since the two runs' matches are
+different terms. `pure` leaves are tried only on a `pure` head (`refine MRX.pure` against a bind chain
+made `whnf` time out).
+
+### What remains, in order (next steps)
+
+1. **`processDelayedLoop_rr`** (fuel induction). The only new difficulty: `match (← get).pipe.next`
+   reads the pipe, and `MRX.get_bind'` loses the state (the continuation is re-quantified over related
+   states), so the case "lower pipe uncertain, the two `next` differ" cannot be closed after it. Add
+   `MRX.get_pipe_step`: if `∀ r env, f r r env = (modifyPipe FL >>= k) r env`, likewise `g`/`FU`/`k'`,
+   `PipeFn FL FU` and `MRX k k'`, then `MRX (get >>= f) (get >>= g)`. Take
+   `stepF ga env rs p := match p.next with | some n => if n - 1 == 0 then schedFn (decoders of ga) … p
+   else { p with next := some (n - 1) } | none => p`; `PipeFn` from `pipeFn_sched`, `pipeFn_next`,
+   `schedFn_unc` (`PipeFn.of_unc`). The `f r r env` equation is by `cases r.pipe.next` and unfolding
+   `scheduleDelayed`/`pipeDecode`; the do-notation join point `__do_jp` is the `k`. Then
+   `processDelayed_rr` (`scheduleDelayed_rr`, then the loop).
+2. **`yieldLoop_rr`** (fuel induction; `fob_rr` on `⟨acct, acct, rid, .data true d none⟩`, `nd_data`).
+3. **`applyNewChunkD2_rr`**: `ffb_rr`, the transaction fold (`processTxR_rr`; `mrw`'s `foldlM` rule
+   with `Q := ND ·.1.outgoing`), the three receipt phases, `yieldLoop_rr`; the output with
+   `ND out.outgoing`. Then `run_global`: `Refines (run w … false p) (run {w with globalActions := true} … true p)`
+   (as `run_rec_mono`, from `MRQ` at `RecRel.refl`) with the companion `run … = .ok out → ND out.outgoing`.
+4. **Driver fields and `Lift`** (as §11 item 4): `decodeWitness_ref`, `validateRouting`/`receiptShard`
+   on D2-decoded receipts, `recorderDriver_outgoingRoot_globals` with the engine's `ND`, the shells as
+   O7 threads `StoreAuth` (`ApplyRefineA`) with `env.ctx.layout.WF` from `LayoutsWF c`, against main's
+   `withStorageExclusion` and restated pairs; then `Lift` for `.storageResolution ⊑ .globalActions` and
+   for `(Tier.cfg .resharding, {… with globalActions := true})`, discharging the premise of
+   `relSuccessor_resharding_allFeatures_of` and, with `resharding_vlift_curveHosts` (`TierO6`), of
+   `relSuccessor_curveHosts_allFeatures_of` under the layout hypothesis only.
