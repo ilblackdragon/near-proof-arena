@@ -365,9 +365,10 @@ exactly one whose key falls outside every range. Stating it on the decision rath
 `PTrie.get` keeps it a statement about the split's own logic, which is what a wrong-column or
 wrong-comparison edit would break.
 
-A full "every retained key is in a range" theorem over `PTrie` needs a custom induction principle,
-because `PTrie` and `Kids` are mutually inductive. That obligation is recorded in the module's
-residual premises rather than smuggled in as an axiom. -/
+The full key-level theorem (the child answers exactly the parent's keys inside the retained ranges,
+through squashing) is `ReshardingProofs.retainSplit_get`; the partition of each column between the
+two children is `ReshardingProofs.splitKey_partition`, and the split's independence from unread
+parent nodes is `ReshardingProofs.splitRootE_refinedBy`. -/
 
 /-- **A subtree is discarded exactly when its key is outside every retained range.** This is the
 split's exclusion guarantee, and the whole reason `retain_decision` exists: `DiscardAll` may only be

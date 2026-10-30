@@ -1,4 +1,5 @@
 import NearSpecV3.Logged.WasmCRHostCall
+import NearSpecV3.Logged.WasmCRCrypto
 import NearSpecV3.Logged.Lockstep
 
 /-!
@@ -78,6 +79,8 @@ macro_rules | `(tactic| se_step) => `(tactic| first
   | rw [E_actions]
   | rw [E_dataCount]
   | rw [E_subsidized]
+  | rw [E_globalActions]
+  | rw [E_curveHosts]
   | rw [E_memBytes]
   | rw [E_real_isSome]
   | rw [E_readBytes]
@@ -85,6 +88,7 @@ macro_rules | `(tactic| se_step) => `(tactic| first
   | (simp only [E_stack, E_frames, E_pages, E_globals, E_table,
       E_tableMax, E_elems, E_datas, E_stackRem, E_gas, E_ctx, E_ret, E_balance, E_storageUsage, E_registers,
       E_regUsage, E_logs, E_totalLogLen, E_promises, E_trie, E_actions, E_dataCount, E_subsidized,
+      E_globalActions, E_curveHosts,
       E_memBytes, E_readByte, E_trieGet, E_dataIdOf, E_receiptReceiver, E_real_isSome, E_readBytes, E_readLE,
       E_popN, E_writeBytes, E_writeByte, mapRes_cont, mapRes_fin, mapRes_abort, mapRes_unmodeled, exmap_ok, exmap_error, ite_true, ite_false, dite_true, dite_false,
       ↓reduceIte, ↓reduceDIte, E_mk])
@@ -195,20 +199,21 @@ theorem mapSt_E_run (h : HM Unit) (t : St) (hc : CR σ h h) : h.run (E σ t) = m
 theorem E_callHost (name : String) (hn : storageHosts.contains name = false) :
     callHost (E σ s) name = mapRes (E σ) (callHost s name) := by
   unfold callHost
-  rw [E_real_isSome]
-  split
-  · rfl
-  rw [E_sync]
-  generalize sync s = r
-  cases r with
+  rw [E_real_isSome, E_globalActions]
+  by_cases hg : (s.real.isSome && realOodHosts.contains name &&
+      !(s.globalActions && globalPromiseHosts.contains name)) = true
+  · rw [if_pos hg, if_pos hg]; rfl
+  rw [if_neg hg, if_neg hg, E_sync]
+  cases hsy : sync s with
   | error e => rfl
   | ok s' =>
     simp only [exmap_ok]
-    cases hc : hostCall name with
+    rw [dispatchArm_E]
+    cases hc : dispatchArm s' name with
     | none => rfl
     | some h =>
       simp only
-      rw [(CR_hostCall σ name h hc hn).h s']
+      rw [(CR_dispatchArm σ s' name h hc hn).h s']
       cases h.run s' with
       | ok a t => rfl
       | error e t => simp only [mapSt]; split <;> rfl

@@ -120,7 +120,8 @@ end
 /-! ## A host call of a storage host function -/
 
 def callHostL (s : St) (name : String) : SM NearSpec.Bytes Res :=
-  if s.real.isSome && realOodHosts.contains name then
+  if s.real.isSome && realOodHosts.contains name &&
+      !(s.globalActions && globalPromiseHosts.contains name) then
     pure (.unmodeled s!"out-of-domain host function {name} called") else
   match sync s with
   | .error e => pure (.unmodeled e)
@@ -148,17 +149,19 @@ theorem callHostL_spec (hσ : StoreAgrees σ g) {s : St} (ht : StOK σ s) (name 
     SM.run g (callHostL (E dummy s) name) = .ok (mapRes (E dummy) (callHost s name)) ∧
       ResOK σ (callHost s name) := by
   unfold callHostL callHost
-  rw [E_real_isSome]
-  split
-  · exact ⟨rfl, rfl⟩
-  rw [E_sync]
+  rw [E_real_isSome, E_globalActions]
+  by_cases hg : (s.real.isSome && realOodHosts.contains name &&
+      !(s.globalActions && globalPromiseHosts.contains name)) = true
+  · rw [if_pos hg, if_pos hg]; exact ⟨rfl, rfl⟩
+  rw [if_neg hg, if_neg hg, E_sync]
   cases hs : sync s with
   | error e => exact ⟨rfl, rfl⟩
   | ok s' =>
     have hs' := StOK_sync ht hs
     simp only [exmap_ok]
     obtain ⟨y, x, hy, hx, hp⟩ := storageHost_HP hσ name hn
-    rw [hy, hx]; dsimp only
+    have hd : dispatchArm s' name = some x := by unfold dispatchArm; rw [hx]
+    rw [hy, hd]; dsimp only
     obtain ⟨h1, h2⟩ := hp s' hs'
     rw [SM.run_bind', h1]
     cases hr : x.run s' with
@@ -550,7 +553,8 @@ def runCallL (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx
           | .error e => pure (.line (s!"abort {gs.burnt} {gs.used} {e}" ++ ext (emptySt gs)))
           | .ok s =>
             let s := { s with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
-                              storageUsage := ctx.storageUsage, real := some real }
+                              storageUsage := ctx.storageUsage, real := some real,
+                              curveHosts := cfg.curveHosts }
             afterStartL cfg p fuel s >>= mainL cfg p fuel mi
 
 section
@@ -607,7 +611,7 @@ theorem runCallL_spec (hσ : StoreAgrees σ g) (cfg : NearCfg) (code : ByteArray
     SM.run g (runCallL cfg code method ctx fuel blockLevel full (dr real)) =
       .ok (mapRun (E dummy) (runCall cfg code method ctx fuel blockLevel full (some real))) := by
   unfold runCallL runCall
-  simp only [Option.isNone_some, Bool.false_and, Bool.false_eq_true, ite_false]
+  simp only [Option.isNone_some, Bool.false_and, Bool.and_false, Bool.false_eq_true, ite_false]
   by_cases hm : method.isEmpty = true
   · simp only [hm, ite_true]; rfl
   simp only [hm, ite_false, Bool.false_eq_true]
@@ -630,12 +634,47 @@ theorem runCallL_spec (hσ : StoreAgrees σ g) (cfg : NearCfg) (code : ByteArray
             cases instantiate cfg p g2 with
             | error e => rfl
             | ok s0 =>
-              have hst : StOK σ ({ s0 with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit, storageUsage := ctx.storageUsage, real := some real } : St) := by
+              have hst : StOK σ ({ s0 with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit, storageUsage := ctx.storageUsage, real := some real, curveHosts := cfg.curveHosts } : St) := by
                 intro r h; cases h; exact hr
               exact mainL_spec hσ cfg p fuel mi hst
           | _ => rfl
         | _ => rfl
   | _ => rfl
+end
+
+/-- `Exec.runCallWithLimits … (real := some real)` through `SM`: the loading preflight reads no
+store, so it is `runCallL` behind the same guard. -/
+def runCallWithLimitsL (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
+    (blockLevel : Bool) (full : Bool) (real : TTN.RealStore) : SM NearSpec.Bytes Run :=
+  let fallback := fun (_ : Unit) => runCallL cfg code method ctx fuel blockLevel full real
+  if !cfg.loadingLimits then fallback () else
+  match prepare cfg code blockLevel with
+  | .ok p =>
+    if instanceAllocationFits p.m then fallback () else
+      pure (.line ("abort 0 0 " ++ instanceLoadingError ++
+        (if full then " || compute 0 || logs  || actions  || trie " else "")))
+  | _ => fallback ()
+
+section
+variable {σ : TTN.Store} {g : NearSpec.Bytes → Option NearSpec.Bytes}
+
+theorem runCallWithLimitsL_spec (hσ : StoreAgrees σ g) (cfg : NearCfg) (code : ByteArray) (method : String)
+    (ctx : CallCtx) (fuel : Nat) (blockLevel full : Bool) (real : TTN.RealStore) (hr : real.store = σ) :
+    SM.run g (runCallWithLimitsL cfg code method ctx fuel blockLevel full (dr real)) =
+      .ok (mapRun (E dummy) (runCallWithLimits cfg code method ctx fuel blockLevel full (some real))) := by
+  unfold runCallWithLimitsL runCallWithLimits
+  have hf := runCallL_spec hσ cfg code method ctx fuel blockLevel full real hr
+  cases hl : cfg.loadingLimits
+  · simpa using hf
+  · simp only [Bool.not_true, Bool.false_eq_true, ite_false]
+    cases prepare cfg code blockLevel with
+    | ok p =>
+      dsimp only
+      split
+      · exact hf
+      · rfl
+    | _ => exact hf
+
 end
 
 end NearSpecV3.Logged.W
