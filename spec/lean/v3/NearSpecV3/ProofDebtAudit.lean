@@ -77,3 +77,27 @@ an axiom outside `propext`, `Classical.choice`, `Quot.sound` (e.g. `sorryAx`). -
 /-- info: 'NearSpecV3.Wasm.sub_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms NearSpecV3.Wasm.sub_lt
+
+/-- info: 'NearSpecV3.Wasm.min_lt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.min_lt
+
+/-- info: 'NearSpecV3.Wasm.max_lt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.max_lt
+
+/-- info: 'NearSpecV3.Wasm.roundToInt_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.roundToInt_lt
+
+/-- info: 'NearSpecV3.Wasm.demote_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.demote_lt
+
+/-- info: 'NearSpecV3.Wasm.promote_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.promote_lt
+
+/-- info: 'NearSpecV3.Wasm.truncSat_lt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms NearSpecV3.Wasm.truncSat_lt

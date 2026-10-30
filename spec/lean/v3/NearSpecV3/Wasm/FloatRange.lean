@@ -25,11 +25,15 @@ silently truncate the bit length". This module proves the fuel and range facts t
   operands stay below `2^(p + 2^eb)`, i.e. `2^2101` for `f64`), so **every arithmetic result is a
   `w`-bit pattern**, whatever the inputs (`sqrt`: on `w`-bit inputs).
 
-What is **not** proved here: range facts for the conversions (`convertInt`, `roundToInt`,
-`demote`, `promote`, truncations) and `min`/`max` (which return an input or an OR/AND of inputs).
-The agreement of the results with nearcore stays a differential obligation
-(`oracle/wasm-d3/tests/difftest_float.py`, `float_nearcore.py`), and the chunk-level float overlap
-(`checkD3 ⊆ checkD3F` on float-free chunks) is tier obligation O1 (`Successor/TierMono.lean`).
+* `min_lt`, `max_lt`, `roundToInt_lt` (`ceil`/`floor`/`trunc`/`nearest`), `convertInt_lt`,
+  `demote_lt`, `promote_lt`, `truncSat_lt`: the remaining value-producing float operators also
+  stay in range (on `w`-bit inputs where the operator returns an input).
+
+So every float operator of the kernel maps `w`-bit inputs to `w`-bit results. What is **not**
+claimed: that the results agree with nearcore — that stays a differential obligation
+(`oracle/wasm-d3/tests/difftest_float.py`, `float_nearcore.py`) — and the chunk-level float overlap
+(`checkD3 ⊆ checkD3F` on float-free chunks), which is tier obligation O1 (`Successor/TierMono.lean`,
+another lane).
 
 Axioms: `propext`, `Classical.choice`, `Quot.sound` (audit in
 `docs/logs/lean-proof-debt-2026-10-29.md`).
@@ -466,5 +470,97 @@ theorem add_lt (f : Fmt) (hf : StdFmt f) (a b : Nat) : Fmt.add f a b < 2 ^ f.w :
 
 /-- `sub` is `add` of the negation. -/
 theorem sub_lt (f : Fmt) (hf : StdFmt f) (a b : Nat) : Fmt.sub f a b < 2 ^ f.w := add_lt f hf a _
+
+
+/-! ## `min`/`max`, the integer roundings and the conversions -/
+
+theorem min_lt (f : Fmt) (hf : StdFmt f) (a b : Nat) (ha : a < 2 ^ f.w) (hb : b < 2 ^ f.w) :
+    Fmt.min f a b < 2 ^ f.w := by
+  have hs := specials_lt' f hf
+  unfold Fmt.min
+  split; · exact (hs false).2.2
+  split; · exact Nat.or_lt_two_pow ha hb
+  split <;> assumption
+
+theorem max_lt (f : Fmt) (hf : StdFmt f) (a b : Nat) (ha : a < 2 ^ f.w) (hb : b < 2 ^ f.w) :
+    Fmt.max f a b < 2 ^ f.w := by
+  have hs := specials_lt' f hf
+  unfold Fmt.max
+  split; · exact (hs false).2.2
+  split; · exact Nat.lt_of_le_of_lt (Nat.and_le_left) ha
+  split <;> assumption
+
+/-- `ceil`/`floor`/`trunc`/`nearest` return `w`-bit patterns on `w`-bit inputs. -/
+theorem roundToInt_lt (f : Fmt) (hf : StdFmt f) (md : Fmt.RMode) (a : Nat) (ha : a < 2 ^ f.w) :
+    Fmt.roundToInt f md a < 2 ^ f.w := by
+  have hs := specials_lt' f hf
+  have hpp := pow_p_lt f hf
+  have hm := decode_m_lt f hf a
+  unfold Fmt.roundToInt
+  split; · exact (hs false).2.2
+  split; · exact ha
+  simp only
+  split; · exact ha
+  have hq : ∀ d, (Fmt.decode f a).2.1 >>> d ≤ (Fmt.decode f a).2.1 := fun d => by
+    rw [Nat.shiftRight_eq_div_pow]; exact Nat.div_le_self _ _
+  have key : ∀ (q : Nat), q ≤ (Fmt.decode f a).2.1 → ∀ (b s' : Bool),
+      (if (if b = true then q + 1 else q) = 0 then Fmt.zero f s'
+        else Fmt.roundPack f s' (if b = true then q + 1 else q) 0) < 2 ^ f.w := by
+    intro q hq b s'
+    have hle : (if b = true then q + 1 else q) ≤ q + 1 := by cases b <;> simp
+    generalize (if b = true then q + 1 else q) = q' at hle ⊢
+    split
+    · exact (hs s').2.1
+    · apply roundPack_lt f hf
+      have : q' ≤ q + 1 := hle
+      have h2 : q + 1 < 2 ^ (f.p + 1) := by rw [Nat.pow_succ]; omega
+      exact Nat.lt_of_le_of_lt this (Nat.lt_of_lt_of_le h2 (pow_mono (by omega)))
+  exact key _ (hq _) _ _
+
+/-- Integer → float conversions return `w`-bit patterns (every `i32`/`i64` operand is far below
+the fuel bound). -/
+theorem convertInt_lt (f : Fmt) (hf : StdFmt f) (n : Int) (hn : n.natAbs < 2 ^ 4096) :
+    Fmt.convertInt f n < 2 ^ f.w :=
+  roundPack_lt f hf _ _ _ hn
+
+theorem demote_lt (a : Nat) : Fmt.demote a < 2 ^ 32 := by
+  have hs := specials_lt' f32 (Or.inl rfl)
+  unfold Fmt.demote
+  split; · exact (hs false).2.2
+  split; · exact (hs _).1
+  split; · exact (hs _).2.1
+  simp only
+  apply roundPack_lt f32 (Or.inl rfl)
+  have := decode_m_lt f64 (Or.inr rfl) a
+  exact Nat.lt_of_lt_of_le this (pow_mono (by decide))
+
+theorem promote_lt (a : Nat) : Fmt.promote a < 2 ^ 64 := by
+  have hs := specials_lt' f64 (Or.inr rfl)
+  unfold Fmt.promote
+  split; · exact (hs false).2.2
+  split; · exact (hs _).1
+  split; · exact (hs _).2.1
+  simp only
+  apply roundPack_lt f64 (Or.inr rfl)
+  have := decode_m_lt f32 (Or.inl rfl) a
+  exact Nat.lt_of_lt_of_le this (pow_mono (by decide))
+
+/-- Saturating truncation yields a `w`-bit two's-complement pattern. -/
+theorem truncSat_lt (f : Fmt) (a : Nat) (lo hi : Int) (w : Nat) :
+    Fmt.truncSat f a lo hi w < 2 ^ w := by
+  have key : ∀ v : Int, (v % (2 ^ w : Int)).toNat < 2 ^ w := by
+    intro v
+    have hc : (2 : Int) ^ w = ((2 ^ w : Nat) : Int) := (Int.natCast_pow 2 w).symm
+    have hp := Nat.two_pow_pos w
+    rw [hc]
+    have h1 : 0 ≤ v % ((2 ^ w : Nat) : Int) := Int.emod_nonneg _ (by omega)
+    have h2 : v % ((2 ^ w : Nat) : Int) < ((2 ^ w : Nat) : Int) := Int.emod_lt_of_pos _ (by omega)
+    omega
+  unfold Fmt.truncSat
+  split
+  · exact key _
+  · split
+    · exact Nat.two_pow_pos w
+    · split <;> exact key _
 
 end NearSpecV3.Wasm
