@@ -176,8 +176,7 @@ populations were re-run (`fo3`), and every control in the table is detected.
 * **B2**: a transaction outcome reports compute + 1.
 * **B3**: every key first committed in a step counts as changed (no pre-state comparison).
 
-Checker sha256 `20ff40b3…`. Every report below fails (`reports/ctl-*.json`
-):
+Checker sha256 `20ff40b3…`. Every report below fails (`reports/ctl-*.json`):
 
 | population | chunks flagged | failure kinds wrong (B1) | outcome compute wrong (B2) | attribution entries / keys wrong (B3) |
 |---|---|---|---|---|
