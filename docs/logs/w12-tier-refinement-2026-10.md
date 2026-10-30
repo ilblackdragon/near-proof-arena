@@ -120,3 +120,10 @@ O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no name
 * **O7 at chunk level proved** (`TierO7.lean`): `Lift.completeCode` on every whole-state
   configuration, both directions; `.completeCodeGlobal ⊑ .globalActions` and the converse.
 * Open: O2, O3, O4, O6 (README §6 lists the precise remaining pieces).
+
+## 2026-10-30, after the coordinator's follow-up (items 1–5 requested)
+
+* Merged main `33114b3f0` (fast-forward of the W12 merge plus main's own changes).
+* O3 pre-check (source reading): the D2 decoders exclude (`oodDeployGlobal`, `oodUseGlobal`,
+  `oodStateInit`, `oodMlDsaKey`) where the global decoders accept. No reject finding so far.
+* Stopped here because the context was long. The exact next steps are in README §6, "Next steps".

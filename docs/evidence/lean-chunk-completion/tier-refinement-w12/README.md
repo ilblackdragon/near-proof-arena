@@ -289,3 +289,39 @@ whose environment satisfies `P`; every walk lemma carries `P env`. O1 (`Lift.flo
   Not started.
 * **O6 (resharding, non-genesis)**: verdict-level correspondence `checkD2CoreWith` vs
   `checkReshardCore`. Not started.
+
+### Next steps (handover, 2026-10-30; resume on branch `worktree-agent-a5081ae59762de001`)
+
+Pre-check done for O3 (1), by reading the source (no proof yet): the D2 decoders exclude rather than
+reject on what the global decoders newly accept. `D2.pBase` throws `oodDeployGlobal` /
+`oodUseGlobal` / `oodStateInit` (all `out of domain (w.shape): …`) on action tags 9, 10, 11, and
+`D2.pPk` throws `oodMlDsaKey` on key tag 2, before reading anything else. `decodeStateWitnessD2` /
+`decodeStateWitnessWith` do not re-wrap these errors. **No reject found.** Still to check:
+`oodMlDsaSig` sites, the delegate path (tags 8/14 and `pDelegateBody` vs `pDelegateBodyGlobal`),
+`pTxD2` vs `pTxD2Global`, and `decodeStoredRcpt` vs `decodeStoredRcptGlobal`.
+
+In order, committing after each:
+
+1. **CR generator** (`HostComm.lean`). Copy FuelHost's generation pattern: one theorem per
+   `hostCall.eq_N` / `cryptoHostCall.eq_N` arm and per `exec` arm, closed by the `cr` tactic, for
+   `φ := setCH b` and `φ := setGA b` (add `setGA`). The flag reads (`Host.lean` 571/577/592/615/1167/
+   1179/1199 for `globalActions`; the curve-host dispatch for `curveHosts`) are not commutations.
+   They need the *two-run* form `CR φ x y` with `x ≠ y`, plus a separate lemma per site saying the
+   `false` run excludes or agrees. Add `HostComm` to `defaultTargets`.
+2. **O3 composition.** Prove the decoder lemmas above, then `managerGlobal`/`finishActsGlobal` =
+   `manager`/`finishActs` on logs without global actions, and `globalQueuePolicy` = D2 queue
+   functions on non-distribution receipts. Then write a walk with `ga` differing: extend
+   `RecRefine` with `ga ga'`. The `pipeDecode` divergence matters: the pipeline state `pipe`
+   depends on the decoder, so equal-state `MRef` needs decoder agreement on *every* stored receipt
+   the run reads, or a state relation on `pipe`. Then do the driver fields
+   (`decodeWitness`/`receiptShard`/`validateRouting`/`outgoingRoot`; routing is already in
+   `TierMono`).
+3. **O2**: `St.curveHosts` through `runCall` (from step 1) plus `successorDispatch_extends`, then
+   `RecRefine` with the two Wasm configurations and `Lift` via `run_rec_mono`.
+4. **O4**: agreement of `applyNewChunkD2` (legacy) and `StorageExecution.run` on the legacy domain.
+5. **O6**: `VRefines (checkD2CoreWith recorderDriver …) (checkReshardCore reshardingDriver …)` on
+   non-genesis segments.
+
+Tooling lessons for these walks (`TierFlagsEq.lean`): use only `with_reducible` closers; use
+`orig_matchers` when the two sides come from different elaborations; use `sim_let`/`sim_walk_jp`
+for `do` join points.
