@@ -228,6 +228,21 @@ theorem modify {e : Env} {P : Recording → Prop} (f : Recording → Recording)
   intro r hr
   exact ⟨f r, rfl, hP r hr⟩
 
+theorem ite {α β : Type} {e : Env} {P : Recording → Prop} {φ : α → β} (c : Prop) [Decidable c]
+    {x x' : Logged.LM α} {y y' : M β} (h : c → SimE e P φ x y) (h' : ¬c → SimE e P φ x' y') :
+    SimE e P φ (if c then x else x') (if c then y else y') := by
+  by_cases hc : c
+  · simp only [hc, ite_true]; exact h hc
+  · simp only [hc, ite_false]; exact h' hc
+
+theorem foldlM {γ α β : Type} {e : Env} {P : Recording → Prop} {φ : α → β}
+    {f : α → γ → Logged.LM α} {g : β → γ → M β} (hfg : ∀ a c, SimE e P φ (f a c) (g (φ a) c)) :
+    ∀ (l : List γ) (a : α), SimE e P φ (l.foldlM f a) (l.foldlM g (φ a))
+  | [], a => SimE.pure φ a
+  | c :: l, a => by
+    simp only [List.foldlM_cons]
+    exact SimE.bind (hfg a c) fun a' => foldlM hfg l a'
+
 end SimE
 
 /-- The top-level bridge: a simulation of the whole main transition from the initial recorder state
@@ -257,6 +272,7 @@ theorem engineAgreeL_of_simE (cfg : Wasm.NearCfg) (P : StorageExecution.Recordin
 #print axioms engineAgreeL_of_simE
 #print axioms SimE.bind
 #print axioms SimE.logged
+#print axioms SimE.foldlM
 
 /-! ## Lockstep steps for the driver change -/
 
