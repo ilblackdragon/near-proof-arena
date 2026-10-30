@@ -25,16 +25,8 @@
         "text": "the epoch's shard layout is ShardLayout V2 or V3 with 1..=64 shards"
       },
       {
-        "id": "c.same_layout",
-        "text": "all epochs of the claim have the byte-identical shard layout (no resharding); no non-empty outgoing buffer to a shard outside the layout"
-      },
-      {
         "id": "c.headers",
         "text": "block headers V6; chunk header inners V4/V5"
-      },
-      {
-        "id": "c.no_split_gate",
-        "text": "no dynamic-resharding split check for any applied block"
       },
       {
         "id": "c.not_genesis",
@@ -46,15 +38,11 @@
       },
       {
         "id": "w.size",
-        "text": "state witness <= 8 MiB; sum of the main transition's base_state values and the contract code blobs + 2000 x ContractData removals <= 4,000,000 bytes (the storage-proof limit never triggers)"
+        "text": "state witness (near-arena-witness-v3 state_witness field) <= 8 MiB; the cold-fetched contract code fits one ContractCodeResponse (MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE = 64 MiB); the storage-proof limits are decided (legacy core below 4,000,000 bytes of values and code, the recorder engine above it, D3/Signed.lean)"
       },
       {
         "id": "w.shape",
         "text": "no DeployGlobalContract / UseGlobalContract / DeterministicStateInit action, no GlobalContractDistribution receipt, no ML-DSA-65 key in any decoded transaction or receipt (incl. receipts created by contracts); transactions carry ED25519 keys and signatures"
-      },
-      {
-        "id": "e.secp",
-        "text": "no SECP256K1 Delegate signature is verified"
       },
       {
         "id": "e.scheduler_state",
@@ -74,7 +62,7 @@
       },
       {
         "id": "e.g_alpha",
-        "text": "the chunk's sum of gas_burnt_for_function_call (incl. host gas) <= G_alpha = 2^22 x 822,756 gas (NearSpecV3.D3.gAlpha), checked after the main transition"
+        "text": "on claims the legacy core decides: the chunk's sum of gas_burnt_for_function_call (incl. host gas) <= G_alpha = 2^22 x 822,756 gas (NearSpecV3.D3.gAlpha), checked after the main transition; not applied to claims decided by the hand-over (resharding, storage-proof limits; D3/Signed.lean)"
       }
     ],
     "excludes": [
@@ -87,8 +75,6 @@
       "float_wasm_and_curve_host_functions",
       "global_contracts_and_state_init",
       "mldsa_and_secp256k1_transactions",
-      "resharding",
-      "dynamic_resharding_split_search",
       "genesis_main_transition",
       "witnesses_above_G_alpha",
       "other_protocol_versions"
@@ -96,7 +82,7 @@
     "formal_spec": {
       "relation_module": "NearSpecV3.ChallengeChunkV3R",
       "relation_decl": "NearSpecV3.RelChunkV3R",
-      "tree_digest": "sha256:00dc943d2b221d9511aee552459389038f27b9a58d30bf0ffd8cee8bdfdf9548",
+      "tree_digest": "sha256:d7ac7a6cd152fdef9147c629ee6bb43e19b673fd9ee15223a820c63d702367e6",
       "lean_toolchain": "leanprover/lean4:v4.34.1"
     },
     "spec_doc_digest": "sha256:b68420e35a81c52a1dacf03b865e599dcf0a76ecc836235f8b3d2db765e33e94"
@@ -105,7 +91,7 @@
     "format": "near-arena-claim-v3",
     "spec_digest": "sha256:619f00219fa15099ee451c28c6585aa18bb84ccf47d14313d2d0dc3dd999b6bb",
     "max_request_bytes": 1048576,
-    "max_witness_bytes": 12582912,
+    "max_witness_bytes": 75497501,
     "max_claim_bytes": 1048576
   },
   "security_profile": {
