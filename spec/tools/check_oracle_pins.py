@@ -28,7 +28,15 @@ SIGNED = {
 DRAFTS = {
     "challenges/drafts/near-chunk-v3.draft.json": ["spec/workloads/near-chunk-validation-d0",
                                                    "spec/workloads/near-chunk-v3"],
+    # v3.1 (rungs := RelD3 ∧ InRungDk): same classes and generator specs as v3.0
+    "challenges/drafts/near-chunk-v3-1.draft.json": ["spec/workloads/near-chunk-validation-d0",
+                                                     "spec/workloads/near-chunk-v3"],
 }
+# Drafts whose request witness cap must admit every witness of the Lean completeness domain:
+# claim_encoding.max_witness_bytes >= ChallengeChunkV3.maxWitnessChunk (read from `maxWitnessChunk_eq`).
+# (UQ-010 item 6(c), 2026-10-30: v3.1 carries the raised bound; skipped while the draft is absent.)
+WITNESS_CAP_DRAFTS = ["challenges/drafts/near-chunk-v3-1.draft.json"]
+CHUNK_V3_LEAN = "spec/lean/v3/NearSpecV3/ChallengeChunkV3.lean"
 ORACLE_TREE = ["oracle/v3/src", "oracle/v3/Cargo.toml", "oracle/v3/Cargo.lock"]
 
 
@@ -88,6 +96,19 @@ def main():
                            f"but TreeDigest({' '.join(paths)}) = {got}")
             else:
                 print(f"ok  {chl} class {cl['id']}: {' '.join(paths[:1])}… = {got}")
+    import re
+    m = re.search(r"theorem maxWitnessChunk_eq : maxWitnessChunk = (\d+) := rfl",
+                  open(os.path.join(ROOT, CHUNK_V3_LEAN)).read())
+    for chl in WITNESS_CAP_DRAFTS:
+        if not os.path.exists(os.path.join(ROOT, chl)):
+            continue
+        cap = json.load(open(os.path.join(ROOT, chl)))["claim_encoding"]["max_witness_bytes"]
+        if m is None:
+            bad.append(f"{CHUNK_V3_LEAN}: no `maxWitnessChunk_eq` literal")
+        elif cap < int(m.group(1)):
+            bad.append(f"{chl}: max_witness_bytes {cap} < maxWitnessChunk {m.group(1)}")
+        else:
+            print(f"ok  {chl}: max_witness_bytes {cap} >= maxWitnessChunk {m.group(1)}")
     for b in bad:
         print("PIN DRIFT: " + b, file=sys.stderr)
     sys.exit(1 if bad else 0)
