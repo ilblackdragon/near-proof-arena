@@ -10,8 +10,11 @@ For every chunk the D3 runtime applies (`applyNewChunkD2` with `D3.d3Hooks Wasm.
 
 ```
 nearIn(post) + value(outgoing receipts) + balance_burnt
-  = nearIn(pre) + value(incoming receipts) + epoch reward credited on the shard
+  ≤ nearIn(pre) + value(incoming receipts) + epoch reward credited on the shard
 ```
+
+— **the chunk creates no NEAR beyond the epoch reward** — under hypotheses that exclude inputs no
+real chain produces (see "Hypotheses" below). On every tested chunk the two sides are *equal*.
 
 where `nearIn` is the NEAR in the shard's trie (accounts' `amount + locked`, gas-key balances, and
 receipts at rest: postponed, yield, delayed, buffered) and a receipt's value is its deposit plus its
@@ -21,7 +24,22 @@ one, so the total changes by `Σ rewards − Σ balance_burnt` — the identity 
 `Supply.creditedRewards_le_supply_div_40`, that is **"total supply grows only by the epoch reward,
 at most 2.5 %/yr"** at the level of the runtime's own state, not just the header field.
 
-It is exact: an over-refund of 1 yoctoNEAR anywhere breaks it.
+It is sharp in the direction that matters: an over-credit or over-refund of 1 yoctoNEAR anywhere
+breaks it. It is `≤` rather than `=` because the runtime overwrites some queue slots blindly
+(`delayPush`, `bufferReceipt`, postponed and yield registrations); a value at rest at such a slot is
+destroyed, and for slots named by SHA-256-derived ids, exact freshness would need a hash
+no-collision assumption.
+
+## Hypotheses (current pin)
+
+The pre-state trie is well-formed (`t.wf`); `gasLimit < 2^64` (a decoded `u64`; bounds the 1-yocto
+subsidy mints); no revealed account `system` (the runtime cannot create one); no input system
+receipt — incoming or at rest — carries a gas price (`SysGasFree`); the incoming receipts and the
+transactions' signers belong to the shard; incoming receipts and each transaction's receipt encode
+canonically (`CanonRcpt`); and NEAR held + incoming + reward `< 2^120` (real supply ≈ `2^110`).
+Every one excludes only inputs a witness cannot produce, and each was added after the deepseek-fv
+provers found, usually with a kernel-checked counterexample, that the statement was false without
+it. All hold on every corpus chunk.
 
 ## Tested
 
