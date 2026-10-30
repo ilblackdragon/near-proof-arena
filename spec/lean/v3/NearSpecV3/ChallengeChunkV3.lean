@@ -78,18 +78,28 @@ theorem rel_mono (t : Tier) (c w : Bytes) (h : RelTier t c w) : RelChunkV3 c w :
 /-! ## `ChallengeSpec` instances -/
 
 def WfClaim.RelTier (t : Tier) (c : WfClaim) (w : List UInt8) : Prop := NearSpecV3.RelTier t c.1.encode w
-/-- The witness-size bound of every tier's domain (64 MiB = `MAX_WITNESS` = `maxProofBytesV3`).
+/-- The witness-size bound of every tier's domain: `(4 + 21) + (4 + 8 MiB) + 64 MiB` = 75,497,501
+bytes (user decision 2026-10-30, UQ-010 item 6(c); it was 64 MiB = 67,108,864 in the signed
+`near-chunk-v3` challenge `chl_497bbbf1…`, trusted tree `66bba27e`).
 
 A D3α `witness.bin` carries a `Vec` of contract-code blobs (spec/claim-v3.md §3), and nothing in
 `RelD3` bounds how *many* blobs a witness lists (an empty or never-read blob can be repeated), so
 `∃ w, RelD3 c w` alone does not give a witness of bounded size, and completeness up to
 `maxProofBytes` would need a lock-step argument through the whole D2/WASM runtime. The domain of a
-tier is therefore the claims with a `Rel_t` witness of at most 64 MiB. This excludes no real chunk:
-the state witness is ≤ 8 MiB (`w.size`) and the code blobs total ≤ 4 000 000 bytes, so dropping
-repeated or unread blobs always gives such a witness; D0–D2 witnesses carry no code and are at most
-8 MiB + 33 bytes anyway. The bound is uniform over the tiers and only fixes which witness a
-completeness proof starts from; soundness (`Rel_t`, `RelChunkV3`) is unaffected. -/
-def maxWitnessChunk : Nat := 67108864
+tier is therefore the claims with a `Rel_t` witness of at most this bound.
+
+Since the UQ-010 hand-over (`D3/Signed.lean`) the signed relation decides a witness above the legacy
+4,000,000-byte values-and-code bound with the recorder engine, which applies nearcore's own limits:
+the clear state witness stays ≤ 8 MiB (`w.size`) and the cold-fetched code must fit one
+`ContractCodeResponse` (`Σ (4 + |code|) + 4 ≤ 64 MiB`, `w.code_response_size`). The largest
+`near-arena-witness-v3` file such a chunk needs is therefore the 25-byte tag field, the 4-byte length
+and 8 MiB of state witness, and the 64 MiB code vector: 75,497,501 bytes. Dropping repeated or unread
+blobs always gives a witness within it; D0–D2 witnesses carry no code and are at most 8 MiB + 33 bytes.
+The bound is uniform over the tiers and only fixes which witness a completeness proof starts from;
+soundness (`Rel_t`, `RelChunkV3`) is unaffected. -/
+def maxWitnessChunk : Nat := (4 + 21) + (4 + 8388608) + 67108864
+
+theorem maxWitnessChunk_eq : maxWitnessChunk = 75497501 := rfl
 
 def WfClaim.DomainTier (t : Tier) (c : WfClaim) : Prop :=
   ∃ w, WfClaim.RelTier t c w ∧ w.length ≤ maxWitnessChunk

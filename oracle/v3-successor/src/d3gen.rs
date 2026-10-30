@@ -25,12 +25,18 @@ pub struct D3World {
 const CURVE_STEPS_PER_HEIGHT: usize = 3;
 impl D3World {
     pub fn new(n_shards: usize) -> Self {
+        Self::with_seed(n_shards, None)
+    }
+
+    /// As `new`, with the chain's generator seed passed to the scenario driver (`storage-limits`
+    /// honours it; see `scenarios::Driver::with_seed`).
+    pub fn with_seed(n_shards: usize, seed: Option<u64>) -> Self {
         Self {
             inner: baseline::D3World::new(n_shards),
             next_step: 0,
             next_height: 10004,
             curve_at: (0, 0),
-            driver: crate::scenarios::Driver::new(),
+            driver: crate::scenarios::Driver::with_seed(seed),
             xfam: crate::xfam::Driver::new(),
             race: (0, 10004),
         }

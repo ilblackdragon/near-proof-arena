@@ -80,10 +80,12 @@ theorem checkD2CoreObs_codes_mono (h : ActionHooks) (c w : Bytes) (g : Option Na
 theorem d2Hooks_refine (h : ActionHooks) : HooksRefine d2Hooks h :=
   fun _ _ _ _ => Or.inr ⟨_, rfl, by decide⟩
 
-/-- **D2 ⊂ D3 at the level of results**: wherever `checkD2` is not an exclusion, `checkD3` returns
-the same result. -/
-theorem checkD3_refines_checkD2 (c w : Bytes) : Refines (checkD2 c w) (D3.checkD3 c w) := by
-  unfold checkD2 D3.checkD3 checkD2Core
+/-- **D2 ⊂ D3 at the level of results**: wherever `checkD2` is not an exclusion, `checkD3`'s legacy
+core `checkD3Core` returns the same result. (Since the UQ-010 hand-over, 2026-10-29, `checkD3` itself
+may replace a core reject of a witness above the core's storage bound by the recorder engine's
+verdict, so the result-level statement is on the core; acceptance still transfers, `relD2_relD3`.) -/
+theorem checkD3_refines_checkD2 (c w : Bytes) : Refines (checkD2 c w) (D3.checkD3Core c w) := by
+  unfold checkD2 D3.checkD3Core checkD2Core
   apply Refines.map
   exact ((checkD2CoreObs_cap_free d2Hooks d2Hooks_gasFree false c w D3.gAlpha).trans
     (checkD2CoreObs_codes_mono d2Hooks c w _)).trans
@@ -96,7 +98,7 @@ theorem relD2_relD3 (c w : Bytes) (h : RelD2 c w) : D3.RelD3 c w := by
     · assumption
     · cases h
   rcases checkD3_refines_checkD2 c w with he | ⟨e, he, _⟩
-  · show D3.checkD3 c w = .ok (); rw [← he]; exact h2
+  · exact D3.checkD3_of_core_ok c w (by rw [← he]; exact h2)
   · rw [h2] at he; cases he
 
 /-- info: 'NearSpecV3.Successor.relD2_relD3' depends on axioms: [propext, Classical.choice, Quot.sound] -/

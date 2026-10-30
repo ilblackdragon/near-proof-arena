@@ -15,7 +15,7 @@ batch runner for shard 13 (no `meta.json`; every chunk is nearcore-valid per its
 |---|---|
 | (a) resharding: a layout change across the claim's epochs, a non-empty outgoing buffer to a split parent, and pre-split gating (`c.same_layout`, `c.no_split_gate`) | **fixed**, measured. The buffer-to-split-parent form occurs in no population (no case, before or after, reports it); it is covered by the hand-over rule and its proof only |
 | (b) eval-time loops that exhaust the signed fuel budget | **fixed**, measured. The 4 that do not accept are now excluded for `e.g_alpha` (the chunk burns more than `G_α`), not for fuel |
-| (c) the `witness.bin` bound of the completeness domain (`ChallengeChunkV3.maxWitnessChunk`) | **stopped**: it is a definition of the signed `near-chunk-v3` challenge. The proposed change is below |
+| (c) the `witness.bin` bound of the completeness domain (`ChallengeChunkV3.maxWitnessChunk`) | stopped on 2026-10-29; **done 2026-10-30** after the user's decision (`maxWitnessChunk` = 75,497,501; v3.1 draft builder; follow-up section) |
 | (d) `Wasm.DomainD3` | **retired** (file deleted, see below) |
 | (e) found during this work: 26 nearcore-valid storage-limit fixtures **rejected** by the signed tier | **fixed**: no longer rejected. They are now excluded for `e.g_alpha` |
 
@@ -82,7 +82,7 @@ verdict, but the chunk is still not accepted, because it burns more than `G_α`.
 signed tier's prover-capacity exclusion and is outside item 6. The same chunks accept on
 `storageResolution` and `allFeatures` ([storage-limit-fixtures](../storage-limit-fixtures/README.md)).
 
-**A rule exception, stated.** The workplan rule allows only `OOD → accept` and `reject → accept`
+**A rule exception, stated (superseded 2026-10-30: `G_α` is lifted on the hand-over path, see the follow-up; the 88 rejects are rejects again).** The workplan rule allows only `OOD → accept` and `reject → accept`
 moves. On the storage-limit mutants this change also moves **88 correct rejects to `OOD`**. Those
 mutants are above the legacy core's storage bound and burn more than `G_α`, so the recorder excludes
 them for `e.g_alpha` before comparing post-state roots. In this family the legacy core cannot tell
@@ -109,7 +109,7 @@ loaded host (both engines run).
   post-state root, `retain_split_shard` with a dropped node) are now rejected rather than excluded. A
   hand-over that skipped the split check or the child root would accept them.
 
-## (c) Stopped: the proposed change
+## (c) The proposal as stopped on 2026-10-29 (decided 2026-10-30; see the follow-up above)
 
 The signed `near-chunk-v3` challenge (`challenges/chl_497bbbf1a6a5abc5b3448e0bc1a56997.json`, trusted
 tree `66bba27e` at `85adc6c0`) defines the completeness domain as
@@ -131,6 +131,67 @@ Proposed:
 2. A new challenge version with `max_witness_bytes ≥` that bound, and a restriction list that drops
    `c.same_layout`, `c.no_split_gate`, the storage-proof clause of `w.size` and `e.secp`. These no
    longer restrict `RelD3`.
+
+## Follow-up 2026-10-30: user decisions on (c) and the `G_α` exception, and the merge repair
+
+The integrator merged this lane (main `1629e1aca`) with items 2/4, 3, 5, 7, 9/10 and 11. Three
+things followed.
+
+1. **Build repair** (`a638e0e3e`). Several copies and proofs made by other lanes had relied on the
+   old `checkD3` body or the old fuel, and broke in the merge:
+   * `TierFloats.functionCallWith` and `Logged/D3L` were rfl copies of `D3.functionCall`. They now
+     take the step budget (`wasmFuel`) as a parameter, or use it directly.
+   * The `TierRefine`, `TierWholeWalk`, `FloatOverlap` and `D2SubD3` refinements that started at
+     `.signed` are restated on `D3.checkD3Core`. Acceptance still transfers through
+     `checkD3_of_core_ok`.
+   * `TierWhole` is re-synced with the W01 `setVmErr` lines.
+   * `oracle/wasm-d3`'s `MainD3` and `MainLogged` now name `checkD3` and `checkD3Core` explicitly.
+
+   The full default `lake build`, `make d3-drivers` and `make pin-check` pass.
+2. **`G_α` lifted on the hand-over path** (user decision; `5ceb97527`). `withReshardHandover` runs
+   the recorder engine with no per-chunk gas cap, so a chunk handed over is decided whatever its
+   function-call gas. The legacy core keeps `G_α`. The theorems still say exactly where verdicts can
+   change: `checkD3_of_core_ok` holds, and `checkD3_cases` now names `signedRecorderCheck pv86 none`.
+   The storage-limit generator now honours `--seed`: the start height moves by `seed % 5`, and the
+   pad fill byte is XORed with `(seed / 5) % 16`. Seeds 103/105/107/109 now produce distinct chains.
+   Before this fix they were byte-identical.
+3. **(c)** (user decision; `4a5847e76`). `ChallengeChunkV3.maxWitnessChunk` is now 75,497,501
+   (`maxWitnessChunk_eq`). The v3.1 draft changes go through the item-11 lane's builder
+   (`spec/tools/build_challenge_draft_v3_chunk_r.py` plus `near_chunk_v3_uq010.apply`), so a
+   single `near-chunk-v3-1` draft carries both lanes' changes:
+   * `max_witness_bytes` = 75,497,501;
+   * `c.same_layout`, `c.no_split_gate` and `e.secp` are dropped, along with the excludes
+     `resharding` and `dynamic_resharding_split_search`;
+   * `w.size` keeps the 8 MiB bound and the code-response cap, and drops its storage-proof clause;
+   * `e.g_alpha` applies to the legacy core only.
+
+   `check_oracle_pins.py` now pins the v3.1 draft's generator specs and checks
+   `max_witness_bytes ≥ maxWitnessChunk`. No published or signed file changed. The draft JSON is
+   regenerated by whichever lane merges second.
+
+**Measured** (`--tier signed`). The before checker is `before2` (`81ae4582…`: main after the repair,
+hand-over with `G_α`). The after checker is `after2` (`66e60f6e…`: `G_α` lifted). The `after2`
+binary predates the `maxWitnessChunk` edit, which changes no verdict.
+
+| Population | before2 (accept / OOD / reject) | after2 | Moves | vs nearcore (after2) |
+|---|---|---|---|---|
+| 593 committed fixture dirs | 150 / 269 / 174 | 151 / 268 / 174 | 1 `OOD (e.g_alpha) → accept` | 325 decided, all agree |
+| 338 `cases.tar.gz` fixtures | 61 / 154 / 123 | 105 / 110 / 123 | 44 `OOD (e.g_alpha) → accept` (all 44 storage-limit chunks) | 228 decided, all agree |
+| raw split runs (1,173) | 1,048 / 41 / 84 | 1,053 / 34 / 86 | 5 `OOD → accept`, 2 `OOD → reject` (nearcore rejects) | 1,139 decided, all agree |
+| storage-limit chains, **4 seeds** (103/105/107/109, generator honouring the seed; 4 × 1,200 honest, all nearcore `ok`) | 4 × (1,055 / 145 / 0) | 4 × (1,120 / 80 / 0) | 4 × 65 `OOD (e.g_alpha) → accept` | 4,480 decided, all agree |
+| the earlier chain's 501 mutants (where the 88 correct rejects became OOD) | 0 / 255 / 246 | 99 / 0 / 402 | 99 `OOD → accept` (nearcore `ok`), 156 `OOD → reject` (nearcore rejects) | **501 decided, all agree** |
+| … the same 501 against the pre-item-6 checker | 0 / 116 / 385 | 99 / 0 / 402 | 55 `reject → accept`, 44 `OOD → accept`, 72 `OOD → reject`, 330 rejects kept; **0 `reject → OOD`** | — |
+| nearcore-judged mutants of the 4 seeds (up to 15 per hand-over base; 165 + 135 + 135 + 60 = 495) | 0 / 285 / 210 | 108 / 0 / 387 | 108 `OOD → accept` (nearcore `ok`), 177 `OOD → reject` (nearcore rejects); 0 `reject → OOD` | 495 decided, all agree |
+| 3,138-case census | 735 / 2,403 / 0 | identical | 0 | — |
+| mainnet shard 13 (1,223) | 944 / 279 / 0 | identical | 0 | — |
+| 235,716-case corpus | CORPUS2_BEFORE | CORPUS2_AFTER | CORPUS2_MOVES | CORPUS2_VS |
+
+Every move goes toward nearcore. There is no Lean accept of a nearcore reject. On the storage-limit
+mutants and fixtures every verdict now matches nearcore, with no `reject → OOD` move.
+
+**Breakage control.** `before2` is the control: the same hand-over with `G_α` kept. It reproduces
+the 156 `OOD` mutant verdicts and the `e.g_alpha` exclusions of all 4 × 65 honest chunks.
+`--ablate-reshard-handover` still gives the legacy core, as asserted in `make d3-smoke`.
 
 ## (d) `Wasm.DomainD3` retired
 

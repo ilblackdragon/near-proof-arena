@@ -24,30 +24,36 @@ verdict can move are ones `checkD3` excludes (the float exclusions among them). 
 a special case: its `checkD3` verdict is either decided (then `checkD3F` agrees) or an exclusion for
 a reason other than floats. The latter can still move only if lifting floats changes the run, which
 `prepare_floats` rules out at the guard level; equality there is not claimed beyond `Refines`.
+
+**Since the UQ-010 hand-over (2026-10-29)** the statement of record `D3.checkD3` is its legacy core
+`D3.checkD3Core` plus a recorder-engine decision of the core's resharding and over-bound errors
+(`D3/Signed.lean`); `checkD3F` has no hand-over. The theorems below are therefore stated on the core,
+which is exactly the old `checkD3` (and `Tier.checker .signed` is no longer `checkD3F`'s refinement
+base: it decides claims `checkD3F` excludes).
 -/
 
 namespace NearSpecV3.Successor
 open NearSpec NearSpecV3
 
-theorem checkD3F_refines_checkD3 (c w : Bytes) : Refines (D3.checkD3 c w) (checkD3F c w) :=
+theorem checkD3F_refines_checkD3 (c w : Bytes) : Refines (D3.checkD3Core c w) (checkD3F c w) :=
   relSuccessor_floats_mono c w
 
-theorem relD3_relD3F (c w : Bytes) (h : D3.RelD3 c w) : RelD3F c w := by
+theorem relD3_relD3F (c w : Bytes) (h : D3.checkD3Core c w = .ok ()) : RelD3F c w := by
   rcases checkD3F_refines_checkD3 c w with he | ⟨e, he, _⟩
   · show checkD3F c w = .ok ()
     rw [← he]; exact h
-  · have : D3.checkD3 c w = .ok () := h
+  · have : D3.checkD3Core c w = .ok () := h
     rw [this] at he; cases he
 
-theorem checkD3F_reject_of_checkD3_reject (c w : Bytes) (e : String) (h : D3.checkD3 c w = .error e)
+theorem checkD3F_reject_of_checkD3_reject (c w : Bytes) (e : String) (h : D3.checkD3Core c w = .error e)
     (hx : isExclusion e = false) : checkD3F c w = .error e := by
   rcases checkD3F_refines_checkD3 c w with he | ⟨e', he, hex⟩
   · rw [← he, h]
   · rw [h] at he; cases he; rw [hx] at hex; cases hex
 
 theorem checkD3F_verdict_of_decided (c w : Bytes)
-    (h : ∀ e, checkVerdict D3.checkD3 c w ≠ .outOfDomain e) :
-    checkVerdict checkD3F c w = checkVerdict D3.checkD3 c w := by
+    (h : ∀ e, checkVerdict D3.checkD3Core c w ≠ .outOfDomain e) :
+    checkVerdict checkD3F c w = checkVerdict D3.checkD3Core c w := by
   unfold checkVerdict at h ⊢
   rcases checkD3F_refines_checkD3 c w with he | ⟨e, he, hex⟩
   · rw [he]

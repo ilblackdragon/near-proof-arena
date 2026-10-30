@@ -34,9 +34,12 @@ a strengthening of the signed statement.** `checkD3` keeps the legacy core and, 
 preconditions, decides with the recorder engine the successor already validates against nearcore
 (`Successor.ReshardCore` / `StorageExecution`; `docs/evidence/lean-chunk-completion/
 resharding-fixtures{,-2}/`, `storage-limit-fixtures/`) at the signed feature set
-(`signedReshardDriver`): the same `Wasm.pv86` configuration and `G_α` cap, the clear
+(`signedReshardDriver`): the same `Wasm.pv86` configuration, the clear
 `near-arena-witness-v3` format, the 8 MiB state-witness bound, `c.segment` and `c.layout`; no global
-actions, curve hosts or floats. The recorder models both storage-proof limits exactly, so the
+actions, curve hosts or floats. The per-chunk gas cap `G_α` is **not** applied on this path (user
+decision 2026-10-30): a chunk handed over is decided whatever its function-call gas. Without this,
+the storage-limit chunks above `G_α` could only be excluded, and the hand-over then turned 88 correct
+legacy rejects into exclusions. The recorder models both storage-proof limits exactly, so the
 conservative merged-value bound is not applied there; nearcore's 64 MiB `ContractCodeResponse` cap
 is (`w.code_response_size`). A segment that reaches genesis is handed to the one-layout recorder
 pipeline (`checkD2CoreWith`), which keeps `c.same_layout` (`LayoutReach.genesis_segment_one_layout`:
@@ -111,25 +114,26 @@ def signedRecorderCheck (cfg : Wasm.NearCfg) (gasCap : Option Nat) (claimBytes w
     checkReshardCore (signedReshardDriver cfg) (D3.d3Hooks cfg) true claimBytes witnessBytes gasCap
 
 /-- Keep a legacy result, unless it is an error on which `handover` fires; then decide with the
-recorder engine. -/
-def withReshardHandover (cfg : Wasm.NearCfg) (gasCap : Option Nat) (r : Except String Unit)
+recorder engine, **without the per-chunk gas cap `G_α`** (user decision 2026-10-30: over-`G_α`
+chunks on the hand-over path are decided, not excluded; the legacy core keeps `G_α`). -/
+def withReshardHandover (cfg : Wasm.NearCfg) (r : Except String Unit)
     (claimBytes witnessBytes : Bytes) : Except String Unit :=
   match r with
   | .ok u => .ok u
   | .error e =>
-    if handover e witnessBytes then signedRecorderCheck cfg gasCap claimBytes witnessBytes
+    if handover e witnessBytes then signedRecorderCheck cfg none claimBytes witnessBytes
     else .error e
 
-theorem withReshardHandover_ok (cfg : Wasm.NearCfg) (gasCap : Option Nat) (c w : Bytes) :
-    withReshardHandover cfg gasCap (.ok ()) c w = .ok () := rfl
+theorem withReshardHandover_ok (cfg : Wasm.NearCfg) (c w : Bytes) :
+    withReshardHandover cfg (.ok ()) c w = .ok () := rfl
 
 /-- The hand-over returns the legacy result, unless that result is an error on which `handover`
 fires. -/
-theorem withReshardHandover_cases (cfg : Wasm.NearCfg) (gasCap : Option Nat)
+theorem withReshardHandover_cases (cfg : Wasm.NearCfg)
     (r : Except String Unit) (c w : Bytes) :
-    withReshardHandover cfg gasCap r c w = r ∨
+    withReshardHandover cfg r c w = r ∨
       ∃ e, r = .error e ∧ handover e w = true ∧
-        withReshardHandover cfg gasCap r c w = signedRecorderCheck cfg gasCap c w := by
+        withReshardHandover cfg r c w = signedRecorderCheck cfg none c w := by
   cases r with
   | ok u => exact .inl rfl
   | error e =>
@@ -147,13 +151,13 @@ open NearSpecV3 NearSpecV3.Successor
 execution behind the FunctionCall hook, `D3/FunctionCall.lean`), decided by the recorder engine at the
 signed feature set outside the core's two preconditions (module comment). `InD3α` is `InD2` minus
 `e.wasm`/`w.no_code`, minus resharding and minus the storage-proof bound, plus the WASM-level
-conditions reported by the hook (`out of domain (e.wasm-α) …`) and the per-chunk cap
-`out of domain (e.g_alpha)`.
+conditions reported by the hook (`out of domain (e.wasm-α) …`) and, on claims the legacy core
+decides, the per-chunk cap `out of domain (e.g_alpha)` (the hand-over path has no `G_α`).
 
 **Cache independence.** `Rel_D3` is the cold-cache statement: the code of every executed pre-state
 contract must be in the witness (`spec/near-chunk-validation-d3.md` §2.2). -/
 def checkD3 (claimBytes witnessBytes : NearSpec.Bytes) : Except String Unit :=
-  withReshardHandover Wasm.pv86 (some gAlpha) (checkD3Core claimBytes witnessBytes)
+  withReshardHandover Wasm.pv86 (checkD3Core claimBytes witnessBytes)
     claimBytes witnessBytes
 
 def RelD3 (claimBytes witnessBytes : NearSpec.Bytes) : Prop := checkD3 claimBytes witnessBytes = .ok ()
@@ -167,8 +171,8 @@ theorem checkD3_of_core_ok (c w : NearSpec.Bytes) (h : checkD3Core c w = .ok ())
 theorem checkD3_cases (c w : NearSpec.Bytes) :
     checkD3 c w = checkD3Core c w ∨
       ∃ e, checkD3Core c w = .error e ∧ handover e w = true ∧
-        checkD3 c w = signedRecorderCheck Wasm.pv86 (some gAlpha) c w :=
-  withReshardHandover_cases Wasm.pv86 (some gAlpha) (checkD3Core c w) c w
+        checkD3 c w = signedRecorderCheck Wasm.pv86 none c w :=
+  withReshardHandover_cases Wasm.pv86 (checkD3Core c w) c w
 
 /-- **The D3 relation as a decidable boolean.**  A `Bool` mirror of the `Except` checker, so the
 kernel can evaluate the relation on concrete bytes, plus a `Decidable` instance.

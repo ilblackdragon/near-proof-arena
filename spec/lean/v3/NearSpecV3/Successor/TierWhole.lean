@@ -36,6 +36,7 @@ def functionCallRecordedWith (ood : ByteArray → Option String)
   match codeHash with
   | none =>
     -- CodeDoesNotExist: 0 VM gas, action failure
+    setVmErr "CompilationError(CodeDoesNotExist)"
     pure (st, ar.fail)
   | some hh =>
   -- Code (§2.2). A blob in the merged witness store always serves. Otherwise an in-chunk deploy
@@ -90,6 +91,7 @@ def functionCallRecordedWith (ood : ByteArray → Option String)
   | .line l =>
     let (burnt, used) ← liftE (lineOutcome l)
     let gb := ar.gasBurnt + burnt
+    setVmErr (lineErr l)
     pure (st, { ar.fail with gasBurnt := gb, gasFC := ar.gasFC + burnt, gasUsed := ar.gasUsed + used })
   | .done s err =>
     if let some r := s.real then
@@ -114,6 +116,7 @@ def functionCallRecordedWith (ood : ByteArray → Option String)
     | some e =>
       if e.startsWith "unmodeled" then throw (oodE e)
       if e.startsWith "invalid" || e.startsWith "StorageInconsistentState" then throw s!"invalid: {e}"
+      setVmErr e
       pure (st, ar1.fail)
     | none =>
       -- `PromiseYieldIndices` is read on every successful call; each yield receipt enqueues a

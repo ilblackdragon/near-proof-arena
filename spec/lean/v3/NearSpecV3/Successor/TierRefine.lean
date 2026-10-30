@@ -31,23 +31,23 @@ open NearSpec NearSpecV3 NearSpecV3.D2
 
 theorem ProtocolCfg.wasm_floats (cfg : ProtocolCfg) (h : cfg.floats = false) :
     ({ cfg with floats := true } : ProtocolCfg).wasm = { cfg.wasm with floats := true } := by
-  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu⟩ := cfg
+  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu, rh⟩ := cfg
   simp only at h
   subst h
   rfl
 
 theorem ProtocolCfg.floats_true_eq (cfg : ProtocolCfg) (h : cfg.floats = true) :
     ({ cfg with floats := true } : ProtocolCfg) = cfg := by
-  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu⟩ := cfg
+  obtain ⟨pv, fl, gc, gen, ll, sr, ga, cc, ch, rs, seg, wu, lu, rh⟩ := cfg
   simp only at h
   subst h
   rfl
 
 /-- On a configuration without the whole-state features, the root is the legacy engine with the
-D3 hooks. -/
+D3 hooks (without the signed statement's UQ-010 hand-over, `reshardHandover = false`). -/
 theorem checkSuccessor_legacy_eq (cfg : ProtocolCfg) (hs : cfg.storageResolution = false)
     (hg : cfg.globalActions = false) (hc : cfg.completeCodeWitness = false)
-    (hr : cfg.resharding = false) (c w : Bytes) :
+    (hr : cfg.resharding = false) (hh : cfg.reshardHandover = false) (c w : Bytes) :
     checkSuccessor cfg c w =
       if cfg.protocolVersion = 86 then
         (if cfg.genesisMainTransition then checkD2CoreG (D3.d3Hooks cfg.wasm) true c w cfg.gasCap
@@ -56,7 +56,7 @@ theorem checkSuccessor_legacy_eq (cfg : ProtocolCfg) (hs : cfg.storageResolution
   unfold checkSuccessor
   split
   · rename_i h
-    simp only [hs, hg, hc, hr, h, Bool.false_and, Bool.or_false, Bool.false_eq_true, ↓reduceIte]
+    simp only [hs, hg, hc, hr, hh, h, Bool.false_and, Bool.or_false, Bool.false_eq_true, ↓reduceIte]
   · rename_i h
     split
     · exact absurd ‹_› h
@@ -66,15 +66,16 @@ theorem checkSuccessor_legacy_eq (cfg : ProtocolCfg) (hs : cfg.storageResolution
 switching floats on never changes a decided verdict. -/
 theorem Lift.floats_legacy (cfg : ProtocolCfg) (hs : cfg.storageResolution = false)
     (hg : cfg.globalActions = false) (hc : cfg.completeCodeWitness = false)
-    (hr : cfg.resharding = false) : Lift cfg { cfg with floats := true } := by
+    (hr : cfg.resharding = false) (hrh : cfg.reshardHandover = false) :
+    Lift cfg { cfg with floats := true } := by
   intro c w
   cases hf : cfg.floats
   · have hh : HooksRefine (D3.d3Hooks cfg.wasm)
         (D3.d3Hooks ({ cfg with floats := true } : ProtocolCfg).wasm) := by
       rw [ProtocolCfg.wasm_floats cfg hf]
       exact d3Hooks_floats _
-    rw [checkSuccessor_legacy_eq cfg hs hg hc hr c w,
-      checkSuccessor_legacy_eq { cfg with floats := true } hs hg hc hr c w]
+    rw [checkSuccessor_legacy_eq cfg hs hg hc hr hrh c w,
+      checkSuccessor_legacy_eq { cfg with floats := true } hs hg hc hr hrh c w]
     refine Refines.ite_congr _ (fun _ => Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_))
       (fun _ => Refines.refl _)
     · exact checkD2CoreG_hooks_mono hh _ _ _ _
@@ -82,26 +83,29 @@ theorem Lift.floats_legacy (cfg : ProtocolCfg) (hs : cfg.storageResolution = fal
   · rw [ProtocolCfg.floats_true_eq cfg hf]
     exact Refines.refl _
 
-/-- `.signed ⊑ .floats` (O1). -/
+/-- `checkD3Core ⊑ .floats` (O1). Stated on the signed statement's legacy core: since the UQ-010
+hand-over (2026-10-29) `.signed` itself decides resharding and over-bound claims that `.floats`
+excludes, so it is wider than `.floats` there (`TierMono.relSuccessor_protoGas_mono`). -/
 theorem relSuccessor_floats_mono (c w : Bytes) :
-    Refines (Tier.checker .signed c w) (Tier.checker .floats c w) :=
-  Lift.floats_legacy signedCfg rfl rfl rfl rfl c w
+    Refines (D3.checkD3Core c w) (Tier.checker .floats c w) :=
+  Lift.floats_legacy signedCfg rfl rfl rfl rfl rfl c w
 
 /-- `.protoGas ⊑ .floatsProtoGas` (O1). -/
 theorem relSuccessor_protoGas_floatsProtoGas (c w : Bytes) :
     Refines (Tier.checker .protoGas c w) (Tier.checker .floatsProtoGas c w) :=
-  Lift.floats_legacy protocolGasCfg rfl rfl rfl rfl c w
+  Lift.floats_legacy protocolGasCfg rfl rfl rfl rfl rfl c w
 
 /-- `.genesis ⊑ .genesisFloatsProtoGas` (O1, then the gas bound). -/
 theorem relSuccessor_genesis_genesisFloatsProtoGas (c w : Bytes) :
     Refines (Tier.checker .genesis c w) (Tier.checker .genesisFloatsProtoGas c w) :=
-  Refines.trans (Lift.floats_legacy (Tier.cfg .genesis) rfl rfl rfl rfl c w)
+  Refines.trans (Lift.floats_legacy (Tier.cfg .genesis) rfl rfl rfl rfl rfl c w)
     (checkSuccessor_gas_mono { Tier.cfg .genesis with floats := true } (some maxGasBurnt)
-      gAlpha_le_maxGasBurnt c w)
+      gAlpha_le_maxGasBurnt rfl c w)
 
-/-- `.signed ⊑ .genesisFloatsProtoGas`: the signed statement refines the widest legacy-engine tier. -/
+/-- `checkD3Core ⊑ .genesisFloatsProtoGas`: the signed statement's legacy core refines the widest
+legacy-engine tier. -/
 theorem relSuccessor_signed_genesisFloatsProtoGas (c w : Bytes) :
-    Refines (Tier.checker .signed c w) (Tier.checker .genesisFloatsProtoGas c w) :=
+    Refines (D3.checkD3Core c w) (Tier.checker .genesisFloatsProtoGas c w) :=
   Refines.trans (relSuccessor_genesis_mono c w) (relSuccessor_genesis_genesisFloatsProtoGas c w)
 
 /-- `.floats ⊑ .genesisFloatsProtoGas`. -/
@@ -124,9 +128,9 @@ theorem relSuccessor_runtimeLimits_mono (c w : Bytes) :
   rw [runtimeLimits_cfg_eq]
   exact Refines.refl _
 
-/-- `.signed ⊑ .runtimeLimits`. -/
+/-- `checkD3Core ⊑ .runtimeLimits`. -/
 theorem relSuccessor_signed_runtimeLimits (c w : Bytes) :
-    Refines (Tier.checker .signed c w) (Tier.checker .runtimeLimits c w) :=
+    Refines (D3.checkD3Core c w) (Tier.checker .runtimeLimits c w) :=
   Refines.trans (relSuccessor_signed_genesisFloatsProtoGas c w) (relSuccessor_runtimeLimits_mono c w)
 
 #print axioms Wasm.sectionBody_floats

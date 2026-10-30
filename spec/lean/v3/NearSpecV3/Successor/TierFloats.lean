@@ -238,9 +238,10 @@ end NearSpecV3.Wasm
 
 /-! ## The D3 hook, with its configuration-dependent calls abstracted
 
-`D3.functionCall cfg` reads `cfg` at exactly two places, both on the same code blob: the domain
-check `contractOOD cfg code` and the call `runCallWithLimits cfg code …`. `functionCallWith` is the
-same body with those two calls as parameters; `functionCall_eq_with` is `rfl`, so the copy cannot
+`D3.functionCall cfg` reads `cfg` at exactly three places: the Wasm step budget `wasmFuel cfg gas`
+(since the UQ-010 fuel fix, 2026-10-29), and, on the same code blob, the domain check
+`contractOOD cfg code` and the call `runCallWithLimits cfg code …`. `functionCallWith` is the
+same body with those three as parameters; `functionCall_eq_with` is `rfl`, so the copy cannot
 drift from the definition without breaking the build. -/
 
 namespace NearSpecV3.D3
@@ -248,7 +249,7 @@ open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Wasm
 
 /-- `D3.functionCall` with its two configuration-dependent calls abstracted
 (`functionCall_eq_with` is `rfl`). -/
-def functionCallWith (ood : ByteArray → Option String)
+def functionCallWith (fuelOf : Nat → Nat) (ood : ByteArray → Option String)
     (rc : ByteArray → String → CallCtx → Nat → TTN.RealStore → Run)
     (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
     Except String (ActSt × AR) := do
@@ -323,7 +324,7 @@ def functionCallWith (ood : ByteArray → Option String)
       m.insert (toBA k) (v.map toBA)) {}
   let real : TTN.RealStore := { store := fun hb => (env.codeOf (ofBA hb)).map toBA,
                                 root := toBA env.preRoot, overlay := ovl, pfx }
-  let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
+  let fuel := fuelOf gas
   match rc codeB (strOf method) ctx fuel real with
   | .line l =>
     let (burnt, used) ← lineOutcome l
@@ -384,7 +385,7 @@ def functionCallWith (ood : ByteArray → Option String)
 
 
 theorem functionCall_eq_with (cfg : NearCfg) :
-    functionCall cfg = functionCallWith (contractOOD cfg)
+    functionCall cfg = functionCallWith (wasmFuel cfg) (contractOOD cfg)
       (fun code m ctx fuel real => runCallWithLimits cfg code m ctx fuel true false (some real)) := rfl
 
 end NearSpecV3.D3
@@ -427,10 +428,10 @@ theorem CallRel.none {ood ood' : ByteArray → Option String}
 theorem oodE_isExclusion (w : String) : isExclusion (D3.oodE w) = true := by
   unfold D3.oodE; ood_tac
 
-theorem functionCallWith_mono {ood ood' : ByteArray → Option String}
+theorem functionCallWith_mono {fuelOf : Nat → Nat} {ood ood' : ByteArray → Option String}
     {rc rc' : ByteArray → String → CallCtx → Nat → TTN.RealStore → Run} (h : CallRel ood ood' rc rc')
     (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
-    Refines (D3.functionCallWith ood rc c st ar b) (D3.functionCallWith ood' rc' c st ar b) := by
+    Refines (D3.functionCallWith fuelOf ood rc c st ar b) (D3.functionCallWith fuelOf ood' rc' c st ar b) := by
   unfold D3.functionCallWith
   repeat (first
     | (with_reducible exact Refines.refl _)
@@ -449,9 +450,9 @@ theorem functionCall_mono {cfg cfg' : NearCfg}
     (h : CallRel (D3.contractOOD cfg) (D3.contractOOD cfg')
       (fun code m ctx fuel real => runCallWithLimits cfg code m ctx fuel true false (some real))
       (fun code m ctx fuel real => runCallWithLimits cfg' code m ctx fuel true false (some real)))
-    (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
+    (hf : wasmFuel cfg = wasmFuel cfg') (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
     Refines (D3.functionCall cfg c st ar b) (D3.functionCall cfg' c st ar b) := by
-  rw [D3.functionCall_eq_with, D3.functionCall_eq_with]
+  rw [D3.functionCall_eq_with, D3.functionCall_eq_with, ← hf]
   exact functionCallWith_mono h c st ar b
 
 /-- The `unmodeled` wrapper preserves refinement. -/
@@ -488,6 +489,6 @@ theorem callRel_floats (cfg : NearCfg) :
 
 /-- **O1, hook level.** -/
 theorem d3Hooks_floats (cfg : NearCfg) : HooksRefine (D3.d3Hooks cfg) (D3.d3Hooks { cfg with floats := true }) :=
-  functionCallD3_mono (functionCall_mono (callRel_floats cfg))
+  functionCallD3_mono (functionCall_mono (callRel_floats cfg) rfl)
 
 end NearSpecV3.Successor

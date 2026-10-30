@@ -125,7 +125,7 @@ structure ProtocolCfg where
   observeDetail : Bool := false
   /-- UQ-010 (2026-10-29): outside the legacy pipeline's two preconditions (one shard layout and no
   split check; storage-proof limits never reached), decide a legacy error with the recorder engine at
-  this configuration's Wasm configuration and gas cap (`withReshardHandover`, `D3/Signed.lean`). Only the signed
+  this configuration's Wasm configuration and no per-chunk gas cap (`withReshardHandover`, `D3/Signed.lean`). Only the signed
   statement of record sets it (`signedRecordCfg`); the narrower legacy tiers keep the exclusions,
   and the whole-state tiers never take the legacy branch. -/
   reshardHandover : Bool := false
@@ -235,13 +235,13 @@ def checkSuccessor (cfg : ProtocolCfg) (claimBytes witnessBytes : Bytes) : Excep
         checkD2CoreWith mkDriver (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else if cfg.genesisMainTransition then
       if cfg.reshardHandover then
-        withReshardHandover cfg.wasm cfg.gasCap
+        withReshardHandover cfg.wasm
           (checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
           claimBytes witnessBytes
       else
         checkD2CoreG (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap
     else if cfg.reshardHandover then
-      withReshardHandover cfg.wasm cfg.gasCap
+      withReshardHandover cfg.wasm
         (checkD2Core (D3.d3Hooks cfg.wasm) true claimBytes witnessBytes cfg.gasCap)
         claimBytes witnessBytes
     else
@@ -551,7 +551,8 @@ depend on `sorryAx` or on axioms outside the allowed set. -/
 /-! ## W02: the completeness-domain witness bound for `.allFeatures`
 
 `WfClaim.DomainTier` (`ChallengeChunkV3.lean`, a signed file) fixes every tier's completeness
-domain to claims with a `Rel_t` witness of at most `maxWitnessChunk` = 64 MiB, and its comment
+domain to claims with a `Rel_t` witness of at most `maxWitnessChunk` (64 MiB until 2026-10-30, now
+75,497,501 bytes: UQ-010 item 6(c)), and its comment
 justifies this by "the code blobs total ≤ 4 000 000 bytes". That premise is **false at PV86**: a
 cold validator's accessed pre-state contract code is not part of the storage proof and is loaded at
 `contract_loading_bytes` ≈ 1.09e6 gas/byte, so one chunk can require on the order of a gigabyte of
@@ -563,13 +564,11 @@ blobs, so a 64 MiB witness bound would exclude real chunks.
 
 The correct completeness-domain witness bound for `.allFeatures` is the sum of the framing, the
 compressed-witness cap and the code-response cap below. This is the bound a completeness statement
-for `.allFeatures` must use instead of `maxWitnessChunk`; the signed `DomainTier`/`maxWitnessChunk`
-are left unchanged (that is a signed-statement/domain decision for the integrator). The **signed
-tier's exposure**: a signed `witness.bin` carries the state witness in the clear (≤ 8 MiB on the
-signed tier via `w.size`) plus up to 64 MiB of code blobs, i.e. up to ≈ 72 MiB, which already
-exceeds `maxWitnessChunk` = 64 MiB — so even the signed `DomainTier` bound can formally exclude a
-real large-code chunk. This is a restriction of the signed completeness statement, not a soundness
-issue (`RelChunkV3`/`Rel_t` are unaffected). -/
+for `.allFeatures` must use instead of `maxWitnessChunk`. The signed tier's own bound was raised on
+2026-10-30 (UQ-010 item 6(c), user decision): a signed `witness.bin` carries the state witness in the
+clear (≤ 8 MiB via `w.size`) plus at most one 64 MiB code response, so `maxWitnessChunk` is now
+`(4 + 21) + (4 + 8 MiB) + 64 MiB` = 75,497,501 bytes; the 64 MiB bound it replaces could exclude a real
+large-code chunk from the signed completeness statement (soundness was never affected). -/
 def allFeaturesWitnessBound : Nat :=
   -- 4+22 tag ‖ 4 + compressed state witness (≤ MAX_COMPRESSED_STATE_WITNESS_SIZE)
   -- ‖ code-response Vec<CodeBytes> (≤ MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE)
