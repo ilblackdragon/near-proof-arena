@@ -245,6 +245,12 @@ and an account whose amount reaches `u128Max` is written with the V2 marker in i
 leave room for the 1-yocto promise subsidies minted during the chunk; real supply (~1.2·10³³ yocto,
 about `2^110`) is far below it. Both found by the deepseek-fv provers, kernel-checked.
 
+`gasLimit < 2^64` (the header field is a `u64`, so it holds at the call site by decoding) bounds
+how many receipts a chunk processes, hence how many 1-yocto subsidies it can mint: an incoming
+receipt with `gasPrice = 0` makes the gas for minting value-free in the measure, and the
+`subsidized ≤ burnt` guard does not bound the total. Without it an account could in principle be
+credited up to the `u128Max` V2 marker. Found by the deepseek-fv lead.
+
 The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
 `ChunkValidationD2.lean:213`); the second is the chunk producer's invariant and is not checked by
@@ -255,6 +261,7 @@ def ChunkConservation : Prop :=
     (lastProps : List (Bytes × Nat)) (incoming : List Rcpt) (txs : List (TxD2 × Bool))
     (ownCong : Congestion) (out : MainOutD2) (o : Ovl),
     t.wf = true →
+    env.ctx.gasLimit < 2 ^ 64 →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
     (∀ r ∈ incoming, CanonRcpt r) →
