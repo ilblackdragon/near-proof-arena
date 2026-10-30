@@ -392,7 +392,8 @@ def checkD2CoreWithObs (driver : ExecutionDriver) (hooks : ActionHooks) (allowCo
              outcomes := out.outcomes
              outgoing := out.outgoing
              stateChanges := out.committed
-             computeUsage := out.compute }
+             computeUsage := out.compute
+             detail := out.detail }
 
 /-- The successor's whole-state checker: the observable checker projected to its verdict, the same
 shape as `checkD2Core`, so `checkD2CoreWith_legacy` stays `rfl`. -/

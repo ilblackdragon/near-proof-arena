@@ -19,6 +19,18 @@ the emitted list is the list that was hashed.
 `--controls N` re-runs the comparison of up to N fully matching cases against expected records with
 one field mutated per control (`MUTATIONS`); every control must be reported as a mismatch of the
 mutated field (wrong-observable controls).
+
+Version 3 rows (the checker's `observeDetail`, 2026-10-29) add, and this compares when the expected
+record carries them:
+
+* `outcome.failureKind`: each failed outcome's kind, canonicalized on both sides by
+  `failure_kinds.py` (nearcore's `ExecutionError(<Display>)` resolved back to the VM variant);
+* `outcome.computeUsage`: each outcome's compute usage (mainnet records have none);
+* `attrib.*`: per processed transaction / receipt, the committed keys whose value it changed and
+  their final values. nearcore's side is derived from its per-change causes and values plus the
+  pre-state value reference of each key (`observables.rs` `change_detail_json`): a cause naming a
+  transaction or receipt id is attributed to the Lean entry listing that id, and a change counts when
+  the value after the entry differs from the value before it.
 """
 import argparse
 from collections import Counter
@@ -29,6 +41,7 @@ import hashlib
 import json
 from pathlib import Path
 import random
+import re
 import shutil
 import struct
 import subprocess
@@ -36,6 +49,7 @@ import tempfile
 import time
 
 import blind_inputs
+import failure_kinds
 
 
 def sha_bytes(b):
@@ -97,13 +111,17 @@ RECEIPT_KIND = {'Action': 'action', 'ActionV2': 'action', 'PromiseYield': 'promi
 SYSTEM = b'system'.hex()
 
 
-def norm_outcome(o):
+def norm_outcome(o, lean=False):
     st = o['status']
+    kind = None
+    if st['kind'] == 'failure' and st.get('error') is not None:
+        kind = (failure_kinds.canonical_lean if lean else failure_kinds.canonical_expected)(st['error'])
     return {'id': o['id'], 'executor': o['executor'], 'status': st['kind'],
             'returnData': st.get('value') if st['kind'] == 'value' else None,
             'statusReceiptId': st.get('receiptId') if st['kind'] == 'receipt' else None,
             'gasBurnt': o['gasBurnt'], 'tokensBurnt': o['tokensBurnt'], 'logs': o['logs'],
-            'receiptIds': o['receiptIds']}
+            'receiptIds': o['receiptIds'], 'failureKind': kind,
+            'computeUsage': o.get('computeUsage')}
 
 
 def norm_receipt(r):
@@ -142,6 +160,87 @@ def expected_compute(exp):
 
 OUTCOME_FIELDS = ('id', 'executor', 'status', 'returnData', 'statusReceiptId', 'gasBurnt',
                   'tokensBurnt', 'logs', 'receiptIds')
+# compared only when both sides report them (version-3 Lean rows; records with errors / compute)
+OPTIONAL_OUTCOME_FIELDS = ('failureKind', 'computeUsage')
+
+
+# ---- per-receipt storage attribution (version 3)
+
+_B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
+
+def b58_to_hex(s):
+    n = 0
+    for ch in s:
+        n = n * 58 + _B58.index(ch)
+    b = n.to_bytes(32, 'big')
+    return b.hex()
+
+
+_CAUSE_ID = re.compile(r'^(TransactionProcessing|ActionReceiptProcessingStarted|ActionReceiptGasReward|'
+                       r'ReceiptProcessing|PostponedReceipt) \{ (?:tx_hash|receipt_hash): ([1-9A-HJ-NP-Za-km-z]+) \}$')
+
+
+def cause_id(cause):
+    """The transaction / receipt id a `StateChangeCause` names, as hex; None for chunk-level causes."""
+    m = _CAUSE_ID.match(cause)
+    return b58_to_hex(m.group(2)) if m else None
+
+
+def has_attribution(exp):
+    return bool(exp['state_changes']) and all('changes' in c and 'pre' in c for c in exp['state_changes'])
+
+
+def expected_attribution(exp, groups):
+    """nearcore's effective changes per Lean group. `groups`: id (hex) -> group index. Returns
+    ({group: {key: (hash, len)|None}}, ungrouped ids with effective changes, pre-state lookup errors)."""
+    out, unattributed, errors = {}, Counter(), 0
+    for c in exp['state_changes']:
+        pre = c['pre']
+        if pre is None or 'error' in pre:
+            errors += 1
+            continue
+        running = None if pre.get('absent') else (pre['valueHash'], pre['valueLen'])
+        before, after = {}, {}
+        for ch in c['changes']:
+            cid = cause_id(ch['cause'])
+            g = groups.get(cid, ('id', cid)) if cid is not None else ('chunk', None)
+            if g not in before:
+                before[g] = running
+            running = None if ch['valueHash'] is None else (ch['valueHash'], ch['valueLen'])
+            after[g] = running
+        for g in before:
+            if before[g] != after[g]:
+                if isinstance(g, int):
+                    out.setdefault(g, {})[c['key']] = after[g]
+                elif g[0] == 'id':
+                    unattributed[g[1]] += 1
+    return out, unattributed, errors
+
+
+def compare_attribution(lean_out, exp, counts, bad):
+    entries = lean_out.get('receiptStateChanges')
+    if entries is None or not has_attribution(exp):
+        return
+    groups = {}
+    for i, e in enumerate(entries):
+        for x in e['ids']:
+            groups[x] = i
+    exp_by_group, unattributed, errors = expected_attribution(exp, groups)
+    counts['attrib.preState'] += 1
+    if errors:
+        bad['attrib.preState'] += 1
+    counts['attrib.unattributed'] += 1
+    if unattributed:
+        bad['attrib.unattributed'] += 1
+    for i, e in enumerate(entries):
+        lean = {c['key']: (None if c['valueHash'] is None else (c['valueHash'], c['valueLen'])) for c in e['changes']}
+        want = exp_by_group.get(i, {})
+        counts['attrib.entry'] += 1
+        if lean != want:
+            bad['attrib.entry'] += 1
+        counts['attrib.key'] += len(set(lean) | set(want))
+        bad['attrib.key'] += sum(1 for k in set(lean) | set(want) if lean.get(k, 'missing') != want.get(k, 'missing'))
 RECEIPT_FIELDS = ('id', 'predecessor', 'receiver', 'kind', 'bodyHash', 'refund')
 
 
@@ -149,7 +248,7 @@ def compare(lean_out, exp):
     """Per-field (compared, mismatched) counts and the list of mismatching field names."""
     counts = Counter()
     bad = Counter()
-    lo = [norm_outcome(o) for o in lean_out['outcomes']]
+    lo = [norm_outcome(o, lean=True) for o in lean_out['outcomes']]
     eo = [norm_outcome(o) for o in exp['outcomes']]
     counts['outcomes.count'] += 1
     if len(lo) != len(eo):
@@ -159,6 +258,15 @@ def compare(lean_out, exp):
             counts[f'outcome.{f}'] += 1
             if a[f] != b[f]:
                 bad[f'outcome.{f}'] += 1
+        # version 3: the failure kind of a failed outcome; each outcome's compute usage
+        if b['status'] == 'failure' and b['failureKind'] is not None and 'computeUsage' in a_raw_keys(lean_out):
+            counts['outcome.failureKind'] += 1
+            if a['failureKind'] != b['failureKind']:
+                bad['outcome.failureKind'] += 1
+        if b['computeUsage'] is not None and a['computeUsage'] is not None:
+            counts['outcome.computeUsage'] += 1
+            if a['computeUsage'] != b['computeUsage']:
+                bad['outcome.computeUsage'] += 1
     lr = [norm_receipt(r) for r in lean_out['outgoingReceipts']]
     er = [norm_receipt(r) for r in exp['outgoing_receipts']]
     counts['receipts.count'] += 1
@@ -190,7 +298,13 @@ def compare(lean_out, exp):
         counts[f'chunk.{lk}'] += 1
         if lean_out[lk] != exp[ek]:
             bad[f'chunk.{lk}'] += 1
+    compare_attribution(lean_out, exp, counts, bad)
     return counts, bad
+
+
+def a_raw_keys(lean_out):
+    """The keys of a Lean row's first outcome (a version-3 row reports `computeUsage` per outcome)."""
+    return lean_out['outcomes'][0].keys() if lean_out['outcomes'] else ()
 
 
 def recompute_checks(lean_out, exp):
@@ -268,7 +382,38 @@ def mutations(exp):
     if exp.get('compute_usage') is not None:
         if e_has_outcome_compute(exp):
             out.append(('computeUsage+1', 'computeUsage', lambda e: e['outcomes'][0].__setitem__('computeUsage', _bump(e['outcomes'][0]['computeUsage']))))
+            out.append(('outcome.computeUsage+1', 'outcome.computeUsage', lambda e: e['outcomes'][-1].__setitem__('computeUsage', _bump(e['outcomes'][-1]['computeUsage']))))
+    kinds = [i for i, o in enumerate(os_) if o['status']['kind'] == 'failure' and o['status'].get('error')]
+    if kinds:
+        i = kinds[0]
+        out.append(('outcome.failureKind', 'outcome.failureKind', lambda e, i=i: e['outcomes'][i]['status'].__setitem__(
+            'error', _other_kind(e['outcomes'][i]['status']['error']))))
+    if has_attribution(exp):
+        attributed = [i for i, c in enumerate(cs) if any(cause_id(x['cause']) for x in c['changes'])
+                      and c['changes'][-1]['valueHash'] is not None]
+        if attributed:
+            i = attributed[0]
+            out.append(('attrib.value', 'attrib.entry', lambda e, i=i: e['state_changes'][i]['changes'][-1].__setitem__(
+                'valueHash', _flip_hex(e['state_changes'][i]['changes'][-1]['valueHash']))))
+            out.append(('attrib.cause', 'attrib.entry', lambda e, i=i: _move_cause(e['state_changes'][i])))
     return out
+
+
+def _other_kind(err):
+    """A different failure kind: swaps the first kind name for another one."""
+    if 'AccountDoesNotExist' in err:
+        return err.replace('AccountDoesNotExist', 'AccountAlreadyExists', 1)
+    if 'InvalidTxError' in err:
+        return 'InvalidTxError(Expired)'
+    return 'ActionError(ActionError { index: Some(0), kind: AccountDoesNotExist { account_id: AccountId("x") } })'
+
+
+def _move_cause(c):
+    """Re-attribute the key's last attributed change to a different (unknown) receipt id."""
+    for ch in reversed(c['changes']):
+        if cause_id(ch['cause']):
+            ch['cause'] = 'ReceiptProcessing { receipt_hash: 11111111111111111111111111111111 }'
+            return
 
 
 def e_has_outcome_compute(exp):
@@ -331,7 +476,7 @@ def main():
         if len(lines) != 1:
             raise ValueError(f'expected one result line, got {len(lines)} (exit {proc.returncode})')
         row = json.loads(lines[0])
-        if row.get('case') != str(case) or row.get('outputsVersion') != 2:
+        if row.get('case') != str(case) or row.get('outputsVersion') not in (2, 3):
             raise ValueError('result identity / version mismatch')
         return row
 

@@ -67,6 +67,10 @@ structure NearCfg where
   `Wasm.CryptoHost.cryptoHostCall`, so the arms L3 implemented are actually reachable from a chunk.
   The signed `hostCall` is untouched and remains the arm set for every other name. -/
   curveHosts : Bool := false
+  /-- Observation only (W01): the successor driver records failure kinds, per-outcome compute and
+  per-receipt storage attribution (`D2.ObsDetail`). Set by `--emit-full` / `--blind-full`; no
+  check reads what it records, and no verdict depends on it. -/
+  observeDetail : Bool := false
 
 /-- The PV86 configuration. It carries the pinned validator's instance-loading rule
 (`loadingLimits := true`): without it the signed checker ran a module that nearcore refuses to load

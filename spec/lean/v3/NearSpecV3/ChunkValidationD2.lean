@@ -289,7 +289,8 @@ def checkD2CoreObs (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witness
              outcomes := out.outcomes
              outgoing := out.outgoing
              stateChanges := out.committed
-             computeUsage := out.compute }
+             computeUsage := out.compute
+             detail := out.detail }
 
 /-- The signed D2 checker: the observable checker projected to its verdict. Definitionally the same
 computation, so every downstream proof and relation is unchanged. -/
