@@ -1,0 +1,1206 @@
+[
+ {
+  "case": "state-init-emit/se701/ood/00-h10006-s3",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "d4d12f8ee4ff7282656c24aa8db1a269afacf50cb106380ff08f8e4fcd49a578",
+   "witness.bin": "45be6e42a1f82b67f16dced251269673dcd3b53a78b6ceeadd8533e7def91c09",
+   "meta.json": "e967ac0c541d64922c80969fb35b8e2469d46cc6a09d7c978760c7a2cce11b9a"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/ood/00-h10007-s3",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "b3a532860ec0b8345bd9faa5a1881d4f66ab94291e819d32b679b544a67aa069",
+   "witness.bin": "79d9cb36990fe601f4c2e9d71fe2d57fe256ec313e3e56bfa2048c2a46e46f8c",
+   "meta.json": "8b68c2b50bc440c17c64f0de2475a32ec1cbe5f5dc4bcae7ec64a3a4695ac412"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/ood/00-h10024-s3",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "65a0b5095e1f594c62b5b0b0efebdff8b0cc636864c0f073ba1be0ffb7c8aab8",
+   "witness.bin": "fae4beb1c335782a73c828fda750eb0648d11fd53bfd913f55df93d28d962c86",
+   "meta.json": "1fc2be9b2a9076dbc75a27f1a96a8dd2856ad210dfc80013795ee94719b53ce7"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/ood/00-h10026-s3",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "aea543d7e5545d1336af5476af6700700e0037c15d2fe8f9c3c4d243eee1bdae",
+   "witness.bin": "faa0774442fa98568e34823a12f82da08c472a06bc2e1490931206deb89f6dd2",
+   "meta.json": "668ac6f57923916bf5150586aa03d3736be4d05bc700ce15d61f3537f7f1bb57"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/ood/02-h10006-s0",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "77f107cf8cc32fb33ba6bcc7f34f288fe388f171244ebf2b6179d40b5a07f059",
+   "witness.bin": "cfdf76ee10677a62e9d53d26d0484a51a8153d723164c475a17f8709f86d501a",
+   "meta.json": "81b6ae98bb2c2294ea9d582eea65dcc49abb3c37fa222b282a57cbd9b460b4ad"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/ood/02-h10008-s0",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "2daa75471cf96a2ba594453f640ef499add5bd3552056e5d17d221e6daadba9c",
+   "witness.bin": "e0117e132cd8f69240847902c6f206f3b2fede75759a35785780274d6afdb289",
+   "meta.json": "d2fa82a24350d90316da6f3ba53191b6a4204264b1ef50ae268a9ea86e74ddf9"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/ood/02-h10025-s0",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "74f0a8c44422cd48cde3ec3da421f500c1502aa91c23501263a9c532775e0a64",
+   "witness.bin": "02291a8295cbd4cdab906e65bcbe34096621b8147685817df7c065dfe50d6816",
+   "meta.json": "b4aa26fadc3794b102b3af47ac41b287da0551d7028f52cdff29022b1bdd4f24"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/ood/02-h10026-s0",
+  "family": "state-init-emit",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "dae0bb130ccb46a9e56783a458ae17f7d7f038b0993f5ee49e23c61dca2a2d4b",
+   "witness.bin": "96b3ce01821c9539c42b6ae2349c50d7691b0d47fc59b6770ac23b673dd6fe14",
+   "meta.json": "4724484817e94ad2180834832802f6ae5733c659ee0d1c7aee02f5162297af55"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy601/d3/00-h10213-s1",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "b4c4bbcab846dcefc20d9b537ac8f4541adff377c18dbe905e9a4711f5434f1c",
+   "witness.bin": "dbf59ff2da6a1c93010208631f5392e80460a61c0260a7931398f3dd897fcacc",
+   "meta.json": "6370017f0afe487ac1b724d3243c31f8116ba0ee2a510bb96446d90d486a1875"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy601/d3/00-h10214-s1",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "8fb34210f2a4041d361bb15fee4dde79fac7a67bda6b6de95e1e4d74f32208bc",
+   "witness.bin": "ba30262d2bfc522de52f5b2adf308c1b7120484b48513a20523e09b8770b303b",
+   "meta.json": "66757dd0115b007c7f0ee77f81636c68bbabbd3ce2d105f5658cef17ca3b5ed9"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy601/d3/00-h10215-s1",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "c007e14869da13ef786964afea442454ac1388570d19ae18f9ba67195e65299a",
+   "witness.bin": "bb69e6a45527e426f3e89910257ad099f8b7f7a11d7c7b650c17794ce5cf9b29",
+   "meta.json": "50d18463ddee22ce258dac17bab8b08f192556f9036ab99ff5f2c52846853970"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy601/d3/00-h10217-s1",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "2f47d458f87381739ad187cbdf6248823011e32b7384b5f2cb620a960799e99a",
+   "witness.bin": "ae73f77c4341ee0f2b15b54ef7208c297e311dc501ffc1c997764e1858310a21",
+   "meta.json": "fd78e4663c050a582401bbe9763b73075e58c7e48a77dd90b9f8eb9bd1839816"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy604/d3/06-h10209-s0",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "25136a46d309cae17247d0b15ed192bf1e452014cafa413de1c044e429b6c852",
+   "witness.bin": "ac6e67913945fe9310b12cc92b8497540da01aead10547f42652c45b46aeee05",
+   "meta.json": "b201864a82e0ff0d7ba77658a95371bb510e10c0b93da6f37ee722bcefba3812"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy604/d3/06-h10210-s1",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "c80ac922f47fde7c5e75438db61c2580ffa713b835b147710685734cba4b058e",
+   "witness.bin": "bf1612bf8f0e2b028e409beb6c7d80ff90ac81c2f65d36850be4ef116d13eee0",
+   "meta.json": "234495affcd917c79d5bab74c99dcf6d028733807c7fd2ced0ad8c49653acb9a"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy604/d3/06-h10211-s1",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "98eae535751dafaa2f8d6a2f19ae2f087fba8b3f76d912bf659b8482594ed82c",
+   "witness.bin": "76888c4279877b710fef3f612133d367db9ca5e6aaaabb5e94643ba6b187d7f5",
+   "meta.json": "b3a9e99c2e74d89530db60007e8c5303291be1e38d24974fd55fd27c5d24aef7"
+  }
+ },
+ {
+  "case": "curve-yield-timeout/cy604/d3/06-h10212-s1",
+  "family": "curve-yield-timeout",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "c2b159d450f5386849be46d4be79fbe46555415d86d2ef4b4c5d8bab557a59c3",
+   "witness.bin": "187c4c0e2a28b5bbc97bc70a351e0ee267512ad07410d74dad526fc823cbe458",
+   "meta.json": "b634552ea7ee6e2a002e1c8ad50490723a0d24a7ff0778086403fd3eaf5ecdba"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/ood/00-h10193-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "61290dc6e4814cf8afb8de37666616dbd93d63a4f0978905002b5fc65ebb3a3d",
+   "witness.bin": "e5ea7d979e0b3b53d3f99656979d3ea574d348610caf8cbd305425171fd597e7",
+   "meta.json": "e05136d0d0a8333af0c9a011a404ad9a82daed7d0cd66de987cc34528e45b622"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/ood/00-h10194-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "734482721f2f4dd2fdd225f53ff54e3feff8f7b2e7c261bf438ff21f7f277aaf",
+   "witness.bin": "16f9436bbb276090d12ce91973df1f3f9523858c8dccc56150ff43d245b9e57d",
+   "meta.json": "8fa22b94aeda94de4d5f8828f1e67bc0b857c334f75c720133da8626f3d9f3a4"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/ood/00-h10197-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "250d627d31551ddda393546de764dcba0e7f27948b337c0dc8513aa3c176b2ab",
+   "witness.bin": "5d584a7693f5abd10fdad60c6c2819e9447c471bee23533600f6e5a24f86a134",
+   "meta.json": "b2e989bcf359d5fa0240e039e9c9642acbe2fd7d430e2a473a40634e02360218"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/ood/00-h10200-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "746edd934bc03fce83d564c3492631ab71e02ef344f8416de0f3d380504b125b",
+   "witness.bin": "1b6709cb0c3bdb98f30f6691b4b891d2627d817a79b6807d7adea421eacd0afb",
+   "meta.json": "a24e613b22e78eaa5771018eaa1b348b6bbee51df65ca6f93fbcdc46df8ace6e"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/ood/00-h10193-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "5445b7fa527c9d8c67ff0cceefab17cceab0da6afaa44ed7c9030f029ebdf998",
+   "witness.bin": "a9c7eeb13ed672908aa002bf00b2564ca90952f95ddf4c0d33336ea88fd47bb4",
+   "meta.json": "9b4ac77c9490b38a2e3c3c03259dff387cc6c8a5610d29a616f8297a6b7dc1e7"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/ood/00-h10194-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "306d21dad5c7c0e9457f0a5ca40a98cf09c4d4439bd920e833f559cb9688e79d",
+   "witness.bin": "cad1ac04360ee5ac344d556be60f22bee6b7611014981a2ee6d3417e9a25348d",
+   "meta.json": "d1189c0dee448832f2f5e310bbe9f9c36bad5b68d5a212e95e4ecb1fb77bc20e"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/ood/00-h10197-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "9e9cfc9b43fe662dabf867c8b4ab569c1a71d0d02d70405640d84bc2db936d1a",
+   "witness.bin": "9712609337b3e793847b662ce8daa9114d17ea69c0c866a21433c08662e251d1",
+   "meta.json": "7175fcfd47bc698c3aa1712dccfcb902cccd86b631fdba7f91c20ae6b8ea7e2e"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/ood/00-h10198-s0",
+  "family": "mldsa-z-bound",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "464e34549ebf363ce7b2f728e17677c4f0ad9e7b5147c328a142d49b0816748e",
+   "witness.bin": "86fa00f398b059d7d12d6a8f34be9882f91105a4aae855c4be39f91e9e97415b",
+   "meta.json": "98f550fac00357803eed9b41cb5007e31cef35b50c3edd13a328032a1d258177"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/ood/01-h10008-s0",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "002295d2144a7e76ae2960db4a5f36d6aea6011d86040136fddb26f67d5c03ab",
+   "witness.bin": "7ba01640f5ee9cc2d300206fbc1963caa61bec67459d0c7048b0a885e049d599",
+   "meta.json": "27e312b630d316a7a5b4e1e8b470ee68b2e25370add453c1a79610e57d77202c"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/ood/01-h10009-s4",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "fdabf37e3b1e750310e968af385179afe06c955db937cddd9b7086953d173e6b",
+   "witness.bin": "6779cbedfa5fd6bdb83a88ff1f0cab37701531d09939efb6867bdb19bff15a2b",
+   "meta.json": "c77ec3a8ff799a36fcbfed0171d1108af76aea827dc425a60fe81d35a8e95c44"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/ood/01-h10012-s3",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "6eeb89b6521f26abb8e164659cfc73ed4a43da793d13fbb7c0ed9ec8ee5bcd64",
+   "witness.bin": "78e8d869b3de6ba8ca4cfdbabc3aaeeea6680fe5fe433d74ca8d09422afba352",
+   "meta.json": "d6ae58d69034a9f2603032385e46db9e833b0064ba19e0c085d3f6e1cc20e7fd"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/ood/01-h10014-s0",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "6a140d7a09c110d3093d2cbc46e262caa75e2caccfdd75f09ce2d6e411d3d541",
+   "witness.bin": "da31ef357a80352b723faa6c75f444403a81f28b707030d686c04f9aceeaba9f",
+   "meta.json": "ba82875b8097e1ddc45c76d0305cf9f1ce63358d53b493b989541bb9ce692416"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/ood/07-h10007-s0",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "c415625563033e44767378c6140a7c3d7f4c076bb4105d52ef361232614d3c7b",
+   "witness.bin": "bfbda3210cc98a1c701dece6cd43be9de1953262cc7b4711d2b1d0a24d12e667",
+   "meta.json": "648997d51d47f5cee9138687dcb7c1679029c39b138aff1a3e417665fd432cab"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/ood/07-h10008-s4",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "ed3165d513a5460ce18c5d6d65869f72c9f4895cbc6b9565f8856f09854b3570",
+   "witness.bin": "b28e79c49837ea335a69e1c82091180eb2a72082324ae3faacc12cfe9c56de43",
+   "meta.json": "e5a436ffb8b6a18f1f62ccd3a2787d52ae6f12841685f6e49f4bf28b568beda2"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/ood/07-h10009-s3",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "11bc4d47031e4402692c2cd863de27af27673ca5d45d83ecab4f35a63d05d7cb",
+   "witness.bin": "9829876b9c8974e9d1f164dd0dd1ee3024024721398e4f0c0a39e54231028e3b",
+   "meta.json": "5b75fe563389ff6aecfd269ccea6cb8dfc9a1cd050006e68c5bb7d471dda7769"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/ood/07-h10010-s2",
+  "family": "dist-identity",
+  "kind": "honest",
+  "mutation": null,
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "3301d443821f1de6bc1f96a392c8e2a3094560e7754588e206490bed14e53e85",
+   "witness.bin": "7d0b0cd9ced6b42bae0b45d288150be9ba17bfded91d6662e7ddd09e39d11196",
+   "meta.json": "c347c1e0ff70245d15ff6975d8bc1724081338d0da22d8db98f25c1fd935bd83"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10006-s3-c.drop_last_block",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment does not reach the last-but-one new chunk",
+  "files": {
+   "claim.bin": "726fda597d943f05fef9f1db014ac7156e137732a28cd72c804630e35700afe1",
+   "witness.bin": "45be6e42a1f82b67f16dced251269673dcd3b53a78b6ceeadd8533e7def91c09",
+   "meta.json": "9599acffdbd49f879627a9ea4e672beeee918f7c20ad94b7d3dc596813763456"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10006-s3-code.extra_garbage",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "code.extra_garbage",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "d4d12f8ee4ff7282656c24aa8db1a269afacf50cb106380ff08f8e4fcd49a578",
+   "witness.bin": "4fa4c9581b933ca321561720f59e3de8418601c32dc4fb31e8c87a1db5dc6931",
+   "meta.json": "01277960846566f2870847446f49c95d347173c0545589a8291c27d187dcf240"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10006-s3-hdr.encoded_length",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.encoded_length",
+  "nearcore": "validate: InvalidChunkEncodedLength",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidChunkEncodedLength",
+  "files": {
+   "claim.bin": "53e1393dfc644e0d990c5ad4fbad0065b6844a1a26273134ad688bbeadc24a8c",
+   "witness.bin": "e8b064298c3c0e7c1f9c09ece0aed2ebd5b683e70387a7eb320b68d4eac4b531",
+   "meta.json": "0ed2d8ee9fb61196d6858add437907f83b52d51f6389a7f23844e2f73fdf87d8"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10007-s3-c.epoch_start_flip",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: epoch_start_after inconsistent with the headers",
+  "files": {
+   "claim.bin": "02a498027244d1abd00ae1ce97cb21fade2e54e0488b62222d510e3ba3b10096",
+   "witness.bin": "79d9cb36990fe601f4c2e9d71fe2d57fe256ec313e3e56bfa2048c2a46e46f8c",
+   "meta.json": "0dbba8f0ed089b1344e631b28a4752fce18bc77f4388c599a9ed3b0d3a175ed0"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10007-s3-hdr.congestion.allowed_shard",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.congestion.allowed_shard",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 0 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 1 })\")",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidCongestionInfo",
+  "files": {
+   "claim.bin": "d1b6367f790fd6b687ed481220eefb181bbb8136aa54a7f894ba8bc755f3d01e",
+   "witness.bin": "f89df80cc997bccacbeab47c9e3fa899dfef64de24d4b4b9cc806db98b74c96f",
+   "meta.json": "f83e2e719687ea79dc166bf3148ea5f113b0984b929b648bcdadf1d9cbdb674f"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10007-s3-hdr.prev_balance_burnt",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.prev_balance_burnt",
+  "nearcore": "validate: InvalidBalanceBurnt",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidBalanceBurnt",
+  "files": {
+   "claim.bin": "de5afb5ee9b71be0c0636e27e3a5b5e3bacacd29013aff5485ae8891d73dae3a",
+   "witness.bin": "7ca9964eb69b621b42d1c27179b7dca09a7e5cf78d79b06f3f5c2ce86af8ee71",
+   "meta.json": "58b11f155d0b3c064adb5dafa7b33e69a2fc404ba8161f5db2414fe25e52a0f6"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10024-s3-c.epoch_start_flip",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: epoch_start_after inconsistent with the headers",
+  "files": {
+   "claim.bin": "07ea767c9edf3b9bb0e6e97fc400bc808486b1e4ac5599f686664e0b3df2c86c",
+   "witness.bin": "fae4beb1c335782a73c828fda750eb0648d11fd53bfd913f55df93d28d962c86",
+   "meta.json": "9d2eaa3f2ce7e4db3cea1481257455754c8f2bcab502808bd15c0c924dffb727"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10024-s3-code.duplicate",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "code.duplicate",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "65a0b5095e1f594c62b5b0b0efebdff8b0cc636864c0f073ba1be0ffb7c8aab8",
+   "witness.bin": "27e94e50659ce3aa7737488791a72ea0727bd44e2173273c401ffc1c83b22b78",
+   "meta.json": "5891a034c3c6278a47c419c05a1760803d9bc820dca3a2457771a59313fbe553"
+  }
+ },
+ {
+  "case": "state-init-emit/se701/mutants/00-h10024-s3-code.truncate.0",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "code.truncate.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: EJmApWdhLnGAvcN3acCyK1UwZT8ujkctykyTb1LkNYSV }))",
+  "lean": "reject",
+  "lean_reason": "invalid: MissingTrieValue (contract code)",
+  "files": {
+   "claim.bin": "65a0b5095e1f594c62b5b0b0efebdff8b0cc636864c0f073ba1be0ffb7c8aab8",
+   "witness.bin": "e3af22f193aa24f816ef83799a06c541eaa6b43d46f605076a6ef428235bc36c",
+   "meta.json": "aacc6c761624b0e99c4932dd5d6d609f95030452474b320b49da1556966bac59"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10006-s0-c.slot_height_flip",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "c.slot_height_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: chunk slots do not match chunk_headers_root",
+  "files": {
+   "claim.bin": "da4eed5a75456039fe72ec53239922329214498621d49aa96677f1ae19b6a7fb",
+   "witness.bin": "cfdf76ee10677a62e9d53d26d0484a51a8153d723164c475a17f8709f86d501a",
+   "meta.json": "cf125af05b92b7ac9ffe93afc119cd71f7c3350ce20dc0f9b7e1df232f3d7c91"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10006-s0-hdr.encoded_length",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.encoded_length",
+  "nearcore": "validate: InvalidChunkEncodedLength",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidChunkEncodedLength",
+  "files": {
+   "claim.bin": "1a714e3096b66a6d67761254165ebfac4cc2b7124702012887910db4ae682568",
+   "witness.bin": "84a5a92d021360b6b132bce637f03f199cc4b0f0c1730acda6ddc9d6d09f0419",
+   "meta.json": "5a361cb3f3ee5b34c9b226e6f8ef40406e851f83df4327c489fdb61cef5e7d3b"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10006-s0-hdr.prev_outgoing_receipts_root",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.prev_outgoing_receipts_root",
+  "nearcore": "validate: InvalidReceiptsProof",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidReceiptsProof",
+  "files": {
+   "claim.bin": "a001f1f587d32ed706c605b92947c8b60e464d65f5682bad7b74840914ee0760",
+   "witness.bin": "c6ad5b4b018d08459743b6e739f2fdc808cd2cdbb3b41962faaf351601bed84e",
+   "meta.json": "d8ab48e0fa98e8de1482fbdf04e2f65e7e93ffcdad323c4c192cf13136132b3f"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10008-s0-c.extra_block",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment is not exactly the blocks the validator reads",
+  "files": {
+   "claim.bin": "483b350608b025ed3c7d2168a5d9da68e460ebbf5c11b54ec5e11ba1505c9650",
+   "witness.bin": "e0117e132cd8f69240847902c6f206f3b2fede75759a35785780274d6afdb289",
+   "meta.json": "e570221879b9b4b6f95fc10df7b46fb1857226b5cc2c36a0c8b4f7bcebabba87"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10008-s0-hdr.congestion.delayed_gas",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.congestion.delayed_gas",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 1 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 1, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 1 })\")",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidCongestionInfo",
+  "files": {
+   "claim.bin": "0e3b9a72961cd33eaecf183bd13377858fbf40fb2914ef533730a1f56e77c56c",
+   "witness.bin": "a6a34ff6de76a2a48b9e34033f75fff1d08e2f72750ce851d0ad8cd7eacb60c5",
+   "meta.json": "b90869491ad1216c8dba8a7f12acf433743065698cf3dca54d18e61865c361a8"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10008-s0-hdr.prev_gas_used",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.prev_gas_used",
+  "nearcore": "validate: InvalidGasUsed",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidGasUsed",
+  "files": {
+   "claim.bin": "b7a5a8d9f8f9fc1d9634f539c994ec3d54e604a280146fa9e12dcdd46c50cca5",
+   "witness.bin": "7e82037a71fb3eae94fcbe775b1e23d5879314521e5d50bfa8a54e163dc2125a",
+   "meta.json": "4e6274712a65f12264deb9c0e7e4169159bc8cbefb4b51f36a406c460c46e2eb"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10025-s0-c.slot_inner_flip",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "c.slot_inner_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "decode: invalid account id (stake account)",
+  "files": {
+   "claim.bin": "862f7cdaf1339af4b1796779a8318e9c4cae48465cf000550b28637b217072d2",
+   "witness.bin": "02291a8295cbd4cdab906e65bcbe34096621b8147685817df7c065dfe50d6816",
+   "meta.json": "d8891d326a9f3e39fbcd7335924869c3e08f8e671571c9ac8355dcc1f9c37e71"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10025-s0-code.none",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "code.none",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+  "lean": "reject",
+  "lean_reason": "invalid: MissingTrieValue (contract code)",
+  "files": {
+   "claim.bin": "74f0a8c44422cd48cde3ec3da421f500c1502aa91c23501263a9c532775e0a64",
+   "witness.bin": "296a04d48df8eb80b79c559ffd8e7e10b86bed71d8b55f2d396da00a65c71330",
+   "meta.json": "7d5a63ed34baa432b2b313c888009e8fec62b450af3ac2a09acbabb908216e39"
+  }
+ },
+ {
+  "case": "state-init-emit/se703/mutants/02-h10025-s0-hdr.encoded_merkle_root",
+  "family": "state-init-emit",
+  "kind": "mutant",
+  "mutation": "hdr.encoded_merkle_root",
+  "nearcore": "validate: InvalidChunkEncodedMerkleRoot",
+  "lean": "reject",
+  "lean_reason": "invalid: InvalidChunkEncodedMerkleRoot",
+  "files": {
+   "claim.bin": "dbaefb9ba518ea822495318fc325a2471809842536d0742178248af95a8f244e",
+   "witness.bin": "d645933e8e52318dc908f1d81fa38e24b2f46f6cf79d17277c7b30fe8d676833",
+   "meta.json": "93eb054a14cfa9a84f1e1c951952d433d0a3828e67e4dcec0b4717584c3e5757"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/mutants/00-h10194-s0-c.drop_last_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment does not reach the last-but-one new chunk",
+  "files": {
+   "claim.bin": "7d4a69ddf75be9304fa882d19e3b9f13b7c8d243924492e1e6717edc49542b4a",
+   "witness.bin": "16f9436bbb276090d12ce91973df1f3f9523858c8dccc56150ff43d245b9e57d",
+   "meta.json": "42214b25f2c278388d8a06062c5c4bc9237e55b8f760c463f91fd19623a3513e"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/mutants/00-h10194-s0-c.epoch_start_flip",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: epoch_start_after inconsistent with the headers",
+  "files": {
+   "claim.bin": "5b983cc476cd8e56b88593b7fd0d79233932111ed2ef07bded182438e5404cbe",
+   "witness.bin": "16f9436bbb276090d12ce91973df1f3f9523858c8dccc56150ff43d245b9e57d",
+   "meta.json": "ddbc0b0a98557e133a34c24d8542b9a9004dbd2d863976ae5da97298d8865f80"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/mutants/00-h10194-s0-c.extra_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment is not exactly the blocks the validator reads",
+  "files": {
+   "claim.bin": "27ee254b8cb3071c844babd015d8098cc45e20ac5b667876300f2d772c606c2e",
+   "witness.bin": "16f9436bbb276090d12ce91973df1f3f9523858c8dccc56150ff43d245b9e57d",
+   "meta.json": "7d09df0c99c97fa70bab3bd9daaa62c5718d349d2bd8fab1288174ed152568bd"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/mutants/00-h10200-s0-c.drop_last_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment does not reach the last-but-one new chunk",
+  "files": {
+   "claim.bin": "a07fa1788c10e5a6fff94531a68e5207c0ad95d4fe89e432505baa6af357cc18",
+   "witness.bin": "1b6709cb0c3bdb98f30f6691b4b891d2627d817a79b6807d7adea421eacd0afb",
+   "meta.json": "7f00dd11b282497e30a7da1e379fdec91079321fe6f456b2b6f910e8b819aac9"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/mutants/00-h10200-s0-c.epoch_start_flip",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: epoch_start_after inconsistent with the headers",
+  "files": {
+   "claim.bin": "be2fcb20c85ca571ba2f4e5dc925131bf811171cec55cb72c9111f0919313edf",
+   "witness.bin": "1b6709cb0c3bdb98f30f6691b4b891d2627d817a79b6807d7adea421eacd0afb",
+   "meta.json": "8687313e6722576f0284b4215ebe62531deaf71769a0993e0027729b30866ae8"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb1618/mutants/00-h10200-s0-c.extra_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment is not exactly the blocks the validator reads",
+  "files": {
+   "claim.bin": "0130f439703c4a678bdb7e8cef5e678536bfbc429af3aa52267f54db48fdd926",
+   "witness.bin": "1b6709cb0c3bdb98f30f6691b4b891d2627d817a79b6807d7adea421eacd0afb",
+   "meta.json": "e07951de5e99549fb3068df313b9eb087e9c1bbbc52fa3d151a42f9dfff9cba2"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/mutants/00-h10194-s0-c.drop_last_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment does not reach the last-but-one new chunk",
+  "files": {
+   "claim.bin": "43d99ad809cf52f900efa9a688962e6d72c2e665a2f2f5cc51222dfbf968f614",
+   "witness.bin": "cad1ac04360ee5ac344d556be60f22bee6b7611014981a2ee6d3417e9a25348d",
+   "meta.json": "674056ef002a5bdd6fec8b821ab4b509e5fb909f99cf16b192403334f62e39e1"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/mutants/00-h10194-s0-c.extra_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment is not exactly the blocks the validator reads",
+  "files": {
+   "claim.bin": "12c2c17cb98052d9abad927256a07eaf258277f52127769580b2c94bb1a3797a",
+   "witness.bin": "cad1ac04360ee5ac344d556be60f22bee6b7611014981a2ee6d3417e9a25348d",
+   "meta.json": "66edc891bcde2085b22a02f771d9146b3ddfb346335093a3c2e70a04fbceb52a"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/mutants/00-h10194-s0-c.slot_height_flip",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.slot_height_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: chunk slots do not match chunk_headers_root",
+  "files": {
+   "claim.bin": "4554698f36881b79d83751056d2fb48030743660096488f6e684b4618727e0fc",
+   "witness.bin": "cad1ac04360ee5ac344d556be60f22bee6b7611014981a2ee6d3417e9a25348d",
+   "meta.json": "7ac314acdeb0c4624fdcfdbe84a4aa285c82ffff919e88d16c1d1711bdd9ca70"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/mutants/00-h10198-s0-c.drop_last_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.drop_last_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment does not reach the last-but-one new chunk",
+  "files": {
+   "claim.bin": "f1753a309374ffb7ec1b60ae7137a50e6c64e75c7cab0fe4dfce4e56e43f028b",
+   "witness.bin": "86fa00f398b059d7d12d6a8f34be9882f91105a4aae855c4be39f91e9e97415b",
+   "meta.json": "f907b41bcdd3e70e19dff53f06d5d47bd555db00475aaf1adeb6160551b3bc75"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/mutants/00-h10198-s0-c.extra_block",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.extra_block",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: segment is not exactly the blocks the validator reads",
+  "files": {
+   "claim.bin": "278c7b92b86de221b3f24f1c60cba7e4722dd838ae617034c6c357a6def969cf",
+   "witness.bin": "86fa00f398b059d7d12d6a8f34be9882f91105a4aae855c4be39f91e9e97415b",
+   "meta.json": "1586ebfd34bd52ebf2b71429b02946ac6e42b5d60e4f9f44388d51e07d919f46"
+  }
+ },
+ {
+  "case": "mldsa-z-bound/mb6151/mutants/00-h10198-s0-c.slot_height_flip",
+  "family": "mldsa-z-bound",
+  "kind": "mutant",
+  "mutation": "c.slot_height_flip",
+  "nearcore": "claim-v3 discipline",
+  "lean": "reject",
+  "lean_reason": "invalid: chunk slots do not match chunk_headers_root",
+  "files": {
+   "claim.bin": "85ee5bbeda03bbfaa0679b6abf1fa48d7ef1c4747c92cfb5a6b3a049207ddc7a",
+   "witness.bin": "86fa00f398b059d7d12d6a8f34be9882f91105a4aae855c4be39f91e9e97415b",
+   "meta.json": "cecd9e48f9449a29df3f336ca8a7773a11045c5cd9fe923afd225aed3e7d70d3"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10008-s0-w.dist.code_extend.p0.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p0.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(14gMNcJY36QkqUUfuoGxToHX42UUVCraqgrLhGWexPRm) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "002295d2144a7e76ae2960db4a5f36d6aea6011d86040136fddb26f67d5c03ab",
+   "witness.bin": "7103434f792e536108cef0ae0fc6ec5f2da06196d6893858dae87ba3cffacc61",
+   "meta.json": "af1f693a862c23f356f007dee12fc421efee82d661dbf315a8b0976c37751237"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10008-s0-w.dist.code_flip.dup_last_bad.p0.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p0.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(14gMNcJY36QkqUUfuoGxToHX42UUVCraqgrLhGWexPRm) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "002295d2144a7e76ae2960db4a5f36d6aea6011d86040136fddb26f67d5c03ab",
+   "witness.bin": "132568812a60353ad1617e5051e189e015b14b42c53195c97d7d28b8552d523d",
+   "meta.json": "1e8acf5ea947efd6ec8bf4ed5cb16ab66b1873b21db4e12104db187658fb127e"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10008-s0-w.dist.code_flip.dup_last_good.p0.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p0.r0",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "002295d2144a7e76ae2960db4a5f36d6aea6011d86040136fddb26f67d5c03ab",
+   "witness.bin": "3edb282f47f1259bc181e379a2d4e078b6d9c410e438389b5081d7936c465499",
+   "meta.json": "3950db2cd8646f1e15e1dd1173cc86c8a327b53859f9acb789ca3009444ee685"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10009-s4-w.dist.code_extend.p2.r3",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p2.r3",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(CNKrQS2Dx1yPwRHUrZ8u6kwUFgDobrzhGWy9JGc3jKYo) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "fdabf37e3b1e750310e968af385179afe06c955db937cddd9b7086953d173e6b",
+   "witness.bin": "3c3ef984c91a6dd8f244dac617f7ba21adecaf9d96457d465f16079a1e33a2b9",
+   "meta.json": "fb04a3b3a8cf4576323374867da9fd4412699f0289e5f484fbae3c8e9f304f70"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10009-s4-w.dist.code_flip.dup_last_bad.p2.r3",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p2.r3",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(CNKrQS2Dx1yPwRHUrZ8u6kwUFgDobrzhGWy9JGc3jKYo) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "fdabf37e3b1e750310e968af385179afe06c955db937cddd9b7086953d173e6b",
+   "witness.bin": "07b726beda36b92dbb499103c3b9092a938d33ac4eee6bf61f8758a3aec6e10b",
+   "meta.json": "32f59ecc74b469dc61d3faaad8308b0ee8a371d6d3d558c5dbdf37812aee4c90"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10009-s4-w.dist.code_flip.dup_last_good.p2.r3",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p2.r3",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "fdabf37e3b1e750310e968af385179afe06c955db937cddd9b7086953d173e6b",
+   "witness.bin": "1ea613507ebf49243129e43a47c71327443c45a8bd727fb9b5c2eff06034be06",
+   "meta.json": "57afefe118bccd5a81ce521487fc953cd272988b78adb1caec325035f9e844f2"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10012-s3-w.dist.code_extend.p4.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p4.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(FpS2tqp2gMdJG4CGFFzMo2dZtR8VMW6XKd9UVtR2gkVG) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "6eeb89b6521f26abb8e164659cfc73ed4a43da793d13fbb7c0ed9ec8ee5bcd64",
+   "witness.bin": "b82bc4466aca6323b8bab3d1ee2e8d2aa28ccdadd3cc2db5b36d5d1b961c9243",
+   "meta.json": "622c128b20aa01c4905a2cbeeb1459f6d1a322a64c40c229aa0c87e20bc686af"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10012-s3-w.dist.code_flip.dup_last_bad.p4.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p4.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(FpS2tqp2gMdJG4CGFFzMo2dZtR8VMW6XKd9UVtR2gkVG) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "6eeb89b6521f26abb8e164659cfc73ed4a43da793d13fbb7c0ed9ec8ee5bcd64",
+   "witness.bin": "19e02a976d7526ac356882f4599cb076f700a99c58219eace564555cd12473b2",
+   "meta.json": "b082acc1064b5e804a4b1e37a53a6e226764bb122bf2afb7cd402e213b7041c6"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10012-s3-w.dist.code_flip.dup_last_good.p4.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p4.r0",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "6eeb89b6521f26abb8e164659cfc73ed4a43da793d13fbb7c0ed9ec8ee5bcd64",
+   "witness.bin": "b37487fcd16caf519cca2f12da94361b5f6a0fcc5bb73fdbe5327b4dccedcb1b",
+   "meta.json": "7cef1f191c4275cbe936ba8d2f423c1232da2ded0563d49dc4086de5a6d927fb"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10014-s0-w.dist.code_extend.p3.r3",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p3.r3",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(D6CQrD1aMYG91bV6hx1BDF3FGVPax2P35zAPADjQPYgb) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "6a140d7a09c110d3093d2cbc46e262caa75e2caccfdd75f09ce2d6e411d3d541",
+   "witness.bin": "608485e341f1d6ac58e987b44c2833088c0e10fa1c5128a6d2f35d88bc42923f",
+   "meta.json": "de01abb707993cd55e754a40a5ad798e16622f9e7a98d67fec33d65abab947f7"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10014-s0-w.dist.code_flip.dup_last_bad.p3.r3",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p3.r3",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(D6CQrD1aMYG91bV6hx1BDF3FGVPax2P35zAPADjQPYgb) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "6a140d7a09c110d3093d2cbc46e262caa75e2caccfdd75f09ce2d6e411d3d541",
+   "witness.bin": "1a17123cd130c1494ae585bb474e78c34210fcbf2e523b5e75176a7af1d2a3c2",
+   "meta.json": "625598a05eaabc2e86c2406090d9921d4b23d55523c55c970073234cac81318d"
+  }
+ },
+ {
+  "case": "dist-identity/gdb812/mutants/01-h10014-s0-w.dist.code_flip.dup_last_good.p3.r3",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p3.r3",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "6a140d7a09c110d3093d2cbc46e262caa75e2caccfdd75f09ce2d6e411d3d541",
+   "witness.bin": "a50fb30fcccccb63f6aceb4a9c5dbf9e5028bf92587c6c6da8a063341a9eb773",
+   "meta.json": "bc1a6dd1d0d2a0744cfc708c6f7a9af2d443f1b80e979492eddb74556ee6197d"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10007-s0-w.dist.code_extend.p0.r1",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p0.r1",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(2z9PxF35nTyhTQF2XNCR7J7UDc4H5A7uZy7rHgZPQoeA) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "c415625563033e44767378c6140a7c3d7f4c076bb4105d52ef361232614d3c7b",
+   "witness.bin": "1c31c8e3e0d8fe6ddda5029c883afe4f0b5d4b089d499998323c9b5596396771",
+   "meta.json": "5c6b0e78a3e651d89c52720c88bb6f4505e3df26a1ec97658558859e1e02a612"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10007-s0-w.dist.code_flip.dup_last_bad.p0.r1",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p0.r1",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(2z9PxF35nTyhTQF2XNCR7J7UDc4H5A7uZy7rHgZPQoeA) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "c415625563033e44767378c6140a7c3d7f4c076bb4105d52ef361232614d3c7b",
+   "witness.bin": "bb418884265293bd9a4892e21ef39e758a533a12cf24e39f617e72749272202d",
+   "meta.json": "3b5cca4179a6667770a724dc0c9868ccd6fac750728bdc6110ddfcd972b85ebe"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10007-s0-w.dist.code_flip.dup_last_good.p0.r1",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p0.r1",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "c415625563033e44767378c6140a7c3d7f4c076bb4105d52ef361232614d3c7b",
+   "witness.bin": "d46222fb3b00521ba5109e87966c4218c02de8424de2a3ae5c1fc9a14a2081a3",
+   "meta.json": "9d71e9bee98054694625abffbf04f23c1af57b13bfe184eb10a8d887f193f98f"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10008-s4-w.dist.code_extend.p3.r1",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p3.r1",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(ATFAyGE2jqje4wRTTt7G5secCGRwa18nafdYRNMGdt38) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "ed3165d513a5460ce18c5d6d65869f72c9f4895cbc6b9565f8856f09854b3570",
+   "witness.bin": "8863ffcef517bfcbd81d553f096c61b28d1fe8278124634bce706eeeb85e6b4c",
+   "meta.json": "b2be3570e314348f00fae428e259b2ddae003cd47226881e2e28017329868d19"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10008-s4-w.dist.code_flip.dup_last_bad.p3.r1",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p3.r1",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(ATFAyGE2jqje4wRTTt7G5secCGRwa18nafdYRNMGdt38) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "ed3165d513a5460ce18c5d6d65869f72c9f4895cbc6b9565f8856f09854b3570",
+   "witness.bin": "63926b4252f0baa9908c0427ce27a87debfc9b85820c6ea35c21fc5316d9d47a",
+   "meta.json": "d370673e4c238cfb06d7448eca15440b854fed23d0d0051da47ced3c7f557a96"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10008-s4-w.dist.code_flip.dup_last_good.p3.r1",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p3.r1",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "ed3165d513a5460ce18c5d6d65869f72c9f4895cbc6b9565f8856f09854b3570",
+   "witness.bin": "04e8d1325b5a23fcfd74f0254277a05c1d74403904482f5bc625d7b497b75aed",
+   "meta.json": "e429daf3bb39e3e4cbe79475d946d190b14aea732b32368790e89f5a07808812"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10009-s3-w.dist.code_extend.p4.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p4.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(ExXhanweB1UCz7ysBku6daGiSg2oqH1L3paSXae5p9CL) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "11bc4d47031e4402692c2cd863de27af27673ca5d45d83ecab4f35a63d05d7cb",
+   "witness.bin": "cf5fa7b220d56e5e2dc3c80ddea9ac00fc4eb20f421a3e9193cfa811553ef0c6",
+   "meta.json": "5a01fa5095069ff21b1e8452391b5bde69327462f0720197aa825a1a7436bcca"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10009-s3-w.dist.code_flip.dup_last_bad.p4.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p4.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(ExXhanweB1UCz7ysBku6daGiSg2oqH1L3paSXae5p9CL) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "11bc4d47031e4402692c2cd863de27af27673ca5d45d83ecab4f35a63d05d7cb",
+   "witness.bin": "4194099414377ce10c76d55f740dc5843b7e80f974b4bedc7d53bdc1f3e05294",
+   "meta.json": "2ae8f03fdb205ad5b7ee09bd8f494d893c779bf9870d623d84bc226f5ab5e695"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10009-s3-w.dist.code_flip.dup_last_good.p4.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p4.r0",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "11bc4d47031e4402692c2cd863de27af27673ca5d45d83ecab4f35a63d05d7cb",
+   "witness.bin": "b5e78afb5eea4d191bf8c0f4c33980a1e18880daab6955ef012ef54c23656e3f",
+   "meta.json": "8b1ec00e0d1bedcd1d61d9b5b673eb05f60f38c5a620a6cc3e7a68b132d53cb8"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10010-s2-w.dist.code_extend.p3.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_extend.p3.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(DeCybgkdDkhdLzwtqeJ95GmVnFoHyc25CjyNzfAp9PLm) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "3301d443821f1de6bc1f96a392c8e2a3094560e7754588e206490bed14e53e85",
+   "witness.bin": "a6a20f7d91c939300c8742af105ca73965627151f61b18154fd6f7c403b51669",
+   "meta.json": "fe6bb41337694a14432e0453361ea4c0186fb82e80715cd65dc4f5f3d0664ccf"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10010-s2-w.dist.code_flip.dup_last_bad.p3.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_bad.p3.r0",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(DeCybgkdDkhdLzwtqeJ95GmVnFoHyc25CjyNzfAp9PLm) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "lean": "reject",
+  "lean_reason": "invalid: receipt proof merkle path",
+  "files": {
+   "claim.bin": "3301d443821f1de6bc1f96a392c8e2a3094560e7754588e206490bed14e53e85",
+   "witness.bin": "46755129b0aa28160910ad6bc5d482edbca016b9868eab2d828739b0ac7855ef",
+   "meta.json": "dd529f5509c1150e07f2a747c42c1868e1043888c62eec0d5b46187d38c751f7"
+  }
+ },
+ {
+  "case": "dist-identity/gdb815/mutants/07-h10010-s2-w.dist.code_flip.dup_last_good.p3.r0",
+  "family": "dist-identity",
+  "kind": "mutant",
+  "mutation": "w.dist.code_flip.dup_last_good.p3.r0",
+  "nearcore": "ok",
+  "lean": "accept",
+  "lean_reason": "",
+  "files": {
+   "claim.bin": "3301d443821f1de6bc1f96a392c8e2a3094560e7754588e206490bed14e53e85",
+   "witness.bin": "36068dd0e1f19a80a2aeaf2d9b6e99a180c5b93a96424d40df490ff2620df225",
+   "meta.json": "04126f5b97aed841f04cae9afe848c99cf5bfffd55020805908e6962d6f69370"
+  }
+ }
+]

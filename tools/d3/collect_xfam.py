@@ -135,10 +135,71 @@ def steps_of(sc, chain, by_shard, by_label, headers):
     return rows, problems
 
 
+def check_variant(variant, executed):
+    """Item 10 variants (`NEAR_XFAM_VARIANT`): the defining facts, from nearcore's outcomes only."""
+    facts, problems = {}, []
+    if variant == "curve-yield-timeout":
+        # every yield is created by its transaction's receipt and never resumed: the callback is
+        # the receipt executed by the contract account >= 200 blocks after the creating receipt
+        late, kinds, missing = 0, collections.Counter(), []
+        for s in executed:
+            rs = [r for r in s["receipts"] if r.get("executed", True) is not False]
+            created = [int(r["height"]) for r in rs if r["executor"] == s["receiver"]]
+            if not created:
+                missing.append(s["label"])
+                continue
+            cbs = [r for r in rs if r["executor"] == s["receiver"] and int(r["height"]) >= min(created) + 200]
+            if not cbs:
+                missing.append(s["label"])
+                continue
+            late += 1
+            r = cbs[0]
+            kinds[rt_failure_kind(r["failure"]) if r["status"] == "failure" else r["status"]] += 1
+        facts["timeout_callbacks"] = late
+        facts["timeout_callback_outcomes"] = dict(kinds)
+        facts["steps_without_timeout_callback"] = missing
+        if missing:
+            problems.append(f"{len(missing)} yield steps without a timeout callback (run too short?)")
+    elif variant == "state-init-emit":
+        ok, ctl, failed = [], [], []
+        for s in executed:
+            name = s["label"].split(".", 4)[-1]
+            rs = [r for r in s["receipts"] if r.get("executed", True) is not False]
+            if "emit" not in name:
+                continue
+            first = next((r for r in rs if r["executor"] == s["receiver"]), None)
+            emitted = [r for r in rs if r["executor"] not in (s["receiver"], s["signer"], "s1rbs", "s0rbu")
+                       or (r["executor"] == s["receiver"] and r is not first)]
+            if "control" in name:
+                ctl.append(s["label"])
+                if first is None or first["status"] != "failure":
+                    problems.append(f"{s['label']}: the unfunded control did not fail")
+                continue
+            if first is None or first["status"] != "value" or not emitted:
+                # recorded, not a collection failure: e.g. a later transaction that reached the
+                # derived account before its state init (missing chunks reorder the shards)
+                failed.append(dict(label=s["label"], first=first and (first["status"], str(first["failure"])[:160])))
+            else:
+                ok.append(dict(label=s["label"], emitted_receipts_executed=len(emitted),
+                               emitted_statuses=dict(collections.Counter(r["status"] for r in emitted))))
+        facts["state_init_then_successful_emit"] = ok
+        facts["unfunded_controls"] = ctl
+        facts["emit_steps_without_success"] = failed
+        if not ok:
+            problems.append("no state init followed by a successful emit")
+    return facts, problems
+
+
 def check_family(scenario, steps, headers_rows, metas, sc_list):
     """The defining facts of the family, from nearcore's outcomes and headers only."""
     facts, problems = {}, []
     executed = [s for s in steps if s["executed"]]
+    variant = next((sc.get("variant") for sc in sc_list if sc.get("variant")), None)
+    if variant:
+        facts, problems = check_variant(variant, executed)
+        facts["variant"] = variant
+        facts["unexecuted_transactions"] = [s["label"] for s in steps if not s["executed"]]
+        return facts, problems
     if scenario == "YieldCongestion":
         ysh = {sc["shards"]["s0xyield"] for sc in sc_list}
         csh = {sc["shards"]["s1xcall"] for sc in sc_list}

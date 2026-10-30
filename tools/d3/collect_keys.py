@@ -20,7 +20,9 @@ from pathlib import Path
 import re
 import sys
 
-SCENARIOS = {"keys": ("successor.keys.", 60), "mldsa": ("successor.mldsa.", 47)}
+SCENARIOS = {"keys": ("successor.keys.", 60), "mldsa": ("successor.mldsa.", 47),
+             # `mldsa` with NEAR_MLDSA_BOUND_SIGNER: six more steps (z at / one below the norm bound)
+             "mldsa-bound": ("successor.mldsa.", 53)}
 PREFIX, N_STEPS = SCENARIOS["keys"]
 FILES = ("claim.bin", "witness.bin", "meta.json")
 
