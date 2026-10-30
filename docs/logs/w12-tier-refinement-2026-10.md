@@ -1,0 +1,56 @@
+# Lane W12: tier refinement (workplan item 5). Log, 2026-10-29/30
+
+Worktree `agent-a5081ae59762de001`, branch `worktree-agent-a5081ae59762de001`, from main
+`4f07a7fdf`. Host shared with 7 lanes (load average 160–180 on 32 cores during this work). Lean
+runs used `LEAN_NUM_THREADS=8`; the full build ran under `heavy` with `HEAVY_MEM=24G`.
+
+## 2026-10-29
+
+* Read the workplan, `TierMono.lean` (O1–O7 list), `TierProofs.lean` (`Refines`,
+  `refines_lockstep`), `Config.lean` (tiers), and `D3/FunctionCall.lean`, `Wasm/{Prepare,Exec}.lean`,
+  `D2/{Actions,Receipts,RuntimeD2}.lean` and `Successor/StorageExecution.lean`.
+* Triage of the obligations by the engine each named pair runs:
+  * O1 floats: every pair that differs in `floats` runs the legacy engine (`checkD2Core` /
+    `checkD2CoreG` with `d3Hooks`). Feasible: the flag is in `NearCfg` and read only by the three
+    preparation guards.
+  * O5: every tier sets `loadingLimits` (signed since 2026-10-27), so no named pair differs in it.
+  * O2, O3, O7: the named pairs run the recorder engine (`StorageExecution`, a
+    `StateT Recording` monad). O2's selector is in the interpreter state `St`, and O3/O7 change
+    `Recording` fields. All three need a simulation with a state relation. Deferred.
+  * O4 (engine agreement) and O6 (`ReshardCore` restructures the shell): dedicated
+    correspondence proofs. Deferred.
+* `TierHooks.lean`: `HooksRefine` and the lockstep walk of the legacy pipeline. The first version
+  closed each step with a default-transparency `exact Refines.refl _`, which unfolded whole
+  pipelines when subterms differed. The check had not finished after 40 min under the host load.
+  Fix: `with_reducible` closers, plus a default-transparency `refl` only on leftover goals.
+* `TierFloats.lean`, preparation: `PRef` with `pref_lockstep`. `sectionBody_floats` went through
+  on the first try. A direct walk of `earlyPass` timed out (heartbeats), because its section
+  `match` relates two different runs. Fix: `earlyPassWith` (a verbatim copy, `rfl`) and
+  generalising both runs at the `match`.
+* `TierFloats.lean`, hook: a direct walk of `D3.functionCall` made `split` case-split the two
+  `contractOOD`/`runCallWithLimits` matches independently (≈ 20 incoherent goals). Fix:
+  `functionCallWith` (verbatim copy, `rfl`) plus `CallRel`. On the left's `none` branch,
+  `CallRel.none` rewrites the right side. `‹_›` and `obtain … := … hsplit` inside `first` log
+  their errors instead of failing over to the next alternative, so the step is written with
+  `refine (fun hx => ?_) (CallRel.none h (by assumption))`.
+
+## 2026-10-30
+
+* `TierFloats.lean` checks with no errors and no `sorry`.
+* `TierRefine.lean`: `Lift.floats_legacy`, the named O1 pairs, O5 (`Tier.cfg_loadingLimits`,
+  `relSuccessor_runtimeLimits_mono`), and the O7 resolve-level lemmas. Added to `defaultTargets`.
+* `Lift.floats_legacy`: unfolding `checkSuccessor` and unifying against the unreduced right side
+  timed out (heartbeats). Fix: `checkSuccessor_legacy_eq` normalises both sides first.
+* The default `lake build` (315 jobs) completed. Build times with load average about 170: `TierFloats`
+  1,194 s, `TierHooks` 166 s, `TierMono` 154 s (doc comment only), `TierRefine` 1 s. `make pin-check`
+  is ok.
+* Evidence: `docs/evidence/lean-chunk-completion/tier-refinement-w12/`.
+
+## Axiom audit
+
+See `docs/evidence/lean-chunk-completion/tier-refinement-w12/axioms.txt` (verbatim
+`#print axioms` lines from the build).
+
+## Open (reasons in the evidence README §2)
+
+O2, O3, O4, O6, and O7 at chunk level. Floats on the whole-state engine (no named pair needs it).
