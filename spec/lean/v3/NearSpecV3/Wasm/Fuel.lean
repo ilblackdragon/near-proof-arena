@@ -39,8 +39,9 @@ instructions at or after the frame's `pc`.
 
 From 1 and 2, `T_free ≤ P₀ + F · Tc ≤ F · (Tc + 1)`, so `T ≤ (F + 1) · (Tc + 1)`. With 3 and 4 that
 is below `wasmFuel`. Items 1–4 are proof obligations O-W1…O-W4 in the evidence README; the
-potential argument itself is proved in `Wasm/FuelSufficiency.lean` (`wasmFuel_sufficient`), relative
-to a checked per-function certificate and the host obligation `HostsOK`. What this
+potential argument is proved in `Wasm/FuelSufficiency.lean`, `HostsOK` in `Wasm/FuelHost.lean`, and
+the hypothesis-free statement for the successor's `FunctionCall` hook in
+`Successor/FuelFinal.lean` (`functionCall_fuel_sufficient`). What this
 file proves is that raising the budget can change **only** results that were fuel-exhausted
 (`run_fuel_le`, `callEntry_fuel_le`, `runCall_fuel_le`, `runCallWithLimits_fuel_le`). Every
 verdict that the legacy budget decided is therefore unchanged by construction. The probe
