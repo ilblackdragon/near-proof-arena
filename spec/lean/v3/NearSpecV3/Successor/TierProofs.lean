@@ -130,6 +130,14 @@ theorem forIn_congr {α σ : Type} (l : List α) (b : σ)
     | done s => exact refl _
     | yield s => exact ih s
 
+/-- The narrower legacy tiers' storage-proof precondition (`withStorageExclusion`) preserves
+refinement. -/
+theorem storage {r r' : Except String Unit} (w : Bytes) (h : Refines r r') :
+    Refines (withStorageExclusion r w) (withStorageExclusion r' w) := by
+  rcases h with rfl | ⟨e, rfl, he⟩
+  · exact refl _
+  · exact Or.inr ⟨e, by simp [withStorageExclusion, he], he⟩
+
 /-- Refinement fixes every decided verdict. -/
 theorem verdict {x y : Except String Unit} (h : Refines x y)
     (hd : (Verdict.ofExcept x).inDomain = true) : Verdict.ofExcept y = Verdict.ofExcept x := by

@@ -31,21 +31,37 @@ others before deciding anything; the legacy driver would exclude them too, by `w
 after the main transition, so a legacy *reject* found earlier would not be preserved). Both are
 conditions on the witness file alone.
 
-`EngineRef base x y`: the engine-level relation. Where the legacy main transition `x` rejects,
-the recorder `y` rejects with the same string; where `x` returns an output inside the legacy
-size bound, `y` returns the same output. Legacy exclusions, and legacy outputs over the size bound
-(the shell excludes those), constrain nothing.
+**The counterexample, and the fix (2026-10-30).** Without a storage precondition the step is false
+on 26 nearcore-valid chunks (`storage-limit-fixtures`, nearcore `ok`): every narrower legacy tier
+rejected them with `MissingTrieValue` (or `StorageInconsistentState(MissingTrieValue)`) because it
+runs the receipts nearcore postpones at `main_storage_proof_size_soft_limit`, while
+`.storageResolution` accepts them. The legacy side was wrong. The narrower legacy tiers now report
+a legacy reject on a witness above the legacy storage bound (`legacyMergedBytes w > 4,000,000`) as
+the `w.size` exclusion (`Config.withStorageExclusion`); the signed statement of record is
+unchanged (it already decides those errors with the recorder engine, `withReshardHandover`).
+`checkD2CoreG_ok_bound` proves the legacy shell never accepts above that bound, so above it every
+narrower legacy tier result is an exclusion.
+
+`EngineRef base x y`: the engine-level relation. Where the legacy main transition `x` rejects on
+a witness within the storage bound (`base ≤ 4,000,000`), the recorder `y` rejects with the same
+string; where `x` returns an output inside the legacy size bound, `y` returns the same output.
+Legacy exclusions, rejects above the bound and outputs over the size bound constrain nothing.
 
 `EngineAgree cfg`: `EngineRef` holds on every main-transition input the shell builds (the store is
 `mkHStore merged`, the trie is the revealed pre-state).
 
 **Shell theorem (proved):** `checkD2CoreGWith_legacy_recorder` —
-`EngineAgree cfg → O4Witness w → Refines (checkD2CoreG …) (checkD2CoreGWith (recorderDriver cfg) …)`.
+`EngineAgree cfg → O4Witness w → legacyMergedBytes w ≤ 4,000,000 →
+Refines (checkD2CoreG …) (checkD2CoreGWith (recorderDriver cfg) …)`.
 
-**Tier theorem (proved, conditional on the engine):** `relSuccessor_runtimeLimits_storageResolution_of`.
+**Tier theorem (proved, conditional on the engine):** `relSuccessor_runtimeLimits_storageResolution_of`
+— `EngineAgree → O4Witness w → Refines (.runtimeLimits c w) (.storageResolution c w)`, no size
+premise (above the bound the left is an exclusion).
 
-The engine agreement itself is the open part; see the end of the file and
-`docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md` §7.
+The engine agreement itself is open; see `docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md` §7
+for its decomposition and the one known gap (`EngineAgree` is false if ContractData removals alone
+push the recorder over the soft limit before a legacy reject: `merged ≤ 4,000,000 <
+merged + 2000 · removals`; no corpus or fixture case does this).
 -/
 
 namespace NearSpecV3.Successor
@@ -78,7 +94,7 @@ def legacySizeOk (base removals : Nat) : Bool := base + 2000 * removals ≤ 4000
 /-- Engine-level refinement: a legacy reject is a recorder reject with the same string; a legacy
 output inside the size bound is the recorder's output. -/
 def EngineRef (base : Nat) (x y : Except String MainOutD2) : Prop :=
-  (∀ e, x = .error e → isExclusion e = false → y = .error e) ∧
+  (∀ e, x = .error e → isExclusion e = false → base ≤ legacyStorageBound → y = .error e) ∧
     (∀ out, x = .ok out → legacySizeOk base out.cdRemovals = true → y = .ok out)
 
 /-- The merged witness size the legacy shell bounds. -/
@@ -114,14 +130,14 @@ theorem Refines.check_bind_right {β : Type} {x : Except String β} (b : Bool) (
 /-- The main-transition step: the legacy `apply` followed by the legacy size guard, against the
 recorder `apply` followed by the recorder's trivial guard. -/
 theorem Refines.engine_bind {β : Type} {base : Nat} {x y : Except String MainOutD2}
-    (h : EngineRef base x y) (m m' : String) (hm : isExclusion m = true)
+    (h : EngineRef base x y) (hb : base ≤ legacyStorageBound) (m m' : String) (hm : isExclusion m = true)
     {K K' : MainOutD2 → Except String β} (hK : ∀ out, Refines (K out) (K' out)) :
     Refines (x >>= fun out => check (legacySizeOk base out.cdRemovals) m >>= fun _ => K out)
       (y >>= fun out => check true m' >>= fun _ => K' out) := by
   cases hx : x with
   | error e =>
     cases he : isExclusion e
-    · rw [h.1 e hx he]; exact Refines.refl _
+    · rw [h.1 e hx he hb]; exact Refines.refl _
     · exact Or.inr ⟨e, rfl, he⟩
   | ok out =>
     cases hs : legacySizeOk base out.cdRemovals
@@ -139,7 +155,7 @@ macro "o4_lockstep" : tactic => `(tactic|
     | (exact Refines.throw_bind _ _ _)
     | (exact Refines.throw_bind'' _ _ _)
     | (with_reducible assumption)
-    | (refine Refines.engine_bind (‹EngineAgree _› _ _ _ _ _ _ _ _ rfl) _ _ (by ood_tac) fun _ => ?_)
+    | (refine Refines.engine_bind (‹EngineAgree _› _ _ _ _ _ _ _ _ rfl) ‹_› _ _ (by ood_tac) fun _ => ?_)
     | ((refine Refines.bind' (by with_reducible rfl) fun (_, _) => ?_); try dsimp only)
     | ((refine Refines.bind' (by with_reducible rfl) fun _ => ?_); try dsimp only)
     | (refine Refines.ite_bind_join _ _ _ fun _ => ?_)
@@ -154,8 +170,14 @@ macro "o4_lockstep" : tactic => `(tactic|
     | ((refine Refines.bind' (by rfl) fun _ => ?_); try dsimp only)
     | (split <;> (rename_i hsplit; (try simp only [hsplit]); (try dsimp only)))))
 
+/-- `legacyMergedBytes` on a decoded witness. -/
+theorem legacyMergedBytes_of_decode {w sw : Bytes} {codes : List Bytes} {sw' : StateWitnessD2}
+    (hd : decodeWitnessFile w = .ok (sw, codes)) (hdw : decodeStateWitnessD2 sw = .ok sw') :
+    legacyMergedBytes w = mergedBytes (sw'.main.values ++ codes) := by
+  simp only [legacyMergedBytes, hd, hdw, mergedBytes]
+
 theorem checkD2CoreWithObs_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgree cfg)
-    (c w : Bytes) (hw : O4Witness w) (g : Option Nat) :
+    (c w : Bytes) (hw : O4Witness w) (hB : legacyMergedBytes w ≤ legacyStorageBound) (g : Option Nat) :
     Refines (checkD2CoreWithObs legacyDriver (D3.d3Hooks cfg) true c w g)
       (checkD2CoreWithObs (recorderDriver cfg) (D3.d3Hooks cfg) true c w g) := by
   unfold checkD2CoreWithObs
@@ -165,23 +187,27 @@ theorem checkD2CoreWithObs_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgre
   refine Refines.bind_ok fun ⟨sw, codes⟩ hd => ?_
   refine Refines.check_bind_right _ _ (decide_eq_true (hw.2 sw codes hd)) ?_
   simp only [Bool.not_false, ↓reduceIte]
+  refine Refines.bind' rfl fun _ => ?_
+  refine Refines.bind_ok fun sw' hdw => ?_
+  have hb : mergedBytes (sw'.main.values ++ codes) ≤ legacyStorageBound := by
+    rw [← legacyMergedBytes_of_decode hd hdw]; exact hB
   o4_lockstep
 
 theorem checkD2CoreWith_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgree cfg)
-    (c w : Bytes) (hw : O4Witness w) (g : Option Nat) :
+    (c w : Bytes) (hw : O4Witness w) (hB : legacyMergedBytes w ≤ legacyStorageBound) (g : Option Nat) :
     Refines (checkD2CoreWith legacyDriver (D3.d3Hooks cfg) true c w g)
       (checkD2CoreWith (recorderDriver cfg) (D3.d3Hooks cfg) true c w g) :=
-  Refines.map _ (checkD2CoreWithObs_legacy_recorder cfg hE c w hw g)
+  Refines.map _ (checkD2CoreWithObs_legacy_recorder cfg hE c w hw hB g)
 
 set_option maxHeartbeats 16000000 in
 /-- **O4, shell level.** The genesis-capable shell at the legacy driver (`checkD2CoreG`) is refined
 by the same shell at the recorder driver, given the engine agreement, on witness files in the
 original format whose codes fit one code response. -/
 theorem checkD2CoreGWith_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgree cfg)
-    (c w : Bytes) (hw : O4Witness w) (g : Option Nat) :
+    (c w : Bytes) (hw : O4Witness w) (hB : legacyMergedBytes w ≤ legacyStorageBound) (g : Option Nat) :
     Refines (checkD2CoreG (D3.d3Hooks cfg) true c w g)
       (checkD2CoreGWith (recorderDriver cfg) (D3.d3Hooks cfg) true c w g) := by
-  have hW := checkD2CoreWith_legacy_recorder cfg hE c w hw g
+  have hW := checkD2CoreWith_legacy_recorder cfg hE c w hw hB g
   rw [← legacy_genesis_eq]
   unfold checkD2CoreGWith
   simp only [legacyDriver, recorderDriver, Bool.false_eq_true, ↓reduceIte, Bool.not_true,
@@ -191,18 +217,134 @@ theorem checkD2CoreGWith_legacy_recorder (cfg : Wasm.NearCfg) (hE : EngineAgree 
   refine Refines.bind_ok fun ⟨sw, codes⟩ hd => ?_
   refine Refines.check_bind_right _ _ (decide_eq_true (hw.2 sw codes hd)) ?_
   simp only [Bool.not_false, ↓reduceIte]
+  refine Refines.bind' rfl fun _ => ?_
+  refine Refines.bind_ok fun sw' hdw => ?_
+  have hb : mergedBytes (sw'.main.values ++ codes) ≤ legacyStorageBound := by
+    rw [← legacyMergedBytes_of_decode hd hdw]; exact hB
   o4_lockstep
 
+/-! ## Above the storage bound the legacy shell never accepts
+
+Its `w.size` guard is necessary for acceptance on both the genesis and the non-genesis path, and its
+base is `legacyMergedBytes`. So above the bound every legacy result is an error, and the narrower
+legacy tiers' `withStorageExclusion` makes it an exclusion. -/
+
+/-- `x` never returns a value. -/
+def NoAcc {α : Type} (x : Except String α) : Prop := ∀ a, x ≠ .ok a
+
+theorem NoAcc.bind {α β : Type} {x : Except String α} {f : α → Except String β}
+    (h : ∀ a, x = .ok a → NoAcc (f a)) : NoAcc (x >>= f) := by
+  intro b hb
+  cases hx : x with
+  | error e => rw [hx] at hb; cases hb
+  | ok a => rw [hx] at hb; exact h a hx b hb
+
+theorem NoAcc.throw {α : Type} (e : String) : NoAcc (throw e : Except String α) := by
+  intro a h; cases h
+
+theorem NoAcc.error {α : Type} (e : String) : NoAcc (Except.error e : Except String α) := by
+  intro a h; cases h
+
+theorem NoAcc.size_bind {β : Type} {base r : Nat} (hbig : legacyStorageBound < base) (m : String)
+    (f : Unit → Except String β) :
+    NoAcc (check (decide (base + 2000 * r ≤ 4000000)) m >>= f) := by
+  have : decide (base + 2000 * r ≤ 4000000) = false := by
+    unfold legacyStorageBound at hbig; simp only [decide_eq_false_iff_not]; omega
+  rw [this]; exact NoAcc.bind fun a h => by cases h
+
+theorem NoAcc.ite {α : Type} (c : Prop) [Decidable c] {x y : Except String α}
+    (hx : c → NoAcc x) (hy : ¬c → NoAcc y) : NoAcc (if c then x else y) := by
+  by_cases h : c
+  · simp only [h, ite_true]; exact hx h
+  · simp only [h, ite_false]; exact hy h
+
+theorem NoAcc.map {α β : Type} {x : Except String α} (f : α → β) (h : NoAcc x) : NoAcc (x.map f) := by
+  intro b hb
+  cases hx : x with
+  | error e => rw [hx] at hb; cases hb
+  | ok a => exact h a hx
+
+macro "noacc_walk" : tactic => `(tactic|
+  repeat (first
+    | (exact NoAcc.size_bind ‹_› _ _)
+    | (exact NoAcc.throw _)
+    | (exact NoAcc.error _)
+    | (with_reducible assumption)
+    | (refine NoAcc.bind fun _ _ => ?_)
+    | (refine NoAcc.ite _ (fun _ => ?_) (fun _ => ?_))
+    | (split <;> (rename_i hsplit; (try simp only [hsplit]); (try dsimp only)))))
+
+theorem checkD2CoreWithObs_legacy_noacc (h : ActionHooks) (c w : Bytes) (g : Option Nat)
+    (hB : legacyStorageBound < legacyMergedBytes w) :
+    NoAcc (checkD2CoreWithObs legacyDriver h true c w g) := by
+  unfold checkD2CoreWithObs
+  simp only [legacyDriver, Bool.false_eq_true, ↓reduceIte, Bool.not_false]
+  refine NoAcc.bind fun cl _ => ?_
+  refine NoAcc.bind fun ⟨sw, codes⟩ hd => ?_
+  simp only [Bool.not_true, Bool.false_eq_true, ↓reduceIte]
+  refine NoAcc.bind fun _ _ => ?_
+  refine NoAcc.bind fun sw' hdw => ?_
+  have hbig : legacyStorageBound < mergedBytes (sw'.main.values ++ codes) := by
+    rw [← legacyMergedBytes_of_decode hd hdw]; exact hB
+  noacc_walk
+
+set_option maxHeartbeats 16000000 in
+theorem checkD2CoreG_noacc (h : ActionHooks) (c w : Bytes) (g : Option Nat)
+    (hB : legacyStorageBound < legacyMergedBytes w) :
+    NoAcc (checkD2CoreG h true c w g) := by
+  have hW : NoAcc (checkD2CoreWith legacyDriver h true c w g) :=
+    NoAcc.map _ (checkD2CoreWithObs_legacy_noacc h c w g hB)
+  rw [← legacy_genesis_eq]
+  unfold checkD2CoreGWith
+  simp only [legacyDriver, Bool.false_eq_true, ↓reduceIte, Bool.not_false] at hW ⊢
+  refine NoAcc.bind fun cl _ => ?_
+  refine NoAcc.bind fun ⟨sw, codes⟩ hd => ?_
+  simp only [Bool.not_true, Bool.false_eq_true, ↓reduceIte]
+  refine NoAcc.bind fun _ _ => ?_
+  refine NoAcc.bind fun sw' hdw => ?_
+  have hbig : legacyStorageBound < mergedBytes (sw'.main.values ++ codes) := by
+    rw [← legacyMergedBytes_of_decode hd hdw]; exact hB
+  noacc_walk
+
+/-- **The legacy genesis-capable shell accepts only within the storage bound.** -/
+theorem checkD2CoreG_ok_bound (h : ActionHooks) (c w : Bytes) (g : Option Nat)
+    (hok : checkD2CoreG h true c w g = .ok ()) : legacyMergedBytes w ≤ legacyStorageBound := by
+  rcases Nat.lt_or_ge legacyStorageBound (legacyMergedBytes w) with hB | hB
+  · exact absurd hok (checkD2CoreG_noacc h c w g hB ())
+  · exact hB
+
 /-! ## Tier level -/
+
 
 /-- The two tiers run the same Wasm configuration. -/
 theorem runtimeLimits_storageResolution_wasm :
     (Tier.cfg .runtimeLimits).wasm = (Tier.cfg .storageResolution).wasm := rfl
 
-/-- The `.runtimeLimits` checker is the genesis-capable shell at the legacy driver. -/
+/-- The `.runtimeLimits` checker is the genesis-capable shell at the legacy driver, behind the
+storage-proof precondition. -/
 theorem tier_runtimeLimits_eq (c w : Bytes) :
-    Tier.checker .runtimeLimits c w =
-      checkD2CoreG (D3.d3Hooks (Tier.cfg .storageResolution).wasm) true c w (some maxGasBurnt) := rfl
+    Tier.checker .runtimeLimits c w = withStorageExclusion
+      (checkD2CoreG (D3.d3Hooks (Tier.cfg .storageResolution).wasm) true c w (some maxGasBurnt)) w := rfl
+
+/-- Above the storage bound the storage precondition excludes every legacy result. -/
+theorem withStorageExclusion_big {r : Except String Unit} {w : Bytes} (hr : NoAcc r)
+    (hB : legacyStorageBound < legacyMergedBytes w) :
+    ∃ e, withStorageExclusion r w = .error e ∧ isExclusion e = true := by
+  cases r with
+  | ok u => exact absurd rfl (hr u)
+  | error e =>
+    cases he : isExclusion e
+    · exact ⟨legacyStorageExclusion, by simp [withStorageExclusion, he, hB], by decide⟩
+    · exact ⟨e, by simp [withStorageExclusion, he], he⟩
+
+theorem withStorageExclusion_small (r : Except String Unit) {w : Bytes}
+    (hB : legacyMergedBytes w ≤ legacyStorageBound) : withStorageExclusion r w = r := by
+  cases r with
+  | ok u => rfl
+  | error e =>
+    have : ¬ legacyStorageBound < legacyMergedBytes w := Nat.not_lt.mpr hB
+    simp [withStorageExclusion, this]
+
 
 /-- The `.storageResolution` checker is the same shell at the recorder driver. -/
 theorem tier_storageResolution_eq (c w : Bytes) :
@@ -216,8 +358,13 @@ tier accepts or rejects, the storage-resolution tier returns exactly the same re
 theorem relSuccessor_runtimeLimits_storageResolution_of
     (hE : EngineAgree (Tier.cfg .storageResolution).wasm) (c w : Bytes) (hw : O4Witness w) :
     Refines (Tier.checker .runtimeLimits c w) (Tier.checker .storageResolution c w) := by
-  rw [tier_runtimeLimits_eq, tier_storageResolution_eq]
-  exact checkD2CoreGWith_legacy_recorder _ hE c w hw _
+  rw [tier_runtimeLimits_eq]
+  by_cases hB : legacyMergedBytes w ≤ legacyStorageBound
+  · rw [withStorageExclusion_small _ hB, tier_storageResolution_eq]
+    exact checkD2CoreGWith_legacy_recorder _ hE c w hw hB _
+  · obtain ⟨e, he, hx⟩ := withStorageExclusion_big (checkD2CoreG_noacc _ c w _ (Nat.lt_of_not_le hB))
+      (Nat.lt_of_not_le hB)
+    exact Or.inr ⟨e, he, hx⟩
 
 /-- The verdict-level reading. -/
 theorem verdict_runtimeLimits_storageResolution_of
@@ -228,6 +375,7 @@ theorem verdict_runtimeLimits_storageResolution_of
 
 #print axioms checkD2CoreWithObs_legacy_recorder
 #print axioms checkD2CoreGWith_legacy_recorder
+#print axioms checkD2CoreG_ok_bound
 #print axioms relSuccessor_runtimeLimits_storageResolution_of
 #print axioms verdict_runtimeLimits_storageResolution_of
 

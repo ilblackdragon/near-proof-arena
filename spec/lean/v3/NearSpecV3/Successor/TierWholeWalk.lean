@@ -314,8 +314,8 @@ theorem Lift.floats (cfg : ProtocolCfg) (hrh : cfg.reshardHandover = false) :
         · cases rs
           · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono (hh _ _) rfl p e t vu ps rs txs cg trivial) _ _ _ _
           · exact checkD2CoreWith_apply_mono _ _ _ _ (fun p e t vu ps rs txs cg => run_rec_mono (hh _ _) rfl p e t vu ps rs txs cg trivial) _ _ _ _
-      · exact Refines.ite_congr _ (fun _ => checkD2CoreG_hooks_mono hk _ _ _ _)
-          (fun _ => checkD2Core_hooks_mono hk _ _ _ _)
+      · exact Refines.ite_congr _ (fun _ => Refines.storage _ (checkD2CoreG_hooks_mono hk _ _ _ _))
+          (fun _ => Refines.storage _ (checkD2Core_hooks_mono hk _ _ _ _))
   · exact Refines.refl _
 
 /-- `.storageResolution`-style whole-state pairs differing only in floats are covered by
