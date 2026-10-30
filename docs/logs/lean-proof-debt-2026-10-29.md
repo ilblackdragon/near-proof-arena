@@ -182,3 +182,30 @@ reduction). Details and the D1 ⊂ D2 scoping are in the evidence README §6.
 'NearSpecV3.Examples.not_d0_sub_d3' depends on axioms: [propext, Classical.choice, Quot.sound]
 'NearSpecV3.Examples.not_d1a_sub_d3' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
+
+## 10. Round 4 (2026-10-30): rungs := RelD3 ∧ InRungDk; WitnessLift proved
+
+Owner decision (option 1). Commits `99a948997` (Lean: `RungsDefs`, `Rungs`, `ChallengeChunkV3R`,
+`Coverage.witnessLift`, judge config/templates, draft builder) and `d39fda8e2` (new draft
+`challenges/drafts/near-chunk-v3-1.draft.json`, pin-check coverage, CONTRACTS.md, owner map §3.4).
+The item-6 agent had not created a new near-chunk-v3 draft when this one was created; theirs can be
+folded into `near-chunk-v3-1` (the draft is derived, so rerun the builder after their changes). Its
+`formal_spec.tree_digest` is of this branch's tree and must be regenerated at freeze.
+Not yet merged with main (main was red from the item-6 merge; waiting for the coordinator).
+
+Design note: the existing names `RelD0`, `RelD0a`, `RelD1`, `RelD1a`, `RelD2` were **not** redefined.
+They are the relations of the separate D0/D0a/D1 challenges (the signed `near-chunk-validation-d0`
+declares `NearSpecV3.RelD0`) and the zk-formal D0a/D1a stacks prove verifier soundness for them as
+checker acceptance; redefining them would silently change a signed statement and make those
+theorems false. The rungs of the `near-chunk-v3` statement are new names (`RelRungDk`) in a new
+statement module and draft; the v3.0 module and draft are unchanged.
+
+Axioms (`#print axioms` / `#guard_msgs`):
+
+```
+'NearSpecV3.relChunkV3R_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'ZkFormal.PQ.Join.witnessLift' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Examples.not_rungD1_of_checkD1' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+Verification (this branch, before merging main): `lake build` in spec/lean/v3 (350 jobs), `NearSpecV3.Examples.D1NotSubD2` (kernel modules), zk-formal `lake build` (3,144 jobs) + `ZkFormal.Toy.Certificate ZkFormal.NearAssembly.Certificate` + `test/AdmissionAxioms.lean` (no `sorryAx`), `make d3-drivers` and `make pin-check` (now also covering `near-chunk-v3-1`) all pass.
