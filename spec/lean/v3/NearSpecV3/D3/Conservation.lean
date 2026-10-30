@@ -46,11 +46,26 @@ def carriedGas (recv : Bytes) (acts : List Act) : Nat :=
   | some pg, some ps, some pe => pg + ps.gas + (pe.gas + Fees.nar.exec)
   | _, _, _ => 0
 
-/-- **NEAR held by a receipt**: its attached deposits plus its gas at the receipt's gas price.
-Data and distribution receipts hold none. -/
+/-- The deposits a receipt's actions attach, summed in `Nat` (the shape of `totalDeposit`,
+`D2/Fees.lean:323`, without its `u128` overflow `none`). -/
+def depositOf (acts : List Act) : Nat :=
+  sumNat (acts.map fun a => match a with
+    | .base b => b.b.deposit
+    | .delegate _ d => sumNat (d.actions.map fun b => b.b.deposit))
+
+/-- **NEAR held by a receipt**: its attached deposits plus, for a non-system receipt, its gas at the
+receipt's gas price. Data and distribution receipts hold none.
+
+Deposits are summed exactly: a successful *system* receipt never reaches `refunds`' `totalDeposit`
+guard and credits its actions one by one, so an overflowing `totalDeposit` would undercount it.
+A system receipt's gas is not NEAR: the runtime neither refunds nor burns it (`isSystem` ⇒ no
+`refunds`, `gasOut = 0`, `D2/Receipts.lean:149-171`), and every system receipt the runtime builds
+has `gasPrice = 0` (`Receipts.lean:93,97`, `Actions.lean:237`). Both found by the deepseek-fv
+lead. -/
 def rcptValue (r : Rcpt) : Nat :=
   match r.body with
-  | .action _ a => (totalDeposit a.actions).getD 0 + a.gasPrice * carriedGas r.recv a.actions
+  | .action _ a => depositOf a.actions +
+      (if r.pred == AccountId.system then 0 else a.gasPrice * carriedGas r.recv a.actions)
   | _ => 0
 
 def rcptsValue (rs : List Rcpt) : Nat := sumNat (rs.map rcptValue)
@@ -226,8 +241,9 @@ The canonicity hypotheses (`CanonRcpt` of the incoming receipts and of the recei
 creates) and the magnitude bound exclude structured inputs no witness can produce: a receipt whose
 actions' `raw` bytes are not their encoding is stored as bytes that do not decode (it measures `0`),
 and an account whose amount reaches `u128Max` is written with the V2 marker in its amount slot
-(`D2/Types.lean:126-166`), so it no longer decodes. Real supply (~1.2·10³³ yocto) is far below
-`u128Max` (~3.4·10³⁸). Both found by the deepseek-fv provers, kernel-checked.
+(`D2/Types.lean:126-166`), so it no longer decodes. The bound is `2^120` rather than `u128Max` to
+leave room for the 1-yocto promise subsidies minted during the chunk; real supply (~1.2·10³³ yocto,
+about `2^110`) is far below it. Both found by the deepseek-fv provers, kernel-checked.
 
 The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
@@ -245,7 +261,7 @@ def ChunkConservation : Prop :=
     (∀ tf ∈ txs, ∀ (rid : Bytes) (gp : Nat), rid.length = 32 → gp < 2 ^ 128 →
       CanonRcpt (txReceipt tf rid gp)) →
     nearIn env.ctx.layout env.ctx.own t + rcptsValue incoming
-      + creditedOpt env.ctx.layout env.ctx.own t vu < Params.u128Max →
+      + creditedOpt env.ctx.layout env.ctx.own t vu < 2 ^ 120 →
     applyNewChunkD2Obs (D3.d3Hooks Wasm.pv86) prims env t vu lastProps incoming txs ownCong
       = .ok (out, o) →
     ∃ t', finalTrie o = some t' ∧
