@@ -57,7 +57,7 @@ R("L0-D2-011","d2-core",D2+"139","core/primitives-core/src/version.rs:540-576; p
 R("L0-D2-012","d2-core",D2+"140","chunk_validation.rs:258-305 (get_resharding_transition); core/primitives/src/epoch_manager.rs:22-96 (DynamicReshardingConfig)",
   "implemented","c.same_layout (resharding)",
   ["D2:140 `c.epochs.all (·.shardLayout == ep.shardLayout)`", "claim scan of all 115,284 claims: 0 have two different shard layouts and 0 carry a split gate, so `c.same_layout`/`c.no_split_gate` never fire", "the 1,127 `c.no_resharding` oracle marks cannot mean a layout change: 274 have one epoch, 850 have two epochs with byte-identical layouts, 3 have 3-4 identical layouts; 700 are accepted by Lean, Python and nearcore. The resharding path therefore has zero corpus coverage.", "exclusion argument now stated: `ReshardingD3.sameLayout_forbids_resharding` (guard true => consecutive-epoch layouts equal => get_resharding_transition's `shard_layout != prev_shard_layout` conjunct at chunk_validation.rs:273-274 cannot hold)"],
-  owner="L6",deps=["L6","L7"],tests=["var/l6/mut/same_layout_broken fires `out of domain (c.same_layout): resharding`"],work="the guard is now *argued* against the pinned validator rather than left as a bare exclusion; an actual shard-layout transition remains L0-resharding's work")
+  owner="L6",deps=["L6","L7"],tests=["var/l6/mut/same_layout_broken fires `out of domain (c.same_layout): resharding`"],work="legacy-core guard (checkD3Core) only: the signed tier hands such claims to the recorder (D3.withReshardHandover) and allFeatures decides them; see L0-resharding (validated)")
 R("L0-D2-013","d2-core",D2+"142","core/primitives/src/shard_layout (V2/V3); Layout.lean:65",
   "implemented","c.layout (1..64 shards, V2/V3)",
   ["D2:142 `1 ≤ L.numShards && L.numShards ≤ 64`", "Layout.lean:65 rejects non-V2/V3 encodings", "never triggered: corpus uses 4-6 shard V2 layouts"],deps=["L1"],tests=["directed V1/V0 single-shard layout"],work="V1 layout codec out of scope; pinned mainnet target is V2/V3")
@@ -80,7 +80,7 @@ R("L0-D2-018","d2-core",D2+"149-155","epoch-manager/src/adapter.rs:170-179 (get_
 R("L0-D2-019","d2-core",D2+"156","chain/chain/src/runtime/mod.rs:1731-1769 (check_dynamic_resharding); core/primitives/res/epoch_configs/mainnet/85.json (dynamic_resharding_config)",
   "implemented","c.no_split_gate",
   ["D2:156 `applyFacts.all (fun f => f.splitGate.isNone)`", "0 corpus claims carry a split gate (mainnet genesis has dynamic_resharding=true, so gate-open blocks are reachable)", "`ReshardingD3.noSplitGate_iff` + `noResharding_iff_guards` + `splitGate_excludes_nonempty`, plus 8 kernel-decided directed tests", "reachability recorded honestly: version.rs:564 enables DynamicResharding at PV85 and mainnet/85.json sets dynamic_resharding_config, so the gate IS reachable at PV86"],
-  owner="L6",deps=["L6"],tests=["var/l6/mut/split_gate_present fires `out of domain (c.no_split_gate)`"],work="exclusion only, not a proven impossibility: D3 declines to decide gate-carrying claims; the split-gate search itself is still D-infty")
+  owner="L6",deps=["L6"],tests=["var/l6/mut/split_gate_present fires `out of domain (c.no_split_gate)`"],work="legacy-core guard (checkD3Core) only: gate-carrying claims are decided by the signed hand-over and by allFeatures (Successor/TrieSplit transcribes check_dynamic_resharding/find_trie_split); see L0-resharding (validated)")
 R("L0-D2-020","d2-core",D2+"158","chunk_validation.rs:321-337 (check_valid_for_config on new_transactions)",
   "implemented","new transaction size",
   ["D2:158 `w.newTxs.all TxD2.sizeOk`"],tests=["mutant `w.new_tx.reject` 112"],work="none")
@@ -317,12 +317,12 @@ R("L0-W-014","wasm-exec",W+"TrieStore.lean:97; ChunkStorage.lean:76","core/store
 R("L0-W-015","wasm-exec",W+"Exec.lean:430-434","runtime/near-vm-runner/src/imports.rs:354-368 (curve host table)",
   "missing","curve host functions",
   ["`curveHosts` 14 names; `hostCall` has none; call => `unmodeled ... not modelled` => OOD","244 exact verdicts"],owner="L3",deps=["L3"],tests=["replay d3curve run/cb"],work="implement alt_bn128/BLS12-381/ecrecover/p256_verify")
-R("L0-W-016","wasm-domain",W+"DomainD3.lean:23-39","chunk_validation.rs:258-308 (get_resharding_transition)",
+R("L0-W-016","wasm-domain","spec/lean/v3/NearSpecV3/ReshardingD3.lean:80","chunk_validation.rs:258-308 (get_resharding_transition)",
   "partial","noResharding (stated predicate)",
-  ["DomainD3.lean:23 `noResharding`; 34 `noResharding_spec`","NOT called by checkD3 (no use outside DomainD3.lean); checkD2Core enforces its own c.same_layout/c.no_split_gate"],owner="L1",deps=["L1"],tests=["prove `checkD3 => noResharding` or delete the duplicate"],work="wire or remove the parallel predicate (UQ-010)")
-R("L0-W-017","wasm-domain",W+"DomainD3.lean:59-66","prepare_v3.rs (imports)",
+  ["ReshardingD3.lean:80 `noResharding`; `noResharding_spec`","not called by checkD3; the legacy core checkD2Core enforces its own c.same_layout/c.no_split_gate"],owner="L1",deps=["L1"],tests=["prove `checkD3 => noResharding` or delete the duplicate"],work="wire or remove the parallel predicate (UQ-010)")
+R("L0-W-017","wasm-domain","spec/lean/v3/NearSpecV3/Wasm/Exec.lean (runCall call gate)","prepare_v3.rs (imports)",
   "partial","contractInD3α (stated predicate)",
-  ["DomainD3.lean:59 `contractInD3α` checks curve *imports*; the checker deliberately allows imports (P3)","NOT called by checkD3"],owner="L1",deps=["L1"],tests=["import-only curve case: contractInD3α=false but checkD3 accepts"],work="the stated predicate is stricter than the implementation; reconcile (UQ-010)")
+  ["`contractInD3α` checked curve *imports*; the checker deliberately allows imports (P3)","not called by checkD3"],owner="L1",deps=["L1"],tests=["import-only curve case: contractInD3α=false but checkD3 accepts"],work="the stated predicate is stricter than the implementation; reconcile (UQ-010)")
 R("L0-W-018","wasm-domain",W+"Syntax.lean:9,67","runtime/near-vm-runner/src/features.rs:47-102",
   "implemented","float syntax (decoder only)",
   ["Syntax.lean:9/67 floats parsed only to be rejected"],owner="L2",deps=["L2"],tests=["decode f32/f64"],work="L2")
@@ -484,8 +484,8 @@ UQ = [
   "`chain_validation.rs:258-308` + `ImplicitTransitionParams::Resharding`; `D2/Queues.lean:327` already excludes out-of-layout buffers."),
  ("UQ-009","May a valid segment reference a PV85 epoch (a protocol-version activation boundary), and does the pinned target require both PV85 and PV86 runtime configs?","L9 + L6",
   "`ChunkValidationD2.lean:125,139` require pv=86 for every epoch; the claim table can contain a pre-activation epoch. `epoch_start_after` already models the boundary."),
- ("UQ-010","Which predicate is the statement of record: `checkD3` (implementation) or `Wasm.DomainD3.noResharding`/`contractInD3α` (unused, and stricter on curve imports)?","L1",
-  "`DomainD3.lean:23,59` are not referenced by `checkD3`; `contractInD3α` rejects curve *imports* while the checker accepts them (P3). `noResharding_spec` is proved but disconnected."),
+ ("UQ-010","Which predicate is the statement of record: `checkD3` (implementation) or the parallel domain predicates `noResharding`/`contractInD3α` (unused, and stricter on curve imports)?","L1",
+  "The parallel predicates were not referenced by `checkD3`; `contractInD3α` rejected curve *imports* while the checker accepts them (P3). `noResharding_spec` was proved but disconnected."),
  ("UQ-011","Does Gate B require removing the arena claim-size bounds (`c.segment` 32 blocks, `w.size` 4 MB/8 MiB), or is a larger versioned claim format acceptable?","L1 + L8",
   "`ChunkValidationD2.lean:120,144,237`; `claim-v3.md` §5 sets `max_claim_bytes` from these bounds. These are not validator conditions."),
  ("UQ-012","Does Gate B require unbounded chunk function-call gas (segmented proof), or is a stated `G_α` capacity contract acceptable?","L1",
@@ -501,6 +501,43 @@ UQ = [
  ("UQ-017","For the genesis main transition, which header comparisons apply and is `tx_valid` all-1?","L9",
   "`chain_validation.rs:382-401` sets all-1 for a genesis last chunk; `chunk_extra` is the genesis chunk extra. Lean's `c.not_genesis` excludes the whole branch.")
 ]
+
+# Current disposition of each UQ (docs/research/lean-chunk-w00-owner-map.md §3, abridged).
+OM = "docs/research/lean-chunk-w00-owner-map.md §3"
+UQ_DISPOSITION = {
+ "UQ-001": ("resolved 2026-10-29 (W08)", "the relation is the cold-cache statement; accepts and non-missing-code rejects are cache-independent for every hash-consistent cache (docs/evidence/lean-chunk-completion/w08-warm-cache/README.md)"),
+ "UQ-002": ("resolved 2026-10-29", "on allFeatures only the preparation-pipeline race stays cache-dependent (e.code_prep_race); 279 e.code_cache corpus cases, 0 disagreements (open-uqs)"),
+ "UQ-003": ("resolved 2026-10-29", "positive canonical NaN; 5,920 calls bit-identical x86_64/aarch64/Lean (open-uqs)"),
+ "UQ-004": ("resolved 2026-10-29", "PV86 uses the config stored at key 85; 32/32 crypto costs and flags agree (open-uqs)"),
+ "UQ-005": ("resolved 2026-10-26", "SHA3-256 ML-DSA-65 handle matches nearcore; 533 honest chunks and 3,886 mutants agree (mldsa-fixtures)"),
+ "UQ-006": ("resolved 2026-10-26", "distribution receipts reach witnesses and are executed/routed, including across a split (global-cache-fixtures, resharding-fixtures-2)"),
+ "UQ-007": ("resolved 2026-10-29", "LegacyEthWallet unreachable at PV86; 7/7 wallet hashes match; no whole-chunk magic-hash fixture (row L0-D3-006)"),
+ "UQ-008": ("resolved 2026-10-26", "the first child chunk carries the Resharding transition; per-child congestion and retain_split_shard modelled and matched on 2,920 real-split witnesses (row L0-resharding)"),
+ "UQ-009": ("resolved 2026-10-26", "mainnet goes PV84 -> PV86; a PV86 layout change is a V3 split (Successor/LayoutReach.lean)"),
+ "UQ-010": ("resolved 2026-10-29", "checkD3/RelD3 is the statement of record; the parallel predicates were retired (owner map §3.4 (d)); the witness-size domain bound was settled 2026-10-30 (maxWitnessChunk = 75,497,501)"),
+ "UQ-011": ("resolved for allFeatures 2026-10-26", "c.segment, w.size (8 MiB) and c.layout lifted; nearcore's 64 MiB/48 MiB witness limits kept (gate-b-caps, size-limit-fixtures)"),
+ "UQ-012": ("resolved for allFeatures 2026-10-26", "gasCap := none; 1.8 Pgas chunks accept and match nearcore (gate-b-caps)"),
+ "UQ-013": ("resolved 2026-10-30 by user decision", "admission contract A1: the verifier rebuilds the claim's trusted section from its own chain state and requires byte identity (open-uqs)"),
+ "UQ-014": ("open", "Wasmtime LoadingError/WasmUnknownError/resource LinkError branches at PV86: proof owed (L7)"),
+ "UQ-015": ("resolved 2026-10-29", "the signed bound is sound; allFeatures does not use it (open-uqs; row L0-D2-040)"),
+ "UQ-016": ("resolved 2026-10-29", "no action-log entry reaches the unmodeled exclusion on whole-state tiers (open-uqs)"),
+ "UQ-017": ("resolved 2026-10-29", "genesis main transition uses the non-genesis comparison set; 266/266 genesis-main chunks agree (row L0-genesis-main-transition)"),
+}
+
+# Current disposition of each exclusion class on the canonical relation (allFeatures) and on the
+# signed tier, from the pre-freeze replay (workplan 2026-10-31) and the owner map §3.4.
+EXCL_NOW = {
+ "e.float": "decided on allFeatures (floats); signed tier excludes (150 census claims; 279 of mainnet shard 13's 1,223 chunks)",
+ "e.secp": "decided on both tiers since the UQ-010 secp strengthening",
+ "e.mldsa_key": "decided on allFeatures (ML-DSA-65 implemented, mldsa-fixtures); signed tier excludes (260 census claims)",
+ "w.shape": "decided on allFeatures (global actions validated, rows L0-action-09..11); a w.shape global_code_identity exclusion remains, unreachable (row L0-AF-global-code-identity); signed tier excludes (~303 census claims)",
+ "e.eth_implicit_local": "decided on allFeatures (row L0-D3-006, implemented, validation gap); signed tier excludes (210)",
+ "c.no_resharding": "decided on allFeatures and by the signed hand-over (row L0-resharding, validated)",
+ "c.not_genesis": "decided on allFeatures (row L0-genesis-main-transition, validated); signed tier excludes (137)",
+ "e.g_alpha": "lifted on allFeatures (gasCap := none) and on the signed hand-over path; the signed core keeps G_α (847)",
+ "e.code_cache": "decided on allFeatures except the pipeline race (e.code_prep_race, impossible-at-boundary); signed tier excludes (169)",
+ "c.segment": "lifted on allFeatures (segmentUnbounded); signed tier keeps it (3)",
+}
 
 # ---------------------------------------------------------------- guard counts
 def strip_comments(src):
@@ -522,7 +559,7 @@ MODS=["spec/lean/v3/NearSpecV3/ChunkValidationD2.lean","spec/lean/v3/NearSpecV3/
  "spec/lean/v3/NearSpecV3/ChunkValidationV0a.lean","spec/lean/v3/NearSpecV3/D3/FunctionCall.lean",
  "spec/lean/v3/NearSpecV3/Wasm/Prepare.lean","spec/lean/v3/NearSpecV3/Wasm/Exec.lean",
  "spec/lean/v3/NearSpecV3/Wasm/Validate.lean","spec/lean/v3/NearSpecV3/Wasm/FiniteWasm.lean",
- "spec/lean/v3/NearSpecV3/Wasm/DomainD3.lean","spec/lean/v3/NearSpecV3/Wasm/Host.lean",
+ "spec/lean/v3/NearSpecV3/ReshardingD3.lean","spec/lean/v3/NearSpecV3/Wasm/Host.lean",
  "spec/lean/v3/NearSpecV3/Wasm/Syntax.lean","spec/lean/v3/NearSpecV3/Wasm/Decode.lean",
  "spec/lean/v3/NearSpecV3/Wasm/Segment.lean","spec/lean/v3/NearSpecV3/Wasm/TrieStore.lean",
  "spec/lean/v3/NearSpecV3/Wasm/ChunkStorage.lean","spec/lean/v3/NearSpecV3/Wasm/Machine.lean",
@@ -580,9 +617,13 @@ def sections():
         "oracle_marks": [dict(tag=t, counts=dict(c), total=n, nearcore_fact=f,
                               lean_guards=g, mapping=m, note=note)
                          for t,c,n,f,g,m,note in ORACLE],
-        "exclusion_classification": [dict(exclusion=e, classification=c, justification=j, owner=l)
+        "exclusion_classification": [dict(exclusion=e, classification=c, justification=j, owner=l,
+                                          now=EXCL_NOW[e])
                                      for e,c,j,l in EXCL],
-        "unresolved_boundary_questions": [dict(id=i, question=q, owner=l, why=w) for i,q,l,w in UQ],
+        "unresolved_boundary_questions": [dict(id=i, question=q, owner=l, why=w,
+                                               disposition=UQ_DISPOSITION[i][0],
+                                               disposition_detail=UQ_DISPOSITION[i][1] + " (" + OM + ")")
+                                          for i,q,l,w in UQ],
         "guards_per_module": GUARDS,
         "called_vs_imported_hosts": {
             "answer": "Under RuntimeD3 exclusion triggers on a CALL, not on an import.",

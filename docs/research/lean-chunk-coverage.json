@@ -11,11 +11,9 @@
     "nearcore": "imports link at instantiation (wasmtime_runner/mod.rs:1127-1155); only a call runs External code"
   },
   "counts": {
-    "implemented": 147,
-    "impossible-at-boundary": 11,
-    "missing": 2,
-    "partial": 26,
-    "validated": 36
+    "implemented": 150,
+    "impossible-at-boundary": 14,
+    "validated": 61
   },
   "evidence": "static reconciliation of pinned nearcore git objects against Lean dispatch tables; no execution, differential testing or proof",
   "exclusion_classification": [
@@ -23,60 +21,70 @@
       "classification": "unimplemented",
       "exclusion": "e.float",
       "justification": "PV86 contracts may contain floats: wasmparser features enable MVP floats and saturating float-to-int (`runtime/near-vm-runner/src/features.rs:47-59`, `SATURATING_FLOAT_TO_INT=true`). Lean rejects them at preparation (`Wasm/Prepare.lean:205,234,315`). 160 protocol-valid cases excluded.",
+      "now": "decided on allFeatures (floats); signed tier excludes (150 census claims; 279 of mainnet shard 13's 1,223 chunks)",
       "owner": "L2"
     },
     {
       "classification": "implemented on the widening tree",
       "exclusion": "e.secp",
       "justification": "SECP256K1 is a live key type and Delegate signature scheme at PV86 (`core/crypto/src/signature.rs:250-257`; `KeyType::SECP256K1`). The W06 widening replaces the `D2/actDelegate` throw with `Secp256k1.verify`, so all 41 protocol-valid cases decide: 41/41 accept at `allFeatures`, 35 accept at `signed` (6 excluded for unrelated guards). Note this is NOT successor-only: `actDelegate` is shared with `checkD3`, so the signed tier moved 35 verdicts `out_of_domain \u2192 accept`.",
+      "now": "decided on both tiers since the UQ-010 secp strengthening",
       "owner": "L3"
     },
     {
       "classification": "unimplemented",
       "exclusion": "e.mldsa_key",
       "justification": "ML-DSA-65 is enabled at PV85 (`core/primitives-core/src/version.rs:414,567`; `85.yaml` adds `ml_dsa_65_verification_cost`). Lean treats ML-DSA keys/signatures as `w.shape` (`D2/Types.lean:34-35,46`); 118 protocol-valid cases excluded.",
+      "now": "decided on allFeatures (ML-DSA-65 implemented, mldsa-fixtures); signed tier excludes (260 census claims)",
       "owner": "L3"
     },
     {
       "classification": "unimplemented",
       "exclusion": "w.shape",
       "justification": "Global contracts, deterministic state init and gas keys are live at PV83/85 (`Action` tags 9-11, `core/primitives/src/action/mod.rs:349-370`; `version.rs:553-562`; `GlobalContractDistributionNonce`, `GasKeys`). Lean rejects them at `D2/Types.lean:36-39,300-302` and `D3/FunctionCall.lean:248`; 317 protocol-valid cases excluded.",
+      "now": "decided on allFeatures (global actions validated, rows L0-action-09..11); a w.shape global_code_identity exclusion remains, unreachable (row L0-AF-global-code-identity); signed tier excludes (~303 census claims)",
       "owner": "L4"
     },
     {
       "classification": "unimplemented",
       "exclusion": "e.eth_implicit_local",
       "justification": "Legacy ETH-wallet resolution is deterministic given `chain_id` (`runtime/runtime/src/contract_code.rs:56-76`, `eth_wallet_global_contract_hash`), not random. Lean conservatively excludes it (`D3/FunctionCall.lean:236-239`); 223 protocol-valid cases excluded.",
+      "now": "decided on allFeatures (row L0-D3-006, implemented, validation gap); signed tier excludes (210)",
       "owner": "L4"
     },
     {
       "classification": "unimplemented (oracle mark defective)",
       "exclusion": "c.no_resharding",
       "justification": "Dynamic resharding is enabled at PV85 (`version.rs:342,564`); the validator has a resharding transition path (`chain_validation.rs:258-308`, `ImplicitTransitionParams::Resharding`, `reassign_outgoing_receipts_for_resharding` at :638) and mainnet genesis sets `dynamic_resharding: true` (`utils/mainnet-res/res/mainnet_genesis.json`). Lean excludes any layout change (`ChunkValidationD2.lean:140`) and any split gate (:156). The 1,127 oracle marks are a stale multi-epoch classifier: all have one layout and 700 are accepted. No genuine resharding case is in the corpus.",
+      "now": "decided on allFeatures and by the signed hand-over (row L0-resharding, validated)",
       "owner": "L6"
     },
     {
       "classification": "unimplemented",
       "exclusion": "c.not_genesis",
       "justification": "The genesis main transition is a first-class validator branch (`chain_validation.rs:403-411`, `MainTransition::Genesis`, `Chain::genesis_chunk_extra`) and claim-v3 T14 carries `genesis_chunk_extra`. Lean excludes it (`ChunkValidationD2.lean:176`); 137 protocol-valid cases excluded.",
+      "now": "decided on allFeatures (row L0-genesis-main-transition, validated); signed tier excludes (137)",
       "owner": "L9"
     },
     {
       "classification": "capacity choice, not a boundary condition",
       "exclusion": "e.g_alpha",
       "justification": "`G_\u03b1` is a prover table-size cap (`D3/FunctionCall.lean:389`, `D3_WASM_REQUIREMENTS.md` \u00a72.4), not a nearcore condition; nearcore accepts all 1,010 tagged chunks. A chunk above `G_\u03b1` is protocol-valid.",
+      "now": "lifted on allFeatures (gasCap := none) and on the signed hand-over path; the signed core keeps G_\u03b1 (847)",
       "owner": "L1"
     },
     {
       "classification": "partly impossible-at-boundary, partly unimplemented",
       "exclusion": "e.code_cache",
       "justification": "nearcore's verdict depends on the compiled-contract cache (`oracle/v3-d3/src/d3judge.rs` ColdCache; `function_call.rs:355-393` records the access, `pipelining.rs:323-374` may reuse a preparation). For a *rolled-back* in-chunk deploy the verdict is genuinely cache-dependent, so no cache-independent relation can decide it. For a *committed* deploy the deploy tracker serves the code deterministically (`contract.rs:42-131`), so those 169 cold-accepted cases are decidable; Lean's blanket rule (`D3/FunctionCall.lean:268-275`) excludes them anyway.",
+      "now": "decided on allFeatures except the pipeline race (e.code_prep_race, impossible-at-boundary); signed tier excludes (169)",
       "owner": "L1 + L7"
     },
     {
       "classification": "arena-format bound, not a validator condition",
       "exclusion": "c.segment",
       "justification": "The 32-block bound is a claim-size budget (`spec/claim-v3.md` \u00a75 `max_claim_bytes`), not a nearcore rule; the validator's backward walk (`chain_validation.rs:144-253`) has no such limit. Three protocol-valid claims have 41/41/43 blocks and are excluded by `ChunkValidationD2.lean:144`.",
+      "now": "lifted on allFeatures (segmentUnbounded); signed tier keeps it (3)",
       "owner": "L1"
     }
   ],
@@ -163,8 +171,8 @@
     },
     "D3/FunctionCall.lean": {
       "check": 0,
-      "decision_sites": 38,
-      "error": 9,
+      "decision_sites": 37,
+      "error": 8,
       "ood": 2,
       "throw": 29,
       "unmodeled": 22
@@ -183,6 +191,14 @@
       "error": 4,
       "ood": 17,
       "throw": 20,
+      "unmodeled": 0
+    },
+    "ReshardingD3.lean": {
+      "check": 0,
+      "decision_sites": 0,
+      "error": 0,
+      "ood": 0,
+      "throw": 0,
       "unmodeled": 0
     },
     "RuntimeD0.lean": {
@@ -215,14 +231,6 @@
       "error": 0,
       "ood": 0,
       "throw": 1,
-      "unmodeled": 0
-    },
-    "Wasm/DomainD3.lean": {
-      "check": 0,
-      "decision_sites": 0,
-      "error": 0,
-      "ood": 0,
-      "throw": 0,
       "unmodeled": 0
     },
     "Wasm/Exec.lean": {
@@ -512,10 +520,11 @@
     "claim-fact": 8,
     "d2-core": 58,
     "d3-hook": 17,
-    "domain_guard": 6,
+    "domain_guard": 5,
     "evidence": 4,
     "host": 92,
     "instruction": 2,
+    "successor-guard": 4,
     "wasm-domain": 3,
     "wasm-exec": 7,
     "wasm-prepare": 8
@@ -650,44 +659,44 @@
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (oodDeployGlobal) in checkD3/checkD2; accepted only in a widened-Base successor",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase; L4 additive bodies in D3/GlobalContractExec.lean",
+      "domain_guard": "signed tier (checkD3): out-of-domain (oodDeployGlobal) at D2.pBase; allFeatures: decoded by Successor.pBaseGlobal and executed",
+      "evidence": "DeployGlobalContract: global-cache deployments (incl. redeployment nonce) and their distribution receipts; dist-identity mutants; split crossings (resharding-fixtures-2 g61/g67). Control: C-D1/C-D2. whole-chunk fixtures: global-cache-fixtures, seeds 2718 and 31415: 978 honest chunks, 265 selected cases agree on globalActions and completeCodeGlobal (deployments incl. redeployment nonce, hash/account use+call, use+call rollback, state inits, 12 incoming distribution receipts per window); global-promise-fixtures 166/166; cross-family rollback-refund, 4 seeds (401-404); remaining-shapes state-init-emit (4 seeds, 1,595 rows) and dist-identity (8 seeds, 1,027 rows); resharding-fixtures-2 g61/g67 (deployments across a split). Breakage control: C5 (a failed action keeps its emitted receipts: 4-7 honest composition chunks per run flip), C-S (state init credits one extra yocto: 4 chunks flip), C-D1/C-D2 (distribution proofs unchecked: 110 rejection reasons move, 35 rows stop rejecting). Lean: O3 proved under LayoutsWF (an admission fact, A1): Lift.globalActions_wf, relSuccessor_globalActions_allFeatures (Successor/TierO3*.lean); 12 pinned borsh codec probes (global-cache-fixtures/codec-vectors.json). Evidence: docs/evidence/lean-chunk-completion/global-cache-fixtures/README.md, docs/evidence/lean-chunk-completion/global-promise-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/resharding-fixtures-2/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "action",
       "id": "L0-action-09",
-      "lean_path_symbol": "NearSpecV3.D3.GlobalContractExec.BaseL4",
+      "lean_path_symbol": "NearSpecV3.Successor.pBaseGlobal (allFeatures); signed tier: none (D2.pBase rejects)",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DeployGlobalContract = 9",
       "owner": "L4",
-      "remaining_work": "implemented additively (codec pDeployGlobal, storage charge `0.0001 N/byte * code.len()` = global_contract_storage_per_byte, fee, LackBalanceForState on insufficient balance, distribution receipt); whole-chunk acceptance blocked: pBase:299 rejects the tag and D2.Base is closed",
-      "status": "partial"
+      "remaining_work": "none on allFeatures. The signed tier (checkD3, D2.pBase) still excludes the tag (`oodDeployGlobal`), a stated signed-tier restriction; O3's unconditional Lift needs LayoutsWF, which admission contract A1 supplies",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (oodUseGlobal) in checkD3/checkD2; accepted only in a widened-Base successor",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase; L4 additive bodies in D3/GlobalContractExec.lean",
+      "domain_guard": "signed tier (checkD3): out-of-domain (oodUseGlobal) at D2.pBase; allFeatures: decoded by Successor.pBaseGlobal and executed",
+      "evidence": "UseGlobalContract: global-cache hash/account use+call, missing-use failure, use+call rollback; rollback-refund CreateAccount + UseGlobalContract. Control: C5. whole-chunk fixtures: global-cache-fixtures, seeds 2718 and 31415: 978 honest chunks, 265 selected cases agree on globalActions and completeCodeGlobal (deployments incl. redeployment nonce, hash/account use+call, use+call rollback, state inits, 12 incoming distribution receipts per window); global-promise-fixtures 166/166; cross-family rollback-refund, 4 seeds (401-404); remaining-shapes state-init-emit (4 seeds, 1,595 rows) and dist-identity (8 seeds, 1,027 rows); resharding-fixtures-2 g61/g67 (deployments across a split). Breakage control: C5 (a failed action keeps its emitted receipts: 4-7 honest composition chunks per run flip), C-S (state init credits one extra yocto: 4 chunks flip), C-D1/C-D2 (distribution proofs unchecked: 110 rejection reasons move, 35 rows stop rejecting). Lean: O3 proved under LayoutsWF (an admission fact, A1): Lift.globalActions_wf, relSuccessor_globalActions_allFeatures (Successor/TierO3*.lean); 12 pinned borsh codec probes (global-cache-fixtures/codec-vectors.json). Evidence: docs/evidence/lean-chunk-completion/global-cache-fixtures/README.md, docs/evidence/lean-chunk-completion/global-promise-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/resharding-fixtures-2/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "action",
       "id": "L0-action-10",
-      "lean_path_symbol": "NearSpecV3.D3.GlobalContractExec.BaseL4",
+      "lean_path_symbol": "NearSpecV3.Successor.pBaseGlobal (allFeatures); signed tier: none (D2.pBase rejects)",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:UseGlobalContract = 10",
       "owner": "L4",
-      "remaining_work": "implemented additively (codec pUseGlobal, Gci.len 32/account-id length, global-contract key read, local-code removal, storage refund); whole-chunk acceptance blocked: pBase:300 rejects the tag and D2.Base is closed",
-      "status": "partial"
+      "remaining_work": "none on allFeatures. The signed tier (checkD3, D2.pBase) still excludes the tag (`oodUseGlobal`), a stated signed-tier restriction; O3's unconditional Lift needs LayoutsWF, which admission contract A1 supplies",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (oodStateInit) in checkD3/checkD2; accepted only in a widened-Base successor",
-      "evidence": "tools/d3/lean_chunk_coverage.py action_tags vs D2/Types.lean pBase; L4 additive bodies in D3/GlobalContractExec.lean",
+      "domain_guard": "signed tier (checkD3): out-of-domain (oodStateInit) at D2.pBase; allFeatures: decoded by Successor.pBaseGlobal and executed",
+      "evidence": "DeterministicStateInit: global-cache third-party/repeated inits, missing-code and insufficient-deposit failures; state-init-emit compositions; global-promise state-init hosts. Control: C-S. whole-chunk fixtures: global-cache-fixtures, seeds 2718 and 31415: 978 honest chunks, 265 selected cases agree on globalActions and completeCodeGlobal (deployments incl. redeployment nonce, hash/account use+call, use+call rollback, state inits, 12 incoming distribution receipts per window); global-promise-fixtures 166/166; cross-family rollback-refund, 4 seeds (401-404); remaining-shapes state-init-emit (4 seeds, 1,595 rows) and dist-identity (8 seeds, 1,027 rows); resharding-fixtures-2 g61/g67 (deployments across a split). Breakage control: C5 (a failed action keeps its emitted receipts: 4-7 honest composition chunks per run flip), C-S (state init credits one extra yocto: 4 chunks flip), C-D1/C-D2 (distribution proofs unchecked: 110 rejection reasons move, 35 rows stop rejecting). Lean: O3 proved under LayoutsWF (an admission fact, A1): Lift.globalActions_wf, relSuccessor_globalActions_allFeatures (Successor/TierO3*.lean); 12 pinned borsh codec probes (global-cache-fixtures/codec-vectors.json). Evidence: docs/evidence/lean-chunk-completion/global-cache-fixtures/README.md, docs/evidence/lean-chunk-completion/global-promise-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/resharding-fixtures-2/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "action",
       "id": "L0-action-11",
-      "lean_path_symbol": "NearSpecV3.D3.GlobalContractExec.BaseL4",
+      "lean_path_symbol": "NearSpecV3.Successor.pBaseGlobal (allFeatures); signed tier: none (D2.pBase rejects)",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "core/primitives/src/action/mod.rs:DeterministicStateInit = 11",
       "owner": "L4",
-      "remaining_work": "implemented additively (codec pDsi, deterministic account id `sha256`-based derivation, 0-balance/100-usage account, storage charge); whole-chunk acceptance blocked: pBase:302 rejects the tag and D2.Base is closed",
-      "status": "partial"
+      "remaining_work": "none on allFeatures. The signed tier (checkD3, D2.pBase) still excludes the tag (`oodStateInit`), a stated signed-tier restriction; O3's unconditional Lift needs LayoutsWF, which admission contract A1 supplies",
+      "status": "validated"
     },
     {
       "acceptance_tests": "1 valid + 1 invalid whole-chunk case per tag",
@@ -776,44 +785,44 @@
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-alt_bn128_g1_multiexp",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.alt_bn128_g1_multiexp (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"alt_bn128_g1_multiexp\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::alt_bn128_g1_multiexp",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (14 fixture steps: 6 pos / 8 neg / 0 edge, over 9 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-alt_bn128_g1_sum",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.alt_bn128_g1_sum (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"alt_bn128_g1_sum\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::alt_bn128_g1_sum",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (13 fixture steps: 6 pos / 7 neg / 0 edge, over 8 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-alt_bn128_pairing_check",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.alt_bn128_pairing_check (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"alt_bn128_pairing_check\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::alt_bn128_pairing_check",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (12 fixture steps: 5 pos / 7 neg / 0 edge, over 7 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -860,128 +869,128 @@
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_g1_multiexp",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_g1_multiexp (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_g1_multiexp\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_g1_multiexp",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (11 fixture steps: 4 pos / 5 neg / 2 edge, over 7 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_g2_multiexp",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_g2_multiexp (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_g2_multiexp\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_g2_multiexp",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (9 fixture steps: 3 pos / 5 neg / 1 edge, over 7 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_map_fp2_to_g2",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_map_fp2_to_g2 (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_map_fp2_to_g2\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_map_fp2_to_g2",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (6 fixture steps: 3 pos / 3 neg / 0 edge, over 5 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_map_fp_to_g1",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_map_fp_to_g1 (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_map_fp_to_g1\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_map_fp_to_g1",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (6 fixture steps: 3 pos / 3 neg / 0 edge, over 6 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_p1_decompress",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_p1_decompress (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_p1_decompress\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_p1_decompress",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (10 fixture steps: 3 pos / 5 neg / 2 edge, over 9 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_p1_sum",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_p1_sum (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_p1_sum\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_p1_sum",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (15 fixture steps: 4 pos / 9 neg / 2 edge, over 11 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_p2_decompress",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_p2_decompress (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_p2_decompress\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_p2_decompress",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (8 fixture steps: 3 pos / 4 neg / 1 edge, over 4 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_p2_sum",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_p2_sum (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_p2_sum\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_p2_sum",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (11 fixture steps: 4 pos / 6 neg / 1 edge, over 8 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-bls12381_pairing_check",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.bls12381_pairing_check (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"bls12381_pairing_check\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::bls12381_pairing_check",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (13 fixture steps: 5 pos / 8 neg / 0 edge, over 7 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1042,16 +1051,16 @@
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-ecrecover",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.ecrecover (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"ecrecover\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::ecrecover",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (8 fixture steps: 2 pos / 6 neg / 0 edge, over 4 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -1168,16 +1177,16 @@
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (curveHosts) in D3\u03b1; modelled in the D3\u03b3 table",
-      "evidence": "tools/d3/lean_chunk_coverage.py env_imports vs Wasm/Host.lean and Wasm/CryptoHost.lean arms",
+      "domain_guard": "signed tier (checkD3): out-of-domain on a call (e.wasm-\u03b1; import allowed); allFeatures: dispatched through cryptoHostCall (St.curveHosts)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "host",
       "id": "L0-host-p256_verify",
-      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.p256_verify (successor table); D3\u03b1: none",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall \"p256_verify\" (allFeatures); signed tier: none",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:env::p256_verify",
       "owner": "L3",
-      "remaining_work": "successor-domain host semantics exists (Wasm/CryptoHost.lean); D3\u03b1 still reports it out of domain (Host.hostCall has no arm), and no whole-chunk case runs it \u2014 see docs/research/lean-chunk-crypto-L3.md",
-      "status": "partial"
+      "remaining_work": "none on allFeatures (13 fixture steps: 2 pos / 9 neg / 2 edge, over 7 honest chunks of seed 4242). The breakage controls are family-level, not per host. The signed tier (checkD3) still excludes a call (`e.wasm-\u03b1`, Host.hostCall has no arm), a stated signed-tier restriction",
+      "status": "validated"
     },
     {
       "acceptance_tests": "positive/negative host vector plus exact gas through a real chunk",
@@ -2037,7 +2046,7 @@
       "acceptance_tests": "signed zero, subnormal, infinity, NaN payload and rounding-tie cases per opcode",
       "dependencies": "L0",
       "domain_guard": "none under NearCfg.floats (default false)",
-      "evidence": "Wasm/Float.lean decides all 70 float opcodes with no immediates (comparisons, abs/neg/ceil/floor/trunc/nearest/sqrt, add/sub/mul/div/min/max/copysign, the 8 trapping and 8 saturating truncations, 10 converts, demote/promote, 4 reinterprets) plus loads/stores/consts in Exec.lean; D3\u03b1 keeps them out of domain via NearCfg.floats = false",
+      "evidence": "Wasm/Float.lean decides all 70 float opcodes with no immediates (comparisons, abs/neg/ceil/floor/trunc/nearest/sqrt, add/sub/mul/div/min/max/copysign, the 8 trapping and 8 saturating truncations, 10 converts, demote/promote, 4 reinterprets) plus loads/stores/consts in Exec.lean; the signed tier keeps them out of domain via NearCfg.floats = false",
       "family": "instruction",
       "id": "L0-instr-float",
       "lean_path_symbol": "NearSpecV3.Wasm.evalFloatOp",
@@ -2058,7 +2067,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "prepare_v3.rs:303-333 (transform_import_section)",
       "owner": "L2",
-      "remaining_work": "implemented and directed-tested (oracle/wasm-d3/tests/float_prepare.py: an import-only f32 and f64 signature, exact gas against nearcore); D3alpha is unchanged because NearCfg.floats defaults to false",
+      "remaining_work": "implemented and directed-tested (oracle/wasm-d3/tests/float_prepare.py: an import-only f32 and f64 signature, exact gas against nearcore); the signed tier is unchanged because NearCfg.floats defaults to false",
       "status": "implemented"
     },
     {
@@ -2100,83 +2109,69 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "Exec.lean; Validate.lean; FiniteWasm.lean",
       "owner": "L2",
-      "remaining_work": "all four sites implemented; whole-chunk coverage still uses one float contract; the D3alpha relation is unchanged (checkD3F is a separate entry point)",
+      "remaining_work": "all four sites implemented; whole-chunk coverage still uses one float contract; the signed relation is unchanged (checkD3F is a separate entry point)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "witness that the guard rejects exactly the excluded set and nothing else",
       "dependencies": "L0",
-      "domain_guard": "this guard *is* the exclusion",
-      "evidence": "tools/d3/lean_chunk_coverage.py domain_guards",
-      "family": "domain_guard",
-      "id": "L0-guard-contractInD3alpha",
-      "lean_path_symbol": "NearSpecV3.Wasm.DomainD3.contractInD3alpha",
-      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "chunk_validation: contractInD3alpha",
-      "owner": "L0",
-      "remaining_work": "guard presence only; rejection completeness not re-derived here",
-      "status": "implemented"
-    },
-    {
-      "acceptance_tests": "witness that the guard rejects exactly the excluded set and nothing else",
-      "dependencies": "L0",
-      "domain_guard": "this guard *is* the exclusion",
+      "domain_guard": "this guard *is* the exclusion (signed tier)",
       "evidence": "tools/d3/lean_chunk_coverage.py domain_guards",
       "family": "domain_guard",
       "id": "L0-guard-curveHosts",
-      "lean_path_symbol": "NearSpecV3.Wasm.DomainD3.curveHosts",
+      "lean_path_symbol": "NearSpecV3.Wasm.curveHosts",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation: curveHosts",
       "owner": "L0",
-      "remaining_work": "guard presence only; rejection completeness not re-derived here",
+      "remaining_work": "guard presence only; rejection completeness not re-derived here. signed-tier list of the 14 curve hosts a call of which is out of domain; allFeatures dispatches them (rows L0-host-*)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "witness that the guard rejects exactly the excluded set and nothing else",
       "dependencies": "L0",
-      "domain_guard": "this guard *is* the exclusion",
+      "domain_guard": "this guard *is* the exclusion (signed tier)",
       "evidence": "tools/d3/lean_chunk_coverage.py domain_guards",
       "family": "domain_guard",
       "id": "L0-guard-floatOutOfDomain",
-      "lean_path_symbol": "NearSpecV3.Wasm.DomainD3.floatOutOfDomain",
+      "lean_path_symbol": "NearSpecV3.Wasm.floatOutOfDomain",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation: floatOutOfDomain",
       "owner": "L0",
-      "remaining_work": "guard presence only; rejection completeness not re-derived here",
+      "remaining_work": "guard presence only; rejection completeness not re-derived here. signed-tier preparation guard, switchable by NearCfg.floats; allFeatures sets floats (rows L0-W-001..003)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "witness that the guard rejects exactly the excluded set and nothing else",
       "dependencies": "L0",
-      "domain_guard": "this guard *is* the exclusion",
+      "domain_guard": "this guard *is* the exclusion (signed tier)",
       "evidence": "tools/d3/lean_chunk_coverage.py domain_guards",
       "family": "domain_guard",
       "id": "L0-guard-noResharding",
-      "lean_path_symbol": "NearSpecV3.Wasm.DomainD3.noResharding",
+      "lean_path_symbol": "NearSpecV3.Wasm.noResharding",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation: noResharding",
       "owner": "L0",
-      "remaining_work": "guard presence only; rejection completeness not re-derived here",
+      "remaining_work": "guard presence only; rejection completeness not re-derived here. describes the legacy core's (D3.checkD3Core) two resharding guards; it is not a domain condition of RelD3 (the signed hand-over decides such claims) nor of allFeatures (ReshardCore decides them). Lives in ReshardingD3.lean",
       "status": "implemented"
     },
     {
       "acceptance_tests": "genesis B2 with a nonempty witness plus a genesis header negative",
       "dependencies": "L0",
-      "domain_guard": "domain extended: genesis B2 is decided, not refused",
-      "evidence": "GenesisD3.lean models the genesis main transition; 137/137 recorded genesis-B2 cases accept, matching meta.json expected_rel; 16 directed negatives fire their intended checks",
+      "domain_guard": "allFeatures: decided (genesisMainTransition); signed tier (checkD3): out of domain (c.not_genesis)",
+      "evidence": "whole-chunk fixtures: UQ-017: 266/266 genesis-main corpus chunks accept/accept on allFeatures; cross-family genesis-tx, 4 seeds (501-504, 3 chains each): 60 genesis-B2 chunks with full mutant sets, 8,149 rows, 0 disagreements. Breakage control: C3 (genesis-B2 last-chunk transaction root unchecked: 15 `g.tx_in_genesis_chunk` mutants per run accepted against nearcore's reject). Lean: Successor/RuntimeCore.lean checkD2CoreGWith (genesis branch: the non-genesis comparison set against the stored genesis chunk extra, tx_valid all-1); GenesisD3.checkD3G; tier-lift/genesis-overlap theorems. Evidence: docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md",
       "family": "boundary",
       "id": "L0-genesis-main-transition",
-      "lean_path_symbol": "NearSpecV3.checkD3G",
+      "lean_path_symbol": "NearSpecV3.Successor.checkD2CoreGWith (allFeatures, genesisMainTransition); NearSpecV3.checkD3G",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation.rs:403-413 MainTransition::Genesis",
       "owner": "L6",
-      "remaining_work": "non-genesis delegation is argued by construction and measured over 115284 cases but not proved as a rewrite theorem; txValid.all is untested (no genesis case has transactions)",
-      "status": "partial"
+      "remaining_work": "none on allFeatures. Genesis-main outputs are the stored genesis chunk extra, a trusted claim fact (L0-CLAIM-008, bound by admission contract A1), so these chunks are not blind-gradable. The signed tier keeps c.not_genesis (137 census cases)",
+      "status": "validated"
     },
     {
       "acceptance_tests": "a claim whose epochs differ in layout (var/l6/mut/same_layout_broken)",
       "dependencies": "L0",
-      "domain_guard": "this guard *is* the exclusion",
+      "domain_guard": "this guard *is* the exclusion (legacy core checkD3Core only)",
       "evidence": "ReshardingD3.sameLayout_forbids_resharding: guard true => consecutive-epoch layouts equal => get_resharding_transition's layout-difference conjunct false",
       "family": "domain_guard",
       "id": "L0-same-layout",
@@ -2184,36 +2179,92 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation: c.same_layout (ChunkValidationD2.lean:140)",
       "owner": "L6",
-      "remaining_work": "an argument, not an implementation: the epoch table is taken as the layout source of truth (spec/claim-v3.md T6); no whole-witness positive crossing a real boundary exists",
+      "remaining_work": "legacy-core guard only: the signed tier hands such claims to the recorder engine (D3.withReshardHandover, precondition 1) and allFeatures decides them (Successor.checkReshardCoreObs, TrieSplit) (row L0-resharding)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "a claim carrying a mainnet-PV85-shaped split gate (var/l6/mut/split_gate_present)",
       "dependencies": "L0",
-      "domain_guard": "this guard *is* the exclusion",
-      "evidence": "ReshardingD3.noSplitGate_iff + splitGate_excludes_nonempty; splitGate_reachable_at_pv86 records that mainnet PV85 has dynamic_resharding_config (0 corpus claims carry a gate)",
+      "domain_guard": "this guard *is* the exclusion (legacy core checkD3Core only)",
+      "evidence": "ReshardingD3.noSplitGate_iff + splitGate_excludes_nonempty; splitGate_reachable_at_pv86 records that mainnet PV85 has dynamic_resharding_config, so the gate is reachable at PV86",
       "family": "domain_guard",
       "id": "L0-split-gate",
       "lean_path_symbol": "NearSpecV3.noSplitGate",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation: c.no_split_gate (ChunkValidationD2.lean:156)",
       "owner": "L6",
-      "remaining_work": "exclusion only: the gate IS reachable at PV86 on mainnet (version.rs:564 enables DynamicResharding at PV85, mainnet/85.json sets dynamic_resharding_config), so this is not a proven impossibility and D3 declines to decide such claims",
+      "remaining_work": "legacy-core guard only: the signed tier hands such claims to the recorder engine (D3.withReshardHandover, precondition 1) and allFeatures decides them (Successor.checkReshardCoreObs, TrieSplit); the split gate is recomputed by Successor/TrieSplit (check_dynamic_resharding, find_trie_split) and checked on resharding-fixtures-2 threshold gates (row L0-resharding)",
       "status": "implemented"
     },
     {
       "acceptance_tests": "validator fixture crossing a real layout boundary",
       "dependencies": "L0",
-      "domain_guard": "out-of-domain (noResharding)",
-      "evidence": "D2 excludes every layout change and split gate; L6 owns removal",
+      "domain_guard": "allFeatures: decided (resharding); signed tier (checkD3): decided through the hand-over; legacy core (checkD3Core): out of domain (c.same_layout / c.no_split_gate)",
+      "evidence": "whole-chunk fixtures: resharding-fixtures (seeds 11, 23; 6 chains): 1,087 honest PV86 witnesses all accepted, 86/86 mutants rejected, blind 1,084/1,087 (3 harness blind errors); resharding-fixtures-2 (seeds 31, 37, 41, 51, 61, 67; consecutive splits, threshold gates, two layout changes in one walk): 1,833/1,833 honest accepted, 182/182 mutants rejected, 0 disagreements, blind 1,832/1,833. Breakage control: the pre-W11 checker rejects 5 valid post-split chunks (3 implicit-transition post roots, 2 InvalidBandwidthRequests); `--ablate-reshard-handover` restores the signed-tier exclusion on every hand-over case (asserted by make d3-smoke). Lean: O6 proved at verdict level (Successor/TierO6.lean checkSuccessor_resharding_vmono); W11 split correctness (ReshardingProofs.lean retainSplit_get, splitKey_partition, splitRootE_refinedBy); kernel non-vacuity relAllFeatures_seed37_00_h10085_s7 (Examples/RealCaseD3Split*); Successor/LayoutReach.lean (a PV86 layout change is a V3 split). Evidence: docs/evidence/lean-chunk-completion/resharding-fixtures/README.md, docs/evidence/lean-chunk-completion/resharding-fixtures-2/README.md, docs/evidence/lean-chunk-completion/signed-completeness/README.md, docs/evidence/lean-chunk-completion/proof-debt/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md",
       "family": "boundary",
       "id": "L0-resharding",
-      "lean_path_symbol": "NearSpecV3.Wasm.DomainD3.noResharding",
+      "lean_path_symbol": "NearSpecV3.Successor.checkReshardCoreObs (allFeatures); signed tier: NearSpecV3.D3.withReshardHandover",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-      "nearcore_path_symbol": "validate_chunk_state_witness: layout transitions",
+      "nearcore_path_symbol": "validate_chunk_state_witness: layout transitions (get_resharding_transition, ImplicitTransitionParams::Resharding, chunk_validation.rs:258-308, 702-733)",
       "owner": "L6",
-      "remaining_work": "an actual shard-layout *transition* (split shard retained left/right, ImplicitTransitionParams::Resharding at chunk_validation.rs:702-733) is still unimplemented; only the exclusion arguments for same-layout and split-gate are in place",
-      "status": "missing"
+      "remaining_work": "none on allFeatures. Residuals: the signed hand-over's buffer-to-split-parent form has no fixture (covered by the rule and checkD3_cases; on allFeatures V3 buffer forwarding is exercised by 3 cross-layout chunks); the raw split runs of resharding-fixtures-2 are no longer on disk (committed cases remain)",
+      "status": "validated"
+    },
+    {
+      "acceptance_tests": "w08 code-cache family; corpus e.code_cache cases",
+      "dependencies": "L0",
+      "domain_guard": "allFeatures: out of domain (e.code_prep_race)",
+      "evidence": "nearcore's verdict depends on a thread race between the call's pipelined preparation and the in-chunk deploy that serves its code: no cache-independent relation can decide it (UQ-001/UQ-002). The generator labels the race by nearcore's own behaviour under two forced schedules; Lean excludes exactly the 88 races of the code-cache family and the 95 corpus races (all nearcore-rejected cold). Checked: raceExclusion_isExclusion, complete_untimely_ood. whole-chunk fixtures: UQ-002: 279/279 corpus `e.code_cache` cases decided or race-excluded, 0 disagreements (169 accept/accept, 15 reject/reject, 95 race exclusions all nearcore-rejected cold); w08 code-cache family, 5 seeds (800-804); pipeline-race-fixtures, 4 seeds, 3,853 cases. Breakage control: the pre-change completeCodeGlobal binary rejects 720 nearcore-accepted deploy-served chunks; without the pipeline rule 89 nearcore-rejected chunks are accepted (carried over in open-uqs). Lean: Successor/CodeResolution.lean (cold policy; complete_eq_cold, complete_untimely_ood, raceExclusion_isExclusion). Evidence: docs/evidence/lean-chunk-completion/w08-warm-cache/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/pipeline-race-fixtures/README.md",
+      "family": "successor-guard",
+      "id": "L0-AF-prep-race",
+      "lean_path_symbol": "NearSpecV3.Successor.CodeResolution (out of domain (e.code_prep_race))",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "runtime/runtime/src/pipelining.rs:141-315 (preparation pipeline, scheduled from lib.rs:3256-3325); wasmtime_runner/mod.rs:705-723 (compiled cache first)",
+      "owner": "L1 + L7",
+      "remaining_work": "not a Gate-B gap (nearcore nondeterminism is a named exclusion, never an accept). Residual: 27 conservative exclusions on `code.none` mutants whose nearcore verdict is reject under both schedules (only the failure point races): a decidable reject reported as excluded (w08-warm-cache \u00a74; workplan item 7 residual)",
+      "status": "impossible-at-boundary"
+    },
+    {
+      "acceptance_tests": "at/over/under 64 MiB code-response chunks",
+      "dependencies": "L0",
+      "domain_guard": "allFeatures: out of domain (w.code_response_size)",
+      "evidence": "above 64 MiB of cold-fetched code nearcore drops the ContractCodeResponse and its verdict depends on the validator's compiled cache (cold: MissingTrieValue, warm: ok). size-limit-fixtures (seed 2029): at64 accept/accept, over64 out of domain, under64 accept/accept. Evidence: docs/evidence/lean-chunk-completion/size-limit-fixtures/README.md",
+      "family": "successor-guard",
+      "id": "L0-AF-code-response",
+      "lean_path_symbol": "NearSpecV3.Successor.RuntimeCore / ReshardCore (out of domain (w.code_response_size))",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "chain/client/src/stateless_validation/contract_distribution.rs:372-373 (MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE = 64 MiB); partial_witness_tracker.rs:45-48",
+      "owner": "L5",
+      "remaining_work": "not a Gate-B gap (cache-dependent nearcore verdict). Residual: one seed, no mutants of the 64 MiB chunks (workplan item 4 residual)",
+      "status": "impossible-at-boundary"
+    },
+    {
+      "acceptance_tests": "a module that fails the certificate (none known)",
+      "dependencies": "L0",
+      "domain_guard": "allFeatures: out of domain (w.fuel_certificate) when a prepared function fails the certificate",
+      "evidence": "kept out-of-domain reason by decision (workplan, decisions in force): it makes functionCall_fuel_sufficient's CodeCertified hypothesis a checked condition; it fires on no corpus module. Evidence: docs/evidence/lean-chunk-completion/fuel-sufficiency/README.md",
+      "family": "successor-guard",
+      "id": "L0-AF-fuel-certificate",
+      "lean_path_symbol": "NearSpecV3.Successor.StorageExecution.vmCall (out of domain (e.wasm-\u03b1): w.fuel_certificate)",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "near-vm-runner gas accounting (every prepared function is gas-metered; finite-wasm)",
+      "owner": "L1",
+      "remaining_work": "not blocking by the 2026-10-31 decision; a general proof of CodeCertified would make the guard provably dead (workplan item 3 residual)",
+      "status": "implemented"
+    },
+    {
+      "acceptance_tests": "dist-identity mutants",
+      "dependencies": "L0",
+      "domain_guard": "allFeatures: out of domain (w.shape: global_code_identity)",
+      "evidence": "source-backed unreachability: every distribution receipt's CodeHash id is sha256 of its code by construction, and incoming/delayed/buffered receipts are bound by receipt proofs and the applied-receipts hash. dist-identity mutants (8 seeds, 1,027 rows, 0 disagreements); C-D2 shows the guard is reached only when both bindings are skipped. Evidence: docs/evidence/lean-chunk-completion/remaining-shapes/README.md",
+      "family": "successor-guard",
+      "id": "L0-AF-global-code-identity",
+      "lean_path_symbol": "NearSpecV3.Successor.GlobalExecution (out of domain (w.shape): global_code_identity)",
+      "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+      "nearcore_path_symbol": "runtime/runtime/src/global_contracts.rs:162-195,317-353 (distribution receipts built from the deployed code; forward copies id/code/nonce)",
+      "owner": "L4",
+      "remaining_work": "not a Gate-B gap (no valid chunk reaches it)",
+      "status": "impossible-at-boundary"
     },
     {
       "acceptance_tests": "D2 corpus 67,384/67,384 (D2 keeps allowCodes=false)",
@@ -2380,7 +2431,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation.rs:258-305 (get_resharding_transition); core/primitives/src/epoch_manager.rs:22-96 (DynamicReshardingConfig)",
       "owner": "L6",
-      "remaining_work": "the guard is now *argued* against the pinned validator rather than left as a bare exclusion; an actual shard-layout transition remains L0-resharding's work",
+      "remaining_work": "legacy-core guard (checkD3Core) only: the signed tier hands such claims to the recorder (D3.withReshardHandover) and allFeatures decides them; see L0-resharding (validated)",
       "status": "implemented"
     },
     {
@@ -2414,16 +2465,16 @@
     {
       "acceptance_tests": "extend the claim-size budget and replay the 41/43-block cases",
       "dependencies": "L1",
-      "domain_guard": "c.segment (n_blocks \u2264 32)",
-      "evidence": "D2:144 `c.blocks.length \u2264 32` | 3 corpus cases with n_blocks=41/41/43 are out of domain (`c.segment`) and nearcore accepts them | the bound is the arena claim-size budget, not a validator condition (claim-v3 \u00a75)",
+      "domain_guard": "allFeatures: lifted (no segment bound, as in nearcore); signed tier (checkD3Core): c.segment (n_blocks \u2264 32)",
+      "evidence": "whole-chunk fixtures: gate-b-caps: the 7 nearcore-valid corpus claims with > 32 blocks accept; seg29/seg30/seg31/seg32/seg70 chains (n_blocks 31-71, 1,144 honest chunks) all accept, blind match. Breakage control: the same tree without the lift (checker e3c9ff28) excludes exactly those 7 claims. Lean: ProtocolCfg.segmentUnbounded on Tier.cfg .allFeatures. Evidence: docs/evidence/lean-chunk-completion/gate-b-caps/README.md | earlier signed-tier record: D2:144 `c.blocks.length \u2264 32` | 3 corpus cases with n_blocks=41/41/43 are out of domain (`c.segment`) and nearcore accepts them | the bound is the arena claim-size budget, not a validator condition (claim-v3 \u00a75)",
       "family": "d2-core",
       "id": "L0-D2-015",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:144",
+      "lean_path_symbol": "ProtocolCfg.segmentUnbounded (Tier.cfg .allFeatures); signed: ChunkValidationD2.lean:144",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation.rs:144-253 (backward walk; no 32-block limit)",
       "owner": "L1",
-      "remaining_work": "arena-format capacity bound; 3 known protocol-valid cases excluded",
-      "status": "partial"
+      "remaining_work": "none on allFeatures. The signed tier keeps c.segment as a stated prover-capacity restriction (3 census claims with 41/41/43 blocks)",
+      "status": "validated"
     },
     {
       "acceptance_tests": "directed length mutant",
@@ -2478,7 +2529,7 @@
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chain/chain/src/runtime/mod.rs:1731-1769 (check_dynamic_resharding); core/primitives/res/epoch_configs/mainnet/85.json (dynamic_resharding_config)",
       "owner": "L6",
-      "remaining_work": "exclusion only, not a proven impossibility: D3 declines to decide gate-carrying claims; the split-gate search itself is still D-infty",
+      "remaining_work": "legacy-core guard (checkD3Core) only: gate-carrying claims are decided by the signed hand-over and by allFeatures (Successor/TrieSplit transcribes check_dynamic_resharding/find_trie_split); see L0-resharding (validated)",
       "status": "implemented"
     },
     {
@@ -2764,30 +2815,30 @@
     {
       "acceptance_tests": "construct a chunk where a receipt's recorded-size delta exceeds \u03a3 values + 2000R but stays under 4e6",
       "dependencies": "L5 | L7",
-      "domain_guard": "w.size (storage-proof upper bound)",
-      "evidence": "D2:235-237 `baseBytes + 2000 * out.cdRemovals \u2264 4000000` | doc marks the inequality unverified in the presence of contract-storage removals (spec/near-chunk-validation-d3.md \u00a710) | PV86 enforces the per-receipt limit (EnforcePerReceiptStorageProofLimit=86, version.rs:576)",
+      "domain_guard": "allFeatures: no storage-proof bound; nearcore's per-receipt limit and chunk soft limit are executed exactly. Signed tier (checkD3): the core's bound, handed to the recorder when values + code + 2000\u00b7R exceed 4,000,000 (owner map \u00a73.4 move (f))",
+      "evidence": "whole-chunk fixtures: storage-limit-fixtures, seeds 99/101: one-byte flips of the per-receipt and chunk soft limits, 3,098 cases per tier agree, blind 2,691/2,691 gradable; removal-soft (W12 \u00a716.1), 4 seeds, 7,296 cases: the recorder engine (storageResolution, used by allFeatures) has 0 disagreements. Breakage control: the legacy-engine tiers (runtimeLimits and the pre-move-(f) signed tier) disagree with nearcore on 624 of the 7,296 removal-soft cases. Lean: recorder drivers set sizeOk := true and model RecordedStorageCounter and main_storage_proof_size_soft_limit exactly; UQ-015 answered (bound sound). Evidence: docs/evidence/lean-chunk-completion/storage-limit-fixtures/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md | earlier signed-tier record: D2:235-237 `baseBytes + 2000 * out.cdRemovals \u2264 4000000` | doc marks the inequality unverified in the presence of contract-storage removals (spec/near-chunk-validation-d3.md \u00a710) | PV86 enforces the per-receipt limit (EnforcePerReceiptStorageProofLimit=86, version.rs:576)",
       "family": "d2-core",
       "id": "L0-D2-040",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:235-237",
+      "lean_path_symbol": "Successor/StorageExecution (recorder driver, sizeOk := true; per-receipt and soft limits modelled); signed: ChunkValidationD2.lean:235-237 + D3.withReshardHandover precondition 2",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/runtime/src/lib.rs:838-845; runtime/near-vm-runner/src/logic/recorded_storage_counter.rs:27; 69.yaml per_receipt_storage_proof_size_limit=4_000_000",
       "owner": "L5",
-      "remaining_work": "prove or replace the chunk-level bound; the per-receipt limit is the real boundary",
-      "status": "partial"
+      "remaining_work": "none on allFeatures. UQ-015 answered (the signed bound is sound). The narrower legacy tier runtimeLimits reports w.size on 1,580 removal-soft cases (exclusion, never an accept)",
+      "status": "validated"
     },
     {
       "acceptance_tests": "raise the cap and replay; compare with nearcore",
       "dependencies": "L1",
-      "domain_guard": "e.g_alpha",
-      "evidence": "D2:240 `out.wasmGas \u2264 cap` | 846 exact `e.g_alpha` verdicts; 1,010 oracle-tagged cases; all nearcore-accepted",
+      "domain_guard": "allFeatures: lifted (nearcore has no per-chunk function-call gas limit); signed tier (checkD3Core): e.g_alpha, lifted on the hand-over path",
+      "evidence": "whole-chunk fixtures: gate-b-caps fixture gas.above (1.8 Pgas of function-call gas in one chunk, nearcore ok) accepts, blind match; the 1,010 corpus `e.g_alpha` chunks are decided on allFeatures (pre-freeze replay: no e.g_alpha exclusion). Breakage control: the checker with gasCap = some maxGasBurnt excludes gas.above (e.g_alpha). Lean: gasCap := none on Tier.cfg .allFeatures (nearcore's max_gas_burnt is per call). Evidence: docs/evidence/lean-chunk-completion/gate-b-caps/README.md, docs/evidence/lean-chunk-completion/signed-completeness/README.md | earlier signed-tier record: D2:240 `out.wasmGas \u2264 cap` | 846 exact `e.g_alpha` verdicts; 1,010 oracle-tagged cases; all nearcore-accepted",
       "family": "d2-core",
       "id": "L0-D2-041",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/ChunkValidationD2.lean:240",
+      "lean_path_symbol": "ProtocolCfg.gasCap = none (Tier.cfg .allFeatures); signed: ChunkValidationD2.lean:240",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "arity: G_alpha is a prover cap, not a nearcore condition (D3/FunctionCall.lean:389)",
       "owner": "L0",
-      "remaining_work": "capacity choice; 1,010 protocol-valid chunks excluded",
-      "status": "partial"
+      "remaining_work": "none on allFeatures. The signed tier keeps G_\u03b1 on the core path as a stated prover-capacity restriction (847 census claims)",
+      "status": "validated"
     },
     {
       "acceptance_tests": "mutant w.main_post_root.reject 131",
@@ -3098,18 +3149,18 @@
       "status": "implemented"
     },
     {
-      "acceptance_tests": "hand-built successor case with a wallet magic hash on an ETH-implicit receiver (needs the guard parametrised, blocked by additive-only)",
+      "acceptance_tests": "a PV86 chain whose genesis holds an ETH-implicit account with a legacy magic-hash contract, called in a whole chunk; breakage control: resolveCode without the wallet redirect",
       "dependencies": "L4",
-      "domain_guard": "e.eth_implicit_local",
-      "evidence": "D3:236-239 conservatively OOD | 209 exact verdicts; the resolution is deterministic given chain_id (`eth_wallet_global_contract_hash`, lib.rs:89-105) | modelled: `Rci.resolve` (D3/GlobalContract.lean \u00a76) returns `.global (ethWalletHash chainId)` for a wallet magic hash, `.accountLocal h` otherwise; `ethWalletHash`/`walletMagicHash` recomputed from the four pinned res/*.wasm blobs and kept distinct | PROVEN BLOCKER: the delegate cannot lift this guard. `resolvedContract` only ever yields `.none`/`.local _` (`resolvedContract_local_stays_local`), and D3:236-239 rejects every `.local _` on an ETH-implicit receiver, so `guardPremise` survives the delegate (`resolveAccount_eth_local_premise_survives`). Lifting needs an edit to that guard (a `checkD3`-adjacent change), not a delegate | measured on all 539 d3c7-d3c10 OOD cases whose d3_violations contain e.eth_implicit_local or w.shape: the resolving successor `checkD3Global` returns the identical verdict and reason for all 539 (0 differences); 0 of 1,455 decoded accounts in those witnesses carry a wallet magic hash, so no corpus case exercises the redirect",
+      "domain_guard": "allFeatures: decided (a magic hash redirects to the chain's global wallet; any other local contract stays local; .legacyEthWallet unreachable at PV86); signed tier (checkD3Core): e.eth_implicit_local",
+      "evidence": "allFeatures decides the corpus `e.eth_implicit_local` claims (pre-freeze replay of all 235,716 cases: 0 disagreements with cold nearcore; its only exclusions are 95 preparation-pipeline races); UQ-007 answered: legacyWallet_unreachable_pv86, ethWallet_kind_unreachable; 7/7 wallet hashes recomputed from nearcore's embedded wasm equal Lean's, control (one flipped byte) fails. Evidence: docs/evidence/lean-chunk-completion/open-uqs/README.md",
       "family": "d3-hook",
       "id": "L0-D3-006",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/D3/FunctionCall.lean:236-239",
+      "lean_path_symbol": "NearSpecV3.Successor.StorageExecution.resolveCode (D3.L4.Rci.resolve) on allFeatures; signed: D3/FunctionCall.lean:236-240",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/runtime/src/contract_code.rs:56-76 (LegacyEthWallet / EthImplicitGlobalContract); runtime/near-wallet-contract/src/lib.rs:37-52,89-124",
       "owner": "L4",
-      "remaining_work": "parametrise D3:236-239's guard (off by default so checkD3 is unchanged) and replay a wallet-magic-hash witness; a delegate alone cannot reach the wallet branch",
-      "status": "partial"
+      "remaining_work": "validation gap: no whole-chunk fixture of an ETH-implicit account holding a legacy magic-hash contract (such accounts predate PV83, so a PV86 test chain needs them in genesis), and no whole-chunk deliberate-breakage control for the redirect. The corpus claims hold ordinary local contracts (0 of 1,455 decoded accounts carry a magic hash). The signed tier keeps e.eth_implicit_local (210 census claims)",
+      "status": "implemented"
     },
     {
       "acceptance_tests": "directed u128 overflow deposit",
@@ -3128,30 +3179,30 @@
     {
       "acceptance_tests": "hand-built witness whose receiver's account carries a `.global` contract and whose code blob is present (needs an oracle or hand-encoder path)",
       "dependencies": "L4",
-      "domain_guard": "w.shape global contract identifier",
-      "evidence": "D3:248 `_ => throw \"out of domain (w.shape): global contract identifier\"` | CORRECTION to the earlier evidence: the 89 `w.shape: UseGlobalContract action` verdicts come from the ACTION decoder (`D2/Types.lean:301`, `oodUseGlobal`), not from D3:248; D3:248 needs an account whose `Contract` is `.global`/`.byAccount`, and 0 of 1,455 decoded accounts in all 539 OOD cases have one | implemented additively: `functionCallResolved` rewrites `.global h` -> `.local h` and `.byAccount id` -> `.local` (sha256 of the `kGlobalContractCode` trie value, column 18), so D3:248's global/byAccount arm is unreachable behind it (`resolvedContract_local_of_global`, `resolvedContract_local_of_byAccount`); a missing identifier value is `invalid: StorageInconsistentState` (contract_code.rs:107-116) | not exercised end to end: no corpus case reaches D3:248 (the action decoder fires first), and no whole-chunk case with a global-contract receiver could be generated without changing oracle/v3-d3 (pinned, off-limits) | measured: `checkD3Global` vs `checkD3` agree on all 300 sampled accepted chunks and all 539 OOD cases",
+      "domain_guard": "allFeatures: decided; signed tier (checkD3Core): w.shape global contract identifier (reached only after the action decoder, which rejects tags 9-11 first)",
+      "evidence": "whole-chunk fixtures: global-cache-fixtures (seeds 2718, 31415): calls on hash- and account-identified global contracts, success and rollback, both tiers; cross-family rollback-refund (CreateAccount + UseGlobalContract by account or by hash, panicking init), 4 seeds. Breakage control: C5 (rollback-refund, 4 seeds); w08 code-cache family: the pre-change completeCodeGlobal binary rejects 720 nearcore-accepted chunks. Lean: Successor/StorageExecution.lean resolveCode (D3.L4.Rci.resolve, kGlobalContractCode). Evidence: docs/evidence/lean-chunk-completion/global-cache-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/w08-warm-cache/README.md | earlier signed-tier record: D3:248 `_ => throw \"out of domain (w.shape): global contract identifier\"` | CORRECTION to the earlier evidence: the 89 `w.shape: UseGlobalContract action` verdicts come from the ACTION decoder (`D2/Types.lean:301`, `oodUseGlobal`), not from D3:248; D3:248 needs an account whose `Contract` is `.global`/`.byAccount`, and 0 of 1,455 decoded accounts in all 539 OOD cases have one | implemented additively: `functionCallResolved` rewrites `.global h` -> `.local h` and `.byAccount id` -> `.local` (sha256 of the `kGlobalContractCode` trie value, column 18), so D3:248's global/byAccount arm is unreachable behind it (`resolvedContract_local_of_global`, `resolvedContract_local_of_byAccount`); a missing identifier value is `invalid: StorageInconsistentState` (contract_code.rs:107-116) | not exercised end to end: no corpus case reaches D3:248 (the action decoder fires first), and no whole-chunk case with a global-contract receiver could be generated without changing oracle/v3-d3 (pinned, off-limits) | measured: `checkD3Global` vs `checkD3` agree on all 300 sampled accepted chunks and all 539 OOD cases",
       "family": "d3-hook",
       "id": "L0-D3-008",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/D3/FunctionCall.lean:248",
+      "lean_path_symbol": "NearSpecV3.Successor.StorageExecution.resolveCode (.global codeHash/accountId, kGlobalContractCode) on allFeatures; signed: D3/FunctionCall.lean:248",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/runtime/src/contract_code.rs:39-95 (RuntimeContractIdentifier::resolve); trie_key.rs:133-143 (kGlobalContractCode)",
       "owner": "L4",
-      "remaining_work": "whole-chunk case with a global-contract receiver; the delegate closes D3:248 but no witness exercises it",
-      "status": "partial"
+      "remaining_work": "none on allFeatures; the signed tier keeps the w.shape exclusion",
+      "status": "validated"
     },
     {
       "acceptance_tests": "split the 279 cases by committed vs rolled-back deploy; replay cold validator",
       "dependencies": "L1 | L7",
-      "domain_guard": "e.code_cache",
-      "evidence": "D3:252-275: no witness blob + pre-state hash => OOD if the same code was ever deployed in-chunk; else MissingTrieValue | 279 exact OOD verdicts; cold validator accepts 169 and rejects 110 | the rule does not distinguish committed from rolled-back deploys: a committed deploy is served deterministically by `ContractsTracker` (contract.rs:104-131), so the 169 cold-accept cases are protocol-valid witnesses excluded by the relation",
+      "domain_guard": "allFeatures: committed and rolled-back same-code deploys decided; only the preparation-pipeline race is excluded (e.code_prep_race, row L0-AF-prep-race). Signed tier (checkD3Core): e.code_cache",
+      "evidence": "whole-chunk fixtures: UQ-002: 279/279 corpus `e.code_cache` cases decided or race-excluded, 0 disagreements (169 accept/accept, 15 reject/reject, 95 race exclusions all nearcore-rejected cold); w08 code-cache family, 5 seeds (800-804); pipeline-race-fixtures, 4 seeds, 3,853 cases. Breakage control: the pre-change completeCodeGlobal binary rejects 720 nearcore-accepted deploy-served chunks; without the pipeline rule 89 nearcore-rejected chunks are accepted (carried over in open-uqs). Lean: Successor/CodeResolution.lean (cold policy; complete_eq_cold, complete_untimely_ood, raceExclusion_isExclusion). Evidence: docs/evidence/lean-chunk-completion/w08-warm-cache/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/pipeline-race-fixtures/README.md | earlier signed-tier record: D3:252-275: no witness blob + pre-state hash => OOD if the same code was ever deployed in-chunk; else MissingTrieValue | 279 exact OOD verdicts; cold validator accepts 169 and rejects 110 | the rule does not distinguish committed from rolled-back deploys: a committed deploy is served deterministically by `ContractsTracker` (contract.rs:104-131), so the 169 cold-accept cases are protocol-valid witnesses excluded by the relation",
       "family": "d3-hook",
       "id": "L0-D3-009",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/D3/FunctionCall.lean:252-275",
+      "lean_path_symbol": "NearSpecV3.Successor.CodeResolution (cold policy) on allFeatures; signed: D3/FunctionCall.lean:252-275",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/runtime/src/contract.rs:104-131; contract.rs:42-69 (ContractsTracker); function_call.rs:355-393",
       "owner": "L1",
-      "remaining_work": "narrow e.code_cache to rolled-back deploys only; see UQ-008",
-      "status": "partial"
+      "remaining_work": "none on allFeatures beyond row L0-AF-prep-race. The signed tier keeps e.code_cache (169 census claims)",
+      "status": "validated"
     },
     {
       "acceptance_tests": "mutant code.drop.reject 662 | mutant code.none.reject 150",
@@ -3408,44 +3459,44 @@
     {
       "acceptance_tests": "replay d3curve run/cb",
       "dependencies": "L3",
-      "domain_guard": "curve host functions",
-      "evidence": "`curveHosts` 14 names; `hostCall` has none; call => `unmodeled ... not modelled` => OOD | 244 exact verdicts",
+      "domain_guard": "allFeatures: dispatched; signed tier (checkD3): a call is out of domain (e.wasm-\u03b1)",
+      "evidence": "whole-chunk fixtures: curve-host-fixtures: 149 steps calling all 14 hosts (pos/neg/edge inputs, memory/register/out-of-bounds sources), seeds 4242 and 31337: 111/111 and 118/118 verdicts agree with cold nearcore, blind 87/87 and 94/94; cross-family curve-callbacks, 8 seeds (201-204, 211-214), 9,643 rows, 0 disagreements; remaining-shapes curve-yield-timeout, 4 seeds (601-604), 1,500 rows, 0 disagreements. Breakage control: family-level: the pre-fix BLS Miller-loop checker rejects 2 honest chunks per run (curve-host-fixtures replay/control-prefix-*); C2 BLS-writer element charge (45/45 honest chunks flip); C-Y timed-out-yield callback result. Lean: O2 proved: Lift.curveHosts, relSuccessor_storageResolution_curveHosts (Successor/TierO2.lean); UQ-004: 32/32 PV86 crypto costs and flags pinned. Evidence: docs/evidence/lean-chunk-completion/curve-host-fixtures/README.md, docs/evidence/lean-chunk-completion/cross-family-fixtures/README.md, docs/evidence/lean-chunk-completion/remaining-shapes/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md, docs/evidence/lean-chunk-completion/tier-refinement-w12/README.md | earlier signed-tier record: `curveHosts` 14 names; `hostCall` has none; call => `unmodeled ... not modelled` => OOD | 244 exact verdicts",
       "family": "wasm-exec",
       "id": "L0-W-015",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/Wasm/Exec.lean:430-434",
+      "lean_path_symbol": "NearSpecV3.Wasm.CryptoHost.cryptoHostCall (allFeatures, St.curveHosts); signed: Wasm/Exec.lean curveHosts (no Host.hostCall arm)",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/near-vm-runner/src/imports.rs:354-368 (curve host table)",
       "owner": "L3",
-      "remaining_work": "implement alt_bn128/BLS12-381/ecrecover/p256_verify",
-      "status": "missing"
+      "remaining_work": "none on allFeatures (per-host rows L0-host-*); breakage controls are family-level. The signed tier keeps the call exclusion (245 census claims)",
+      "status": "validated"
     },
     {
-      "acceptance_tests": "prove `checkD3 => noResharding` or delete the duplicate",
+      "acceptance_tests": "prove `checkD3 => noResharding` or delete the duplicate (done: retired)",
       "dependencies": "L1",
-      "domain_guard": "noResharding (stated predicate)",
-      "evidence": "DomainD3.lean:23 `noResharding`; 34 `noResharding_spec` | NOT called by checkD3 (no use outside DomainD3.lean); checkD2Core enforces its own c.same_layout/c.no_split_gate",
+      "domain_guard": "none: a description of the legacy core's guards, not a domain condition",
+      "evidence": "UQ-010 closed 2026-10-29 (owner map \u00a73.4 (d)): the parallel predicate module was retired; `noResharding` moved to ReshardingD3.lean as the description of D3.checkD3Core's c.same_layout/c.no_split_gate guards. The statement of record (D3.checkD3) decides claims that fail it (D3.withReshardHandover; checkD3_cases) and allFeatures decides them (row L0-resharding)",
       "family": "wasm-domain",
       "id": "L0-W-016",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/Wasm/DomainD3.lean:23-39",
+      "lean_path_symbol": "spec/lean/v3/NearSpecV3/ReshardingD3.lean:80 `noResharding`, `noResharding_spec`",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "chunk_validation.rs:258-308 (get_resharding_transition)",
       "owner": "L1",
-      "remaining_work": "wire or remove the parallel predicate (UQ-010)",
-      "status": "partial"
+      "remaining_work": "none (retired as a domain predicate)",
+      "status": "implemented"
     },
     {
-      "acceptance_tests": "import-only curve case: contractInD3\u03b1=false but checkD3 accepts",
+      "acceptance_tests": "import-only curve case accepted (L0-W-010)",
       "dependencies": "L1",
-      "domain_guard": "contractInD3\u03b1 (stated predicate)",
-      "evidence": "DomainD3.lean:59 `contractInD3\u03b1` checks curve *imports*; the checker deliberately allows imports (P3) | NOT called by checkD3",
+      "domain_guard": "none",
+      "evidence": "UQ-010 closed 2026-10-29 (owner map \u00a73.4 (d)): contractInD3\u03b1 excluded a contract that merely imports a curve host, while every checker excludes only a call, so it described no checker and was dropped. The import/call behaviour is row L0-W-010 (192 import-only cases)",
       "family": "wasm-domain",
       "id": "L0-W-017",
-      "lean_path_symbol": "spec/lean/v3/NearSpecV3/Wasm/DomainD3.lean:59-66",
+      "lean_path_symbol": "none (contractInD3\u03b1 dropped); the call-vs-import gate is Wasm/Exec.lean runCall and D3/FunctionCall.lean contractOOD (row L0-W-010)",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "prepare_v3.rs (imports)",
       "owner": "L1",
-      "remaining_work": "the stated predicate is stricter than the implementation; reconcile (UQ-010)",
-      "status": "partial"
+      "remaining_work": "none (retired)",
+      "status": "implemented"
     },
     {
       "acceptance_tests": "decode f32/f64",
@@ -3632,30 +3683,34 @@
   ],
   "schema": "near-lean-chunk-coverage-v2",
   "source_sha256": {
-    "ChallengeChunkV3Float.lean": "c4732c25fe30d47bfa63d54087c7a6863b2064044d0a3f934ed44e8b55c3aefb",
+    "ChallengeChunkV3Float.lean": "b792cd327f09e02ef2e307b64e4c1613276c68b745a46064493aa7b4e0049b0c",
     "ChunkValidationD1.lean": "eb1c92ed716fd19c219966a67915272f8bcbf8ec9d7f68584a2de1bb21119c12",
     "ChunkValidationD1a.lean": "5c3ee8da7e308d42fd91c47dc28f62d3de69e41cd9ec753abe30561936cd38ec",
-    "ChunkValidationD2.lean": "6266c00ab69c38c650ef8f7c9c2eda93cc8c11936bd6f83a9e2a407a7fc16c45",
+    "ChunkValidationD2.lean": "b4309463e49b4d06b242c4d0eceb8ef6f20eceb4e3f85c0f27030e63e3dca978",
     "ChunkValidationV0.lean": "14e583273dc7726c40f0b2862cf90742f1a78dcce9e8f9267e33b993d66a2b15",
     "D2/Actions.lean": "f2c5dd0b17aff11363b254d91ff7646c4e911e6cbd463948e9c4d98419e1fd99",
     "D2/Queues.lean": "65ac3c62d36102eb9d26836723b8047c4df3afbedee43d79a572fed8b5385c33",
     "D2/Receipts.lean": "3f90a42ee805df998cb894b38ff94634b8e38bc19a5fcbf25360c21e6fac5c15",
     "D2/TxD2.lean": "5d3a1c6bb1d0339d56a28e3bdd72d9496ccb890288e6ba4e990b4cbd5b8d1edf",
-    "D2/Types.lean": "3c232838c7063e85b6991ea703499bbcc43e670a23bf3b857aebd18534a71f4d",
-    "D3/FunctionCall.lean": "3405a4be6880dac642bdf59b758f0fc5863527a48de4ec84b392e18c00c57f21",
+    "D2/Types.lean": "d4f4c527c2b7395f95a0a983942fa7c396db4321a48dd84e209911b03e9f320b",
+    "D3/FunctionCall.lean": "86d1b95a4038b06bbd83f669211c2b4c0a59b4ca4ba6fbc6641ae7dc2e117faf",
+    "D3/Signed.lean": "eb0a9533917f034c815382c209caf1310e97db2b1708e7411f25a738c80d09d0",
+    "GenesisD3.lean": "4a4cd7fd70620660c61048dc20ebc9f2298502e18c14c4ef9db39d03c1d7e588",
     "Layout.lean": "d218a804c292cba418493dc8657853e30947747a2afb7740e7a7229980841511",
+    "ReshardingD3.lean": "7c660a0b6f5587992284d801c5633c3fe300f3816f4a30df2de0b9f059938bc6",
+    "Successor/Config.lean": "ebea5d51bb51007e303ffbcb4c278a3c5a00c9031a3ebad7fefc2524661ac632",
+    "Successor/GlobalCodecs.lean": "b770561ba19dcc11263be1b949ccd509b2d1d2706a5a421863ec232080a1f8d5",
     "Wasm/CryptoHost.lean": "fd50912abbd3b9fef62f074287e49c63205008f218952e1119b8180c6230a06e",
     "Wasm/Decode.lean": "a5e7c1715c7bd88b78798c869f92dec166970fd8c16d68542caf9c6ab2143e73",
-    "Wasm/DomainD3.lean": "bfa5fecf313275e486e0d5c549e3b53403453c560c4e9c5c4b43c65c8fe40714",
     "Wasm/Exec.lean": "c61ae8e7d27936d955a1c36f743f08a0133fceaf0be459792191c60d59470a66",
     "Wasm/Float.lean": "752cd8be5e1903e40f65667a2dc57a4857d60280a1a314804d40553dee9b1ba7",
     "Wasm/FloatTests.lean": "a7735325dade0120d4909033747c516727655e0e01853c11be183d5c0334287a",
     "Wasm/Host.lean": "f9b4bf236e2fd6a3efe2173d02c81c156779affa9920783d38dc300f4eb0b44c",
     "Wasm/InstanceLayout.lean": "6845ded34d20d4602940646aa9f87e99eebe90fb304653edcda1b456031adc0b",
-    "Wasm/Prepare.lean": "14074c871634ca0f5d2d6b868300aefde05812c92007bba26aa590eabeef81a0",
+    "Wasm/Prepare.lean": "2e27d94d531ba33a53dcd1d8418388cbdd988d02a7fd8316199e40ed364d5f95",
     "Wasm/Syntax.lean": "0dabce5421836280a88ab68f5f22d888e3d75b3e988f0990eefe15d87c002095",
     "Wasm/TrieStore.lean": "433092ea23c220e3cd896123667f7ca63c0124719ff633820ce366eb3c2d3acb",
-    "Wire.lean": "c5a197a50b8ddd332b05d2826ad01e8b56e3f35ffcd90a688851ef2d09406302"
+    "Wire.lean": "0549fa6a2e6c4169a1bfbc3def662c0ef34932236ae04c4561fd8b7b541f3b7e"
   },
   "totals": {
     "lean_crypto_host_arms": 14,
@@ -3664,106 +3719,140 @@
     "lean_numeric_opcodes": 134,
     "nearcore_action_tags": 15,
     "nearcore_env_imports": 92,
-    "rows": 222
+    "rows": 225
   },
   "unresolved_boundary_questions": [
     {
+      "disposition": "resolved 2026-10-29 (W08)",
+      "disposition_detail": "the relation is the cold-cache statement; accepts and non-missing-code rejects are cache-independent for every hash-consistent cache (docs/evidence/lean-chunk-completion/w08-warm-cache/README.md) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-001",
       "owner": "L1",
       "question": "Must `Rel_D3` be cache-independent, and is the cold-cache statement the one the arena admits?",
       "why": "spec/near-chunk-validation-d3.md \u00a710.0 decision 1 fixes cold-cache; the signed challenge and successor API must state it. Gate B cannot claim 'every protocol-valid case' while a validator-cache parameter changes the verdict."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "on allFeatures only the preparation-pipeline race stays cache-dependent (e.code_prep_race); 279 e.code_cache corpus cases, 0 disagreements (open-uqs) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-002",
       "owner": "L1 + L7",
       "question": "Can `e.code_cache` be narrowed to rolled-back deploys (committed deploys are served by `ContractsTracker`)?",
       "why": "169 of 279 code-cache cases are cold-validator accepts; `contract.rs:104-131` makes a committed deploy deterministic. Narrowing needs a proof and a re-run."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "positive canonical NaN; 5,920 calls bit-identical x86_64/aarch64/Lean (open-uqs) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-003",
       "owner": "L2",
       "question": "Which NaN payload/sign semantics does the pinned Wasmtime produce, and is that stable across validator architectures?",
       "why": "Float types/ops are accepted at PV86 (`features.rs:47-59`); H3 in `docs/research/near-wasm-boundary.md` says canonical NaN sign on non-x86 is an assumption."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "PV86 uses the config stored at key 85; 32/32 crypto costs and flags agree (open-uqs) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-004",
       "owner": "L3",
       "question": "Are the curve host-function gas schedules fully pinned at PV86 (there is no `86.yaml`)?",
       "why": "`core/parameters/res/runtime_configs/` has 79/82/83/84/85.yaml and `parameters.snap`; the D3 spec says PV86 params are the 85 snapshot. Curve costs must come from the snapshot, not a 86 file."
     },
     {
+      "disposition": "resolved 2026-10-26",
+      "disposition_detail": "SHA3-256 ML-DSA-65 handle matches nearcore; 533 honest chunks and 3,886 mutants agree (mldsa-fixtures) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-005",
       "owner": "L3",
       "question": "Is the ML-DSA-65 trie key handle (SHA3-256 of the pubkey) part of the pinned claim/trie model?",
       "why": "`core/crypto/src/signature.rs:498-506`, `core/primitives/src/trie_key.rs:182,327` use `PublicKeyHandle::MlDsa65`; `D2/Types.lean:18` says the handle is not formalized."
     },
     {
+      "disposition": "resolved 2026-10-26",
+      "disposition_detail": "distribution receipts reach witnesses and are executed/routed, including across a split (global-cache-fixtures, resharding-fixtures-2) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-006",
       "owner": "L4",
       "question": "Which global-contract / state-init receipts can appear in `source_receipt_proofs` at PV86, and are `GlobalContractDistribution` receipts ever in a chunk witness?",
       "why": "`D2/Types.lean:15` models tag 4 as `w.shape`; `version.rs:553-562` gates distribution nonce at 83."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "LegacyEthWallet unreachable at PV86; 7/7 wallet hashes match; no whole-chunk magic-hash fixture (row L0-D3-006) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-007",
       "owner": "L4",
       "question": "Is the `LegacyEthWallet` branch still reachable at PV86 after `EthImplicitGlobalContract` (83), and which wallet hashes must be enumerated?",
       "why": "`contract_code.rs:56-76`: with `eth_implicit_global_contract` on, the legacy path becomes a `Global{eth_wallet_global_contract_hash(chain_id)}`."
     },
     {
+      "disposition": "resolved 2026-10-26",
+      "disposition_detail": "the first child chunk carries the Resharding transition; per-child congestion and retain_split_shard modelled and matched on 2,920 real-split witnesses (row L0-resharding) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-008",
       "owner": "L6",
       "question": "Which witness carries a resharding transition, and must `retain_split_shard` / child congestion info be modelled per child shard?",
       "why": "`chain_validation.rs:258-308` + `ImplicitTransitionParams::Resharding`; `D2/Queues.lean:327` already excludes out-of-layout buffers."
     },
     {
+      "disposition": "resolved 2026-10-26",
+      "disposition_detail": "mainnet goes PV84 -> PV86; a PV86 layout change is a V3 split (Successor/LayoutReach.lean) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-009",
       "owner": "L9 + L6",
       "question": "May a valid segment reference a PV85 epoch (a protocol-version activation boundary), and does the pinned target require both PV85 and PV86 runtime configs?",
       "why": "`ChunkValidationD2.lean:125,139` require pv=86 for every epoch; the claim table can contain a pre-activation epoch. `epoch_start_after` already models the boundary."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "checkD3/RelD3 is the statement of record; the parallel predicates were retired (owner map \u00a73.4 (d)); the witness-size domain bound was settled 2026-10-30 (maxWitnessChunk = 75,497,501) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-010",
       "owner": "L1",
-      "question": "Which predicate is the statement of record: `checkD3` (implementation) or `Wasm.DomainD3.noResharding`/`contractInD3\u03b1` (unused, and stricter on curve imports)?",
-      "why": "`DomainD3.lean:23,59` are not referenced by `checkD3`; `contractInD3\u03b1` rejects curve *imports* while the checker accepts them (P3). `noResharding_spec` is proved but disconnected."
+      "question": "Which predicate is the statement of record: `checkD3` (implementation) or the parallel domain predicates `noResharding`/`contractInD3\u03b1` (unused, and stricter on curve imports)?",
+      "why": "The parallel predicates were not referenced by `checkD3`; `contractInD3\u03b1` rejected curve *imports* while the checker accepts them (P3). `noResharding_spec` was proved but disconnected."
     },
     {
+      "disposition": "resolved for allFeatures 2026-10-26",
+      "disposition_detail": "c.segment, w.size (8 MiB) and c.layout lifted; nearcore's 64 MiB/48 MiB witness limits kept (gate-b-caps, size-limit-fixtures) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-011",
       "owner": "L1 + L8",
       "question": "Does Gate B require removing the arena claim-size bounds (`c.segment` 32 blocks, `w.size` 4 MB/8 MiB), or is a larger versioned claim format acceptable?",
       "why": "`ChunkValidationD2.lean:120,144,237`; `claim-v3.md` \u00a75 sets `max_claim_bytes` from these bounds. These are not validator conditions."
     },
     {
+      "disposition": "resolved for allFeatures 2026-10-26",
+      "disposition_detail": "gasCap := none; 1.8 Pgas chunks accept and match nearcore (gate-b-caps) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-012",
       "owner": "L1",
       "question": "Does Gate B require unbounded chunk function-call gas (segmented proof), or is a stated `G_\u03b1` capacity contract acceptable?",
       "why": "`G_\u03b1` is a prover table bound; 1,010 corpus chunks exceed it and nearcore accepts them. The plan says 'every protocol-valid case'."
     },
     {
+      "disposition": "resolved 2026-10-30 by user decision",
+      "disposition_detail": "admission contract A1: the verifier rebuilds the claim's trusted section from its own chain state and requires byte identity (open-uqs) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-013",
       "owner": "L8",
       "question": "What admission contract binds the trusted facts (`chain_id`, validators, `minimum_stake`, `tx_valid`, RS params, `genesis_chunk_extra`) to the verifier's own chain state?",
       "why": "`claim-v3.md` \u00a72.4 T3/T4/T8/T10/T11/T13/T14 are outside `Rel`; a proof alone is not meaningful."
     },
     {
+      "disposition": "open",
+      "disposition_detail": "Wasmtime LoadingError/WasmUnknownError/resource LinkError branches at PV86: proof owed (L7) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-014",
       "owner": "L7",
       "question": "Are the Wasmtime `LoadingError` / `WasmUnknownError` / resource `LinkError` branches (H2/H9/H10) truly absent at PV86, or must they be modelled?",
       "why": "`docs/research/near-wasm-boundary.md` \u00a78 H2/H9/H10 assume them absent; `Prepare.lean` models only `LinkError` and compile errors."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "the signed bound is sound; allFeatures does not use it (open-uqs; row L0-D2-040) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-015",
       "owner": "L5",
       "question": "Is `\u03a3|values| + 2000\u00b7R \u2264 4 000 000` a sound upper bound on `recorded_storage_size_upper_bound` when contract-storage removals are present?",
       "why": "`ChunkValidationD2.lean:235-237`; the D3 spec marks the inequality unverified. PV86 enforces the per-receipt limit (`version.rs:576`, `lib.rs:838-845`, `recorded_storage_counter.rs:27`)."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "no action-log entry reaches the unmodeled exclusion on whole-state tiers (open-uqs) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-016",
       "owner": "L4",
       "question": "Is the mock action log equivalent to nearcore's `ReceiptManager` for every reachable promise/yield/gas-key shape, or does it silently OOD a valid shape?",
       "why": "`D3/FunctionCall.lean:88-220` parses the oracle's `MAct.text`; tags it cannot parse become OOD (`:153,176,219,328`). No corpus case exercises an unparsed tag, so the gap is unmeasured."
     },
     {
+      "disposition": "resolved 2026-10-29",
+      "disposition_detail": "genesis main transition uses the non-genesis comparison set; 266/266 genesis-main chunks agree (row L0-genesis-main-transition) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-017",
       "owner": "L9",
       "question": "For the genesis main transition, which header comparisons apply and is `tx_valid` all-1?",
