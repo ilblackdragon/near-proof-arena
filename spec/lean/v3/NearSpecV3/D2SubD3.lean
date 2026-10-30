@@ -1,5 +1,7 @@
 import NearSpecV3.D2SubD3.WasmGas
 import NearSpecV3.Successor.TierHooks
+import NearSpecV3.ChunkValidationD1a
+import NearSpecV3.D0SubD1
 
 /-!
 # D2 ⊂ D3 (`relD2_relD3 : RelD2 cb w → RelD3 cb w`)
@@ -100,5 +102,21 @@ theorem relD2_relD3 (c w : Bytes) (h : RelD2 c w) : D3.RelD3 c w := by
 /-- info: 'NearSpecV3.Successor.relD2_relD3' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms relD2_relD3
+
+
+/-! ## The ladder, and what `WitnessLift` now reduces to
+
+`D0 ⊂ D1` (`relD0_relD1`) and `D2 ⊂ D3` (`relD2_relD3`) are proved, `D1a ⊂ D1` is a projection
+(`relD1a_relD1`). The one missing rung is `D1 ⊂ D2`. `WitnessLift B cb w := RelD1a B cb w →
+∃ w2, RelD3 cb w2` (`zk-formal/ZkFormal/PQ/Join/Coverage.lean`) therefore follows, with the identity
+witness `w2 = w`, from that rung alone: -/
+
+theorem relD1a_relD3_of_d1_d2 (hd12 : ∀ cb w, RelD1 cb w → RelD2 cb w) {B : Nat} {cb w : Bytes}
+    {W Dp N : Nat} (h : RelD1a B cb w W Dp N) : D3.RelD3 cb w :=
+  relD2_relD3 cb w (hd12 cb w (relD1a_relD1 h))
+
+theorem relD0_relD3_of_d1_d2 (hd12 : ∀ cb w, RelD1 cb w → RelD2 cb w) (cb w : Bytes)
+    (h : RelD0 cb w) : D3.RelD3 cb w :=
+  relD2_relD3 cb w (hd12 cb w (relD0_relD1 cb w h))
 
 end NearSpecV3.Successor
