@@ -27,7 +27,7 @@ one returns exactly the same result. `Tier.verdict_of_refines` is the verdict-le
 |---|---|---|---|
 | O1 | floats | **proved at every configuration** (2026-10-30: the whole-state engine too, §5) | `Lift.floats` (`TierWholeWalk.lean`), `Lift.floats_legacy`, `relSuccessor_floats_mono`, `relSuccessor_protoGas_floatsProtoGas`, `relSuccessor_genesis_genesisFloatsProtoGas` |
 | O2 | curve hosts | **proved at every whole-state configuration** (2026-10-30, third session, §7) | `Lift.curveHosts`, `relSuccessor_storageResolution_curveHosts`, `relSuccessor_globalActions_curve` (`TierO2.lean`) |
-| O3 | global actions | open. Components proved (§7): interpreter two-run host call, decoder agreement on keys and base actions, D2 exclusions on every newly accepted shape, manager/`finishActs` agreement, queue target. Open: delegate/transaction re-serialization, the lower run's invariant, the engine walk with `ga` differing (§7) | `callHost_RR_global` (`HostCommStep.lean`); `TierO3.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
+| O3 | global actions | open. Proved (§7, §8): interpreter two-run host call; the lower run's invariant over every host arm and run (`LowQ`); call level (`runCall_globalG`, `vmF_global`, `vmCall_lowQ`, `lineOutcome_XG`); decoder agreement on keys, base actions, delegate actions and transactions (`pActGlobal_of_pAct`, `pTxD2Global_of_pTxD2`); D2 exclusions on every newly accepted shape; manager/`finishActs` agreement; queue target. Open: stored-receipt decoder agreement, the engine walk with `ga` differing (needs a state relation on the pipeline, §8), driver fields, `Lift` under the well-formed-layout hypothesis | `callHost_RR_global` (`HostCommStep.lean`); `globalHyp` (`HostQStep.lean`); `TierO3.lean`, `TierO3Call.lean`, `TierO3Codec.lean`; routing: `recorderDriver_receiptShard_globals`, `recorderDriver_outgoingRoot_globals` (`TierMono.lean`) |
 | O4 | storage resolution | open | — |
 | O5 | loading limits | **discharged for the named tiers**: every tier sets the flag, so no named pair differs in it | `Tier.cfg_loadingLimits`, `runtimeLimits_cfg_eq`, `relSuccessor_runtimeLimits_mono`, `relSuccessor_signed_runtimeLimits` |
 | O6 | resharding, non-genesis | open | — |
@@ -463,3 +463,97 @@ Two ways to handle it in the statement. I have done neither, because each needs 
   successor shells only).
 * **Hypothesis:** state O3's `Lift` for claims whose layouts are well formed. This needs no
   definition change, but the refinement is then conditional.
+
+## 8. Update 2026-10-30 (fourth session): O3 steps 1–3, the layout decision, and what remains
+
+No definition was changed; every new module is a proof module and a default `lake build` target.
+No `sorry`. Axioms: only `propext`, `Classical.choice`, `Quot.sound` (`axioms-o3.txt`, 17 `#print axioms`). Full default build: 404 jobs, ok. `make pin-check` ok.
+
+### Layout well-formedness: the hypothesis route (integrator decision)
+
+O3's refinement is to be stated for claims whose layouts are well formed:
+`shard_ids.length = boundary_accounts.length + 1` for every layout in the claim. Justification:
+nearcore's `ShardLayout` V2/V3 constructors assert exactly this invariant
+(`core/primitives/src/shard_layout/v2.rs:63,207`, `v3.rs:100,211` at the pin
+`/data/illia/nearproof-deps/nearcore`), so an honest epoch config never carries another layout. The
+layout is a trusted claim fact, and under admission contract A1 (UQ-013) an admitted claim's trusted
+section is rebuilt byte-identically from the verifier's own chain state, so a malformed layout cannot
+occur in an admitted claim. No checker definition changes. (Not yet used in a proof: the `Lift`
+statement is step 6 below.)
+
+### Step 1 (proved): the lower run's invariant
+
+`LowQ s`: `s.globalActions = false`, `s.real.isSome`, and no raw action in `s.actions`.
+
+* `HostQ.lean` (generated, `gen/gen_hostq.py`): the `setF` commutation proofs of `HostCommStep.lean`
+  with the map `setX x` (action log, store, flag taken from `x`). Every non-call instruction commutes
+  with it (`X_exec`); read at `x := s` this says those instructions keep the three fields.
+* `HostQArms.lean` (generated, `gen/gen_hostq_arms.py`): `FuelHost.lean`'s `HOR` walk with `LowQ`,
+  errors included (`HQ x`: from a `LowQ` state, the final state of `x`, value or error, is `LowQ`),
+  over the 65 `hostCall` arms outside `globalPromiseHosts` and the 14 curve arms. The ten lifted arms
+  are not needed: on a trie-backed state with the flag off `callHost` excludes every `realOodHosts`
+  name before dispatch. Summaries `HQ_hostCall`, `HQ_cryptoHostCall`, `HQ_dispatchArm`.
+* `HostQStep.lean`: `QRes_callHost`, `QRes_exec`, `QRes_step`, `QRes_run`, `LowQ_callEntry`, and O3's
+  per-call hypothesis `globalHyp : CallHyp XG none (some true) LowQ`.
+
+### Step 2 (proved): the call level
+
+`TierO3Call.lean`: `instantiate_ga` (instantiation commutes with the flag; `instLoops_F` is generic),
+`instantiate_eq_instX` (the instantiated state carries the configuration's flag and an empty log),
+`runCall_globalG` / `runCallWithLimits_globalG` (on a trie-backed call with the flag off, the upper
+call is the lower one with the flag set in its final state, or the lower call stopped at one of the
+ten lifted names; and the lower call's final state is `LowQ`), `lineOutcome_XG` (the ten lines are
+exclusions), `vmF_global` (`VmF XG (setF none (some true))` for the recorded call's `vm`) and
+`vmCall_lowQ` (so `managerGlobal_eq_manager` applies to the lower log).
+
+### Step 3 (proved): borsh round trip
+
+`TierO3Codec.lean`: `Enc p enc` (a parser's input is its value's encoding followed by the rest) for
+the borsh primitives, keys, nonces, signatures, `pVec`, `pOption`, the delegate body, `D2.pBaseAct`
+and `D2.pAct`; `Suf` (some prefix) for `pPerm`, `pAK`, `pBase`; `consumed_append`
+(`consumed (a ++ b) b = a`). **`pActGlobal_of_pAct`**: where `D2.pAct` decodes, base or delegate,
+`pActGlobal` decodes the same action and rest (the rebuilt payload and raw bytes are the consumed
+ones). **`pTxD2Global_of_pTxD2`**: the same for transactions, v0 and v1, body and raw included.
+Engineering note: `do` blocks whose bound computation is an `if` elaborate with the continuation
+copied into every branch, so `split`/`simp` on a whole transaction parser exhaust their step limits;
+the walk instead fixes each branch with `if_pos`/`if_neg` on hypothesis and goal together and
+rewrites each bind by `bind_of_ok`.
+
+### What remains, in order (next steps)
+
+4. **Stored-receipt decoder agreement.** `decodeStoredRcpt b w = .ok r → decodeStoredRcptGlobal b w = .ok r`,
+   and every D2 error is either an exclusion or the same `inconsistent w` the global one returns.
+   Needs `pRcptGlobal_of_pRcpt` (`pActionR` vs `pActionRGlobal`: `pVec pAct` by `pVec_congr` and
+   `pActGlobal_of_pAct`, keys by `pPkGlobal_of_pPk`), then `decodeStoredGlobal` vs `decodeStored`
+   (`StateStoredReceipt` wrapper) and the witness decoders (`decodeStateWitnessWith` over
+   `pRcptGlobal`/`pTxD2Global`, the `decodeWitness` driver field).
+5. **Engine walk with `ga` differing.** Two facts found while setting it up change its shape:
+   * *The pipeline state diverges.* `Pipeline.handle` and `peekDelayed` decode stored receipts with the
+     active codec and set `uncertain := true` on an error. Where the D2 codec excludes (an ML-DSA key
+     or a global action in a postponed, yield or delayed receipt) the lower run's pipe becomes
+     `uncertain` while the upper run's does not, and the two pipes then evolve differently. Equal-state
+     `MRef` cannot hold. The relation needed is `R rL rU := rL = {rU with pipe := rL.pipe} ∧
+     (rL.pipe = rU.pipe ∨ rL.pipe.uncertain = true)`: nothing resets `uncertain`, and the engine reads
+     the pipe only through `deterministic` (false once uncertain, so the lower resolution gives the
+     same code, `missingCode`, or `raceExclusion`, an exclusion) and `next` (which only steers pipe
+     updates). This is a refinement in the right direction (the lower run excludes more), not a
+     nearcore disagreement. `get` returns the whole state, so the walk needs a `get`-bind lemma that
+     substitutes `rU = {rL with pipe := q}` and rewrites field reads.
+   * *`finishActs` errors are `unmodeled: …`, not exclusions.* The recorded-call lemma is a
+     refinement up to exclusion-or-`unmodeled` errors; `applyAction`'s `try … catch` turns the latter
+     into exclusions (`unmodeledHandler_ex`), so the walk must enter the recorded call through that
+     catch, not through `RecRefine`.
+   Remaining `ga` reads: `applyGlobal` (lower throws `w.shape`), `processReceipt` distribution (lower
+   throws `oodGcd`), `forwardOrBufferR`/`yieldLoop`/`emitReceipts` (receipts the lower run forwards are
+   never distribution receipts: `rcptIsDistribution` invariant of action outputs needed),
+   `delayPopR`/`forwardFromBufferR`/`decodeStoredRcptR` (step 4 plus `globalTarget_of_not_distribution`
+   with the layout hypothesis), `pipeDecode`/`scheduleDelayed` (the pipe relation).
+6. **Driver fields and `Lift`.** `decodeWitness` (step 4), `validateRouting` and `receiptShard` /
+   `outgoingRoot` on non-distribution receipts (`TierMono`), then
+   `Lift`-under-hypothesis for `.storageResolution ⊑ .globalActions` and
+   `Lift (Tier.cfg .resharding) {… with globalActions := true}` (the hypothesis of
+   `relSuccessor_resharding_allFeatures_of`), with `LayoutsWF c` (every layout of the decoded claim
+   has `shardIds.length = boundaries.length + 1`) as hypothesis; the shells must carry it to the
+   engine's `env.ctx.layout` (as O7 carried store authentication, `ApplyRefineA`).
+
+No refinement was found false on a real chunk; no nearcore replay was needed.
