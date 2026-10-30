@@ -189,6 +189,81 @@ def cmd_ablate(a):
     a.out.write_text(json.dumps(res, indent=1, sort_keys=True) + "\n")
 
 
+GUARD_ROWS = {
+    # first-failing `check` message on allFeatures -> coverage row (l0_guard_mutants.py targets)
+    "invalid: empty chain segment": "L0-D2-006",
+    "invalid: epoch table not strictly ascending": "L0-D2-007",
+    "invalid: epoch table does not match epoch_id / protocol_version": "L0-D2-010",
+    "invalid: epoch_start_after length": "L0-D2-016",
+    "invalid: epoch_start_after flag": "L0-D2-017",
+    "invalid: segment does not start at prev_block_hash": "L0-D2-021",
+    "invalid: segment is not hash-linked": "L0-D2-022",
+    "invalid: genesis_chunk_extra for a non-genesis main block": "L0-D2-028",
+    "invalid: apply_facts length": "L0-D2-030",
+    "invalid: validator_update does not match the epoch start": "L0-D2-031",
+    "invalid: tx_valid length": "L0-D2-037",
+    "decode: Not all bytes read": "L0-D2-057",
+}
+
+
+def row_of(target):
+    kind, _, v = target.partition(":")
+    if kind == "host":
+        return f"L0-host-{v}"
+    if kind == "act":
+        return f"L0-action-{int(v.lstrip('D')):02d}"
+    if kind == "guard":
+        return GUARD_ROWS.get(v)
+    return None
+
+
+WHAT = {"host": "the arm burns 1 extra gas before it runs",
+        "act": "the action reports 1 extra gas burnt and used",
+        "guard": "the failing check passes"}
+
+
+def short(c):
+    p = Path(c)
+    return "/".join(p.parts[-3:])
+
+
+def cmd_evidence(a):
+    m = {}
+    for p in a.map:
+        m.update(json.loads(p.read_text()))
+    abl = {}
+    for p in a.ablate:
+        abl.update(json.loads(p.read_text()))
+    rows = {}
+    for t, ent in sorted(m.items()):
+        rid = row_of(t)
+        if rid is None or t not in abl or not abl[t].get("cases"):
+            continue
+        x = abl[t]
+        kind = t.split(":")[0]
+        src = ("claim-v3 mutants from tools/d3/l0_guard_mutants.py over honest corpus chunks "
+               "(d3c7-d3c10), each rejected first by this guard" if kind == "guard" else
+               "observation trace of the control build over the corpus sample, census and fixture "
+               "families; verdicts identical to the default checker")
+        rows[rid] = {
+            "target": t,
+            "exercising": {"nearcore_accept": len(ent["accept"]), "nearcore_reject": len(ent["reject"]),
+                           "source": src,
+                           "examples": [short(c) for c in (ent["accept"][:2] + ent["reject"][:2])]},
+            "control": {"target": t, "what": WHAT[kind], "cases": x["cases"],
+                        "baseline": x["baseline"].get("status"),
+                        "ablated_disagreements": x["ablated"].get("disagreements", 0),
+                        "ablated_verdicts": x["ablated"].get("verdicts"),
+                        "binary_sha256": x["ablated"].get("binary_sha256"),
+                        "case_list": [short(c) for c in x["case_list"]]},
+        }
+    doc = json.loads(a.out.read_text()) if a.out.exists() else {}
+    doc.update(schema="l0-row-validation-v1", rows=rows)
+    a.out.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    det = sum(1 for r in rows.values() if r["control"]["ablated_disagreements"] > 0)
+    print(f"{len(rows)} rows with evidence, {det} with a detecting control")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -215,8 +290,13 @@ def main():
     b.add_argument("--k-reject", type=int, default=4, help="nearcore-rejected exercising cases per row")
     b.add_argument("--jobs", type=int, default=4)
     b.add_argument("--force", action="store_true")
+    e = sp.add_parser("evidence")
+    e.add_argument("--map", type=Path, nargs="+", required=True)
+    e.add_argument("--ablate", type=Path, nargs="+", required=True)
+    e.add_argument("--out", type=Path, required=True)
     a = ap.parse_args()
-    return {"trace": cmd_trace, "identity": cmd_identity, "map": cmd_map, "ablate": cmd_ablate}[a.cmd](a) or 0
+    return {"trace": cmd_trace, "identity": cmd_identity, "map": cmd_map, "ablate": cmd_ablate,
+            "evidence": cmd_evidence}[a.cmd](a) or 0
 
 
 if __name__ == "__main__":
