@@ -1029,6 +1029,8 @@ struct Lane {
     anchors_used: Vec<String>,
     log: Vec<serde_json::Value>,
     iterations: u32,
+    /// Seed-derived XOR on the pad fill byte (storage-limits honours `--seed`).
+    fill_xor: u8,
 }
 
 const A_OFF: u64 = 3;
@@ -1040,7 +1042,8 @@ impl Lane {
     fn new(kind: LaneKind, start: u64) -> Self {
         let hi = if kind == LaneKind::Receipt { RECEIPT_RANGE } else { SOFT_RANGE };
         Lane { kind, phase: Phase::Search, lo: 0, hi, lo_seen: false, hi_seen: false, at: None, rm_lo: 0, rm_hi: 0,
-               rm_at: None, start, current: None, pending: None, anchors_used: vec![], log: vec![], iterations: 0 }
+               rm_at: None, start, current: None, pending: None, anchors_used: vec![], log: vec![], iterations: 0,
+               fill_xor: 0 }
     }
 
     fn acct(&self) -> &'static str {
@@ -1066,7 +1069,7 @@ impl Lane {
     fn probe(&self, label: &str, t: u32, progs: Vec<Prog>, n_b: usize) -> Probe {
         let me = self.acct();
         let lane = if self.kind == LaneKind::Receipt { "receipt" } else { "soft" };
-        let fill = if self.kind == LaneKind::Receipt { 0xC1 } else { 0xC2 };
+        let fill = (if self.kind == LaneKind::Receipt { 0xC1u8 } else { 0xC2u8 }) ^ self.fill_xor;
         let set = Some(run_tx(format!("successor.storage-limits.{lane}.set-pad.t{t}"), me, me, Prog::default().w(b"pad", fill, t)));
         let b = (0..n_b)
             .map(|i| run_tx(format!("successor.storage-limits.{lane}.{label}.incoming{i}.t{t}"), self.src(), me,
@@ -1237,18 +1240,36 @@ const START: u64 = 10004;
 
 impl Driver {
     pub fn new() -> Self {
-        let (fixed, lanes) = match scenario() {
+        Self::with_seed(None)
+    }
+
+    /// The scenario driver for a chain with generator seed `seed`. Only `storage-limits` uses it:
+    /// the scenario is a quiet chain whose schedule is otherwise a pure function of the heights, so
+    /// every seed produced byte-identical chains. With a seed, its start height moves by
+    /// `seed % 5` blocks (which moves every probe across epoch and chunk boundaries) and the pad
+    /// fill byte is XORed with `(seed / 5) % 16`, so the recorded values differ. `None` (and every
+    /// other scenario) keeps the previous behaviour.
+    pub fn with_seed(seed: Option<u64>) -> Self {
+        let (shift, fill_xor) = match (scenario(), seed) {
+            (Some(Scenario::StorageLimits), Some(s)) => (s % 5, ((s / 5) % 16) as u8),
+            _ => (0, 0),
+        };
+        let start = START + shift;
+        let (fixed, mut lanes) = match scenario() {
             Some(Scenario::Yield) => (yield_schedule(), vec![]),
             Some(Scenario::FuelStress) => (fuel_schedule(), vec![]),
             Some(Scenario::EvalTime) => (eval_schedule(), vec![]),
             Some(Scenario::StorageLimits) => (storage_misc_schedule(),
-                vec![Lane::new(LaneKind::Receipt, START), Lane::new(LaneKind::Soft, START)]),
+                vec![Lane::new(LaneKind::Receipt, start), Lane::new(LaneKind::Soft, start)]),
             Some(Scenario::GateBCaps) => (gateb_schedule(), vec![]),
             Some(Scenario::EvalLoops) => (eval2_schedule(), vec![]),
             Some(Scenario::CodeResponse) => (cr_schedule(), vec![]),
             _ => (vec![], vec![]),
         };
-        Driver { start: START, fixed, lanes, submitted: vec![] }
+        for l in lanes.iter_mut() {
+            l.fill_xor = fill_xor;
+        }
+        Driver { start, fixed, lanes, submitted: vec![] }
     }
 
     fn tx(&mut self, w: &mut World, s: &Setup, bh: &CryptoHash, height: u64, x: &Sched) -> Option<(String, SignedTransaction)> {
